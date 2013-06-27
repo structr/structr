@@ -20,6 +20,8 @@ package org.structr.web.entity.dom;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.text.NumberFormat;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -28,6 +30,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
@@ -61,6 +64,7 @@ import org.structr.core.property.EntityProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.web.common.Function;
 import org.structr.core.entity.LinkedTreeNode;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.search.StringSearchAttribute;
 import org.structr.core.property.CollectionIdProperty;
@@ -69,7 +73,6 @@ import org.structr.core.property.PropertyMap;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.ThreadLocalMatcher;
 import org.structr.web.entity.Renderable;
-import org.structr.web.entity.User;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.DocumentFragment;
@@ -324,11 +327,12 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 			@Override
 			public String apply(String[] s) {
 
-				Double result = 0.0d;
 
-				if (s != null) {
+				if (s != null && s.length > 0) {
 
-					for (int i = 0; i < s.length; i++) {
+					Double result = Double.parseDouble(s[0]);
+
+					for (int i = 1; i < s.length; i++) {
 
 						try {
 
@@ -338,9 +342,11 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 					}
 
+					return new Double(result).toString();
 				}
+				
+				return "";
 
-				return new Double(result).toString();
 
 			}
 
@@ -418,6 +424,38 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 				return new Double(result).toString();
 
+			}
+
+		});
+		functions.put("number_format", new Function<String, String>() {
+
+			@Override
+			public String apply(String[] s) {
+
+				String result = "";
+				String errorMsg = "<strong>ERROR! Usage: ${number_format(value, ISO639LangCode, pattern)}. ex:${number_format(12345.6789, 'en', '#,##0.00')} For more infos about patterns <a href='http://docs.oracle.com/javase/6/docs/api/java/text/DecimalFormat.html'>refer to the documentation</a><strong>";
+
+				if (s != null && s.length == 3) {
+
+					try {
+
+						Double val = Double.parseDouble(s[0]);
+						String langCode = s[1];
+						String pattern = s[2];
+
+						NumberFormat formatter = DecimalFormat.getInstance(new Locale(langCode));
+						((DecimalFormat) formatter).applyLocalizedPattern(pattern);
+						result = formatter.format(val);
+
+					} catch (Throwable t) {
+						result = errorMsg;
+					}
+
+				} else {
+					result = errorMsg;
+				}
+
+				return result;
 			}
 
 		});
@@ -761,7 +799,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 			// special keyword "me"
 			if ("me".equals(part.toLowerCase())) {
 
-				User me = (User) securityContext.getUser(false);
+				Principal me = (Principal) securityContext.getUser(false);
 
 				if (me != null) {
 		

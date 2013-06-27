@@ -19,7 +19,6 @@
 
 package org.structr.web.resource;
 
-import org.apache.commons.codec.binary.Base64;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -31,13 +30,13 @@ import org.structr.rest.resource.Resource;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.security.SecureRandom;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringUtils;
+import org.structr.core.entity.Principal;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.User;
@@ -82,7 +81,7 @@ public class LoginResource extends Resource {
 		
 		if (StringUtils.isNotEmpty(emailOrUsername) && StringUtils.isNotEmpty(password)) {
 			
-			User user = (User) securityContext.doLogin(emailOrUsername, password);
+			Principal user = (Principal) securityContext.doLogin(emailOrUsername, password);
 
 			if (user != null) {
 				

@@ -125,14 +125,18 @@ var Command = {
      * Send an SEARCH command to the server.
      * 
      * The server will search for nodes containing the
-     * search string in their name, or being their id
+     * search string in their name, or being their id.
+     * 
+     * If type is given, the search will be filtered to nodes
+     * of that type.
      * 
      */
-    search: function(searchString) {
+    search: function(searchString, type) {
         var obj = {};
         obj.command = 'SEARCH';
         var data = {};
-        data.searchString = searchString
+        data.searchString = searchString;
+        data.type = type;
         obj.data = data;
         //console.log('search()', obj);
         return sendObj(obj);

@@ -406,6 +406,8 @@ StructrFolder.prototype.remove = function() {
     var folder = this;
     var parentFolder = StructrModel.obj(folder.parent.id);
     var parentFolderEl = Structr.node(parentFolder.id);
+    
+    if (!parentFolderEl) return;
 
     parentFolder.folders = removeFromArray(parentFolder.folders, folder);
 

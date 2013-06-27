@@ -218,6 +218,8 @@ var _Images = {
         div = Structr.node(img.id);
         
         var tn = '/structr/img/ajax-loader.gif';
+        
+        if (!images) return;
             
         //var tn = '/' + img.tnSmall.id;
         images.append('<div id="id_' + img.id + '" class="node image">'
@@ -480,6 +482,8 @@ var _Images = {
             parentElement = files;
             cls = 'file';
         }
+        
+        if (!parentElement) return;
 
         var folder = Structr.node(folderId);
         var file = Structr.node(fileId, folderId);
@@ -487,7 +491,7 @@ var _Images = {
         log(file, folder);
         
         _Entities.resetMouseOverState(file);
-        
+
         parentElement.append(file);
         
         $('.delete_icon', file).replaceWith('<img title="Delete ' + cls + ' ' + fileId + '" '

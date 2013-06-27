@@ -39,15 +39,24 @@ var _Dashboard = {
         searchField = $('.search', main);
         searchField.focus();
         searchField.keyup(function(e) {
-            var searchString = $(this).val();
-            if (searchString && searchString.length && e.keyCode === 13) {
+            var rawSearchString = $(this).val();
+            var searchString = rawSearchString;
+            
+            var type;
+            var posOfColon = rawSearchString.indexOf(':');
+            if (posOfColon > -1) {
+                type = rawSearchString.substring(0, posOfColon);
+                type = type.capitalize();
+                searchString = rawSearchString.substring(posOfColon+1, rawSearchString.length); 
+            }
+            if (searchString && searchString.length && e.which === 13) {
 
                 $('.clearSearchIcon').show().on('click', function() {
                     _Crud.clearSearch(main);
                 });
-                Command.search(searchString);
+                Command.search(searchString, type);
 
-            } else if (e.keyCode === 27 || searchString === '') {
+            } else if (e.which === 27 || rawSearchString === '') {
                 _Dashboard.clearSearch();
             }
         });

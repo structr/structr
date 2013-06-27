@@ -117,6 +117,28 @@ var _Entities = {
             });
         });
 
+        dialogText.append('<div class="' + entity.id + '_"><button class="switch disabled hideOnEdit_">Hide element in edit mode</button>Element is visible in non-edit mode</div>');
+        var hideOnEditSwitch = $('.hideOnEdit_');
+        _Entities.changeBooleanAttribute(hideOnEditSwitch, entity.hideOnEdit);
+        hideOnEditSwitch.on('click', function(e) {
+            e.stopPropagation();
+            entity.setProperty('hideOnEdit', hideOnEditSwitch.hasClass('disabled'), false, function() {
+                _Entities.changeBooleanAttribute(hideOnEditSwitch, entity.hideOnEdit);
+                blinkGreen(hideOnEditSwitch);
+            });
+        });
+
+        dialogText.append('<div class="' + entity.id + '_"><button class="switch disabled hideOnNonEdit_">Hide element in non-edit mode</button>Element is visible in edit mode</div>');
+        var hideOnNonEditSwitch = $('.hideOnNonEdit_');
+        _Entities.changeBooleanAttribute(hideOnNonEditSwitch, entity.hideOnNonEdit);
+        hideOnNonEditSwitch.on('click', function(e) {
+            e.stopPropagation();
+            entity.setProperty('hideOnNonEdit', hideOnNonEditSwitch.hasClass('disabled'), false, function() {
+                _Entities.changeBooleanAttribute(hideOnNonEditSwitch, entity.hideOnNonEdit);
+                blinkGreen(hideOnNonEditSwitch);
+            });
+        });
+
         dialog.append('<div><h3>Data Key</h3><p>Query results are mapped to this key and can be accessed by ${dataKey.propertyKey}</p><input type="text" id="dataKey" value="' + (entity.dataKey ? entity.dataKey : '') + '"><button id="saveDataKey">Save</button></div>');
         $('#saveDataKey', dialog).on('click', function() {
             entity.setProperty('dataKey', $('#dataKey', dialog).val(), false, function() {

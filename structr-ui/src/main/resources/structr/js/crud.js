@@ -892,6 +892,7 @@ var _Crud = {
     },
 
     crudUpdateObj : function(id, json, onSuccess, onError) {
+        //console.log('crudUpdateObj URL:', rootUrl + id, headers);
         //console.log('crudUpdateObj JSON:', json);
         $.ajax({
             url: rootUrl + id,
@@ -964,7 +965,12 @@ var _Crud = {
 
     crudUpdate : function(id, key, newValue, onSuccess, onError) {
         var url = rootUrl + id;
-        var json = '{"' + key + '":"' + newValue.escapeForJSON() + '"}';
+        var json;
+        if (!newValue || newValue === '') {
+            json = '{"' + key + '":null}';
+        } else {
+            json = '{"' + key + '":"' + newValue.escapeForJSON() + '"}';
+        }
         console.log('crudUpdate', headers, url, json);
         $.ajax({
             url: url,
@@ -1450,7 +1456,20 @@ var _Crud = {
         
         var view = _Crud.view[_Crud.type];
         
-        var types = type ? [ type ] : _Crud.types;
+        //var types = type ? [ type ] : _Crud.types;
+        var types;
+        var posOfColon = searchString.indexOf(':');
+        if (posOfColon > -1) {
+            var type = searchString.substring(0, posOfColon);
+            if (!type.endsWith('s')) {
+                type = type + 's';
+            }
+            types = [ type.capitalize() ];
+            searchString = searchString.substring(posOfColon+1, searchString.length); 
+            //console.log('filter search type', types, searchString);
+        } else {
+            types = type ? [ type ] : _Crud.types;
+        }
         
         $.each(types, function(t, type) {
             var url = rootUrl + _Crud.restType(type) + '/' + view + _Crud.sortAndPagingParameters(type, 'name', 'asc', pageSize, 1) + '&name=' + searchString + '&loose=1';
@@ -1494,7 +1513,7 @@ var _Crud = {
 
     displayName : function(node) {
         var displayName;
-        if (node.type === 'Content') {
+        if (node.type === 'Content' && node.content) {
             //displayName = $(node.content).text().substring(0, 100);
             displayName = escapeTags(node.content.substring(0, 100));
         } else {
@@ -1578,7 +1597,7 @@ var _Crud = {
                         //console.log(obj, ' equals ', relatedObj);
                         if (!_Crud.equal(obj, relatedObj)) {
                             //console.log('not equal');
-                            objects.push(obj.id);
+                            objects.push({'id':obj.id});
                         }
                     });
                     
@@ -1662,11 +1681,11 @@ var _Crud = {
                 success: function(data) {
                     //console.log(data.result[key]);
                     $.each(data.result[key], function(i, node) {
-                        objects.push(node.id); 
+                        objects.push({'id':node.id}); 
                     });
 
                     if (!isIn(relatedObj.id, objects)) {
-                        objects.push(relatedObj.id);
+                        objects.push({'id':relatedObj.id});
                     }
                     var json = '{"' + key + '":' + JSON.stringify(objects) + '}';
                     //console.log(headers, url, json);

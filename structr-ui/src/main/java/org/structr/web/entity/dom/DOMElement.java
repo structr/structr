@@ -131,6 +131,8 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	public static final Property<Boolean> renderDetails           = new BooleanProperty("renderDetails");
 	public static final Property<Boolean> hideOnIndex             = new BooleanProperty("hideOnIndex");
 	public static final Property<Boolean> hideOnDetail            = new BooleanProperty("hideOnDetail");
+	public static final Property<Boolean> hideOnEdit              = new BooleanProperty("hideOnEdit");
+	public static final Property<Boolean> hideOnNonEdit           = new BooleanProperty("hideOnNonEdit");
 
 	public static final Property<String> _title                   = new HtmlProperty("title");
 	public static final Property<String> _tabindex                = new HtmlProperty("tabindex");
@@ -212,7 +214,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	);
 	
 	public static final org.structr.common.View uiView            = new org.structr.common.View(DOMElement.class, PropertyView.Ui, name, tag, pageId, path, parent, childrenIds, owner,
-										restQuery, cypherQuery, xpathQuery, partialUpdateKey, dataKey, syncedNodes, renderDetails, hideOnIndex, hideOnDetail,
+										restQuery, cypherQuery, xpathQuery, partialUpdateKey, dataKey, syncedNodes, renderDetails, hideOnIndex, hideOnDetail, hideOnEdit, hideOnNonEdit,
 										_accesskey, _class, _contenteditable, _contextmenu, _dir, _draggable, _dropzone, _hidden, _id, _lang, _spellcheck, _style,
 										_tabindex, _title, _onabort, _onblur, _oncanplay, _oncanplaythrough, _onchange, _onclick, _oncontextmenu, _ondblclick,
 										_ondrag, _ondragend, _ondragenter, _ondragleave, _ondragover, _ondragstart, _ondrop, _ondurationchange, _onemptied,
@@ -354,6 +356,18 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 				GraphObject details = renderContext.getDetailsDataObject();
 				boolean detailMode = details != null;
 
+				if (edit && subNode.getProperty(hideOnEdit)) {
+					continue;
+				}
+
+				if (!edit && subNode.getProperty(hideOnNonEdit)) {
+					continue;
+				}
+
+				if (detailMode && subNode.getProperty(hideOnDetail)) {
+					continue;
+				}
+
 				if (!detailMode && subNode.getProperty(hideOnIndex)) {
 					continue;
 				}
@@ -374,6 +388,11 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 					List<GraphObject> listData = ((DOMElement) subNode).checkListSources(securityContext, renderContext);
 					
 					PropertyKey propertyKey = null;
+	
+					String typeForCreateButton = null;
+					String sourceId = null;
+					String sourceType = null;
+					String relatedProperty = null;
 					
 					if (subNode.getProperty(renderDetails) && detailMode) {
 						
@@ -394,10 +413,19 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 							if (elements != null) {
 								
 								if (elements instanceof Iterable) {
+									
+									int i=0;
 
 									for (Object o : (Iterable)elements) {
 
 										if (o instanceof GraphObject) {
+											
+											// In edit mode, render a create button
+											if (i==0 && edit && o instanceof AbstractNode) {
+												typeForCreateButton = ((AbstractNode) o).getType();
+											}
+											
+											i++;
 
 											GraphObject graphObject = (GraphObject)o;
 											renderContext.putDataObject(subKey, graphObject);
@@ -405,7 +433,9 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 										}
 									}
+									
 								}
+
 								
 							} else {
 
@@ -421,6 +451,11 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 										subNode.render(securityContext, renderContext, depth + 1);
 
 									}
+									
+									typeForCreateButton = collectionProperty.getDestType().getSimpleName();
+									sourceId = currentDataNode.getUuid();
+									sourceType = currentDataNode.getType();
+									relatedProperty = collectionProperty.jsonName();
 
 								}
 							
@@ -430,15 +465,31 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 							renderContext.setDataObject(currentDataNode);
 						
 						} else {
+							
+							if (!listData.isEmpty()) {
+								typeForCreateButton = listData.get(0).getType();
+							}
 
 							renderContext.setListSource(listData);
 							((DOMElement) subNode).renderNodeList(securityContext, renderContext, depth, subKey);
 
-							// In edit mode, render a create button
-							if (edit && !listData.isEmpty()) {
-								String t = listData.get(0).getType();
-								buffer.append("\n<button class=\"createButton\" data-structr-type=\"").append(t).append("\">Create ").append(t).append("</button>\n");
+						}
+						
+						// In edit mode, render a create button
+						if (edit && typeForCreateButton != null) {
+
+							buffer.append("\n<button class=\"createButton\"");
+							
+							if (sourceId != null) {
+								buffer.append(" data-structr-source-id=\"").append(sourceId).append("\"");
+								buffer.append(" data-structr-source-type=\"").append(sourceType).append("\"");
+								buffer.append(" data-structr-related-property=\"").append(relatedProperty).append("\"");
 							}
+								 
+							buffer.append(" data-structr-type=\"")
+								.append(typeForCreateButton).append("\">Create ")
+								.append(typeForCreateButton).append("</button>\n");
+
 						}
 						
 					}
