@@ -45,8 +45,13 @@ import org.structr.web.entity.Image;
 //~--- classes ----------------------------------------------------------------
 
 /**
- * Converts image data into an image node sets its id as the property
- * with the key from the given value
+ * Converts image data into an image node.
+ *  
+ * If a {@link KeyAndClass} object is given, the image will be created with
+ * the corresponding type and with setProperty to the given property key.
+ * 
+ * If no {@link KeyAndClass} object is given, the image data will be set on
+ * the image node itself.
  *
  * @author Axel Morgner
  */
@@ -82,24 +87,37 @@ public class ImageConverter extends PropertyConverter {
 					
 					Image img = null;
 
-					if (keyAndClass == null) {
-						return false;
-					}
-
 					try {
 						if (source instanceof byte[]) {
 
 							byte[] data      = (byte[]) source;
 							MagicMatch match = Magic.getMagicMatch(data);
 							String mimeType  = match.getMimeType();
+							
+							if (keyAndClass != null) {
 
-							img = ImageHelper.createImage(securityContext, data, mimeType, keyAndClass.getCls());
+								img = ImageHelper.createImage(securityContext, data, mimeType, keyAndClass.getCls());
+								
+							} else {
+								
+								ImageHelper.setImageData((Image) currentObject, data, mimeType);
+								
+							}
 
 						} else if (source instanceof String) {
 
 							if (StringUtils.isNotBlank((String) source)) {
 
-								img = ImageHelper.createImageBase64(securityContext, (String) source, keyAndClass.getCls());
+								
+								if (keyAndClass != null) {
+								
+									img = ImageHelper.createImageBase64(securityContext, (String) source, keyAndClass != null ? keyAndClass.getCls() : null);
+									
+								} else {
+									
+									ImageHelper.decodeAndSetImageData((Image) currentObject, (String) source);
+									
+								}
 							}
 
 						}

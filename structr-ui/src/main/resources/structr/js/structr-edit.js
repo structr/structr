@@ -29,8 +29,8 @@
 
 $(function() {
     var s = new StructrPage('/structr/rest/');
-
-    if (urlParam('edit')) {
+    console.log(urlParam('edit'))
+    if (urlParam('edit') !== undefined) {
         s.editable(true);
 
         $('.editButton').text('Stop editing').on('click', function() {

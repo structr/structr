@@ -43,6 +43,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.KeyAndClass;
 import org.structr.common.ThumbnailParameters;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
@@ -51,6 +52,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeService.NodeIndex;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.PropertyKey;
+import org.structr.web.property.ImageDataProperty;
 import org.structr.web.property.ThumbnailProperty;
 
 //~--- classes ----------------------------------------------------------------
@@ -72,6 +74,7 @@ public class Image extends File {
 	public static final Property<Image> tnMid         = new ThumbnailProperty("tnMid", new ThumbnailParameters(300, 300, false));
 	
 	public static final Property<Boolean> isThumbnail = new BooleanProperty("isThumbnail").unvalidated().readOnly();
+	public static final ImageDataProperty imageData   = new ImageDataProperty("imageData");
 	
 //	public static final CollectionProperty<Image> thumbnails = new CollectionProperty("thumbnails", Image.class, RelType.THUMBNAIL, Direction.OUTGOING, true, Relation.DELETE_OUTGOING);
 

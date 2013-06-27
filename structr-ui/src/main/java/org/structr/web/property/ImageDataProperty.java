@@ -27,14 +27,25 @@ import org.structr.web.converter.ImageConverter;
 import org.structr.web.entity.Image;
 
 /**
- * A property that tries to create an {@link Image} from BASE64 encoded data you store with setProperty.
+ * A property that tries to create an {@link Image} from BASE64 encoded data.
+ * 
+ * This class has two constructors:
+ * The default constructor will store the image data as the image itself,
+ * the other one (with a {@link KeyAndClass} argumnents stores the data with
+ * setProperty as an object of the given class
  *
  * @author Christian Morgner
+ * @author Axel Morgner
  */
 public class ImageDataProperty<T> extends StringProperty {
 	
 	private KeyAndClass keyAndClass = null;
 	
+	public ImageDataProperty(String name) {
+		super(name);
+		this.unvalidated = true;
+	}
+
 	public ImageDataProperty(String name, KeyAndClass keyAndClass) {
 		super(name);
 		this.unvalidated = true;
