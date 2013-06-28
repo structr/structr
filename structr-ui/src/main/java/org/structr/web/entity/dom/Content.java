@@ -47,6 +47,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.lang.StringUtils;
 import org.structr.common.Permission;
 import org.structr.core.GraphObject;
 
@@ -201,7 +202,10 @@ public class Content extends DOMNode implements Text {
 			} else {
 				
 				// In edit mode, add an artificial 'span' tag around content nodes within body to make them editable
-				buffer.append("<span data-structr-raw-value=\"").append(getProperty(Content.content)).append("\" data-structr-type=\"").append(getType()).append("\" data-structr-id=\"").append(id).append("\">");
+				buffer.append("<span data-structr-raw-value=\"").append(getProperty(Content.content))
+					//.append("\" data-structr-content-type=\"").append(StringUtils.defaultString(getProperty(Content.contentType), ""))
+					.append("\" data-structr-type=\"").append(getType())
+					.append("\" data-structr-id=\"").append(id).append("\">");
 			}
 			
 		}
@@ -256,7 +260,10 @@ public class Content extends DOMNode implements Text {
 		
 		if (renderContext.getEdit() && renderContext.inBody() && canWrite && !referenceKeyProperty.isReadOnlyProperty()) {
 
-			String editModeValue = "<span data-structr-type=\"" + referenceKeyProperty.typeName() + "\" data-structr-id=\"" + dataObject.getUuid() + "\" data-structr-key=\"" + referenceKeyProperty.jsonName() + "\">" + value + "</span>";
+			String editModeValue = "<span data-structr-type=\"" + referenceKeyProperty.typeName()
+				+ "\" data-structr-id=\"" + dataObject.getUuid()
+				+ "\" data-structr-content-type=\"" + StringUtils.defaultString(dataObject.getProperty(Content.contentType), "")
+				+ "\" data-structr-key=\"" + referenceKeyProperty.jsonName() + "\">" + value + "</span>";
 
 			logger.log(Level.FINEST, "Edit mode value: {0}", editModeValue);
 

@@ -29,7 +29,6 @@ var altKey = false, ctrlKey = false, shiftKey = false, eKey = false;
 
 $(function() {
     var s = new StructrPage('/structr/rest/');
-    console.log(urlParam('edit'))
     if (urlParam('edit') !== undefined) {
         s.editable(true);
 
@@ -215,16 +214,16 @@ function StructrPage(baseUrl) {
 
                                     reader.onload = function(f) {
 
-                                        console.log('File was read into memory.');
                                         var binaryContent = f.target.result;
-                                        console.log('uploadFile: binaryContent', binaryContent);
                                         
                                         data.imageData = 'data:' + file.type + ';base64,' + window.btoa(binaryContent);
                                         data.name = file.name;
                                         
-                                        console.log(data);
-                                        
-                                        s.create(btn, type, data);
+                                        var sourceId = btn.attr('data-structr-source-id');
+                                        var sourceType = btn.attr('data-structr-source-type');
+                                        var relatedProperty = btn.attr('data-structr-related-property');
+
+                                        s.create(btn, type, data, sourceId, sourceType, relatedProperty);
 
                                     }
 
@@ -247,7 +246,11 @@ function StructrPage(baseUrl) {
                             //console.log('collecting data', inp, key, val);
                             data[key] = val;
                         });
-                        s.create(btn, type, data);
+                        var sourceId = btn.attr('data-structr-source-id');
+                        var sourceType = btn.attr('data-structr-source-type');
+                        var relatedProperty = btn.attr('data-structr-related-property');
+
+                        s.create(btn, type, data, sourceId, sourceType, relatedProperty);
                     });
 
                 }
@@ -286,10 +289,11 @@ function StructrPage(baseUrl) {
         if (enable) {
             $('.createButton').show();
             $('.deleteButton').show();
+
             $('[data-structr-type="Date"],[data-structr-type="String"],[data-structr-type="Integer"],[data-structr-type="Boolean"]').each(function() {
                 if (!$(this).closest('body').length)
                     return;
-                var sp = $(this), f = s.field(sp), p = sp.parent('a');
+                var sp = $(this), f = s.field(sp), p = sp.parent('a'), contentType = sp.attr('data-structr-content-type'); console.log(contentType);
                 if (p) {
                     p.attr('href', '').css({textDecoration: 'none'}).on('click', function() {
                         return false;
@@ -297,19 +301,21 @@ function StructrPage(baseUrl) {
                 }
                 var i; //console.log(f.id, f.type, f.key, f.val);
                 if (f.type === 'Boolean') {
-                    i = '<input type="checkbox" data-structr-id="' + f.id + '" data-structr-type="' + f.type + '" data-structr-key="' + f.key + '" ' + (f.val ? 'checked="checked"' : '') + '">';
+                    i = checkbox(f.id, f.type, f.key, f.val);
                 }
                 else {
                     if (f.val.indexOf('\n') === -1) {
-                        i = '<input class="editField" type="text" data-structr-id="' + f.id + '" data-structr-type="' + f.type + '" data-structr-key="' + f.key + '" value="' + (f.val === 'null' ? '' : f.val) + '" size="' + f.val.length + ' ">';
+                        i = inputField(f.id, f.type, f.key, f.val);
                     } else {
-                        i = '<textarea data-structr-id="' + f.id + '" data-structr-key="' + f.key + '">' + (f.val === 'null' ? '' : f.val) + '\n' + '</textarea>';
+                        i = textarea(f.id, f.key, f.val);
                     }
                 }
 
                 sp.replaceWith(i);
                 var input = $('[data-structr-id="' + f.id + '"][data-structr-key="' + f.key + '"]')
                 input.css({fontFamily: 'sans-serif'});
+                
+                resizeInput(input);
 
                 if (f.type === 'Boolean') {
                     input.on('change', function(e) {
@@ -320,7 +326,17 @@ function StructrPage(baseUrl) {
                         s.checkInput(e, f, $(this));
                     });
                 }
+                $('<div>'
+                    + select(f.id, 'contentType', contentType, [ 'text/plain', 'text/html', 'text/css', 'text/javascript', 'text/markdown', 'text/textile', 'text/mediawiki', 'text/tracwiki', 'text/confluence'])
+                    + '</div>').insertAfter(input);
+            
+                $('select', input.parent()).on('change', function() {
+                    var b = $('#save_' + f.id + '_' + f.key);
+                    s.appendSaveButton(b, p, $(this), f.id, f.key);
+                });
+                
             });
+                        
         } else {
             $('.createButton').hide();
             $('.deleteButton').hide();
@@ -333,7 +349,7 @@ function StructrPage(baseUrl) {
                         return true;
                     });
                 }
-                inp.replaceWith('<span type="text" data-structr-id="' + f.id + '" data-structr-type="' + f.type + '" data-structr-key="' + f.key + '">' + f.val + '</span>');
+                inp.replaceWith(field(f.id, f.type, f.key, f.val));
             });
         }
         return s.edit;
@@ -347,13 +363,14 @@ function StructrPage(baseUrl) {
             // Check for line break
             if (inp.val().indexOf('\n') === -1) {
 
-                inp.replaceWith('<input class="editField" type="text" data-structr-id="' + f.id + '" data-structr-type="' + f.type + '" data-structr-key="' + f.key + '" value="' + (inp.val() === 'null' ? '' : inp.val()) + '" size="' + inp.val().length + ' ">');
+                inp.replaceWith(inputField(f.id, f.type, f.key, inp.val()));
                 inp = $('[data-structr-id="' + f.id + '"][data-structr-key="' + f.key + '"]');
                 inp.on('keyup', function(e) {
                     s.checkInput(e, f, $(this));
                 });
 
                 setCaretToEnd(inp[0]);
+                
             }
 
         } else {
@@ -365,7 +382,7 @@ function StructrPage(baseUrl) {
 
                     // Shift-return in input field => make textarea and append line break
 
-                    inp.replaceWith('<textarea data-structr-id="' + f.id + '" data-structr-key="' + f.key + '">' + inp.val() + '\n' + '</textarea>');
+                    inp.replaceWith(textarea(f.id, f.key, inp.val()));
                     inp = $('[data-structr-id="' + f.id + '"][data-structr-key="' + f.key + '"]');
                     inp.on('keyup', function(e) {
                         s.checkInput(e, f, $(this));
@@ -388,21 +405,46 @@ function StructrPage(baseUrl) {
             }
         }
 
+        resizeInput(inp);
+
         if (!(k === 13 && shiftKey) && ((k < 46 && k > 32) || (k > 9 && k < 32))) {
-            //console.log('keyup', k, 'return')
             return true;
         }
+        s.appendSaveButton(b, p, inp, f.id, f.key);
 
-        inp.prop('size', inp.val() ? inp.val().length : inp.text().length);
-
+    };
+    this.appendSaveButton = function(b, p, inp, id, key) {
+        
         if (!b.length) {
-            (p.length ? p : inp).after(' <button class="saveButton" id="save_' + f.id + '_' + f.key + '">Save</button>');
-            $('#save_' + f.id + '_' + f.key).on('click', function() {
+            (p.length ? p : inp).after(' <button class="saveButton" id="save_' + id + '_' + key + '">Save</button>');
+            $('#save_' + id + '_' + key).on('click', function() {
                 var btn = $(this), inp = btn.prev();
                 s.save(s.field(inp), btn);
             });
         }
+        
+    }
+           
+}
 
+function resizeInput(inp) {
+
+    var text = inp.val();
+    
+    if (isTextarea(inp[0])) {
+        
+        var n = (text.match(/\n/g)||[]).length;
+        inp.prop('rows', n+2);
+        
+        var lines = text.split('\n');
+        var c = lines.sort(function (a, b) { return b.length - a.length; })[0].length;
+        
+        inp.prop('cols', c);
+
+    } else {
+        
+        inp.prop('size', text.length+1);
+        
     }
 }
 
@@ -414,23 +456,19 @@ function urlParam(name) {
     return (res && res.length ? res[1] : '');
 }
 
-if (typeof String.prototype.capitalize !== 'function') {
-    String.prototype.capitalize = function() {
-        return this.charAt(0).toUpperCase() + this.slice(1);
-    };
-}
+String.prototype.capitalize = function() {
+    return this.charAt(0).toUpperCase() + this.slice(1);
+};
 
-if (typeof String.prototype.splitAndTitleize !== 'function') {
-    String.prototype.splitAndTitleize = function(sep) {
+String.prototype.splitAndTitleize = function(sep) {
 
-        var res = new Array();
-        var parts = this.split(sep);
-        parts.forEach(function(part) {
-            res.push(part.capitalize());
-        })
-        return res.join(" ");
-    };
-}
+    var res = new Array();
+    var parts = this.split(sep);
+    parts.forEach(function(part) {
+        res.push(part.capitalize());
+    })
+    return res.join(" ");
+};
 
 String.prototype.toUnderscore = function() {
     return this.replace(/([A-Z])/g, function(m, a, offset) {
@@ -462,4 +500,28 @@ function escapeTags(str) {
 
 function isTextarea(el) {
     return el.nodeName.toLowerCase() === 'textarea';
+}
+
+function textarea(id, key, val) {
+    return '<div><textarea data-structr-id="' + id + '" data-structr-key="' + key + '">' + (val === 'null' ? '' : val) + '\n</textarea></div>';
+}
+
+function inputField(id, type, key, val) {
+    return '<input class="editField" type="text" data-structr-id="' + id + '" data-structr-type="' + type + '" data-structr-key="' + key + '" value="' + (val === 'null' ? '' : val) + '" size="' + val.length + ' ">';
+}
+
+function field(id, type, key, val) {
+    return '<span type="text" data-structr-id="' + id + '" data-structr-type="' + type + '" data-structr-key="' + key + '">' + val + '</span>';
+}
+
+function checkbox(id, type, key, val) {
+    return '<input type="checkbox" data-structr-id="' + id + '" data-structr-type="' + type + '" data-structr-key="' + key + '" ' + (val ? 'checked="checked"' : '') + '">';
+}
+
+function select(id, key, val, options) {
+    var s = '<select data-structr-id="' + id + '" data-structr-key="' + key + '">';
+    $.each(options, function(i, o) {
+        s += '<option ' + (o === val ? 'selected' : '') + '>' + o + '</option>';
+    });
+    return s + '</select>';
 }

@@ -485,10 +485,10 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 								buffer.append(" data-structr-source-type=\"").append(sourceType).append("\"");
 								buffer.append(" data-structr-related-property=\"").append(relatedProperty).append("\"");
 							}
-								 
+							
 							buffer.append(" data-structr-type=\"")
-								.append(typeForCreateButton).append("\">Create ")
-								.append(typeForCreateButton).append("</button>\n");
+								.append(typeForCreateButton).append("\">")
+								.append(relatedProperty != null ? "Add " + typeForCreateButton + " to " + relatedProperty : "Create new " + typeForCreateButton).append("</button>\n");
 
 						}
 						
@@ -553,7 +553,13 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 					boolean canWrite  = dataObject instanceof AbstractNode ? securityContext.isAllowed((AbstractNode) dataObject, Permission.write) : true;
 					
 					if (canWrite) {
-						renderContext.getBuffer().append("\n<button class=\"deleteButton\" data-structr-id=\"").append(dataObject.getUuid()).append("\">Delete</button>\n");
+						
+						renderContext.getBuffer()
+							.append("\n<button class=\"deleteButton\" data-structr-id=\"")
+							.append(dataObject.getUuid())
+							.append("\">Delete ")
+							.append(dataObject.getType())
+							.append("</button>\n");
 					}
 				}
 

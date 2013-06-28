@@ -148,7 +148,7 @@ public class ImageConverter extends PropertyConverter {
 	@Override
 	public Object revert(Object source) {
 
-		return source;
+		return ImageHelper.getBase64String((Image) currentObject);
 	}
 
 }

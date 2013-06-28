@@ -29,7 +29,6 @@ import org.apache.commons.lang.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.web.entity.File;
 import org.structr.web.entity.Image;
 import org.structr.core.graph.CreateNodeCommand;
 import org.structr.util.Base64;
@@ -46,7 +45,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.imageio.ImageIO;
+import org.apache.commons.io.IOUtils;
 import org.structr.common.SecurityContext;
+import org.structr.web.entity.File;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -366,6 +367,19 @@ public abstract class ImageHelper {
 
 	//~--- get methods ----------------------------------------------------
 
+	public static String getBase64String(final File file) {
+		
+		try {
+
+			return Base64.encodeToString(IOUtils.toByteArray(file.getInputStream()), false);
+
+		} catch (IOException ex) {
+			logger.log(Level.SEVERE, "Could not get base64 string from file ", ex);
+		}
+
+		return null;
+	}
+	
 	/**
 	 * Check if url points to an image by extension
 	 *
