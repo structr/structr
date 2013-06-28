@@ -269,9 +269,17 @@ function StructrPage(baseUrl) {
     this.save = function(f, b) {
         //console.log(f, b);
         var obj = {};
+        
+        if (f.val === '') {
+            this.delete(f.id);
+            return;
+        }
+        
         obj[f.key] = f.val;
-        if (b)
+        if (b) {
             b.html('<img src="/structr/img/al.gif"> Saving');
+        }
+        
         $.ajax({url: baseUrl + f.id, method: 'PUT', contentType: 'application/json', data: JSON.stringify(obj),
             statusCode: {
                 200: function() {
@@ -293,7 +301,7 @@ function StructrPage(baseUrl) {
             $('[data-structr-type="Date"],[data-structr-type="String"],[data-structr-type="Integer"],[data-structr-type="Boolean"]').each(function() {
                 if (!$(this).closest('body').length)
                     return;
-                var sp = $(this), f = s.field(sp), p = sp.parent('a'), contentType = sp.attr('data-structr-content-type'); console.log(contentType);
+                var sp = $(this), f = s.field(sp), p = sp.parent('a'), contentType = sp.attr('data-structr-content-type');
                 if (p) {
                     p.attr('href', '').css({textDecoration: 'none'}).on('click', function() {
                         return false;
@@ -326,14 +334,17 @@ function StructrPage(baseUrl) {
                         s.checkInput(e, f, $(this));
                     });
                 }
-                $('<div>'
-                    + select(f.id, 'contentType', contentType, [ 'text/plain', 'text/html', 'text/css', 'text/javascript', 'text/markdown', 'text/textile', 'text/mediawiki', 'text/tracwiki', 'text/confluence'])
-                    + '</div>').insertAfter(input);
-            
-                $('select', input.parent()).on('change', function() {
-                    var b = $('#save_' + f.id + '_' + f.key);
-                    s.appendSaveButton(b, p, $(this), f.id, f.key);
-                });
+// TODO: Take content type into account when rendering sub elements                
+//                $('<div>'
+//                    + select(f.id, 'contentType', contentType, [ 'text/plain', 'text/html', 'text/css', 'text/javascript', 'text/markdown', 'text/textile', 'text/mediawiki', 'text/tracwiki', 'text/confluence'])
+//                    + '</div>').insertAfter(input);
+//            
+//                $('select', input.parent()).on('change', function() {
+//                    var b = $('#save_' + f.id + '_' + f.key);
+//                    s.appendSaveButton(b, p, $(this), f.id, f.key);
+//                });
+                
+                //$('<button class="deleteButton" data-structr-id="' + f.id + '">Delete ' + f.key + '</button>').insertAfter(input);
                 
             });
                         
@@ -446,6 +457,8 @@ function resizeInput(inp) {
         inp.prop('size', text.length+1);
         
     }
+    
+    inp.focus();
 }
 
 function urlParam(name) {
