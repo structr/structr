@@ -168,6 +168,7 @@ function StructrPage(baseUrl) {
                 422: function(d) {
                     btn.parent().children('.structr-label').remove();
                     btn.parent().children('.structr-input').remove();
+                    btn.off('click');
                     var errors = JSON.parse(d.responseText).errors[type];
                     //console.log(btn, type, errors);
                     var data = {};
@@ -177,12 +178,73 @@ function StructrPage(baseUrl) {
                         $('<label class="structr-label">' + label + '</label> <input class="structr-input" type="text" data-structr-prop="' + key + '" placeholder="' + msg + '">').insertBefore(btn);
                     });
 
+                    if (type === 'Image') {
+                        console.log(window.File, window.FileReader, window.FileList, window.Blob);
+                        if (window.File && window.FileReader && window.FileList && window.Blob) {
+
+                            $('<div id="dropArea">Drag and drop image(s) here</div>').
+                                    css({
+                                        border: '1px solid #ccc',
+                                        width: '8em',
+                                        height: '3em'
+                                    }).insertBefore(btn);
+
+                            var drop = $('#dropArea');
+                            //console.log(drop);
+
+                            drop.on('dragover', function(event) {
+                                event.originalEvent.dataTransfer.dropEffect = 'copy';
+                                return false;
+                            });
+                            
+                            drop.on('drop', function(event) {
+
+                                if (!event.originalEvent.dataTransfer) {
+                                    return;
+                                }
+
+                                event.stopPropagation();
+                                event.preventDefault();
+
+                                fileList = event.originalEvent.dataTransfer.files;
+
+                                $(fileList).each(function(i, file) {
+                                    $('[data-structr-prop=name]').val(file.name);
+                                    var reader = new FileReader();
+                                    reader.readAsBinaryString(file);
+
+                                    reader.onload = function(f) {
+
+                                        console.log('File was read into memory.');
+                                        var binaryContent = f.target.result;
+                                        console.log('uploadFile: binaryContent', binaryContent);
+                                        
+                                        data.imageData = 'data:' + file.type + ';base64,' + window.btoa(binaryContent);
+                                        data.name = file.name;
+                                        
+                                        console.log(data);
+                                        
+                                        s.create(btn, type, data);
+
+                                    }
+
+                                });
+
+                            });
+
+
+
+                        }
+
+                        //$('<label class="structr-label">Base64 Data</label> <input class="structr-input" type="text" data-structr-prop="imageData" placeholder="Paste here">').insertBefore(btn);
+                    }
+
                     btn.on('click', function() {
                         $.each(btn.parent().children('.structr-input'), function() {
                             var inp = $(this);
                             var key = inp.attr('data-structr-prop');
                             var val = inp.val();
-                            console.log('collecting data', inp, key, val);
+                            //console.log('collecting data', inp, key, val);
                             data[key] = val;
                         });
                         s.create(btn, type, data);

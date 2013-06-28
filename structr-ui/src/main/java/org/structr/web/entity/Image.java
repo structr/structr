@@ -43,8 +43,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.KeyAndClass;
 import org.structr.common.ThumbnailParameters;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
@@ -87,6 +87,17 @@ public class Image extends File {
 	}
 
 	//~--- methods --------------------------------------------------------
+
+	@Override
+	public boolean isValid(ErrorBuffer errorBuffer) {
+		
+		boolean valid = true;
+		
+		valid &= nonEmpty(imageData, errorBuffer);
+		valid &= super.isValid(errorBuffer);
+		
+		return valid;
+	}
 
 
 	//~--- set methods ----------------------------------------------------
