@@ -81,6 +81,8 @@ public interface PropertyKey<T> {
 
 	public boolean isWriteOnceProperty();
 
+	public boolean isIndexedProperty();
+	
 	public boolean isCollection();
 
 	/**

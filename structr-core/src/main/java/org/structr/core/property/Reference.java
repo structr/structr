@@ -142,6 +142,11 @@ public class Reference<T> implements PropertyKey<T> {
 	}
 
 	@Override
+	public boolean isIndexedProperty() {
+		return propertyKey.isIndexedProperty();
+	}
+
+	@Override
 	public boolean isCollection() {
 		return propertyKey.isCollection();
 	}

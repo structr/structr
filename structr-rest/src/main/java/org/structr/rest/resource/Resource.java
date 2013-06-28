@@ -39,6 +39,7 @@ import org.apache.lucene.search.BooleanClause.Occur;
 import org.structr.common.CaseHelper;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.Permission;
+import org.structr.common.PropertyView;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
@@ -56,7 +57,6 @@ import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.DeleteNodeCommand;
 import org.structr.core.graph.DeleteRelationshipCommand;
 import org.structr.core.graph.NodeFactory;
-import org.structr.core.graph.NodeService;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.rest.RestMethodResult;
@@ -386,26 +386,41 @@ public abstract class Resource {
 		return null;
 	}
 
-	protected List<SearchAttribute> extractSearchableAttributesForNodes(final SecurityContext securityContext, final Class type, final HttpServletRequest request) throws FrameworkException {
-		return extractSearchableAttributes(securityContext, type, request, NodeService.NodeIndex.fulltext.name(), NodeService.NodeIndex.keyword.name());
-	}
+	protected List<SearchAttribute> extractSearchableAttributes(final SecurityContext securityContext, final Class type, final HttpServletRequest request) throws FrameworkException {
 
-	protected List<SearchAttribute> extractSearchableAttributesForRelationships(final SecurityContext securityContext, final Class type, final HttpServletRequest request) throws FrameworkException {
-		return extractSearchableAttributes(securityContext, type, request, NodeService.RelationshipIndex.rel_fulltext.name(), NodeService.RelationshipIndex.rel_keyword.name());
-	}
-
-	private static List<SearchAttribute> extractSearchableAttributes(final SecurityContext securityContext, final Class type, final HttpServletRequest request, final String fulltextIndex, final String keywordIndex) throws FrameworkException {
-
-		List<SearchAttribute> searchAttributes = Collections.emptyList();
-
-		// searchable attributes
+		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+		
 		if (type != null && request != null && !request.getParameterMap().isEmpty()) {
 
 			final boolean looseSearch = parseInteger(request.getParameter(JsonRestServlet.REQUEST_PARAMETER_LOOSE_SEARCH)) == 1;
-			final Set<PropertyKey> searchableProperties = getSearchableProperties(type, looseSearch, fulltextIndex, keywordIndex);
 
-			searchAttributes = checkAndAssembleSearchAttributes(securityContext, request, type, looseSearch, searchableProperties);
+			for (final PropertyKey key : EntityContext.getPropertySet(type, PropertyView.All)) {
 
+				String searchValue = request.getParameter(key.jsonName());
+
+				if (searchValue != null) {
+
+					if (looseSearch) {
+
+						// no quotes allowed in loose search queries!
+						searchValue = removeQuotes(searchValue);
+
+						searchAttributes.add(Search.andProperty(key, searchValue));
+
+					} else {
+
+						SearchAttribute attr = determineSearchType(securityContext, key, searchValue);
+
+						if (attr != null) {
+
+							searchAttributes.add(attr);
+						}
+
+					}
+
+				}
+
+			}
 		}
 
 		return searchAttributes;
@@ -494,68 +509,6 @@ public abstract class Resource {
 
 			return Search.andExactProperty(key, convertedSearchValue);
 		}
-	}
-
-	private static Set<PropertyKey> getSearchableProperties(final Class type, final boolean loose,
-		final String looseIndexName, final String exactIndexName) {
-		Set<PropertyKey> searchableProperties;
-
-		if (loose) {
-
-			searchableProperties = EntityContext.getSearchableProperties(type, looseIndexName);
-
-		} else {
-
-			searchableProperties = EntityContext.getSearchableProperties(type, exactIndexName);
-
-		}
-		return searchableProperties;
-	}
-
-	private static List<SearchAttribute> checkAndAssembleSearchAttributes(final SecurityContext securityContext,
-		final HttpServletRequest request,
-		final Class type,
-		final boolean looseSearch,
-		final Set<PropertyKey> searchableProperties)
-		throws FrameworkException {
-
-		List<SearchAttribute> searchAttributes = Collections.emptyList();
-
-		if (searchableProperties != null) {
-
-			checkForIllegalSearchKeys(request, type, searchableProperties);
-
-			searchAttributes = new LinkedList<SearchAttribute>();
-
-			for (final PropertyKey key : searchableProperties) {
-
-				String searchValue = request.getParameter(key.jsonName());
-
-				if (searchValue != null) {
-
-					if (looseSearch) {
-
-						// no quotes allowed in loose search queries!
-						searchValue = removeQuotes(searchValue);
-
-						searchAttributes.add(Search.andProperty(key, searchValue));
-					} else {
-
-						SearchAttribute attr = determineSearchType(securityContext, key, searchValue);
-
-						if (attr != null) {
-
-							searchAttributes.add(attr);
-						}
-
-					}
-
-				}
-
-			}
-
-		}
-		return searchAttributes;
 	}
 
 	public abstract boolean isCollectionResource() throws FrameworkException;

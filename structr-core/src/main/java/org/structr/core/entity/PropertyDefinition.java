@@ -65,6 +65,7 @@ public class PropertyDefinition extends AbstractNode implements PropertyKey {
 	public static final Property<Boolean>              systemProperty         = new BooleanProperty("systemProperty");
 	public static final Property<Boolean>              readOnlyProperty       = new BooleanProperty("readOnlyProperty");
 	public static final Property<Boolean>              writeOnceProperty      = new BooleanProperty("writeOnceProperty");
+	public static final Property<Boolean>              indexedProperty        = new BooleanProperty("indexedProperty");
 	
 	public static final org.structr.common.View publicView = new org.structr.common.View(PropertyDefinition.class, PropertyView.Public,
 	    name, dataType, kind, relKind, relType, incoming, validationExpression, validationErrorMessage, systemProperty, readOnlyProperty, writeOnceProperty
@@ -341,6 +342,11 @@ public class PropertyDefinition extends AbstractNode implements PropertyKey {
 	@Override
 	public boolean isWriteOnceProperty() {
 		return getProperty(PropertyDefinition.writeOnceProperty);
+	}
+
+	@Override
+	public boolean isIndexed() {
+		return getProperty(PropertyDefinition.indexedProperty);
 	}
 
 	@Override

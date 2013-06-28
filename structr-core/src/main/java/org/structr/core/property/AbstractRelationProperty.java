@@ -18,7 +18,6 @@
  */
 package org.structr.core.property;
 
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.*;

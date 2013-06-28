@@ -43,6 +43,7 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.apache.commons.collections.ListUtils;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.structr.common.GraphObjectComparator;
 import org.structr.core.property.PropertyKey;
@@ -106,7 +107,7 @@ public class TypeResource extends SortableResource {
 				throw new NotFoundException();
 			}
 
-			validAttributes = extractSearchableAttributesFromRequest(securityContext);
+			validAttributes = extractSearchableAttributes(securityContext, entityClass, request);
 	
 			// distance search?
 			DistanceSearchAttribute distanceSearch = getDistanceSearch(request, keys(validAttributes));
@@ -119,6 +120,7 @@ public class TypeResource extends SortableResource {
 
 			} else {
 
+				
 				searchAttributes.add(Search.andExactTypeAndSubtypes(EntityContext.normalizeEntityName(rawType)));
 
 				// searchable attributes from EntityContext
@@ -273,10 +275,6 @@ public class TypeResource extends SortableResource {
 
 		return EntityContext.normalizeEntityName(getUriPart());
 
-	}
-
-	protected List<SearchAttribute> extractSearchableAttributesFromRequest(SecurityContext securityContext) throws FrameworkException {
-		return extractSearchableAttributesForNodes(securityContext, entityClass, request);
 	}
 
 	@Override

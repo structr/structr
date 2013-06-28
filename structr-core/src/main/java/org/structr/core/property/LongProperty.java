@@ -18,7 +18,6 @@
  */
 package org.structr.core.property;
 
-import java.util.Date;
 import java.util.logging.Logger;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.SortField;

@@ -28,7 +28,6 @@ import org.structr.core.property.LongProperty;
 import org.structr.core.property.StringProperty;
 import org.structr.core.*;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;
@@ -200,12 +199,6 @@ public class SchemaTypeResource extends Resource {
 	public Resource tryCombineWith(Resource next) throws FrameworkException {
 
 		return null;
-
-	}
-
-	protected List<SearchAttribute> extractSearchableAttributesFromRequest(SecurityContext securityContext) throws FrameworkException {
-
-		return extractSearchableAttributesForNodes(securityContext, entityClass, request);
 
 	}
 

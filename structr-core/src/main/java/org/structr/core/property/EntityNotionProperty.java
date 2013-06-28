@@ -20,11 +20,20 @@ package org.structr.core.property;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.lucene.search.BooleanClause.Occur;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.Result;
+import org.structr.core.Services;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.search.FilterSearchAttribute;
+import org.structr.core.graph.search.Search;
+import org.structr.core.graph.search.SearchAttribute;
+import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.notion.Notion;
+import org.structr.core.notion.PropertyNotion;
 
 /**
 * A property that wraps a {@link PropertyNotion} with the given notion around an {@link EntityProperty}.
@@ -115,5 +124,36 @@ public class EntityNotionProperty<S extends GraphObject, T> extends Property<T> 
 	@Override
 	public boolean isCollection() {
 		return false;
+	}
+	
+	@Override
+	public SearchAttribute getSearchAttribute(Occur occur, T searchValue, boolean exactMatch) {
+		
+		FilterSearchAttribute attr      = new FilterSearchAttribute(this, searchValue, occur);
+		SecurityContext securityContext = SecurityContext.getSuperUserInstance();
+		EntityProperty entityProperty   = (EntityProperty)base;
+		
+		try {
+		
+			Result<AbstractNode> result = Services.command(securityContext, SearchNodeCommand.class).execute(
+				
+				Search.andExactType(base.relatedType().getSimpleName()),
+				Search.andExactProperty(notion.getPrimaryPropertyKey(), searchValue)
+			);
+			
+			for (AbstractNode node : result.getResults()) {
+
+				attr.addToResult(entityProperty.getRelatedNodeReverse(securityContext, node, declaringClass));
+			}
+			
+		} catch (FrameworkException fex) {
+			
+			fex.printStackTrace();
+		}
+		
+		
+		
+		
+		return attr;
 	}
 }

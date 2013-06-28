@@ -46,6 +46,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	protected boolean readOnly                             = false;
 	protected boolean writeOnce                            = false;
 	protected boolean unvalidated                          = false;
+	protected boolean indexed                              = false;
 	protected String dbName                                = null;
 	protected String jsonName                              = null;
 
@@ -79,6 +80,11 @@ public abstract class Property<T> implements PropertyKey<T> {
 	
 	public Property<T> writeOnce() {
 		this.writeOnce = true;
+		return this;
+	}
+	
+	public Property<T> indexed() {
+		this.indexed = true;
 		return this;
 	}
 
@@ -192,6 +198,11 @@ public abstract class Property<T> implements PropertyKey<T> {
 	@Override
 	public boolean isWriteOnceProperty() {
 		return writeOnce;
+	}
+	
+	@Override
+	public boolean isIndexedProperty() {
+		return indexed;
 	}
 	
 	@Override

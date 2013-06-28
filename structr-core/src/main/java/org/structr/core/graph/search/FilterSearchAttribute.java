@@ -35,12 +35,11 @@ public class FilterSearchAttribute extends SearchAttribute {
 
 	@Override
 	public Query getQuery() {
-		
 		return null;
 	}
 
 	@Override
 	public boolean isExactMatch() {
-		return true;	// really?
+		return true;
 	}
 }
