@@ -210,33 +210,37 @@ public class Content extends DOMNode implements Text {
 			
 		}
 
-		// examine content type and apply converter
-		String _contentType = getProperty(Content.contentType);
+		// No contentType-specific rendering in edit mode
+		if (!edit) {
+			
+			// examine content type and apply converter
+			String _contentType = getProperty(Content.contentType);
 
-		if (_contentType != null) {
+			if (_contentType != null) {
 
-			Adapter<String, String> converter = contentConverters.get(_contentType);
+				Adapter<String, String> converter = contentConverters.get(_contentType);
 
-			if (converter != null) {
+				if (converter != null) {
 
-				try {
+					try {
 
-					// apply adapter
-					_content = converter.adapt(_content);
-				} catch (FrameworkException fex) {
+						// apply adapter
+						_content = converter.adapt(_content);
+					} catch (FrameworkException fex) {
 
-					logger.log(Level.WARNING, "Unable to convert content: {0}", fex.getMessage());
+						logger.log(Level.WARNING, "Unable to convert content: {0}", fex.getMessage());
+
+					}
 
 				}
 
 			}
 
-		}
+			// replace newlines with <br /> for rendering
+			if (((_contentType == null) || _contentType.equals("text/plain")) && (_content != null) && !_content.isEmpty()) {
 
-		// replace newlines with <br /> for rendering
-		if (((_contentType == null) || _contentType.equals("text/plain")) && (_content != null) && !_content.isEmpty()) {
-
-			_content = _content.replaceAll("[\\n]{1}", "<br>");
+				_content = _content.replaceAll("[\\n]{1}", "<br>");
+			}
 		}
 
 		if (_content != null) {
@@ -262,7 +266,9 @@ public class Content extends DOMNode implements Text {
 
 			String editModeValue = "<span data-structr-type=\"" + referenceKeyProperty.typeName()
 				+ "\" data-structr-id=\"" + dataObject.getUuid()
-				+ "\" data-structr-content-type=\"" + StringUtils.defaultString(dataObject.getProperty(Content.contentType), "")
+//				+ "\" data-structr-content-type=\"" + StringUtils.defaultString(dataObject.getProperty(Content.contentType), "")
+//				+ "\" data-structr-visible-to-authenticated-users=\"" + dataObject.getProperty(AbstractNode.visibleToAuthenticatedUsers)
+//				+ "\" data-structr-visible-to-public-users=\"" + dataObject.getProperty(AbstractNode.visibleToPublicUsers)
 				+ "\" data-structr-key=\"" + referenceKeyProperty.jsonName() + "\">" + value + "</span>";
 
 			logger.log(Level.FINEST, "Edit mode value: {0}", editModeValue);

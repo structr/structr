@@ -32,14 +32,14 @@ $(function() {
     if (urlParam('edit') !== undefined) {
         s.editable(true);
 
-        $('.editButton').text('Stop editing').on('click', function() {
+        $('.editButton').text('Leave edit mode').on('click', function() {
             window.location.href = window.location.href.split('?')[0];
         });
 
     } else {
         $('.editButton').on('click', function() {
-            if (!urlParam('edit')) {
-                window.location.href = '?edit=1';
+            if (urlParam('edit') !== undefined) {
+                window.location.href = '?edit';
             }
         });
     }
@@ -167,26 +167,18 @@ function StructrPage(baseUrl) {
                 422: function(d) {
                     btn.parent().children('.structr-label').remove();
                     btn.parent().children('.structr-input').remove();
+                    btn.parent().children('#dropArea').remove();
                     btn.off('click');
+  
                     var errors = JSON.parse(d.responseText).errors[type];
                     //console.log(btn, type, errors);
                     var data = {};
-                    $.each(Object.keys(errors), function(i, key) {
-                        var label = key.splitAndTitleize('_');
-                        var msg = errors[key].join(',').splitAndTitleize('_');
-                        $('<label class="structr-label">' + label + '</label> <input class="structr-input" type="text" data-structr-prop="' + key + '" placeholder="' + msg + '">').insertBefore(btn);
-                    });
 
                     if (type === 'Image') {
                         console.log(window.File, window.FileReader, window.FileList, window.Blob);
                         if (window.File && window.FileReader && window.FileList && window.Blob) {
 
-                            $('<div id="dropArea">Drag and drop image(s) here</div>').
-                                    css({
-                                        border: '1px solid #ccc',
-                                        width: '8em',
-                                        height: '3em'
-                                    }).insertBefore(btn);
+                            $('<div class="clear"></div><div id="dropArea">Drag and drop image(s) here</div>').insertBefore(btn);
 
                             var drop = $('#dropArea');
                             //console.log(drop);
@@ -195,7 +187,7 @@ function StructrPage(baseUrl) {
                                 event.originalEvent.dataTransfer.dropEffect = 'copy';
                                 return false;
                             });
-                            
+
                             drop.on('drop', function(event) {
 
                                 if (!event.originalEvent.dataTransfer) {
@@ -215,10 +207,10 @@ function StructrPage(baseUrl) {
                                     reader.onload = function(f) {
 
                                         var binaryContent = f.target.result;
-                                        
+
                                         data.imageData = 'data:' + file.type + ';base64,' + window.btoa(binaryContent);
                                         data.name = file.name;
-                                        
+
                                         var sourceId = btn.attr('data-structr-source-id');
                                         var sourceType = btn.attr('data-structr-source-type');
                                         var relatedProperty = btn.attr('data-structr-related-property');
@@ -236,22 +228,30 @@ function StructrPage(baseUrl) {
                         }
 
                         //$('<label class="structr-label">Base64 Data</label> <input class="structr-input" type="text" data-structr-prop="imageData" placeholder="Paste here">').insertBefore(btn);
+                    } else {
+
+                        $.each(Object.keys(errors), function(i, key) {
+                            var label = key.splitAndTitleize('_');
+                            var msg = errors[key].join(',').splitAndTitleize('_');
+                            $('<label class="structr-label">' + label + '</label> <input class="structr-input" type="text" data-structr-prop="' + key + '" placeholder="' + msg + '">').insertBefore(btn);
+                        });
+
+                        btn.on('click', function() {
+                            $.each(btn.parent().children('.structr-input'), function() {
+                                var inp = $(this);
+                                var key = inp.attr('data-structr-prop');
+                                var val = inp.val();
+                                //console.log('collecting data', inp, key, val);
+                                data[key] = val;
+                            });
+                            var sourceId = btn.attr('data-structr-source-id');
+                            var sourceType = btn.attr('data-structr-source-type');
+                            var relatedProperty = btn.attr('data-structr-related-property');
+
+                            s.create(btn, type, data, sourceId, sourceType, relatedProperty);
+                        });
                     }
 
-                    btn.on('click', function() {
-                        $.each(btn.parent().children('.structr-input'), function() {
-                            var inp = $(this);
-                            var key = inp.attr('data-structr-prop');
-                            var val = inp.val();
-                            //console.log('collecting data', inp, key, val);
-                            data[key] = val;
-                        });
-                        var sourceId = btn.attr('data-structr-source-id');
-                        var sourceType = btn.attr('data-structr-source-type');
-                        var relatedProperty = btn.attr('data-structr-related-property');
-
-                        s.create(btn, type, data, sourceId, sourceType, relatedProperty);
-                    });
 
                 }
             }
@@ -269,17 +269,17 @@ function StructrPage(baseUrl) {
     this.save = function(f, b) {
         //console.log(f, b);
         var obj = {};
-        
+
         if (f.val === '') {
             this.delete(f.id);
             return;
         }
-        
+
         obj[f.key] = f.val;
         if (b) {
             b.html('<img src="/structr/img/al.gif"> Saving');
         }
-        
+
         $.ajax({url: baseUrl + f.id, method: 'PUT', contentType: 'application/json', data: JSON.stringify(obj),
             statusCode: {
                 200: function() {
@@ -322,7 +322,7 @@ function StructrPage(baseUrl) {
                 sp.replaceWith(i);
                 var input = $('[data-structr-id="' + f.id + '"][data-structr-key="' + f.key + '"]')
                 input.css({fontFamily: 'sans-serif'});
-                
+
                 resizeInput(input);
 
                 if (f.type === 'Boolean') {
@@ -343,11 +343,11 @@ function StructrPage(baseUrl) {
 //                    var b = $('#save_' + f.id + '_' + f.key);
 //                    s.appendSaveButton(b, p, $(this), f.id, f.key);
 //                });
-                
+
                 //$('<button class="deleteButton" data-structr-id="' + f.id + '">Delete ' + f.key + '</button>').insertAfter(input);
-                
+
             });
-                        
+
         } else {
             $('.createButton').hide();
             $('.deleteButton').hide();
@@ -381,7 +381,7 @@ function StructrPage(baseUrl) {
                 });
 
                 setCaretToEnd(inp[0]);
-                
+
             }
 
         } else {
@@ -425,7 +425,7 @@ function StructrPage(baseUrl) {
 
     };
     this.appendSaveButton = function(b, p, inp, id, key) {
-        
+
         if (!b.length) {
             (p.length ? p : inp).after(' <button class="saveButton" id="save_' + id + '_' + key + '">Save</button>');
             $('#save_' + id + '_' + key).on('click', function() {
@@ -433,31 +433,33 @@ function StructrPage(baseUrl) {
                 s.save(s.field(inp), btn);
             });
         }
-        
+
     }
-           
+
 }
 
 function resizeInput(inp) {
 
     var text = inp.val();
-    
+
     if (isTextarea(inp[0])) {
-        
-        var n = (text.match(/\n/g)||[]).length;
-        inp.prop('rows', n+2);
-        
+
+        var n = (text.match(/\n/g) || []).length;
+        inp.prop('rows', n + 2);
+
         var lines = text.split('\n');
-        var c = lines.sort(function (a, b) { return b.length - a.length; })[0].length;
-        
+        var c = lines.sort(function(a, b) {
+            return b.length - a.length;
+        })[0].length;
+
         inp.prop('cols', c);
 
     } else {
-        
-        inp.prop('size', text.length+1);
-        
+
+        inp.prop('size', text.length + 1);
+
     }
-    
+
     inp.focus();
 }
 

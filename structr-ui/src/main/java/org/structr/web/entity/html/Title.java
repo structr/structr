@@ -47,7 +47,10 @@ public class Title extends DOMElement {
 
 		if (renderContext.getEdit()) {
 			
-			renderContext.getBuffer().append("\n    <script type=\"text/javascript\" src=\"/structr/js/lib/jquery-1.9.1.js\"></script>\n    <script type=\"text/javascript\" src=\"/structr/js/structr-edit.js\"></script>");
+			renderContext.getBuffer()
+				.append("\n    <script type=\"text/javascript\" src=\"/structr/js/lib/jquery-1.9.1.js\"></script>")
+				.append("\n    <script type=\"text/javascript\" src=\"/structr/js/structr-edit.js\"></script>")
+				.append("\n    <link rel=\"stylesheet\" type=\"text/css\" media=\"screen\" href=\"/structr/css/edit.css\"></link>");
 			
 		}
 	
