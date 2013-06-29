@@ -38,8 +38,8 @@ $(function() {
 
     } else {
         $('.editButton').on('click', function() {
-            if (urlParam('edit') !== undefined) {
-                window.location.href = '?edit';
+            if (urlParam('edit') === '') {
+                window.location.href = '?edit=1';
             }
         });
     }

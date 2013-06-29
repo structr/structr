@@ -145,11 +145,11 @@ function shorten(uuid) {
 }
 
 function urlParam(name) {
-    name = name.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
-    var regexS = "[\\?&]"+name+"=([^&#]*)";
+    name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
+    var regexS = "[\\?&]" + name + "=([^&#]*)";
     var regex = new RegExp(regexS);
-    var results = regex.exec(window.location.href);
-    return (results&&results.length?results[1]:'');
+    var res = regex.exec(window.location.href);
+    return (res && res.length ? res[1] : '');
 }
 
 function nvl(value, defaultValue) {
