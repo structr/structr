@@ -111,7 +111,7 @@ public class ResourceAccessTest extends StructrUiTest {
 			
 			// allow POST for non-authenticated users => access without user/pass should be allowed
 			folderGrant.setFlag(UiAuthenticator.NON_AUTH_USER_POST);
-			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(201).when().post("/folders");
+			RestAssured.given().contentType("application/json; charset=UTF-8").body("{'name':'Test01'}").expect().statusCode(201).when().post("/folders");
 			
 		} catch (FrameworkException ex) {
 
