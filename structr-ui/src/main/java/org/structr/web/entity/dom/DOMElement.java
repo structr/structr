@@ -547,20 +547,20 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 				render(securityContext, renderContext, depth + 1);
 				
-				if (renderContext.getEdit()) {
-					
-					boolean canWrite  = dataObject instanceof AbstractNode ? securityContext.isAllowed((AbstractNode) dataObject, Permission.write) : true;
-					
-					if (canWrite) {
-						
-						renderContext.getBuffer()
-							.append("\n<button class=\"deleteButton\" data-structr-id=\"")
-							.append(dataObject.getUuid())
-							.append("\">Delete ")
-							.append(dataObject.getType())
-							.append("</button>\n");
-					}
-				}
+//				if (renderContext.getEdit()) {
+//					
+//					boolean canWrite  = dataObject instanceof AbstractNode ? securityContext.isAllowed((AbstractNode) dataObject, Permission.write) : true;
+//					
+//					if (canWrite) {
+//						
+//						renderContext.getBuffer()
+//							.append("\n<button class=\"deleteButton\" data-structr-id=\"")
+//							.append(dataObject.getUuid())
+//							.append("\">Delete ")
+//							.append(dataObject.getType())
+//							.append("</button>\n");
+//					}
+//				}
 
 
 			}
