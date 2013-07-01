@@ -45,7 +45,7 @@ import org.structr.rest.ResourceProvider;
 import org.structr.rest.adapter.FrameworkExceptionGSONAdapter;
 import org.structr.rest.adapter.ResultGSONAdapter;
 import org.structr.rest.resource.NamedRelationResource;
-import org.structr.rest.resource.PagingHelper;
+import org.structr.common.PagingHelper;
 import org.structr.rest.resource.Resource;
 
 //~--- JDK imports ------------------------------------------------------------

@@ -34,7 +34,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.JsonInput;
 import org.structr.rest.ResourceProvider;
 import org.structr.rest.RestMethodResult;
-import org.structr.rest.resource.PagingHelper;
+import org.structr.common.PagingHelper;
 import org.structr.rest.resource.Resource;
 import org.structr.core.Result;
 

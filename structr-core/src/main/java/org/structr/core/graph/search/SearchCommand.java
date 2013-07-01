@@ -22,6 +22,7 @@ import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexHits;
 import org.neo4j.index.lucene.QueryContext;
 import org.structr.common.GraphObjectComparator;
+import org.structr.common.PagingHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.geo.GeoCodingResult;
@@ -341,13 +342,11 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 				}
 			}
 
-			// FIXME: add paging
-			
 			// sort list
 			Collections.sort(finalResult, new GraphObjectComparator(sortKey, sortDescending));
 			
-			// return final result
-			return new Result(finalResult, resultCount, true, false);
+			// return paged final result
+			return new Result(PagingHelper.subList(finalResult, pageSize, page, offsetId), resultCount, true, false);
 
 		} else {
 

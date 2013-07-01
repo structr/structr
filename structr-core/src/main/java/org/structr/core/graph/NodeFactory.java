@@ -38,7 +38,6 @@ import java.util.logging.Logger;
 import org.structr.core.module.ModuleService;
 import org.neo4j.gis.spatial.indexprovider.SpatialRecordHits;
 import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.structr.common.RelType;
 import org.structr.core.entity.AbstractRelationship;
 

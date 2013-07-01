@@ -18,7 +18,7 @@
  */
 
 
-package org.structr.rest.resource;
+package org.structr.common;
 
 import org.structr.core.GraphObject;
 import org.structr.core.Result;

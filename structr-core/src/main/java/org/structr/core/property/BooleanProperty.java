@@ -45,6 +45,11 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 	}
 	
 	@Override
+	public Property<Boolean> indexed() {
+		return super.passivelyIndexed();
+	}
+	
+	@Override
 	public String typeName() {
 		return "Boolean";
 	}

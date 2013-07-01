@@ -47,6 +47,7 @@ import org.structr.core.graph.search.RangeSearchAttribute;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.PropertySearchAttribute;
+import org.structr.core.graph.search.SearchCommand;
 
 /**
  * Abstract base class for all property types.
@@ -365,6 +366,10 @@ public abstract class Property<T> implements PropertyKey<T> {
 						if (value != null) {
 							
 							index.add(node.getNode(), dbName, value);
+							
+						} else {
+							
+							index.add(node.getNode(), dbName, SearchCommand.IMPROBABLE_SEARCH_VALUE);
 						}
 					}
 				}
@@ -387,6 +392,10 @@ public abstract class Property<T> implements PropertyKey<T> {
 						if (value != null) {
 
 							index.add(rel.getRelationship(), dbName, value);
+							
+						} else {
+							
+							index.add(rel.getRelationship(), dbName, SearchCommand.IMPROBABLE_SEARCH_VALUE);
 						}
 					}
 				}

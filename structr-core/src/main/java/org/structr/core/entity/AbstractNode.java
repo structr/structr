@@ -428,7 +428,13 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 */
 	@Override
 	public Object getPropertyForIndexing(final PropertyKey key) {
-		return getProperty(key, false);
+		
+		Object value = getProperty(key, false);
+		if (value != null) {
+			return value;
+		}
+		
+		return getProperty(key);
 	}
 
 	/**
