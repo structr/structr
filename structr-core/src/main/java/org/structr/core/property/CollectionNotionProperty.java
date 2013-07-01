@@ -18,14 +18,30 @@
  */
 package org.structr.core.property;
 
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.collections.ListUtils;
+import org.apache.lucene.search.BooleanClause;
+import static org.apache.lucene.search.BooleanClause.Occur.MUST;
+import static org.apache.lucene.search.BooleanClause.Occur.MUST_NOT;
+import static org.apache.lucene.search.BooleanClause.Occur.SHOULD;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.Result;
+import org.structr.core.Services;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.search.Search;
+import org.structr.core.graph.search.SearchAttribute;
+import org.structr.core.graph.search.SearchNodeCommand;
+import org.structr.core.graph.search.SourceSearchAttribute;
 import org.structr.core.notion.Notion;
+import org.structr.core.notion.PropertyNotion;
 
 /**
  * A property that wraps a {@link PropertyNotion} with the given notion around a {@link CollectionProperty}.
@@ -47,6 +63,9 @@ public class CollectionNotionProperty<S extends GraphObject, T> extends Property
 		this.base   = base;
 		
 		notion.setType(base.relatedType());
+		
+		// set indexed flag
+		indexed();
 	}
 
 	@Override
@@ -115,5 +134,99 @@ public class CollectionNotionProperty<S extends GraphObject, T> extends Property
 	@Override
 	public boolean isCollection() {
 		return true;
+	}
+	
+	@Override
+	public List<T> extractSearchableAttribute(SecurityContext securityContext, String requestParameter) throws FrameworkException {
+
+		PropertyKey propertyKey = notion.getPrimaryPropertyKey();
+		List<T> list            = new LinkedList<T>();
+		
+		if (propertyKey != null) {
+			
+			PropertyConverter inputConverter = propertyKey.inputConverter(securityContext);
+			if (inputConverter != null) {
+
+				for (String part : requestParameter.split("[,;]+")) {
+					
+					list.add((T)inputConverter.convert(part));
+				}
+				
+			} else {
+				
+				for (String part : requestParameter.split("[,;]+")) {
+					
+					list.add((T)part);
+				}
+			}
+		}
+
+		return list;
+	}
+
+	@Override
+	public SearchAttribute getSearchAttribute(SecurityContext securityContext, BooleanClause.Occur occur, List<T> searchValues, boolean exactMatch) {
+		
+		SourceSearchAttribute attr            = new SourceSearchAttribute(occur);
+		Set<GraphObject> intersectionResult   = new LinkedHashSet<GraphObject>();
+		CollectionProperty collectionProperty = (CollectionProperty)base;
+		boolean alreadyAdded                  = false;
+	
+		try {
+		
+			for (T searchValue : searchValues) {
+				
+				Result<AbstractNode> result = Services.command(securityContext, SearchNodeCommand.class).execute(
+
+					Search.andExactType(base.relatedType().getSimpleName()),
+					Search.andExactProperty(securityContext, notion.getPrimaryPropertyKey(), searchValue)
+				);
+
+				// attr.addToResult(collectionProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
+				
+				for (AbstractNode node : result.getResults()) {
+
+					switch (occur) {
+
+						case MUST:
+
+							if (!alreadyAdded) {
+								
+								// the first result is the basis of all subsequent intersections
+								intersectionResult.addAll(collectionProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
+								
+								// the next additions are intersected with this one
+								alreadyAdded = true;
+
+							} else {
+								
+								intersectionResult.retainAll(collectionProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
+							}
+							
+							break;
+
+						case SHOULD:
+							intersectionResult.addAll(collectionProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
+							break;
+
+						case MUST_NOT:
+							break;
+					}
+				}
+			}
+			
+			attr.setResult(new LinkedList<GraphObject>(intersectionResult));
+			
+		} catch (FrameworkException fex) {
+			
+			fex.printStackTrace();
+		}
+		
+		return attr;
+	}
+	
+	@Override
+	public void index(GraphObject entity, Object value) {
+		// no direct indexing
 	}
 }

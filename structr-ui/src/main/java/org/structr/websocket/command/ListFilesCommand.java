@@ -69,7 +69,7 @@ public class ListFilesCommand extends AbstractCommand {
 		
 		// for image lists, suppress thumbnails
 		if (type.equals(Image.class)) {
-			searchAttributes.add(Search.andExactProperty(Image.isThumbnail, false));
+			searchAttributes.add(Search.andExactProperty(securityContext, Image.isThumbnail, false));
 		}
 
 		final String sortOrder   = webSocketData.getSortOrder();

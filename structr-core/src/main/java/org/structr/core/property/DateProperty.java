@@ -23,14 +23,15 @@ import java.util.Date;
 import java.util.logging.Logger;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.SortField;
-import org.apache.lucene.util.NumericUtils;
+import org.neo4j.index.lucene.ValueContext;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.DateFormatToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.graph.search.DateSearchAttribute;
+import org.structr.core.graph.search.LongSearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.StringSearchAttribute;
 
 /**
 * A property that stores and retrieves a simple string-based Date with
@@ -173,20 +174,14 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 		}
 		
 	}
-	
+
 	@Override
-	public SearchAttribute getSearchAttribute(BooleanClause.Occur occur, Date searchValue, boolean exactMatch) {
-		
-		Object convertedValue = getSearchValue(searchValue);
-		String value          = "";
-		
-		if (convertedValue != null && convertedValue instanceof Long) {
-			
-			Long l = (Long)convertedValue;
-			
-			value = NumericUtils.longToPrefixCoded(l);
-		}
-		
-		return new StringSearchAttribute(this, value, occur, exactMatch);
+	public SearchAttribute getSearchAttribute(SecurityContext securityContext, BooleanClause.Occur occur, Date searchValue, boolean exactMatch) {
+		return new DateSearchAttribute(this, searchValue, occur, exactMatch);
+	}
+
+	@Override
+	public void index(GraphObject entity, Object value) {
+		super.index(entity, value != null ? ValueContext.numeric((Number)value) : value);
 	}
 }

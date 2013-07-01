@@ -21,10 +21,8 @@ package org.structr.rest.entity;
 import java.util.Date;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
-import org.structr.core.EntityContext;
 import org.structr.core.property.Property;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.NodeService.NodeIndex;
 import org.structr.core.property.*;
 
 /**
@@ -33,21 +31,15 @@ import org.structr.core.property.*;
  */
 public class TestThree extends AbstractNode {
 	
-	public static final Property<String[]>      stringArrayProperty = new ArrayProperty<String>("stringArrayProperty", String.class);
-	public static final Property<Boolean>       booleanProperty     = new BooleanProperty("booleanProperty");
-	public static final Property<Double>        doubleProperty      = new DoubleProperty("doubleProperty");
-	public static final Property<Integer>       integerProperty     = new IntProperty("integerProperty");
-	public static final Property<Long>          longProperty        = new LongProperty("longProperty");
-	public static final Property<String>        stringProperty      = new StringProperty("stringProperty");
-	public static final Property<Date>          dateProperty        = new ISO8601DateProperty("dateProperty");
+	public static final Property<String[]>      stringArrayProperty = new ArrayProperty<String>("stringArrayProperty", String.class).indexed();
+	public static final Property<Boolean>       booleanProperty     = new BooleanProperty("booleanProperty").indexed();
+	public static final Property<Double>        doubleProperty      = new DoubleProperty("doubleProperty").indexed();
+	public static final Property<Integer>       integerProperty     = new IntProperty("integerProperty").indexed();
+	public static final Property<Long>          longProperty        = new LongProperty("longProperty").indexed();
+	public static final Property<String>        stringProperty      = new StringProperty("stringProperty").indexed();
+	public static final Property<Date>          dateProperty        = new ISO8601DateProperty("dateProperty").indexed();
 	
 	public static final View publicView = new View(TestThree.class, PropertyView.Public,
 		stringArrayProperty, booleanProperty, doubleProperty, integerProperty, longProperty, stringProperty, dateProperty
 	);
-	
-	static {
-		
-		EntityContext.registerSearchablePropertySet(TestThree.class, NodeIndex.fulltext.name(), publicView.properties());
-		EntityContext.registerSearchablePropertySet(TestThree.class, NodeIndex.keyword.name(),  publicView.properties());
-	}
 }

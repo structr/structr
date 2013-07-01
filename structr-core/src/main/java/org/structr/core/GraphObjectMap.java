@@ -197,4 +197,20 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 	public PropertyContainer getPropertyContainer() {
 		return null;
 	}
+
+	@Override
+	public void addToIndex() {
+	}
+
+	@Override
+	public void updateInIndex() {
+	}
+
+	@Override
+	public void removeFromIndex() {
+	}
+	
+	@Override
+	public void indexPassiveProperties() {
+	}
 }

@@ -48,7 +48,6 @@ import org.structr.core.entity.TestOne;
 import org.structr.core.entity.TestSeven;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.search.DistanceSearchAttribute;
-import org.structr.core.graph.search.FilterSearchAttribute;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.property.PropertyKey;
@@ -65,7 +64,7 @@ import java.util.logging.Logger;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.structr.core.Services;
 import org.structr.core.graph.TransactionCommand;
-import org.structr.core.graph.search.StringSearchAttribute;
+import org.structr.core.graph.search.PropertySearchAttribute;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -104,7 +103,7 @@ public class SearchResultsTest extends StructrTest {
 			boolean publicOnly                     = false;
 			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 
-			searchAttributes.add(new StringSearchAttribute(key, name, Occur.MUST, true));
+			searchAttributes.add(new PropertySearchAttribute(key, name, Occur.MUST, true));
 
 			Result result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes);
 
@@ -125,7 +124,7 @@ public class SearchResultsTest extends StructrTest {
 			});
 			
 			searchAttributes.clear();
-			searchAttributes.add(new StringSearchAttribute(key, name2, Occur.MUST, true));
+			searchAttributes.add(new PropertySearchAttribute(key, name2, Occur.MUST, true));
 
 			result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes);
 
@@ -157,8 +156,8 @@ public class SearchResultsTest extends StructrTest {
 			boolean publicOnly                     = false;
 			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 
-			searchAttributes.add(new StringSearchAttribute(AbstractNode.type, type, Occur.MUST, true));
-			searchAttributes.add(new FilterSearchAttribute(key, date, Occur.MUST));
+			searchAttributes.add(Search.andExactType(type));
+			searchAttributes.add(Search.andExactProperty(securityContext, key, date));
 
 			Result result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes);
 
@@ -179,7 +178,7 @@ public class SearchResultsTest extends StructrTest {
 		try {
 
 			final AbstractRelationship rel = ((List<AbstractRelationship>) createTestRelationships(RelType.IS_AT, 1)).get(0);
-			final PropertyKey key1         = new StringProperty("jghsdkhgshdhgsdjkfgh");
+			final PropertyKey key1         = new StringProperty("jghsdkhgshdhgsdjkfgh").indexed();
 			final String val1              = "54354354546806849870";
 
 			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
@@ -196,7 +195,7 @@ public class SearchResultsTest extends StructrTest {
 
 			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 
-			searchAttributes.add(Search.andExactProperty(key1, val1));
+			searchAttributes.add(Search.andExactProperty(securityContext, key1, val1));
 
 			Result<AbstractRelationship> result = searchRelationshipCommand.execute(searchAttributes);
 
@@ -217,7 +216,7 @@ public class SearchResultsTest extends StructrTest {
 				}
 			});
 			
-			searchAttributes.add(Search.andExactProperty(key1, val2));
+			searchAttributes.add(Search.andExactProperty(securityContext, key1, val2));
 			assertTrue(result.size() == 1);
 			assertTrue(result.get(0).equals(rel));
 
@@ -248,7 +247,7 @@ public class SearchResultsTest extends StructrTest {
 			boolean publicOnly                     = false;
 			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 
-			searchAttributes.add(new StringSearchAttribute(AbstractNode.type, type, Occur.MUST, true));
+			searchAttributes.add(new PropertySearchAttribute(AbstractNode.type, type, Occur.MUST, true));
 			searchAttributes.add(new DistanceSearchAttribute("Hanauer Landstraße", "200", "60314", "Frankfurt", null, "Germany", 10.0, Occur.MUST));
 //			searchAttributes.add(new DistanceSearchAttribute("Hanauer Landstr. 200, 60314 Frankfurt, Germany", 10.0, Occur.MUST));
 

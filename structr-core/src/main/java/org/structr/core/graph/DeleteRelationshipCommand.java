@@ -76,7 +76,6 @@ public class DeleteRelationshipCommand extends NodeServiceCommand {
 
 			}
 
-			final RemoveRelationshipFromIndex removeRel = Services.command(SecurityContext.getSuperUserInstance(), RemoveRelationshipFromIndex.class);
 			final Relationship relToDelete              = rel.getRelationship();
 			final AbstractRelationship finalRel         = rel;
 
@@ -90,7 +89,7 @@ public class DeleteRelationshipCommand extends NodeServiceCommand {
 					try {
 
 						// remove object from index
-						removeRel.execute(finalRel);
+						finalRel.removeFromIndex();
 
 						// delete node in database
 						relToDelete.delete();

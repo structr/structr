@@ -19,14 +19,13 @@
 package org.structr.rest.entity;
 
 import java.util.Date;
-import org.structr.core.property.PropertyKey;
 import org.structr.common.PropertyView;
+import org.structr.common.View;
 import org.structr.core.property.ISO8601DateProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.LongProperty;
-import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.NodeService.NodeIndex;
+import org.structr.core.property.Property;
 
 /**
  * A simple entity for the most basic tests.
@@ -35,19 +34,11 @@ import org.structr.core.graph.NodeService.NodeIndex;
  */
 public class TestOne extends AbstractNode {
 	
-	public static final PropertyKey<Integer> anInt = new IntProperty("anInt");
-	public static final PropertyKey<Long> aLong    = new LongProperty("aLong");
-	public static final PropertyKey<Date> aDate    = new ISO8601DateProperty("aDate");
+	public static final Property<Integer> anInt = new IntProperty("anInt").indexed();
+	public static final Property<Long> aLong    = new LongProperty("aLong").indexed();
+	public static final Property<Date> aDate    = new ISO8601DateProperty("aDate").indexed();
 	
-	static {
-		
-		EntityContext.registerPropertySet(TestOne.class, PropertyView.Public, AbstractNode.name, anInt, aLong, aDate);
-		
-//		EntityContext.registerPropertyConverter(TestOne.class, anInt, IntConverter.class);
-//		EntityContext.registerPropertyConverter(TestOne.class, aDate, DateConverter.class);
-		
-		EntityContext.registerSearchablePropertySet(TestOne.class, NodeIndex.fulltext.name(), AbstractNode.name, anInt, aLong, aDate);
-		EntityContext.registerSearchablePropertySet(TestOne.class, NodeIndex.keyword.name(), AbstractNode.name, anInt, aLong, aDate);
-	}
-		
+	public static final View defaultView = new View(TestOne.class, PropertyView.Public,
+		name, anInt, aLong, aDate
+	);
 }

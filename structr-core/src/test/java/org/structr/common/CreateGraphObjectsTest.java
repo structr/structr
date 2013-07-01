@@ -299,7 +299,9 @@ public class CreateGraphObjectsTest extends StructrTest {
 		} catch (FrameworkException ex) {
 
 			logger.log(Level.SEVERE, ex.toString());
-			System.out.println(ex.toString());
+			
+			ex.printStackTrace();
+
 			fail("Unexpected exception");
 
 		}

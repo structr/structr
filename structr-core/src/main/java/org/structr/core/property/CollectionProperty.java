@@ -198,48 +198,7 @@ public class CollectionProperty<T extends GraphObject> extends AbstractRelationP
 
 	@Override
 	public List<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
-
-		if (obj instanceof AbstractNode) {
-
-			AbstractNode node = (AbstractNode)obj;
-
-			if (cardinality.equals(Relation.Cardinality.OneToMany) || cardinality.equals(Relation.Cardinality.ManyToMany)) {
-
-				NodeFactory nodeFactory = new NodeFactory(securityContext, false, false);
-				Class destinationType   = getDestType();
-				List<T> nodes           = new LinkedList<T>();
-				Node dbNode             = node.getNode();
-				AbstractNode value      = null;
-
-				try {
-
-					for (Relationship rel : dbNode.getRelationships(getRelType(), getDirection())) {
-
-						value = nodeFactory.instantiate(rel.getOtherNode(dbNode));
-						if (value != null && destinationType.isInstance(value)) {
-
-							nodes.add((T)value);
-						}
-					}
-
-					return nodes;
-
-				} catch (Throwable t) {
-
-					logger.log(Level.WARNING, "Unable to fetch related node: {0}", t.getMessage());
-				}
-
-			} else {
-
-				logger.log(Level.WARNING, "Requested related nodes with wrong cardinality {0} between {1} and {2}", new Object[] { getCardinality().name(), node.getClass().getSimpleName(), getDestType()});
-			}
-
-		} else {
-
-			logger.log(Level.WARNING, "Property {0} is registered on illegal type {1}", new Object[] { this, obj.getClass() } );
-		}
-
-		return Collections.emptyList();
+		return getRelatedNodes(securityContext, obj, getDestType());
 	}
 
 	@Override
@@ -298,5 +257,49 @@ public class CollectionProperty<T extends GraphObject> extends AbstractRelationP
 
 	public boolean isOneToMany() {
 		return oneToMany;
+	}
+	
+	public List<T> getRelatedNodes(SecurityContext securityContext, GraphObject obj, Class destinationType) {
+
+		if (obj instanceof AbstractNode) {
+
+			AbstractNode node = (AbstractNode)obj;
+
+			if (cardinality.equals(Relation.Cardinality.OneToMany) || cardinality.equals(Relation.Cardinality.ManyToMany)) {
+
+				NodeFactory nodeFactory = new NodeFactory(securityContext, false, false);
+				List<T> nodes           = new LinkedList<T>();
+				Node dbNode             = node.getNode();
+				AbstractNode value      = null;
+
+				try {
+
+					for (Relationship rel : dbNode.getRelationships(getRelType(), getDirection())) {
+
+						value = nodeFactory.instantiate(rel.getOtherNode(dbNode));
+						if (value != null && destinationType.isInstance(value)) {
+
+							nodes.add((T)value);
+						}
+					}
+
+					return nodes;
+
+				} catch (Throwable t) {
+
+					logger.log(Level.WARNING, "Unable to fetch related node: {0}", t.getMessage());
+				}
+
+			} else {
+
+				logger.log(Level.WARNING, "Requested related nodes with wrong cardinality {0} between {1} and {2}", new Object[] { getCardinality().name(), node.getClass().getSimpleName(), getDestType()});
+			}
+
+		} else {
+
+			logger.log(Level.WARNING, "Property {0} is registered on illegal type {1}", new Object[] { this, obj.getClass() } );
+		}
+
+		return Collections.emptyList();
 	}
 }

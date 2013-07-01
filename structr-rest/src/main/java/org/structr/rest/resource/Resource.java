@@ -14,13 +14,10 @@
 package org.structr.rest.resource;
 
 //~--- JDK imports ------------------------------------------------------------
-import org.structr.core.graph.search.RangeSearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.DistanceSearchAttribute;
 import java.util.Collections;
-import java.util.Enumeration;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -28,8 +25,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -39,24 +34,21 @@ import org.apache.lucene.search.BooleanClause.Occur;
 import org.structr.common.CaseHelper;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.Permission;
+import org.structr.common.PropertyView;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;
-import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.InvalidSearchField;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.Value;
-import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.DeleteNodeCommand;
 import org.structr.core.graph.DeleteRelationshipCommand;
 import org.structr.core.graph.NodeFactory;
-import org.structr.core.graph.NodeService;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.rest.RestMethodResult;
@@ -75,28 +67,9 @@ import org.structr.rest.servlet.JsonRestServlet;
 public abstract class Resource {
 
 	private static final Logger logger = Logger.getLogger(Resource.class.getName());
-	private static final Set<String> NON_SEARCH_FIELDS = new LinkedHashSet<String>();
-	private static final Pattern rangeQueryPattern = Pattern.compile("\\[(.+) TO (.+)\\]");
 
-	//~--- static initializers --------------------------------------------
-	static {
-
-		// create static Set with non-searchable request parameters
-		// to identify search requests quickly
-		NON_SEARCH_FIELDS.add(JsonRestServlet.REQUEST_PARAMETER_LOOSE_SEARCH);
-		NON_SEARCH_FIELDS.add(JsonRestServlet.REQUEST_PARAMETER_PAGE_NUMBER);
-		NON_SEARCH_FIELDS.add(JsonRestServlet.REQUEST_PARAMETER_PAGE_SIZE);
-		NON_SEARCH_FIELDS.add(JsonRestServlet.REQUEST_PARAMETER_OFFSET_ID);
-		NON_SEARCH_FIELDS.add(JsonRestServlet.REQUEST_PARAMETER_SORT_KEY);
-		NON_SEARCH_FIELDS.add(JsonRestServlet.REQUEST_PARAMETER_SORT_ORDER);
-
-		NON_SEARCH_FIELDS.add(Search.DISTANCE_SEARCH_KEYWORD);
-		NON_SEARCH_FIELDS.add(Search.LOCATION_SEARCH_KEYWORD);
-
-	}
-	//~--- fields ---------------------------------------------------------
-	protected PropertyKey idProperty = null;
 	protected SecurityContext securityContext = null;
+	protected PropertyKey idProperty          = null;
 
 	//~--- methods --------------------------------------------------------
 	/**
@@ -303,36 +276,6 @@ public abstract class Resource {
 		return -1;
 	}
 
-	private static void checkForIllegalSearchKeys(final HttpServletRequest request, Class type, final Set<PropertyKey> searchableProperties) throws FrameworkException {
-
-		final ErrorBuffer errorBuffer = new ErrorBuffer();
-
-		// try to identify invalid search properties and throw an exception
-		for (final Enumeration<String> e = request.getParameterNames(); e.hasMoreElements();) {
-
-			final String requestParameterName = e.nextElement();
-
-			final PropertyKey requestParameterKey = EntityContext.getPropertyKeyForJSONName(type, requestParameterName);
-
-			if (!searchableProperties.contains(requestParameterKey) && !NON_SEARCH_FIELDS.contains(requestParameterName)) {
-
-				errorBuffer.add("base", new InvalidSearchField(requestParameterKey));
-
-			}
-
-		}
-
-		if (errorBuffer.hasError()) {
-
-			throw new FrameworkException(422, errorBuffer);
-
-		}
-	}
-
-	public static void registerNonSearchField(final String parameterName) {
-		NON_SEARCH_FIELDS.add(parameterName);
-	}
-
 	//~--- get methods ----------------------------------------------------
 	public abstract String getUriPart();
 
@@ -386,175 +329,23 @@ public abstract class Resource {
 		return null;
 	}
 
-	protected List<SearchAttribute> extractSearchableAttributesForNodes(final SecurityContext securityContext, final Class type, final HttpServletRequest request) throws FrameworkException {
-		return extractSearchableAttributes(securityContext, type, request, NodeService.NodeIndex.fulltext.name(), NodeService.NodeIndex.keyword.name());
-	}
+	protected List<SearchAttribute> extractSearchableAttributes(final SecurityContext securityContext, final Class type, final HttpServletRequest request) throws FrameworkException {
 
-	protected List<SearchAttribute> extractSearchableAttributesForRelationships(final SecurityContext securityContext, final Class type, final HttpServletRequest request) throws FrameworkException {
-		return extractSearchableAttributes(securityContext, type, request, NodeService.RelationshipIndex.rel_fulltext.name(), NodeService.RelationshipIndex.rel_keyword.name());
-	}
-
-	private static List<SearchAttribute> extractSearchableAttributes(final SecurityContext securityContext, final Class type, final HttpServletRequest request, final String fulltextIndex, final String keywordIndex) throws FrameworkException {
-
-		List<SearchAttribute> searchAttributes = Collections.emptyList();
-
-		// searchable attributes
+		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+		
 		if (type != null && request != null && !request.getParameterMap().isEmpty()) {
 
-			final boolean looseSearch = parseInteger(request.getParameter(JsonRestServlet.REQUEST_PARAMETER_LOOSE_SEARCH)) == 1;
-			final Set<PropertyKey> searchableProperties = getSearchableProperties(type, looseSearch, fulltextIndex, keywordIndex);
+			 boolean looseSearch = parseInteger(request.getParameter(JsonRestServlet.REQUEST_PARAMETER_LOOSE_SEARCH)) == 1;
 
-			searchAttributes = checkAndAssembleSearchAttributes(securityContext, request, type, looseSearch, searchableProperties);
+			for (final PropertyKey key : EntityContext.getPropertySet(type, PropertyView.All)) {
 
-		}
-
-		return searchAttributes;
-	}
-
-	private static String removeQuotes(final String searchValue) {
-		String resultStr = searchValue;
-
-		if (resultStr.contains("\"")) {
-			resultStr = resultStr.replaceAll("[\"]+", "");
-		}
-
-		if (resultStr.contains("'")) {
-			resultStr = resultStr.replaceAll("[']+", "");
-		}
-
-		return resultStr;
-	}
-
-	private static SearchAttribute determineSearchType(final SecurityContext securityContext, final PropertyKey key, final String searchValue) {
-
-		if (StringUtils.startsWith(searchValue, "[") && StringUtils.endsWith(searchValue, "]")) {
-
-			// check for existance of range query string
-			Matcher matcher = rangeQueryPattern.matcher(searchValue);
-			if (matcher.matches()) {
-
-				if (matcher.groupCount() == 2) {
-
-					String rangeStart = matcher.group(1);
-					String rangeEnd = matcher.group(2);
-
-					try {
-
-						PropertyConverter inputConverter = key.inputConverter(securityContext);
-						Object rangeStartConverted = rangeStart;
-						Object rangeEndConverted = rangeEnd;
-
-						if (inputConverter != null) {
-
-							rangeStartConverted = inputConverter.convert(rangeStartConverted);
-							rangeEndConverted = inputConverter.convert(rangeEndConverted);
-						}
-
-						// let property key determine exact search value (might be a numeric value..)
-						rangeStartConverted = key.getSearchValue(rangeStartConverted);
-						rangeEndConverted = key.getSearchValue(rangeEndConverted);
-
-						return new RangeSearchAttribute(key, rangeStartConverted, rangeEndConverted, Occur.SHOULD);
-
-					} catch (Throwable t) {
-
-						t.printStackTrace();
-					}
-				}
-
-				return null;
-
-			} else {
-
-				final String strippedValue = StringUtils.stripEnd(StringUtils.stripStart(searchValue, "["), "]");
-				return Search.andMatchExactValues(key, strippedValue, Occur.SHOULD);
-
-			}
-
-		} else if (StringUtils.startsWith(searchValue, "(") && StringUtils.endsWith(searchValue, ")")) {
-
-			final String strippedValue = StringUtils.stripEnd(StringUtils.stripStart(searchValue, "("), ")");
-			return Search.andMatchExactValues(key, strippedValue, Occur.MUST);
-
-		} else {
-
-			PropertyConverter inputConverter = key.inputConverter(securityContext);
-			Object convertedSearchValue = searchValue;
-
-			if (inputConverter != null) {
-
-				try {
-					convertedSearchValue = inputConverter.convert(searchValue);
-
-				} catch (Throwable t) {
-
-					logger.log(Level.WARNING, "Unable to convert search value for key {0}", key);
+				if (key.isIndexedProperty()) {
+					
+					searchAttributes.addAll(key.extractSearchableAttribute(securityContext, request, looseSearch));
 				}
 			}
-
-			return Search.andExactProperty(key, convertedSearchValue);
 		}
-	}
 
-	private static Set<PropertyKey> getSearchableProperties(final Class type, final boolean loose,
-		final String looseIndexName, final String exactIndexName) {
-		Set<PropertyKey> searchableProperties;
-
-		if (loose) {
-
-			searchableProperties = EntityContext.getSearchableProperties(type, looseIndexName);
-
-		} else {
-
-			searchableProperties = EntityContext.getSearchableProperties(type, exactIndexName);
-
-		}
-		return searchableProperties;
-	}
-
-	private static List<SearchAttribute> checkAndAssembleSearchAttributes(final SecurityContext securityContext,
-		final HttpServletRequest request,
-		final Class type,
-		final boolean looseSearch,
-		final Set<PropertyKey> searchableProperties)
-		throws FrameworkException {
-
-		List<SearchAttribute> searchAttributes = Collections.emptyList();
-
-		if (searchableProperties != null) {
-
-			checkForIllegalSearchKeys(request, type, searchableProperties);
-
-			searchAttributes = new LinkedList<SearchAttribute>();
-
-			for (final PropertyKey key : searchableProperties) {
-
-				String searchValue = request.getParameter(key.jsonName());
-
-				if (searchValue != null) {
-
-					if (looseSearch) {
-
-						// no quotes allowed in loose search queries!
-						searchValue = removeQuotes(searchValue);
-
-						searchAttributes.add(Search.andProperty(key, searchValue));
-					} else {
-
-						SearchAttribute attr = determineSearchType(securityContext, key, searchValue);
-
-						if (attr != null) {
-
-							searchAttributes.add(attr);
-						}
-
-					}
-
-				}
-
-			}
-
-		}
 		return searchAttributes;
 	}
 

@@ -14,15 +14,13 @@
 package org.structr.core.graph.search;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.lucene.analysis.KeywordAnalyzer;
 import org.apache.lucene.index.Term;
-import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.WildcardQuery;
-import org.apache.lucene.util.Version;
+import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.property.PropertyKey;
 
@@ -31,13 +29,13 @@ import org.structr.core.property.PropertyKey;
  *
  * @author Axel Morgner
  */
-public class StringSearchAttribute extends SearchAttribute {
+public class PropertySearchAttribute<T> extends SearchAttribute<T> {
 
 	private boolean isExactMatch = false;
 	
-	public StringSearchAttribute(final PropertyKey key, final String value, final Occur occur, final boolean isExactMatch) {
+	public PropertySearchAttribute(final PropertyKey<T> key, final T value, final Occur occur, final boolean isExactMatch) {
 		
-		super(occur, new NodeAttribute(key, value));
+		super(occur, new NodeAttribute<T>(key, value));
 		
 		this.isExactMatch = isExactMatch;
 	}
@@ -90,23 +88,49 @@ public class StringSearchAttribute extends SearchAttribute {
 		// boolean queries, i.e. no Occur.MUST..
 		return !isExactMatch;
 	}
-	
-	public static final void main(String[] args) {
+
+	@Override
+	public String getStringValue() {
 		
-		QueryParser p = new QueryParser(Version.LUCENE_36,WILDCARD, new KeywordAnalyzer());
-		
-		try {
-			
-			p.setAllowLeadingWildcard(true);
-			
-			Query q = p.parse("name:*B*");
-			
-			System.out.println(q.getClass().getSimpleName());
-			
-		} catch (Throwable t) {
-			
-			t.printStackTrace();
+		Object value = getValue();
+		if (value != null) {
+			return value.toString();
 		}
 		
+		return null;
+	}
+
+	@Override
+	public boolean includeInResult(GraphObject entity) {
+		
+		Occur occur   = getOccur();
+		T searchValue = getValue();
+		T nodeValue   = entity.getProperty(getKey());
+		
+		if (occur.equals(Occur.MUST_NOT)) {
+
+			if ((nodeValue != null) && !(nodeValue.equals(searchValue))) {
+
+				// don't add, do not check other results
+				return false;
+			}
+
+		} else {
+
+			if (nodeValue != null) {
+
+				if (!nodeValue.equals(searchValue)) {
+					return false;
+				}
+
+			} else {
+
+				if (searchValue != null) {
+					return false;
+				}
+			}
+		}
+		
+		return true;
 	}
 }

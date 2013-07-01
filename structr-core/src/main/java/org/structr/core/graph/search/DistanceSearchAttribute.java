@@ -15,6 +15,7 @@ package org.structr.core.graph.search;
 
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.Query;
+import org.structr.core.GraphObject;
 
 /**
  * Represents a distance search.
@@ -120,5 +121,15 @@ public class DistanceSearchAttribute extends SearchAttribute {
 	@Override
 	public boolean isExactMatch() {
 		return true;	// ignored
+	}
+
+	@Override
+	public String getStringValue() {
+		return null;
+	}
+
+	@Override
+	public boolean includeInResult(GraphObject entity) {
+		return true;
 	}
 }

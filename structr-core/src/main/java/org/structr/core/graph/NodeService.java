@@ -78,6 +78,10 @@ public class NodeService implements SingletonService {
 	private Index<Relationship> relUuidIndex        = null;
 
 	private ExecutionEngine cypherExecutionEngine   = null;
+	
+	// indices
+	private Map<RelationshipIndex, Index<Relationship>> relIndices = new EnumMap<RelationshipIndex, Index<Relationship>>(RelationshipIndex.class);
+	private Map<NodeIndex, Index<Node>> nodeIndices                = new EnumMap<NodeIndex, Index<Node>>(NodeIndex.class);
 
 	/** Dependent services */
 	private Set<RunnableService> registeredServices = new HashSet<RunnableService>();
@@ -176,26 +180,31 @@ public class NodeService implements SingletonService {
 		logger.log(Level.FINE, "Initializing UUID index...");
 
 		uuidIndex = graphDb.index().forNodes("uuidAllNodes", LuceneIndexImplementation.EXACT_CONFIG);
+		nodeIndices.put(NodeIndex.uuid, uuidIndex);
 
 		logger.log(Level.FINE, "UUID index ready.");
 		logger.log(Level.FINE, "Initializing user index...");
 
 		userIndex = graphDb.index().forNodes("nameEmailAllUsers", LuceneIndexImplementation.EXACT_CONFIG);
+		nodeIndices.put(NodeIndex.user, userIndex);
 
 		logger.log(Level.FINE, "Node Email index ready.");
 		logger.log(Level.FINE, "Initializing exact email index...");
 
 		caseInsensitiveUserIndex = graphDb.index().forNodes("caseInsensitiveAllUsers", MapUtil.stringMap( "provider", "lucene", "type", "exact", "to_lower_case", "true" ));
+		nodeIndices.put(NodeIndex.caseInsensitiveUser, caseInsensitiveUserIndex);
 
 		logger.log(Level.FINE, "Node case insensitive node index ready.");
 		logger.log(Level.FINE, "Initializing case insensitive fulltext node index...");
 
 		fulltextIndex = graphDb.index().forNodes("fulltextAllNodes", LuceneIndexImplementation.FULLTEXT_CONFIG);
+		nodeIndices.put(NodeIndex.fulltext, fulltextIndex);
 
 		logger.log(Level.FINE, "Fulltext node index ready.");
 		logger.log(Level.FINE, "Initializing keyword node index...");
 
 		keywordIndex = graphDb.index().forNodes("keywordAllNodes", LuceneIndexImplementation.EXACT_CONFIG);
+		nodeIndices.put(NodeIndex.keyword, keywordIndex);
 
 		logger.log(Level.FINE, "Keyword node index ready.");
 		logger.log(Level.FINE, "Initializing layer index...");
@@ -207,26 +216,25 @@ public class NodeService implements SingletonService {
 		config.put(SpatialIndexProvider.GEOMETRY_TYPE, LayerNodeIndex.POINT_PARAMETER);
 
 		layerIndex = new LayerNodeIndex("layerIndex", graphDb, config);
+		nodeIndices.put(NodeIndex.layer, layerIndex);
 
 		logger.log(Level.FINE, "Layer index ready.");
 		logger.log(Level.FINE, "Initializing node factory...");
 
-//		nodeFactory = new NodeFactory();
-//
-//		logger.log(Level.FINE, "Node factory ready.");
-//		logger.log(Level.FINE, "Initializing relationship UUID index...");
-
 		relUuidIndex = graphDb.index().forRelationships("uuidAllRelationships", LuceneIndexImplementation.EXACT_CONFIG);
+		relIndices.put(RelationshipIndex.rel_uuid, relUuidIndex);
 
 		logger.log(Level.FINE, "Relationship UUID index ready.");
 		logger.log(Level.FINE, "Initializing relationship index...");
 
 		relFulltextIndex = graphDb.index().forRelationships("fulltextAllRelationships", LuceneIndexImplementation.FULLTEXT_CONFIG);
+		relIndices.put(RelationshipIndex.rel_fulltext, relFulltextIndex);
 
 		logger.log(Level.FINE, "Relationship fulltext index ready.");
 		logger.log(Level.FINE, "Initializing keyword relationship index...");
 
 		relKeywordIndex = graphDb.index().forRelationships("keywordAllRelationships", LuceneIndexImplementation.EXACT_CONFIG);
+		relIndices.put(RelationshipIndex.rel_keyword, relKeywordIndex);
 
 		logger.log(Level.FINE, "Relationship numeric index ready.");
 		logger.log(Level.FINE, "Initializing relationship factory...");
@@ -323,7 +331,21 @@ public class NodeService implements SingletonService {
 	public boolean isRunning() {
 
 		return ((graphDb != null) && isInitialized);
-
 	}
 
+	public Collection<Index<Node>> getNodeIndices() {
+		return nodeIndices.values();
+	}
+	
+	public Collection<Index<Relationship>> getRelationshipIndices() {
+		return relIndices.values();
+	}
+	
+	public Index<Node> getNodeIndex(NodeIndex name) {
+		return nodeIndices.get(name);
+	}
+	
+	public Index<Relationship> getRelationshipIndex(RelationshipIndex name) {
+		return relIndices.get(name);
+	}
 }

@@ -24,8 +24,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
-import org.structr.core.EntityContext;
-import org.structr.core.graph.NodeService.NodeIndex;
 import org.structr.core.property.DoubleProperty;
 
 /**
@@ -36,18 +34,12 @@ import org.structr.core.property.DoubleProperty;
  */
 public class TestSeven extends AbstractNode {
 	
-	public static final Property<Double> latitude = new DoubleProperty("latitude");
-	public static final Property<Double> longitude = new DoubleProperty("longitude");
+	public static final Property<Double> latitude = new DoubleProperty("latitude").indexed();
+	public static final Property<Double> longitude = new DoubleProperty("longitude").indexed();
 
 	public static final View publicView = new View(TestSeven.class, PropertyView.Public,
 		latitude, longitude
 	);
-	
-	static {
-		
-		EntityContext.registerSearchablePropertySet(TestSeven.class, NodeIndex.fulltext.name(), latitude, longitude);
-		EntityContext.registerSearchablePropertySet(TestSeven.class, NodeIndex.keyword.name(), latitude, longitude);
-	}
 	
 	@Override
 	public boolean onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) {

@@ -32,12 +32,10 @@ import org.neo4j.rest.graphdb.RestGraphDatabase;
 import org.structr.core.property.Property;
 import org.structr.common.PropertyView;
 import org.structr.core.property.StringProperty;
-import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.NodeFactory;
-import org.structr.core.graph.NodeService.NodeIndex;
 import org.structr.core.graph.RelationshipFactory;
 
 /**
@@ -59,13 +57,6 @@ public class RemoteView extends View {
 		type, repositoryUrl, remoteUser, remotePassword
 	);
 		
-		
-	static {
-		
-		EntityContext.registerSearchablePropertySet(RemoteView.class, NodeIndex.fulltext.name(), uiView.properties());
-		EntityContext.registerSearchablePropertySet(RemoteView.class, NodeIndex.keyword.name(),  uiView.properties());
-	}
-	
 	@Override
 	public List<GraphObject> getGraphObjects(final HttpServletRequest request) {
 

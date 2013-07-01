@@ -171,39 +171,23 @@ public abstract class Search {
 	}
 
 	public static SearchAttribute orName(final String searchString) {
-
-		SearchAttribute attr = new StringSearchAttribute(AbstractNode.name, searchString, Occur.SHOULD, false);
-
-		return attr;
-
+		return new PropertySearchAttribute(AbstractNode.name, searchString, Occur.SHOULD, false);
 	}
 
 	public static SearchAttribute andName(final String searchString) {
-
-		SearchAttribute attr = new StringSearchAttribute(AbstractNode.name, searchString, Occur.MUST, false);
-
-		return attr;
-
+		return new PropertySearchAttribute(AbstractNode.name, searchString, Occur.MUST, false);
 	}
 
-	public static <T> SearchAttribute andProperty(final PropertyKey<T> key, final T searchValue) {
-		return key.getSearchAttribute(Occur.MUST, searchValue, false);
+	public static <T> SearchAttribute andProperty(final SecurityContext securityContext, final PropertyKey<T> key, final T searchValue) {
+		return key.getSearchAttribute(securityContext, Occur.MUST, searchValue, false);
 	}
 
 	public static SearchAttribute orExactType(final String searchString) {
-
-		SearchAttribute attr = new StringSearchAttribute(AbstractNode.type, searchString, Occur.SHOULD, true);
-
-		return attr;
-
+		return new PropertySearchAttribute(AbstractNode.type, searchString, Occur.SHOULD, true);
 	}
 
 	public static SearchAttribute andExactType(final String searchString) {
-
-		SearchAttribute attr = new StringSearchAttribute(AbstractNode.type, searchString, Occur.MUST, true);
-
-		return attr;
-
+		return new PropertySearchAttribute(AbstractNode.type, searchString, Occur.MUST, true);
 	}
 
 	public static SearchAttribute andExactRelType(final RelationshipMapping namedRelation) {
@@ -215,7 +199,7 @@ public abstract class Search {
 	public static SearchAttribute andExactRelType(final String relType, final String sourceType, final String destType) {
 
 		String searchString  = EntityContext.createCombinedRelationshipType(sourceType, relType, destType);
-		SearchAttribute attr = new StringSearchAttribute(AbstractRelationship.combinedType, searchString, Occur.MUST, true);
+		SearchAttribute attr = new PropertySearchAttribute(AbstractRelationship.combinedType, searchString, Occur.MUST, true);
 
 		return attr;
 
@@ -230,50 +214,30 @@ public abstract class Search {
 	public static SearchAttribute orExactRelType(final String relType, final String sourceType, final String destType) {
 
 		String searchString  = EntityContext.createCombinedRelationshipType(sourceType, relType, destType);
-		SearchAttribute attr = new StringSearchAttribute(AbstractRelationship.combinedType, searchString, Occur.SHOULD, true);
+		SearchAttribute attr = new PropertySearchAttribute(AbstractRelationship.combinedType, searchString, Occur.SHOULD, true);
 
 		return attr;
 
 	}
 
 	public static SearchAttribute orExactName(final String searchString) {
-
-		SearchAttribute attr = new StringSearchAttribute(AbstractNode.name, searchString, Occur.SHOULD, true);
-
-		return attr;
-
+		return new PropertySearchAttribute(AbstractNode.name, searchString, Occur.SHOULD, true);
 	}
 
 	public static SearchAttribute andExactName(final String searchString) {
-
-		SearchAttribute attr = new StringSearchAttribute(AbstractNode.name, searchString, Occur.MUST, true);
-
-		return attr;
-
+		return new PropertySearchAttribute(AbstractNode.name, searchString, Occur.MUST, true);
 	}
 
 	public static SearchAttribute andExactUuid(final String searchString) {
-
-		SearchAttribute attr = new StringSearchAttribute(AbstractNode.uuid, searchString, Occur.MUST, true);
-
-		return attr;
-
+		return new PropertySearchAttribute(AbstractNode.uuid, searchString, Occur.MUST, true);
 	}
 
-	public static SearchAttribute andNotHidden() {
-
-		SearchAttribute attr = new FilterSearchAttribute(AbstractNode.hidden, true, Occur.MUST_NOT);
-
-		return attr;
-
+	public static <T> SearchAttribute andExactProperty(final SecurityContext securityContext, final PropertyKey<T> propertyKey, final T searchValue) {
+		return propertyKey.getSearchAttribute(securityContext, Occur.MUST, searchValue, true);
 	}
 
-	public static <T> SearchAttribute andExactProperty(final PropertyKey<T> propertyKey, final T searchValue) {
-		return propertyKey.getSearchAttribute(Occur.MUST, searchValue, true);
-	}
-
-	public static <T> SearchAttribute orExactProperty(final PropertyKey<T> propertyKey, final T searchValue) {
-		return propertyKey.getSearchAttribute(Occur.SHOULD, searchValue, true);
+	public static <T> SearchAttribute orExactProperty(final SecurityContext securityContext, final PropertyKey<T> propertyKey, final T searchValue) {
+		return propertyKey.getSearchAttribute(securityContext, Occur.SHOULD, searchValue, true);
 	}
 
 	public static String unquoteExactMatch(final String searchString) {
@@ -468,7 +432,7 @@ public abstract class Search {
 		
 		for (String part : parts) {
 			
-			SearchAttribute attr = new StringSearchAttribute(key, part, occur, true);
+			SearchAttribute attr = new PropertySearchAttribute(key, part, occur, true);
 			
 			group.add(attr);
 			
@@ -495,7 +459,7 @@ public abstract class Search {
 		
 		for (String part : parts) {
 			
-			SearchAttribute attr = new StringSearchAttribute(key, part, occur, false);
+			SearchAttribute attr = new PropertySearchAttribute(key, part, occur, false);
 			
 			group.add(attr);
 			
@@ -510,7 +474,7 @@ public abstract class Search {
 	 * 
 	 * @param searchValue 
 	 */
-	public static SearchAttributeGroup andMatchExactValues(final PropertyKey key, final String searchValue, final Occur occur) {
+	public static SearchAttributeGroup andMatchExactValues(final SecurityContext securityContext, final PropertyKey key, final String searchValue, final Occur occur) {
 		
 		SearchAttributeGroup group = new SearchAttributeGroup(Occur.MUST);
 		
@@ -521,11 +485,8 @@ public abstract class Search {
 		String[] parts = StringUtils.split(searchValue, ",");
 		
 		for (String part : parts) {
-			
-			SearchAttribute attr = new StringSearchAttribute(key, part, occur, true);
-			
-			group.add(attr);
-			
+	
+			group.add(key.getSearchAttribute(securityContext, occur, part, true));
 		}
 		
 		return group;
@@ -537,7 +498,7 @@ public abstract class Search {
 	 * 
 	 * @param searchValue 
 	 */
-	public static SearchAttributeGroup andMatchValues(final PropertyKey key, final String searchValue, final Occur occur) {
+	public static SearchAttributeGroup andMatchValues(final SecurityContext securityContext, final PropertyKey key, final String searchValue, final Occur occur) {
 		
 		SearchAttributeGroup group = new SearchAttributeGroup(Occur.MUST);
 		
@@ -549,10 +510,7 @@ public abstract class Search {
 		
 		for (String part : parts) {
 			
-			SearchAttribute attr = new StringSearchAttribute(key, part, occur, false);
-			
-			group.add(attr);
-			
+			group.add(key.getSearchAttribute(securityContext, occur, part, false));
 		}
 		
 		return group;

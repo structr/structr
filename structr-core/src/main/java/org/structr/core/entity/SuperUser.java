@@ -29,7 +29,6 @@ import org.structr.common.error.FrameworkException;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import org.neo4j.graphdb.PropertyContainer;
 import org.structr.core.property.PropertyMap;
@@ -274,5 +273,21 @@ public class SuperUser implements Principal {
 	@Override
 	public PropertyContainer getPropertyContainer() {
 		return null;
+	}
+
+	@Override
+	public void addToIndex() {
+	}
+
+	@Override
+	public void updateInIndex() {
+	}
+
+	@Override
+	public void removeFromIndex() {
+	}
+
+	@Override
+	public void indexPassiveProperties() {
 	}
 }

@@ -62,8 +62,8 @@ public class Component extends DOMElement {
 	public static final String REQUEST_CONTAINS_UUID_IDENTIFIER = "request_contains_uuids";
 	private static final Logger logger                          = Logger.getLogger(Component.class.getName());
 
-	public static final Property<Integer> position   = new IntProperty("position");
-	public static final Property<String>  kind       = new StringProperty("kind");
+	public static final Property<Integer> position   = new IntProperty("position").indexed();
+	public static final Property<String>  kind       = new StringProperty("kind").indexed();
 	
 	public static final org.structr.common.View uiView = new org.structr.common.View(Component.class, PropertyView.Ui,
 		type, name, kind
@@ -73,18 +73,6 @@ public class Component extends DOMElement {
 		type, name, kind
 	);
 	
-	
-	//~--- static initializers --------------------------------------------
-
-	static {
-
-		EntityContext.registerSearchablePropertySet(Component.class, NodeService.NodeIndex.fulltext.name(), uiView.properties());
-		EntityContext.registerSearchablePropertySet(Component.class, NodeService.NodeIndex.keyword.name(),  uiView.properties());
-
-	}
-
-	//~--- fields ---------------------------------------------------------
-
 	private Map<String, AbstractNode> contentNodes = new WeakHashMap<String, AbstractNode>();
 	private Set<String> subTypes                   = new LinkedHashSet<String>();
 

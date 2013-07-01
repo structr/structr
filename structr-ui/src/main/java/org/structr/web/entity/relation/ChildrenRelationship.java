@@ -39,9 +39,9 @@ import org.structr.web.entity.dom.DOMNode;
  */
 public class ChildrenRelationship extends AbstractRelationship {
 
-	public static final Property<String>   parentId = new StringProperty("parentId");
-	public static final Property<String>   childId  = new StringProperty("childId");
-	public static final Property<Integer>  position = new IntProperty("position");
+	public static final Property<String>   parentId = new StringProperty("parentId").indexed();
+	public static final Property<String>   childId  = new StringProperty("childId").indexed();
+	public static final Property<Integer>  position = new IntProperty("position").indexed();
 
 	public static final View uiView = new View(ChildrenRelationship.class, PropertyView.Ui,
 		parentId, childId, position
@@ -50,9 +50,6 @@ public class ChildrenRelationship extends AbstractRelationship {
 	static {
 
 		EntityContext.registerNamedRelation("children", ChildrenRelationship.class, DOMNode.class, DOMNode.class, RelType.CONTAINS);
-		
-		EntityContext.registerSearchablePropertySet(ChildrenRelationship.class, PropertyView.Ui, uiView.properties());
-
 	}
 
 	//~--- get methods ----------------------------------------------------

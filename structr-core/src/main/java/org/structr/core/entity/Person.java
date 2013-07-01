@@ -39,11 +39,9 @@ import org.structr.core.property.Property;
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
-import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import static org.structr.core.entity.AbstractNode.name;
 import org.structr.core.graph.CreateRelationshipCommand;
-import org.structr.core.graph.NodeService.NodeIndex;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.validator.TypeUniquenessValidator;
@@ -60,21 +58,25 @@ public class Person extends AbstractNode implements Principal {
 	private static final Logger logger = Logger.getLogger(Person.class.getName());
 
 	public static final Property<String>  salutation          = new StringProperty("salutation");
-	public static final Property<String>  firstName           = new StringProperty("firstName");
+	public static final Property<String>  firstName           = new StringProperty("firstName").indexed();
 	public static final Property<String>  middleNameOrInitial = new StringProperty("middleNameOrInitial");
-	public static final Property<String>  lastName            = new StringProperty("lastName");
-	public static final Property<String>  email               = new StringProperty("email").validator(new TypeUniquenessValidator(Person.class));
+	public static final Property<String>  lastName            = new StringProperty("lastName").indexed();
+	
+	public static final Property<String>  email               = new StringProperty("email").validator(new TypeUniquenessValidator(Person.class)).indexed();
 	public static final Property<String>  email2              = new StringProperty("email2");
 	public static final Property<String>  password            = new PasswordProperty("password");
+	
 	public static final Property<String>  phoneNumber1        = new StringProperty("phoneNumber1");
 	public static final Property<String>  phoneNumber2        = new StringProperty("phoneNumber2");
 	public static final Property<String>  faxNumber1          = new StringProperty("faxNumber1");
 	public static final Property<String>  faxNumber2          = new StringProperty("faxNumber2");
-	public static final Property<String>  street              = new StringProperty("street");
-	public static final Property<String>  zipCode             = new StringProperty("zipCode");
-	public static final Property<String>  city                = new StringProperty("city");
-	public static final Property<String>  state               = new StringProperty("state");
-	public static final Property<String>  country             = new StringProperty("country");
+	
+	public static final Property<String>  street              = new StringProperty("street").indexed();
+	public static final Property<String>  zipCode             = new StringProperty("zipCode").indexed();
+	public static final Property<String>  city                = new StringProperty("city").indexed();
+	public static final Property<String>  state               = new StringProperty("state").indexed();
+	public static final Property<String>  country             = new StringProperty("country").indexed();
+	
 	public static final Property<Date>    birthday            = new ISO8601DateProperty("birthday");
 	public static final Property<String>  gender              = new StringProperty("gender");
 	public static final Property<Boolean> newsletter          = new BooleanProperty("newsletter");
@@ -82,20 +84,6 @@ public class Person extends AbstractNode implements Principal {
 	public static final View publicView = new View(Person.class, PropertyView.Public,
 		name, salutation, firstName, middleNameOrInitial, lastName
 	);
-	
-	static {
-
-		EntityContext.registerSearchablePropertySet(Person.class, NodeIndex.keyword.name(), name, email);
-		EntityContext.registerSearchablePropertySet(Person.class, NodeIndex.fulltext.name(), name, email, firstName, lastName, street, city, state, country);
-		
-//		Person.name.addValidator(new TypeUniquenessValidator(Person.class));
-
-	}
-
-	//~--- constant enums -------------------------------------------------
-
-	
-	//~--- get methods ----------------------------------------------------
 
 	public String getFirstName() {
 

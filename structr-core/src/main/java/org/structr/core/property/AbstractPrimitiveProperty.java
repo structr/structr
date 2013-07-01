@@ -184,6 +184,17 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 					}
 				}
 
+				if (isIndexedProperty()) {
+					
+					// do indexing, needs to be done after
+					// setProperty to make spatial index
+					// work
+					if (!isPassivelyIndexedProperty()) {
+
+						index(obj, convertedValue);
+					}
+				}
+				
 			} catch (Throwable t) {
 
 				t.printStackTrace();

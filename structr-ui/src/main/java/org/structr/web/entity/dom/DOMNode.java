@@ -66,7 +66,7 @@ import org.structr.web.common.Function;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.CreateNodeCommand;
-import org.structr.core.graph.search.StringSearchAttribute;
+import org.structr.core.graph.search.PropertySearchAttribute;
 import org.structr.core.property.CollectionIdProperty;
 import org.structr.core.property.EntityIdProperty;
 import org.structr.core.property.PropertyMap;
@@ -1093,7 +1093,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 		// List<GraphObject> results              = ((SearchResultView) startNode).getGraphObjects(request);
 		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 
-		searchAttributes.add(new StringSearchAttribute(Content.content, search, Occur.MUST, false));
+		searchAttributes.add(new PropertySearchAttribute(Content.content, search, Occur.MUST, false));
 		searchAttributes.add(Search.andExactType(Content.class.getSimpleName()));
 
 		try {

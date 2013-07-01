@@ -126,7 +126,7 @@ public abstract class AbstractCommand {
 
 				List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
 
-				attrs.add(Search.andExactProperty(idProperty, id));
+				attrs.add(Search.andExactProperty(securityContext, idProperty, id));
 
 				Result results = Services.command(securityContext, SearchNodeCommand.class).execute(true, false, attrs);
 
@@ -175,7 +175,7 @@ public abstract class AbstractCommand {
 
 				List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
 
-				attrs.add(Search.andExactProperty(idProperty, id));
+				attrs.add(Search.andExactProperty(securityContext, idProperty, id));
 
 				List<AbstractRelationship> results = Services.command(securityContext, SearchRelationshipCommand.class).execute(attrs).getResults();
 

@@ -25,9 +25,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
 import org.structr.core.Services;
-import org.structr.core.graph.NodeService.NodeIndex;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 
@@ -37,23 +35,16 @@ import org.structr.core.graph.TransactionCommand;
  */
 public class TestFive extends AbstractNode {
 	
-	public static final Property<Integer> intProperty                  = new IntProperty("integerProperty");
-	public static final Property<Integer> modifiedInBeforeCreation     = new IntProperty("modifiedInBeforeCreation", 0).unvalidated();
-	public static final Property<Integer> modifiedInBeforeModification = new IntProperty("modifiedInBeforeModification", 0).unvalidated();
-	public static final Property<Integer> modifiedInAfterCreation      = new IntProperty("modifiedInAfterCreation", 0).unvalidated();
-	public static final Property<Integer> modifiedInAfterModification  = new IntProperty("modifiedInAfterModification", 0).unvalidated();
-	
-	
+	public static final Property<Integer> intProperty                  = new IntProperty("integerProperty").indexed();
+	public static final Property<Integer> modifiedInBeforeCreation     = new IntProperty("modifiedInBeforeCreation", 0).indexed().unvalidated();
+	public static final Property<Integer> modifiedInBeforeModification = new IntProperty("modifiedInBeforeModification", 0).indexed().unvalidated();
+	public static final Property<Integer> modifiedInAfterCreation      = new IntProperty("modifiedInAfterCreation", 0).indexed().unvalidated();
+	public static final Property<Integer> modifiedInAfterModification  = new IntProperty("modifiedInAfterModification", 0).indexed().unvalidated();
 	
 	public static final View publicView = new View(TestFive.class, PropertyView.Public,
 		intProperty, modifiedInBeforeCreation, modifiedInBeforeModification, modifiedInAfterCreation, modifiedInAfterModification
 	);
 	
-	static {
-		
-		EntityContext.registerSearchablePropertySet(TestFive.class, NodeIndex.keyword.name(), publicView.properties());
-	}
-
 	@Override
 	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 		
