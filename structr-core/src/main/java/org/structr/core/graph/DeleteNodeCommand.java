@@ -78,8 +78,6 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 		deletedNodes.add(node);
 		
-		// final Node node                  = graphDb.getNodeById(structrNode.getId());
-		final RemoveNodeFromIndex removeNodeFromIndex = Services.command(securityContext, RemoveNodeFromIndex.class);
 		final DeleteRelationshipCommand deleteRel     = Services.command(securityContext, DeleteRelationshipCommand.class);
 
 		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
@@ -108,7 +106,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 							if (!deletedNodes.contains(endNode) && ((cascadeDelete & Relation.DELETE_OUTGOING) == Relation.DELETE_OUTGOING)) {
 
 								// remove end node from index
-								removeNodeFromIndex.execute(endNode);
+								endNode.removeFromIndex();
 								doDeleteNode(endNode, cascade);
 							}
 
@@ -129,7 +127,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 							if (!deletedNodes.contains(startNode) && ((cascadeDelete & Relation.DELETE_INCOMING) == Relation.DELETE_INCOMING)) {
 
 								// remove start node from index
-								removeNodeFromIndex.execute(startNode);
+								startNode.removeFromIndex();
 								doDeleteNode(startNode, cascade);
 							}
 
@@ -146,7 +144,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 					}
 
 					// remove node from index
-					removeNodeFromIndex.execute(node);
+					node.removeFromIndex();
 
 					// delete node in database
 					node.getNode().delete();
@@ -166,10 +164,9 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 							if (!deletedNodes.contains(nodeToCheck) && !nodeToCheck.isValid(errorBuffer)) {
 
 								// remove end node from index
-								removeNodeFromIndex.execute(nodeToCheck);
+								nodeToCheck.removeFromIndex();
 								doDeleteNode(nodeToCheck, cascade);
 							}
-
 						}
 					}
 
@@ -180,13 +177,9 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 				}
 
 				return null;
-
 			}
-
 		});
 
 		return null;
-
 	}
-
 }

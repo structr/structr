@@ -20,13 +20,14 @@ package org.structr.core.property;
 
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.SortField;
-import org.apache.lucene.util.NumericUtils;
+import org.neo4j.index.lucene.ValueContext;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.graph.NodeService.NodeIndex;
+import org.structr.core.graph.search.DoubleSearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.StringSearchAttribute;
 
 /**
 * A property that stores and retrieves a simple Double value.
@@ -37,6 +38,16 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> {
 	
 	public DoubleProperty(String name) {
 		super(name);
+		
+		if (name.equals("latitude") || name.equals("longitude")) {
+			
+			// add layer node index and make
+			// this property be indexed at the
+			// end of the transaction instead
+			// of on setProperty
+			nodeIndices.add(NodeIndex.layer);
+			passivelyIndexed();
+		}
 	}
 	
 	@Override
@@ -122,17 +133,50 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> {
 		
 		return null;
 	}
+
+	@Override
+	public SearchAttribute getSearchAttribute(SecurityContext securityContext, BooleanClause.Occur occur, Double searchValue, boolean exactMatch) {
+		return new DoubleSearchAttribute(this, searchValue, occur, exactMatch);
+	}
 	
 	@Override
-	public SearchAttribute getSearchAttribute(BooleanClause.Occur occur, Double searchValue, boolean exactMatch) {
-		
-		String value = "";
-		
-		if (searchValue != null) {
-			
-			value = NumericUtils.doubleToPrefixCoded(searchValue);
-		}
-		
-		return new StringSearchAttribute(this, value, occur, exactMatch);
+	public void index(GraphObject entity, Object value) {
+		super.index(entity, value != null ? ValueContext.numeric((Number)value) : value);
 	}
 }
+
+/*
+			
+			if ((dbNode.hasProperty(Location.latitude.dbName())) && (dbNode.hasProperty(Location.longitude.dbName()))) {
+				
+				// Before indexing, check properties for correct type
+				Object lat = dbNode.getProperty(Location.latitude.dbName());
+				Object lon = dbNode.getProperty(Location.longitude.dbName());
+				
+				if (lat instanceof Double && lon instanceof Double && !((Double) lat).isNaN() && !((Double) lon).isNaN()) {
+
+					LayerNodeIndex layerIndex = (LayerNodeIndex) indices.get(NodeService.NodeIndex.layer.name());
+
+					try {
+
+						synchronized (layerIndex) {
+
+							layerIndex.add(dbNode, "", "");
+						}
+
+						// If an exception is thrown here, the index was deleted
+						// and has to be recreated.
+					} catch (NotFoundException nfe) {
+
+						logger.log(Level.SEVERE, "Could not add node to layer index because the db could not find the node", nfe);
+
+					} catch (Throwable t) {
+
+						logger.log(Level.SEVERE, "Could not add node to layer index", t);
+					}
+				
+				}
+
+			}
+
+ */

@@ -226,8 +226,8 @@ public class SynchronizationController implements StructrTransactionListener, Tr
 
 			for (Class type : types) {
 
-				g.add(Search.orExactProperty(DOMElement.dataKey, EntityContext.denormalizeEntityName(type.getSimpleName())));
-				g.add(Search.orExactProperty(DOMElement.partialUpdateKey, EntityContext.denormalizeEntityName(type.getSimpleName())));
+				g.add(Search.orExactProperty(superUserSecurityContext, DOMElement.dataKey, EntityContext.denormalizeEntityName(type.getSimpleName())));
+				g.add(Search.orExactProperty(superUserSecurityContext, DOMElement.partialUpdateKey, EntityContext.denormalizeEntityName(type.getSimpleName())));
 
 			}
 

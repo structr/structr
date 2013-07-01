@@ -48,6 +48,15 @@ public abstract class AbstractReadOnlyProperty<T> extends Property<T> {
 	}
 	
 	@Override
+	public Property<T> indexed() {
+		
+		// related node properties are always passively indexed
+		// (because they can change without setProperty())
+		super.passivelyIndexed();
+		return this;
+	}
+	
+	@Override
 	public String typeName() {
 		return ""; // read-only
 	}

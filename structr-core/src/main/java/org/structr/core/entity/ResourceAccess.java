@@ -34,10 +34,8 @@ import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.property.LongProperty;
-import org.structr.core.EntityContext;
 import org.structr.core.Result;
 import org.structr.core.Services;
-import org.structr.core.graph.NodeService;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.search.Search;
@@ -72,9 +70,9 @@ public class ResourceAccess extends AbstractNode {
 	private static final Map<String, ResourceAccess> grantCache = new ConcurrentHashMap<String, ResourceAccess>();
 	private static final Logger logger                          = Logger.getLogger(ResourceAccess.class.getName());
 
-	public static final Property<String>                    signature       = new StringProperty("signature", new TypeUniquenessValidator(ResourceAccess.class));
-	public static final Property<Long>                      flags           = new LongProperty("flags");
-	public static final Property<Integer>                   position        = new IntProperty("position");
+	public static final Property<String>                    signature       = new StringProperty("signature", new TypeUniquenessValidator(ResourceAccess.class)).indexed();
+	public static final Property<Long>                      flags           = new LongProperty("flags").indexed();
+	public static final Property<Integer>                   position        = new IntProperty("position").indexed();
 	public static final CollectionProperty<PropertyAccess>  propertyAccess  = new CollectionProperty<PropertyAccess>("propertyAccess", PropertyAccess.class, RelType.PROPERTY_ACCESS, Direction.OUTGOING, new PropertySetNotion(uuid, name), true);
 
 	public static final View uiView = new View(ResourceAccess.class, PropertyView.Ui,
@@ -90,12 +88,6 @@ public class ResourceAccess extends AbstractNode {
 	private Long cachedFlags               = null;
 	private Integer cachedPosition         = null;
 	
-	static {
-
-		EntityContext.registerSearchablePropertySet(ResourceAccess.class, NodeService.NodeIndex.fulltext.name(), publicView.properties());
-		EntityContext.registerSearchablePropertySet(ResourceAccess.class, NodeService.NodeIndex.keyword.name(),  publicView.properties());
-	}
-
 	@Override
 	public String toString() {
 		
@@ -224,11 +216,12 @@ public class ResourceAccess extends AbstractNode {
 		ResourceAccess grant = grantCache.get(signature);
 		if (grant == null) {
 
-			SearchNodeCommand search               = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class);
+			SecurityContext securityContext        = SecurityContext.getSuperUserInstance();
+			SearchNodeCommand search               = Services.command(securityContext, SearchNodeCommand.class);
 			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 
 			searchAttributes.add(Search.andExactType(ResourceAccess.class.getSimpleName()));
-			searchAttributes.add(Search.andExactProperty(ResourceAccess.signature, signature));
+			searchAttributes.add(Search.andExactProperty(securityContext, ResourceAccess.signature, signature));
 
 			Result result = search.execute(searchAttributes);
 

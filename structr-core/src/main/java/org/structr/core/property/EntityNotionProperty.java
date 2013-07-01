@@ -18,9 +18,15 @@
  */
 package org.structr.core.property;
 
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.lucene.search.BooleanClause.Occur;
+import static org.apache.lucene.search.BooleanClause.Occur.MUST;
+import static org.apache.lucene.search.BooleanClause.Occur.MUST_NOT;
+import static org.apache.lucene.search.BooleanClause.Occur.SHOULD;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -28,10 +34,10 @@ import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.search.FilterSearchAttribute;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchNodeCommand;
+import org.structr.core.graph.search.SourceSearchAttribute;
 import org.structr.core.notion.Notion;
 import org.structr.core.notion.PropertyNotion;
 
@@ -57,6 +63,9 @@ public class EntityNotionProperty<S extends GraphObject, T> extends Property<T> 
 		this.base   = base;
 		
 		notion.setType(base.relatedType());
+		
+		// set indexed flag
+		indexed();
 	}
 
 	@Override
@@ -127,33 +136,63 @@ public class EntityNotionProperty<S extends GraphObject, T> extends Property<T> 
 	}
 	
 	@Override
-	public SearchAttribute getSearchAttribute(Occur occur, T searchValue, boolean exactMatch) {
+	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occur occur, T searchValue, boolean exactMatch) {
 		
-		FilterSearchAttribute attr      = new FilterSearchAttribute(this, searchValue, occur);
-		SecurityContext securityContext = SecurityContext.getSuperUserInstance();
-		EntityProperty entityProperty   = (EntityProperty)base;
+		SourceSearchAttribute attr            = new SourceSearchAttribute(occur);
+		Set<GraphObject> intersectionResult   = new LinkedHashSet<GraphObject>();
+		EntityProperty entityProperty         = (EntityProperty)base;
+		boolean alreadyAdded                  = false;
 		
 		try {
-		
+
 			Result<AbstractNode> result = Services.command(securityContext, SearchNodeCommand.class).execute(
 				
 				Search.andExactType(base.relatedType().getSimpleName()),
-				Search.andExactProperty(notion.getPrimaryPropertyKey(), searchValue)
+				Search.andExactProperty(securityContext, notion.getPrimaryPropertyKey(), searchValue)
 			);
 			
 			for (AbstractNode node : result.getResults()) {
 
-				attr.addToResult(entityProperty.getRelatedNodeReverse(securityContext, node, declaringClass));
+				switch (occur) {
+
+					case MUST:
+
+						if (!alreadyAdded) {
+
+							// the first result is the basis of all subsequent intersections
+							intersectionResult.addAll(entityProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
+							
+							// the next additions are intersected with this one
+							alreadyAdded = true;
+
+						} else {
+
+							intersectionResult.retainAll(entityProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
+						}
+
+						break;
+
+					case SHOULD:
+						intersectionResult.addAll(entityProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
+						break;
+
+					case MUST_NOT:
+						break;
+				}
 			}
-			
+
+			attr.setResult(new LinkedList<GraphObject>(intersectionResult));
+						
 		} catch (FrameworkException fex) {
 			
 			fex.printStackTrace();
 		}
 		
-		
-		
-		
 		return attr;
+	}
+	
+	@Override
+	public void index(GraphObject entity, Object value) {
+		// no direct indexing
 	}
 }

@@ -59,7 +59,6 @@ public class EntityContext {
 	private static final Logger logger                                                            = Logger.getLogger(EntityContext.class.getName());
 
 	private static final Map<Class, Map<PropertyKey, Set<PropertyValidator>>> globalValidatorMap  = new LinkedHashMap<Class, Map<PropertyKey, Set<PropertyValidator>>>();
-	private static final Map<Class, Map<String, Set<PropertyKey>>> globalSearchablePropertyMap    = new LinkedHashMap<Class, Map<String, Set<PropertyKey>>>();
 
 	// This map contains a mapping from (sourceType, destType) -> Relation
 	private static final Map<Class, Map<String, Set<PropertyKey>>> globalPropertyViewMap          = new LinkedHashMap<Class, Map<String, Set<PropertyKey>>>();
@@ -96,39 +95,6 @@ public class EntityContext {
 	 */
 	public static void init(Class type) {
 
-		// 1. Register searchable keys of superclasses
-		for (Enum index : NodeService.NodeIndex.values()) {
-
-			String indexName                                           = index.name();
-			Map<String, Set<PropertyKey>> searchablePropertyMapForType = getSearchablePropertyMapForType(type);
-			Set<PropertyKey> searchablePropertySet                     = searchablePropertyMapForType.get(indexName);
-
-			if (searchablePropertySet == null) {
-
-				searchablePropertySet = new LinkedHashSet<PropertyKey>();
-
-				searchablePropertyMapForType.put(indexName, searchablePropertySet);
-
-			}
-
-			Class localType = type.getSuperclass();
-
-			while ((localType != null) &&!localType.equals(Object.class)) {
-
-				Set<PropertyKey> superProperties = getSearchableProperties(localType, indexName);
-				searchablePropertySet.addAll(superProperties);
-
-				// include property sets from interfaces
-				for(Class interfaceClass : getInterfacesForType(localType)) {
-					searchablePropertySet.addAll(getSearchableProperties(interfaceClass, indexName));
-				}
-
-				// one level up :)
-				localType = localType.getSuperclass();
-
-			}
-		}
-		
 		// moved here from scanEntity, no reason to have this in a separate
 		// method requiring two different calls instead of one
 		int modifiers = type.getModifiers();
@@ -266,48 +232,6 @@ public class EntityContext {
 
 		// add all properties from set
 		properties.addAll(Arrays.asList(propertySet));
-	}
-
-	// ----- searchable property map -----
-	/**
-	 * Registers the given set of properties of the given entity type to be stored
-	 * in the given index.
-	 * 
-	 * @param type the entitiy type
-	 * @param index the index
-	 * @param keys the keys to be indexed
-	 */
-	public static void registerSearchablePropertySet(Class type, String index, PropertyKey... keys) {
-
-		for (PropertyKey key : keys) {
-
-			registerSearchableProperty(type, index, key);
-
-		}
-	}
-
-	/**
-	 * Registers the given property of the given entity type to be stored
-	 * in the given index.
-	 * 
-	 * @param type the entitiy type
-	 * @param index the index
-	 * @param key the key to be indexed
-	 */
-	public static void registerSearchableProperty(Class type, String index, PropertyKey key) {
-
-		Map<String, Set<PropertyKey>> searchablePropertyMapForType = getSearchablePropertyMapForType(type);
-		Set<PropertyKey> searchablePropertySet                     = searchablePropertyMapForType.get(index);
-
-		if (searchablePropertySet == null) {
-
-			searchablePropertySet = new LinkedHashSet<PropertyKey>();
-
-			searchablePropertyMapForType.put(index, searchablePropertySet);
-
-		}
-
-		key.registerSearchableProperties(searchablePropertySet);
 	}
 
 	// ----- private methods -----
@@ -751,17 +675,6 @@ public class EntityContext {
 		return validators;
 	}
 
-	public static Set<PropertyKey> getSearchableProperties(Class type, String index) {
-
-		Set<PropertyKey> searchablePropertyMap = getSearchablePropertyMapForType(type).get(index);
-		if (searchablePropertyMap == null) {
-
-			searchablePropertyMap = new HashSet<PropertyKey>();
-		}
-
-		return searchablePropertyMap;
-	}
-
 	private static Map<String, Set<PropertyKey>> getPropertyViewMapForType(Class type) {
 
 		Map<String, Set<PropertyKey>> propertyViewMap = globalPropertyViewMap.get(type);
@@ -820,21 +733,6 @@ public class EntityContext {
 		}
 
 		return validatorMap;
-	}
-
-	public static Map<String, Set<PropertyKey>> getSearchablePropertyMapForType(Class type) {
-
-		Map<String, Set<PropertyKey>> searchablePropertyMap = globalSearchablePropertyMap.get(type);
-
-		if (searchablePropertyMap == null) {
-
-			searchablePropertyMap = new LinkedHashMap<String, Set<PropertyKey>>();
-
-			globalSearchablePropertyMap.put(type, searchablePropertyMap);
-
-		}
-
-		return searchablePropertyMap;
 	}
 
 	private static Map<String, PropertyGroup> getAggregatedPropertyGroupMapForType(Class type) {
@@ -906,13 +804,6 @@ public class EntityContext {
 	
 	public static boolean isKnownProperty(final PropertyKey key) {
 		return globalKnownPropertyKeys.contains(key);
-	}
-
-	public static boolean isSearchableProperty(Class type, String index, PropertyKey key) {
-		
-		boolean isSearchable = getSearchableProperties(type, index).contains(key);
-		
-		return isSearchable;
 	}
 
 	public static FactoryDefinition getFactoryDefinition() {

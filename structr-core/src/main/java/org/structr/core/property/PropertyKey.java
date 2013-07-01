@@ -19,8 +19,8 @@
 package org.structr.core.property;
 
 import java.util.List;
-import java.util.Set;
-import org.apache.lucene.search.BooleanClause.Occur;
+import javax.servlet.http.HttpServletRequest;
+import org.apache.lucene.search.BooleanClause;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -59,10 +59,6 @@ public interface PropertyKey<T> {
 	public void setDeclaringClass(Class<? extends GraphObject> declaringClass);
 	public Class<? extends GraphObject> getDeclaringClass();
 
-	public SearchAttribute getSearchAttribute(Occur occur, T searchValue, boolean exactMatch);
-	public void registerSearchableProperties(Set<PropertyKey> searchableProperties);
-	public Object getSearchValue(T source);
-	
 	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter);
 	public void setProperty(SecurityContext securityContext, GraphObject obj, T value) throws FrameworkException;
 
@@ -82,6 +78,8 @@ public interface PropertyKey<T> {
 	public boolean isWriteOnceProperty();
 
 	public boolean isIndexedProperty();
+
+	public boolean isPassivelyIndexedProperty();
 	
 	public boolean isCollection();
 
@@ -90,4 +88,10 @@ public interface PropertyKey<T> {
 	 * @return 
 	 */
 	public Integer getSortType();
+
+	public void index(GraphObject entity, Object value);
+	
+	public SearchAttribute getSearchAttribute(SecurityContext securityContext, BooleanClause.Occur occur, T searchValue, boolean exactMatch);
+	public List<SearchAttribute> extractSearchableAttribute(SecurityContext securityContext, HttpServletRequest request, boolean looseSearch) throws FrameworkException;
+	public T extractSearchableAttribute(SecurityContext securityContext, String requestParameter) throws FrameworkException;
 }

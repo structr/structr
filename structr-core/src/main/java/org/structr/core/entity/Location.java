@@ -24,8 +24,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.core.property.DoubleProperty;
-import org.structr.core.EntityContext;
-import org.structr.core.graph.NodeService.NodeIndex;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -36,34 +34,13 @@ import org.structr.core.graph.NodeService.NodeIndex;
  */
 public class Location extends AbstractNode {
 
-	public static final Property<Double> latitude  = new DoubleProperty("latitude");
-	public static final Property<Double> longitude = new DoubleProperty("longitude");
-	public static final Property<Double> altitude  = new DoubleProperty("altitude");
+	public static final Property<Double> latitude  = new DoubleProperty("latitude").indexed();
+	public static final Property<Double> longitude = new DoubleProperty("longitude").indexed();
+	public static final Property<Double> altitude  = new DoubleProperty("altitude").indexed();
 
 	public static final View publicView = new View(Location.class, PropertyView.Public,
 		latitude, longitude, altitude
 	);
-	
-	static {
-
-		// ----- initialize property sets -----
-//		EntityContext.registerPropertySet(Location.class, PropertyView.All, Key.values());
-
-		// ----- initialize property converters -----
-//		EntityContext.registerPropertyConverter(Location.class, Location.latitude, DoubleConverter.class);
-//		EntityContext.registerPropertyConverter(Location.class, Location.longitude, DoubleConverter.class);
-//		EntityContext.registerPropertyConverter(Location.class, Location.altitude, DoubleConverter.class);
-
-		// ----- initialize validators -----
-		// ----- initialize searchable properties
-		EntityContext.registerSearchablePropertySet(Location.class, NodeIndex.fulltext.name(), latitude, longitude, altitude);
-		EntityContext.registerSearchablePropertySet(Location.class, NodeIndex.keyword.name(),  latitude, longitude, altitude);
-	}
-
-	//~--- constant enums -------------------------------------------------
-	
-
-	//~--- get methods ----------------------------------------------------
 
 	@Override
 	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) {

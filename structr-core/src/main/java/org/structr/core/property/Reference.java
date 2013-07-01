@@ -19,7 +19,7 @@
 package org.structr.core.property;
 
 import java.util.List;
-import java.util.Set;
+import javax.servlet.http.HttpServletRequest;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -147,6 +147,11 @@ public class Reference<T> implements PropertyKey<T> {
 	}
 
 	@Override
+	public boolean isPassivelyIndexedProperty() {
+		return propertyKey.isPassivelyIndexedProperty();
+	}
+
+	@Override
 	public boolean isCollection() {
 		return propertyKey.isCollection();
 	}
@@ -171,18 +176,8 @@ public class Reference<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(Occur occur, T searchValue, boolean exactMatch) {
-		return propertyKey.getSearchAttribute(occur, searchValue, exactMatch);
-	}
-
-	@Override
-	public Object getSearchValue(T source) {
-		return propertyKey.getSearchValue(source);
-	}
-
-	@Override
-	public void registerSearchableProperties(Set<PropertyKey> searchableProperties) {
-		propertyKey.registerSearchableProperties(searchableProperties);
+	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occur occur, T searchValue, boolean exactMatch) {
+		return propertyKey.getSearchAttribute(securityContext, occur, searchValue, exactMatch);
 	}
 
 	@Override
@@ -207,5 +202,20 @@ public class Reference<T> implements PropertyKey<T> {
 	@Override
 	public String getSynchronizationKey() {
 		return null;
+	}
+
+	@Override
+	public void index(GraphObject entity, Object value) {
+		propertyKey.index(entity, value);
+	}
+
+	@Override
+	public List<SearchAttribute> extractSearchableAttribute(SecurityContext securityContext, HttpServletRequest request, boolean looseSearch) throws FrameworkException {
+		return propertyKey.extractSearchableAttribute(securityContext, request, looseSearch);
+	}
+
+	@Override
+	public T extractSearchableAttribute(SecurityContext securityContext, String requestParameter) throws FrameworkException {
+		return propertyKey.extractSearchableAttribute(securityContext, requestParameter);
 	}
 }

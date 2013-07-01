@@ -21,10 +21,13 @@ package org.structr.core.property;
 import org.structr.core.graph.search.SearchAttributeGroup;
 import org.structr.core.graph.search.SearchAttribute;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.servlet.http.HttpServletRequest;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -33,7 +36,9 @@ import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.PropertyGroup;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.graph.search.StringSearchAttribute;
+import org.structr.core.graph.NodeService.NodeIndex;
+import org.structr.core.graph.NodeService.RelationshipIndex;
+import org.structr.core.graph.search.PropertySearchAttribute;
 
 /**
  * A property that combines other properties in a nested object.
@@ -66,6 +71,36 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 	}
 	
 	@Override
+	public GroupProperty indexed() {
+		return (GroupProperty)super.indexed();
+	}
+	
+	@Override
+	public GroupProperty indexed(NodeIndex nodeIndex) {
+		return (GroupProperty)super.indexed(nodeIndex);
+	}
+	
+	@Override
+	public GroupProperty indexed(RelationshipIndex relIndex) {
+		return (GroupProperty)super.indexed(relIndex);
+	}
+	
+	@Override
+	public GroupProperty passivelyIndexed() {
+		return (GroupProperty)super.passivelyIndexed();
+	}
+	
+	@Override
+	public GroupProperty passivelyIndexed(NodeIndex nodeIndex) {
+		return (GroupProperty)super.passivelyIndexed(nodeIndex);
+	}
+	
+	@Override
+	public GroupProperty passivelyIndexed(RelationshipIndex relIndex) {
+		return (GroupProperty)super.passivelyIndexed(relIndex);
+	}
+	
+	@Override
 	public String typeName() {
 		return "Object";
 	}
@@ -86,7 +121,7 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(Occur occur, PropertyMap searchValues, boolean exactMatch) {
+	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occur occur, PropertyMap searchValues, boolean exactMatch) {
 		
 		SearchAttributeGroup group = new SearchAttributeGroup(occur);
 		
@@ -95,25 +130,13 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 			Object value = searchValues.get(key);
 			if (value != null) {
 				
-				group.add( new StringSearchAttribute(new GroupPropertyWrapper(key), value.toString(), Occur.MUST, exactMatch) );
+				group.add( new PropertySearchAttribute(new GroupPropertyWrapper(key), value.toString(), Occur.MUST, exactMatch) );
 			}
 		}
 		
 		return group;
 	}
 
-	@Override
-	public void registerSearchableProperties(Set<PropertyKey> searchableProperties) {
-
-		searchableProperties.add(this);
-		
-		// add grouped properties as well
-		for (PropertyKey groupKey : propertyKeys.values()) {
-			
-			searchableProperties.add(new GroupPropertyWrapper(groupKey));
-		}
-	}
-	
 	/**
 	 * Returns the nested group property for the given name. The PropertyKey returned by
 	 * this method can be used to get and/or set the property value in a PropertyMap that
@@ -303,6 +326,32 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 		return null;
 	}
 	
+	@Override
+	public void index(GraphObject entity, Object value) {
+
+		for (PropertyKey key : propertyKeys.values()) {
+
+			PropertyKey groupPropertyKey = new GroupPropertyWrapper(key);
+
+			groupPropertyKey.index(entity, entity.getPropertyForIndexing(groupPropertyKey));
+		}
+	}
+		
+	@Override
+	public List<SearchAttribute> extractSearchableAttribute(SecurityContext securityContext, HttpServletRequest request, boolean looseSearch) throws FrameworkException {
+
+		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+		
+		for (PropertyKey key : propertyKeys.values()) {
+
+			PropertyKey groupPropertyKey = new GroupPropertyWrapper(key);
+
+			searchAttributes.addAll(groupPropertyKey.extractSearchableAttribute(securityContext, request, looseSearch));
+		}
+		
+		return searchAttributes;
+	}
+
 	/**
 	 * Acts as a wrapper for property keys to prefix their name with
 	 * the name of the surrounding property group.
@@ -367,20 +416,6 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 		}
 
 		@Override
-		public SearchAttribute getSearchAttribute(Occur occur, Object searchValue, boolean exactMatch) {
-		
-			// return empty string on null value here to enable searching for empty values
-			String searchString = searchValue != null ? searchValue.toString() : "";
-
-			return new StringSearchAttribute(this, searchString, occur, exactMatch);
-		}
-
-		@Override
-		public void registerSearchableProperties(Set searchableProperties) {
-			wrappedKey.registerSearchableProperties(searchableProperties);
-		}
-
-		@Override
 		public boolean isUnvalidated() {
 			return wrappedKey.isUnvalidated();
 		}
@@ -393,6 +428,26 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 		@Override
 		public boolean isWriteOnceProperty() {
 			return wrappedKey.isWriteOnceProperty();
+		}
+		
+		@Override
+		public boolean isIndexedProperty() {
+			return GroupProperty.this.isIndexedProperty();
+		}
+		
+		@Override
+		public boolean isPassivelyIndexedProperty() {
+			return GroupProperty.this.isPassivelyIndexedProperty();
+		}
+		
+		@Override
+		public Set<NodeIndex> nodeIndices() {
+			return GroupProperty.this.nodeIndices();
+		}
+		
+		@Override
+		public Set<RelationshipIndex> relationshipIndices() {
+			return GroupProperty.this.relationshipIndices();
 		}
 
 		@Override

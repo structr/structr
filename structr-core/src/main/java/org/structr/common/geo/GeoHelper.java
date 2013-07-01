@@ -19,6 +19,9 @@
 package org.structr.common.geo;
 
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -33,6 +36,7 @@ import org.structr.core.property.PropertyMap;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.logging.Logger;
+import org.apache.commons.collections.map.LRUMap;
 import org.structr.core.graph.search.DistanceSearchAttribute;
 
 //~--- classes ----------------------------------------------------------------
@@ -46,7 +50,10 @@ import org.structr.core.graph.search.DistanceSearchAttribute;
 public class GeoHelper {
 
 	private static final Logger logger                    = Logger.getLogger(GeoHelper.class.getName());
+	
+	private static Map<String, GeoCodingResult> geoCache  = Collections.synchronizedMap(new LRUMap(10000));
 	private static Class<GeoCodingProvider> providerClass = null;
+	private static GeoCodingProvider providerInstance     = null;
 
 	/**
 	 * Creates a Location entity for the given geocoding result and returns it.
@@ -106,34 +113,141 @@ public class GeoHelper {
 	 */
 	public static GeoCodingResult geocode(final String street, final String house, String postalCode, final String city, final String state, final String country) throws FrameworkException {
 		
-		GeoCodingProvider provider = getGeoCodingProvider();
-		if (provider != null) {
+		String language        = Services.getConfigurationValue(Services.GEOCODING_LANGUAGE, "de");
+		String cacheKey        = cacheKey(street, house, postalCode, city, state, country, language);
+		GeoCodingResult result = geoCache.get(cacheKey);
+		
+		if (result == null) {
+
+			GeoCodingProvider provider = getGeoCodingProvider();
+			if (provider != null) {
+
+				result = provider.geocode(street, house, postalCode, city, state, country, language);
+				if (result != null) {
+					
+					// store in cache
+					geoCache.put(cacheKey, result);
+					
+				} else {
+					
+					geoCache.put(cacheKey, new NullResult());
+				}
+			}
 			
-			String language = Services.getConfigurationValue(Services.GEOCODING_LANGUAGE, "de");
-			
-			return provider.geocode(street, house, postalCode, city, state, country, language);
+		}
+
+		// do not try to geocode failed results again
+		if (result instanceof NullResult) {
+			return null;
 		}
 		
-		return null;
+		return result;
+	}
+	
+	private static String cacheKey(final String street, final String house, String postalCode, final String city, final String state, final String country, final String language) {
+		
+		StringBuilder keyBuffer = new StringBuilder();
+
+		if (street != null) {
+			keyBuffer.append(street);
+		}
+		
+		if (house != null) {
+			keyBuffer.append(house);
+		}
+		
+		if (postalCode != null) {
+			keyBuffer.append(postalCode);
+		}
+		
+		if (city != null) {
+			keyBuffer.append(city);
+		}
+		
+		if (state != null) {
+			keyBuffer.append(state);
+		}
+		
+		if (country != null) {
+			keyBuffer.append(country);
+		}
+		
+		if (language !=  null) {
+			keyBuffer.append(language);
+		}
+		
+		return keyBuffer.toString();
 	}
 	
 	private static GeoCodingProvider getGeoCodingProvider() {
 
-		try {
+		if (providerInstance == null) {
 
-			if (providerClass == null) {
-				
-				String geocodingProvider = Services.getConfigurationValue(Services.GEOCODING_PROVIDER, GoogleGeoCodingProvider.class.getName());
-				providerClass = (Class<GeoCodingProvider>)Class.forName(geocodingProvider);
+			try {
+
+				if (providerClass == null) {
+
+					String geocodingProvider = Services.getConfigurationValue(Services.GEOCODING_PROVIDER, GoogleGeoCodingProvider.class.getName());
+					providerClass = (Class<GeoCodingProvider>)Class.forName(geocodingProvider);
+				}
+
+				providerInstance = providerClass.newInstance();
+
+			} catch (Throwable t) {
+
+				logger.log(Level.WARNING, "Unable to instantiate geocoding provider: {0}", t.getMessage() );
 			}
-
-			return providerClass.newInstance();
-		
-		} catch (Throwable t) {
-			
-			logger.log(Level.WARNING, "Unable to instantiate geocoding provider: {0}", t.getMessage() );
 		}
 		
-		return null;
+		return providerInstance;
+	}
+	
+	private static class NullResult implements GeoCodingResult {
+
+		@Override
+		public String getAddress() {
+			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		}
+
+		@Override
+		public AddressComponent getAddressComponent(Type... types) {
+			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		}
+
+		@Override
+		public List<AddressComponent> getAddressComponents() {
+			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		}
+
+		@Override
+		public double getLatitude() {
+			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		}
+
+		@Override
+		public double getLongitude() {
+			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		}
+
+		@Override
+		public void setAddress(String address) {
+			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		}
+
+		@Override
+		public void setLatitude(double latitude) {
+			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		}
+
+		@Override
+		public void setLongitude(double longitude) {
+			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		}
+
+		@Override
+		public Double[] toArray() {
+			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		}
+		
 	}
 }

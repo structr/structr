@@ -18,6 +18,7 @@ import java.util.List;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.Query;
+import org.structr.core.GraphObject;
 
 /**
  * Represents a group of search operators, to be used for queries with multiple textual search attributes grouped by parenthesis.
@@ -71,5 +72,23 @@ public class SearchAttributeGroup extends SearchAttribute {
 		}
 		
 		return exactMatch;
+	}
+
+	@Override
+	public String getStringValue() {
+		return null;
+	}
+
+	@Override
+	public boolean includeInResult(GraphObject entity) {
+		
+		boolean includeInResult = true;
+		
+		for (SearchAttribute attr : getSearchAttributes()) {
+			
+			includeInResult &= attr.includeInResult(entity);
+		}
+		
+		return includeInResult;
 	}
 }

@@ -35,11 +35,11 @@ public class TestFour extends AbstractNode {
 	
 	public static final EntityProperty<TestOne> testOne             = new EntityProperty<TestOne>("testOne", TestOne.class, RelType.IS_AT, Direction.INCOMING, false, Relation.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED);
 	public static final Property<String[]>      stringArrayProperty = new ArrayProperty<String>("stringArrayProperty", String.class);
-	public static final Property<Boolean>       booleanProperty     = new BooleanProperty("booleanProperty");
-	public static final Property<Double>        doubleProperty      = new DoubleProperty("doubleProperty");
-	public static final Property<Integer>       integerProperty     = new IntProperty("integerProperty");
-	public static final Property<Long>          longProperty        = new LongProperty("longProperty");
-	public static final Property<String>        stringProperty      = new StringProperty("stringProperty");
+	public static final Property<Boolean>       booleanProperty     = new BooleanProperty("booleanProperty").indexed();
+	public static final Property<Double>        doubleProperty      = new DoubleProperty("doubleProperty").indexed();
+	public static final Property<Integer>       integerProperty     = new IntProperty("integerProperty").indexed();
+	public static final Property<Long>          longProperty        = new LongProperty("longProperty").indexed();
+	public static final Property<String>        stringProperty      = new StringProperty("stringProperty").indexed();
 	
 	@Override
 	public boolean isValid(ErrorBuffer errorBuffer) {

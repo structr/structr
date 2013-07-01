@@ -24,9 +24,9 @@ import java.util.logging.Logger;
 import org.apache.lucene.search.BooleanClause.Occur;
 
 import org.apache.lucene.search.Query;
-import org.apache.lucene.search.NumericRangeQuery;
 import org.apache.lucene.search.TermRangeQuery;
 import org.neo4j.index.impl.lucene.LuceneUtil;
+import org.structr.core.GraphObject;
 
 import org.structr.core.property.PropertyKey;
 
@@ -36,15 +36,15 @@ import org.structr.core.property.PropertyKey;
  * @author Christian Morgner
  * @author Axel Morgner
  */
-public class RangeSearchAttribute extends SearchAttribute {
+public class RangeSearchAttribute<T> extends SearchAttribute {
 	
 	private static final Logger logger = Logger.getLogger(RangeSearchAttribute.class.getName());
 
-	private PropertyKey searchKey = null;
-	private Object rangeStart = null;
-	private Object rangeEnd = null;
+	private PropertyKey<T> searchKey = null;
+	private T rangeStart = null;
+	private T rangeEnd = null;
 
-	public RangeSearchAttribute(final PropertyKey searchKey, final Object rangeStart, final Object rangeEnd, final Occur occur) {
+	public RangeSearchAttribute(final PropertyKey<T> searchKey, final T rangeStart, final T rangeEnd, final Occur occur) {
 
 		super(occur);
 
@@ -52,7 +52,6 @@ public class RangeSearchAttribute extends SearchAttribute {
 		this.rangeStart = rangeStart;
 		this.rangeEnd   = rangeEnd;
 	}
-
 
 	@Override
 	public Query getQuery() {
@@ -109,6 +108,16 @@ public class RangeSearchAttribute extends SearchAttribute {
 		
 		// range queries seem to require all-optional
 		// boolean queries, i.e. no Occur.MUST..
+		return true;
+	}
+
+	@Override
+	public String getStringValue() {
+		return null;
+	}
+
+	@Override
+	public boolean includeInResult(GraphObject entity) {
 		return true;
 	}
 }

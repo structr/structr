@@ -37,7 +37,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.graph.NewIndexNodeCommand;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.web.entity.Image;
@@ -129,7 +128,7 @@ public class ImageConverter extends PropertyConverter {
 					if (img != null) {
 
 						// manual indexing of UUID needed here to avoid a 404 in the following setProperty call
-						Services.command(securityContext, NewIndexNodeCommand.class).updateNode(img);
+						img.updateInIndex();
 						currentObject.setProperty(keyAndClass.getPropertyKey(), img);
 					}
 					

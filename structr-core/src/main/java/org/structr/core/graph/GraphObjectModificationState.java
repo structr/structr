@@ -8,9 +8,7 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 
@@ -245,21 +243,25 @@ public class GraphObjectModificationState {
 				if (doValidation) {
 					valid &= validate(securityContext, errorBuffer);
 				}
-				addToIndex();
+				object.indexPassiveProperties();
 				break;
 
 			case 4: // created => creation callback
 				if (doValidation) {
 					valid &= validate(securityContext, errorBuffer);
 				}
-				addToIndex();
+				object.indexPassiveProperties();
 				break;
 
 			case 2: // modified => modification callback
 				if (doValidation) {
 					valid &= validate(securityContext, errorBuffer);
 				}
-				updateInIndex();
+				object.indexPassiveProperties();
+				break;
+
+			case 1: // deleted => deletion callback
+				object.removeFromIndex();
 				break;
 
 			default:
@@ -372,29 +374,5 @@ public class GraphObjectModificationState {
 		}
 
 		return valid;
-	}
-
-	private void addToIndex() throws FrameworkException {
-
-		if (object instanceof AbstractNode) {
-
-			Services.command(SecurityContext.getSuperUserInstance(), NewIndexNodeCommand.class).addNode((AbstractNode)object);
-			
-		} else if (object instanceof AbstractRelationship) {
-
-			Services.command(SecurityContext.getSuperUserInstance(), IndexRelationshipCommand.class).execute((AbstractRelationship)object);
-		}
-	}
-
-	private void updateInIndex() throws FrameworkException {
-
-		if (object instanceof AbstractNode) {
-
-			Services.command(SecurityContext.getSuperUserInstance(), NewIndexNodeCommand.class).updateNode((AbstractNode)object);
-
-		} else if (object instanceof AbstractRelationship) {
-
-			Services.command(SecurityContext.getSuperUserInstance(), IndexRelationshipCommand.class).execute((AbstractRelationship)object);
-		}
 	}
 }

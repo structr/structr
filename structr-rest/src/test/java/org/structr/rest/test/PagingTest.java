@@ -79,6 +79,7 @@ public class PagingTest extends StructrRestTest {
 		    
 			.given()
 				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			.expect()
 				.statusCode(200)
 				.body("result",			hasSize(2))

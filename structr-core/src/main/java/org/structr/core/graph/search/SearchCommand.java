@@ -2,25 +2,26 @@ package org.structr.core.graph.search;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.commons.collections.ListUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
 import org.neo4j.gis.spatial.indexprovider.LayerNodeIndex;
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexHits;
 import org.neo4j.index.lucene.QueryContext;
+import org.structr.common.GraphObjectComparator;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.geo.GeoCodingResult;
@@ -133,229 +134,225 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 			return Result.EMPTY_RESULT;
 		}
 
-		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
 		Factory<S, T> factory        = getFactory(securityContext, includeDeletedAndHidden, publicOnly, pageSize, page, offsetId);
-		Result finalResult           = new Result(new ArrayList<AbstractNode>(), null, true, false);
-		BooleanQuery query           = new BooleanQuery();
 		boolean optionalOnly         = false;
-		boolean allExactMatch        = true;
+		boolean filterResults        = true;
 		final Index<S> index;
 
-		// boolean allFulltext = false;
-		if (graphDb != null) {
+		// At this point, all search attributes are ready
+		List<SourceSearchAttribute> sources    = new ArrayList<SourceSearchAttribute>();
+		DistanceSearchAttribute distanceSearch = null;
+		GeoCodingResult coords                 = null;
+		Double dist                            = null;
 
-			// At this point, all search attributes are ready
-			List<FilterSearchAttribute> filters            = new ArrayList<FilterSearchAttribute>();
-			StringBuilder queryString                      = new StringBuilder();
-			DistanceSearchAttribute distanceSearch         = null;
-			GeoCodingResult coords                         = null;
-			Double dist                                    = null;
 
-			// check for optional-only queries
-			// (some query types seem to allow no MUST occurs)
+		/**
+		 * In this method, we need to do the following:
+		 * 
+		 * if (DistanceSearchAttributes are present) {
+		 *  
+		 *     do distance search
+		 *     filter by StringSearchAttributes
+		 * 
+		 * } else 
+		 * if (SourceSearchAttributes are present) {
+		 * 
+		 *     collect data from SourceSearchAttributes
+		 *     filter by StringSearchAttributes
+		 * 
+		 * } else
+		 * if (no SourceSearchAttributes are present) {
+		 * 
+		 *     combine all StringSearchAttributes into one Lucene query
+		 *     do search
+		 *     return
+		 * }
+		 * 
+		 * 
+		 * 
+		 */
+
+		// check for optional-only queries
+		// (some query types seem to allow no MUST occurs)
+		for (Iterator<SearchAttribute> it = searchAttrs.iterator(); it.hasNext();) {
+
+			SearchAttribute attr = it.next();
+
+			if (attr.forcesExclusivelyOptionalQueries()) {
+				optionalOnly = true;
+			}
+
+			// check for distance search and initialize
+			if (attr instanceof DistanceSearchAttribute) {
+
+				distanceSearch = (DistanceSearchAttribute) attr;
+				coords         = GeoHelper.geocode(distanceSearch);
+				dist           = distanceSearch.getValue();
+
+				// remove attribute from filter list
+				it.remove();
+			}
+
+			// store source attributes for later use
+			if (attr instanceof SourceSearchAttribute) {
+
+				sources.add((SourceSearchAttribute)attr);
+
+				// remove attribute from filter list
+				it.remove();
+			}
+		}
+
+		Result intermediateResult;
+
+		// only do "normal" query if no other sources are present
+		// use filters to filter sources otherwise
+		if (searchAttrs.isEmpty() || !sources.isEmpty()) {
+
+			intermediateResult = new Result(new ArrayList<AbstractNode>(), null, false, false);
+
+		} else {
+
+			BooleanQuery query    = new BooleanQuery();
+			boolean allExactMatch = true;
+
+			// build query
 			for (SearchAttribute attr : searchAttrs) {
 
-				if (attr.forcesExclusivelyOptionalQueries()) {
-					optionalOnly = true;
+				Query queryElement = attr.getQuery();
+				if (queryElement != null) {
+
+					query.add(queryElement, optionalOnly ? Occur.SHOULD : attr.getOccur());
 				}
 
-				// check for distance search and initialize
-				if (attr instanceof DistanceSearchAttribute) {
-					
-					distanceSearch = (DistanceSearchAttribute) attr;
-					coords         = GeoHelper.geocode(distanceSearch);
-					dist           = distanceSearch.getValue();
-				}
-				
-				// store filter attribute for later use
-				if (attr instanceof FilterSearchAttribute) {
-					
-					filters.add((FilterSearchAttribute)attr);
-				}
+				allExactMatch &= attr.isExactMatch();
 			}
 
-			// only build query if distance search is not active
-			if (distanceSearch == null) {
-				
-				for (SearchAttribute attr : searchAttrs) {
+			QueryContext queryContext = new QueryContext(query);
+			IndexHits hits            = null;
 
-					Query queryElement = attr.getQuery();
-					if (queryElement != null) {
+//			logger.log(Level.INFO, "Query: {0}", query);
 
-						query.add(queryElement, optionalOnly ? Occur.SHOULD : attr.getOccur());
+			if (sortKey != null) {
+
+				Integer sortType = sortKey.getSortType();
+				if (sortType != null) {
+
+					queryContext.sort(new Sort(new SortField(sortKey.dbName(), sortType, sortDescending)));
+
+				} else {
+
+					queryContext.sort(new Sort(new SortField(sortKey.dbName(), Locale.getDefault(), sortDescending)));
+				}
+
+			}
+
+			if (distanceSearch != null) {
+
+				if (coords != null) {
+
+					Map<String, Object> params = new HashMap<String, Object>();
+
+					params.put(LayerNodeIndex.POINT_PARAMETER, coords.toArray());
+					params.put(LayerNodeIndex.DISTANCE_IN_KM_PARAMETER, dist);
+
+					LayerNodeIndex spatialIndex = this.getSpatialIndex();
+					if (spatialIndex != null) {
+
+						synchronized (spatialIndex) {
+
+							hits = spatialIndex.query(LayerNodeIndex.WITHIN_DISTANCE_QUERY, params);
+						}
 					}
-
-					allExactMatch &= attr.isExactMatch();
 				}
-			}
-			
-//			// Check if all prerequisites are met
-//			if (distanceSearch == null && textualAttributes.size() < 1) {
-//
-//				throw new UnsupportedArgumentError("At least one texutal search attribute or distance search have to be present in search attributes!");
-//			}
 
-			Result intermediateResult;
+			} else if (allExactMatch) {
 
-			if (searchAttrs.isEmpty() && StringUtils.isBlank(queryString.toString())) {
+				index = getKeywordIndex();
 
-				intermediateResult = new Result(new ArrayList<AbstractNode>(), null, false, false);
+				synchronized (index) {
+
+					try {
+						hits = index.query(queryContext);
+
+					} catch (NumberFormatException nfe) {
+
+						logger.log(Level.SEVERE, "Could not sort results", nfe);
+
+						// retry without sorting
+						queryContext.sort(null);
+						hits = index.query(queryContext);
+
+					}
+				}
+
+				// all luecene query, do not filter results
+				filterResults = false;
 
 			} else {
 
-				QueryContext queryContext = new QueryContext(query);
-				IndexHits hits            = null;
-				
-				// logger.log(Level.INFO, "Query: {0}", query);
-				
-				if (sortKey != null) {
+				// Default: Mixed or fulltext-only search: Use fulltext index
+				index = getFulltextIndex();
 
-					Integer sortType = sortKey.getSortType();
-					if (sortType != null) {
+				synchronized (index) {
 
-						queryContext.sort(new Sort(new SortField(sortKey.dbName(), sortType, sortDescending)));
-						
-					} else {
-
-						queryContext.sort(new Sort(new SortField(sortKey.dbName(), Locale.getDefault(), sortDescending)));
-					}
-
+					hits = index.query(queryContext);
 				}
 
-				if (distanceSearch != null) {
-
-					if (coords != null) {
-
-						Map<String, Object> params = new HashMap<String, Object>();
-
-						params.put(LayerNodeIndex.POINT_PARAMETER, coords.toArray());
-						params.put(LayerNodeIndex.DISTANCE_IN_KM_PARAMETER, dist);
-
-						LayerNodeIndex spatialIndex = this.getSpatialIndex();
-						if (spatialIndex != null) {
-							
-							synchronized (spatialIndex) {
-
-								hits = spatialIndex.query(LayerNodeIndex.WITHIN_DISTANCE_QUERY, params);
-							}
-						}
-					}
-
-				/*
-				} else if (uuidOnly) {
-
-					// Search for uuid only: Use UUID index
-					index = (Index<Node>) arguments.get(NodeIndex.uuid.name());
-
-					synchronized (index) {
-
-						hits = index.get(AbstractNode.uuid.dbName(), decodeExactMatch(textualAttributes.get(0).getValue()));
-					}
-				*/
-					
-				} else if (allExactMatch) {
-
-					index = getKeywordIndex();
-
-					synchronized (index) {
-
-						try {
-							hits = index.query(queryContext);
-							
-						} catch (NumberFormatException nfe) {
-							
-							logger.log(Level.SEVERE, "Could not sort results", nfe);
-							
-							// retry without sorting
-							queryContext.sort(null);
-							hits = index.query(queryContext);
-							
-						}
-					}
-					
-				} else {
-
-					// Default: Mixed or fulltext-only search: Use fulltext index
-					index = getFulltextIndex(); // (Index<Node>) arguments.get(NodeService.NodeIndex.fulltext.name());
-
-					synchronized (index) {
-
-						hits = index.query(queryContext);
-					}
-				}
-
-				intermediateResult = factory.instantiate(hits);
-
-				if (hits != null) {
-					hits.close();
-				}
+				// all luecene query, do not filter results
+				filterResults = false;
 			}
 
-			List<? extends GraphObject> intermediateResultList = intermediateResult.getResults();
+			intermediateResult = factory.instantiate(hits);
 
-			if (!filters.isEmpty()) {
-
-				// Filter intermediate result
-				for (GraphObject obj : intermediateResultList) {
-
-					AbstractNode node = (AbstractNode) obj;
-
-					for (FilterSearchAttribute attr : filters) {
-
-						PropertyKey key    = attr.getKey();
-						Object searchValue = attr.getValue();
-						Occur occur        = attr.getOccur();
-						Object nodeValue   = node.getProperty(key);
-
-						if (occur.equals(Occur.MUST_NOT)) {
-
-							if ((nodeValue != null) && !(nodeValue.equals(searchValue))) {
-
-								attr.addToResult(node);
-							}
-
-						} else {
-
-							if ((nodeValue == null) && (searchValue == null)) {
-
-								attr.addToResult(node);
-							}
-
-							if ((nodeValue != null) && nodeValue.equals(searchValue)) {
-
-								attr.addToResult(node);
-							}
-
-						}
-
-					}
-
-				}
-
-				// now sum, intersect or substract all partly results
-				for (FilterSearchAttribute attr : filters) {
-
-					Occur occur                        = attr.getOccur();
-					List<? extends GraphObject> result = attr.getResult();
-
-					if (occur.equals(Occur.MUST)) {
-
-						intermediateResult = new Result(ListUtils.intersection(intermediateResultList, result), null, true, false);
-					} else if (occur.equals(Occur.SHOULD)) {
-
-						intermediateResult = new Result(ListUtils.sum(intermediateResultList, result), null, true, false);
-					} else if (occur.equals(Occur.MUST_NOT)) {
-
-						intermediateResult = new Result(ListUtils.subtract(intermediateResultList, result), null, true, false);
-					}
-
-				}
+			if (hits != null) {
+				hits.close();
 			}
-			
-			finalResult = intermediateResult;
 		}
 
-		return finalResult;
+		if (filterResults) {
 
+			// sorted result set
+			List<GraphObject> finalResult            = new LinkedList<GraphObject>();
+			List<GraphObject> intermediateResultList = intermediateResult.getResults();
+			int resultCount                          = 0;
+
+			// add results from other sources
+			for (SourceSearchAttribute attr : sources) {
+				intermediateResultList.addAll(attr.getResult());
+			}
+
+			// Filter intermediate result
+			for (GraphObject obj : intermediateResultList) {
+
+				boolean addToResult = true;
+
+				// check all attributes before adding a node
+				for (SearchAttribute attr : searchAttrs) {
+
+					// check all search attributes
+					addToResult &= attr.includeInResult(obj);
+				}
+
+				if (addToResult) {
+
+					finalResult.add(obj);
+					resultCount++;
+				}
+			}
+
+			// FIXME: add paging
+			
+			// sort list
+			Collections.sort(finalResult, new GraphObjectComparator(sortKey, sortDescending));
+			
+			// return final result
+			return new Result(finalResult, resultCount, true, false);
+
+		} else {
+
+			// no filtering
+			return intermediateResult;
+		}
 	}
 }

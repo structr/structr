@@ -18,7 +18,6 @@
  */
 package org.structr.rest.resource;
 
-import org.structr.core.graph.search.FilterSearchAttribute;
 import org.structr.core.Result;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -43,8 +42,6 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.apache.commons.collections.ListUtils;
-import org.apache.lucene.search.BooleanClause.Occur;
 import org.structr.common.GraphObjectComparator;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -95,8 +92,7 @@ public class TypeResource extends SortableResource {
 	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
 
 		List<SearchAttribute> searchAttributes = new LinkedList();
-		List<SearchAttribute> validAttributes;
-		
+		List<SearchAttribute> validAttributes  = null;
 		boolean includeDeletedAndHidden        = false;
 		boolean publicOnly                     = false;
 
@@ -108,25 +104,19 @@ public class TypeResource extends SortableResource {
 			}
 
 			validAttributes = extractSearchableAttributes(securityContext, entityClass, request);
-	
+			
 			// distance search?
 			DistanceSearchAttribute distanceSearch = getDistanceSearch(request, keys(validAttributes));
-
 			if (distanceSearch != null) {
-
-				searchAttributes.add(distanceSearch);
-				searchAttributes.add(new FilterSearchAttribute(AbstractNode.type, EntityContext.normalizeEntityName(rawType), Occur.MUST));
-				searchAttributes.addAll(toFilters(validAttributes));
-
-			} else {
-
 				
-				searchAttributes.add(Search.andExactTypeAndSubtypes(EntityContext.normalizeEntityName(rawType)));
-
-				// searchable attributes from EntityContext
-                                searchAttributes.addAll(validAttributes);
-
+				searchAttributes.add(distanceSearch);
 			}
+
+			// add type to return
+			searchAttributes.add(Search.andExactTypeAndSubtypes(EntityContext.normalizeEntityName(rawType)));
+			
+			// searchable attributes from EntityContext
+			searchAttributes.addAll(validAttributes);
 			
 			// default sort key & order
 			if (sortKey == null) {
@@ -138,7 +128,12 @@ public class TypeResource extends SortableResource {
 					sortDescending              = GraphObjectComparator.DESCENDING.equals(templateEntity.getDefaultSortOrder());
 					
 					if (sortKeyProperty != null) {
+						
 						sortKey = sortKeyProperty;
+						
+					} else {
+						
+						sortKey = AbstractNode.name;
 					}
 					
 				} catch(Throwable t) {
@@ -284,17 +279,6 @@ public class TypeResource extends SortableResource {
 
 	}
 
-	private List<FilterSearchAttribute> toFilters(final List<SearchAttribute> attrs) {
-		
-		List<FilterSearchAttribute> filters = new LinkedList();
-		
-		for (SearchAttribute attr : attrs) {
-			filters.add(new FilterSearchAttribute(attr.getKey(), attr.getValue(), attr.getOccur()));
-		}
-		
-		return filters;
-	}
-	
 	private Set<String> keys(final List<SearchAttribute> attrs) {
 
 		Set<String> keys = new HashSet();
@@ -314,4 +298,15 @@ public class TypeResource extends SortableResource {
 		
 	}
 	
+	private boolean containsType(List<SearchAttribute> attributes, Class<? extends SearchAttribute> type) {
+		
+		for (SearchAttribute attr : attributes) {
+			
+			if (attr.getClass().equals(type)) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
 }

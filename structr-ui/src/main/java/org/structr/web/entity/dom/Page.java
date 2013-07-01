@@ -27,7 +27,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.web.entity.Linkable;
-import org.structr.core.graph.NodeService;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
@@ -78,9 +77,9 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	
 	private static final Logger logger                                      = Logger.getLogger(Page.class.getName());
 
-	public static final Property<Integer> version                           = new IntProperty("version");
-	public static final Property<Integer> position                          = new IntProperty("position");
-	public static final Property<String> contentType                        = new StringProperty("contentType");
+	public static final Property<Integer> version                           = new IntProperty("version").indexed();
+	public static final Property<Integer> position                          = new IntProperty("position").indexed();
+	public static final Property<String> contentType                        = new StringProperty("contentType").indexed();
 	public static final Property<Integer> cacheForSeconds                   = new IntProperty("cacheForSeconds");
 	public static final CollectionProperty<DOMNode> elements                = new CollectionProperty<DOMNode>("elements", DOMNode.class, RelType.PAGE, Direction.INCOMING, true);
 	
@@ -89,14 +88,6 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 	private Html5DocumentType docTypeNode                                   = null;
 	
-	//~--- static initializers --------------------------------------------
-
-	static {
-
-		EntityContext.registerSearchablePropertySet(Page.class, NodeService.NodeIndex.fulltext.name(), uiView.properties());
-		EntityContext.registerSearchablePropertySet(Page.class, NodeService.NodeIndex.keyword.name(), uiView.properties());
-
-	}
 
 	public Page() {
 		

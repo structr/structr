@@ -18,6 +18,8 @@
  */
 package org.structr.core.property;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.*;
@@ -26,6 +28,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.IdNotFoundToken;
 import org.structr.core.EntityContext;
+import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
@@ -290,6 +293,46 @@ public abstract class AbstractRelationProperty<T> extends Property<T> {
 	public int getCascadeDelete() {
 		return cascadeDelete;
 	}
+	
+	// ----- protected methods -----
+	
+	public List<T> getRelatedNodesReverse(SecurityContext securityContext, GraphObject obj, Class destinationType) {
+		
+		List<T> relatedNodes = new LinkedList<T>();
+		
+		if (obj instanceof AbstractNode) {
+
+			AbstractNode node = (AbstractNode)obj;
+
+			NodeFactory nodeFactory = new NodeFactory(securityContext);
+			Node dbNode             = node.getNode();
+			AbstractNode value      = null;
+
+			try {
+
+				for (Relationship rel : dbNode.getRelationships(getRelType(), getDirection().reverse())) {
+
+					value = nodeFactory.instantiate(rel.getOtherNode(dbNode));
+
+					// break on first hit of desired type
+					if (value != null && destinationType.isInstance(value)) {
+						relatedNodes.add((T)value);
+					}
+				}
+
+			} catch (Throwable t) {
+
+				logger.log(Level.WARNING, "Unable to fetch related node: {0}", t.getMessage());
+			}
+
+		} else {
+
+			logger.log(Level.WARNING, "Property {0} is registered on illegal type {1}", new Object[] { this, obj.getClass() } );
+		}
+
+		return relatedNodes;
+	}
+
 	
 	// ----- private methods -----
 	private void ensureOneToMany(AbstractNode finalSourceNode, AbstractNode finalTargetNode, AbstractRelationship newRel, FactoryDefinition factoryDefinition, DeleteRelationshipCommand deleteRel) throws FrameworkException {

@@ -18,6 +18,8 @@
  */
 package org.structr.core.property;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.Direction;
@@ -184,7 +186,7 @@ public class EntityProperty<T extends GraphObject> extends AbstractRelationPrope
 		this.notion = notion;
 		this.notion.setType(destType);
 		
-		EntityContext.registerConvertedProperty(this);		
+		EntityContext.registerConvertedProperty(this);
 	}
 	
 	@Override
@@ -298,48 +300,6 @@ public class EntityProperty<T extends GraphObject> extends AbstractRelationPrope
 				try {
 
 					for (Relationship rel : dbNode.getRelationships(getRelType(), getDirection())) {
-
-						value = nodeFactory.instantiate(rel.getOtherNode(dbNode));
-
-						// break on first hit of desired type
-						if (value != null && destinationType.isInstance(value)) {
-							return (T)value;
-						}
-					}
-
-				} catch (Throwable t) {
-
-					logger.log(Level.WARNING, "Unable to fetch related node: {0}", t.getMessage());
-				}
-
-			} else {
-
-				logger.log(Level.WARNING, "Requested related node with wrong cardinality {0} between {1} and {2}", new Object[] { getCardinality().name(), node.getClass().getSimpleName(), getDestType()});
-			}
-
-		} else {
-
-			logger.log(Level.WARNING, "Property {0} is registered on illegal type {1}", new Object[] { this, obj.getClass() } );
-		}
-
-		return null;
-	}
-	
-	public T getRelatedNodeReverse(SecurityContext securityContext, GraphObject obj, Class destinationType) {
-		
-		if (obj instanceof AbstractNode) {
-
-			AbstractNode node = (AbstractNode)obj;
-
-			if (cardinality.equals(Relation.Cardinality.OneToOne) || cardinality.equals(Relation.Cardinality.ManyToOne)) {
-
-				NodeFactory nodeFactory = new NodeFactory(securityContext);
-				Node dbNode             = node.getNode();
-				AbstractNode value      = null;
-
-				try {
-
-					for (Relationship rel : dbNode.getRelationships(getRelType(), getDirection().reverse())) {
 
 						value = nodeFactory.instantiate(rel.getOtherNode(dbNode));
 

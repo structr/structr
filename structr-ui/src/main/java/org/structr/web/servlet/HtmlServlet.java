@@ -525,7 +525,7 @@ public class HtmlServlet extends HttpServlet {
 		
 			List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
 			searchAttrs.add(Search.andExactType(User.class.getSimpleName()));
-			searchAttrs.add(Search.andMatchValues(User.confirmationKey, key, Occur.MUST));
+			searchAttrs.add(Search.andMatchValues(securityContext, User.confirmationKey, key, Occur.MUST));
 
 			Result results = (Result) searchNodesAsSuperuser.execute(searchAttrs);
 			

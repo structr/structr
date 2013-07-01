@@ -17,7 +17,6 @@ import java.util.LinkedList;
 import java.util.List;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.Query;
-import org.apache.lucene.util.NumericUtils;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.property.PropertyKey;
@@ -27,22 +26,24 @@ import org.structr.core.property.PropertyKey;
  *
  * @author Axel Morgner
  */
-public abstract class SearchAttribute {
+public abstract class SearchAttribute<T> {
 
 	public static final String WILDCARD = "*";
 
-	private NodeAttribute nodeAttribute = null;
-	private Occur occur                 = null;
-	private List<GraphObject> result    = new LinkedList<GraphObject>();
+	private List<GraphObject> result       = new LinkedList<GraphObject>();
+	private NodeAttribute<T> nodeAttribute = null;
+	private Occur occur                    = null;
 
 	public abstract Query getQuery();
 	public abstract boolean isExactMatch();
+	public abstract boolean includeInResult(GraphObject entity);
+	public abstract String getStringValue();
 
 	public SearchAttribute() {
 		this(null, null);
 	}
 	
-	public SearchAttribute(NodeAttribute nodeAttribute) {
+	public SearchAttribute(NodeAttribute<T> nodeAttribute) {
 		this(null, nodeAttribute);
 	}
 	
@@ -50,7 +51,7 @@ public abstract class SearchAttribute {
 		this(occur, null);
 	}
 	
-	public SearchAttribute(Occur occur, NodeAttribute nodeAttribute) {
+	public SearchAttribute(Occur occur, NodeAttribute<T> nodeAttribute) {
 		this.occur = occur;
 		this.nodeAttribute = nodeAttribute;
 	}
@@ -71,31 +72,23 @@ public abstract class SearchAttribute {
 		result.add(graphObject);
 	}
 
+	public void addToResult(final List<GraphObject> list) {
+		result.addAll(list);
+	}
+
 	public Object getAttribute() {
 		return nodeAttribute;
 	}
 
-	public PropertyKey getKey() {
+	public PropertyKey<T> getKey() {
 		return nodeAttribute == null ? null : nodeAttribute.getKey();
 	}
 
-	public Object getValue() {
+	public T getValue() {
 		return nodeAttribute == null ? null : nodeAttribute.getValue();
 	}
 	
 	public boolean forcesExclusivelyOptionalQueries() {
 		return false;
-	}
-	
-	protected String getStringValue() {
-
-		Object value = getValue();
-		if (value instanceof Number) {
-				
-			value = NumericUtils.longToPrefixCoded(((Number)value).longValue());
-		
-		}
-		
-		return value.toString();
 	}
 }

@@ -45,7 +45,6 @@ import org.structr.web.entity.Folder;
 import org.structr.web.entity.Image;
 import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.CreateRelationshipCommand;
-import org.structr.core.graph.NewIndexNodeCommand;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
@@ -91,7 +90,6 @@ public class Importer {
 	private static final Map<String, String> contentTypeForExtension = new HashMap<String, String>();
 	private static CreateNodeCommand createNode;
 	private static CreateRelationshipCommand createRel;
-	private static NewIndexNodeCommand indexNode;
 	private static SearchNodeCommand searchNode;
 
 	//~--- static initializers --------------------------------------------
@@ -154,8 +152,6 @@ public class Importer {
 		searchNode = Services.command(securityContext, SearchNodeCommand.class);
 		createNode = Services.command(securityContext, CreateNodeCommand.class);
 		createRel  = Services.command(securityContext, CreateRelationshipCommand.class);
-		indexNode  = Services.command(securityContext, NewIndexNodeCommand.class);
-
 	}
 
 	public boolean parse() throws FrameworkException {
@@ -358,8 +354,8 @@ public class Importer {
 
 		List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
 
-		searchAttrs.add(Search.andExactProperty(AbstractNode.name, name));
-		searchAttrs.add(Search.andExactProperty(File.checksum, checksum));
+		searchAttrs.add(Search.andExactProperty(securityContext, AbstractNode.name, name));
+		searchAttrs.add(Search.andExactProperty(securityContext, File.checksum, checksum));
 		searchAttrs.add(Search.andExactTypeAndSubtypes(File.class.getSimpleName()));
 
 		Result files = searchNode.execute(searchAttrs);
@@ -376,7 +372,7 @@ public class Importer {
 
 		List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
 
-		searchAttrs.add(Search.andExactProperty(AbstractNode.name, name));
+		searchAttrs.add(Search.andExactProperty(securityContext, AbstractNode.name, name));
 		searchAttrs.add(Search.andExactType(Folder.class.getSimpleName()));
 
 		Result folders = searchNode.execute(searchAttrs);
@@ -515,8 +511,7 @@ public class Importer {
 				createRel.execute(parent, folder, RelType.CONTAINS);
 			}
 
-			indexNode.updateNode(folder);
-
+			folder.updateInIndex();
 		}
 
 		return folder;
