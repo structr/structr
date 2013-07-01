@@ -135,9 +135,6 @@ public class HtmlServlet extends HttpServlet {
 			// Important: Set character encoding before calling response.getWriter() !!, see Servlet Spec 5.4
 			response.setCharacterEncoding("UTF-8");
 
-			// create session if not already existing
-			request.getSession();
-			
 			boolean dontCache = false;
 			
 			String path = PathHelper.clean(request.getPathInfo());
@@ -652,7 +649,7 @@ public class HtmlServlet extends HttpServlet {
 			possibleEntryPoints = findPossibleEntryPointsByName(request, name);
 		
 			if (possibleEntryPoints.isEmpty()) {
-				findPossibleEntryPointsByUuid(request, name);
+				possibleEntryPoints = findPossibleEntryPointsByUuid(request, name);
 			}
 			
 			return possibleEntryPoints;

@@ -317,6 +317,8 @@ public class HttpAuthenticator implements Authenticator {
 		
 		if (sessionIdFromRequest == null) {
 			
+			// create session id
+			request.getSession(true);
 			return null;
 			
 		}
