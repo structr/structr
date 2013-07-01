@@ -63,10 +63,6 @@ public class ThumbnailTest extends StructrTest {
 
 		try {
 
-			final PropertyMap props = new PropertyMap();
-
-			props.put(AbstractNode.type, TestImage.class.getSimpleName());
-
 			TestImage img = transactionCommand.execute(new StructrTransaction<TestImage>() {
 
 				@Override

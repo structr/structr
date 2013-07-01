@@ -44,6 +44,8 @@ import java.net.URL;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.StringProperty;

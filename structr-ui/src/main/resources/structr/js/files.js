@@ -414,7 +414,7 @@ var _Files = {
 
         $(fileList).each(function(i, fileObj) {
 
-            if (fileObj.name == file.name) {
+            if (fileObj.name === file.name) {
      
                 log('Uploading chunks for file ' + file.id);
                 

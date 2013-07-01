@@ -22,29 +22,30 @@ package org.structr.web.entity;
 
 import java.util.LinkedList;
 import java.util.List;
-import org.structr.core.property.BooleanProperty;
-import org.structr.core.property.Property;
-import org.structr.core.property.StringProperty;
+
 import org.neo4j.graphdb.Direction;
 
-import org.structr.core.property.PropertyKey;
-import org.structr.common.PropertyView;
-import org.structr.web.common.RelType;
 import org.structr.core.EntityContext;
-import static org.structr.core.GraphObject.uuid;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Person;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeService.NodeIndex;
-
-//~--- JDK imports ------------------------------------------------------------
-
-import org.structr.core.notion.PropertyNotion;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.property.BooleanProperty;
+import org.structr.core.property.Property;
+import org.structr.core.property.StringProperty;
 import org.structr.core.property.CollectionProperty;
 import org.structr.core.property.EntityProperty;
 import org.structr.core.validator.SimpleRegexValidator;
 import org.structr.core.validator.TypeUniquenessValidator;
+import org.structr.core.notion.PropertyNotion;
+
+import org.structr.common.KeyAndClass;
+import org.structr.common.PropertyView;
+
+import org.structr.web.common.RelType;
+import org.structr.web.property.ImageDataProperty;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -59,6 +60,8 @@ public class User extends Person implements Principal {
 	public static final Property<Boolean>         backendUser     = new BooleanProperty("backendUser");
 	public static final Property<Boolean>         frontendUser    = new BooleanProperty("frontendUser");
 	public static final Property<Image>           img             = new EntityProperty("img", Image.class, RelType.PICTURE_OF, Direction.INCOMING, false);
+	public static final ImageDataProperty         imageData       = new ImageDataProperty("imageData", new KeyAndClass(img, Image.class));
+	
 	public static final CollectionProperty<Group> groups          = new CollectionProperty<Group>("groups", Group.class, RelType.CONTAINS, Direction.INCOMING, new PropertyNotion(uuid), false);
 	
 	public static final org.structr.common.View uiView = new org.structr.common.View(User.class, PropertyView.Ui,

@@ -29,7 +29,6 @@ import org.apache.commons.lang.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.web.entity.File;
 import org.structr.web.entity.Image;
 import org.structr.core.graph.CreateNodeCommand;
 import org.structr.util.Base64;
@@ -46,7 +45,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.imageio.ImageIO;
+import org.apache.commons.io.IOUtils;
 import org.structr.common.SecurityContext;
+import org.structr.web.entity.File;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -66,7 +67,7 @@ public abstract class ImageHelper {
 	 *
 	 * @param securityContext
 	 * @param rawData
-	 * @param imageType
+	 * @param imageType defaults to Image.class if null
 	 * @return
 	 * @throws FrameworkException
 	 * @throws IOException
@@ -79,12 +80,19 @@ public abstract class ImageHelper {
 
 	}
 
-	public static void decodeAndWriteToFile(final File fileNode, final String rawData) throws FrameworkException, IOException {
+	/**
+	 * Decodes base64-encoded raw data into binary data and writes it to
+	 * the given image.
+	 * 
+	 * @param img
+	 * @param rawData
+	 * @throws FrameworkException
+	 * @throws IOException 
+	 */
+	public static void decodeAndSetImageData(final Image img, final String rawData) throws FrameworkException, IOException {
 
 		Base64URIData uriData = new Base64URIData(rawData);
-
-		FileHelper.writeToFile(fileNode, uriData.getBinaryData());
-		fileNode.setContentType(uriData.getContentType());
+		setImageData(img, uriData.getBinaryData(), uriData.getContentType());
 
 	}
 
@@ -94,7 +102,7 @@ public abstract class ImageHelper {
 	 * @param securityContext
 	 * @param imageData
 	 * @param contentType
-	 * @param imageType
+	 * @param imageType defaults to Image.class if null
 	 * @return
 	 * @throws FrameworkException
 	 * @throws IOException
@@ -111,7 +119,7 @@ public abstract class ImageHelper {
 	 * @param securityContext
 	 * @param imageData
 	 * @param contentType
-	 * @param imageType
+	 * @param imageType defaults to Image.class if null
 	 * @param markAsThumbnail
 	 * @return
 	 * @throws FrameworkException
@@ -122,21 +130,37 @@ public abstract class ImageHelper {
 
 		CreateNodeCommand<Image> createNodeCommand = Services.command(securityContext, CreateNodeCommand.class);
 		PropertyMap props                          = new PropertyMap();
-
-		props.put(AbstractNode.type, imageType.getSimpleName());
-		props.put(File.contentType, contentType);
+		
+		props.put(AbstractNode.type, imageType == null ? Image.class.getSimpleName() : imageType.getSimpleName());
 		props.put(Image.isThumbnail, markAsThumbnail);
 
 		Image newImage = createNodeCommand.execute(props);
 
-		FileHelper.writeToFile(newImage, imageData);
-		newImage.setChecksum(FileHelper.getChecksum(newImage));
-		newImage.setSize(FileHelper.getSize(newImage));
-
+		setImageData(newImage, imageData, contentType);
+		
 		return newImage;
 
 	}
 
+	/**
+	 * Write image data to the given image node and set checksum and size.
+	 * 
+	 * @param img
+	 * @param imageData
+	 * @param contentType
+	 * @throws FrameworkException
+	 * @throws IOException 
+	 */
+	public static void setImageData(final Image img, final byte[] imageData, final String contentType)
+		throws FrameworkException, IOException {
+
+		FileHelper.writeToFile(img, imageData);
+		img.setContentType(contentType);
+		img.setChecksum(FileHelper.getChecksum(img));
+		img.setSize(FileHelper.getSize(img));
+		
+	}
+	
 	public static Thumbnail createThumbnail(final Image originalImage, final int maxWidth, final int maxHeight) {
 
 		return createThumbnail(originalImage, maxWidth, maxHeight, false);
@@ -343,6 +367,19 @@ public abstract class ImageHelper {
 
 	//~--- get methods ----------------------------------------------------
 
+	public static String getBase64String(final File file) {
+		
+		try {
+
+			return Base64.encodeToString(IOUtils.toByteArray(file.getInputStream()), false);
+
+		} catch (IOException ex) {
+			logger.log(Level.SEVERE, "Could not get base64 string from file ", ex);
+		}
+
+		return null;
+	}
+	
 	/**
 	 * Check if url points to an image by extension
 	 *

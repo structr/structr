@@ -76,6 +76,7 @@ public class FileHelper {
 				@Override
 				public Object execute() throws FrameworkException {
 
+					fileNode.unlockReadOnlyPropertiesOnce();
 					fileNode.setProperty(AbstractNode.uuid, newUuid);
 					return null;
 				}

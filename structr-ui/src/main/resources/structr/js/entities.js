@@ -117,7 +117,7 @@ var _Entities = {
             });
         });
 
-        dialogText.append('<div class="' + entity.id + '_"><button class="switch disabled hideOnEdit_">Hide element in edit mode</button>Element is visible in non-edit mode</div>');
+        dialogText.append('<div class="' + entity.id + '_"><button class="switch disabled hideOnEdit_">Hide element in edit mode</button> Apply to elements which should not be rendered in edit mode.</div>');
         var hideOnEditSwitch = $('.hideOnEdit_');
         _Entities.changeBooleanAttribute(hideOnEditSwitch, entity.hideOnEdit);
         hideOnEditSwitch.on('click', function(e) {
@@ -128,7 +128,7 @@ var _Entities = {
             });
         });
 
-        dialogText.append('<div class="' + entity.id + '_"><button class="switch disabled hideOnNonEdit_">Hide element in non-edit mode</button>Element is visible in edit mode</div>');
+        dialogText.append('<div class="' + entity.id + '_"><button class="switch disabled hideOnNonEdit_">Hide element in non-edit mode</button> Apply to elements which should not be rendered in default mode.</div>');
         var hideOnNonEditSwitch = $('.hideOnNonEdit_');
         _Entities.changeBooleanAttribute(hideOnNonEditSwitch, entity.hideOnNonEdit);
         hideOnNonEditSwitch.on('click', function(e) {

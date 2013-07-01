@@ -25,9 +25,11 @@ import org.neo4j.graphdb.Direction;
 import org.structr.common.PropertyView;
 import org.structr.web.common.RelType;
 import org.structr.common.View;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.core.EntityContext;
 import static org.structr.core.GraphObject.type;
 import static org.structr.core.GraphObject.uuid;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeService.NodeIndex;
 import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.CollectionProperty;
@@ -59,4 +61,16 @@ public class Folder extends AbstractFile {
 		EntityContext.registerSearchablePropertySet(Image.class, NodeIndex.keyword.name(), uuid, type, name);
 		EntityContext.registerSearchablePropertySet(Image.class, NodeIndex.fulltext.name(), uuid, type, name);
 	}
+	
+	@Override
+	public boolean isValid(ErrorBuffer errorBuffer) {
+		
+		boolean valid = true;
+		
+		valid &= nonEmpty(AbstractNode.name, errorBuffer);
+		valid &= super.isValid(errorBuffer);
+		
+		return valid;
+	}
+	
 }
