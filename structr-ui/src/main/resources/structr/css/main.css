@@ -507,6 +507,7 @@ span.id {
     background: -moz-linear-gradient(90deg, #ddd, #eee) no-repeat;
     filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#eeeeee', EndColorStr='#dddddd', GradientType=0);
     /*    min-width: 200px;*/
+    position: relative;
 }
 
 #images {
@@ -1004,4 +1005,48 @@ button.enabled {
     min-height: 600px;
     margin: 12px;
     padding: 12px;
+}
+
+/*
+ * Upload progress bar
+ */
+
+.progress {
+    display: none;
+    text-align: right;
+    position: absolute;
+    height: 14px;
+    border: 1px solid #b5b5b5;
+    margin: 2px 0 0 0;
+    padding: 0;
+    background: #fff;
+}
+
+.progress .bar {
+    background-color: #81ce25;
+    background: -webkit-gradient(linear, left bottom, left top, from(#73b821), to(#90e629)) no-repeat;
+    background: -moz-linear-gradient(90deg, #73b821, #90e629) no-repeat;
+    filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#90e629', EndColorStr='#73b821', GradientType=0);
+    width: 50%;
+    height: 100%;
+    padding: 0;
+    margin: 0;
+}
+
+.progress .indicator {
+    position: absolute;
+    right: 2px;
+    top: -2px;
+}
+
+.file .progress {
+    right: 36px;
+    top: 1px;
+    width: 120px;
+}
+
+.image .progress {
+    right: 30px;
+    bottom: 8px;
+    width: 76px;
 }

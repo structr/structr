@@ -102,55 +102,55 @@ public class File extends AbstractFile implements Linkable {
 
 	}
 	
-	@Override
-	public void afterCreation(SecurityContext securityContext) {
-
-		try {
-
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-				@Override
-				public Object execute() throws FrameworkException {
-
-					setProperty(checksum,	FileHelper.getChecksum(File.this));
-					setProperty(size,	FileHelper.getSize(File.this));
-					
-					return null;
-				}
-			});
-
-		} catch (FrameworkException ex) {
-
-			logger.log(Level.SEVERE, "Could not set checksum and size", ex);
-
-		}
-
-	}
-
-	@Override
-	public void afterModification(SecurityContext securityContext) {
-
-		try {
-
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-				@Override
-				public Object execute() throws FrameworkException {
-
-					setProperty(checksum,	FileHelper.getChecksum(File.this));
-					setProperty(size,	FileHelper.getSize(File.this));
-					
-					return null;
-				}
-			});
-
-		} catch (FrameworkException ex) {
-
-			logger.log(Level.SEVERE, "Could not set checksum and size", ex);
-
-		}
-
-	}
+//	@Override
+//	public void afterCreation(SecurityContext securityContext) {
+//
+//		try {
+//
+//			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+//
+//				@Override
+//				public Object execute() throws FrameworkException {
+//
+//					setProperty(checksum,	FileHelper.getChecksum(File.this));
+//					setProperty(size,	FileHelper.getSize(File.this));
+//					
+//					return null;
+//				}
+//			});
+//
+//		} catch (FrameworkException ex) {
+//
+//			logger.log(Level.SEVERE, "Could not set checksum and size", ex);
+//
+//		}
+//
+//	}
+//
+//	@Override
+//	public void afterModification(SecurityContext securityContext) {
+//
+//		try {
+//
+//			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+//
+//				@Override
+//				public Object execute() throws FrameworkException {
+//
+//					setProperty(checksum,	FileHelper.getChecksum(File.this));
+//					setProperty(size,	FileHelper.getSize(File.this));
+//					
+//					return null;
+//				}
+//			});
+//
+//		} catch (FrameworkException ex) {
+//
+//			logger.log(Level.SEVERE, "Could not set checksum and size", ex);
+//
+//		}
+//
+//	}
 
 	//~--- get methods ----------------------------------------------------
 

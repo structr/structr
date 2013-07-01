@@ -179,13 +179,41 @@ function connect() {
                     } else {
                         msgClass = 'error';
                     }
+                    
+                    if (msg && msg.startsWith('{')) {
                         
-                    if (dialogBox.is(':visible')){
-                        dialogMsg.html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
-                        $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
+                        var msgObj = JSON.parse(msg);
+                        var node = Structr.node(msgObj.id);
+                        
+                        var progr = node.find('.progress');
+                        progr.show();
+                        
+                        var size = parseInt(node.find('.size').text());
+                        var part = msgObj.size;
+                        
+                        node.find('.part').text(part);
+                        var pw = node.find('.progress').width();
+                        var w = pw/size*part;
+                             
+                        node.find('.bar').css({width:w + 'px'});
+                        
+                        if (part >= size) {
+                            blinkGreen(progr);
+                            window.setTimeout(function() {
+                                progr.fadeOut('fast');
+                            }, 1000);
+                        }
+                        
+                        
                     } else {
-                        Structr.tempInfo('', true);
-                        $('#tempInfoBox .infoMsg').html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
+                    
+                        if (dialogBox.is(':visible')){
+                            dialogMsg.html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
+                            $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
+                        } else {
+                            Structr.tempInfo('', true);
+                            $('#tempInfoBox .infoMsg').html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
+                        }
                     }
 
                 }

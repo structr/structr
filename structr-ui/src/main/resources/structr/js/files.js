@@ -20,7 +20,7 @@
 var images, files, folders, drop;
 var fileList;
 var chunkSize = 1024*64;
-var sizeLimit = 1024*1024*42;
+var sizeLimit = 1024*1024*70;
 var win = $(window);
 
 $(document).ready(function() {
@@ -145,7 +145,7 @@ var _Files = {
                         });
                         $(filesToUpload).each(function(i, file) {
                             log(file);
-                            if (file) _Files.createFile(file);
+                            if (file) Command.createFile(file);
                         });
                     });
                     
@@ -242,6 +242,7 @@ var _Files = {
             parent.append('<div id="id_' + file.id + '" class="node file">'
                 + '<img class="typeIcon" src="'+ icon + '">'
                 + '<b title="' + file.name + '" class="name_">' + fitStringToSize(file.name, 200) + '</b> <span class="id">' + file.id + '</span>'
+                + '<div class="progress"><div class="bar"><div class="indicator"><span class="part"></span>/<span class="size">' + file.size + '</span></div></div></div>'
                 + '</div>');
             div = Structr.node(file.id);
             
@@ -410,8 +411,6 @@ var _Files = {
 
     uploadFile : function(file) {
         
-        console.log('upload file', file);
-
         $(fileList).each(function(i, fileObj) {
 
             if (fileObj.name === file.name) {
@@ -423,7 +422,7 @@ var _Files = {
                 //reader.readAsText(fileObj);
 
                 var chunks = Math.ceil(fileObj.size / chunkSize);
-                log('file size: ' + fileObj.size + ', chunk size: ' + chunkSize + ', chunks: ' + chunks);
+                //console.log('file size: ' + fileObj.size + ', chunk size: ' + chunkSize + ', chunks: ' + chunks);
 
                 // slicing is still unstable/browser dependent yet, see f.e. http://georgik.sinusgear.com/2011/05/06/html5-api-file-slice-changed/
 

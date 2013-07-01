@@ -26,11 +26,6 @@ import net.sf.jmimemagic.MagicMatch;
 import org.apache.commons.lang.StringUtils;
 
 import org.structr.web.common.ImageHelper;
-
-//~--- JDK imports ------------------------------------------------------------
-
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.structr.common.KeyAndClass;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -41,6 +36,11 @@ import org.structr.core.graph.NewIndexNodeCommand;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.web.entity.Image;
+
+//~--- JDK imports ------------------------------------------------------------
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -96,7 +96,7 @@ public class ImageConverter extends PropertyConverter {
 							
 							if (keyAndClass != null) {
 
-								img = ImageHelper.createImage(securityContext, data, mimeType, keyAndClass.getCls());
+								img = (Image) ImageHelper.createFile(securityContext, data, mimeType, keyAndClass.getCls());
 								
 							} else {
 								
@@ -111,11 +111,11 @@ public class ImageConverter extends PropertyConverter {
 								
 								if (keyAndClass != null) {
 								
-									img = ImageHelper.createImageBase64(securityContext, (String) source, keyAndClass != null ? keyAndClass.getCls() : null);
+									img = (Image) ImageHelper.createFileBase64(securityContext, (String) source, keyAndClass != null ? keyAndClass.getCls() : null);
 									
 								} else {
 									
-									ImageHelper.decodeAndSetImageData((Image) currentObject, (String) source);
+									ImageHelper.decodeAndSetFileData((Image) currentObject, (String) source);
 									
 								}
 							}

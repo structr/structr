@@ -68,7 +68,7 @@ public class CreateCommand extends AbstractCommand {
 
 				Map<String, Object> nodeData = webSocketData.getNodeData();
 
-				nodeData.put(AbstractNode.visibleToAuthenticatedUsers.jsonName(), true);
+				//nodeData.put(AbstractNode.visibleToAuthenticatedUsers.jsonName(), true);
 
 				// convertFromInput
 				PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, nodeData);
@@ -84,12 +84,20 @@ public class CreateCommand extends AbstractCommand {
 
 			// check for File node and store in WebSocket to receive chunks
 			if (newNode instanceof File) {
+				
+				long size          = Long.parseLong((String) webSocketData.getNodeData().get("size"));
+				String contentType = (String) webSocketData.getNodeData().get("contentType");
+				String name        = (String) webSocketData.getNodeData().get("name");
 
 				File fileNode = (File) newNode;
 				String uuid   = newNode.getProperty(AbstractNode.uuid);
 
 				fileNode.setRelativeFilePath(File.getDirectoryPath(uuid) + "/" + uuid);
-				getWebSocket().createFileUploadHandler((File) newNode);
+				fileNode.setSize(size);
+				fileNode.setContentType(contentType);
+				fileNode.setName(name);
+				
+				getWebSocket().createFileUploadHandler(fileNode);
 
 			}
 		} catch (FrameworkException fex) {

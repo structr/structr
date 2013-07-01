@@ -138,7 +138,7 @@ var Command = {
         data.searchString = searchString;
         data.type = type;
         obj.data = data;
-        //console.log('search()', obj);
+        log('search()', obj);
         return sendObj(obj);
     },
     /**
@@ -271,7 +271,7 @@ var Command = {
         var data = {};
         data.parentId = groupId;
         obj.data = data;
-        console.log('appendUser()', obj);
+        log('appendUser()', obj);
         return sendObj(obj);
     },
     /**
@@ -583,6 +583,21 @@ var Command = {
         obj.data = data;
         log('createFile()', obj);
         return sendObj(obj, callback);
+    },
+    /**
+     * Send an UPLOAD command to the server.
+     * 
+     * 
+     */
+    upload: function(name, fileData) {
+        var obj = {};
+        obj.command = 'UPLOAD';
+        var data = {};
+        data.name = name;
+        data.fileData = fileData;
+        obj.data = data;
+        log('upload()', obj);
+        return sendObj(obj);
     },
     /**
      * Send a LINK command to the server.

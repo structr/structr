@@ -296,8 +296,10 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 //				}
 
 				buffer.append(" data-structr-id=\"").append(id).append("\"");
-				//buffer.append(" data-structr_type=\"").append(getType()).append("\"");
-				//buffer.append(" data-structr_name=\"").append(getName()).append("\"");
+				if (renderContext.getDataObject() != null) {
+					buffer.append(" data-structr-data-type=\"").append(renderContext.getDataObject().getType()).append("\"");
+				}
+				//buffer.append(" data-structr-name=\"").append(getName()).append("\"");
 
 			}
 

@@ -20,17 +20,13 @@
 
 package org.structr.web.common;
 
-import org.structr.core.property.PropertyMap;
 import com.mortennobel.imagescaling.ResampleOp;
 
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang.StringUtils;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
-import org.structr.core.entity.AbstractNode;
 import org.structr.web.entity.Image;
-import org.structr.core.graph.CreateNodeCommand;
 import org.structr.util.Base64;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -47,6 +43,11 @@ import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import org.apache.commons.io.IOUtils;
 import org.structr.common.SecurityContext;
+import org.structr.core.Services;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.CreateNodeCommand;
+import org.structr.core.property.PropertyMap;
+import static org.structr.web.common.FileHelper.setFileData;
 import org.structr.web.entity.File;
 
 //~--- classes ----------------------------------------------------------------
@@ -55,64 +56,13 @@ import org.structr.web.entity.File;
  *
  * @author Axel Morgner
  */
-public abstract class ImageHelper {
+public abstract class ImageHelper extends FileHelper {
 
 	private static final Logger logger = Logger.getLogger(ImageHelper.class.getName());
 	//private static Thumbnail tn        = new Thumbnail();
 
 	//~--- methods --------------------------------------------------------
 
-	/**
-	 * Create a new image node from image data encoded in base64 format
-	 *
-	 * @param securityContext
-	 * @param rawData
-	 * @param imageType defaults to Image.class if null
-	 * @return
-	 * @throws FrameworkException
-	 * @throws IOException
-	 */
-	public static Image createImageBase64(final SecurityContext securityContext, final String rawData, final Class<? extends Image> imageType) throws FrameworkException, IOException {
-
-		Base64URIData uriData = new Base64URIData(rawData);
-
-		return createImage(securityContext, uriData.getBinaryData(), uriData.getContentType(), imageType);
-
-	}
-
-	/**
-	 * Decodes base64-encoded raw data into binary data and writes it to
-	 * the given image.
-	 * 
-	 * @param img
-	 * @param rawData
-	 * @throws FrameworkException
-	 * @throws IOException 
-	 */
-	public static void decodeAndSetImageData(final Image img, final String rawData) throws FrameworkException, IOException {
-
-		Base64URIData uriData = new Base64URIData(rawData);
-		setImageData(img, uriData.getBinaryData(), uriData.getContentType());
-
-	}
-
-	/**
-	 * Create a new image node from the given image data
-	 *
-	 * @param securityContext
-	 * @param imageData
-	 * @param contentType
-	 * @param imageType defaults to Image.class if null
-	 * @return
-	 * @throws FrameworkException
-	 * @throws IOException
-	 */
-	public static Image createImage(final SecurityContext securityContext, final byte[] imageData, final String contentType, final Class<? extends Image> imageType)
-		throws FrameworkException, IOException {
-		
-		return createImage(securityContext, imageData, contentType, imageType, false);
-	}
-	
 	/**
 	 * Create a new image node from the given image data
 	 *
@@ -133,10 +83,14 @@ public abstract class ImageHelper {
 		
 		props.put(AbstractNode.type, imageType == null ? Image.class.getSimpleName() : imageType.getSimpleName());
 		props.put(Image.isThumbnail, markAsThumbnail);
-
+		
 		Image newImage = createNodeCommand.execute(props);
 
-		setImageData(newImage, imageData, contentType);
+		if (imageData != null && imageData.length > 0) {
+			
+			setFileData(newImage, imageData, contentType);
+			
+		}
 		
 		return newImage;
 
@@ -154,10 +108,7 @@ public abstract class ImageHelper {
 	public static void setImageData(final Image img, final byte[] imageData, final String contentType)
 		throws FrameworkException, IOException {
 
-		FileHelper.writeToFile(img, imageData);
-		img.setContentType(contentType);
-		img.setChecksum(FileHelper.getChecksum(img));
-		img.setSize(FileHelper.getSize(img));
+		setFileData(img, imageData, contentType);
 		
 	}
 	

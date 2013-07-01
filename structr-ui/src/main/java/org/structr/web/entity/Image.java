@@ -88,16 +88,16 @@ public class Image extends File {
 
 	//~--- methods --------------------------------------------------------
 
-	@Override
-	public boolean isValid(ErrorBuffer errorBuffer) {
-		
-		boolean valid = true;
-		
-		valid &= nonEmpty(imageData, errorBuffer);
-		valid &= super.isValid(errorBuffer);
-		
-		return valid;
-	}
+//	@Override
+//	public boolean isValid(ErrorBuffer errorBuffer) {
+//		
+//		boolean valid = true;
+//		
+//		valid &= nonEmpty(imageData, errorBuffer);
+//		valid &= super.isValid(errorBuffer);
+//		
+//		return valid;
+//	}
 
 
 	//~--- set methods ----------------------------------------------------
@@ -105,11 +105,12 @@ public class Image extends File {
 	@Override
 	public void setProperty(final PropertyKey key, final Object value) throws FrameworkException {
 		
-		// Copy visibility properties to all thumbnails
+		// Copy visibility properties and owner to all thumbnails
 		if (AbstractNode.visibleToPublicUsers.equals(key)
 		 || AbstractNode.visibleToAuthenticatedUsers.equals(key)
 		 || AbstractNode.visibilityStartDate.equals(key)
-		 || AbstractNode.visibilityEndDate.equals(key)) {
+		 || AbstractNode.visibleToAuthenticatedUsers.equals(key)
+		 || AbstractNode.owner.equals(key)) {
 
 			for (Image tn : getThumbnails()) {
 				
@@ -316,9 +317,10 @@ public class Image extends File {
 							thumbnail.setProperty(Image.width, tnWidth);
 							thumbnail.setProperty(Image.height, tnHeight);
 							
-							thumbnail.setProperty(Image.hidden,				originalImage.getProperty(Image.hidden));
-							thumbnail.setProperty(Image.visibleToAuthenticatedUsers,		originalImage.getProperty(Image.visibleToAuthenticatedUsers));
-							thumbnail.setProperty(Image.visibleToPublicUsers,		originalImage.getProperty(Image.visibleToPublicUsers));
+							thumbnail.setProperty(AbstractNode.hidden,				originalImage.getProperty(AbstractNode.hidden));
+							thumbnail.setProperty(AbstractNode.visibleToAuthenticatedUsers,		originalImage.getProperty(AbstractNode.visibleToAuthenticatedUsers));
+							thumbnail.setProperty(AbstractNode.visibleToPublicUsers,		originalImage.getProperty(AbstractNode.visibleToPublicUsers));
+							thumbnail.setProperty(AbstractNode.owner,			originalImage.getProperty(AbstractNode.owner));
 							
 							thumbnailRelationship.setProperty(Image.width, tnWidth);
 							thumbnailRelationship.setProperty(Image.height, tnHeight);

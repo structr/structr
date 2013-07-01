@@ -110,125 +110,128 @@ function StructrPage(baseUrl) {
     };
     this.create = function(btn, type, data, sourceId, sourceType, relatedProperty) {
         console.log('Create', type, data, '/structr/rest/' + type.toUnderscore(), sourceId, relatedProperty);
-        $.ajax({
-            url: '/structr/rest/' + type.toUnderscore(), method: 'POST', contentType: 'application/json',
-            data: JSON.stringify(data),
-            statusCode: {
-                201: function(x) {
 
-                    if (sourceId && relatedProperty) {
+        if (type === 'Image' && !data) {
 
-                        var location = x.getResponseHeader('location');
-                        var id = location.substring(location.lastIndexOf('/') + 1);
-                        var d = JSON.parse('{"' + relatedProperty + '":[{"id":"' + id + '"}]}');
+            if (window.File && window.FileReader && window.FileList && window.Blob) {
 
+                $('<div class="clear"></div><div id="dropArea">Drag and drop image(s) here</div>').insertBefore(btn);
 
-                        $.ajax({
-                            url: '/structr/rest/' + sourceType.toUnderscore() + '/' + sourceId, method: 'GET', contentType: 'application/json',
-                            statusCode: {
-                                200: function(data) {
-                                    //console.log(data.result);
-                                    if (data.result && data.result[relatedProperty].length) {
-                                        $.each(data.result[relatedProperty], function(i, obj) {
-                                            d[relatedProperty].push({'id': obj.id});
-                                        });
-                                    }
+                var drop = $('#dropArea');
+                //console.log(drop);
 
-                                    $.ajax({
-                                        url: '/structr/rest/' + sourceType.toUnderscore() + '/' + sourceId, method: 'PUT', contentType: 'application/json',
-                                        data: JSON.stringify(d),
-                                        statusCode: {
-                                            200: function() {
-                                                window.location.reload();
-                                            },
-                                            400: function(xhr) {
-                                                console.log(xhr);
-                                            },
-                                            422: function(xhr) {
-                                                console.log(xhr);
-                                            }
-                                        }
-                                    });
+                drop.on('dragover', function(event) {
+                    event.originalEvent.dataTransfer.dropEffect = 'copy';
+                    return false;
+                });
 
-                                }
-                            }
-                        });
+                drop.on('drop', function(event) {
 
-
-
-                    } else {
-                        window.location.reload();
+                    if (!event.originalEvent.dataTransfer) {
+                        return;
                     }
 
-                },
-                400: function(d) {
-                    console.log(d);
-                },
-                422: function(d) {
-                    btn.parent().children('.structr-label').remove();
-                    btn.parent().children('.structr-input').remove();
-                    btn.parent().children('#dropArea').remove();
-                    btn.off('click');
-  
-                    var errors = JSON.parse(d.responseText).errors[type];
-                    //console.log(btn, type, errors);
-                    var data = {};
+                    event.stopPropagation();
+                    event.preventDefault();
 
-                    if (type === 'Image') {
-                        console.log(window.File, window.FileReader, window.FileList, window.Blob);
-                        if (window.File && window.FileReader && window.FileList && window.Blob) {
+                    fileList = event.originalEvent.dataTransfer.files;
 
-                            $('<div class="clear"></div><div id="dropArea">Drag and drop image(s) here</div>').insertBefore(btn);
+                    $(fileList).each(function(i, file) {
+                        $('[data-structr-prop=name]').val(file.name);
+                        var reader = new FileReader();
+                        reader.readAsBinaryString(file);
 
-                            var drop = $('#dropArea');
-                            //console.log(drop);
+                        reader.onload = function(f) {
 
-                            drop.on('dragover', function(event) {
-                                event.originalEvent.dataTransfer.dropEffect = 'copy';
-                                return false;
-                            });
+                            var binaryContent = f.target.result;
+                            
+                            var data = {};
+                            data.imageData = 'data:' + file.type + ';base64,' + window.btoa(binaryContent);
+                            data.name = file.name;
 
-                            drop.on('drop', function(event) {
+                            var sourceId = btn.attr('data-structr-source-id');
+                            var sourceType = btn.attr('data-structr-source-type');
+                            var relatedProperty = btn.attr('data-structr-related-property');
 
-                                if (!event.originalEvent.dataTransfer) {
-                                    return;
-                                }
-
-                                event.stopPropagation();
-                                event.preventDefault();
-
-                                fileList = event.originalEvent.dataTransfer.files;
-
-                                $(fileList).each(function(i, file) {
-                                    $('[data-structr-prop=name]').val(file.name);
-                                    var reader = new FileReader();
-                                    reader.readAsBinaryString(file);
-
-                                    reader.onload = function(f) {
-
-                                        var binaryContent = f.target.result;
-
-                                        data.imageData = 'data:' + file.type + ';base64,' + window.btoa(binaryContent);
-                                        data.name = file.name;
-
-                                        var sourceId = btn.attr('data-structr-source-id');
-                                        var sourceType = btn.attr('data-structr-source-type');
-                                        var relatedProperty = btn.attr('data-structr-related-property');
-
-                                        s.create(btn, type, data, sourceId, sourceType, relatedProperty);
-
-                                    }
-
-                                });
-
-                            });
-
-
+                            s.create(btn, type, data, sourceId, sourceType, relatedProperty);
 
                         }
 
-                        //$('<label class="structr-label">Base64 Data</label> <input class="structr-input" type="text" data-structr-prop="imageData" placeholder="Paste here">').insertBefore(btn);
-                    } else {
+                    });
+
+                });
+
+
+
+            }
+
+            //$('<label class="structr-label">Base64 Data</label> <input class="structr-input" type="text" data-structr-prop="imageData" placeholder="Paste here">').insertBefore(btn);
+        } else {
+
+
+            $.ajax({
+                url: '/structr/rest/' + type.toUnderscore(), method: 'POST', contentType: 'application/json',
+                data: JSON.stringify(data),
+                statusCode: {
+                    201: function(x) {
+
+                        if (sourceId && relatedProperty) {
+
+                            var location = x.getResponseHeader('location');
+                            var id = location.substring(location.lastIndexOf('/') + 1);
+                            var d = JSON.parse('{"' + relatedProperty + '":[{"id":"' + id + '"}]}');
+
+
+                            $.ajax({
+                                url: '/structr/rest/' + sourceType.toUnderscore() + '/' + sourceId, method: 'GET', contentType: 'application/json',
+                                statusCode: {
+                                    200: function(data) {
+                                        //console.log(data.result);
+                                        if (data.result && data.result[relatedProperty].length) {
+                                            $.each(data.result[relatedProperty], function(i, obj) {
+                                                d[relatedProperty].push({'id': obj.id});
+                                            });
+                                        }
+
+                                        $.ajax({
+                                            url: '/structr/rest/' + sourceType.toUnderscore() + '/' + sourceId, method: 'PUT', contentType: 'application/json',
+                                            data: JSON.stringify(d),
+                                            statusCode: {
+                                                200: function() {
+                                                    window.location.reload();
+                                                },
+                                                400: function(xhr) {
+                                                    console.log(xhr);
+                                                },
+                                                422: function(xhr) {
+                                                    console.log(xhr);
+                                                }
+                                            }
+                                        });
+
+                                    }
+                                }
+                            });
+
+
+
+                        } else {
+                            window.location.reload();
+                        }
+
+                    },
+                    400: function(d) {
+                        console.log(d);
+                    },
+                    422: function(d) {
+                        btn.parent().children('.structr-label').remove();
+                        btn.parent().children('.structr-input').remove();
+                        btn.parent().children('#dropArea').remove();
+                        btn.off('click');
+
+                        var errors = JSON.parse(d.responseText).errors[type];
+                        //console.log(btn, type, errors);
+                        var data = {};
 
                         $.each(Object.keys(errors), function(i, key) {
                             var label = key.splitAndTitleize('_');
@@ -250,12 +253,12 @@ function StructrPage(baseUrl) {
 
                             s.create(btn, type, data, sourceId, sourceType, relatedProperty);
                         });
+
                     }
-
-
                 }
-            }
-        });
+            });
+
+        }
     };
     this.delete = function(id) {
         //console.log('Delete', '/structr/rest/' + id);
@@ -301,7 +304,7 @@ function StructrPage(baseUrl) {
             $('[data-structr-type="Date"],[data-structr-type="String"],[data-structr-type="Integer"],[data-structr-type="Boolean"]').each(function() {
                 if (!$(this).closest('body').length)
                     return;
-                var sp = $(this), f = s.field(sp), p = sp.parent('a'), contentType = sp.attr('data-structr-content-type');
+                var sp = $(this), f = s.field(sp), p = sp.parent('a');
                 if (p) {
                     p.attr('href', '').css({textDecoration: 'none'}).on('click', function() {
                         return false;
@@ -344,7 +347,15 @@ function StructrPage(baseUrl) {
 //                    s.appendSaveButton(b, p, $(this), f.id, f.key);
 //                });
 
-                //$('<button class="deleteButton" data-structr-id="' + f.id + '">Delete ' + f.key + '</button>').insertAfter(input);
+                
+                var relatedNode = input.closest('[data-structr-data-type]');
+                var parentType = relatedNode.attr('data-structr-data-type');
+                
+                if (parentType) {
+                    $('<button class="deleteButton" data-structr-id="' + f.id + '">Delete ' + parentType + '</button>').insertAfter(input);
+                }
+                
+                //$('<button class="removeButton" data-structr-id="' + f.id + '">Remove ' + f.key + ' from ' + </button>').insertAfter(input);
 
             });
 

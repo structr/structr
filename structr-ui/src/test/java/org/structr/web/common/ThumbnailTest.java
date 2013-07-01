@@ -70,7 +70,7 @@ public class ThumbnailTest extends StructrTest {
 
 					try {
 
-						return (TestImage) ImageHelper.createImageBase64(securityContext, base64Image, TestImage.class);
+						return (TestImage) ImageHelper.createFileBase64(securityContext, base64Image, TestImage.class);
 
 					} catch (IOException ex) {
 

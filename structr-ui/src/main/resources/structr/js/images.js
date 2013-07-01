@@ -20,7 +20,7 @@
 var images, folders, drop;
 var fileList;
 var chunkSize = 1024*64;
-var sizeLimit = 1024*1024*42;
+var sizeLimit = 1024*1024*70;
 var win = $(window);
 
 $(document).ready(function() {
@@ -155,25 +155,7 @@ var _Images = {
                     
                 } else {
                     
-                    var dialogMsg = $('#dialogMsg');
-
-                    dialog.empty();
-                    dialogMsg.empty();
-
-                    dialog.append('<table class="props"></table>');
-                    
-                    $(filesToUpload).each(function(i, fileToUpload) {
-                        $('.props', dialog).append('<tr><td>' + fileToUpload.name + '</td><td>' + fileToUpload.size + ' bytes</td></tr>');
-                    });
-
-                    Structr.dialog('Uploading Files', function() {
-                        return true;
-                    }, function() {
-                        return true;
-                    });
-                    
                     $(filesToUpload).each(function(i, file) {
-                        log(file);
                         if (file) Command.createFile(file);
                     });
 
@@ -225,6 +207,7 @@ var _Images = {
         images.append('<div id="id_' + img.id + '" class="node image">'
             + '<div class="wrap"><img class="thumbnail" src="'+ tn + '"></div>'
             + '<b title="' + img.name + '" class="name_">' + fitStringToSize(img.name, 98) + '</b> <span class="id">' + img.id + '</span>'
+            + '<div class="progress"><div class="bar"><div class="indicator"><span class="part"></span>/<span class="size">' + img.size + '</span></div></div></div>'
             + '<div class="icons"></div></div>');
         div = Structr.node(img.id);
 
@@ -323,7 +306,7 @@ var _Images = {
                     _Images.showThumbnails(img, el);
                 }
             });
-        }, 5000);
+        }, 1000);
     },
 
     appendFolderElement : function(folder, folderId, hasChildren) {
@@ -537,7 +520,7 @@ var _Images = {
 
             log(file);
 
-            if (fileObj.name == file.name) {
+            if (fileObj.name === file.name) {
      
                 log(fileObj);
                 log('Uploading chunks for file ' + file.id);

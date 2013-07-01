@@ -35,6 +35,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
+import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
 import org.structr.websocket.StructrWebSocket;
 
@@ -93,31 +94,35 @@ public class ChunkCommand extends AbstractCommand {
 				return;
 				
 			}
+
+			getWebSocket().handleFileChunk(uuid, sequenceNumber, chunkSize, data);
+
 			
 			final long size = (long)(sequenceNumber * chunkSize) + data.length;
-
-			// Set proper size
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-				@Override
-				public Object execute() throws FrameworkException {
-					
-					file.setProperty(File.size, size);
-					
-					// FIXME: moved this from marker [1] to here!
-					file.setChecksum(0L);
-					
-					return null;
-				}
-				
-			});
 			
-			getWebSocket().handleFileChunk(uuid, sequenceNumber, chunkSize, data);
+			long overallSize = file.getProperty(File.size);
+			logger.log(Level.FINE, "Overall size: {0}, part: {1}", new Object[]{overallSize, size});
 			
-			// marker [1]
+			if (size >= overallSize) {
+
+				// Set proper size
+				Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+					@Override
+					public Object execute() throws FrameworkException {
+
+						file.setProperty(File.size, FileHelper.getSize(file));
+						file.setProperty(File.checksum, FileHelper.getChecksum(file));
+
+						return null;
+					}
+
+				});
+			}
+
 			
 			// This should trigger setting of lastModifiedDate in any case
-			getWebSocket().send(MessageBuilder.status().code(200).message(size + " bytes of " + file.getName() + " successfully saved.").build(), true);
+			getWebSocket().send(MessageBuilder.status().code(200).message("{\"id\":\"" + file.getUuid() + "\",\"size\":" + size + "}").build(), true);
 
 		} catch (Throwable t) {
 
