@@ -30,9 +30,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.Property;
-import org.structr.core.EntityContext;
 import org.structr.core.Services;
-import org.structr.core.graph.NodeService.NodeIndex;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -44,8 +42,6 @@ import java.net.URL;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.error.ErrorBuffer;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.StringProperty;
@@ -61,26 +57,15 @@ public class File extends AbstractFile implements Linkable {
 
 	private static final Logger logger                          = Logger.getLogger(File.class.getName());
 	
-	public static final Property<String>       contentType      = new StringProperty("contentType");
+	public static final Property<String>       contentType      = new StringProperty("contentType").indexed();
 	public static final Property<String>       relativeFilePath = new StringProperty("relativeFilePath");
-	public static final Property<Long>         size             = new LongProperty("size");
+	public static final Property<Long>         size             = new LongProperty("size").indexed();
 	public static final Property<String>       url              = new StringProperty("url");
 	public static final Property<Long>         checksum         = new LongProperty("checksum").unvalidated();
 	public static final Property<Integer>      cacheForSeconds  = new IntProperty("cacheForSeconds");
 
 	public static final View publicView = new View(File.class, PropertyView.Public, type, name, contentType, size, url, owner);
 	public static final View uiView     = new View(File.class, PropertyView.Ui, type, contentType, relativeFilePath, size, url, parent, checksum, cacheForSeconds, owner);
-
-	//~--- static initializers --------------------------------------------
-
-	static {
-
-		EntityContext.registerSearchablePropertySet(File.class, NodeIndex.fulltext.name(), uiView.properties());
-		EntityContext.registerSearchablePropertySet(File.class, NodeIndex.keyword.name(), uiView.properties());
-
-	}
-
-	//~--- methods --------------------------------------------------------
 
 	@Override
 	public void onNodeDeletion() {

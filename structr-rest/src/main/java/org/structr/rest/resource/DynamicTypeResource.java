@@ -75,7 +75,7 @@ public class DynamicTypeResource extends TypeResource {
 			}
 
 			searchAttributes.add(Search.andExactType(normalizedTypeName));
-			searchAttributes.addAll(extractSearchableAttributesFromRequest(securityContext));
+			searchAttributes.addAll(extractSearchableAttributes(securityContext, entityClass, request));
 			
 			// do search
 			Result results = Services.command(securityContext, SearchNodeCommand.class).execute(

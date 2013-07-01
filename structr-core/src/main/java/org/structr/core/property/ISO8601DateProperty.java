@@ -134,8 +134,6 @@ public class ISO8601DateProperty extends DateProperty {
 					
 				} catch (Throwable t) {
 
-					t.printStackTrace();
-					
 					throw new FrameworkException(declaringClass.getSimpleName(), new DateFormatToken(ISO8601DateProperty.this));
 
 				}
@@ -158,5 +156,4 @@ public class ISO8601DateProperty extends DateProperty {
 
 		}
 	}
-
 }

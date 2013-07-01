@@ -74,9 +74,9 @@ import org.w3c.dom.Text;
 public class Content extends DOMNode implements Text {
 
 	private static final Logger logger                                                   = Logger.getLogger(Content.class.getName());
-	public static final Property<String> contentType                                     = new StringProperty("contentType");
-	public static final Property<String> content                                         = new StringProperty("content");
-	public static final Property<Integer> size                                           = new IntProperty("size");
+	public static final Property<String> contentType                                     = new StringProperty("contentType").indexed();
+	public static final Property<String> content                                         = new StringProperty("content").indexed();
+	public static final Property<Integer> size                                           = new IntProperty("size").indexed();
 
 	private static final Map<String, Adapter<String, String>> contentConverters          = new LinkedHashMap<String, Adapter<String, String>>();
 
@@ -91,9 +91,6 @@ public class Content extends DOMNode implements Text {
 	//~--- static initializers --------------------------------------------
 
 	static {
-
-		EntityContext.registerSearchablePropertySet(Content.class, NodeService.NodeIndex.fulltext.name(), uiView.properties());
-		EntityContext.registerSearchablePropertySet(Content.class, NodeService.NodeIndex.keyword.name(), uiView.properties());
 
 		contentConverters.put("text/markdown", new Adapter<String, String>() {
 

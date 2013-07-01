@@ -89,6 +89,7 @@ public class IntegerPropertyRestTest extends StructrRestTest {
 			.get("/test_threes?integerProperty=2");
 	
 	}
+	
 	public void testRangeSearch() {
 
 		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'integerProperty' : 1 } ").expect().statusCode(201).when().post("/test_threes");

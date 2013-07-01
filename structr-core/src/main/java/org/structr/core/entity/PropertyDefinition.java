@@ -1,13 +1,16 @@
 package org.structr.core.entity;
 
+import com.tinkerpop.gremlin.Tokens.T;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.servlet.http.HttpServletRequest;
+import org.apache.lucene.search.BooleanClause.Occur;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.RelationshipType;
@@ -23,11 +26,9 @@ import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.experimental.NodeExtender;
-import org.structr.core.graph.NodeService.NodeIndex;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchNodeCommand;
-import org.structr.core.graph.search.SearchOperator;
 import org.structr.core.notion.Notion;
 import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.AbstractRelationProperty;
@@ -48,23 +49,25 @@ import org.structr.core.property.StringProperty;
  * @author Christian Morgner
  */
 
-public class PropertyDefinition extends AbstractNode implements PropertyKey {
+public class PropertyDefinition<T> extends AbstractNode implements PropertyKey<T> {
 	
 	private static final Logger logger = Logger.getLogger(PropertyDefinition.class.getName());
 
 	public static final NodeExtender nodeExtender = new NodeExtender(GenericNode.class, "org.structr.core.entity.dynamic");
 	
-	public static final Property<String>               validationExpression   = new StringProperty("validationExpression");
-	public static final Property<String>               validationErrorMessage = new StringProperty("validationErrorMessage");
-	public static final Property<String>               kind                   = new StringProperty("kind");
-	public static final Property<String>               dataType               = new StringProperty("dataType");
-	public static final Property<String>               relKind                = new StringProperty("relKind");
-	public static final Property<String>               relType                = new StringProperty("relType");
-	public static final Property<Boolean>              incoming               = new BooleanProperty("incoming");
-
-	public static final Property<Boolean>              systemProperty         = new BooleanProperty("systemProperty");
-	public static final Property<Boolean>              readOnlyProperty       = new BooleanProperty("readOnlyProperty");
-	public static final Property<Boolean>              writeOnceProperty      = new BooleanProperty("writeOnceProperty");
+	public static final Property<String>               validationExpression     = new StringProperty("validationExpression");
+	public static final Property<String>               validationErrorMessage   = new StringProperty("validationErrorMessage");
+	public static final Property<String>               kind                     = new StringProperty("kind").indexed();
+	public static final Property<String>               dataType                 = new StringProperty("dataType").indexed();
+	public static final Property<String>               relKind                  = new StringProperty("relKind").indexed();
+	public static final Property<String>               relType                  = new StringProperty("relType").indexed();
+	public static final Property<Boolean>              incoming                 = new BooleanProperty("incoming");
+  
+	public static final Property<Boolean>              systemProperty           = new BooleanProperty("systemProperty");
+	public static final Property<Boolean>              readOnlyProperty         = new BooleanProperty("readOnlyProperty");
+	public static final Property<Boolean>              writeOnceProperty        = new BooleanProperty("writeOnceProperty");
+	public static final Property<Boolean>              indexedProperty          = new BooleanProperty("indexedProperty");
+	public static final Property<Boolean>              passivelyIndexedProperty = new BooleanProperty("passivelyIndexedProperty");
 	
 	public static final org.structr.common.View publicView = new org.structr.common.View(PropertyDefinition.class, PropertyView.Public,
 	    name, dataType, kind, relKind, relType, incoming, validationExpression, validationErrorMessage, systemProperty, readOnlyProperty, writeOnceProperty
@@ -79,7 +82,7 @@ public class PropertyDefinition extends AbstractNode implements PropertyKey {
 	private static final Map<String, Class<? extends PropertyKey>> delegateMap     = new LinkedHashMap<String, Class<? extends PropertyKey>>();
 	private List<PropertyValidator> validators                                     = new LinkedList<PropertyValidator>();
 	private Class declaringClass                                                   = null;
-	private PropertyKey delegate                                                   = null;
+	private PropertyKey<T> delegate                                                = null;
 
 	// ----- static initializer -----
 	static {
@@ -92,9 +95,6 @@ public class PropertyDefinition extends AbstractNode implements PropertyKey {
 		delegateMap.put("Date",       ISO8601DateProperty.class);
 		delegateMap.put("Collection", CollectionProperty.class);
 		delegateMap.put("Entity",     EntityProperty.class);
-		
-		EntityContext.registerSearchablePropertySet(PropertyDefinition.class, NodeIndex.keyword.name(), dataType, kind, relKind, relType);
-		EntityContext.registerSearchablePropertySet(PropertyDefinition.class, NodeIndex.fulltext.name(), dataType, kind, relKind, relType);
 	}
 	
 	public static void clearPropertyDefinitions() {
@@ -237,7 +237,7 @@ public class PropertyDefinition extends AbstractNode implements PropertyKey {
 	}
 
 	@Override
-	public Object defaultValue() {
+	public T defaultValue() {
 		return null;
 	}
 	
@@ -279,35 +279,17 @@ public class PropertyDefinition extends AbstractNode implements PropertyKey {
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(SearchOperator op, Object searchValue, boolean exactMatch) {
+	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occur occur, T searchValue, boolean exactMatch) {
 		
 		if (delegate != null) {
-			return delegate.getSearchAttribute(op, searchValue, exactMatch);
+			return delegate.getSearchAttribute(securityContext, occur, searchValue, exactMatch);
 		}
 		
 		return null;
 	}
 
 	@Override
-	public void registerSearchableProperties(Set searchableProperties) {
-		
-		if (delegate != null) {
-			delegate.registerSearchableProperties(searchableProperties);
-		}
-	}
-
-	@Override
-	public Object getSearchValue(Object source) {
-		
-		if (delegate != null) {
-			return delegate.getSearchValue(source);
-		}
-		
-		return null;
-	}
-
-	@Override
-	public Object getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
 		
 		if (delegate != null) {
 			return delegate.getProperty(securityContext, obj, applyConverter);
@@ -317,7 +299,7 @@ public class PropertyDefinition extends AbstractNode implements PropertyKey {
 	}
 
 	@Override
-	public void setProperty(SecurityContext securityContext, GraphObject obj, Object value) throws FrameworkException {
+	public void setProperty(SecurityContext securityContext, GraphObject obj, T value) throws FrameworkException {
 		
 		if (delegate != null) {
 			delegate.setProperty(securityContext, obj, value);
@@ -341,6 +323,16 @@ public class PropertyDefinition extends AbstractNode implements PropertyKey {
 	@Override
 	public boolean isWriteOnceProperty() {
 		return getProperty(PropertyDefinition.writeOnceProperty);
+	}
+
+	@Override
+	public boolean isIndexedProperty() {
+		return getProperty(PropertyDefinition.indexedProperty);
+	}
+
+	@Override
+	public boolean isPassivelyIndexedProperty() {
+		return getProperty(PropertyDefinition.passivelyIndexedProperty);
 	}
 
 	@Override
@@ -477,6 +469,34 @@ public class PropertyDefinition extends AbstractNode implements PropertyKey {
 	
 	@Override
 	public String getSynchronizationKey() {
+		return null;
+	}
+
+	@Override
+	public void index(GraphObject entity, Object value) {
+		
+		if (delegate != null) {
+			delegate.index(entity, value);
+		}
+	}
+
+	@Override
+	public List extractSearchableAttribute(SecurityContext securityContext, HttpServletRequest request, boolean looseSearch) throws FrameworkException {
+		
+		if (delegate != null) {
+			return delegate.extractSearchableAttribute(securityContext, request, looseSearch);
+		}
+		
+		return Collections.emptyList();
+	}
+
+	@Override
+	public T extractSearchableAttribute(SecurityContext securityContext, String requestParameter) throws FrameworkException {
+		
+		if (delegate != null) {
+			return delegate.extractSearchableAttribute(securityContext, requestParameter);
+		}
+		
 		return null;
 	}
 }

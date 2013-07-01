@@ -73,20 +73,11 @@ public class Image extends File {
 	public static final Property<Image> tnSmall       = new ThumbnailProperty("tnSmall", new ThumbnailParameters(100, 100, false));
 	public static final Property<Image> tnMid         = new ThumbnailProperty("tnMid", new ThumbnailParameters(300, 300, false));
 	
-	public static final Property<Boolean> isThumbnail = new BooleanProperty("isThumbnail").unvalidated().readOnly();
+	public static final Property<Boolean> isThumbnail = new BooleanProperty("isThumbnail").indexed().unvalidated().readOnly();
 	public static final ImageDataProperty imageData   = new ImageDataProperty("imageData");
 	
-//	public static final CollectionProperty<Image> thumbnails = new CollectionProperty("thumbnails", Image.class, RelType.THUMBNAIL, Direction.OUTGOING, true, Relation.DELETE_OUTGOING);
-
 	public static final org.structr.common.View uiView              = new org.structr.common.View(Image.class, PropertyView.Ui, type, name, contentType, size, relativeFilePath, width, height, tnSmall, tnMid, isThumbnail, owner);
 	public static final org.structr.common.View publicView          = new org.structr.common.View(Image.class, PropertyView.Public, type, name, width, height, tnSmall, tnMid, isThumbnail, owner);
-	
-	static {
-		EntityContext.registerSearchablePropertySet(Image.class, NodeIndex.keyword.name(), uuid, type, name, contentType, size, relativeFilePath, width, height, isThumbnail, owner);
-		EntityContext.registerSearchablePropertySet(Image.class, NodeIndex.fulltext.name(), uuid, type, name, contentType, size, relativeFilePath, width, height, isThumbnail, owner);
-	}
-
-	//~--- methods --------------------------------------------------------
 
 //	@Override
 //	public boolean isValid(ErrorBuffer errorBuffer) {
@@ -98,9 +89,6 @@ public class Image extends File {
 //		
 //		return valid;
 //	}
-
-
-	//~--- set methods ----------------------------------------------------
 
 	@Override
 	public void setProperty(final PropertyKey key, final Object value) throws FrameworkException {

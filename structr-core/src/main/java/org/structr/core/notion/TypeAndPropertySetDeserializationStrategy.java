@@ -102,7 +102,7 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends GraphObject>
 			} else {
 			
 				for (Entry<PropertyKey, Object> entry : attributes.entrySet()) {
-					attrs.add(Search.andExactProperty(entry.getKey(), entry.getValue() != null ? entry.getValue().toString() : null));
+					attrs.add(Search.andExactProperty(securityContext, entry.getKey(), entry.getValue() != null ? entry.getValue().toString() : null));
 				}
 			
 			}

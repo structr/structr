@@ -19,11 +19,16 @@
 package org.structr.core.property;
 
 import java.util.logging.Logger;
+import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.SortField;
+import org.apache.lucene.util.NumericUtils;
+import org.neo4j.index.lucene.ValueContext;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.graph.search.SearchAttribute;
+import org.structr.core.graph.search.PropertySearchAttribute;
 
 /**
  * A property that stores and retrieves a simple Long value.
@@ -122,18 +127,21 @@ public class LongProperty extends AbstractPrimitiveProperty<Long> {
 		return null;
 	}
 	
-//	@Override
-//	public Object getSearchValue(Long source) {
-//
-//		return source;
-////		if (source == null) {
-////			return "";
-////		}
-////		
-////		String prefixCoded = NumericUtils.longToPrefixCoded(source);
-////		
-////		logger.log(Level.INFO, "Search value for long {0}, prefixCoded: {1}", new Object[]{source, prefixCoded});
-////		
-////		return prefixCoded;
-//	}
+	@Override
+	public SearchAttribute getSearchAttribute(SecurityContext securityContext, BooleanClause.Occur occur, Long searchValue, boolean exactMatch) {
+		
+		String value = "";
+		
+		if (searchValue != null) {
+			
+			value = NumericUtils.longToPrefixCoded(searchValue);
+		}
+		
+		return new PropertySearchAttribute(this, value, occur, exactMatch);
+	}
+
+	@Override
+	public void index(GraphObject entity, Object value) {
+		super.index(entity, value != null ? ValueContext.numeric((Number)value) : value);
+	}
 }

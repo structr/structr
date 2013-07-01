@@ -49,7 +49,6 @@ import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.Services;
 import org.structr.core.graph.NodeRelationshipStatisticsCommand;
-import org.structr.core.graph.NodeService.NodeIndex;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 
@@ -61,7 +60,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.index.Index;
 import org.structr.core.IterableAdapter;
+import org.structr.core.graph.NodeService;
 import org.structr.core.graph.RelationshipFactory;
 import org.structr.core.property.EntityIdProperty;
 import org.structr.core.property.EntityProperty;
@@ -79,10 +80,10 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	private static final Logger logger = Logger.getLogger(AbstractNode.class.getName());
 
 	// properties
-	public static final Property<String>          name                        = new StringProperty("name");
+	public static final Property<String>          name                        = new StringProperty("name").indexed();
 	public static final Property<String>          createdBy                   = new StringProperty("createdBy").readOnly().writeOnce();
-	public static final Property<Boolean>         deleted                     = new BooleanProperty("deleted");
-	public static final Property<Boolean>         hidden                      = new BooleanProperty("hidden");
+	public static final Property<Boolean>         deleted                     = new BooleanProperty("deleted").indexed();
+	public static final Property<Boolean>         hidden                      = new BooleanProperty("hidden").indexed();
 
 	public static final EntityProperty<Principal> owner                       = new EntityProperty<Principal>("owner", Principal.class, RelType.OWNS, Direction.INCOMING, true);
 	public static final Property<String>          ownerId                     = new EntityIdProperty("ownerId", owner);
@@ -96,11 +97,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	//~--- static initializers --------------------------------------------
 
 	static {
-
-		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.fulltext.name(), name, type, createdDate, lastModifiedDate, hidden, deleted);
-		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.keyword.name(),  uuid, name, type, createdDate, lastModifiedDate, hidden, deleted);
-		
-		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.uuid.name(), uuid);
 
 		// register transformation for automatic uuid creation
 		EntityContext.registerEntityCreationTransformation(AbstractNode.class, new UuidCreationTransformation());
@@ -307,16 +303,12 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	@Override
 	public PropertyKey getDefaultSortKey() {
-
-		return null;
-
+		return AbstractNode.name;
 	}
 
 	@Override
 	public String getDefaultSortOrder() {
-
 		return GraphObjectComparator.ASCENDING;
-
 	}
 
 	@Override
@@ -436,17 +428,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 */
 	@Override
 	public Object getPropertyForIndexing(final PropertyKey key) {
-
-		Object rawValue = getProperty(key, false);
-		
-		if (rawValue != null) {
-			
-			return rawValue;
-			
-		}
-		
-		return getProperty(key);
-
+		return getProperty(key, false);
 	}
 
 	/**
@@ -1305,6 +1287,49 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 		}
 
+	}
+
+	@Override
+	public void addToIndex() {
+
+		for (PropertyKey key : EntityContext.getPropertySet(entityType, PropertyView.All)) {
+			
+			if (key.isIndexedProperty()) {
+				
+				key.index(this, this.getPropertyForIndexing(key));
+			}
+		}
+	}
+	
+	@Override
+	public void updateInIndex() {
+		
+		removeFromIndex();
+		addToIndex();
+	}
+	
+	@Override
+	public void removeFromIndex() {
+		
+		for (Index<Node> index : Services.getService(NodeService.class).getNodeIndices()) {
+			
+			synchronized (index) {
+				
+				index.remove(dbNode);
+			}
+		}
+	}
+	
+	@Override
+	public void indexPassiveProperties() {
+		
+		for (PropertyKey key : EntityContext.getPropertySet(entityType, PropertyView.All)) {
+			
+			if (key.isPassivelyIndexedProperty()) {
+				
+				key.index(this, this.getPropertyForIndexing(key));
+			}
+		}
 	}
 }
 

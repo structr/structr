@@ -26,9 +26,7 @@ import org.neo4j.graphdb.Direction;
 
 import org.structr.common.PropertyView;
 import org.structr.web.common.RelType;
-import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.NodeService.NodeIndex;
 import org.structr.core.notion.PropertySetNotion;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -49,8 +47,8 @@ import org.structr.web.entity.dom.Content;
  */
 public class MailTemplate extends AbstractNode {
 
-	public static final EntityProperty<Content>          text = new EntityProperty<Content>("text", Content.class, RelType.CONTAINS, Direction.OUTGOING, new PropertySetNotion(true, uuid, name), false);
-	public static final Property<String>               locale = new StringProperty("locale");
+	public static final EntityProperty<Content> text   = new EntityProperty<Content>("text", Content.class, RelType.CONTAINS, Direction.OUTGOING, new PropertySetNotion(true, uuid, name), false);
+	public static final Property<String>        locale = new StringProperty("locale");
 	
 	public static final org.structr.common.View uiView = new org.structr.common.View(NewsTickerItem.class, PropertyView.Ui,
 		type, name, text
@@ -61,9 +59,6 @@ public class MailTemplate extends AbstractNode {
 	);
 	
 	static {
-
-		EntityContext.registerSearchablePropertySet(MailTemplate.class, NodeIndex.fulltext.name(), uiView.properties());
-		EntityContext.registerSearchablePropertySet(MailTemplate.class, NodeIndex.keyword.name(),  uiView.properties());
 		
 		MailTemplate.name.addValidator(new TypeUniquenessValidator(MailTemplate.class));
 	}

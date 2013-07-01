@@ -33,7 +33,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Command;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Predicate;
@@ -46,7 +45,6 @@ import org.structr.core.graph.CreateRelationshipCommand;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchRelationshipCommand;
-import org.structr.core.graph.search.TextualSearchAttribute;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;
 
@@ -92,16 +90,14 @@ public class NamedRelationResource extends WrappingResource {
 			searchAttributes.add(Search.andExactRelType(namedRelation));
 
 			// add searchable attributes from EntityContext
-			searchAttributes.addAll(extractSearchableAttributesForRelationships(securityContext, namedRelation.getEntityClass(), request));
+			searchAttributes.addAll(extractSearchableAttributes(securityContext, namedRelation.getEntityClass(), request));
 
-			relationResults.addAll((List<AbstractRelationship>) Services.command(securityContext, SearchRelationshipCommand.class).execute(searchAttributes));
+			relationResults.addAll(Services.command(securityContext, SearchRelationshipCommand.class).execute(searchAttributes).getResults());
 
 		}
 
 		// filter by searchable properties
-		final List<SearchAttribute> filterAttributes =
-						extractSearchableAttributesForRelationships(securityContext, namedRelation.getEntityClass(), request);
-
+		final List<SearchAttribute> filterAttributes = extractSearchableAttributes(securityContext, namedRelation.getEntityClass(), request);
 		if(!filterAttributes.isEmpty()) {
 
 			final Predicate<GraphObject> predicate = new Predicate<GraphObject>() {
@@ -115,10 +111,10 @@ public class NamedRelationResource extends WrappingResource {
 
 						for(final SearchAttribute attr : filterAttributes) {
 
-							final String value    = ((TextualSearchAttribute)attr).getValue();
-							final PropertyKey key = ((TextualSearchAttribute)attr).getKey();
+							final String value    = (String)attr.getValue();
+							final PropertyKey key = attr.getKey();
 
-							final Object val = "\"" + obj.getProperty(key) + "\"";
+							final Object val = obj.getProperty(key);
 							if(val != null && val.equals(value)) {
 								return true;
 							}

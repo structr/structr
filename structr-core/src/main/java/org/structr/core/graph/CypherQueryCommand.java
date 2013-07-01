@@ -70,9 +70,8 @@ public class CypherQueryCommand extends NodeServiceCommand {
 	
 	public List<GraphObject> execute(String query, Map<String, Object> parameters, boolean includeHiddenAndDeleted, boolean publicOnly) throws FrameworkException {
 
-		RelationshipFactory relFactory  = (RelationshipFactory) arguments.get("relationshipFactory");
 		ExecutionEngine     engine      = (ExecutionEngine) arguments.get("cypherExecutionEngine");
-		//GraphDatabaseService graphDb    = (GraphDatabaseService) arguments.get("graphDb");
+		RelationshipFactory relFactory  = new RelationshipFactory(securityContext);
 		NodeFactory nodeFactory         = new NodeFactory(securityContext);
 
 		List<GraphObject> resultList = new LinkedList<GraphObject>();
@@ -98,7 +97,7 @@ public class CypherQueryCommand extends NodeServiceCommand {
 			
 				if (value instanceof Node) {
 
-					AbstractNode node = nodeFactory.instantiateNode((Node) value, includeHiddenAndDeleted, publicOnly);
+					AbstractNode node = nodeFactory.instantiate((Node) value, includeHiddenAndDeleted, publicOnly);
 
 					if (node != null) {
 
@@ -107,7 +106,7 @@ public class CypherQueryCommand extends NodeServiceCommand {
 
 				} else if (value instanceof Relationship) {
 
-					AbstractRelationship rel = relFactory.instantiateRelationship(securityContext, (Relationship) value);
+					AbstractRelationship rel = relFactory.instantiate((Relationship) value);
 
 					if (rel != null) {
 

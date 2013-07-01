@@ -21,12 +21,17 @@ package org.structr.core.property;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.logging.Logger;
+import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.SortField;
+import org.neo4j.index.lucene.ValueContext;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.DateFormatToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.graph.search.DateSearchAttribute;
+import org.structr.core.graph.search.LongSearchAttribute;
+import org.structr.core.graph.search.SearchAttribute;
 
 /**
 * A property that stores and retrieves a simple string-based Date with
@@ -168,5 +173,15 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 			return null;
 		}
 		
+	}
+
+	@Override
+	public SearchAttribute getSearchAttribute(SecurityContext securityContext, BooleanClause.Occur occur, Date searchValue, boolean exactMatch) {
+		return new DateSearchAttribute(this, searchValue, occur, exactMatch);
+	}
+
+	@Override
+	public void index(GraphObject entity, Object value) {
+		super.index(entity, value != null ? ValueContext.numeric((Number)value) : value);
 	}
 }

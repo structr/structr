@@ -58,6 +58,10 @@ public class GraphObjectComparator extends ViewTransformation<GraphObject> imple
 	 * @param sortKey
 	 * @param sortOrder 
 	 */
+	public GraphObjectComparator(final PropertyKey sortKey, final boolean sortDescending) {
+		this(sortKey, sortDescending ? DESCENDING : ASCENDING);
+	}
+	
 	public GraphObjectComparator(final PropertyKey sortKey, final String sortOrder) {
 
 		this.sortKey   = sortKey;

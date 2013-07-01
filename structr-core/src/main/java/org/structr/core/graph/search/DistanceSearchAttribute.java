@@ -3,28 +3,24 @@
  *
  * This file is part of structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify it under the
- * terms of the GNU Affero General Public License as published by the Free
- * Software Foundation, either version 3 of the License, or (at your option) any
- * later version.
+ * structr is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * structr is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
- * along with structr. If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License along with structr. If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core.graph.search;
 
-import org.structr.core.property.StringProperty;
-import org.structr.core.graph.NodeAttribute;
+import org.apache.lucene.search.BooleanClause.Occur;
+import org.apache.lucene.search.Query;
+import org.structr.core.GraphObject;
 
 /**
  * Represents a distance search.
  *
- * Here, the key is a search string to be passed to geocoding, and value is a
- * distance in km.
+ * Here, the key is a search string to be passed to geocoding, and value is a distance in km.
  *
  * <p> Used in {
  *
@@ -34,33 +30,27 @@ import org.structr.core.graph.NodeAttribute;
  */
 public class DistanceSearchAttribute extends SearchAttribute {
 
-	private Double distance   = null;
-	private String street     = null;
-	private String house      = null;
+	private Double distance = null;
+	private String street = null;
+	private String house = null;
 	private String postalCode = null;
-	private String city       = null;
-	private String state      = null;
-	private String country    = null;
-		
-	public DistanceSearchAttribute(final String street, final String house, final String postalCode, final String city, final String state, final String country, final Double distance, final SearchOperator searchOp) {
+	private String city = null;
+	private String state = null;
+	private String country = null;
 
-		this.street     = street;
-		this.house      = house;
+	public DistanceSearchAttribute(final String street, final String house, final String postalCode, final String city, final String state, final String country, final Double distance, final Occur occur) {
+
+		super(occur);
+		
+		this.street = street;
+		this.house = house;
 		this.postalCode = postalCode;
-		this.city       = city;
-		this.state      = state;
-		this.country    = country;
+		this.city = city;
+		this.state = state;
+		this.country = country;
 
-		this.distance   = distance;
-		
-		setSearchOperator(searchOp);
+		this.distance = distance;
 	}
-//	
-//	public DistanceSearchAttribute(final String searchString, final Double distance, final SearchOperator searchOp) {
-//		
-//		nodeAttribute = new NodeAttribute(new StringProperty(searchString), distance);
-//		setSearchOperator(searchOp);
-//	}
 
 	@Override
 	public Double getValue() {
@@ -122,6 +112,24 @@ public class DistanceSearchAttribute extends SearchAttribute {
 	public void setCountry(String country) {
 		this.country = country;
 	}
-	
-	
+
+	@Override
+	public Query getQuery() {
+		return null;
+	}
+
+	@Override
+	public boolean isExactMatch() {
+		return true;	// ignored
+	}
+
+	@Override
+	public String getStringValue() {
+		return null;
+	}
+
+	@Override
+	public boolean includeInResult(GraphObject entity) {
+		return true;
+	}
 }

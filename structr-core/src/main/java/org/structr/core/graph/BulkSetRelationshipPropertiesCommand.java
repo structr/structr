@@ -72,12 +72,12 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand imp
 				List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
 				attrs.add(Search.andExactType((String) properties.get(AbstractRelationship.combinedType.dbName())));
 
-				rels = (List<AbstractRelationship>) searchRel.execute(attrs);
+				rels = searchRel.execute(attrs).getResults();
 				properties.remove(AbstractRelationship.combinedType.dbName());
 
 			} else {
 
-				rels = (List<AbstractRelationship>) relationshipFactory.instantiateRelationships(securityContext, GlobalGraphOperations.at(graphDb).getAllRelationships());
+				rels = (List<AbstractRelationship>) relationshipFactory.instantiate(GlobalGraphOperations.at(graphDb).getAllRelationships());
 			}
 
 			long count = NodeServiceCommand.bulkGraphOperation(securityContext, rels, 1000, "SetRelationshipProperties", new BulkGraphOperation<AbstractRelationship>() {

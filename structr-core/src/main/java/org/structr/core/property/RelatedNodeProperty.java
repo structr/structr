@@ -53,6 +53,15 @@ public class RelatedNodeProperty<T> extends AbstractPrimitiveProperty<T> {
 	}
 	
 	@Override
+	public Property<T> indexed() {
+		
+		// related node properties are always indexed passively
+		// (because they can change without setProperty())
+		super.passivelyIndexed();
+		return this;
+	}
+	
+	@Override
 	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext) {
 		return databaseConverter(securityContext, null);
 	}

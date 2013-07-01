@@ -120,11 +120,11 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	
 	private DecimalFormat decimalFormat                           = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));	
 	
-	public static final Property<Integer> version                 = new IntProperty("version");
-	public static final Property<String> tag                      = new StringProperty("tag");
-	public static final Property<String> path                     = new StringProperty("path");
-	public static final Property<String> partialUpdateKey         = new StringProperty("partialUpdateKey");
-	public static final Property<String> dataKey                  = new StringProperty("dataKey");
+	public static final Property<Integer> version                 = new IntProperty("version").indexed();
+	public static final Property<String> tag                      = new StringProperty("tag").indexed();
+	public static final Property<String> path                     = new StringProperty("path").indexed();
+	public static final Property<String> partialUpdateKey         = new StringProperty("partialUpdateKey").indexed();
+	public static final Property<String> dataKey                  = new StringProperty("dataKey").indexed();
 	public static final Property<String> cypherQuery              = new StringProperty("cypherQuery");
 	public static final Property<String> xpathQuery               = new StringProperty("xpathQuery");
 	public static final Property<String> restQuery                = new StringProperty("restQuery");
@@ -134,7 +134,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	public static final Property<Boolean> hideOnEdit              = new BooleanProperty("hideOnEdit");
 	public static final Property<Boolean> hideOnNonEdit           = new BooleanProperty("hideOnNonEdit");
 
-	public static final Property<String> _title                   = new HtmlProperty("title");
+	public static final Property<String> _title                   = new HtmlProperty("title").indexed();
 	public static final Property<String> _tabindex                = new HtmlProperty("tabindex");
 	public static final Property<String> _style                   = new HtmlProperty("style");
 	public static final Property<String> _spellcheck              = new HtmlProperty("spellcheck");
@@ -201,13 +201,13 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	public static final Property<String> _dir                     = new HtmlProperty("dir");
 
 	// needed for Importer
-	public static final Property<String> _data                    = new HtmlProperty("data");
+	public static final Property<String> _data                    = new HtmlProperty("data").indexed();
 	public static final Property<String> _contextmenu             = new HtmlProperty("contextmenu");
 	public static final Property<String> _contenteditable         = new HtmlProperty("contenteditable");
-	public static final Property<String> _class                   = new HtmlProperty("class");
+	public static final Property<String> _class                   = new HtmlProperty("class").indexed();
 
 	// Core attributes
-	public static final Property<String> _accesskey               = new HtmlProperty("accesskey");
+	public static final Property<String> _accesskey               = new HtmlProperty("accesskey").indexed();
 	
 	public static final org.structr.common.View publicView        = new org.structr.common.View(DOMElement.class, PropertyView.Public,
 										name, tag, pageId, path, parent, restQuery, cypherQuery, xpathQuery, partialUpdateKey, dataKey, syncedNodes
@@ -236,9 +236,6 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 	static {
 		
-		EntityContext.registerSearchablePropertySet(DOMElement.class, NodeIndex.fulltext.name(), publicView.properties());
-		EntityContext.registerSearchablePropertySet(DOMElement.class, NodeIndex.keyword.name(), publicView.properties());
-
 		// register data sources
 		listSources.add(new IdRequestParameterGraphDataSource("nodeId"));
 		listSources.add(new CypherGraphDataSource());

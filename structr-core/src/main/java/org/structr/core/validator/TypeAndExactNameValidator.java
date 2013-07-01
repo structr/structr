@@ -71,7 +71,7 @@ public class TypeAndExactNameValidator implements PropertyValidator<String> {
 
 		List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
 		attrs.add(Search.andExactName(value));
-		attrs.add(Search.andType(type.getSimpleName()));
+		attrs.add(Search.andExactType(type.getSimpleName()));
 
 		// just check for existance
 		try {

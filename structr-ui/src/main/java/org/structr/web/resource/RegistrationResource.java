@@ -46,16 +46,14 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.apache.lucene.search.BooleanClause.Occur;
 import org.parboiled.common.StringUtils;
 import org.structr.core.auth.AuthHelper;
 import org.structr.core.entity.Person;
-import org.structr.core.entity.Principal;
-import org.structr.core.graph.NewIndexNodeCommand;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchNodeCommand;
-import org.structr.core.graph.search.SearchOperator;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.mail.MailTemplate;
 import org.structr.web.servlet.HtmlServlet;
@@ -114,6 +112,7 @@ public class RegistrationResource extends Resource {
 
 		if (propertySet.containsKey(User.email.jsonName()) && propertySet.size() == 1) {
 			
+			SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
 			User user;
 			
 			final String emailString  = (String) propertySet.get(User.email.jsonName());
@@ -125,9 +124,9 @@ public class RegistrationResource extends Resource {
 			localeString = (String) propertySet.get(MailTemplate.locale.jsonName());
 			confKey = UUID.randomUUID().toString();
 			
-			Result result = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(
+			Result result = Services.command(superUserContext, SearchNodeCommand.class).execute(
 				Search.andExactType(User.class.getSimpleName()),
-				Search.andExactProperty(User.email, emailString));
+				Search.andExactProperty(superUserContext, User.email, emailString));
 				
 			if (!result.isEmpty()) {
 				
@@ -230,7 +229,7 @@ public class RegistrationResource extends Resource {
 			List<MailTemplate> templates = (List<MailTemplate>) Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(
 				Search.andExactType(MailTemplate.class.getSimpleName()),
 				Search.andExactName(key.name()),
-				Search.andMatchExactValues(MailTemplate.locale, localeString, SearchOperator.AND)
+				Search.andMatchExactValues(securityContext, MailTemplate.locale, localeString, Occur.MUST)
 			).getResults();
 			
 			if (!templates.isEmpty()) {
@@ -291,7 +290,7 @@ public class RegistrationResource extends Resource {
 						user.init(securityContext, person.getNode());
 
 						// index manually, because type is a system property!
-						Services.command(securityContext, NewIndexNodeCommand.class).updateNode(person);
+						person.updateInIndex();
 
 						user.setProperty(User.confirmationKey, confKey);
 

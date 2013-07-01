@@ -75,7 +75,7 @@ public abstract class Notion<S extends GraphObject, T> {
 	 *
 	 * @return the primary key property
 	 */
-	public abstract PropertyKey getPrimaryPropertyKey();
+	public abstract PropertyKey<T> getPrimaryPropertyKey();
 
 	public Adapter<S, T> getAdapterForGetter(final SecurityContext securityContext) {
 

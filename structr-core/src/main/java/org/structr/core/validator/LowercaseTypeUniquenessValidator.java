@@ -59,21 +59,22 @@ public class LowercaseTypeUniquenessValidator implements PropertyValidator<Strin
 		}
 
 		final AbstractNode result = lookup(nodeIndex, key, value);
-		if (result == null) {
-			return true;
+		if (result != null && result.getId() != object.getId()) {
+
+
+			final String id = result.getUuid();
+			errorBuffer.add(object.getType(), new LowercaseUniqueToken(id, key, value));
+
+			return false;
 		}
-
-		final String id = result.getUuid();
-		errorBuffer.add(object.getType(), new LowercaseUniqueToken(id, key, value));
-
-		return false;
+		
+		return true;
 	}
 
 
 	private static AbstractNode lookup(final NodeIndex index, final PropertyKey key, final String value) {
 		try {
-			return
-				(AbstractNode) Services.command(SecurityContext.getSuperUserInstance(), SearchUserCommand.class).execute(value, key, index);
+			return (AbstractNode) Services.command(SecurityContext.getSuperUserInstance(), SearchUserCommand.class).execute(value, key, index);
 
 		} catch (final FrameworkException fex) {
 			fex.printStackTrace();

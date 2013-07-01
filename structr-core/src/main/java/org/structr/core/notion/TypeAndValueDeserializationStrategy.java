@@ -94,7 +94,7 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 				if (value != null) {
 					
 					String stringValue = value.toString();
-					attrs.add(Search.andExactProperty(propertyKey, stringValue));
+					attrs.add(Search.andExactProperty(securityContext, propertyKey, stringValue));
 				}
 
 			} else if (convertedSource instanceof GraphObject) {
@@ -102,7 +102,7 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 				GraphObject obj = (GraphObject)convertedSource;
 				if (propertyKey != null) {
 					
-					attrs.add(Search.andExactProperty(propertyKey, obj.getProperty(propertyKey)));
+					attrs.add(Search.andExactProperty(securityContext, propertyKey, obj.getProperty(propertyKey)));
 					
 				} else {
 					
@@ -115,7 +115,7 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 				
 			} else {
 
-				attrs.add(Search.andExactProperty(propertyKey, convertedSource));
+				attrs.add(Search.andExactProperty(securityContext, propertyKey, convertedSource));
 
 			}
 		}
