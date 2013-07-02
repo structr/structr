@@ -511,7 +511,16 @@ public class SecurityContext {
 
 		// Fetch already logged-in user, if present (don't try to login)
 		Principal user = getUser(false);
+
+		Principal owner = node.getOwnerNode();
 		
+		// owner is always allowed to do anything with its nodes
+		if (user.equals(node) || user.equals(owner) || user.getParents().contains(owner)) {
+
+			return true;
+		}
+		
+
 		// Public nodes are visible to non-auth users only
 		if (node.isVisibleToPublicUsers() && user == null) {
 
