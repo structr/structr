@@ -211,173 +211,173 @@ public class SynchronizationController implements StructrTransactionListener, Tr
 
 	}
 	
-	private void broadcastPartials(Set<Class> types, Set<DOMNode> markupElements) {
-
-		// create set of dynamic elements
-		Set<DOMNode> dynamicElements = new HashSet(markupElements);
-		SecurityContext superUserSecurityContext = SecurityContext.getSuperUserInstance();
-		List<SearchAttribute> attrs              = new LinkedList<SearchAttribute>();
-
-		if (!types.isEmpty()) {
-		
-			// Find all DOMElements which render data of the type of the obj
-			attrs.add(Search.andExactTypeAndSubtypes(DOMElement.class.getSimpleName()));
-			SearchAttributeGroup g = new SearchAttributeGroup(Occur.MUST);
-
-			for (Class type : types) {
-
-				g.add(Search.orExactProperty(superUserSecurityContext, DOMElement.dataKey, EntityContext.denormalizeEntityName(type.getSimpleName())));
-				g.add(Search.orExactProperty(superUserSecurityContext, DOMElement.partialUpdateKey, EntityContext.denormalizeEntityName(type.getSimpleName())));
-
-			}
-
-			attrs.add(g);
-
-			Result results;
-			try {
-
-				results = Services.command(superUserSecurityContext, SearchNodeCommand.class).execute(attrs);
-				dynamicElements.addAll(results.getResults());
-
-			} catch (FrameworkException ex) {}
-		
-		}
-
-		// create message
-		for (StructrWebSocket socket : clients) {
-
-			SecurityContext securityContext = socket.getSecurityContext();
-			
-			// For non-authenticated clients, construct a security context without user
-			if (securityContext == null) {
-
-				try {
-
-					securityContext = SecurityContext.getInstance(null, AccessMode.Frontend);
-
-				} catch (FrameworkException ex) {
-
-					continue;
-				}
-			}
-			
-			broadcastDynamicElements(securityContext, socket, new LinkedList(dynamicElements));
-			
-		}
-	}
-
-	private void broadcastDynamicElements(SecurityContext securityContext, StructrWebSocket socket, final List<DOMNode> dynamicElements) {
-
-		// filter elements
-		List<DOMNode> filteredElements = filter(securityContext, dynamicElements);
-		List<WebSocketMessage> partialMessages = createPartialMessages(securityContext, filteredElements);
-
-		for (WebSocketMessage webSocketData : partialMessages) {
-
-			webSocketData.setSessionValid(true);
-
-			String pagePath = (String) webSocketData.getNodeData().get("pagePath");
-			String clientPagePath = socket.getPagePath();
-
-			if (clientPagePath != null && !clientPagePath.equals(URIUtil.encodePath(pagePath))) {
-				continue;
-			}
-
-			Connection socketConnection = socket.getConnection();
-
-			webSocketData.setCallback(socket.getCallback());
-
-			if ((socketConnection != null)) {
-
-				String message = gson.toJson(webSocketData, WebSocketMessage.class);
-
-				try {
-
-					socketConnection.sendMessage(message);
-
-				} catch (org.eclipse.jetty.io.EofException eof) {
-
-					logger.log(Level.FINE, "EofException irgnored, may occour on SSL connections.", eof);
-
-				} catch (Throwable t) {
-
-					logger.log(Level.WARNING, "Error sending message to client.", t);
-
-				}
-			}
-		}
-	}
-	
-	private List<WebSocketMessage> createPartialMessages(SecurityContext securityContext, List<DOMNode> elements) {
-		
-		HttpServletRequest request             = mock(HttpServletRequest.class);
-		List<WebSocketMessage> partialMessages = new LinkedList<WebSocketMessage>();
-		RenderContext ctx                      = new RenderContext(request, null, false, Locale.GERMAN);
-		
-		ctx.setResourceProvider(resourceProvider);
-		
-		// Get unique parent elements
-		Set<DOMNode> parents = new HashSet();
-		
-		for (DOMNode el : elements) {
-			
-			
-			DOMNode parent = (DOMNode) el.getParentNode();
-			
-			if (parent != null && !(parent instanceof Html)) {
-				
-				boolean ancestorAlreadyInSet = false;
-				for (Node ancestor : parent.getAncestors()) {
-
-					if (parents.contains((DOMNode) ancestor)) {
-						ancestorAlreadyInSet = true;
-					}
-
-				}
-				
-				if (!ancestorAlreadyInSet) {
-					parents.add(parent);
-				}
-			}
-			
-		}
-		
-		for (DOMNode parent : parents) {
-			
-			try {
-				if (parent != null) {
-
-					Page page = parent.getProperty(DOMNode.ownerDocument);
-					
-					if (page != null) {
-
-						parent.render(securityContext, ctx, 0);
-
-						String partialContent = ctx.getBuffer().toString();
-
-						WebSocketMessage message = new WebSocketMessage();
-
-						message.setCommand("PARTIAL");
-
-						message.setNodeData("pageId", page.getUuid());
-						message.setNodeData("pagePath", "/" + page.getName());
-						message.setNodeData("parentPositionPath", parent.getPositionPath());
-
-						message.setMessage(StringUtils.remove(partialContent, "\n"));
-
-						partialMessages.add(message);
-						
-					}
-				}
-				
-			} catch (FrameworkException ex) {
-				logger.log(Level.SEVERE, null, ex);
-			}
-			
-		}
-
-		return partialMessages;
-	}
+//	private void broadcastPartials(Set<Class> types, Set<DOMNode> markupElements) {
+//
+//		// create set of dynamic elements
+//		Set<DOMNode> dynamicElements = new HashSet(markupElements);
+//		SecurityContext superUserSecurityContext = SecurityContext.getSuperUserInstance();
+//		List<SearchAttribute> attrs              = new LinkedList<SearchAttribute>();
+//
+//		if (!types.isEmpty()) {
+//		
+//			// Find all DOMElements which render data of the type of the obj
+//			attrs.add(Search.andExactTypeAndSubtypes(DOMElement.class.getSimpleName()));
+//			SearchAttributeGroup g = new SearchAttributeGroup(Occur.MUST);
+//
+//			for (Class type : types) {
+//
+//				g.add(Search.orExactProperty(superUserSecurityContext, DOMElement.dataKey, EntityContext.denormalizeEntityName(type.getSimpleName())));
+//				g.add(Search.orExactProperty(superUserSecurityContext, DOMElement.partialUpdateKey, EntityContext.denormalizeEntityName(type.getSimpleName())));
+//
+//			}
+//
+//			attrs.add(g);
+//
+//			Result results;
+//			try {
+//
+//				results = Services.command(superUserSecurityContext, SearchNodeCommand.class).execute(attrs);
+//				dynamicElements.addAll(results.getResults());
+//
+//			} catch (FrameworkException ex) {}
+//		
+//		}
+//
+//		// create message
+//		for (StructrWebSocket socket : clients) {
+//
+//			SecurityContext securityContext = socket.getSecurityContext();
+//			
+//			// For non-authenticated clients, construct a security context without user
+//			if (securityContext == null) {
+//
+//				try {
+//
+//					securityContext = SecurityContext.getInstance(null, AccessMode.Frontend);
+//
+//				} catch (FrameworkException ex) {
+//
+//					continue;
+//				}
+//			}
+//			
+//			broadcastDynamicElements(securityContext, socket, new LinkedList(dynamicElements));
+//			
+//		}
+//	}
+//
+//	private void broadcastDynamicElements(SecurityContext securityContext, StructrWebSocket socket, final List<DOMNode> dynamicElements) {
+//
+//		// filter elements
+//		List<DOMNode> filteredElements = filter(securityContext, dynamicElements);
+//		List<WebSocketMessage> partialMessages = createPartialMessages(securityContext, filteredElements);
+//
+//		for (WebSocketMessage webSocketData : partialMessages) {
+//
+//			webSocketData.setSessionValid(true);
+//
+//			String pagePath = (String) webSocketData.getNodeData().get("pagePath");
+//			String clientPagePath = socket.getPagePath();
+//
+//			if (clientPagePath != null && !clientPagePath.equals(URIUtil.encodePath(pagePath))) {
+//				continue;
+//			}
+//
+//			Connection socketConnection = socket.getConnection();
+//
+//			webSocketData.setCallback(socket.getCallback());
+//
+//			if ((socketConnection != null)) {
+//
+//				String message = gson.toJson(webSocketData, WebSocketMessage.class);
+//
+//				try {
+//
+//					socketConnection.sendMessage(message);
+//
+//				} catch (org.eclipse.jetty.io.EofException eof) {
+//
+//					logger.log(Level.FINE, "EofException irgnored, may occour on SSL connections.", eof);
+//
+//				} catch (Throwable t) {
+//
+//					logger.log(Level.WARNING, "Error sending message to client.", t);
+//
+//				}
+//			}
+//		}
+//	}
+//	
+//	private List<WebSocketMessage> createPartialMessages(SecurityContext securityContext, List<DOMNode> elements) {
+//		
+//		HttpServletRequest request             = mock(HttpServletRequest.class);
+//		List<WebSocketMessage> partialMessages = new LinkedList<WebSocketMessage>();
+//		RenderContext ctx                      = new RenderContext(request, null, false, Locale.GERMAN);
+//		
+//		ctx.setResourceProvider(resourceProvider);
+//		
+//		// Get unique parent elements
+//		Set<DOMNode> parents = new HashSet();
+//		
+//		for (DOMNode el : elements) {
+//			
+//			
+//			DOMNode parent = (DOMNode) el.getParentNode();
+//			
+//			if (parent != null && !(parent instanceof Html)) {
+//				
+//				boolean ancestorAlreadyInSet = false;
+//				for (Node ancestor : parent.getAncestors()) {
+//
+//					if (parents.contains((DOMNode) ancestor)) {
+//						ancestorAlreadyInSet = true;
+//					}
+//
+//				}
+//				
+//				if (!ancestorAlreadyInSet) {
+//					parents.add(parent);
+//				}
+//			}
+//			
+//		}
+//		
+//		for (DOMNode parent : parents) {
+//			
+//			try {
+//				if (parent != null) {
+//
+//					Page page = parent.getProperty(DOMNode.ownerDocument);
+//					
+//					if (page != null) {
+//
+//						parent.render(securityContext, ctx, 0);
+//
+//						String partialContent = ctx.getBuffer().toString();
+//
+//						WebSocketMessage message = new WebSocketMessage();
+//
+//						message.setCommand("PARTIAL");
+//
+//						message.setNodeData("pageId", page.getUuid());
+//						message.setNodeData("pagePath", "/" + page.getName());
+//						message.setNodeData("parentPositionPath", parent.getPositionPath());
+//
+//						message.setMessage(StringUtils.remove(partialContent, "\n"));
+//
+//						partialMessages.add(message);
+//						
+//					}
+//				}
+//				
+//			} catch (FrameworkException ex) {
+//				logger.log(Level.SEVERE, null, ex);
+//			}
+//			
+//		}
+//
+//		return partialMessages;
+//	}
 	
 	// ----- interface StructrTransactionListener -----
 	@Override
@@ -421,7 +421,7 @@ public class SynchronizationController implements StructrTransactionListener, Tr
 		Set<DOMNode> markupElements = markupElementsMap.get(transactionKey);
 		Set<Class> types            = typesMap.get(transactionKey);
 
-		broadcastPartials(types, markupElements);
+		//broadcastPartials(types, markupElements);
 
 		// roll back transaction
 		messageStackMap.remove(transactionKey);
