@@ -76,20 +76,20 @@ public class ThumbnailConverter extends PropertyConverter {
 			logger.log(Level.WARNING, "Could not create thumbnail for {0}", source);
 			return null;
 		}
-		try {
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-				@Override
-				public Object execute() throws FrameworkException {
-					
-					thumbnail.setProperty(Image.isThumbnail, true);
-					return null;
-				}
-			});
-			
-		} catch (FrameworkException ex) {
-			logger.log(Level.WARNING, "Could not set isThumbnail property on {0}", thumbnail);
-		}
+//		try {
+//			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+//
+//				@Override
+//				public Object execute() throws FrameworkException {
+//					
+//					thumbnail.setProperty(Image.isThumbnail, true);
+//					return null;
+//				}
+//			});
+//			
+//		} catch (FrameworkException ex) {
+//			logger.log(Level.WARNING, "Could not set isThumbnail property on {0}", thumbnail);
+//		}
 		
 		return thumbnail;//.getUuid();
 	}
