@@ -220,8 +220,8 @@ var _Elements = {
         
         div.append('<img class="typeIcon" src="'+ icon + '">'
             + '<b title="' + displayName + '" class="tag_ name_">' + displayName + '</b><span class="id">' + entity.id + '</span>'
-            + (entity._html_id ? '<span class="_html_id_">#' + entity._html_id + '</span>' : '')
-            + (entity._html_class ? '<span class="_html_class_">.' + entity._html_class.replace(/ /g, '.') + '</span>' : '')
+            + (entity._html_id ? '<span class="_html_id_">#' + entity._html_id.replace(/\${.*}/g, '${…}') + '</span>' : '')
+            + (entity._html_class ? '<span class="_html_class_">.' + entity._html_class.replace(/\${.*}/g, '${…}').replace(/ /g, '.') + '</span>' : '')
             + '</div>');
 
         _Entities.appendExpandIcon(div, entity, !isMasterComponent && hasChildren);

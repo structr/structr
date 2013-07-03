@@ -307,8 +307,8 @@ var StructrModel = {
             });
 
             // check display of HTML 'class' and 'id' attribute
-            var id = obj._html_id;
-            var cl = obj._html_class;
+            var id = obj._html_id ? obj._html_id.replace(/\${.*}/g, '${…}') : '';
+            var cl = obj._html_class ? obj._html_class.replace(/\${.*}/g, '${…}') : '';
 
             var idEl = $(element).children('._html_id_');
             if (id) {
