@@ -81,6 +81,8 @@ public interface PropertyKey<T> {
 
 	public boolean isPassivelyIndexedProperty();
 	
+	public boolean isSearchableProperty();
+
 	public boolean isCollection();
 
 	/**

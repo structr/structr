@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.commons.collections.ListUtils;
 import org.apache.lucene.search.BooleanClause;
 import static org.apache.lucene.search.BooleanClause.Occur.MUST;
 import static org.apache.lucene.search.BooleanClause.Occur.MUST_NOT;
@@ -36,6 +35,7 @@ import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeService;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchNodeCommand;
@@ -63,9 +63,41 @@ public class CollectionNotionProperty<S extends GraphObject, T> extends Property
 		this.base   = base;
 		
 		notion.setType(base.relatedType());
-		
-		// set indexed flag
-		indexed();
+	}
+
+	@Override
+	public Property<List<T>> indexed() {
+		return this;
+	}
+
+	@Override
+	public Property<List<T>> indexed(NodeService.NodeIndex nodeIndex) {
+		return this;
+	}
+	
+	@Override
+	public Property<List<T>> indexed(NodeService.RelationshipIndex relIndex) {
+		return this;
+	}
+	
+	@Override
+	public Property<List<T>> passivelyIndexed() {
+		return this;
+	}
+	
+	@Override
+	public Property<List<T>> passivelyIndexed(NodeService.NodeIndex nodeIndex) {
+		return this;
+	}
+	
+	@Override
+	public Property<List<T>> passivelyIndexed(NodeService.RelationshipIndex relIndex) {
+		return this;
+	}
+	
+	@Override
+	public boolean isSearchableProperty() {
+		return true;
 	}
 
 	@Override

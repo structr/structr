@@ -65,8 +65,43 @@ public abstract class AbstractRelationProperty<T> extends Property<T> {
 	}
 
 	@Override
+	public Property<T> indexed() {
+		return this;
+	}
+
+	@Override
+	public Property<T> indexed(NodeService.NodeIndex nodeIndex) {
+		return this;
+	}
+	
+	@Override
+	public Property<T> indexed(NodeService.RelationshipIndex relIndex) {
+		return this;
+	}
+	
+	@Override
+	public Property<T> passivelyIndexed() {
+		return this;
+	}
+	
+	@Override
+	public Property<T> passivelyIndexed(NodeService.NodeIndex nodeIndex) {
+		return this;
+	}
+	
+	@Override
+	public Property<T> passivelyIndexed(NodeService.RelationshipIndex relIndex) {
+		return this;
+	}
+	
+	@Override
 	public Object fixDatabaseProperty(Object value) {
 		return null;
+	}
+	
+	@Override
+	public boolean isSearchableProperty() {
+		return false;
 	}
 
 	public void createRelationship(final SecurityContext securityContext, final AbstractNode sourceNode, final AbstractNode targetNode) throws FrameworkException {
@@ -292,6 +327,11 @@ public abstract class AbstractRelationProperty<T> extends Property<T> {
 
 	public int getCascadeDelete() {
 		return cascadeDelete;
+	}
+	
+	@Override
+	public void index(GraphObject entity, Object value) {
+		// no indexing
 	}
 	
 	// ----- protected methods -----

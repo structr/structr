@@ -152,6 +152,11 @@ public class Reference<T> implements PropertyKey<T> {
 	}
 
 	@Override
+	public boolean isSearchableProperty() {
+		return propertyKey.isSearchableProperty();
+	}
+
+	@Override
 	public boolean isCollection() {
 		return propertyKey.isCollection();
 	}

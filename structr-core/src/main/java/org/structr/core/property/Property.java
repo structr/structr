@@ -67,6 +67,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	protected boolean unvalidated                          = false;
 	protected boolean indexed                              = false;
 	protected boolean indexedPassively                     = false;
+	protected boolean isSeachable                          = false;
 	protected String dbName                                = null;
 	protected String jsonName                              = null;
 
@@ -132,7 +133,9 @@ public abstract class Property<T> implements PropertyKey<T> {
 	 * @return the Property to satisfy the builder pattern
 	 */
 	public Property<T> indexed() {
+		
 		this.indexed = true;
+		this.isSeachable = true;
 				
 		nodeIndices.add(NodeIndex.fulltext);
 		nodeIndices.add(NodeIndex.keyword);
@@ -152,6 +155,8 @@ public abstract class Property<T> implements PropertyKey<T> {
 	public Property<T> indexed(NodeIndex nodeIndex) {
 		
 		this.indexed = true;
+		this.isSeachable = true;
+
 		nodeIndices.add(nodeIndex);
 		
 		return this;
@@ -166,6 +171,8 @@ public abstract class Property<T> implements PropertyKey<T> {
 	public Property<T> indexed(RelationshipIndex relIndex) {
 		
 		this.indexed = true;
+		this.isSeachable = true;
+
 		relationshipIndices.add(relIndex);
 		
 		return this;
@@ -182,8 +189,10 @@ public abstract class Property<T> implements PropertyKey<T> {
 	 * @return the Property to satisfy the builder pattern
 	 */
 	public Property<T> passivelyIndexed() {
+
 		this.indexedPassively = true;
 		this.indexed = true;
+		this.isSeachable = true;
 				
 		nodeIndices.add(NodeIndex.fulltext);
 		nodeIndices.add(NodeIndex.keyword);
@@ -203,8 +212,11 @@ public abstract class Property<T> implements PropertyKey<T> {
 	 * @return the Property to satisfy the builder pattern
 	 */
 	public Property<T> passivelyIndexed(NodeIndex nodeIndex) {
+		
 		this.indexedPassively = true;
 		this.indexed = true;
+		this.isSeachable = true;
+
 		nodeIndices.add(nodeIndex);
 		return this;
 	}
@@ -218,8 +230,11 @@ public abstract class Property<T> implements PropertyKey<T> {
 	 * @return the Property to satisfy the builder pattern
 	 */
 	public Property<T> passivelyIndexed(RelationshipIndex relIndex) {
+		
 		this.indexedPassively = true;
 		this.indexed = true;
+		this.isSeachable = true;
+
 		relationshipIndices.add(relIndex);
 		return this;
 	}
@@ -347,12 +362,18 @@ public abstract class Property<T> implements PropertyKey<T> {
 	}
 	
 	@Override
+	public boolean isSearchableProperty() {
+		return isSeachable;
+	}
+	
+	@Override
 	public void index(GraphObject entity, Object value) {
 
 		if (entity instanceof AbstractNode) {
 
 			NodeService nodeService = Services.getService(NodeService.class);
 			AbstractNode node       = (AbstractNode)entity;
+			Node dbNode             = node.getNode();
 
 			for (NodeIndex indexName : nodeIndices()) {
 
@@ -361,15 +382,19 @@ public abstract class Property<T> implements PropertyKey<T> {
 
 					synchronized (index) {
 
-						index.remove(node.getNode(), dbName);
+						index.remove(dbNode, dbName);
 						
-						if (value != null) {
+						if (value != null && !StringUtils.isBlank(value.toString())) {
 							
-							index.add(node.getNode(), dbName, value);
+							index.add(dbNode, dbName, value);
 							
 						} else {
 							
-							index.add(node.getNode(), dbName, SearchCommand.IMPROBABLE_SEARCH_VALUE);
+							// only index String fields with "empty" value
+							if (this instanceof StringProperty) {
+								
+								index.add(dbNode, dbName, SearchCommand.IMPROBABLE_SEARCH_VALUE);
+							}
 						}
 					}
 				}
@@ -379,6 +404,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 			
 			NodeService nodeService  = Services.getService(NodeService.class);
 			AbstractRelationship rel = (AbstractRelationship)entity;
+			Relationship dbRel       = rel.getRelationship();
 
 			for (RelationshipIndex indexName : relationshipIndices()) {
 
@@ -387,15 +413,19 @@ public abstract class Property<T> implements PropertyKey<T> {
 
 					synchronized (index) {
 
-						index.remove(rel.getRelationship(), dbName);
+						index.remove(dbRel, dbName);
 							
-						if (value != null) {
+						if (value != null && !StringUtils.isBlank(value.toString())) {
 
-							index.add(rel.getRelationship(), dbName, value);
+							index.add(dbRel, dbName, value);
 							
 						} else {
 							
-							index.add(rel.getRelationship(), dbName, SearchCommand.IMPROBABLE_SEARCH_VALUE);
+							// only index String fields with "empty" value
+							if (this instanceof StringProperty) {
+							
+								index.add(dbRel, dbName, SearchCommand.IMPROBABLE_SEARCH_VALUE);
+							}
 						}
 					}
 				}

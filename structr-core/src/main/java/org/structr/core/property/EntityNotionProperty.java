@@ -34,6 +34,7 @@ import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeService;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchNodeCommand;
@@ -63,9 +64,41 @@ public class EntityNotionProperty<S extends GraphObject, T> extends Property<T> 
 		this.base   = base;
 		
 		notion.setType(base.relatedType());
-		
-		// set indexed flag
-		indexed();
+	}
+
+	@Override
+	public Property<T> indexed() {
+		return this;
+	}
+
+	@Override
+	public Property<T> indexed(NodeService.NodeIndex nodeIndex) {
+		return this;
+	}
+	
+	@Override
+	public Property<T> indexed(NodeService.RelationshipIndex relIndex) {
+		return this;
+	}
+	
+	@Override
+	public Property<T> passivelyIndexed() {
+		return this;
+	}
+	
+	@Override
+	public Property<T> passivelyIndexed(NodeService.NodeIndex nodeIndex) {
+		return this;
+	}
+	
+	@Override
+	public Property<T> passivelyIndexed(NodeService.RelationshipIndex relIndex) {
+		return this;
+	}
+	
+	@Override
+	public boolean isSearchableProperty() {
+		return true;
 	}
 
 	@Override

@@ -1,6 +1,5 @@
 package org.structr.core.entity;
 
-import com.tinkerpop.gremlin.Tokens.T;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -68,6 +67,7 @@ public class PropertyDefinition<T> extends AbstractNode implements PropertyKey<T
 	public static final Property<Boolean>              writeOnceProperty        = new BooleanProperty("writeOnceProperty");
 	public static final Property<Boolean>              indexedProperty          = new BooleanProperty("indexedProperty");
 	public static final Property<Boolean>              passivelyIndexedProperty = new BooleanProperty("passivelyIndexedProperty");
+	public static final Property<Boolean>              searchableProperty       = new BooleanProperty("searchableProperty");
 	
 	public static final org.structr.common.View publicView = new org.structr.common.View(PropertyDefinition.class, PropertyView.Public,
 	    name, dataType, kind, relKind, relType, incoming, validationExpression, validationErrorMessage, systemProperty, readOnlyProperty, writeOnceProperty
@@ -333,6 +333,11 @@ public class PropertyDefinition<T> extends AbstractNode implements PropertyKey<T
 	@Override
 	public boolean isPassivelyIndexedProperty() {
 		return getProperty(PropertyDefinition.passivelyIndexedProperty);
+	}
+
+	@Override
+	public boolean isSearchableProperty() {
+		return getProperty(PropertyDefinition.searchableProperty);
 	}
 
 	@Override

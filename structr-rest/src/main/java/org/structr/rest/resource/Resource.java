@@ -339,7 +339,7 @@ public abstract class Resource {
 
 			for (final PropertyKey key : EntityContext.getPropertySet(type, PropertyView.All)) {
 
-				if (key.isIndexedProperty()) {
+				if (key.isSearchableProperty()) {
 					
 					searchAttributes.addAll(key.extractSearchableAttribute(securityContext, request, looseSearch));
 				}

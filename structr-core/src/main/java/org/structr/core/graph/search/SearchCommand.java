@@ -46,8 +46,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	protected static final boolean INCLUDE_DELETED_AND_HIDDEN = true;
 	protected static final boolean PUBLIC_ONLY		= false;
 
-	public static String IMPROBABLE_SEARCH_VALUE = "×¦÷þ·";
-	
+	public static final String IMPROBABLE_SEARCH_VALUE = new String(new byte[] { 0 } );
 	
 	public abstract Factory<S, T> getFactory(final SecurityContext securityContext, final boolean includeDeletedAndHidden, final boolean publicOnly, final int pageSize, final int page, final String offsetId);
 	public abstract Index<S> getFulltextIndex();
