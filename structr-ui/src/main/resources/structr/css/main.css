@@ -917,10 +917,19 @@ button.enabled {
 }
 
 .node ._html_id_,
-.node ._html_class_ {
+.node ._html_class_,
+.node .linkable {
     color: #888;
 }
 
+.node .linkable {
+	margin-left: 12px;
+	cursor: pointer;
+}
+
+.node .linkable:hover {
+	color: #555;
+}
 
 .callToAction {
     background-color: #81ce25;  

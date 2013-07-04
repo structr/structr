@@ -28,7 +28,10 @@
 var altKey = false, ctrlKey = false, shiftKey = false, eKey = false;
 
 $(function() {
+    // TODO: Auto-detect base URI
     var s = new StructrPage('/structr/rest/');
+
+    // Edit mode is enabled by adding '?edit=1' to the URL
     if (urlParam('edit') !== undefined) {
         s.editable(true);
 
@@ -44,6 +47,8 @@ $(function() {
         });
     }
 
+    // The create button holds all information about type, id, source object and
+    // a possible related property
     $('.createButton').on('click', function() {
         var btn = $(this);
         var type = btn.attr('data-structr-type');
@@ -91,6 +96,12 @@ $(function() {
 
 });
 
+/**
+ * Base class for structr's in-page data editing
+ * 
+ * @param baseUrl
+ * @returns {StructrPage}
+ */
 function StructrPage(baseUrl) {
     var s = this;
     this.edit = false;
@@ -108,8 +119,70 @@ function StructrPage(baseUrl) {
         }
         return {'id': id, 'type': type, 'key': key, 'val': val};
     };
-    this.create = function(btn, type, data, sourceId, sourceType, relatedProperty) {
+    this.create = function(btn, type, data, sourceId, sourceType, relatedProperty, createNew) {
         console.log('Create', type, data, '/structr/rest/' + type.toUnderscore(), sourceId, relatedProperty);
+
+        if (sourceId && relatedProperty && !createNew) {
+
+            btn.hide();
+
+            $('<div class="clear"></div><input type="text" id="structrSearch" data-structr-typesize="30" placeholder="Search for existing ' + type + '"><span> or </span>').insertBefore(btn);
+
+            $('#structrSearch').focus().on('keyup', function(e) {
+
+                var inp = $(this);
+                var k = e.which;
+                
+                // ESC key?
+                if (k === 27) {
+                    
+                    $('#searchResults').remove();
+                    inp.val('');
+                    return;
+                    
+                }
+
+
+                var attr = (type === 'Content' ? 'content' : 'name');
+
+                $.ajax({
+                    url: '/structr/rest/' + type.toUnderscore() + '?loose=1&' + attr + '=' + inp.val(), method: 'GET', contentType: 'application/json',
+                    statusCode: {
+                        200: function(data) {
+                            var div = $('#searchResults');
+                            if (div.length) {
+                                div.remove();
+                            }
+                            
+                            if (data.result.length) {
+                                $('<div id="searchResults"></div>').insertAfter('#structrSearch');
+                                var div = $('#searchResults');
+                                $.each(data.result, function(i, obj) {
+
+                                    div.append('<div id="id_' + obj.id + '" class="res">' + obj[attr] + '</div>');
+                                    $('#id_' + obj.id).on('click', function(i, node) {
+                                        s.add(obj.id, sourceId, sourceType, relatedProperty);
+                                    });
+
+                                });
+                            }
+
+                        }
+                    }
+                });
+
+            });
+
+            $('<button class="createNewButton" data-structr-source-id="' + sourceId + '">Create new ' + type + ' and add to ' + relatedProperty + '</div>').insertBefore(btn);
+            $('.createNewButton[data-structr-source-id="' + sourceId + '"]').on('click', function() {
+
+                s.create(btn, type, data, sourceId, sourceType, relatedProperty, true);
+
+            });
+
+            return;
+
+        }
 
         if (type === 'Image' && !data) {
 
@@ -144,7 +217,7 @@ function StructrPage(baseUrl) {
                         reader.onload = function(f) {
 
                             var binaryContent = f.target.result;
-                            
+
                             var data = {};
                             data.imageData = 'data:' + file.type + ';base64,' + window.btoa(binaryContent);
                             data.name = file.name;
@@ -179,40 +252,8 @@ function StructrPage(baseUrl) {
 
                             var location = x.getResponseHeader('location');
                             var id = location.substring(location.lastIndexOf('/') + 1);
-                            var d = JSON.parse('{"' + relatedProperty + '":[{"id":"' + id + '"}]}');
 
-
-                            $.ajax({
-                                url: '/structr/rest/' + sourceType.toUnderscore() + '/' + sourceId, method: 'GET', contentType: 'application/json',
-                                statusCode: {
-                                    200: function(data) {
-                                        //console.log(data.result);
-                                        if (data.result && data.result[relatedProperty].length) {
-                                            $.each(data.result[relatedProperty], function(i, obj) {
-                                                d[relatedProperty].push({'id': obj.id});
-                                            });
-                                        }
-
-                                        $.ajax({
-                                            url: '/structr/rest/' + sourceType.toUnderscore() + '/' + sourceId, method: 'PUT', contentType: 'application/json',
-                                            data: JSON.stringify(d),
-                                            statusCode: {
-                                                200: function() {
-                                                    window.location.reload();
-                                                },
-                                                400: function(xhr) {
-                                                    console.log(xhr);
-                                                },
-                                                422: function(xhr) {
-                                                    console.log(xhr);
-                                                }
-                                            }
-                                        });
-
-                                    }
-                                }
-                            });
-
+                            s.add(id, sourceId, sourceType, relatedProperty);
 
 
                         } else {
@@ -259,6 +300,43 @@ function StructrPage(baseUrl) {
             });
 
         }
+    };
+    this.add = function(id, sourceId, sourceType, relatedProperty) {
+
+        var d = JSON.parse('{"' + relatedProperty + '":[{"id":"' + id + '"}]}');
+
+        $.ajax({
+            url: '/structr/rest/' + sourceType.toUnderscore() + '/' + sourceId, method: 'GET', contentType: 'application/json',
+            statusCode: {
+                200: function(data) {
+                    //console.log(data.result);
+                    if (data.result && data.result[relatedProperty].length) {
+                        $.each(data.result[relatedProperty], function(i, obj) {
+                            d[relatedProperty].push({'id': obj.id});
+                        });
+                    }
+
+                    $.ajax({
+                        url: '/structr/rest/' + sourceType.toUnderscore() + '/' + sourceId, method: 'PUT', contentType: 'application/json',
+                        data: JSON.stringify(d),
+                        statusCode: {
+                            200: function() {
+                                window.location.reload();
+                            },
+                            400: function(xhr) {
+                                console.log(xhr);
+                            },
+                            422: function(xhr) {
+                                console.log(xhr);
+                            }
+                        }
+                    });
+
+                }
+            }
+        });
+
+
     };
     this.delete = function(id) {
         //console.log('Delete', '/structr/rest/' + id);
@@ -347,16 +425,16 @@ function StructrPage(baseUrl) {
 //                    s.appendSaveButton(b, p, $(this), f.id, f.key);
 //                });
 
-                
+
                 var relatedNode = input.closest('[data-structr-data-type]');
                 var parentType = relatedNode.attr('data-structr-data-type');
-                
+
                 var deleteButton = $('.deleteButton[data-structr-id="' + f.id + '"]');
-                
+
                 if (parentType && !(deleteButton.length)) {
-                    $('<button class="deleteButton" data-structr-id="' + f.id + '">Delete ' + parentType + '</button>').insertBefore(relatedNode);
+                    relatedNode.append('<div class="clear"></div><button class="deleteButton" data-structr-id="' + f.id + '">Delete ' + parentType + '</button>');
                 }
-                
+
                 //$('<button class="removeButton" data-structr-id="' + f.id + '">Remove ' + f.key + ' from ' + </button>').insertAfter(input);
 
             });
@@ -408,6 +486,7 @@ function StructrPage(baseUrl) {
 
                     inp.replaceWith(textarea(f.id, f.key, inp.val()));
                     inp = $('[data-structr-id="' + f.id + '"][data-structr-key="' + f.key + '"]');
+
                     inp.on('keyup', function(e) {
                         s.checkInput(e, f, $(this));
                     });
@@ -439,13 +518,17 @@ function StructrPage(baseUrl) {
     };
     this.appendSaveButton = function(b, p, inp, id, key) {
 
-        if (!b.length) {
-            (p.length ? p : inp).after(' <button class="saveButton" id="save_' + id + '_' + key + '">Save</button>');
-            $('#save_' + id + '_' + key).on('click', function() {
-                var btn = $(this), inp = btn.prev();
-                s.save(s.field(inp), btn);
-            });
+        // Remove existing save button
+        if (b.length) {
+            $('#save_' + id + '_' + key).remove();
         }
+
+        (p.length ? p : inp).after('<button class="saveButton" id="save_' + id + '_' + key + '">Save</button>');
+        $('#save_' + id + '_' + key).on('click', function() {
+            var btn = $(this), inp = btn.prev();
+            console.log('append save button', btn, inp);
+            s.save(s.field(inp), btn);
+        });
 
     }
 
@@ -473,7 +556,9 @@ function resizeInput(inp) {
 
     }
 
-    inp.focus();
+    // Focus on last empty field
+    if (!text || !text.length)
+        inp.focus();
 }
 
 function urlParam(name) {
@@ -535,7 +620,7 @@ function textarea(id, key, val) {
 }
 
 function inputField(id, type, key, val) {
-    return '<input class="editField" type="text" data-structr-id="' + id + '" data-structr-type="' + type + '" data-structr-key="' + key + '" value="' + (val === 'null' ? '' : val) + '" size="' + val.length + ' ">';
+    return '<input class="editField" type="text" placeholder="' + key.capitalize() + '" data-structr-id="' + id + '" data-structr-type="' + type + '" data-structr-key="' + key + '" value="' + (val === 'null' ? '' : val) + '" size="' + val.length + ' ">';
 }
 
 function field(id, type, key, val) {

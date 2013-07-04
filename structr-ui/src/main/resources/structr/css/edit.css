@@ -15,3 +15,25 @@
     border-radius: .25em;
     padding: 1em;
 }
+
+input[type=text] {
+	border: 1px solid #a5a5a5;
+	border-radius: .25em;
+	padding: .25em;
+}
+
+#searchResults {
+	position: absolute;
+	border: 1px solid #a5a5a5;
+}
+
+.res {
+	padding: .5em;
+	border-bottom: 1px solid #a5a5a5;
+	background: #fff;
+}
+
+.res:hover {
+	cursor: pointer;
+	background: #f7f7f7;
+}

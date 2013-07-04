@@ -1472,7 +1472,7 @@ var _Crud = {
         }
         
         $.each(types, function(t, type) {
-            var url = rootUrl + _Crud.restType(type) + '/' + view + _Crud.sortAndPagingParameters(type, 'name', 'asc', pageSize, 1) + '&name=' + searchString + '&loose=1';
+            var url = rootUrl + _Crud.restType(type) + '/' + view + _Crud.sortAndPagingParameters(type, 'name', 'asc', 1000, 1) + '&name=' + searchString + '&loose=1';
             $.ajax({
                 url: url,
                 headers: headers,

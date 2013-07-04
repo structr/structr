@@ -99,12 +99,12 @@ var StructrModel = {
 
         // Check if the object is already contained in page
         if (obj) {
-                
+
             if (obj.exists && obj.exists()) {
                 console.log('obj exists');
                 return obj;
             }
-            
+
         }
 
         if (refId || append === undefined || append) {
@@ -129,9 +129,9 @@ var StructrModel = {
      * Check expand status
      */
     expand: function(element, obj) {
-        
+
         log('StructrModel.expand', element, obj);
-        
+
         if (element) {
 
             if (isExpanded(obj.id)) {
@@ -157,7 +157,10 @@ var StructrModel = {
      */
     del: function(id) {
 
-        Structr.node(id).remove();
+        var node = Structr.node(id);
+        if (node) {
+            node.remove();
+        }
         removeExpandedNode(id);
         $('#show_' + id, previews).remove();
         _Pages.reloadPreviews();
@@ -406,8 +409,9 @@ StructrFolder.prototype.remove = function() {
     var folder = this;
     var parentFolder = StructrModel.obj(folder.parent.id);
     var parentFolderEl = Structr.node(parentFolder.id);
-    
-    if (!parentFolderEl) return;
+
+    if (!parentFolderEl)
+        return;
 
     parentFolder.folders = removeFromArray(parentFolder.folders, folder);
 
@@ -706,7 +710,7 @@ StructrElement.prototype.append = function(refNode) {
 }
 
 StructrElement.prototype.exists = function() {
-    
+
     var obj = this;
 
     var hasChildren = obj.childrenIds && obj.childrenIds.length;
@@ -808,7 +812,7 @@ StructrContent.prototype.append = function(refNode) {
 
 }
 StructrContent.prototype.exists = function() {
-    
+
     return Structr.node(this.id);
 }
 
