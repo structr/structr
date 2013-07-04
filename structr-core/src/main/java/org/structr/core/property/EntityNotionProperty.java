@@ -97,7 +97,7 @@ public class EntityNotionProperty<S extends GraphObject, T> extends Property<T> 
 	}
 	
 	@Override
-	public boolean isSearchableProperty() {
+	public boolean isSearchable() {
 		return true;
 	}
 
@@ -227,5 +227,10 @@ public class EntityNotionProperty<S extends GraphObject, T> extends Property<T> 
 	@Override
 	public void index(GraphObject entity, Object value) {
 		// no direct indexing
+	}
+
+	@Override
+	public Object getValueForEmptyFields() {
+		return null;
 	}
 }

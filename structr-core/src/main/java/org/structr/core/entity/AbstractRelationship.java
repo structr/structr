@@ -246,6 +246,9 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 				try {
 					
 					dbRelationship.removeProperty(key.dbName());
+					
+					// remove from index
+					removeFromIndex(key);
 
 				} finally {}
 
@@ -686,7 +689,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 		
 		// check for read-only properties
 		//if (EntityContext.isReadOnlyProperty(type, key) || (EntityContext.isWriteOnceProperty(type, key) && (dbRelationship != null) && dbRelationship.hasProperty(key.name()))) {
-		if (key.isReadOnlyProperty() || (key.isWriteOnceProperty() && (dbRelationship != null) && dbRelationship.hasProperty(key.dbName()))) {
+		if (key.isReadOnly() || (key.isWriteOnce() && (dbRelationship != null) && dbRelationship.hasProperty(key.dbName()))) {
 
 			if (readOnlyPropertiesUnlocked || securityContext.isSuperUser()) {
 
@@ -867,7 +870,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 		for (PropertyKey key : EntityContext.getPropertySet(entityType, PropertyView.All)) {
 			
-			if (key.isIndexedProperty()) {
+			if (key.isIndexed()) {
 				
 				key.index(this, this.getPropertyForIndexing(key));
 			}
@@ -893,12 +896,23 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 		}
 	}
 	
+	public void removeFromIndex(PropertyKey key) {
+		
+		for (Index<Relationship> index : Services.getService(NodeService.class).getRelationshipIndices()) {
+			
+			synchronized (index) {
+				
+				index.remove(dbRelationship, key.dbName());
+			}
+		}
+	}
+	
 	@Override
 	public void indexPassiveProperties() {
 
 		for (PropertyKey key : EntityContext.getPropertySet(entityType, PropertyView.All)) {
 			
-			if (key.isPassivelyIndexedProperty()) {
+			if (key.isPassivelyIndexed()) {
 				
 				key.index(this, this.getPropertyForIndexing(key));
 			}

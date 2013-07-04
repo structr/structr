@@ -68,13 +68,14 @@ public class PropertyDefinition<T> extends AbstractNode implements PropertyKey<T
 	public static final Property<Boolean>              indexedProperty          = new BooleanProperty("indexedProperty");
 	public static final Property<Boolean>              passivelyIndexedProperty = new BooleanProperty("passivelyIndexedProperty");
 	public static final Property<Boolean>              searchableProperty       = new BooleanProperty("searchableProperty");
+	public static final Property<Boolean>              indexedWhenEmptyProperty = new BooleanProperty("indexedWhenEmptyProperty");
 	
 	public static final org.structr.common.View publicView = new org.structr.common.View(PropertyDefinition.class, PropertyView.Public,
-	    name, dataType, kind, relKind, relType, incoming, validationExpression, validationErrorMessage, systemProperty, readOnlyProperty, writeOnceProperty
+	    name, dataType, kind, relKind, relType, incoming, validationExpression, validationErrorMessage, systemProperty, readOnlyProperty, writeOnceProperty, indexedProperty, passivelyIndexedProperty, searchableProperty, indexedWhenEmptyProperty
 	);
 	
 	public static final org.structr.common.View uiView = new org.structr.common.View(PropertyDefinition.class, PropertyView.Ui,
-	    name, dataType, kind, relKind, relType, incoming, validationExpression, validationErrorMessage, systemProperty, readOnlyProperty, writeOnceProperty
+	    name, dataType, kind, relKind, relType, incoming, validationExpression, validationErrorMessage, systemProperty, readOnlyProperty, writeOnceProperty, indexedProperty, passivelyIndexedProperty, searchableProperty, indexedWhenEmptyProperty
 	);
 	
 	// ----- private members -----
@@ -316,28 +317,33 @@ public class PropertyDefinition<T> extends AbstractNode implements PropertyKey<T
 	}
 
 	@Override
-	public boolean isReadOnlyProperty() {
+	public boolean isReadOnly() {
 		return getProperty(PropertyDefinition.readOnlyProperty);
 	}
 
 	@Override
-	public boolean isWriteOnceProperty() {
+	public boolean isWriteOnce() {
 		return getProperty(PropertyDefinition.writeOnceProperty);
 	}
 
 	@Override
-	public boolean isIndexedProperty() {
+	public boolean isIndexed() {
 		return getProperty(PropertyDefinition.indexedProperty);
 	}
 
 	@Override
-	public boolean isPassivelyIndexedProperty() {
+	public boolean isPassivelyIndexed() {
 		return getProperty(PropertyDefinition.passivelyIndexedProperty);
 	}
 
 	@Override
-	public boolean isSearchableProperty() {
+	public boolean isSearchable() {
 		return getProperty(PropertyDefinition.searchableProperty);
+	}
+
+	@Override
+	public boolean isIndexedWhenEmpty() {
+		return getProperty(PropertyDefinition.indexedWhenEmptyProperty);
 	}
 
 	@Override

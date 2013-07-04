@@ -28,7 +28,7 @@ import static org.hamcrest.Matchers.*;
  * @author Axel Morgner
  */
 public class DatePropertyRestTest extends StructrRestTest {
-	
+
 	public void testBasics() {
 		
 		RestAssured.given()
@@ -111,6 +111,7 @@ public class DatePropertyRestTest extends StructrRestTest {
 			.get("/test_threes?dateProperty=[2013-04-03T12:34:56+0200 TO 2013-04-06T23:59:59+0200]");
 	
 	}	
+	
 	public void testRangeSearch2() {
 
 		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'dateProperty' : '2013-04-03T12:34:56+0200' } ").expect().statusCode(201).when().post("/test_threes");

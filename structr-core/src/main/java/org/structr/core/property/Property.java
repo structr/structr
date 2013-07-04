@@ -22,6 +22,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -47,7 +48,6 @@ import org.structr.core.graph.search.RangeSearchAttribute;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.PropertySearchAttribute;
-import org.structr.core.graph.search.SearchCommand;
 
 /**
  * Abstract base class for all property types.
@@ -67,7 +67,8 @@ public abstract class Property<T> implements PropertyKey<T> {
 	protected boolean unvalidated                          = false;
 	protected boolean indexed                              = false;
 	protected boolean indexedPassively                     = false;
-	protected boolean isSeachable                          = false;
+	protected boolean searchable                           = false;
+	protected boolean indexedWhenEmpty                     = false;
 	protected String dbName                                = null;
 	protected String jsonName                              = null;
 
@@ -91,6 +92,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	}
 	
 	public abstract Object fixDatabaseProperty(Object value);
+	public abstract Object getValueForEmptyFields();
 	
 	/**
 	 * Use this method to mark a property as being unvalidated. This
@@ -135,7 +137,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	public Property<T> indexed() {
 		
 		this.indexed = true;
-		this.isSeachable = true;
+		this.searchable = true;
 				
 		nodeIndices.add(NodeIndex.fulltext);
 		nodeIndices.add(NodeIndex.keyword);
@@ -155,7 +157,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	public Property<T> indexed(NodeIndex nodeIndex) {
 		
 		this.indexed = true;
-		this.isSeachable = true;
+		this.searchable = true;
 
 		nodeIndices.add(nodeIndex);
 		
@@ -171,7 +173,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	public Property<T> indexed(RelationshipIndex relIndex) {
 		
 		this.indexed = true;
-		this.isSeachable = true;
+		this.searchable = true;
 
 		relationshipIndices.add(relIndex);
 		
@@ -192,7 +194,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 
 		this.indexedPassively = true;
 		this.indexed = true;
-		this.isSeachable = true;
+		this.searchable = true;
 				
 		nodeIndices.add(NodeIndex.fulltext);
 		nodeIndices.add(NodeIndex.keyword);
@@ -215,7 +217,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 		
 		this.indexedPassively = true;
 		this.indexed = true;
-		this.isSeachable = true;
+		this.searchable = true;
 
 		nodeIndices.add(nodeIndex);
 		return this;
@@ -233,9 +235,16 @@ public abstract class Property<T> implements PropertyKey<T> {
 		
 		this.indexedPassively = true;
 		this.indexed = true;
-		this.isSeachable = true;
+		this.searchable = true;
 
 		relationshipIndices.add(relIndex);
+		return this;
+	}
+	
+	public Property<T> indexedWhenEmpty() {
+		
+		this.indexedWhenEmpty = true;
+		
 		return this;
 	}
 
@@ -342,28 +351,33 @@ public abstract class Property<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public boolean isReadOnlyProperty() {
+	public boolean isReadOnly() {
 		return readOnly;
 	}
 	
 	@Override
-	public boolean isWriteOnceProperty() {
+	public boolean isWriteOnce() {
 		return writeOnce;
 	}
 	
 	@Override
-	public boolean isIndexedProperty() {
+	public boolean isIndexed() {
 		return indexed;
 	}
 	
 	@Override
-	public boolean isPassivelyIndexedProperty() {
+	public boolean isPassivelyIndexed() {
 		return indexedPassively;
 	}
 	
 	@Override
-	public boolean isSearchableProperty() {
-		return isSeachable;
+	public boolean isSearchable() {
+		return searchable;
+	}
+	
+	@Override
+	public boolean isIndexedWhenEmpty() {
+		return indexedWhenEmpty;
 	}
 	
 	@Override
@@ -388,12 +402,12 @@ public abstract class Property<T> implements PropertyKey<T> {
 							
 							index.add(dbNode, dbName, value);
 							
-						} else {
+						} else if (isIndexedWhenEmpty()) {
 							
-							// only index String fields with "empty" value
-							if (this instanceof StringProperty) {
+							value = getValueForEmptyFields();
+							if (value != null) {
 								
-								index.add(dbNode, dbName, SearchCommand.IMPROBABLE_SEARCH_VALUE);
+								index.add(dbNode, dbName, value);
 							}
 						}
 					}
@@ -419,12 +433,12 @@ public abstract class Property<T> implements PropertyKey<T> {
 
 							index.add(dbRel, dbName, value);
 							
-						} else {
+						} else if (isIndexedWhenEmpty()) {
 							
-							// only index String fields with "empty" value
-							if (this instanceof StringProperty) {
-							
-								index.add(dbRel, dbName, SearchCommand.IMPROBABLE_SEARCH_VALUE);
+							value = getValueForEmptyFields();
+							if (value != null) {
+								
+								index.add(dbRel, dbName, value);
 							}
 						}
 					}
@@ -451,7 +465,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 				// no quotes allowed in loose search queries!
 				searchValue = removeQuotes(searchValue);
 
-				searchAttributes.add(new PropertySearchAttribute(this, searchValue, Occur.MUST, false));
+				searchAttributes.add(new PropertySearchAttribute(this, searchValue.toLowerCase(), Occur.MUST, false));
 
 			} else {
 
@@ -526,7 +540,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 						rangeEndConverted = inputConverter.convert(rangeEndConverted);
 					}
 
-					return new RangeSearchAttribute(key, rangeStartConverted, rangeEndConverted, Occur.SHOULD);
+					return new RangeSearchAttribute(key, rangeStartConverted, rangeEndConverted, Occur.MUST);
 				}
 
 				return null;

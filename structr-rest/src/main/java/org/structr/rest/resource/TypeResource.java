@@ -47,6 +47,8 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.TransactionCommand;
+import static org.structr.rest.resource.Resource.parseInteger;
+import org.structr.rest.servlet.JsonRestServlet;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -91,6 +93,7 @@ public class TypeResource extends SortableResource {
 	@Override
 	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
 
+		boolean inexactSearch                  = parseInteger(request.getParameter(JsonRestServlet.REQUEST_PARAMETER_LOOSE_SEARCH)) == 1;
 		List<SearchAttribute> searchAttributes = new LinkedList();
 		List<SearchAttribute> validAttributes  = null;
 		boolean includeDeletedAndHidden        = false;
@@ -113,7 +116,7 @@ public class TypeResource extends SortableResource {
 			}
 
 			// add type to return
-			searchAttributes.add(Search.andExactTypeAndSubtypes(EntityContext.normalizeEntityName(rawType)));
+			searchAttributes.add(Search.andExactTypeAndSubtypes(EntityContext.normalizeEntityName(rawType), !inexactSearch));
 			
 			// searchable attributes from EntityContext
 			searchAttributes.addAll(validAttributes);

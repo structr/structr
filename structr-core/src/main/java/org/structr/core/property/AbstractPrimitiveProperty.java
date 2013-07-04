@@ -29,6 +29,7 @@ import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.TransactionCommand;
+import org.structr.core.graph.search.SearchCommand;
 
 
 /**
@@ -184,12 +185,12 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 					}
 				}
 
-				if (isIndexedProperty()) {
+				if (isIndexed()) {
 					
 					// do indexing, needs to be done after
 					// setProperty to make spatial index
 					// work
-					if (!isPassivelyIndexedProperty()) {
+					if (!isPassivelyIndexed()) {
 
 						index(obj, convertedValue);
 					}
@@ -212,5 +213,10 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 	@Override
 	public boolean isCollection() {
 		return false;
+	}
+
+	@Override
+	public Object getValueForEmptyFields() {
+		return SearchCommand.EMPTY_FIELD_VALUE;
 	}
 }

@@ -100,7 +100,7 @@ public abstract class AbstractRelationProperty<T> extends Property<T> {
 	}
 	
 	@Override
-	public boolean isSearchableProperty() {
+	public boolean isSearchable() {
 		return false;
 	}
 
@@ -332,6 +332,11 @@ public abstract class AbstractRelationProperty<T> extends Property<T> {
 	@Override
 	public void index(GraphObject entity, Object value) {
 		// no indexing
+	}
+
+	@Override
+	public Object getValueForEmptyFields() {
+		return null;
 	}
 	
 	// ----- protected methods -----

@@ -265,8 +265,7 @@ public abstract class Resource {
 		}
 	}
 
-	// ----- private methods -----
-	private static int parseInteger(final Object source) {
+	protected static int parseInteger(final Object source) {
 
 		try {
 			return Integer.parseInt(source.toString());
@@ -339,7 +338,7 @@ public abstract class Resource {
 
 			for (final PropertyKey key : EntityContext.getPropertySet(type, PropertyView.All)) {
 
-				if (key.isSearchableProperty()) {
+				if (key.isSearchable()) {
 					
 					searchAttributes.addAll(key.extractSearchableAttribute(securityContext, request, looseSearch));
 				}

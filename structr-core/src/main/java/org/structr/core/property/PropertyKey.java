@@ -73,15 +73,17 @@ public interface PropertyKey<T> {
 	 */
 	public boolean isUnvalidated();
 	
-	public boolean isReadOnlyProperty();
+	public boolean isReadOnly();
 
-	public boolean isWriteOnceProperty();
+	public boolean isWriteOnce();
 
-	public boolean isIndexedProperty();
+	public boolean isIndexed();
 
-	public boolean isPassivelyIndexedProperty();
+	public boolean isPassivelyIndexed();
 	
-	public boolean isSearchableProperty();
+	public boolean isSearchable();
+
+	public boolean isIndexedWhenEmpty();
 
 	public boolean isCollection();
 

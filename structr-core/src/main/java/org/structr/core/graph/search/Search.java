@@ -100,7 +100,7 @@ public abstract class Search {
 
 	//~--- methods --------------------------------------------------------
 
-	private static List<SearchAttribute> getExactTypeAndSubtypesInternal(final String searchString) {
+	private static List<SearchAttribute> getExactTypeAndSubtypesInternal(final String searchString, final boolean isExactMatch) {
 
 		List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
 
@@ -119,7 +119,7 @@ public abstract class Search {
 
 				for (Class clazz : classesForInterface) {
 
-					attrs.addAll(getExactTypeAndSubtypesInternal(clazz.getSimpleName()));
+					attrs.addAll(getExactTypeAndSubtypesInternal(clazz.getSimpleName(), isExactMatch));
 				}
 
 			}
@@ -133,7 +133,16 @@ public abstract class Search {
 
 			if (parentClass.isAssignableFrom(entityClass)) {
 
-				attrs.add(Search.orExactType(entity.getKey()));
+				if (isExactMatch) {
+					
+					// normal case
+					attrs.add(Search.orExactType(entity.getKey()));
+					
+				} else {
+					
+					// special treatment for inexact search: key must be lower case!
+					attrs.add(Search.orExactType(entity.getKey().toLowerCase()));
+				}
 			}
 
 		}
@@ -143,9 +152,13 @@ public abstract class Search {
 	}
 
 	public static SearchAttributeGroup andExactTypeAndSubtypes(final String searchString) {
+		return andExactTypeAndSubtypes(searchString, true);
+	}
+	
+	public static SearchAttributeGroup andExactTypeAndSubtypes(final String searchString, final boolean isExactMatch) {
 
 		SearchAttributeGroup attrs          = new SearchAttributeGroup(Occur.MUST);
-		List<SearchAttribute> attrsInternal = getExactTypeAndSubtypesInternal(searchString);
+		List<SearchAttribute> attrsInternal = getExactTypeAndSubtypesInternal(searchString, isExactMatch);
 
 		for (SearchAttribute attr : attrsInternal) {
 
@@ -159,7 +172,7 @@ public abstract class Search {
 	public static SearchAttributeGroup orExactTypeAndSubtypes(final String searchString) {
 
 		SearchAttributeGroup attrs          = new SearchAttributeGroup(Occur.SHOULD);
-		List<SearchAttribute> attrsInternal = getExactTypeAndSubtypesInternal(searchString);
+		List<SearchAttribute> attrsInternal = getExactTypeAndSubtypesInternal(searchString, true);
 
 		for (SearchAttribute attr : attrsInternal) {
 

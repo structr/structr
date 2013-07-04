@@ -87,8 +87,4 @@ public abstract class SearchAttribute<T> {
 	public T getValue() {
 		return nodeAttribute == null ? null : nodeAttribute.getValue();
 	}
-	
-	public boolean forcesExclusivelyOptionalQueries() {
-		return false;
-	}
 }

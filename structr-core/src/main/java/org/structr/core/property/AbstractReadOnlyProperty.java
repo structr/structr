@@ -85,4 +85,9 @@ public abstract class AbstractReadOnlyProperty<T> extends Property<T> {
 	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext) {
 		return null;
 	}
+
+	@Override
+	public Object getValueForEmptyFields() {
+		return null;
+	}
 }

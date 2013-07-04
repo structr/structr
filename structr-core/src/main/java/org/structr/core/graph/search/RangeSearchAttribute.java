@@ -100,14 +100,6 @@ public class RangeSearchAttribute<T> extends SearchAttribute {
 
 	@Override
 	public boolean isExactMatch() {
-		return false;
-	}
-	
-	@Override
-	public boolean forcesExclusivelyOptionalQueries() {
-		
-		// range queries seem to require all-optional
-		// boolean queries, i.e. no Occur.MUST..
 		return true;
 	}
 

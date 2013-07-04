@@ -132,28 +132,33 @@ public class Reference<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public boolean isReadOnlyProperty() {
-		return propertyKey.isReadOnlyProperty();
+	public boolean isReadOnly() {
+		return propertyKey.isReadOnly();
 	}
 
 	@Override
-	public boolean isWriteOnceProperty() {
-		return propertyKey.isWriteOnceProperty();
+	public boolean isWriteOnce() {
+		return propertyKey.isWriteOnce();
 	}
 
 	@Override
-	public boolean isIndexedProperty() {
-		return propertyKey.isIndexedProperty();
+	public boolean isIndexed() {
+		return propertyKey.isIndexed();
 	}
 
 	@Override
-	public boolean isPassivelyIndexedProperty() {
-		return propertyKey.isPassivelyIndexedProperty();
+	public boolean isPassivelyIndexed() {
+		return propertyKey.isPassivelyIndexed();
 	}
 
 	@Override
-	public boolean isSearchableProperty() {
-		return propertyKey.isSearchableProperty();
+	public boolean isSearchable() {
+		return propertyKey.isSearchable();
+	}
+
+	@Override
+	public boolean isIndexedWhenEmpty() {
+		return propertyKey.isIndexedWhenEmpty();
 	}
 
 	@Override

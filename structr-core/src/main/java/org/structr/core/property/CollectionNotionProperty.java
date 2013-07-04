@@ -96,7 +96,7 @@ public class CollectionNotionProperty<S extends GraphObject, T> extends Property
 	}
 	
 	@Override
-	public boolean isSearchableProperty() {
+	public boolean isSearchable() {
 		return true;
 	}
 
@@ -260,5 +260,10 @@ public class CollectionNotionProperty<S extends GraphObject, T> extends Property
 	@Override
 	public void index(GraphObject entity, Object value) {
 		// no direct indexing
+	}
+
+	@Override
+	public Object getValueForEmptyFields() {
+		return null;
 	}
 }

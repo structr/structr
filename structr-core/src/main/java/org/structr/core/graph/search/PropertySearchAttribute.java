@@ -49,7 +49,7 @@ public class PropertySearchAttribute<T> extends SearchAttribute<T> {
 
 			if (StringUtils.isEmpty(value)) {
 
-				value = SearchNodeCommand.IMPROBABLE_SEARCH_VALUE;
+				value = SearchNodeCommand.EMPTY_FIELD_VALUE;
 			}
 
 			if (value.matches("[\\s]+")) {
@@ -67,7 +67,7 @@ public class PropertySearchAttribute<T> extends SearchAttribute<T> {
 			String[] words = StringUtils.split(getStringValue(), " ");
 			for (String word : words) {
 
-				word = "*" + Search.escapeForLucene(word.toLowerCase()) + "*";
+				word = "*" + Search.escapeForLucene(word) + "*";
 
 				query.add(new WildcardQuery(new Term(getKey().dbName(), word)), Occur.SHOULD);
 			}
@@ -79,14 +79,6 @@ public class PropertySearchAttribute<T> extends SearchAttribute<T> {
 	@Override
 	public boolean isExactMatch() {
 		return isExactMatch;
-	}
-	
-	@Override
-	public boolean forcesExclusivelyOptionalQueries() {
-		
-		// wildcard queries seem to require all-optional
-		// boolean queries, i.e. no Occur.MUST..
-		return !isExactMatch;
 	}
 
 	@Override

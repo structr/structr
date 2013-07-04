@@ -259,7 +259,7 @@ public class Content extends DOMNode implements Text {
 		Object value      = dataObject.getProperty(EntityContext.getPropertyKeyForJSONName(dataObject.getClass(), referenceKeyProperty.jsonName()));
 		boolean canWrite  = dataObject instanceof AbstractNode ? securityContext.isAllowed((AbstractNode) dataObject, Permission.write) : true;
 		
-		if (renderContext.getEdit() && renderContext.inBody() && canWrite && !referenceKeyProperty.isReadOnlyProperty()) {
+		if (renderContext.getEdit() && renderContext.inBody() && canWrite && !referenceKeyProperty.isReadOnly()) {
 
 			String editModeValue = "<span data-structr-type=\"" + referenceKeyProperty.typeName()
 				+ "\" data-structr-id=\"" + dataObject.getUuid()

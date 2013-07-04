@@ -11,7 +11,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Sort;
@@ -41,12 +40,13 @@ import org.structr.core.property.PropertyKey;
  */
 public abstract class SearchCommand<S extends PropertyContainer, T extends GraphObject> extends NodeServiceCommand {
 
-	private static final Logger logger = Logger.getLogger(SearchCommand.class.getName());
+	private static final Logger logger                        = Logger.getLogger(SearchCommand.class.getName());
 	
 	protected static final boolean INCLUDE_DELETED_AND_HIDDEN = true;
-	protected static final boolean PUBLIC_ONLY		= false;
+	protected static final boolean PUBLIC_ONLY		  = false;
 
-	public static final String IMPROBABLE_SEARCH_VALUE = new String(new byte[] { 0 } );
+	// the value that will be indexed for "empty" fields
+	public static final String EMPTY_FIELD_VALUE              = new String(new byte[] { 0 } );
 	
 	public abstract Factory<S, T> getFactory(final SecurityContext securityContext, final boolean includeDeletedAndHidden, final boolean publicOnly, final int pageSize, final int page, final String offsetId);
 	public abstract Index<S> getFulltextIndex();
@@ -135,7 +135,6 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		}
 
 		Factory<S, T> factory        = getFactory(securityContext, includeDeletedAndHidden, publicOnly, pageSize, page, offsetId);
-		boolean optionalOnly         = false;
 		boolean filterResults        = true;
 		final Index<S> index;
 
@@ -178,10 +177,6 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 			SearchAttribute attr = it.next();
 
-			if (attr.forcesExclusivelyOptionalQueries()) {
-				optionalOnly = true;
-			}
-
 			// check for distance search and initialize
 			if (attr instanceof DistanceSearchAttribute) {
 
@@ -222,7 +217,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 				Query queryElement = attr.getQuery();
 				if (queryElement != null) {
 
-					query.add(queryElement, optionalOnly ? Occur.SHOULD : attr.getOccur());
+					query.add(queryElement, attr.getOccur());
 				}
 
 				allExactMatch &= attr.isExactMatch();

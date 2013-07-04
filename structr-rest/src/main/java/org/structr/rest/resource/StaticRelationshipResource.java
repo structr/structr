@@ -155,7 +155,7 @@ public class StaticRelationshipResource extends SortableResource {
 					Class startNodeType = startNode.getClass();
 					
 					//if (EntityContext.isReadOnlyProperty(startNodeType, EntityContext.getPropertyKeyForName(startNodeType, typeResource.getRawType()))) {
-					if (EntityContext.getPropertyKeyForJSONName(startNodeType, typeResource.getRawType()).isReadOnlyProperty()) {
+					if (EntityContext.getPropertyKeyForJSONName(startNodeType, typeResource.getRawType()).isReadOnly()) {
 
 						logger.log(Level.INFO, "Read-only property on {1}: {0}", new Object[] { startNode.getClass(), typeResource.getRawType() });
 
@@ -259,7 +259,7 @@ public class StaticRelationshipResource extends SortableResource {
 					final AbstractRelationProperty relationshipProperty = (AbstractRelationProperty)propertyKey;
 					final Class sourceNodeType                          = sourceNode.getClass();
 
-					if (relationshipProperty.isReadOnlyProperty()) {
+					if (relationshipProperty.isReadOnly()) {
 
 						logger.log(Level.INFO, "Read-only property on {0}: {1}", new Object[] { sourceNodeType, typeResource.getRawType() });
 

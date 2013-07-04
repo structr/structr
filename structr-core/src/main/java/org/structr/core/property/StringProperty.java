@@ -22,6 +22,7 @@ import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.graph.search.SearchCommand;
 
 /**
  * A property that stores and retrieves a simple String value.

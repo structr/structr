@@ -352,6 +352,11 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 		return searchAttributes;
 	}
 
+	@Override
+	public Object getValueForEmptyFields() {
+		return null;
+	}
+
 	/**
 	 * Acts as a wrapper for property keys to prefix their name with
 	 * the name of the surrounding property group.
@@ -421,23 +426,23 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 		}
 
 		@Override
-		public boolean isReadOnlyProperty() {
-			return wrappedKey.isReadOnlyProperty();
+		public boolean isReadOnly() {
+			return wrappedKey.isReadOnly();
 		}
 
 		@Override
-		public boolean isWriteOnceProperty() {
-			return wrappedKey.isWriteOnceProperty();
+		public boolean isWriteOnce() {
+			return wrappedKey.isWriteOnce();
 		}
 		
 		@Override
-		public boolean isIndexedProperty() {
-			return GroupProperty.this.isIndexedProperty();
+		public boolean isIndexed() {
+			return GroupProperty.this.isIndexed();
 		}
 		
 		@Override
-		public boolean isPassivelyIndexedProperty() {
-			return GroupProperty.this.isPassivelyIndexedProperty();
+		public boolean isPassivelyIndexed() {
+			return GroupProperty.this.isPassivelyIndexed();
 		}
 		
 		@Override

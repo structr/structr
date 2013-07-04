@@ -48,6 +48,8 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.cypher.javacompat.ExecutionEngine;
+import org.neo4j.graphdb.factory.GraphDatabaseBuilder;
+import org.neo4j.shell.ShellSettings;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -154,7 +156,7 @@ public class NodeService implements SingletonService {
 			logger.log(Level.INFO, "Database config {0}/neo4j.conf not found", dbPath);
 
 			// thanks Michael :)
-			graphDb = new EmbeddedGraphDatabase(dbPath, MapUtil.stringMap("enable_remote_shell", "true"));
+			graphDb = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(dbPath).setConfig(ShellSettings.remote_shell_enabled, "true").newGraphDatabase();
 
 		}
 

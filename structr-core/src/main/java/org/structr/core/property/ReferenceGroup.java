@@ -81,7 +81,7 @@ public class ReferenceGroup extends GroupProperty {
 				PropertyKey referenceKey     = reference.getReferenceKey();
 				PropertyKey propertyKey      = reference.getPropertyKey();
 				
-				if (referencedEntity != null && !reference.isReadOnlyProperty()) {
+				if (referencedEntity != null && !reference.isReadOnly()) {
 					
 					Object value = source.get(propertyKey);
 					referencedEntity.setProperty(referenceKey, value);

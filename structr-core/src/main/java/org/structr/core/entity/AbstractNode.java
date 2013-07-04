@@ -267,7 +267,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 			}
 
 			// check for read-only properties
-			if (key.isReadOnlyProperty()) {
+			if (key.isReadOnly()) {
 
 				// allow super user to set read-only properties
 				if (readOnlyPropertiesUnlocked || securityContext.isSuperUser()) {
@@ -288,7 +288,10 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 				public Object execute() throws FrameworkException {
 
 					dbNode.removeProperty(key.dbName());
-
+					
+					// remove from index
+					removeFromIndex(key);
+					
 					return null;
 
 				}
@@ -1263,7 +1266,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		}
 		
 		// check for read-only properties
-		if (key.isReadOnlyProperty() || (key.isWriteOnceProperty() && (dbNode != null) && dbNode.hasProperty(key.dbName()))) {
+		if (key.isReadOnly() || (key.isWriteOnce() && (dbNode != null) && dbNode.hasProperty(key.dbName()))) {
 
 			if (readOnlyPropertiesUnlocked || securityContext.isSuperUser()) {
 
@@ -1300,7 +1303,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 		for (PropertyKey key : EntityContext.getPropertySet(entityType, PropertyView.All)) {
 			
-			if (key.isIndexedProperty()) {
+			if (key.isIndexed()) {
 				
 				key.index(this, this.getPropertyForIndexing(key));
 			}
@@ -1326,12 +1329,23 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		}
 	}
 	
+	public void removeFromIndex(PropertyKey key) {
+		
+		for (Index<Node> index : Services.getService(NodeService.class).getNodeIndices()) {
+			
+			synchronized (index) {
+				
+				index.remove(dbNode, key.dbName());
+			}
+		}
+	}
+	
 	@Override
 	public void indexPassiveProperties() {
 		
 		for (PropertyKey key : EntityContext.getPropertySet(entityType, PropertyView.All)) {
 			
-			if (key.isPassivelyIndexedProperty()) {
+			if (key.isPassivelyIndexed()) {
 				
 				key.index(this, this.getPropertyForIndexing(key));
 			}
