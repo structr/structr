@@ -280,7 +280,7 @@ function StructrPage(baseUrl) {
                             $('<label class="structr-label">' + label + '</label> <input class="structr-input" type="text" data-structr-prop="' + key + '" placeholder="' + msg + '">').insertBefore(btn);
                         });
 
-                        btn.on('click', function() {
+                        btn.text('Create and add').show().on('click', function() {
                             $.each(btn.parent().children('.structr-input'), function() {
                                 var inp = $(this);
                                 var key = inp.attr('data-structr-prop');
@@ -292,7 +292,7 @@ function StructrPage(baseUrl) {
                             var sourceType = btn.attr('data-structr-source-type');
                             var relatedProperty = btn.attr('data-structr-related-property');
 
-                            s.create(btn, type, data, sourceId, sourceType, relatedProperty);
+                            s.create(btn, type, data, sourceId, sourceType, relatedProperty, true);
                         });
 
                     }
@@ -526,7 +526,7 @@ function StructrPage(baseUrl) {
         (p.length ? p : inp).after('<button class="saveButton" id="save_' + id + '_' + key + '">Save</button>');
         $('#save_' + id + '_' + key).on('click', function() {
             var btn = $(this), inp = btn.prev();
-            console.log('append save button', btn, inp);
+            //console.log('append save button', btn, inp);
             s.save(s.field(inp), btn);
         });
 
