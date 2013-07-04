@@ -312,10 +312,8 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 			List<GraphObject> intermediateResultList = intermediateResult.getResults();
 			int resultCount                          = 0;
 
-			// add results from other sources
-			for (SourceSearchAttribute attr : sources) {
-				intermediateResultList.addAll(attr.getResult());
-			}
+			// merge sources according to their occur flag
+			intermediateResultList.addAll(mergeSources(sources));
 
 			// Filter intermediate result
 			for (GraphObject obj : intermediateResultList) {
@@ -347,5 +345,44 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 			// no filtering
 			return intermediateResult;
 		}
+	}
+	
+	private List<GraphObject> mergeSources(List<SourceSearchAttribute> sources) {
+		
+		LinkedList<GraphObject> mergedResult = new LinkedList<GraphObject>();
+		boolean alreadyAdded                 = false;
+		
+		for (Iterator<SourceSearchAttribute> it = sources.iterator(); it.hasNext();) {
+			
+			SourceSearchAttribute attr = it.next();
+			
+			if (!alreadyAdded) {
+				
+				mergedResult.addAll(attr.getResult());
+				alreadyAdded = true;
+				
+			} else {
+				
+				switch (attr.getOccur()) {
+					
+					case MUST:
+						
+						mergedResult.retainAll(attr.getResult());
+						break;
+						
+					case SHOULD:
+						
+						mergedResult.addAll(attr.getResult());
+						break;
+						
+					case MUST_NOT:
+						mergedResult.removeAll(attr.getResult());
+						break;
+				}
+			}
+		}
+		
+		
+		return mergedResult;
 	}
 }
