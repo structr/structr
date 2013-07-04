@@ -122,7 +122,7 @@ public class ChunkCommand extends AbstractCommand {
 
 			
 			// This should trigger setting of lastModifiedDate in any case
-			getWebSocket().send(MessageBuilder.status().code(200).message("{\"id\":\"" + file.getUuid() + "\",\"size\":" + size + "}").build(), true);
+			getWebSocket().send(MessageBuilder.status().code(200).message("{\"id\":\"" + file.getUuid() + "\", \"name\":\"" + file.getName() + "\",\"size\":" + size + "}").build(), true);
 
 		} catch (Throwable t) {
 
