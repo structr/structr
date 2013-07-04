@@ -351,8 +351,10 @@ function StructrPage(baseUrl) {
                 var relatedNode = input.closest('[data-structr-data-type]');
                 var parentType = relatedNode.attr('data-structr-data-type');
                 
-                if (parentType) {
-                    $('<button class="deleteButton" data-structr-id="' + f.id + '">Delete ' + parentType + '</button>').insertAfter(input);
+                var deleteButton = $('.deleteButton[data-structr-id="' + f.id + '"]');
+                
+                if (parentType && !(deleteButton.length)) {
+                    $('<button class="deleteButton" data-structr-id="' + f.id + '">Delete ' + parentType + '</button>').insertBefore(relatedNode);
                 }
                 
                 //$('<button class="removeButton" data-structr-id="' + f.id + '">Remove ' + f.key + ' from ' + </button>').insertAfter(input);
