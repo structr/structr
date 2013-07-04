@@ -1,5 +1,5 @@
 # Get startet on Windows 8
-This Document contains the 
+This Document will help you to run and develop structr on windows 8. 
 
 ##The first Steps
 Structr based on Maven. Basically you only need to install Maven and Java.
@@ -8,7 +8,7 @@ Structr based on Maven. Basically you only need to install Maven and Java.
 To use Maven in the PowerShell: [Download](http://maven.apache.org/download.cgi) and unzip the distribution archive to the directory you wish, i.e. C:\Program Files\Apache Software Foundation and follow the Installation instructions on the Maven Download site for Windows.
 
     Note: You only need to add environment variables for Maven and Java(JAVA_HOME). 
-      Where to add: Go to start and type in "env". After the window is opened, select "edit the system environment variables". 
+    Where to add: Go to start and type in "env". After the window is opened, select "edit the system environment variables".
 ###Using cURL
 To use cURl in the Powershell: [Download](http://curl.haxx.se/download.html) the windows version and place the file in your "windows/system32" directory. That's it.
 
