@@ -115,7 +115,6 @@ var _Elements = {
                     iframeFix: true,
                     revert: 'invalid',
                     containment: 'body',
-                    zIndex: 2,
                     helper: 'clone'
                 });
             });
