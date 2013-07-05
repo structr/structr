@@ -16,7 +16,14 @@ To use cURl in the Powershell: [Download](http://curl.haxx.se/download.html) the
 For more information: read the Backend User's Guide.
 
 ####structr-ui admin seed
->coming soon [new seed.bat file]
+The seed.sh-file is currently not working under windows. Please use the following command and replace the name&password with the superadmin name&password from the struct.conf-file
+
+    curl -HX-User:superadmin -HX-Password:INSERTPASSWORD -XPOST http://localhost:8082/structr/rest/resource_access -d '{"signature":"User","flags":"255"}'
+    curl -HX-User:superadmin -HX-Password:INSERTPASSWORD -XPOST http://localhost:8082/structr/rest/users -d '{"name":"admin","password":"admin", "frontendUser":true, "backendUser":true }'
+
+Check for success:
+
+    curl -HX-User:superadmin -HX-Password:INSERTPASSWORD -XGET http://localhost:8082/structr/rest/users
 
 ##Troubleshooting
 ###org.structr.Ui not found error
