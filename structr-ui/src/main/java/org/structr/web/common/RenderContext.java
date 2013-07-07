@@ -28,9 +28,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.property.PropertyKey;
 import org.structr.rest.ResourceProvider;
 import org.structr.web.entity.Component;
-import org.structr.web.entity.Condition;
 import org.structr.web.entity.dom.Page;
 
 /**
@@ -53,9 +53,10 @@ public class RenderContext {
 	private boolean inBody                       = false;
 	private GraphObject detailsDataObject        = null;
 	private GraphObject currentDataObject        = null;
+	private GraphObject sourceDataObject        = null;
 	private Iterable<GraphObject> listSource     = null;
 	private String searchClass                   = null;  
-	private Condition condition                  = null; 
+	private PropertyKey relatedProperty          = null;
 	private List<NodeAttribute> attrs            = null;   
 	private Page page                            = null;  
 	private Component component                  = null;  
@@ -98,12 +99,28 @@ public class RenderContext {
 		return currentDataObject;
 	}
 	
+	public void setSourceDataObject(GraphObject sourceDataObject) {
+		this.sourceDataObject = sourceDataObject;
+	}
+	
+	public GraphObject getSourceDataObject() {
+		return sourceDataObject;
+	}
+
 	public void setListSource(Iterable<GraphObject> listSource) {
 		this.listSource = listSource;
 	}
 	
 	public Iterable<GraphObject> getListSource() {
 		return listSource;
+	}
+	
+	public PropertyKey getRelatedProperty() {
+		return relatedProperty;
+	}
+	
+	public void setRelatedProperty(final PropertyKey relatedProperty) {
+		this.relatedProperty = relatedProperty;
 	}
 	
 	public boolean getEdit() {
