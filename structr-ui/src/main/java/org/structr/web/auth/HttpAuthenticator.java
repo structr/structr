@@ -177,7 +177,12 @@ public class HttpAuthenticator implements Authenticator {
 				});
 			}
 
-			request.getSession(false).invalidate();
+			HttpSession session = request.getSession(false);
+			
+			if (session != null) {
+				session.invalidate();
+			}
+			
 			request.logout();
 			securityContext.setUser(null);
 

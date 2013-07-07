@@ -120,7 +120,7 @@ function StructrPage(baseUrl) {
         return {'id': id, 'type': type, 'key': key, 'val': val};
     };
     this.create = function(btn, type, data, sourceId, sourceType, relatedProperty, createNew) {
-        console.log('Create', type, data, '/structr/rest/' + type.toUnderscore(), sourceId, relatedProperty);
+        //console.log('Create', type, data, '/structr/rest/' + type.toUnderscore(), sourceId, relatedProperty);
 
         if (sourceId && relatedProperty && !createNew) {
 
@@ -280,7 +280,7 @@ function StructrPage(baseUrl) {
                             $('<label class="structr-label">' + label + '</label> <input class="structr-input" type="text" data-structr-prop="' + key + '" placeholder="' + msg + '">').insertBefore(btn);
                         });
 
-                        btn.on('click', function() {
+                        btn.text('Create and add').show().on('click', function() {
                             $.each(btn.parent().children('.structr-input'), function() {
                                 var inp = $(this);
                                 var key = inp.attr('data-structr-prop');
@@ -292,7 +292,7 @@ function StructrPage(baseUrl) {
                             var sourceType = btn.attr('data-structr-source-type');
                             var relatedProperty = btn.attr('data-structr-related-property');
 
-                            s.create(btn, type, data, sourceId, sourceType, relatedProperty);
+                            s.create(btn, type, data, sourceId, sourceType, relatedProperty, true);
                         });
 
                     }
@@ -336,6 +336,45 @@ function StructrPage(baseUrl) {
             }
         });
 
+    };
+    this.remove = function(id, sourceId, sourceType, relatedProperty) {
+
+        var d = JSON.parse('{"' + relatedProperty + '":[]}');
+
+        $.ajax({
+            //url: '/structr/rest/' + sourceType.toUnderscore() + '/' + sourceId, method: 'GET', contentType: 'application/json',
+            url: '/structr/rest/' + sourceId, method: 'GET', contentType: 'application/json',
+            statusCode: {
+                200: function(data) {
+                    //console.log(data.result);
+                    if (data.result && data.result[relatedProperty].length) {
+                        $.each(data.result[relatedProperty], function(i, obj) {
+                            if (obj.id !== id) {
+                                d[relatedProperty].push({'id': obj.id});
+                            }
+                        });
+                    }
+
+                    $.ajax({
+                        //url: '/structr/rest/' + sourceType.toUnderscore() + '/' + sourceId, method: 'PUT', contentType: 'application/json',
+                        url: '/structr/rest/' + sourceId, method: 'PUT', contentType: 'application/json',
+                        data: JSON.stringify(d),
+                        statusCode: {
+                            200: function() {
+                                window.location.reload();
+                            },
+                            400: function(xhr) {
+                                console.log(xhr);
+                            },
+                            422: function(xhr) {
+                                console.log(xhr);
+                            }
+                        }
+                    });
+
+                }
+            }
+        });
 
     };
     this.delete = function(id) {
@@ -415,16 +454,6 @@ function StructrPage(baseUrl) {
                         s.checkInput(e, f, $(this));
                     });
                 }
-// TODO: Take content type into account when rendering sub elements                
-//                $('<div>'
-//                    + select(f.id, 'contentType', contentType, [ 'text/plain', 'text/html', 'text/css', 'text/javascript', 'text/markdown', 'text/textile', 'text/mediawiki', 'text/tracwiki', 'text/confluence'])
-//                    + '</div>').insertAfter(input);
-//            
-//                $('select', input.parent()).on('change', function() {
-//                    var b = $('#save_' + f.id + '_' + f.key);
-//                    s.appendSaveButton(b, p, $(this), f.id, f.key);
-//                });
-
 
                 var relatedNode = input.closest('[data-structr-data-type]');
                 var parentType = relatedNode.attr('data-structr-data-type');
@@ -435,9 +464,32 @@ function StructrPage(baseUrl) {
                     relatedNode.append('<div class="clear"></div><button class="deleteButton" data-structr-id="' + f.id + '">Delete ' + parentType + '</button>');
                 }
 
-                //$('<button class="removeButton" data-structr-id="' + f.id + '">Remove ' + f.key + ' from ' + </button>').insertAfter(input);
 
             });
+            
+            
+            $('[data-structr-related-property]:not(.createButton)').each(function(i,v) {
+               
+                var relatedNode = $(this);
+                var relatedProperty = relatedNode.attr('data-structr-related-property');
+                var parentType = relatedNode.attr('data-structr-data-type');
+                var sourceType = relatedNode.attr('data-structr-source-type');
+                var sourceId = relatedNode.attr('data-structr-source-id');
+                var id = relatedNode.attr('data-structr-data-id');
+                var removeButton = $('.removeButton[data-structr-id="' + id + '"]');
+                //console.log(id, sourceId, sourceType, relatedProperty);
+                if (relatedProperty && sourceId && !(removeButton.length)) {
+                    $('<button class="removeButton" data-structr-id="' + id + '" data-structr-source-id="' + sourceId + '">Remove ' + parentType + ' from ' + relatedProperty + '</button>').insertAfter(relatedNode);
+                    
+                    $('.removeButton[data-structr-id="' + id + '"][data-structr-source-id="' + sourceId + '"]').on('click', function() {
+                        s.remove(id, sourceId, sourceType, relatedProperty);
+                    });
+                    
+                }
+                
+            });
+            
+            
 
         } else {
             $('.createButton').hide();
@@ -526,7 +578,7 @@ function StructrPage(baseUrl) {
         (p.length ? p : inp).after('<button class="saveButton" id="save_' + id + '_' + key + '">Save</button>');
         $('#save_' + id + '_' + key).on('click', function() {
             var btn = $(this), inp = btn.prev();
-            console.log('append save button', btn, inp);
+            //console.log('append save button', btn, inp);
             s.save(s.field(inp), btn);
         });
 

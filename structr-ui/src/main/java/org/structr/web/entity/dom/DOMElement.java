@@ -293,8 +293,18 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 //				}
 
 				buffer.append(" data-structr-id=\"").append(id).append("\"");
+				
 				if (renderContext.getDataObject() != null) {
 					buffer.append(" data-structr-data-type=\"").append(renderContext.getDataObject().getType()).append("\"");
+				}
+
+				PropertyKey r = renderContext.getRelatedProperty();
+				
+				if (r != null) {
+					buffer.append(" data-structr-related-property=\"").append(r.jsonName()).append("\"");
+					buffer.append(" data-structr-source-type=\"").append(r.getDeclaringClass().getSimpleName()).append("\"");
+					buffer.append(" data-structr-source-id=\"").append(renderContext.getSourceDataObject().getUuid()).append("\"");
+					buffer.append(" data-structr-data-id=\"").append(renderContext.getDataObject().getUuid()).append("\"");
 				}
 				//buffer.append(" data-structr-name=\"").append(getName()).append("\"");
 
@@ -408,6 +418,8 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 							// if that fails, try to create a propertyKey for the subKey
 							
 							Object elements = currentDataNode.getProperty(new GenericProperty(subKey));
+							renderContext.setRelatedProperty(new GenericProperty(subKey));
+							renderContext.setSourceDataObject(currentDataNode);
 							
 							if (elements != null) {
 								
@@ -439,6 +451,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 							} else {
 
 								propertyKey = EntityContext.getPropertyKeyForJSONName(currentDataNode.getClass(), subKey, false);
+								renderContext.setRelatedProperty(propertyKey);
 
 								if (propertyKey != null && propertyKey instanceof CollectionProperty) {
 
@@ -462,6 +475,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 							// reset data node in render context
 							renderContext.setDataObject(currentDataNode);
+							renderContext.setRelatedProperty(null);
 						
 						} else {
 							
