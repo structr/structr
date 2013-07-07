@@ -120,7 +120,7 @@ function StructrPage(baseUrl) {
         return {'id': id, 'type': type, 'key': key, 'val': val};
     };
     this.create = function(btn, type, data, sourceId, sourceType, relatedProperty, createNew) {
-        console.log('Create', type, data, '/structr/rest/' + type.toUnderscore(), sourceId, relatedProperty);
+        //console.log('Create', type, data, '/structr/rest/' + type.toUnderscore(), sourceId, relatedProperty);
 
         if (sourceId && relatedProperty && !createNew) {
 
@@ -336,6 +336,43 @@ function StructrPage(baseUrl) {
             }
         });
 
+    };
+    this.remove = function(id, sourceId, sourceType, relatedProperty) {
+
+        var d = JSON.parse('{"' + relatedProperty + '":[]}');
+
+        $.ajax({
+            url: '/structr/rest/' + sourceType.toUnderscore() + '/' + sourceId, method: 'GET', contentType: 'application/json',
+            statusCode: {
+                200: function(data) {
+                    //console.log(data.result);
+                    if (data.result && data.result[relatedProperty].length) {
+                        $.each(data.result[relatedProperty], function(i, obj) {
+                            if (obj.id !== id) {
+                                d[relatedProperty].push({'id': obj.id});
+                            }
+                        });
+                    }
+
+                    $.ajax({
+                        url: '/structr/rest/' + sourceType.toUnderscore() + '/' + sourceId, method: 'PUT', contentType: 'application/json',
+                        data: JSON.stringify(d),
+                        statusCode: {
+                            200: function() {
+                                window.location.reload();
+                            },
+                            400: function(xhr) {
+                                console.log(xhr);
+                            },
+                            422: function(xhr) {
+                                console.log(xhr);
+                            }
+                        }
+                    });
+
+                }
+            }
+        });
 
     };
     this.delete = function(id) {
@@ -435,7 +472,21 @@ function StructrPage(baseUrl) {
                     relatedNode.append('<div class="clear"></div><button class="deleteButton" data-structr-id="' + f.id + '">Delete ' + parentType + '</button>');
                 }
 
-                //$('<button class="removeButton" data-structr-id="' + f.id + '">Remove ' + f.key + ' from ' + </button>').insertAfter(input);
+                var createButton = relatedNode.parent().find('.createButton');
+
+                var removeButton = $('.removeButton[data-structr-id="' + f.id + '"]');
+                var sourceId = createButton.attr('data-structr-source-id');
+                var sourceType = createButton.attr('data-structr-source-type');
+                var relatedProperty = createButton.attr('data-structr-related-property');
+                
+                if (sourceId && !(removeButton.length)) {
+                    relatedNode.append('<button class="removeButton" data-structr-id="' + f.id + '" data-structr-source-id="' + sourceId + '">Remove ' + parentType + ' from ' + relatedProperty + '</button>');
+                    
+                    $('.removeButton[data-structr-id="' + f.id + '"][data-structr-source-id="' + sourceId + '"]').on('click', function() {
+                        s.remove(f.id, sourceId, sourceType, relatedProperty);
+                    });
+                    
+                }
 
             });
 
