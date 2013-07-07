@@ -67,6 +67,8 @@ public class PropertySearchAttribute<T> extends SearchAttribute<T> {
 			String[] words = StringUtils.split(getStringValue(), " ");
 			for (String word : words) {
 
+				query.add(new WildcardQuery(new Term(getKey().dbName(), word)), Occur.SHOULD);
+
 				word = "*" + Search.escapeForLucene(word) + "*";
 
 				query.add(new WildcardQuery(new Term(getKey().dbName(), word)), Occur.SHOULD);

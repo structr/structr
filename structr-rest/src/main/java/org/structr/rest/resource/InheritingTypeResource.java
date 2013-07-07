@@ -39,6 +39,8 @@ import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.rest.exception.IllegalPathException;
+import static org.structr.rest.resource.Resource.parseInteger;
+import org.structr.rest.servlet.JsonRestServlet;
 //~--- JDK imports ------------------------------------------------------------
 
 //~--- classes ----------------------------------------------------------------
@@ -65,13 +67,14 @@ public class InheritingTypeResource extends TypeResource {
 	public Result doGet(PropertyKey sortKey, boolean sortDescending, final int pageSize, final int page, final String offsetId) throws FrameworkException {
 
 		final List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+		final boolean inexactSearch                  = parseInteger(request.getParameter(JsonRestServlet.REQUEST_PARAMETER_LOOSE_SEARCH)) == 1;
 		final boolean includeDeletedAndHidden        = false;
 		final boolean publicOnly                     = false;
 
 		if (rawType != null) {
 
 			// searchAttributes.add(new TextualSearchAttribute("type", type, Occur.SHOULD));
-			searchAttributes.add(Search.andExactTypeAndSubtypes(EntityContext.normalizeEntityName(rawType)));
+			searchAttributes.add(Search.andExactTypeAndSubtypes(EntityContext.normalizeEntityName(rawType), !inexactSearch));
 
 			// searchable attributes from EntityContext
 			searchAttributes.addAll(extractSearchableAttributes(securityContext, entityClass, request));

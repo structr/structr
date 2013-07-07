@@ -23,6 +23,7 @@ import java.util.LinkedList;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.search.BooleanClause.Occur;
 import static org.apache.lucene.search.BooleanClause.Occur.MUST;
 import static org.apache.lucene.search.BooleanClause.Occur.MUST_NOT;
@@ -35,6 +36,7 @@ import org.structr.core.Services;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeService;
+import org.structr.core.graph.search.EmptySearchAttribute;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchNodeCommand;
@@ -178,43 +180,53 @@ public class EntityNotionProperty<S extends GraphObject, T> extends Property<T> 
 		
 		try {
 
-			Result<AbstractNode> result = Services.command(securityContext, SearchNodeCommand.class).execute(
+			if (searchValue != null && !StringUtils.isBlank(searchValue.toString())) {
 				
-				Search.andExactType(base.relatedType().getSimpleName()),
-				Search.andExactProperty(securityContext, notion.getPrimaryPropertyKey(), searchValue)
-			);
-			
-			for (AbstractNode node : result.getResults()) {
+				Result<AbstractNode> result = Services.command(securityContext, SearchNodeCommand.class).execute(
 
-				switch (occur) {
+					Search.andExactType(base.relatedType().getSimpleName()),
+					Search.andExactProperty(securityContext, notion.getPrimaryPropertyKey(), searchValue)
+				);
 
-					case MUST:
+				for (AbstractNode node : result.getResults()) {
 
-						if (!alreadyAdded) {
+					switch (occur) {
 
-							// the first result is the basis of all subsequent intersections
+						case MUST:
+
+							if (!alreadyAdded) {
+
+								// the first result is the basis of all subsequent intersections
+								intersectionResult.addAll(entityProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
+
+								// the next additions are intersected with this one
+								alreadyAdded = true;
+
+							} else {
+
+								intersectionResult.retainAll(entityProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
+							}
+
+							break;
+
+						case SHOULD:
 							intersectionResult.addAll(entityProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
-							
-							// the next additions are intersected with this one
-							alreadyAdded = true;
+							break;
 
-						} else {
-
-							intersectionResult.retainAll(entityProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
-						}
-
-						break;
-
-					case SHOULD:
-						intersectionResult.addAll(entityProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
-						break;
-
-					case MUST_NOT:
-						break;
+						case MUST_NOT:
+							break;
+					}
 				}
-			}
 
-			attr.setResult(new LinkedList<GraphObject>(intersectionResult));
+				attr.setResult(new LinkedList<GraphObject>(intersectionResult));
+				
+			} else {
+				
+				// experimental filter attribute that
+				// removes entities with a non-empty
+				// value in the given field
+				return new EmptySearchAttribute(this, null);
+			}
 						
 		} catch (FrameworkException fex) {
 			

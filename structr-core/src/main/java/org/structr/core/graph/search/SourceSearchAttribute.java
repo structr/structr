@@ -1,10 +1,6 @@
 package org.structr.core.graph.search;
 
-import java.util.List;
 import org.apache.lucene.search.BooleanClause.Occur;
-import static org.apache.lucene.search.BooleanClause.Occur.MUST;
-import static org.apache.lucene.search.BooleanClause.Occur.MUST_NOT;
-import static org.apache.lucene.search.BooleanClause.Occur.SHOULD;
 import org.apache.lucene.search.Query;
 import org.structr.core.GraphObject;
 

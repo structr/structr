@@ -16,6 +16,9 @@ package org.structr.core.graph.search;
 import java.util.LinkedList;
 import java.util.List;
 import org.apache.lucene.search.BooleanClause.Occur;
+import static org.apache.lucene.search.BooleanClause.Occur.MUST;
+import static org.apache.lucene.search.BooleanClause.Occur.MUST_NOT;
+import static org.apache.lucene.search.BooleanClause.Occur.SHOULD;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.Query;
 import org.structr.core.GraphObject;
@@ -83,11 +86,38 @@ public class SearchAttributeGroup extends SearchAttribute {
 	public boolean includeInResult(GraphObject entity) {
 		
 		boolean includeInResult = true;
-		
+
 		for (SearchAttribute attr : getSearchAttributes()) {
-			
-			includeInResult &= attr.includeInResult(entity);
+
+			switch (attr.getOccur()) {
+
+				case MUST:
+					includeInResult &= attr.includeInResult(entity);
+					break;
+
+				case SHOULD:
+					// special behaviour for OR'ed predicates
+					if (attr.includeInResult(entity)) {
+						
+						// we're in or mode, return
+						// immediately
+						return true;
+						
+					} else {
+						
+						// set result flag to false
+						// and evaluate next search predicate
+						includeInResult = false;
+					}
+					break;
+
+
+				case MUST_NOT:
+					includeInResult &= !attr.includeInResult(entity);
+					break;
+			}
 		}
+
 		
 		return includeInResult;
 	}

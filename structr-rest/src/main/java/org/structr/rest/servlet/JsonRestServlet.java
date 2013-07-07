@@ -281,7 +281,7 @@ public class JsonRestServlet extends HttpServlet {
 			}
 			
 			// do action
-			Result result            = resource.doGet(sortKey, sortDescending, pageSize, page, offsetId);
+			Result result = resource.doGet(sortKey, sortDescending, pageSize, page, offsetId);
 			result.setIsCollection(resource.isCollectionResource());
 			result.setIsPrimitiveArray(resource.isPrimitiveArray());
 			

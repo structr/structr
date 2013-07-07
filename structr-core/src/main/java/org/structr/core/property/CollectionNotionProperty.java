@@ -18,6 +18,7 @@
  */
 package org.structr.core.property;
 
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -36,6 +37,7 @@ import org.structr.core.Services;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeService;
+import org.structr.core.graph.search.EmptySearchAttribute;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchNodeCommand;
@@ -205,49 +207,60 @@ public class CollectionNotionProperty<S extends GraphObject, T> extends Property
 		boolean alreadyAdded                  = false;
 	
 		try {
-		
-			for (T searchValue : searchValues) {
-				
-				Result<AbstractNode> result = Services.command(securityContext, SearchNodeCommand.class).execute(
 
-					Search.andExactType(base.relatedType().getSimpleName()),
-					Search.andExactProperty(securityContext, notion.getPrimaryPropertyKey(), searchValue)
-				);
+			if (searchValues != null && !searchValues.isEmpty()) {
 
-				// attr.addToResult(collectionProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
-				
-				for (AbstractNode node : result.getResults()) {
+				for (T searchValue : searchValues) {
 
-					switch (occur) {
+					Result<AbstractNode> result = Services.command(securityContext, SearchNodeCommand.class).execute(
 
-						case MUST:
+						Search.andExactType(base.relatedType().getSimpleName()),
+						Search.andExactProperty(securityContext, notion.getPrimaryPropertyKey(), searchValue)
+					);
 
-							if (!alreadyAdded) {
-								
-								// the first result is the basis of all subsequent intersections
+					// attr.addToResult(collectionProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
+
+					for (AbstractNode node : result.getResults()) {
+
+						switch (occur) {
+
+							case MUST:
+
+								if (!alreadyAdded) {
+
+									// the first result is the basis of all subsequent intersections
+									intersectionResult.addAll(collectionProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
+
+									// the next additions are intersected with this one
+									alreadyAdded = true;
+
+								} else {
+
+									intersectionResult.retainAll(collectionProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
+								}
+
+								break;
+
+							case SHOULD:
 								intersectionResult.addAll(collectionProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
-								
-								// the next additions are intersected with this one
-								alreadyAdded = true;
+								break;
 
-							} else {
-								
-								intersectionResult.retainAll(collectionProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
-							}
-							
-							break;
-
-						case SHOULD:
-							intersectionResult.addAll(collectionProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
-							break;
-
-						case MUST_NOT:
-							break;
+							case MUST_NOT:
+								break;
+						}
 					}
 				}
+
+				attr.setResult(new LinkedList<GraphObject>(intersectionResult));
+				
+			} else {
+				
+				// experimental filter attribute that
+				// removes entities with a non-empty
+				// value in the given field
+				return new EmptySearchAttribute(this, Collections.emptyList());
+				
 			}
-			
-			attr.setResult(new LinkedList<GraphObject>(intersectionResult));
 			
 		} catch (FrameworkException fex) {
 			
