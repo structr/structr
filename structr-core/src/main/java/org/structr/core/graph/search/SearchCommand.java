@@ -202,7 +202,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 		// only do "normal" query if no other sources are present
 		// use filters to filter sources otherwise
-		if (searchAttrs.isEmpty() || !sources.isEmpty()) {
+		if (distanceSearch == null && !sources.isEmpty()) {
 
 			intermediateResult = new Result(new ArrayList<AbstractNode>(), null, false, false);
 
@@ -260,6 +260,10 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 						}
 					}
 				}
+					
+				// instantiate spatial search results without paging,
+				// as the results must be filtered by type anyway
+				intermediateResult = new NodeFactory(securityContext).instantiate(hits);
 
 			} else if (allExactMatch) {
 
@@ -283,6 +287,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 				// all luecene query, do not filter results
 				filterResults = false;
+				intermediateResult = factory.instantiate(hits);
 
 			} else {
 
@@ -296,9 +301,8 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 				// all luecene query, do not filter results
 				filterResults = false;
+				intermediateResult = factory.instantiate(hits);
 			}
-
-			intermediateResult = factory.instantiate(hits);
 
 			if (hits != null) {
 				hits.close();
@@ -312,8 +316,16 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 			List<GraphObject> intermediateResultList = intermediateResult.getResults();
 			int resultCount                          = 0;
 
-			// merge sources according to their occur flag
-			intermediateResultList.addAll(mergeSources(sources));
+			if (intermediateResultList.isEmpty()) {
+				
+				// merge sources according to their occur flag
+				intermediateResultList.addAll(mergeSources(sources));
+				
+			} else if (!sources.isEmpty()) {
+				
+				// merge sources according to their occur flag
+				intermediateResultList.retainAll(mergeSources(sources));
+			}
 
 			// Filter intermediate result
 			for (GraphObject obj : intermediateResultList) {
