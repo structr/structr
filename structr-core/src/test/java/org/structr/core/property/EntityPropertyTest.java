@@ -18,6 +18,7 @@
  */
 package org.structr.core.property;
 
+import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.fail;
 import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
@@ -39,11 +40,10 @@ public class EntityPropertyTest extends StructrTest {
 
 	public void testOneToOne() throws Exception {
 		
-		final EntityProperty<TestThree> instance = TestSix.oneToOneTestThree;
-		final TestSix testSix1                   = createTestNode(TestSix.class);
-		final TestSix testSix2                   = createTestNode(TestSix.class);
-		final TestThree testThree1               = createTestNode(TestThree.class);
-		final TestThree testThree2               = createTestNode(TestThree.class);
+		final TestSix a   = createTestNode(TestSix.class);
+		final TestSix c   = createTestNode(TestSix.class);
+		final TestThree b = createTestNode(TestThree.class);
+		final TestThree d = createTestNode(TestThree.class);
 		
 		try {
 
@@ -52,10 +52,10 @@ public class EntityPropertyTest extends StructrTest {
 				@Override
 				public Object execute() throws FrameworkException {
 
-					testSix1.setProperty(AbstractNode.name, "testSix1");
-					testSix2.setProperty(AbstractNode.name, "testSix2");
-					testThree1.setProperty(AbstractNode.name, "testThree1");
-					testThree2.setProperty(AbstractNode.name, "testThree2");
+					a.setProperty(AbstractNode.name, "a");
+					c.setProperty(AbstractNode.name, "c");
+					b.setProperty(AbstractNode.name, "b");
+					d.setProperty(AbstractNode.name, "d");
 
 					return null;
 				}
@@ -69,10 +69,10 @@ public class EntityPropertyTest extends StructrTest {
 			fail("Unable to create test nodes");
 		}
 		
-		assertNotNull(testSix1);
-		assertNotNull(testSix2);
-		assertNotNull(testThree1);
-		assertNotNull(testThree2);
+		assertNotNull(a);
+		assertNotNull(c);
+		assertNotNull(b);
+		assertNotNull(d);
 
 		/**
 		 * We test the following here:
@@ -82,7 +82,7 @@ public class EntityPropertyTest extends StructrTest {
 		 * then connect A -> D, so C and B should not
 		 * be related any more
 		 */
-		
+
 		// create two connections
 		try {
 
@@ -91,8 +91,8 @@ public class EntityPropertyTest extends StructrTest {
 				@Override
 				public Object execute() throws FrameworkException {
 					
-					instance.setProperty(securityContext, testSix1, testThree1);
-					instance.setProperty(securityContext, testSix2, testThree2);
+					a.setProperty(TestSix.oneToOneTestThree, b);
+					c.setProperty(TestSix.oneToOneTestThree, d);
 
 					return null;
 				}
@@ -107,12 +107,11 @@ public class EntityPropertyTest extends StructrTest {
 		}
 		
 		// verify connections
-		TestThree vrfy1 = instance.getProperty(securityContext, testSix1, true);
-		TestThree vrfy2 = instance.getProperty(securityContext, testSix2, true);
+		TestThree verifyB = a.getProperty(TestSix.oneToOneTestThree);
+		TestThree verifyD = c.getProperty(TestSix.oneToOneTestThree);
 		
-		assertTrue(vrfy1 != null && vrfy1.equals(testThree1));
-		assertTrue(vrfy2 != null && vrfy2.equals(testThree2));
-		
+		assertTrue(verifyB != null && verifyB.equals(b));
+		assertTrue(verifyD != null && verifyD.equals(d));
 		
 		try {
 
@@ -121,8 +120,8 @@ public class EntityPropertyTest extends StructrTest {
 				@Override
 				public Object execute() throws FrameworkException {
 		
-					// connect testSix1 and testThree2
-					instance.setProperty(securityContext, testSix1, testThree2);
+					// connect a and d
+					a.setProperty(TestSix.oneToOneTestThree, d);
 
 					return null;
 				}
@@ -138,27 +137,49 @@ public class EntityPropertyTest extends StructrTest {
 		
 
 		// verify connection
-		TestThree vrfy3 = instance.getProperty(securityContext, testSix1, true);
-		assertTrue(vrfy3 != null && vrfy3.equals(testThree2));
+		TestThree verifyD2 = a.getProperty(TestSix.oneToOneTestThree);
+		assertTrue(verifyD2 != null && verifyD2.equals(d));
 
-		
 		// testSix2 should not have a testThree associated
-		TestThree vrfy4 = instance.getProperty(securityContext, testSix2, true);
+		TestThree vrfy4 = c.getProperty(TestSix.oneToOneTestThree);
 		assertNull(vrfy4);
 	}
 
-	public void testManyToOne() throws Exception {
+	public void testOneToMany() throws Exception {
 		
-		final EntityProperty<TestThree> instance = TestSix.manyToOneTestThree;
-		final TestSix testSix1                         = createTestNode(TestSix.class);
-		final TestSix testSix2                         = createTestNode(TestSix.class);
-		final TestThree testThree1                     = createTestNode(TestThree.class);
-		final TestThree testThree2                     = createTestNode(TestThree.class);
+		final TestSix a   = createTestNode(TestSix.class);
+		final TestSix c   = createTestNode(TestSix.class);
+		final TestThree b = createTestNode(TestThree.class);
+		final TestThree d = createTestNode(TestThree.class);
+				
+		try {
+
+			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+				@Override
+				public Object execute() throws FrameworkException {
+
+					a.setProperty(AbstractNode.name, "a");
+					c.setProperty(AbstractNode.name, "c");
+					b.setProperty(AbstractNode.name, "b");
+					d.setProperty(AbstractNode.name, "d");
+
+					return null;
+				}
+
+			});
+			
+		} catch (FrameworkException fex) {
 		
-		assertNotNull(testSix1);
-		assertNotNull(testSix2);
-		assertNotNull(testThree1);
-		assertNotNull(testThree2);
+			fex.printStackTrace();
+			
+			fail("Unable to create test nodes");
+		}
+
+		assertNotNull(a);
+		assertNotNull(b);
+		assertNotNull(c);
+		assertNotNull(d);
 
 		/**
 		 * We test the following here:
@@ -176,8 +197,8 @@ public class EntityPropertyTest extends StructrTest {
 				public Object execute() throws FrameworkException {
 					
 					// create two connections
-					instance.setProperty(securityContext, testSix1, testThree1);
-					instance.setProperty(securityContext, testSix2, testThree2);
+					a.setProperty(TestSix.oneToManyTestThrees, b);
+					c.setProperty(TestSix.oneToManyTestThrees, d);
 
 					return null;
 				}
@@ -192,11 +213,11 @@ public class EntityPropertyTest extends StructrTest {
 		}
 		
 		// verify connections
-		TestThree vrfy1 = instance.getProperty(securityContext, testSix1, true);
-		TestThree vrfy2 = instance.getProperty(securityContext, testSix2, true);
+		TestThree verifyB = a.getProperty(TestSix.oneToManyTestThrees);
+		TestThree verifyD = c.getProperty(TestSix.oneToManyTestThrees);
 		
-		assertTrue(vrfy1 != null && vrfy1.equals(testThree1));
-		assertTrue(vrfy2 != null && vrfy2.equals(testThree2));
+		assertTrue(verifyB != null && verifyB.equals(b));
+		assertTrue(verifyD != null && verifyD.equals(d));
 		
 		try {
 
@@ -206,7 +227,7 @@ public class EntityPropertyTest extends StructrTest {
 				public Object execute() throws FrameworkException {
 					
 					// connect testSix1 and testThree2
-					instance.setProperty(securityContext, testSix1, testThree2);
+					a.setProperty(TestSix.oneToManyTestThrees, d);
 
 					return null;
 				}
@@ -221,15 +242,15 @@ public class EntityPropertyTest extends StructrTest {
 		}
 
 		// verify connection
-		TestThree vrfy3 = instance.getProperty(securityContext, testSix1, true);
+		TestThree verifyD2 = a.getProperty(TestSix.oneToManyTestThrees);
 
-		assertTrue(vrfy3 != null && vrfy3.equals(testThree2));
+		assertTrue(verifyD2 != null && verifyD2.equals(d));
 		
 		// testSix2 should have the initally assigned testThree associated
-		TestThree vrfy4 = instance.getProperty(securityContext, testSix2, true);
-		assertEquals(testThree2, vrfy4);
+		TestThree vrfy4 = c.getProperty(TestSix.oneToManyTestThrees);
+		assertEquals(d, vrfy4);
 	}
-	
+
 	/**
 	 * Test of typeName method, of class EntityProperty.
 	 */
@@ -303,7 +324,7 @@ public class EntityPropertyTest extends StructrTest {
 
 		EntityProperty instance = TestSix.oneToOneTestThree;
 		boolean expResult = false;
-		boolean result = instance.isManyToOne();
+		boolean result = instance.isOneToMany();
 		assertEquals(expResult, result);
 	}
 }

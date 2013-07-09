@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.search.BooleanClause;
 import static org.apache.lucene.search.BooleanClause.Occur.MUST;
 import static org.apache.lucene.search.BooleanClause.Occur.MUST_NOT;
@@ -210,15 +211,25 @@ public class CollectionNotionProperty<S extends GraphObject, T> extends Property
 
 			if (searchValues != null && !searchValues.isEmpty()) {
 
+				boolean allBlank = true;
+				
 				for (T searchValue : searchValues) {
 
+					// check if the list contains non-empty search values
+					if (StringUtils.isBlank(searchValue.toString())) {
+						
+						continue;
+						
+					} else {
+						
+						allBlank = false;
+					}
+					
 					Result<AbstractNode> result = Services.command(securityContext, SearchNodeCommand.class).execute(
 
 						Search.andExactType(base.relatedType().getSimpleName()),
 						Search.andExactProperty(securityContext, notion.getPrimaryPropertyKey(), searchValue)
 					);
-
-					// attr.addToResult(collectionProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
 
 					for (AbstractNode node : result.getResults()) {
 
@@ -250,8 +261,18 @@ public class CollectionNotionProperty<S extends GraphObject, T> extends Property
 						}
 					}
 				}
+				
+				if (allBlank) {
 
-				attr.setResult(new LinkedList<GraphObject>(intersectionResult));
+					// experimental filter attribute that
+					// removes entities with a non-empty
+					// value in the given field
+					return new EmptySearchAttribute(this, Collections.emptyList());
+					
+				} else {
+
+					attr.setResult(new LinkedList<GraphObject>(intersectionResult));
+				}
 				
 			} else {
 				

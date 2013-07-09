@@ -52,7 +52,7 @@ public class EntityProperty<T extends GraphObject> extends AbstractRelationPrope
 
 	private static final Logger logger = Logger.getLogger(EntityProperty.class.getName());
 
-	private boolean manyToOne = false;
+	private boolean oneToMany = false;
 	private Notion notion     = null;
 	
 	/**
@@ -64,7 +64,7 @@ public class EntityProperty<T extends GraphObject> extends AbstractRelationPrope
 	 * @param notion 
 	 */
 	public EntityProperty(String name, EntityProperty base, Notion notion) {
-		this(name, base.getDestType(), base.getRelType(), base.getDirection(), notion, base.isManyToOne(), base.getCascadeDelete());
+		this(name, base.getDestType(), base.getRelType(), base.getDirection(), notion, base.isOneToMany(), base.getCascadeDelete());
 	}
 	
 	
@@ -77,7 +77,7 @@ public class EntityProperty<T extends GraphObject> extends AbstractRelationPrope
 	 * @param notion 
 	 */
 	public EntityProperty(String name, EntityProperty base, Notion notion, int deleteCascade) {
-		this(name, base.getDestType(), base.getRelType(), base.getDirection(), notion, base.isManyToOne(), deleteCascade);
+		this(name, base.getDestType(), base.getRelType(), base.getDirection(), notion, base.isOneToMany(), deleteCascade);
 	}
 	
 	/**
@@ -88,8 +88,8 @@ public class EntityProperty<T extends GraphObject> extends AbstractRelationPrope
 	 * @param destType
 	 * @param relType 
 	 */
-	public EntityProperty(String name, Class destType, RelationshipType relType, boolean manyToOne) {
-		this(name, destType, relType, Direction.OUTGOING, manyToOne);
+	public EntityProperty(String name, Class destType, RelationshipType relType, boolean oneToMany) {
+		this(name, destType, relType, Direction.OUTGOING, oneToMany);
 	}
 
 	/**
@@ -103,8 +103,8 @@ public class EntityProperty<T extends GraphObject> extends AbstractRelationPrope
 	 * @param direction
 	 * @param cascadeDelete 
 	 */
-	public EntityProperty(String name, Class destType, RelationshipType relType, boolean manyToOne, int cascadeDelete) {
-		this(name, destType, relType, Direction.OUTGOING, new ObjectNotion(), manyToOne, cascadeDelete);
+	public EntityProperty(String name, Class destType, RelationshipType relType, boolean oneToMany, int cascadeDelete) {
+		this(name, destType, relType, Direction.OUTGOING, new ObjectNotion(), oneToMany, cascadeDelete);
 	}
 
 	/**
@@ -118,8 +118,8 @@ public class EntityProperty<T extends GraphObject> extends AbstractRelationPrope
 	 * @param direction
 	 * @param cascadeDelete 
 	 */
-	public EntityProperty(String name, Class destType, RelationshipType relType, Direction direction, boolean manyToOne, int cascadeDelete) {
-		this(name, destType, relType, direction, new ObjectNotion(), manyToOne, cascadeDelete);
+	public EntityProperty(String name, Class destType, RelationshipType relType, Direction direction, boolean oneToMany, int cascadeDelete) {
+		this(name, destType, relType, direction, new ObjectNotion(), oneToMany, cascadeDelete);
 	}
 
 	/**
@@ -131,8 +131,8 @@ public class EntityProperty<T extends GraphObject> extends AbstractRelationPrope
 	 * @param relType
 	 * @param direction 
 	 */
-	public EntityProperty(String name, Class destType, RelationshipType relType, Direction direction, boolean manyToOne) {
-		this(name, destType, relType, direction, new ObjectNotion(), manyToOne);
+	public EntityProperty(String name, Class destType, RelationshipType relType, Direction direction, boolean oneToMany) {
+		this(name, destType, relType, direction, new ObjectNotion(), oneToMany);
 	}
 	
 	/**
@@ -145,8 +145,8 @@ public class EntityProperty<T extends GraphObject> extends AbstractRelationPrope
 	 * @param direction
 	 * @param notion 
 	 */
-	public EntityProperty(String name, Class destType, RelationshipType relType, Notion notion, boolean manyToOne) {
-		this(name, destType, relType, Direction.OUTGOING, notion, manyToOne, Relation.DELETE_NONE);
+	public EntityProperty(String name, Class destType, RelationshipType relType, Notion notion, boolean oneToMany) {
+		this(name, destType, relType, Direction.OUTGOING, notion, oneToMany, Relation.DELETE_NONE);
 	}
 	
 	/**
@@ -159,8 +159,8 @@ public class EntityProperty<T extends GraphObject> extends AbstractRelationPrope
 	 * @param direction
 	 * @param notion 
 	 */
-	public EntityProperty(String name, Class destType, RelationshipType relType, Direction direction, Notion notion, boolean manyToOne) {
-		this(name, destType, relType, direction, notion, manyToOne, Relation.DELETE_NONE);
+	public EntityProperty(String name, Class destType, RelationshipType relType, Direction direction, Notion notion, boolean oneToMany) {
+		this(name, destType, relType, direction, notion, oneToMany, Relation.DELETE_NONE);
 	}
 	
 	/**
@@ -176,11 +176,11 @@ public class EntityProperty<T extends GraphObject> extends AbstractRelationPrope
 	 * @param notion
 	 * @param cascadeDelete 
 	 */
-	public EntityProperty(String name, Class destType, RelationshipType relType, Direction direction, Notion notion, boolean manyToOne, int cascadeDelete) {
+	public EntityProperty(String name, Class destType, RelationshipType relType, Direction direction, Notion notion, boolean oneToMany, int cascadeDelete) {
 		
-		super(name, destType, relType, direction, manyToOne ? Cardinality.ManyToOne : Cardinality.OneToOne, cascadeDelete);
+		super(name, destType, relType, direction, oneToMany ? Cardinality.OneToMany : Cardinality.OneToOne, cascadeDelete);
 
-		this.manyToOne = manyToOne;
+		this.oneToMany = oneToMany;
 		this.notion = notion;
 		this.notion.setType(destType);
 		
@@ -254,8 +254,8 @@ public class EntityProperty<T extends GraphObject> extends AbstractRelationPrope
 		return notion;
 	}
 	
-	public boolean isManyToOne() {
-		return manyToOne;
+	public boolean isOneToMany() {
+		return oneToMany;
 	}
 	
 	public AbstractNode createRelatedNode(final SecurityContext securityContext, final AbstractNode node) throws FrameworkException {
@@ -289,7 +289,7 @@ public class EntityProperty<T extends GraphObject> extends AbstractRelationPrope
 
 			AbstractNode node = (AbstractNode)obj;
 
-			if (cardinality.equals(Relation.Cardinality.OneToOne) || cardinality.equals(Relation.Cardinality.ManyToOne)) {
+			if (cardinality.equals(Relation.Cardinality.OneToOne) || cardinality.equals(Relation.Cardinality.OneToMany)) {
 
 				NodeFactory nodeFactory = new NodeFactory(securityContext);
 				Node dbNode             = node.getNode();

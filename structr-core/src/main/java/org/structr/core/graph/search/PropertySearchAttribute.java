@@ -119,7 +119,7 @@ public class PropertySearchAttribute<T> extends SearchAttribute<T> {
 
 			} else {
 
-				if (searchValue != null) {
+				if (searchValue != null && StringUtils.isNotBlank(searchValue.toString())) {
 					return false;
 				}
 			}

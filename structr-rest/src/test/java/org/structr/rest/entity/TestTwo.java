@@ -26,9 +26,7 @@ import org.structr.core.property.ISO8601DateProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.Property;
-import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.NodeService.NodeIndex;
 import org.structr.core.property.CollectionProperty;
 
 /**

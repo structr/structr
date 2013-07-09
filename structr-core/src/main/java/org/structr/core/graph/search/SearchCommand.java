@@ -140,6 +140,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 		// At this point, all search attributes are ready
 		List<SourceSearchAttribute> sources    = new ArrayList<SourceSearchAttribute>();
+		boolean hasEmptySearchFields           = false;
 		DistanceSearchAttribute distanceSearch = null;
 		GeoCodingResult coords                 = null;
 		Double dist                            = null;
@@ -196,6 +197,10 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 				// remove attribute from filter list
 				it.remove();
 			}
+			
+			if (attr instanceof EmptySearchAttribute) {
+				hasEmptySearchFields = true;
+			}
 		}
 
 		Result intermediateResult;
@@ -225,8 +230,6 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 			QueryContext queryContext = new QueryContext(query);
 			IndexHits hits            = null;
-
-//			logger.log(Level.INFO, "Query: {0}", query);
 
 			if (sortKey != null) {
 
@@ -286,7 +289,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 				}
 
 				// all luecene query, do not filter results
-				filterResults = false;
+				filterResults = hasEmptySearchFields;
 				intermediateResult = factory.instantiate(hits);
 
 			} else {
@@ -300,7 +303,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 				}
 
 				// all luecene query, do not filter results
-				filterResults = false;
+				filterResults = hasEmptySearchFields;
 				intermediateResult = factory.instantiate(hits);
 			}
 

@@ -82,7 +82,7 @@ public class CollectionPropertyTest extends StructrTest {
 
 	public void testOneToMany() throws Exception {
 		
-		CollectionProperty instance = TestSix.oneToManyTestOnes;
+		CollectionProperty instance = TestSix.manyToOneTestOnes;
 		TestSix testSix1            = null;
 		TestSix testSix2            = null;
 		TestOne testOne1            = null;
@@ -232,7 +232,7 @@ public class CollectionPropertyTest extends StructrTest {
 
 		CollectionProperty instance = TestSix.manyToManyTestOnes;
 		boolean expResult = false;
-		boolean result = instance.isOneToMany();
+		boolean result = instance.isManyToOne();
 		assertEquals(expResult, result);
 	}
 }
