@@ -20,14 +20,15 @@ public class GraphObjectModificationState {
 
 	private static final Logger logger = Logger.getLogger(GraphObjectModificationState.class.getName());
 	
-	private static final int STATE_DELETED =                   1;
-	private static final int STATE_MODIFIED =                  2;
-	private static final int STATE_CREATED =                   4;
-	private static final int STATE_DELETED_PASSIVELY =         8;
-	private static final int STATE_OWNER_MODIFIED =           16;
-	private static final int STATE_SECURITY_MODIFIED =        32;
-	private static final int STATE_LOCATION_MODIFIED =        64;
-	private static final int STATE_PROPAGATED_MODIFICATION = 128;
+	private static final int STATE_DELETED =                    1;
+	private static final int STATE_MODIFIED =                   2;
+	private static final int STATE_CREATED =                    4;
+	private static final int STATE_DELETED_PASSIVELY =          8;
+	private static final int STATE_OWNER_MODIFIED =            16;
+	private static final int STATE_SECURITY_MODIFIED =         32;
+	private static final int STATE_LOCATION_MODIFIED =         64;
+	private static final int STATE_PROPAGATING_MODIFICATION = 128;
+	private static final int STATE_PROPAGATED_MODIFICATION =  256;
 	
 	private PropertyMap removedProperties = new PropertyMap();
 	private boolean modified              = false;
@@ -58,7 +59,7 @@ public class GraphObjectModificationState {
 		
 		int statusBefore = status;
 		
-		status |= STATE_LOCATION_MODIFIED | STATE_PROPAGATED_MODIFICATION;
+		status |= STATE_LOCATION_MODIFIED | STATE_PROPAGATING_MODIFICATION;
 		
 		if (status != statusBefore) {
 			modified = true;
@@ -69,7 +70,7 @@ public class GraphObjectModificationState {
 		
 		int statusBefore = status;
 		
-		status |= STATE_SECURITY_MODIFIED | STATE_PROPAGATED_MODIFICATION;
+		status |= STATE_SECURITY_MODIFIED | STATE_PROPAGATING_MODIFICATION;
 		
 		if (status != statusBefore) {
 			modified = true;
@@ -80,7 +81,7 @@ public class GraphObjectModificationState {
 		
 		int statusBefore = status;
 		
-		status |= STATE_OWNER_MODIFIED | STATE_PROPAGATED_MODIFICATION;
+		status |= STATE_OWNER_MODIFIED | STATE_PROPAGATING_MODIFICATION;
 		
 		if (status != statusBefore) {
 			modified = true;
@@ -91,7 +92,7 @@ public class GraphObjectModificationState {
 		
 		int statusBefore = status;
 		
-		status |= STATE_CREATED | STATE_PROPAGATED_MODIFICATION;
+		status |= STATE_CREATED | STATE_PROPAGATING_MODIFICATION;
 		
 		if (status != statusBefore) {
 			modified = true;
@@ -102,7 +103,7 @@ public class GraphObjectModificationState {
 		
 		int statusBefore = status;
 		
-		status |= STATE_MODIFIED | STATE_PROPAGATED_MODIFICATION;
+		status |= STATE_MODIFIED | STATE_PROPAGATING_MODIFICATION;
 
 		// store previous value
 		if (key != null) {
@@ -158,7 +159,7 @@ public class GraphObjectModificationState {
 		boolean valid = true;
 	
 		// check for modification propagation along the relationships
-		if ((status & STATE_PROPAGATED_MODIFICATION) == STATE_PROPAGATED_MODIFICATION && object instanceof AbstractNode) {
+		if ((status & STATE_PROPAGATING_MODIFICATION) == STATE_PROPAGATING_MODIFICATION && object instanceof AbstractNode) {
 			
 			Set<AbstractNode> nodes = ((AbstractNode)object).getNodesForModificationPropagation();
 			if (nodes != null) {

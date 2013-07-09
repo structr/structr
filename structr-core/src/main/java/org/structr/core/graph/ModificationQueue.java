@@ -62,7 +62,7 @@ public class ModificationQueue {
 		}
 
 		long t = System.currentTimeMillis() - t0;
-		if (t > 100) {
+		if (t > 1000) {
 			logger.log(Level.INFO, "{0} ms", t);
 		}
 
@@ -82,14 +82,14 @@ public class ModificationQueue {
 		}
 
 		long t = System.currentTimeMillis() - t0;
-		if (t > 100) {
+		if (t > 1000) {
 			logger.log(Level.INFO, "{0} ms", t);
 		}
 
 		return valid;
 	}
 
-	public void doOuterCallbacksAndCleanup(SecurityContext securityContext) {
+	public void doOuterCallbacks(SecurityContext securityContext) {
 
 		long t0 = System.currentTimeMillis();
 		
@@ -103,9 +103,12 @@ public class ModificationQueue {
 		}
 
 		long t = System.currentTimeMillis() - t0;
-		if (t > 100) {
+		if (t > 1000) {
 			logger.log(Level.INFO, "{0} ms", t);
 		}
+	}
+	
+	public void clear() {
 		
 		// clear collections afterwards
 		alreadyPropagated.clear();
@@ -159,15 +162,18 @@ public class ModificationQueue {
 	}
 	
 	public void propagatedModification(AbstractNode node) {
-		
-		GraphObjectModificationState state = getState(node, true);
-		if (state != null) {
-			
-			state.propagatedModification();
 
-			// save hash to avoid repeated propagation
-			alreadyPropagated.add(hash(node));
-		}
+		if (node != null) {
+		
+			GraphObjectModificationState state = getState(node, true);
+			if (state != null) {
+
+				state.propagatedModification();
+
+				// save hash to avoid repeated propagation
+				alreadyPropagated.add(hash(node));
+			}
+	}
 	}
 
 	public void delete(AbstractNode node) {
