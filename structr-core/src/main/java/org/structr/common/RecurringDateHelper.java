@@ -92,7 +92,16 @@ public class RecurringDateHelper {
 
 	public static List<Appointment> generateAppointments(final Date startDate, final Date endDate, final String weekdays, final String startTimeString, final String endTimeString) {
 
+                
 		List<Appointment> appointments = new LinkedList();
+                //check if a Date is empty
+                if(     startDate == null || startDate.getTime() == 0 || 
+                        endDate == null || endDate.getTime() == 0 ||
+                        weekdays == null || weekdays.equals("") || 
+                        startTimeString == null || startTimeString.equals("") || 
+                        endTimeString == null || endTimeString.equals(""))
+                    return appointments;
+                
 		String[] wd      = StringUtils.split(weekdays, ",");
 		Date start       = dateFromDateAndTimeString(startDate, wd[0], startTimeString);
 		Calendar cal     = GregorianCalendar.getInstance();
@@ -153,7 +162,8 @@ public class RecurringDateHelper {
 	}
 
 	private static int getDayOfWeek(final String shortWeekday) {
-
+            
+            if (shortWeekday != null && !shortWeekday.equals(""))
 		try {
 			ShortWeekday wd = ShortWeekday.valueOf(shortWeekday);
 
