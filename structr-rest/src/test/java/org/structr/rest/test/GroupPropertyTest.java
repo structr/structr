@@ -28,7 +28,7 @@ public class GroupPropertyTest extends StructrRestTest{
 			 "type": "TestGroupPropOne"
 			}
 		 */
-		String test011 = createEntity("/TestGroupPropOne","{gP1:{sP:text,iP:1337},gP2:{dblP:13.37,dP:01.01.2013}}");
+		String test011 = createEntity("/test_group_prop_one","{gP1:{sP:text,iP:1337},gP2:{dblP:13.37,dP:01.01.2013}}");
 		
 		/*
 			{
@@ -47,10 +47,10 @@ public class GroupPropertyTest extends StructrRestTest{
 			 "type": "TestGroupPropTwo"
 			}
 		 */
-		String test021 = createEntity("/TestGroupPropTwo", "{gP1:{sP:text,iP:1337,dblP:0.1337,bP:true},gP2:{ep:two}}");
+		String test021 = createEntity("/test_group_prop_two", "{gP1:{sP:text,iP:1337,dblP:0.1337,bP:true},gP2:{ep:two}}");
 		
-		String test031 = createEntity("/TestGroupPropThree","{gP:{sP:text,iP:1337,gpNode:",test011,"}}");
-		String test032 = createEntity("/TestGroupPropThree","{ggP:{igP:{gpNode:",test021,",isP:Alex}}}");
+		String test031 = createEntity("/test_group_prop_three","{gP:{sP:text,iP:1337,gpNode:",test011,"}}");
+		String test032 = createEntity("/test_group_prop_three","{ggP:{igP:{gpNode:",test021,",isP:Alex}}}");
 		
 		// test011 check
 		RestAssured
