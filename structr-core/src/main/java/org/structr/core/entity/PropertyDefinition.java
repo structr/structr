@@ -25,6 +25,7 @@ import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.experimental.NodeExtender;
+import org.structr.core.graph.NodeService;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchNodeCommand;
@@ -209,6 +210,14 @@ public class PropertyDefinition<T> extends AbstractNode implements PropertyKey<T
 	@Override
 	public String dbName() {
 		return getProperty(AbstractNode.name);
+	}
+
+	@Override
+	public void jsonName(String jsonName) {
+	}
+
+	@Override
+	public void dbName(String dbName) {
 	}
 
 	@Override
@@ -506,6 +515,76 @@ public class PropertyDefinition<T> extends AbstractNode implements PropertyKey<T
 		
 		if (delegate != null) {
 			return delegate.extractSearchableAttribute(securityContext, requestParameter);
+		}
+		
+		return null;
+	}
+
+	@Override
+	public Property<T> indexed() {
+		
+		if (delegate != null) {
+			return delegate.indexed();
+		}
+		
+		return null;
+	}
+
+	@Override
+	public Property<T> indexed(NodeService.NodeIndex nodeIndex) {
+		
+		if (delegate != null) {
+			return delegate.indexed(nodeIndex);
+		}
+		
+		return null;
+	}
+
+	@Override
+	public Property<T> indexed(NodeService.RelationshipIndex relIndex) {
+		
+		if (delegate != null) {
+			return delegate.indexed(relIndex);
+		}
+		
+		return null;
+	}
+
+	@Override
+	public Property<T> passivelyIndexed() {
+		
+		if (delegate != null) {
+			return delegate.passivelyIndexed();
+		}
+		
+		return null;
+	}
+
+	@Override
+	public Property<T> passivelyIndexed(NodeService.NodeIndex nodeIndex) {
+		
+		if (delegate != null) {
+			return delegate.passivelyIndexed(nodeIndex);
+		}
+		
+		return null;
+	}
+
+	@Override
+	public Property<T> passivelyIndexed(NodeService.RelationshipIndex relIndex) {
+		
+		if (delegate != null) {
+			return delegate.passivelyIndexed(relIndex);
+		}
+		
+		return null;
+	}
+
+	@Override
+	public Property<T> indexedWhenEmpty() {
+		
+		if (delegate != null) {
+			return delegate.indexedWhenEmpty();
 		}
 		
 		return null;

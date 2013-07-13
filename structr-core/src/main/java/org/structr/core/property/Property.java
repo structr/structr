@@ -22,7 +22,6 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -126,14 +125,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 		return this;
 	}
 	
-	/**
-	 * Use this method to mark a property for indexing. This
-	 * method registers the property in both the keyword and
-	 * the fulltext index. To select the appropriate index
-	 * for yourself, use the other indexed() methods.
-	 * 
-	 * @return the Property to satisfy the builder pattern
-	 */
+	@Override
 	public Property<T> indexed() {
 		
 		this.indexed = true;
@@ -148,12 +140,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 		return this;
 	}
 	
-	/**
-	 * Use this method to mark a property for indexing 
-	 * in the given index.
-	 * 
-	 * @return the Property to satisfy the builder pattern
-	 */
+	@Override
 	public Property<T> indexed(NodeIndex nodeIndex) {
 		
 		this.indexed = true;
@@ -164,12 +151,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 		return this;
 	}
 	
-	/**
-	 * Use this method to mark a property for indexing 
-	 * in the given index.
-	 * 
-	 * @return the Property to satisfy the builder pattern
-	 */
+	@Override
 	public Property<T> indexed(RelationshipIndex relIndex) {
 		
 		this.indexed = true;
@@ -180,16 +162,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 		return this;
 	}
 	
-	/**
-	 * Use this method to indicate that a property key can change its value
-	 * without setProperty() being called directly on it. This method causes
-	 * the given property to be indexed at the end of a transaction instead
-	 * of immediately on setProperty(). This method registers the property
-	 * in both the keyword and the fulltext index. To select the appropriate
-	 * index for yourself, use the other indexed() methods.
-	 * 
-	 * @return the Property to satisfy the builder pattern
-	 */
+	@Override
 	public Property<T> passivelyIndexed() {
 
 		this.indexedPassively = true;
@@ -205,14 +178,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 		return this;
 	}
 	
-	/**
-	 * Use this method to indicate that a property key can change its value
-	 * without setProperty() being called directly on it. This method causes
-	 * the given property to be indexed at the end of a transaction instead
-	 * of immediately on setProperty().
-	 * 
-	 * @return the Property to satisfy the builder pattern
-	 */
+	@Override
 	public Property<T> passivelyIndexed(NodeIndex nodeIndex) {
 		
 		this.indexedPassively = true;
@@ -223,14 +189,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 		return this;
 	}
 	
-	/**
-	 * Use this method to indicate that a property key can change its value
-	 * without setProperty() being called directly on it. This method causes
-	 * the given property to be indexed at the end of a transaction instead
-	 * of immediately on setProperty().
-	 * 
-	 * @return the Property to satisfy the builder pattern
-	 */
+	@Override
 	public Property<T> passivelyIndexed(RelationshipIndex relIndex) {
 		
 		this.indexedPassively = true;
@@ -307,6 +266,16 @@ public abstract class Property<T> implements PropertyKey<T> {
 	@Override
 	public String jsonName() {
 		return jsonName;
+	}
+	
+	@Override
+	public void dbName(String dbName) {
+		this.dbName = dbName;
+	}
+	
+	@Override
+	public void jsonName(String jsonName) {
+		this.jsonName = jsonName;
 	}
 	
 	@Override
