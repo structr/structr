@@ -1,17 +1,32 @@
+/**
+ * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ *
+ * This file is part of structr <http://structr.org>.
+ *
+ * structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package org.structr.rest.test;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasSize;
 import org.structr.rest.common.StructrRestTest;
 
 /**
  *
  * @author alex
  */
-
-
 public class GroupPropertyTest extends StructrRestTest{
 	
 	public void test01GroupProperty(){
@@ -57,38 +72,36 @@ public class GroupPropertyTest extends StructrRestTest{
 		    
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+//				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			
 			.expect()
 				.statusCode(200)
 
-				.body("result",	      hasSize(1))
 				.body("result_count", equalTo(1))
-				.body("result[0].id", equalTo(test011))
-				.body("result[0].gP1.sP",equalTo("text"))
-				.body("result[0].gP2.dblP",equalTo("13.37"))
+				.body("result.id", equalTo(test011))
+				.body("result.gP1.sP",equalTo("text"))
+				.body("result.gP2.dblP",equalTo(13.37f))
 
 			.when()
-				.get(concat("/TestGroupPropOne/"+test011));
+				.get(concat("/test_group_prop_one/"+test011));
 		
 		// test021 check
 		RestAssured
 		    
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+//				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			
 			.expect()
 				.statusCode(200)
 
-				.body("result",	      hasSize(1))
 				.body("result_count", equalTo(1))
-				.body("result[0].id", equalTo(test021))
-				.body("result[0].gP1.dblP",equalTo("0.1337"))
-				.body("result[0].gP1.bP",equalTo("true"))
+				.body("result.id", equalTo(test021))
+				.body("result.gP1.dblP",equalTo(0.1337f))
+				.body("result.gP1.bP",equalTo(true))
 
 			.when()
-				.get(concat("/TestGroupPropOne/"+test021));
+				.get(concat("/test_group_prop_two/"+test021));
 		
 		// test031 check
 		// Node in groupProperty
@@ -96,18 +109,17 @@ public class GroupPropertyTest extends StructrRestTest{
 		    
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+//				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			
 			.expect()
 				.statusCode(200)
 
-				.body("result",	      hasSize(1))
 				.body("result_count", equalTo(1))
-				.body("result[0].id", equalTo(test031))
-				.body("result[0].gP.gpNode.id",equalTo(test011))
+				.body("result.id", equalTo(test031))
+				.body("result.gP.gpNode.id",equalTo(test011))
 
 			.when()
-				.get(concat("/TestGroupPropOne/"+test031));
+				.get(concat("/test_group_prop_three/"+test031));
 		
 		// test032 check
 		// Node in GroupProperty in GroupProperty
@@ -120,13 +132,12 @@ public class GroupPropertyTest extends StructrRestTest{
 			.expect()
 				.statusCode(200)
 
-				.body("result",	      hasSize(1))
 				.body("result_count", equalTo(1))
-				.body("result[0].id", equalTo(test032))
-				.body("result[0].ggP.igp.gpNode.id",equalTo(test021))
+				.body("result.id", equalTo(test032))
+				.body("result.ggP.igP.gpNode.id",equalTo(test021))
 
 			.when()
-				.get(concat("/TestGroupPropOne/"+test032));
+				.get(concat("/test_group_prop_three/"+test032));
 	}
 	
 	private String concat(String... parts) {
