@@ -32,7 +32,6 @@ import org.structr.core.GraphObject;
 import org.structr.core.PropertyGroup;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.graph.NodeService;
 import org.structr.core.graph.search.PropertySearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchAttributeGroup;
