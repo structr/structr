@@ -1,3 +1,21 @@
+/**
+ * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ *
+ * This file is part of structr <http://structr.org>.
+ *
+ * structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package org.structr.core.entity;
 
 import java.util.Collections;
@@ -25,6 +43,7 @@ import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.experimental.NodeExtender;
+import org.structr.core.graph.NodeService;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchNodeCommand;
@@ -209,6 +228,14 @@ public class PropertyDefinition<T> extends AbstractNode implements PropertyKey<T
 	@Override
 	public String dbName() {
 		return getProperty(AbstractNode.name);
+	}
+
+	@Override
+	public void jsonName(String jsonName) {
+	}
+
+	@Override
+	public void dbName(String dbName) {
 	}
 
 	@Override
@@ -506,6 +533,76 @@ public class PropertyDefinition<T> extends AbstractNode implements PropertyKey<T
 		
 		if (delegate != null) {
 			return delegate.extractSearchableAttribute(securityContext, requestParameter);
+		}
+		
+		return null;
+	}
+
+	@Override
+	public Property<T> indexed() {
+		
+		if (delegate != null) {
+			return delegate.indexed();
+		}
+		
+		return null;
+	}
+
+	@Override
+	public Property<T> indexed(NodeService.NodeIndex nodeIndex) {
+		
+		if (delegate != null) {
+			return delegate.indexed(nodeIndex);
+		}
+		
+		return null;
+	}
+
+	@Override
+	public Property<T> indexed(NodeService.RelationshipIndex relIndex) {
+		
+		if (delegate != null) {
+			return delegate.indexed(relIndex);
+		}
+		
+		return null;
+	}
+
+	@Override
+	public Property<T> passivelyIndexed() {
+		
+		if (delegate != null) {
+			return delegate.passivelyIndexed();
+		}
+		
+		return null;
+	}
+
+	@Override
+	public Property<T> passivelyIndexed(NodeService.NodeIndex nodeIndex) {
+		
+		if (delegate != null) {
+			return delegate.passivelyIndexed(nodeIndex);
+		}
+		
+		return null;
+	}
+
+	@Override
+	public Property<T> passivelyIndexed(NodeService.RelationshipIndex relIndex) {
+		
+		if (delegate != null) {
+			return delegate.passivelyIndexed(relIndex);
+		}
+		
+		return null;
+	}
+
+	@Override
+	public Property<T> indexedWhenEmpty() {
+		
+		if (delegate != null) {
+			return delegate.indexedWhenEmpty();
 		}
 		
 		return null;

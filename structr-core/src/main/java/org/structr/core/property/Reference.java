@@ -27,6 +27,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.graph.NodeService;
 import org.structr.core.graph.search.SearchAttribute;
 
 /**
@@ -89,6 +90,16 @@ public class Reference<T> implements PropertyKey<T> {
 	@Override
 	public String jsonName() {
 		return propertyKey.jsonName();
+	}
+	
+	@Override
+	public void dbName(String dbName) {
+		propertyKey.dbName(dbName);
+	}
+
+	@Override
+	public void jsonName(String jsonName) {
+		propertyKey.jsonName(jsonName);
 	}
 	
 	@Override
@@ -227,5 +238,40 @@ public class Reference<T> implements PropertyKey<T> {
 	@Override
 	public T extractSearchableAttribute(SecurityContext securityContext, String requestParameter) throws FrameworkException {
 		return propertyKey.extractSearchableAttribute(securityContext, requestParameter);
+	}
+
+	@Override
+	public Property<T> indexed() {
+		return propertyKey.indexed();
+	}
+
+	@Override
+	public Property<T> indexed(NodeService.NodeIndex nodeIndex) {
+		return propertyKey.indexed(nodeIndex);
+	}
+
+	@Override
+	public Property<T> indexed(NodeService.RelationshipIndex relIndex) {
+		return propertyKey.indexed(relIndex);
+	}
+
+	@Override
+	public Property<T> passivelyIndexed() {
+		return propertyKey.passivelyIndexed();
+	}
+
+	@Override
+	public Property<T> passivelyIndexed(NodeService.NodeIndex nodeIndex) {
+		return propertyKey.passivelyIndexed(nodeIndex);
+	}
+
+	@Override
+	public Property<T> passivelyIndexed(NodeService.RelationshipIndex relIndex) {
+		return propertyKey.passivelyIndexed(relIndex);
+	}
+
+	@Override
+	public Property<T> indexedWhenEmpty() {
+		return propertyKey.indexedWhenEmpty();
 	}
 }
