@@ -67,6 +67,10 @@
 			<outputDirectory>/bin</outputDirectory>
 		</file>
 		<file>
+			<source>src/main/resources/bin/su</source>
+			<outputDirectory>/bin</outputDirectory>
+		</file>
+		<file>
 			<source>src/main/resources/bin/env</source>
 			<outputDirectory>/bin</outputDirectory>
 		</file>
@@ -92,6 +96,10 @@
 		</file>
 		<file>
 			<source>src/main/resources/bin/seed.sh</source>
+			<outputDirectory>/bin</outputDirectory>
+		</file>
+		<file>
+			<source>src/main/resources/bin/add_grants.sh</source>
 			<outputDirectory>/bin</outputDirectory>
 		</file>
 	</files>
