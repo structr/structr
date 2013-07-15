@@ -18,23 +18,52 @@
  */
 package org.structr.core.property;
 
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
+import javax.servlet.http.HttpServletRequest;
+import org.apache.lucene.search.BooleanClause;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
+import org.structr.core.PropertyGroup;
+import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.graph.search.PropertySearchAttribute;
+import org.structr.core.graph.search.SearchAttribute;
+import org.structr.core.graph.search.SearchAttributeGroup;
 
 /**
  * A property that returns grouped properties from a set of {@link Reference} elements.
  * 
  * @author Christian Morgner
  */
-public class ReferenceGroup extends GroupProperty {
+public class ReferenceGroup extends Property<PropertyMap> implements PropertyGroup<PropertyMap> {
 
 	private static final Logger logger = Logger.getLogger(ReferenceGroup.class.getName());
+
+	// indicates whether this group property is 
+	protected Map<String, PropertyKey> propertyKeys    = new LinkedHashMap<String, PropertyKey>();
+	protected Class<? extends GraphObject> entityClass = null;
+	protected Property<Boolean> nullValuesOnlyProperty = null;
 	
-	public ReferenceGroup(String name, Class<? extends GraphObject> entityClass, Reference... references) {
-		super(name, entityClass, references);
+	public ReferenceGroup(String name, Class<? extends GraphObject> entityClass, Reference... properties) {
+		
+		super(name);
+		
+		for (PropertyKey key : properties) {
+			propertyKeys.put(key.jsonName(), key);
+		}
+		
+		this.nullValuesOnlyProperty = new BooleanProperty(name.concat(".").concat("nullValuesOnly"));
+		this.entityClass            = entityClass;
+
+		// register in entity context
+		EntityContext.registerProperty(entityClass, nullValuesOnlyProperty);
+		EntityContext.registerPropertyGroup(entityClass, this, this);	
 	}
 	
 	// ----- interface PropertyGroup -----
@@ -89,4 +118,162 @@ public class ReferenceGroup extends GroupProperty {
 			}
 		}
 	}
+	
+	@Override
+	public String typeName() {
+		return "Object";
+	}
+	
+	@Override
+	public PropertyConverter<PropertyMap, ?> databaseConverter(SecurityContext securityContext) {
+		return null;
+	}
+
+	@Override
+	public PropertyConverter<PropertyMap, ?> databaseConverter(SecurityContext securityContext, GraphObject currentObject) {
+		return null;
+	}
+
+	@Override
+	public PropertyConverter<Map<String, Object>, PropertyMap> inputConverter(SecurityContext securityContext) {
+		return new InputConverter(securityContext);
+	}
+
+	@Override
+	public SearchAttribute getSearchAttribute(SecurityContext securityContext, BooleanClause.Occur occur, PropertyMap searchValues, boolean exactMatch) {
+		
+		SearchAttributeGroup group = new SearchAttributeGroup(occur);
+		
+		for (PropertyKey key : propertyKeys.values()) {
+			
+			Object value = searchValues.get(new GenericProperty(key.jsonName()));
+			if (value != null) {
+				
+				group.add( new PropertySearchAttribute(key, value.toString(), BooleanClause.Occur.MUST, exactMatch) );
+			}
+		}
+		
+		return group;
+	}
+
+	/**
+	 * Returns the nested group property for the given name. The PropertyKey returned by
+	 * this method can be used to get and/or set the property value in a PropertyMap that
+	 * is obtained or stored in the group property.
+	 * 
+	 * @param <T>
+	 * @param name
+	 * @param type
+	 * @return 
+	 */
+	public <T> PropertyKey<T> getNestedProperty(String name, Class<T> type) {
+		
+		if (!propertyKeys.containsKey(name)) {
+			throw new IllegalArgumentException("ReferenceGroup " + dbName + " does not contain grouped property " + name + "!");
+		}
+		
+		return propertyKeys.get(name);
+	}
+	
+	/**
+	 * Returns a wrapped group property that can be used to access a nested group
+	 * property directly, i.e. without having to fetch the group first.
+	 * 
+	 * @param <T>
+	 * @param name
+	 * @param type
+	 * @return 
+	 */
+	public <T> PropertyKey<T> getDirectAccessReferenceGroup(String name, Class<T> type) {
+		
+		if (!propertyKeys.containsKey(name)) {
+			throw new IllegalArgumentException("ReferenceGroup " + dbName + " does not contain grouped property " + name + "!");
+		}
+		
+		return new GenericProperty(propertyKeys.get(name).dbName());
+	}
+	
+	private class InputConverter extends PropertyConverter<Map<String, Object>, PropertyMap> {
+
+		public InputConverter(SecurityContext securityContext) {
+			super(securityContext, null);
+		}
+		
+		@Override
+		public Map<String, Object> revert(PropertyMap source) throws FrameworkException {
+			return PropertyMap.javaTypeToInputType(securityContext, entityClass, source);
+		}
+
+		@Override
+		public PropertyMap convert(Map<String, Object> source) throws FrameworkException {
+			return PropertyMap.inputTypeToJavaType(securityContext, entityClass, source);
+		}
+	}
+	
+	@Override
+	public Object fixDatabaseProperty(Object value) {
+		return null;
+	}
+	
+	@Override
+	public PropertyMap getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+		return getGroupedProperties(securityContext, obj);
+	}
+	
+	@Override
+	public void setProperty(SecurityContext securityContext, GraphObject obj, PropertyMap value) throws FrameworkException {
+		setGroupedProperties(securityContext, value, obj);
+	}
+	
+	@Override
+	public Class relatedType() {
+		return null;
+	}
+	
+	@Override
+	public boolean isCollection() {
+		return false;
+	}
+
+	@Override
+	public Integer getSortType() {
+		return null;
+	}
+	
+	@Override
+	public void setDeclaringClass(Class declaringClass) {
+		
+		for (PropertyKey key : propertyKeys.values()) {
+
+			key.setDeclaringClass(declaringClass);
+		}
+	}
+
+	@Override
+	public void index(GraphObject entity, Object value) {
+
+		for (PropertyKey key : propertyKeys.values()) {
+
+			key.index(entity, entity.getPropertyForIndexing(key));
+		}
+	}
+		
+	@Override
+	public List<SearchAttribute> extractSearchableAttribute(SecurityContext securityContext, HttpServletRequest request, boolean looseSearch) throws FrameworkException {
+
+		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+		
+		for (PropertyKey key : propertyKeys.values()) {
+
+			searchAttributes.addAll(key.extractSearchableAttribute(securityContext, request, looseSearch));
+		}
+		
+		return searchAttributes;
+	}
+
+	@Override
+	public Object getValueForEmptyFields() {
+		return null;
+	}
+	
 }

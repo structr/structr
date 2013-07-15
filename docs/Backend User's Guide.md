@@ -43,10 +43,14 @@ You should already know what a REST server is, and why you want to use such a se
     - [Fulltext and keyword index](#fulltext-and-keyword-index)
     - [Setup](#setup)
     - [Exact search](#ordinary-search)
-    - [Loose search](#loose-search)
+    - [Fulltext search](#fulltext-search)
     - [Range queries](#range-queries)
+        - [Example range query terms](#example-range-query-terms)
     - [Sorting](#sorting)
     - [Paging](#paging)
+        - [Simple Paging](#simple-paging)
+        - [Paging on a given element](#paging-on-a-given-element)
+    
 - [Adding relationships](#adding-relationships)
 - [Appendix A - List of available property types](#appendix-a---list-of-available-property-types)
     - [StringProperty](#stringproperty)
@@ -209,7 +213,7 @@ public class Author extends AbstractNode {}
 ```
 
 #### Properties and Views
-A node like this of course if of very little use, because it has no properties and no output representation. A structr entity can have many output representations, depending on the REST path it is accessed from, the position in the JSON output document or the relationship over which it is accessed. Output representations in structr are called *Views* and must be specified explicitly for each entity. A view is a collection of properties that belong together semantically in the context of the current view.
+A node like this of course if of very little use, because it has no properties and no output representation. A structr entity can have many output representations, depending on the REST path it is accessed from, the position in the JSON output document or the relationship over which it is accessed. Output representations in structr are called *Views* and must be specified explicitly for each entity. A view is a collection of properties that belong together semantically in a given context.
 
 ##### Pre-defined views
 structr has a pre-defined set of views, including the default view which will be used if no view was specified explicitly in the REST path. The following views are defined in structr core and can be used freely in any project.
@@ -418,11 +422,7 @@ There are two different ways to ensure validation of entities in structr. The fi
 ```java
 public class Author extends AbstractNode {
 
-	public static final Property<String> email = new StringProperty("email",
-		new SimpleRegexValidator("[A-Za-z0-9!#$%&'*+-/=?^_`{|}~]+@[A-Za-z0-9-]+(.[A-Za-z0-9-]+)*"),
-		new TypeUniquenessValidator(Author.class)
-	);
-
+	public static final Property<String> email    = new StringProperty("email");
 	public static final Property<Date>   birthday = new DateProperty("birthday", "dd.MM.yyyy");
 	public static final Property<Date>   cakeday  = new ISO8601DateProperty("cakeday");
 
@@ -430,12 +430,6 @@ public class Author extends AbstractNode {
 		name, email, birthday, cakeday
 	);
 
-	static {
-
-		// register a uniqueness validator on the 'name' property of the type 'Author'
-		Author.name.addValidator(new TypeUniquenessValidator(Author.class));
-	}
-	
 	@Override
 	public boolean isValid(ErrorBuffer errorBuffer) {
 		
@@ -634,27 +628,22 @@ Server: Jetty(8.1.10.v20130312)
 We are aware of the redundancy that comes from having two different approaches to validation, but this is due to historical reasons and will be addressed in future releases.
 
 ## Indexing, searching, sorting and paging
-Before we advance to related entities and relationships, there is one feature that can be illustrated with the current project setup. structr provides automatic indexing, sorting and sophisticated query abilities using the Lucene search engine. In order to use these abilities, we must register properties in an entity to be *searchable*.
+Before we advance to related entities and relationships, there is one feature that can be illustrated with the current project setup. structr provides automatic indexing, sorting and sophisticated query abilities using the Lucene search engine. In order to use these abilities, we must register properties in an entity to be indexed.
 
 ### Fulltext and keyword index
-The Neo4j implementation of the Lucene index provider supports fulltext and keyword indexing, which differ in the Analyzer implementation that is used to analyze the values that are indexed for a given entity. Since it is possible to combine more than one search field and sorting in a single REST query, we recommend registration of searchable properties in both the *fulltext* and the *keyword* index. **Lucene queries will only work correctly if the properties used for searching and sorting are stored in the same index.**
+The Neo4j implementation of the Lucene index provider supports fulltext and keyword indexing, which differ in the Analyzer implementation that is used to analyze the values that are indexed for a given entity. Since it is possible to combine more than one search field and sorting in a single REST query, indexed properties are registered in both the *fulltext* and the *keyword* index per default. **Note that Lucene queries will only work correctly if the properties used for searching and sorting are stored in the same index.**
 
 ### Setup
-The following code shows how this is done in the current version of structr, though it is likely to change before the 1.0 release, because we plan to move it to the Property class. Right now, the `EntityContext` handles searchable properties, so the properties need to be registered in the static constructor of an entity class like in the example below.
+Registering a property for indexing can be done using one of the `indexed()` methods of the `PropertyKey` interface. For an explanation of the semantics of each method, please refer to the structr JavaDocs.
 
 ```java
-static {
-
-	// register searchable properties in fulltext index
-	EntityContext.registerSearchablePropertySet(Author.class, NodeService.NodeIndex.fulltext.name(),
-	   name, email, birthday, cakeday
-	);
-	
-	// register searchable properties in keyword index
-	EntityContext.registerSearchablePropertySet(Author.class, NodeService.NodeIndex.keyword.name(),
-	   name, email, birthday, cakeday
-	);
-}
+public Property<T> indexed();
+public Property<T> indexed(NodeIndex nodeIndex);
+public Property<T> indexed(RelationshipIndex relIndex);
+public Property<T> passivelyIndexed();
+public Property<T> passivelyIndexed(NodeIndex nodeIndex);
+public Property<T> passivelyIndexed(RelationshipIndex relIndex);
+public Property<T> indexedWhenEmpty();
 ```
 
 Now with all the properties, views, validation and indexing in place, the final Author entity looks like this.
@@ -665,10 +654,10 @@ public class Author extends AbstractNode {
 	public static final Property<String> email    = new StringProperty("email",
 		new SimpleRegexValidator("[A-Za-z0-9!#$%&'*+-/=?^_`{|}~]+@[A-Za-z0-9-]+(.[A-Za-z0-9-]+)*"),
 		new TypeUniquenessValidator(Author.class)
-	);
+	).indexed();
 
-	public static final Property<Date>   birthday = new DateProperty("birthday", "dd.MM.yyyy");
-	public static final Property<Date>   cakeday  = new ISO8601DateProperty("cakeday");
+	public static final Property<Date>   birthday = new DateProperty("birthday", "dd.MM.yyyy").indexed();
+	public static final Property<Date>   cakeday  = new ISO8601DateProperty("cakeday").indexed();
 
 	public static final View defaultView = new View(Author.class, PropertyView.Public,
 		name, email, birthday, cakeday
@@ -678,16 +667,6 @@ public class Author extends AbstractNode {
 
 		// register a uniqueness validator on the 'name' property of the type 'Author'
 		Author.name.addValidator(new TypeUniquenessValidator(Author.class));
-    
-    	// register searchable properties in fulltext index
-    	EntityContext.registerSearchablePropertySet(Author.class, NodeService.NodeIndex.fulltext.name(),
-    	   name, email, birthday, cakeday
-    	);
-    	
-    	// register searchable properties in keyword index
-    	EntityContext.registerSearchablePropertySet(Author.class, NodeService.NodeIndex.keyword.name(),
-    	   name, email, birthday, cakeday
-    	);
     }
 	
 	@Override
@@ -707,7 +686,9 @@ public class Author extends AbstractNode {
 }
 ```
 
-For the following examples, we created a list of authors in the database so we can search, query, sort and page the list.
+For the following examples, we created a list of authors in the database so we can search, query, sort and page the list. You can find the script to create the test data in the `example-backend` source code repository.
+
+Note that the `name` property of every node is indexed per default.
 
 ### Exact search
 Searching the structr REST server is done by appending the desired search key and the value to the REST URL like in the following examples. Please note that you need to encode the search value according to RFC3986 ("percent-encoding"), which is the standard for URL encoding.
@@ -720,7 +701,7 @@ dev:~$ curl -i "http://localhost:1234/api/authors?name=Author%20A"
 #### Result
 ```
 {
-   "query_time": "0.002369081",
+   "query_time": "0.001750355",
    "result_count": 1,
    "result": [
       {
@@ -728,11 +709,11 @@ dev:~$ curl -i "http://localhost:1234/api/authors?name=Author%20A"
          "email": "z@structr.org",
          "birthday": "01.01.1970",
          "cakeday": "2020-01-01T10:00:00+0100",
-         "id": "cf4a535ad7d64080b2fb8df06cde1251",
+         "id": "46020bbb748a41859bc8e79661a4c203",
          "type": "Author"
       }
    ],
-   "serialization_time": "0.000307762"
+   "serialization_time": "0.000392451"
 }
 ```
 
@@ -744,7 +725,7 @@ dev:~$ curl -i "http://localhost:1234/api/authors?birthday=01.01.1989"
 #### Result
 ```
 {
-   "query_time": "0.003930407",
+   "query_time": "0.001522012",
    "result_count": 1,
    "result": [
       {
@@ -752,11 +733,11 @@ dev:~$ curl -i "http://localhost:1234/api/authors?birthday=01.01.1989"
          "email": "g@structr.org",
          "birthday": "01.01.1989",
          "cakeday": "2001-01-01T10:00:00+0100",
-         "id": "b5277e7d012843b1b2c6ed4120b46699",
+         "id": "f99755edefed4704ab998820fb41e71a",
          "type": "Author"
       }
    ],
-   "serialization_time": "0.000698022"
+   "serialization_time": "0.000377199"
 }
 ```
 
@@ -771,7 +752,7 @@ dev:~$ curl -i "http://localhost:1234/api/authors?loose=1&name=z&email=a"
 #### Result
 ```
 {
-   "query_time": "0.009421869",
+   "query_time": "0.004597483",
    "result_count": 1,
    "result": [
       {
@@ -779,31 +760,247 @@ dev:~$ curl -i "http://localhost:1234/api/authors?loose=1&name=z&email=a"
          "email": "a@structr.org",
          "birthday": "01.01.1995",
          "cakeday": "1995-01-01T10:00:00+0100",
-         "id": "ea13aaaacfd040f2ade339e0f7b69183",
+         "id": "15c07deca1c94b3ab0aa60a3b02e2e5e",
          "type": "Author"
       }
    ],
-   "serialization_time": "0.001392529"
+   "serialization_time": "0.000467224"
 }
 ```
 
 ### Range queries
 structr supports range queries for both numeric and text fields. The syntax is the same as the one that is used by Lucene, the only difference is that you have to encode the square brackets and spaces in URL encoding.
 
-#### Example range query term
+#### Example range query terms
 ```
+[300 TO 400]
 [01.01.1980 TO 01.01.1990]
+[A TO Z]
 ```
 
-#### REST query
+#### Query
 ```
+dev:~$ curl -i "http://localhost:1234/api/authors?birthday=%5B01.01.1980%20TO%2001.01.1990%5D"
 ```
 
+#### Result
+```
+{
+   "query_time": "0.005176975",
+   "result_count": 11,
+   "result": [
+      {
+         "name": "Author K",
+         "email": "p@structr.org",
+         "birthday": "01.01.1980",
+         "cakeday": "2010-01-01T10:00:00+0100",
+         "id": "5cb83f7e01404534bfa0ad0db9191912",
+         "type": "Author"
+      },
+      {
+         "name": "Author L",
+         "email": "o@structr.org",
+         "birthday": "01.01.1981",
+         "cakeday": "2009-01-01T10:00:00+0100",
+         "id": "a427880cc9ce4e20a0eb023eb8c8ac56",
+         "type": "Author"
+      },
+      {
+         "name": "Author M",
+         "email": "n@structr.org",
+         "birthday": "01.01.1982",
+         "cakeday": "2008-01-01T10:00:00+0100",
+         "id": "0aed6335d2f940a590a4ac6cacbd3886",
+         "type": "Author"
+      },
+      {
+         "name": "Author N",
+         "email": "m@structr.org",
+         "birthday": "01.01.1983",
+         "cakeday": "2007-01-01T10:00:00+0100",
+         "id": "391ed290e7ef4bbcbb61137efdf9f14f",
+         "type": "Author"
+      },
+      {
+         "name": "Author O",
+         "email": "l@structr.org",
+         "birthday": "01.01.1984",
+         "cakeday": "2006-01-01T10:00:00+0100",
+         "id": "ee3f914867704472bad6adf458debb5c",
+         "type": "Author"
+      },
+      {
+         "name": "Author P",
+         "email": "k@structr.org",
+         "birthday": "01.01.1985",
+         "cakeday": "2005-01-01T10:00:00+0100",
+         "id": "9847ce91a8154758a762fdbe5937f549",
+         "type": "Author"
+      },
+      {
+         "name": "Author Q",
+         "email": "j@structr.org",
+         "birthday": "01.01.1986",
+         "cakeday": "2004-01-01T10:00:00+0100",
+         "id": "43148d2f446742dc95a11112ff48aeb8",
+         "type": "Author"
+      },
+      {
+         "name": "Author R",
+         "email": "i@structr.org",
+         "birthday": "01.01.1987",
+         "cakeday": "2003-01-01T10:00:00+0100",
+         "id": "c2aa4d415afa4d9cad75bdacd8c6b8bc",
+         "type": "Author"
+      },
+      {
+         "name": "Author S",
+         "email": "h@structr.org",
+         "birthday": "01.01.1988",
+         "cakeday": "2002-01-01T10:00:00+0100",
+         "id": "cda04be3cce849ec8c0bfded5bc62e28",
+         "type": "Author"
+      },
+      {
+         "name": "Author T",
+         "email": "g@structr.org",
+         "birthday": "01.01.1989",
+         "cakeday": "2001-01-01T10:00:00+0100",
+         "id": "90a7323b4ae24a16a86cf651b702311e",
+         "type": "Author"
+      },
+      {
+         "name": "Author U",
+         "email": "f@structr.org",
+         "birthday": "01.01.1990",
+         "cakeday": "2000-01-01T10:00:00+0100",
+         "id": "c18808619efb4af7a5de6794138afce9",
+         "type": "Author"
+      }
+   ],
+   "serialization_time": "0.005467457"
+}
 
+```
+
+As you can see, the result set contains the 11 authors whose birthdays lie between 01.01.1980 and 01.01.1990, inclusively.
 
 ### Sorting
+Sorting a result set in structr can be done by supplying one or two additional request parameters to the REST query: `sort` and/or `order`. With the `sort` request parameter, you can specify the property key by which the result set will be sorted. The `order` request parameter accepts the values `asc`, which is the default, and `desc`, which of course causes the result set to be returned in descending order.
+
+#### Indexing and Sorting
+Please note that you need to mark a property key as being indexed in order to be able to sort a collection by the given key.
+
+#### Query
+```
+dev:~$ curl -i "http://localhost:1234/api/authors?birthday=%5B01.01.1980%20TO%2001.01.1990%5D&sort=birthday&order=desc"
+```
+
+#### Result
+```
+{
+   "query_time": "0.003858155",
+   "result_count": 11,
+   "result": [
+      {
+         "name": "Author U",
+         "email": "f@structr.org",
+         "birthday": "01.01.1990",
+         "cakeday": "2000-01-01T10:00:00+0100",
+         "id": "ca747d849a3448e6b755e7ea08040055",
+         "type": "Author"
+      },
+      {
+         "name": "Author T",
+         "email": "g@structr.org",
+         "birthday": "01.01.1989",
+         "cakeday": "2001-01-01T10:00:00+0100",
+         "id": "edb98057eb3747a3bfb6837f1c87ee29",
+         "type": "Author"
+      },
+      {
+         "name": "Author S",
+         "email": "h@structr.org",
+         "birthday": "01.01.1988",
+         "cakeday": "2002-01-01T10:00:00+0100",
+         "id": "442b3223ff7f48519600cd19babf4acf",
+         "type": "Author"
+      },
+      {
+         "name": "Author R",
+         "email": "i@structr.org",
+         "birthday": "01.01.1987",
+         "cakeday": "2003-01-01T10:00:00+0100",
+         "id": "e3889f3133a448ecb0a89606b1b07d48",
+         "type": "Author"
+      },
+      {
+         "name": "Author Q",
+         "email": "j@structr.org",
+         "birthday": "01.01.1986",
+         "cakeday": "2004-01-01T10:00:00+0100",
+         "id": "7e67e0cc095d4855937a23e506df264e",
+         "type": "Author"
+      },
+      {
+         "name": "Author P",
+         "email": "k@structr.org",
+         "birthday": "01.01.1985",
+         "cakeday": "2005-01-01T10:00:00+0100",
+         "id": "9e2aed5255c841a7be38121b07bf0ed6",
+         "type": "Author"
+      },
+      {
+         "name": "Author O",
+         "email": "l@structr.org",
+         "birthday": "01.01.1984",
+         "cakeday": "2006-01-01T10:00:00+0100",
+         "id": "742e60011e5c4c29b6b1a686ed6fef3e",
+         "type": "Author"
+      },
+      {
+         "name": "Author N",
+         "email": "m@structr.org",
+         "birthday": "01.01.1983",
+         "cakeday": "2007-01-01T10:00:00+0100",
+         "id": "293c30c464a2410c967e630bd8686c11",
+         "type": "Author"
+      },
+      {
+         "name": "Author M",
+         "email": "n@structr.org",
+         "birthday": "01.01.1982",
+         "cakeday": "2008-01-01T10:00:00+0100",
+         "id": "443e4179bdb4427990c6dfbbd0da916b",
+         "type": "Author"
+      },
+      {
+         "name": "Author L",
+         "email": "o@structr.org",
+         "birthday": "01.01.1981",
+         "cakeday": "2009-01-01T10:00:00+0100",
+         "id": "27a558a90db34506b4061a2534dff436",
+         "type": "Author"
+      },
+      {
+         "name": "Author K",
+         "email": "p@structr.org",
+         "birthday": "01.01.1980",
+         "cakeday": "2010-01-01T10:00:00+0100",
+         "id": "dc1776a068f84ffcb634d5445ed13965",
+         "type": "Author"
+      }
+   ],
+   "serialization_time": "0.004278493"
+}
+```
 
 ### Paging
+In a database, you often have to deal with large amounts of data. You will most certainly never want to display several thousand objects at once, so you need paging to reduce the size of the result set. In structr, this can again be done by supplying one to three additional request parameters: `pageSize`, `page` and `offsetId`
+
+#### Simple paging
+
+#### Paging on a given element
 
 
 ## Adding relationships

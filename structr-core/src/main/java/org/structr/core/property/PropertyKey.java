@@ -26,6 +26,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.graph.NodeService;
 import org.structr.core.graph.search.SearchAttribute;
 
 /**
@@ -34,17 +35,119 @@ import org.structr.core.graph.search.SearchAttribute;
  * @author Christian Morgner
  */
 public interface PropertyKey<T> {
-	
+
+	/**
+	 * Return the JSON name of this property.
+	 * 
+	 * @return 
+	 */
 	public String jsonName();
+	
+	/**
+	 * Returns the database name of this property.
+	 * 
+	 * @return 
+	 */
 	public String dbName();
+	
+	/**
+	 * Sets the name of this property in the JSON context. This
+	 * is the key under which the property will be found in the
+	 * JSON input/output.
+	 * 
+	 * @param jsonName 
+	 */
+	public void jsonName(String jsonName);
+
+	/**
+	 * Sets the name of this property in the database context. This
+	 * is the key under which the property will be stored in the
+	 * database.
+	 * 
+	 * @param dbName
+	 */
+	public void dbName(String dbName);
+	
+	/**
+	 * Use this method to mark a property for indexing. This
+	 * method registers the property in both the keyword and
+	 * the fulltext index. To select the appropriate index
+	 * for yourself, use the other indexed() methods.
+	 * 
+	 * @return the Property to satisfy the builder pattern
+	 */
+	public Property<T> indexed();
+	
+	/**
+	 * Use this method to mark a property for indexing 
+	 * in the given index.
+	 * 
+	 * @return the Property to satisfy the builder pattern
+	 */
+	public Property<T> indexed(NodeService.NodeIndex nodeIndex);
+	
+	/**
+	 * Use this method to mark a property for indexing 
+	 * in the given index.
+	 * 
+	 * @return the Property to satisfy the builder pattern
+	 */
+	public Property<T> indexed(NodeService.RelationshipIndex relIndex);
+	
+	/**
+	 * Use this method to indicate that a property key can change its value
+	 * without setProperty() being called directly on it. This method causes
+	 * the given property to be indexed at the end of a transaction instead
+	 * of immediately on setProperty(). This method registers the property
+	 * in both the keyword and the fulltext index. To select the appropriate
+	 * index for yourself, use the other indexed() methods.
+	 * 
+	 * @return the Property to satisfy the builder pattern
+	 */
+	public Property<T> passivelyIndexed();
+	
+	/**
+	 * Use this method to indicate that a property key can change its value
+	 * without setProperty() being called directly on it. This method causes
+	 * the given property to be indexed at the end of a transaction instead
+	 * of immediately on setProperty().
+	 * 
+	 * @return the Property to satisfy the builder pattern
+	 */
+	public Property<T> passivelyIndexed(NodeService.NodeIndex nodeIndex);
+	
+	/**
+	 * Use this method to indicate that a property key can change its value
+	 * without setProperty() being called directly on it. This method causes
+	 * the given property to be indexed at the end of a transaction instead
+	 * of immediately on setProperty().
+	 * 
+	 * @return the Property to satisfy the builder pattern
+	 */
+	public Property<T> passivelyIndexed(NodeService.RelationshipIndex relIndex);
+	
+	public Property<T> indexedWhenEmpty();
+	
 	
 	/**
 	 * Returns the desired type name that will be used in the error message if a
 	 * wrong type was provided.
 	 */
 	public String typeName();
+	
+	/**
+	 * Returns the type of the related property this property key references, or
+	 * null if this is not a relationship property.
+	 * 
+	 * @return 
+	 */
 	public Class relatedType();
 	
+	/**
+	 * Returns the default value for this property.
+	 * 
+	 * @return 
+	 */
 	public T defaultValue();
 	
 	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext);
@@ -65,26 +168,75 @@ public interface PropertyKey<T> {
 	public void registrationCallback(Class entityType);
 	
 	/**
-	 * Indicates whether this property is a system property or not. If a transaction
-	 * contains only modifications AND those modifications affect system properties
-	 * only, structr will NOT call afterModification callbacks.
+	 * Indicates whether this property is an unvalidated property or not.
+	 * If a transaction contains only modifications AND those modifications
+	 * affect unvalidated properties only, structr will NOT call
+	 * afterModification callbacks. This can be used to avoid endless
+	 * loops after a transaction. Just mark the property key that causes
+	 * the loop as unvalidated.
 	 * 
-	 * @return 
+	 * @return whether this property is unvalidated
 	 */
 	public boolean isUnvalidated();
 	
+	/**
+	 * Indicates whether this property is read-only. Read-only properties
+	 * will throw a FrameworkException with error code 422 when the value
+	 * is modified.
+	 * 
+	 * @return 
+	 */
 	public boolean isReadOnly();
 
+	/**
+	 * Indicates whether this property is write-once. Write-once properties
+	 * will throw a FrameworkException with error code 422 when the value
+	 * is modified after it has been initially set.
+	 * 
+	 * @return 
+	 */
 	public boolean isWriteOnce();
 
+	/**
+	 * Indicates whether this property is indexed, i.e. searchable using
+	 * REST queries.
+	 * 
+	 * @return 
+	 */
 	public boolean isIndexed();
 
+	/**
+	 * Indicates whether this property is indexed. The difference to the
+	 * above method is, that the value for indexing will be obtained at
+	 * the end of the transaction, so you can use this method to achieve
+	 * indexing (and searchability) of properties that are never directly
+	 * set using setProperty.
+	 * 
+	 * @return 
+	 */
 	public boolean isPassivelyIndexed();
 	
+	/**
+	 * Indicates whether this property is searchable.
+	 * @return 
+	 */
 	public boolean isSearchable();
 
+	/**
+	 * Indicates whether this property is searchable with an empty value.
+	 * This behaviour is achieved by storing a special value for empty
+	 * fields which can then later be found again.
+	 * 
+	 * @return 
+	 */
 	public boolean isIndexedWhenEmpty();
 
+	/**
+	 * Indicates whether this property represents a collection or a single
+	 * value in the JSON output.
+	 * 
+	 * @return 
+	 */
 	public boolean isCollection();
 
 	/**

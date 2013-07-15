@@ -460,7 +460,7 @@ public class StructrRestTest extends TestCase {
 			}
 			
 			config.add("# JSON output nesting depth");
-			config.add("json.depth = 1");
+			config.add("json.depth = 4");
 			config.add("");
 			config.add("# base directory");
 			config.add("base.path = " + basePath);
