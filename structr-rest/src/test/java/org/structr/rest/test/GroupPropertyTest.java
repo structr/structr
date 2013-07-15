@@ -112,6 +112,141 @@ public class GroupPropertyTest extends StructrRestTest{
 				.get(concat("/test_group_prop_three/"+test032));
 	}
 	
+	public void test02SearchProperty(){
+		
+		String test01 = createEntity("/test_group_prop_four","{gP:{sP:text,iP:1337}}");
+		
+		// Test find sP in GroupProperty gP
+		// expected result is a single object
+		RestAssured
+		    
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				//.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			
+			.expect()
+				.statusCode(200)
+
+				.body("result", hasSize(1))
+				.body("result_count", equalTo(1))
+				.body("result[0].id", equalTo(test01))
+
+			.when()
+				.get(concat("/test_group_prop_four/?gP.sP=text"));
+		
+		// Test find iP in GroupProperty gP
+		// expected result is empty
+		RestAssured
+		    
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				//.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			
+			.expect()
+				.statusCode(200)
+
+				.body("result", hasSize(0))
+				.body("result_count", equalTo(0))
+
+			.when()
+				.get(concat("/test_group_prop_four/?gP.iP=1336"));
+		
+		String test02 = createEntity("/test_group_prop_four","{twitter:{uid:11111}}");
+		String test03 = createEntity("/test_group_prop_four","{facebook:{uid:11111}}");
+		
+		// Test find uid in GroupProperty twitter
+		// expected result is a single object
+		RestAssured
+		    
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				//.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			
+			.expect()
+				.statusCode(200)
+
+				.body("result", hasSize(1))
+				.body("result_count", equalTo(1))
+				.body("result[0].id", equalTo(test02))
+
+			.when()
+				.get(concat("/test_group_prop_four/?twitter.uid=11111"));
+		
+		// Test find uid in GroupProperty facebook
+		// expected result is single object
+		RestAssured
+		    
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				//.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			
+			.expect()
+				.statusCode(200)
+
+				.body("result", hasSize(1))
+				.body("result_count", equalTo(1))
+				.body("result[0].id", equalTo(test03))
+
+			.when()
+				.get(concat("/test_group_prop_four/?facebook.uid=11111"));
+		
+		String test04 = createEntity("/test_group_prop_four","{facebook:{uid:11111},twitter:{uid:22222}}");
+		String test05 = createEntity("/test_group_prop_four","{facebook:{uid:22222},twitter:{uid:11111}}");
+		String test06 = createEntity("/test_group_prop_four","{facebook:{uid:33333},twitter:{uid:22222}}");
+		String test07 = createEntity("/test_group_prop_four","{facebook:{uid:33333},twitter:{uid:33333}}");
+		
+		// find facebook AND Twitter with uid 11111
+		// expected result is empty
+		RestAssured
+		    
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				//.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			
+			.expect()
+				.statusCode(200)
+
+				.body("result", hasSize(0))
+				.body("result_count", equalTo(0))
+
+			.when()
+				.get(concat("/test_group_prop_four/?facebook.uid=11111&twitter.uid=11111"));
+		
+		// find facebook with uid 33333
+		// expected result is a list of 2 objects
+		RestAssured
+		    
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				//.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			
+			.expect()
+				.statusCode(200)
+
+				.body("result", hasSize(2))
+				.body("result_count", equalTo(2))
+
+			.when()
+				.get(concat("/test_group_prop_four/?facebook.uid=33333"));
+		
+		// find twitter with uid 33333
+		// expected result is a single object
+		RestAssured
+		    
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				//.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			
+			.expect()
+				.statusCode(200)
+
+				.body("result", hasSize(1))
+				.body("result_count", equalTo(1))
+
+			.when()
+				.get(concat("/test_group_prop_four/?twitter.uid=33333"));
+	}
+	
 	private String concat(String... parts) {
 
 		StringBuilder buf = new StringBuilder();
