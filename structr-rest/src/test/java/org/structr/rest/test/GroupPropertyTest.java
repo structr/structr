@@ -130,6 +130,7 @@ public class GroupPropertyTest extends StructrRestTest{
 				.body("result", hasSize(1))
 				.body("result_count", equalTo(1))
 				.body("result[0].id", equalTo(test01))
+				.body("result[0].gP.sP", equalTo("text"))
 
 			.when()
 				.get(concat("/test_group_prop_four/?gP.sP=text"));
@@ -186,6 +187,7 @@ public class GroupPropertyTest extends StructrRestTest{
 				.body("result", hasSize(1))
 				.body("result_count", equalTo(1))
 				.body("result[0].id", equalTo(test03))
+				.body("result[0].facebook.uid",equalTo(11111))
 
 			.when()
 				.get(concat("/test_group_prop_four/?facebook.uid=11111"));
@@ -214,6 +216,7 @@ public class GroupPropertyTest extends StructrRestTest{
 		
 		// find facebook with uid 33333
 		// expected result is a list of 2 objects
+		// sort desc on twitter.uid
 		RestAssured
 		    
 			.given()
@@ -225,9 +228,13 @@ public class GroupPropertyTest extends StructrRestTest{
 
 				.body("result", hasSize(2))
 				.body("result_count", equalTo(2))
+				.body("result[0].facebook.uid",equalTo(33333))
+				.body("result[1].facebook.uid",equalTo(33333))
+				.body("result[0].twitter.uid",equalTo(33333))
+				.body("result[1].twitter.uid",equalTo(22222))
 
 			.when()
-				.get(concat("/test_group_prop_four/?facebook.uid=33333"));
+				.get(concat("/test_group_prop_four/?facebook.uid=33333&sort=twitter.uid&order=desc"));
 		
 		// find twitter with uid 33333
 		// expected result is a single object
@@ -242,6 +249,9 @@ public class GroupPropertyTest extends StructrRestTest{
 
 				.body("result", hasSize(1))
 				.body("result_count", equalTo(1))
+				.body("result[0].id", equalTo(test07))
+				.body("result[0].twitter.uid",equalTo(33333))
+				.body("result[0].facebook.uid",equalTo(33333))
 
 			.when()
 				.get(concat("/test_group_prop_four/?twitter.uid=33333"));
