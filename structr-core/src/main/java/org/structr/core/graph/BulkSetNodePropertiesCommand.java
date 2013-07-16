@@ -79,7 +79,7 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 				type = (String) properties.get(AbstractNode.type.dbName());
 				List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
 
-				attrs.add(Search.andExactType(type));
+				attrs.add(Search.andExactType(EntityContext.getEntityClassForRawType(type)));
 
 				nodes = searchNode.execute(attrs);
 

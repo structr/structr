@@ -58,7 +58,7 @@ public class BulkFixNodePropertiesCommand extends NodeServiceCommand implements 
 			final Class type = EntityContext.getEntityClassForRawType(entityTypeName);
 			if (type != null) {
 				
-				final Result<AbstractNode> result = Services.command(superUserContext, SearchNodeCommand.class).execute(true, false, Search.andExactType(type.getSimpleName()));
+				final Result<AbstractNode> result = Services.command(superUserContext, SearchNodeCommand.class).execute(true, false, Search.andExactType(type));
 				final List<AbstractNode> nodes    = result.getResults();
 
 				if (type != null) {

@@ -18,6 +18,7 @@
  */
 package org.structr.core.graph.search;
 
+import java.util.logging.Logger;
 import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanClause.Occur;
@@ -26,7 +27,6 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.WildcardQuery;
 import org.structr.core.GraphObject;
-import org.structr.core.graph.NodeAttribute;
 import org.structr.core.property.PropertyKey;
 
 /**
@@ -36,11 +36,13 @@ import org.structr.core.property.PropertyKey;
  */
 public class PropertySearchAttribute<T> extends SearchAttribute<T> {
 
+	private static final Logger logger = Logger.getLogger(PropertySearchAttribute.class.getName());
+	
 	private boolean isExactMatch = false;
 	
 	public PropertySearchAttribute(final PropertyKey<T> key, final T value, final Occur occur, final boolean isExactMatch) {
 		
-		super(occur, new NodeAttribute<T>(key, value));
+		super(occur, key, value);
 		
 		this.isExactMatch = isExactMatch;
 	}
@@ -69,7 +71,7 @@ public class PropertySearchAttribute<T> extends SearchAttribute<T> {
 			BooleanQuery query = new BooleanQuery();
 			
 			// Split string into words
-			String[] words = StringUtils.split(getStringValue(), " ");
+			String[] words = StringUtils.split(getInexactValue(), " ");
 			for (String word : words) {
 
 				query.add(new WildcardQuery(new Term(getKey().dbName(), word)), Occur.SHOULD);
@@ -98,17 +100,29 @@ public class PropertySearchAttribute<T> extends SearchAttribute<T> {
 		
 		return null;
 	}
+	
+	@Override
+	public String getInexactValue() {
+		
+		String stringValue = getStringValue();
+		if (stringValue != null) {
+			
+			return stringValue.toLowerCase();
+		}
+		
+		return null;
+	}
 
 	@Override
 	public boolean includeInResult(GraphObject entity) {
 		
-		Occur occur   = getOccur();
-		T searchValue = getValue();
-		T nodeValue   = entity.getProperty(getKey());
-		
+		T nodeValue          = entity.getProperty(getKey());
+		Occur occur          = getOccur();
+		T searchValue        = getValue();
+
 		if (occur.equals(Occur.MUST_NOT)) {
 
-			if ((nodeValue != null) && !(nodeValue.equals(searchValue))) {
+			if ((nodeValue != null) && compare(nodeValue, searchValue) != 0) {
 
 				// don't add, do not check other results
 				return false;
@@ -118,7 +132,7 @@ public class PropertySearchAttribute<T> extends SearchAttribute<T> {
 
 			if (nodeValue != null) {
 
-				if (!nodeValue.equals(searchValue)) {
+				if (compare(nodeValue, searchValue) != 0) {
 					return false;
 				}
 
@@ -131,5 +145,18 @@ public class PropertySearchAttribute<T> extends SearchAttribute<T> {
 		}
 		
 		return true;
+	}
+	
+	private int compare(T nodeValue, T searchValue) {
+		
+		if (nodeValue instanceof Comparable && searchValue instanceof Comparable) {
+			
+			Comparable n = (Comparable)nodeValue;
+			Comparable s = (Comparable)searchValue;
+			
+			return n.compareTo(s);
+		}
+		
+		return 0;
 	}
 }

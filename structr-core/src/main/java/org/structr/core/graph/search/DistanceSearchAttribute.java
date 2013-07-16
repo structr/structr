@@ -134,6 +134,11 @@ public class DistanceSearchAttribute extends SearchAttribute {
 	}
 
 	@Override
+	public String getInexactValue() {
+		return null;
+	}
+
+	@Override
 	public boolean includeInResult(GraphObject entity) {
 		return true;
 	}

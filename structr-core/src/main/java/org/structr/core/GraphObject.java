@@ -112,7 +112,7 @@ public interface GraphObject {
 	 * @param key the property key to retrieve the value for
 	 * @return the property value for the given key as a Comparable
 	 */
-	public Comparable getComparableProperty(final PropertyKey<? extends Comparable> key) throws FrameworkException;
+	public <T> Comparable getComparableProperty(final PropertyKey<T> key);
 
 	/**
 	 * Returns the property value for the given key that will be used

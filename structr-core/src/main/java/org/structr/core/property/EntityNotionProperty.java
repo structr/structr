@@ -181,40 +181,57 @@ public class EntityNotionProperty<S extends GraphObject, T> extends Property<T> 
 		try {
 
 			if (searchValue != null && !StringUtils.isBlank(searchValue.toString())) {
-				
-				Result<AbstractNode> result = Services.command(securityContext, SearchNodeCommand.class).execute(
 
-					Search.andExactType(base.relatedType().getSimpleName()),
-					Search.andExactProperty(securityContext, notion.getPrimaryPropertyKey(), searchValue)
-				);
+				if (exactMatch) {
+					
+					Result<AbstractNode> result = Services.command(securityContext, SearchNodeCommand.class).execute(
 
-				for (AbstractNode node : result.getResults()) {
+						Search.andExactTypeAndSubtypes(base.relatedType(), exactMatch),
+						Search.andExactProperty(securityContext, notion.getPrimaryPropertyKey(), searchValue)
+					);
 
-					switch (occur) {
+					for (AbstractNode node : result.getResults()) {
 
-						case MUST:
+						switch (occur) {
 
-							if (!alreadyAdded) {
+							case MUST:
 
-								// the first result is the basis of all subsequent intersections
+								if (!alreadyAdded) {
+
+									// the first result is the basis of all subsequent intersections
+									intersectionResult.addAll(entityProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
+
+									// the next additions are intersected with this one
+									alreadyAdded = true;
+
+								} else {
+
+									intersectionResult.retainAll(entityProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
+								}
+
+								break;
+
+							case SHOULD:
 								intersectionResult.addAll(entityProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
+								break;
 
-								// the next additions are intersected with this one
-								alreadyAdded = true;
+							case MUST_NOT:
+								break;
+						}
+					}
+					
+				} else {
+					
+					Result<AbstractNode> result = Services.command(securityContext, SearchNodeCommand.class).execute(
 
-							} else {
+						Search.andExactTypeAndSubtypes(base.relatedType(), exactMatch),
+						Search.andProperty(securityContext, notion.getPrimaryPropertyKey(), searchValue)
+					);
+					
+					// loose search behaves differently, all results must be combined
+					for (AbstractNode node : result.getResults()) {
 
-								intersectionResult.retainAll(entityProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
-							}
-
-							break;
-
-						case SHOULD:
-							intersectionResult.addAll(entityProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
-							break;
-
-						case MUST_NOT:
-							break;
+						intersectionResult.addAll(entityProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
 					}
 				}
 

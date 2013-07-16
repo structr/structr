@@ -92,7 +92,7 @@ public class DynamicTypeResource extends TypeResource {
 				throw new NotFoundException();
 			}
 
-			searchAttributes.add(Search.andExactType(normalizedTypeName));
+			searchAttributes.add(Search.andExactType(entityClass));
 			searchAttributes.addAll(extractSearchableAttributes(securityContext, entityClass, request));
 			
 			// do search

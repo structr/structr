@@ -76,7 +76,7 @@ public class AuthHelper {
 		try {
 			
 			result = Services.command(securityContext, SearchNodeCommand.class).execute(
-				Search.andExactTypeAndSubtypes(Principal.class.getSimpleName()),
+				Search.andExactTypeAndSubtypes(Principal.class),
 				Search.andExactProperty(securityContext, Person.email, email));
 
 		} catch (FrameworkException ex) {
@@ -123,7 +123,7 @@ public class AuthHelper {
 				SearchNodeCommand searchNode    = Services.command(securityContext, SearchNodeCommand.class);
 				List<SearchAttribute> attrs     = new LinkedList<SearchAttribute>();
 
-				attrs.add(Search.andExactTypeAndSubtypes(Principal.class.getSimpleName()));
+				attrs.add(Search.andExactTypeAndSubtypes(Principal.class));
 				SearchAttributeGroup group = new SearchAttributeGroup(Occur.MUST);
 				group.add(Search.orExactProperty(securityContext, key, value));
 				group.add(Search.orExactProperty(securityContext, AbstractNode.name, value));
@@ -204,7 +204,7 @@ public class AuthHelper {
 		SecurityContext securityContext = SecurityContext.getSuperUserInstance();
 
 		attrs.add(Search.andExactProperty(securityContext, Principal.sessionId, sessionId));
-		attrs.add(Search.andExactTypeAndSubtypes(Principal.class.getSimpleName()));
+		attrs.add(Search.andExactTypeAndSubtypes(Principal.class));
 
 		try {
 

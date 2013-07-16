@@ -65,7 +65,7 @@ public class ListFilesCommand extends AbstractCommand {
 		Class type                             = EntityContext.getEntityClassForRawType(rawType);
 		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 
-		searchAttributes.add(Search.andExactType(type.getSimpleName()));
+		searchAttributes.add(Search.andExactType(type));
 		
 		// for image lists, suppress thumbnails
 		if (type.equals(Image.class)) {

@@ -181,10 +181,9 @@ public class SuperUser implements Principal {
 	}
 
 	@Override
-	public Comparable getComparableProperty(PropertyKey<? extends Comparable> key) throws FrameworkException {
+	public <T> Comparable getComparableProperty(PropertyKey<T> key) {
 
 		return null;
-
 	}
 
 	@Override

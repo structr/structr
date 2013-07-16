@@ -555,12 +555,12 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * @return the property value for the given key as a Comparable
 	 */
 	@Override
-	public Comparable getComparableProperty(final PropertyKey<? extends Comparable> key) {
+	public <T> Comparable getComparableProperty(final PropertyKey<T> key) {
 
-		Object propertyValue = getProperty(key);
+		T propertyValue = getProperty(key);
 		
 		// check property converter
-		PropertyConverter converter = key.databaseConverter(securityContext, this);
+		PropertyConverter<T, ?> converter = key.databaseConverter(securityContext, this);
 		if (converter != null) {
 
 			try {

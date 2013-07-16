@@ -23,16 +23,12 @@
 package org.structr.rest.entity;
 
 import org.structr.common.PropertyView;
-import org.structr.common.RelType;
 import org.structr.common.View;
 import org.structr.core.entity.AbstractNode;
 import static org.structr.core.entity.AbstractNode.name;
-import org.structr.core.property.EntityProperty;
 import org.structr.core.property.GroupProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.StringProperty;
-import static org.structr.rest.entity.TestGroupPropThree.gP;
-import static org.structr.rest.entity.TestGroupPropThree.ggP;
 
 /**
  *

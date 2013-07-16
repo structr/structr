@@ -225,40 +225,58 @@ public class CollectionNotionProperty<S extends GraphObject, T> extends Property
 						allBlank = false;
 					}
 					
-					Result<AbstractNode> result = Services.command(securityContext, SearchNodeCommand.class).execute(
+					if (exactMatch) {
+					
+						Result<AbstractNode> result = Services.command(securityContext, SearchNodeCommand.class).execute(
 
-						Search.andExactType(base.relatedType().getSimpleName()),
-						Search.andExactProperty(securityContext, notion.getPrimaryPropertyKey(), searchValue)
-					);
+							Search.andExactTypeAndSubtypes(base.relatedType(), exactMatch),
+							Search.andExactProperty(securityContext, notion.getPrimaryPropertyKey(), searchValue)
+						);
 
-					for (AbstractNode node : result.getResults()) {
+						for (AbstractNode node : result.getResults()) {
 
-						switch (occur) {
+							switch (occur) {
 
-							case MUST:
+								case MUST:
 
-								if (!alreadyAdded) {
+									if (!alreadyAdded) {
 
-									// the first result is the basis of all subsequent intersections
+										// the first result is the basis of all subsequent intersections
+										intersectionResult.addAll(collectionProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
+
+										// the next additions are intersected with this one
+										alreadyAdded = true;
+
+									} else {
+
+										intersectionResult.retainAll(collectionProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
+									}
+
+									break;
+
+								case SHOULD:
 									intersectionResult.addAll(collectionProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
+									break;
 
-									// the next additions are intersected with this one
-									alreadyAdded = true;
-
-								} else {
-
-									intersectionResult.retainAll(collectionProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
-								}
-
-								break;
-
-							case SHOULD:
-								intersectionResult.addAll(collectionProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
-								break;
-
-							case MUST_NOT:
-								break;
+								case MUST_NOT:
+									break;
+							}
 						}
+						
+					} else {
+
+						Result<AbstractNode> result = Services.command(securityContext, SearchNodeCommand.class).execute(
+
+							Search.andExactTypeAndSubtypes(base.relatedType(), exactMatch),
+							Search.andProperty(securityContext, notion.getPrimaryPropertyKey(), searchValue)
+						);
+
+						// loose search behaves differently, all results must be combined
+						for (AbstractNode node : result.getResults()) {
+
+							intersectionResult.addAll(collectionProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
+						}
+
 					}
 				}
 				

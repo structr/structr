@@ -436,7 +436,7 @@ public class HtmlServlet extends HttpServlet {
 		logger.log(Level.FINE, "Looking for an index page ...");
 
 		List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
-		searchAttrs.add(Search.orExactType(Page.class.getSimpleName()));
+		searchAttrs.add(Search.orExactType(Page.class));
 		
 		Result results = (Result) searchNodesAsSuperuser.execute(searchAttrs);
 
@@ -521,7 +521,7 @@ public class HtmlServlet extends HttpServlet {
 		if (CONFIRM_REGISTRATION_PAGE.equals(path)) {
 		
 			List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
-			searchAttrs.add(Search.andExactType(User.class.getSimpleName()));
+			searchAttrs.add(Search.andExactType(User.class));
 			searchAttrs.add(Search.andMatchValues(securityContext, User.confirmationKey, key, Occur.MUST));
 
 			Result results = (Result) searchNodesAsSuperuser.execute(searchAttrs);
@@ -582,8 +582,8 @@ public class HtmlServlet extends HttpServlet {
 
 			SearchAttributeGroup group = new SearchAttributeGroup(Occur.MUST);
 
-			group.add(Search.orExactType(Page.class.getSimpleName()));
-			group.add(Search.orExactTypeAndSubtypes(File.class.getSimpleName()));
+			group.add(Search.orExactType(Page.class));
+			group.add(Search.orExactTypeAndSubtypes(File.class));
 //			group.add(Search.orExactTypeAndSubtypes(Image.class.getSimpleName())); // redundant
 			searchAttrs.add(group);
 
@@ -617,8 +617,8 @@ public class HtmlServlet extends HttpServlet {
 
 			SearchAttributeGroup group = new SearchAttributeGroup(Occur.MUST);
 
-			group.add(Search.orExactType(Page.class.getSimpleName()));
-			group.add(Search.orExactTypeAndSubtypes(File.class.getSimpleName()));
+			group.add(Search.orExactType(Page.class));
+			group.add(Search.orExactTypeAndSubtypes(File.class));
 //			group.add(Search.orExactTypeAndSubtypes(Image.class.getSimpleName())); // redundant
 			searchAttrs.add(group);
 

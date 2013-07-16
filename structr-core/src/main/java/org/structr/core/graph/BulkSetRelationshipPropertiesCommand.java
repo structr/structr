@@ -70,7 +70,7 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand imp
 			if (properties.containsKey(AbstractRelationship.combinedType.dbName())) {
 
 				List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
-				attrs.add(Search.andExactType((String) properties.get(AbstractRelationship.combinedType.dbName())));
+				attrs.add(Search.andExactProperty(securityContext, AbstractRelationship.type, (String)properties.get(AbstractRelationship.combinedType.dbName())));
 
 				rels = searchRel.execute(attrs).getResults();
 				properties.remove(AbstractRelationship.combinedType.dbName());

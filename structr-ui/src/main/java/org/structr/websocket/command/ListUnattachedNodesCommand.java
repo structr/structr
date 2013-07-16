@@ -71,8 +71,8 @@ public class ListUnattachedNodesCommand extends AbstractCommand {
 		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 
 		// Search for all DOM elements and Contents
-		searchAttributes.add(Search.orExactTypeAndSubtypes(DOMElement.class.getSimpleName()));
-		searchAttributes.add(Search.orExactType(Content.class.getSimpleName()));
+		searchAttributes.add(Search.orExactTypeAndSubtypes(DOMElement.class));
+		searchAttributes.add(Search.orExactType(Content.class));
 
 		final String sortOrder   = webSocketData.getSortOrder();
 		final String sortKey     = webSocketData.getSortKey();

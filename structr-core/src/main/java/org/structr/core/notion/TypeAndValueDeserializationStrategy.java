@@ -72,7 +72,7 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 
 		List<SearchAttribute> attrs = new LinkedList();
 
-		attrs.add(Search.andExactTypeAndSubtypes(type.getSimpleName()));
+		attrs.add(Search.andExactTypeAndSubtypes(type));
 
 		// TODO: check why this doesn't work for setProperty with plain uuid..
 		

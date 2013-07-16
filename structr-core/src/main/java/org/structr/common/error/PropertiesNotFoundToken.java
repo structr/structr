@@ -25,6 +25,7 @@ import com.google.gson.JsonPrimitive;
 import java.util.Map;
 import java.util.Map.Entry;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
 
 /**
  * Indicates that a desired object could not be found.
@@ -34,6 +35,11 @@ import org.structr.core.property.PropertyKey;
 public class PropertiesNotFoundToken extends NotFoundToken {
 
 	private Map<PropertyKey, Object> attributes = null;
+
+	public PropertiesNotFoundToken(PropertyKey key, PropertyMap attributes) {
+		super(key);
+		this.attributes = attributes.getRawMap();
+	}
 
 	public PropertiesNotFoundToken(PropertyKey key, Map<PropertyKey, Object> attributes) {
 		super(key);

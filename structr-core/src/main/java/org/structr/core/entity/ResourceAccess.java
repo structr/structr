@@ -220,7 +220,7 @@ public class ResourceAccess extends AbstractNode {
 			SearchNodeCommand search               = Services.command(securityContext, SearchNodeCommand.class);
 			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 
-			searchAttributes.add(Search.andExactType(ResourceAccess.class.getSimpleName()));
+			searchAttributes.add(Search.andExactType(ResourceAccess.class));
 			searchAttributes.add(Search.andExactProperty(securityContext, ResourceAccess.signature, signature));
 
 			Result result = search.execute(searchAttributes);

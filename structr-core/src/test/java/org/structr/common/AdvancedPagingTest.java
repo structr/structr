@@ -90,7 +90,7 @@ public class AdvancedPagingTest extends PagingTest {
 
 			boolean includeDeletedAndHidden = false;
 			boolean publicOnly              = false;
-			String type                     = TestOne.class.getSimpleName();
+			Class type                      = TestOne.class;
 			int number                      = 20;    // no more than 89 to avoid sort order TestOne-10, TestOne-100 ...
 			List<AbstractNode> nodes        = this.createTestNodes(type, number);
 			int offset                      = 10;
@@ -146,7 +146,7 @@ public class AdvancedPagingTest extends PagingTest {
 
 			boolean includeDeletedAndHidden = false;
 			boolean publicOnly              = false;
-			String type                     = TestOne.class.getSimpleName();
+			Class type                      = TestOne.class;
 			int number                      = 8;
 			List<AbstractNode> nodes        = this.createTestNodes(type, number);
 			int offset                      = 0;
@@ -250,7 +250,7 @@ public class AdvancedPagingTest extends PagingTest {
 
 			boolean includeDeletedAndHidden = false;
 			boolean publicOnly              = false;
-			String type                     = TestOne.class.getSimpleName();
+			Class type                      = TestOne.class;
 			int number                      = 10;
 			List<AbstractNode> nodes        = this.createTestNodes(type, number);
 			int offset                      = 0;
@@ -310,7 +310,7 @@ public class AdvancedPagingTest extends PagingTest {
 
 			boolean includeDeletedAndHidden = false;
 			boolean publicOnly              = false;
-			String type                     = TestOne.class.getSimpleName();
+			Class type                     =TestOne.class;
 			int number                      = 8;
 			List<AbstractNode> nodes        = this.createTestNodes(type, number);
 			int offset                      = 0;

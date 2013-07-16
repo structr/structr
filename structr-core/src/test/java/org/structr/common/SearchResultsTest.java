@@ -98,7 +98,7 @@ public class SearchResultsTest extends StructrTest {
 
 			props.put(key, name);
 
-			final AbstractNode node                = createTestNode(TestOne.class.getSimpleName(), props);
+			final AbstractNode node                = createTestNode(TestOne.class, props);
 			boolean includeDeletedAndHidden        = true;
 			boolean publicOnly                     = false;
 			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
@@ -147,7 +147,7 @@ public class SearchResultsTest extends StructrTest {
 			PropertyMap props = new PropertyMap();
 			PropertyKey key   = TestOne.aDate;
 			Date date         = new Date();
-			String type       = TestOne.class.getSimpleName();
+			Class type       =TestOne.class;
 
 			props.put(key, date);
 
@@ -236,7 +236,7 @@ public class SearchResultsTest extends StructrTest {
 			final PropertyMap props = new PropertyMap();
 			final PropertyKey lat   = TestSeven.latitude;
 			final PropertyKey lon   = TestSeven.longitude;
-			final String type       = TestSeven.class.getSimpleName();
+			final Class type        = TestSeven.class;
 
 			props.put(lat, 50.12284d);
 			props.put(lon, 8.73923d);
@@ -269,7 +269,7 @@ public class SearchResultsTest extends StructrTest {
 
 //		try {
 
-			final String type = TestSeven.class.getSimpleName();
+			final Class type = TestSeven.class;
 			AbstractNode node = null;
 
 			try {
@@ -284,7 +284,7 @@ public class SearchResultsTest extends StructrTest {
 						final PropertyKey lat   = TestSeven.latitude;
 						final PropertyKey lon   = TestSeven.longitude;
 
-						props.put(AbstractNode.type, type);
+						props.put(AbstractNode.type, type.getSimpleName());
 						props.put(lat, 50.12284d);
 						props.put(lon, 8.73923d);
 						props.put(AbstractNode.name, "TestSeven-0");;

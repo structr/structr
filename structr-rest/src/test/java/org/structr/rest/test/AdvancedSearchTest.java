@@ -66,7 +66,6 @@ public class AdvancedSearchTest extends StructrRestTest {
 		    
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			
 			.expect()
 				.statusCode(200)
@@ -78,6 +77,30 @@ public class AdvancedSearchTest extends StructrRestTest {
 
 			.when()
 				.get(concat("/test_sixs?testSevenName=test09"));
+
+		// test inexact related search with one object,
+		// expected result is a list of four elements:
+		// test01, test02, test03 and test04, because
+		// test09 and test10 contain a "0" in their
+		// name and are associated with those four
+		RestAssured
+		    
+			.given()
+				.contentType("application/json; charset=UTF-8")
+			
+			.expect()
+				.statusCode(200)
+
+				.body("result",	      hasSize(4))
+				.body("result_count", equalTo(4))
+				.body("result[0].id", equalTo(test01))
+				.body("result[1].id", equalTo(test02))
+				.body("result[2].id", equalTo(test03))
+				.body("result[3].id", equalTo(test04))
+
+			.when()
+				.get(concat("/test_sixs?testSevenName=0&loose=1"));
+		
 		
 		// test simple related search with two objects, AND,
 		// expected result is empty
@@ -85,7 +108,6 @@ public class AdvancedSearchTest extends StructrRestTest {
 		    
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			
 			.expect()
 				.statusCode(200)
@@ -103,7 +125,6 @@ public class AdvancedSearchTest extends StructrRestTest {
 		    
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			
 			.expect()
 				.statusCode(200)
@@ -122,7 +143,6 @@ public class AdvancedSearchTest extends StructrRestTest {
 		    
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			
 			.expect()
 				.statusCode(200)
@@ -142,7 +162,6 @@ public class AdvancedSearchTest extends StructrRestTest {
 		    
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			
 			.expect()
 				.statusCode(200)
@@ -164,7 +183,6 @@ public class AdvancedSearchTest extends StructrRestTest {
 		    
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			
 			.expect()
 				.statusCode(200)
@@ -185,7 +203,6 @@ public class AdvancedSearchTest extends StructrRestTest {
 		    
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			
 			.expect()
 				.statusCode(200)
@@ -205,7 +222,6 @@ public class AdvancedSearchTest extends StructrRestTest {
 		    
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			
 			.expect()
 				.statusCode(200)
@@ -217,6 +233,68 @@ public class AdvancedSearchTest extends StructrRestTest {
 			.when()
 				.get(concat("/test_sixs?testEightStrings=string19&testSevenNames=test12&anInt=7"));
 		
+		// test inexact related search with collection property
+		// expected result is a list of four objects:
+		// test01, test08, test21, test22
+		RestAssured
+		    
+			.given()
+				.contentType("application/json; charset=UTF-8")
+			
+			.expect()
+				.statusCode(200)
+
+				.body("result",	      hasSize(4))
+				.body("result_count", equalTo(4))
+				.body("result[0].id", equalTo(test01))
+				.body("result[1].id", equalTo(test08))
+				.body("result[2].id", equalTo(test21))
+				.body("result[3].id", equalTo(test22))
+
+			.when()
+				.get(concat("/test_sixs?testEightStrings=2&loose=1"));
+		
+		// test inexact related search with two collection properties
+		// expected result is a list of four objects:
+		// test01, test02, test03, test04
+		RestAssured
+		    
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			
+			.expect()
+				.statusCode(200)
+
+				.body("result",	      hasSize(4))
+				.body("result_count", equalTo(4))
+				.body("result[0].id", equalTo(test01))
+				.body("result[1].id", equalTo(test02))
+				.body("result[2].id", equalTo(test03))
+				.body("result[3].id", equalTo(test04))
+
+			.when()
+				.get(concat("/test_sixs?testEightStrings=1&testSevenName=0&loose=1"));
+		
+		// test inexact related search with collection property and
+		// two filter properties,
+		// expected result is a single object:
+		// test08
+		RestAssured
+		    
+			.given()
+				.contentType("application/json; charset=UTF-8")
+			
+			.expect()
+				.statusCode(200)
+
+				.body("result",	      hasSize(1))
+				.body("result_count", equalTo(1))
+				.body("result[0].id", equalTo(test08))
+
+			.when()
+				.get(concat("/test_sixs?testEightStrings=2&testSevenName=test12&anInt=8&loose=1"));
+		
 		// test related search with one empty related property,
 		// expected result is a list of two objects:
 		// test21 and test22
@@ -224,7 +302,6 @@ public class AdvancedSearchTest extends StructrRestTest {
 		    
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			
 			.expect()
 				.statusCode(200)
@@ -246,7 +323,6 @@ public class AdvancedSearchTest extends StructrRestTest {
 		    
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			
 			.expect()
 				.statusCode(200)
@@ -267,7 +343,6 @@ public class AdvancedSearchTest extends StructrRestTest {
 		    
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			
 			.expect()
 				.statusCode(200)
@@ -298,7 +373,6 @@ public class AdvancedSearchTest extends StructrRestTest {
 		    
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			
 			.expect()
 				.statusCode(200)
@@ -319,7 +393,6 @@ public class AdvancedSearchTest extends StructrRestTest {
 		    
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			
 			.expect()
 				.statusCode(200)
@@ -342,7 +415,6 @@ public class AdvancedSearchTest extends StructrRestTest {
 		    
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			
 			.expect()
 				.statusCode(200)
@@ -364,7 +436,6 @@ public class AdvancedSearchTest extends StructrRestTest {
 		    
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			
 			.expect()
 				.statusCode(200)
@@ -383,7 +454,6 @@ public class AdvancedSearchTest extends StructrRestTest {
 		    
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			
 			.expect()
 				.statusCode(200)
@@ -402,7 +472,6 @@ public class AdvancedSearchTest extends StructrRestTest {
 		    
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			
 			.expect()
 				.statusCode(200)
@@ -422,7 +491,6 @@ public class AdvancedSearchTest extends StructrRestTest {
 		    
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			
 			.expect()
 				.statusCode(200)
@@ -445,7 +513,6 @@ public class AdvancedSearchTest extends StructrRestTest {
 		    
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			
 			.expect()
 				.statusCode(200)

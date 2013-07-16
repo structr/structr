@@ -79,7 +79,7 @@ public class ListCommand extends AbstractCommand {
 			return;
 		}
 
-		searchAttributes.add(Search.andExactType(type.getSimpleName()));
+		searchAttributes.add(Search.andExactType(type));
 		
 		// for image lists, suppress thumbnails
 		if (type.equals(Image.class)) {

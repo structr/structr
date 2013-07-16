@@ -125,7 +125,7 @@ public class RegistrationResource extends Resource {
 			confKey = UUID.randomUUID().toString();
 			
 			Result result = Services.command(superUserContext, SearchNodeCommand.class).execute(
-				Search.andExactType(User.class.getSimpleName()),
+				Search.andExactType(User.class),
 				Search.andExactProperty(superUserContext, User.email, emailString));
 				
 			if (!result.isEmpty()) {
@@ -227,7 +227,7 @@ public class RegistrationResource extends Resource {
 	private String getTemplateText(final TemplateKey key, final String defaultValue) {
 		try {
 			List<MailTemplate> templates = (List<MailTemplate>) Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(
-				Search.andExactType(MailTemplate.class.getSimpleName()),
+				Search.andExactType(MailTemplate.class),
 				Search.andExactName(key.name()),
 				Search.andMatchExactValues(securityContext, MailTemplate.locale, localeString, Occur.MUST)
 			).getResults();

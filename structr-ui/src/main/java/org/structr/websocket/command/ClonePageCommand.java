@@ -119,7 +119,7 @@ public class ClonePageCommand extends AbstractCommand {
 						if (htmlNode != null) {
 
 							PropertyMap relProps = new PropertyMap();
-							relProps.put(new LongProperty(pageId), 0);
+							relProps.put(new LongProperty(pageId), 0L);
 
 							try {
 

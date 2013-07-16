@@ -42,6 +42,7 @@ import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
 import org.structr.core.Result;
 import org.structr.core.TestRelType;
+import org.structr.core.entity.GenericNode;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 
@@ -138,7 +139,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 
 		try {
 			
-			List<AbstractNode> nodes        = this.createTestNodes("UnknownTestType", 2);
+			List<AbstractNode> nodes        = this.createTestNodes(GenericNode.class, 2);
 
 			assertNotNull(nodes);
 			assertTrue(nodes.size() == 2);
@@ -434,8 +435,8 @@ public class DeleteGraphObjectsTest extends StructrTest {
 			@Override
 			public Object execute() throws FrameworkException {
 
-				AbstractNode start       = createTestNode(type1.getSimpleName());
-				AbstractNode end         = createTestNode(type2.getSimpleName());
+				AbstractNode start       = createTestNode(type1);
+				AbstractNode end         = createTestNode(type2);
 				AbstractRelationship rel = createTestRelationship(start, end, RelType.IS_AT);
 
 				rel.setProperty(AbstractRelationship.cascadeDelete, cascadeDeleteFlag);

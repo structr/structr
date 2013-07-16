@@ -34,7 +34,6 @@ import org.neo4j.cypher.javacompat.ExecutionEngine;
 import org.neo4j.cypher.javacompat.ExecutionResult;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.Transaction;
 
@@ -42,6 +41,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.TestRelType;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.entity.GenericNode;
 import org.structr.core.graph.search.Search;
 
 /**
@@ -63,7 +63,7 @@ public class CypherNotInTransactionTest extends StructrTest {
 
 		try {
 
-			List<AbstractNode> testNodes = this.createTestNodes("UnknownTestType", 2);
+			List<AbstractNode> testNodes = this.createTestNodes(GenericNode.class, 2);
 
 			assertNotNull(testNodes);
 			assertTrue(testNodes.size() == 2);
@@ -211,7 +211,7 @@ public class CypherNotInTransactionTest extends StructrTest {
 
 		try {
 
-			List<AbstractNode> testNodes = this.createTestNodes("UnknownTestType", 2);
+			List<AbstractNode> testNodes = this.createTestNodes(GenericNode.class, 2);
 
 			assertNotNull(testNodes);
 			assertTrue(testNodes.size() == 2);
@@ -251,7 +251,7 @@ public class CypherNotInTransactionTest extends StructrTest {
 
 		try {
 
-			List<AbstractNode> testNodes = this.createTestNodes("UnknownTestType", 2);
+			List<AbstractNode> testNodes = this.createTestNodes(GenericNode.class, 2);
 
 			assertNotNull(testNodes);
 			assertTrue(testNodes.size() == 2);

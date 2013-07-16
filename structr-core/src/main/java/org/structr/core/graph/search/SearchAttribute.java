@@ -23,7 +23,6 @@ import java.util.List;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.Query;
 import org.structr.core.GraphObject;
-import org.structr.core.graph.NodeAttribute;
 import org.structr.core.property.PropertyKey;
 
 /**
@@ -35,30 +34,33 @@ public abstract class SearchAttribute<T> {
 
 	public static final String WILDCARD = "*";
 
-	private List<GraphObject> result       = new LinkedList<GraphObject>();
-	private NodeAttribute<T> nodeAttribute = null;
-	private Occur occur                    = null;
+	private List<GraphObject> result = new LinkedList<GraphObject>();
+	private PropertyKey<T> key       = null;
+	private Occur occur              = null;
+	private T value                  = null;
 
 	public abstract Query getQuery();
 	public abstract boolean isExactMatch();
 	public abstract boolean includeInResult(GraphObject entity);
 	public abstract String getStringValue();
+	public abstract String getInexactValue();
 
 	public SearchAttribute() {
 		this(null, null);
 	}
 	
-	public SearchAttribute(NodeAttribute<T> nodeAttribute) {
-		this(null, nodeAttribute);
-	}
-	
 	public SearchAttribute(Occur occur) {
-		this(occur, null);
+		this(occur, null, null);
 	}
 	
-	public SearchAttribute(Occur occur, NodeAttribute<T> nodeAttribute) {
+	public SearchAttribute(PropertyKey<T> key, T value) {
+		this(null, key, value);
+	}
+	
+	public SearchAttribute(Occur occur, PropertyKey<T> key, T value) {
 		this.occur = occur;
-		this.nodeAttribute = nodeAttribute;
+		this.key   = key;
+		this.value = value;
 	}
 	
 	public Occur getOccur() {
@@ -81,15 +83,11 @@ public abstract class SearchAttribute<T> {
 		result.addAll(list);
 	}
 
-	public Object getAttribute() {
-		return nodeAttribute;
-	}
-
 	public PropertyKey<T> getKey() {
-		return nodeAttribute == null ? null : nodeAttribute.getKey();
+		return key;
 	}
 
 	public T getValue() {
-		return nodeAttribute == null ? null : nodeAttribute.getValue();
+		return value;
 	}
 }

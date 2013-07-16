@@ -48,6 +48,11 @@ public class SourceSearchAttribute<T> extends SearchAttribute<T> {
 	}
 
 	@Override
+	public String getInexactValue() {
+		return null;
+	}
+
+	@Override
 	public boolean includeInResult(GraphObject entity) {
 		return true;
 	}

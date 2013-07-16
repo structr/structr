@@ -85,7 +85,7 @@ public class PagingTest extends StructrTest {
 
                       boolean includeDeletedAndHidden        = true;
                       boolean publicOnly                     = false;
-                      String type                            = TestOne.class.getSimpleName();
+                      Class type                             = TestOne.class;
                       int number                             = 43;
                       List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 
@@ -128,7 +128,7 @@ public class PagingTest extends StructrTest {
 
 			boolean includeDeletedAndHidden = false;
 			boolean publicOnly              = false;
-			String type                     = TestOne.class.getSimpleName();
+			Class type                      = TestOne.class;
 			int number                      = 89;    // no more than 89 to avoid sort order TestOne-10, TestOne-100 ...
 			List<AbstractNode> nodes        = this.createTestNodes(type, number);
 			int offset                      = 10;

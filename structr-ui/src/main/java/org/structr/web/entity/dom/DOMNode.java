@@ -1094,7 +1094,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 
 		searchAttributes.add(new PropertySearchAttribute(Content.content, search, Occur.MUST, false));
-		searchAttributes.add(Search.andExactType(Content.class.getSimpleName()));
+		searchAttributes.add(Search.andExactType(Content.class));
 
 		try {
 

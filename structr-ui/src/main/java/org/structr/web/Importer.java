@@ -356,7 +356,7 @@ public class Importer {
 
 		searchAttrs.add(Search.andExactProperty(securityContext, AbstractNode.name, name));
 		searchAttrs.add(Search.andExactProperty(securityContext, File.checksum, checksum));
-		searchAttrs.add(Search.andExactTypeAndSubtypes(File.class.getSimpleName()));
+		searchAttrs.add(Search.andExactTypeAndSubtypes(File.class));
 
 		Result files = searchNode.execute(searchAttrs);
 
@@ -373,7 +373,7 @@ public class Importer {
 		List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
 
 		searchAttrs.add(Search.andExactProperty(securityContext, AbstractNode.name, name));
-		searchAttrs.add(Search.andExactType(Folder.class.getSimpleName()));
+		searchAttrs.add(Search.andExactType(Folder.class));
 
 		Result folders = searchNode.execute(searchAttrs);
 

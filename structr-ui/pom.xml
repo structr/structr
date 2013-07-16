@@ -154,7 +154,6 @@
                     <executable>java</executable>
                     <arguments>
                         <argument>-server</argument>
-                        <argument>-d64</argument>
                         <argument>-Dfile.encoding=utf-8</argument>
                         <argument>-XX:+UseNUMA</argument>
                         <argument>-Xms1g</argument>

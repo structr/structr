@@ -116,7 +116,7 @@ public class TypeResource extends SortableResource {
 			}
 
 			// add type to return
-			searchAttributes.add(Search.andExactTypeAndSubtypes(EntityContext.normalizeEntityName(rawType), !inexactSearch));
+			searchAttributes.add(Search.andExactTypeAndSubtypes(entityClass, !inexactSearch));
 			
 			// searchable attributes from EntityContext
 			searchAttributes.addAll(validAttributes);
@@ -299,17 +299,5 @@ public class TypeResource extends SortableResource {
 		
 		return keys;
 		
-	}
-	
-	private boolean containsType(List<SearchAttribute> attributes, Class<? extends SearchAttribute> type) {
-		
-		for (SearchAttribute attr : attributes) {
-			
-			if (attr.getClass().equals(type)) {
-				return true;
-			}
-		}
-		
-		return false;
 	}
 }

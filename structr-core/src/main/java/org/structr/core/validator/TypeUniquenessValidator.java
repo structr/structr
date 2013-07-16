@@ -89,7 +89,7 @@ public class TypeUniquenessValidator<T> implements PropertyValidator<T> {
 			boolean nodeExists               = false;
 			String id                        = null;
 
-			attributes.add(Search.andExactType(type.getSimpleName()));
+			attributes.add(Search.andExactType(type));
 			attributes.add(Search.andExactProperty(superUserContext, key, value));
 
 			Result<AbstractNode> resultList = null;

@@ -100,26 +100,24 @@ public abstract class Search {
 
 	//~--- methods --------------------------------------------------------
 
-	private static List<SearchAttribute> getExactTypeAndSubtypesInternal(final String searchString, final boolean isExactMatch) {
+	private static List<SearchAttribute> getExactTypeAndSubtypesInternal(final Class type, final boolean isExactMatch) {
 
 		List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
 
-		// attrs.add(Search.orExactType(searchString));
-		ModuleService moduleService      = Services.getService(ModuleService.class);
-		Map<String, Class> entities      = moduleService.getCachedNodeEntities();
-		Class parentClass                = entities.get(searchString);
+		ModuleService moduleService = Services.getService(ModuleService.class);
+		Map<String, Class> entities = moduleService.getCachedNodeEntities();
 
-		if (parentClass == null) {
+		if (type == null) {
 
 			// no entity class for the given type found,
 			// examine interface types and subclasses
-			Set<Class> classesForInterface = moduleService.getClassesForInterface(EntityContext.normalizeEntityName(searchString));
+			Set<Class> classesForInterface = moduleService.getClassesForInterface(type.getSimpleName());
 
 			if (classesForInterface != null) {
 
 				for (Class clazz : classesForInterface) {
 
-					attrs.addAll(getExactTypeAndSubtypesInternal(clazz.getSimpleName(), isExactMatch));
+					attrs.addAll(getExactTypeAndSubtypesInternal(clazz, isExactMatch));
 				}
 
 			}
@@ -131,34 +129,24 @@ public abstract class Search {
 
 			Class entityClass = entity.getValue();
 
-			if (parentClass.isAssignableFrom(entityClass)) {
+			if (type.isAssignableFrom(entityClass)) {
 
-				if (isExactMatch) {
-					
-					// normal case
-					attrs.add(Search.orExactType(entity.getKey()));
-					
-				} else {
-					
-					// special treatment for inexact search: key must be lower case!
-					attrs.add(Search.orExactType(entity.getKey().toLowerCase()));
-				}
+				attrs.add(Search.orExactType(entityClass, isExactMatch));
 			}
-
 		}
 
 		return attrs;
 
 	}
 
-	public static SearchAttributeGroup andExactTypeAndSubtypes(final String searchString) {
-		return andExactTypeAndSubtypes(searchString, true);
+	public static SearchAttributeGroup andExactTypeAndSubtypes(final Class type) {
+		return andExactTypeAndSubtypes(type, true);
 	}
 	
-	public static SearchAttributeGroup andExactTypeAndSubtypes(final String searchString, final boolean isExactMatch) {
+	public static SearchAttributeGroup andExactTypeAndSubtypes(final Class type, final boolean isExactMatch) {
 
 		SearchAttributeGroup attrs          = new SearchAttributeGroup(Occur.MUST);
-		List<SearchAttribute> attrsInternal = getExactTypeAndSubtypesInternal(searchString, isExactMatch);
+		List<SearchAttribute> attrsInternal = getExactTypeAndSubtypesInternal(type, isExactMatch);
 
 		for (SearchAttribute attr : attrsInternal) {
 
@@ -169,10 +157,10 @@ public abstract class Search {
 
 	}
 	
-	public static SearchAttributeGroup orExactTypeAndSubtypes(final String searchString) {
+	public static SearchAttributeGroup orExactTypeAndSubtypes(final Class type) {
 
 		SearchAttributeGroup attrs          = new SearchAttributeGroup(Occur.SHOULD);
-		List<SearchAttribute> attrsInternal = getExactTypeAndSubtypesInternal(searchString, true);
+		List<SearchAttribute> attrsInternal = getExactTypeAndSubtypesInternal(type, true);
 
 		for (SearchAttribute attr : attrsInternal) {
 
@@ -195,12 +183,20 @@ public abstract class Search {
 		return key.getSearchAttribute(securityContext, Occur.MUST, searchValue, false);
 	}
 
-	public static SearchAttribute orExactType(final String searchString) {
-		return new PropertySearchAttribute(AbstractNode.type, searchString, Occur.SHOULD, true);
+	public static SearchAttribute orExactType(final Class type) {
+		return orExactType(type, true);
+	}
+	
+	public static SearchAttribute orExactType(final Class type, boolean isExactMatch) {
+		return new TypeSearchAttribute(type, Occur.SHOULD, isExactMatch);
 	}
 
-	public static SearchAttribute andExactType(final String searchString) {
-		return new PropertySearchAttribute(AbstractNode.type, searchString, Occur.MUST, true);
+	public static SearchAttribute andExactType(final Class type) {
+		return andExactType(type, true);
+	}
+
+	public static SearchAttribute andExactType(final Class type, boolean isExactMatch) {
+		return new TypeSearchAttribute(type, Occur.MUST, isExactMatch);
 	}
 
 	public static SearchAttribute andExactRelType(final RelationshipMapping namedRelation) {

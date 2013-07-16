@@ -65,7 +65,7 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 	}
 
 	@Override
-	public Comparable getComparableProperty(PropertyKey key) throws FrameworkException {
+	public <T> Comparable getComparableProperty(PropertyKey<T> key) {
 		return (Comparable)getProperty(key);
 	}
 
@@ -139,33 +139,8 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 	}
 
 	@Override
-	public boolean containsKey(Object key) {
-		return properties.containsKey(key);
-	}
-
-	@Override
-	public boolean containsValue(Object value) {
-		return properties.containsValue(value);
-	}
-
-	@Override
-	public Object get(Object key) {
-		return properties.get(key);
-	}
-
-	@Override
 	public Object put(PropertyKey key, Object value) {
 		return properties.put(key, value);
-	}
-
-	@Override
-	public Object remove(Object key) {
-		return properties.remove(key);
-	}
-
-	@Override
-	public void putAll(Map m) {
-		properties.putAll(m);
 	}
 
 	@Override

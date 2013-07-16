@@ -464,7 +464,7 @@ public class PropertyDefinition<T> extends AbstractNode implements PropertyKey<T
 				SecurityContext securityContext = SecurityContext.getSuperUserInstance();
 
 				Result<PropertyDefinition> propertyDefinitions = Services.command(securityContext, SearchNodeCommand.class).execute(
-					Search.andExactType(PropertyDefinition.class.getSimpleName())
+					Search.andExactType(PropertyDefinition.class)
 				);
 
 				for (PropertyDefinition def : propertyDefinitions.getResults()) {

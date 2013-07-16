@@ -70,7 +70,7 @@ public class ListComponentsCommand extends AbstractCommand {
 		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 
 		// Search for all DOM elements
-		searchAttributes.add(Search.andExactTypeAndSubtypes(DOMElement.class.getSimpleName()));
+		searchAttributes.add(Search.andExactTypeAndSubtypes(DOMElement.class));
 
 		final String sortOrder   = webSocketData.getSortOrder();
 		final String sortKey     = webSocketData.getSortKey();

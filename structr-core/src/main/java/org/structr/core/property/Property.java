@@ -200,6 +200,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 		return this;
 	}
 	
+	@Override
 	public Property<T> indexedWhenEmpty() {
 		
 		this.indexedWhenEmpty = true;
@@ -434,7 +435,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 				// no quotes allowed in loose search queries!
 				searchValue = removeQuotes(searchValue);
 
-				searchAttributes.add(new PropertySearchAttribute(this, searchValue.toLowerCase(), Occur.MUST, false));
+				searchAttributes.add(Search.andProperty(securityContext, this, extractSearchableAttribute(securityContext, searchValue)));
 
 			} else {
 

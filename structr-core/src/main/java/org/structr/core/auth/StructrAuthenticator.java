@@ -110,7 +110,7 @@ public class StructrAuthenticator implements Authenticator {
 		String userName  = (String) request.getSession().getAttribute(USERNAME_KEY);
 		
 		List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
-		attrs.add(Search.andExactTypeAndSubtypes(Principal.class.getSimpleName()));
+		attrs.add(Search.andExactTypeAndSubtypes(Principal.class));
 		attrs.add(Search.andExactName(userName));
 		
 		Result userList = Services.command(securityContext, SearchNodeCommand.class).execute(attrs);

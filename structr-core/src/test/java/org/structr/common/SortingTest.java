@@ -92,7 +92,7 @@ public class SortingTest extends StructrTest {
 
 			boolean includeDeletedAndHidden = false;
 			boolean publicOnly              = false;
-			String type                     = TestOne.class.getSimpleName();
+			Class type                      = TestOne.class;
 			int number                      = 4; // no more than 89 to avoid sort order TestOne-10, TestOne-100 ...
 			final List<AbstractNode> nodes  = this.createTestNodes(type, number);
 			final int offset                = 10;
@@ -169,7 +169,7 @@ public class SortingTest extends StructrTest {
 
 			boolean includeDeletedAndHidden = false;
 			boolean publicOnly              = false;
-			String type                     = TestOne.class.getSimpleName();
+			Class type                      = TestOne.class;
 			int number                      = 43;
 			final List<AbstractNode> nodes  = this.createTestNodes(type, number);
 			final int offset                = 10;
@@ -248,7 +248,7 @@ public class SortingTest extends StructrTest {
 
 			boolean includeDeletedAndHidden = false;
 			boolean publicOnly              = false;
-			String type                     = TestOne.class.getSimpleName();
+			Class type                      = TestOne.class;
 			int number                      = 97;
 			final List<AbstractNode> nodes  = this.createTestNodes(type, number);
 			final int offset                = 10;
@@ -331,7 +331,7 @@ public class SortingTest extends StructrTest {
 
 			boolean includeDeletedAndHidden = false;
 			boolean publicOnly              = false;
-			String type                     = TestOne.class.getSimpleName();
+			Class type                      = TestOne.class;
 			int number                      = 131;
 			final List<AbstractNode> nodes  = this.createTestNodes(type, number);
 			final int offset                = 10;
@@ -407,7 +407,7 @@ public class SortingTest extends StructrTest {
 
 			boolean includeDeletedAndHidden = false;
 			boolean publicOnly              = false;
-			String type                     = TestOne.class.getSimpleName();
+			Class type                      = TestOne.class;
 			int number                      = 61;
 			final List<AbstractNode> nodes  = this.createTestNodes(type, number);
 			final PropertyKey key           = TestOne.anInt;

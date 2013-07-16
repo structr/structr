@@ -18,12 +18,12 @@
  */
 package org.structr.core.property;
 
-import java.util.ArrayList;
+import com.tinkerpop.gremlin.Tokens.T;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.logging.Level;
@@ -42,80 +42,68 @@ import org.structr.core.entity.AbstractNode;
  * 
  * @author Christian Morgner
  */
-public class PropertyMap implements Map<PropertyKey, Object> {
+public class PropertyMap {
 	
 	private static final Logger logger = Logger.getLogger(PropertyMap.class.getName());
 	
 	protected Map<PropertyKey, Object> properties = new LinkedHashMap<PropertyKey, Object>();
 
-	public PropertyMap() {}
-	
-	public PropertyMap(Map<PropertyKey, Object> source) {
-		properties.putAll(source);
+	public PropertyMap() {
 	}
 	
-	@Override
+	public PropertyMap(PropertyMap source) {
+		
+		for (Entry<PropertyKey, Object> entry : source.entrySet()) {
+			properties.put(entry.getKey(), entry.getValue());
+		}
+	}
+	
 	public int size() {
 		return properties.size();
 	}
 
-	@Override
 	public boolean isEmpty() {
 		return properties.isEmpty();
 	}
 
-	@Override
-	public boolean containsKey(Object key) {
+	public <T> boolean containsKey(PropertyKey<T> key) {
 		return properties.containsKey(key);
 	}
 
-	@Override
-	public boolean containsValue(Object value) {
+	public boolean containsValue(T value) {
 		return properties.containsValue(value);
-	}
-
-	@Override
-	public Object get(Object key) {
-		return properties.get(key);
 	}
 
 	public <T> T get(PropertyKey<T> key) {
 		return (T)properties.get(key);
 	}
 
-	@Override
-	public Object put(PropertyKey key, Object value) {
-		return properties.put(key, value);
+	public <T> T put(PropertyKey<T> key, T value) {
+		return (T)properties.put(key, value);
 	}
 
-	@Override
-	public Object remove(Object key) {
-		return properties.remove(key);
+	public <T> T remove(PropertyKey<T> key) {
+		return (T)properties.remove(key);
 	}
 
-	@Override
-	public void putAll(Map<? extends PropertyKey, ? extends Object> m) {
-		properties.putAll(m);
-	}
-
-	@Override
 	public void clear() {
 		properties.clear();
 	}
 
-	@Override
 	public Set<PropertyKey> keySet() {
 		return properties.keySet();
 	}
 
-	@Override
 	public Collection<Object> values() {
 		return properties.values();
 	}
 
-	@Override
 	public Set<Entry<PropertyKey, Object>> entrySet() {
 		return properties.entrySet();
+	}
+	
+	public Map<PropertyKey, Object> getRawMap() {
+		return properties;
 	}
 	
 	/**

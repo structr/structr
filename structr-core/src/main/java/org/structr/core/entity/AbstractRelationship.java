@@ -414,10 +414,9 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	}
 
 	@Override
-	public Comparable getComparableProperty(final PropertyKey<? extends Comparable> key) {
+	public <T> Comparable getComparableProperty(final PropertyKey<T> key) {
 
-		Object propertyValue = getProperty(key, false);	// get "raw" property without converter
-		Class type = getClass();
+		T propertyValue = getProperty(key, false);	// get "raw" property without converter
 		
 		// check property converter
 		PropertyConverter converter = key.databaseConverter(securityContext, this);
