@@ -30,7 +30,6 @@ import org.structr.core.property.EntityProperty;
 import org.structr.core.property.CollectionProperty;
 import org.structr.core.property.EntityNotionProperty;
 import org.structr.core.property.Property;
-import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.notion.PropertyNotion;
 import org.structr.core.validator.TypeUniquenessValidator;
@@ -54,9 +53,9 @@ public class Person extends AbstractNode {
 	}
 	
 	@Override
-	public boolean beforeCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 		
-		if (super.beforeCreation(securityContext, errorBuffer)) {
+		if (super.onCreation(securityContext, errorBuffer)) {
 			
 			return !ValidationHelper.checkPropertyNotNull(this, name, errorBuffer);
 		}
@@ -65,9 +64,9 @@ public class Person extends AbstractNode {
 	}
 	
 	@Override
-	public boolean beforeModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 		
-		if (super.beforeCreation(securityContext, errorBuffer)) {
+		if (super.onModification(securityContext, errorBuffer)) {
 			
 			return !ValidationHelper.checkPropertyNotNull(this, name, errorBuffer);
 		}

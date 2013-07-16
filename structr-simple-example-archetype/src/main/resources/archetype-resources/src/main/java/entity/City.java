@@ -31,8 +31,6 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.property.CollectionProperty;
 import org.structr.core.property.Property;
-import org.structr.core.graph.GraphObject;
-import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.validator.TypeUniquenessValidator;
 import ${package}.RelType;
@@ -53,14 +51,11 @@ public class City extends AbstractNode {
 	}
 	
 	@Override
-	public boolean beforeCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
-
-		// make cities visible for everyone
-		setProperty(GraphObject.visibleToPublicUsers, true);
-		setProperty(GraphObject.visibleToAuthenticatedUsers, true);
+	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 		
-		if (super.beforeCreation(securityContext, errorBuffer)) {
+		if (super.onCreation(securityContext, errorBuffer)) {
 			
+			// name property must be set
 			return !ValidationHelper.checkPropertyNotNull(this, name, errorBuffer);
 		}
 		
@@ -68,9 +63,9 @@ public class City extends AbstractNode {
 	}
 	
 	@Override
-	public boolean beforeModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 		
-		if (super.beforeCreation(securityContext, errorBuffer)) {
+		if (super.onModification(securityContext, errorBuffer)) {
 			
 			return !ValidationHelper.checkPropertyNotNull(this, name, errorBuffer);
 		}
