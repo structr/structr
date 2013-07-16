@@ -71,6 +71,10 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	public static final Property<Integer>  cascadeDelete = new IntProperty("cascadeDelete");
 	public static final Property<String>   combinedType  = new CombinedTypeProperty();
 	
+	public static final View defauflView = new View(AbstractRelationship.class, PropertyView.Public,
+		uuid, type, combinedType
+	);
+	
 	
 	//~--- static initializers --------------------------------------------
 

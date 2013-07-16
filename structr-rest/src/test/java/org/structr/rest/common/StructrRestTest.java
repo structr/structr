@@ -377,6 +377,30 @@ public class StructrRestTest extends TestCase {
 		});
 
 	}
+	
+	protected String concat(String... parts) {
+
+		StringBuilder buf = new StringBuilder();
+		
+		for (String part : parts) {
+			buf.append(part);
+		}
+		
+		return buf.toString();
+	}
+	
+	protected String createEntity(String resource, String... body) {
+		
+		StringBuilder buf = new StringBuilder();
+		
+		for (String part : body) {
+			buf.append(part);
+		}
+		
+		return getUuidFromLocation(RestAssured.given().contentType("application/json; charset=UTF-8")
+			.body(buf.toString())
+			.expect().statusCode(201).when().post(resource).getHeader("Location"));
+	}
 
 	//~--- get methods ----------------------------------------------------
 

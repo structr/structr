@@ -24,6 +24,7 @@ import org.structr.common.View;
 import org.structr.core.property.Property;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.*;
+import org.structr.rest.common.TestEnum;
 
 /**
  *
@@ -38,8 +39,10 @@ public class TestThree extends AbstractNode {
 	public static final Property<Long>          longProperty        = new LongProperty("longProperty").indexed();
 	public static final Property<String>        stringProperty      = new StringProperty("stringProperty").indexed();
 	public static final Property<Date>          dateProperty        = new ISO8601DateProperty("dateProperty").indexed();
+	public static final Property<TestEnum>      enumProperty        = new EnumProperty("enumProperty", TestEnum.class).indexed();
+	
 	
 	public static final View publicView = new View(TestThree.class, PropertyView.Public,
-		stringArrayProperty, booleanProperty, doubleProperty, integerProperty, longProperty, stringProperty, dateProperty
+		stringArrayProperty, booleanProperty, doubleProperty, integerProperty, longProperty, stringProperty, dateProperty, enumProperty
 	);
 }

@@ -40,6 +40,7 @@ public class TestFour extends AbstractNode {
 	public static final Property<Integer>       integerProperty     = new IntProperty("integerProperty").indexed();
 	public static final Property<Long>          longProperty        = new LongProperty("longProperty").indexed();
 	public static final Property<String>        stringProperty      = new StringProperty("stringProperty").indexed();
+	public static final Property<TestEnum>      enumProperty        = new EnumProperty("enumProperty", TestEnum.class).indexed();
 	
 	@Override
 	public boolean isValid(ErrorBuffer errorBuffer) {

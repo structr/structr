@@ -18,14 +18,26 @@
  */
 package org.structr.core.property;
 
+import java.lang.String;
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertTrue;
+import static junit.framework.Assert.fail;
 import org.apache.commons.lang.ArrayUtils;
+import org.structr.common.RelType;
 import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.EntityContext;
+import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.entity.TestFour;
+import org.structr.core.entity.TestOne;
+import org.structr.core.entity.TestRelationship;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
+import org.structr.core.graph.search.Search;
+import org.structr.core.graph.search.SearchNodeCommand;
+import org.structr.core.graph.search.SearchRelationshipCommand;
 
 /**
  *
@@ -33,7 +45,7 @@ import org.structr.core.graph.TransactionCommand;
  */
 public class ArrayPropertyTest extends StructrTest {
 	
-	public void testArrayProperty() {
+	public void testStringArrayProperty() {
 		
 		
 		try {
@@ -65,4 +77,87 @@ public class ArrayPropertyTest extends StructrTest {
 			fail("Unable to store array");
 		}
 	}
+	
+	/* FIXME: how can we search for arrays?
+	public void testSimpleSearchOnNode() {
+		
+		try {
+			final PropertyMap properties    = new PropertyMap();
+			final PropertyKey<String[]> key = TestFour.stringArrayProperty;
+
+			// store a string array in the test entitiy
+			final String[] arr = new String[] { "one", "two", "three", "four", "five" };
+			
+			properties.put(key, arr);
+			
+			final TestFour testEntity     = createTestNode(TestFour.class, properties);
+			
+			assertNotNull(testEntity);
+
+			// check value from database
+			assertEquals(arr, testEntity.getProperty(key));
+			
+			
+			Result<TestFour> result = Services.command(securityContext, SearchNodeCommand.class).execute(
+				Search.andExactType(TestFour.class),
+				Search.andExactProperty(securityContext, key, arr)
+			);
+			
+			assertEquals(1, result.size());
+			assertEquals(result.get(0), testEntity);
+		
+		} catch (FrameworkException fex) {
+			
+			fail("Unable to store array");
+		}
+		
+	}
+	
+	public void testSimpleSearchOnRelationship() {
+		
+		try {
+			final TestOne testOne        = createTestNode(TestOne.class);
+			final TestFour testFour      = createTestNode(TestFour.class);
+			final Property<String[]> key = TestRelationship.stringArrayProperty;
+
+			// store a string array in the test entitiy
+			final String[] arr = new String[] { "one", "two", "three", "four", "five" };
+			
+			assertNotNull(testOne);
+			assertNotNull(testFour);
+			
+			final TestRelationship testEntity = (TestRelationship)createTestRelationship(testOne, testFour, RelType.IS_AT);
+			
+			assertNotNull(testEntity);
+
+			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+				@Override
+				public Object execute() throws FrameworkException {
+					
+					// set property
+					testEntity.setProperty(key, arr);
+					
+					return null;
+				}
+				
+			});
+			
+			// check value from database
+			assertEquals(arr, testEntity.getProperty(key));	
+			
+			Result<TestFour> result = Services.command(securityContext, SearchRelationshipCommand.class).execute(
+				Search.andExactRelType(EntityContext.getNamedRelation(TestRelationship.Relation.test_relationships.name())),
+				Search.andExactProperty(securityContext, key, arr)
+			);
+			
+			assertEquals(result.size(), 1);
+			assertEquals(result.get(0), testEntity);
+		
+		} catch (FrameworkException fex) {
+			
+			fail("Unable to store array");
+		}
+	}
+	*/
 }

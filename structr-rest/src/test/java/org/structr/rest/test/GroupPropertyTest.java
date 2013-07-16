@@ -258,28 +258,4 @@ public class GroupPropertyTest extends StructrRestTest{
 			.when()
 				.get(concat("/test_group_prop_four/?twitter.uid=33333"));
 	}
-	
-	private String concat(String... parts) {
-
-		StringBuilder buf = new StringBuilder();
-		
-		for (String part : parts) {
-			buf.append(part);
-		}
-		
-		return buf.toString();
-	}
-	
-	private String createEntity(String resource, String... body) {
-		
-		StringBuilder buf = new StringBuilder();
-		
-		for (String part : body) {
-			buf.append(part);
-		}
-		
-		return getUuidFromLocation(RestAssured.given().contentType("application/json; charset=UTF-8")
-			.body(buf.toString())
-			.expect().statusCode(201).when().post(resource).getHeader("Location"));
-	}
 }

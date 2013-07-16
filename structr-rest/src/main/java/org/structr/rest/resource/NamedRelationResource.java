@@ -18,8 +18,8 @@
  */
 package org.structr.rest.resource;
 
-import org.structr.common.PagingHelper;
 import java.util.Iterator;
+import org.structr.common.PagingHelper;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -83,6 +83,43 @@ public class NamedRelationResource extends WrappingResource {
 					relationResults.addAll(namedRelation.getRelationships(obj));
 				}
 			}
+			
+			// filter by searchable properties
+			final List<SearchAttribute> filterAttributes = extractSearchableAttributes(securityContext, namedRelation.getEntityClass(), request);
+			if(!filterAttributes.isEmpty()) {
+
+				final Predicate<GraphObject> predicate = new Predicate<GraphObject>() {
+
+					@Override
+					public boolean evaluate(final SecurityContext securityContext, final GraphObject... objs) {
+
+						if(objs.length > 0) {
+
+							final GraphObject obj = objs[0];
+
+							for(final SearchAttribute attr : filterAttributes) {
+
+								final String value    = attr.getStringValue();
+								final PropertyKey key = attr.getKey();
+
+								final Object val = obj.getProperty(key);
+								if(val != null && val.equals(value)) {
+									return true;
+								}
+							}
+						}
+
+						return false;
+					}
+				};
+
+				for(final Iterator<GraphObject> it = relationResults.iterator(); it.hasNext();) {
+
+					if(!predicate.evaluate(securityContext, it.next())) {
+						it.remove();
+					}
+				}
+			}
 
 		} else {
 
@@ -95,43 +132,6 @@ public class NamedRelationResource extends WrappingResource {
 
 			relationResults.addAll(Services.command(securityContext, SearchRelationshipCommand.class).execute(searchAttributes).getResults());
 
-		}
-
-		// filter by searchable properties
-		final List<SearchAttribute> filterAttributes = extractSearchableAttributes(securityContext, namedRelation.getEntityClass(), request);
-		if(!filterAttributes.isEmpty()) {
-
-			final Predicate<GraphObject> predicate = new Predicate<GraphObject>() {
-
-				@Override
-				public boolean evaluate(final SecurityContext securityContext, final GraphObject... objs) {
-
-					if(objs.length > 0) {
-
-						final GraphObject obj = objs[0];
-
-						for(final SearchAttribute attr : filterAttributes) {
-
-							final String value    = (String)attr.getValue();
-							final PropertyKey key = attr.getKey();
-
-							final Object val = obj.getProperty(key);
-							if(val != null && val.equals(value)) {
-								return true;
-							}
-						}
-					}
-
-					return false;
-				}
-			};
-
-			for(final Iterator<GraphObject> it = relationResults.iterator(); it.hasNext();) {
-
-				if(!predicate.evaluate(securityContext, it.next())) {
-					it.remove();
-				}
-			}
 		}
 		
 		return PagingHelper.subResult(new Result(relationResults, null, isCollectionResource(), isPrimitiveArray()), pageSize, page, offsetId);
