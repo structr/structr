@@ -62,7 +62,11 @@ public class SearchCommand extends AbstractCommand {
 		final SecurityContext securityContext  = getWebSocket().getSecurityContext();
 		String searchString                    = (String) webSocketData.getNodeData().get("searchString");
 		String typeString                      = (String) webSocketData.getNodeData().get("type");
-		Class type                             = EntityContext.getEntityClassForRawType(typeString);
+		
+		Class type = null;
+		if (typeString != null) {
+			type = EntityContext.getEntityClassForRawType(typeString);
+		}
 
 		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 		
