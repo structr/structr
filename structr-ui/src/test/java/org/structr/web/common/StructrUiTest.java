@@ -49,31 +49,17 @@ import java.nio.charset.Charset;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.servlet.DispatcherType;
 import junit.framework.TestCase;
-import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.handler.ContextHandler;
-import org.eclipse.jetty.server.handler.HandlerCollection;
-import org.eclipse.jetty.server.handler.ResourceHandler;
-import org.eclipse.jetty.server.nio.SelectChannelConnector;
-import org.eclipse.jetty.servlet.FilterHolder;
-import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
-import org.eclipse.jetty.util.resource.JarResource;
-import org.eclipse.jetty.util.resource.Resource;
-import org.eclipse.jetty.util.resource.ResourceCollection;
-import org.structr.common.PropertyView;
+import org.structr.Ui;
 import org.structr.core.property.PropertyMap;
 import org.structr.common.SecurityContext;
-import org.structr.context.ApplicationContextListener;
-import org.structr.rest.servlet.JsonRestServlet;
+import org.structr.server.Structr;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.servlet.HtmlServlet;
 import org.structr.websocket.servlet.WebSocketServlet;
-import org.tuckey.web.filters.urlrewrite.UrlRewriteFilter;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -105,11 +91,11 @@ public class StructrUiTest extends TestCase {
 	private String basePath;
 	
 	protected static final String prot = "http://";
-	protected static final String contextPath = "/";
+//	protected static final String contextPath = "/";
 	protected static final String restUrl = "/structr/rest";
 	protected static final String htmlUrl = "/structr/html";
 	protected static final String wsUrl = "/structr/ws";
-	protected static final String host = "127.0.0.1";
+	protected static final String host = "localhost";
 	protected static final int httpPort = 8875;
 	
 	protected static String baseUri;
@@ -131,6 +117,69 @@ public class StructrUiTest extends TestCase {
 
 	protected void init() {
 
+		String name = "structr-ui-test-" + System.nanoTime();
+		
+		// set up base path
+		basePath = "/tmp/" + name;
+		
+		try {
+
+			// HTML Servlet
+			HtmlServlet htmlServlet = new HtmlServlet();
+			ServletHolder htmlServletHolder = new ServletHolder(htmlServlet);
+			Map<String, String> htmlInitParams = new HashMap<String, String>();
+
+			htmlInitParams.put("Authenticator", "org.structr.web.auth.HttpAuthenticator");
+			htmlServletHolder.setInitParameters(htmlInitParams);
+			htmlServletHolder.setInitOrder(1);
+			
+			// CSV Servlet
+//			CsvServlet csvServlet     = new CsvServlet(DefaultResourceProvider.class.newInstance(), PropertyView.All, AbstractNode.uuid);
+//			ServletHolder csvServletHolder    = new ServletHolder(csvServlet);
+//			Map<String, String> servletParams = new HashMap<String, String>();
+//
+//			servletParams.put("Authenticator", "org.structr.web.auth.HttpAuthenticator");
+//			csvServletHolder.setInitParameters(servletParams);
+//			csvServletHolder.setInitOrder(2);
+
+			// WebSocket Servlet
+			WebSocketServlet wsServlet = new WebSocketServlet(AbstractNode.uuid);
+			ServletHolder wsServletHolder = new ServletHolder(wsServlet);
+			Map<String, String> wsInitParams = new HashMap<String, String>();
+
+			wsInitParams.put("Authenticator", "org.structr.web.auth.UiAuthenticator");
+			wsInitParams.put("IdProperty", "uuid");
+			wsServletHolder.setInitParameters(wsInitParams);
+			wsServletHolder.setInitOrder(3);
+
+			server = Structr.createServer(Ui.class, "structr UI", httpPort)
+
+				.host(host)
+				.basePath(basePath)
+				
+				.addServlet(htmlUrl + "/*", htmlServletHolder)
+				.addServlet(wsUrl + "/*", wsServletHolder)
+				//.addServlet("/structr/csv/*", csvServletHolder)
+			    
+				.addResourceHandler("/structr", "src/main/resources/structr", true, new String[] { "index.html"})
+			    
+				.enableRewriteFilter()
+				//.logRequests(true)
+				
+				.resourceProvider(UiResourceProvider.class)
+				.authenticator(UiAuthenticator.class)
+				
+			    
+				.start(false, true);
+			
+			running = server.isRunning();
+
+		} catch(Throwable t) {
+			
+			t.printStackTrace();
+		}
+		
+		
 		/*
 		Date now       = new Date();
 		long timestamp = now.getTime();
@@ -149,149 +198,150 @@ public class StructrUiTest extends TestCase {
 		
 		Services.initialize(context);
 		*/
-		
-		String name = "structr-ui-test-" + System.nanoTime();
-		
-		// set up base path
-		basePath = "/tmp/" + name;
-		
-		try {
-			// create test directory
-			File basePathFile                    = new File(basePath);
-			
-			basePathFile.mkdirs();
-			
-			
-			String sourceJarName                 = getClass().getProtectionDomain().getCodeSource().getLocation().toString();
-			
-			checkUrlrewriteConf(basePath);
-			checkStructrConf(basePath, sourceJarName);
-			
-			List<Connector> connectors           = new LinkedList<Connector>();
-			HandlerCollection handlerCollection  = new HandlerCollection();
-
-			server = new Server(httpPort);
-			
-			ServletContextHandler servletContext = new ServletContextHandler(server, contextPath, ServletContextHandler.SESSIONS);
-
-			// create resource collection from base path & source JAR
-			servletContext.setBaseResource(new ResourceCollection(Resource.newResource(basePath), JarResource.newJarResource(Resource.newResource(sourceJarName))));
-			servletContext.setInitParameter("configfile.path", basePath + "/structr.conf");
-
-			// configure JSON REST servlet
-			JsonRestServlet structrRestServlet     = new JsonRestServlet(new UiResourceProvider(), PropertyView.Public, AbstractNode.uuid);
-			ServletHolder structrRestServletHolder = new ServletHolder(structrRestServlet);
-			
-			Map<String, String> servletParams = new LinkedHashMap<String, String>();
-			servletParams.put("Authenticator", UiAuthenticator.class.getName());
-
-			structrRestServletHolder.setInitParameters(servletParams);
-			structrRestServletHolder.setInitOrder(0);
-
-			// add to servlets
-			Map<String, ServletHolder> servlets = new LinkedHashMap<String, ServletHolder>();
-			servlets.put(restUrl + "/*", structrRestServletHolder);
-
-			// WebSocket Servlet
-			WebSocketServlet wsServlet = new WebSocketServlet(AbstractNode.uuid);
-			ServletHolder wsServletHolder = new ServletHolder(wsServlet);
-			Map<String, String> wsInitParams = new HashMap<String, String>();
-
-			wsInitParams.put("Authenticator", "org.structr.web.auth.UiAuthenticator");
-			wsInitParams.put("IdProperty", "uuid");
-			wsServletHolder.setInitParameters(wsInitParams);
-			wsServletHolder.setInitOrder(3);
-			
-			// add to servlets
-			servlets.put(wsUrl + "/*", wsServletHolder);
-
-			// HTML Servlet
-			HtmlServlet htmlServlet = new HtmlServlet();
-			ServletHolder htmlServletHolder = new ServletHolder(htmlServlet);
-			Map<String, String> htmlInitParams = new HashMap<String, String>();
-
-			htmlInitParams.put("Authenticator", "org.structr.web.auth.HttpAuthenticator");
-			htmlServletHolder.setInitParameters(htmlInitParams);
-			htmlServletHolder.setInitOrder(1);
-
-			// add to servlets
-			servlets.put(htmlUrl + "/*", htmlServletHolder);
-
-			// add servlet elements
-			int position = 1;
-			for (Map.Entry<String, ServletHolder> servlet : servlets.entrySet()) {
-
-				String path                 = servlet.getKey();
-				ServletHolder servletHolder = servlet.getValue();
-
-				servletHolder.setInitOrder(position++);
-
-				logger.log(Level.INFO, "Adding servlet {0} for {1}", new Object[] { servletHolder, path } );
-
-				servletContext.addServlet(servletHolder, path);
-			}
-
-			// Add static resource handler for structr UI's main page
-			ResourceHandler resourceHandler = new ResourceHandler();
-			resourceHandler.setDirectoriesListed(true);
-			resourceHandler.setWelcomeFiles(new String[] { "index.html"});
-			resourceHandler.setResourceBase("src/main/resources/structr");		
-			ContextHandler staticResourceHandler = new ContextHandler();
-			staticResourceHandler.setContextPath("/structr");
-			staticResourceHandler.setHandler(resourceHandler);
-
-			handlerCollection.addHandler(staticResourceHandler);
-
-			FilterHolder rewriteFilter = new FilterHolder(UrlRewriteFilter.class);
-			rewriteFilter.setInitParameter("confPath", basePath + "/urlrewrite.xml");
-			servletContext.addFilter(rewriteFilter, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
-			
-			handlerCollection.addHandler(servletContext);
-			
-			// register structr application context listener
-			servletContext.addEventListener(new ApplicationContextListener());
-			handlerCollection.addHandler(servletContext);
-
-			server.setHandler(handlerCollection);
-
-			if (host != null && !host.isEmpty() && httpPort > -1) {
-
-				SelectChannelConnector httpConnector = new SelectChannelConnector();
-
-				httpConnector.setHost(host);
-				httpConnector.setPort(httpPort);
-				httpConnector.setMaxIdleTime(30000);
-				httpConnector.setRequestHeaderSize(8192);
-
-				connectors.add(httpConnector);
-
-			} else {
-
-				logger.log(Level.WARNING, "Unable to configure HTTP port, please make sure that application.host, application.http.port and application.rest.path are set correctly in structr.conf.");
-			}
-			
-			if (!connectors.isEmpty()) {
-
-				server.setConnectors(connectors.toArray(new Connector[0]));
-
-			} else {
-
-				logger.log(Level.SEVERE, "No connectors configured, aborting.");
-				System.exit(0);
-			}
-
-			server.setGracefulShutdown(1000);
-			server.setStopAtShutdown(true);
-
-			server.start();
-			
-			running = server.isRunning();
-
-		} catch(Throwable t) {
-			
-			t.printStackTrace();
-		}
-		
+//		
+//		String name = "structr-ui-test-" + System.nanoTime();
+//		
+//		// set up base path
+//		basePath = "/tmp/" + name;
+//		
+//		try {
+//			// create test directory
+//			File basePathFile                    = new File(basePath);
+//			
+//			basePathFile.mkdirs();
+//			
+//			
+//			String sourceJarName                 = getClass().getProtectionDomain().getCodeSource().getLocation().toString();
+//			
+//			//checkUrlrewriteConf(basePath);
+//			checkStructrConf(basePath, sourceJarName);
+//			
+//			List<Connector> connectors           = new LinkedList<Connector>();
+//			HandlerCollection handlerCollection  = new HandlerCollection();
+//
+//			server = new Server(httpPort);
+//			
+//			ServletContextHandler servletContext = new ServletContextHandler(server, contextPath, ServletContextHandler.SESSIONS);
+//
+//			// create resource collection from base path & source JAR
+//			servletContext.setBaseResource(new ResourceCollection(Resource.newResource(basePath), JarResource.newJarResource(Resource.newResource(sourceJarName))));
+//			servletContext.setInitParameter("configfile.path", basePath + "/structr.conf");
+//
+//			// configure JSON REST servlet
+//			JsonRestServlet structrRestServlet     = new JsonRestServlet(new UiResourceProvider(), PropertyView.Public, AbstractNode.uuid);
+//			ServletHolder structrRestServletHolder = new ServletHolder(structrRestServlet);
+//			
+//			Map<String, String> servletParams = new LinkedHashMap<String, String>();
+//			servletParams.put("Authenticator", UiAuthenticator.class.getName());
+//
+//			structrRestServletHolder.setInitParameters(servletParams);
+//			structrRestServletHolder.setInitOrder(0);
+//
+//			// add to servlets
+//			Map<String, ServletHolder> servlets = new LinkedHashMap<String, ServletHolder>();
+//			servlets.put(restUrl + "/*", structrRestServletHolder);
+//
+//			// WebSocket Servlet
+//			WebSocketServlet wsServlet = new WebSocketServlet(AbstractNode.uuid);
+//			ServletHolder wsServletHolder = new ServletHolder(wsServlet);
+//			Map<String, String> wsInitParams = new HashMap<String, String>();
+//
+//			wsInitParams.put("Authenticator", "org.structr.web.auth.UiAuthenticator");
+//			wsInitParams.put("IdProperty", "uuid");
+//			wsServletHolder.setInitParameters(wsInitParams);
+//			wsServletHolder.setInitOrder(3);
+//			
+//			// add to servlets
+//			servlets.put(wsUrl + "/*", wsServletHolder);
+//
+//			// HTML Servlet
+//			HtmlServlet htmlServlet = new HtmlServlet();
+//			ServletHolder htmlServletHolder = new ServletHolder(htmlServlet);
+//			Map<String, String> htmlInitParams = new HashMap<String, String>();
+//
+//			htmlInitParams.put("Authenticator", "org.structr.web.auth.HttpAuthenticator");
+//			htmlServletHolder.setInitParameters(htmlInitParams);
+//			htmlServletHolder.setInitOrder(1);
+//
+//			// add to servlets
+//			servlets.put(htmlUrl + "/*", htmlServletHolder);
+//
+//			// add servlet elements
+//			int position = 1;
+//			for (Map.Entry<String, ServletHolder> servlet : servlets.entrySet()) {
+//
+//				String path                 = servlet.getKey();
+//				ServletHolder servletHolder = servlet.getValue();
+//
+//				servletHolder.setInitOrder(position++);
+//
+//				logger.log(Level.INFO, "Adding servlet {0} for {1}", new Object[] { servletHolder, path } );
+//
+//				servletContext.addServlet(servletHolder, path);
+//			}
+//
+//			// Add static resource handler for structr UI's main page
+//			ResourceHandler resourceHandler = new ResourceHandler();
+//			resourceHandler.setDirectoriesListed(true);
+//			resourceHandler.setWelcomeFiles(new String[] { "index.html"});
+//			resourceHandler.setResourceBase("src/main/resources/structr");		
+//			ContextHandler staticResourceHandler = new ContextHandler();
+//			staticResourceHandler.setContextPath("/structr");
+//			staticResourceHandler.setHandler(resourceHandler);
+//
+//			handlerCollection.addHandler(staticResourceHandler);
+//
+//			FilterHolder rewriteFilter = new FilterHolder(UrlRewriteFilter.class);
+//			rewriteFilter.setInitParameter("confPath", "/urlrewrite.xml");
+//			rewriteFilter.setInitParameter("logLevel", "DEBUG");
+//			servletContext.addFilter(rewriteFilter, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
+//			
+//			handlerCollection.addHandler(servletContext);
+//			
+//			// register structr application context listener
+//			servletContext.addEventListener(new ApplicationContextListener());
+//			//handlerCollection.addHandler(servletContext);
+//
+//			server.setHandler(handlerCollection);
+//
+//			if (host != null && !host.isEmpty() && httpPort > -1) {
+//
+//				SelectChannelConnector httpConnector = new SelectChannelConnector();
+//
+//				httpConnector.setHost(host);
+//				httpConnector.setPort(httpPort);
+//				httpConnector.setMaxIdleTime(30000);
+//				httpConnector.setRequestHeaderSize(8192);
+//
+//				connectors.add(httpConnector);
+//
+//			} else {
+//
+//				logger.log(Level.WARNING, "Unable to configure HTTP port, please make sure that application.host, application.http.port and application.rest.path are set correctly in structr.conf.");
+//			}
+//			
+//			if (!connectors.isEmpty()) {
+//
+//				server.setConnectors(connectors.toArray(new Connector[0]));
+//
+//			} else {
+//
+//				logger.log(Level.SEVERE, "No connectors configured, aborting.");
+//				System.exit(0);
+//			}
+//
+//			server.setGracefulShutdown(1000);
+//			server.setStopAtShutdown(true);
+//
+//			server.start();
+//			
+//			running = server.isRunning();
+//
+//		} catch(Throwable t) {
+//			
+//			t.printStackTrace();
+//		}
+//		
 
 	}
 

@@ -32,14 +32,12 @@ import org.apache.commons.io.IOUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.ResourceAccess;
 import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.entity.User;
-import org.structr.web.entity.dom.Page;
 import static org.structr.web.test.ResourceAccessTest.createResourceAccess;
 
 //~--- classes ----------------------------------------------------------------

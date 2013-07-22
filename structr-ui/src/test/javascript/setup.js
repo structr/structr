@@ -50,7 +50,7 @@ exports.casperOptions = {
 /**
  * Base URL for Structr UI tests
  */
-exports.url = 'http://127.0.0.1:8875/structr/';
+exports.url = 'http://localhost:8875/structr/#pages';
 
 /**
  * Image type extension
