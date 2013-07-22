@@ -11,8 +11,8 @@ A basic understanding of Content Management systems is helpful but not required 
 - [Structr UI](#structr-frontend-ui)
 - [First Steps](#first-steps)
 	- [Download](#download)
-	- [Installation and Startup](#installation-and-startup)
-	- []
+	- [Installation and Start](#installation-and-start)
+	- [Setup](#setup)
 
 
 ## About Structr
@@ -39,14 +39,14 @@ The easiest way is to download a distribution file directly from the Maven build
 
 	http://maven.structr.org/artifactory/release/org/structr/structr-ui/<version>/structr-ui-<version>-dist.tar.gz
 
-For example, the distribution file of release 0.7.1 can be downloaded here: [http://maven.structr.org/artifactory/release/org/structr/structr-ui/0.7.1/structr-ui-0.7.1-dist.tar.gz]()
+For example, the distribution file of release 0.7.1 can be downloaded here: <http://maven.structr.org/artifactory/release/org/structr/structr-ui/0.7.1/structr-ui-0.7.1-dist.tar.gz>
 
 Another way is to clone Structr from GitHub:
 
 	$ git clone https://github.com/structr/structr.git
 
 
-### Installation and Startup
+### Installation and Start
 
 If you have downloaded the distribution file for version ```<version>```, extract it with ```tar``` and run the main class ```org.structr.Ui```
 
@@ -63,13 +63,21 @@ After that, a Structr instance should be up and running on port 8082.
 
 ### Setup
 
-In order for Structr to work properly, you need to run two scripts, both located in the ```bin```directory. Please note that in the source repo, the ```bin```directory is a subdirectory of ```src/main/resources/ 
+In order for Structr to work properly, you need to run two scripts, both located in the ```bin```directory. Please note that in the source repo, the ```bin``` directory is a subdirectory of ```src/main/resources/```
 
 	$ cd bin
 	$ ./add_grants.sh
 	$ ./seed.sh
 	
 
+### Login
+
+If Structr is running, access the following [URL](http://localhost:8082/structr) with a web browser:
+
+    http://localhost:8082/structr
+    
+    
+You should see the login screen:
 
 
 

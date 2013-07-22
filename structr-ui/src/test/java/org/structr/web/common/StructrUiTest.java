@@ -51,11 +51,15 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.servlet.DispatcherType;
 import junit.framework.TestCase;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.handler.HandlerCollection;
+import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.server.nio.SelectChannelConnector;
+import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.resource.JarResource;
@@ -68,6 +72,8 @@ import org.structr.context.ApplicationContextListener;
 import org.structr.rest.servlet.JsonRestServlet;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.servlet.HtmlServlet;
+import org.structr.websocket.servlet.WebSocketServlet;
+import org.tuckey.web.filters.urlrewrite.UrlRewriteFilter;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -102,6 +108,7 @@ public class StructrUiTest extends TestCase {
 	protected static final String contextPath = "/";
 	protected static final String restUrl = "/structr/rest";
 	protected static final String htmlUrl = "/structr/html";
+	protected static final String wsUrl = "/structr/ws";
 	protected static final String host = "127.0.0.1";
 	protected static final int httpPort = 8875;
 	
@@ -156,7 +163,10 @@ public class StructrUiTest extends TestCase {
 			
 			
 			String sourceJarName                 = getClass().getProtectionDomain().getCodeSource().getLocation().toString();
-			File confFile                        = checkStructrConf(basePath, sourceJarName);
+			
+			checkUrlrewriteConf(basePath);
+			checkStructrConf(basePath, sourceJarName);
+			
 			List<Connector> connectors           = new LinkedList<Connector>();
 			HandlerCollection handlerCollection  = new HandlerCollection();
 
@@ -182,12 +192,25 @@ public class StructrUiTest extends TestCase {
 			Map<String, ServletHolder> servlets = new LinkedHashMap<String, ServletHolder>();
 			servlets.put(restUrl + "/*", structrRestServletHolder);
 
+			// WebSocket Servlet
+			WebSocketServlet wsServlet = new WebSocketServlet(AbstractNode.uuid);
+			ServletHolder wsServletHolder = new ServletHolder(wsServlet);
+			Map<String, String> wsInitParams = new HashMap<String, String>();
+
+			wsInitParams.put("Authenticator", "org.structr.web.auth.UiAuthenticator");
+			wsInitParams.put("IdProperty", "uuid");
+			wsServletHolder.setInitParameters(wsInitParams);
+			wsServletHolder.setInitOrder(3);
+			
+			// add to servlets
+			servlets.put(wsUrl + "/*", wsServletHolder);
+
 			// HTML Servlet
 			HtmlServlet htmlServlet = new HtmlServlet();
 			ServletHolder htmlServletHolder = new ServletHolder(htmlServlet);
 			Map<String, String> htmlInitParams = new HashMap<String, String>();
 
-			htmlInitParams.put("Authenticator", UiAuthenticator.class.getName());
+			htmlInitParams.put("Authenticator", "org.structr.web.auth.HttpAuthenticator");
 			htmlServletHolder.setInitParameters(htmlInitParams);
 			htmlServletHolder.setInitOrder(1);
 
@@ -208,6 +231,23 @@ public class StructrUiTest extends TestCase {
 				servletContext.addServlet(servletHolder, path);
 			}
 
+			// Add static resource handler for structr UI's main page
+			ResourceHandler resourceHandler = new ResourceHandler();
+			resourceHandler.setDirectoriesListed(true);
+			resourceHandler.setWelcomeFiles(new String[] { "index.html"});
+			resourceHandler.setResourceBase("src/main/resources/structr");		
+			ContextHandler staticResourceHandler = new ContextHandler();
+			staticResourceHandler.setContextPath("/structr");
+			staticResourceHandler.setHandler(resourceHandler);
+
+			handlerCollection.addHandler(staticResourceHandler);
+
+			FilterHolder rewriteFilter = new FilterHolder(UrlRewriteFilter.class);
+			rewriteFilter.setInitParameter("confPath", basePath + "/urlrewrite.xml");
+			servletContext.addFilter(rewriteFilter, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
+			
+			handlerCollection.addHandler(servletContext);
+			
 			// register structr application context listener
 			servletContext.addEventListener(new ApplicationContextListener());
 			handlerCollection.addHandler(servletContext);
@@ -229,7 +269,7 @@ public class StructrUiTest extends TestCase {
 
 				logger.log(Level.WARNING, "Unable to configure HTTP port, please make sure that application.host, application.http.port and application.rest.path are set correctly in structr.conf.");
 			}
-
+			
 			if (!connectors.isEmpty()) {
 
 				server.setConnectors(connectors.toArray(new Connector[0]));
@@ -478,6 +518,38 @@ public class StructrUiTest extends TestCase {
 
 	}
 
+	private File checkUrlrewriteConf(String basePath) throws IOException {
+
+		// create and register config file
+		String urlrewritePath = basePath + "/urlwrewrite.xml";
+		File urlrewriteFile   = new File(urlrewritePath);
+
+		// Create structr.conf if not existing
+		if (!urlrewriteFile.exists()) {
+
+			// synthesize a urlrewrite.xml file
+			List<String> config = new LinkedList<String>();
+
+			config.add("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
+			config.add("<!DOCTYPE urlrewrite\n" +
+				"        PUBLIC \"-//tuckey.org//DTD UrlRewrite 3.2//EN\"\n" +
+				"        \"http://www.tuckey.org/res/dtds/urlrewrite3.2.dtd\">");
+			
+			config.add("<urlrewrite>");
+			config.add("    <rule match-type=\"regex\">");
+			config.add("        <name>RedirectToHtmlServlet</name>");
+			config.add("        <condition type=\"request-uri\" operator=\"notequal\">^/structr/</condition>");
+			config.add("        <from>^/(.*)$</from>");
+			config.add("        <to type=\"forward\" last=\"true\">/structr/html/$1</to>");
+			config.add("    </rule>");
+			config.add("</urlrewrite>");
+
+			urlrewriteFile.createNewFile();
+			FileUtils.writeLines(urlrewriteFile, "UTF-8", config);
+		}
+		
+		return urlrewriteFile;		
+	}
 
 	private File checkStructrConf(String basePath, String sourceJarName) throws IOException {
 
