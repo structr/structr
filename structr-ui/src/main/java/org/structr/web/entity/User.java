@@ -71,6 +71,7 @@ public class User extends Person implements Principal {
 	static {
 		
 		User.email.addValidator(new TypeUniquenessValidator(User.class));
+		User.name.addValidator(new TypeUniquenessValidator(User.class));
 		User.email.addValidator(new SimpleRegexValidator("[A-Za-z0-9!#$%&'*+-/=?^_`{|}~]+@[A-Za-z0-9-]+(.[A-Za-z0-9-]+)*"));
 	}
 	

@@ -1,0 +1,11 @@
+html {
+    font-family: sans-serif;
+}
+
+#desc {
+    padding: 1em 0;
+}
+
+#anim {
+    border: 1px solid #555;
+}
