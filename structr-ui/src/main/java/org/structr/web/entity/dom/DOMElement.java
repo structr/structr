@@ -35,7 +35,6 @@ import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
-import org.structr.core.graph.NodeService.NodeIndex;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
@@ -62,7 +61,6 @@ import org.apache.commons.collections.iterators.IteratorEnumeration;
 
 import org.apache.commons.collections.map.LRUMap;
 import org.neo4j.graphdb.Direction;
-import org.structr.common.Permission;
 import org.structr.web.common.RelType;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.core.GraphObject;

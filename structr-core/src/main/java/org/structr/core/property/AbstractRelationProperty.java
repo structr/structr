@@ -22,7 +22,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.commons.collections.ListUtils;
 import org.neo4j.graphdb.*;
 import org.structr.common.FactoryDefinition;
 import org.structr.common.SecurityContext;
@@ -105,11 +104,11 @@ public abstract class AbstractRelationProperty<T> extends Property<T> {
 		return false;
 	}
 
-	public void createRelationship(final SecurityContext securityContext, final AbstractNode sourceNode, final AbstractNode targetNode) throws FrameworkException {
-		createRelationship(securityContext, sourceNode, targetNode, new PropertyMap());
+	public AbstractRelationship createRelationship(final SecurityContext securityContext, final AbstractNode sourceNode, final AbstractNode targetNode) throws FrameworkException {
+		return createRelationship(securityContext, sourceNode, targetNode, new PropertyMap());
 	}
 
-	public void createRelationship(final SecurityContext securityContext, final AbstractNode sourceNode, final AbstractNode targetNode, final PropertyMap properties) throws FrameworkException {
+	public AbstractRelationship createRelationship(final SecurityContext securityContext, final AbstractNode sourceNode, final AbstractNode targetNode, final PropertyMap properties) throws FrameworkException {
 
 		// create relationship if it does not already exist
 		final CreateRelationshipCommand<?> createRel = Services.command(securityContext, CreateRelationshipCommand.class);
@@ -120,10 +119,10 @@ public abstract class AbstractRelationProperty<T> extends Property<T> {
 			final AbstractNode finalTargetNode = targetNode;
 			final AbstractNode finalSourceNode = (AbstractNode) sourceNode;
                         
-			StructrTransaction transaction     = new StructrTransaction() {
+			StructrTransaction<AbstractRelationship> transaction = new StructrTransaction<AbstractRelationship>() {
 
 				@Override
-				public Object execute() throws FrameworkException {
+				public AbstractRelationship execute() throws FrameworkException {
 
                                         PropertyMap props           = new PropertyMap(properties);
 					AbstractRelationship newRel = null;
@@ -187,7 +186,7 @@ public abstract class AbstractRelationProperty<T> extends Property<T> {
 			};
 
 			// execute transaction
-			Services.command(securityContext, TransactionCommand.class).execute(transaction);
+			return Services.command(securityContext, TransactionCommand.class).execute(transaction);
 
 		} else {
 
@@ -214,6 +213,8 @@ public abstract class AbstractRelationProperty<T> extends Property<T> {
 			}
 
 		}
+		
+		return null;
 	}
 
 	public void removeRelationship(final SecurityContext securityContext, final AbstractNode sourceNode, final AbstractNode targetNode) throws FrameworkException {
