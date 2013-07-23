@@ -40,6 +40,11 @@ casper.test.begin(testName, numberOfTests, function(test) {
     });
 
     casper.then(function() {
+        s.mousePointer(casper, { left: 180, top: 180 });
+        s.moveMousePointerTo(casper, '#loginButton');
+    });
+
+    casper.then(function() {
         this.click('#loginButton');
     });
 

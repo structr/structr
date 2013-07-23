@@ -20,9 +20,9 @@
 var s = require('../setup');
 var casper = require('casper').create(s.casperOptions);
 
-var testName = 'create_page';
-var heading = "Create Page"
-var desc = "This animation shows how an empty page is created."
+var testName = 'rename_page';
+var heading = "Rename Page"
+var desc = "This animation shows how a new page can be renamed."
 var numberOfTests = 3;
 
 s.startRecording(window, casper, testName);
@@ -40,7 +40,7 @@ casper.test.begin(testName, numberOfTests, function(test) {
     });
 
     casper.then(function() {
-        s.mousePointer(casper, { left: 180, top: 180 });
+        s.mousePointer(casper, { left: 600, top: 400 });
         s.moveMousePointerTo(casper, '#loginButton');
     });
 
@@ -66,6 +66,31 @@ casper.test.begin(testName, numberOfTests, function(test) {
 
     casper.then(function() {
         this.click('#add_page');
+    });
+
+    casper.wait(1000, function() {
+        test.assertEval(function() {
+            return $('#errorText').text() === '';
+        });
+    });
+
+    casper.then(function() {
+        s.moveMousePointerTo(casper, '#previewTabs li:nth-child(2)');
+    });
+
+    casper.then(function() {
+        this.click('#previewTabs li:nth-child(2)');
+    });
+
+    casper.wait(500, function() {
+    });
+
+    casper.then(function() {
+        s.animatedType(this, '#previewTabs li:nth-child(2) .newName_', 'renamed-page', 0, true);
+    });
+
+    casper.then(function() {
+        s.moveMousePointerTo(casper, '#previews');
     });
 
     casper.wait(5000, function() {

@@ -20,13 +20,12 @@
 
 package org.structr.web.test;
 
+import java.io.IOException;
+import java.util.logging.Level;
 import org.structr.web.common.StructrUiTest;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.io.IOException;
-
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.io.IOUtils;
 import org.structr.common.error.FrameworkException;
@@ -47,21 +46,14 @@ import static org.structr.web.test.ResourceAccessTest.createResourceAccess;
  *
  * @author Axel Morgner
  */
-public class RunFrontendTest extends StructrUiTest {
+public class FrontendTest extends StructrUiTest {
 
-	private static final Logger logger = Logger.getLogger(RunFrontendTest.class.getName());
+	private static final Logger logger = Logger.getLogger(FrontendTest.class.getName());
 
 	//~--- methods --------------------------------------------------------
 
-	@Override
-	public void test00DbAvailable() {
+	protected int run(final String testName) {
 
-		super.test00DbAvailable();
-
-	}
-
-	public void test01Run() {
-		
 		try {
 			try {
 				createAdminUser();
@@ -71,16 +63,34 @@ public class RunFrontendTest extends StructrUiTest {
 				logger.log(Level.SEVERE, "Could not create admin user", ex);
 			}
 			
-			String[] args = {"/bin/sh", "-c", "cd src/test/javascript;./run_tests.sh"};
+			String[] args = {"/bin/sh", "-c", "cd src/test/javascript; PATH=$PATH:./bin/ casperjs/bin/casperjs test " + testName+ ".js"};
+
 			Process proc = Runtime.getRuntime().exec(args);
 			logger.log(Level.INFO, IOUtils.toString(proc.getInputStream()));
 			logger.log(Level.WARNING, IOUtils.toString(proc.getErrorStream()));
+			
+			int exitValue = proc.exitValue();
+			
+			logger.log(Level.INFO, "casperjs subprocess returned with {0}", exitValue);
+			
+			return exitValue;
+			
 		} catch (IOException ex) {
 			logger.log(Level.SEVERE, null, ex);
 		}
+		
+		return 1;
+
 	}
 
-	private void createAdminUser() throws FrameworkException {
+	@Override
+	public void test00DbAvailable() {
+
+		//super.test00DbAvailable();
+
+	}
+
+	protected void createAdminUser() throws FrameworkException {
 		
 		final CreateNodeCommand cmd  = Services.command(securityContext, CreateNodeCommand.class);
 		final PropertyMap properties = new PropertyMap();

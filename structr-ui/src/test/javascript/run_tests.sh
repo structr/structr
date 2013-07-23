@@ -11,3 +11,6 @@ casperjs/bin/casperjs test successful_login.js
 
 # Create page test
 casperjs/bin/casperjs test create_page.js
+
+# Rename page test
+casperjs/bin/casperjs test rename_page.js

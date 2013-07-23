@@ -23,9 +23,19 @@
 var w = 960, h = 800;
 
 /**
- * Type interval for typing simulation in ms
+ * Interval for typing simulation in ms
  */
 var typeInterval = 20;
+
+/**
+ * Interval for moving mouse cursor in ms (lower = faster)
+ */
+var mouseInterval = 10;
+
+/**
+ * Number of steps for mouse movement (fewer steps = faster)
+ */
+var mouseSteps = 10;
 
 /**
  * Recording interval in ms
@@ -61,7 +71,7 @@ exports.imageType = 'png';
 
 /**
  * Base directory for docs
- */ 
+ */
 exports.docsDir = '../../../../docs';
 
 /**
@@ -72,16 +82,25 @@ exports.debug = false;
 /**
  * The input field with the given selector will be filled
  * with the given text animated as if it was typed in.
-*/
-exports.animatedType = function(casper, selector, text, len) {
+ */
+exports.animatedType = function(casper, selector, text, len, blur) {
+
     var t = '';
 
     if (len === undefined) {
         len = 0;
     }
 
-    if (len === text.length + 1)
+    if (len === text.length + 1) {
+
+        if (blur) {
+            casper.evaluate(function(f) {
+                $(f).blur();
+            }, selector);
+        }
+
         return;
+    }
 
     t = text.substr(0, len);
 
@@ -90,8 +109,104 @@ exports.animatedType = function(casper, selector, text, len) {
     }, selector, t);
 
     window.setTimeout(function() {
-        exports.animatedType(casper, selector, text, len + 1);
+        exports.animatedType(casper, selector, text, len + 1, blur);
     }, typeInterval);
+
+}
+
+/**
+ * Display a mouse pointer at the given position
+ */
+exports.mousePointer = function(casper, pos) {
+
+    if (exports.debug)
+        console.log('displaying mouse cursor at', pos.left, pos.top);
+
+    //casper.then(function() {
+
+        var currentPos = casper.evaluate(function(p) {
+            
+            var c = $('#testCursor');
+            if (!c.length) {
+                $('body').append('<img id="testCursor" src="icon/cursor2.png" style="position: absolute; top: ' + p.top + 'px; left: ' + p.left + 'px; z-index: 999999">')
+                c = $('#testCursor');
+            } else {
+                c.offset({
+                    top: p.top,
+                    left: p.left
+                });
+            }
+            return c.offset();
+        }, pos);
+        
+        if (exports.debug) console.log('current cursor position', currentPos.left, currentPos.top);
+        
+    //});
+
+}
+
+/**
+ * Move mouse pointer
+ */
+exports.moveMousePointer = function(casper, startPos, endPos, step) {
+
+    var pos;
+
+    // Stop after a certain number of steps
+    if (step === mouseSteps) {
+        exports.mousePointer(casper, endPos);
+        return;
+    }
+
+    if (step === undefined) {
+        step = 0;
+    }
+
+    pos = {
+        left: startPos.left + (endPos.left - startPos.left) / mouseSteps * step,
+        top: startPos.top + (endPos.top - startPos.top) / mouseSteps * step
+    };
+
+    exports.mousePointer(casper, pos);
+    
+    casper.then(function() {
+        exports.moveMousePointer(casper, startPos, endPos, step + 1);
+    });
+
+}
+
+/**
+ * Move mouse pointer to element with given selector
+ */
+exports.moveMousePointerTo = function(casper, selector) {
+
+    if (exports.debug)
+        console.log('move mouse pointer to', selector);
+
+    casper.then(function() {
+
+        var positions = this.evaluate(function(s) {
+            var el = $(s);
+            var c = $('#testCursor');
+
+            if (el.length && c.length) {
+
+                var startPos = {left: c.offset().left + c.width() / 2, top: c.offset().top + c.height() / 2};
+                var endPos = {left: el.offset().left + el.width() / 2, top: el.offset().top + el.height() / 2};
+
+                return {
+                    start: startPos,
+                    end: endPos
+                };
+
+            }
+        }, selector);
+
+        if (exports.debug)
+            console.log('start position:', positions.start.left, positions.start.top, ', end position:', positions.end.left, positions.end.top);
+
+        exports.moveMousePointer(casper, positions.start, positions.end);
+    });
 
 }
 
@@ -106,25 +221,25 @@ exports.pad = function(num) {
  * Create an HTML file with JS-animated video
  */
 exports.animateHtml = function(testName, heading, desc) {
-    
+
     var fs = require('fs');
-    
+
     var html = '<!DOCTYPE html><html><head><title>structr UI Test: ' + heading + '</title><link rel="stylesheet" type="text/css" media="screen" href="test.css"></head><body><h1>' + heading + '</h1><div id="desc">' + desc + '</div><img width="' + w + '" height="' + h + '" id="anim"><script type="text/javascript">'
 
     html += '\n'
-    + 'var anim = document.getElementById("anim");\n'
-    + 'play(0);\n';
-    
+            + 'var anim = document.getElementById("anim");\n'
+            + 'play(0);\n';
+
     var files = fs.list(exports.docsDir + '/screenshots/' + testName + '/');
 
     html += 'function setImg(i) { anim.src = "../screenshots/' + testName + '/" + ("000000000" + i).substr(-' + filenameLength + ') + ".' + exports.imageType + '"; }\n'
-    + 'function play(i, v) { setImg(i);\n'
-    + ' if (i<' + (files.length-3) + ') { window.setTimeout(function() { play(i+1,v); }, v?v:100); }; }\n';
+            + 'function play(i, v) { setImg(i);\n'
+            + ' if (i<' + (files.length - 3) + ') { window.setTimeout(function() { play(i+1,v); }, v?v:100); }; }\n';
 
     html += '</script><div><button onclick="play(0)">Play</button><button onclick="play(0,250)">Slow Motion</button></div></body></html>';
 
     fs.write(exports.docsDir + '/html/' + testName + '.html', html);
-    
+
 }
 
 /**
@@ -132,8 +247,15 @@ exports.animateHtml = function(testName, heading, desc) {
  */
 exports.startRecording = function(window, casper, testName) {
     var i = 0;
+
+    var fs = require('fs');
+
+    // Remove old screenshots
+    fs.removeTree(exports.docsDir + '/screenshots/' + testName);
+
     window.setInterval(function() {
         casper.capture(exports.docsDir + '/screenshots/' + testName + '/' + exports.pad(i++) + '.' + exports.imageType);
-        if (exports.debug) console.log('screenshot ' + i + ' created');
+        if (exports.debug)
+            console.log('screenshot ' + i + ' created');
     }, recordingInterval);
 }
