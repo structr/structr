@@ -60,9 +60,9 @@ exports.url = 'http://localhost:8875/structr/#pages';
 exports.imageType = 'png';
 
 /**
- * Base directory for screenshots
+ * Base directory for docs
  */ 
-exports.screenshotsDir = 'screenshots';
+exports.docsDir = '../../../../docs';
 
 /**
  * Set to true to enable debug logging
@@ -115,15 +115,15 @@ exports.animateHtml = function(name, heading, desc) {
     + 'var anim = document.getElementById("anim");\n'
     + 'play(0);\n';
     
-    var files = fs.list(exports.screenshotsDir + '/' + name + '/');
+    var files = fs.list(exports.docsDir + '/screenshots/' + name + '/');
 
-    html += 'function setImg(i) { anim.src = "' + exports.screenshotsDir + '/' + name + '/" + ("000000000" + i).substr(-' + filenameLength + ') + ".' + exports.imageType + '"; }\n'
+    html += 'function setImg(i) { anim.src = "../screenshots/' + name + '/" + ("000000000" + i).substr(-' + filenameLength + ') + ".' + exports.imageType + '"; }\n'
     + 'function play(i, v) { setImg(i);\n'
     + ' if (i<' + (files.length-3) + ') { window.setTimeout(function() { play(i+1,v); }, v?v:100); }; }\n';
 
     html += '</script><div><button onclick="play(0)">Play</button><button onclick="play(0,250)">Slow Motion</button></div></body></html>';
 
-    fs.write(name + '.html', html);
+    fs.write(exports.docsDir + '/html/' + name + '.html', html);
     
 }
 
@@ -133,7 +133,7 @@ exports.animateHtml = function(name, heading, desc) {
 exports.startRecording = function(window, casper, testName) {
     var i = 0;
     window.setInterval(function() {
-        casper.capture(exports.screenshotsDir + '/' + testName + '/' + exports.pad(i++) + '.' + exports.imageType);
+        casper.capture(exports.docsDir + '/screenshots/' + testName + '/' + exports.pad(i++) + '.' + exports.imageType);
         if (exports.debug) console.log('screenshot ' + i + ' created');
     }, recordingInterval);
 }
