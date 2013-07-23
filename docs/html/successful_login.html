@@ -3,5 +3,5 @@ var anim = document.getElementById("anim");
 play(0);
 function setImg(i) { anim.src = "../screenshots/successful_login/" + ("000000000" + i).substr(-4) + ".png"; }
 function play(i, v) { setImg(i);
- if (i<21) { window.setTimeout(function() { play(i+1,v); }, v?v:100); }; }
+ if (i<20) { window.setTimeout(function() { play(i+1,v); }, v?v:100); }; }
 </script><div><button onclick="play(0)">Play</button><button onclick="play(0,250)">Slow Motion</button></div></body></html>
