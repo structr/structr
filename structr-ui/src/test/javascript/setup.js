@@ -105,7 +105,7 @@ exports.pad = function(num) {
 /**
  * Create an HTML file with JS-animated video
  */
-exports.animateHtml = function(name, heading, desc) {
+exports.animateHtml = function(testName, heading, desc) {
     
     var fs = require('fs');
     
@@ -115,15 +115,15 @@ exports.animateHtml = function(name, heading, desc) {
     + 'var anim = document.getElementById("anim");\n'
     + 'play(0);\n';
     
-    var files = fs.list(exports.docsDir + '/screenshots/' + name + '/');
+    var files = fs.list(exports.docsDir + '/screenshots/' + testName + '/');
 
-    html += 'function setImg(i) { anim.src = "../screenshots/' + name + '/" + ("000000000" + i).substr(-' + filenameLength + ') + ".' + exports.imageType + '"; }\n'
+    html += 'function setImg(i) { anim.src = "../screenshots/' + testName + '/" + ("000000000" + i).substr(-' + filenameLength + ') + ".' + exports.imageType + '"; }\n'
     + 'function play(i, v) { setImg(i);\n'
     + ' if (i<' + (files.length-3) + ') { window.setTimeout(function() { play(i+1,v); }, v?v:100); }; }\n';
 
     html += '</script><div><button onclick="play(0)">Play</button><button onclick="play(0,250)">Slow Motion</button></div></body></html>';
 
-    fs.write(exports.docsDir + '/html/' + name + '.html', html);
+    fs.write(exports.docsDir + '/html/' + testName + '.html', html);
     
 }
 

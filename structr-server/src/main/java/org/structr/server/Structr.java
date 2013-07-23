@@ -580,7 +580,7 @@ public class Structr {
 		if (enableRewriteFilter) {
 			
 			FilterHolder rewriteFilter = new FilterHolder(UrlRewriteFilter.class);
-			rewriteFilter.setInitParameter("confPath", "/urlrewrite.xml");
+			rewriteFilter.setInitParameter("confPath", "urlrewrite.xml");
 			servletContext.addFilter(rewriteFilter, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
 		}
 
