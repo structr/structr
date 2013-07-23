@@ -380,11 +380,14 @@ var _Pages = {
         var oldName = $.trim(element.children('b.name_').attr('title'));
         element.children('b').hide();
         element.find('.button').hide();
-        element.append('<input type="text" size="' + (oldName.length+4) + '" class="newName_" value="' + oldName + '">');
+        var input = $('input.newName_', element);
+        
+        if (!input.length) {
+            element.append('<input type="text" size="' + (oldName.length+4) + '" class="newName_" value="' + oldName + '">');
+            input = $('input', element);
+        }
 
-        var input = $('input', element);
-
-        input.focus().select();
+        input.show().focus().select();
 
         input.on('blur', function() {
             log('blur');
