@@ -429,7 +429,7 @@ public abstract class Search {
 	 * 
 	 * @param searchValue 
 	 */
-	public static SearchAttributeGroup orMatchExactValues(final PropertyKey key, final String searchValue, final Occur occur) {
+	private static SearchAttributeGroup orMatchExactValues(final PropertyKey key, final String searchValue, final Occur occur) {
 		
 		SearchAttributeGroup group = new SearchAttributeGroup(Occur.SHOULD);
 		
@@ -456,7 +456,7 @@ public abstract class Search {
 	 * 
 	 * @param searchValue 
 	 */
-	public static SearchAttributeGroup orMatchValues(final PropertyKey key, final String searchValue, final Occur occur) {
+	private static SearchAttributeGroup orMatchValues(final PropertyKey key, final String searchValue, final Occur occur) {
 		
 		SearchAttributeGroup group = new SearchAttributeGroup(Occur.SHOULD);
 		
@@ -483,7 +483,7 @@ public abstract class Search {
 	 * 
 	 * @param searchValue 
 	 */
-	public static SearchAttributeGroup andMatchExactValues(final SecurityContext securityContext, final PropertyKey key, final String searchValue, final Occur occur) {
+	private static SearchAttributeGroup andMatchExactValues(final SecurityContext securityContext, final PropertyKey key, final String searchValue, final Occur occur) {
 		
 		SearchAttributeGroup group = new SearchAttributeGroup(Occur.MUST);
 		
@@ -507,7 +507,7 @@ public abstract class Search {
 	 * 
 	 * @param searchValue 
 	 */
-	public static SearchAttributeGroup andMatchValues(final SecurityContext securityContext, final PropertyKey key, final String searchValue, final Occur occur) {
+	private static SearchAttributeGroup andMatchValues(final SecurityContext securityContext, final PropertyKey key, final String searchValue, final Occur occur) {
 		
 		SearchAttributeGroup group = new SearchAttributeGroup(Occur.MUST);
 		
