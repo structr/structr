@@ -61,6 +61,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import static junit.framework.Assert.assertTrue;
+import static junit.framework.Assert.fail;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.structr.core.Services;
 import org.structr.core.graph.TransactionCommand;
@@ -361,5 +363,114 @@ public class SearchResultsTest extends StructrTest {
 		}
 
 	}
+	
+	public void test07SearchByStaticMethod01() {
+
+		try {
+
+			PropertyMap props     = new PropertyMap();
+			final PropertyKey key = AbstractNode.name;
+			final String name     = "89w3hkl sdfghsdkljth";
+
+			props.put(key, name);
+
+			final AbstractNode node                = createTestNode(TestOne.class, props);
+			boolean includeDeletedAndHidden        = true;
+			boolean publicOnly                     = false;
+			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+
+			searchAttributes.add(Search.andExactName(name));
+
+			Result result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes);
+
+			assertTrue(result.size() == 1);
+			assertTrue(result.get(0).equals(node));
+
+
+		} catch (FrameworkException ex) {
+
+			logger.log(Level.SEVERE, ex.toString());
+			fail("Unexpected exception");
+
+		}
+	}
+
+	public void test08SearchByStaticMethod02() {
+
+		try {
+
+			PropertyMap props     = new PropertyMap();
+			final PropertyKey key = AbstractNode.name;
+			final String name     = "89w3hkl sdfghsdkljth";
+
+			props.put(key, name);
+
+			final AbstractNode node                = createTestNode(TestOne.class, props);
+			boolean includeDeletedAndHidden        = true;
+			boolean publicOnly                     = false;
+			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+
+			searchAttributes.add(Search.orExactName(name));
+
+			Result result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes);
+
+			assertTrue(result.size() == 1);
+			assertTrue(result.get(0).equals(node));
+
+		} catch (FrameworkException ex) {
+
+			logger.log(Level.SEVERE, ex.toString());
+			fail("Unexpected exception");
+
+		}
+	}
+
+	public void test08SearchByStaticMethodWithNullSearchValue01() {
+
+		try {
+
+			PropertyMap props     = new PropertyMap();
+			final PropertyKey key = AbstractNode.name;
+			final String name     = "abc";
+
+			props.put(key, name);
+
+			createTestNode(TestOne.class, props);
+
+			Result result = searchNodeCommand.execute(true, false, Search.andExactName(null));
+
+			assertTrue(result.isEmpty());
+
+
+		} catch (FrameworkException ex) {
+
+			logger.log(Level.SEVERE, ex.toString());
+			fail("Unexpected exception");
+
+		}
+
+	}
+
+	// FIXME: Comment in this test and fix the issue with null searchValue which leads to a NPE in SearchCommand, line 240
+//	public void test09SearchByStaticMethodWithNullSearchValue01() {
+//
+//		try {
+//
+//			PropertyMap props     = new PropertyMap();
+//			AbstractNode node = createTestNode(TestOne.class, props);
+//
+//			Result result = searchNodeCommand.execute(true, false, Search.orExactName(null));
+//
+//			assertTrue(result.size() == 1);
+//			assertTrue(result.get(0).equals(node));
+//
+//		} catch (FrameworkException ex) {
+//
+//			logger.log(Level.SEVERE, ex.toString());
+//			fail("Unexpected exception");
+//
+//		}
+//
+//	}
 
 }
