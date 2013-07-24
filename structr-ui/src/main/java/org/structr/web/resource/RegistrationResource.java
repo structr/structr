@@ -38,6 +38,7 @@ import org.structr.web.entity.User;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -50,9 +51,11 @@ import org.apache.lucene.search.BooleanClause.Occur;
 import org.parboiled.common.StringUtils;
 import org.structr.core.auth.AuthHelper;
 import org.structr.core.entity.Person;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.search.Search;
+import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.mail.MailTemplate;
@@ -113,7 +116,7 @@ public class RegistrationResource extends Resource {
 		if (propertySet.containsKey(User.email.jsonName()) && propertySet.size() == 1) {
 			
 			SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
-			User user;
+			final Principal user;
 			
 			final String emailString  = (String) propertySet.get(User.email.jsonName());
 			
@@ -130,17 +133,14 @@ public class RegistrationResource extends Resource {
 				
 			if (!result.isEmpty()) {
 				
-				user = (User) result.get(0);
+				user = (Principal) result.get(0);
 				
-				// meh..
-				final User finalUser = user;
-			
 				Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
 					@Override
 					public Object execute() throws FrameworkException {
 				
-						finalUser.setProperty(User.confirmationKey, confKey);
+						user.setProperty(User.confirmationKey, confKey);
 						return null;
 					}
 				});
@@ -187,7 +187,7 @@ public class RegistrationResource extends Resource {
 
 	}
 
-	private boolean sendInvitationLink(final User user) {
+	private boolean sendInvitationLink(final Principal user) {
 
 		Map<String, String> replacementMap = new HashMap();
 
@@ -226,11 +226,16 @@ public class RegistrationResource extends Resource {
 
 	private String getTemplateText(final TemplateKey key, final String defaultValue) {
 		try {
-			List<MailTemplate> templates = (List<MailTemplate>) Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(
-				Search.andExactType(MailTemplate.class),
-				Search.andExactName(key.name()),
-				Search.andMatchExactValues(securityContext, MailTemplate.locale, localeString, Occur.MUST)
-			).getResults();
+			List<SearchAttribute> attrs = new LinkedList();
+			
+			attrs.add(Search.andExactType(MailTemplate.class));
+			attrs.add(Search.andExactName(key.name()));
+			
+			if (localeString != null) {
+				attrs.add(Search.andExactProperty(securityContext, MailTemplate.locale, localeString));
+			}
+			
+			List<MailTemplate> templates = (List<MailTemplate>) Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(attrs).getResults();
 			
 			if (!templates.isEmpty()) {
 				
@@ -267,16 +272,14 @@ public class RegistrationResource extends Resource {
 	 * @param emailString
 	 * @return 
 	 */
-	public static User createUser(final SecurityContext securityContext, final String emailString) {
+	public static Principal createUser(final SecurityContext securityContext, final String emailString) {
 
 		try {
-			return Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<User>() {
+			return Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<Principal>() {
 
 				@Override
-				public User execute() throws FrameworkException {
+				public Principal execute() throws FrameworkException {
 
-					User user;
-					
 					// First, search for a person with that e-mail address
 					Person person = (Person) AuthHelper.getPrincipalForEmail(emailString);
 
@@ -286,25 +289,26 @@ public class RegistrationResource extends Resource {
 						person.unlockReadOnlyPropertiesOnce();
 						person.setProperty(AbstractNode.type, User.class.getSimpleName());
 
-						user = new User();
+						User user = new User();
 						user.init(securityContext, person.getNode());
 
 						// index manually, because type is a system property!
 						person.updateInIndex();
 
 						user.setProperty(User.confirmationKey, confKey);
+						
+						return user;
 
 					} else {
 
-						user = (User) Services.command(securityContext, CreateNodeCommand.class).execute(
+						return (Principal) Services.command(securityContext, CreateNodeCommand.class).execute(
 							new NodeAttribute(AbstractNode.type, User.class.getSimpleName()),
 							new NodeAttribute(User.email, emailString),
 							new NodeAttribute(User.name, emailString),
 							new NodeAttribute(User.confirmationKey, confKey));
+						
 
 					}
-
-					return user;
 
 				}
 				

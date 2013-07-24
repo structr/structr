@@ -522,13 +522,13 @@ public class HtmlServlet extends HttpServlet {
 		
 			List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
 			searchAttrs.add(Search.andExactType(User.class));
-			searchAttrs.add(Search.andMatchValues(securityContext, User.confirmationKey, key, Occur.MUST));
+			searchAttrs.add(Search.andExactProperty(securityContext, User.confirmationKey, key));
 
 			Result results = (Result) searchNodesAsSuperuser.execute(searchAttrs);
 			
 			if (!results.isEmpty()) {
 				
-				final User user = (User) results.get(0);
+				final Principal user = (Principal) results.get(0);
 				
 				Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
