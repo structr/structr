@@ -1,16 +1,16 @@
 # Backend User's Guide
-This document contains a step-by-step guide to the structr backend. We will start with some information about the concepts and technologies and incrementally build a fully functional backend for a real-life use case.
+This document contains a step-by-step guide to the Structr backend. We will start with some information about the concepts and technologies and incrementally build a fully functional backend for a real-life use case.
 
-You should already know what a REST server is, and why you want to use such a server on top of a graph database, which has its own advantages and disadvantages compared to a relational database. You should also be familiar with Java, Apache Maven and git, as structr is hosted on github and we rely on Maven to manage dependencies and builds etc.
+You should already know what a REST server is, and why you want to use such a server on top of a graph database, which has its own advantages and disadvantages compared to a relational database. You should also be familiar with Java, Apache Maven and git, as Structr is hosted on github and we rely on Maven to manage dependencies and builds etc.
 
 ## Table of contents
-- [About structr](#about-structr)
+- [About Structr](#about-Structr)
 - [The Neo4j property graph](#the-neo4j-property-graph)
 - [The first steps](#the-first-steps)
     - [Creating a new project](#creating-a-new-project)
         - [Server.java](#serverjava)
         - [Adding custom configuration elements](#adding-custom-configuration-elements)
-        - [The configuration file (structr.conf)](#the-configuration-file-structrconf)
+        - [The configuration file (Structr.conf)](#the-configuration-file-Structrconf)
         - [Caution](#caution)
     - [Starting the server](#starting-the-server)
         - [Compiling](#compiling)
@@ -78,30 +78,30 @@ You should already know what a REST server is, and why you want to use such a se
     - [EmptyPropertyToken](#emptypropertytoken)
 - [Things to include in this document](#-things-to-include-in-this-document)
 
-## About structr
-The structr REST server essentially is a graph-based JSON document store, where documents are automatically transformed into graph structures and back, according to a pre-defined schema. This schema consists of node and relationship entities, property definitions and configurable views which will be described in detail in the following chapters.
+## About Structr
+The Structr REST server essentially is a graph-based JSON document store, where documents are automatically transformed into graph structures and back, according to a pre-defined schema. This schema consists of node and relationship entities, property definitions and configurable views which will be described in detail in the following chapters.
 
 ## The Neo4j property graph
 Data in a Neo4j database is stored in what is called a property graph. This graph consists of nodes and relationships, which both can have an arbitrary number of primitive properties, including arrays. Properties are stored and retrieved using a String key, so you can think of such a property container as a kind of persistent map. Nodes are the basic building blocks of a property graph and can be connected to other nodes using relationships.
 
 ## The first steps
 ### Creating a new project
-structr has several Maven archetypes available for you to start your project with. As we want to create a backend project from scratch, we will use the archetype named `structr-base-archetype`. So the first step would be to let Maven create a new project from the base archetype:
+Structr has several Maven archetypes available for you to start your project with. As we want to create a backend project from scratch, we will use the archetype named `Structr-base-archetype`. So the first step would be to let Maven create a new project from the base archetype:
 
     mvn archetype:generate \
-        -DarchetypeRepository=http://maven.structr.org/artifactory/snapshot \
-        -DarchetypeGroupId=org.structr \
-        -DarchetypeArtifactId=structr-base-archetype \
+        -DarchetypeRepository=http://maven.Structr.org/artifactory/snapshot \
+        -DarchetypeGroupId=org.Structr \
+        -DarchetypeArtifactId=Structr-base-archetype \
         -DarchetypeVersion=0.8-SNAPSHOT \
-        -DgroupId=org.structr \
+        -DgroupId=org.Structr \
         -DartifactId=example-backend \
         -Dversion=0.1 \
-        -Dpackage=org.structr.example
+        -Dpackage=org.Structr.example
 
 When you execute this command, Maven will ask you to confirm the choices you made and will create a project named `example-backend` in the current directory. We assume you are already familiar with the layout of a Maven project, so let's jump directly into the code.
 
 #### Server.java
-The Server class is the main class of every structr project. It is responsible for both configuration and startup of the REST backend. The following code fragment shows the how a typical Server.java looks like when it is first created from the base archetype.
+The Server class is the main class of every Structr project. It is responsible for both configuration and startup of the REST backend. The following code fragment shows the how a typical Server.java looks like when it is first created from the base archetype.
 
 ```java
 public class Server implements StructrServer {
@@ -136,7 +136,7 @@ Structr.createServer(Server.class, "example-backend 0.1")
 ```
 
 #### Adding custom configuration elements
-The server class provides an easy method to add your own, custom configuration elements that you can later access from within your application code. Just use the `addCustomConfig()` method to bring your custom configuration element into the structr configuration.
+The server class provides an easy method to add your own, custom configuration elements that you can later access from within your application code. Just use the `addCustomConfig()` method to bring your custom configuration element into the Structr configuration.
 
 ```java
 Structr.createServer(Server.class, "example-backend 0.1")
@@ -157,11 +157,11 @@ String value          = Services.getConfigurationValue("my.configuration.value")
 String valueOrDefault = Services.getConfigurationValue("my.configuration.value", "myDefault");
 ```
 
-#### The configuration file (structr.conf)
-When structr is started for the first time, it creates a new configuration file from the values that are encoded in the server class. (*this behaviour needs to be discussed further as it might lead to confusion*)
+#### The configuration file (Structr.conf)
+When Structr is started for the first time, it creates a new configuration file from the values that are encoded in the server class. (*this behaviour needs to be discussed further as it might lead to confusion*)
 
 #### Caution
-Please note that the values in the structr.conf configuration file will override the values specified in the Server.java file, so be sure to remove the structr.conf file before you start structr after you added new configuration elements to Server.java
+Please note that the values in the Structr.conf configuration file will override the values specified in the Server.java file, so be sure to remove the Structr.conf file before you start Structr after you added new configuration elements to Server.java
 
 ### Starting the server
 #### Compiling
@@ -170,32 +170,32 @@ To start the server, you must of course first compile the project. Use Maven to 
     mvn clean install
     
 #### Using Maven to start the server
-The structr base archetype includes a Maven exec:exec goal that you can use to start the server. Please note that this is not the preferred way of starting structr.
+The Structr base archetype includes a Maven exec:exec goal that you can use to start the server. Please note that this is not the preferred way of starting Structr.
 
     mvn exec:exec
     
 #### Starting the server from the command line (or a script)
-The preferred way of starting a structr REST server is by using the following call, which can be used to start from a script (i.e. when running the server as a system service) or from the command line.
+The preferred way of starting a Structr REST server is by using the following call, which can be used to start from a script (i.e. when running the server as a system service) or from the command line.
 
-    java -Xms1g -Xmx1g -server -classpath target/lib/*:target/example-backend-0.1.jar org.structr.example.Server
+    java -Xms1g -Xmx1g -server -classpath target/lib/*:target/example-backend-0.1.jar org.Structr.example.Server
 
 You can of course modify the above JVM switches to better suit your hardware configuration and/or performance needs etc.
 
 #### Debugging
-To be able to attach a debugger to a running structr REST server, you can use the following JVM switches when starting the server.
+To be able to attach a debugger to a running Structr REST server, you can use the following JVM switches when starting the server.
 
     -Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=n
     
 Replace the port 5005 in the example above by your preferred debugging port
 
 #### Tips
-When you move the structr working directory to another directory, make sure you delete the structr.conf because there are absolute paths stored in this file. We are currently working on improving the configuration, so this will hopefully be fixed soon.
+When you move the Structr working directory to another directory, make sure you delete the Structr.conf because there are absolute paths stored in this file. We are currently working on improving the configuration, so this will hopefully be fixed soon.
 
 ## Building the data model
-structr extends the Neo4j property graph, adding type safety, validation, automatic indexing and transparent relationship creation. The basic building block of a structr REST application is the class `AbstractNode`. All node entities must inherit from this class in order to be available in structr. 
+Structr extends the Neo4j property graph, adding type safety, validation, automatic indexing and transparent relationship creation. The basic building block of a Structr REST application is the class `AbstractNode`. All node entities must inherit from this class in order to be available in Structr. 
 
 ### Entities
-For our previously mentioned use case, we want to model the anatomy of structr's source code, so we can later create visualizations and statistics on top of that. This brings us to the first few node entities and relationship types.
+For our previously mentioned use case, we want to model the anatomy of Structr's source code, so we can later create visualizations and statistics on top of that. This brings us to the first few node entities and relationship types.
 
 #### Node entities
 - Author
@@ -206,17 +206,17 @@ For our previously mentioned use case, we want to model the anatomy of structr's
 - WROTE
 
 ### Author.java
-The Author entity is the first entity we examine, because it illustrates some of the most basic features of structr. As mentioned before, all node entities must inherit from `AbstractNode` to be available to the structr REST server. So the simplest case of a class looks like this.
+The Author entity is the first entity we examine, because it illustrates some of the most basic features of Structr. As mentioned before, all node entities must inherit from `AbstractNode` to be available to the Structr REST server. So the simplest case of a class looks like this.
 
 ```java
 public class Author extends AbstractNode {}
 ```
 
 #### Properties and Views
-A node like this of course if of very little use, because it has no properties and no output representation. A structr entity can have many output representations, depending on the REST path it is accessed from, the position in the JSON output document or the relationship over which it is accessed. Output representations in structr are called *Views* and must be specified explicitly for each entity. A view is a collection of properties that belong together semantically in a given context.
+A node like this of course if of very little use, because it has no properties and no output representation. A Structr entity can have many output representations, depending on the REST path it is accessed from, the position in the JSON output document or the relationship over which it is accessed. Output representations in Structr are called *Views* and must be specified explicitly for each entity. A view is a collection of properties that belong together semantically in a given context.
 
 ##### Pre-defined views
-structr has a pre-defined set of views, including the default view which will be used if no view was specified explicitly in the REST path. The following views are defined in structr core and can be used freely in any project.
+Structr has a pre-defined set of views, including the default view which will be used if no view was specified explicitly in the REST path. The following views are defined in Structr core and can be used freely in any project.
 
 - **PropertyView.Public (this is the default view)**
 - PropertyView.Protected
@@ -239,7 +239,7 @@ public static final Property<Date>    birthday = new DateProperty("birthday", "d
 public static final Property<Date>    cakeday  = new ISO8601DateProperty("cakeday");
 ```
 
-The set of default properties that each structr node inherits from `AbstractNode` includes a `name` property, so we do not need to declare it by ourselves. This leads us to the first version of our Author entity.
+The set of default properties that each Structr node inherits from `AbstractNode` includes a `name` property, so we do not need to declare it by ourselves. This leads us to the first version of our Author entity.
 
 ```java
 public class Author extends AbstractNode {
@@ -255,7 +255,7 @@ public class Author extends AbstractNode {
 ```
 
 ### REST access
-Now that we finished the first entity, we can compile the project and start the server (see the previous chapter on how to do that). When the server is up and running, we can run the first REST queries. For each node type, structr automatically creates a nestable REST collection resource, so that we can manage our newly created Author entities.
+Now that we finished the first entity, we can compile the project and start the server (see the previous chapter on how to do that). When the server is up and running, we can run the first REST queries. For each node type, Structr automatically creates a nestable REST collection resource, so that we can manage our newly created Author entities.
 
 #### GET
 Using `curl`, we can now access the REST server for the first time. Of course the resource is initially empty, but the HTTP response code 200 tells us that the resource exists.
@@ -417,7 +417,7 @@ Server: Jetty(8.1.10.v20130312)
 Now that we have our first basic node entity in place, we can move on to the next step, which is data validation. In a typical business application, you will have to enforce business rules on your data, e.g. there can only be one instance of a certain type, e-mail addresses need to match given pattern, some strings have a minimum length etc.
 
 #### Validation callbacks
-There are two different ways to ensure validation of entities in structr. The first and more powerful way is *callback-based validation*, which means that you can override a certain method to implement validation of your nodes in a global context. The following code illustrates how a validation callback can be used to enforce non-emptyness of the `name` property of Author entities.
+There are two different ways to ensure validation of entities in Structr. The first and more powerful way is *callback-based validation*, which means that you can override a certain method to implement validation of your nodes in a global context. The following code illustrates how a validation callback can be used to enforce non-emptyness of the `name` property of Author entities.
 
 ```java
 public class Author extends AbstractNode {
@@ -447,7 +447,7 @@ public class Author extends AbstractNode {
 }
 ```
 
-Note that the implementation of the `isValid` method as shown above can serve as a 'best practice' approach to global validation in structr. 
+Note that the implementation of the `isValid` method as shown above can serve as a 'best practice' approach to global validation in Structr. 
 
 #### Validators
 The second validation method is *validator-based validation*, which means that you can register validator instances for each property key, so that the validation takes place when the value of a given property key is changed. It is important to understand the difference to the callback-based validation above. A validator that is registered on a certain property key will **never** be evaluated if no value for the given property key is set. That means validators can not be used to enforce non-emptyness of property values, and you will have to rely on callback-based validation to ensure non-emtpyness of property values.
@@ -628,13 +628,13 @@ Server: Jetty(8.1.10.v20130312)
 We are aware of the redundancy that comes from having two different approaches to validation, but this is due to historical reasons and will be addressed in future releases.
 
 ## Indexing, searching, sorting and paging
-Before we advance to related entities and relationships, there is one feature that can be illustrated with the current project setup. structr provides automatic indexing, sorting and sophisticated query abilities using the Lucene search engine. In order to use these abilities, we must register properties in an entity to be indexed.
+Before we advance to related entities and relationships, there is one feature that can be illustrated with the current project setup. Structr provides automatic indexing, sorting and sophisticated query abilities using the Lucene search engine. In order to use these abilities, we must register properties in an entity to be indexed.
 
 ### Fulltext and keyword index
 The Neo4j implementation of the Lucene index provider supports fulltext and keyword indexing, which differ in the Analyzer implementation that is used to analyze the values that are indexed for a given entity. Since it is possible to combine more than one search field and sorting in a single REST query, indexed properties are registered in both the *fulltext* and the *keyword* index per default. **Note that Lucene queries will only work correctly if the properties used for searching and sorting are stored in the same index.**
 
 ### Setup
-Registering a property for indexing can be done using one of the `indexed()` methods of the `PropertyKey` interface. For an explanation of the semantics of each method, please refer to the structr JavaDocs.
+Registering a property for indexing can be done using one of the `indexed()` methods of the `PropertyKey` interface. For an explanation of the semantics of each method, please refer to the Structr JavaDocs.
 
 ```java
 public Property<T> indexed();
@@ -691,7 +691,7 @@ For the following examples, we created a list of authors in the database so we c
 Note that the `name` property of every node is indexed per default.
 
 ### Exact search
-Searching the structr REST server is done by appending the desired search key and the value to the REST URL like in the following examples. Please note that you need to encode the search value according to RFC3986 ("percent-encoding"), which is the standard for URL encoding.
+Searching the Structr REST server is done by appending the desired search key and the value to the REST URL like in the following examples. Please note that you need to encode the search value according to RFC3986 ("percent-encoding"), which is the standard for URL encoding.
 
 #### Search for an author by name
 ```
@@ -706,7 +706,7 @@ dev:~$ curl -i "http://localhost:1234/api/authors?name=Author%20A"
    "result": [
       {
          "name": "Author A",
-         "email": "z@structr.org",
+         "email": "z@Structr.org",
          "birthday": "01.01.1970",
          "cakeday": "2020-01-01T10:00:00+0100",
          "id": "46020bbb748a41859bc8e79661a4c203",
@@ -730,7 +730,7 @@ dev:~$ curl -i "http://localhost:1234/api/authors?birthday=01.01.1989"
    "result": [
       {
          "name": "Author T",
-         "email": "g@structr.org",
+         "email": "g@Structr.org",
          "birthday": "01.01.1989",
          "cakeday": "2001-01-01T10:00:00+0100",
          "id": "f99755edefed4704ab998820fb41e71a",
@@ -757,7 +757,7 @@ dev:~$ curl -i "http://localhost:1234/api/authors?loose=1&name=z&email=a"
    "result": [
       {
          "name": "Author Z",
-         "email": "a@structr.org",
+         "email": "a@Structr.org",
          "birthday": "01.01.1995",
          "cakeday": "1995-01-01T10:00:00+0100",
          "id": "15c07deca1c94b3ab0aa60a3b02e2e5e",
@@ -769,7 +769,7 @@ dev:~$ curl -i "http://localhost:1234/api/authors?loose=1&name=z&email=a"
 ```
 
 ### Range queries
-structr supports range queries for both numeric and text fields. The syntax is the same as the one that is used by Lucene, the only difference is that you have to encode the square brackets and spaces in URL encoding.
+Structr supports range queries for both numeric and text fields. The syntax is the same as the one that is used by Lucene, the only difference is that you have to encode the square brackets and spaces in URL encoding.
 
 #### Example range query terms
 ```
@@ -791,7 +791,7 @@ dev:~$ curl -i "http://localhost:1234/api/authors?birthday=%5B01.01.1980%20TO%20
    "result": [
       {
          "name": "Author K",
-         "email": "p@structr.org",
+         "email": "p@Structr.org",
          "birthday": "01.01.1980",
          "cakeday": "2010-01-01T10:00:00+0100",
          "id": "5cb83f7e01404534bfa0ad0db9191912",
@@ -799,7 +799,7 @@ dev:~$ curl -i "http://localhost:1234/api/authors?birthday=%5B01.01.1980%20TO%20
       },
       {
          "name": "Author L",
-         "email": "o@structr.org",
+         "email": "o@Structr.org",
          "birthday": "01.01.1981",
          "cakeday": "2009-01-01T10:00:00+0100",
          "id": "a427880cc9ce4e20a0eb023eb8c8ac56",
@@ -807,7 +807,7 @@ dev:~$ curl -i "http://localhost:1234/api/authors?birthday=%5B01.01.1980%20TO%20
       },
       {
          "name": "Author M",
-         "email": "n@structr.org",
+         "email": "n@Structr.org",
          "birthday": "01.01.1982",
          "cakeday": "2008-01-01T10:00:00+0100",
          "id": "0aed6335d2f940a590a4ac6cacbd3886",
@@ -815,7 +815,7 @@ dev:~$ curl -i "http://localhost:1234/api/authors?birthday=%5B01.01.1980%20TO%20
       },
       {
          "name": "Author N",
-         "email": "m@structr.org",
+         "email": "m@Structr.org",
          "birthday": "01.01.1983",
          "cakeday": "2007-01-01T10:00:00+0100",
          "id": "391ed290e7ef4bbcbb61137efdf9f14f",
@@ -823,7 +823,7 @@ dev:~$ curl -i "http://localhost:1234/api/authors?birthday=%5B01.01.1980%20TO%20
       },
       {
          "name": "Author O",
-         "email": "l@structr.org",
+         "email": "l@Structr.org",
          "birthday": "01.01.1984",
          "cakeday": "2006-01-01T10:00:00+0100",
          "id": "ee3f914867704472bad6adf458debb5c",
@@ -831,7 +831,7 @@ dev:~$ curl -i "http://localhost:1234/api/authors?birthday=%5B01.01.1980%20TO%20
       },
       {
          "name": "Author P",
-         "email": "k@structr.org",
+         "email": "k@Structr.org",
          "birthday": "01.01.1985",
          "cakeday": "2005-01-01T10:00:00+0100",
          "id": "9847ce91a8154758a762fdbe5937f549",
@@ -839,7 +839,7 @@ dev:~$ curl -i "http://localhost:1234/api/authors?birthday=%5B01.01.1980%20TO%20
       },
       {
          "name": "Author Q",
-         "email": "j@structr.org",
+         "email": "j@Structr.org",
          "birthday": "01.01.1986",
          "cakeday": "2004-01-01T10:00:00+0100",
          "id": "43148d2f446742dc95a11112ff48aeb8",
@@ -847,7 +847,7 @@ dev:~$ curl -i "http://localhost:1234/api/authors?birthday=%5B01.01.1980%20TO%20
       },
       {
          "name": "Author R",
-         "email": "i@structr.org",
+         "email": "i@Structr.org",
          "birthday": "01.01.1987",
          "cakeday": "2003-01-01T10:00:00+0100",
          "id": "c2aa4d415afa4d9cad75bdacd8c6b8bc",
@@ -855,7 +855,7 @@ dev:~$ curl -i "http://localhost:1234/api/authors?birthday=%5B01.01.1980%20TO%20
       },
       {
          "name": "Author S",
-         "email": "h@structr.org",
+         "email": "h@Structr.org",
          "birthday": "01.01.1988",
          "cakeday": "2002-01-01T10:00:00+0100",
          "id": "cda04be3cce849ec8c0bfded5bc62e28",
@@ -863,7 +863,7 @@ dev:~$ curl -i "http://localhost:1234/api/authors?birthday=%5B01.01.1980%20TO%20
       },
       {
          "name": "Author T",
-         "email": "g@structr.org",
+         "email": "g@Structr.org",
          "birthday": "01.01.1989",
          "cakeday": "2001-01-01T10:00:00+0100",
          "id": "90a7323b4ae24a16a86cf651b702311e",
@@ -871,7 +871,7 @@ dev:~$ curl -i "http://localhost:1234/api/authors?birthday=%5B01.01.1980%20TO%20
       },
       {
          "name": "Author U",
-         "email": "f@structr.org",
+         "email": "f@Structr.org",
          "birthday": "01.01.1990",
          "cakeday": "2000-01-01T10:00:00+0100",
          "id": "c18808619efb4af7a5de6794138afce9",
@@ -886,7 +886,7 @@ dev:~$ curl -i "http://localhost:1234/api/authors?birthday=%5B01.01.1980%20TO%20
 As you can see, the result set contains the 11 authors whose birthdays lie between 01.01.1980 and 01.01.1990, inclusively.
 
 ### Sorting
-Sorting a result set in structr can be done by supplying one or two additional request parameters to the REST query: `sort` and/or `order`. With the `sort` request parameter, you can specify the property key by which the result set will be sorted. The `order` request parameter accepts the values `asc`, which is the default, and `desc`, which of course causes the result set to be returned in descending order.
+Sorting a result set in Structr can be done by supplying one or two additional request parameters to the REST query: `sort` and/or `order`. With the `sort` request parameter, you can specify the property key by which the result set will be sorted. The `order` request parameter accepts the values `asc`, which is the default, and `desc`, which of course causes the result set to be returned in descending order.
 
 #### Indexing and Sorting
 Please note that you need to mark a property key as being indexed in order to be able to sort a collection by the given key.
@@ -904,7 +904,7 @@ dev:~$ curl -i "http://localhost:1234/api/authors?birthday=%5B01.01.1980%20TO%20
    "result": [
       {
          "name": "Author U",
-         "email": "f@structr.org",
+         "email": "f@Structr.org",
          "birthday": "01.01.1990",
          "cakeday": "2000-01-01T10:00:00+0100",
          "id": "ca747d849a3448e6b755e7ea08040055",
@@ -912,7 +912,7 @@ dev:~$ curl -i "http://localhost:1234/api/authors?birthday=%5B01.01.1980%20TO%20
       },
       {
          "name": "Author T",
-         "email": "g@structr.org",
+         "email": "g@Structr.org",
          "birthday": "01.01.1989",
          "cakeday": "2001-01-01T10:00:00+0100",
          "id": "edb98057eb3747a3bfb6837f1c87ee29",
@@ -920,7 +920,7 @@ dev:~$ curl -i "http://localhost:1234/api/authors?birthday=%5B01.01.1980%20TO%20
       },
       {
          "name": "Author S",
-         "email": "h@structr.org",
+         "email": "h@Structr.org",
          "birthday": "01.01.1988",
          "cakeday": "2002-01-01T10:00:00+0100",
          "id": "442b3223ff7f48519600cd19babf4acf",
@@ -928,7 +928,7 @@ dev:~$ curl -i "http://localhost:1234/api/authors?birthday=%5B01.01.1980%20TO%20
       },
       {
          "name": "Author R",
-         "email": "i@structr.org",
+         "email": "i@Structr.org",
          "birthday": "01.01.1987",
          "cakeday": "2003-01-01T10:00:00+0100",
          "id": "e3889f3133a448ecb0a89606b1b07d48",
@@ -936,7 +936,7 @@ dev:~$ curl -i "http://localhost:1234/api/authors?birthday=%5B01.01.1980%20TO%20
       },
       {
          "name": "Author Q",
-         "email": "j@structr.org",
+         "email": "j@Structr.org",
          "birthday": "01.01.1986",
          "cakeday": "2004-01-01T10:00:00+0100",
          "id": "7e67e0cc095d4855937a23e506df264e",
@@ -944,7 +944,7 @@ dev:~$ curl -i "http://localhost:1234/api/authors?birthday=%5B01.01.1980%20TO%20
       },
       {
          "name": "Author P",
-         "email": "k@structr.org",
+         "email": "k@Structr.org",
          "birthday": "01.01.1985",
          "cakeday": "2005-01-01T10:00:00+0100",
          "id": "9e2aed5255c841a7be38121b07bf0ed6",
@@ -952,7 +952,7 @@ dev:~$ curl -i "http://localhost:1234/api/authors?birthday=%5B01.01.1980%20TO%20
       },
       {
          "name": "Author O",
-         "email": "l@structr.org",
+         "email": "l@Structr.org",
          "birthday": "01.01.1984",
          "cakeday": "2006-01-01T10:00:00+0100",
          "id": "742e60011e5c4c29b6b1a686ed6fef3e",
@@ -960,7 +960,7 @@ dev:~$ curl -i "http://localhost:1234/api/authors?birthday=%5B01.01.1980%20TO%20
       },
       {
          "name": "Author N",
-         "email": "m@structr.org",
+         "email": "m@Structr.org",
          "birthday": "01.01.1983",
          "cakeday": "2007-01-01T10:00:00+0100",
          "id": "293c30c464a2410c967e630bd8686c11",
@@ -968,7 +968,7 @@ dev:~$ curl -i "http://localhost:1234/api/authors?birthday=%5B01.01.1980%20TO%20
       },
       {
          "name": "Author M",
-         "email": "n@structr.org",
+         "email": "n@Structr.org",
          "birthday": "01.01.1982",
          "cakeday": "2008-01-01T10:00:00+0100",
          "id": "443e4179bdb4427990c6dfbbd0da916b",
@@ -976,7 +976,7 @@ dev:~$ curl -i "http://localhost:1234/api/authors?birthday=%5B01.01.1980%20TO%20
       },
       {
          "name": "Author L",
-         "email": "o@structr.org",
+         "email": "o@Structr.org",
          "birthday": "01.01.1981",
          "cakeday": "2009-01-01T10:00:00+0100",
          "id": "27a558a90db34506b4061a2534dff436",
@@ -984,7 +984,7 @@ dev:~$ curl -i "http://localhost:1234/api/authors?birthday=%5B01.01.1980%20TO%20
       },
       {
          "name": "Author K",
-         "email": "p@structr.org",
+         "email": "p@Structr.org",
          "birthday": "01.01.1980",
          "cakeday": "2010-01-01T10:00:00+0100",
          "id": "dc1776a068f84ffcb634d5445ed13965",
@@ -996,7 +996,7 @@ dev:~$ curl -i "http://localhost:1234/api/authors?birthday=%5B01.01.1980%20TO%20
 ```
 
 ### Paging
-In a database, you often have to deal with large amounts of data. You will most certainly never want to display several thousand objects at once, so you need paging to reduce the size of the result set. In structr, this can again be done by supplying one to three additional request parameters: `pageSize`, `page` and `offsetId`
+In a database, you often have to deal with large amounts of data. You will most certainly never want to display several thousand objects at once, so you need paging to reduce the size of the result set. In Structr, this can again be done by supplying one to three additional request parameters: `pageSize`, `page` and `offsetId`
 
 #### Simple paging
 
@@ -1004,7 +1004,7 @@ In a database, you often have to deal with large amounts of data. You will most 
 
 
 ## Adding relationships
-The next step in our use case is to add the two additional classes that we need to model the source code of structr. So 
+The next step in our use case is to add the two additional classes that we need to model the source code of Structr. So 
 
 
 
