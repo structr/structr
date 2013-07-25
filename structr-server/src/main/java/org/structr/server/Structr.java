@@ -322,8 +322,8 @@ public class Structr {
 	}
 	
 	/**
-	 * Whether structr should log all requests to a file or not. This
-	 * setting can only be used in debug mode.
+	 * Whether structr should log all requests to a file or not.
+	 * 
 	 * @param logRequests
 	 * @return 
 	 */
@@ -588,8 +588,7 @@ public class Structr {
 		
 		
 		// enable request logging
-		//if ("true".equals(configuration.getProperty("log.requests", "false"))) {
-		if (logRequests) {
+		if (logRequests || "true".equals(configuration.getProperty("log.requests", "false"))) {
 
 			String etcPath = basePath + "/etc";
 			File etcDir    = new File(etcPath);
