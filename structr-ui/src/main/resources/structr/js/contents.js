@@ -117,7 +117,9 @@ var _Contents = {
             lineNumbers: true
         });
         editor.focus();
+        
         element.append('<button id="editorSave">Save</button>');
+
         $('#editorSave', element).on('click', function() {
      
             var contentNode = Structr.node(entity.id)[0];
@@ -141,6 +143,17 @@ var _Contents = {
                 $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
             });
             
+        });
+
+        dialogMeta.append('<div class="' + entity.id + '_"><button class="switch disabled editable_">Editable</button> If enabled, data fields in this content element are editable in edit mode.</div>');
+        var editableSwitch = $('.editable_');
+        _Entities.changeBooleanAttribute(editableSwitch, entity.editable);
+        editableSwitch.on('click', function(e) {
+            e.stopPropagation();
+            entity.setProperty('editable', editableSwitch.hasClass('disabled'), false, function() {
+                _Entities.changeBooleanAttribute(editableSwitch, entity.editable);
+                blinkGreen(editableSwitch);
+            });
         });
         
         var values = [ 'text/plain', 'text/html', 'text/css', 'text/javascript', 'text/markdown', 'text/textile', 'text/mediawiki', 'text/tracwiki', 'text/confluence'];

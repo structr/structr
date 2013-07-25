@@ -53,6 +53,7 @@ import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
+import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.StringProperty;
 import org.w3c.dom.DOMException;
@@ -75,7 +76,8 @@ public class Content extends DOMNode implements Text {
 	public static final Property<String> contentType                                     = new StringProperty("contentType").indexed();
 	public static final Property<String> content                                         = new StringProperty("content").indexed();
 	public static final Property<Integer> size                                           = new IntProperty("size").indexed();
-
+	public static final Property<Boolean> editable                                       = new BooleanProperty("editable").indexed();
+	
 	private static final Map<String, Adapter<String, String>> contentConverters          = new LinkedHashMap<String, Adapter<String, String>>();
 
 	private static final ThreadLocalTracWikiProcessor tracWikiProcessor                  = new ThreadLocalTracWikiProcessor();
@@ -84,8 +86,8 @@ public class Content extends DOMNode implements Text {
 	private static final ThreadLocalMediaWikiProcessor mediaWikiProcessor                = new ThreadLocalMediaWikiProcessor();
 	private static final ThreadLocalConfluenceProcessor confluenceProcessor              = new ThreadLocalConfluenceProcessor();
 
-	public static final org.structr.common.View uiView                                   = new org.structr.common.View(Content.class, PropertyView.Ui, content, contentType, size, parent, pageId);
-	public static final org.structr.common.View publicView                               = new org.structr.common.View(Content.class, PropertyView.Public, content, contentType, size, parent, pageId);
+	public static final org.structr.common.View uiView                                   = new org.structr.common.View(Content.class, PropertyView.Ui, content, contentType, size, parent, pageId, editable);
+	public static final org.structr.common.View publicView                               = new org.structr.common.View(Content.class, PropertyView.Public, content, contentType, size, parent, pageId, editable);
 	//~--- static initializers --------------------------------------------
 
 	static {
@@ -178,9 +180,9 @@ public class Content extends DOMNode implements Text {
 	@Override
 	public void render(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException {
 
-		String id            = getUuid();
+		//String id            = getUuid();
 		boolean edit         = renderContext.getEdit();
-		boolean inBody       = renderContext.inBody();
+		//boolean inBody       = renderContext.inBody();
 		StringBuilder buffer = renderContext.getBuffer();
 
 		// fetch content with variable replacement
@@ -256,8 +258,8 @@ public class Content extends DOMNode implements Text {
 
 		Object value      = dataObject.getProperty(EntityContext.getPropertyKeyForJSONName(dataObject.getClass(), referenceKeyProperty.jsonName()));
 		boolean canWrite  = dataObject instanceof AbstractNode ? securityContext.isAllowed((AbstractNode) dataObject, Permission.write) : true;
-		
-		if (renderContext.getEdit() && renderContext.inBody() && canWrite && !referenceKeyProperty.isReadOnly()) {
+
+		if (getProperty(Content.editable) && renderContext.getEdit() && renderContext.inBody() && canWrite && !referenceKeyProperty.isReadOnly()) {
 
 			String editModeValue = "<span data-structr-type=\"" + referenceKeyProperty.typeName()
 				+ "\" data-structr-id=\"" + dataObject.getUuid()
