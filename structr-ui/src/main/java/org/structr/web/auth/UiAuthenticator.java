@@ -186,12 +186,11 @@ public class UiAuthenticator extends HttpAuthenticator {
 
 		if (user != null) {
 
-			HttpSession session = request.getSession(false);
+			final String sessionIdFromRequest = request.getRequestedSessionId();
 			
 			// Websocket connects don't have a session
-			if (session != null) {
+			if (sessionIdFromRequest != null) {
 			
-				final String sessionIdFromRequest = session.getId();
 				final Principal principal         = user;
 
 				try {
