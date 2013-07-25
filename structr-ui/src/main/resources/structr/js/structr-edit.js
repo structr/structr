@@ -106,6 +106,7 @@ function StructrPage(baseUrl) {
     var s = this;
     this.edit = false;
     this.field = function(el) {
+        
         var type = el.attr('data-structr-type'), id = el.attr('data-structr-id'), key = el.attr('data-structr-key');
         var val;
         if (type === 'Boolean') {
@@ -117,6 +118,7 @@ function StructrPage(baseUrl) {
         } else {
             val = el.val() ? el.val() : el.html().replace(/<br>/gi, '\n');
         }
+        //console.log(el, type, id, key, val);
         return {'id': id, 'type': type, 'key': key, 'val': val};
     };
     this.create = function(btn, type, data, sourceId, sourceType, relatedProperty, createNew) {
@@ -411,10 +413,14 @@ function StructrPage(baseUrl) {
         });
     };
     this.editable = function(enable) {
-        if (enable === undefined)
+        
+        if (enable === undefined) {
             return s.edit;
+        }
         s.edit = enable;
+        
         if (enable) {
+
             $('.createButton').show();
             $('.deleteButton').show();
 
@@ -575,7 +581,8 @@ function StructrPage(baseUrl) {
             $('#save_' + id + '_' + key).remove();
         }
 
-        (p.length ? p : inp).after('<button class="saveButton" id="save_' + id + '_' + key + '">Save</button>');
+        //(p.length ? p : inp).after('<button class="saveButton" id="save_' + id + '_' + key + '">Save</button>');
+        inp.after('<button class="saveButton" id="save_' + id + '_' + key + '">Save</button>');
         $('#save_' + id + '_' + key).on('click', function() {
             var btn = $(this), inp = btn.prev();
             //console.log('append save button', btn, inp);
