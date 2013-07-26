@@ -106,7 +106,7 @@ function StructrPage(baseUrl) {
     var s = this;
     this.edit = false;
     this.field = function(el) {
-        
+
         var type = el.attr('data-structr-type'), id = el.attr('data-structr-id'), key = el.attr('data-structr-key');
         var val;
         if (type === 'Boolean') {
@@ -134,28 +134,28 @@ function StructrPage(baseUrl) {
 
                 var inp = $(this);
                 var k = e.which;
-                
+
                 // ESC key?
                 if (k === 27) {
-                    
+
                     $('#searchResults').remove();
                     inp.val('');
                     return;
-                    
+
                 }
 
 
                 var attr = (type === 'Content' ? 'content' : 'name');
 
                 $.ajax({
-                    url: '/structr/rest/' + type.toUnderscore() + '?loose=1&' + attr + '=' + inp.val(), method: 'GET', contentType: 'application/json',
+                    url: '/structr/rest/' + type.toUnderscore() + '/ui?loose=1&' + attr + '=' + inp.val(), method: 'GET', contentType: 'application/json',
                     statusCode: {
                         200: function(data) {
                             var div = $('#searchResults');
                             if (div.length) {
                                 div.remove();
                             }
-                            
+
                             if (data.result.length) {
                                 $('<div id="searchResults"></div>').insertAfter('#structrSearch');
                                 var div = $('#searchResults');
@@ -190,52 +190,55 @@ function StructrPage(baseUrl) {
 
             if (window.File && window.FileReader && window.FileList && window.Blob) {
 
-                $('<div class="clear"></div><div id="dropArea">Drag and drop image(s) here</div>').insertBefore(btn);
-
                 var drop = $('#dropArea');
-                //console.log(drop);
+                if (!drop.length) {
+                    
+                    $('<div class="clear"></div><div id="dropArea">Drag and drop image(s) here</div>').insertBefore(btn);
+                    drop = $('#dropArea');
+                    //console.log(drop);
 
-                drop.on('dragover', function(event) {
-                    event.originalEvent.dataTransfer.dropEffect = 'copy';
-                    return false;
-                });
+                    drop.on('dragover', function(event) {
+                        event.originalEvent.dataTransfer.dropEffect = 'copy';
+                        return false;
+                    });
 
-                drop.on('drop', function(event) {
+                    drop.on('drop', function(event) {
 
-                    if (!event.originalEvent.dataTransfer) {
-                        return;
-                    }
-
-                    event.stopPropagation();
-                    event.preventDefault();
-
-                    fileList = event.originalEvent.dataTransfer.files;
-
-                    $(fileList).each(function(i, file) {
-                        $('[data-structr-prop=name]').val(file.name);
-                        var reader = new FileReader();
-                        reader.readAsBinaryString(file);
-
-                        reader.onload = function(f) {
-
-                            var binaryContent = f.target.result;
-
-                            var data = {};
-                            data.imageData = 'data:' + file.type + ';base64,' + window.btoa(binaryContent);
-                            data.name = file.name;
-
-                            var sourceId = btn.attr('data-structr-source-id');
-                            var sourceType = btn.attr('data-structr-source-type');
-                            var relatedProperty = btn.attr('data-structr-related-property');
-
-                            s.create(btn, type, data, sourceId, sourceType, relatedProperty);
-
+                        if (!event.originalEvent.dataTransfer) {
+                            return;
                         }
+
+                        event.stopPropagation();
+                        event.preventDefault();
+
+                        fileList = event.originalEvent.dataTransfer.files;
+
+                        $(fileList).each(function(i, file) {
+                            $('[data-structr-prop=name]').val(file.name);
+                            var reader = new FileReader();
+                            reader.readAsBinaryString(file);
+
+                            reader.onload = function(f) {
+
+                                var binaryContent = f.target.result;
+
+                                var data = {};
+                                data.imageData = 'data:' + file.type + ';base64,' + window.btoa(binaryContent);
+                                data.name = file.name;
+
+                                var sourceId = btn.attr('data-structr-source-id');
+                                var sourceType = btn.attr('data-structr-source-type');
+                                var relatedProperty = btn.attr('data-structr-related-property');
+
+                                s.create(btn, type, data, sourceId, sourceType, relatedProperty);
+
+                            }
+
+                        });
 
                     });
 
-                });
-
+                }
 
 
             }
@@ -308,11 +311,17 @@ function StructrPage(baseUrl) {
         var d = JSON.parse('{"' + relatedProperty + '":[{"id":"' + id + '"}]}');
 
         $.ajax({
-            url: '/structr/rest/' + sourceType.toUnderscore() + '/' + sourceId, method: 'GET', contentType: 'application/json',
+            url: '/structr/rest/' + sourceType.toUnderscore() + '/' + sourceId + '/ui', method: 'GET', contentType: 'application/json',
             statusCode: {
                 200: function(data) {
-                    //console.log(data.result);
-                    if (data.result && data.result[relatedProperty].length) {
+                    //console.log(data.result, data.result[relatedProperty], d);
+                    
+                    if (data.result[relatedProperty] === undefined) {
+                        alert('Could not read related property\n\n    ' + sourceType + '.' + relatedProperty + '\n\nMake sure it is contained in the\nentity\'s ui view and readable via REST.');
+                        return;
+                    }
+                    
+                    if (data.result[relatedProperty].length) {
                         $.each(data.result[relatedProperty], function(i, obj) {
                             d[relatedProperty].push({'id': obj.id});
                         });
@@ -344,18 +353,24 @@ function StructrPage(baseUrl) {
         var d = JSON.parse('{"' + relatedProperty + '":[]}');
 
         $.ajax({
-            //url: '/structr/rest/' + sourceType.toUnderscore() + '/' + sourceId, method: 'GET', contentType: 'application/json',
-            url: '/structr/rest/' + sourceId, method: 'GET', contentType: 'application/json',
+            url: '/structr/rest/' + sourceId + '/ui', method: 'GET', contentType: 'application/json',
             statusCode: {
                 200: function(data) {
-                    //console.log(data.result);
-                    if (data.result && data.result[relatedProperty].length) {
+
+                    if (data.result[relatedProperty] === undefined) {
+                        alert('Could not read related property\n\n    ' + sourceType + '.' + relatedProperty + '\n\nMake sure it is contained in the\nentity\'s ui view and readable via REST.');
+                        return;
+                    }
+                    
+                    if (data.result[relatedProperty].length) {
                         $.each(data.result[relatedProperty], function(i, obj) {
                             if (obj.id !== id) {
                                 d[relatedProperty].push({'id': obj.id});
                             }
                         });
                     }
+
+                    //console.log(data.result[relatedProperty], d, JSON.stringify(d));
 
                     $.ajax({
                         //url: '/structr/rest/' + sourceType.toUnderscore() + '/' + sourceId, method: 'PUT', contentType: 'application/json',
@@ -413,12 +428,12 @@ function StructrPage(baseUrl) {
         });
     };
     this.editable = function(enable) {
-        
+
         if (enable === undefined) {
             return s.edit;
         }
         s.edit = enable;
-        
+
         if (enable) {
 
             $('.createButton').show();
@@ -472,10 +487,10 @@ function StructrPage(baseUrl) {
 
 
             });
-            
-            
-            $('[data-structr-related-property]:not(.createButton)').each(function(i,v) {
-               
+
+
+            $('[data-structr-related-property]:not(.createButton)').each(function(i, v) {
+
                 var relatedNode = $(this);
                 var relatedProperty = relatedNode.attr('data-structr-related-property');
                 var parentType = relatedNode.attr('data-structr-data-type');
@@ -486,16 +501,16 @@ function StructrPage(baseUrl) {
                 //console.log(id, sourceId, sourceType, relatedProperty);
                 if (relatedProperty && sourceId && !(removeButton.length)) {
                     $('<button class="removeButton" data-structr-id="' + id + '" data-structr-source-id="' + sourceId + '">Remove ' + parentType + ' from ' + relatedProperty + '</button>').insertAfter(relatedNode);
-                    
+
                     $('.removeButton[data-structr-id="' + id + '"][data-structr-source-id="' + sourceId + '"]').on('click', function() {
                         s.remove(id, sourceId, sourceType, relatedProperty);
                     });
-                    
+
                 }
-                
+
             });
-            
-            
+
+
 
         } else {
             $('.createButton').hide();
