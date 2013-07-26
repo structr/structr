@@ -55,7 +55,7 @@ public class Group extends AbstractNode implements Principal {
 	
 	private static final Logger logger = Logger.getLogger(Group.class.getName());
 
-	public static final CollectionProperty<User> users = new CollectionProperty<User>("users", User.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Principal> users = new CollectionProperty<Principal>("users", Principal.class, RelType.CONTAINS, Direction.OUTGOING, false);
 	
 	public static final org.structr.common.View uiView = new org.structr.common.View(User.class, PropertyView.Ui,
 		type, name, users, blocked
@@ -172,14 +172,14 @@ public class Group extends AbstractNode implements Principal {
 
 	}
 
-	public void addUser(final User user) throws FrameworkException {
+	public void addUser(final Principal user) throws FrameworkException {
 
 		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
 			@Override
 			public Object execute() throws FrameworkException {
 
-				List<User> _users = getProperty(users);
+				List<Principal> _users = getProperty(users);
 				_users.add(user);
 
 				setProperty(users, _users);
@@ -189,14 +189,14 @@ public class Group extends AbstractNode implements Principal {
 		
 	}
 	
-	public void removeUser(final User user) throws FrameworkException {
+	public void removeUser(final Principal user) throws FrameworkException {
 
 		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
 			@Override
 			public Object execute() throws FrameworkException {
 
-				List<User> _users = getProperty(users);
+				List<Principal> _users = getProperty(users);
 				_users.remove(user);
 
 				setProperty(users, _users);
