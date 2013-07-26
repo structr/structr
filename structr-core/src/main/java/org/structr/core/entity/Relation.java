@@ -30,5 +30,5 @@ public interface Relation {
 	public static final int DELETE_INCOMING                        = 2;
 	public static final int DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED = 4;
 
-	public enum Cardinality { OneToOne, OneToMany, ManyToOne, ManyToMany }
+	public enum Cardinality { OneToOne, ManyToOne, OneToMany, ManyToMany }
 }

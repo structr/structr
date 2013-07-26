@@ -163,18 +163,18 @@ public abstract class AbstractRelationProperty<T> extends Property<T> {
 
 							case OneToOne:
 
-								ensureManyToOne(finalSourceNode, finalTargetNode, newRel, factoryDefinition, deleteRel);
 								ensureOneToMany(finalSourceNode, finalTargetNode, newRel, factoryDefinition, deleteRel);
+								ensureManyToOne(finalSourceNode, finalTargetNode, newRel, factoryDefinition, deleteRel);
 								break;
 								
-							case ManyToOne:
+							case OneToMany:
 
-								ensureManyToOne(finalSourceNode, finalTargetNode, newRel, factoryDefinition, deleteRel);
+								ensureOneToMany(finalSourceNode, finalTargetNode, newRel, factoryDefinition, deleteRel);
 								break;
 
-							case OneToMany:
+							case ManyToOne:
 							
-								ensureOneToMany(finalSourceNode, finalTargetNode, newRel, factoryDefinition, deleteRel);
+								ensureManyToOne(finalSourceNode, finalTargetNode, newRel, factoryDefinition, deleteRel);
 								break;
 
 						}
@@ -256,7 +256,7 @@ public abstract class AbstractRelationProperty<T> extends Property<T> {
 							String sourceType = sourceNode.getType();
 							
 							// Here, we have a OneToMany with OUTGOING Rel, so we need to remove all relationships
-							// of the same combinedType incoming to the target node
+							// of the same combinedType incoming to the target node (which should be exaclty one relationship!)
 							for (AbstractRelationship rel : finalTargetNode.getRelationships(getRelType(), Direction.INCOMING)) {
 
 								if (rel.getOtherNode(finalTargetNode).getType().equals(sourceType)) {
@@ -382,14 +382,14 @@ public abstract class AbstractRelationProperty<T> extends Property<T> {
 
 	
 	// ----- private methods -----
-	private void ensureOneToMany(AbstractNode finalSourceNode, AbstractNode finalTargetNode, AbstractRelationship newRel, FactoryDefinition factoryDefinition, DeleteRelationshipCommand deleteRel) throws FrameworkException {
+	private void ensureManyToOne(AbstractNode sourceNode, AbstractNode targetNode, AbstractRelationship newRel, FactoryDefinition factoryDefinition, DeleteRelationshipCommand deleteRel) throws FrameworkException {
 		
 		Class newRelationshipClass = newRel.getClass();
-		Class targetType           = finalTargetNode.getClass();
+		Class targetType           = targetNode.getClass();
 
-		// OneToMany: finalSourceNode may not have relationships to other nodes of the same type!
+		// ManyToOne: sourceNode may not have relationships to other nodes of the same type!
 		
-		for (AbstractRelationship rel : finalSourceNode.getRelationships(getRelType(), getDirection())) {
+		for (AbstractRelationship rel : sourceNode.getRelationships(getRelType(), getDirection())) {
 
 			if (rel.equals(newRel)) {
 				continue;
@@ -398,7 +398,7 @@ public abstract class AbstractRelationProperty<T> extends Property<T> {
 			Class relationshipClass = rel.getClass();
 			boolean isGeneric = factoryDefinition.isGeneric(relationshipClass);
 
-			if ((!isGeneric && newRelationshipClass.isAssignableFrom(relationshipClass)) || targetType.isAssignableFrom(rel.getOtherNode(finalSourceNode).getClass())) {
+			if ((!isGeneric && newRelationshipClass.isAssignableFrom(relationshipClass)) || targetType.isAssignableFrom(rel.getOtherNode(sourceNode).getClass())) {
 
 				deleteRel.execute(rel);
 			}
@@ -406,14 +406,14 @@ public abstract class AbstractRelationProperty<T> extends Property<T> {
 
 	}
 	
-	private void ensureManyToOne(AbstractNode finalTargetNode, AbstractNode finalSourceNode, AbstractRelationship newRel, FactoryDefinition factoryDefinition, DeleteRelationshipCommand deleteRel) throws FrameworkException {
+	private void ensureOneToMany(AbstractNode sourceNode, AbstractNode targetNode, AbstractRelationship newRel, FactoryDefinition factoryDefinition, DeleteRelationshipCommand deleteRel) throws FrameworkException {
 		
 		Class newRelationshipClass = newRel.getClass();
-		Class targetType           = finalTargetNode.getClass();
+		Class sourceType           = sourceNode.getClass();
 
-		// OneToMany: finalSourceNode may not have relationships to other nodes of the same type!
+		// ManyToOne: targetNode may not have relationships to other nodes of the same type!
 		
-		for (AbstractRelationship rel : finalSourceNode.getRelationships(getRelType(), getDirection().reverse())) {
+		for (AbstractRelationship rel : targetNode.getRelationships(getRelType(), getDirection().reverse())) {
 
 			if (rel.equals(newRel)) {
 				continue;
@@ -422,7 +422,7 @@ public abstract class AbstractRelationProperty<T> extends Property<T> {
 			Class relationshipClass = rel.getClass();
 			boolean isGeneric = factoryDefinition.isGeneric(relationshipClass);
 
-			if ((!isGeneric && newRelationshipClass.isAssignableFrom(relationshipClass)) || targetType.isAssignableFrom(rel.getOtherNode(finalSourceNode).getClass())) {
+			if ((!isGeneric && newRelationshipClass.isAssignableFrom(relationshipClass)) || sourceType.isAssignableFrom(rel.getOtherNode(targetNode).getClass())) {
 
 				deleteRel.execute(rel);
 			}

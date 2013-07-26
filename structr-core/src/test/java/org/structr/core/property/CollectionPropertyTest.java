@@ -21,6 +21,8 @@ package org.structr.core.property;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNotNull;
 import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.converter.PropertyConverter;
@@ -62,12 +64,12 @@ public class CollectionPropertyTest extends StructrTest {
 		assertNotNull(testOne2);
 
 		// set two TestOne entities on both TestSix entities
-		List<TestOne> testOnesToSet = new LinkedList<TestOne>();
-		testOnesToSet.add(testOne1);
-		testOnesToSet.add(testOne2);
+		List<TestOne> twoTestOnesList = new LinkedList<TestOne>();
+		twoTestOnesList.add(testOne1);
+		twoTestOnesList.add(testOne2);
 
-		instance.setProperty(securityContext, testSix1, testOnesToSet);
-		instance.setProperty(securityContext, testSix2, testOnesToSet);
+		instance.setProperty(securityContext, testSix1, twoTestOnesList);
+		instance.setProperty(securityContext, testSix2, twoTestOnesList);
 		
 		List<TestOne> testOnesFromTestSix1 = instance.getProperty(securityContext, testSix1, true);
 		List<TestOne> testOnesFromTestSix2 = instance.getProperty(securityContext, testSix2, true);
@@ -78,6 +80,21 @@ public class CollectionPropertyTest extends StructrTest {
 		// both entities should have the two related nodes
 		assertEquals(2, testOnesFromTestSix1.size());
 		assertEquals(2, testOnesFromTestSix2.size());
+		
+		// create new list with one TestOne entity
+		List<TestOne> oneTestOneList = new LinkedList<TestOne>();
+		oneTestOneList.add(testOne1);
+
+		// set list with one TestOne node as related nodes
+		instance.setProperty(securityContext, testSix1, oneTestOneList);
+		List<TestOne> oneTestOnesFromTestSix1 = instance.getProperty(securityContext, testSix1, true);
+		
+		// entity should have exactly one related node
+		assertNotNull(oneTestOnesFromTestSix1);
+		assertEquals(1, oneTestOnesFromTestSix1.size());
+		
+		assertEquals(oneTestOnesFromTestSix1.get(0).getUuid(), testOne1.getUuid());
+		
 	}
 
 	public void testOneToMany() throws Exception {
@@ -106,56 +123,108 @@ public class CollectionPropertyTest extends StructrTest {
 		assertNotNull(testOne1);
 		assertNotNull(testOne2);
 
-		List<TestOne> testOnesToSet = new LinkedList<TestOne>();
-		testOnesToSet.add(testOne1);
-		testOnesToSet.add(testOne2);
+		List<TestOne> twoTestOnesToList = new LinkedList<TestOne>();
+		twoTestOnesToList.add(testOne1);
+		twoTestOnesToList.add(testOne2);
+
+		List<TestOne> oneTestOneToList = new LinkedList<TestOne>();
+		oneTestOneToList.add(testOne1);
 
 		// set two TestOne entities on textSix1
-		instance.setProperty(securityContext, testSix1, testOnesToSet);
+		instance.setProperty(securityContext, testSix1, twoTestOnesToList);
 		
-		// verfiy that the relationships in testSix1 have in fact been created
-		List vrfy1 = instance.getProperty(securityContext, testSix1, true);
-		assertTrue(vrfy1 != null && vrfy1.size() == 2);
+		// verify that the relationships in testSix1 have in fact been created
+		List<TestOne> vrfy1 = instance.getProperty(securityContext, testSix1, true);
+		assertNotNull(vrfy1);
+		assertEquals(2, vrfy1.size());
+		
+		// verify IDs
+		assertEquals(vrfy1.get(0).getUuid(), testOne1.getUuid());
+		assertEquals(vrfy1.get(1).getUuid(), testOne2.getUuid());
 		
 		// set two TestOne entities on textSix1, should remove the previously created rels
-		instance.setProperty(securityContext, testSix2, testOnesToSet);
+		instance.setProperty(securityContext, testSix2, twoTestOnesToList);
 		
-		// verfiy that the relationships in testSix2 have in fact been created
-		List vrfy2 = instance.getProperty(securityContext, testSix2, true);
-		assertTrue(vrfy2 != null && vrfy2.size() == 2);
+		// verify that the relationships in testSix2 have in fact been created
+		List<TestOne> vrfy2 = instance.getProperty(securityContext, testSix2, true);
+		assertNotNull(vrfy2);
+		assertEquals(2, vrfy2.size());
+
+		// verify IDs
+		assertEquals(vrfy2.get(0).getUuid(), testOne1.getUuid());
+		assertEquals(vrfy2.get(1).getUuid(), testOne2.getUuid());
 		
-		// verfiy that the relationships in testSix1 have been removed by the previous call
+		// verify that the relationships in testSix1 have been removed by the previous call
 		List vrfy3 = instance.getProperty(securityContext, testSix1, true);
-		assertTrue(vrfy3 != null && vrfy3.size() == 0);
+		assertNotNull(vrfy3);
+		assertEquals(0, vrfy3.size());
 		
 		// again set two TestOne entities on textSix1
-		instance.setProperty(securityContext, testSix1, testOnesToSet);
+		instance.setProperty(securityContext, testSix1, twoTestOnesToList);
 
-		// verfiy that the relationships in testSix1 have in fact been created
+		// verify that the relationships in testSix1 have in fact been created
 		List vrfy4 = instance.getProperty(securityContext, testSix1, true);
-		assertTrue(vrfy4 != null && vrfy4.size() == 2);
+		assertNotNull(vrfy4);
+		assertEquals(2, vrfy4.size());
 		
 		// remove relationships by setting null
 		instance.setProperty(securityContext, testSix1, null);
 		
-		// verfiy that the relationships in testSix1 have been removed by the previous call
+		// verify that the relationships in testSix1 have been removed by the previous call
 		List vrfy5 = instance.getProperty(securityContext, testSix1, true);
-		assertTrue(vrfy5 != null && vrfy5.size() == 0);
+		assertNotNull(vrfy5);
+		assertEquals(0, vrfy5.size());
 		
 		// again set two TestOne entities on textSix1
-		instance.setProperty(securityContext, testSix1, testOnesToSet);
+		instance.setProperty(securityContext, testSix1, twoTestOnesToList);
 
-		// verfiy that the relationships in testSix1 have in fact been created
+		// verify that the relationships in testSix1 have in fact been created
 		List vrfy6 = instance.getProperty(securityContext, testSix1, true);
-		assertTrue(vrfy6 != null && vrfy6.size() == 2);
+		assertNotNull(vrfy6);
+		assertEquals(2, vrfy6.size());
 		
 		// remove relationships by setting an empty list
 		instance.setProperty(securityContext, testSix1, Collections.EMPTY_LIST);
 		
-		// verfiy that the relationships in testSix1 have been removed by the previous call
+		// verify that the relationships in testSix1 have been removed by the previous call
 		List vrfy7 = instance.getProperty(securityContext, testSix1, true);
-		assertTrue(vrfy7 != null && vrfy7.size() == 0);
+		assertNotNull(vrfy7);
+		assertEquals(0, vrfy7.size());
 
+		// set only one TestOne entity on testSix1
+		instance.setProperty(securityContext, testSix1, oneTestOneToList);
+		
+		// verify collection contains one TestOne
+		List<TestOne> vrfy8 = instance.getProperty(securityContext, testSix1, true);
+		assertNotNull(vrfy8);
+		assertEquals(1, vrfy8.size());
+		
+		// verify ID
+		assertEquals(vrfy8.get(0).getUuid(), testOne1.getUuid());
+		
+		// set two TestOne entities on testSix1
+		instance.setProperty(securityContext, testSix1, twoTestOnesToList);
+		
+		// verify collection contains two TestOnes
+		List<TestOne> vrfy9 = instance.getProperty(securityContext, testSix1, true);
+		assertNotNull(vrfy9);
+		assertEquals(2, vrfy9.size());
+		
+		// verify IDs
+		assertEquals(vrfy9.get(0).getUuid(), testOne1.getUuid());
+		assertEquals(vrfy9.get(1).getUuid(), testOne2.getUuid());
+		
+		// now, without removing anything, set only one TestOne entity on testSix1
+		instance.setProperty(securityContext, testSix1, oneTestOneToList);
+		
+		// verify collection contains one TestOne
+		List<TestOne> vrfy10 = instance.getProperty(securityContext, testSix1, true);
+		assertNotNull(vrfy10);
+		assertEquals(1, vrfy10.size());
+		
+		// verify ID
+		assertEquals(vrfy10.get(0).getUuid(), testOne1.getUuid());
+		
 	}
 	
 	
@@ -232,7 +301,7 @@ public class CollectionPropertyTest extends StructrTest {
 
 		CollectionProperty instance = TestSix.manyToManyTestOnes;
 		boolean expResult = false;
-		boolean result = instance.isManyToOne();
+		boolean result = instance.isOneToMany();
 		assertEquals(expResult, result);
 	}
 }

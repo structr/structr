@@ -318,13 +318,13 @@ public class EntityPropertyTest extends StructrTest {
 	}
 
 	/**
-	 * Test of isOneToMany method, of class EntityProperty.
+	 * Test of isManyToOne method, of class EntityProperty.
 	 */
 	public void testIsManyToOne() {
 
 		EntityProperty instance = TestSix.oneToOneTestThree;
 		boolean expResult = false;
-		boolean result = instance.isOneToMany();
+		boolean result = instance.isManyToOne();
 		assertEquals(expResult, result);
 	}
 }
