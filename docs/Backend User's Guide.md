@@ -1021,9 +1021,58 @@ The next step in our use case is to add the two additional classes that we need 
 ### ISO8601DateProperty
 ### EnumProperty
 ### EntityProperty
+The ```EntityProperty``` is used to define a single node of the given type which is connected by a single relationship of the given type.
+
+You can define the JSON name, the class of the connected node and the cardinality.
+
+The following example is a relation between files and a parent folder:
+
+    File (n) <--[:CONTAINS]-- (1) Folder
+which can be written as
+    
+```java    
+    public static final EntityProperty<Folder> parent = new EntityProperty<Folder>("parent", Folder.class, RelType.CONTAINS, Direction.INCOMING, true);
+```
+The boolean parameter defines whether the cardinality is many-to-one (```true```) or one-to-one (```true```). 
+
+Note that the direction of the relationship has nothing to do with the cardinality but is only related to the semantic of the relationship type. To illustrate, here's is another example which is logically equivialent to the above:
+
+    File (n) --[:CONTAINED_IN]--> (1) Folder
+
+which leads to
+
+```java    
+    public static final EntityProperty<Folder> parent = new EntityProperty<Folder>("parent", Folder.class, RelType.CONTAINED_ID, Direction.OUTGOING, true);
+```
+
 ### EntityIdProperty
 ### EntityNotionProperty
 ### CollectionProperty
+The ```CollectionProperty``` is used to define a collection of nodes of the given type which are connected by relationships of the given type, to 
+
+You can define the JSON name, the class of the connected nodes and the cardinality.
+
+The following example is a relation between a folder and its files:
+
+    Folder (1)  --[:CONTAINS]--> (n) File
+which can be written as
+    
+```java    
+    public static final CollectionProperty<File>   files        = new CollectionProperty<File>("files", File.class, RelType.CONTAINS, Direction.OUTGOING, new PropertySetNotion(uuid, name), true);
+```
+The boolean parameter defines whether the cardinality is many-to-one (```true```) or one-to-one (```true```). 
+
+Note that the direction of the relationship has nothing to do with the cardinality but is only related to the semantic of the relationship type. To illustrate, here's is another example which is logically equivialent to the above:
+
+    Folder (1) <--[:CONTAINED_ID]-- (n) File
+
+which leads to
+
+```java    
+    public static final CollectionProperty<File>   files        = new CollectionProperty<File>("files", File.class, RelType.CONTAINED_IN, Direction.INCOMING, new PropertySetNotion(uuid, name), true);
+    
+```
+
 ### CollectionIdProperty
 ### CollectionNotionProperty
 ### AbstractReadOnlyProperty
