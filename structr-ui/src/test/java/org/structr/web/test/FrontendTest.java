@@ -63,7 +63,7 @@ public class FrontendTest extends StructrUiTest {
 				logger.log(Level.SEVERE, "Could not create admin user", ex);
 			}
 			
-			String[] args = {"/bin/sh", "-c", "cd src/test/javascript; PATH=$PATH:./bin/ casperjs/bin/casperjs test " + testName+ ".js"};
+			String[] args = {"/bin/sh", "-c", "cd src/test/javascript; PATH=$PATH:./bin/`uname`/ casperjs/bin/casperjs test " + testName+ ".js"};
 
 			Process proc = Runtime.getRuntime().exec(args);
 			logger.log(Level.INFO, IOUtils.toString(proc.getInputStream()));

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Set path to phantomjs
-export PATH=$PATH:./bin/
+export PATH=$PATH:./bin/`uname`/
 
 # Failed login test
 casperjs/bin/casperjs test failed_login.js
