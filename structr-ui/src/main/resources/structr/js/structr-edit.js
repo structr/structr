@@ -122,13 +122,13 @@ function StructrPage(baseUrl) {
         return {'id': id, 'type': type, 'key': key, 'val': val};
     };
     this.create = function(btn, type, data, sourceId, sourceType, relatedProperty, createNew) {
-        //console.log('Create', type, data, '/structr/rest/' + type.toUnderscore(), sourceId, relatedProperty);
+        //console.log('Create', btn, type, data, sourceId, sourceType, relatedProperty, createNew);
 
         if (sourceId && relatedProperty && !createNew) {
 
             btn.hide();
 
-            $('<div class="clear"></div><input type="text" id="structrSearch" data-structr-typesize="30" placeholder="Search for existing ' + type + '"><span> or </span>').insertBefore(btn);
+            $('<br><span class="searchBox"><input type="text" id="structrSearch" data-structr-typesize="30" placeholder="Search for existing ' + type + '"><span> or </span></span>').insertBefore(btn);
 
             $('#structrSearch').focus().on('keyup', function(e) {
 
@@ -193,6 +193,9 @@ function StructrPage(baseUrl) {
                 var drop = $('#dropArea');
                 if (!drop.length) {
                     
+                    $('.searchBox').hide();
+                    $('.createNewButton').hide();
+                    
                     $('<div class="clear"></div><div id="dropArea">Drag and drop image(s) here</div>').insertBefore(btn);
                     drop = $('#dropArea');
                     //console.log(drop);
@@ -203,7 +206,7 @@ function StructrPage(baseUrl) {
                     });
 
                     drop.on('drop', function(event) {
-
+                        
                         if (!event.originalEvent.dataTransfer) {
                             return;
                         }
@@ -229,8 +232,8 @@ function StructrPage(baseUrl) {
                                 var sourceId = btn.attr('data-structr-source-id');
                                 var sourceType = btn.attr('data-structr-source-type');
                                 var relatedProperty = btn.attr('data-structr-related-property');
-
-                                s.create(btn, type, data, sourceId, sourceType, relatedProperty);
+                                
+                                s.create(btn, type, data, sourceId, sourceType, relatedProperty, true);
 
                             }
 

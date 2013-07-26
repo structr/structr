@@ -37,3 +37,8 @@ input[type=text] {
 	cursor: pointer;
 	background: #f7f7f7;
 }
+
+.createButton {
+	display: block;
+	margin: 1em 0;
+}
