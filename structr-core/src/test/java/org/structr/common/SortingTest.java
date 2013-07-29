@@ -140,9 +140,9 @@ public class SortingTest extends StructrTest {
 			result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page);
 
 			logger.log(Level.INFO, "Raw result size: {0}, expected: {1}", new Object[] { result.getRawResultCount(), number });
-			assertTrue(result.getRawResultCount() == number);
+			assertEquals(number, (int) result.getRawResultCount());
 			logger.log(Level.INFO, "Result size: {0}, expected: {1}", new Object[] { result.size(), Math.min(number, pageSize) });
-			assertTrue(result.size() == Math.min(number, pageSize));
+			assertEquals(Math.min(number, pageSize), result.size());
 
 			for (int j = 0; j < Math.min(result.size(), pageSize); j++) {
 
