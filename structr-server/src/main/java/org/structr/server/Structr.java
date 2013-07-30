@@ -997,7 +997,7 @@ public class Structr {
 			
 			logger.log(Level.WARNING, "Using default authenticator.");
 			
-			authenticator = DefaultAuthenticator.class;
+			authenticator = SuperUserAuthenticator.class;
 		}
 		
 		if (resourceProvider == null) {

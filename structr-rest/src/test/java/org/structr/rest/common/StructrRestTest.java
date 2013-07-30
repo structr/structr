@@ -168,7 +168,7 @@ public class StructrRestTest extends TestCase {
 			ServletHolder structrRestServletHolder = new ServletHolder(structrRestServlet);
 
 			Map<String, String> servletParams = new LinkedHashMap<String, String>();
-			servletParams.put("Authenticator", DefaultAuthenticator.class.getName());
+			servletParams.put("Authenticator", SuperUserAuthenticator.class.getName());
 
 			structrRestServletHolder.setInitParameters(servletParams);
 			structrRestServletHolder.setInitOrder(0);

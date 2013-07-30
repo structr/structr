@@ -27,7 +27,6 @@ import com.google.gson.JsonSyntaxException;
 
 import org.apache.commons.lang.StringUtils;
 
-import org.structr.common.AccessMode;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -42,7 +41,6 @@ import org.structr.core.Result;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.lang.String;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
@@ -59,9 +57,10 @@ import javax.servlet.http.HttpServletResponse;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.*;
 import org.structr.core.Value;
+import org.structr.core.auth.Authenticator;
+import org.structr.core.auth.AuthenticatorCommand;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.RelationshipMapping;
-import org.structr.core.entity.ResourceAccess;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.property.Property;
 import org.structr.rest.StreamingJsonWriter;
@@ -114,7 +113,7 @@ public class JsonRestServlet extends HttpServlet {
 	public void init() {
 		
 		// initialize internal resources with exact matching from EntityContext
-		for(RelationshipMapping relMapping : EntityContext.getNamedRelations()) {
+		for (RelationshipMapping relMapping : EntityContext.getNamedRelations()) {
 			resourceMap.put(Pattern.compile(relMapping.getName()), NamedRelationResource.class);
 		}
 
@@ -160,23 +159,23 @@ public class JsonRestServlet extends HttpServlet {
 	@Override
 	protected void doDelete(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 
-		SecurityContext securityContext = getSecurityContext(request, response);
-		
+		SecurityContext securityContext = null;
+
 		try {
+
+			Authenticator authenticator     = getAuthenticator();
+			securityContext = authenticator.initializeAndExamineRequest(request, response);
 
 //			logRequest("DELETE", request);
 			request.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=utf-8");
-
-			// let module-specific authenticator examine the request first
-			securityContext.initializeAndExamineRequest(request, response);
 
 			List<Resource> chain            = ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty);
 			Resource resourceConstraint     = ResourceHelper.optimizeNestedResourceChain(chain, defaultIdProperty);
 			String resourceSignature        = resourceConstraint.getResourceSignature();
 
 			// let authenticator examine request again
-			securityContext.examineRequest(request, resourceSignature, ResourceAccess.findGrant(resourceSignature), propertyView.get(securityContext));
+			authenticator.checkResourceAccess(request, resourceSignature, propertyView.get(securityContext));
 
 			// do action
 			RestMethodResult result = resourceConstraint.doDelete();
@@ -239,17 +238,17 @@ public class JsonRestServlet extends HttpServlet {
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 
-		SecurityContext securityContext = getSecurityContext(request, response);
+		SecurityContext securityContext = null;
 
 		try {
+
+			Authenticator authenticator     = getAuthenticator();
+			securityContext = authenticator.initializeAndExamineRequest(request, response);
 
 //			logRequest("GET", request);
 			request.setCharacterEncoding("UTF-8");
 			response.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=utf-8");
-
-			// let module-specific authenticator examine the request first
-			securityContext.initializeAndExamineRequest(request, response);
 
 			// set default value for property view
 			propertyView.set(securityContext, defaultPropertyView);
@@ -259,8 +258,8 @@ public class JsonRestServlet extends HttpServlet {
 			Resource resource        = ResourceHelper.applyViewTransformation(request, securityContext, ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty), defaultIdProperty), propertyView);
 			String resourceSignature = resource.getResourceSignature();
 			
-			// let authenticator examine request again
-			securityContext.examineRequest(request, resourceSignature, ResourceAccess.findGrant(resourceSignature), propertyView.get(securityContext));
+			// check access rights for this resource
+			authenticator.checkResourceAccess(request, resourceSignature, propertyView.get(securityContext));
 			
 			// add sorting & paging
 			String pageSizeParameter = request.getParameter(REQUEST_PARAMETER_PAGE_SIZE);
@@ -368,9 +367,12 @@ public class JsonRestServlet extends HttpServlet {
 	@Override
 	protected void doHead(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
-		SecurityContext securityContext = getSecurityContext(request, response);
-		
+		SecurityContext securityContext = null;
+
 		try {
+
+			Authenticator authenticator     = getAuthenticator();
+			securityContext = authenticator.initializeAndExamineRequest(request, response);
 
 //			logRequest("HEAD", request);
 			request.setCharacterEncoding("UTF-8");
@@ -381,8 +383,8 @@ public class JsonRestServlet extends HttpServlet {
 			Resource resource         = ResourceHelper.optimizeNestedResourceChain(chain, defaultIdProperty);
 			String resourceSignature  = resource.getResourceSignature();
 			
-			// let authenticator examine request again
-			securityContext.examineRequest(request, resourceSignature, ResourceAccess.findGrant(resourceSignature), propertyView.get(securityContext));
+			// check access rights for this resource
+			authenticator.checkResourceAccess(request, resourceSignature, propertyView.get(securityContext));
 			
 			// do action
 			RestMethodResult result = resource.doHead();
@@ -445,9 +447,12 @@ public class JsonRestServlet extends HttpServlet {
 	@Override
 	protected void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
-		SecurityContext securityContext = getSecurityContext(request, response);
-		
+		SecurityContext securityContext = null;
+
 		try {
+
+			Authenticator authenticator     = getAuthenticator();
+			securityContext = authenticator.initializeAndExamineRequest(request, response);
 
 //			logRequest("OPTIONS", request);
 			request.setCharacterEncoding("UTF-8");
@@ -458,8 +463,8 @@ public class JsonRestServlet extends HttpServlet {
 			Resource resource         = ResourceHelper.optimizeNestedResourceChain(chain, defaultIdProperty);
 			String resourceSignature  = resource.getResourceSignature();
 			
-			// let authenticator examine request again
-			securityContext.examineRequest(request, resourceSignature, ResourceAccess.findGrant(resourceSignature), propertyView.get(securityContext));
+			// check access rights for this resource
+			authenticator.checkResourceAccess(request, resourceSignature, propertyView.get(securityContext));
 			
 			// do action
 			RestMethodResult result = resource.doOptions();
@@ -522,9 +527,12 @@ public class JsonRestServlet extends HttpServlet {
 	@Override
 	protected void doPost(final HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
-		SecurityContext securityContext = getSecurityContext(request, response);
-		
+		SecurityContext securityContext = null;
+
 		try {
+
+			Authenticator authenticator     = getAuthenticator();
+			securityContext = authenticator.initializeAndExamineRequest(request, response);
 
 //			logRequest("POST", request);
 			request.setCharacterEncoding("UTF-8");
@@ -535,17 +543,14 @@ public class JsonRestServlet extends HttpServlet {
 
 			if (securityContext != null) {
 
-				// let module-specific authenticator examine the request first
-				securityContext.initializeAndExamineRequest(request, response);
-
 				// evaluate constraint chain
 				List<Resource> chain            = ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty);
 				Resource resource               = ResourceHelper.optimizeNestedResourceChain(chain, defaultIdProperty);
 				Map<String, Object> properties  = convertPropertySetToMap(propertySet);
 				String resourceSignature        = resource.getResourceSignature();
 
-				// let authenticator examine request again
-				securityContext.examineRequest(request, resourceSignature, ResourceAccess.findGrant(resourceSignature), propertyView.get(securityContext));
+				// check access rights for this resource
+				authenticator.checkResourceAccess(request, resourceSignature, propertyView.get(securityContext));
 				
 				// do action
 				RestMethodResult result = resource.doPost(properties);
@@ -628,9 +633,12 @@ public class JsonRestServlet extends HttpServlet {
 	@Override
 	protected void doPut(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 
-		SecurityContext securityContext = getSecurityContext(request, response);
-		
+		SecurityContext securityContext = null;
+
 		try {
+
+			Authenticator authenticator     = getAuthenticator();
+			securityContext = authenticator.initializeAndExamineRequest(request, response);
 
 //			logRequest("PUT", request);
 			request.setCharacterEncoding("UTF-8");
@@ -641,16 +649,14 @@ public class JsonRestServlet extends HttpServlet {
 
 			if (securityContext != null) {
 
-				// let module-specific authenticator examine the request first
-				securityContext.initializeAndExamineRequest(request, response);
-
 				// evaluate constraint chain
 				List<Resource> chain	       = ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty);
 				Resource resource	       = ResourceHelper.optimizeNestedResourceChain(chain, defaultIdProperty);
 				String resourceSignature       = resource.getResourceSignature();
 				Map<String, Object> properties = convertPropertySetToMap(propertySet);
 
-				securityContext.examineRequest(request, resourceSignature, ResourceAccess.findGrant(resourceSignature), propertyView.get(securityContext));
+				// check access rights for this resource
+				authenticator.checkResourceAccess(request, resourceSignature, propertyView.get(securityContext));
 				
 				// do action
 				RestMethodResult result = resource.doPut(properties);
@@ -788,9 +794,10 @@ public class JsonRestServlet extends HttpServlet {
 		return new LinkedHashMap<String, Object>();
 	}
 
-	private SecurityContext getSecurityContext(HttpServletRequest request, HttpServletResponse response) {
-
-		return SecurityContext.getInstance(this.getServletConfig(), request, response, AccessMode.Backend);
+	private Authenticator getAuthenticator() throws FrameworkException {
+		
+		return (Authenticator) Services.command(null, AuthenticatorCommand.class).execute(getServletConfig());
+		
 	}
 	// </editor-fold>
 

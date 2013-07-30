@@ -68,6 +68,9 @@ import java.util.regex.Pattern;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.structr.core.Services;
+import org.structr.core.auth.Authenticator;
+import org.structr.core.auth.AuthenticatorCommand;
 import org.structr.core.entity.ResourceAccess;
 
 //~--- classes ----------------------------------------------------------------
@@ -132,14 +135,17 @@ public class CsvServlet extends HttpServlet {
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws UnsupportedEncodingException {
 
+		SecurityContext securityContext = null;
+
 		try {
+
+			Authenticator authenticator     = getAuthenticator();
+			securityContext = authenticator.initializeAndExamineRequest(request, response);
 
 //                      logRequest("GET", request);
 			request.setCharacterEncoding("UTF-8");
 			response.setCharacterEncoding("UTF-8");
 			response.setContentType("text/csv; charset=utf-8");
-
-			SecurityContext securityContext = getSecurityContext(request, response);
 
 			// set default value for property view
 			propertyView.set(securityContext, defaultPropertyView);
@@ -152,7 +158,7 @@ public class CsvServlet extends HttpServlet {
 			String resourceSignature = resource.getResourceSignature();
 
 			// let authenticator examine request again
-			securityContext.examineRequest(request, resourceSignature, ResourceAccess.findGrant(resourceSignature), propertyView.get(securityContext));
+			authenticator.checkResourceAccess(request, resourceSignature, propertyView.get(securityContext));
 
 			// add sorting & paging
 			String pageSizeParameter = request.getParameter(JsonRestServlet.REQUEST_PARAMETER_PAGE_SIZE);
@@ -349,26 +355,11 @@ public class CsvServlet extends HttpServlet {
 	}
 
 	//~--- get methods ----------------------------------------------------
-
-	private SecurityContext getSecurityContext(HttpServletRequest request, HttpServletResponse response) {
-
-		SecurityContext securityContext = null;
-
-		try {
-
-			securityContext = SecurityContext.getInstance(this.getServletConfig(), request, response, AccessMode.Backend);
-
-			// let module-specific authenticator examine the request first
-			securityContext.initializeAndExamineRequest(request, response);
-
-		} catch (FrameworkException ex) {
-
-			logger.log(Level.SEVERE, null, ex);
-
-		}
-
-		return securityContext;
-
+	
+	private Authenticator getAuthenticator() throws FrameworkException {
+		
+		return (Authenticator) Services.command(null, AuthenticatorCommand.class).execute(getServletConfig());
+		
 	}
 
 	//~--- inner classes --------------------------------------------------

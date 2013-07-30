@@ -60,6 +60,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.time.DateUtils;
 import org.apache.lucene.search.BooleanClause.Occur;
+import org.structr.core.auth.Authenticator;
+import org.structr.core.auth.AuthenticatorCommand;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.GetNodeByIdCommand;
 import org.structr.core.graph.StructrTransaction;
@@ -128,7 +130,12 @@ public class HtmlServlet extends HttpServlet {
 
 		double start                    = System.nanoTime();
 
+
+		SecurityContext securityContext = null;
+
 		try {
+
+			securityContext = getAuthenticator().initializeAndExamineRequest(request, response);
 			
 			request.setCharacterEncoding("UTF-8");
 
@@ -140,10 +147,6 @@ public class HtmlServlet extends HttpServlet {
 			String path = PathHelper.clean(request.getPathInfo());
 
 			logger.log(Level.FINE, "Path info {0}", path);
-
-			SecurityContext securityContext = SecurityContext.getInstance(this.getServletConfig(), request, response, AccessMode.Frontend);
-			securityContext.initializeAndExamineRequest(request, response);
-			
 			logger.log(Level.FINE, "Request examined by security context in {0} seconds", decimalFormat.format((System.nanoTime() - start) / 1000000000.0));
 			
 			// don't continue on redirects
@@ -544,9 +547,6 @@ public class HtmlServlet extends HttpServlet {
 					
 				});
 				
-				// Login user without password
-				securityContext.setUser(user);
-
 				// Redirect to target page
 				if (StringUtils.isNotBlank(targetPage)) {
 					
@@ -788,5 +788,11 @@ public class HtmlServlet extends HttpServlet {
 				response.setStatus(HttpServletResponse.SC_OK);
 			}
 		}
+	}
+
+	private Authenticator getAuthenticator() throws FrameworkException {
+		
+		return (Authenticator) Services.command(null, AuthenticatorCommand.class).execute(getServletConfig());
+		
 	}
 }

@@ -81,7 +81,7 @@ public class LoginResource extends Resource {
 		
 		if (StringUtils.isNotEmpty(emailOrUsername) && StringUtils.isNotEmpty(password)) {
 			
-			Principal user = (Principal) securityContext.doLogin(emailOrUsername, password);
+			Principal user = (Principal) securityContext.getAuthenticator().doLogin(securityContext.getRequest(), emailOrUsername, password);
 
 			if (user != null) {
 				

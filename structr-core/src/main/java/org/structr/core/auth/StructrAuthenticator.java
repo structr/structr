@@ -64,14 +64,16 @@ public class StructrAuthenticator implements Authenticator {
 	//~--- methods --------------------------------------------------------
 
 	@Override
-	public void initializeAndExamineRequest(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) throws FrameworkException {}
+	public SecurityContext initializeAndExamineRequest(HttpServletRequest request, HttpServletResponse response) throws FrameworkException {
+		return null;
+	}
 
 	@Override
-	public void examineRequest(SecurityContext securityContext, HttpServletRequest request, String resourceSignature, ResourceAccess resourceAccess, String propertyView)
+	public void checkResourceAccess(HttpServletRequest request, String resourceSignature, String propertyView)
 		throws FrameworkException {}
 
 	@Override
-	public Principal doLogin(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response, String userName, String password) throws AuthenticationException {
+	public Principal doLogin(HttpServletRequest request, String userName, String password) throws AuthenticationException {
 
 		Principal user = AuthHelper.getPrincipalForPassword(AbstractNode.name, userName, password);
 
@@ -94,7 +96,7 @@ public class StructrAuthenticator implements Authenticator {
 	}
 
 	@Override
-	public void doLogout(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) {
+	public void doLogout(HttpServletRequest request) {
 
 		HttpSession session = request.getSession();
 
@@ -105,7 +107,7 @@ public class StructrAuthenticator implements Authenticator {
 	//~--- get methods ----------------------------------------------------
 
 	@Override
-	public Principal getUser(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response, final boolean tryLogin) throws FrameworkException {
+	public Principal getUser(HttpServletRequest request, final boolean tryLogin) throws FrameworkException {
 
 		String userName  = (String) request.getSession().getAttribute(USERNAME_KEY);
 		
@@ -113,7 +115,7 @@ public class StructrAuthenticator implements Authenticator {
 		attrs.add(Search.andExactTypeAndSubtypes(Principal.class));
 		attrs.add(Search.andExactName(userName));
 		
-		Result userList = Services.command(securityContext, SearchNodeCommand.class).execute(attrs);
+		Result userList = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(attrs);
 		Principal user  = null;
 		
 		if (!userList.isEmpty()) {

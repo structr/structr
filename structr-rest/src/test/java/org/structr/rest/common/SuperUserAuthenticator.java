@@ -25,37 +25,37 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.entity.Principal;
-import org.structr.core.entity.ResourceAccess;
 import org.structr.core.entity.SuperUser;
 
 /**
- * A default authenticator implementation for structr.
- *
+ * An authenticator implementation for structr which always returns a superuser or superuser context.
+ * 
  * @author Christian Morgner
  */
-public class DefaultAuthenticator implements Authenticator {
+public class SuperUserAuthenticator implements Authenticator {
 	
 	private static final SuperUser superUser = new SuperUser();
 
 	@Override
-	public void initializeAndExamineRequest(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) throws FrameworkException {
+	public SecurityContext initializeAndExamineRequest(HttpServletRequest request, HttpServletResponse response) throws FrameworkException {
+		return SecurityContext.getSuperUserInstance(request);
 	}
 
 	@Override
-	public void examineRequest(SecurityContext securityContext, HttpServletRequest request, String resourceSignature, ResourceAccess resourceAccess, String propertyView) throws FrameworkException {
+	public void checkResourceAccess(HttpServletRequest request, String resourceSignature, String propertyView) throws FrameworkException {
 	}
 
 	@Override
-	public Principal doLogin(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response, String userName, String password) throws AuthenticationException {
+	public Principal doLogin(HttpServletRequest request, String userName, String password) throws AuthenticationException {
 		return superUser;
 	}
 
 	@Override
-	public void doLogout(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) {
+	public void doLogout(HttpServletRequest request) {
 	}
 
 	@Override
-	public Principal getUser(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response, final boolean tryLogin) throws FrameworkException {
+	public Principal getUser(HttpServletRequest request, final boolean tryLogin) throws FrameworkException {
 		return superUser;
 	}
 

@@ -54,7 +54,7 @@ public class CallbackTest extends StructrTest {
 			
 			Person person = this.createTestNode(Person.class);
 			
-			final SecurityContext securityContext = SecurityContext.getInstance(person, AccessMode.Backend);
+			final SecurityContext securityContext = SecurityContext.getInstance(person, null, AccessMode.Backend);
 			testCallbacks(securityContext);
 			
 		} catch (FrameworkException fex) {

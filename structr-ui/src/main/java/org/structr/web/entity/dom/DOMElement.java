@@ -1168,7 +1168,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 				Resource resource     = ResourceHelper.applyViewTransformation(request, securityContext, ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, AbstractNode.uuid), AbstractNode.uuid), propertyView);
 
 				// TODO: decide if we need to rest the REST request here
-				//securityContext.examineRequest(request, resource.getResourceSignature(), resource.getGrant(request, response), PropertyView.Ui);
+				//securityContext.checkResourceAccess(request, resource.getResourceSignature(), resource.getGrant(request, response), PropertyView.Ui);
 
 				// add sorting & paging
 				String pageSizeParameter = request.getParameter(REQUEST_PARAMETER_PAGE_SIZE);
