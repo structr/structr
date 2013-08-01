@@ -46,8 +46,8 @@ public interface GraphObject {
 
 	public static final Property<Date>    createdDate                 = new ISO8601DateProperty("createdDate").indexed().unvalidated().readOnly().writeOnce();
 	public static final Property<Date>    lastModifiedDate            = new ISO8601DateProperty("lastModifiedDate").passivelyIndexed().unvalidated().readOnly();
-	public static final Property<Boolean> visibleToPublicUsers        = new BooleanProperty("visibleToPublicUsers");
-	public static final Property<Boolean> visibleToAuthenticatedUsers = new BooleanProperty("visibleToAuthenticatedUsers");
+	public static final Property<Boolean> visibleToPublicUsers        = new BooleanProperty("visibleToPublicUsers").passivelyIndexed();
+	public static final Property<Boolean> visibleToAuthenticatedUsers = new BooleanProperty("visibleToAuthenticatedUsers").passivelyIndexed();
 	public static final Property<Date>    visibilityStartDate         = new ISO8601DateProperty("visibilityStartDate");
 	public static final Property<Date>    visibilityEndDate           = new ISO8601DateProperty("visibilityEndDate");
 	

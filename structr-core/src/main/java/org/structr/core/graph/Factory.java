@@ -22,7 +22,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.gis.spatial.indexprovider.SpatialRecordHits;
 import org.neo4j.graphdb.index.IndexHits;
 import org.structr.common.FactoryDefinition;
 import org.structr.common.SecurityContext;
@@ -42,8 +41,14 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 
 	private static final Logger logger = Logger.getLogger(Factory.class.getName());
 	
-	public static final int DEFAULT_PAGE_SIZE = Integer.MAX_VALUE;
-	public static final int DEFAULT_PAGE      = 1;
+	public static final int DEFAULT_PAGE_SIZE	= Integer.MAX_VALUE;
+	public static final int DEFAULT_PAGE		= 1;
+	
+	/**
+	 * This limit is the number of objects up to which the overall count
+	 * will be accurate.
+	 */
+	public static final int RESULT_COUNT_ACCURATE_LIMIT	= 5000;
 	
 	// encapsulates all criteria for node creation
 	protected FactoryDefinition factoryDefinition = EntityContext.getFactoryDefinition();
@@ -200,6 +205,12 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 
 			T n = instantiate(node);
 
+			if (n == null) {
+				
+				continue;
+				
+			}
+			
 			nodesUpToOffset.add(n);
 
 			if (!gotOffset) {
@@ -323,28 +334,51 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 	protected Result page(final IndexHits<S> input, final int overallResultCount, final int offset, final int pageSize) throws FrameworkException {
 
 		final List<T> nodes = new LinkedList<T>();
-		int position        = 0;
-		int count           = 0;
-		int overallCount    = 0;
-
+		int position		= 0;
+		int count		= 0;
+		int overallCount	= 0;
+		boolean pageFull	= false;
+		
+		SecurityContext securityContext = factoryProfile.getSecurityContext();
+		
+		// In case of superuser or in public context, don't check the overall result count
+		boolean dontCheckCount  = securityContext.isSuperUser() || securityContext.getUser(false) == null;
+		
 		for (S node : input) {
 
 			T n = instantiate(node);
 
-			overallCount++;
-
 			if (n != null) {
+
+				overallCount++;
 
 				if (++position > offset) {
 
 					// stop if we got enough nodes
+					// and we are above the limit
 					if (++count > pageSize) {
 
+						pageFull = true;
+						
+						if (dontCheckCount) {
+							overallCount = overallResultCount;
+							break;
+						}
+						
+					}
+					
+					if (!pageFull) {
+
+						nodes.add(n);
+
+					}
+					
+					if (pageFull && (overallCount >= RESULT_COUNT_ACCURATE_LIMIT)) {
+						 
 						// The overall count may be inaccurate
 						return new Result(nodes, overallResultCount, true, false);
+						 
 					}
-
-					nodes.add(n);
 				}
 
 			}
@@ -353,7 +387,7 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 
 		// We've run completely through the iterator,
 		// so the overall count from here is accurate.
-		return new Result(nodes, overallCount, true, false);
+		return new Result(nodes, overallCount, true, false, true);
 
 	}
 

@@ -75,12 +75,19 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	// ----- public command methods -----
 	public Result<T> execute(final boolean includeDeletedAndHidden, final boolean publicOnly, final SearchAttribute... attributes) throws FrameworkException {
 		
-		return execute(includeDeletedAndHidden, publicOnly, Arrays.asList(attributes));
+		List<SearchAttribute> attrs = new ArrayList();
+		
+		// DON'T use Arrays.asList here! The result would be a list without add() methods, {@see Arrays#AbstractList}
+		for (SearchAttribute attr : attributes) {
+			attrs.add(attr);
+		}
+
+		return execute(includeDeletedAndHidden, publicOnly, attrs);
 	}
 
 	public Result<T> execute(final SearchAttribute... attributes) throws FrameworkException {
-		
-		return execute(INCLUDE_DELETED_AND_HIDDEN, PUBLIC_ONLY, Arrays.asList(attributes));
+
+		return execute(INCLUDE_DELETED_AND_HIDDEN, PUBLIC_ONLY, attributes);
 	}
 
 	public Result<T> execute(final List<SearchAttribute> searchAttrs) throws FrameworkException {
@@ -155,6 +162,12 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		Factory<S, T> factory        = getFactory(securityContext, includeDeletedAndHidden, publicOnly, pageSize, page, offsetId);
 		boolean filterResults        = true;
 		final Index<S> index;
+		
+		if (securityContext.getUser(false) == null) {
+			
+			searchAttrs.add(Search.andExactProperty(securityContext, GraphObject.visibleToPublicUsers, true));
+			
+		}
 
 		// At this point, all search attributes are ready
 		List<SourceSearchAttribute> sources    = new ArrayList<SourceSearchAttribute>();

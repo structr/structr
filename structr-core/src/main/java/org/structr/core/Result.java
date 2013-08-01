@@ -33,6 +33,7 @@ public class Result<T extends GraphObject> {
 	private boolean isCollection = false;
 	private boolean isPrimitiveArray = false;
 	private boolean hasPartialContent = false;
+	private boolean accurateResultCount = false;
 	private String propertyView = null;
 
 	private String searchString = null;
@@ -53,7 +54,14 @@ public class Result<T extends GraphObject> {
 		this.results = listResult;
 		this.resultCount = (rawResultCount != null ? rawResultCount : (results != null ? results.size() : 0));
 	}
-	
+
+	public Result(List<T> listResult, Integer rawResultCount, boolean isCollection, boolean isPrimitiveArray, boolean accurateResultCount) {
+		this.isCollection = isCollection;
+		this.isPrimitiveArray = isPrimitiveArray;
+		this.results = listResult;
+		this.resultCount = (rawResultCount != null ? rawResultCount : (results != null ? results.size() : 0));
+		this.accurateResultCount = accurateResultCount;
+	}
 
 	public T get(final int i) {
 		return results.get(i);
