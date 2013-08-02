@@ -483,7 +483,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 	@Override
 	public String toString() {
 		
-		return getClass().getSimpleName() + "[" + getUuid() + "] (" + getTextContent() + ", " + treeGetChildPosition(RelType.CONTAINS, this) + ")";
+		return getClass().getSimpleName() + " [" + getUuid() + "] (" + getTextContent() + ", " + treeGetChildPosition(RelType.CONTAINS, this) + ")";
 	}
 
 	public List<AbstractRelationship> getChildRelationships() {

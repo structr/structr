@@ -153,6 +153,18 @@ var _Pages = {
             elements.show();
             _Elements.reloadUnattachedNodes();
             localStorage.setItem(activeTabRightKey, $(this).prop('id'));
+        }).droppable({
+            over: function(e, ui) {
+                e.stopPropagation();
+                $(this).addClass('active');
+                $('#paletteTab').removeClass('active');
+                $('#componentsTab').removeClass('active');
+                palette.hide();
+                components.hide();
+                elements.show();
+                _Elements.reloadUnattachedNodes();
+                localStorage.setItem(activeTabRightKey, $(this).prop('id'));
+            }
         });
 
         $('#componentsTab').on('click', function() {
@@ -164,6 +176,23 @@ var _Pages = {
             components.show();
             _Elements.reloadComponents();
             localStorage.setItem(activeTabRightKey, $(this).prop('id'));
+        }).droppable({
+            accept: '.element, .content, .component, .file, .image',
+            greedy: true,
+            hoverClass: 'nodeHover',
+            tolerance: 'pointer',
+            over: function(e, ui) {
+                e.stopPropagation();
+                $('#componentsTab').droppable();
+                $(this).addClass('active');
+                $('#paletteTab').removeClass('active');
+                $('#elementsTab').removeClass('active');
+                palette.hide();
+                elements.hide();
+                components.show();
+                _Elements.reloadComponents();
+                localStorage.setItem(activeTabRightKey, $(this).prop('id'));
+            }
         });
 
         if (activeTabRight) {
@@ -915,7 +944,9 @@ var _Pages = {
                         addExpandedNode(contentId);
                             
                     }
-                    Command.createAndAppendDOMNode(getId(page), elementId, (tag !== 'content' ? tag : ''), nodeData);
+                    var pageId = (page ? getId(page) : target.pageId);
+                        
+                    Command.createAndAppendDOMNode(pageId, elementId, (tag !== 'content' ? tag : ''), nodeData);
                     return;
                         
                 } else {
@@ -932,23 +963,6 @@ var _Pages = {
             }
         }); 
         return div;
-    },
-
-    removeComponentFromPage : function(entityId, parentId, componentId, pageId, pos) {
-        log('Pages.removeComponentFromPage');
-
-        var page = Structr.node(pageId);
-        var component = Structr.node(entityId, componentId, componentId, pageId, pos);
-        component.remove();
-        
-        if (!Structr.containsNodes(page)) {
-            _Entities.removeExpandIcon(page);
-        }
-        var numberOfComponents = $('.component', page).size();
-        log(numberOfComponents);
-        if (numberOfComponents === 0) {
-            enable($('.delete_icon', page)[0]);
-        }
     },
 
     reloadPreviews : function() {
@@ -1009,8 +1023,12 @@ var _Pages = {
             
                 Structr.activateMenuEntry('pages');
                 window.location.href = '/structr/#pages';
+                
+                files.hide();
+                folders.hide();
+                
+//                _Pages.init();
                 Structr.modules['pages'].onload();
-            
                 _Pages.resize();
             }
         

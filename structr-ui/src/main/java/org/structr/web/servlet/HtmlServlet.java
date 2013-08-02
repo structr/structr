@@ -130,12 +130,12 @@ public class HtmlServlet extends HttpServlet {
 
 		double start                    = System.nanoTime();
 
-
-		SecurityContext securityContext = null;
-
 		try {
 
-			securityContext = getAuthenticator().initializeAndExamineRequest(request, response);
+			SecurityContext securityContext = getAuthenticator().initializeAndExamineRequest(request, response);
+			
+			// Ensure access mode is frontend
+			securityContext.setAccessMode(AccessMode.Frontend);
 			
 			request.setCharacterEncoding("UTF-8");
 
@@ -174,7 +174,7 @@ public class HtmlServlet extends HttpServlet {
 			String[] uriParts = PathHelper.getParts(path);
 			if ((uriParts == null) || (uriParts.length == 0)) {
 
-				// find a visible page with position==0
+				// find a visible page
 				rootElement = findIndexPage(securityContext);
 
 				logger.log(Level.FINE, "No path supplied, trying to find index page");

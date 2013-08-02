@@ -20,7 +20,7 @@
 var buttonClicked;
 
 var _Entities = {
-    booleanAttrs: ['visibleToPublicUsers', 'visibleToAuthenticatedUsers', 'hidden', 'deleted', 'blocked', 'frontendUser', 'backendUser'],
+    booleanAttrs: ['visibleToPublicUsers', 'visibleToAuthenticatedUsers', 'hidden', 'deleted', 'blocked', 'frontendUser', 'backendUser', 'hideOnIndex', 'hideOnEdit', 'hideOnNonEdit', 'hideOnDetail', 'renderDetails'],
     numberAttrs: ['position', 'size'],
     dateAttrs: ['createdDate', 'lastModifiedDate', 'visibilityStartDate', 'visibilityEndDate'],
     hiddenAttrs: ['base', 'deleted', 'ownerId', 'owner', 'group', 'categories', 'tag', 'createdBy', 'visibilityStartDate', 'visibilityEndDate', 'parentFolder', 'url', 'path', 'elements', 'components', 'paths', 'parents'],
@@ -664,7 +664,7 @@ var _Entities = {
             paddingRight: 11 + 'px'
         });
     },
-    setMouseOver: function(el, allowClick) {
+    setMouseOver: function(el, allowClick, syncedNodes) {
         var node = $(el).closest('.node');
         if (!node || !node.children) {
             return;
@@ -681,12 +681,26 @@ var _Entities = {
             _Entities.makeNameEditable(node);
         });
 
-        var nodeId = getId(el);
+        var nodeId = getId(el), isComponent;
+        if (nodeId === undefined) {
+            nodeId = getComponentId(el);
+            isComponent = true;
+        }
 
         node.on({
             mouseover: function(e) {
                 e.stopPropagation();
                 var self = $(this);
+                $('#componentId_' + nodeId).addClass('nodeHover');
+                if (isComponent) $('#id_' + nodeId).addClass('nodeHover');
+                
+                if (syncedNodes && syncedNodes.length) {
+                    syncedNodes.forEach(function(s) {
+                        $('#id_' + s).addClass('nodeHover');
+                        $('#componentId_' + s).addClass('nodeHover');
+                    });
+                }
+                
                 var page = $(el).closest('.page');
                 if (page.length) {
                     $('#preview_' + getId(page)).contents().find('[data-structr-id=' + nodeId + ']').addClass('nodeHover');
@@ -696,6 +710,16 @@ var _Entities = {
             },
             mouseout: function(e) {
                 e.stopPropagation();
+                $('#componentId_' + nodeId).removeClass('nodeHover');
+                if (isComponent) $('#id_' + nodeId).removeClass('nodeHover');
+
+                if (syncedNodes && syncedNodes.length) {
+                    syncedNodes.forEach(function(s) {
+                        $('#id_' + s).removeClass('nodeHover');
+                        $('#componentId_' + s).removeClass('nodeHover');
+                    });
+                }
+                
                 _Entities.resetMouseOverState(this);
             }
         });

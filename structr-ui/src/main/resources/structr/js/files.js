@@ -293,6 +293,7 @@ var _Files = {
             helper: 'clone',
             //containment: '#main',
             stack: '.node',
+            appendTo: '#main',
             stop : function(e,ui) {
                 $('#pages_').droppable('enable').removeClass('nodeHover');
             }

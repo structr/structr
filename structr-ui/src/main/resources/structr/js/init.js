@@ -629,11 +629,11 @@ var Structr = {
         }
     },
 
-    updatePager : function(type) {
+    updatePager : function(type, el) {
 
         if (!type) return;
         
-        var pager = $('#pager' + type);
+        var pager = (el && el.length) ? $('.pager' + type, el) : $('.pager' + type);
         
         if (pager) {
             
@@ -681,15 +681,26 @@ var Structr = {
      * 
      * This pager calls Command#list (WebSocket call) after being loaded
      * and binds Command#list to all actions.
+     * 
+     * If the optional callback function is given, it will be executed
+     * instead of the default action.
      */
-    addPager : function(el, type) {
-
-        el.append('<div class="pager" id="pager' + type + '" style="clear: both"><button class="pageLeft">&lt; Prev</button>'
+    addPager : function(el, type, callback) {
+        
+        if (!callback) {
+                callback = function(entity) {
+                    StructrModel.create(entity);
+                }
+        }
+        
+        var isPagesEl = (el === pages);
+        
+        el.append('<div class="pager pager' + type + '" style="clear: both"><button class="pageLeft">&lt; Prev</button>'
             + ' <input class="page" type="text" size="3" value="' + page[type] + '"><button class="pageRight">Next &gt;</button>'
             + ' of <input class="readonly pageCount" readonly="readonly" size="3">'
             + ' Items: <input class="pageSize" type="text" size="3" value="' + pageSize[type] + '"></div>');
         
-        var pager = $('#pager' + type);
+        var pager = $('.pager' + type, el);
         
         var pageLeft = $('.pageLeft', pager);
         var pageRight = $('.pageRight', pager);
@@ -705,8 +716,8 @@ var Structr = {
                 $('.pageSize', pager).val(pageSize[type]);
                 $('.pageCount', pager).val(pageCount[type]);
                 $('.node', el).remove();
-                _Pages.clearPreviews();
-                Command.list(type, pageSize[type], page[type], sort, order);
+                if (isPagesEl) _Pages.clearPreviews();
+                Command.list(type, pageSize[type], page[type], sort, order, callback);
             }
         });
 
@@ -715,43 +726,29 @@ var Structr = {
                 page[type] = $(this).val();
                 $('.page', pager).val(page[type]);
                 $('.node', el).remove();
-                _Pages.clearPreviews();
-                Command.list(type, pageSize[type], page[type], sort, order);
+                if (isPagesEl) _Pages.clearPreviews();
+                Command.list(type, pageSize[type], page[type], sort, order, callback);
             }
         });
-
-//        if (page[type] === 1) {
-//            pageLeft.attr('disabled', 'disabled').addClass('disabled');
-//        }
-//
-//        if (page[type] === pageCount[type]) {
-//            pageRight.attr('disabled', 'disabled').addClass('disabled');
-//        }
 
         pageLeft.on('click', function() {
             pageRight.removeAttr('disabled').removeClass('disabled');
             page[type]--;
-//            if (page[type] === 1) {
-//                pageLeft.attr('disabled', 'disabled').addClass('disabled');
-//            }
             $('.page', pager).val(page[type]);
             $('.node', el).remove();
-            _Pages.clearPreviews();
-            Command.list(type, pageSize[type], page[type], sort, order);
+            if (isPagesEl) _Pages.clearPreviews();
+            Command.list(type, pageSize[type], page[type], sort, order, callback);
         });
         
         pageRight.on('click', function() {
             pageLeft.removeAttr('disabled').removeClass('disabled');
             page[type]++;
-//            if (page[type] === pageCount[type]) {
-//                pageRight.attr('disabled', 'disabled').addClass('disabled');
-//            }
             $('.page', pager).val(page[type]);
             $('.node', el).remove();
-            _Pages.clearPreviews();
-            Command.list(type, pageSize[type], page[type], sort, order);
+            if (isPagesEl) _Pages.clearPreviews();
+            Command.list(type, pageSize[type], page[type], sort, order, callback);
         });
-        return Command.list(type, pageSize[type], page[type], sort, order);
+        return Command.list(type, pageSize[type], page[type], sort, order, callback);
     }
 };
 
@@ -760,7 +757,6 @@ function getElementPath(element) {
     return $(element).parents('.node').andSelf().map(function() {
         i++;
         var self = $(this);
-        //if (self.hasClass('page')) return getId(self);
         // id for top-level element
         if (i === 0) return getId(self);
         return self.prevAll('.node').length;

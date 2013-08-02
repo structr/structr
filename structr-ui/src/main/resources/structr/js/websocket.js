@@ -124,10 +124,6 @@ function connect() {
 
             log('####################################### ', command, ' #########################################');
 
-            rawResultCount[type] = data.rawResultCount;
-            pageCount[type] = Math.max(1, Math.ceil(rawResultCount[type] / pageSize[type]));
-            Structr.updatePager(type);
-
             if (command === 'LOGIN') { /*********************** LOGIN ************************/
                 token = data.token;
                 user = data.data.username;
@@ -273,7 +269,7 @@ function connect() {
 
                 //console.log('SEARCH', result);
 
-                $('.pageCount', $('#pager' + type)).val(pageCount[type]);
+                $('.pageCount', $('.pager' + type)).val(pageCount[type]);
 
                 $(result).each(function(i, entity) {
 
@@ -284,15 +280,23 @@ function connect() {
             } else if (command.startsWith('LIST')) { /*********************** LIST ************************/
 
                 log('LIST', result, data);
+                
+                if (dialog.is(':visible')) {
+                    var pagerEl = $('.pager' + type, dialog);
+                }
+                
+                rawResultCount[type] = data.rawResultCount;
+                pageCount[type] = Math.max(1, Math.ceil(rawResultCount[type] / pageSize[type]));
+                Structr.updatePager(type);
 
-                $('.pageCount', $('#pager' + type)).val(pageCount[type]);
+                $('.pageCount', $('.pager' + type)).val(pageCount[type]);
 
                 $(result).each(function(i, entity) {
 
-                    var obj = StructrModel.create(entity);
+                    //var obj = StructrModel.create(entity);
 
                     if (data.callback) {
-                        StructrModel.callbacks[data.callback](obj);
+                        StructrModel.callbacks[data.callback](entity);
                     }
 
                 });

@@ -103,23 +103,27 @@ var _Elements = {
      */
     reloadPalette: function() {
 
-        palette.empty();
+        //palette.empty();
+        if (!$('.draggable', palette).length) {
 
-        $(_Elements.elementGroups).each(function(i, group) {
-            log(group);
-            palette.append('<div class="elementGroup" id="group_' + group.name + '"><h3>' + group.name + '</h3></div>');
-            $(group.elements).each(function(j, elem) {
-                var div = $('#group_' + group.name);
-                div.append('<div class="draggable element" id="add_' + elem + '">' + elem + '</div>');
-                $('#add_' + elem, div).draggable({
-                    iframeFix: true,
-                    revert: 'invalid',
-                    containment: 'body',
-                    helper: 'clone'
+            $(_Elements.elementGroups).each(function(i, group) {
+                log(group);
+                palette.append('<div class="elementGroup" id="group_' + group.name + '"><h3>' + group.name + '</h3></div>');
+                $(group.elements).each(function(j, elem) {
+                    var div = $('#group_' + group.name);
+                    div.append('<div class="draggable element" id="add_' + elem + '">' + elem + '</div>');
+                    $('#add_' + elem, div).draggable({
+                        iframeFix: true,
+                        revert: 'invalid',
+                        containment: 'body',
+                        helper: 'clone',
+                        appendTo: '#main',
+                        stack: '.node'
+                    });
                 });
             });
 
-        });
+        }
     },
     /**
      * Reload components in component area
@@ -147,7 +151,9 @@ var _Elements = {
 
         elements.empty();
 
-        Command.listUnattachedNodes(1000, 1, 'name', 'asc');
+        Command.listUnattachedNodes(1000, 1, 'name', 'asc', function(entity) {
+            StructrModel.create(entity);
+        });
 
     },
     componentNode: function(id) {
@@ -217,11 +223,11 @@ var _Elements = {
             _Entities.deleteNode(this, entity);
         });
 
-        _Entities.setMouseOver(div);
+        _Entities.setMouseOver(div, undefined, entity.syncedNodes);
         _Entities.appendEditPropertiesIcon(div, entity);
         _Entities.appendDataIcon(div, entity);
 
-        if (entity.tag === 'a' || entity.tag === 'link') {
+        if (entity.tag === 'a' || entity.tag === 'link' || entity.tag === 'script' || entity.tag === 'image') {
             //console.log(entity);
             div.append('<img title="Edit Link" alt="Edit Link" class="link_icon button" src="' + Structr.link_icon + '">');
             if (entity.linkable) {
@@ -244,105 +250,84 @@ var _Elements = {
 
             $('.link_icon', div).on('click', function(e) {
                 e.stopPropagation();
-                var dialog = $('#dialogBox .dialogText');
-                var dialogMsg = $('#dialogMsg');
-
-                dialog.empty();
-                dialogMsg.empty();
-
-                dialog.append('<p>Click on a page to establish a hyperlink between this element and the target resource.</p>');
-
-                var headers = {};
-                headers['X-StructrSessionToken'] = token;
-
-                $.ajax({
-                    url: rootUrl + 'pages/ui?pageSize=100',
-                    async: true,
-                    dataType: 'json',
-                    contentType: 'application/json; charset=utf-8',
-                    headers: headers,
-                    success: function(data) {
-
-                        $(data.result).each(function(i, res) {
-
-                            dialog.append('<div class="node page ' + res.id + '_"><img class="typeIcon" src="icon/page.png">'
-                                    + '<b title="' + res.name + '" class="name_">' + res.name + '</b></div>');
-
-                            var div = $('.' + res.id + '_', dialog);
-
-                            div.on('click', function(e) {
-                                e.stopPropagation();
-                                Command.link(entity.id, res.id);
-                                $('#dialogBox .dialogText').empty();
-                                _Pages.reloadPreviews();
-                                $.unblockUI({
-                                    fadeOut: 25
-                                });
-                            })
-                                    .css({
-                                cursor: 'pointer'
-                            })
-                                    .hover(function() {
-                                $(this).addClass('nodeHover');
-                            }, function() {
-                                $(this).removeClass('nodeHover');
-                            });
-
-                            if (isIn(entity.id, res.linkingElements)) {
-                                div.addClass('nodeActive');
-                            }
-
-                        });
-
-                    }
-                });
-
-                $.ajax({
-                    url: rootUrl + 'files/ui?pageSize=100',
-                    async: true,
-                    dataType: 'json',
-                    contentType: 'application/json; charset=utf-8',
-                    headers: headers,
-                    success: function(data) {
-                        $(data.result).each(function(i, file) {
-
-                            dialog.append('<div class="node file ' + file.id + '_"><img class="typeIcon" src="' + _Files.getIcon(file) + '">'
-                                    + '<b title="' + file.name + '" class="name_">' + file.name + '</b></div>');
-
-                            var div = $('.' + file.id + '_', dialog);
-
-                            div.on('click', function(e) {
-                                e.stopPropagation();
-                                Command.link(entity.id, file.id);
-                                $('#dialogBox .dialogText').empty();
-                                _Pages.reloadPreviews();
-                                $.unblockUI({
-                                    fadeOut: 25
-                                });
-                            })
-                                    .css({
-                                cursor: 'pointer'
-                            })
-                                    .hover(function() {
-                                $(this).addClass('nodeHover');
-                            }, function() {
-                                $(this).removeClass('nodeHover');
-                            });
-
-                            if (isIn(entity.id, file.linkingElements)) {
-                                //console.log(entity.id, file.linkingElements);
-                                div.addClass('nodeActive');
-                            }
-
-                        });
-
-                    }
-                });
 
                 Structr.dialog('Link to Resource (Page, File or Image)', function() {
                     return true;
                 }, function() {
                     return true;
+                });
+
+                dialog.empty();
+                dialogMsg.empty();
+                
+                dialog.append('<p>Click on a Page or File to establish a hyperlink to this ' + entity.tag + ' element.</p>');
+                
+                
+                dialog.append('<h3>Pages</h3><div class="linkBox" id="pagesToLink"></div>');
+                
+                var pagesToLink = $('#pagesToLink');
+
+                Structr.addPager(pagesToLink, 'Page', function(res) {
+                    
+                    pagesToLink.append('<div class="node page ' + res.id + '_"><img class="typeIcon" src="icon/page.png">'
+                            + '<b title="' + res.name + '" class="name_">' + res.name + '</b></div>');
+
+                    var div = $('.' + res.id + '_', pagesToLink);
+
+                    div.on('click', function(e) {
+                        e.stopPropagation();
+                        Command.link(entity.id, res.id);
+                        $('#dialogBox .dialogText').empty();
+                        _Pages.reloadPreviews();
+                        $.unblockUI({
+                            fadeOut: 25
+                        });
+                    }).css({
+                        cursor: 'pointer'
+                    }).hover(function() {
+                        $(this).addClass('nodeHover');
+                    }, function() {
+                        $(this).removeClass('nodeHover');
+                    });
+
+                    if (isIn(entity.id, res.linkingElements)) {
+                        div.addClass('nodeActive');
+                    }
+
+                });
+
+                dialog.append('<h3>Files</h3><div class="linkBox" id="filesToLink"></div>');
+                
+                var filesToLink = $('#filesToLink');
+                
+                Structr.addPager(filesToLink, 'File', function(file) {
+
+                    filesToLink.append('<div class="node file ' + file.id + '_"><img class="typeIcon" src="' + _Files.getIcon(file) + '">'
+                            + '<b title="' + file.name + '" class="name_">' + file.name + '</b></div>');
+
+                    var div = $('.' + file.id + '_', filesToLink);
+
+                    div.on('click', function(e) {
+                        e.stopPropagation();
+                        Command.link(entity.id, file.id);
+                        $('#dialogBox .dialogText').empty();
+                        _Pages.reloadPreviews();
+                        $.unblockUI({
+                            fadeOut: 25
+                        });
+                    }).css({
+                        cursor: 'pointer'
+                    }).hover(function() {
+                        $(this).addClass('nodeHover');
+                    }, function() {
+                        $(this).removeClass('nodeHover');
+                    });
+
+                    if (isIn(entity.id, file.linkingElements)) {
+                        //console.log(entity.id, file.linkingElements);
+                        div.addClass('nodeActive');
+                    }
+
                 });
 
             });
