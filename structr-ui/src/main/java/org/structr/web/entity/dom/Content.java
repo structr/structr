@@ -56,6 +56,7 @@ import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.StringProperty;
+import org.structr.web.common.RenderContext.EditMode;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
@@ -180,35 +181,35 @@ public class Content extends DOMNode implements Text {
 	@Override
 	public void render(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException {
 
-		//String id            = getUuid();
-		boolean edit         = renderContext.getEdit();
-		//boolean inBody       = renderContext.inBody();
+		String id            = getUuid();
+		EditMode edit         = renderContext.getEditMode();
+		boolean inBody       = renderContext.inBody();
 		StringBuilder buffer = renderContext.getBuffer();
 
 		// fetch content with variable replacement
 		String _content = getPropertyWithVariableReplacement(securityContext, renderContext, Content.content);
 
-//		if (edit && inBody && securityContext.isAllowed(this, Permission.write)) {
-//
-//			if ("text/javascript".equals(getProperty(contentType))) {
-//				
-//				// Javascript will only be given some local vars
-//				// TODO: Is this neccessary?
-//				buffer.append("var dataStructrType='").append(getType()).append("', dataStructrId='").append(id).append("';\n\n");
-//				
-//			} else {
-//				
-//				// In edit mode, add an artificial 'span' tag around content nodes within body to make them editable
-//				buffer.append("<span data-structr-raw-value=\"").append(getProperty(Content.content))
-//					//.append("\" data-structr-content-type=\"").append(StringUtils.defaultString(getProperty(Content.contentType), ""))
-//					.append("\" data-structr-type=\"").append(getType())
-//					.append("\" data-structr-id=\"").append(id).append("\">");
-//			}
-//			
-//		}
+		if (EditMode.CONTENT.equals(edit) && inBody && securityContext.isAllowed(this, Permission.write)) {
 
-		// No contentType-specific rendering in edit mode
-		if (!edit) {
+			if ("text/javascript".equals(getProperty(contentType))) {
+				
+				// Javascript will only be given some local vars
+				// TODO: Is this neccessary?
+				buffer.append("var dataStructrType='").append(getType()).append("', dataStructrId='").append(id).append("';\n\n");
+				
+			} else {
+				
+				// In edit mode, add an artificial 'span' tag around content nodes within body to make them editable
+				buffer.append("<span data-structr-raw-value=\"").append(getProperty(Content.content))
+					//.append("\" data-structr-content-type=\"").append(StringUtils.defaultString(getProperty(Content.contentType), ""))
+					.append("\" data-structr-type=\"").append(getType())
+					.append("\" data-structr-id=\"").append(id).append("\">");
+			}
+			
+		}
+
+		// No contentType-specific rendering in DATA edit mode
+		if (!edit.equals(EditMode.DATA)) {
 			
 			// examine content type and apply converter
 			String _contentType = getProperty(Content.contentType);
@@ -246,10 +247,10 @@ public class Content extends DOMNode implements Text {
 			buffer.append(_content);
 		}
 		
-//		if (edit && inBody && !("text/javascript".equals(getProperty(contentType)))) {
-//
-//			buffer.append("</span>");
-//		}
+		if (EditMode.CONTENT.equals(edit) && inBody && !("text/javascript".equals(getProperty(contentType)))) {
+
+			buffer.append("</span>");
+		}
 
 	}
 
@@ -259,7 +260,7 @@ public class Content extends DOMNode implements Text {
 		Object value      = dataObject.getProperty(EntityContext.getPropertyKeyForJSONName(dataObject.getClass(), referenceKeyProperty.jsonName()));
 		boolean canWrite  = dataObject instanceof AbstractNode ? securityContext.isAllowed((AbstractNode) dataObject, Permission.write) : true;
 
-		if (getProperty(Content.editable) && renderContext.getEdit() && renderContext.inBody() && canWrite && !referenceKeyProperty.isReadOnly()) {
+		if (getProperty(Content.editable) && EditMode.DATA.equals(renderContext.getEditMode()) && renderContext.inBody() && canWrite && !referenceKeyProperty.isReadOnly()) {
 
 			String editModeValue = "<span data-structr-type=\"" + referenceKeyProperty.typeName()
 				+ "\" data-structr-id=\"" + dataObject.getUuid()

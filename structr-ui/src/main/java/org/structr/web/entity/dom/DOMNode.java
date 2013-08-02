@@ -981,7 +981,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 		}
 
-//		if (value != null && renderContext.getEdit() && renderContext.inBody()) {
+//		if (value != null && renderContext.getEditMode() && renderContext.inBody()) {
 //			
 //			GraphObject data = renderContext.getDataObject();
 //			if (data != null) {

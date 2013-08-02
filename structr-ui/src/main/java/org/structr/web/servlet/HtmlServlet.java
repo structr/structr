@@ -68,6 +68,7 @@ import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.rest.ResourceProvider;
 import org.structr.web.common.RenderContext;
+import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.common.ThreadLocalMatcher;
 import org.structr.web.entity.User;
 import org.structr.web.entity.dom.DOMNode;
@@ -103,7 +104,7 @@ public class HtmlServlet extends HttpServlet {
 
 
 	private DecimalFormat decimalFormat                                         = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
-	private boolean edit;
+	private EditMode edit;
 //	private Gson gson;
 
 	public HtmlServlet() {}
@@ -165,7 +166,7 @@ public class HtmlServlet extends HttpServlet {
 			
 			renderContext.setResourceProvider(resourceProvider);
 			
-			edit = renderContext.getEdit();
+			edit = renderContext.getEditMode();
 			
 			DOMNode rootElement               = null;
 			AbstractNode dataNode             = null;
@@ -282,7 +283,7 @@ public class HtmlServlet extends HttpServlet {
 			
 			logger.log(Level.FINE, "Page found in {0} seconds", decimalFormat.format((System.nanoTime() - start) / 1000000000.0));
 			
-			if (edit || dontCache) {
+			if (EditMode.DATA.equals(edit) || dontCache) {
 
 				setNoCacheHeaders(response);
 				
@@ -299,7 +300,7 @@ public class HtmlServlet extends HttpServlet {
 				double setup     = System.nanoTime();
 				logger.log(Level.FINE, "Setup time: {0} seconds", decimalFormat.format((setup - start) / 1000000000.0));
 
-				if (!edit && !dontCache && notModifiedSince(request, response, rootElement)) {
+				if (!EditMode.DATA.equals(edit) && !dontCache && notModifiedSince(request, response, rootElement)) {
 
 					out.flush();
 					out.close();
@@ -742,7 +743,7 @@ public class HtmlServlet extends HttpServlet {
 
 		OutputStream out = response.getOutputStream();
 
-		if (!edit && notModifiedSince(request, response, file)) {
+		if (!EditMode.DATA.equals(edit) && notModifiedSince(request, response, file)) {
 
 			out.flush();
 			out.close();

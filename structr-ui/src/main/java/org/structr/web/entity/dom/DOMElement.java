@@ -84,7 +84,6 @@ import org.structr.rest.ResourceProvider;
 import org.structr.rest.resource.NamedRelationResource;
 import org.structr.common.PagingHelper;
 import org.structr.rest.resource.Resource;
-import org.structr.rest.servlet.JsonRestServlet;
 import static org.structr.rest.servlet.JsonRestServlet.REQUEST_PARAMETER_OFFSET_ID;
 import static org.structr.rest.servlet.JsonRestServlet.REQUEST_PARAMETER_PAGE_NUMBER;
 import static org.structr.rest.servlet.JsonRestServlet.REQUEST_PARAMETER_PAGE_SIZE;
@@ -93,6 +92,7 @@ import static org.structr.rest.servlet.JsonRestServlet.REQUEST_PARAMETER_SORT_OR
 import org.structr.rest.servlet.ResourceHelper;
 import org.structr.web.entity.html.Body;
 import org.structr.web.common.GraphDataSource;
+import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.common.UiResourceProvider;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -264,7 +264,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		
 		double start = System.nanoTime();
 		
-		boolean edit         = renderContext.getEdit();
+		EditMode edit        = renderContext.getEditMode();
 		boolean isVoid       = isVoidElement();
 		StringBuilder buffer = renderContext.getBuffer();
 		//String pageId        = renderContext.getPageId();
@@ -283,7 +283,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 			buffer.append("<").append(tag);
 
-			if (edit) {
+			if (EditMode.DATA.equals(edit)) {
 
 //				if (depth == 1) {
 //
@@ -363,11 +363,11 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 				GraphObject details = renderContext.getDetailsDataObject();
 				boolean detailMode = details != null;
 
-				if (edit && subNode.getProperty(hideOnEdit)) {
+				if (EditMode.DATA.equals(edit) && subNode.getProperty(hideOnEdit)) {
 					continue;
 				}
 
-				if (!edit && subNode.getProperty(hideOnNonEdit)) {
+				if (!EditMode.DATA.equals(edit) && subNode.getProperty(hideOnNonEdit)) {
 					continue;
 				}
 
@@ -430,7 +430,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 										if (o instanceof GraphObject) {
 											
 											// In edit mode, render a create button
-											if (i==0 && edit && o instanceof AbstractNode) {
+											if (i==0 && EditMode.DATA.equals(edit) && o instanceof AbstractNode) {
 												typeForCreateButton = ((AbstractNode) o).getType();
 											}
 											
@@ -486,8 +486,8 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 						}
 						
-						// In edit mode, render a create button
-						if (edit && typeForCreateButton != null) {
+						// In data edit mode, render a create button
+						if (EditMode.DATA.equals(edit) && typeForCreateButton != null) {
 
 							buffer.append("\n<button class=\"createButton\"");
 							
@@ -559,7 +559,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 				render(securityContext, renderContext, depth + 1);
 				
-//				if (renderContext.getEdit()) {
+//				if (renderContext.getEditMode()) {
 //					
 //					boolean canWrite  = dataObject instanceof AbstractNode ? securityContext.isAllowed((AbstractNode) dataObject, Permission.write) : true;
 //					

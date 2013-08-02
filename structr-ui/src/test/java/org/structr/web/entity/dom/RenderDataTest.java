@@ -36,6 +36,7 @@ import org.w3c.dom.Element;
 import static org.mockito.Mockito.*;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
+import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.entity.User;
 
 /**
@@ -132,7 +133,7 @@ public class RenderDataTest extends DOMTest {
 				}
 			});
 			
-			RenderContext ctx = new RenderContext(null, null, false, Locale.GERMAN);
+			RenderContext ctx = new RenderContext(null, null, EditMode.NONE, Locale.GERMAN);
 			doc.render(securityContext, ctx, 0);
 			
 			System.out.println(ctx.getBuffer().toString());
@@ -236,7 +237,7 @@ public class RenderDataTest extends DOMTest {
 			HttpServletRequest request = mock(HttpServletRequest.class);
 			
 			// test rendered document
-			RenderContext ctx = new RenderContext(request, null, false, Locale.GERMAN);
+			RenderContext ctx = new RenderContext(request, null, EditMode.NONE, Locale.GERMAN);
 			doc.render(securityContext, ctx, 0);
 			
 			System.out.println(ctx.getBuffer().toString());

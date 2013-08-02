@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.apache.commons.lang.StringUtils;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.property.PropertyKey;
@@ -48,12 +49,12 @@ public class RenderContext {
 	private Map<String, GraphObject> dataObjects = new LinkedHashMap<String, GraphObject>();
 	private final StringBuilder buffer           = new StringBuilder(8192);
 	private Locale locale                        = Locale.getDefault();
-	private boolean edit                         = false;
+	private EditMode editMode                    = EditMode.NONE;
 	private int depth                            = 0;
 	private boolean inBody                       = false;
 	private GraphObject detailsDataObject        = null;
 	private GraphObject currentDataObject        = null;
-	private GraphObject sourceDataObject        = null;
+	private GraphObject sourceDataObject         = null;
 	private Iterable<GraphObject> listSource     = null;
 	private String searchClass                   = null;  
 	private PropertyKey relatedProperty          = null;
@@ -64,22 +65,50 @@ public class RenderContext {
 	private HttpServletResponse response         = null;
 	private ResourceProvider resourceProvider    = null;
 	
+	public enum EditMode {
+	
+		NONE, DATA, CONTENT;
+		
+	}
+	
 	public RenderContext() {
 	}
 	
-	public RenderContext(final HttpServletRequest request, HttpServletResponse response, final boolean edit, final Locale locale) {
+	public RenderContext(final HttpServletRequest request, HttpServletResponse response, final EditMode editMode, final Locale locale) {
 		
 		this.request    = request;
 		this.response   = response;
 		
-		this.edit = edit;
+		this.editMode = editMode;
 		this.locale = locale;
 		
 		
 	}
 	public static RenderContext getInstance(final HttpServletRequest request, HttpServletResponse response, final Locale locale) {
 
-		return new RenderContext(request, response, request.getParameter("edit") != null, locale);
+		String editString = StringUtils.defaultString(request.getParameter("edit"));
+		
+		EditMode edit;
+
+		switch (editString) {
+			
+			case "1" :
+				
+				edit = EditMode.DATA;
+				break;
+			
+			case "2" :
+				
+				edit = EditMode.CONTENT;
+				break;
+				
+			default :
+				
+				edit = EditMode.NONE;
+			
+		}
+		
+		return new RenderContext(request, response, edit, locale);
 
 	}
 	
@@ -123,8 +152,8 @@ public class RenderContext {
 		this.relatedProperty = relatedProperty;
 	}
 	
-	public boolean getEdit() {
-		return edit;
+	public EditMode getEditMode() {
+		return editMode;
 	}
 	
 	public Locale getLocale() {

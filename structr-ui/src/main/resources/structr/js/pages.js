@@ -390,7 +390,7 @@ var _Pages = {
     reloadIframe : function(id, name) {
         var iframe = $('#preview_' + id);
         log(iframe);
-        iframe.prop('src', viewRootUrl + name + '?edit');
+        iframe.prop('src', viewRootUrl + name + '?edit=2');
         iframe.parent().show();
         iframe.on('load', function() {
             log('iframe loaded', $(this));
