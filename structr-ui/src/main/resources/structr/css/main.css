@@ -488,12 +488,14 @@ ul#previewTabs {
 }
 
 .content .content_ {
+    margin: 4px 0 -2px 0;
     display: inline-block;
     width: 40%;
     font-weight: normal;
     text-overflow: ellipsis;
     overflow: hidden;
     white-space: nowrap;
+    line-height: 1.1em;
 }
 
 .content .content_:hover {
