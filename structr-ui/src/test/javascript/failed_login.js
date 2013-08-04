@@ -32,11 +32,11 @@ casper.test.begin(testName, numberOfTests, function(test) {
     casper.start(s.url);
     
     casper.then(function() {
-        s.animatedType(this, '#usernameField', 'wrong');
+        s.animatedType(this, '#usernameField', false, 'wrong');
     });
 
     casper.then(function() {
-        s.animatedType(this, '#passwordField', 'wrong');
+        s.animatedType(this, '#passwordField', false, 'wrong');
     });
 
     casper.then(function() {

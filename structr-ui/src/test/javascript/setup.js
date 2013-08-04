@@ -82,8 +82,11 @@ exports.debug = false;
 /**
  * The input field with the given selector will be filled
  * with the given text animated as if it was typed in.
+ *
+ * If inIframe is true, the selector will be applied
+ * in the first iframe
  */
-exports.animatedType = function(casper, selector, text, len, blur) {
+exports.animatedType = function(casper, selector, inIframe, text, blur, len) {
 
     var t = '';
 
@@ -94,9 +97,17 @@ exports.animatedType = function(casper, selector, text, len, blur) {
     if (len === text.length + 1) {
 
         if (blur) {
-            casper.evaluate(function(f) {
-                $(f).blur();
-            }, selector);
+            casper.evaluate(function(s, f) {
+                var el;
+                if (f) {
+                    el = $('iframe:first-child').contents().find(s);
+                } else {
+                    el = $(s);
+                }
+
+                el.blur();
+
+            }, selector, inIframe);
         }
 
         return;
@@ -104,13 +115,45 @@ exports.animatedType = function(casper, selector, text, len, blur) {
 
     t = text.substr(0, len);
 
-    casper.thenEvaluate(function(f, t) {
-        $(f).val(t);
-    }, selector, t);
+    if (exports.debug)
+        console.log('Typing in', selector, ', in iframe?', inIframe);
+
+    casper.thenEvaluate(function(s, t, f) {
+        
+        var el;
+        if (f) {
+            el = $('iframe:first-child').contents().find(s);
+        } else {
+            el = $(s);
+        }
+
+        if (el && el.is('input')) {
+            el.val(t);
+        } else {
+            el.text(t);
+        }
+
+    }, selector, t, inIframe);
 
     window.setTimeout(function() {
-        exports.animatedType(casper, selector, text, len + 1, blur);
+        exports.animatedType(casper, selector, inIframe, text, blur, len + 1);
     }, typeInterval);
+
+}
+
+/**
+ * Clicks the node which matches the selector in the first iframe
+ */
+exports.clickInIframe = function(casper, selector) {
+
+    if (exports.debug)
+        console.log('Clicking in iframe on', selector);
+
+    casper.evaluate(function(s) {
+
+        $('iframe:first-child').contents().find(s).click();
+
+    }, selector);
 
 }
 
