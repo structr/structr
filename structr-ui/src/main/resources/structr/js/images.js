@@ -170,15 +170,11 @@ var _Images = {
     refreshFolders : function() {
         folders.empty();
         folders.append('<button class="add_folder_icon button"><img title="Add Folder" alt="Add Folder" src="' + _Images.add_folder_icon + '"> Add Folder</button>');
-        if (Structr.addPager(folders, 'Folder')) {
-
-            $('.add_folder_icon', main).on('click', function(e) {
-                e.stopPropagation();
-                var entity = {};
-                entity.type = 'Folder';
-                Command.create(entity);
-            });
-        }
+        $('.add_folder_icon', main).on('click', function(e) {
+            e.stopPropagation();
+            Command.create({'type':'Folder'});
+        });
+        Structr.addPager(folders, 'Folder');
     },
 
     getIcon : function(file) {

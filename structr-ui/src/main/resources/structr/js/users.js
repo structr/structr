@@ -28,7 +28,6 @@ $(document).ready(function() {
 var _UsersAndGroups = {
 
     init : function() {
-        console.log('init pager for users and groups');
         Structr.initPager('User', 1, 25);
         Structr.initPager('Group', 1, 25);
     },
@@ -48,29 +47,21 @@ var _UsersAndGroups = {
     
     refreshGroups : function() {
         groups.empty();
-        if (Command.list('Group')) {
-            groups.append('<button class="add_group_icon button"><img title="Add Group" alt="Add Group" src="icon/group_add.png"> Add Group</button>');
-            $('.add_group_icon', main).on('click', function(e) {
-                e.stopPropagation();
-                var entity = {};
-                entity.type = 'Group';
-                return Command.create(entity);
-            });
-        }
+        groups.append('<button class="add_group_icon button"><img title="Add Group" alt="Add Group" src="icon/group_add.png"> Add Group</button>');
+        $('.add_group_icon', main).on('click', function(e) {
+            e.stopPropagation();
+            return Command.create({'type':'Group'});
+        });
         Structr.addPager(groups, 'Group');
     },
 
     refreshUsers : function() {
         users.empty();
-        if (Command.list('User')) {
-            users.append('<button class="add_user_icon button"><img title="Add User" alt="Add User" src="icon/user_add.png"> Add User</button>');
-            $('.add_user_icon', main).on('click', function(e) {
-                e.stopPropagation();
-                var entity = {};
-                entity.type = 'User';
-                return Command.create(entity);
-            });
-        }
+        users.append('<button class="add_user_icon button"><img title="Add User" alt="Add User" src="icon/user_add.png"> Add User</button>');
+        $('.add_user_icon', main).on('click', function(e) {
+            e.stopPropagation();
+            return Command.create({'type':'User'});
+        });
         Structr.addPager(users, 'User');
     },
 

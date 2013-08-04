@@ -101,7 +101,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 	protected static final String WRONG_DOCUMENT_ERR_MESSAGE                = "Node does not belong to this document.";
 	protected static final String HIERARCHY_REQUEST_ERR_MESSAGE_SAME_NODE   = "A node cannot accept itself as a child.";
 	protected static final String HIERARCHY_REQUEST_ERR_MESSAGE_ANCESTOR    = "A node cannot accept its own ancestor as child.";
-	protected static final String HIERARCHY_REQUEST_ERR_MESSAGE_DOCUMENT    = "A document may only have one document element.";
+	protected static final String HIERARCHY_REQUEST_ERR_MESSAGE_DOCUMENT    = "A document may only have one html element.";
 	protected static final String HIERARCHY_REQUEST_ERR_MESSAGE_ELEMENT     = "A document may only accept an html element as its document element.";
 	protected static final String NOT_SUPPORTED_ERR_MESSAGE                 = "Node type not supported.";
 	protected static final String NOT_FOUND_ERR_MESSAGE                     = "Node is not a child.";

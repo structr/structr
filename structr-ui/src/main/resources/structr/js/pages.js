@@ -224,8 +224,6 @@ var _Pages = {
         pages.empty();
         previewTabs.empty();
         
-        Command.list('Page');
-        
         Structr.addPager(pages, 'Page');
         
         previewTabs.append('<li id="import_page" class="button"><img class="add_button icon" src="icon/page_white_put.png"></li>');
@@ -237,7 +235,6 @@ var _Pages = {
             }, function() {
                 return true;
             });
-            
 			
             dialog.empty();
             dialogMsg.empty();
@@ -443,10 +440,8 @@ var _Pages = {
 
     appendPageElement : function(entity) {
         
-        var hasChildren = true;
+        var hasChildren = entity.childElements.length;
         
-        log('appendPageElement', entity, hasChildren);
-
         pages.append('<div id="id_' + entity.id + '" class="node page"></div>');
         var div = Structr.node(entity.id);
         
@@ -753,15 +748,85 @@ var _Pages = {
 
         });
 
+        div.droppable({
+            accept: '#add_html, .html_element',
+            greedy: true,
+            hoverClass: 'nodeHover',
+            tolerance: 'pointer',
+            drop: function(event, ui) {
+                var self = $(this);
+                console.log('dropped onto', self);
+                // Only html elements are allowed, and only if none exists
+
+                if (getId(self) === getId(sortParent)) return false;
+
+                _Entities.ensureExpanded(self);
+                sorting = false; sortParent = undefined;
+
+                var nodeData = {};
+				
+                var page = self.closest('.page')[0];
+                
+                var contentId = getId(ui.draggable);
+                var elementId = getId(self); console.log('elementId', elementId);
+
+                var source = StructrModel.obj(contentId);
+                var target = StructrModel.obj(elementId);
+                
+                if (source && getId(page) && source.pageId && getId(page) !== source.pageId) {
+                    copy = true;
+                    event.preventDefault();
+                    event.stopPropagation();
+                    Command.copyDOMNode(source.id, target.id);
+                    //_Entities.showSyncDialog(source, target);
+                    _Elements.reloadComponents();
+                    return;
+                } else {
+                    log('not copying node');
+                }
+                
+                if (contentId === elementId) {
+                    log('drop on self not allowed');
+                    return;
+                }
+                
+                var tag;
+                var cls = Structr.getClass($(ui.draggable));
+                
+                if (!contentId) {
+                    tag = $(ui.draggable).text();
+                    
+                    if (tag !== 'html') {
+                        return false;
+                    }
+
+                    var pageId = (page ? getId(page) : target.pageId);
+                        
+                    Command.createAndAppendDOMNode(pageId, elementId, (tag !== 'content' ? tag : ''), nodeData);
+                    return;
+                        
+                } else {
+                    tag = cls;
+                    log('appendChild', contentId, elementId);
+                    sorting = false;
+                    Command.appendChild(contentId, elementId);
+                    $(ui.draggable).remove();
+                    
+                    return;
+                }
+                console.log('drop event in appendPageElement', getId(page), getId(self), (tag !== 'content' ? tag : ''));
+            }
+        });
+        
         return div;
 	
     },
 
-    appendElementElement : function(entity, refNode) {
+    appendElementElement : function(entity, refNode, refNodeIsParent) {
         log('_Pages.appendElementElement(', entity, refNode,');')
-        var div = _Elements.appendElementElement(entity, refNode);
+        var div = _Elements.appendElementElement(entity, refNode, refNodeIsParent);
         if (!div) return false;
-
+        
         var parentId = entity.parent && entity.parent.id;
         if (parentId) {
             $('.delete_icon', div).replaceWith('<img title="Remove" '
@@ -775,26 +840,15 @@ var _Pages = {
             });
         }
 
-        var page = div.closest( '.page')[0];
-        if (!page && pages) {
-            div.draggable({
-                revert: 'invalid',
-                //containment: '#pages',
-                stack: 'div',
-                //helper: 'clone',
-                start: function(event, ui) {
-                    $(this).draggable(disable);
-                }
-            });
-        }
         div.sortable({
             sortable: '.node',
-            //helper: 'clone',
-            //containment: 'parent',
+            appendTo: '#main',
+            helper: 'clone',
+            zIndex: 99,
+            containment: 'body',
             start: function(event, ui) {
                 sorting = true;
                 sortParent = $(ui.item).parent();
-                //console.log('sortable start', getId(sortParent))
             },
             sort: function(event, ui) {
                 if (copy) return false;
@@ -826,15 +880,15 @@ var _Pages = {
                 _Entities.resetMouseOverState(ui.item);
             }
         });
-
+        
         div.droppable({
-            accept: '.element, .content, .image, .file',
+            accept: '.node, .element, .content, .image, .file',
             greedy: true,
             hoverClass: 'nodeHover',
             tolerance: 'pointer',
             drop: function(event, ui) {
                 var self = $(this);
-
+                log('dropped onto', self, getId(self), getId(sortParent));
                 if (getId(self) === getId(sortParent)) return false;
 
                 _Entities.ensureExpanded(self);
@@ -842,15 +896,17 @@ var _Pages = {
 
                 var nodeData = {};
 				
-                var page = self.closest('.page')[0];
                 
                 var contentId = getId(ui.draggable);
-                var elementId = getId(self);
+                var elementId = getId(self); console.log('elementId', elementId);
 
                 var source = StructrModel.obj(contentId);
                 var target = StructrModel.obj(elementId);
+
+                var page = self.closest('.page')[0];
+                var pageId = (page ? getId(page) : target.pageId);
                 
-                if (source && getId(page) && source.pageId && getId(page) !== source.pageId) {
+                if (source && pageId && source.pageId && pageId !== source.pageId) {
                     copy = true;
                     event.preventDefault();
                     event.stopPropagation();
@@ -929,7 +985,9 @@ var _Pages = {
                     Structr.modules['files'].unload();
                     _Pages.makeMenuDroppable();
     
-                    Command.createAndAppendDOMNode(getId(page), elementId, tag, nodeData);
+                    Command.createAndAppendDOMNode(pageId, elementId, tag, nodeData);
+                    
+                    $(ui.draggable).remove();
                     return;
                 }
                 
@@ -944,9 +1002,10 @@ var _Pages = {
                         addExpandedNode(contentId);
                             
                     }
-                    var pageId = (page ? getId(page) : target.pageId);
-                        
+
                     Command.createAndAppendDOMNode(pageId, elementId, (tag !== 'content' ? tag : ''), nodeData);
+                    $(ui.draggable).remove();
+                    
                     return;
                         
                 } else {
@@ -955,11 +1014,11 @@ var _Pages = {
                     sorting = false;
                     Command.appendChild(contentId, elementId);
                     $(ui.draggable).remove();
-
                     
                     return;
                 }
-                log('drop event in appendElementElement', getId(page), getId(self), (tag !== 'content' ? tag : ''));
+                
+                log('drop event in appendElementElement', pageId, getId(self), (tag !== 'content' ? tag : ''));
             }
         }); 
         return div;

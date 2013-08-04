@@ -1002,6 +1002,7 @@ button.enabled {
 
 .pager input[type=text] {
     width: 36px;
+    margin-right: 4px;
 }
 
 .pager button {

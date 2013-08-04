@@ -51,51 +51,46 @@ var StructrModel = {
 
         var type = data.type;
         
-        var obj = this.obj(data.id);
-        
-        if (!obj) {
+        if (type === 'Page') {
 
-            if (type === 'Page') {
+            obj = new StructrPage(data);
 
-                obj = new StructrPage(data);
+        } else if (type === 'Content') {
 
-            } else if (type === 'Content') {
+            obj = new StructrContent(data);
 
-                obj = new StructrContent(data);
+        } else if (type === 'Group') {
 
-            } else if (type === 'Group') {
+            obj = new StructrGroup(data);
 
-                obj = new StructrGroup(data);
+        } else if (type === 'User') {
 
-            } else if (type === 'User') {
+            obj = new StructrUser(data);
 
-                obj = new StructrUser(data);
+        } else if (type === 'File') {
 
-            } else if (type === 'File') {
+            obj = new StructrFile(data);
 
-                obj = new StructrFile(data);
+        } else if (type === 'Image') {
 
-            } else if (type === 'Image') {
+            obj = new StructrImage(data);
 
-                obj = new StructrImage(data);
+        } else if (type === 'Folder') {
 
-            } else if (type === 'Folder') {
+            obj = new StructrFolder(data);
 
-                obj = new StructrFolder(data);
+        } else if (type === 'DataNode') {
 
-            } else if (type === 'DataNode') {
+            obj = new StructrDataNode(data);
 
-                obj = new StructrDataNode(data);
+        } else if (type === 'PropertyDefinition') {
 
-            } else if (type === 'PropertyDefinition') {
+            obj = new StructrPropertyDefinition(data);
 
-                obj = new StructrPropertyDefinition(data);
+        } else {
 
-            } else {
+            obj = new StructrElement(data);
 
-                obj = new StructrElement(data);
-
-            }
         }
         
         // Store a reference of this object

@@ -150,28 +150,9 @@ var _Files = {
                     });
                     
                 } else {
-                    
-                    //                    var dialogMsg = $('#dialogMsg');
-                    //
-                    //                    dialog.empty();
-                    //                    dialogMsg.empty();
-                    //
-                    //                    dialog.append('<table class="props"></table>');
-                    //                    
-                    //                    $(filesToUpload).each(function(i, fileToUpload) {
-                    //                        $('.props', dialog).append('<tr><td>' + fileToUpload.name + '</td><td>' + fileToUpload.size + ' bytes</td></tr>');
-                    //                    });
-                    //
-                    //                    Structr.dialog('Uploading Files', function() {
-                    //                        return true;
-                    //                    }, function() {
-                    //                        return true;
-                    //                    });
-                    
                     $(filesToUpload).each(function(i, file) {
                         Command.createFile(file);
                     });
-
                 }
 
                 return false;
@@ -184,14 +165,10 @@ var _Files = {
     refreshFolders : function() {
         folders.empty();
         folders.append('<button class="add_folder_icon button"><img title="Add Folder" alt="Add Folder" src="' + _Files.add_folder_icon + '"> Add Folder</button>');
-
         $('.add_folder_icon', main).on('click', function(e) {
             e.stopPropagation();
-            var entity = {};
-            entity.type = 'Folder';
-            Command.create(entity);
+            Command.create({'type':'Folder'});
         });
-
         Structr.addPager(folders, 'Folder');
     },
 
@@ -497,7 +474,7 @@ var _Files = {
         
         $(parent.children('.edit_file_icon')).on('click', function(e) {
             e.stopPropagation();
-            var self = $(this);
+            //var self = $(this);
             //var text = self.parent().find('.file').text();
             Structr.dialog('Edit ' + file.name, function() {
                 log('content saved')

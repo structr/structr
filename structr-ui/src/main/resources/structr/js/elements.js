@@ -118,7 +118,8 @@ var _Elements = {
                         containment: 'body',
                         helper: 'clone',
                         appendTo: '#main',
-                        stack: '.node'
+                        stack: '.node',
+                        zIndex: 10
                     });
                 });
             });
@@ -131,12 +132,12 @@ var _Elements = {
     reloadComponents: function() {
 
         components.empty();
+        
+        Command.listComponents(1000, 1, 'name', 'asc', function(entity) {
+            
+            StructrModel.create(entity, null, false);
+            var el = _Pages.appendElementElement(entity, components, true);
 
-        Command.getComponents(1000, 1, 'name', 'asc', function(entity) {
-
-            var el = _Elements.appendElementElement(entity, components, true);
-
-            // expand
             if (isExpanded(entity.id)) {
                 _Entities.ensureExpanded(el);
             }
@@ -152,7 +153,15 @@ var _Elements = {
         elements.empty();
 
         Command.listUnattachedNodes(1000, 1, 'name', 'asc', function(entity) {
-            StructrModel.create(entity);
+            
+            StructrModel.create(entity, null, false);
+            
+            var el = _Pages.appendElementElement(entity, elements, true);
+
+            if (isExpanded(entity.id)) {
+                _Entities.ensureExpanded(el);
+            }
+            
         });
 
     },
@@ -166,7 +175,7 @@ var _Elements = {
         log('_Elements.appendElementElement', entity);
 
         var hasChildren = entity.childrenIds && entity.childrenIds.length;
-        var isComponent = entity.syncedNodes.length;
+        var isComponent = entity.syncedNodes && entity.syncedNodes.length;
 
         var isMasterComponent = (isComponent && hasChildren && refNode !== components);
 
@@ -177,7 +186,7 @@ var _Elements = {
             parent = entity.parent && entity.parent.id ? Structr.node(entity.parent.id) : elements;
         }
 
-        log('appendElementElement parent, refNode, redNodeIsParent', parent, refNode, refNodeIsParent);
+        log('appendElementElement parent, refNode, refNodeIsParent', parent, refNode, refNodeIsParent);
         if (!parent)
             return false;
 
@@ -185,7 +194,7 @@ var _Elements = {
 
         var id = entity.id;
 
-        var html = '<div id="' + (isMasterComponent ? 'componentId_' : 'id_') + id + '" class="node element"></div>';
+        var html = '<div id="' + (isMasterComponent ? 'componentId_' : 'id_') + id + '" class="node element' + (entity.tag === 'html' ? ' html_element' : '')  + ' "></div>';
 
         if (refNode && !refNodeIsParent) {
             refNode.before(html);
@@ -227,8 +236,8 @@ var _Elements = {
         _Entities.appendEditPropertiesIcon(div, entity);
         _Entities.appendDataIcon(div, entity);
 
-        if (entity.tag === 'a' || entity.tag === 'link' || entity.tag === 'script' || entity.tag === 'image') {
-            //console.log(entity);
+        if (entity.tag === 'a' || entity.tag === 'link' || entity.tag === 'script' || entity.tag === 'img' || entity.tag === 'video' || entity.tag === 'object') {
+
             div.append('<img title="Edit Link" alt="Edit Link" class="link_icon button" src="' + Structr.link_icon + '">');
             if (entity.linkable) {
                 div.append('<span class="linkable">' + entity.linkable + '</span>');
@@ -260,75 +269,117 @@ var _Elements = {
                 dialog.empty();
                 dialogMsg.empty();
                 
-                dialog.append('<p>Click on a Page or File to establish a hyperlink to this ' + entity.tag + ' element.</p>');
+                if (entity.tag !== 'img') {
                 
-                
-                dialog.append('<h3>Pages</h3><div class="linkBox" id="pagesToLink"></div>');
-                
-                var pagesToLink = $('#pagesToLink');
+                    dialog.append('<p>Click on a Page or File to establish a hyperlink to this ' + entity.tag + ' element.</p>');
 
-                Structr.addPager(pagesToLink, 'Page', function(res) {
+                    dialog.append('<h3>Pages</h3><div class="linkBox" id="pagesToLink"></div>');
+
+                    var pagesToLink = $('#pagesToLink');
+
+                    Structr.addPager(pagesToLink, 'Page', function(page) {
+
+                        pagesToLink.append('<div class="node page ' + page.id + '_"><img class="typeIcon" src="icon/page.png">'
+                                + '<b title="' + page.name + '" class="name_">' + page.name + '</b></div>');
+
+                        var div = $('.' + page.id + '_', pagesToLink);
+
+                        div.on('click', function(e) {
+                            e.stopPropagation();
+                            Command.link(entity.id, page.id);
+                            $('#dialogBox .dialogText').empty();
+                            _Pages.reloadPreviews();
+                            $.unblockUI({
+                                fadeOut: 25
+                            });
+                        }).css({
+                            cursor: 'pointer'
+                        }).hover(function() {
+                            $(this).addClass('nodeHover');
+                        }, function() {
+                            $(this).removeClass('nodeHover');
+                        });
+
+                        if (isIn(entity.id, page.linkingElements)) {
+                            div.addClass('nodeActive');
+                        }
+
+                    });
+
+                    dialog.append('<h3>Files</h3><div class="linkBox" id="filesToLink"></div>');
+
+                    var filesToLink = $('#filesToLink');
+
+                    Structr.addPager(filesToLink, 'File', function(file) {
+
+                        filesToLink.append('<div class="node file ' + file.id + '_"><img class="typeIcon" src="' + _Files.getIcon(file) + '">'
+                                + '<b title="' + file.name + '" class="name_">' + file.name + '</b></div>');
+
+                        var div = $('.' + file.id + '_', filesToLink);
+
+                        div.on('click', function(e) {
+                            e.stopPropagation();
+                            Command.link(entity.id, file.id);
+                            $('#dialogBox .dialogText').empty();
+                            _Pages.reloadPreviews();
+                            $.unblockUI({
+                                fadeOut: 25
+                            });
+                        }).css({
+                            cursor: 'pointer'
+                        }).hover(function() {
+                            $(this).addClass('nodeHover');
+                        }, function() {
+                            $(this).removeClass('nodeHover');
+                        });
+
+                        if (isIn(entity.id, file.linkingElements)) {
+                            //console.log(entity.id, file.linkingElements);
+                            div.addClass('nodeActive');
+                        }
+
+                    });
                     
-                    pagesToLink.append('<div class="node page ' + res.id + '_"><img class="typeIcon" src="icon/page.png">'
-                            + '<b title="' + res.name + '" class="name_">' + res.name + '</b></div>');
+                }
 
-                    var div = $('.' + res.id + '_', pagesToLink);
+                if (entity.tag === 'img' || entity.tag === 'link') {
 
-                    div.on('click', function(e) {
-                        e.stopPropagation();
-                        Command.link(entity.id, res.id);
-                        $('#dialogBox .dialogText').empty();
-                        _Pages.reloadPreviews();
-                        $.unblockUI({
-                            fadeOut: 25
+                    dialog.append('<h3>Images</h3><div class="linkBox" id="imagesToLink"></div>');
+
+                    var imagesToLink = $('#imagesToLink');
+
+                    Structr.addPager(imagesToLink, 'Image', function(image) {
+
+                        imagesToLink.append('<div class="node file ' + image.id + '_"><img class="typeIcon" src="' + _Images.getIcon(image) + '">'
+                                + '<b title="' + image.name + '" class="name_">' + image.name + '</b></div>');
+
+                        var div = $('.' + image.id + '_', imagesToLink);
+
+                        div.on('click', function(e) {
+                            e.stopPropagation();
+                            Command.link(entity.id, image.id);
+                            $('#dialogBox .dialogText').empty();
+                            _Pages.reloadPreviews();
+                            $.unblockUI({
+                                fadeOut: 25
+                            });
+                        }).css({
+                            cursor: 'pointer'
+                        }).hover(function() {
+                            $(this).addClass('nodeHover');
+                        }, function() {
+                            $(this).removeClass('nodeHover');
                         });
-                    }).css({
-                        cursor: 'pointer'
-                    }).hover(function() {
-                        $(this).addClass('nodeHover');
-                    }, function() {
-                        $(this).removeClass('nodeHover');
+
+                        if (isIn(entity.id, image.linkingElements)) {
+                            //console.log(entity.id, file.linkingElements);
+                            div.addClass('nodeActive');
+                        }
+
                     });
-
-                    if (isIn(entity.id, res.linkingElements)) {
-                        div.addClass('nodeActive');
-                    }
-
-                });
-
-                dialog.append('<h3>Files</h3><div class="linkBox" id="filesToLink"></div>');
                 
-                var filesToLink = $('#filesToLink');
-                
-                Structr.addPager(filesToLink, 'File', function(file) {
+                }
 
-                    filesToLink.append('<div class="node file ' + file.id + '_"><img class="typeIcon" src="' + _Files.getIcon(file) + '">'
-                            + '<b title="' + file.name + '" class="name_">' + file.name + '</b></div>');
-
-                    var div = $('.' + file.id + '_', filesToLink);
-
-                    div.on('click', function(e) {
-                        e.stopPropagation();
-                        Command.link(entity.id, file.id);
-                        $('#dialogBox .dialogText').empty();
-                        _Pages.reloadPreviews();
-                        $.unblockUI({
-                            fadeOut: 25
-                        });
-                    }).css({
-                        cursor: 'pointer'
-                    }).hover(function() {
-                        $(this).addClass('nodeHover');
-                    }, function() {
-                        $(this).removeClass('nodeHover');
-                    });
-
-                    if (isIn(entity.id, file.linkingElements)) {
-                        //console.log(entity.id, file.linkingElements);
-                        div.addClass('nodeActive');
-                    }
-
-                });
 
             });
         }

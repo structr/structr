@@ -618,23 +618,23 @@ var Command = {
         return sendObj(obj);
     },
     /**
-     * Send a GET_COMPONENTS command to the server.
+     * Send a LIST_COMPONENTS command to the server.
      * 
      * The server will return a result set containing all element nodes
      * which are used in more than one page to the sending client (no broadcast).
      * 
      * The optional callback function will be executed for each node in the result set.
      */
-    getComponents: function(pageSize, page, sort, order, callback) {
+    listComponents: function(pageSize, page, sort, order, callback) {
         var obj = {};
-        obj.command = 'GET_COMPONENTS';
+        obj.command = 'LIST_COMPONENTS';
         var data = {};
         obj.pageSize = pageSize;
         obj.page = page;
         obj.sort = sort;
         obj.order = order;
         obj.data = data;
-        log('getComponents()', obj, callback);
+        log('listComponents()', obj, callback);
         return sendObj(obj, callback);
     },
     /**

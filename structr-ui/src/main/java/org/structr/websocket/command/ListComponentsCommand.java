@@ -67,7 +67,7 @@ public class ListComponentsCommand extends AbstractCommand {
 	public void processMessage(WebSocketMessage webSocketData) {
 
 		final SecurityContext securityContext  = getWebSocket().getSecurityContext();
-		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+		List<SearchAttribute> searchAttributes = new LinkedList();
 
 		// Search for all DOM elements
 		searchAttributes.add(Search.andExactTypeAndSubtypes(DOMElement.class));
@@ -82,7 +82,7 @@ public class ListComponentsCommand extends AbstractCommand {
 
 			// do search
 			Result result = (Result) Services.command(securityContext, SearchNodeCommand.class).execute(true, false, searchAttributes, sortProperty, "desc".equals(sortOrder));
-			List<AbstractNode> filteredResults     = new LinkedList<AbstractNode>();
+			List<AbstractNode> filteredResults     = new LinkedList();
 			List<? extends GraphObject> resultList = result.getResults();
 
 			// determine which of the nodes have SYNC relationships
@@ -125,7 +125,7 @@ public class ListComponentsCommand extends AbstractCommand {
 	@Override
 	public String getCommand() {
 
-		return "GET_COMPONENTS";
+		return "LIST_COMPONENTS";
 
 	}
 

@@ -277,17 +277,39 @@ function connect() {
 
                 });
 
+            } else if (command.startsWith('LIST_UNATTACHED_NODES')) { /*********************** LIST_UNATTACHED_NODES ************************/
+
+                log('LIST_UNATTACHED_NODES', result, data);
+
+                $(result).each(function(i, entity) {
+
+                    if (data.callback) {
+                        StructrModel.callbacks[data.callback](entity);
+                    }
+
+                });
+
+
+            } else if (command.startsWith('LIST_COMPONENTS')) { /*********************** LIST_COMPONENTS ************************/
+
+                log('LIST_COMPONENTS', result, data);
+
+                $(result).each(function(i, entity) {
+
+                    if (data.callback) {
+                        StructrModel.callbacks[data.callback](entity);
+                    }
+
+                });
+
+
             } else if (command.startsWith('LIST')) { /*********************** LIST ************************/
 
                 log('LIST', result, data);
                 
-                if (dialog.is(':visible')) {
-                    var pagerEl = $('.pager' + type, dialog);
-                }
-                
                 rawResultCount[type] = data.rawResultCount;
                 pageCount[type] = Math.max(1, Math.ceil(rawResultCount[type] / pageSize[type]));
-                Structr.updatePager(type);
+                Structr.updatePager(type, dialog.is(':visible') ? dialog : undefined);
 
                 $('.pageCount', $('.pager' + type)).val(pageCount[type]);
 
@@ -295,24 +317,12 @@ function connect() {
 
                     //var obj = StructrModel.create(entity);
 
-                    if (data.callback) {
+                    if (data.callback && StructrModel.callbacks[data.callback](entity)) {
+                        //console.log('firing callback', data.callback, StructrModel.callbacks[data.callback](entity));
                         StructrModel.callbacks[data.callback](entity);
                     }
 
                 });
-
-            } else if (command.startsWith('GET_COMPONENTS')) { /*********************** GET_COMPONENTS ************************/
-
-                log('GET_COMPONENTS', result, data);
-
-                $(result).each(function(i, entity) {
-
-                    if (data.callback) {
-                        StructrModel.callbacks[data.callback](entity);
-                    }
-
-                });
-
 
             } else if (command === 'DELETE') { /*********************** DELETE ************************/
 
@@ -322,19 +332,16 @@ function connect() {
 
                 StructrModel.create(result[0], data.data.refId);
 
-            } else if (command === 'APPEND_CHILD') { /*********************** APPEND_CHILD ************************/
-
-                StructrModel.create(result[0]);
-
-            } else if (command === 'APPEND_USER') { /*********************** APPEND_USER ************************/
+            } else if (command.startsWith('APPEND_')) { /*********************** APPEND_* ************************/
 
                 StructrModel.create(result[0]);
 
             } else if (command === 'REMOVE' || command === 'REMOVE_CHILD') { /*********************** REMOVE / REMOVE_CHILD ************************/
 
                 var obj = StructrModel.obj(data.id);
-                if (obj)
+                if (obj) {
                     obj.remove();
+                }
 
             } else if (command === 'CREATE' || command === 'ADD' || command === 'IMPORT') { /*********************** CREATE, ADD, IMPORT ************************/
 

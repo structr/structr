@@ -68,7 +68,7 @@ public class ListUnattachedNodesCommand extends AbstractCommand {
 	public void processMessage(WebSocketMessage webSocketData) {
 
 		final SecurityContext securityContext  = getWebSocket().getSecurityContext();
-		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+		List<SearchAttribute> searchAttributes = new LinkedList();
 
 		// Search for all DOM elements and Contents
 		searchAttributes.add(Search.orExactTypeAndSubtypes(DOMElement.class));
@@ -84,7 +84,7 @@ public class ListUnattachedNodesCommand extends AbstractCommand {
 
 			// do search
 			Result result = (Result) Services.command(securityContext, SearchNodeCommand.class).execute(true, false, searchAttributes, sortProperty, "desc".equals(sortOrder));
-			List<AbstractNode> filteredResults     = new LinkedList<AbstractNode>();
+			List<AbstractNode> filteredResults     = new LinkedList();
 			List<? extends GraphObject> resultList = result.getResults();
 
 			// determine which of the nodes have incoming CONTAINS relationships
