@@ -236,9 +236,12 @@ function connect() {
                 var obj = StructrModel.update(data);
 
                 if (data.callback && StructrModel.callbacks[data.callback]) {
-                    log('executing callback with id', data.callback, StructrModel.callbacks[data.callback]);
+                    //console.log('executing callback with id', data.callback, StructrModel.callbacks[data.callback]);
                     StructrModel.callbacks[data.callback](obj);
                 }
+
+                StructrModel.callbacks = [];
+                
 
             } else if (command.endsWith('GET_BY_TYPE')) { /*********************** GET_BY_TYPE ************************/
 
@@ -254,6 +257,8 @@ function connect() {
                     }
 
                 });
+                
+                StructrModel.callbacks = [];
 
             } else if (command.endsWith('CHILDREN')) { /*********************** CHILDREN ************************/
 
@@ -288,7 +293,8 @@ function connect() {
                     }
 
                 });
-
+                
+                StructrModel.callbacks = [];
 
             } else if (command.startsWith('LIST_COMPONENTS')) { /*********************** LIST_COMPONENTS ************************/
 
@@ -302,6 +308,7 @@ function connect() {
 
                 });
 
+                StructrModel.callbacks = [];
 
             } else if (command.startsWith('LIST')) { /*********************** LIST ************************/
 
@@ -317,12 +324,14 @@ function connect() {
 
                     //var obj = StructrModel.create(entity);
 
-                    if (data.callback && StructrModel.callbacks[data.callback](entity)) {
+                    if (data.callback && StructrModel.callbacks[data.callback]) {
                         //console.log('firing callback', data.callback, StructrModel.callbacks[data.callback](entity));
                         StructrModel.callbacks[data.callback](entity);
                     }
 
                 });
+                
+                StructrModel.callbacks = [];
 
             } else if (command === 'DELETE') { /*********************** DELETE ************************/
 
