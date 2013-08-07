@@ -814,7 +814,7 @@ var _Pages = {
                     
                     return;
                 }
-                console.log('drop event in appendPageElement', getId(page), getId(self), (tag !== 'content' ? tag : ''));
+                log('drop event in appendPageElement', getId(page), getId(self), (tag !== 'content' ? tag : ''));
             }
         });
         
@@ -905,10 +905,9 @@ var _Pages = {
                 var page = self.closest('.page')[0];
                 var pageId = (page ? getId(page) : target.pageId);
                 
-                console.log(contentId, source, pageId);
+                log(contentId, source, pageId);
                 
                 if (source && pageId && source.pageId && pageId !== source.pageId) {
-                    console.log('foo')
                     copy = true;
                     event.preventDefault();
                     event.stopPropagation();
@@ -994,20 +993,28 @@ var _Pages = {
                 }
                 
                 if (!contentId) {
+
                     tag = $(ui.draggable).text();
 
-                    if (tag === 'p' || tag === 'h1' || tag === 'h2' || tag === 'h3' || tag === 'h4' || tag === 'h5' || tag === 'h5' || tag === 'li' || tag === 'em' || tag === 'title' || tag === 'b' || tag === 'span' || tag === 'th' || tag === 'td') {
+                    if (tag === 'a' || tag === 'p'
+                            || tag === 'h1' || tag === 'h2' || tag === 'h3' || tag === 'h4' || tag === 'h5' || tag === 'h5'
+                            || tag === 'li' || tag === 'em' || tag === 'title' || tag === 'b' || tag === 'span' || tag === 'th' || tag === 'td' || tag === 'button') {
 
-                        nodeData.childContent = 'Initial Content for ' + tag;
+                        if (tag === 'a') {
+                            nodeData._html_href = '/${link.name}';
+                            nodeData.childContent = '${parent.link.name}';
+                        } else if (tag === 'title') {
+                            nodeData.childContent = '${page.name}';
+                        } else {
+                            nodeData.childContent = 'Initial text for ' + tag;
+                        }
                             
                         // set as expanded in advance
-                        addExpandedNode(contentId);
+                        //addExpandedNode(contentId);
                             
                     }
 
                     Command.createAndAppendDOMNode(pageId, elementId, (tag !== 'content' ? tag : ''), nodeData);
-                    $(ui.draggable).remove();
-                    
                     return;
                         
                 } else {

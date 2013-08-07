@@ -119,7 +119,7 @@ var _Elements = {
                         helper: 'clone',
                         appendTo: '#main',
                         stack: '.node',
-                        zIndex: 10
+                        zIndex: 99
                     });
                 });
             });
