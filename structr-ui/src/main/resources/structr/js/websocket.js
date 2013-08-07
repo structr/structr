@@ -235,12 +235,9 @@ function connect() {
 
                 var obj = StructrModel.update(data);
 
-                if (data.callback && StructrModel.callbacks[data.callback]) {
-                    //console.log('executing callback with id', data.callback, StructrModel.callbacks[data.callback]);
-                    StructrModel.callbacks[data.callback](obj);
-                }
+                StructrModel.callCallback(data.callback, obj);
 
-                StructrModel.callbacks = [];
+                StructrModel.clearCallback(data.callback);
                 
 
             } else if (command.endsWith('GET_BY_TYPE')) { /*********************** GET_BY_TYPE ************************/
@@ -252,13 +249,11 @@ function connect() {
                     // Don't append a DOM node
                     var obj = StructrModel.create(entity, undefined, false);
 
-                    if (data.callback) {
-                        StructrModel.callbacks[data.callback](obj);
-                    }
+                    StructrModel.callCallback(data.callback, entity);
 
                 });
                 
-                StructrModel.callbacks = [];
+                StructrModel.clearCallback(data.callback);
 
             } else if (command.endsWith('CHILDREN')) { /*********************** CHILDREN ************************/
 
@@ -288,13 +283,11 @@ function connect() {
 
                 $(result).each(function(i, entity) {
 
-                    if (data.callback) {
-                        StructrModel.callbacks[data.callback](entity);
-                    }
-
+                    StructrModel.callCallback(data.callback, entity);
+                    
                 });
                 
-                StructrModel.callbacks = [];
+                StructrModel.clearCallback(data.callback);
 
             } else if (command.startsWith('LIST_COMPONENTS')) { /*********************** LIST_COMPONENTS ************************/
 
@@ -302,13 +295,11 @@ function connect() {
 
                 $(result).each(function(i, entity) {
 
-                    if (data.callback) {
-                        StructrModel.callbacks[data.callback](entity);
-                    }
+                    StructrModel.callCallback(data.callback, entity);
 
                 });
 
-                StructrModel.callbacks = [];
+                StructrModel.clearCallback(data.callback);
 
             } else if (command.startsWith('LIST')) { /*********************** LIST ************************/
 
@@ -324,14 +315,11 @@ function connect() {
 
                     //var obj = StructrModel.create(entity);
 
-                    if (data.callback && StructrModel.callbacks[data.callback]) {
-                        //console.log('firing callback', data.callback, StructrModel.callbacks[data.callback](entity));
-                        StructrModel.callbacks[data.callback](entity);
-                    }
+                    StructrModel.callCallback(data.callback, entity);
 
                 });
                 
-                StructrModel.callbacks = [];
+                StructrModel.clearCallback(data.callback);
 
             } else if (command === 'DELETE') { /*********************** DELETE ************************/
 

@@ -379,6 +379,22 @@ var StructrModel = {
         });
         //console.log('save', id, data);
         Command.setProperties(id, data);
+    },
+            
+    callCallback: function(callback, entity) {
+
+        log('Calling callback', callback, 'on entity', entity);
+
+        if (callback && StructrModel.callbacks[callback]) {
+            StructrModel.callbacks[callback](entity);
+        }
+
+    },
+            
+    clearCallback : function(callback) {
+
+        removeFromArray(StructrModel.callbacks, callback);
+        
     }
 
 }
@@ -865,8 +881,6 @@ StructrSearchResult.prototype.setProperty = function(key, value, recursive, call
 StructrSearchResult.prototype.append = function() {
     _Dashboard.appendNode(this);
 }
-
-
 
 
 

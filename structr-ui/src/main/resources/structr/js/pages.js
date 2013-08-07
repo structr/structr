@@ -823,7 +823,7 @@ var _Pages = {
     },
 
     appendElementElement : function(entity, refNode, refNodeIsParent) {
-        log('_Pages.appendElementElement(', entity, refNode,');')
+        log('_Pages.appendElementElement(', entity, refNode, refNodeIsParent, ');')
         var div = _Elements.appendElementElement(entity, refNode, refNodeIsParent);
         if (!div) return false;
         
@@ -896,8 +896,7 @@ var _Pages = {
 
                 var nodeData = {};
 				
-                
-                var contentId = getId(ui.draggable);
+                var contentId = getId(ui.draggable) || getComponentId(ui.draggable);
                 var elementId = getId(self); console.log('elementId', elementId);
 
                 var source = StructrModel.obj(contentId);
@@ -906,7 +905,10 @@ var _Pages = {
                 var page = self.closest('.page')[0];
                 var pageId = (page ? getId(page) : target.pageId);
                 
+                console.log(contentId, source, pageId);
+                
                 if (source && pageId && source.pageId && pageId !== source.pageId) {
+                    console.log('foo')
                     copy = true;
                     event.preventDefault();
                     event.stopPropagation();
