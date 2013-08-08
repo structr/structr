@@ -226,7 +226,7 @@ public class Importer {
 	}
 
 	public void createChildNodes(final DOMNode parent, Page page) throws FrameworkException {
-		createChildNodes(parsedDocument, parent, page, null);
+		createChildNodes(parsedDocument.body(), parent, page, null);
 	}
 	
 	public void createChildNodes(final Node startNode, final DOMNode parent, Page page, final URL baseUrl) throws FrameworkException {
