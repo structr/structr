@@ -25,9 +25,9 @@ import org.structr.core.Services;
  *
  * @author Axel Morgner
  */
-public class GoogleAuthServer extends OAuthServer {
+public class GoogleAuthClient extends StructrOAuthClient {
 	
-	private static final Logger logger = Logger.getLogger(GoogleAuthServer.class.getName());
+	private static final Logger logger = Logger.getLogger(GoogleAuthClient.class.getName());
 	
 	@Override
 	protected String getScope() {

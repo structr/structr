@@ -18,89 +18,61 @@
  */
 package org.structr.web.auth;
 
-import java.util.UUID;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringUtils;
-import org.apache.oltu.oauth2.client.response.OAuthResourceResponse;
 import org.structr.core.Services;
 
 /**
  *
  * @author Axel Morgner
  */
-public class LinkedInAuthServer extends OAuthServer {
+public class FacebookAuthClient extends StructrOAuthClient {
 	
-	private static final Logger logger = Logger.getLogger(LinkedInAuthServer.class.getName());
-
-	public LinkedInAuthServer() {};
-
-	@Override
-	protected String getAccessTokenParameterKey() {
-		return "oauth2_access_token";
-	}
+	private static final Logger logger = Logger.getLogger(FacebookAuthClient.class.getName());
+	
+	public FacebookAuthClient() {}
 
 	@Override
 	public String getScope() {
 		
-		return "r_basicprofile r_emailaddress";
+		return "email";
 		
 	}
-	
+
 	@Override
 	public ResponseFormat getResponseFormat() {
 		
-		return ResponseFormat.json;
+		return ResponseFormat.urlEncoded;
 		
 	}
-	
+
 	@Override
 	public String getUserResourceUri() {
 		
-		return Services.getConfigurationValue("oauth.linkedin.user_details_resource_uri", "");
+		return Services.getConfigurationValue("oauth.facebook.user_details_resource_uri", "");
 			
 	}
 
 	@Override
 	public String getReturnUri() {
 		
-		return Services.getConfigurationValue("oauth.linkedin.return_uri", "/");
+		return Services.getConfigurationValue("oauth.facebook.return_uri", "/");
 			
 	}
 
 	@Override
 	public String getErrorUri() {
 		
-		return Services.getConfigurationValue("oauth.linkedin.error_uri", "/");
+		return Services.getConfigurationValue("oauth.facebook.error_uri", "/");
 			
 	}
-
-	@Override
-	protected String getState() {
-		
-		return UUID.randomUUID().toString();
-		
-	}
-
+	
 	@Override
 	public String getCredential(final HttpServletRequest request) {
 		
-		OAuthResourceResponse userResponse = getUserResponse(request);
-		
-		if (userResponse == null) {
-			
-			return null;
-			
-		}
-		
-		String body = userResponse.getBody();
-		logger.log(Level.FINE, "User response body: {0}", body);
-		
-		String[] addresses = StringUtils.stripAll(StringUtils.stripAll(StringUtils.stripEnd(StringUtils.stripStart(body, "["), "]").split(",")), "\"");
-
-		return addresses.length > 0 ? addresses[0] : null;
+		return StringUtils.replace(getValue(request, "email"), "\u0040", "@");
 		
 	}
-
+	
 }

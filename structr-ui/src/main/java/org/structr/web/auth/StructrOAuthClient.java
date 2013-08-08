@@ -45,9 +45,9 @@ import org.structr.core.property.PropertyKey;
  * 
  * @author Axel Morgner
  */
-public class OAuthServer {
+public class StructrOAuthClient {
 	
-	private static final Logger logger = Logger.getLogger(OAuthServer.class.getName());
+	private static final Logger logger = Logger.getLogger(StructrOAuthClient.class.getName());
 	
 	protected enum ResponseFormat {
 		json, urlEncoded
@@ -67,9 +67,9 @@ public class OAuthServer {
 	private OAuthAccessTokenResponse tokenResponse;
 	private OAuthResourceResponse userResponse;
 	
-	public OAuthServer() {};
+	public StructrOAuthClient() {};
 	
-	public OAuthServer(final String authorizationLocation, final String tokenLocation, final String clientId, final String clientSecret, final String redirectUri) {
+	public StructrOAuthClient(final String authorizationLocation, final String tokenLocation, final String clientId, final String clientSecret, final String redirectUri) {
 		
 		this.init(authorizationLocation, tokenLocation, clientId, clientSecret, redirectUri, OAuthJSONAccessTokenResponse.class);
 	}
@@ -140,7 +140,7 @@ public class OAuthServer {
 	 * @param name
 	 * @return 
 	 */
-	public static OAuthServer getServer(final String name) {
+	public static StructrOAuthClient getServer(final String name) {
 
 		String configuredOauthServers  = Services.getConfigurationValue(CONFIGURED_OAUTH_SERVERS, "twitter facebook google github stackoverflow");
 		String[] authServers = configuredOauthServers.split(" ");
@@ -161,10 +161,10 @@ public class OAuthServer {
 					Class serverClass		= getServerClassForName(name);
 					Class tokenResponseClass	= getTokenResponseClassForName(name);
 					
-					OAuthServer oauthServer;
+					StructrOAuthClient oauthServer;
 					try {
 						
-						oauthServer = (OAuthServer) serverClass.newInstance();
+						oauthServer = (StructrOAuthClient) serverClass.newInstance();
 						oauthServer.init(authLocation, tokenLocation, clientId, clientSecret, redirectUri, tokenResponseClass);
 						
 						logger.log(Level.INFO, "Using OAuth server {0}", oauthServer);
@@ -204,17 +204,17 @@ public class OAuthServer {
 		switch (name) {
 			
 			case "github" :
-				return GitHubAuthServer.class;
+				return GitHubAuthClient.class;
 			case "twitter" : 
-				return TwitterAuthServer.class;
+				return TwitterAuthClient.class;
 			case "facebook" : 
-				return FacebookAuthServer.class;
+				return FacebookAuthClient.class;
 			case "linkedin" :
-				return LinkedInAuthServer.class;
+				return LinkedInAuthClient.class;
 			case "google" :
-				return GoogleAuthServer.class;
+				return GoogleAuthClient.class;
 			default :
-				return OAuthServer.class;
+				return StructrOAuthClient.class;
 		}
 		
 	}

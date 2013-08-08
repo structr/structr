@@ -21,9 +21,6 @@ package org.structr.web.auth;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
-import org.apache.oltu.oauth2.client.response.OAuthResourceResponse;
-import org.apache.oltu.oauth2.common.utils.JSONUtils;
-import org.codehaus.jettison.json.JSONException;
 import org.structr.core.Services;
 import org.structr.core.entity.Person;
 import org.structr.core.property.PropertyKey;
@@ -39,13 +36,13 @@ import twitter4j.auth.RequestToken;
  * 
  * @author Axel Morgner
  */
-public class TwitterAuthServer extends OAuthServer {
+public class TwitterAuthClient extends StructrOAuthClient {
 	
-	private static final Logger logger	= Logger.getLogger(TwitterAuthServer.class.getName());
+	private static final Logger logger	= Logger.getLogger(TwitterAuthClient.class.getName());
 	
 	private static Twitter twitter;
 	
-	public TwitterAuthServer() {}
+	public TwitterAuthClient() {}
 
 	@Override
 	protected void init(final String authorizationLocation, final String tokenLocation, final String clientId, final String clientSecret, final String redirectUri, final Class tokenResponseClass) {

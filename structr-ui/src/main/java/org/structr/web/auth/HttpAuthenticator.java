@@ -228,7 +228,7 @@ public class HttpAuthenticator implements Authenticator {
 		String action = uriParts[2];
 		
 		// Try to getValue an OAuth2 server for the given name
-		OAuthServer oauthServer = OAuthServer.getServer(name);
+		StructrOAuthClient oauthServer = StructrOAuthClient.getServer(name);
 		
 		if (oauthServer == null) {
 			

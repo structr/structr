@@ -18,61 +18,76 @@
  */
 package org.structr.web.auth;
 
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringUtils;
+import org.apache.oltu.oauth2.client.response.OAuthResourceResponse;
 import org.structr.core.Services;
 
 /**
  *
  * @author Axel Morgner
  */
-public class FacebookAuthServer extends OAuthServer {
+public class GitHubAuthClient extends StructrOAuthClient {
 	
-	private static final Logger logger = Logger.getLogger(FacebookAuthServer.class.getName());
-	
-	public FacebookAuthServer() {}
+	private static final Logger logger = Logger.getLogger(GitHubAuthClient.class.getName());
+
+	public GitHubAuthClient() {};
 
 	@Override
 	public String getScope() {
 		
-		return "email";
+		return "user:email";
 		
 	}
-
+	
 	@Override
 	public ResponseFormat getResponseFormat() {
 		
 		return ResponseFormat.urlEncoded;
 		
 	}
-
+	
 	@Override
 	public String getUserResourceUri() {
 		
-		return Services.getConfigurationValue("oauth.facebook.user_details_resource_uri", "");
+		return Services.getConfigurationValue("oauth.github.user_details_resource_uri", "");
 			
 	}
 
 	@Override
 	public String getReturnUri() {
 		
-		return Services.getConfigurationValue("oauth.facebook.return_uri", "/");
+		return Services.getConfigurationValue("oauth.github.return_uri", "/");
 			
 	}
 
 	@Override
 	public String getErrorUri() {
 		
-		return Services.getConfigurationValue("oauth.facebook.error_uri", "/");
+		return Services.getConfigurationValue("oauth.github.error_uri", "/");
 			
 	}
-	
+
 	@Override
 	public String getCredential(final HttpServletRequest request) {
 		
-		return StringUtils.replace(getValue(request, "email"), "\u0040", "@");
+		OAuthResourceResponse userResponse = getUserResponse(request);
+		
+		if (userResponse == null) {
+			
+			return null;
+			
+		}
+		
+		String body = userResponse.getBody();
+		logger.log(Level.FINE, "User response body: {0}", body);
+		
+		String[] addresses = StringUtils.stripAll(StringUtils.stripAll(StringUtils.stripEnd(StringUtils.stripStart(body, "["), "]").split(",")), "\"");
+
+		return addresses.length > 0 ? addresses[0] : null;
 		
 	}
-	
+
 }

@@ -18,6 +18,7 @@
  */
 package org.structr.web.auth;
 
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
@@ -29,45 +30,57 @@ import org.structr.core.Services;
  *
  * @author Axel Morgner
  */
-public class GitHubAuthServer extends OAuthServer {
+public class LinkedInAuthClient extends StructrOAuthClient {
 	
-	private static final Logger logger = Logger.getLogger(GitHubAuthServer.class.getName());
+	private static final Logger logger = Logger.getLogger(LinkedInAuthClient.class.getName());
 
-	public GitHubAuthServer() {};
+	public LinkedInAuthClient() {};
+
+	@Override
+	protected String getAccessTokenParameterKey() {
+		return "oauth2_access_token";
+	}
 
 	@Override
 	public String getScope() {
 		
-		return "user:email";
+		return "r_basicprofile r_emailaddress";
 		
 	}
 	
 	@Override
 	public ResponseFormat getResponseFormat() {
 		
-		return ResponseFormat.urlEncoded;
+		return ResponseFormat.json;
 		
 	}
 	
 	@Override
 	public String getUserResourceUri() {
 		
-		return Services.getConfigurationValue("oauth.github.user_details_resource_uri", "");
+		return Services.getConfigurationValue("oauth.linkedin.user_details_resource_uri", "");
 			
 	}
 
 	@Override
 	public String getReturnUri() {
 		
-		return Services.getConfigurationValue("oauth.github.return_uri", "/");
+		return Services.getConfigurationValue("oauth.linkedin.return_uri", "/");
 			
 	}
 
 	@Override
 	public String getErrorUri() {
 		
-		return Services.getConfigurationValue("oauth.github.error_uri", "/");
+		return Services.getConfigurationValue("oauth.linkedin.error_uri", "/");
 			
+	}
+
+	@Override
+	protected String getState() {
+		
+		return UUID.randomUUID().toString();
+		
 	}
 
 	@Override
