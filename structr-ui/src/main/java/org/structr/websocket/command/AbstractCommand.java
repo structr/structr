@@ -44,6 +44,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.Result;
+import org.structr.web.entity.Widget;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 
@@ -105,6 +106,18 @@ public abstract class AbstractCommand {
 		if (node != null && node instanceof DOMNode) {
 			
 			return (DOMNode) node;
+		}
+		
+		return null;
+	}
+
+	public Widget getWidget(final String id) {
+		
+		AbstractNode node = getNode(id);
+		
+		if (node != null && node instanceof Widget) {
+			
+			return (Widget) node;
 		}
 		
 		return null;
