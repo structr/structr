@@ -503,7 +503,7 @@ var _Files = {
         } else {
             contentType = 'text/plain';
         }
-        //console.log('contentType, dataType', contentType, dataType);
+        console.log(viewRootUrl, url);
         
         $.ajax({
             url: url,

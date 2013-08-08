@@ -194,7 +194,7 @@ var Command = {
      * the given key for the node with the given id and broadcast an update
      * notification.
      * 
-     * If recursive is set and true, the property will be set on all subnodes, too.
+     * If recursive is set to true, the property will be set on all subnodes, too.
      */
     setProperty: function(id, key, value, recursive, callback) {
         var obj = {};
@@ -202,8 +202,9 @@ var Command = {
         obj.id = id;
         var data = {};
         data[key] = value;
-        if (recursive)
+        if (recursive) {
             data['recursive'] = true;
+        }
         obj.data = data;
         log('setProperty()', obj, callback);
         return sendObj(obj, callback);
@@ -294,6 +295,28 @@ var Command = {
         data.key = key;
         obj.data = data;
         log('appendChild()', obj, key);
+        return sendObj(obj);
+    },
+    /**
+     * Send an APPEND_WIDGET command to the server.
+     * 
+     * The server will append the widget with the given id
+     * as child of the node with the given parent id.
+     * 
+     * If the node was child of a parent before, it will be
+     * removed from the former parent before being appended
+     * to the new one.
+     * 
+     */
+    appendWidget: function(id, parentId, pageId) {
+        var obj = {};
+        obj.command = 'APPEND_WIDGET';
+        obj.id = id;
+        obj.pageId = pageId;
+        var data = {};
+        data.parentId = parentId;
+        obj.data = data;
+        console.log('appendWidget()', obj);
         return sendObj(obj);
     },
     /**

@@ -65,6 +65,7 @@ post resource_access '{"signature":"_schema/Comment","flags":255}'
 post resource_access '{"signature":"_schema/ResourceAccess","flags":255}'
 post resource_access '{"signature":"_schema/Principal","flags":255}'
 post resource_access '{"signature":"_schema/Person","flags":255}'
+post resource_access '{"signature":"_schema/Widget","flags":255}'
 
 
 # Principals don't show up in structr UI
@@ -95,7 +96,6 @@ post resource_access '{"signature":"Principal/Id","flags":255}'
 
 post resource_access '{"signature":"Person","flags":255, "position":'$ELEM_POS', "visibleToPublicUsers":true}'
 ((ELEM_POS++))
-post resource_access '{"signature":"Person","flags":255}'
 post resource_access '{"signature":"Person/_All","flags":255}'
 post resource_access '{"signature":"Person/_Html","flags":255}'
 post resource_access '{"signature":"Person/_Public","flags":255}'
@@ -217,3 +217,12 @@ post resource_access '{"signature":"MailTemplate/_Public","flags":255}'
 post resource_access '{"signature":"MailTemplate/_Protected","flags":255}'
 post resource_access '{"signature":"MailTemplate/_Ui","flags":255}'
 post resource_access '{"signature":"MailTemplate/Id","flags":255}'
+
+post resource_access '{"signature":"Widget","flags":255, "position":'$ELEM_POS', "visibleToPublicUsers":true}'
+((ELEM_POS++))
+post resource_access '{"signature":"Widget/_All","flags":255}'
+post resource_access '{"signature":"Widget/_Html","flags":255}'
+post resource_access '{"signature":"Widget/_Public","flags":255}'
+post resource_access '{"signature":"Widget/_Protected","flags":255}'
+post resource_access '{"signature":"Widget/_Ui","flags":255}'
+post resource_access '{"signature":"Widget/Id","flags":255}'

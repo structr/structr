@@ -189,7 +189,7 @@ var _Entities = {
         var views;
         var startView = '_html_';
 
-        if (isIn(entity.type, ['Content', 'Page', 'User', 'Group', 'File', 'Folder'])) {
+        if (isIn(entity.type, ['Content', 'Page', 'User', 'Group', 'File', 'Folder', 'Widget'])) {
             views = ['ui', 'in', 'out'];
             startView = 'ui';
         } else {

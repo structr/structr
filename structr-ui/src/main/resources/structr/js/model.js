@@ -55,6 +55,10 @@ var StructrModel = {
 
             obj = new StructrPage(data);
 
+        } else if (type === 'Widget') {
+
+            obj = new StructrWidget(data);
+
         } else if (type === 'Content') {
 
             obj = new StructrContent(data);
@@ -668,6 +672,28 @@ StructrPage.prototype.append = function() {
     StructrModel.expand(_Pages.appendPageElement(this), this);
 }
 
+/**************************************
+ * Structr Widget
+ **************************************/
+
+function StructrWidget(data) {
+    var self = this;
+    $.each(Object.keys(data), function(i, key) {
+        self[key] = data[key];
+    });
+}
+
+//StructrPage.prototype.createElement = function(name) {
+//    return new Element(name);
+//}
+
+StructrWidget.prototype.setProperty = function(key, value, recursive, callback) {
+    Command.setProperty(this.id, key, value, recursive, callback);
+}
+
+StructrWidget.prototype.append = function() {
+    StructrModel.expand(_Widgets.appendWidgetElement(this), this);
+}
 
 /**************************************
  * Structr Element

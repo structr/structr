@@ -177,7 +177,7 @@ var _Pages = {
             _Elements.reloadComponents();
             localStorage.setItem(activeTabRightKey, $(this).prop('id'));
         }).droppable({
-            accept: '.element, .content, .component, .file, .image',
+            accept: '.element, .content, .component, .file, .image, .widget',
             greedy: true,
             hoverClass: 'nodeHover',
             tolerance: 'pointer',
@@ -882,7 +882,7 @@ var _Pages = {
         });
         
         div.droppable({
-            accept: '.node, .element, .content, .image, .file',
+            accept: '.node, .element, .content, .image, .file, .widget',
             greedy: true,
             hoverClass: 'nodeHover',
             tolerance: 'pointer',
@@ -896,16 +896,16 @@ var _Pages = {
 
                 var nodeData = {};
 				
-                var contentId = getId(ui.draggable) || getComponentId(ui.draggable);
-                var elementId = getId(self); console.log('elementId', elementId);
+                var sourceId = getId(ui.draggable) || getComponentId(ui.draggable);
+                var elementId = getId(self);
 
-                var source = StructrModel.obj(contentId);
+                var source = StructrModel.obj(sourceId);
                 var target = StructrModel.obj(elementId);
-
+                
                 var page = self.closest('.page')[0];
                 var pageId = (page ? getId(page) : target.pageId);
                 
-                log(contentId, source, pageId);
+                log(sourceId, source, pageId);
                 
                 if (source && pageId && source.pageId && pageId !== source.pageId) {
                     copy = true;
@@ -919,16 +919,29 @@ var _Pages = {
                     log('not copying node');
                 }
                 
-                if (contentId === elementId) {
+                if (sourceId === elementId) {
                     log('drop on self not allowed');
                     return;
                 }
                 
                 var tag, name;
+
+                if (source.type === 'Widget') {
+                    
+                    console.log('Widget dropped, creating <img> node', name);
+                    
+                    Structr.modules['widgets'].unload();
+                    _Pages.makeMenuDroppable();
+                    
+                    Command.appendWidget(sourceId, elementId, pageId);
+                    $(ui.draggable).remove();
+                    return;
+                }
+                
                 var cls = Structr.getClass($(ui.draggable));
                 
                 if (cls === 'image') {
-                    contentId = undefined;
+                    sourceId = undefined;
                     name = $(ui.draggable).find('.name_').attr('title');
                     log('Image dropped, creating <img> node', name);
                     nodeData._html_src = '/' + name;
@@ -947,7 +960,7 @@ var _Pages = {
                     
                     var parentTag = self.children('.tag_').text();
                     log(parentTag);
-                    nodeData.linkableId = contentId;
+                    nodeData.linkableId = sourceId;
                     
                     if (parentTag === 'head') {
                         
@@ -981,7 +994,7 @@ var _Pages = {
                         nodeData.childContent = '${parent.link.name}';
                         tag = 'a';
                     }
-                    contentId = undefined;
+                    sourceId = undefined;
                     
                     Structr.modules['files'].unload();
                     _Pages.makeMenuDroppable();
@@ -992,7 +1005,7 @@ var _Pages = {
                     return;
                 }
                 
-                if (!contentId) {
+                if (!sourceId) {
 
                     tag = $(ui.draggable).text();
 
@@ -1019,9 +1032,9 @@ var _Pages = {
                         
                 } else {
                     tag = cls;
-                    log('appendChild', contentId, elementId);
+                    log('appendChild', sourceId, elementId);
                     sorting = false;
-                    Command.appendChild(contentId, elementId);
+                    Command.appendChild(sourceId, elementId);
                     $(ui.draggable).remove();
                     
                     return;
@@ -1078,7 +1091,7 @@ var _Pages = {
     makeMenuDroppable : function() {
         
         $('#pages_').droppable({
-            accept: '.element, .content, .component, .file, .image',
+            accept: '.element, .content, .component, .file, .image, .widget',
             greedy: true,
             hoverClass: 'nodeHover',
             tolerance: 'pointer',
@@ -1092,8 +1105,9 @@ var _Pages = {
                 Structr.activateMenuEntry('pages');
                 window.location.href = '/structr/#pages';
                 
-                files.hide();
-                folders.hide();
+                if (files && files.length) files.hide();
+                if (folders && folders.length) folders.hide();
+                if (widgets && widgets.length) widgets.hide();
                 
 //                _Pages.init();
                 Structr.modules['pages'].onload();

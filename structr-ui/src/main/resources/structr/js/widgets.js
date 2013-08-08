@@ -153,7 +153,19 @@ var _Widgets = {
             }
         });
 
-        //_Widgets.appendEditIcon(div, widget);      
+        div.append('<img title="Edit Source" alt="Edit Source of ' + widget.id + '" class="edit_icon button" src="icon/pencil.png">');
+        $('.edit_icon', div).on('click', function(e) {
+            e.stopPropagation();
+            var self = $(this);
+            var text = widget.source;
+            Structr.dialog('Edit source of ' + widget.id, function() {
+                console.log('Widget source saved')
+            }, function() {
+                console.log('cancelled')
+            });
+            _Widgets.editContent(this, widget, text, dialogText);
+        });
+        
         _Entities.appendEditPropertiesIcon(div, widget);
 
         _Entities.setMouseOver(div);
@@ -175,92 +187,30 @@ var _Widgets = {
         }
     },
 
-    editContent : function (button, widget, element) {
-        //debug = true;
-        var url = viewRootUrl + widget.id + '?edit=1';
-        log('editContent', button, widget, element, url);
-        var headers = {};
-        headers['X-StructrSessionToken'] = token;
-        var text;
+    editContent : function (button, entity, text, element) {
+        if (isDisabled(button)) return;
+        var div = element.append('<div class="editor"></div>');
+        log(div);
+        var contentBox = $('.editor', element);
+        editor = CodeMirror(contentBox.get(0), {
+            value: unescapeTags(text),
+            mode:  contentType,
+            lineNumbers: true
+        });
+        editor.focus();
         
-        var contentType;
-        var dataType = 'text';
-                
-        if (widget.name.endsWith('.css')) {
-            contentType = 'text/css';
-        } else if (widget.name.endsWith('.js')) {
-            contentType = 'text/javascript';
-        } else {
-            contentType = 'text/plain';
-        }
-        //console.log('contentType, dataType', contentType, dataType);
-        
-        $.ajax({
-            url: url,
-            //async: false,
-            dataType: dataType,
-            contentType: contentType,
-            headers: headers,
-            success: function(data) {
-                text = data;
-                if (isDisabled(button)) return;
-                var div = element.append('<div class="editor"></div>');
-                log(div);
-                var contentBox = $('.editor', element);
-                editor = CodeMirror(contentBox.get(0), {
-                    value: unescapeTags(text),
-                    //value: text,
-                    mode:  contentType,
-                    lineNumbers: true
-                //            ,
-                //            onChange: function(cm, changes) {
-                //                
-                //                var element = $( '.' + entity.id + '_')[0];
-                //                
-                //                text1 = $(element).children('.content_').text();
-                //                text2 = editor.getValue();
-                //                
-                //                if (!text1) text1 = '';
-                //                if (!text2) text2 = '';
-                //		
-                //                log('Element', element);
-                //                log(text1);
-                //                log(text2);
-                //                
-                //                if (text1 == text2) return;
-                //                editorCursor = cm.getCursor();
-                //                log(editorCursor);
-                //
-                //                Command.patch(entity.id, text1, text2);
-                //				
-                //            }
-                });
+        element.append('<button id="editorSave">Save</button>');
 
-                editor.id = widget.id;
+        $('#editorSave', element).on('click', function() {
                 
-                dialogBtn.append('<button id="saveWidget"> Save </button>');
-                dialogBtn.append('<button id="saveAndClose"> Save and close</button>');
-                
-                
-                $('button#saveWidget', dialogBtn).on('click', function(e) {
-                    e.stopPropagation();
-                    _Widgets.updateWidget(widget, editor.getValue());
-                });
-                $('button#saveAndClose', dialogBtn).on('click', function(e) {
-                    e.stopPropagation();
-                    _Widgets.updateWidget(widget, editor.getValue());
-                    setTimeout(function() {
-                        dialogCancelButton.click();
-                    }, 100);
-                });
-
-            },
-            error : function(xhr, statusText, error) {
-                console.log(xhr, statusText, error);
-            }
+            Command.setProperty(entity.id, 'source', editor.getValue(), false, function() {
+                dialogMsg.html('<div class="infoBox success">Widget source saved.</div>');
+                $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
+            });
+            
         });
         
-        
+        editor.id = entity.id;
 
-    }    
+    }
 };

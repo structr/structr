@@ -100,6 +100,14 @@ $(document).ready(function() {
         _Pages.resize();
     });
     
+    $('#widgets_').on('click', function(e) {
+        e.stopPropagation();
+        main.empty();
+        Structr.activateMenuEntry('widgets');
+        Structr.modules['widgets'].onload();
+        _Widgets.resize();
+    });
+
     $('#propertyDefinitions_').on('click', function(e) {
         e.stopPropagation();
         main.empty();
