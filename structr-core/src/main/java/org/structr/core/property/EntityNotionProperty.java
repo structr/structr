@@ -42,18 +42,19 @@ import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.graph.search.SourceSearchAttribute;
 import org.structr.core.notion.Notion;
-import org.structr.core.notion.PropertyNotion;
 
 /**
-* A property that wraps a {@link PropertyNotion} with the given notion around an {@link EntityProperty}.
+* A property that uses the value of a related node property to create
+* a relationship between two nodes. This property should only be used
+* with related properties that uniquely identify a given node, as the
+* value will be used to search for a matching node to which the
+* relationship will be created.
  *
  * @author Christian Morgner
  */
-
-
 public class EntityNotionProperty<S extends GraphObject, T> extends Property<T> {
 	
-	private static final Logger logger = Logger.getLogger(EntityIdProperty.class.getName());
+	private static final Logger logger = Logger.getLogger(EntityNotionProperty.class.getName());
 	
 	private Property<S> base    = null;
 	private Notion<S, T> notion = null;

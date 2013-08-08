@@ -26,11 +26,13 @@ import org.structr.core.converter.RelatedNodePropertyMapper;
 import org.structr.core.entity.AbstractNode;
 
 /**
- * A property that returns another property value from a related node.
+ * A property that can be used to make the property of a related node
+ * appear to be a local property. Use this property type if you want
+ * to reproduce the value of a given node on a node with a different
+ * type. This propert works in both directions, i.e. you can get and
+ * set the value as if it was a local property.
  * 
  * @author Christian Morgner
- * 
- * @deprecated As of structr 0.7, use EntityNotionProperty instead!
  */
 public class RelatedNodeProperty<T> extends AbstractPrimitiveProperty<T> {
 	

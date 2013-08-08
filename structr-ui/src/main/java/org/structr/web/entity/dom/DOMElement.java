@@ -94,6 +94,7 @@ import org.structr.web.entity.html.Body;
 import org.structr.web.common.GraphDataSource;
 import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.common.UiResourceProvider;
+import org.structr.web.entity.Renderable;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -343,13 +344,11 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 			if (rels.isEmpty()) {
 				
 				// No child relationships, maybe this node is in sync with another node
-				Iterable<AbstractRelationship> syncRels = getRelationships(RelType.SYNC, Direction.INCOMING);
-				if (syncRels != null && syncRels.iterator().hasNext()) {
+				for (AbstractRelationship syncRel : getRelationships(RelType.SYNC, Direction.INCOMING)) {
 
-					DOMElement syncedNode = (DOMElement) syncRels.iterator().next().getStartNode();
-					rels = syncedNode.getChildRelationships();
+					DOMElement syncedNode = (DOMElement)syncRel.getStartNode();
+					rels.addAll(syncedNode.getChildRelationships());
 				}
-				
 			}
 
 			for (AbstractRelationship rel : rels) {
@@ -396,7 +395,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 					
 					PropertyKey propertyKey = null;
 	
-					String typeForCreateButton = null;
+					Class typeForCreateButton = null;
 					String sourceId = null;
 					String sourceType = null;
 					String relatedProperty = null;
@@ -431,7 +430,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 											
 											// In edit mode, render a create button
 											if (i==0 && EditMode.DATA.equals(edit) && o instanceof AbstractNode) {
-												typeForCreateButton = ((AbstractNode) o).getType();
+												typeForCreateButton = ((AbstractNode) o).getClass();
 											}
 											
 											i++;
@@ -462,7 +461,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 									}
 									
-									typeForCreateButton = collectionProperty.getDestType().getSimpleName();
+									typeForCreateButton = collectionProperty.getDestType();
 									sourceId = currentDataNode.getUuid();
 									sourceType = currentDataNode.getType();
 									relatedProperty = collectionProperty.jsonName();
@@ -478,7 +477,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 						} else {
 							
 							if (!listData.isEmpty()) {
-								typeForCreateButton = listData.get(0).getType();
+								typeForCreateButton = listData.get(0).getClass();
 							}
 
 							renderContext.setListSource(listData);
@@ -486,10 +485,10 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 						}
 						
-						// In data edit mode, render a create button
-						if (EditMode.DATA.equals(edit) && typeForCreateButton != null) {
+						// In data edit mode, render a create button, but only if 
+						if (EditMode.DATA.equals(edit) && typeForCreateButton != null && !Renderable.class.isAssignableFrom(typeForCreateButton)) {
 
-							buffer.append("\n<button class=\"createButton\"");
+							buffer.append("\n<div class=\"structr-edit\"><button class=\"createButton\"");
 							
 							if (sourceId != null) {
 								buffer.append(" data-structr-source-id=\"").append(sourceId).append("\"");
@@ -498,8 +497,8 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 							}
 							
 							buffer.append(" data-structr-type=\"")
-								.append(typeForCreateButton).append("\">")
-								.append(relatedProperty != null ? "Add " + typeForCreateButton + " to " + relatedProperty : "Create new " + typeForCreateButton).append("</button>\n");
+								.append(typeForCreateButton.getSimpleName()).append("\">")
+								.append(relatedProperty != null ? "Add " + typeForCreateButton.getSimpleName() + " to " + relatedProperty : "Create new " + typeForCreateButton.getSimpleName()).append("</button></div>\n");
 
 						}
 						

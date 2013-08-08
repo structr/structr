@@ -72,6 +72,7 @@ import org.structr.core.property.EntityIdProperty;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.ThreadLocalMatcher;
+import org.structr.web.entity.PageData;
 import org.structr.web.entity.Renderable;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
@@ -87,7 +88,7 @@ import org.w3c.dom.UserDataHandler;
  * @author Christian Morgner
  */
 
-public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable, DOMAdoptable, DOMImportable {
+public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable, DOMAdoptable, DOMImportable, PageData {
 
 	private static final Logger logger                                      = Logger.getLogger(DOMNode.class.getName());
 	private static final ThreadLocalMatcher threadLocalTemplateMatcher      = new ThreadLocalMatcher("\\$\\{[^}]*\\}");
