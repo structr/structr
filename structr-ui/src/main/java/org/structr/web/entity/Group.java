@@ -55,7 +55,7 @@ public class Group extends AbstractNode implements Principal {
 	
 	private static final Logger logger = Logger.getLogger(Group.class.getName());
 
-	public static final CollectionProperty<Principal> users = new CollectionProperty<Principal>("users", Principal.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Principal> users = new CollectionProperty("users", Principal.class, RelType.CONTAINS, Direction.OUTGOING, false);
 	
 	public static final org.structr.common.View uiView = new org.structr.common.View(User.class, PropertyView.Ui,
 		type, name, users, blocked
@@ -111,16 +111,6 @@ public class Group extends AbstractNode implements Principal {
 
 	}
 
-
-	@Override
-	public void block() throws FrameworkException {
-
-		throw new UnsupportedOperationException("Not supported yet.");
-
-	}
-
-	//~--- get methods ----------------------------------------------------
-
 	@Override
 	public String getEncryptedPassword() {
 
@@ -146,29 +136,6 @@ public class Group extends AbstractNode implements Principal {
 		}
 
 		return parents;
-
-	}
-
-	@Override
-	public Boolean getBlocked() {
-
-		return (Boolean) getProperty(Principal.blocked);
-
-	}
-
-	@Override
-	public Boolean isBlocked() {
-
-		return getBlocked();
-
-	}
-
-	//~--- set methods ----------------------------------------------------
-
-	@Override
-	public void setBlocked(Boolean blocked) throws FrameworkException {
-
-		throw new UnsupportedOperationException("Not supported yet.");
 
 	}
 

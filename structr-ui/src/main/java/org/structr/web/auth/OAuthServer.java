@@ -28,21 +28,26 @@ import org.apache.oltu.oauth2.client.request.OAuthClientRequest;
 import org.apache.oltu.oauth2.client.response.GitHubTokenResponse;
 import org.apache.oltu.oauth2.client.response.OAuthAccessTokenResponse;
 import org.apache.oltu.oauth2.client.response.OAuthAuthzResponse;
+import org.apache.oltu.oauth2.client.response.OAuthJSONAccessTokenResponse;
 import org.apache.oltu.oauth2.client.response.OAuthResourceResponse;
+import org.apache.oltu.oauth2.common.OAuth;
 import org.apache.oltu.oauth2.common.exception.OAuthProblemException;
 import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
 import org.apache.oltu.oauth2.common.message.types.GrantType;
 import org.apache.oltu.oauth2.common.utils.JSONUtils;
 import org.codehaus.jettison.json.JSONException;
 import org.structr.core.Services;
+import org.structr.core.entity.Person;
+import org.structr.core.property.PropertyKey;
 
 /**
- *
+ * Central class for OAuth client implementations.
+ * 
  * @author Axel Morgner
  */
-public class OAuth2Server {
+public class OAuthServer {
 	
-	private static final Logger logger = Logger.getLogger(OAuth2Server.class.getName());
+	private static final Logger logger = Logger.getLogger(OAuthServer.class.getName());
 	
 	protected enum ResponseFormat {
 		json, urlEncoded
@@ -55,24 +60,29 @@ public class OAuth2Server {
 	protected String clientId;
 	protected String clientSecret;
 	protected String redirectUri;
+	protected String state;
+	
+	protected Class tokenResponseClass;
 	
 	private OAuthAccessTokenResponse tokenResponse;
 	private OAuthResourceResponse userResponse;
 	
-	public OAuth2Server() {};
+	public OAuthServer() {};
 	
-	public OAuth2Server(final String authorizationLocation, final String tokenLocation, final String clientId, final String clientSecret, final String redirectUri) {
+	public OAuthServer(final String authorizationLocation, final String tokenLocation, final String clientId, final String clientSecret, final String redirectUri) {
 		
-		this.init(authorizationLocation, tokenLocation, clientId, clientSecret, redirectUri);
+		this.init(authorizationLocation, tokenLocation, clientId, clientSecret, redirectUri, OAuthJSONAccessTokenResponse.class);
 	}
 	
-	protected final void init(final String authorizationLocation, final String tokenLocation, final String clientId, final String clientSecret, final String redirectUri) {
+	protected void init(final String authorizationLocation, final String tokenLocation, final String clientId, final String clientSecret, final String redirectUri, final Class tokenResponseClass) {
 
 		this.authorizationLocation = authorizationLocation;
 		this.tokenLocation         = tokenLocation;
 		this.clientId              = clientId;
 		this.clientSecret          = clientSecret;
 		this.redirectUri           = redirectUri;
+		
+		this.tokenResponseClass    = tokenResponseClass;
 		
 	}
 	
@@ -84,7 +94,8 @@ public class OAuth2Server {
 		+ "\ntokenLocation: " + tokenLocation
 		+ "\nclientId: " + clientId
 		+ "\nclientSecret: " + clientSecret
-		+ "\nredirectUri: " + redirectUri;
+		+ "\nredirectUri: " + redirectUri
+		+ "\nstate: " + state;
 
 	}
 	
@@ -95,21 +106,31 @@ public class OAuth2Server {
 	 * 
 	 * @param request
 	 * @return
-	 * @throws OAuthSystemException 
 	 */
-	public OAuthClientRequest getEndUserAuthorizationRequest(final HttpServletRequest request) throws OAuthSystemException {
+	public String getEndUserAuthorizationRequestUri(final HttpServletRequest request) {
 		
-		OAuthClientRequest oauthClientRequest = OAuthClientRequest
-			.authorizationLocation(authorizationLocation)
-			.setClientId(clientId)
-			.setRedirectURI(getAbsoluteRedirectUri(request, redirectUri))
-			.setScope(getScope())
-			.setResponseType(getResponseType())
-		.buildQueryMessage();
+		OAuthClientRequest oauthClientRequest;
 		
-		logger.log(Level.INFO, "Authorization request location URI: {0}", oauthClientRequest.getLocationUri());
+		try {
+			
+			oauthClientRequest = OAuthClientRequest
+				.authorizationLocation(authorizationLocation)
+				.setClientId(clientId)
+				.setRedirectURI(getAbsoluteUrl(request, redirectUri))
+				.setScope(getScope())
+				.setResponseType(getResponseType())
+				.setState(getState())
+				.buildQueryMessage();
+
+			logger.log(Level.INFO, "Authorization request location URI: {0}", oauthClientRequest.getLocationUri());
 		
-		return oauthClientRequest;
+			return oauthClientRequest.getLocationUri();
+			
+		} catch (OAuthSystemException ex) {
+			logger.log(Level.SEVERE, null, ex);
+		}
+		
+		return null;
 		
 	}
 	
@@ -119,7 +140,7 @@ public class OAuth2Server {
 	 * @param name
 	 * @return 
 	 */
-	public static OAuth2Server getServer(final String name) {
+	public static OAuthServer getServer(final String name) {
 
 		String configuredOauthServers  = Services.getConfigurationValue(CONFIGURED_OAUTH_SERVERS, "twitter facebook google github stackoverflow");
 		String[] authServers = configuredOauthServers.split(" ");
@@ -134,23 +155,25 @@ public class OAuth2Server {
 				String clientSecret  = Services.getConfigurationValue("oauth." + authServer + ".client_secret", null);
 				String redirectUri   = Services.getConfigurationValue("oauth." + authServer + ".redirect_uri", null);
 
-				if (authLocation != null && clientId != null && clientSecret != null && redirectUri != null) {
+				// Minumum required fields
+				if (clientId != null && clientSecret != null && redirectUri != null) {
 
-					Class serverClass = getServerClassForName(name);
+					Class serverClass		= getServerClassForName(name);
+					Class tokenResponseClass	= getTokenResponseClassForName(name);
 					
-					OAuth2Server oauthServer;
+					OAuthServer oauthServer;
 					try {
 						
-						oauthServer = (OAuth2Server) serverClass.newInstance();
-						oauthServer.init(authLocation, tokenLocation, clientId, clientSecret, redirectUri);
+						oauthServer = (OAuthServer) serverClass.newInstance();
+						oauthServer.init(authLocation, tokenLocation, clientId, clientSecret, redirectUri, tokenResponseClass);
 						
-						logger.log(Level.FINE, "Using OAuth server {0}", oauthServer);
+						logger.log(Level.INFO, "Using OAuth server {0}", oauthServer);
 						
 						return oauthServer;
 	
-					} catch (Exception ex) {
+					} catch (Throwable t) {
 						
-						logger.log(Level.SEVERE, "Could not instantiate auth server", ex);
+						logger.log(Level.SEVERE, "Could not instantiate auth server", t);
 						
 					}
 
@@ -163,25 +186,41 @@ public class OAuth2Server {
 				
 		return null;
 	}
-	
-	private static Class getServerClassForName(final String name) {
-		
-		if ("github".equals(name)) {
+
+	private static Class getTokenResponseClassForName(final String name) {
+
+		switch (name) {
 			
-			return GitHubAuthServer.class;
-			
-		} else if ("facebook".equals(name)) {
-			
-			return FacebookAuthServer.class;
-			
-		} else if ("google".equals(name)) {
-			
-			return GoogleAuthServer.class;
-			
+			case "github" :
+				return GitHubTokenResponse.class;
+			default :
+				return OAuthJSONAccessTokenResponse.class;
 		}
 		
-		return OAuth2Server.class;
+	}
+
+	private static Class getServerClassForName(final String name) {
+	
+		switch (name) {
+			
+			case "github" :
+				return GitHubAuthServer.class;
+			case "twitter" : 
+				return TwitterAuthServer.class;
+			case "facebook" : 
+				return FacebookAuthServer.class;
+			case "linkedin" :
+				return LinkedInAuthServer.class;
+			case "google" :
+				return GoogleAuthServer.class;
+			default :
+				return OAuthServer.class;
+		}
 		
+	}
+
+	protected GrantType getGrantType() {
+		return GrantType.AUTHORIZATION_CODE;
 	}
 	
 	protected String getScope() {
@@ -192,19 +231,27 @@ public class OAuth2Server {
 		return "code";
 	}
 
+	protected String getState() {
+		return "";
+	}
+
+	protected String getAccessTokenParameterKey() {
+		return OAuth.OAUTH_BEARER_TOKEN;
+	}
+	
 	private static String getCode(final HttpServletRequest request) {
 		
 		OAuthAuthzResponse oar;
 
 		try {
 
-			logger.log(Level.FINE, "Trying to get authorization code from request {0}", request);
+			logger.log(Level.INFO, "Trying to get authorization code from request {0}", request);
 			
 			oar = OAuthAuthzResponse.oauthCodeAuthzResponse(request);
 			
 			String code = oar.getCode();
 			
-			logger.log(Level.FINE, "Got code {0} from authorization request", code);
+			logger.log(Level.INFO, "Got code {0} from authorization request", code);
 			
 			return oar.getCode();
 
@@ -219,11 +266,19 @@ public class OAuth2Server {
 		
 	}
 
-	public String getEmail(final HttpServletRequest request) {
-		return get(request, "email");
+	public PropertyKey getCredentialKey() {
+		
+		return Person.eMail;
+		
 	}
 	
-	public String get(final HttpServletRequest request, final String key) {
+	public String getCredential(final HttpServletRequest request) {
+		
+		return getValue(request, "email");
+		
+	}
+	
+	public String getValue(final HttpServletRequest request, final String key) {
 		
 		try {
 			
@@ -295,27 +350,20 @@ public class OAuth2Server {
 			
 			OAuthClientRequest clientReq = OAuthClientRequest
 				.tokenLocation(tokenLocation)
-				.setGrantType(GrantType.AUTHORIZATION_CODE)
+				.setGrantType(getGrantType())
 				.setClientId(clientId)
 				.setClientSecret(clientSecret)
-				.setRedirectURI(getAbsoluteRedirectUri(request, redirectUri))
+				.setRedirectURI(getAbsoluteUrl(request, redirectUri))
 				.setCode(getCode(request))
 			.buildBodyMessage();
 
-			logger.log(Level.FINE, "Request body: {0}", clientReq.getBody());
+			logger.log(Level.INFO, "Request body: {0}", clientReq.getBody());
 
 			OAuthClient oAuthClient = new OAuthClient(new URLConnectionClient());
 
-			if (ResponseFormat.urlEncoded.equals(getResponseFormat())) {
-				
-				tokenResponse = oAuthClient.accessToken(clientReq, GitHubTokenResponse.class);
-				
-			} else {
-				
-				tokenResponse = oAuthClient.accessToken(clientReq);
-			}
+			tokenResponse = oAuthClient.accessToken(clientReq, tokenResponseClass);
 			
-			logger.log(Level.FINE, "Access token response: {0}", tokenResponse.getBody());
+			logger.log(Level.INFO, "Access token response: {0}", tokenResponse.getBody());
 			
 			return tokenResponse;
 			
@@ -374,17 +422,30 @@ public class OAuth2Server {
 			String accessToken = getAccessToken(request);
 			
 			if (accessToken != null) {
-			
-				OAuthClientRequest clientReq = new OAuthBearerClientRequest(getUserResourceUri())
+				
+				final String accessTokenParameterKey = this.getAccessTokenParameterKey();
+				
+				OAuthClientRequest clientReq = new OAuthBearerClientRequest(getUserResourceUri()) {
+				
+					@Override
+					public OAuthBearerClientRequest setAccessToken(String accessToken) {
+					    this.parameters.put(accessTokenParameterKey, accessToken);
+					    return this;
+					}
+				
+				}
 					.setAccessToken(accessToken)
 					.buildQueryMessage();
-
-				logger.log(Level.FINE, "User info request: {0}", clientReq.getLocationUri());
+				
+				// needed for LinkedIn
+				clientReq.setHeader("x-li-format", "json");
+				
+				logger.log(Level.INFO, "User info request: {0}", clientReq.getLocationUri());
 				
 				OAuthClient oAuthClient = new OAuthClient(new URLConnectionClient());
 
 				userResponse = oAuthClient.resource(clientReq, "GET", OAuthResourceResponse.class);
-				logger.log(Level.FINE, "User info response: {0}", userResponse);
+				logger.log(Level.INFO, "User info response: {0}", userResponse);
 
 				return userResponse;
 				
@@ -400,7 +461,7 @@ public class OAuth2Server {
 		
 	}
 		
-	protected String getAbsoluteRedirectUri(final HttpServletRequest request, final String redirectUri) {
+	protected String getAbsoluteUrl(final HttpServletRequest request, final String redirectUri) {
 		
 		return !(redirectUri.startsWith("http")) ? "http" + (request.isSecure() ? "s" : "") + "://" + request.getServerName() + ":" + request.getServerPort() + redirectUri : redirectUri;
 		

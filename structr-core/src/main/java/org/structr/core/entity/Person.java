@@ -40,7 +40,6 @@ import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.core.Services;
-import static org.structr.core.entity.AbstractNode.name;
 import org.structr.core.graph.CreateRelationshipCommand;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
@@ -62,8 +61,9 @@ public class Person extends AbstractNode implements Principal {
 	public static final Property<String>  middleNameOrInitial = new StringProperty("middleNameOrInitial");
 	public static final Property<String>  lastName            = new StringProperty("lastName").indexed();
 	
-	public static final Property<String>  email               = new StringProperty("email").validator(new TypeUniquenessValidator(Person.class)).indexed();
-	public static final Property<String>  email2              = new StringProperty("email2");
+	public static final Property<String>  twitterName         = new StringProperty("twitterName").validator(new TypeUniquenessValidator(Person.class)).indexed();
+	public static final Property<String>  eMail               = new StringProperty("eMail").validator(new TypeUniquenessValidator(Person.class)).indexed();
+	public static final Property<String>  eMail2              = new StringProperty("eMail2");
 	public static final Property<String>  password            = new PasswordProperty("password");
 	
 	public static final Property<String>  phoneNumber1        = new StringProperty("phoneNumber1");
@@ -85,114 +85,6 @@ public class Person extends AbstractNode implements Principal {
 		name, salutation, firstName, middleNameOrInitial, lastName
 	);
 
-	public String getFirstName() {
-
-		return getProperty(Person.firstName);
-
-	}
-
-	public String getLastName() {
-
-		return getProperty(Person.lastName);
-
-	}
-
-	public String getSalutation() {
-
-		return getProperty(Person.salutation);
-
-	}
-
-	public String getMiddleNameOrInitial() {
-
-		return getProperty(Person.middleNameOrInitial);
-
-	}
-
-	public String getEmail() {
-
-		return getProperty(Person.email);
-
-	}
-
-	public String getEmail2() {
-
-		return getProperty(Person.email2);
-
-	}
-
-	public String getPhoneNumber1() {
-
-		return getProperty(Person.phoneNumber1);
-
-	}
-
-	public String getPhoneNumber2() {
-
-		return getProperty(Person.phoneNumber2);
-
-	}
-
-	public String getFaxNumber1() {
-
-		return getProperty(Person.faxNumber1);
-
-	}
-
-	public String getFaxNumber2() {
-
-		return getProperty(Person.faxNumber2);
-
-	}
-
-	public String getStreet() {
-
-		return getProperty(Person.street);
-
-	}
-
-	public String getZipCode() {
-
-		return getProperty(Person.zipCode);
-
-	}
-
-	public String getState() {
-
-		return getProperty(Person.state);
-
-	}
-
-	public String getCountry() {
-
-		return getProperty(Person.country);
-
-	}
-
-	public String getCity() {
-
-		return getProperty(Person.city);
-
-	}
-
-	public boolean getNewsletter() {
-
-		return getProperty(Person.newsletter);
-
-	}
-
-	public Date getBirthday() {
-
-		return getProperty(Person.birthday);
-
-	}
-
-	public String getGender() {
-
-		return getProperty(Person.gender);
-
-	}
-
 	//~--- set methods ----------------------------------------------------
 
 	public void setFirstName(final String firstName) throws FrameworkException {
@@ -204,12 +96,13 @@ public class Person extends AbstractNode implements Principal {
 
 
 				setProperty(Person.firstName, firstName);
+				
+				String _lastName = getProperty(Person.lastName);
 
-				String lastName = ((getLastName() != null) &&!(getLastName().isEmpty()))
-						  ? getLastName()
-						  : "";
+				String lastName = (_lastName != null &&!(_lastName.isEmpty()))
+						  ? _lastName : "";
 
-				setName(lastName + ", " + firstName);
+				setProperty(Person.name, lastName + ", " + firstName);
 				
 				return null;
 			}
@@ -226,9 +119,11 @@ public class Person extends AbstractNode implements Principal {
 
 
 				setProperty(Person.lastName, lastName);
+				
+				String _firstName = getProperty(Person.firstName);
 
-				String firstName = ((getFirstName() != null) &&!(getFirstName().isEmpty()))
-						   ? getFirstName()
+				String firstName = ((_firstName != null) &&!(_firstName.isEmpty()))
+						   ? _firstName
 						   : "";
 
 				setProperty(AbstractNode.name, lastName + ", " + firstName);
@@ -236,263 +131,6 @@ public class Person extends AbstractNode implements Principal {
 				return null;
 			}
 		});
-
-	}
-
-	@Override
-	public void setName(final String name) throws FrameworkException {
-			
-		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-			@Override
-			public Object execute() throws FrameworkException {
-
-				setProperty(AbstractNode.name, name);
-				
-				return null;
-			}
-		});
-	}
-
-	public void setSalutation(final String salutation) throws FrameworkException {
-			
-		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-			@Override
-			public Object execute() throws FrameworkException {
-
-				setProperty(Person.salutation, salutation);
-				
-				return null;
-			}
-		});
-	}
-
-	public void setMiddleNameOrInitial(final String middleNameOrInitial) throws FrameworkException {
-			
-		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-			@Override
-			public Object execute() throws FrameworkException {
-
-				setProperty(Person.middleNameOrInitial, middleNameOrInitial);
-				
-				return null;
-			}
-		});
-	}
-
-	public void setEmail(final String email) throws FrameworkException {
-			
-		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-			@Override
-			public Object execute() throws FrameworkException {
-
-				setProperty(Person.email, email);
-				
-				return null;
-			}
-		});
-	}
-
-	public void setEmail2(final String email2) throws FrameworkException {
-			
-		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-			@Override
-			public Object execute() throws FrameworkException {
-
-				setProperty(Person.email2, email2);
-				
-				return null;
-			}
-		});
-	}
-
-	public void setPhoneNumber1(final String value) throws FrameworkException {
-			
-		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-			@Override
-			public Object execute() throws FrameworkException {
-
-				setProperty(Person.phoneNumber1, value);
-				
-				return null;
-			}
-		});
-	}
-
-	public void setPhoneNumber2(final String value) throws FrameworkException {
-
-			
-		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-			@Override
-			public Object execute() throws FrameworkException {
-
-				setProperty(Person.phoneNumber2, value);
-				
-				return null;
-			}
-		});
-	}
-
-	public void setFaxNumber1(final String value) throws FrameworkException {
-
-			
-		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-			@Override
-			public Object execute() throws FrameworkException {
-
-				setProperty(Person.faxNumber1, value);
-				
-				return null;
-			}
-		});
-	}
-
-	public void setFaxNumber2(final String value) throws FrameworkException {
-
-			
-		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-			@Override
-			public Object execute() throws FrameworkException {
-
-				setProperty(Person.faxNumber2, value);
-				
-				return null;
-			}
-		});
-	}
-
-	public void setStreet(final String value) throws FrameworkException {
-
-			
-		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-			@Override
-			public Object execute() throws FrameworkException {
-
-				setProperty(Person.street, value);
-				
-				return null;
-			}
-		});
-	}
-
-	public void setZipCode(final String value) throws FrameworkException {
-
-			
-		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-			@Override
-			public Object execute() throws FrameworkException {
-
-				setProperty(Person.zipCode, value);
-				
-				return null;
-			}
-		});
-	}
-
-	public void setState(final String value) throws FrameworkException {
-
-			
-		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-			@Override
-			public Object execute() throws FrameworkException {
-
-				setProperty(Person.state, value);
-				
-				return null;
-			}
-		});
-	}
-
-	public void setCountry(final String value) throws FrameworkException {
-
-			
-		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-			@Override
-			public Object execute() throws FrameworkException {
-
-				setProperty(Person.country, value);
-				
-				return null;
-			}
-		});
-	}
-
-	public void setCity(final String value) throws FrameworkException {
-
-			
-		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-			@Override
-			public Object execute() throws FrameworkException {
-
-				setProperty(Person.city, value);
-				
-				return null;
-			}
-		});
-	}
-
-	public void setNewsletter(final boolean value) throws FrameworkException {
-
-			
-		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-			@Override
-			public Object execute() throws FrameworkException {
-
-				setProperty(Person.newsletter, value);
-				
-				return null;
-			}
-		});
-	}
-
-	public void setBirthday(final Date value) throws FrameworkException {
-
-			
-		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-			@Override
-			public Object execute() throws FrameworkException {
-
-				setProperty(Person.birthday, value);
-				
-				return null;
-			}
-		});
-	}
-
-	public void setGender(final String value) throws FrameworkException {
-
-			
-		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-			@Override
-			public Object execute() throws FrameworkException {
-
-				setProperty(Person.gender, value);
-				
-				return null;
-			}
-		});
-	}
-
-	@Override
-	public void block() throws FrameworkException {
-
-		setBlocked(Boolean.TRUE);
 
 	}
 
@@ -562,13 +200,6 @@ public class Person extends AbstractNode implements Principal {
 	}
 
 	@Override
-	public Boolean getBlocked() {
-
-		return (Boolean) getProperty(blocked);
-
-	}
-
-	@Override
 	public List<Principal> getParents() {
 
 		List<Principal> parents = new LinkedList<Principal>();
@@ -587,18 +218,5 @@ public class Person extends AbstractNode implements Principal {
 		return parents;
 
 	}
-
-	@Override
-	public Boolean isBlocked() {
-
-		return Boolean.TRUE.equals(getBlocked());
-
-	}
-
-	//~--- set methods ----------------------------------------------------
-
-	@Override
-	public void setBlocked(final Boolean blocked) throws FrameworkException {}
-
 
 }

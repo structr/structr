@@ -21,7 +21,6 @@
 package org.structr.core.entity;
 
 import org.structr.common.Permission;
-import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -42,10 +41,7 @@ public interface Principal extends GraphObject {
 
 	public static final Property<String>  sessionId = new StringProperty("sessionId").indexed();
 	public static final Property<Boolean> blocked   = new BooleanProperty("blocked");
-
 	
-	public void block() throws FrameworkException;
-
 	public void grant(final Permission permission, final AbstractNode obj);
 
 	public void revoke(final Permission permission, final AbstractNode obj);
@@ -54,9 +50,4 @@ public interface Principal extends GraphObject {
 
 	public String getEncryptedPassword();
 
-	public Boolean getBlocked();
-
-	public Boolean isBlocked();
-
-	public void setBlocked(final Boolean blocked) throws FrameworkException;
 }

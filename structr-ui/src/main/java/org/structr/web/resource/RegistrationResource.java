@@ -113,12 +113,12 @@ public class RegistrationResource extends Resource {
 	@Override
 	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
 
-		if (propertySet.containsKey(User.email.jsonName()) && propertySet.size() == 1) {
+		if (propertySet.containsKey(User.eMail.jsonName()) && propertySet.size() == 1) {
 			
 			SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
 			final Principal user;
 			
-			final String emailString  = (String) propertySet.get(User.email.jsonName());
+			final String emailString  = (String) propertySet.get(User.eMail.jsonName());
 			
 			if (StringUtils.isEmpty(emailString)) {
 				return new RestMethodResult(HttpServletResponse.SC_BAD_REQUEST);
@@ -129,7 +129,7 @@ public class RegistrationResource extends Resource {
 			
 			Result result = Services.command(superUserContext, SearchNodeCommand.class).execute(
 				Search.andExactType(User.class),
-				Search.andExactProperty(superUserContext, User.email, emailString));
+				Search.andExactProperty(superUserContext, User.eMail, emailString));
 				
 			if (!result.isEmpty()) {
 				
@@ -147,7 +147,7 @@ public class RegistrationResource extends Resource {
 				
 			} else {
 
-				user = createUser(securityContext, emailString);
+				user = createUser(securityContext, User.eMail, emailString);
 			}
 			
 			if (user != null) {
@@ -191,9 +191,9 @@ public class RegistrationResource extends Resource {
 
 		Map<String, String> replacementMap = new HashMap();
 
-		String userEmail = user.getProperty(User.email);
+		String userEmail = user.getProperty(User.eMail);
 		
-		replacementMap.put(toPlaceholder(User.email.jsonName()), userEmail);
+		replacementMap.put(toPlaceholder(User.eMail.jsonName()), userEmail);
 		replacementMap.put(toPlaceholder("link"),
 			getTemplateText(TemplateKey.BASE_URL, "//" + Services.getApplicationHost() + ":" + Services.getHttpPort())
 			+ "/" + HtmlServlet.CONFIRM_REGISTRATION_PAGE
@@ -269,10 +269,11 @@ public class RegistrationResource extends Resource {
 	 * If a {@link Person} is found, convert that object to a {@link User} object
 	 * 
 	 * @param securityContext
-	 * @param emailString
+	 * @param credentialKey
+	 * @param credentialValue
 	 * @return 
 	 */
-	public static Principal createUser(final SecurityContext securityContext, final String emailString) {
+	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue) {
 
 		try {
 			return Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<Principal>() {
@@ -281,7 +282,7 @@ public class RegistrationResource extends Resource {
 				public Principal execute() throws FrameworkException {
 
 					// First, search for a person with that e-mail address
-					Person person = (Person) AuthHelper.getPrincipalForEmail(emailString);
+					Person person = (Person) AuthHelper.getPrincipalForCredential(credentialKey, credentialValue);
 
 					if (person != null) {
 						
@@ -303,8 +304,8 @@ public class RegistrationResource extends Resource {
 
 						return (Principal) Services.command(securityContext, CreateNodeCommand.class).execute(
 							new NodeAttribute(AbstractNode.type, User.class.getSimpleName()),
-							new NodeAttribute(User.email, emailString),
-							new NodeAttribute(User.name, emailString),
+							new NodeAttribute(credentialKey, credentialValue),
+							new NodeAttribute(User.name, credentialValue),
 							new NodeAttribute(User.confirmationKey, confKey));
 						
 

@@ -74,7 +74,7 @@ public class LoginResource extends Resource {
 		PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, User.class, propertySet);
 
 		String name          = properties.get(User.name);
-		String email         = properties.get(User.email);
+		String email         = properties.get(User.eMail);
 		String password      = properties.get(User.password);
 		
 		String emailOrUsername = StringUtils.isNotEmpty(email) ? email : name;

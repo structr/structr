@@ -61,13 +61,13 @@ public class AuthHelper {
 	//~--- get methods ----------------------------------------------------
 
 	/**
-	 * Find a {@link Principal} for the given email address
+	 * Find a {@link Principal} for the given credential
 	 * 
 	 * @param securityContext
-	 * @param email
+	 * @param value
 	 * @return 
 	 */
-	public static Principal getPrincipalForEmail(final String email) {
+	public static Principal getPrincipalForCredential(final PropertyKey key, final String value) {
 		
 		SecurityContext securityContext = SecurityContext.getSuperUserInstance();
 		Principal principal             = null;
@@ -77,7 +77,7 @@ public class AuthHelper {
 			
 			result = Services.command(securityContext, SearchNodeCommand.class).execute(
 				Search.andExactTypeAndSubtypes(Principal.class),
-				Search.andExactProperty(securityContext, Person.email, email));
+				Search.andExactProperty(securityContext, key, value));
 
 		} catch (FrameworkException ex) {
 			
@@ -143,7 +143,7 @@ public class AuthHelper {
 
 				} else {
 
-					if (principal.isBlocked()) {
+					if (principal.getProperty(Person.blocked)) {
 
 						logger.log(Level.INFO, "User {0} is blocked", principal);
 

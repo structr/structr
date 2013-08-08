@@ -27,7 +27,7 @@ import org.structr.core.Services;
  *
  * @author Axel Morgner
  */
-public class FacebookAuthServer extends OAuth2Server {
+public class FacebookAuthServer extends OAuthServer {
 	
 	private static final Logger logger = Logger.getLogger(FacebookAuthServer.class.getName());
 	
@@ -69,9 +69,9 @@ public class FacebookAuthServer extends OAuth2Server {
 	}
 	
 	@Override
-	public String getEmail(final HttpServletRequest request) {
+	public String getCredential(final HttpServletRequest request) {
 		
-		return StringUtils.replace(get(request, "email"), "\u0040", "@");
+		return StringUtils.replace(getValue(request, "email"), "\u0040", "@");
 		
 	}
 	

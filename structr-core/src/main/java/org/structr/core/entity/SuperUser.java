@@ -45,12 +45,6 @@ import org.structr.core.property.PropertyMap;
 public class SuperUser implements Principal {
 
 	@Override
-	public void block() {
-
-		// not supported
-	}
-
-	@Override
 	public void removeProperty(PropertyKey key) throws FrameworkException {}
 
 	@Override
@@ -114,13 +108,6 @@ public class SuperUser implements Principal {
 	public String getRealName() {
 
 		return "Super User";
-
-	}
-
-	@Override
-	public Boolean getBlocked() {
-
-		return false;
 
 	}
 
@@ -214,13 +201,6 @@ public class SuperUser implements Principal {
 
 	}
 
-	@Override
-	public Boolean isBlocked() {
-
-		return false;
-
-	}
-
 //      @Override
 	public boolean isFrontendUser() {
 
@@ -245,12 +225,6 @@ public class SuperUser implements Principal {
 
 //      @Override
 	public void setRealName(final String realName) {
-
-		// not supported
-	}
-
-	@Override
-	public void setBlocked(final Boolean blocked) {
 
 		// not supported
 	}

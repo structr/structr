@@ -29,7 +29,6 @@ import org.structr.core.auth.AuthHelper;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.entity.Principal;
-import org.structr.core.entity.ResourceAccess;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -49,6 +48,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Person;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
+import org.structr.core.property.PropertyKey;
 import org.structr.web.resource.RegistrationResource;
 import org.structr.web.servlet.HtmlServlet;
 
@@ -126,7 +126,7 @@ public class HttpAuthenticator implements Authenticator {
 	@Override
 	public Principal doLogin(HttpServletRequest request, String emailOrUsername, String password) throws AuthenticationException {
 
-		Principal user = AuthHelper.getPrincipalForPassword(Person.email, emailOrUsername, password);
+		Principal user = AuthHelper.getPrincipalForPassword(Person.eMail, emailOrUsername, password);
 		
 		if (user == null) {
 			
@@ -203,6 +203,14 @@ public class HttpAuthenticator implements Authenticator {
 	
 	}
 
+	/**
+	 * This method checks all configured external authentication services.
+	 * 
+	 * @param request
+	 * @param response
+	 * @param authProperty
+	 * @return 
+	 */
 	protected static Principal checkExternalAuthentication(final HttpServletRequest request, final HttpServletResponse response) {
 		
 		String path = PathHelper.clean(request.getPathInfo());
@@ -219,8 +227,8 @@ public class HttpAuthenticator implements Authenticator {
 		String name   = uriParts[1];
 		String action = uriParts[2];
 		
-		// Try to get an OAuth2 server for the given name
-		OAuth2Server oauthServer = OAuth2Server.getServer(name);
+		// Try to getValue an OAuth2 server for the given name
+		OAuthServer oauthServer = OAuthServer.getServer(name);
 		
 		if (oauthServer == null) {
 			
@@ -233,7 +241,7 @@ public class HttpAuthenticator implements Authenticator {
 		
 			try {
 
-				response.sendRedirect(oauthServer.getEndUserAuthorizationRequest(request).getLocationUri());
+				response.sendRedirect(oauthServer.getEndUserAuthorizationRequestUri(request));
 				return null;
 
 			} catch (Exception ex) {
@@ -251,16 +259,18 @@ public class HttpAuthenticator implements Authenticator {
 				logger.log(Level.FINE, "Got access token {0}", accessToken);
 				//securityContext.setAttribute("OAuthAccessToken", accessToken);
 				
-				String email = oauthServer.getEmail(request);
-				logger.log(Level.FINE, "Got email: {0}", new Object[] { email });
+				String value = oauthServer.getCredential(request);
+				logger.log(Level.FINE, "Got email: {0}", new Object[] { value });
 
-				if (email != null) {
+				if (value != null) {
+					
+					PropertyKey credentialKey = oauthServer.getCredentialKey();
 
-					Principal user = AuthHelper.getPrincipalForEmail(email);
+					Principal user = AuthHelper.getPrincipalForCredential(credentialKey, value);
 
 					if (user == null) {
 
-						user = RegistrationResource.createUser(superUserContext, email);
+						user = RegistrationResource.createUser(superUserContext, credentialKey, value);
 
 					}
 
@@ -378,7 +388,7 @@ public class HttpAuthenticator implements Authenticator {
 					writeUnauthorized(response);
 				}
 
-				user = AuthHelper.getPrincipalForPassword(Person.email, userAndPass[0], userAndPass[1]);
+				user = AuthHelper.getPrincipalForPassword(Person.eMail, userAndPass[0], userAndPass[1]);
 
 			} catch (Exception ex) {
 
@@ -458,7 +468,7 @@ public class HttpAuthenticator implements Authenticator {
 
 	}
 
-	//~--- get methods ----------------------------------------------------
+	//~--- getValue methods ----------------------------------------------------
 
 	@Override
 	public Principal getUser(HttpServletRequest request, final boolean tryLogin) throws FrameworkException {

@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
@@ -57,6 +58,7 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 
 		final Map<String, Object> nodeData = webSocketData.getNodeData();
 		final String parentId              = (String) nodeData.get("parentId");
+		final String childContent          = (String) nodeData.get("childContent");
 		final String pageId                = webSocketData.getPageId();
 		
 		nodeData.remove("parentId");
@@ -91,7 +93,7 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 						@Override
 						public Object execute() throws FrameworkException {
 							
-							DOMNode newNode = null;
+							DOMNode newNode;
 
 							if (tagName != null && !tagName.isEmpty()) {
 
@@ -134,6 +136,19 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 										}
 									}
 
+								}
+								
+								// create a child text node if content is given
+								if (StringUtils.isNotBlank(childContent)) {
+									
+									DOMNode childNode = (DOMNode)document.createTextNode(childContent);
+									
+									if (newNode != null) {
+										
+										newNode.appendChild(childNode);
+
+									}
+									
 								}
 
 							}

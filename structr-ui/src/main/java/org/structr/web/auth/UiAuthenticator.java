@@ -235,7 +235,7 @@ public class UiAuthenticator extends HttpAuthenticator {
 	@Override
 	public Principal doLogin(HttpServletRequest request,String emailOrUsername, String password) throws AuthenticationException {
 
-		Principal user = AuthHelper.getPrincipalForPassword(Person.email, emailOrUsername, password);
+		Principal user = AuthHelper.getPrincipalForPassword(Person.eMail, emailOrUsername, password);
 
 		if (user != null) {
 

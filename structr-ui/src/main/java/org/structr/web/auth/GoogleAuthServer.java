@@ -25,7 +25,7 @@ import org.structr.core.Services;
  *
  * @author Axel Morgner
  */
-public class GoogleAuthServer extends OAuth2Server {
+public class GoogleAuthServer extends OAuthServer {
 	
 	private static final Logger logger = Logger.getLogger(GoogleAuthServer.class.getName());
 	
