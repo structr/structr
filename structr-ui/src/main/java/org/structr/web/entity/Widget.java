@@ -27,6 +27,9 @@ public class Widget extends AbstractNode {
 	);
 	
 	public void expandWidget(SecurityContext securityContext, Page page, DOMNode parent) throws FrameworkException {
-		new Importer(securityContext, getProperty(source), null, null, 1, true, true).createChildNodes(parent, page);
+		Importer importer = new Importer(securityContext, getProperty(source), null, null, 1, true, true);
+
+		importer.parse();
+		importer.createChildNodes(parent, page);
 	}
 }
