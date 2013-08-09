@@ -201,11 +201,6 @@ public class NamedRelationResource extends WrappingResource {
 	}
 
 	@Override
-	public RestMethodResult doOptions() throws FrameworkException {
-		return new RestMethodResult(200);
-	}
-
-	@Override
 	public Resource tryCombineWith(final Resource next) throws FrameworkException {
 
 		if(next instanceof UuidResource) {

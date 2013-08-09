@@ -89,11 +89,6 @@ public class TypedIdResource extends FilterableResource {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
-	@Override
-	public RestMethodResult doOptions() throws FrameworkException {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
 	public AbstractNode getTypesafeNode() throws FrameworkException {
 
 		AbstractNode node = idResource.getNode();

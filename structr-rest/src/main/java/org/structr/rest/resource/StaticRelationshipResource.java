@@ -424,11 +424,6 @@ public class StaticRelationshipResource extends SortableResource {
 	}
 
 	@Override
-	public RestMethodResult doOptions() throws FrameworkException {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
-	@Override
 	public boolean checkAndConfigure(final String part, final SecurityContext securityContext, final HttpServletRequest request) {
 		return false;
 	}

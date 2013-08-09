@@ -205,23 +205,6 @@ public class TypeResource extends SortableResource {
 
 	}
 
-	@Override
-	public RestMethodResult doOptions() throws FrameworkException {
-
-		/*
-		Enumeration<String> e = securityContext.getRequest().getHeaderNames();
-		
-		for (;e.hasMoreElements();) {
-			
-			String name = e.nextElement();
-			
-			System.out.println(name + " = '" + securityContext.getRequest().getHeader(name) + "'");
-		}
-		*/
-		
-		return new RestMethodResult(HttpServletResponse.SC_OK);
-	}
-
 	public AbstractNode createNode(final Map<String, Object> propertySet) throws FrameworkException {
 
 		if (entityClass != null) {

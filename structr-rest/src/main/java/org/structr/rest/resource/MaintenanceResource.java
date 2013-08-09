@@ -137,11 +137,6 @@ public class MaintenanceResource extends Resource {
 	}
 
 	@Override
-	public RestMethodResult doOptions() throws FrameworkException {
-		throw new NotAllowedException();
-	}
-
-	@Override
 	public Resource tryCombineWith(Resource next) throws FrameworkException {
 
 		if (next instanceof MaintenanceParameterResource) {

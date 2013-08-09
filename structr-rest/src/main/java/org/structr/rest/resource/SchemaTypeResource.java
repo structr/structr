@@ -189,13 +189,6 @@ public class SchemaTypeResource extends Resource {
 	}
 
 	@Override
-	public RestMethodResult doOptions() throws FrameworkException {
-
-		throw new IllegalMethodException();
-
-	}
-
-	@Override
 	public Resource tryCombineWith(Resource next) throws FrameworkException {
 
 		return null;

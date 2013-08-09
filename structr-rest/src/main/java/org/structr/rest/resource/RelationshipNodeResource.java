@@ -110,11 +110,6 @@ public class RelationshipNodeResource extends WrappingResource {
 	}
 
 	@Override
-	public RestMethodResult doOptions() throws FrameworkException {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
-	@Override
 	public Resource tryCombineWith(Resource next) throws FrameworkException {
 		return super.tryCombineWith(next);
 	}

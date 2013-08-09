@@ -79,11 +79,6 @@ public class EntityResolverResource extends SortableResource {
 	}
 
 	@Override
-	public RestMethodResult doOptions() throws FrameworkException {
-		throw new IllegalMethodException();
-	}
-
-	@Override
 	public RestMethodResult doDelete() throws FrameworkException {
 		throw new IllegalMethodException();
 	}

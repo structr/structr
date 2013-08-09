@@ -265,11 +265,6 @@ public class RelationshipFollowingResource extends SortableResource implements E
 	}
 
 	@Override
-	public RestMethodResult doOptions() throws FrameworkException {
-		return lastResource.doOptions();
-	}
-
-	@Override
 	public Resource tryCombineWith(Resource next) throws FrameworkException {
 
 		if (next instanceof TypedIdResource) {

@@ -76,7 +76,8 @@ public abstract class Resource {
 	protected SecurityContext securityContext = null;
 	protected PropertyKey idProperty          = null;
 
-	//~--- methods --------------------------------------------------------
+	public abstract Resource tryCombineWith(Resource next) throws FrameworkException;
+	
 	/**
 	 * Check and configure this instance with the given values. Please note that you need to set the security context of your class in this method.
 	 *
@@ -94,11 +95,10 @@ public abstract class Resource {
 
 	public abstract RestMethodResult doHead() throws FrameworkException;
 
-	public abstract RestMethodResult doOptions() throws FrameworkException;
+	public RestMethodResult doOptions() throws FrameworkException {
+		return new RestMethodResult(HttpServletResponse.SC_OK);
+	}
 
-	public abstract Resource tryCombineWith(Resource next) throws FrameworkException;
-
-	// ----- methods -----
 	public RestMethodResult doDelete() throws FrameworkException {
 
 		final DeleteNodeCommand deleteNode = Services.command(securityContext, DeleteNodeCommand.class);

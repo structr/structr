@@ -108,11 +108,6 @@ public class ViewFilterResource extends WrappingResource {
 	}
 
 	@Override
-	public RestMethodResult doOptions() throws FrameworkException {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
-	@Override
 	public void configurePropertyView(Value<String> propertyView) {
 		
 		try {

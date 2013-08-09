@@ -161,13 +161,6 @@ public class DynamicTypeResource extends TypeResource {
 	}
 
 	@Override
-	public RestMethodResult doOptions() throws FrameworkException {
-
-		throw new UnsupportedOperationException("Not supported yet.");
-
-	}
-
-	@Override
 	public AbstractNode createNode(final Map<String, Object> propertySet) throws FrameworkException {
 
 		PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, entityClass, propertySet);
