@@ -36,7 +36,6 @@ import org.structr.core.entity.ResourceAccess;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang.StringUtils;
-import org.eclipse.jetty.util.StringUtil;
 import org.structr.common.AccessMode;
 import org.structr.core.Services;
 import org.structr.core.auth.exception.UnauthorizedException;
@@ -56,7 +55,7 @@ import static org.structr.web.auth.HttpAuthenticator.checkSessionAuthentication;
 public class UiAuthenticator extends HttpAuthenticator {
 	
 	private enum Method { GET, PUT, POST, DELETE, OPTIONS }
-	private static final Map<String, Method> methods = new LinkedHashMap<String, Method>();
+	private static final Map<String, Method> methods = new LinkedHashMap();
 
 	private static final Logger logger       = Logger.getLogger(HttpAuthenticator.class.getName());
 

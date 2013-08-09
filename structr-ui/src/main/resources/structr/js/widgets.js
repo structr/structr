@@ -81,6 +81,7 @@ var _Widgets = {
 
     refreshWidgets : function() {
         widgets.empty();
+        widgets.append('<h1>Local Widgets</h1>');
         widgets.append('<button class="add_widgets_icon button"><img title="Add Widget" alt="Add Widget" src="' + _Widgets.getIcon() + '"> Add Widget</button>');
         $('.add_widgets_icon', main).on('click', function(e) {
             e.stopPropagation();
@@ -92,12 +93,14 @@ var _Widgets = {
 
     refreshRemoteWidgets : function() {
         remoteWidgets.empty();
-        remoteWidgets.append('<input id="widgetServerUrl" type="text" size="40" placeholder="Remote URL" value="http://server2.morgner.de:8084/structr/rest/widgets"><button id="connect_button">Connect</button>');
-        $('#connect_button', main).on('click', function(e) {
-            e.stopPropagation();
-            
+        remoteWidgets.append('<h1>Remote Widgets</h1>');
+        //remoteWidgets.append('<input id="widgetServerUrl" type="text" size="40" placeholder="Remote URL" value="http://server2.morgner.de:8084/structr/rest/widgets"><button id="connect_button">Connect</button>');
+//        $('#connect_button', main).on('click', function(e) {
+//            e.stopPropagation();
+            var baseUrl = 'http://server2.morgner.de:8084/structr/rest/widgets';
             $.ajax({
-                url: $('#widgetServerUrl').val(),
+                //url: $('#widgetServerUrl').val(),
+                url: baseUrl,
                 type: 'GET',
                 dataType: 'json',
                 contentType: 'application/json; charset=utf-8',
@@ -108,12 +111,10 @@ var _Widgets = {
                         $.each(data.result, function(i, entity) {
                             
                             var obj = StructrModel.create(entity, undefined, false);
-                            console.log(obj);
+                            obj.srcUrl = baseUrl + '/' + entity.id;
                             _Widgets.appendWidgetElement(obj, true);
                             
                         });
-                        
-                        
                         
                     },
                     400 : function(data, status, xhr) {
@@ -138,7 +139,7 @@ var _Widgets = {
                 
             });
             
-        });
+//        });
     },
 
     getIcon : function() {
@@ -148,7 +149,7 @@ var _Widgets = {
 
     appendWidgetElement : function(widget, remote) {
 
-        console.log('Widgets.appendWidgetElement', widget, remote);
+        log('Widgets.appendWidgetElement', widget, remote);
         
         var icon = _Widgets.getIcon(widget);
         var parent = remote ? remoteWidgets : widgets;
@@ -174,17 +175,20 @@ var _Widgets = {
             
         }
 
-        _Entities.appendAccessControlIcon(div, widget);
+        if (!remote) {
+            _Entities.appendAccessControlIcon(div, widget);
 
-        delIcon = div.children('.delete_icon');
+            delIcon = div.children('.delete_icon');
 
-        newDelIcon = '<img title="Delete file ' + widget.name + '\'" alt="Delete file \'' + widget.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">';
-        div.append(newDelIcon);
-        delIcon = div.children('.delete_icon');
-        div.children('.delete_icon').on('click', function(e) {
-            e.stopPropagation();
-            _Entities.deleteNode(this, widget);
-        });
+            newDelIcon = '<img title="Delete file ' + widget.name + '\'" alt="Delete file \'' + widget.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">';
+            div.append(newDelIcon);
+            delIcon = div.children('.delete_icon');
+            div.children('.delete_icon').on('click', function(e) {
+                e.stopPropagation();
+                _Entities.deleteNode(this, widget);
+            });
+
+        }
 		
         div.draggable({
             revert: 'invalid',
@@ -209,25 +213,13 @@ var _Widgets = {
             _Widgets.editContent(this, widget, text, dialogText);
         });
         
-        _Entities.appendEditPropertiesIcon(div, widget);
+        if (!remote) {
+            _Entities.appendEditPropertiesIcon(div, widget);
+        }
 
         _Entities.setMouseOver(div);
         
         return div;
-    },
-
-    updateWidget : function(widget, text) {
-        var chunks = Math.ceil(text.length / chunkSize);
-        //console.log(text, text.length, chunks);
-        for (var c=0; c<chunks; c++) {
-            var start = c*chunkSize;
-            var end = (c+1)*chunkSize;
-            //console.log(text.substring(start,end));
-            var chunk = utf8_to_b64(text.substring(start,end));
-            //console.log(chunk);
-            // TODO: check if we can send binary data directly
-            Command.chunk(widget.id, c, chunkSize, chunk);
-        }
     },
 
     editContent : function (button, entity, text, element) {
@@ -241,15 +233,59 @@ var _Widgets = {
             lineNumbers: true
         });
         editor.focus();
-        
         element.append('<button id="editorSave">Save</button>');
 
         $('#editorSave', element).on('click', function() {
+
+            var newText = editor.getValue();
+            
+            if (entity.srcUrl) {
+                var data = JSON.stringify({'source':newText});
+                log('update remote widget', entity.srcUrl, data);
+            $.ajax({
+                //url: $('#widgetServerUrl').val(),
+                url: entity.srcUrl,
+                type: 'PUT',
+                dataType: 'json',
+                data: data,
+                contentType: 'application/json; charset=utf-8',
+                //async: false,
+                statusCode : {
+                    200 : function(data) {
+
+                        log('success!');
+                        
+                    },
+                    400 : function(data, status, xhr) {
+                        console.log(data, status, xhr);
+                    },
+                    401 : function(data, status, xhr) {
+                        console.log(data, status, xhr);
+                    },
+                    403 : function(data, status, xhr) {
+                        console.log(data, status, xhr);
+                    },
+                    404 : function(data, status, xhr) {
+                        console.log(data, status, xhr);
+                    },
+                    422 : function(data, status, xhr) {
+                        console.log(data, status, xhr);
+                    },
+                    500 : function(data, status, xhr) {
+                        console.log(data, status, xhr);
+                    }
+                }
                 
-            Command.setProperty(entity.id, 'source', editor.getValue(), false, function() {
-                dialogMsg.html('<div class="infoBox success">Widget source saved.</div>');
-                $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
             });
+                
+            } else {
+                
+                Command.setProperty(entity.id, 'source', newText, false, function() {
+                    dialogMsg.html('<div class="infoBox success">Widget source saved.</div>');
+                    $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
+                });
+
+            }
             
         });
         
