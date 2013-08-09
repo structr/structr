@@ -146,7 +146,7 @@ public class UiAuthenticator extends HttpAuthenticator {
 			response.setHeader("Access-Control-Allow-Origin", origin);
 			response.setHeader("Access-Control-Allow-Methods", "GET");
 			response.setHeader("Access-Control-Allow-Headers", "Content-Type");
-			 
+
 		 }
 		
 		examined = true;

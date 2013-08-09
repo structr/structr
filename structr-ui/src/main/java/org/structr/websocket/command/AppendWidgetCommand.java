@@ -50,6 +50,7 @@ public class AppendWidgetCommand extends AbstractCommand {
 		String pageId                = webSocketData.getPageId();
 		Map<String, Object> nodeData = webSocketData.getNodeData();
 		String parentId              = (String) nodeData.get("parentId");
+		String source                = (String) nodeData.get("source");
 
 		// check node to append
 		if (id == null) {
@@ -91,20 +92,16 @@ public class AppendWidgetCommand extends AbstractCommand {
 
 			}
 
-			Widget widget = getWidget(id);
-			if (widget != null) {
+			Page page = getPage(pageId);
+			if (page != null) {
 
-				Page page = getPage(pageId);
-				if (page != null) {
+				try {
+					Widget.expandWidget(getWebSocket().getSecurityContext(), page, parentDOMNode, source);
+					
+				} catch (FrameworkException fex) {
 
-					try {
-						widget.expandWidget(getWebSocket().getSecurityContext(), page, parentDOMNode);
-						
-					} catch (FrameworkException fex) {
-						
-						// send exception
-						getWebSocket().send(MessageBuilder.status().code(422).message(fex.getMessage()).build(), true);
-					}
+					// send exception
+					getWebSocket().send(MessageBuilder.status().code(422).message(fex.getMessage()).build(), true);
 				}
 			}
 

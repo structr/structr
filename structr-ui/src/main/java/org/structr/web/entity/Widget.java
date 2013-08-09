@@ -26,8 +26,9 @@ public class Widget extends AbstractNode {
 		type, name, source
 	);
 	
-	public void expandWidget(SecurityContext securityContext, Page page, DOMNode parent) throws FrameworkException {
-		Importer importer = new Importer(securityContext, getProperty(source), null, null, 1, true, true);
+	public static void expandWidget(SecurityContext securityContext, Page page, DOMNode parent, String source) throws FrameworkException {
+		
+		Importer importer = new Importer(securityContext, source, null, null, 1, true, true);
 
 		importer.parse();
 		importer.createChildNodes(parent, page);
