@@ -493,17 +493,19 @@ var _Files = {
         headers['X-StructrSessionToken'] = token;
         var text;
         
-        var contentType;
+        var contentType = file.contentType;
         var dataType = 'text';
                 
-        if (file.name.endsWith('.css')) {
-            contentType = 'text/css';
-        } else if (file.name.endsWith('.js')) {
-            contentType = 'text/javascript';
-        } else {
-            contentType = 'text/plain';
+        if (!contentType) {
+            if (file.name.endsWith('.css')) {
+                contentType = 'text/css';
+            } else if (file.name.endsWith('.js')) {
+                contentType = 'text/javascript';
+            } else {
+                contentType = 'text/plain';
+            }
         }
-        console.log(viewRootUrl, url);
+        log(viewRootUrl, url);
         
         $.ajax({
             url: url,
@@ -515,12 +517,10 @@ var _Files = {
                 text = data;
                 if (isDisabled(button)) return;
                 var div = element.append('<div class="editor"></div>');
-                log(div);
                 var contentBox = $('.editor', element);
                 editor = CodeMirror(contentBox.get(0), {
                     value: unescapeTags(text),
-                    //value: text,
-                    mode:  contentType,
+                    mode: contentType,
                     lineNumbers: true
                 //            ,
                 //            onChange: function(cm, changes) {

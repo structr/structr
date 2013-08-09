@@ -95,7 +95,7 @@ var _Widgets = {
 
     appendWidgetElement : function(widget, add) {
 
-        console.log('Widgets.appendWidgetElement', widget);
+        log('Widgets.appendWidgetElement', widget);
         
         var icon = _Widgets.getIcon(widget);
         var parent = widgets;
@@ -123,11 +123,6 @@ var _Widgets = {
 
         _Entities.appendAccessControlIcon(div, widget);
 
-        div.children('.typeIcon').on('click', function(e) {
-            e.stopPropagation();
-            window.open(viewRootUrl + widget.name, 'Download ' + widget.name);
-        });
-        
         delIcon = div.children('.delete_icon');
 
         newDelIcon = '<img title="Delete file ' + widget.name + '\'" alt="Delete file \'' + widget.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">';
@@ -156,12 +151,11 @@ var _Widgets = {
         div.append('<img title="Edit Source" alt="Edit Source of ' + widget.id + '" class="edit_icon button" src="icon/pencil.png">');
         $('.edit_icon', div).on('click', function(e) {
             e.stopPropagation();
-            var self = $(this);
             var text = widget.source;
             Structr.dialog('Edit source of ' + widget.id, function() {
-                console.log('Widget source saved')
+                log('Widget source saved')
             }, function() {
-                console.log('cancelled')
+                log('cancelled')
             });
             _Widgets.editContent(this, widget, text, dialogText);
         });
@@ -194,7 +188,7 @@ var _Widgets = {
         var contentBox = $('.editor', element);
         editor = CodeMirror(contentBox.get(0), {
             value: unescapeTags(text),
-            mode:  contentType,
+            mode:  'text/html',
             lineNumbers: true
         });
         editor.focus();
