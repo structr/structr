@@ -225,11 +225,22 @@ public class Importer {
 
 	}
 
-	public void createChildNodes(final DOMNode parent, Page page) throws FrameworkException {
-		createChildNodes(parsedDocument.body(), parent, page, null);
+	public void createChildNodes(final DOMNode parent, final Page page) throws FrameworkException {
+
+		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+			@Override
+			public Object execute() throws FrameworkException {
+		
+				createChildNodes(parsedDocument.body(), parent, page, null);
+				
+				return null;
+			}
+		});
 	}
 	
-	public void createChildNodes(final Node startNode, final DOMNode parent, Page page, final URL baseUrl) throws FrameworkException {
+	// ----- private methods -----
+	private void createChildNodes(final Node startNode, final DOMNode parent, Page page, final URL baseUrl) throws FrameworkException {
 
 		List<Node> children = startNode.childNodes();
 
