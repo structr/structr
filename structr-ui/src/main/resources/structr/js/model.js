@@ -104,7 +104,7 @@ var StructrModel = {
         if (obj) {
 
             if (obj.exists && obj.exists()) {
-                console.log('obj exists');
+                log('obj exists');
                 return obj;
             }
 

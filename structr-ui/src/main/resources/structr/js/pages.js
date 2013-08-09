@@ -926,7 +926,7 @@ var _Pages = {
                 
                 var tag, name;
 
-                if (source.type === 'Widget') {
+                if (source && source.type === 'Widget') {
                     
                     console.log('Widget dropped, creating <img> node', name);
                     
@@ -936,11 +936,9 @@ var _Pages = {
                     Command.appendWidget(source.source, elementId, pageId);
                     $(ui.draggable).remove();
                     return;
-                }
+                    
+                } else if (source && source.type === 'Image') {
                 
-                var cls = Structr.getClass($(ui.draggable));
-                
-                if (cls === 'image') {
                     sourceId = undefined;
                     name = $(ui.draggable).find('.name_').attr('title');
                     log('Image dropped, creating <img> node', name);
@@ -952,10 +950,12 @@ var _Pages = {
                     _Pages.makeMenuDroppable();
                     
                     Command.createAndAppendDOMNode(getId(page), elementId, tag, nodeData);
+                    $(ui.draggable).remove();
+                    
                     return;
-                }
-                
-                if (cls === 'file') {
+                    
+                } else if (source && source.type === 'File') {
+                    
                     name = $(ui.draggable).children('.name_').attr('title');
                     
                     var parentTag = self.children('.tag_').text();
@@ -1031,7 +1031,7 @@ var _Pages = {
                     return;
                         
                 } else {
-                    tag = cls;
+                    tag = Structr.getClass($(ui.draggable));
                     log('appendChild', sourceId, elementId);
                     sorting = false;
                     Command.appendChild(sourceId, elementId);
