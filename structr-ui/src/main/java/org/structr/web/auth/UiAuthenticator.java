@@ -35,6 +35,8 @@ import org.structr.core.entity.ResourceAccess;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.apache.commons.lang.StringUtils;
+import org.eclipse.jetty.util.StringUtil;
 import org.structr.common.AccessMode;
 import org.structr.core.Services;
 import org.structr.core.auth.exception.UnauthorizedException;
@@ -135,6 +137,17 @@ public class UiAuthenticator extends HttpAuthenticator {
 		}
 		
 		securityContext.setAuthenticator(this);
+
+		// test for cross site resource sharing
+		String origin = request.getHeader("Origin");
+		 if (!StringUtils.isBlank(origin)) {
+
+			 // allow cross site resource sharing (read only)
+			response.setHeader("Access-Control-Allow-Origin", origin);
+			response.setHeader("Access-Control-Allow-Methods", "GET");
+			response.setHeader("Access-Control-Allow-Headers", "Content-Type");
+			 
+		 }
 		
 		examined = true;
 		return securityContext;
