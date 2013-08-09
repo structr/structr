@@ -46,20 +46,10 @@ public class AppendWidgetCommand extends AbstractCommand {
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
-		String id                    = webSocketData.getId();
 		String pageId                = webSocketData.getPageId();
 		Map<String, Object> nodeData = webSocketData.getNodeData();
 		String parentId              = (String) nodeData.get("parentId");
 		String source                = (String) nodeData.get("source");
-
-		// check node to append
-		if (id == null) {
-
-			getWebSocket().send(MessageBuilder.status().code(422).message("Cannot append node, no id is given").build(), true);
-
-			return;
-
-		}
 
 		// check for parent ID
 		if (parentId == null) {

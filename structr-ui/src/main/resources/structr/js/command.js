@@ -300,21 +300,21 @@ var Command = {
     /**
      * Send an APPEND_WIDGET command to the server.
      * 
-     * The server will append the widget with the given id
-     * as child of the node with the given parent id.
+     * The server will create nodes from the given source and
+     * append them as children of the node with the given parent id.
      * 
      * If the node was child of a parent before, it will be
      * removed from the former parent before being appended
      * to the new one.
      * 
      */
-    appendWidget: function(id, parentId, pageId) {
+    appendWidget: function(source, parentId, pageId) {
         var obj = {};
         obj.command = 'APPEND_WIDGET';
-        obj.id = id;
         obj.pageId = pageId;
         var data = {};
         data.parentId = parentId;
+        data.source = source;
         obj.data = data;
         console.log('appendWidget()', obj);
         return sendObj(obj);

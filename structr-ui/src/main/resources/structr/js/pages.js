@@ -933,7 +933,7 @@ var _Pages = {
                     Structr.modules['widgets'].unload();
                     _Pages.makeMenuDroppable();
                     
-                    Command.appendWidget(sourceId, elementId, pageId);
+                    Command.appendWidget(source.source, elementId, pageId);
                     $(ui.draggable).remove();
                     return;
                 }

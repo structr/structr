@@ -92,7 +92,7 @@ var _Widgets = {
 
     refreshRemoteWidgets : function() {
         remoteWidgets.empty();
-        remoteWidgets.append('<input id="widgetServerUrl" type="text" size="40" placeholder="Remote URL"><button id="connect_button">Connect</button>');
+        remoteWidgets.append('<input id="widgetServerUrl" type="text" size="40" placeholder="Remote URL" value="http://server2.morgner.de:8084/structr/rest/widgets"><button id="connect_button">Connect</button>');
         $('#connect_button', main).on('click', function(e) {
             e.stopPropagation();
             
@@ -107,7 +107,7 @@ var _Widgets = {
                         
                         $.each(data.result, function(i, entity) {
                             
-                            var obj = StructrModel.create(entity);
+                            var obj = StructrModel.create(entity, undefined, false);
                             console.log(obj);
                             _Widgets.appendWidgetElement(obj, true);
                             
