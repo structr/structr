@@ -53,7 +53,7 @@ import static org.structr.web.auth.HttpAuthenticator.checkSessionAuthentication;
  */
 public class UiAuthenticator extends HttpAuthenticator {
 	
-	private enum Method { GET, PUT, POST, DELETE }
+	private enum Method { GET, PUT, POST, DELETE, OPTIONS }
 	private static final Map<String, Method> methods = new LinkedHashMap<String, Method>();
 
 	private static final Logger logger       = Logger.getLogger(HttpAuthenticator.class.getName());
@@ -65,6 +65,7 @@ public class UiAuthenticator extends HttpAuthenticator {
 		methods.put("PUT", Method.PUT);
 		methods.put("POST", Method.POST);
 		methods.put("DELETE", Method.DELETE);
+		methods.put("OPTIONS", Method.OPTIONS);
 
 	}
 	
@@ -74,10 +75,14 @@ public class UiAuthenticator extends HttpAuthenticator {
 	public static final long AUTH_USER_PUT		= 2;
 	public static final long AUTH_USER_POST		= 4;
 	public static final long AUTH_USER_DELETE	= 8;
+	
 	public static final long NON_AUTH_USER_GET	= 16;
 	public static final long NON_AUTH_USER_PUT	= 32;
 	public static final long NON_AUTH_USER_POST	= 64;
 	public static final long NON_AUTH_USER_DELETE	= 128;
+	
+	public static final long AUTH_USER_OPTIONS	= 256;
+	public static final long NON_AUTH_USER_OPTIONS	= 512;
 
 	/**
 	 * Examine request and try to find a user.
@@ -225,6 +230,21 @@ public class UiAuthenticator extends HttpAuthenticator {
 
 					break;
 
+				case OPTIONS :
+
+					if (!validUser && resourceAccess.hasFlag(NON_AUTH_USER_OPTIONS)) {
+						
+						return;
+						
+					}
+					
+					if (validUser && resourceAccess.hasFlag(AUTH_USER_OPTIONS)) {
+
+						return;
+
+					}
+
+					break;
 			}
 		}
 
