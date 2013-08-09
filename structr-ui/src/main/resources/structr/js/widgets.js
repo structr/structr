@@ -151,7 +151,7 @@ var _Widgets = {
         div.append('<img title="Edit Source" alt="Edit Source of ' + widget.id + '" class="edit_icon button" src="icon/pencil.png">');
         $('.edit_icon', div).on('click', function(e) {
             e.stopPropagation();
-            var text = widget.source;
+            var text = widget.source || '';
             Structr.dialog('Edit source of ' + widget.id, function() {
                 log('Widget source saved')
             }, function() {
