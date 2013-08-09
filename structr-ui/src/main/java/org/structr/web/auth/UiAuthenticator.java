@@ -144,7 +144,7 @@ public class UiAuthenticator extends HttpAuthenticator {
 
 			 // allow cross site resource sharing (read only)
 			response.setHeader("Access-Control-Allow-Origin", origin);
-			response.setHeader("Access-Control-Allow-Methods", "GET");
+			response.setHeader("Access-Control-Allow-Methods", "GET,PUT,POST");
 			response.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
 		 }
