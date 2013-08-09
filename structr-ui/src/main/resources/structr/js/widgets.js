@@ -17,7 +17,7 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-var widgets;
+var widgets, remoteWidgets;
 var win = $(window);
 
 $(document).ready(function() {
@@ -67,10 +67,12 @@ var _Widgets = {
         log('onload');
         if (palette) palette.remove();
 
-        main.append('<table id="dropArea"><tr><td id="widgets"></td></tr></table>');
+        main.append('<table id="dropArea"><tr><td id="widgets"></td><td id="remoteWidgets"></td></tr></table>');
         widgets = $('#widgets');
+        remoteWidgets = $('#remoteWidgets');
         
         _Widgets.refreshWidgets();
+        _Widgets.refreshRemoteWidgets();
     },
 
     unload : function() {
@@ -88,17 +90,68 @@ var _Widgets = {
         _Widgets.resize();
     },
 
+    refreshRemoteWidgets : function() {
+        remoteWidgets.empty();
+        remoteWidgets.append('<input id="widgetServerUrl" type="text" size="40" placeholder="Remote URL"><button id="connect_button">Connect</button>');
+        $('#connect_button', main).on('click', function(e) {
+            e.stopPropagation();
+            
+            $.ajax({
+                url: $('#widgetServerUrl').val(),
+                type: 'GET',
+                dataType: 'json',
+                contentType: 'application/json; charset=utf-8',
+                //async: false,
+                statusCode : {
+                    200 : function(data) {
+                        
+                        $.each(data.result, function(i, entity) {
+                            
+                            var obj = StructrModel.create(entity);
+                            console.log(obj);
+                            _Widgets.appendWidgetElement(obj, true);
+                            
+                        });
+                        
+                        
+                        
+                    },
+                    400 : function(data, status, xhr) {
+                        console.log(data, status, xhr);
+                    },
+                    401 : function(data, status, xhr) {
+                        console.log(data, status, xhr);
+                    },
+                    403 : function(data, status, xhr) {
+                        console.log(data, status, xhr);
+                    },
+                    404 : function(data, status, xhr) {
+                        console.log(data, status, xhr);
+                    },
+                    422 : function(data, status, xhr) {
+                        console.log(data, status, xhr);
+                    },
+                    500 : function(data, status, xhr) {
+                        console.log(data, status, xhr);
+                    }
+                }
+                
+            });
+            
+        });
+    },
+
     getIcon : function() {
         var icon = _Widgets.icon; // default
         return icon;
     },
 
-    appendWidgetElement : function(widget, add) {
+    appendWidgetElement : function(widget, remote) {
 
-        log('Widgets.appendWidgetElement', widget);
+        console.log('Widgets.appendWidgetElement', widget, remote);
         
         var icon = _Widgets.getIcon(widget);
-        var parent = widgets;
+        var parent = remote ? remoteWidgets : widgets;
         
         var delIcon, newDelIcon;
         var div = Structr.node(widget.id);
@@ -126,12 +179,8 @@ var _Widgets = {
         delIcon = div.children('.delete_icon');
 
         newDelIcon = '<img title="Delete file ' + widget.name + '\'" alt="Delete file \'' + widget.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">';
-        if (add && delIcon && delIcon.length) {
-            delIcon.replaceWith(newDelIcon);
-        } else {
-            div.append(newDelIcon);
-            delIcon = div.children('.delete_icon');
-        } 
+        div.append(newDelIcon);
+        delIcon = div.children('.delete_icon');
         div.children('.delete_icon').on('click', function(e) {
             e.stopPropagation();
             _Entities.deleteNode(this, widget);
