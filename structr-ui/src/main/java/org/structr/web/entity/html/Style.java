@@ -20,6 +20,8 @@
 
 package org.structr.web.entity.html;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.structr.web.entity.dom.DOMElement;
 import org.apache.commons.lang.ArrayUtils;
 
@@ -29,9 +31,14 @@ import org.structr.core.property.Property;
 import org.structr.common.PropertyView;
 import org.structr.web.common.RelType;
 import org.structr.common.View;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.Services;
+import org.structr.core.graph.StructrTransaction;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.CollectionProperty;
 import org.structr.web.common.HtmlProperty;
 import org.structr.web.entity.dom.Content;
+import org.w3c.dom.Node;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -40,6 +47,8 @@ import org.structr.web.entity.dom.Content;
  */
 public class Style extends DOMElement {
 
+	private static final Logger logger = Logger.getLogger(Style.class.getName());
+	
 	public static final Property<String> _media  = new HtmlProperty("media");
 	public static final Property<String> _type   = new HtmlProperty("type");
 	public static final Property<String> _scoped = new HtmlProperty("scoped");
@@ -57,5 +66,30 @@ public class Style extends DOMElement {
 
 		return (Property[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlView.properties());
 
+	}
+	
+	@Override
+	protected void handleNewChild(final Node newChild) {
+		
+		if (newChild instanceof Content) {
+			
+			try {
+				Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+					@Override
+					public Object execute() throws FrameworkException {
+
+						((Content)newChild).setProperty(Content.contentType, "text/css");
+
+						return null;
+					}
+
+				});
+				
+			} catch (FrameworkException fex) {
+				
+				logger.log(Level.WARNING, "Unable to set property on new child: {0}", fex.getMessage());
+			}
+		}
 	}
 }

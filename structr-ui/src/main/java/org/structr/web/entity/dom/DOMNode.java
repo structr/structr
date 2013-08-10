@@ -480,6 +480,18 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 		});
 	}
 	
+	/**
+	 * This method will be called by the DOM logic when this
+	 * node gets a new child. Override this method if you
+	 * need to set properties on the child depending on its
+	 * type etc.
+	 * 
+	 * @param newChild 
+	 */
+	protected void handleNewChild(Node newChild) {
+		// override me
+	}
+	
 	// ----- public methods -----
 	@Override
 	public String toString() {
@@ -1354,6 +1366,8 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 				treeInsertBefore(RelType.CONTAINS, (DOMNode)newChild, (DOMNode)refChild);
 				
+				// allow parent to set properties in new child
+				handleNewChild(newChild);
 			}
 
 		} catch (FrameworkException fex) {
@@ -1418,6 +1432,9 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 				// replace directly
 				treeReplaceChild(RelType.CONTAINS, (DOMNode)newChild, (DOMNode)oldChild);
+				
+				// allow parent to set properties in new child
+				handleNewChild(newChild);
 			}
 
 		} catch (FrameworkException fex) {
@@ -1494,6 +1511,9 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 				}
 			
 				treeAppendChild(RelType.CONTAINS, (DOMNode)newChild);
+				
+				// allow parent to set properties in new child
+				handleNewChild(newChild);
 			}
 			
 		} catch (FrameworkException fex) {

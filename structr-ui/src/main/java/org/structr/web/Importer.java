@@ -320,6 +320,7 @@ public class Importer {
 			if (StringUtils.isBlank(tag)) {
 
 				newNode = (Content) page.createTextNode(content);
+				
 			} else {
 
 				newNode = (org.structr.web.entity.dom.DOMElement) page.createElement(tag);
