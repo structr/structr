@@ -1,6 +1,8 @@
 package org.structr.web.entity;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
@@ -21,7 +23,7 @@ import org.structr.web.entity.dom.Page;
  */
 public class Widget extends AbstractNode {
 
-	private static final ThreadLocalMatcher threadLocalTemplateMatcher = new ThreadLocalMatcher("\\$\\{[^}]*\\}");
+	private static final ThreadLocalMatcher threadLocalTemplateMatcher = new ThreadLocalMatcher("\\[[a-zA-Z]+\\]");
 	public static final Property<String> source                        = new StringProperty("source");
 	
 	public static final org.structr.common.View uiView = new org.structr.common.View(User.class, PropertyView.Ui,
@@ -44,7 +46,8 @@ public class Widget extends AbstractNode {
 		} else {
 	
 			// check source for mandatory parameters
-			Matcher matcher = threadLocalTemplateMatcher.get();
+			Matcher matcher  = threadLocalTemplateMatcher.get();
+			Set<String> keys = new HashSet<>();
 
 			// initialize with source
 			matcher.reset(_source);
@@ -52,7 +55,19 @@ public class Widget extends AbstractNode {
 			while (matcher.find()) {
 
 				String group  = matcher.group();
-			
+				String key    = group.substring(1, group.length() - 1);
+				Object value  = parameters.get(key);
+				
+				if (value == null) {
+					
+					errorBuffer.add(Widget.class.getSimpleName(), new EmptyPropertyToken(new StringProperty(key)));
+					
+				} else {
+					
+					// replace and restart matching process
+					_source = _source.replaceAll(group, value.toString());
+					matcher.reset(_source);
+				}
 				
 			}
 			
