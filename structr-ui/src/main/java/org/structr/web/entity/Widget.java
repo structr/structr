@@ -19,9 +19,13 @@
 
 package org.structr.web.entity;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import org.neo4j.graphdb.Direction;
 import org.structr.common.PropertyView;
@@ -103,7 +107,7 @@ public class Widget extends AbstractNode implements Taggable {
 			Importer importer = new Importer(securityContext, _source, baseUrl, null, 1, true, true);
 
 			importer.parse();
-			importer.createChildNodes(parent, page);
+			importer.createChildNodes(parent, page, baseUrl);
 			
 		} else {
 			

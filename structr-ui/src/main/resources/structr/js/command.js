@@ -312,8 +312,8 @@ var Command = {
         var obj = {};
         obj.command = 'APPEND_WIDGET';
         obj.pageId = pageId;
-        obj.widgetHostBaseUrl = widgetHostBaseUrl;
         var data = {};
+        data.widgetHostBaseUrl = widgetHostBaseUrl;
         data.parentId = parentId;
         data.source = source;
         if (attributes && attributes.length) {

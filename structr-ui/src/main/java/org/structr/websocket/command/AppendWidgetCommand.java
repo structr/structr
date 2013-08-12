@@ -46,10 +46,10 @@ public class AppendWidgetCommand extends AbstractCommand {
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
-		String pageId                = webSocketData.getPageId();
-		String baseUrl               = webSocketData.getWidgetHostBaseUrl();
-		Map<String, Object> nodeData = webSocketData.getNodeData();
-		String parentId              = (String) nodeData.get("parentId");
+		String pageId			= webSocketData.getPageId();
+		Map<String, Object> nodeData	= webSocketData.getNodeData();
+		String parentId			= (String) nodeData.get("parentId");
+		String baseUrl			= (String) nodeData.get("widgetHostBaseUrl");
 
 		// check for parent ID
 		if (parentId == null) {

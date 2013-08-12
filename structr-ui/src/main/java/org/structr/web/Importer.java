@@ -225,14 +225,24 @@ public class Importer {
 
 	}
 
-	public void createChildNodes(final DOMNode parent, final Page page) throws FrameworkException {
+	public void createChildNodes(final DOMNode parent, final Page page, final String baseUrl) throws FrameworkException {
 
 		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
 			@Override
 			public Object execute() throws FrameworkException {
-		
-				createChildNodes(parsedDocument.body(), parent, page, null);
+				
+				try {
+					
+					createChildNodes(parsedDocument.body(), parent, page, new URL(baseUrl));
+					
+				} catch (MalformedURLException ex) {
+					
+					logger.log(Level.WARNING, "Could not read URL {1}, calling method without base URL", baseUrl);
+					
+					createChildNodes(parsedDocument.body(), parent, page, null);
+					
+				}
 				
 				return null;
 			}
