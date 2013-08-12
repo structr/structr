@@ -195,7 +195,7 @@ public class RegistrationResource extends Resource {
 		
 		replacementMap.put(toPlaceholder(User.eMail.jsonName()), userEmail);
 		replacementMap.put(toPlaceholder("link"),
-			getTemplateText(TemplateKey.BASE_URL, "//" + Services.getApplicationHost() + ":" + Services.getHttpPort())
+			getTemplateText(TemplateKey.BASE_URL, "http://" + Services.getApplicationHost() + ":" + Services.getHttpPort())
 			+ "/" + HtmlServlet.CONFIRM_REGISTRATION_PAGE
 			+ "?" + HtmlServlet.CONFIRM_KEY_KEY + "=" + confKey
 			+ "&" + HtmlServlet.TARGET_PAGE_KEY + "=" + getTemplateText(TemplateKey.TARGET_PAGE, "register_thanks"));
