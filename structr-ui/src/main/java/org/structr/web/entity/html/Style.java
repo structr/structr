@@ -79,7 +79,7 @@ public class Style extends DOMElement {
 					@Override
 					public Object execute() throws FrameworkException {
 
-						((Content)newChild).setProperty(Content.contentType, "text/css");
+						((Content)newChild).setProperty(Content.contentType, getProperty(_type));
 
 						return null;
 					}

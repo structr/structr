@@ -94,7 +94,7 @@ public class Script extends DOMElement {
 					@Override
 					public Object execute() throws FrameworkException {
 
-						((Content)newChild).setProperty(Content.contentType, "text/javascript");
+						((Content)newChild).setProperty(Content.contentType, getProperty(_type));
 
 						return null;
 					}
