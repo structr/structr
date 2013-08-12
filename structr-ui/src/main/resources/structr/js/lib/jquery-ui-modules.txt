@@ -1,0 +1,8 @@
+Structr needs the following jQuery UI modules to work properly:
+
+See: http://jqueryui.com/download
+
+UI Core: All
+Interactions: All
+Widgets: Datepicker, Tabs
+Effects: Effects Core
