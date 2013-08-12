@@ -308,13 +308,16 @@ var Command = {
      * to the new one.
      * 
      */
-    appendWidget: function(source, parentId, pageId) {
+    appendWidget: function(source, parentId, pageId, attributes) {
         var obj = {};
         obj.command = 'APPEND_WIDGET';
         obj.pageId = pageId;
         var data = {};
         data.parentId = parentId;
         data.source = source;
+        $.each(Object.keys(attributes), function(i, key) {
+            data[key] = attributes[key];
+        });
         obj.data = data;
         console.log('appendWidget()', obj);
         return sendObj(obj);

@@ -928,12 +928,51 @@ var _Pages = {
 
                 if (source && source.type === 'Widget') {
                     
-                    console.log('Widget dropped, creating <img> node', name);
+                    console.log('Widget dropped', name);
                     
                     Structr.modules['widgets'].unload();
                     _Pages.makeMenuDroppable();
                     
-                    Command.appendWidget(source.source, elementId, pageId);
+                    Structr.dialog('Configure Widget', function() {
+                    }, function() {
+                    });
+                    
+                    //var pattern = /^\[[a-zA-Z]+\]$/;
+                    var pattern = /\[[a-zA-Z]+\]/g;
+                    var matches = $.unique(source.source.match(pattern));
+                    
+                    dialogText.append('<p>Fill out the following parameters to correctly configure the widget.</p><table class="props"></table>');
+                    var table = $('table', dialogText);
+                    
+                    $.each(matches, function(i, match) {
+                       
+                        console.log(match);
+                        var label = _Crud.formatKey(match.replace(/\[/, '').replace(/\]/, ''));
+                        table.append('<tr><td><label for="' + label + '">' + label + '</label></td><td><input type="text" id="' + match + '" placeholder="' + label + '"></td></tr>');
+                        
+                    });
+
+                    dialog.append('<button id="appendWidget">Append Widget</button>');
+                    var attrs = {};
+                    $('#appendWidget').on('click', function(e) {
+                        
+                        $.each(matches, function(i, match) {
+                            
+                            $.each($('input[type="text"]', table), function(i, m) {
+                                //console.log(i, this);
+                                var key = $(m).prop('id').replace(/\[/, '').replace(/\]/, '')
+                                attrs[key] = $(this).val();
+                            });
+                            
+                        });
+                        //console.log(source.source, elementId, pageId, attrs);
+                        e.stopPropagation();
+                        Command.appendWidget(source.source, elementId, pageId, attrs);
+                        
+                        dialogCancelButton.click();
+                    });
+
+                    
                     $(ui.draggable).remove();
                     return;
                     
@@ -946,7 +985,7 @@ var _Pages = {
                     nodeData.name = name;
                     tag = 'img';
                     
-                    Structr.modules['files'].unload();
+                    Structr.modules['images'].unload();
                     _Pages.makeMenuDroppable();
                     
                     Command.createAndAppendDOMNode(getId(page), elementId, tag, nodeData);

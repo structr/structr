@@ -205,7 +205,7 @@ var _Widgets = {
         $('.edit_icon', div).on('click', function(e) {
             e.stopPropagation();
             var text = widget.source || '';
-            Structr.dialog('Edit source of ' + widget.id, function() {
+            Structr.dialog('Edit widget "' + widget.name + '"', function() {
                 log('Widget source saved')
             }, function() {
                 log('cancelled')
@@ -217,8 +217,11 @@ var _Widgets = {
             _Entities.appendEditPropertiesIcon(div, widget);
         }
 
-        _Entities.setMouseOver(div);
-        
+        _Entities.setMouseOver(div, false);
+        if (remote) {
+            div.children('b.name_').off('click').css({ cursor:'move'});
+        }
+
         return div;
     },
 
@@ -233,9 +236,9 @@ var _Widgets = {
             lineNumbers: true
         });
         editor.focus();
-        element.append('<button id="editorSave">Save</button>');
+        dialogBtn.append('<button id="editorSave">Save Widget</button>');
 
-        $('#editorSave', element).on('click', function() {
+        $('#editorSave', dialogBtn).on('click', function() {
 
             var newText = editor.getValue();
             
@@ -252,9 +255,8 @@ var _Widgets = {
                 //async: false,
                 statusCode : {
                     200 : function(data) {
-
-                        log('success!');
-                        
+                        dialogMsg.html('<div class="infoBox success">Widget source saved.</div>');
+                        $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
                     },
                     400 : function(data, status, xhr) {
                         console.log(data, status, xhr);
@@ -281,7 +283,7 @@ var _Widgets = {
             } else {
                 
                 Command.setProperty(entity.id, 'source', newText, false, function() {
-                    dialogMsg.html('<div class="infoBox success">Widget source saved.</div>');
+                    dialogMsg.html('<div class="infoBox success">Widget saved.</div>');
                     $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
                 });
 
