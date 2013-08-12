@@ -308,10 +308,11 @@ var Command = {
      * to the new one.
      * 
      */
-    appendWidget: function(source, parentId, pageId, attributes) {
+    appendWidget: function(source, parentId, pageId, widgetHostBaseUrl, attributes) {
         var obj = {};
         obj.command = 'APPEND_WIDGET';
         obj.pageId = pageId;
+        obj.widgetHostBaseUrl = widgetHostBaseUrl;
         var data = {};
         data.parentId = parentId;
         data.source = source;

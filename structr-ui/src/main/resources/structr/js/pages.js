@@ -925,6 +925,8 @@ var _Pages = {
                 }
                 
                 var tag, name;
+                
+                var baseUrl = 'http://' + remoteWidgets.remoteHost + ':' + remoteWidgets.remotePort;
 
                 if (source && source.type === 'Widget') {
                     
@@ -953,7 +955,6 @@ var _Pages = {
 
                                 $.each(matches, function(i, match) {
 
-                                    console.log(match);
                                     var label = _Crud.formatKey(match.replace(/\[/, '').replace(/\]/, ''));
                                     table.append('<tr><td><label for="' + label + '">' + label + '</label></td><td><input type="text" id="' + match + '" placeholder="' + label + '"></td></tr>');
 
@@ -975,7 +976,7 @@ var _Pages = {
                                     
                                     //console.log(source.source, elementId, pageId, attrs);
                                     e.stopPropagation();
-                                    Command.appendWidget(text, elementId, pageId, attrs);
+                                    Command.appendWidget(text, elementId, pageId, baseUrl, attrs);
 
                                     dialogCancelButton.click();
                                     $(ui.draggable).remove();
@@ -987,7 +988,7 @@ var _Pages = {
                         }
 
                         // If no matches, directly append widget
-                        Command.appendWidget(source.source, elementId, pageId);
+                        Command.appendWidget(source.source, elementId, baseUrl, pageId);
                     
                     }
 

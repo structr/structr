@@ -91,17 +91,18 @@ var _Widgets = {
         remoteWidgets.empty();
         remoteWidgets.append('<h1>Remote Widgets</h1>');
         
-        var remoteHost = 'widgets.structr.org';
-        var remotePort = '8084';
+        // TODO: Make widget host configurable
+        remoteWidgets.remoteHost = 'widgets.structr.org';
+        remoteWidgets.remotePort = '8084';
         
-        if (document.location.hostname === remoteHost && document.location.port === remotePort) {
+        if (document.location.hostname === remoteWidgets.remoteHost && document.location.port === remoteWidgets.remotePort) {
             return;
         }
         
         //remoteWidgets.append('<input id="widgetServerUrl" type="text" size="40" placeholder="Remote URL" value="http://server2.morgner.de:8084/structr/rest/widgets"><button id="connect_button">Connect</button>');
 //        $('#connect_button', main).on('click', function(e) {
 //            e.stopPropagation();
-            var baseUrl = 'http://' + remoteHost + ':' + remotePort + '/structr/rest/widgets';
+            var baseUrl = 'http://' + remoteWidgets.remoteHost + ':' + remoteWidgets.remotePort + '/structr/rest/widgets';
             $.ajax({
                 //url: $('#widgetServerUrl').val(),
                 url: baseUrl,
