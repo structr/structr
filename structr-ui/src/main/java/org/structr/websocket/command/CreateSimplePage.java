@@ -89,9 +89,9 @@ public class CreateSimplePage extends AbstractCommand {
 					body.appendChild(div);
 					
 					// add text nodes
-					title.appendChild(newPage.createTextNode("Page Title"));					
-					h1.appendChild(newPage.createTextNode("Page Heading"));
-					div.appendChild(newPage.createTextNode("Body Text"));
+					title.appendChild(newPage.createTextNode("${capitalize(page.name)}"));					
+					h1.appendChild(newPage.createTextNode("${capitalize(page.name)}"));
+					div.appendChild(newPage.createTextNode("Initial body text"));
 					
 				} catch (DOMException dex) {
 					
