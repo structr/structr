@@ -31,13 +31,9 @@ $(document).ready(function() {
 
 var _Widgets = {
 
-    icon : 'icon/page_white.png',
-    add_file_icon : 'icon/page_white_add.png',
-    delete_file_icon : 'icon/page_white_delete.png',
-    add_folder_icon : 'icon/folder_add.png',
-    folder_icon : 'icon/folder.png',
-    delete_folder_icon : 'icon/folder_delete.png',
-    download_icon : 'icon/basket_put.png',
+    icon : 'icon/brick.png',
+    add_widget_icon : 'icon/brick_add.png',
+    delete_widget_icon : 'icon/brick_delete.png',
 	
     init : function() {
 
@@ -82,7 +78,7 @@ var _Widgets = {
     refreshWidgets : function() {
         widgets.empty();
         widgets.append('<h1>Local Widgets</h1>');
-        widgets.append('<button class="add_widgets_icon button"><img title="Add Widget" alt="Add Widget" src="' + _Widgets.getIcon() + '"> Add Widget</button>');
+        widgets.append('<button class="add_widgets_icon button"><img title="Add Widget" alt="Add Widget" src="' + _Widgets.add_widget_icon + '"> Add Widget</button>');
         $('.add_widgets_icon', main).on('click', function(e) {
             e.stopPropagation();
             Command.create({'type':'Widget'});
@@ -94,10 +90,18 @@ var _Widgets = {
     refreshRemoteWidgets : function() {
         remoteWidgets.empty();
         remoteWidgets.append('<h1>Remote Widgets</h1>');
+        
+        var remoteHost = 'widgets.structr.org';
+        var remotePort = 8084;
+        
+        if (document.location.host === remoteHost && document.location.port === remotePort) {
+            return;
+        }
+        
         //remoteWidgets.append('<input id="widgetServerUrl" type="text" size="40" placeholder="Remote URL" value="http://server2.morgner.de:8084/structr/rest/widgets"><button id="connect_button">Connect</button>');
 //        $('#connect_button', main).on('click', function(e) {
 //            e.stopPropagation();
-            var baseUrl = 'http://server2.morgner.de:8084/structr/rest/widgets';
+            var baseUrl = 'http://' + remoteHost + ':' + remotePort + '/structr/rest/widgets';
             $.ajax({
                 //url: $('#widgetServerUrl').val(),
                 url: baseUrl,
