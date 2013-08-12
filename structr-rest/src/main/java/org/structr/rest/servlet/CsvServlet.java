@@ -322,7 +322,12 @@ public class CsvServlet extends HttpServlet {
 				}
 
 				// remove last ,
-				row.deleteCharAt(row.lastIndexOf(","));
+				int pos = row.lastIndexOf(",");
+				if (pos >= 0) {
+
+					row.deleteCharAt(pos);
+				}
+				
 				out.append(row).append("\n");
 
 				// flush each line

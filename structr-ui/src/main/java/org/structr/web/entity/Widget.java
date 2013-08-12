@@ -59,7 +59,7 @@ public class Widget extends AbstractNode implements Taggable {
 		type, name, source, description, pictures, tags
 	);
 	
-	public static void expandWidget(SecurityContext securityContext, Page page, DOMNode parent, Map<String, Object> parameters) throws FrameworkException {
+	public static void expandWidget(SecurityContext securityContext, Page page, DOMNode parent, String baseUrl, Map<String, Object> parameters) throws FrameworkException {
 	
 		String _source          = (String)parameters.get("source");
 		ErrorBuffer errorBuffer = new ErrorBuffer();
@@ -100,7 +100,7 @@ public class Widget extends AbstractNode implements Taggable {
 		
 		if (!errorBuffer.hasError()) {
 
-			Importer importer = new Importer(securityContext, _source, null, null, 1, true, true);
+			Importer importer = new Importer(securityContext, _source, baseUrl, null, 1, true, true);
 
 			importer.parse();
 			importer.createChildNodes(parent, page);

@@ -988,7 +988,7 @@ var _Pages = {
                         }
 
                         // If no matches, directly append widget
-                        Command.appendWidget(source.source, elementId, baseUrl, pageId);
+                        Command.appendWidget(source.source, elementId, pageId, baseUrl);
                     
                     }
 

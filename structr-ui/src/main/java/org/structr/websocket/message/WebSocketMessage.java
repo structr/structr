@@ -64,6 +64,7 @@ public class WebSocketMessage {
 	private String sortOrder                    = null;
 	private String token                        = null;
 	private String view                         = null;
+	private String widgetHostBaseUrl                          = null;
 	private Set<String> nodesWithChildren       = null;
 
 	//~--- methods --------------------------------------------------------
@@ -97,6 +98,7 @@ public class WebSocketMessage {
 		newCopy.view               = this.view;
 		newCopy.chunkSize          = this.chunkSize;
 		newCopy.nodesWithChildren  = this.nodesWithChildren;
+		newCopy.widgetHostBaseUrl                = this.widgetHostBaseUrl;
 
 		return newCopy;
 	}
@@ -137,6 +139,10 @@ public class WebSocketMessage {
 
 	public String getView() {
 		return view;
+	}
+
+	public String getWidgetHostBaseUrl() {
+		return widgetHostBaseUrl;
 	}
 
 	public List<? extends GraphObject> getResult() {
@@ -311,5 +317,9 @@ public class WebSocketMessage {
 
 	public void setNodesWithChildren(final Set<String> nodesWithChildren) {
 		this.nodesWithChildren = nodesWithChildren;
+	}
+
+	public void setUrl(final String url) {
+		this.widgetHostBaseUrl = url;
 	}
 }
