@@ -92,9 +92,9 @@ var _Widgets = {
         remoteWidgets.append('<h1>Remote Widgets</h1>');
         
         var remoteHost = 'widgets.structr.org';
-        var remotePort = 8084;
+        var remotePort = '8084';
         
-        if (document.location.host === remoteHost && document.location.port === remotePort) {
+        if (document.location.hostname === remoteHost && document.location.port === remotePort) {
             return;
         }
         
