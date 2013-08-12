@@ -315,11 +315,13 @@ var Command = {
         var data = {};
         data.parentId = parentId;
         data.source = source;
-        $.each(Object.keys(attributes), function(i, key) {
-            data[key] = attributes[key];
-        });
+        if (attributes && attributes.length) {
+            $.each(Object.keys(attributes), function(i, key) {
+                data[key] = attributes[key];
+            });
+        }
         obj.data = data;
-        console.log('appendWidget()', obj);
+        log('appendWidget()', obj);
         return sendObj(obj);
     },
     /**

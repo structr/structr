@@ -928,51 +928,69 @@ var _Pages = {
 
                 if (source && source.type === 'Widget') {
                     
-                    console.log('Widget dropped', name);
-                    
                     Structr.modules['widgets'].unload();
                     _Pages.makeMenuDroppable();
                     
-                    Structr.dialog('Configure Widget', function() {
-                    }, function() {
-                    });
-                    
                     //var pattern = /^\[[a-zA-Z]+\]$/;
                     var pattern = /\[[a-zA-Z]+\]/g;
-                    var matches = $.unique(source.source.match(pattern));
-                    
-                    dialogText.append('<p>Fill out the following parameters to correctly configure the widget.</p><table class="props"></table>');
-                    var table = $('table', dialogText);
-                    
-                    $.each(matches, function(i, match) {
-                       
-                        console.log(match);
-                        var label = _Crud.formatKey(match.replace(/\[/, '').replace(/\]/, ''));
-                        table.append('<tr><td><label for="' + label + '">' + label + '</label></td><td><input type="text" id="' + match + '" placeholder="' + label + '"></td></tr>');
+                    var text = source.source;
+                    if (text) {
                         
-                    });
-
-                    dialog.append('<button id="appendWidget">Append Widget</button>');
-                    var attrs = {};
-                    $('#appendWidget').on('click', function(e) {
+                        var rawMatches = text.match(pattern);
                         
-                        $.each(matches, function(i, match) {
+                        if (rawMatches) {
                             
-                            $.each($('input[type="text"]', table), function(i, m) {
-                                //console.log(i, this);
-                                var key = $(m).prop('id').replace(/\[/, '').replace(/\]/, '')
-                                attrs[key] = $(this).val();
-                            });
-                            
-                        });
-                        //console.log(source.source, elementId, pageId, attrs);
-                        e.stopPropagation();
-                        Command.appendWidget(source.source, elementId, pageId, attrs);
-                        
-                        dialogCancelButton.click();
-                    });
+                            var matches = $.unique(rawMatches);
 
+                            if (matches && matches.length) {
+
+                                Structr.dialog('Configure Widget', function() {
+                                }, function() {
+                                });
+
+                                dialogText.append('<p>Fill out the following parameters to correctly configure the widget.</p><table class="props"></table>');
+                                var table = $('table', dialogText);
+
+                                $.each(matches, function(i, match) {
+
+                                    console.log(match);
+                                    var label = _Crud.formatKey(match.replace(/\[/, '').replace(/\]/, ''));
+                                    table.append('<tr><td><label for="' + label + '">' + label + '</label></td><td><input type="text" id="' + match + '" placeholder="' + label + '"></td></tr>');
+
+                                });
+
+                                dialog.append('<button id="appendWidget">Append Widget</button>');
+                                var attrs = {};
+                                $('#appendWidget').on('click', function(e) {
+
+                                    $.each(matches, function(i, match) {
+
+                                        $.each($('input[type="text"]', table), function(i, m) {
+                                            //console.log(i, this);
+                                            var key = $(m).prop('id').replace(/\[/, '').replace(/\]/, '')
+                                            attrs[key] = $(this).val();
+                                        });
+
+                                    });
+                                    
+                                    //console.log(source.source, elementId, pageId, attrs);
+                                    e.stopPropagation();
+                                    Command.appendWidget(text, elementId, pageId, attrs);
+
+                                    dialogCancelButton.click();
+                                    $(ui.draggable).remove();
+                                    return;
+                                });
+
+                            }
+                        
+                        }
+
+                        // If no matches, directly append widget
+                        Command.appendWidget(source.source, elementId, pageId);
                     
+                    }
+
                     $(ui.draggable).remove();
                     return;
                     
