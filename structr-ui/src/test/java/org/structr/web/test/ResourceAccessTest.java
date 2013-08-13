@@ -52,12 +52,12 @@ public class ResourceAccessTest extends StructrUiTest {
 
 	//~--- methods --------------------------------------------------------
 
-	@Override
-	public void test00DbAvailable() {
-
-		super.test00DbAvailable();
-
-	}
+//	@Override
+//	public void test00DbAvailable() {
+//
+//		super.test00DbAvailable();
+//
+//	}
 
 	public void test01ResourceAccessGET() {
 

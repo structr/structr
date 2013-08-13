@@ -83,11 +83,7 @@ public class FrontendTest extends StructrUiTest {
 
 	}
 
-	@Override
-	public void test00DbAvailable() {
-
-		//super.test00DbAvailable();
-
+	public void test00() {
 	}
 
 	protected void createAdminUser() throws FrameworkException {

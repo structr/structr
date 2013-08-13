@@ -181,11 +181,7 @@ public class StructrUiTest extends TestCase {
 
 	}
 
-	public void test00DbAvailable() {
-
-		GraphDatabaseService graphDb = (GraphDatabaseService) graphDbCommand.execute();
-
-		assertTrue(graphDb != null);
+	public void test00() {
 	}
 
 	@Override

@@ -23,7 +23,7 @@ var casper = require('casper').create(s.casperOptions);
 var testName = 'drag_element';
 var heading = "Drag Element"
 var desc = "This animation shows how a content element is dragged into a page."
-var numberOfTests = 3;
+var numberOfTests = 4;
 
 s.startRecording(window, casper, testName);
 
@@ -75,10 +75,20 @@ casper.test.begin(testName, numberOfTests, function(test) {
     });
 
     casper.then(function() {
-        s.dragDropElement(casper, '#add_content', '#pages');
+        s.moveMousePointerTo(casper, '#add_content');
     });
 
-    casper.wait(5000);
+    casper.then(function() {
+        s.dragDropElement(casper, '#add_content', '#pages .html_element > div.node:eq(1) > div.node:eq(1)');
+    });
+
+    casper.wait(3000);
+    casper.then(function() {
+        
+        test.assertEval(function() {
+            return $('#pages .node.page .html_element > div.node:eq(1) > div.node:eq(1) > .content:eq(1) .content_').text() === '#text';
+        });
+    });
 
     casper.then(function() {
         

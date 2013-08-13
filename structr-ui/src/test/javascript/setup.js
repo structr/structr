@@ -258,41 +258,43 @@ exports.moveMousePointerTo = function(casper, selector) {
  */
 exports.dragDropElement = function(casper, sourceSelector, targetSelector) {
 
-    //if (exports.debug)
+    if (exports.debug)
         console.log('drag element', sourceSelector, targetSelector);
 
     casper.then(function() {
 
-        exports.moveMousePointerTo(this, sourceSelector);
-//        
+        //exports.moveMousePointerTo(casper, targetSelector);
         
         var positions = this.evaluate(function(s, t) {
-            var sourceEl = $(s), targetEl = $(t);
+            var sourceEl = $(s);
+            var targetEl = $(t);
+            
             var c = $('#testCursor');
 
-            if (sourceEl.length && c.length) {
+            if (sourceEl.length && targetEl.length) {
+                
+                c.appendTo(sourceEl);
 
-                var startPos = {left: c.offset().left + c.width() / 2, top: c.offset().top + c.height() / 2};
-                var endPos = {left: sourceEl.offset().left + sourceEl.width() / 2, top: sourceEl.offset().top + sourceEl.height() / 2};
+                var sourcePos = {'left': sourceEl.offset().left + sourceEl.width() / 2, 'top': sourceEl.offset().top + sourceEl.height() / 2};
+                var targetPos = {'left': targetEl.offset().left + targetEl.width() / 2, 'top': targetEl.offset().top + targetEl.height() / 2};
 
                 sourceEl.simulate('drag', {
-                    dx: -545,
-                    dy: 216,
-                    moves: 1
+                    dx: (targetPos.left - sourcePos.left),
+                    dy: (targetPos.top - sourcePos.top),
+                    moves: 10
                 });
                 
-                return {
-                    start: startPos,
-                    end: endPos
-                };
-        
+                return {'sourcePos':sourcePos, 'targetPos':targetPos};
+                
             }
+
         }, sourceSelector, targetSelector);
         
-        exports.moveMousePointerTo(this, sourceSelector);
+        exports.mousePointer(this, positions.targetPos);
         
-//        exports.moveMousePointer(casper, positions.start, positions.end);
-
+        if (exports.debug)
+            console.log(positions.sourcePos.left, positions.sourcePos.top, positions.targetPos.left, positions.targetPos.top);
+        
     });
 
 }

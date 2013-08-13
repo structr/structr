@@ -23,7 +23,7 @@ var casper = require('casper').create(s.casperOptions);
 var testName = 'inline_editing';
 var heading = "Inline Editing"
 var desc = "This animation shows how to edit text directly in the rendered page."
-var numberOfTests = 3;
+var numberOfTests = 4;
 
 s.startRecording(window, casper, testName);
 
@@ -68,13 +68,13 @@ casper.test.begin(testName, numberOfTests, function(test) {
         this.click('#add_page');
     });
 
-    casper.wait(500, function() {
+    casper.wait(1000, function() {
         test.assertEval(function() {
             return $('#errorText').text() === '';
         });
     });
 
-    casper.wait(500, function() {
+    casper.wait(1000, function() {
     });
 
     casper.then(function() {
@@ -85,6 +85,9 @@ casper.test.begin(testName, numberOfTests, function(test) {
         s.clickInIframe(this, 'body div:nth-child(2) span');
     });
 
+    casper.wait(1000, function() {
+    });
+
     casper.then(function() {
         s.animatedType(this, 'body div:nth-child(2) span', true, 'New Text', true);
     });
@@ -93,19 +96,12 @@ casper.test.begin(testName, numberOfTests, function(test) {
         s.mousePointer(casper, { left: 380, top: 140 });
     });
 
-    casper.then(function() {
-        s.clickInIframe(this, 'body h1 span');
-    });
-
-    casper.wait(500, function() {
+    casper.wait(2000, function() {
     });
     
     casper.then(function() {
         test.assertEval(function() {
-            // FIXME: The following is unflexible because of the fixed-length substring().
-            // Better: $('#pages .node.page .html_element .node:nth-child(2) .node:nth-child(2) .content .content_')
-            // Seems not supported by casperjs/phantomjs yet
-            return $('#pages .node.page .html_element .content_').text().substring(22) === 'New Text';
+            return $('#pages .node.page .html_element > div.node:eq(1) > div.node:eq(1) > .content:eq(0) .content_').text() === 'New Text';
         });
     });
     
