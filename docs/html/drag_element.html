@@ -1,0 +1,7 @@
+<!DOCTYPE html><html><head><title>structr UI Test: Drag Element</title><link rel="stylesheet" type="text/css" media="screen" href="test.css"></head><body><h1>Drag Element</h1><div id="desc">This animation shows how a content element is dragged into a page.</div><img width="960" height="800" id="anim"><script type="text/javascript">
+var anim = document.getElementById("anim");
+play(0);
+function setImg(i) { anim.src = "../screenshots/drag_element/" + ("000000000" + i).substr(-4) + ".png"; }
+function play(i, v) { setImg(i);
+ if (i<98) { window.setTimeout(function() { play(i+1,v); }, v?v:100); }; }
+</script><div><button onclick="play(0)">Play</button><button onclick="play(0,250)">Slow Motion</button></div></body></html>
