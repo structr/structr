@@ -24,6 +24,9 @@ while test $# -gt 0; do
 			# Inline editing test
 			casperjs/bin/casperjs test inline_editing.js
 
+			# Drag element test
+			casperjs/bin/casperjs test drag_element.js
+
 			echo "Done with all tests."
 
 			;;

@@ -254,6 +254,50 @@ exports.moveMousePointerTo = function(casper, selector) {
 }
 
 /**
+ * Drag element with given source selector onto element with target selector
+ */
+exports.dragDropElement = function(casper, sourceSelector, targetSelector) {
+
+    //if (exports.debug)
+        console.log('drag element', sourceSelector, targetSelector);
+
+    casper.then(function() {
+
+        exports.moveMousePointerTo(this, sourceSelector);
+//        
+        
+        var positions = this.evaluate(function(s, t) {
+            var sourceEl = $(s), targetEl = $(t);
+            var c = $('#testCursor');
+
+            if (sourceEl.length && c.length) {
+
+                var startPos = {left: c.offset().left + c.width() / 2, top: c.offset().top + c.height() / 2};
+                var endPos = {left: sourceEl.offset().left + sourceEl.width() / 2, top: sourceEl.offset().top + sourceEl.height() / 2};
+
+                sourceEl.simulate('drag', {
+                    dx: -545,
+                    dy: 216,
+                    moves: 1
+                });
+                
+                return {
+                    start: startPos,
+                    end: endPos
+                };
+        
+            }
+        }, sourceSelector, targetSelector);
+        
+        exports.moveMousePointerTo(this, sourceSelector);
+        
+//        exports.moveMousePointer(casper, positions.start, positions.end);
+
+    });
+
+}
+
+/**
  * Utility function to left-fill a file name with leading '0's
  */
 exports.pad = function(num) {
