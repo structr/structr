@@ -926,10 +926,10 @@ var _Pages = {
                 
                 var tag, name;
                 
-                var baseUrl = 'http://' + remoteWidgets.remoteHost + ':' + remoteWidgets.remotePort;
-
                 if (source && source.type === 'Widget') {
                     
+                    var baseUrl = 'http://' + remoteWidgets.remoteHost + ':' + remoteWidgets.remotePort;
+
                     Structr.modules['widgets'].unload();
                     _Pages.makeMenuDroppable();
                     
