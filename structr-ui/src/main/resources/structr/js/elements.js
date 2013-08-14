@@ -132,15 +132,25 @@ var _Elements = {
     reloadComponents: function() {
 
         components.empty();
-        
+
         Command.listComponents(1000, 1, 'name', 'asc', function(entity) {
-            
+
             StructrModel.create(entity, null, false);
             var el = _Pages.appendElementElement(entity, components, true);
 
             if (isExpanded(entity.id)) {
                 _Entities.ensureExpanded(el);
             }
+
+            el.draggable({
+                iframeFix: true,
+                revert: 'invalid',
+                containment: 'body',
+                helper: 'clone',
+                appendTo: '#main',
+                stack: '.node',
+                zIndex: 99
+            });
 
         });
 
@@ -153,15 +163,15 @@ var _Elements = {
         elements.empty();
 
         Command.listUnattachedNodes(1000, 1, 'name', 'asc', function(entity) {
-            
+
             StructrModel.create(entity, null, false);
-            
+
             var el = _Pages.appendElementElement(entity, elements, true);
 
             if (isExpanded(entity.id)) {
                 _Entities.ensureExpanded(el);
             }
-            
+
         });
 
     },
@@ -194,7 +204,7 @@ var _Elements = {
 
         var id = entity.id;
 
-        var html = '<div id="' + (isMasterComponent ? 'componentId_' : 'id_') + id + '" class="node element' + (entity.tag === 'html' ? ' html_element' : '')  + ' "></div>';
+        var html = '<div id="' + (isMasterComponent ? 'componentId_' : 'id_') + id + '" class="node element' + (entity.tag === 'html' ? ' html_element' : '') + ' "></div>';
 
         if (refNode && !refNodeIsParent) {
             refNode.before(html);
@@ -268,9 +278,9 @@ var _Elements = {
 
                 dialog.empty();
                 dialogMsg.empty();
-                
+
                 if (entity.tag !== 'img') {
-                
+
                     dialog.append('<p>Click on a Page or File to establish a hyperlink to this ' + entity.tag + ' element.</p>');
 
                     dialog.append('<h3>Pages</h3><div class="linkBox" id="pagesToLink"></div>');
@@ -339,7 +349,7 @@ var _Elements = {
                         }
 
                     });
-                    
+
                 }
 
                 if (entity.tag === 'img' || entity.tag === 'link') {
@@ -377,7 +387,7 @@ var _Elements = {
                         }
 
                     });
-                
+
                 }
 
 

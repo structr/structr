@@ -26,7 +26,7 @@ var textBeforeEditing;
 var activeTabKey = 'structrActiveTab_' + port;
 var activeTabRightKey = 'structrActiveTabRight_' + port;
 var win = $(window);
-var copy = false, sorting = false;
+var sorting = false;
 var sortParent;
 
 $(document).ready(function() {
@@ -774,7 +774,6 @@ var _Pages = {
                 var target = StructrModel.obj(elementId);
                 
                 if (source && getId(page) && source.pageId && getId(page) !== source.pageId) {
-                    copy = true;
                     event.preventDefault();
                     event.stopPropagation();
                     Command.copyDOMNode(source.id, target.id);
@@ -810,7 +809,7 @@ var _Pages = {
                     log('appendChild', contentId, elementId);
                     sorting = false;
                     Command.appendChild(contentId, elementId);
-                    $(ui.draggable).remove();
+                    //$(ui.draggable).remove();
                     
                     return;
                 }
@@ -840,7 +839,7 @@ var _Pages = {
             });
         }
 
-        div.sortable({
+        var sortableOptions = {
             sortable: '.node',
             appendTo: '#main',
             helper: 'clone',
@@ -849,10 +848,6 @@ var _Pages = {
             start: function(event, ui) {
                 sorting = true;
                 sortParent = $(ui.item).parent();
-            },
-            sort: function(event, ui) {
-                if (copy) return false;
-                copy = false;
             },
             update: function(event, ui) {
         
@@ -879,7 +874,9 @@ var _Pages = {
                 sorting = false;
                 _Entities.resetMouseOverState(ui.item);
             }
-        });
+        };
+
+        div.sortable(sortableOptions);
         
         div.droppable({
             accept: '.node, .element, .content, .image, .file, .widget',
@@ -887,6 +884,9 @@ var _Pages = {
             hoverClass: 'nodeHover',
             tolerance: 'pointer',
             drop: function(event, ui) {
+        
+                div.sortable('refresh');
+        
                 var self = $(this);
                 log('dropped onto', self, getId(self), getId(sortParent));
                 if (getId(self) === getId(sortParent)) return false;
@@ -908,7 +908,6 @@ var _Pages = {
                 log(sourceId, source, pageId);
                 
                 if (source && pageId && source.pageId && pageId !== source.pageId) {
-                    copy = true;
                     event.preventDefault();
                     event.stopPropagation();
                     Command.copyDOMNode(source.id, target.id);
