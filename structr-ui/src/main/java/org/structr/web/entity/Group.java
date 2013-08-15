@@ -55,14 +55,14 @@ public class Group extends AbstractNode implements Principal {
 	
 	private static final Logger logger = Logger.getLogger(Group.class.getName());
 
-	public static final CollectionProperty<Principal> users = new CollectionProperty("users", Principal.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Principal> members = new CollectionProperty("members", Principal.class, RelType.CONTAINS, Direction.OUTGOING, false);
 	
 	public static final org.structr.common.View uiView = new org.structr.common.View(User.class, PropertyView.Ui,
-		type, name, users, blocked
+		type, name, members, blocked
 	);
 	
 	public static final org.structr.common.View publicView = new org.structr.common.View(User.class, PropertyView.Public,
-		type, name, users, blocked
+		type, name, members, blocked
 	);
 
 	//~--- methods --------------------------------------------------------
@@ -121,7 +121,7 @@ public class Group extends AbstractNode implements Principal {
 	@Override
 	public List<Principal> getParents() {
 
-		List<Principal> parents                   = new LinkedList<Principal>();
+		List<Principal> parents                   = new LinkedList();
 		Iterable<AbstractRelationship> parentRels = getIncomingRelationships(RelType.CONTAINS);
 
 		for (AbstractRelationship rel : parentRels) {
@@ -139,34 +139,34 @@ public class Group extends AbstractNode implements Principal {
 
 	}
 
-	public void addUser(final Principal user) throws FrameworkException {
+	public void addMember(final Principal user) throws FrameworkException {
 
 		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
 			@Override
 			public Object execute() throws FrameworkException {
 
-				List<Principal> _users = getProperty(users);
+				List<Principal> _users = getProperty(members);
 				_users.add(user);
 
-				setProperty(users, _users);
+				setProperty(members, _users);
 				return null;
 			}
 		});
 		
 	}
 	
-	public void removeUser(final Principal user) throws FrameworkException {
+	public void removeMember(final Principal user) throws FrameworkException {
 
 		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
 			@Override
 			public Object execute() throws FrameworkException {
 
-				List<Principal> _users = getProperty(users);
+				List<Principal> _users = getProperty(members);
 				_users.remove(user);
 
-				setProperty(users, _users);
+				setProperty(members, _users);
 				return null;
 			}
 		});

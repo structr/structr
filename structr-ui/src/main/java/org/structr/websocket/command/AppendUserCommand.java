@@ -90,7 +90,7 @@ public class AppendUserCommand extends AbstractCommand {
 
 			if (user != null) {
 				try {
-					group.addUser(user);
+					group.addMember(user);
 				} catch (FrameworkException ex) {
 					logger.log(Level.SEVERE, null, ex);
 					getWebSocket().send(MessageBuilder.status().code(422).message("Cannot append file").build(), true);

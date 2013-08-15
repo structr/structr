@@ -586,8 +586,8 @@ StructrUser.prototype.remove = function() {
     var group = StructrModel.obj(user.groups[0]);
     var groupEl = Structr.node(group.id);
 
-    group.users = removeFromArray(group.users, user);
-    if (!group.users.length) {
+    group.members = removeFromArray(group.members, user);
+    if (!group.members.length) {
         _Entities.removeExpandIcon(groupEl);
         enable(groupEl.children('.delete_icon')[0]);
     }
@@ -621,7 +621,7 @@ StructrUser.prototype.append = function(refNode) {
     var user = this;
     if (refNode) {
         var group = StructrModel.obj(refNode.id);
-        group.users.push(user);
+        group.members.push(user);
     }
     StructrModel.expand(_UsersAndGroups.appendUserElement(this, refNode), this);
 }
