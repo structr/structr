@@ -1,7 +1,0 @@
-<!DOCTYPE html><html><head><title>structr UI Test: Rename Page</title><link rel="stylesheet" type="text/css" media="screen" href="test.css"></head><body><h1>Rename Page</h1><div id="desc">This animation shows how a new page can be renamed.</div><img width="960" height="800" id="anim"><script type="text/javascript">
-var anim = document.getElementById("anim");
-play(0);
-function setImg(i) { anim.src = "../screenshots/rename_page/" + ("000000000" + i).substr(-4) + ".png"; }
-function play(i, v) { setImg(i);
- if (i<135) { window.setTimeout(function() { play(i+1,v); }, v?v:100); }; }
-</script><div><button onclick="play(0)">Play</button><button onclick="play(0,250)">Slow Motion</button></div></body></html>
