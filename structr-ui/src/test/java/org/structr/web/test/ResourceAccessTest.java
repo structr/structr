@@ -169,7 +169,7 @@ public class ResourceAccessTest extends StructrUiTest {
 				.contentType("application/json; charset=UTF-8").expect().statusCode(403).when().put("/folder/" + testFolder.getUuid());
 			
 			// now we give the user ownership and expect a 200
-			testFolder.setOwner(testUser);
+			testFolder.setProperty(AbstractNode.owner, testUser);
 			
 			RestAssured.given()
 				.headers("X-User", name, "X-Password", password)
@@ -233,7 +233,7 @@ public class ResourceAccessTest extends StructrUiTest {
 				.contentType("application/json; charset=UTF-8").expect().statusCode(403).when().delete("/folder/" + testFolder.getUuid());
 			
 			// now we give the user ownership and expect a 200
-			testFolder.setOwner(testUser);
+			testFolder.setProperty(AbstractNode.owner, testUser);
 			
 			RestAssured.given()
 				.headers("X-User", name, "X-Password", password)

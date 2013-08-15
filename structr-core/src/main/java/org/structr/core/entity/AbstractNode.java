@@ -24,7 +24,6 @@ import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.BooleanProperty;
-import org.structr.core.graph.SetOwnerCommand;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
 
@@ -1284,19 +1283,19 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		key.setProperty(securityContext, this, value);
 	}
 
-	public void setOwner(final AbstractNode owner) {
-
-		try {
-
-			Services.command(securityContext, SetOwnerCommand.class).execute(this, owner);
-
-		} catch (FrameworkException fex) {
-
-			logger.log(Level.WARNING, "Unable to set owner node", fex);
-
-		}
-
-	}
+//	public void setOwner(final AbstractNode owner) {
+//
+//		try {
+//
+//			Services.command(securityContext, SetOwnerCommand.class).execute(this, owner);
+//
+//		} catch (FrameworkException fex) {
+//
+//			logger.log(Level.WARNING, "Unable to set owner node", fex);
+//
+//		}
+//
+//	}
 
 	@Override
 	public void addToIndex() {
