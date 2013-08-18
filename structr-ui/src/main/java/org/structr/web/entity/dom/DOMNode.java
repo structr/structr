@@ -184,7 +184,11 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 							return s[0];
 						}
 						
-					} catch (NumberFormatException nfe) {}
+					} catch (NumberFormatException nfe) {
+					
+						return nfe.getMessage();
+
+					}
 					
 				}
 				
@@ -312,7 +316,11 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 							result += Double.parseDouble(s[i]);
 
-						} catch (Throwable t) {}
+						} catch (Throwable t) {
+						
+							return t.getMessage();
+
+						}
 
 					}
 
@@ -331,19 +339,23 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 				if (s != null && s.length > 0) {
 
-					Double result = Double.parseDouble(s[0]);
+					try {
+						
+						Double result = Double.parseDouble(s[0]);
 
-					for (int i = 1; i < s.length; i++) {
-
-						try {
+						for (int i = 1; i < s.length; i++) {
 
 							result -= Double.parseDouble(s[i]);
 
-						} catch (Throwable t) {}
+						}
 
+						return new Double(result).toString();
+						
+					} catch (Throwable t) {
+					
+						return t.getMessage();
+						
 					}
-
-					return new Double(result).toString();
 				}
 				
 				return "";
@@ -367,7 +379,11 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 							result *= Double.parseDouble(s[i]);
 
-						} catch (Throwable t) {}
+						} catch (Throwable t) {
+						
+							return t.getMessage();
+
+						}
 
 					}
 
@@ -392,7 +408,11 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 						result = Double.parseDouble(s[0]) / Double.parseDouble(s[1]);
 
-					} catch (Throwable t) {}
+					} catch (Throwable t) {
+					
+						return t.getMessage();
+						
+					}
 
 				}
 
@@ -419,7 +439,11 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 						
 						result = (double)r/f2;
 
-					} catch (Throwable t) {}
+					} catch (Throwable t) {
+					
+						return t.getMessage();
+						
+					}
 
 				}
 
@@ -449,7 +473,9 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 						result = formatter.format(val);
 
 					} catch (Throwable t) {
+						
 						result = errorMsg;
+						
 					}
 
 				} else {
