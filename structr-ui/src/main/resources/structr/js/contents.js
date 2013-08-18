@@ -118,9 +118,24 @@ var _Contents = {
         });
         editor.focus();
         
-        element.append('<button id="editorSave">Save</button>');
+        dialogBtn.append('<button id="editorSave">Save</button>');
+        dialogBtn.append('<button id="saveAndClose"> Save and close</button>');
+        
+        var saveBtn = $('#editorSave', dialogBtn);
+        var saveAndClose = $('#saveAndClose', dialogBtn);
+        
+        $('button#saveAndClose', dialogBtn).on('click', function(e) {
+            e.stopPropagation();
+            saveBtn.click();
+            setTimeout(function() {
+                dialogCancelButton.click();
+            }, 100);
+            saveBtn.remove();
+            saveAndClose.remove();
+            
+        });
 
-        $('#editorSave', element).on('click', function() {
+        saveBtn.on('click', function() {
      
             var contentNode = Structr.node(entity.id)[0];
                 
