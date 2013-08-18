@@ -654,7 +654,7 @@ public class SynchronizationController implements StructrTransactionListener, Tr
 		} else {
 
 			WebSocketMessage message = new WebSocketMessage();
-			String uuid              = properties.get(AbstractNode.uuid).toString();
+			String uuid              = properties.get(AbstractNode.uuid);
 
 			message.setId(uuid);
 			message.setCommand("DELETE");
