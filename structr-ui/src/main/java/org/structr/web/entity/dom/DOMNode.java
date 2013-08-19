@@ -813,10 +813,9 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 				if (request != null) {
 					
 					
-					if (StringUtils.contains(referenceKey, "!")) {
+					if (StringUtils.contains(refKey, "!")) {
 						
-						String[] ref = StringUtils.split(referenceKey, "!");
-						return StringUtils.defaultString(request.getParameter(ref[0]), ref.length > 1 ? ref[1] : "");
+						return StringUtils.defaultIfBlank(request.getParameter(referenceKey), defaultValue);
 						
 					} else {
 						
