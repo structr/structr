@@ -614,9 +614,9 @@ function StructrPage(baseUrl) {
 function resizeInput(inp) {
 
     var text = inp.val();
-
+    
     if (isTextarea(inp[0])) {
-
+        
         var n = (text.match(/\n/g) || []).length;
         inp.prop('rows', n + 2);
 
@@ -626,11 +626,16 @@ function resizeInput(inp) {
         })[0].length;
 
         inp.prop('cols', c);
-
+        
     } else {
 
         inp.prop('size', text.length + 1);
 
+    }
+    
+    // set the width value to the max parent width value
+    if($(inp).parent().outerWidth() < $(inp).width()){
+        $(inp).width($(inp).parent().outerWidth());
     }
 
     // Focus on last empty field
