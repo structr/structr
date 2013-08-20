@@ -18,12 +18,12 @@
  */
 package org.structr.core.property;
 
-import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.RandomStringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.TooShortToken;
 import org.structr.core.GraphObject;
+import org.structr.core.auth.AuthHelper;
 import org.structr.core.converter.ValidationInfo;
 import org.structr.core.entity.Principal;
 
@@ -81,7 +81,7 @@ public class PasswordProperty extends StringProperty {
 			String salt = RandomStringUtils.randomAlphanumeric(16);
 			
 			obj.setProperty(Principal.salt, salt);
-			super.setProperty(securityContext, obj, DigestUtils.sha512Hex(clearTextPassword + salt));
+			super.setProperty(securityContext, obj, AuthHelper.getHash(clearTextPassword, salt));
 			
 		} else {
 			

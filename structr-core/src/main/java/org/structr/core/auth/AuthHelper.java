@@ -160,14 +160,17 @@ public class AuthHelper {
 					} else {
 
 						String salt			= principal.getProperty(Principal.salt);
-						String saltedPw			= password;
+						String encryptedPasswordValue;
+						
 						if (salt != null) {
 							
-							saltedPw = password.concat(salt);
+							encryptedPasswordValue	= getHash(password, salt);
+						} else {
+							
+							encryptedPasswordValue	= getSimpleHash(password);
 							
 						}
 						
-						String encryptedPasswordValue	= DigestUtils.sha512Hex(saltedPw);
 						String pw			= principal.getEncryptedPassword();
 
 						if (pw == null || !encryptedPasswordValue.equals(pw)) {
@@ -237,6 +240,18 @@ public class AuthHelper {
 
 		return user;
 
+	}
+
+	public static String getHash(final String password, final String salt) {
+		
+		return DigestUtils.sha512Hex(DigestUtils.sha512Hex(password).concat(salt));
+		
+	}
+	
+	public static String getSimpleHash(final String password) {
+		
+		return DigestUtils.sha512Hex(password);
+		
 	}
 
 }
