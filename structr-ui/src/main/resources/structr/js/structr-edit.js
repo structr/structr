@@ -698,7 +698,7 @@ function isTextarea(el) {
 }
 
 function textarea(id, key, val) {
-    return '<div><textarea data-structr-id="' + id + '" data-structr-key="' + key + '">' + (val === 'null' ? '' : val) + '\n</textarea></div>';
+    return '<div><textarea class="editField" data-structr-id="' + id + '" data-structr-key="' + key + '">' + (val === 'null' ? '' : val) + '\n</textarea></div>';
 }
 
 function inputField(id, type, key, val) {

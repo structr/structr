@@ -16,7 +16,7 @@
     padding: 1em;
 }
 
-input[type=text] {
+.editField {
 	border: 1px solid #a5a5a5;
 	border-radius: .25em;
 	padding: .25em;
