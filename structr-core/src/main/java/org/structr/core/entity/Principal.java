@@ -27,6 +27,7 @@ import org.structr.core.GraphObject;
 
 import java.util.List;
 import org.structr.core.property.BooleanProperty;
+import org.structr.core.property.PasswordProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
 
@@ -39,8 +40,10 @@ import org.structr.core.property.StringProperty;
  */
 public interface Principal extends GraphObject {
 
-	public static final Property<String>  sessionId = new StringProperty("sessionId").indexed();
-	public static final Property<Boolean> blocked   = new BooleanProperty("blocked");
+	public static final Property<String>  sessionId	= new StringProperty("sessionId").indexed();
+	public static final Property<Boolean> blocked	= new BooleanProperty("blocked");
+	public static final Property<String>  password	= new PasswordProperty("password");
+	public static final Property<String>  salt	= new StringProperty("salt");
 	
 	public void grant(final Permission permission, final AbstractNode obj);
 

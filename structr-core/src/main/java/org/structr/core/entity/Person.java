@@ -20,7 +20,6 @@
 
 package org.structr.core.entity;
 
-import org.structr.core.property.PasswordProperty;
 import org.structr.core.property.StringProperty;
 import org.structr.core.property.ISO8601DateProperty;
 import org.structr.core.property.BooleanProperty;
@@ -64,7 +63,6 @@ public class Person extends AbstractNode implements Principal {
 	public static final Property<String>  twitterName         = new StringProperty("twitterName").validator(new TypeUniquenessValidator(Person.class)).indexed();
 	public static final Property<String>  eMail               = new StringProperty("eMail").validator(new TypeUniquenessValidator(Person.class)).indexed();
 	public static final Property<String>  eMail2              = new StringProperty("eMail2");
-	public static final Property<String>  password            = new PasswordProperty("password");
 	
 	public static final Property<String>  phoneNumber1        = new StringProperty("phoneNumber1");
 	public static final Property<String>  phoneNumber2        = new StringProperty("phoneNumber2");

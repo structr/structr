@@ -159,8 +159,16 @@ public class AuthHelper {
 
 					} else {
 
-						String encryptedPasswordValue = DigestUtils.sha512Hex(password);
-						String pw                     = principal.getEncryptedPassword();
+						String salt			= principal.getProperty(Principal.salt);
+						String saltedPw			= password;
+						if (salt != null) {
+							
+							saltedPw = password.concat(salt);
+							
+						}
+						
+						String encryptedPasswordValue	= DigestUtils.sha512Hex(saltedPw);
+						String pw			= principal.getEncryptedPassword();
 
 						if (pw == null || !encryptedPasswordValue.equals(pw)) {
 
