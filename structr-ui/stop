@@ -1,0 +1,3 @@
+#!/bin/bash
+kill $(ps xa|grep org.structr.Ui|grep java|awk '{print $1}')
+
