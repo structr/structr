@@ -333,7 +333,7 @@ public class SecurityContext {
 
 			return false;
 		}
-
+		
 		Principal owner = node.getOwnerNode();
 		
 		// owner is always allowed to do anything with its nodes
@@ -358,7 +358,8 @@ public class SecurityContext {
 
 		}
 
-		logger.log(Level.FINEST, "Returning {0} for user {1}, access mode {2}, node {3}, permission {4}", new Object[] { isAllowed, user.getProperty(AbstractNode.name), accessMode, node, permission });
+		logger.log(Level.FINEST, "Returning {0} for user {1}, access mode {2}, node {3}, permission {4}",
+			new Object[] { isAllowed, ((AbstractNode) user).getNode().getProperty("uuid"), accessMode, ((AbstractNode) node).getNode().getProperty("uuid"), permission });
 
 		return isAllowed;
 
