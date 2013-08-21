@@ -317,12 +317,11 @@ var _Pages = {
             self.show();
 		
         });
-
         
         return tab;
     },
 
-    resetTab : function(element, name) {
+    resetTab : function(element) {
 
         log('resetTab', element);
         

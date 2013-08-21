@@ -215,7 +215,7 @@ var _Widgets = {
             }, function() {
                 log('cancelled')
             });
-            _Widgets.editContent(this, widget, text, dialogText);
+            _Widgets.editWidget(this, widget, text, dialogText);
         });
         
         if (!remote) {
@@ -230,7 +230,10 @@ var _Widgets = {
         return div;
     },
 
-    editContent : function (button, entity, text, element) {
+    editWidget : function (button, entity, text, element) {
+        
+        console.log('widgets: editCOntent')
+        
         if (isDisabled(button)) return;
         var div = element.append('<div class="editor"></div>');
         log(div);
