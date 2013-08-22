@@ -29,17 +29,10 @@ import org.structr.common.error.FrameworkException;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.Permission;
 import org.structr.core.property.Property;
-import org.structr.common.RelType;
-import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.core.Services;
-import org.structr.core.graph.CreateRelationshipCommand;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.validator.TypeUniquenessValidator;
@@ -51,7 +44,7 @@ import org.structr.core.validator.TypeUniquenessValidator;
  * @author Axel Morgner
  *
  */
-public class Person extends AbstractNode implements Principal {
+public class Person extends AbstractNode {
 	
 	private static final Logger logger = Logger.getLogger(Person.class.getName());
 
@@ -129,91 +122,6 @@ public class Person extends AbstractNode implements Principal {
 				return null;
 			}
 		});
-
-	}
-
-	@Override
-	public void grant(Permission permission, AbstractNode obj) {
-
-		SecurityRelationship secRel = obj.getSecurityRelationship(this);
-
-		if (secRel == null) {
-
-			try {
-
-				secRel = createSecurityRelationshipTo(obj);
-
-			} catch (FrameworkException ex) {
-
-				logger.log(Level.SEVERE, "Could not create security relationship!", ex);
-
-			}
-
-		}
-
-		secRel.addPermission(permission);
-
-	}
-
-	@Override
-	public void revoke(Permission permission, AbstractNode obj) {
-
-		SecurityRelationship secRel = obj.getSecurityRelationship(this);
-
-		if (secRel == null) {
-
-			logger.log(Level.SEVERE, "Could not create revoke permission, no security relationship exists!");
-
-		} else {
-
-			secRel.removePermission(permission);
-		}
-
-	}
-
-	private SecurityRelationship createSecurityRelationshipTo(final AbstractNode obj) throws FrameworkException {
-
-		return (SecurityRelationship) Services.command(SecurityContext.getSuperUserInstance(), CreateRelationshipCommand.class).execute(this, obj, RelType.SECURITY);
-
-	}
-
-	//~--- get methods ----------------------------------------------------
-
-	@Override
-	public String getEncryptedPassword() {
-
-		boolean dbNodeHasProperty = dbNode.hasProperty(password.dbName());
-
-		if (dbNodeHasProperty) {
-
-			Object dbValue = dbNode.getProperty(password.dbName());
-
-			return (String) dbValue;
-
-		} else {
-
-			return null;
-		}
-
-	}
-
-	@Override
-	public List<Principal> getParents() {
-
-		List<Principal> parents = new LinkedList<Principal>();
-
-		for (AbstractRelationship rel : getIncomingRelationships(RelType.CHILDREN)) {
-
-			AbstractNode node = rel.getStartNode();
-
-			if (node instanceof Principal) {
-
-				parents.add((Principal) node);
-			}
-
-		}
-
-		return parents;
 
 	}
 

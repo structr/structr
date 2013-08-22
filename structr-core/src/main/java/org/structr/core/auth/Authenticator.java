@@ -40,6 +40,11 @@ public interface Authenticator {
 	public boolean hasExaminedRequest();
 
 	/**
+	 * @param userAutoCreate 
+	 */
+	public void setUserAutoCreate(final boolean userAutoCreate);
+
+	/**
 	 * 
 	 * @param request
 	 * @param response

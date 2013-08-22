@@ -42,7 +42,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import org.structr.core.Result;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.ResourceAccess;
 import org.structr.core.graph.search.SearchAttribute;
 
 //~--- classes ----------------------------------------------------------------
@@ -62,6 +61,11 @@ public class StructrAuthenticator implements Authenticator {
 	private boolean examined = false;
 
 	//~--- methods --------------------------------------------------------
+
+	@Override
+	public void setUserAutoCreate(boolean userAutoCreate) {
+	}
+
 
 	@Override
 	public SecurityContext initializeAndExamineRequest(HttpServletRequest request, HttpServletResponse response) throws FrameworkException {

@@ -42,7 +42,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.structr.core.Result;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Person;
 import org.structr.core.graph.search.SearchAttributeGroup;
 import org.structr.core.property.PropertyKey;
 
@@ -81,7 +80,7 @@ public class AuthHelper {
 
 		} catch (FrameworkException ex) {
 			
-			logger.log(Level.WARNING, "Could not search for person", ex);
+			logger.log(Level.WARNING, "Error while searching for principal", ex);
 
 		}
 
@@ -129,23 +128,23 @@ public class AuthHelper {
 				group.add(Search.orExactProperty(securityContext, AbstractNode.name, value));
 				attrs.add(group);
 
-				Result userList = searchNode.execute(attrs);
+				Result principals = searchNode.execute(attrs);
 				
-				if (!userList.isEmpty()) {
-					principal = (Principal) userList.get(0);
+				if (!principals.isEmpty()) {
+					principal = (Principal) principals.get(0);
 				}
 
 				if (principal == null) {
 
-					logger.log(Level.INFO, "No user found for {0} {1}", new Object[]{ key.dbName(), value });
+					logger.log(Level.INFO, "No principal found for {0} {1}", new Object[]{ key.dbName(), value });
 
 					errorMsg = STANDARD_ERROR_MSG;
 
 				} else {
 
-					if (principal.getProperty(Person.blocked)) {
+					if (principal.getProperty(Principal.blocked)) {
 
-						logger.log(Level.INFO, "User {0} is blocked", principal);
+						logger.log(Level.INFO, "Principal {0} is blocked", principal);
 
 						errorMsg = STANDARD_ERROR_MSG;
 
@@ -155,7 +154,7 @@ public class AuthHelper {
 
 						logger.log(Level.INFO, "Empty password for principal {0}", principal);
 
-						errorMsg = "Empty password, should not ever happen down here!";
+						errorMsg = "Empty password, should never happen here!";
 
 					} else {
 

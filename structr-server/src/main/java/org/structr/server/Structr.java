@@ -60,6 +60,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.Service;
 import org.structr.core.Services;
 import org.structr.core.agent.AgentService;
+import org.structr.core.auth.AuthenticationService;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.cron.CronService;
 import org.structr.core.entity.AbstractNode;
@@ -117,6 +118,8 @@ public class Structr {
 	private Class<? extends StructrServer> app                 = null;
 	private Class<? extends ResourceProvider> resourceProvider = null;
 	private Class<? extends Authenticator> authenticator       = null;
+	private boolean userAutoCreate                             = false;
+	
 	private String defaultPropertyView                         = PropertyView.Public;
 	
 	private Set<Class<? extends Service>> configuredServices   = new HashSet<Class<? extends Service>>();
@@ -376,6 +379,17 @@ public class Structr {
 		return this;
 	}
 
+	/**
+	 * If true, auto-create users on successful authentication
+	 * 
+	 * @param userAutoCreate
+	 * @return 
+	 */
+	public Structr userAutoCreate(final Boolean userAutoCreate) {
+		this.userAutoCreate = userAutoCreate;
+		return this;
+	}
+	
 	/**
 	 * Adds a servlet with the given mapping to the servlet container structr runs in.
 	 * 
@@ -671,7 +685,8 @@ public class Structr {
 		ServletHolder structrRestServletHolder = new ServletHolder(structrRestServlet);
 
 		servletParams.put("PropertyFormat", "FlatNameValue");
-		servletParams.put("Authenticator", authenticator.getName());
+		servletParams.put(AuthenticationService.SERVLET_PARAMETER_AUTHENTICATOR, authenticator.getName());
+		servletParams.put(AuthenticationService.SERVLET_PARAMETER_USER_AUTO_CREATE, Boolean.toString(userAutoCreate));
 
 		structrRestServletHolder.setInitParameters(servletParams);
 		structrRestServletHolder.setInitOrder(0);

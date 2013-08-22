@@ -16,41 +16,13 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.auth;
-
-import java.util.Map;
-import org.structr.core.Command;
-import org.structr.core.SingletonService;
+package org.structr.core.entity;
 
 /**
- * The authentication service. This service does nothing right now.
  *
- * @author Christian Morgner
+ * @author Axel Morgner
  */
-public class AuthenticationService implements SingletonService {
+public class User extends AbstractUser implements Principal {
 
-	public static final String SERVLET_PARAMETER_AUTHENTICATOR = "Authenticator";
-	public static final String SERVLET_PARAMETER_USER_AUTO_CREATE = "userAutoCreate";
 
-	@Override
-	public void injectArguments(Command command) {
-	}
-
-	@Override
-	public void initialize(Map<String, String> context) {
-	}
-
-	@Override
-	public void shutdown() {
-	}
-
-	@Override
-	public String getName() {
-		return "AuthenticationService";
-	}
-
-	@Override
-	public boolean isRunning() {
-		return true;
-	}
 }

@@ -35,7 +35,6 @@ import org.structr.rest.servlet.JsonRestServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.structr.common.AccessMode;
-import org.structr.core.entity.ResourceAccess;
 import org.structr.core.entity.SuperUser;
 
 //~--- classes ----------------------------------------------------------------
@@ -107,5 +106,9 @@ public class RestAuthenticator implements Authenticator {
 		
 		return false;
 		
+	}
+
+	@Override
+	public void setUserAutoCreate(boolean userAutoCreate) {
 	}
 }

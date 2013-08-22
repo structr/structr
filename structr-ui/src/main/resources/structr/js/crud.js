@@ -183,6 +183,7 @@ var _Crud = {
 
         $('#resourceTabs').tabs({
             activate: function(event, ui) {
+                _Crud.clearList(_Crud.type);
                 var newType = ui.newPanel[0].id;
                 //console.log('deactivated', _Crud.type, 'activated', newType);
                 var typeNode = $('#' + _Crud.type);
@@ -520,13 +521,14 @@ var _Crud = {
     },
 
     activateList : function(type) {
+        //console.log('activateList', type);
         var url = rootUrl + _Crud.restType(type) + '/' + _Crud.view[type] + _Crud.sortAndPagingParameters(type, _Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type]);
         _Crud.list(type, url);
         document.location.hash = type;
     },
 
     clearList : function(type) {
-        //    console.log('clearList');
+        //console.log('clearList', type);
         var table = _Crud.getTable(type);
         var headerRow = '<tr>' + $($('tr:first-child', table)[0]).html() + '</tr>';
         //    console.log(headerRow);
@@ -548,9 +550,8 @@ var _Crud = {
             success: function(data) {
                 //console.log(data);
                 $.each(data.result, function(i, item) {
-                    if (item.type === type) {
-                        _Crud.appendRow(type, item);
-                    }
+                    //console.log('calling appendRow', type, item);
+                    _Crud.appendRow(type, item);
                 });
                 _Crud.updatePager(type, data.query_time, data.serialization_time, data.page_size, data.page, data.page_count);
                 _Crud.replaceSortHeader(type);
@@ -1129,11 +1130,11 @@ var _Crud = {
             //async: false,
             statusCode : {
                 200 : function() {
-                    var row = $('#' + id);
+                    var row = _Crud.row(id);
                     row.remove();
                 },
                 204 : function() {
-                    var row = $('#' + id);
+                    var row = _Crud.row(id);
                     row.remove();
                 },
                 400 : function(data, status, xhr) {
@@ -1170,7 +1171,7 @@ var _Crud = {
     },
 
     cells : function(id, key) {
-        var row = $('#' + id);
+        var row = _Crud.row(id);
         var cellInMainTable = $('.' + key, row);
         
         var cellInDetailsTable;
@@ -1214,7 +1215,7 @@ var _Crud = {
     
     refreshRow : function(id, item) {
         //    console.log('refreshCell', id, key, newValue);
-        var row = $('#' + id);
+        var row = _Crud.row(id);
         row.empty();
         _Crud.populateRow(id, item);
     },
@@ -1234,19 +1235,25 @@ var _Crud = {
             }
         });
     },
-    
+            
+    row : function(id) {
+        return $('#_' + id);
+    },
+            
     appendRow : function(type, item) {
+        //console.log('appendRow', type, item);
         var id = item['id'];
         var table = _Crud.getTable(type);
-        table.append('<tr id="' + id + '"></tr>');
-        _Crud.populateRow(id, item);
+        table.append('<tr id="_' + id + '"></tr>');
+        _Crud.populateRow(id, item, type);
     },
 
-    populateRow : function(id, item) {
-        var type = item.type;
-        var row = $('#' + id);
+    populateRow : function(id, item, type) {
+        //console.log('populateRow', id, item, type, _Crud.keys[type]);
+        var row = _Crud.row(id);
         if (_Crud.keys[type]) {
             $.each(_Crud.keys[type], function(k, key) {
+                //console.log('populateRow for key', key, row);
                 row.append('<td class="' + key + '"></td>');
                 var cells = _Crud.cells(id, key);
                 $.each(cells, function(i, cell) {

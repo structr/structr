@@ -38,7 +38,7 @@ public class AuthenticatorCommand extends Command {
 	public Authenticator execute(ServletConfig servletConfig) throws FrameworkException {
 
 		Authenticator authenticator = null;
-		if(servletConfig != null) {
+		if (servletConfig != null) {
 
 			// In a multi-context environment (e.g. WebSocket, REST and plain HTTP),
 			// it's bad idea to store the authenticator service in the servlet context
@@ -46,17 +46,21 @@ public class AuthenticatorCommand extends Command {
 			//if(authenticator == null) {
 
 
-				String authenticatorClassName = servletConfig.getInitParameter(AuthenticationService.SERVLET_PARAMETER_AUTHENTICATOR);
-				if(authenticatorClassName != null) {
+				String authenticatorClassName	= servletConfig.getInitParameter(AuthenticationService.SERVLET_PARAMETER_AUTHENTICATOR);
+				boolean userAutoCreate		= Boolean.parseBoolean(servletConfig.getInitParameter(AuthenticationService.SERVLET_PARAMETER_USER_AUTO_CREATE));
+				if (authenticatorClassName != null) {
 
 					try {
 						Class authenticatorClass = Class.forName(authenticatorClassName);
 						authenticator = (Authenticator)authenticatorClass.newInstance();
 
 						// cache instance
-						servletConfig.getServletContext().setAttribute(AuthenticationService.SERVLET_PARAMETER_AUTHENTICATOR, authenticator);	
+						servletConfig.getServletContext().setAttribute(AuthenticationService.SERVLET_PARAMETER_AUTHENTICATOR, authenticator);
+						
+						// set the flag for auto-creation of users after authentication
+						authenticator.setUserAutoCreate(userAutoCreate);
 
-					} catch(Throwable t) {
+					} catch (Throwable t) {
 
 						logger.log(Level.SEVERE, "Error instantiating authenticator for servlet with context path {0}: {1}",
 						new Object[] {

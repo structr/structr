@@ -63,4 +63,8 @@ public class SuperUserAuthenticator implements Authenticator {
 	public boolean hasExaminedRequest() {
 		return false;
 	}
+
+	@Override
+	public void setUserAutoCreate(boolean userAutoCreate) {
+	}
 }
