@@ -219,7 +219,20 @@ var _Entities = {
 
                                 if (key !== 'id') {
 
-                                    props.append('<tr><td class="key">' + key.replace(view, '') + '</td><td class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td></tr>');
+                                    props.append('<tr><td class="key">' + key.replace(view, '') + '</td>'
+                                    + '<td class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td><img class="nullIcon" src="icon/cross_small_grey.png"></td></tr>');
+                            
+                                    var nullIcon = $('.nullIcon');
+                            
+                                    nullIcon.on('click', function() {
+                                        var inp = $(this).parent().prev().find('input');
+                                        Command.setProperty(id, key, null, false, function() {
+                                            inp.val(null);
+                                            blinkGreen(inp);
+                                            dialogMsg.html('<div class="infoBox success">Property "' + key + '" was set to null.</div>');
+                                            $('.infoBox', dialogMsg).delay(2000).fadeOut(1000);
+                                        });
+                                    });
 
                                 }
 
@@ -231,7 +244,7 @@ var _Entities = {
                                     //console.log('Set ID to relationship ID', id);
                                 }
 
-                                props.append('<tr><td class="key">' + key + '</td><td rel_id="' + id + '" class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td></tr>');
+                                props.append('<tr><td class="key">' + key + '</td><td rel_id="' + id + '" class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td></td></tr>');
 
                             } else {
 
@@ -239,11 +252,12 @@ var _Entities = {
 
                                     if (isIn(key, _Entities.readOnlyAttrs)) {
 
-                                        props.append('<tr><td class="key">' + formatKey(key) + '</td><td class="value ' + key + '_ readonly"><input type="text" class="readonly" readonly value="' + res[key] + '"></td></tr>');
+                                        props.append('<tr><td class="key">' + formatKey(key) + '</td>'
+                                        + '<td class="value ' + key + '_ readonly"><input type="text" class="readonly" readonly value="' + res[key] + '"></td><td></td></tr>');
 
                                     } else if (isIn(key, _Entities.booleanAttrs)) {
 
-                                        props.append('<tr><td class="key">' + formatKey(key) + '</td><td><input type="checkbox" class="' + key + '_"></td></tr>');
+                                        props.append('<tr><td class="key">' + formatKey(key) + '</td><td><input type="checkbox" class="' + key + '_"></td><td></td></tr>');
                                         var checkbox = $(props.find('.' + key + '_'));
                                         checkbox.on('change', function() {
                                             var checked = checkbox.prop('checked');
@@ -259,7 +273,7 @@ var _Entities = {
                                             res[key] = '';
                                         }
 
-                                        props.append('<tr><td class="key">' + formatKey(key) + '</td><td class="value ' + key + '_"><input class="dateField" name="' + key + '" type="text" value="' + res[key] + '"></td></tr>');
+                                        props.append('<tr><td class="key">' + formatKey(key) + '</td><td class="value ' + key + '_"><input class="dateField" name="' + key + '" type="text" value="' + res[key] + '"></td><td></td></tr>');
 
                                         var dateField = $(props.find('.dateField'));
                                         dateField.datetimepicker({
@@ -272,7 +286,7 @@ var _Entities = {
 
                                     } else {
 
-                                        props.append('<tr><td class="key">' + formatKey(key) + '</td><td class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td></tr>');
+                                        props.append('<tr><td class="key">' + formatKey(key) + '</td><td class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td></td></tr>');
                                     }
 
                                 }
@@ -280,7 +294,7 @@ var _Entities = {
 
                         });
 
-                        props.append('<tr><td class="key"><input type="text" class="newKey" name="key"></td><td class="value"><input type="text" value=""></td></tr>');
+                        props.append('<tr><td class="key"><input type="text" class="newKey" name="key"></td><td class="value"><input type="text" value=""></td><td></td></tr>');
 
                         $('.props tr td.value input', dialog).each(function(i, v) {
 
@@ -316,8 +330,8 @@ var _Entities = {
                                         log('new key: Command.setProperty(', objId, newKey, val);
                                         Command.setProperty(objId, newKey, val, false, function() {
                                             blinkGreen(input);
-                                            dialogMsg.html('<div class="infoBox success">New property "' + newKey + '" saved with value "' + val + '".</div>');
-                                            $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
+                                            dialogMsg.html('<div class="infoBox success">New property "' + newKey + '" was added and saved with value "' + val + '".</div>');
+                                            $('.infoBox', dialogMsg).delay(2000).fadeOut(1000);
                                         });
 
 

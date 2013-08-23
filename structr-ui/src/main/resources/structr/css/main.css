@@ -299,7 +299,7 @@ img.disabled {
 }
 
 .props .value {
-    width: 50%;
+    /*width: 50%;*/
     /*background-color: #fff;*/
 }
 
@@ -343,6 +343,11 @@ img.disabled {
 .props tr td.value .tick {
     border: none;
     position: absolute;
+}
+
+.props tr td img {
+    border: none;
+    cursor: pointer;
 }
 
 ul#previewTabs, ul#compTabs {
