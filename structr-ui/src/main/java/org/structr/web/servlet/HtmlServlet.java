@@ -155,7 +155,8 @@ public class HtmlServlet extends HttpServlet {
 				return;
 			}
 			
-			if (securityContext.getUser(false) != null) {
+			Principal user = securityContext.getUser(false);
+			if (user != null) {
 				
 				// Don't cache if a user is logged in
 				dontCache = true;
@@ -166,7 +167,7 @@ public class HtmlServlet extends HttpServlet {
 			
 			renderContext.setResourceProvider(resourceProvider);
 			
-			edit = renderContext.getEditMode();
+			edit = renderContext.getEditMode(user);
 			
 			DOMNode rootElement               = null;
 			AbstractNode dataNode             = null;

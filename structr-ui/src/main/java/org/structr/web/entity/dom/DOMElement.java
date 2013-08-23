@@ -265,7 +265,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		
 		double start = System.nanoTime();
 		
-		EditMode edit        = renderContext.getEditMode();
+		EditMode edit        = renderContext.getEditMode(securityContext.getUser(false));
 		boolean isVoid       = isVoidElement();
 		StringBuilder buffer = renderContext.getBuffer();
 		//String pageId        = renderContext.getPageId();

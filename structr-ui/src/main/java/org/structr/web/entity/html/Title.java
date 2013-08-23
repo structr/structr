@@ -45,7 +45,7 @@ public class Title extends DOMElement {
 		
 		super.render(securityContext, renderContext, depth);
 
-		if (RenderContext.EditMode.DATA.equals(renderContext.getEditMode())) {
+		if (RenderContext.EditMode.DATA.equals(renderContext.getEditMode(securityContext.getUser(false)))) {
 			
 			renderContext.getBuffer()
 				.append("\n    <script type=\"text/javascript\" src=\"/structr/js/lib/jquery-1.10.2.min.js\"></script>")
