@@ -63,9 +63,12 @@ public class StructrAuthenticator implements Authenticator {
 	//~--- methods --------------------------------------------------------
 
 	@Override
-	public void setUserAutoCreate(boolean userAutoCreate) {
+	public void setUserAutoCreate(boolean userAutoCreate) {}
+	
+	@Override
+	public boolean getUserAutoCreate() {
+		return false;
 	}
-
 
 	@Override
 	public SecurityContext initializeAndExamineRequest(HttpServletRequest request, HttpServletResponse response) throws FrameworkException {

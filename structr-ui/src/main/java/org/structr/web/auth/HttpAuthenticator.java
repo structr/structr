@@ -535,5 +535,11 @@ public class HttpAuthenticator implements Authenticator {
 		return existingSessionId;
 		
 	}
+	
+	public boolean getUserAutoCreate() {
+		
+		return userAutoCreate;
+
+	}
 
 }

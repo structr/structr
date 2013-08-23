@@ -47,7 +47,6 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.apache.lucene.search.BooleanClause.Occur;
 import org.parboiled.common.StringUtils;
 import org.structr.core.auth.AuthHelper;
 import org.structr.core.entity.Person;
@@ -147,7 +146,7 @@ public class RegistrationResource extends Resource {
 				
 			} else {
 
-				user = createUser(securityContext, User.eMail, emailString);
+				user = createUser(securityContext, User.eMail, emailString, securityContext.getAuthenticator().getUserAutoCreate());
 			}
 			
 			if (user != null) {

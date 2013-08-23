@@ -24,7 +24,6 @@ import org.structr.core.property.StringProperty;
 import org.structr.core.property.ISO8601DateProperty;
 import org.structr.core.property.BooleanProperty;
 import org.structr.common.PropertyView;
-import org.structr.common.error.FrameworkException;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -32,9 +31,6 @@ import java.util.Date;
 import java.util.logging.Logger;
 import org.structr.core.property.Property;
 import org.structr.common.View;
-import org.structr.core.Services;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.core.validator.TypeUniquenessValidator;
 
 //~--- classes ----------------------------------------------------------------
@@ -42,7 +38,6 @@ import org.structr.core.validator.TypeUniquenessValidator;
 /**
  *
  * @author Axel Morgner
- *
  */
 public class Person extends AbstractNode {
 	
@@ -75,54 +70,5 @@ public class Person extends AbstractNode {
 	public static final View publicView = new View(Person.class, PropertyView.Public,
 		name, salutation, firstName, middleNameOrInitial, lastName
 	);
-
-	//~--- set methods ----------------------------------------------------
-
-	public void setFirstName(final String firstName) throws FrameworkException {
-			
-		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-			@Override
-			public Object execute() throws FrameworkException {
-
-
-				setProperty(Person.firstName, firstName);
-				
-				String _lastName = getProperty(Person.lastName);
-
-				String lastName = (_lastName != null &&!(_lastName.isEmpty()))
-						  ? _lastName : "";
-
-				setProperty(Person.name, lastName + ", " + firstName);
-				
-				return null;
-			}
-		});
-
-	}
-
-	public void setLastName(final String lastName) throws FrameworkException {
-			
-		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-			@Override
-			public Object execute() throws FrameworkException {
-
-
-				setProperty(Person.lastName, lastName);
-				
-				String _firstName = getProperty(Person.firstName);
-
-				String firstName = ((_firstName != null) &&!(_firstName.isEmpty()))
-						   ? _firstName
-						   : "";
-
-				setProperty(AbstractNode.name, lastName + ", " + firstName);
-				
-				return null;
-			}
-		});
-
-	}
 
 }

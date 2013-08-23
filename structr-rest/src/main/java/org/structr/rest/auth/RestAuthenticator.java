@@ -109,6 +109,11 @@ public class RestAuthenticator implements Authenticator {
 	}
 
 	@Override
-	public void setUserAutoCreate(boolean userAutoCreate) {
+	public void setUserAutoCreate(boolean userAutoCreate) {}
+	
+	@Override
+	public boolean getUserAutoCreate() {
+		return false;
 	}
+	
 }
