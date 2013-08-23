@@ -410,11 +410,6 @@ function StructrPage(baseUrl) {
         //console.log(f, b);
         var obj = {};
 
-        if (f.val === '') {
-            this.delete(f.id);
-            return;
-        }
-
         obj[f.key] = f.val;
         if (b) {
             b.html('<img src="/structr/img/al.gif"> Saving');
