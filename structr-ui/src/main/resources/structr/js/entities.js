@@ -220,13 +220,14 @@ var _Entities = {
                                 if (key !== 'id') {
 
                                     props.append('<tr><td class="key">' + key.replace(view, '') + '</td>'
-                                    + '<td class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td><img class="nullIcon" src="icon/cross_small_grey.png"></td></tr>');
+                                    + '<td class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td><img class="nullIcon" id="null_' + key + '" src="icon/cross_small_grey.png"></td></tr>');
                             
-                                    var nullIcon = $('.nullIcon');
+                                    var nullIcon = $('#null_' + key);
                             
                                     nullIcon.on('click', function() {
-                                        var inp = $(this).parent().prev().find('input');
+                                        var key = $(this).prop('id').substring(5);
                                         Command.setProperty(id, key, null, false, function() {
+                                            var inp = $('.' + key + '_').find('input');
                                             inp.val(null);
                                             blinkGreen(inp);
                                             dialogMsg.html('<div class="infoBox success">Property "' + key + '" was set to null.</div>');
