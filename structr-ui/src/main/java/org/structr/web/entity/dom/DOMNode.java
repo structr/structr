@@ -1012,7 +1012,12 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 					value = value.replace(group, partValue);
 				} else {
-					value = value.replace(group, "");
+					
+					// If the whole expression should be replaced, and partValue is null
+					// replace it by null to make it possible for HTML attributes to not be rendered
+					// and avoid something like ... selected="" ... which is interpreted as selected==true by
+					// all browsers
+					value = value.equals(group) ? null : value.replace(group, "");
 				}
 
 			}
