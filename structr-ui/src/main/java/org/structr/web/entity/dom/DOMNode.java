@@ -758,6 +758,13 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 				Object value = _data.getProperty(EntityContext.getPropertyKeyForJSONName(_data.getClass(), part));
 
+				if (value == null) {
+					
+					// Need to return null here to avoid _data sticking to the (wrong) parent object
+					return null;
+					
+				}
+				
 				if (value instanceof GraphObject) {
 					_data = (GraphObject) value;
 
@@ -802,6 +809,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 				_data = renderContext.getDataNode(part.toLowerCase());
 				
 				continue;
+				
 			}
 
 
