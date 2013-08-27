@@ -574,7 +574,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 		try {
 
-			increasePageVersion(securityContext);
+			increasePageVersion();
 
 		} catch (FrameworkException ex) {
 
@@ -593,7 +593,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 	 *
 	 * @throws FrameworkException
 	 */
-	private void increasePageVersion(SecurityContext securityContext) throws FrameworkException {
+	private void increasePageVersion() throws FrameworkException {
 
 		Page page = (Page) getOwnerDocument();
 		
