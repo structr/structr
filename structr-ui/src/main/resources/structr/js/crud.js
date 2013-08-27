@@ -319,6 +319,10 @@ var _Crud = {
         });        
     },
     
+    getPropertyType : function(type, key) {
+        return _Crud.schema[type].views.all[key].type;
+    },
+    
     determinePagerData : function(type) {
         
         // Priority: JS vars -> Cookie -> URL -> Default
@@ -972,7 +976,7 @@ var _Crud = {
         } else {
             json = '{"' + key + '":"' + newValue.escapeForJSON() + '"}';
         }
-        console.log('crudUpdate', headers, url, json);
+        //console.log('crudUpdate', headers, url, json);
         $.ajax({
             url: url,
             headers: headers,
@@ -1287,13 +1291,39 @@ var _Crud = {
         }
         
         if (!relatedType) {
+    
+            var propertyType = _Crud.getPropertyType(type, key);
 
-            if (typeof value === 'boolean') {
+            if (propertyType === 'Boolean') {
                 cell.append('<input ' + (readOnly ? 'class="readonly" readonly ' : '') + 'type="checkbox" ' + (value?'checked="checked"':'') + '>');
                 if (!readOnly) {
                     $('input', cell).on('change', function() {
                        //console.log('change value for ' + key + ' to ' + $(this).prop('checked'));
                        _Crud.crudUpdate(id, key, $(this).prop('checked').toString());
+                    });
+                }
+            } else if (propertyType === 'Date') {
+                cell.text(nvl(formatValue(value),''));
+                if (!readOnly) {
+                    cell.on('mouseup', function(event) {
+                        event.preventDefault();
+                        var self = $(this);
+                        var oldValue = self.text();
+                        self.html('<input class="value" type="text" size="40">');
+                        var input = $('input', self);
+                        input.val(oldValue);
+                        input.datetimepicker({
+                            // ISO8601 Format: 'yyyy-MM-dd"T"HH:mm:ssZ'
+                            separator: 'T',
+                            dateFormat: 'yy-mm-dd',
+                            timeFormat: 'HH:mm:ssz',
+                            onClose: function() {
+                                var newValue = input.val();
+                                _Crud.crudUpdate(id, key, newValue);
+                            }
+                        });
+                        input.datetimepicker('show');
+                        self.off('mouseup');
                     });
                 }
             } else {
