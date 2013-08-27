@@ -95,7 +95,7 @@ public abstract class AbstractUser extends Person implements Principal {
 	public List<Principal> getParents() {
 
 		List<Principal> parents                   = new LinkedList<Principal>();
-		Iterable<AbstractRelationship> parentRels = getIncomingRelationships(RelType.CHILDREN);
+		Iterable<AbstractRelationship> parentRels = getIncomingRelationships(RelType.CONTAINS);
 
 		for (AbstractRelationship rel : parentRels) {
 

@@ -31,6 +31,6 @@ public enum RelType implements RelationshipType {
         OWNS,
 	IS_AT,
 	PROPERTY_ACCESS,
-	CHILDREN
+	CONTAINS
 
 }
