@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.structr.common.PropertyView;
+import org.structr.core.auth.AuthenticationService;
 import org.structr.core.entity.AbstractNode;
 import org.structr.rest.servlet.CsvServlet;
 import org.structr.server.DefaultResourceProvider;
@@ -47,7 +48,7 @@ public class Ui implements org.structr.server.StructrServer {
 			ServletHolder htmlServletHolder = new ServletHolder(htmlServlet);
 			Map<String, String> htmlInitParams = new HashMap<String, String>();
 
-			htmlInitParams.put("Authenticator", "org.structr.web.auth.HttpAuthenticator");
+			htmlInitParams.put(AuthenticationService.SERVLET_PARAMETER_AUTHENTICATOR, org.structr.web.auth.HttpAuthenticator.class.getName());
 			htmlServletHolder.setInitParameters(htmlInitParams);
 			htmlServletHolder.setInitOrder(1);
 			
@@ -56,7 +57,9 @@ public class Ui implements org.structr.server.StructrServer {
 			ServletHolder csvServletHolder    = new ServletHolder(csvServlet);
 			Map<String, String> servletParams = new HashMap<String, String>();
 
-			servletParams.put("Authenticator", "org.structr.web.auth.HttpAuthenticator");
+			servletParams.put(AuthenticationService.SERVLET_PARAMETER_AUTHENTICATOR, org.structr.web.auth.HttpAuthenticator.class.getName());
+			servletParams.put(AuthenticationService.SERVLET_PARAMETER_USER_AUTO_CREATE, Boolean.toString(true));
+			
 			csvServletHolder.setInitParameters(servletParams);
 			csvServletHolder.setInitOrder(2);
 
@@ -65,7 +68,7 @@ public class Ui implements org.structr.server.StructrServer {
 			ServletHolder wsServletHolder = new ServletHolder(wsServlet);
 			Map<String, String> wsInitParams = new HashMap<String, String>();
 
-			wsInitParams.put("Authenticator", "org.structr.web.auth.UiAuthenticator");
+			wsInitParams.put(AuthenticationService.SERVLET_PARAMETER_AUTHENTICATOR, org.structr.web.auth.UiAuthenticator.class.getName());
 			wsInitParams.put("IdProperty", "uuid");
 			wsServletHolder.setInitParameters(wsInitParams);
 			wsServletHolder.setInitOrder(3);
@@ -83,7 +86,7 @@ public class Ui implements org.structr.server.StructrServer {
 				
 				.resourceProvider(UiResourceProvider.class)
 				.authenticator(UiAuthenticator.class)
-				
+				.userAutoCreate(true)
 			    
 				.start(true);
 

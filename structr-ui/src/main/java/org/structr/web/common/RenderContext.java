@@ -28,6 +28,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang.StringUtils;
 import org.structr.core.GraphObject;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.ResourceProvider;
@@ -152,8 +153,17 @@ public class RenderContext {
 		this.relatedProperty = relatedProperty;
 	}
 	
-	public EditMode getEditMode() {
-		return editMode;
+	/**
+	 * Return edit mode.
+	 * 
+	 * If no user is logged in, the edit mode is always NONE to disable
+	 * editing for public sessions.
+	 * 
+	 * @param user
+	 * @return 
+	 */
+	public EditMode getEditMode(final Principal user) {
+		return user == null ? EditMode.NONE : editMode;
 	}
 	
 	public Locale getLocale() {

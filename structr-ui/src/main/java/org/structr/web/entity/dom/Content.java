@@ -182,7 +182,7 @@ public class Content extends DOMNode implements Text {
 	public void render(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException {
 
 		String id            = getUuid();
-		EditMode edit         = renderContext.getEditMode();
+		EditMode edit        = renderContext.getEditMode(securityContext.getUser(false));
 		boolean inBody       = renderContext.inBody();
 		StringBuilder buffer = renderContext.getBuffer();
 
@@ -260,7 +260,7 @@ public class Content extends DOMNode implements Text {
 		Object value      = dataObject.getProperty(EntityContext.getPropertyKeyForJSONName(dataObject.getClass(), referenceKeyProperty.jsonName()));
 		boolean canWrite  = dataObject instanceof AbstractNode ? securityContext.isAllowed((AbstractNode) dataObject, Permission.write) : true;
 
-		if (getProperty(Content.editable) && EditMode.DATA.equals(renderContext.getEditMode()) && renderContext.inBody() && canWrite && !referenceKeyProperty.isReadOnly()) {
+		if (getProperty(Content.editable) && EditMode.DATA.equals(renderContext.getEditMode(securityContext.getUser(false))) && renderContext.inBody() && canWrite && !referenceKeyProperty.isReadOnly()) {
 
 			String editModeValue = "<span data-structr-type=\"" + referenceKeyProperty.typeName()
 				+ "\" data-structr-id=\"" + dataObject.getUuid()

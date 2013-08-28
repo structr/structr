@@ -55,7 +55,7 @@ $(document).ready(function() {
     dialogBox = $('#dialogBox');
     dialog = $('.dialogText', dialogBox);
     dialogMsg = $('.dialogMsg', dialogBox);
-    dialogBtn = $('.dialogBtn');
+    dialogBtn = $('.dialogBtn', dialogBox);
     dialogTitle = $('.dialogTitle', dialogBox);
     dialogMeta = $('.dialogMeta', dialogBox);
     dialogText = $('.dialogText', dialogBox);

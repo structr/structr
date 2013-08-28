@@ -20,22 +20,18 @@
 
 package org.structr.web.entity;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.util.logging.Logger;
 
 import org.neo4j.graphdb.Direction;
 import org.structr.common.KeyAndClass;
 import org.structr.common.PropertyView;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.Person;
+import org.structr.core.entity.AbstractUser;
 import org.structr.core.entity.Principal;
 import org.structr.core.notion.PropertyNotion;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.CollectionProperty;
 import org.structr.core.property.EntityProperty;
 import org.structr.core.property.Property;
-import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.core.validator.SimpleRegexValidator;
 import org.structr.core.validator.TypeUniquenessValidator;
@@ -50,7 +46,9 @@ import org.structr.web.property.ImageDataProperty;
  * @author Axel Morgner
  *
  */
-public class User extends Person implements Principal {
+public class User extends AbstractUser implements Principal {
+	
+	private static final Logger logger = Logger.getLogger(User.class.getName());
 
 	public static final Property<String>          confirmationKey = new StringProperty("confirmationKey").indexed();
 	public static final Property<Boolean>         backendUser     = new BooleanProperty("backendUser").indexed();
@@ -75,59 +73,4 @@ public class User extends Person implements Principal {
 		User.eMail.addValidator(new SimpleRegexValidator("[A-Za-z0-9!#$%&'*+-/=?^_`{|}~]+@[A-Za-z0-9-]+(.[A-Za-z0-9-]+)*"));
 	}
 	
-	//~--- get methods ----------------------------------------------------
-
-	@Override
-	public List<Principal> getParents() {
-
-		List<Principal> parents                   = new LinkedList<Principal>();
-		Iterable<AbstractRelationship> parentRels = getIncomingRelationships(RelType.CONTAINS);
-
-		for (AbstractRelationship rel : parentRels) {
-
-			AbstractNode node = rel.getStartNode();
-
-			if (node instanceof Principal) {
-
-				parents.add((Principal) node);
-			}
-
-		}
-
-		return parents;
-
-	}
-
-	@Override
-	public Object getPropertyForIndexing(final PropertyKey key) {
-
-		if (User.password.equals(key)) {
-
-			return "";
-			
-		}
-
-		return super.getPropertyForIndexing(key);
-
-	}
-
-	/**
-	 * Intentionally return null.
-	 * @return
-	 */
-	@Override
-	public <T> T getProperty(final PropertyKey<T> key) {
-
-		if (User.password.equals(key)) {
-			
-			return null;
-			
-		} else {
-			
-			return super.getProperty(key);
-			
-		}
-
-	}
-
 }

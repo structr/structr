@@ -63,6 +63,7 @@ public class HttpAuthenticator implements Authenticator {
 	private static final Logger logger       = Logger.getLogger(HttpAuthenticator.class.getName());
 	
 	protected boolean examined = false;
+	protected static boolean userAutoCreate = false;
 
 	//~--- methods --------------------------------------------------------
 
@@ -70,6 +71,13 @@ public class HttpAuthenticator implements Authenticator {
 	public boolean hasExaminedRequest() {
 		
 		return examined;
+		
+	}
+
+	@Override
+	public void setUserAutoCreate(final boolean userAutoCreate) {
+		
+		this.userAutoCreate = userAutoCreate;
 		
 	}
 
@@ -268,7 +276,7 @@ public class HttpAuthenticator implements Authenticator {
 
 					Principal user = AuthHelper.getPrincipalForCredential(credentialKey, value);
 
-					if (user == null) {
+					if (user == null && userAutoCreate) {
 
 						user = RegistrationResource.createUser(superUserContext, credentialKey, value);
 
@@ -526,6 +534,12 @@ public class HttpAuthenticator implements Authenticator {
 		
 		return existingSessionId;
 		
+	}
+	
+	public boolean getUserAutoCreate() {
+		
+		return userAutoCreate;
+
 	}
 
 }

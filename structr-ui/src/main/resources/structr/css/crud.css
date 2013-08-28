@@ -75,7 +75,9 @@
 
 #resourceTabs li.ui-corner-top {
     font-weight: bold;
-    border: 1px solid #999;
+    border-top: 1px solid #999;
+    border-left: 1px solid #999;
+    border-right: 1px solid #999;
     background-color: #e9e9e9;
     background: -webkit-gradient(linear, left bottom, left top, from(#e3e3e3), to(#f7f7f7)) no-repeat;
     background: -moz-linear-gradient(90deg, #e3e3e3, #f7f7f7) no-repeat;

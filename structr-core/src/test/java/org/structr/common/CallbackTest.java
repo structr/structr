@@ -30,6 +30,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Person;
 import org.structr.core.entity.TestEight;
 import org.structr.core.entity.TestFive;
+import org.structr.core.entity.User;
 import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.DeleteNodeCommand;
 import org.structr.core.graph.NodeAttribute;
@@ -52,7 +53,7 @@ public class CallbackTest extends StructrTest {
 		
 		try {
 			
-			Person person = this.createTestNode(Person.class);
+			User person = this.createTestNode(User.class);
 			
 			final SecurityContext securityContext = SecurityContext.getInstance(person, null, AccessMode.Backend);
 			testCallbacks(securityContext);

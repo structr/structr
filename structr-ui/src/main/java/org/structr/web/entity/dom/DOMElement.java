@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import org.apache.commons.lang.StringUtils;
@@ -50,6 +51,7 @@ import org.w3c.dom.Element;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -84,6 +86,7 @@ import org.structr.rest.ResourceProvider;
 import org.structr.rest.resource.NamedRelationResource;
 import org.structr.common.PagingHelper;
 import org.structr.rest.resource.Resource;
+import org.structr.rest.servlet.JsonRestServlet;
 import static org.structr.rest.servlet.JsonRestServlet.REQUEST_PARAMETER_OFFSET_ID;
 import static org.structr.rest.servlet.JsonRestServlet.REQUEST_PARAMETER_PAGE_NUMBER;
 import static org.structr.rest.servlet.JsonRestServlet.REQUEST_PARAMETER_PAGE_SIZE;
@@ -265,7 +268,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		
 		double start = System.nanoTime();
 		
-		EditMode edit        = renderContext.getEditMode();
+		EditMode edit        = renderContext.getEditMode(securityContext.getUser(false));
 		boolean isVoid       = isVoidElement();
 		StringBuilder buffer = renderContext.getBuffer();
 		//String pageId        = renderContext.getPageId();
@@ -309,14 +312,16 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 			}
 
-			// FIXME: this will not include arbitrary data-* attributes
+			// include arbitrary data-* attributes
+			renderCustomAttributes(buffer, securityContext, renderContext);
+			
 			for (PropertyKey attribute : EntityContext.getPropertySet(getClass(), PropertyView.Html)) {
 
 				try {
 
 					String value = getPropertyWithVariableReplacement(securityContext, renderContext, attribute);
 
-					if ((value != null) && StringUtils.isNotBlank(value)) {
+					if (value != null) {
 
 						String key = attribute.jsonName().substring(PropertyView.Html.length());
 
@@ -1321,4 +1326,65 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		
 	}
 
+	/**
+	 * Render all the data-* attributes
+	 * 
+	 * @param securityContext
+	 * @param renderContext 
+	 */
+	private void renderCustomAttributes(final StringBuilder buffer, final SecurityContext securityContext, RenderContext renderContext) throws FrameworkException {
+		
+		dbNode = this.getNode();
+		
+		Iterable<String> props = dbNode.getPropertyKeys();
+		for (String key : props) {
+			
+			if (key.startsWith("data-")) {
+				
+				String value = getPropertyWithVariableReplacement(securityContext, renderContext, new GenericProperty(key));
+				
+				buffer.append(" ").append(key).append("=\"").append(value).append("\"");
+				
+			}
+			
+		}
+		
+	}
+	
+	/**
+	 * This method concatenates the pre-defined HTML attributes and the
+	 * optional custom data-* attributes.
+	 * 
+	 * @param propertyView
+	 * @return 
+	 */
+	@Override
+	public Iterable<PropertyKey> getPropertyKeys(String propertyView) {
+		
+		final List<PropertyKey>		allProperties	= new LinkedList();
+		final Iterable<PropertyKey>	htmlAttrs	= super.getPropertyKeys(propertyView);
+		
+		for (PropertyKey attr : htmlAttrs) {
+			
+			allProperties.add(attr);
+			
+		}
+
+		
+		dbNode = this.getNode();
+		
+		Iterable<String> props = dbNode.getPropertyKeys();
+		for (String key : props) {
+			
+			if (key.startsWith("data-")) {
+				
+				allProperties.add(new GenericProperty(key));
+				
+			}
+			
+		}
+		
+		return allProperties;
+				
+	}
 }

@@ -124,18 +124,18 @@ var _Contents = {
         var saveBtn = $('#editorSave', dialogBtn);
         var saveAndClose = $('#saveAndClose', dialogBtn);
         
-        $('button#saveAndClose', dialogBtn).on('click', function(e) {
+        saveAndClose.on('click', function(e) {
             e.stopPropagation();
             saveBtn.click();
             setTimeout(function() {
+                saveBtn.remove();
+                saveAndClose.remove();
                 dialogCancelButton.click();
-            }, 100);
-            saveBtn.remove();
-            saveAndClose.remove();
-            
+            }, 500);
         });
 
-        saveBtn.on('click', function() {
+        saveBtn.on('click', function(e) {
+            e.stopPropagation();
      
             var contentNode = Structr.node(entity.id)[0];
                 
@@ -145,7 +145,7 @@ var _Contents = {
             if (!text1) text1 = '';
             if (!text2) text2 = '';
 		
-            if (debug) {
+            if (true) {
                 console.log('Element', contentNode);
                 console.log('text1', text1);
                 console.log('text2', text2);
@@ -153,23 +153,14 @@ var _Contents = {
                 
             if (text1 === text2) return;
             Command.patch(entity.id, text1, text2, function() {
-                _Pages.reloadPreviews();
                 dialogMsg.html('<div class="infoBox success">Content saved.</div>');
                 $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
+                _Pages.reloadPreviews();
             });
             
         });
 
-        dialogMeta.append('<div class="' + entity.id + '_"><button class="switch disabled editable_">Editable</button> If enabled, data fields in this content element are editable in edit mode.</div>');
-        var editableSwitch = $('.editable_');
-        _Entities.changeBooleanAttribute(editableSwitch, entity.editable);
-        editableSwitch.on('click', function(e) {
-            e.stopPropagation();
-            entity.setProperty('editable', editableSwitch.hasClass('disabled'), false, function() {
-                _Entities.changeBooleanAttribute(editableSwitch, entity.editable);
-                blinkGreen(editableSwitch);
-            });
-        });
+        _Entities.appendBooleanSwitch(dialogMeta, entity, 'editable', 'Editable', 'If enabled, data fields in this content element are editable in edit mode.');
         
         var values = [ 'text/plain', 'text/html', 'text/css', 'text/javascript', 'text/markdown', 'text/textile', 'text/mediawiki', 'text/tracwiki', 'text/confluence'];
         

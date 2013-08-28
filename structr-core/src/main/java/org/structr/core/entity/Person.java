@@ -20,29 +20,17 @@
 
 package org.structr.core.entity;
 
-import org.structr.core.property.PasswordProperty;
 import org.structr.core.property.StringProperty;
 import org.structr.core.property.ISO8601DateProperty;
 import org.structr.core.property.BooleanProperty;
 import org.structr.common.PropertyView;
-import org.structr.common.error.FrameworkException;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.Permission;
 import org.structr.core.property.Property;
-import org.structr.common.RelType;
-import org.structr.common.SecurityContext;
 import org.structr.common.View;
-import org.structr.core.Services;
-import org.structr.core.graph.CreateRelationshipCommand;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.core.validator.TypeUniquenessValidator;
 
 //~--- classes ----------------------------------------------------------------
@@ -50,9 +38,8 @@ import org.structr.core.validator.TypeUniquenessValidator;
 /**
  *
  * @author Axel Morgner
- *
  */
-public class Person extends AbstractNode implements Principal {
+public class Person extends AbstractNode {
 	
 	private static final Logger logger = Logger.getLogger(Person.class.getName());
 
@@ -64,7 +51,6 @@ public class Person extends AbstractNode implements Principal {
 	public static final Property<String>  twitterName         = new StringProperty("twitterName").validator(new TypeUniquenessValidator(Person.class)).indexed();
 	public static final Property<String>  eMail               = new StringProperty("eMail").validator(new TypeUniquenessValidator(Person.class)).indexed();
 	public static final Property<String>  eMail2              = new StringProperty("eMail2");
-	public static final Property<String>  password            = new PasswordProperty("password");
 	
 	public static final Property<String>  phoneNumber1        = new StringProperty("phoneNumber1");
 	public static final Property<String>  phoneNumber2        = new StringProperty("phoneNumber2");
@@ -84,139 +70,5 @@ public class Person extends AbstractNode implements Principal {
 	public static final View publicView = new View(Person.class, PropertyView.Public,
 		name, salutation, firstName, middleNameOrInitial, lastName
 	);
-
-	//~--- set methods ----------------------------------------------------
-
-	public void setFirstName(final String firstName) throws FrameworkException {
-			
-		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-			@Override
-			public Object execute() throws FrameworkException {
-
-
-				setProperty(Person.firstName, firstName);
-				
-				String _lastName = getProperty(Person.lastName);
-
-				String lastName = (_lastName != null &&!(_lastName.isEmpty()))
-						  ? _lastName : "";
-
-				setProperty(Person.name, lastName + ", " + firstName);
-				
-				return null;
-			}
-		});
-
-	}
-
-	public void setLastName(final String lastName) throws FrameworkException {
-			
-		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-			@Override
-			public Object execute() throws FrameworkException {
-
-
-				setProperty(Person.lastName, lastName);
-				
-				String _firstName = getProperty(Person.firstName);
-
-				String firstName = ((_firstName != null) &&!(_firstName.isEmpty()))
-						   ? _firstName
-						   : "";
-
-				setProperty(AbstractNode.name, lastName + ", " + firstName);
-				
-				return null;
-			}
-		});
-
-	}
-
-	@Override
-	public void grant(Permission permission, AbstractNode obj) {
-
-		SecurityRelationship secRel = obj.getSecurityRelationship(this);
-
-		if (secRel == null) {
-
-			try {
-
-				secRel = createSecurityRelationshipTo(obj);
-
-			} catch (FrameworkException ex) {
-
-				logger.log(Level.SEVERE, "Could not create security relationship!", ex);
-
-			}
-
-		}
-
-		secRel.addPermission(permission);
-
-	}
-
-	@Override
-	public void revoke(Permission permission, AbstractNode obj) {
-
-		SecurityRelationship secRel = obj.getSecurityRelationship(this);
-
-		if (secRel == null) {
-
-			logger.log(Level.SEVERE, "Could not create revoke permission, no security relationship exists!");
-
-		} else {
-
-			secRel.removePermission(permission);
-		}
-
-	}
-
-	private SecurityRelationship createSecurityRelationshipTo(final AbstractNode obj) throws FrameworkException {
-
-		return (SecurityRelationship) Services.command(SecurityContext.getSuperUserInstance(), CreateRelationshipCommand.class).execute(this, obj, RelType.SECURITY);
-
-	}
-
-	//~--- get methods ----------------------------------------------------
-
-	@Override
-	public String getEncryptedPassword() {
-
-		boolean dbNodeHasProperty = dbNode.hasProperty(password.dbName());
-
-		if (dbNodeHasProperty) {
-
-			Object dbValue = dbNode.getProperty(password.dbName());
-
-			return (String) dbValue;
-
-		} else {
-
-			return null;
-		}
-
-	}
-
-	@Override
-	public List<Principal> getParents() {
-
-		List<Principal> parents = new LinkedList<Principal>();
-
-		for (AbstractRelationship rel : getIncomingRelationships(RelType.CHILDREN)) {
-
-			AbstractNode node = rel.getStartNode();
-
-			if (node instanceof Principal) {
-
-				parents.add((Principal) node);
-			}
-
-		}
-
-		return parents;
-
-	}
 
 }

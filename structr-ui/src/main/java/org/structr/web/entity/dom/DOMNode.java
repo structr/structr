@@ -574,7 +574,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 		try {
 
-			increasePageVersion(securityContext);
+			increasePageVersion();
 
 		} catch (FrameworkException ex) {
 
@@ -593,7 +593,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 	 *
 	 * @throws FrameworkException
 	 */
-	private void increasePageVersion(SecurityContext securityContext) throws FrameworkException {
+	private void increasePageVersion() throws FrameworkException {
 
 		Page page = (Page) getOwnerDocument();
 		
@@ -793,6 +793,12 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 				}
 			
+				if (value == null) {
+					
+					// Need to return null here to avoid _data sticking to the (wrong) parent object
+					return null;
+					
+				}
 			
 			}
 			
@@ -802,6 +808,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 				_data = renderContext.getDataNode(part.toLowerCase());
 				
 				continue;
+				
 			}
 
 
@@ -1012,7 +1019,12 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 					value = value.replace(group, partValue);
 				} else {
-					value = value.replace(group, "");
+					
+					// If the whole expression should be replaced, and partValue is null
+					// replace it by null to make it possible for HTML attributes to not be rendered
+					// and avoid something like ... selected="" ... which is interpreted as selected==true by
+					// all browsers
+					value = value.equals(group) ? null : value.replace(group, "");
 				}
 
 			}

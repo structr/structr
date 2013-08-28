@@ -47,7 +47,6 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.apache.lucene.search.BooleanClause.Occur;
 import org.parboiled.common.StringUtils;
 import org.structr.core.auth.AuthHelper;
 import org.structr.core.entity.Person;
@@ -147,7 +146,7 @@ public class RegistrationResource extends Resource {
 				
 			} else {
 
-				user = createUser(securityContext, User.eMail, emailString);
+				user = createUser(securityContext, User.eMail, emailString, securityContext.getAuthenticator().getUserAutoCreate());
 			}
 			
 			if (user != null) {
@@ -263,10 +262,12 @@ public class RegistrationResource extends Resource {
 
 	}
 	
+	
 	/**
-	 * Create a new user
+	 * Create a new user.
 	 * 
-	 * If a {@link Person} is found, convert that object to a {@link User} object
+	 * If a {@link Person} is found, convert that object to a {@link User} object.
+	 * Do not auto-create a new user.
 	 * 
 	 * @param securityContext
 	 * @param credentialKey
@@ -274,6 +275,24 @@ public class RegistrationResource extends Resource {
 	 * @return 
 	 */
 	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue) {
+		
+		return createUser(securityContext, credentialKey, credentialValue, false);
+		
+	}	
+	
+	/**
+	 * Create a new user.
+	 * 
+	 * If a {@link Person} is found, convert that object to a {@link User} object.
+	 * If autoCreate is true, auto-create a new user, even if no matching person is found.
+	 * 
+	 * @param securityContext
+	 * @param credentialKey
+	 * @param credentialValue
+	 * @param autoCreate
+	 * @return 
+	 */
+	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final boolean autoCreate) {
 
 		try {
 			return Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<Principal>() {
@@ -300,7 +319,7 @@ public class RegistrationResource extends Resource {
 						
 						return user;
 
-					} else {
+					} else if (autoCreate) {
 
 						return (Principal) Services.command(securityContext, CreateNodeCommand.class).execute(
 							new NodeAttribute(AbstractNode.type, User.class.getSimpleName()),
@@ -310,13 +329,17 @@ public class RegistrationResource extends Resource {
 						
 
 					}
+					
+					logger.log(Level.WARNING, "No user created: No matching person found, and auto-creation is off");
+					
+					return null;
 
 				}
 				
 			});
 			
 		} catch (FrameworkException ex) {
-			Logger.getLogger(RegistrationResource.class.getName()).log(Level.SEVERE, null, ex);
+			logger.log(Level.SEVERE, null, ex);
 		}
 		
 		return null;

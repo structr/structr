@@ -299,7 +299,7 @@ img.disabled {
 }
 
 .props .value {
-    width: 50%;
+    /*width: 50%;*/
     /*background-color: #fff;*/
 }
 
@@ -345,6 +345,11 @@ img.disabled {
     position: absolute;
 }
 
+.props tr td img {
+    border: none;
+    cursor: pointer;
+}
+
 ul#previewTabs, ul#compTabs {
     margin: 0;
     padding: 0;
@@ -356,14 +361,14 @@ ul#previewTabs {
     width: 900px;
 }
 
-#tabs, #tabs ul, #compTabs, #compTabs ul {
+#data-tabs, #data-tabs ul, #tabs, #tabs ul, #compTabs, #compTabs ul {
     background: none;
     border: none;
     padding: 0;
     margin: 0;
 }
 
-#previewTabs li, #tabs li, #compTabs li {
+#previewTabs li, #tabs li, #compTabs li, #data-tabs li {
     vertical-align: middle;
     line-height: 1.5em;
     border-radius: 5px;
@@ -388,6 +393,28 @@ ul#previewTabs {
     z-index: 1;
 }
 
+#data-tabs {
+    margin-top: 20px;
+}
+
+#data-tabs ul {
+    overflow: hidden;
+}
+
+#data-tabs > div {
+    padding: 0;
+    display: none;
+    border-top: 1px solid #a5a5a5;
+}
+
+#data-tabs button {
+    margin: 6px 0 0 0;
+}
+
+#data-tabs li {
+    font-size: 1em;
+}
+
 #previewTabs img {
     position: relative;
     z-index: 2;
@@ -404,7 +431,7 @@ ul#previewTabs {
     margin: 0;
 }
 
-#previewTabs li:hover, #tabs li:hover, #compTabs li:hover {
+#previewTabs li:hover, #tabs li:hover, #compTabs li:hover, #data-tabs li:hover {
     color: #333 ! important;
     background-color: #e3e3e3;
     background: -webkit-gradient(linear, left bottom, left top, from(#ddd), to(#eee)) no-repeat;
@@ -412,7 +439,7 @@ ul#previewTabs {
     filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#eeeeee', EndColorStr='#dddddd', GradientType=0);
 }
 
-#previewTabs li.active, #tabs li.active, #compTabs li.active {
+#previewTabs li.active, #tabs li.active, #compTabs li.active, #data-tabs li.active {
     color: #333 ! important;
     background-color: #81ce25;
     background: -webkit-gradient(linear, left bottom, left top, from(#73b821), to(#90e629)) no-repeat;
@@ -508,8 +535,7 @@ span.id {
     color: #999;
 }
 
-.node
-{
+.node {
     color: #333;
     line-height: 1.7em;
     border-radius: 5px;
@@ -631,7 +657,7 @@ button {
     color: #222;
     font-weight: bold;
     padding: 2px 8px 2px 4px;
-    margin-bottom: 6px;
+    margin: 0 3px 6px 0;
     vertical-align: middle;
     line-height: 1.5em;
     border-radius: 5px;
@@ -737,7 +763,7 @@ button img {
 
 .dialogText, .dialogMeta {
     text-align: left;
-    font-size: 9pt;
+    font-size: 9.5pt;
     /*width: 776px;*/
     /*overflow: auto;*/
     /*overflow-x: hidden ! important;*/
@@ -752,6 +778,7 @@ button img {
 .dialogText textarea {
     width: 98%;
     margin-top: 0;
+    border: 1px solid #a5a5a5;
 }
 
 .dialogText .node {
@@ -927,6 +954,8 @@ button img {
 }
 
 button.switch {
+    width: 240px;
+    margin-right: 12px;
     color: #444;
     font-weight: normal;
     border-radius: 5px;
@@ -935,6 +964,13 @@ button.switch {
     background: -webkit-gradient(linear, left bottom, left top, from(#ccc), to(#e7e7e7)) no-repeat;
     background: -moz-linear-gradient(90deg, #ccc, #e7e7e7) no-repeat;
     filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#e7e7e7', EndColorStr='#cccccc', GradientType=0);
+}
+
+button.switch:hover {
+    background-color: #eee;
+    background: -webkit-gradient(linear, left bottom, left top, from(#ddd), to(#eee)) no-repeat;
+    background: -moz-linear-gradient(90deg, #ddd, #eee) no-repeat;
+    filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#eeeeee', EndColorStr='#dddddd', GradientType=0);
 }
 
 button.enabled {

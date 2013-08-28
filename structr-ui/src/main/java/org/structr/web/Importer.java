@@ -70,6 +70,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.apache.commons.lang.WordUtils;
+import org.structr.core.EntityContext;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -356,7 +358,17 @@ public class Importer {
 					// Don't add text attribute as _html_text because the text is already contained in the 'content' attribute
 					if (!key.equals("text")) {
 
-						newNode.setProperty(new StringProperty(PropertyView.Html.concat(nodeAttr.getKey())), nodeAttr.getValue());
+						if (key.startsWith("data-structr-")) {
+						
+							String upperCaseKey = WordUtils.capitalize(key.substring(13), new char[] { '-' }).replaceAll("-", "");
+							String camelCaseKey = key.substring(13, 14).concat(upperCaseKey.substring(1));
+							
+							newNode.setProperty(new StringProperty(camelCaseKey), nodeAttr.getValue());
+							
+						} else {
+
+							newNode.setProperty(new StringProperty(PropertyView.Html.concat(nodeAttr.getKey())), nodeAttr.getValue());
+						}
 					}
 
 				}
