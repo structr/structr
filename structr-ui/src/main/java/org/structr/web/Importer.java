@@ -360,12 +360,20 @@ public class Importer {
 
 						// convert data-* attributes to local camel case properties on the node,
 						// but don't convert data-structr-* attributes as they are internal
-						if (key.startsWith("data-") && !key.startsWith("data-structr-")) {
+						if (key.startsWith("data-")) {
 						
-							String upperCaseKey = WordUtils.capitalize(key.substring(5), new char[] { '-' }).replaceAll("-", "");
-							String camelCaseKey = key.substring(5, 6).concat(upperCaseKey.substring(1));
-							
-							newNode.setProperty(new StringProperty(camelCaseKey), nodeAttr.getValue());
+							if(key.startsWith("data-structr-")) {
+
+								newNode.setProperty(new StringProperty(nodeAttr.getKey()), nodeAttr.getValue());
+								
+							} else {
+								
+								String upperCaseKey = WordUtils.capitalize(key.substring(5), new char[] { '-' }).replaceAll("-", "");
+								String camelCaseKey = key.substring(5, 6).concat(upperCaseKey.substring(1));
+
+								newNode.setProperty(new StringProperty(camelCaseKey), nodeAttr.getValue());
+								
+							}
 							
 						} else {
 
