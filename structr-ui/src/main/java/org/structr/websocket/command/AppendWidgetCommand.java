@@ -22,6 +22,8 @@
 package org.structr.websocket.command;
 
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.structr.common.error.FrameworkException;
 
 import org.structr.core.entity.AbstractNode;
@@ -38,6 +40,8 @@ import org.structr.websocket.message.WebSocketMessage;
  */
 public class AppendWidgetCommand extends AbstractCommand {
 
+	private static final Logger logger     = Logger.getLogger(AppendWidgetCommand.class.getName());
+	
 	static {
 
 		StructrWebSocket.addCommand(AppendWidgetCommand.class);
@@ -90,8 +94,10 @@ public class AppendWidgetCommand extends AbstractCommand {
 					
 				} catch (FrameworkException fex) {
 
+					logger.log(Level.WARNING, fex.toString());
+					
 					// send exception
-					getWebSocket().send(MessageBuilder.status().code(422).message(fex.getMessage()).build(), true);
+					getWebSocket().send(MessageBuilder.status().code(422).message(fex.toString()).build(), true);
 				}
 			}
 
