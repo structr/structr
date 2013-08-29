@@ -316,7 +316,7 @@ var Command = {
         data.widgetHostBaseUrl = widgetHostBaseUrl;
         data.parentId = parentId;
         data.source = source;
-        if (attributes && attributes.length) {
+        if (attributes) {
             $.each(Object.keys(attributes), function(i, key) {
                 data[key] = attributes[key];
             });

@@ -206,7 +206,7 @@ var _Widgets = {
             }
         });
 
-        div.append('<img title="Edit Source" alt="Edit Source of ' + widget.id + '" class="edit_icon button" src="icon/pencil.png">');
+        div.append('<img title="Edit widget" alt="Edit widget ' + widget.id + '" class="edit_icon button" src="icon/pencil.png">');
         $('.edit_icon', div).on('click', function(e) {
             e.stopPropagation();
             var text = widget.source || '';
@@ -231,8 +231,6 @@ var _Widgets = {
     },
 
     editWidget : function (button, entity, text, element) {
-        
-        console.log('widgets: editCOntent')
         
         if (isDisabled(button)) return;
         var div = element.append('<div class="editor"></div>');

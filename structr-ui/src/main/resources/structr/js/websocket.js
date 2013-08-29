@@ -155,7 +155,7 @@ function connect() {
                 Structr.login();
 
             } else if (command === 'STATUS') { /*********************** STATUS ************************/
-                log('Error code: ' + code);
+                log('Error code: ' + code, message);
 
                 if (code === 403) {
                     Structr.login('Wrong username or password!');
@@ -166,11 +166,11 @@ function connect() {
                     var msgClass;
                     var codeStr = code.toString();
 
-                    if (codeStr.startsWith('20')) {
+                    if (codeStr.startsWith('2')) {
                         msgClass = 'success';
-                    } else if (codeStr.startsWith('30')) {
+                    } else if (codeStr.startsWith('3')) {
                         msgClass = 'info';
-                    } else if (codeStr.startsWith('40')) {
+                    } else if (codeStr.startsWith('4')) {
                         msgClass = 'warning';
                     } else {
                         msgClass = 'error';

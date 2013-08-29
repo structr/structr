@@ -965,9 +965,9 @@ var _Pages = {
                                     $.each(matches, function(i, match) {
 
                                         $.each($('input[type="text"]', table), function(i, m) {
-                                            //console.log(i, this);
                                             var key = $(m).prop('id').replace(/\[/, '').replace(/\]/, '')
                                             attrs[key] = $(this).val();
+                                            //console.log(this, match, key, attrs[key]);
                                         });
 
                                     });
@@ -983,10 +983,12 @@ var _Pages = {
 
                             }
                         
-                        }
+                        } else {
 
-                        // If no matches, directly append widget
-                        Command.appendWidget(source.source, elementId, pageId, baseUrl);
+                            // If no matches, directly append widget
+                            Command.appendWidget(source.source, elementId, pageId, baseUrl);
+                        
+                        }
                     
                     }
 
