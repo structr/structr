@@ -358,7 +358,9 @@ public class Importer {
 					// Don't add text attribute as _html_text because the text is already contained in the 'content' attribute
 					if (!key.equals("text")) {
 
-						if (key.startsWith("data-structr-")) {
+						// convert data-* attributes to local camel case properties on the node,
+						// but don't convert data-structr-* attributes as they are internal
+						if (key.startsWith("data-") && !key.startsWith("data-structr-")) {
 						
 							String upperCaseKey = WordUtils.capitalize(key.substring(13), new char[] { '-' }).replaceAll("-", "");
 							String camelCaseKey = key.substring(13, 14).concat(upperCaseKey.substring(1));
