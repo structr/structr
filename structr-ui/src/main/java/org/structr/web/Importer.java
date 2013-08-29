@@ -362,8 +362,8 @@ public class Importer {
 						// but don't convert data-structr-* attributes as they are internal
 						if (key.startsWith("data-") && !key.startsWith("data-structr-")) {
 						
-							String upperCaseKey = WordUtils.capitalize(key.substring(13), new char[] { '-' }).replaceAll("-", "");
-							String camelCaseKey = key.substring(13, 14).concat(upperCaseKey.substring(1));
+							String upperCaseKey = WordUtils.capitalize(key.substring(5), new char[] { '-' }).replaceAll("-", "");
+							String camelCaseKey = key.substring(5, 6).concat(upperCaseKey.substring(1));
 							
 							newNode.setProperty(new StringProperty(camelCaseKey), nodeAttr.getValue());
 							
