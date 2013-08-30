@@ -287,30 +287,30 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 			buffer.append("<").append(tag);
 
-			if (EditMode.DATA.equals(edit)) {
-
-//				if (depth == 1) {
+//			if (EditMode.DATA.equals(edit)) {
 //
-//					buffer.append(" data-structr_page_id='").append(pageId).append("'");
+////				if (depth == 1) {
+////
+////					buffer.append(" data-structr_page_id='").append(pageId).append("'");
+////				}
+//
+//				buffer.append(" data-structr-id=\"").append(id).append("\"");
+//				
+//				if (renderContext.getDataObject() != null) {
+//					buffer.append(" data-structr-data-type=\"").append(renderContext.getDataObject().getType()).append("\"");
 //				}
-
-				buffer.append(" data-structr-id=\"").append(id).append("\"");
-				
-				if (renderContext.getDataObject() != null) {
-					buffer.append(" data-structr-data-type=\"").append(renderContext.getDataObject().getType()).append("\"");
-				}
-
-				PropertyKey r = renderContext.getRelatedProperty();
-				
-				if (r != null) {
-					buffer.append(" data-structr-related-property=\"").append(r.jsonName()).append("\"");
-					buffer.append(" data-structr-source-type=\"").append(r.getDeclaringClass().getSimpleName()).append("\"");
-					buffer.append(" data-structr-source-id=\"").append(renderContext.getSourceDataObject().getUuid()).append("\"");
-					buffer.append(" data-structr-data-id=\"").append(renderContext.getDataObject().getUuid()).append("\"");
-				}
-				//buffer.append(" data-structr-name=\"").append(getName()).append("\"");
-
-			}
+//
+//				PropertyKey r = renderContext.getRelatedProperty();
+//				
+//				if (r != null) {
+//					buffer.append(" data-structr-related-property=\"").append(r.jsonName()).append("\"");
+//					buffer.append(" data-structr-source-type=\"").append(r.getDeclaringClass().getSimpleName()).append("\"");
+//					buffer.append(" data-structr-source-id=\"").append(renderContext.getSourceDataObject().getUuid()).append("\"");
+//					buffer.append(" data-structr-data-id=\"").append(renderContext.getDataObject().getUuid()).append("\"");
+//				}
+//				//buffer.append(" data-structr-name=\"").append(getName()).append("\"");
+//
+//			}
 
 			// include arbitrary data-* attributes
 			renderCustomAttributes(buffer, securityContext, renderContext);
@@ -367,13 +367,13 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 				GraphObject details = renderContext.getDetailsDataObject();
 				boolean detailMode = details != null;
 
-				if (EditMode.DATA.equals(edit) && subNode.getProperty(hideOnEdit)) {
-					continue;
-				}
-
-				if (!EditMode.DATA.equals(edit) && subNode.getProperty(hideOnNonEdit)) {
-					continue;
-				}
+//				if (EditMode.DATA.equals(edit) && subNode.getProperty(hideOnEdit)) {
+//					continue;
+//				}
+//
+//				if (!EditMode.DATA.equals(edit) && subNode.getProperty(hideOnNonEdit)) {
+//					continue;
+//				}
 
 				if (detailMode && subNode.getProperty(hideOnDetail)) {
 					continue;
@@ -433,10 +433,10 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 										if (o instanceof GraphObject) {
 											
-											// In edit mode, render a create button
-											if (i==0 && EditMode.DATA.equals(edit) && o instanceof AbstractNode) {
-												typeForCreateButton = ((AbstractNode) o).getClass();
-											}
+//											// In edit mode, render a create button
+//											if (i==0 && EditMode.DATA.equals(edit) && o instanceof AbstractNode) {
+//												typeForCreateButton = ((AbstractNode) o).getClass();
+//											}
 											
 											i++;
 
@@ -490,22 +490,22 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 						}
 						
-						// In data edit mode, render a create button, but only if 
-						if (EditMode.DATA.equals(edit) && typeForCreateButton != null && !Renderable.class.isAssignableFrom(typeForCreateButton)) {
-
-							buffer.append("\n<div class=\"structr-edit\"><button class=\"createButton\"");
-							
-							if (sourceId != null) {
-								buffer.append(" data-structr-source-id=\"").append(sourceId).append("\"");
-								buffer.append(" data-structr-source-type=\"").append(sourceType).append("\"");
-								buffer.append(" data-structr-related-property=\"").append(relatedProperty).append("\"");
-							}
-							
-							buffer.append(" data-structr-type=\"")
-								.append(typeForCreateButton.getSimpleName()).append("\">")
-								.append(relatedProperty != null ? "Add " + typeForCreateButton.getSimpleName() + " to " + relatedProperty : "Create new " + typeForCreateButton.getSimpleName()).append("</button></div>\n");
-
-						}
+//						// In data edit mode, render a create button, but only if 
+//						if (EditMode.DATA.equals(edit) && typeForCreateButton != null && !Renderable.class.isAssignableFrom(typeForCreateButton)) {
+//
+//							buffer.append("\n<div class=\"structr-edit\"><button class=\"createButton\"");
+//							
+//							if (sourceId != null) {
+//								buffer.append(" data-structr-source-id=\"").append(sourceId).append("\"");
+//								buffer.append(" data-structr-source-type=\"").append(sourceType).append("\"");
+//								buffer.append(" data-structr-related-property=\"").append(relatedProperty).append("\"");
+//							}
+//							
+//							buffer.append(" data-structr-type=\"")
+//								.append(typeForCreateButton.getSimpleName()).append("\">")
+//								.append(relatedProperty != null ? "Add " + typeForCreateButton.getSimpleName() + " to " + relatedProperty : "Create new " + typeForCreateButton.getSimpleName()).append("</button></div>\n");
+//
+//						}
 						
 					}
 

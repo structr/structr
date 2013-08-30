@@ -949,7 +949,9 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 		if (_data != null) {
 			
 			PropertyKey referenceKeyProperty = EntityContext.getPropertyKeyForJSONName(_data.getClass(), referenceKey);
-			return getEditModeValue(securityContext, renderContext, _data, referenceKeyProperty, defaultValue);
+			//return getEditModeValue(securityContext, renderContext, _data, referenceKeyProperty, defaultValue);
+			Object value = _data.getProperty(referenceKeyProperty);
+			return value != null ? value : defaultValue;
 			
 		}
 
@@ -957,13 +959,13 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 	}
 
-	protected Object getEditModeValue(final SecurityContext securityContext, final RenderContext renderContext, final GraphObject dataObject, final PropertyKey referenceKeyProperty, final Object defaultValue) {
-
-		Object value = dataObject.getProperty(EntityContext.getPropertyKeyForJSONName(dataObject.getClass(), referenceKeyProperty.jsonName()));
-		
-		return value != null ? value : defaultValue;
-		
-	}
+//	protected Object getEditModeValue(final SecurityContext securityContext, final RenderContext renderContext, final GraphObject dataObject, final PropertyKey referenceKeyProperty, final Object defaultValue) {
+//
+//		Object value = dataObject.getProperty(EntityContext.getPropertyKeyForJSONName(dataObject.getClass(), referenceKeyProperty.jsonName()));
+//		
+//		return value != null ? value : defaultValue;
+//		
+//	}
 	
 	protected String getPropertyWithVariableReplacement(SecurityContext securityContext, RenderContext renderContext, PropertyKey<String> key) throws FrameworkException {
 

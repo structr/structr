@@ -18,53 +18,21 @@
  */
 
 /**
- * JS library to enable in-page data editing in structr
+ * JS library for interactive web applications built with Structr.
  * 
- * The script tag to activate this file is automatically inserted into the
- * rendered page in edit mode (URL parameter 'edit=1')
+ * This file has to be present in a web page to make Structr widgets work.
+ * 
+ * v 1.0.0
  * 
  */
 
+var structrRestUrl = '/structr/rest/'; // TODO: Auto-detect base URI
+var buttonSelector = '[data-structr-action]';
 var altKey = false, ctrlKey = false, shiftKey = false, eKey = false;
 
 $(function() {
-    // TODO: Auto-detect base URI
-    var s = new StructrPage('/structr/rest/');
 
-    // Edit mode is enabled by adding '?edit=1' to the URL
-    if (urlParam('edit') !== undefined) {
-        s.editable(true);
-
-        $('.editButton').text('Leave edit mode').on('click', function() {
-            window.location.href = window.location.href.split('?')[0];
-        });
-
-    } else {
-        $('.editButton').on('click', function() {
-            if (urlParam('edit') === '') {
-                window.location.href = '?edit=1';
-            }
-        });
-    }
-
-    // The create button holds all information about type, id, source object and
-    // a possible related property
-    $('.createButton').on('click', function() {
-        var btn = $(this);
-        var type = btn.attr('data-structr-type');
-        var sourceId = btn.attr('data-structr-source-id');
-        var sourceType = btn.attr('data-structr-source-type');
-        var relatedProperty = btn.attr('data-structr-related-property');
-        //console.log('create button clicked', type);
-        s.create(btn, type, null, sourceId, sourceType, relatedProperty);
-    });
-
-    $('.deleteButton').on('click', function() {
-        var btn = $(this);
-        var id = btn.attr('data-structr-id');
-        //console.log('Delete', id);
-        s.delete(id);
-    });
+    var s = new Structr(structrRestUrl);
 
     $(window).on('keydown', function(e) {
         var k = e.which;
@@ -97,14 +65,54 @@ $(function() {
 });
 
 /**
- * Base class for structr's in-page data editing
+ * Base class for Structr apps
  * 
  * @param baseUrl
- * @returns {StructrPage}
+ * @returns {Structr}
  */
-function StructrPage(baseUrl) {
+function Structr(baseUrl) {
+    if (baseUrl) {
+        structrRestUrl = baseUrl;
+    }
     var s = this;
     this.edit = false;
+    
+    /**
+     * Bind 'click' event to all Structr buttons
+     */
+    $(buttonSelector).on('click', function() {
+        var btn = $(this);
+        var a = btn.attr('data-structr-action').split(':');
+        var action = a[0], type = a[1];
+
+        console.log(action, type);
+
+        if (action === 'create') {
+
+            var attrString = btn.attr('data-structr-attributes');
+            var attrs = attrString ? attrString.split(',') : [];
+            var reload = btn.attr('data-structr-reload') === 'true';
+
+            var data = {};
+
+            $.each(attrs, function(i, key) {
+                data[key] = $('input[data-structr-name="' + key + '"]').val();
+            });
+
+            s.create(type, data, reload);
+
+        } else if (action === 'edit') {
+
+        } else if (action === 'delete') {
+
+            var id = btn.attr('data-structr-id');
+            //console.log('Delete', id);
+            s.delete(id);
+
+        }
+    });
+    
+    
     this.field = function(el) {
 
         var type = el.attr('data-structr-type'), id = el.attr('data-structr-id'), key = el.attr('data-structr-key');
@@ -121,209 +129,73 @@ function StructrPage(baseUrl) {
         //console.log(el, type, id, key, val);
         return {'id': id, 'type': type, 'key': key, 'val': val};
     };
-    this.create = function(btn, type, data, sourceId, sourceType, relatedProperty, createNew) {
-        //console.log('Create', btn, type, data, sourceId, sourceType, relatedProperty, createNew);
-
-        if (sourceId && relatedProperty && !createNew) {
-
-            btn.hide();
-
-            $('<br><span class="searchBox"><input type="text" id="structrSearch" data-structr-typesize="30" placeholder="Search for existing ' + type + '"><span> or </span></span>').insertBefore(btn);
-
-            $('#structrSearch').focus().on('keyup', function(e) {
-
-                var inp = $(this);
-                var k = e.which;
-
-                // ESC key?
-                if (k === 27) {
-
-                    $('#searchResults').remove();
-                    inp.val('');
-                    return;
-
-                }
 
 
-                var attr = (type === 'Content' ? 'content' : 'name');
-
-                $.ajax({
-                    url: '/structr/rest/' + type.toUnderscore() + '/ui?loose=1&' + attr + '=' + inp.val(), method: 'GET', contentType: 'application/json',
-                    statusCode: {
-                        200: function(data) {
-                            var div = $('#searchResults');
-                            if (div.length) {
-                                div.remove();
-                            }
-
-                            if (data.result.length) {
-                                $('<div id="searchResults"></div>').insertAfter('#structrSearch');
-                                var div = $('#searchResults');
-                                $.each(data.result, function(i, obj) {
-
-                                    div.append('<div id="id_' + obj.id + '" class="res">' + obj[attr] + '</div>');
-                                    $('#id_' + obj.id).on('click', function(i, node) {
-                                        s.add(obj.id, sourceId, sourceType, relatedProperty);
-                                    });
-
-                                });
-                            }
-
-                        }
+    this.create = function(type, data, reload) {
+        console.log('Create', type, data, reload);
+        $.ajax({
+            type: 'POST',
+            url: structrRestUrl + type.toUnderscore(),
+            data: JSON.stringify(data),
+            contentType: 'application/json; charset=utf-8',
+            statusCode: {
+                201: function(data) {
+                    s.dialog('success', 'Successfully created new ' + type);
+                    if (reload) {
+                        window.setTimeout(function() {
+                            window.location.reload();
+                        }, 200);
                     }
-                });
-
-            });
-
-            $('<button class="createNewButton" data-structr-source-id="' + sourceId + '">Create new ' + type + ' and add to ' + relatedProperty + '</div>').insertBefore(btn);
-            $('.createNewButton[data-structr-source-id="' + sourceId + '"]').on('click', function() {
-
-                s.create(btn, type, data, sourceId, sourceType, relatedProperty, true);
-
-            });
-
-            return;
-
-        }
-
-        if (type === 'Image' && !data) {
-
-            if (window.File && window.FileReader && window.FileList && window.Blob) {
-
-                var drop = $('#dropArea');
-                if (!drop.length) {
-                    
-                    $('.searchBox').hide();
-                    $('.createNewButton').hide();
-                    
-                    $('<div class="clear"></div><div id="dropArea">Drag and drop image(s) here</div>').insertBefore(btn);
-                    drop = $('#dropArea');
-                    //console.log(drop);
-
-                    drop.on('dragover', function(event) {
-                        event.originalEvent.dataTransfer.dropEffect = 'copy';
-                        return false;
-                    });
-
-                    drop.on('drop', function(event) {
-                        
-                        if (!event.originalEvent.dataTransfer) {
-                            return;
-                        }
-
-                        event.stopPropagation();
-                        event.preventDefault();
-
-                        fileList = event.originalEvent.dataTransfer.files;
-
-                        $(fileList).each(function(i, file) {
-                            $('[data-structr-prop=name]').val(file.name);
-                            var reader = new FileReader();
-                            reader.readAsBinaryString(file);
-
-                            reader.onload = function(f) {
-
-                                var binaryContent = f.target.result;
-
-                                var data = {};
-                                data.imageData = 'data:' + file.type + ';base64,' + window.btoa(binaryContent);
-                                data.name = file.name;
-
-                                var sourceId = btn.attr('data-structr-source-id');
-                                var sourceType = btn.attr('data-structr-source-type');
-                                var relatedProperty = btn.attr('data-structr-related-property');
-                                
-                                s.create(btn, type, data, sourceId, sourceType, relatedProperty, true);
-
-                            }
-
-                        });
-
-                    });
-
+                },
+                400: function(data, status, xhr) {
+                    s.dialog('error', 'Successfully created new ' + type);
+                    console.log(data, status, xhr);
+                },
+                401: function(data, status, xhr) {
+                    s.dialog('error', 'Successfully created new ' + type);
+                    console.log(data, status, xhr);
+                },
+                403: function(data, status, xhr) {
+                    s.dialog('error', 'Successfully created new ' + type);
+                    console.log(data, status, xhr);
+                },
+                404: function(data, status, xhr) {
+                    s.dialog('error', 'Successfully created new ' + type);
+                    console.log(data, status, xhr);
+                },
+                422: function(data, status, xhr) {
+                    s.dialog('error', 'Successfully created new ' + type);
+                    console.log(data, status, xhr);
+                },
+                500: function(data, status, xhr) {
+                    s.dialog('error', 'Successfully created new ' + type);
+                    console.log(data, status, xhr);
                 }
-
-
             }
 
-            //$('<label class="structr-label">Base64 Data</label> <input class="structr-input" type="text" data-structr-prop="imageData" placeholder="Paste here">').insertBefore(btn);
-        } else {
-
-
-            $.ajax({
-                url: '/structr/rest/' + type.toUnderscore(), method: 'POST', contentType: 'application/json',
-                data: JSON.stringify(data),
-                statusCode: {
-                    201: function(x) {
-
-                        if (sourceId && relatedProperty) {
-
-                            var location = x.getResponseHeader('location');
-                            var id = location.substring(location.lastIndexOf('/') + 1);
-
-                            s.add(id, sourceId, sourceType, relatedProperty);
-
-
-                        } else {
-                            window.location.reload();
-                        }
-
-                    },
-                    400: function(d) {
-                        console.log(d);
-                    },
-                    422: function(d) {
-                        btn.parent().children('.structr-label').remove();
-                        btn.parent().children('.structr-input').remove();
-                        btn.parent().children('#dropArea').remove();
-                        btn.off('click');
-
-                        var errors = JSON.parse(d.responseText).errors[type];
-                        //console.log(btn, type, errors);
-                        var data = {};
-
-                        $.each(Object.keys(errors), function(i, key) {
-                            var label = key.splitAndTitleize('_');
-                            var msg = errors[key].join(',').splitAndTitleize('_');
-                            $('<label class="structr-label">' + label + '</label> <input class="structr-input" type="text" data-structr-prop="' + key + '" placeholder="' + msg + '">').insertBefore(btn);
-                        });
-
-                        btn.text('Create and add').show().on('click', function() {
-                            $.each(btn.parent().children('.structr-input'), function() {
-                                var inp = $(this);
-                                var key = inp.attr('data-structr-prop');
-                                var val = inp.val();
-                                //console.log('collecting data', inp, key, val);
-                                data[key] = val;
-                            });
-                            var sourceId = btn.attr('data-structr-source-id');
-                            var sourceType = btn.attr('data-structr-source-type');
-                            var relatedProperty = btn.attr('data-structr-related-property');
-
-                            s.create(btn, type, data, sourceId, sourceType, relatedProperty, true);
-                        });
-
-                    }
-                }
-            });
-
-        }
+        });
     };
+
+    this.dialog = function(type, msg) {
+        var el = $('[data-structr-dialog="' + type + '"]');
+        el.addClass(type).html(msg).show().delay(2000).fadeOut(200);
+    };
+
     this.add = function(id, sourceId, sourceType, relatedProperty) {
 
         var d = JSON.parse('{"' + relatedProperty + '":[{"id":"' + id + '"}]}');
 
         $.ajax({
-            url: '/structr/rest/' + sourceType.toUnderscore() + '/' + sourceId + '/ui', method: 'GET', contentType: 'application/json',
+            url: structrRestUrl + sourceType.toUnderscore() + '/' + sourceId + '/ui', method: 'GET', contentType: 'application/json',
             statusCode: {
                 200: function(data) {
                     //console.log(data.result, data.result[relatedProperty], d);
-                    
+
                     if (data.result[relatedProperty] === undefined) {
                         alert('Could not read related property\n\n    ' + sourceType + '.' + relatedProperty + '\n\nMake sure it is contained in the\nentity\'s ui view and readable via REST.');
                         return;
                     }
-                    
+
                     if (data.result[relatedProperty].length) {
                         $.each(data.result[relatedProperty], function(i, obj) {
                             d[relatedProperty].push({'id': obj.id});
@@ -331,7 +203,7 @@ function StructrPage(baseUrl) {
                     }
 
                     $.ajax({
-                        url: '/structr/rest/' + sourceType.toUnderscore() + '/' + sourceId, method: 'PUT', contentType: 'application/json',
+                        url: structrRestUrl + sourceType.toUnderscore() + '/' + sourceId, method: 'PUT', contentType: 'application/json',
                         data: JSON.stringify(d),
                         statusCode: {
                             200: function() {
@@ -351,12 +223,13 @@ function StructrPage(baseUrl) {
         });
 
     };
+
     this.remove = function(id, sourceId, sourceType, relatedProperty) {
 
         var d = JSON.parse('{"' + relatedProperty + '":[]}');
 
         $.ajax({
-            url: '/structr/rest/' + sourceId + '/ui', method: 'GET', contentType: 'application/json',
+            url: structrRestUrl + sourceId + '/ui', method: 'GET', contentType: 'application/json',
             statusCode: {
                 200: function(data) {
 
@@ -364,7 +237,7 @@ function StructrPage(baseUrl) {
                         alert('Could not read related property\n\n    ' + sourceType + '.' + relatedProperty + '\n\nMake sure it is contained in the\nentity\'s ui view and readable via REST.');
                         return;
                     }
-                    
+
                     if (data.result[relatedProperty].length) {
                         $.each(data.result[relatedProperty], function(i, obj) {
                             if (obj.id !== id) {
@@ -377,7 +250,7 @@ function StructrPage(baseUrl) {
 
                     $.ajax({
                         //url: '/structr/rest/' + sourceType.toUnderscore() + '/' + sourceId, method: 'PUT', contentType: 'application/json',
-                        url: '/structr/rest/' + sourceId, method: 'PUT', contentType: 'application/json',
+                        url: structrRestUrl + sourceId, method: 'PUT', contentType: 'application/json',
                         data: JSON.stringify(d),
                         statusCode: {
                             200: function() {
@@ -397,15 +270,17 @@ function StructrPage(baseUrl) {
         });
 
     };
+
     this.delete = function(id) {
         //console.log('Delete', '/structr/rest/' + id);
         $.ajax({
-            url: '/structr/rest/' + id, method: 'DELETE', contentType: 'application/json',
+            url: structrRestUrl + id, method: 'DELETE', contentType: 'application/json',
             statusCode: {200: function() {
                     window.location.reload();
                 }}
         });
     };
+
     this.save = function(f, b) {
         //console.log(f, b);
         var obj = {};
@@ -425,6 +300,7 @@ function StructrPage(baseUrl) {
             }
         });
     };
+
     this.editable = function(enable) {
 
         if (enable === undefined) {
@@ -602,16 +478,14 @@ function StructrPage(baseUrl) {
             s.save(s.field(inp), btn);
         });
 
-    }
-
+    };
 }
-
 function resizeInput(inp) {
 
     var text = inp.val();
-    
+
     if (isTextarea(inp[0])) {
-        
+
         var n = (text.match(/\n/g) || []).length;
         inp.prop('rows', n + 2);
 
@@ -621,15 +495,15 @@ function resizeInput(inp) {
         })[0].length;
 
         inp.prop('cols', c);
-        
+
     } else {
 
         inp.prop('size', text.length + 1);
 
     }
-    
+
     // set the width value to the max parent width value
-    if($(inp).parent().outerWidth() < $(inp).width()){
+    if ($(inp).parent().outerWidth() < $(inp).width()) {
         $(inp).width($(inp).parent().outerWidth());
     }
 

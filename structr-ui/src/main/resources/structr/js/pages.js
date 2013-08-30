@@ -41,66 +41,64 @@ $(document).ready(function() {
 });
 
 var _Pages = {
+    icon: 'icon/page.png',
+    add_icon: 'icon/page_add.png',
+    delete_icon: 'icon/page_delete.png',
+    clone_icon: 'icon/page_copy.png',
+    init: function() {
 
-    icon : 'icon/page.png',
-    add_icon : 'icon/page_add.png',
-    delete_icon : 'icon/page_delete.png',
-    clone_icon : 'icon/page_copy.png',
-
-    init : function() {
-        
         Structr.initPager('Page', 1, 25);
         Structr.initPager('File', 1, 25);
         _Pages.resize();
 
     },
+    resize: function() {
 
-    resize : function() {
-        
         var windowWidth = win.width();
         var windowHeight = win.height();
         var headerOffsetHeight = 100;
         var previewOffset = 22;
-	
+
         var compTabsHeight = $('#compTabs').height();
         //console.log(pages, palette, previews);
-        
+
         if (pages && palette) {
-            
+
             pages.css({
-                width: Math.max(180, Math.min(windowWidth/3, 360)) + 'px',
+                width: Math.max(180, Math.min(windowWidth / 3, 360)) + 'px',
                 height: windowHeight - headerOffsetHeight + 'px'
             });
 
             var rw = pages.width() + 12;
 
             palette.css({
-                width: Math.min(300, Math.max(360, windowWidth/4)) + 'px',
+                width: Math.min(300, Math.max(360, windowWidth / 4)) + 'px',
                 height: windowHeight - (headerOffsetHeight + compTabsHeight) + 'px'
             });
 
             components.css({
-                width: Math.min(300, Math.max(360, windowWidth/4)) + 'px',
+                width: Math.min(300, Math.max(360, windowWidth / 4)) + 'px',
                 height: windowHeight - (headerOffsetHeight + compTabsHeight) + 'px'
             });
 
             elements.css({
-                width: Math.min(300, Math.max(360, windowWidth/4)) + 'px',
+                width: Math.min(300, Math.max(360, windowWidth / 4)) + 'px',
                 height: windowHeight - (headerOffsetHeight + compTabsHeight) + 'px'
             });
 
             var pw = palette.width() + 60;
 
-            if (previews) previews.css({
-                width: windowWidth-rw-pw + 'px',
-                height: win.height() - headerOffsetHeight + 'px'
-            });
+            if (previews)
+                previews.css({
+                    width: windowWidth - rw - pw + 'px',
+                    height: win.height() - headerOffsetHeight + 'px'
+                });
 
             $('.previewBox', previews).css({
-                width: windowWidth-rw-pw-4 + 'px',
+                width: windowWidth - rw - pw - 4 + 'px',
                 height: windowHeight - (headerOffsetHeight + previewOffset) + 'px'
             });
-            
+
             var iframes = $('.previewBox', previews).find('iframe');
             iframes.css({
                 width: $('.previewBox', previews).width() + 'px',
@@ -110,11 +108,10 @@ var _Pages = {
         }
 
     },
+    onload: function() {
 
-    onload : function() {
-        
         _Pages.init();
-        
+
         activeTab = localStorage.getItem(activeTabKey);
         activeTabRight = localStorage.getItem(activeTabRightKey);
         log('value read from local storage', activeTab);
@@ -130,9 +127,9 @@ var _Pages = {
         palette = $('#palette');
         components = $('#components');
         elements = $('#elements');
-        
+
         //main.before('<div id="hoverStatus">Hover status</div>');
-        
+
         $('#paletteTab').on('click', function() {
             $(this).addClass('active');
             $('#componentsTab').removeClass('active');
@@ -143,7 +140,7 @@ var _Pages = {
             _Elements.reloadPalette();
             localStorage.setItem(activeTabRightKey, $(this).prop('id'));
         });
-        
+
         $('#elementsTab').on('click', function() {
             $(this).addClass('active');
             $('#paletteTab').removeClass('active');
@@ -207,67 +204,65 @@ var _Pages = {
         previewTabs = $('#previewTabs', previews);
 
         _Pages.refresh();
-        
+
         window.setTimeout('_Pages.resize()', 1000);
 
     },
-
-    clearPreviews : function() {
+    clearPreviews: function() {
 
         if (previewTabs && previewTabs.length) {
             previewTabs.children('.page').remove();
         }
-        
-    },
 
-    refresh : function() {
+    },
+    refresh: function() {
         pages.empty();
         previewTabs.empty();
-        
+
         Structr.addPager(pages, 'Page');
-        
+
         previewTabs.append('<li id="import_page" class="button"><img class="add_button icon" src="icon/page_white_put.png"></li>');
         $('#import_page', previewTabs).on('click', function(e) {
             e.stopPropagation();
-            
+
             Structr.dialog('Import Page', function() {
                 return true;
             }, function() {
                 return true;
             });
-			
+
             dialog.empty();
             dialogMsg.empty();
-            
+
             dialog.append('<h3>Create page from source code ...</h3>'
-                + '<textarea id="_code" name="code" cols="40" rows="10" placeholder="Paste HTML code here"></textarea>');
-            
+                    + '<textarea id="_code" name="code" cols="40" rows="10" placeholder="Paste HTML code here"></textarea>');
+
             dialog.append('<h3>... or fetch page from URL: <input id="_address" name="address" size="40" value="http://"></h3><table class="props">'
-                + '<tr><td><label for="name">Name of new page:</label></td><td><input id="_name" name="name" size="20"></td></tr>'
-                + '<tr><td><label for="timeout">Timeout (ms)</label></td><td><input id="_timeout" name="timeout" size="20" value="5000"></td></tr>'
-                + '<tr><td><label for="publicVisibilty">Visible to public</label></td><td><input type="checkbox" id="_publicVisible" name="publicVisibility"></td></tr>'
-                + '<tr><td><label for="authVisibilty">Visible to authenticated users</label></td><td><input type="checkbox" checked="checked" id="_authVisible" name="authVisibilty"></td></tr>'
-                + '</table>');
+                    + '<tr><td><label for="name">Name of new page:</label></td><td><input id="_name" name="name" size="20"></td></tr>'
+                    + '<tr><td><label for="timeout">Timeout (ms)</label></td><td><input id="_timeout" name="timeout" size="20" value="5000"></td></tr>'
+                    + '<tr><td><label for="publicVisibilty">Visible to public</label></td><td><input type="checkbox" id="_publicVisible" name="publicVisibility"></td></tr>'
+                    + '<tr><td><label for="authVisibilty">Visible to authenticated users</label></td><td><input type="checkbox" checked="checked" id="_authVisible" name="authVisibilty"></td></tr>'
+                    + '</table>');
 
             var addressField = $('#_address', dialog);
 
             log('addressField', addressField);
-            
+
             addressField.on('blur', function() {
                 var addr = $(this).val().replace(/\/+$/, "");
                 log(addr);
-                $('#_name', dialog).val(addr.substring(addr.lastIndexOf("/")+1));
+                $('#_name', dialog).val(addr.substring(addr.lastIndexOf("/") + 1));
             });
 
 
             dialog.append('<button id="startImport">Start Import</button>');
-			
+
             $('#startImport').on('click', function(e) {
                 e.stopPropagation();
 
-                var code    = $('#_code', dialog).val();
+                var code = $('#_code', dialog).val();
                 var address = $('#_address', dialog).val();
-                var name    = $('#_name', dialog).val();
+                var name = $('#_name', dialog).val();
                 var timeout = $('#_timeout', dialog).val();
                 var publicVisible = $('#_publicVisible:checked', dialog).val() === 'on';
                 var authVisible = $('#_authVisible:checked', dialog).val() === 'on';
@@ -275,7 +270,7 @@ var _Pages = {
                 log('start');
                 return Command.importPage(code, address, name, timeout, publicVisible, authVisible);
             });
-            
+
         });
 
         previewTabs.append('<li id="add_page" class="button"><img class="add_button icon" src="icon/add.png"></li>');
@@ -285,15 +280,14 @@ var _Pages = {
             //entity.type = 'Page';
             //Command.create(entity);
             Command.createSimplePage();
-        });        
-        
-    },
+        });
 
-    addTab : function(entity) {
+    },
+    addTab: function(entity) {
         previewTabs.children().last().before('<li id="show_' + entity.id + '" class="page ' + entity.id + '_"></li>');
 
         var tab = $('#show_' + entity.id, previews);
-		
+
         tab.append('<img class="typeIcon" src="icon/page.png"> <b title="' + entity.name + '" class="name_">' + fitStringToSize(entity.name, 200) + '</b>');
         tab.append('<img title="Delete page \'' + entity.name + '\'" alt="Delete page \'' + entity.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
         tab.append('<img class="view_icon button" title="View ' + entity.name + ' in new window" alt="View ' + entity.name + ' in new window" src="icon/eye.png">');
@@ -315,28 +309,27 @@ var _Pages = {
         deleteIcon.on('mouseover', function(e) {
             var self = $(this);
             self.show();
-		
+
         });
-        
+
         return tab;
     },
-
-    resetTab : function(element) {
+    resetTab: function(element) {
 
         log('resetTab', element);
-        
+
         element.children('input').hide();
         element.children('.name_').show();
-        
+
         var icons = $('.button', element);
         //icon.hide();
 
         element.hover(function(e) {
             icons.show();
         },
-        function(e) {
-            icons.hide();
-        });
+                function(e) {
+                    icons.hide();
+                });
 
         element.on('click', function(e) {
             e.stopPropagation();
@@ -356,9 +349,8 @@ var _Pages = {
             _Pages.activateTab(element);
         }
     },
+    activateTab: function(element) {
 
-    activateTab : function(element) {
-        
         //var name = $.trim(element.children('.name_').text());
         var name = $.trim(element.children('b.name_').attr('title'));
         log('activateTab', element, name);
@@ -373,7 +365,7 @@ var _Pages = {
 
         var id = element.prop('id').substring(5);
         activeTab = id;
-        
+
         _Pages.reloadIframe(id, name);
 
         element.addClass('active');
@@ -382,8 +374,7 @@ var _Pages = {
         localStorage.setItem(activeTabKey, activeTab);
 
     },
-    
-    reloadIframe : function(id, name) {
+    reloadIframe: function(id, name) {
         var iframe = $('#preview_' + id);
         log(iframe);
         iframe.prop('src', viewRootUrl + name + '?edit=2');
@@ -394,21 +385,20 @@ var _Pages = {
         _Pages.resize();
 
     },
-    
-    makeTabEditable : function(element) {
+    makeTabEditable: function(element) {
         //element.off('dblclick');
-        
+
         var id = element.prop('id').substring(5);
-        
+
         element.off('hover');
         //var oldName = $.trim(element.children('.name_').text());
         var oldName = $.trim(element.children('b.name_').attr('title'));
         element.children('b').hide();
         element.find('.button').hide();
         var input = $('input.newName_', element);
-        
+
         if (!input.length) {
-            element.append('<input type="text" size="' + (oldName.length+4) + '" class="newName_" value="' + oldName + '">');
+            element.append('<input type="text" size="' + (oldName.length + 4) + '" class="newName_" value="' + oldName + '">');
             input = $('input', element);
         }
 
@@ -421,10 +411,10 @@ var _Pages = {
             Command.setProperty(id, "name", newName);
             _Pages.resetTab(element, newName);
         });
-        
+
         input.keypress(function(e) {
             if (e.keyCode === 13 || e.keyCode === 9) {
-                e.preventDefault(); 
+                e.preventDefault();
                 log('keypress');
                 var self = $(this);
                 var newName = self.val();
@@ -436,20 +426,19 @@ var _Pages = {
         element.off('click');
 
     },
+    appendPageElement: function(entity) {
 
-    appendPageElement : function(entity) {
-        
         var hasChildren = entity.childElements.length;
-        
+
         pages.append('<div id="id_' + entity.id + '" class="node page"></div>');
         var div = Structr.node(entity.id);
-        
+
         $('.button', div).on('mousedown', function(e) {
             e.stopPropagation();
         });
 
         div.append('<img class="typeIcon" src="icon/page.png">'
-            + '<b title="' + entity.name + '" class="name_">' + fitStringToSize(entity.name, 200) + '</b> <span class="id">' + entity.id + '</span>');
+                + '<b title="' + entity.name + '" class="name_">' + fitStringToSize(entity.name, 200) + '</b> <span class="id">' + entity.id + '</span>');
 
         _Entities.appendExpandIcon(div, entity, hasChildren);
         _Entities.appendAccessControlIcon(div, entity);
@@ -466,10 +455,10 @@ var _Pages = {
         var tab = _Pages.addTab(entity);
 
         previews.append('<div class="previewBox"><iframe id="preview_'
-            + entity.id + '"></iframe></div><div style="clear: both"></div>');
+                + entity.id + '"></iframe></div><div style="clear: both"></div>');
 
         _Pages.resetTab(tab, entity.name);
-        
+
         $('#preview_' + entity.id).hover(function() {
             var self = $(this);
             var elementContainer = self.contents().find('.structr-element-container');
@@ -480,7 +469,7 @@ var _Pages = {
             var elementContainer = self.contents().find('.structr-element-container-active');
             elementContainer.addClass('structr-element-container');
             elementContainer.removeClass('structr-element-container-active');
-        //self.find('.structr-element-container-header').remove();
+            //self.find('.structr-element-container-header').remove();
         });
 
         $('#preview_' + entity.id).load(function() {
@@ -489,24 +478,25 @@ var _Pages = {
 
             var doc = $(this).contents();
             var head = $(doc).find('head');
-            if (head) head.append('<style media="screen" type="text/css">'
-                + '* { z-index: 0}\n'
-                + '.nodeHover { border: 1px dotted red; }\n'
-                //+ '.structr-content-container { display: inline-block; border: none; margin: 0; padding: 0; min-height: 10px; min-width: 10px; }\n'
-                + '.structr-content-container { min-height: .25em; min-width: .25em; }\n'
-                //		+ '.structr-element-container-active { display; inline-block; border: 1px dotted #e5e5e5; margin: -1px; padding: -1px; min-height: 10px; min-width: 10px; }\n'
-                //		+ '.structr-element-container { }\n'
-                + '.structr-element-container-active:hover { border: 1px dotted red ! important; }\n'
-                + '.structr-droppable-area { border: 1px dotted red ! important; }\n'
-                + '.structr-editable-area { border: 1px dotted orange ! important; }\n'
-                + '.structr-editable-area-active { background-color: #ffe; border: 1px solid orange ! important; color: #333; margin: -1px; padding: 1px; }\n'
-                //		+ '.structr-element-container-header { font-family: Arial, Helvetica, sans-serif ! important; position: absolute; font-size: 8pt; }\n'
-                + '.structr-element-container-header { font-family: Arial, Helvetica, sans-serif ! important; position: absolute; font-size: 8pt; color: #333; border-radius: 5px; border: 1px solid #a5a5a5; padding: 3px 6px; margin: 6px 0 0 0; background-color: #eee; background: -webkit-gradient(linear, left bottom, left top, from(#ddd), to(#eee)) no-repeat; background: -moz-linear-gradient(90deg, #ddd, #eee) no-repeat; filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr="#eeeeee", EndColorStr="#dddddd", GradientType=0);\n'
-                + '.structr-element-container-header img { width: 16px ! important; height: 16px ! important; }\n'
-                + '.link-hover { border: 1px solid #00c; }\n'
-                + '.edit_icon, .add_icon, .delete_icon, .close_icon, .key_icon {  cursor: pointer; heigth: 16px; width: 16px; vertical-align: top; float: right;  position: relative;}\n'
-                + '</style>');
-	
+            if (head)
+                head.append('<style media="screen" type="text/css">'
+                        + '* { z-index: 0}\n'
+                        + '.nodeHover { border: 1px dotted red; }\n'
+                        //+ '.structr-content-container { display: inline-block; border: none; margin: 0; padding: 0; min-height: 10px; min-width: 10px; }\n'
+                        + '.structr-content-container { min-height: .25em; min-width: .25em; }\n'
+                        //		+ '.structr-element-container-active { display; inline-block; border: 1px dotted #e5e5e5; margin: -1px; padding: -1px; min-height: 10px; min-width: 10px; }\n'
+                        //		+ '.structr-element-container { }\n'
+                        + '.structr-element-container-active:hover { border: 1px dotted red ! important; }\n'
+                        + '.structr-droppable-area { border: 1px dotted red ! important; }\n'
+                        + '.structr-editable-area { border: 1px dotted orange ! important; }\n'
+                        + '.structr-editable-area-active { background-color: #ffe; border: 1px solid orange ! important; color: #333; margin: -1px; padding: 1px; }\n'
+                        //		+ '.structr-element-container-header { font-family: Arial, Helvetica, sans-serif ! important; position: absolute; font-size: 8pt; }\n'
+                        + '.structr-element-container-header { font-family: Arial, Helvetica, sans-serif ! important; position: absolute; font-size: 8pt; color: #333; border-radius: 5px; border: 1px solid #a5a5a5; padding: 3px 6px; margin: 6px 0 0 0; background-color: #eee; background: -webkit-gradient(linear, left bottom, left top, from(#ddd), to(#eee)) no-repeat; background: -moz-linear-gradient(90deg, #ddd, #eee) no-repeat; filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr="#eeeeee", EndColorStr="#dddddd", GradientType=0);\n'
+                        + '.structr-element-container-header img { width: 16px ! important; height: 16px ! important; }\n'
+                        + '.link-hover { border: 1px solid #00c; }\n'
+                        + '.edit_icon, .add_icon, .delete_icon, .close_icon, .key_icon {  cursor: pointer; heigth: 16px; width: 16px; vertical-align: top; float: right;  position: relative;}\n'
+                        + '</style>');
+
             var iframeDocument = $(this).contents();
             //var iframeWindow = this.contentWindow;
 
@@ -679,22 +669,29 @@ var _Pages = {
 //                }
 //            });
 
-            $(this).contents().find('[data-structr-id]').each(function(i,element) {
-                log(element);
-                var el = $(element);
-                var type = el.attr('data-structr-type');
-                if (type !== 'Content') return;
-                var structrId = el.attr('data-structr-id');
-                if (structrId) {
+            //$(this).contents().find('[data-structr-id]').each(function(i,element) {
+            $(this).contents().find('*').each(function(i, element) {
+
+                getComments(element).forEach(function(c) {
+
+                    var inner = $(getNonCommentSiblings(c.textNode));
+                    $(getNonCommentSiblings(c.textNode)).remove();
+                    $(c.textNode).replaceWith('<div data-structr-id="' + c.id + '" data-structr-raw-content="' + c.rawContent + '">' + c.textNode.nodeValue + '</div>');
+
+                    var el = $(element).children('[data-structr-id="' + c.id + '"]');
                     
-                    el.on({
+                    el.append(inner);
+
+                    $(el).on({
                         mouseover: function(e) {
                             e.stopPropagation();
                             var self = $(this);
+                            //self.replaceWith('<span data-structr-id="' + id + '">' + c.nodeValue + '</span>');
+
                             self.addClass('structr-editable-area');
-                            self.prop('contenteditable', true);
                             //$('#hoverStatus').text('Editable content element: ' + self.attr('data-structr_content_id'));
-                            var node = Structr.node(structrId);
+                            var contentSourceId = self.attr('data-structr-id');
+                            var node = Structr.node(contentSourceId);
                             if (node) {
                                 node.parent().removeClass('nodeHover');
                                 node.addClass('nodeHover');
@@ -707,42 +704,50 @@ var _Pages = {
                             self.removeClass('structr-editable-area');
                             //self.prop('contenteditable', false);
                             //$('#hoverStatus').text('-- non-editable --');
-                            var node = Structr.node(structrId);
+                            var contentSourceId = self.attr('data-structr-id');
+                            var node = Structr.node(contentSourceId);
                             if (node) {
                                 node.removeClass('nodeHover');
                             }
                         },
                         click: function(e) {
                             e.stopPropagation();
+                            e.preventDefault();
                             var self = $(this);
-                            self.removeClass('structr-editable-area');
-                            self.addClass('structr-editable-area-active');
+                            if (self.hasClass('structr-editable-area-active')) {
+                                return false;
+                            }
+                            self.removeClass('structr-editable-area').addClass('structr-editable-area-active').prop('contenteditable', true);
 
                             // Store old text in global var
-                            textBeforeEditing = cleanText(self.contents());
+                            textBeforeEditing = self.text();//cleanText(self.contents());
 
-                            var srcText = StructrModel.obj(structrId).content;
+                            //var srcText = expandNewline(self.attr('data-structr-raw-content'));
+                            var srcText = expandNewline(self.attr('data-structr-raw-content'));
                             // Replace only if it differs (e.g. for variables)
                             if (srcText !== textBeforeEditing) {
-                                self.text(srcText);
+                                self.html(srcText);
                                 textBeforeEditing = srcText;
                             }
+                            return false;
 
                         },
                         blur: function(e) {
                             e.stopPropagation();
                             var self = $(this);
-                            contentSourceId = self.attr('data-structr-id');
-                            var text = cleanText(self.contents());
-                            Command.patch(contentSourceId, textBeforeEditing, text);
+                            var contentSourceId = self.attr('data-structr-id');
+                            var text = cleanText(self.html());
+                            //Command.patch(contentSourceId, textBeforeEditing, text);
+                            Command.setProperty(contentSourceId, 'content', text);
                             contentSourceId = null;
                             self.attr('contenteditable', false);
-                            self.removeClass('structr-editable-area-active');
+                            self.removeClass('structr-editable-area-active').removeClass('structr-editable-area');
                             _Pages.reloadPreviews();
                         }
                     });
-				
-                }
+
+                });
+
             });
 
         });
@@ -757,21 +762,24 @@ var _Pages = {
                 console.log('dropped onto', self);
                 // Only html elements are allowed, and only if none exists
 
-                if (getId(self) === getId(sortParent)) return false;
+                if (getId(self) === getId(sortParent))
+                    return false;
 
                 _Entities.ensureExpanded(self);
-                sorting = false; sortParent = undefined;
+                sorting = false;
+                sortParent = undefined;
 
                 var nodeData = {};
-				
+
                 var page = self.closest('.page')[0];
-                
+
                 var contentId = getId(ui.draggable);
-                var elementId = getId(self); console.log('elementId', elementId);
+                var elementId = getId(self);
+                console.log('elementId', elementId);
 
                 var source = StructrModel.obj(contentId);
                 var target = StructrModel.obj(elementId);
-                
+
                 if (source && getId(page) && source.pageId && getId(page) !== source.pageId) {
                     event.preventDefault();
                     event.stopPropagation();
@@ -782,53 +790,53 @@ var _Pages = {
                 } else {
                     log('not copying node');
                 }
-                
+
                 if (contentId === elementId) {
                     log('drop on self not allowed');
                     return;
                 }
-                
+
                 var tag;
                 var cls = Structr.getClass($(ui.draggable));
-                
+
                 if (!contentId) {
                     tag = $(ui.draggable).text();
-                    
+
                     if (tag !== 'html') {
                         return false;
                     }
 
                     var pageId = (page ? getId(page) : target.pageId);
-                        
+
                     Command.createAndAppendDOMNode(pageId, elementId, (tag !== 'content' ? tag : ''), nodeData);
                     return;
-                        
+
                 } else {
                     tag = cls;
                     log('appendChild', contentId, elementId);
                     sorting = false;
                     Command.appendChild(contentId, elementId);
                     //$(ui.draggable).remove();
-                    
+
                     return;
                 }
                 log('drop event in appendPageElement', getId(page), getId(self), (tag !== 'content' ? tag : ''));
             }
         });
-        
-        return div;
-	
-    },
 
-    appendElementElement : function(entity, refNode, refNodeIsParent) {
+        return div;
+
+    },
+    appendElementElement: function(entity, refNode, refNodeIsParent) {
         log('_Pages.appendElementElement(', entity, refNode, refNodeIsParent, ');')
         var div = _Elements.appendElementElement(entity, refNode, refNodeIsParent);
-        if (!div) return false;
-        
+        if (!div)
+            return false;
+
         var parentId = entity.parent && entity.parent.id;
         if (parentId) {
             $('.delete_icon', div).replaceWith('<img title="Remove" '
-                + 'alt="Remove" class="delete_icon button" src="icon/brick_delete.png">');
+                    + 'alt="Remove" class="delete_icon button" src="icon/brick_delete.png">');
             $('.button', div).on('mousedown', function(e) {
                 e.stopPropagation();
             });
@@ -849,18 +857,21 @@ var _Pages = {
                 sortParent = $(ui.item).parent();
             },
             update: function(event, ui) {
-        
+
                 var el = $(ui.item);
                 //console.log('### sortable update: sorting?', sorting, getId(el), getId(self), getId(sortParent));
-                if (!sorting) return false;
-                
+                if (!sorting)
+                    return false;
+
                 var id = getId(el);
-                if (!id) id = getComponentId(el);
-                
+                if (!id)
+                    id = getComponentId(el);
+
                 var nextNode = el.next('.node');
                 var refId = getId(nextNode);
-                if (!refId) refId = getComponentId(nextNode);
-                
+                if (!refId)
+                    refId = getComponentId(nextNode);
+
                 var parentId = getId(sortParent);
                 el.remove();
                 Command.insertBefore(parentId, id, refId);
@@ -876,36 +887,38 @@ var _Pages = {
         };
 
         div.sortable(sortableOptions);
-        
+
         div.droppable({
             accept: '.node, .element, .content, .image, .file, .widget',
             greedy: true,
             hoverClass: 'nodeHover',
             tolerance: 'pointer',
             drop: function(event, ui) {
-        
+
                 div.sortable('refresh');
-        
+
                 var self = $(this);
                 log('dropped onto', self, getId(self), getId(sortParent));
-                if (getId(self) === getId(sortParent)) return false;
+                if (getId(self) === getId(sortParent))
+                    return false;
 
                 _Entities.ensureExpanded(self);
-                sorting = false; sortParent = undefined;
+                sorting = false;
+                sortParent = undefined;
 
                 var nodeData = {};
-				
+
                 var sourceId = getId(ui.draggable) || getComponentId(ui.draggable);
                 var elementId = getId(self);
 
                 var source = StructrModel.obj(sourceId);
                 var target = StructrModel.obj(elementId);
-                
+
                 var page = self.closest('.page')[0];
                 var pageId = (page ? getId(page) : target.pageId);
-                
+
                 log(sourceId, source, pageId);
-                
+
                 if (source && pageId && source.pageId && pageId !== source.pageId) {
                     event.preventDefault();
                     event.stopPropagation();
@@ -916,30 +929,30 @@ var _Pages = {
                 } else {
                     log('not copying node');
                 }
-                
+
                 if (sourceId === elementId) {
                     log('drop on self not allowed');
                     return;
                 }
-                
+
                 var tag, name;
-                
+
                 if (source && source.type === 'Widget') {
-                    
+
                     var baseUrl = 'http://' + remoteWidgets.remoteHost + ':' + remoteWidgets.remotePort;
 
                     Structr.modules['widgets'].unload();
                     _Pages.makeMenuDroppable();
-                    
+
                     //var pattern = /^\[[a-zA-Z]+\]$/;
                     var pattern = /\[[a-zA-Z]+\]/g;
                     var text = source.source;
                     if (text) {
-                        
+
                         var rawMatches = text.match(pattern);
-                        
+
                         if (rawMatches) {
-                            
+
                             var matches = $.unique(rawMatches);
 
                             if (matches && matches.length) {
@@ -971,7 +984,7 @@ var _Pages = {
                                         });
 
                                     });
-                                    
+
                                     //console.log(source.source, elementId, pageId, attrs);
                                     e.stopPropagation();
                                     Command.appendWidget(text, elementId, pageId, baseUrl, attrs);
@@ -982,70 +995,70 @@ var _Pages = {
                                 });
 
                             }
-                        
+
                         } else {
 
                             // If no matches, directly append widget
                             Command.appendWidget(source.source, elementId, pageId, baseUrl);
-                        
+
                         }
-                    
+
                     }
 
                     $(ui.draggable).remove();
                     return;
-                    
+
                 } else if (source && source.type === 'Image') {
-                
+
                     sourceId = undefined;
                     name = $(ui.draggable).find('.name_').attr('title');
                     log('Image dropped, creating <img> node', name);
                     nodeData._html_src = '/' + name;
                     nodeData.name = name;
                     tag = 'img';
-                    
+
                     Structr.modules['images'].unload();
                     _Pages.makeMenuDroppable();
-                    
+
                     Command.createAndAppendDOMNode(getId(page), elementId, tag, nodeData);
                     $(ui.draggable).remove();
-                    
+
                     return;
-                    
+
                 } else if (source && source.type === 'File') {
-                    
+
                     name = $(ui.draggable).children('.name_').attr('title');
-                    
+
                     var parentTag = self.children('.tag_').text();
                     log(parentTag);
                     nodeData.linkableId = sourceId;
-                    
+
                     if (parentTag === 'head') {
-                        
+
                         log('File dropped in <head>');
-                        
+
                         if (name.endsWith('.css')) {
-                            
+
                             //console.log('CSS file dropped in <head>, creating <link>');
-                            
+
                             tag = 'link';
                             nodeData._html_href = '/${link.name}';
                             nodeData._html_type = 'text/css';
                             nodeData._html_rel = 'stylesheet';
                             nodeData._html_media = 'screen';
-                            
-                            
+
+
                         } else if (name.endsWith('.js')) {
-                            
+
                             log('JS file dropped in <head>, creating <script>');
-                            
+
                             tag = 'script';
                             nodeData._html_src = '/${link.name}';
                             nodeData._html_type = 'text/javascript';
                         }
-                        
+
                     } else {
-                    
+
                         log('File dropped, creating <a> node', name);
                         nodeData._html_href = '/${link.name}';
                         nodeData._html_title = '${link.name}';
@@ -1053,16 +1066,16 @@ var _Pages = {
                         tag = 'a';
                     }
                     sourceId = undefined;
-                    
+
                     Structr.modules['files'].unload();
                     _Pages.makeMenuDroppable();
-    
+
                     Command.createAndAppendDOMNode(pageId, elementId, tag, nodeData);
-                    
+
                     $(ui.draggable).remove();
                     return;
                 }
-                
+
                 if (!sourceId) {
 
                     tag = $(ui.draggable).text();
@@ -1079,33 +1092,32 @@ var _Pages = {
                         } else {
                             nodeData.childContent = 'Initial text for ' + tag;
                         }
-                            
+
                         // set as expanded in advance
                         //addExpandedNode(contentId);
-                            
+
                     }
 
                     Command.createAndAppendDOMNode(pageId, elementId, (tag !== 'content' ? tag : ''), nodeData);
                     return;
-                        
+
                 } else {
                     tag = Structr.getClass($(ui.draggable));
                     log('appendChild', sourceId, elementId);
                     sorting = false;
                     Command.appendChild(sourceId, elementId);
                     $(ui.draggable).remove();
-                    
+
                     return;
                 }
-                
+
                 log('drop event in appendElementElement', pageId, getId(self), (tag !== 'content' ? tag : ''));
             }
-        }); 
+        });
         return div;
     },
+    reloadPreviews: function() {
 
-    reloadPreviews : function() {
-        
         // add a small delay to avoid getting old data in very fast localhost envs
         window.setTimeout(function() {
 
@@ -1117,18 +1129,17 @@ var _Pages = {
                     var doc = this.contentDocument;
                     doc.location.reload(true);
                 }
-            
+
             });
         }, 100);
     },
-    
-    zoomPreviews : function(value) {
+    zoomPreviews: function(value) {
         $('.previewBox', previews).each(function() {
-            var val = value/100;
+            var val = value / 100;
             var box = $(this);
 
-            box.css('-moz-transform',    'scale(' + val + ')');
-            box.css('-o-transform',      'scale(' + val + ')');
+            box.css('-moz-transform', 'scale(' + val + ')');
+            box.css('-o-transform', 'scale(' + val + ')');
             box.css('-webkit-transform', 'scale(' + val + ')');
 
             var w = origWidth * val;
@@ -1145,35 +1156,71 @@ var _Pages = {
         });
 
     },
-    
-    makeMenuDroppable : function() {
-        
+    makeMenuDroppable: function() {
+
         $('#pages_').droppable({
             accept: '.element, .content, .component, .file, .image, .widget',
             greedy: true,
             hoverClass: 'nodeHover',
             tolerance: 'pointer',
-        
             over: function(e, ui) {
-            
+
                 e.stopPropagation();
                 $('#pages_').droppable('disable');
                 log('over is off');
-            
+
                 Structr.activateMenuEntry('pages');
                 window.location.href = '/structr/#pages';
-                
-                if (files && files.length) files.hide();
-                if (folders && folders.length) folders.hide();
-                if (widgets && widgets.length) widgets.hide();
-                
+
+                if (files && files.length)
+                    files.hide();
+                if (folders && folders.length)
+                    folders.hide();
+                if (widgets && widgets.length)
+                    widgets.hide();
+
 //                _Pages.init();
                 Structr.modules['pages'].onload();
                 _Pages.resize();
             }
-        
+
         });
-        
+
         $('#pages_').removeClass('nodeHover').droppable('enable');
     }
 };
+
+function getComments(el) {
+    var comments = [];
+    var f = el.firstChild;
+    while (f) {
+        if (f.nodeType === 8) {
+            var id = f.nodeValue.extractVal('data-structr-id');
+            var raw = f.nodeValue.extractVal('data-structr-raw-value');
+            if (id) {
+                f = f.nextSibling;
+                if (f && f.nodeType === 3) {
+                    var comment = {};
+                    comment.id = id;
+                    comment.textNode = f;
+                    comment.rawContent = raw;
+                    comments.push(comment);
+                }
+            }
+        }
+        f = f.nextSibling;
+    }
+    return comments;
+}
+
+function getNonCommentSiblings(el) {
+    var siblings = [];
+    var s = el.nextSibling;
+    while (s) {
+        if (s.nodeType === 8) {
+            return siblings;
+        }
+        siblings.push(s);
+        s = s.nextSibling;
+    }
+}
