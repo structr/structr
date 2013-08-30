@@ -751,8 +751,8 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 		// walk through template parts
 		for (int i = 0; (i < parts.length); i++) {
 
-			String part = parts[i];
-
+			String part          = parts[i];
+			String lowerCasePart = part.toLowerCase();
 			
 			if (_data != null) {
 
@@ -766,7 +766,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 				}
 
 				// special keyword "size"
-				if (i > 0 && "size".equals(part.toLowerCase())) {
+				if (i > 0 && "size".equals(lowerCasePart)) {
 					
 					Object val = _data.getProperty(EntityContext.getPropertyKeyForJSONName(_data.getClass(), parts[i-1]));
 					
@@ -779,7 +779,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 				}
 
 				// special keyword "link", works on deeper levels, too
-				if ("link".equals(part.toLowerCase()) && _data instanceof AbstractNode) {
+				if ("link".equals(lowerCasePart) && _data instanceof AbstractNode) {
 
 					for (AbstractRelationship rel : ((AbstractNode) _data).getRelationships(org.structr.web.common.RelType.LINK, Direction.OUTGOING)) {
 
@@ -803,9 +803,9 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 			}
 			
 			// data objects from parent elements
-			if (renderContext.hasDataForKey(part.toLowerCase())) {
+			if (renderContext.hasDataForKey(lowerCasePart)) {
 				
-				_data = renderContext.getDataNode(part.toLowerCase());
+				_data = renderContext.getDataNode(lowerCasePart);
 				
 				continue;
 				
@@ -813,7 +813,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 
 			// special keyword "request"
-			if ("request".equals(part.toLowerCase())) {
+			if ("request".equals(lowerCasePart)) {
 
 				HttpServletRequest request = renderContext.getRequest(); //securityContext.getRequest();
 
@@ -833,7 +833,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 			}
 
 			// special keyword "now":
-			if ("now".equals(part.toLowerCase())) {
+			if ("now".equals(lowerCasePart)) {
 
 				// Return current date converted in format
 				// Note: We use "createdDate" here only as an arbitrary property key to get the database converter
@@ -842,7 +842,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 			}
 
 			// special keyword "me"
-			if ("me".equals(part.toLowerCase())) {
+			if ("me".equals(lowerCasePart)) {
 
 				Principal me = (Principal) securityContext.getUser(false);
 
@@ -858,9 +858,19 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 			// the following keywords work only on root level
 			// so that they can be used as property keys for data objects
 			if (_data == null) {
-			
+
+				// special keyword "this"
+				if ("this".equals(lowerCasePart)) {
+
+					_data = renderContext.getDataObject();
+
+					continue;
+
+				}
+				
+				
 				// special keyword "ownerDocument", works only on root level
-				if ("page".equals(part.toLowerCase())) {
+				if ("page".equals(lowerCasePart)) {
 
 					_data = _page;
 
@@ -869,7 +879,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 				}
 
 				// special keyword "link", works only on root level
-				if (_data == null && "link".equals(part.toLowerCase())) {
+				if ("link".equals(lowerCasePart)) {
 
 					for (AbstractRelationship rel : getRelationships(org.structr.web.common.RelType.LINK, Direction.OUTGOING)) {
 
@@ -884,7 +894,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 				}
 
 				// special keyword "parent"
-				if ("parent".equals(part.toLowerCase())) {
+				if ("parent".equals(lowerCasePart)) {
 
 					_data = (DOMNode) getParentNode();
 
@@ -893,7 +903,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 				}
 
 				// special keyword "owner"
-				if ("owner".equals(part.toLowerCase())) {
+				if ("owner".equals(lowerCasePart)) {
 
 					for (AbstractRelationship rel : getRelationships(org.structr.common.RelType.OWNS, Direction.INCOMING)) {
 
@@ -908,7 +918,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 				}
 
 				// special keyword "search_result_size"
-				if ("search_result_size".equals(part.toLowerCase())) {
+				if ("search_result_size".equals(lowerCasePart)) {
 
 					Set<Page> pages = getResultPages(securityContext, (Page) _page);
 
@@ -922,14 +932,14 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 				}
 
 				// special keyword "result_size"
-				if ("result_size".equals(part.toLowerCase())) {
+				if ("result_size".equals(lowerCasePart)) {
 					
 					return IteratorUtils.toArray(renderContext.getListSource().iterator()).length;
 
 				}
 
 				//				// special keyword "rest_result"
-//				if ("rest_result".equals(part.toLowerCase())) {
+//				if ("rest_result".equals(lowerCasePart)) {
 //
 //					HttpServletRequest request = securityContext.getRequest();
 //
