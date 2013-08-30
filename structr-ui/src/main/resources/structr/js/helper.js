@@ -118,6 +118,14 @@ if (typeof String.prototype.splitAndTitleize !== 'function') {
     };
 }
 
+if (typeof String.prototype.extractVal !== 'function') {
+    String.prototype.extractVal = function(key) {
+        var pattern = '('+key+'=")(.*?)"';
+        var re = new RegExp(pattern);
+        var value = this.match(re);
+        return value && value[2] ? value[2] : undefined;
+    };
+}
 /**
  * Clean text from contenteditable
  * 
@@ -125,18 +133,32 @@ if (typeof String.prototype.splitAndTitleize !== 'function') {
  * any <br> tag into a line feed ('\n').
  */
 function cleanText(input) {
-    if (debug)console.log(input);
-    var output = '';
-    $(input).each(function(i, line) {
-        var cleaned = $(line).text();
-        log(cleaned.length);
-        if (cleaned.length) {
-            output += cleaned;
-        } else {
-            output += '\n';
-        }
-    });
-    log(output);
+    //console.log(input);
+    var output = input.trim()
+        .replace(/<br><\/div>/ig, '\n')
+        .replace(/<div>/ig, '\n')
+        .replace(/<br(\s*)\/*>/ig, '\n')
+        .replace(/(<([^>]+)>)/ig,"");
+
+   //console.log(output);
+   return output;
+    
+//    if (debug) console.log(input);
+//    var output = '';
+//    $(input).each(function(i, line) {
+//        var cleaned = $(line).text();
+//        console.log('>'+cleaned+'<');
+//        output += cleaned + '\n';
+//    });
+//    console.log(output);
+//    return output;
+}
+
+/**
+ * Expand literal \n to newline
+ */
+function expandNewline(text) {
+    var output = text.replace(/\\n/g, '<br>');
     return output;
 }
 

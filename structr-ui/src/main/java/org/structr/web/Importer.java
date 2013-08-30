@@ -71,7 +71,6 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.lang.WordUtils;
-import org.structr.core.EntityContext;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -94,6 +93,8 @@ public class Importer {
 	private static CreateRelationshipCommand createRel;
 	private static SearchNodeCommand searchNode;
 
+	private final static String DATA_META_PREFIX = "data-structr-meta-";
+	
 	//~--- static initializers --------------------------------------------
 
 	static {
@@ -362,14 +363,16 @@ public class Importer {
 						// but don't convert data-structr-* attributes as they are internal
 						if (key.startsWith("data-")) {
 						
-							if(key.startsWith("data-structr-")) {
+							if (!key.startsWith(DATA_META_PREFIX)) {
 
 								newNode.setProperty(new StringProperty(nodeAttr.getKey()), nodeAttr.getValue());
 								
 							} else {
 								
-								String upperCaseKey = WordUtils.capitalize(key.substring(5), new char[] { '-' }).replaceAll("-", "");
-								String camelCaseKey = key.substring(5, 6).concat(upperCaseKey.substring(1));
+								int l = DATA_META_PREFIX.length();
+								
+								String upperCaseKey = WordUtils.capitalize(key.substring(l), new char[] { '-' }).replaceAll("-", "");
+								String camelCaseKey = key.substring(l, l+1).concat(upperCaseKey.substring(1));
 
 								newNode.setProperty(new StringProperty(camelCaseKey), nodeAttr.getValue());
 								
