@@ -17,6 +17,7 @@ body {
     height: 100%;
     width: 100%;
     overflow: auto;
+    overflow-x: hidden;
     margin: 0;
     padding: 0;
     font-family: Arial, Helvetica, Sans-serif;
@@ -181,7 +182,7 @@ img.disabled {
     margin: 3px 0 6px 9px;
 }
 
-#pages, #palette {
+#pages {
     overflow: auto;
 }
 
@@ -189,19 +190,33 @@ img.disabled {
     margin-top: 0px ! important;
 }
 
-#components, #elements {
-    display: none;
-    border-top: 1px solid #a5a5a5;
-    padding: 0;
-    margin: 0;
+.compTab {
+    -webkit-transform: rotate(-90deg);
+    -moz-transform: rotate(-90deg);
+    -o-transform: rotate(-90deg);
+    -ms-transform: rotate(-90deg);
+    transform: rotate(-90deg);
+    z-index: 100;
+    position: absolute;
 }
 
-#palette {
-    /*font-size: 1.25em;*/
-    /*line-height: 2em;*/
-    padding: 0;
+#paletteTab {
+    left: -73px;
+    top: 80px;
+}
+
+#palette, #components, #elements {
+    background-color: #e5e5e5;
+    padding: 12px;
     margin: 0;
     border-top: 1px solid #a5a5a5;
+    border-left: 1px solid #a5a5a5;
+    border-bottom: 1px solid #a5a5a5;
+    position: absolute;
+    right: -424px;
+    top: 72px;
+    border-bottom-left-radius: 5px;
+    border-top-left-radius: 5px;
 }
 
 #palette .elementGroup {
@@ -350,7 +365,7 @@ img.disabled {
     cursor: pointer;
 }
 
-ul#previewTabs, ul#compTabs {
+ul#previewTabs, .compTab {
     margin: 0;
     padding: 0;
     border: none;
@@ -361,14 +376,14 @@ ul#previewTabs {
     width: 900px;
 }
 
-#data-tabs, #data-tabs ul, #tabs, #tabs ul, #compTabs, #compTabs ul {
+#data-tabs, #data-tabs ul, #tabs, #tabs ul, .compTab {
     background: none;
     border: none;
     padding: 0;
     margin: 0;
 }
 
-#previewTabs li, #tabs li, #compTabs li, #data-tabs li {
+#previewTabs li, #tabs li, .compTab, #data-tabs li {
     vertical-align: middle;
     line-height: 1.5em;
     border-radius: 5px;
@@ -431,7 +446,7 @@ ul#previewTabs {
     margin: 0;
 }
 
-#previewTabs li:hover, #tabs li:hover, #compTabs li:hover, #data-tabs li:hover {
+#previewTabs li:hover, #tabs li:hover, .compTabs:hover, #data-tabs li:hover {
     color: #333 ! important;
     background-color: #e3e3e3;
     background: -webkit-gradient(linear, left bottom, left top, from(#ddd), to(#eee)) no-repeat;
@@ -439,7 +454,7 @@ ul#previewTabs {
     filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#eeeeee', EndColorStr='#dddddd', GradientType=0);
 }
 
-#previewTabs li.active, #tabs li.active, #compTabs li.active, #data-tabs li.active {
+#previewTabs li.active, #tabs li.active, .compTab.active, #data-tabs li.active {
     color: #333 ! important;
     background-color: #81ce25;
     background: -webkit-gradient(linear, left bottom, left top, from(#73b821), to(#90e629)) no-repeat;
@@ -1126,4 +1141,18 @@ button.enabled {
     right: 30px;
     bottom: 8px;
     width: 76px;
+}
+
+.widget {
+    height: 200px;
+}
+
+.widget .preview {
+    position: absolute;
+    top: 24px;
+    left: 24px;
+    right: 24px;
+    bottom: 24px;
+    border: 1px solid #a5a5a5;
+    background-color: #fff;
 }

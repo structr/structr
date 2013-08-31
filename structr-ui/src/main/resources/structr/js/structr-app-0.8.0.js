@@ -32,7 +32,7 @@ var altKey = false, ctrlKey = false, shiftKey = false, eKey = false;
 
 $(function() {
 
-    var s = new Structr(structrRestUrl);
+    var s = new StructrApp(structrRestUrl);
 
     $(window).on('keydown', function(e) {
         var k = e.which;
@@ -68,50 +68,91 @@ $(function() {
  * Base class for Structr apps
  * 
  * @param baseUrl
- * @returns {Structr}
+ * @returns {StructrApp}
  */
-function Structr(baseUrl) {
+function StructrApp(baseUrl) {
     if (baseUrl) {
         structrRestUrl = baseUrl;
     }
     var s = this;
     this.edit = false;
+    this.data = {};
+    this.btnLabel = undefined;
     
     /**
      * Bind 'click' event to all Structr buttons
      */
     $(buttonSelector).on('click', function() {
         var btn = $(this);
+        s.btnLabel = s.btnLabel || btn.text();
         var a = btn.attr('data-structr-action').split(':');
         var action = a[0], type = a[1];
+        var reload = btn.attr('data-structr-reload') === 'true';
+        var attrString = btn.attr('data-structr-attributes');
+        var attrs = attrString ? attrString.split(',') : [];
 
-        console.log(action, type);
+        var id = btn.attr('data-structr-id');
+        //console.log(action, type, id);
 
         if (action === 'create') {
 
-            var attrString = btn.attr('data-structr-attributes');
-            var attrs = attrString ? attrString.split(',') : [];
-            var reload = btn.attr('data-structr-reload') === 'true';
-
-            var data = {};
-
             $.each(attrs, function(i, key) {
-                data[key] = $('input[data-structr-name="' + key + '"]').val();
+                s.data[key] = $('input[data-structr-name="' + key + '"]').val();
             });
-
-            s.create(type, data, reload);
+            s.create(type, s.data, reload);
 
         } else if (action === 'edit') {
-
+            
+            s.editAction(btn, id, attrs);
+            
+        } else if (action === 'cancel-edit') {
+            
+            s.cancelEditAction(btn, id, attrs);
+            
         } else if (action === 'delete') {
 
-            var id = btn.attr('data-structr-id');
-            //console.log('Delete', id);
-            s.delete(id);
+            s.delete(id, btn.attr('data-structr-confirm') === 'true', reload);
 
         }
     });
     
+    this.editAction = function(btn, id, attrs) {
+        var container = $('[data-structr-container="' + id + '"]');
+        $.each(attrs, function(i, key) {
+            var el = $('[data-structr-attr="' + key + '"]', container);
+            var val = el.text();
+            s.data[key] = val;
+            el.html(inputField(id, key, val));
+        });
+        $('<button data-structr-action="save" class="structr-button">Save</button>').insertBefore(btn);
+        $('button[data-structr-action="save"]', container).on('click', function() {
+            s.saveAction(btn, id, attrs);
+        });
+        btn.text('Cancel').attr('data-structr-action', 'cancel-edit');
+    },
+    
+    this.saveAction = function(btn, id, attrs) {
+        var container = $('[data-structr-container="' + id + '"]');
+        $.each(attrs, function(i, key) {
+            var inp = $('input[data-structr-attr="' + key + '"]', container);
+            var val = inp.val();
+            s.data[key] = val;
+        });
+        s.request('PUT', structrRestUrl + id, s.data, false, 'Successfully updated ' + id, 'Could not update ' + id, function() {
+            s.cancelEditAction(btn, id, attrs);
+        });
+    },
+    
+    this.cancelEditAction = function(btn, id, attrs) {
+        var container = $('[data-structr-container="' + id + '"]');
+        $.each(attrs, function(i, key) {
+            var inp = $('input[data-structr-attr="' + key + '"]', container);
+            var val = inp.val();
+            inp.replaceWith(s.data[key]);
+        });
+        $('button[data-structr-action="save"]').remove();
+        btn.text(s.btnLabel).attr('data-structr-action', 'edit');
+    },
     
     this.field = function(el) {
 
@@ -133,48 +174,65 @@ function Structr(baseUrl) {
 
     this.create = function(type, data, reload) {
         console.log('Create', type, data, reload);
+        s.request('POST', structrRestUrl + type.toUnderscore(), data, reload, 'Successfully created new ' + type, 'Could not create ' + type);
+    };
+
+    this.request = function(method, url, data, reload, successMsg, errorMsg, callback) {
         $.ajax({
-            type: 'POST',
-            url: structrRestUrl + type.toUnderscore(),
+            type: method,
+            url: url,
             data: JSON.stringify(data),
             contentType: 'application/json; charset=utf-8',
             statusCode: {
-                201: function(data) {
-                    s.dialog('success', 'Successfully created new ' + type);
+                200: function(data) {
+                    s.dialog('success', successMsg);
                     if (reload) {
                         window.setTimeout(function() {
                             window.location.reload();
                         }, 200);
                     }
+                    if (callback) {
+                        callback();
+                    }
+                },
+                201: function(data) {
+                    s.dialog('success', successMsg);
+                    if (reload) {
+                        window.setTimeout(function() {
+                            window.location.reload();
+                        }, 200);
+                    }
+                    if (callback) {
+                        callback();
+                    }
                 },
                 400: function(data, status, xhr) {
-                    s.dialog('error', 'Successfully created new ' + type);
+                    s.dialog('error', errorMsg + ': ' + data.responseText);
                     console.log(data, status, xhr);
                 },
                 401: function(data, status, xhr) {
-                    s.dialog('error', 'Successfully created new ' + type);
+                    s.dialog('error', errorMsg + ': ' + data.responseText);
                     console.log(data, status, xhr);
                 },
                 403: function(data, status, xhr) {
-                    s.dialog('error', 'Successfully created new ' + type);
+                    s.dialog('error', errorMsg + ': ' + data.responseText);
                     console.log(data, status, xhr);
                 },
                 404: function(data, status, xhr) {
-                    s.dialog('error', 'Successfully created new ' + type);
+                    s.dialog('error', errorMsg + ': ' + data.responseText);
                     console.log(data, status, xhr);
                 },
                 422: function(data, status, xhr) {
-                    s.dialog('error', 'Successfully created new ' + type);
+                    s.dialog('error', errorMsg + ': ' + data.responseText);
                     console.log(data, status, xhr);
                 },
                 500: function(data, status, xhr) {
-                    s.dialog('error', 'Successfully created new ' + type);
+                    s.dialog('error', errorMsg + ': ' + data.responseText);
                     console.log(data, status, xhr);
                 }
             }
-
         });
-    };
+    },
 
     this.dialog = function(type, msg) {
         var el = $('[data-structr-dialog="' + type + '"]');
@@ -271,14 +329,24 @@ function Structr(baseUrl) {
 
     };
 
-    this.delete = function(id) {
-        //console.log('Delete', '/structr/rest/' + id);
-        $.ajax({
-            url: structrRestUrl + id, method: 'DELETE', contentType: 'application/json',
-            statusCode: {200: function() {
-                    window.location.reload();
-                }}
-        });
+    this.delete = function(id, conf, reload) {
+        console.log('Delete', id, conf, reload);
+        var sure = true;
+        if (conf) {
+            sure = confirm('Are you sure to delete ' + id + '?');
+        }
+        if (!conf || sure) {
+            $.ajax({
+                url: structrRestUrl + id, method: 'DELETE', contentType: 'application/json',
+                statusCode: {
+                    200: function() {
+                        if (reload) {
+                            window.location.reload();
+                        }
+                    }
+                }
+            });
+        }
     };
 
     this.save = function(f, b) {
@@ -570,8 +638,8 @@ function textarea(id, key, val) {
     return '<div><textarea class="editField" data-structr-id="' + id + '" data-structr-key="' + key + '">' + (val === 'null' ? '' : val) + '\n</textarea></div>';
 }
 
-function inputField(id, type, key, val) {
-    return '<input class="editField" type="text" placeholder="' + key.capitalize() + '" data-structr-id="' + id + '" data-structr-type="' + type + '" data-structr-key="' + key + '" value="' + (val === 'null' ? '' : val) + '" size="' + val.length + ' ">';
+function inputField(id, key, val) {
+    return '<input class="structr-input-text" type="text" placeholder="' + key.capitalize() + '" data-structr-id="' + id + '" data-structr-attr="' + key + '" value="' + (val === 'null' ? '' : val) + '" size="' + val.length + ' ">';
 }
 
 function field(id, type, key, val) {
