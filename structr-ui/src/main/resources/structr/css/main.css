@@ -165,8 +165,6 @@ img.disabled {
 #remoteWidgets,
 #propertyDefinitions,
 #previews,
-#elements,
-#components,
 #contents,
 #folders,
 #files,
@@ -174,6 +172,8 @@ img.disabled {
 #groups,
 #images,
 #users,
+#elements,
+#components,
 #palette {
     float: left;
     border: none;
@@ -196,16 +196,30 @@ img.disabled {
     -o-transform: rotate(-90deg);
     -ms-transform: rotate(-90deg);
     transform: rotate(-90deg);
-    z-index: 100;
+    z-index: 1000;
     position: absolute;
+}
+.compTab {
+	margin: 8px 2px 0 0 ! important
 }
 
 #paletteTab {
-    left: -73px;
+    left: -61px;
     top: 80px;
 }
 
+#componentsTab {
+    left: -82px;
+    top: 210px;
+}
+
+#elementsTab {
+    left: -78px;
+    top: 357px;
+}
+
 #palette, #components, #elements {
+    min-height: 600px;
     background-color: #e5e5e5;
     padding: 12px;
     margin: 0;
@@ -213,6 +227,7 @@ img.disabled {
     border-left: 1px solid #a5a5a5;
     border-bottom: 1px solid #a5a5a5;
     position: absolute;
+    z-index: 99;
     right: -424px;
     top: 72px;
     border-bottom-left-radius: 5px;
@@ -365,7 +380,7 @@ img.disabled {
     cursor: pointer;
 }
 
-ul#previewTabs, .compTab {
+ul#previewTabs {
     margin: 0;
     padding: 0;
     border: none;
@@ -376,7 +391,7 @@ ul#previewTabs {
     width: 900px;
 }
 
-#data-tabs, #data-tabs ul, #tabs, #tabs ul, .compTab {
+#data-tabs, #data-tabs ul, #tabs, #tabs ul {
     background: none;
     border: none;
     padding: 0;
@@ -404,6 +419,9 @@ ul#previewTabs {
     color: #333;
     font-size: 1.2em;
     height: 22px;
+}
+
+#previewTabs li, #tabs li, #data-tabs li {
     position: relative;
     z-index: 1;
 }
@@ -464,10 +482,6 @@ ul#previewTabs {
 
 #previews {
     overflow: hidden ! important;
-}
-
-#compTabs li {
-	margin: 8px 2px 0 0 ! important
 }
 
 .previewBox {

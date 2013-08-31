@@ -131,7 +131,7 @@ var _Elements = {
      */
     reloadComponents: function() {
 
-        components.empty();
+        components.find(':not(.compTab)').empty();
 
         Command.listComponents(1000, 1, 'name', 'asc', function(entity) {
 
@@ -160,7 +160,7 @@ var _Elements = {
      */
     reloadUnattachedNodes: function() {
 
-        elements.empty();
+        elements.find(':not(.compTab)').empty();
 
         Command.listUnattachedNodes(1000, 1, 'name', 'asc', function(entity) {
 
