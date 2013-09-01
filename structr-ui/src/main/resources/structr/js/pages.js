@@ -69,42 +69,41 @@ var _Pages = {
                 height: windowHeight - headerOffsetHeight + 'px'
             });
 
-            var rw = pages.width() + 12;
+            var rw = pages.width() + 60;
 
-            palette.css({
-                width: Math.min(300, Math.max(360, windowWidth / 4)) + 'px',
-                height: windowHeight - (headerOffsetHeight + compTabsHeight) + 'px'
-            });
+//            palette.css({
+//                width: Math.min(300, Math.max(360, windowWidth / 4)) + 'px',
+//                height: windowHeight - (headerOffsetHeight + compTabsHeight) + 'px'
+//            });
+//
+//            components.css({
+//                width: Math.min(300, Math.max(360, windowWidth / 4)) + 'px',
+//                height: windowHeight - (headerOffsetHeight + compTabsHeight) + 'px'
+//            });
+//
+//            elements.css({
+//                width: Math.min(300, Math.max(360, windowWidth / 4)) + 'px',
+//                height: windowHeight - (headerOffsetHeight + compTabsHeight) + 'px'
+//            });
 
-            components.css({
-                width: Math.min(300, Math.max(360, windowWidth / 4)) + 'px',
-                height: windowHeight - (headerOffsetHeight + compTabsHeight) + 'px'
-            });
-
-            elements.css({
-                width: Math.min(300, Math.max(360, windowWidth / 4)) + 'px',
-                height: windowHeight - (headerOffsetHeight + compTabsHeight) + 'px'
-            });
-
-            var pw = palette.width() + 60;
-
-            if (previews)
+            if (previews) {
+                
                 previews.css({
-                    width: windowWidth - rw - pw + 'px',
+                    width: windowWidth - rw + 'px',
                     height: win.height() - headerOffsetHeight + 'px'
                 });
 
-            $('.previewBox', previews).css({
-                width: windowWidth - rw - pw - 4 + 'px',
-                height: windowHeight - (headerOffsetHeight + previewOffset) + 'px'
-            });
+                $('.previewBox', previews).css({
+                    width: windowWidth - rw + 'px',
+                    height: windowHeight - (headerOffsetHeight + previewOffset) + 'px'
+                });
 
-            var iframes = $('.previewBox', previews).find('iframe');
-            iframes.css({
-                width: $('.previewBox', previews).width() + 'px',
-                height: windowHeight - (headerOffsetHeight + previewOffset) + 'px'
-            });
-
+                var iframes = $('.previewBox', previews).find('iframe');
+                iframes.css({
+                    width: $('.previewBox', previews).width() + 'px',
+                    height: windowHeight - (headerOffsetHeight + previewOffset) + 'px'
+                });
+            }
         }
 
     },
@@ -119,8 +118,9 @@ var _Pages = {
         log('onload');
 
         main.prepend('<div id="pages"></div><div id="previews"></div>'
-                + '<ul id="compTabs"><li class="active" id="paletteTab">HTML Palette</li><li id="componentsTab">Components</li><li id="elementsTab">Elements</li></ul>'
-                + '<div id="palette"></div><div id="components"></div><div id="elements"></div>');
+                + '<div id="palette"><div class="compTab" id="paletteTab">HTML Palette</div></div>'
+                + '<div id="components"><div class="compTab" id="componentsTab">Reused Components</div></div>'
+                + '<div id="elements"><div class="compTab" id="elementsTab">Orphaned Elements</div></div>');
 
         pages = $('#pages');
         previews = $('#previews');
@@ -131,48 +131,31 @@ var _Pages = {
         //main.before('<div id="hoverStatus">Hover status</div>');
 
         $('#paletteTab').on('click', function() {
-            $(this).addClass('active');
-            $('#componentsTab').removeClass('active');
-            $('#elementsTab').removeClass('active');
-            components.hide();
-            elements.hide();
-            palette.show();
-            _Elements.reloadPalette();
-            localStorage.setItem(activeTabRightKey, $(this).prop('id'));
-        });
-
-        $('#elementsTab').on('click', function() {
-            $(this).addClass('active');
-            $('#paletteTab').removeClass('active');
-            $('#componentsTab').removeClass('active');
-            palette.hide();
-            components.hide();
-            elements.show();
-            _Elements.reloadUnattachedNodes();
-            localStorage.setItem(activeTabRightKey, $(this).prop('id'));
-        }).droppable({
-            over: function(e, ui) {
-                e.stopPropagation();
+            var l = palette.position().left;
+            if (l+1 === $(window).width()) {
                 $(this).addClass('active');
-                $('#paletteTab').removeClass('active');
-                $('#componentsTab').removeClass('active');
-                palette.hide();
-                components.hide();
-                elements.show();
-                _Elements.reloadUnattachedNodes();
+                palette.animate({'right' : '+=425px' });
+                _Elements.reloadPalette();
                 localStorage.setItem(activeTabRightKey, $(this).prop('id'));
+            } else {
+                $(this).removeClass('active');
+                palette.animate({'right' : '-=425px' });
+                localStorage.removeItem(activeTabRightKey);
             }
         });
 
         $('#componentsTab').on('click', function() {
-            $(this).addClass('active');
-            $('#paletteTab').removeClass('active');
-            $('#elementsTab').removeClass('active');
-            palette.hide();
-            elements.hide();
-            components.show();
-            _Elements.reloadComponents();
-            localStorage.setItem(activeTabRightKey, $(this).prop('id'));
+            var l = components.position().left;
+            if (l+1 === $(window).width()) {
+                $(this).addClass('active');
+                _Elements.reloadComponents();
+                components.animate({'right' : '+=425px' });
+                localStorage.setItem(activeTabRightKey, $(this).prop('id'));
+            } else {
+                $(this).removeClass('active');
+                components.animate({'right' : '-=425px' });
+                localStorage.removeItem(activeTabRightKey);
+            }
         }).droppable({
             accept: '.element, .content, .component, .file, .image, .widget',
             greedy: true,
@@ -184,18 +167,49 @@ var _Pages = {
                 $(this).addClass('active');
                 $('#paletteTab').removeClass('active');
                 $('#elementsTab').removeClass('active');
-                palette.hide();
-                elements.hide();
-                components.show();
+//                components.toggle('slide', {'direction' : 'right', 'distance' : '400px', 'speed' : 'fast' });
+//                elements.toggle('slide', {'direction' : 'right', 'distance' : '400px', 'speed' : 'fast' });
+//                palette.toggle('slide', {'direction' : 'right', 'distance' : '400px', 'speed' : 'fast' });
                 _Elements.reloadComponents();
                 localStorage.setItem(activeTabRightKey, $(this).prop('id'));
             }
         });
 
+        $('#elementsTab').on('click', function() {
+            var l = elements.position().left;
+            if (l+1 === $(window).width()) {
+                $(this).addClass('active');
+                elements.animate({'right' : '+=425px' });
+                _Elements.reloadUnattachedNodes();
+                localStorage.setItem(activeTabRightKey, $(this).prop('id'));
+            } else {
+                $(this).removeClass('active');
+                elements.animate({'right' : '-=425px' });
+                localStorage.removeItem(activeTabRightKey);
+            }
+
+//            if (activeTabRight === 'elementsTab') {
+//                $(this).addClass('active');
+//                elements.animate({'right' : (l+1 === $(window).width() ? '+' : '-') + '=425px' });
+//                _Elements.reloadUnattachedNodes();
+//                //localStorage.setItem(activeTabRightKey, $(this).prop('id'));
+//            }
+        }).droppable({
+            over: function(e, ui) {
+                e.stopPropagation();
+                $(this).addClass('active');
+                $('#paletteTab').removeClass('active');
+                $('#componentsTab').removeClass('active');
+//                components.toggle('slide', {'direction' : 'right', 'distance' : '400px', 'speed' : 'fast' });
+//                elements.toggle('slide', {'direction' : 'right', 'distance' : '400px', 'speed' : 'fast' });
+//                palette.toggle('slide', {'direction' : 'right', 'distance' : '400px', 'speed' : 'fast' });
+                _Elements.reloadUnattachedNodes();
+                localStorage.setItem(activeTabRightKey, $(this).prop('id'));
+            }
+        });
+
         if (activeTabRight) {
-            $('#' + activeTabRight).click();
-        } else {
-            $('#paletteTab').click();
+            $('#' + activeTabRight).addClass('active').click();
         }
 
         $('#controls', main).remove();

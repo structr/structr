@@ -227,6 +227,14 @@ var _Widgets = {
             div.children('b.name_').off('click').css({ cursor:'move'});
         }
 
+        div.append('<div class="preview"></div>');
+        //$('.preview', div).contents().find('body').html('<html><head><title>' +  widget.name + '</title></head><body>' + widget.source + '</body></html>');
+        widget.pictures.forEach(function(pic) {
+            $('.preview', div).append('<img src="/' + pic.id + '">');
+        });
+        
+
+
         return div;
     },
 
