@@ -638,12 +638,10 @@ var Structr = {
     },
 
     updatePager : function(type, el) {
-
         if (!type) return;
         
         var pager = (el && el.length) ? $('.pager' + type, el) : $('.pager' + type);
-        
-        if (pager) {
+        if (pager.length) {
             
             var pageLeft = $('.pageLeft', pager);
             var pageRight = $('.pageRight', pager);
@@ -672,7 +670,9 @@ var Structr = {
     },
     
     storePagerData : function(type, page, pageSize) {
-        localStorage.setItem(pagerDataKey + type, page + ',' + pageSize);
+        if (type, page, pageSize) {
+            localStorage.setItem(pagerDataKey + type, page + ',' + pageSize);
+        }
     },
     
     restorePagerData : function(type) {

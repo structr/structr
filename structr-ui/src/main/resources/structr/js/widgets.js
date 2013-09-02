@@ -17,7 +17,7 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-var widgets, remoteWidgets;
+var widgets, remoteWidgets, remoteHost = 'widgets.structr.org', remotePort = 8084;
 var win = $(window);
 
 $(document).ready(function() {
@@ -91,60 +91,64 @@ var _Widgets = {
         remoteWidgets.empty();
         remoteWidgets.append('<h1>Remote Widgets</h1>');
         
-        // TODO: Make widget host configurable
-        remoteWidgets.remoteHost = 'widgets.structr.org';
-        remoteWidgets.remotePort = '8084';
-        
-        if (document.location.hostname === remoteWidgets.remoteHost && document.location.port === remoteWidgets.remotePort) {
+        if (document.location.hostname === remoteHost && document.location.port === remotePort) {
             return;
         }
+        
+        var baseUrl = 'http://' + remoteHost + ':' + remotePort + '/structr/rest/widgets';
+        _Widgets.getRemoteWidgets(baseUrl, function(entity) {
+            
+            var obj = StructrModel.create(entity, undefined, false);
+            obj.srcUrl = baseUrl + '/' + entity.id;
+            _Widgets.appendWidgetElement(obj, true);
+            
+        });
         
         //remoteWidgets.append('<input id="widgetServerUrl" type="text" size="40" placeholder="Remote URL" value="http://server2.morgner.de:8084/structr/rest/widgets"><button id="connect_button">Connect</button>');
 //        $('#connect_button', main).on('click', function(e) {
 //            e.stopPropagation();
-            var baseUrl = 'http://' + remoteWidgets.remoteHost + ':' + remoteWidgets.remotePort + '/structr/rest/widgets';
-            $.ajax({
-                //url: $('#widgetServerUrl').val(),
-                url: baseUrl,
-                type: 'GET',
-                dataType: 'json',
-                contentType: 'application/json; charset=utf-8',
-                //async: false,
-                statusCode : {
-                    200 : function(data) {
-                        
-                        $.each(data.result, function(i, entity) {
-                            
-                            var obj = StructrModel.create(entity, undefined, false);
-                            obj.srcUrl = baseUrl + '/' + entity.id;
-                            _Widgets.appendWidgetElement(obj, true);
-                            
-                        });
-                        
-                    },
-                    400 : function(data, status, xhr) {
-                        console.log(data, status, xhr);
-                    },
-                    401 : function(data, status, xhr) {
-                        console.log(data, status, xhr);
-                    },
-                    403 : function(data, status, xhr) {
-                        console.log(data, status, xhr);
-                    },
-                    404 : function(data, status, xhr) {
-                        console.log(data, status, xhr);
-                    },
-                    422 : function(data, status, xhr) {
-                        console.log(data, status, xhr);
-                    },
-                    500 : function(data, status, xhr) {
-                        console.log(data, status, xhr);
-                    }
-                }
-                
-            });
             
 //        });
+    },
+
+    getRemoteWidgets : function(baseUrl, callback) {
+        $.ajax({
+            //url: $('#widgetServerUrl').val(),
+            url: baseUrl,
+            type: 'GET',
+            dataType: 'json',
+            contentType: 'application/json; charset=utf-8',
+            //async: false,
+            statusCode : {
+                200 : function(data) {
+                    if (callback) {
+                        $.each(data.result, function(i, entity) {
+                            callback(entity);
+                        });
+                    }
+                },
+                400 : function(data, status, xhr) {
+                    console.log(data, status, xhr);
+                },
+                401 : function(data, status, xhr) {
+                    console.log(data, status, xhr);
+                },
+                403 : function(data, status, xhr) {
+                    console.log(data, status, xhr);
+                },
+                404 : function(data, status, xhr) {
+                    console.log(data, status, xhr);
+                },
+                422 : function(data, status, xhr) {
+                    console.log(data, status, xhr);
+                },
+                500 : function(data, status, xhr) {
+                    console.log(data, status, xhr);
+                }
+            }
+
+        });
+        
     },
 
     getIcon : function() {
@@ -152,12 +156,12 @@ var _Widgets = {
         return icon;
     },
 
-    appendWidgetElement : function(widget, remote) {
+    appendWidgetElement : function(widget, remote, el) {
 
         log('Widgets.appendWidgetElement', widget, remote);
         
         var icon = _Widgets.getIcon(widget);
-        var parent = remote ? remoteWidgets : widgets;
+        var parent = el ? el : (remote ? remoteWidgets : widgets);
         
         var delIcon, newDelIcon;
         var div = Structr.node(widget.id);
@@ -227,13 +231,11 @@ var _Widgets = {
             div.children('b.name_').off('click').css({ cursor:'move'});
         }
 
-        div.append('<div class="preview"></div>');
-        //$('.preview', div).contents().find('body').html('<html><head><title>' +  widget.name + '</title></head><body>' + widget.source + '</body></html>');
-        widget.pictures.forEach(function(pic) {
-            $('.preview', div).append('<img src="/' + pic.id + '">');
-        });
-        
-
+//        div.append('<div class="preview"></div>');
+//        //$('.preview', div).contents().find('body').html('<html><head><title>' +  widget.name + '</title></head><body>' + widget.source + '</body></html>');
+//        widget.pictures.forEach(function(pic) {
+//            $('.preview', div).append('<img src="/' + pic.id + '">');
+//        });
 
         return div;
     },
