@@ -122,6 +122,9 @@ function StructrApp(baseUrl) {
         var container = $('[data-structr-container="' + id + '"]');
         $.each(attrs, function(i, key) {
             var el = $('[data-structr-attr="' + key + '"]', container);
+            if (!el.length) {
+                return;
+            }
             var val = el.text();
             s.data[key] = val;
             var anchor = el[0].tagName.toLowerCase() === 'a' ? el : el.parent('a');
