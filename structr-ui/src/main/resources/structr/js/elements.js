@@ -97,6 +97,46 @@ var _Elements = {
         }
     ],
     /**
+     * Reload widgets
+     */
+    reloadWidgets: function() {
+
+        widgetsSlideout.find(':not(.compTab)').remove();
+        
+        widgetsSlideout.append('<div class="local"><h3>Local Widgets</h3></div>');
+        var localWidgetsArea = $('.local', widgetsSlideout);
+
+        Command.list('Widget', 1000, 1, 'name', 'asc', function(entity) {
+
+            StructrModel.create(entity, null, false);
+
+            var el = _Pages.appendElementElement(entity, localWidgetsArea, true);
+
+            el.draggable({
+                iframeFix: true,
+                revert: 'invalid',
+                containment: 'body',
+                helper: 'clone',
+                appendTo: '#main',
+                stack: '.node',
+                zIndex: 99
+            });
+
+        });
+        
+        widgetsSlideout.append('<div class="remote"><h3>Remote Widgets</h3></div>');
+        var remoteWidgetsArea = $('.remote', widgetsSlideout);
+        var baseUrl = 'http://widgets.structr.org:8084/structr/rest/widgets';
+        _Widgets.getRemoteWidgets(baseUrl, function(entity) {
+
+            var obj = StructrModel.create(entity, undefined, false);
+            obj.srcUrl = baseUrl + '/' + entity.id;
+            _Widgets.appendWidgetElement(obj, true, remoteWidgetsArea);
+
+        });
+
+    },
+    /**
      * Reload HTML palette
      * 
      * @returns {undefined}

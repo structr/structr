@@ -89,7 +89,9 @@ function StructrApp(baseUrl) {
         var action = a[0], type = a[1];
         var reload = btn.attr('data-structr-reload') === 'true';
         var attrString = btn.attr('data-structr-attributes');
-        var attrs = attrString ? attrString.split(',') : [];
+        var attrs = (attrString ? attrString.split(',') : []).map(function(s) {
+            return s.trim();
+        });
 
         var id = btn.attr('data-structr-id');
         //console.log(action, type, id);
@@ -173,7 +175,7 @@ function StructrApp(baseUrl) {
 
 
     this.create = function(type, data, reload) {
-        console.log('Create', type, data, reload);
+        //console.log('Create', type, data, reload);
         s.request('POST', structrRestUrl + type.toUnderscore(), data, reload, 'Successfully created new ' + type, 'Could not create ' + type);
     };
 

@@ -53,6 +53,7 @@ public class RenderContext {
 	private EditMode editMode                    = EditMode.NONE;
 	private int depth                            = 0;
 	private boolean inBody                       = false;
+	private boolean appLibRendered               = false;
 	private GraphObject detailsDataObject        = null;
 	private GraphObject currentDataObject        = null;
 	private GraphObject sourceDataObject         = null;
@@ -226,6 +227,14 @@ public class RenderContext {
 		return inBody;
 	}
 	
+	public void setAppLibRendered(final boolean appLibRendered) {
+		this.appLibRendered = appLibRendered;
+	}
+	
+	public boolean appLibRendered() {
+		return appLibRendered;
+	}
+
 	public List<NodeAttribute> getAttrs() {
 		return attrs;
 	}

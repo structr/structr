@@ -18,7 +18,7 @@
  */
 
 var pages;
-var previews, previewTabs, controls, palette, activeTab, activeTabRight, components, elements;
+var previews, previewTabs, controls, palette, activeTab, activeTabRight, components, elements, widgetsSlideout;
 var selStart, selEnd;
 var sel;
 var contentSourceId, elementSourceId, rootId;
@@ -59,7 +59,7 @@ var _Pages = {
         var headerOffsetHeight = 100;
         var previewOffset = 22;
 
-        var compTabsHeight = $('#compTabs').height();
+        //var compTabsHeight = $('#compTabs').height();
         //console.log(pages, palette, previews);
 
         if (pages && palette) {
@@ -69,7 +69,7 @@ var _Pages = {
                 height: windowHeight - headerOffsetHeight + 'px'
             });
 
-            var rw = pages.width() + 60;
+            var rw = pages.width() + 74;
 
 //            palette.css({
 //                width: Math.min(300, Math.max(360, windowWidth / 4)) + 'px',
@@ -118,28 +118,46 @@ var _Pages = {
         log('onload');
 
         main.prepend('<div id="pages"></div><div id="previews"></div>'
-                + '<div id="palette"><div class="compTab" id="paletteTab">HTML Palette</div></div>'
-                + '<div id="components"><div class="compTab" id="componentsTab">Reused Components</div></div>'
-                + '<div id="elements"><div class="compTab" id="elementsTab">Orphaned Elements</div></div>');
+                + '<div id="widgetsSlideout" class="slideOut"><div class="compTab" id="widgetsTab">Widgets</div></div>'
+                + '<div id="palette" class="slideOut"><div class="compTab" id="paletteTab">HTML Palette</div></div>'
+                + '<div id="components" class="slideOut"><div class="compTab" id="componentsTab">Reused Components</div></div>'
+                + '<div id="elements" class="slideOut"><div class="compTab" id="elementsTab">Orphaned Elements</div></div>');
 
         pages = $('#pages');
         previews = $('#previews');
+        widgetsSlideout = $('#widgetsSlideout');
         palette = $('#palette');
         components = $('#components');
         elements = $('#elements');
 
         //main.before('<div id="hoverStatus">Hover status</div>');
 
+        $('#widgetsTab').on('click', function() {
+            var l = widgetsSlideout.position().left;
+            if (l+1 === $(window).width()) {
+                $(this).addClass('active');
+                _Pages.closeSlideOuts([palette, components, elements]);
+                widgetsSlideout.animate({right : '+=425px'}, { duration: 200 }).zIndex(1);
+                _Elements.reloadWidgets();
+                localStorage.setItem(activeTabRightKey, $(this).prop('id'));
+            } else {
+                $(this).removeClass('active');
+                widgetsSlideout.animate({right : '-=425px'}, { duration : 100 }).zIndex(2);
+                localStorage.removeItem(activeTabRightKey);
+            }
+        });
+
         $('#paletteTab').on('click', function() {
             var l = palette.position().left;
             if (l+1 === $(window).width()) {
                 $(this).addClass('active');
-                palette.animate({'right' : '+=425px' });
+                _Pages.closeSlideOuts([widgetsSlideout, components, elements]);
+                palette.animate({right : '+=425px'}, { duration: 200 }).zIndex(1);
                 _Elements.reloadPalette();
                 localStorage.setItem(activeTabRightKey, $(this).prop('id'));
             } else {
                 $(this).removeClass('active');
-                palette.animate({'right' : '-=425px' });
+                palette.animate({right : '-=425px'}, { duration : 100 }).zIndex(2);
                 localStorage.removeItem(activeTabRightKey);
             }
         });
@@ -148,12 +166,13 @@ var _Pages = {
             var l = components.position().left;
             if (l+1 === $(window).width()) {
                 $(this).addClass('active');
+                _Pages.closeSlideOuts([widgetsSlideout, palette, elements]);
                 _Elements.reloadComponents();
-                components.animate({'right' : '+=425px' });
+                components.animate({right : '+=425px'}, { duration: 200 }).zIndex(1);
                 localStorage.setItem(activeTabRightKey, $(this).prop('id'));
             } else {
                 $(this).removeClass('active');
-                components.animate({'right' : '-=425px' });
+                components.animate({right : '-=425px'}, { duration : 100 }).zIndex(2);
                 localStorage.removeItem(activeTabRightKey);
             }
         }).droppable({
@@ -179,12 +198,13 @@ var _Pages = {
             var l = elements.position().left;
             if (l+1 === $(window).width()) {
                 $(this).addClass('active');
-                elements.animate({'right' : '+=425px' });
+                _Pages.closeSlideOuts([widgetsSlideout, palette, components], $(this));
+                elements.animate({right : '+=425px'}, { duration: 200 }).zIndex(1);
                 _Elements.reloadUnattachedNodes();
                 localStorage.setItem(activeTabRightKey, $(this).prop('id'));
             } else {
                 $(this).removeClass('active');
-                elements.animate({'right' : '-=425px' });
+                elements.animate({right : '-=425px'}, { duration : 100 }).zIndex(2);
                 localStorage.removeItem(activeTabRightKey);
             }
 
@@ -221,6 +241,21 @@ var _Pages = {
 
         window.setTimeout('_Pages.resize()', 1000);
 
+    },
+    closeSlideOuts: function(slideout) {
+      
+        slideout.forEach(function(w) {
+            
+            var s = $(w);
+            
+            var l = s.position().left;
+            if (l+1 !== $(window).width()) {
+                //console.log('closing open slide-out', s);
+                s.animate({right : '-=425px'}, { duration : 100 }).zIndex(2);
+                $('.compTab.active', s).removeClass('active');
+            }
+        });
+        
     },
     clearPreviews: function() {
 
@@ -953,7 +988,7 @@ var _Pages = {
 
                 if (source && source.type === 'Widget') {
 
-                    var baseUrl = 'http://' + remoteWidgets.remoteHost + ':' + remoteWidgets.remotePort;
+                    var baseUrl = 'http://' + remoteHost + ':' + remotePort;
 
                     Structr.modules['widgets'].unload();
                     _Pages.makeMenuDroppable();

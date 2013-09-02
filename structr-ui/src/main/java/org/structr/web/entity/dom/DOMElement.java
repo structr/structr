@@ -26,7 +26,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import org.apache.commons.lang.StringUtils;
@@ -51,7 +50,6 @@ import org.w3c.dom.Element;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -97,7 +95,7 @@ import org.structr.web.entity.html.Body;
 import org.structr.web.common.GraphDataSource;
 import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.common.UiResourceProvider;
-import org.structr.web.entity.Renderable;
+import org.structr.web.entity.html.Script;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -112,8 +110,9 @@ import org.w3c.dom.TypeInfo;
  */
 public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
-	private static final Logger logger                            = Logger.getLogger(DOMElement.class.getName());
-	private static final int HtmlPrefixLength                     = PropertyView.Html.length();
+	private static final Logger logger				= Logger.getLogger(DOMElement.class.getName());
+	private static final int HtmlPrefixLength			= PropertyView.Html.length();
+	private final static String STRUCTR_ACTION_PROPERTY		= "data-structr-action";
 	
 	public static final  Property<List<DOMElement>> syncedNodes   = new CollectionProperty("syncedNodes", DOMElement.class, RelType.SYNC, Direction.OUTGOING, new PropertyNotion(uuid), false);
 	
@@ -277,6 +276,8 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		
 		boolean anyChildNodeCreatesNewLine  = false;
 
+		renderStructrAppLib(buffer, renderContext, depth);
+
 		if (!avoidWhitespace()) {
 
 			buffer.append(indent(depth));
@@ -284,6 +285,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		}
 		
 		if (StringUtils.isNotBlank(tag)) {
+			
 
 			buffer.append("<").append(tag);
 
@@ -602,6 +604,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 				String htmlName = key.substring(HtmlPrefixLength);
 				
 				if (name.equals(htmlName)) {
+					
 					namePosition = index;
 				}
 
@@ -1332,7 +1335,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	 * @param securityContext
 	 * @param renderContext 
 	 */
-	private void renderCustomAttributes(final StringBuilder buffer, final SecurityContext securityContext, RenderContext renderContext) throws FrameworkException {
+	private void renderCustomAttributes(final StringBuilder buffer, final SecurityContext securityContext, final RenderContext renderContext) throws FrameworkException {
 		
 		dbNode = this.getNode();
 		
@@ -1349,6 +1352,29 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 			
 		}
 		
+	}
+	
+	/**
+	 * Render script tags with jQuery and structr-app.js to current tag.
+	 * 
+	 * Make sure it happens only once per page.
+	 * 
+	 * @param buffer 
+	 */
+	private void renderStructrAppLib(final StringBuilder buffer, final RenderContext renderContext, final int depth) throws FrameworkException {
+		
+		if (!renderContext.appLibRendered() && getProperty(new StringProperty(STRUCTR_ACTION_PROPERTY)) != null) {
+		
+			buffer
+				.append(indent(depth))
+				.append("<script type=\"text/javascript\" src=\"/structr/js/lib/jquery-1.10.2.min.js\"></script>")
+				.append(indent(depth))
+				.append("<script type=\"text/javascript\" src=\"/structr/js/structr-app.js\"></script>");
+			
+			renderContext.setAppLibRendered(true);
+		
+		}
+
 	}
 	
 	/**

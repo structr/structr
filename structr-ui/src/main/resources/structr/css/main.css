@@ -172,9 +172,7 @@ img.disabled {
 #groups,
 #images,
 #users,
-#elements,
-#components,
-#palette {
+.slideOut {
     float: left;
     border: none;
     width: 400px;
@@ -198,27 +196,31 @@ img.disabled {
     transform: rotate(-90deg);
     z-index: 1000;
     position: absolute;
-}
-.compTab {
 	margin: 8px 2px 0 0 ! important
+}
+
+#widgetsTab {
+    left: -45px;
+    top: 60px;
 }
 
 #paletteTab {
     left: -61px;
-    top: 80px;
+    top: 146px;
 }
 
 #componentsTab {
     left: -82px;
-    top: 210px;
+    top: 270px;
 }
 
 #elementsTab {
     left: -78px;
-    top: 357px;
+    top: 411px;
 }
 
-#palette, #components, #elements {
+.slideOut {
+    width: 400px;
     min-height: 600px;
     background-color: #e5e5e5;
     padding: 12px;
@@ -227,17 +229,27 @@ img.disabled {
     border-left: 1px solid #a5a5a5;
     border-bottom: 1px solid #a5a5a5;
     position: absolute;
-    z-index: 99;
+    z-index: 2;
     right: -424px;
     top: 72px;
     border-bottom-left-radius: 5px;
     border-top-left-radius: 5px;
 }
 
+.slideOut > div.node {
+    width: 360px;
+}
+
+#widgetsSlideout .local, #widgetsSlideout .remote {
+    padding: 0 24px 0 0;
+}
+
+
 #palette .elementGroup {
     float: left;
     padding: 0;
     margin: 0;
+    width: 380px;
 }
 
 #palette h2 {
@@ -247,16 +259,16 @@ img.disabled {
     color: #333;
 }
 
-#palette h3 {
+#palette h3, #widgetsSlideout h3 {
     font-size: 9pt;
     color: #333;
-    padding: 2px 0 0 0;
+    padding: 3px 0 2px 0;
     margin: 0 0 0 2px;
 }
 
 .draggable {
-	font-size: 1.25em;
-	padding: 3px 6px;
+    font-size: 1.25em;
+    padding: 3px 6px;
     float: left;
     color: #333;
     border-radius: 5px;
@@ -1155,18 +1167,4 @@ button.enabled {
     right: 30px;
     bottom: 8px;
     width: 76px;
-}
-
-.widget {
-    height: 200px;
-}
-
-.widget .preview {
-    position: absolute;
-    top: 24px;
-    left: 24px;
-    right: 24px;
-    bottom: 24px;
-    border: 1px solid #a5a5a5;
-    background-color: #fff;
 }
