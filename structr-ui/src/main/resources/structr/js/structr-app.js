@@ -105,11 +105,11 @@ function StructrApp(baseUrl) {
 
         } else if (action === 'edit') {
             
-            s.editAction(btn, id, attrs);
+            s.editAction(btn, id, attrs, reload);
             
         } else if (action === 'cancel-edit') {
             
-            s.cancelEditAction(btn, id, attrs);
+            s.cancelEditAction(btn, id, attrs, reload);
             
         } else if (action === 'delete') {
 
@@ -118,22 +118,33 @@ function StructrApp(baseUrl) {
         }
     });
     
-    this.editAction = function(btn, id, attrs) {
+    this.editAction = function(btn, id, attrs, reload) {
         var container = $('[data-structr-container="' + id + '"]');
         $.each(attrs, function(i, key) {
             var el = $('[data-structr-attr="' + key + '"]', container);
             var val = el.text();
             s.data[key] = val;
+            var anchor = el[0].tagName.toLowerCase() === 'a' ? el : el.parent('a');
+            if (anchor.length) {
+                var href = anchor.attr('href');
+                anchor.attr('href', '').css({textDecoration: 'none'}).on('click', function() {
+                    return false;
+                });
+            }
             el.html(inputField(id, key, val));
+            if (anchor.length) {
+                var inp = $('input[data-structr-attr="' + key + '"]', container);
+                inp.attr('data-structr-href', href);
+            }
         });
         $('<button data-structr-action="save" class="structr-button">Save</button>').insertBefore(btn);
         $('button[data-structr-action="save"]', container).on('click', function() {
-            s.saveAction(btn, id, attrs);
+            s.saveAction(btn, id, attrs, reload);
         });
         btn.text('Cancel').attr('data-structr-action', 'cancel-edit');
     },
     
-    this.saveAction = function(btn, id, attrs) {
+    this.saveAction = function(btn, id, attrs, reload) {
         var container = $('[data-structr-container="' + id + '"]');
         $.each(attrs, function(i, key) {
             var inp = $('input[data-structr-attr="' + key + '"]', container);
@@ -141,19 +152,28 @@ function StructrApp(baseUrl) {
             s.data[key] = val;
         });
         s.request('PUT', structrRestUrl + id, s.data, false, 'Successfully updated ' + id, 'Could not update ' + id, function() {
-            s.cancelEditAction(btn, id, attrs);
+            s.cancelEditAction(btn, id, attrs, reload);
         });
     },
     
-    this.cancelEditAction = function(btn, id, attrs) {
-        var container = $('[data-structr-container="' + id + '"]');
-        $.each(attrs, function(i, key) {
-            var inp = $('input[data-structr-attr="' + key + '"]', container);
-            var val = inp.val();
-            inp.replaceWith(s.data[key]);
-        });
-        $('button[data-structr-action="save"]').remove();
-        btn.text(s.btnLabel).attr('data-structr-action', 'edit');
+    this.cancelEditAction = function(btn, id, attrs, reload) {
+        if (reload) {
+            window.location.reload();
+        } else {
+            var container = $('[data-structr-container="' + id + '"]');
+            $.each(attrs, function(i, key) {
+                var inp = $('input[data-structr-attr="' + key + '"]', container);
+                var href = inp.attr('data-structr-href');
+                var anchor = inp.parent('a');
+                if (href && anchor.length) {
+                    anchor.attr('href', href);
+                }
+                inp.replaceWith(s.data[key]);
+                
+            });
+            $('button[data-structr-action="save"]').remove();
+            btn.text(s.btnLabel).attr('data-structr-action', 'edit');
+        }
     },
     
     this.field = function(el) {
