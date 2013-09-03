@@ -33,6 +33,8 @@ var altKey = false, ctrlKey = false, shiftKey = false, eKey = false;
 $(function() {
 
     var s = new StructrApp(structrRestUrl);
+    s.hideNonEdit();
+    
 
     $(window).on('keydown', function(e) {
         var k = e.which;
@@ -75,6 +77,8 @@ function StructrApp(baseUrl) {
         structrRestUrl = baseUrl;
     }
     var s = this;
+    var hideEditElements = {}; // store elements in edit mode
+    var hideNonEditElements = {}; // store elements in not edit mode
     this.edit = false;
     this.data = {};
     this.btnLabel = undefined;
@@ -121,6 +125,10 @@ function StructrApp(baseUrl) {
     
     this.editAction = function(btn, id, attrs, reload) {
         var container = $('[data-structr-container="' + id + '"]');
+        
+        //show edit elements and hide non-edit elements 
+        s.hideEdit(container);
+                
         $.each(attrs, function(i, key) {
             var el = $('[data-structr-attr="' + key + '"]', container);
             if (!el.length) {
@@ -212,6 +220,9 @@ function StructrApp(baseUrl) {
             });
             $('button[data-structr-action="save"]').remove();
             btn.text(s.btnLabel).attr('data-structr-action', 'edit');
+            
+            //hide non edit elements and show edit elements
+            s.hideNonEdit(container);
         }
     },
     
@@ -516,6 +527,64 @@ function StructrApp(baseUrl) {
             s.save(s.field(inp), btn);
         });
 
+    };
+    this.hideEdit = function(container){ // shows not edit mode
+        
+        // show elements [data-structr-hide="non-edit"]
+        $.each($('div[data-structr-hide-id]',container),function(){
+            
+           var id = $(this).attr("data-structr-hide-id");
+           $(this).replaceWith(hideNonEditElements[id]);
+           delete hideNonEditElements[id];
+           
+        });
+        
+        // hide edit elements
+        $.each($('[data-structr-hide="edit"]', container), function(i, obj){
+            
+            var random = Math.floor(Math.random()*1000000+1);
+            
+            hideEditElements[random] = $(obj);
+            $(obj).replaceWith('<div style="display:none;" data-structr-hide-id="'+random+'"></div>');
+        });
+        
+    };
+    this.hideNonEdit = function(container){ // shows edit mode
+        
+        //first call to hide all non-edit elements
+        if(container === undefined){
+            
+            // hide all non-edit elements
+            $.each($('[data-structr-hide="non-edit"]'), function(i, obj){ 
+                
+                var random = Math.floor(Math.random()*1000000+1);
+                
+                hideNonEditElements[random] = $(obj);
+                $(obj).replaceWith('<div style="display:none;" data-structr-hide-id="'+random+'"></div>');
+            });
+            
+        }else{
+            
+            // show elements [data-structr-hide="edit"]
+            $.each($('div[data-structr-hide-id]',container),function(){
+            
+                var id = $(this).attr("data-structr-hide-id");
+                $(this).replaceWith(hideEditElements[id]);
+                delete hideNonEditElements[id];
+
+             });
+            
+            // hide non-edit elements
+            $.each($('[data-structr-hide="non-edit"]', container),function(i, obj){
+                
+                var random = Math.floor(Math.random()*1000000+1);
+                
+                hideNonEditElements[random] = $(obj);
+                $(obj).replaceWith('<div style="display:none;" data-structr-hide-id="'+random+'"></div>');
+                
+            });
+            
+        }
     };
 }
 function resizeInput(inp) {
