@@ -98,7 +98,7 @@ function StructrApp(baseUrl) {
         if (action === 'create') {
 
             $.each(attrs, function(i, key) {
-                s.data[key] = container.find('[data-structr-attr="' + key + '"]').val();
+                s.data[key] = container.find('[data-structr-name="' + key + '"]').val();
             });
             s.create(type, s.data, reload);
 
@@ -188,7 +188,7 @@ function StructrApp(baseUrl) {
         $.each(attrs, function(i, key) {
             var inp = s.input($('[data-structr-attr="' + key + '"]', container));
             var f = s.field(inp);
-            s.data[key] = f.val; console.log(f, f.val);
+            s.data[key] = f.val;
         });
         s.request('PUT', structrRestUrl + id, s.data, false, 'Successfully updated ' + id, 'Could not update ' + id, function() {
             s.cancelEditAction(btn, id, attrs, reload);
@@ -201,7 +201,7 @@ function StructrApp(baseUrl) {
         } else {
             var container = $('[data-structr-container="' + id + '"]');
             $.each(attrs, function(i, key) {
-                var inp = $('[data-structr-attr="' + key + '"]', container);
+                var inp = s.input($('[data-structr-attr="' + key + '"]', container));
                 var href = inp.attr('data-structr-href');
                 var anchor = inp.parent('a');
                 if (href && anchor.length) {
@@ -458,108 +458,6 @@ function StructrApp(baseUrl) {
         });
     };
 
-    this.editable = function(enable) {
-
-        if (enable === undefined) {
-            return s.edit;
-        }
-        s.edit = enable;
-
-        if (enable) {
-
-            $('.createButton').show();
-            $('.deleteButton').show();
-
-            $('[data-structr-type="Date"],[data-structr-type="String"],[data-structr-type="Integer"],[data-structr-type="Boolean"]').each(function() {
-                if (!$(this).closest('body').length)
-                    return;
-                var sp = $(this), f = s.field(sp), p = sp.parent('a');
-                if (p) {
-                    p.attr('href', '').css({textDecoration: 'none'}).on('click', function() {
-                        return false;
-                    });
-                }
-                var i; //console.log(f.id, f.type, f.key, f.val);
-                if (f.type === 'Boolean') {
-                    i = checkbox(f.id, f.type, f.key, f.val);
-                }
-                else {
-                    if (f.val.indexOf('\n') === -1) {
-                        i = inputField(f.id, f.type, f.key, f.val);
-                    } else {
-                        i = textarea(f.id, f.key, f.val);
-                    }
-                }
-
-                sp.replaceWith(i);
-                var input = $('[data-structr-id="' + f.id + '"][data-structr-key="' + f.key + '"]')
-                input.css({fontFamily: 'sans-serif'});
-
-                resizeInput(input);
-
-                if (f.type === 'Boolean') {
-                    input.on('change', function(e) {
-                        s.save(s.field($(this)));
-                    });
-                } else {
-                    input.on('keyup', function(e) {
-                        s.checkInput(e, f, $(this));
-                    });
-                }
-
-                var relatedNode = input.closest('[data-structr-data-type]');
-                var parentType = relatedNode.attr('data-structr-data-type');
-
-                var deleteButton = $('.deleteButton[data-structr-id="' + f.id + '"]');
-
-                if (parentType && !(deleteButton.length)) {
-                    relatedNode.append('<div class="clear"></div><button class="deleteButton" data-structr-id="' + f.id + '">Delete ' + parentType + '</button>');
-                }
-
-
-            });
-
-
-            $('[data-structr-related-property]:not(.createButton)').each(function(i, v) {
-
-                var relatedNode = $(this);
-                var relatedProperty = relatedNode.attr('data-structr-related-property');
-                var parentType = relatedNode.attr('data-structr-data-type');
-                var sourceType = relatedNode.attr('data-structr-source-type');
-                var sourceId = relatedNode.attr('data-structr-source-id');
-                var id = relatedNode.attr('data-structr-data-id');
-                var removeButton = $('.removeButton[data-structr-id="' + id + '"]');
-                //console.log(id, sourceId, sourceType, relatedProperty);
-                if (relatedProperty && sourceId && !(removeButton.length)) {
-                    $('<button class="removeButton" data-structr-id="' + id + '" data-structr-source-id="' + sourceId + '">Remove ' + parentType + ' from ' + relatedProperty + '</button>').insertAfter(relatedNode);
-
-                    $('.removeButton[data-structr-id="' + id + '"][data-structr-source-id="' + sourceId + '"]').on('click', function() {
-                        s.remove(id, sourceId, sourceType, relatedProperty);
-                    });
-
-                }
-
-            });
-
-
-
-        } else {
-            $('.createButton').hide();
-            $('.deleteButton').hide();
-            $('[data-structr-type="Date"],[data-structr-type="String"],[data-structr-type="Integer"],[data-structr-type="Boolean"]').each(function() {
-                var inp = $(this), f = s.field(inp), p = inp.parent('a');
-                //console.log(inp, f, p);
-                inp.next('button').remove();
-                if (p) {
-                    p.attr('href', f.val).css({textDecoration: ''}).on('click', function() {
-                        return true;
-                    });
-                }
-                inp.replaceWith(field(f.id, f.type, f.key, f.val));
-            });
-        }
-        return s.edit;
-    };
     this.checkInput = function(e, f, inp) {
         var k = e.which, b = $('#save_' + f.id + '_' + f.key);
         if (isTextarea(inp[0])) {
