@@ -92,14 +92,13 @@ function StructrApp(baseUrl) {
         var attrs = (attrString ? attrString.split(',') : []).map(function(s) {
             return s.trim();
         });
-
         var id = btn.attr('data-structr-id');
-        //console.log(action, type, id);
+        var container = $('[data-structr-container="' + id + '"]');
 
         if (action === 'create') {
 
             $.each(attrs, function(i, key) {
-                s.data[key] = $('input[data-structr-name="' + key + '"]').val();
+                s.data[key] = container.find('[data-structr-attr="' + key + '"]').val();
             });
             s.create(type, s.data, reload);
 
@@ -112,8 +111,10 @@ function StructrApp(baseUrl) {
             s.cancelEditAction(btn, id, attrs, reload);
             
         } else if (action === 'delete') {
-
-            s.delete(id, btn.attr('data-structr-confirm') === 'true', reload);
+            var f = s.field($('[data-structr-attr="name"]', container));
+            //console.log(f);
+            //container.find('[data-structr-attr="name"]').val(); console.log(id, container, name)
+            s.delete(id, btn.attr('data-structr-confirm') === 'true', reload, f ? f.val : undefined);
 
         }
     });
@@ -125,8 +126,11 @@ function StructrApp(baseUrl) {
             if (!el.length) {
                 return;
             }
-            var val = el.text();
-            s.data[key] = val;
+            
+            var f = s.field(el);
+            f.id = id;
+            
+            s.data[key] = f.val;
             var anchor = el[0].tagName.toLowerCase() === 'a' ? el : el.parent('a');
             if (anchor.length) {
                 var href = anchor.attr('href');
@@ -134,14 +138,46 @@ function StructrApp(baseUrl) {
                     return false;
                 });
             }
-            el.html(inputField(id, key, val));
+            //el.html(inputField(id, key, val));
+            
+            var i; //console.log(f.id, f.type, f.key, f.val);
+            if (f.type === 'Boolean') {
+                i = checkbox(f.id, f.type, f.key, f.val);
+            }
+            else {
+                if (f.val.indexOf('\n') === -1) {
+                    i = inputField(f.id, f.type, f.key, f.val);
+                } else {
+                    i = textarea(f.id, f.key, f.val);
+                }
+            }
+
+            el.html(i);
+            var el = container.find('[data-structr-attr="' + f.key + '"]');
+            var inp = s.input(el);
+            inp.css({fontFamily: 'sans-serif'});
+            
+            //console.log('editAction: input element', inp);
+            resizeInput(inp);
+            
             if (anchor.length) {
-                var inp = $('input[data-structr-attr="' + key + '"]', container);
                 inp.attr('data-structr-href', href);
             }
+            
+            if (f.type === 'Boolean') {
+//                inp.on('change', function(e) {
+//                    s.save(s.field($(this)));
+//                });
+            } else {
+                inp.on('keyup', function(e) {
+                    s.checkInput(e, s.field(inp), $(this));
+                });
+            }
+            
+            
         });
-        $('<button data-structr-action="save" class="structr-button">Save</button>').insertBefore(btn);
-        $('button[data-structr-action="save"]', container).on('click', function() {
+        $('<button data-structr-action="save" data-structr-id="' + id + '" class="structr-button">Save</button>').insertBefore(btn);
+        $('button[data-structr-action="save"][data-structr-id="' + id + '"]', container).on('click', function() {
             s.saveAction(btn, id, attrs, reload);
         });
         btn.text('Cancel').attr('data-structr-action', 'cancel-edit');
@@ -150,9 +186,9 @@ function StructrApp(baseUrl) {
     this.saveAction = function(btn, id, attrs, reload) {
         var container = $('[data-structr-container="' + id + '"]');
         $.each(attrs, function(i, key) {
-            var inp = $('input[data-structr-attr="' + key + '"]', container);
-            var val = inp.val();
-            s.data[key] = val;
+            var inp = s.input($('[data-structr-attr="' + key + '"]', container));
+            var f = s.field(inp);
+            s.data[key] = f.val; console.log(f, f.val);
         });
         s.request('PUT', structrRestUrl + id, s.data, false, 'Successfully updated ' + id, 'Could not update ' + id, function() {
             s.cancelEditAction(btn, id, attrs, reload);
@@ -165,7 +201,7 @@ function StructrApp(baseUrl) {
         } else {
             var container = $('[data-structr-container="' + id + '"]');
             $.each(attrs, function(i, key) {
-                var inp = $('input[data-structr-attr="' + key + '"]', container);
+                var inp = $('[data-structr-attr="' + key + '"]', container);
                 var href = inp.attr('data-structr-href');
                 var anchor = inp.parent('a');
                 if (href && anchor.length) {
@@ -179,9 +215,32 @@ function StructrApp(baseUrl) {
         }
     },
     
+    this.input = function(elements) {
+        var el = $(elements[0]);
+        var inp;
+        if (el.is('input') || el.is('textarea')) {
+            //console.log('el is input or textarea', el);
+            return el;
+        } else {
+            inp = el.children('textarea');
+            if (inp.length) {
+                //console.log('inp is textarea', inp);
+                return inp;
+            } else {
+                inp = el.children('input');
+                if (inp.length) {
+                    //console.log('inp is input field', inp);
+                    return inp;
+                } else {
+                    //console.log('no input found');
+                    return null;
+                }
+            }
+        }
+    },
+    
     this.field = function(el) {
-
-        var type = el.attr('data-structr-type'), id = el.attr('data-structr-id'), key = el.attr('data-structr-key');
+        var type = el.attr('data-structr-type') || 'String', id = el.attr('data-structr-id'), key = el.attr('data-structr-attr');
         var val;
         if (type === 'Boolean') {
             if (el.is('input')) {
@@ -190,7 +249,12 @@ function StructrApp(baseUrl) {
                 val = el.text() === 'true';
             }
         } else {
-            val = el.val() ? el.val() : el.html().replace(/<br>/gi, '\n');
+            var inp = s.input(el);
+            if (inp) {
+                val = inp.val().replace(/<br>/gi, '\n');
+            } else {
+                val = el.html().replace(/<br>/gi, '\n');
+            }
         }
         //console.log(el, type, id, key, val);
         return {'id': id, 'type': type, 'key': key, 'val': val};
@@ -354,11 +418,11 @@ function StructrApp(baseUrl) {
 
     };
 
-    this.delete = function(id, conf, reload) {
+    this.delete = function(id, conf, reload, name) {
         console.log('Delete', id, conf, reload);
         var sure = true;
         if (conf) {
-            sure = confirm('Are you sure to delete ' + id + '?');
+            sure = confirm('Are you sure to delete ' + (name ? name : id) + '?');
         }
         if (!conf || sure) {
             $.ajax({
@@ -498,53 +562,37 @@ function StructrApp(baseUrl) {
     };
     this.checkInput = function(e, f, inp) {
         var k = e.which, b = $('#save_' + f.id + '_' + f.key);
-        var p = inp.parent('a');
-
         if (isTextarea(inp[0])) {
-
-            // Check for line break
             if (inp.val().indexOf('\n') === -1) {
 
+                // No new line in textarea content => transform to input field
                 inp.replaceWith(inputField(f.id, f.type, f.key, inp.val()));
-                inp = $('[data-structr-id="' + f.id + '"][data-structr-key="' + f.key + '"]');
+                var parent = inp.parent();
+                inp = s.input(parent.find('[data-structr-attr="' + f.key + '"]'));
                 inp.on('keyup', function(e) {
                     s.checkInput(e, f, $(this));
                 });
 
                 setCaretToEnd(inp[0]);
-
             }
-
         } else {
 
-            // Normal input field here
-            if (k === 13) {
+            // Input field here
+            if (k === 13) {// && shiftKey === true) {
 
-                if (shiftKey === true) {
+                // Shift-return in input field => make textarea and append line break
+                var parent = inp.parent();
+                inp.replaceWith(textarea(f.id, f.key, inp.val()));
+                inp = s.input(parent.find('[data-structr-attr="' + f.key + '"]'));
 
-                    // Shift-return in input field => make textarea and append line break
+                inp.on('keyup', function(e) {
+                    s.checkInput(e, f, $(this));
+                });
 
-                    inp.replaceWith(textarea(f.id, f.key, inp.val()));
-                    inp = $('[data-structr-id="' + f.id + '"][data-structr-key="' + f.key + '"]');
+                inp.css({fontFamily: 'sans-serif'});
 
-                    inp.on('keyup', function(e) {
-                        s.checkInput(e, f, $(this));
-                    });
+                setCaretToEnd(inp[0]);
 
-                    inp.css({fontFamily: 'sans-serif'});
-
-                    setCaretToEnd(inp[0]);
-
-                } else {
-
-                    // Return without shift => submit button if visible
-
-                    if (b && b.length) {
-                        b.click();
-                        return true;
-                    }
-
-                }
             }
         }
 
@@ -553,7 +601,6 @@ function StructrApp(baseUrl) {
         if (!(k === 13 && shiftKey) && ((k < 46 && k > 32) || (k > 9 && k < 32))) {
             return true;
         }
-        s.appendSaveButton(b, p, inp, f.id, f.key);
 
     };
     this.appendSaveButton = function(b, p, inp, id, key) {
@@ -575,12 +622,12 @@ function StructrApp(baseUrl) {
 }
 function resizeInput(inp) {
 
-    var text = inp.val();
+    var text = inp.val();// console.log(inp, 'value of input', text);
 
     if (isTextarea(inp[0])) {
 
         var n = (text.match(/\n/g) || []).length;
-        inp.prop('rows', n + 2);
+        inp.prop('rows', n+1);
 
         var lines = text.split('\n');
         var c = lines.sort(function(a, b) {
@@ -591,7 +638,7 @@ function resizeInput(inp) {
 
     } else {
 
-        inp.prop('size', text.length + 1);
+        inp.attr('size', text.length + 1);
 
     }
 
@@ -660,23 +707,23 @@ function isTextarea(el) {
 }
 
 function textarea(id, key, val) {
-    return '<div><textarea class="editField" data-structr-id="' + id + '" data-structr-key="' + key + '">' + (val === 'null' ? '' : val) + '\n</textarea></div>';
+    return '<textarea class="structr-input-text" data-structr-id="' + id + '" data-structr-attr="' + key + '">' + (val === 'null' ? '' : val) + '\n</textarea>';
 }
 
-function inputField(id, key, val) {
-    return '<input class="structr-input-text" type="text" placeholder="' + key.capitalize() + '" data-structr-id="' + id + '" data-structr-attr="' + key + '" value="' + (val === 'null' ? '' : val) + '" size="' + val.length + ' ">';
+function inputField(id, type, key, val) {
+    return '<input class="structr-input-text" type="text" placeholder="' + key.capitalize() + '" data-structr-attr="' + key + '" value="' + (val === 'null' ? '' : val) + '" size="' + (val ? val.length : 5) + '">';
 }
 
 function field(id, type, key, val) {
-    return '<span type="text" data-structr-id="' + id + '" data-structr-type="' + type + '" data-structr-key="' + key + '">' + val + '</span>';
+    return '<span type="text" data-structr-id="' + id + '" data-structr-type="' + type + '" data-structr-attr="' + key + '">' + val + '</span>';
 }
 
 function checkbox(id, type, key, val) {
-    return '<input type="checkbox" data-structr-id="' + id + '" data-structr-type="' + type + '" data-structr-key="' + key + '" ' + (val ? 'checked="checked"' : '') + '">';
+    return '<input type="checkbox" data-structr-id="' + id + '" data-structr-type="' + type + '" data-structr-attr="' + key + '" ' + (val ? 'checked="checked"' : '') + '">';
 }
 
 function select(id, key, val, options) {
-    var s = '<select data-structr-id="' + id + '" data-structr-key="' + key + '">';
+    var s = '<select data-structr-id="' + id + '" data-structr-attr="' + key + '">';
     $.each(options, function(i, o) {
         s += '<option ' + (o === val ? 'selected' : '') + '>' + o + '</option>';
     });
