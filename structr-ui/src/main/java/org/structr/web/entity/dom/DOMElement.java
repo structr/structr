@@ -1369,7 +1369,13 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 				.append(indent(depth))
 				.append("<script type=\"text/javascript\" src=\"/structr/js/lib/jquery-1.10.2.min.js\"></script>")
 				.append(indent(depth))
-				.append("<script type=\"text/javascript\" src=\"/structr/js/structr-app.js\"></script>");
+				.append("<script type=\"text/javascript\" src=\"/structr/js/lib/jquery-ui-1.10.3.custom.min.js\"></script>")
+				.append(indent(depth))
+				.append("<script type=\"text/javascript\" src=\"/structr/js/lib/jquery-ui-timepicker-addon.min.js\"></script>")
+				.append(indent(depth))
+				.append("<script type=\"text/javascript\" src=\"/structr/js/structr-app.js\"></script>")
+				.append(indent(depth))
+				.append("<link rel=\"stylesheet\" type=\"text/css\" href=\"/structr/css/jquery-ui-1.10.3.custom.css\">");
 			
 			renderContext.setAppLibRendered(true);
 		

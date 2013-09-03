@@ -102,9 +102,10 @@ function StructrApp(baseUrl) {
         if (action === 'create') {
 
             $.each(attrs, function(i, key) {
-                s.data[key] = container.find('[data-structr-name="' + key + '"]').val();
+                if (!s.data[id]) s.data[id] = {};
+                s.data[id][key] = $('[data-structr-name="' + key + '"]').val();
             });
-            s.create(type, s.data, reload);
+            s.create(type, s.data[id], reload);
 
         } else if (action === 'edit') {
             
@@ -137,8 +138,8 @@ function StructrApp(baseUrl) {
             
             var f = s.field(el);
             f.id = id;
-            
-            s.data[key] = f.val;
+            if (!s.data[id]) s.data[id] = {};
+            s.data[id][key] = f.val;
             var anchor = el[0].tagName.toLowerCase() === 'a' ? el : el.parent('a');
             if (anchor.length) {
                 var href = anchor.attr('href');
@@ -151,8 +152,7 @@ function StructrApp(baseUrl) {
             var i; //console.log(f.id, f.type, f.key, f.val);
             if (f.type === 'Boolean') {
                 i = checkbox(f.id, f.type, f.key, f.val);
-            }
-            else {
+            } else {
                 if (f.val.indexOf('\n') === -1) {
                     i = inputField(f.id, f.type, f.key, f.val);
                 } else {
@@ -181,6 +181,22 @@ function StructrApp(baseUrl) {
                     s.checkInput(e, s.field(inp), $(this));
                 });
             }
+
+            if (f.type === 'Date') {
+                inp.on('mouseup', function(event) {
+                    event.preventDefault();
+                    var self = $(this);
+                    self.datetimepicker({
+                        // ISO8601 Format: 'yyyy-MM-dd"T"HH:mm:ssZ'
+                        separator: 'T',
+                        dateFormat: 'yy-mm-dd',
+                        timeFormat: 'HH:mm:ssz',
+                    });
+                    self.datetimepicker('show');
+                    self.off('mouseup');
+                });
+            }
+            
             
             
         });
@@ -196,10 +212,14 @@ function StructrApp(baseUrl) {
         $.each(attrs, function(i, key) {
             var inp = s.input($('[data-structr-attr="' + key + '"]', container));
             var f = s.field(inp);
-            s.data[key] = f.val;
+            s.data[id][key] = f.val;
         });
-        s.request('PUT', structrRestUrl + id, s.data, false, 'Successfully updated ' + id, 'Could not update ' + id, function() {
+        s.request('PUT', structrRestUrl + id, s.data[id], false, 'Successfully updated ' + id, 'Could not update ' + id, function() {
             s.cancelEditAction(btn, id, attrs, reload);
+        }, function() {
+//            if (reload) {
+//                window.location.reload();
+//            }
         });
     },
     
@@ -215,10 +235,10 @@ function StructrApp(baseUrl) {
                 if (href && anchor.length) {
                     anchor.attr('href', href);
                 }
-                inp.replaceWith(s.data[key]);
-                
+                inp.replaceWith(s.data[id][key]);
             });
-            $('button[data-structr-action="save"]').remove();
+            // clear data
+            $('button[data-structr-id="' + id + '"][data-structr-action="save"]').remove();
             btn.text(s.btnLabel).attr('data-structr-action', 'edit');
             
             //hide non edit elements and show edit elements
@@ -277,7 +297,7 @@ function StructrApp(baseUrl) {
         s.request('POST', structrRestUrl + type.toUnderscore(), data, reload, 'Successfully created new ' + type, 'Could not create ' + type);
     };
 
-    this.request = function(method, url, data, reload, successMsg, errorMsg, callback) {
+    this.request = function(method, url, data, reload, successMsg, errorMsg, onSuccess, onError) {
         $.ajax({
             type: method,
             url: url,
@@ -291,8 +311,8 @@ function StructrApp(baseUrl) {
                             window.location.reload();
                         }, 200);
                     }
-                    if (callback) {
-                        callback();
+                    if (onSuccess) {
+                        onSuccess();
                     }
                 },
                 201: function(data) {
@@ -302,33 +322,51 @@ function StructrApp(baseUrl) {
                             window.location.reload();
                         }, 200);
                     }
-                    if (callback) {
-                        callback();
+                    if (onSuccess) {
+                        onSuccess();
                     }
                 },
                 400: function(data, status, xhr) {
                     s.dialog('error', errorMsg + ': ' + data.responseText);
                     console.log(data, status, xhr);
+                    if (onError) {
+                        onError();
+                    }
                 },
                 401: function(data, status, xhr) {
                     s.dialog('error', errorMsg + ': ' + data.responseText);
                     console.log(data, status, xhr);
+                    if (onError) {
+                        onError();
+                    }
                 },
                 403: function(data, status, xhr) {
                     s.dialog('error', errorMsg + ': ' + data.responseText);
                     console.log(data, status, xhr);
+                    if (onError) {
+                        onError();
+                    }
                 },
                 404: function(data, status, xhr) {
                     s.dialog('error', errorMsg + ': ' + data.responseText);
                     console.log(data, status, xhr);
+                    if (onError) {
+                        onError();
+                    }
                 },
                 422: function(data, status, xhr) {
                     s.dialog('error', errorMsg + ': ' + data.responseText);
                     console.log(data, status, xhr);
+                    if (onError) {
+                        onError();
+                    }
                 },
                 500: function(data, status, xhr) {
                     s.dialog('error', errorMsg + ': ' + data.responseText);
                     console.log(data, status, xhr);
+                    if (onError) {
+                        onError();
+                    }
                 }
             }
         });
@@ -590,6 +628,8 @@ function StructrApp(baseUrl) {
 function resizeInput(inp) {
 
     var text = inp.val();// console.log(inp, 'value of input', text);
+    // don't resize empty input elements with preset size
+    if (!text && inp.attr('size')) return;
 
     if (isTextarea(inp[0])) {
 
@@ -678,7 +718,10 @@ function textarea(id, key, val) {
 }
 
 function inputField(id, type, key, val) {
-    return '<input class="structr-input-text" type="text" placeholder="' + key.capitalize() + '" data-structr-attr="' + key + '" value="' + (val === 'null' ? '' : val) + '" size="' + (val ? val.length : 5) + '">';
+    var size = (val ? val.length : ((type && type === 'Date') ? 25 : 10));
+    return '<input class="structr-input-text" type="text" placeholder="' + key.capitalize()
+            + '" data-structr-attr="' + key + '" value="' + (val === 'null' ? '' : val)
+            + '" size="' + size + '">';
 }
 
 function field(id, type, key, val) {
