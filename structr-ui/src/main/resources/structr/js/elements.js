@@ -102,7 +102,7 @@ var _Elements = {
     reloadWidgets: function() {
 
         widgetsSlideout.find(':not(.compTab)').remove();
-        
+
         widgetsSlideout.append('<div class="local"><h3>Local Widgets</h3></div>');
         var localWidgetsArea = $('.local', widgetsSlideout);
 
@@ -123,7 +123,7 @@ var _Elements = {
             });
 
         });
-        
+
         widgetsSlideout.append('<div class="remote"><h3>Remote Widgets</h3></div>');
         var remoteWidgetsArea = $('.remote', widgetsSlideout);
         var baseUrl = 'http://widgets.structr.org:8084/structr/rest/widgets';
@@ -171,7 +171,7 @@ var _Elements = {
      */
     reloadComponents: function() {
 
-        components.find(':not(.compTab)').empty();
+        components.find(':not(.compTab)').remove();
 
         Command.listComponents(1000, 1, 'name', 'asc', function(entity) {
 
@@ -200,7 +200,20 @@ var _Elements = {
      */
     reloadUnattachedNodes: function() {
 
-        elements.find(':not(.compTab)').empty();
+        elements.find(':not(.compTab)').remove();
+
+        elements.append('<button class="btn" id="delete-all-unattached-nodes">Delete all</button>');
+
+        var btn = $('#delete-all-unattached-nodes')
+        btn.on('click', function() {
+            Structr.confirmation('<p>Delete all DOM not bound to a parent DOM element?</p>',
+                    function() {
+                        Command.deleteUnattachedNodes();
+                        $.unblockUI({
+                            fadeOut: 25
+                        });
+                    });
+        });
 
         Command.listUnattachedNodes(1000, 1, 'name', 'asc', function(entity) {
 
