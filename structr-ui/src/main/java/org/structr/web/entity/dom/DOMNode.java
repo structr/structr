@@ -467,7 +467,13 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 				if (s != null && s.length == 2) {
 				
 					String dateString = s[0];
+					
+					if (StringUtils.isBlank(dateString)) {
+						return "";
+					}
+					
 					String pattern = s[1];
+
 					try {
 						// parse with format from IS
 						Date d = new SimpleDateFormat(ISO8601DateProperty.PATTERN).parse(dateString);
@@ -997,7 +1003,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 			
 			PropertyConverter converter = referenceKeyProperty.inputConverter(securityContext);
 			
-			if (converter != null) {
+			if (value != null && converter != null) {
 				value = converter.revert(value);
 			}
 			
@@ -1227,7 +1233,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 			return value.toString();
 		}
 
-		return null;
+		return "";
 
 	}
 

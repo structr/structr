@@ -155,7 +155,7 @@ function StructrApp(baseUrl) {
             if (f.type === 'Boolean') {
                 i = checkbox(f.id, f.type, f.key, f.val);
             } else {
-                if (f.val && f.val.indexOf('\n') === -1) {
+                if (!f.val || f.val.indexOf('\n') === -1) {
                     i = inputField(f.id, f.type, f.key, f.val);
                 } else {
                     i = textarea(f.id, f.key, f.val);
@@ -211,10 +211,13 @@ function StructrApp(baseUrl) {
     
     this.saveAction = function(btn, id, attrs, reload) {
         var container = $('[data-structr-container="' + id + '"]');
+        s.data[id] = {};
         $.each(attrs, function(i, key) {
             var inp = s.input($('[data-structr-attr="' + key + '"]', container));
             var f = s.field(inp);
-            s.data[id][key] = f.val;
+            if (f && f.val && f.val.length) {
+                s.data[id][key] = f.val;
+            }
         });
         s.request('PUT', structrRestUrl + id, s.data[id], false, 'Successfully updated ' + id, 'Could not update ' + id, function() {
             s.cancelEditAction(btn, id, attrs, reload);
@@ -282,6 +285,7 @@ function StructrApp(baseUrl) {
     },
     
     this.field = function(el) {
+        if (!el || !el.length) return;
         var type = el.attr('data-structr-type') || 'String', id = el.attr('data-structr-id'), key = el.attr('data-structr-attr'), rawVal = el.attr('data-structr-raw-value');
         var val;
         if (type === 'Boolean') {
@@ -314,10 +318,11 @@ function StructrApp(baseUrl) {
     };
 
     this.request = function(method, url, data, reload, successMsg, errorMsg, onSuccess, onError) {
+        var dataString = JSON.stringify(data);
         $.ajax({
             type: method,
             url: url,
-            data: JSON.stringify(data),
+            data: dataString,
             contentType: 'application/json; charset=utf-8',
             statusCode: {
                 200: function(data) {
@@ -524,7 +529,7 @@ function StructrApp(baseUrl) {
     };
 
     this.checkInput = function(e, f, inp) {
-        var k = e.which, b = $('#save_' + f.id + '_' + f.key);
+        var k = e.which;
         if (isTextarea(inp[0])) {
             if (inp.val().indexOf('\n') === -1) {
 
