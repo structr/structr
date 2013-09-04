@@ -1346,7 +1346,11 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 				
 				String value = getPropertyWithVariableReplacement(securityContext, renderContext, new GenericProperty(key));
 				
-				buffer.append(" ").append(key).append("=\"").append(value).append("\"");
+				if (StringUtils.isNotBlank(value)) {
+					
+					buffer.append(" ").append(key).append("=\"").append(value).append("\"");
+					
+				}
 				
 			}
 			
