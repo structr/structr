@@ -217,6 +217,8 @@ function StructrApp(baseUrl) {
             var f = s.field(inp);
             if (f && f.val && f.val.length) {
                 s.data[id][key] = f.val;
+            } else {
+                s.data[id][key] = null;
             }
         });
         s.request('PUT', structrRestUrl + id, s.data[id], false, 'Successfully updated ' + id, 'Could not update ' + id, function() {
@@ -319,6 +321,7 @@ function StructrApp(baseUrl) {
 
     this.request = function(method, url, data, reload, successMsg, errorMsg, onSuccess, onError) {
         var dataString = JSON.stringify(data);
+        //console.log(dataString);
         $.ajax({
             type: method,
             url: url,
@@ -530,45 +533,44 @@ function StructrApp(baseUrl) {
 
     this.checkInput = function(e, f, inp) {
         var k = e.which;
+        
         if (isTextarea(inp[0])) {
+            
             if (inp.val().indexOf('\n') === -1) {
 
+                var parent = inp.parent();
+                
                 // No new line in textarea content => transform to input field
                 inp.replaceWith(inputField(f.id, f.type, f.key, inp.val()));
-                var parent = inp.parent();
-                inp = s.input(parent.find('[data-structr-attr="' + f.key + '"]'));
-                inp.on('keyup', function(e) {
-                    s.checkInput(e, f, $(this));
-                });
-
-                setCaretToEnd(inp[0]);
-            }
-        } else {
-
-            // Input field here
-            if (k === 13) {// && shiftKey === true) {
-
-                // Shift-return in input field => make textarea and append line break
-                var parent = inp.parent();
-                inp.replaceWith(textarea(f.id, f.key, inp.val()));
-                inp = s.input(parent.find('[data-structr-attr="' + f.key + '"]'));
+                inp = s.input(parent);
 
                 inp.on('keyup', function(e) {
                     s.checkInput(e, f, $(this));
                 });
 
-                inp.css({fontFamily: 'sans-serif'});
-
                 setCaretToEnd(inp[0]);
-
+                
             }
+            
+        } else if (k === 13) {// && shiftKey === true) {
+
+            // Return key in input field => replace by textarea
+            var parent = inp.parent();
+
+            inp.replaceWith(textarea(f.id, f.key, inp.val() + '\n'));
+            inp = s.input(parent);
+
+            inp.on('keyup', function(e) {
+                s.checkInput(e, f, $(this));
+            });
+
+            inp.css({fontFamily: 'sans-serif'});
+
+            setCaretToEnd(inp[0]);
+
         }
 
         resizeInput(inp);
-
-        if (!(k === 13 && shiftKey) && ((k < 46 && k > 32) || (k > 9 && k < 32))) {
-            return true;
-        }
 
     };
     this.appendSaveButton = function(b, p, inp, id, key) {
@@ -622,7 +624,7 @@ function StructrApp(baseUrl) {
                 $(obj).replaceWith('<div style="display:none;" data-structr-hide-id="'+random+'"></div>');
             });
             
-        }else{
+        } else{
             
             // show elements [data-structr-hide="edit"]
             $.each($('div[data-structr-hide-id]',container),function(){
@@ -650,34 +652,28 @@ function resizeInput(inp) {
 
     var text = inp.val();// console.log(inp, 'value of input', text);
     // don't resize empty input elements with preset size
-    if (!text && inp.attr('size')) return;
+    if (!text.length && inp.attr('size')) return;
 
     if (isTextarea(inp[0])) {
 
         var n = (text.match(/\n/g) || []).length;
-        inp.prop('rows', n+1);
+        inp.attr('rows', n+2);
 
         var lines = text.split('\n');
         var c = lines.sort(function(a, b) {
             return b.length - a.length;
         })[0].length;
 
-        inp.prop('cols', c);
+        inp.attr('cols', c+1);
 
     } else {
 
         inp.attr('size', text.length + 1);
 
     }
-
-    // set the width value to the max parent width value
-    if ($(inp).parent().outerWidth() < $(inp).width()) {
-        $(inp).width($(inp).parent().outerWidth());
-    }
-
     // Focus on last empty field
-    if (!text || !text.length)
-        inp.focus();
+//    if (!text || !text.length)
+//        inp.focus();
 }
 
 function urlParam(name) {
@@ -690,6 +686,10 @@ function urlParam(name) {
 
 String.prototype.capitalize = function() {
     return this.charAt(0).toUpperCase() + this.slice(1);
+};
+
+String.prototype.endsWith = function(suffix) {
+    return this.indexOf(suffix, this.length - suffix.length) !== -1;
 };
 
 String.prototype.splitAndTitleize = function(sep) {
@@ -735,18 +735,18 @@ function isTextarea(el) {
 }
 
 function textarea(id, key, val) {
-    return '<textarea class="structr-input-text" data-structr-id="' + id + '">' + (val === 'null' ? '' : val) + '\n</textarea>';
+    return '<textarea class="structr-input-text">' + val + '</textarea>';
 }
 
 function inputField(id, type, key, val) {
-    var size = (val ? val.length : ((type && type === 'Date') ? 25 : 10));
-    return '<input class="structr-input-text" type="text" placeholder="' + key.capitalize()
+    var size = (val ? val.length : (type && type === 'Date' ? 25 : key.length));
+    return '<input class="structr-input-text" type="text" placeholder="' + (key ? key.capitalize() : '')
             + '" value="' + (val === 'null' ? '' : val)
             + '" size="' + size + '">';
 }
 
 function field(id, type, key, val) {
-    return '<span type="text" data-structr-id="' + id + '" data-structr-type="' + type + '" data-structr-attr="' + key + '">' + val + '</span>';
+    return '<span type="text" data-structr-type="' + type + '" data-structr-attr="' + key + '">' + val + '</span>';
 }
 
 function checkbox(id, type, key, val) {
