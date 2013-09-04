@@ -1233,7 +1233,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 			return value.toString();
 		}
 
-		return "";
+		return null;
 
 	}
 
