@@ -19,11 +19,7 @@
 
 /**
  * JS library for interactive web applications built with Structr.
- * 
  * This file has to be present in a web page to make Structr widgets work.
- * 
- * v 1.0.0
- * 
  */
 
 var structrRestUrl = '/structr/rest/'; // TODO: Auto-detect base URI
@@ -148,12 +144,18 @@ function StructrApp(baseUrl) {
                 });
             }
             //el.html(inputField(id, key, val));
+                    
+            // don't replace select elements
+            var inp = s.input(el);
+            if (inp && inp.is('select')) {
+                return;
+            }
             
             var i; //console.log(f.id, f.type, f.key, f.val);
             if (f.type === 'Boolean') {
                 i = checkbox(f.id, f.type, f.key, f.val);
             } else {
-                if (f.val.indexOf('\n') === -1) {
+                if (f.val && f.val.indexOf('\n') === -1) {
                     i = inputField(f.id, f.type, f.key, f.val);
                 } else {
                     i = textarea(f.id, f.key, f.val);
@@ -230,6 +232,9 @@ function StructrApp(baseUrl) {
             var container = $('[data-structr-container="' + id + '"]');
             $.each(attrs, function(i, key) {
                 var inp = s.input($('[data-structr-attr="' + key + '"]', container));
+                if (inp && inp.is('select')) {
+                    return;
+                }
                 var href = inp.attr('data-structr-href');
                 var anchor = inp.parent('a');
                 if (href && anchor.length) {
@@ -249,7 +254,7 @@ function StructrApp(baseUrl) {
     this.input = function(elements) {
         var el = $(elements[0]);
         var inp;
-        if (el.is('input') || el.is('textarea')) {
+        if (el.is('input') || el.is('textarea') || el.is('select')) {
             //console.log('el is input or textarea', el);
             return el;
         } else {
@@ -263,15 +268,21 @@ function StructrApp(baseUrl) {
                     //console.log('inp is input field', inp);
                     return inp;
                 } else {
-                    //console.log('no input found');
-                    return null;
+                    inp = el.children('select');
+                    if (inp.length) {
+                        //console.log('inp is select element', inp);
+                        return inp;
+                    } else {
+                        //console.log('no input found');
+                        return null;
+                    }
                 }
             }
         }
     },
     
     this.field = function(el) {
-        var type = el.attr('data-structr-type') || 'String', id = el.attr('data-structr-id'), key = el.attr('data-structr-attr');
+        var type = el.attr('data-structr-type') || 'String', id = el.attr('data-structr-id'), key = el.attr('data-structr-attr'), rawVal = el.attr('data-structr-raw-value');
         var val;
         if (type === 'Boolean') {
             if (el.is('input')) {
@@ -282,13 +293,18 @@ function StructrApp(baseUrl) {
         } else {
             var inp = s.input(el);
             if (inp) {
-                val = inp.val().replace(/<br>/gi, '\n');
+                if (inp.is('select')) {
+                    var selection = $(':selected', inp); 
+                    val = selection.val() || selection.text();
+                } else {
+                    val = rawVal || (inp.val() && inp.val().replace(/<br>/gi, '\n'));
+                }
             } else {
-                val = el.html().replace(/<br>/gi, '\n');
+                val = rawVal || el.html().replace(/<br>/gi, '\n');
             }
         }
         //console.log(el, type, id, key, val);
-        return {'id': id, 'type': type, 'key': key, 'val': val};
+        return {'id': id, 'type': type, 'key': key, 'val': val, 'rawVal': rawVal};
     };
 
 
@@ -714,13 +730,13 @@ function isTextarea(el) {
 }
 
 function textarea(id, key, val) {
-    return '<textarea class="structr-input-text" data-structr-id="' + id + '" data-structr-attr="' + key + '">' + (val === 'null' ? '' : val) + '\n</textarea>';
+    return '<textarea class="structr-input-text" data-structr-id="' + id + '">' + (val === 'null' ? '' : val) + '\n</textarea>';
 }
 
 function inputField(id, type, key, val) {
     var size = (val ? val.length : ((type && type === 'Date') ? 25 : 10));
     return '<input class="structr-input-text" type="text" placeholder="' + key.capitalize()
-            + '" data-structr-attr="' + key + '" value="' + (val === 'null' ? '' : val)
+            + '" value="' + (val === 'null' ? '' : val)
             + '" size="' + size + '">';
 }
 
@@ -729,11 +745,11 @@ function field(id, type, key, val) {
 }
 
 function checkbox(id, type, key, val) {
-    return '<input type="checkbox" data-structr-id="' + id + '" data-structr-type="' + type + '" data-structr-attr="' + key + '" ' + (val ? 'checked="checked"' : '') + '">';
+    return '<input type="checkbox" data-structr-id="' + id + '" data-structr-type="' + type + '" ' + (val ? 'checked="checked"' : '') + '">';
 }
 
 function select(id, key, val, options) {
-    var s = '<select data-structr-id="' + id + '" data-structr-attr="' + key + '">';
+    var s = '<select data-structr-id="' + id + '">';
     $.each(options, function(i, o) {
         s += '<option ' + (o === val ? 'selected' : '') + '>' + o + '</option>';
     });
