@@ -1039,7 +1039,7 @@ var _Pages = {
                                     Command.appendWidget(text, elementId, pageId, baseUrl, attrs);
 
                                     dialogCancelButton.click();
-                                    $(ui.draggable).remove();
+                                    //$(ui.draggable).remove();
                                     return;
                                 });
 
@@ -1054,7 +1054,7 @@ var _Pages = {
 
                     }
 
-                    $(ui.draggable).remove();
+                    //$(ui.draggable).remove();
                     return;
 
                 } else if (source && source.type === 'Image') {
