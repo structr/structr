@@ -106,7 +106,7 @@ public class Widget extends AbstractNode implements Taggable {
 
 			Importer importer = new Importer(securityContext, _source, baseUrl, null, 1, true, true);
 
-			importer.parse();
+			importer.parse(true);
 			importer.createChildNodes(parent, page, baseUrl);
 			
 		} else {
