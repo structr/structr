@@ -29,7 +29,7 @@ var altKey = false, ctrlKey = false, shiftKey = false, eKey = false;
 $(function() {
 
     var s = new StructrApp(structrRestUrl);
-    $(document).trigger("structr-ready");
+    $(document).trigger('structr-ready');
     s.hideNonEdit();
     
 
@@ -596,7 +596,7 @@ function StructrApp(baseUrl) {
         // show elements [data-structr-hide="non-edit"]
         $.each($('div[data-structr-hide-id]',container),function(){
             
-           var id = $(this).attr("data-structr-hide-id");
+           var id = $(this).attr('data-structr-hide-id');
            $(this).replaceWith(hideNonEditElements[id]);
            delete hideNonEditElements[id];
            
@@ -710,7 +710,7 @@ String.prototype.splitAndTitleize = function(sep) {
     parts.forEach(function(part) {
         res.push(part.capitalize());
     })
-    return res.join(" ");
+    return res.join(' ');
 };
 
 String.prototype.toUnderscore = function() {
