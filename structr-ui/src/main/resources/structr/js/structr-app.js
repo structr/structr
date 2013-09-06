@@ -29,6 +29,7 @@ var altKey = false, ctrlKey = false, shiftKey = false, eKey = false;
 $(function() {
 
     var s = new StructrApp(structrRestUrl);
+    $(document).trigger("structr-ready");
     s.hideNonEdit();
     
 
