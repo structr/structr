@@ -18,13 +18,14 @@
  */
 
 var pages;
-var previews, previewTabs, controls, palette, activeTab, activeTabRight, components, elements, widgetsSlideout;
+var previews, previewTabs, controls, palette, activeTab, activeTabLeft, activeTabRight, components, elements, widgetsSlideout;
 var selStart, selEnd;
 var sel;
 var contentSourceId, elementSourceId, rootId;
 var textBeforeEditing;
 var activeTabKey = 'structrActiveTab_' + port;
 var activeTabRightKey = 'structrActiveTabRight_' + port;
+var activeTabLeftKey = 'structrActiveTabLeft_' + port;
 var win = $(window);
 var sorting = false;
 var sortParent;
@@ -64,12 +65,12 @@ var _Pages = {
 
         if (pages && palette) {
 
-            pages.css({
-                width: Math.max(180, Math.min(windowWidth / 3, 360)) + 'px',
-                height: windowHeight - headerOffsetHeight + 'px'
-            });
+//            pages.css({
+//                width: Math.max(180, Math.min(windowWidth / 3, 360)) + 'px',
+//                height: windowHeight - headerOffsetHeight + 'px'
+//            });
 
-            var rw = pages.width() + 74;
+            var rw = 64;
 
 //            palette.css({
 //                width: Math.min(300, Math.max(360, windowWidth / 4)) + 'px',
@@ -111,17 +112,18 @@ var _Pages = {
 
         _Pages.init();
 
-        activeTab = localStorage.getItem(activeTabKey);
+        activeTab      = localStorage.getItem(activeTabKey);
+        activeTabLeft  = localStorage.getItem(activeTabLeftKey);
         activeTabRight = localStorage.getItem(activeTabRightKey);
         log('value read from local storage', activeTab);
 
         log('onload');
 
-        main.prepend('<div id="pages"></div><div id="previews"></div>'
-                + '<div id="widgetsSlideout" class="slideOut"><div class="compTab" id="widgetsTab">Widgets</div></div>'
-                + '<div id="palette" class="slideOut"><div class="compTab" id="paletteTab">HTML Palette</div></div>'
-                + '<div id="components" class="slideOut"><div class="compTab" id="componentsTab">Reused Components</div></div>'
-                + '<div id="elements" class="slideOut"><div class="compTab" id="elementsTab">Orphaned Elements</div></div>');
+        main.prepend('<div id="pages" class="slideOut slideOutLeft"><div class="compTab" id="pagesTab">Pages Tree View</div></div><div id="previews"></div>'
+                + '<div id="widgetsSlideout" class="slideOut slideOutRight"><div class="compTab" id="widgetsTab">Widgets</div></div>'
+                + '<div id="palette" class="slideOut slideOutRight"><div class="compTab" id="paletteTab">HTML Palette</div></div>'
+                + '<div id="components" class="slideOut slideOutRight"><div class="compTab" id="componentsTab">Reused Components</div></div>'
+                + '<div id="elements" class="slideOut slideOutRight"><div class="compTab" id="elementsTab">Orphaned Elements</div></div>');
 
         pages = $('#pages');
         previews = $('#previews');
@@ -132,12 +134,25 @@ var _Pages = {
 
         //main.before('<div id="hoverStatus">Hover status</div>');
 
+        $('#pagesTab').on('click', function() {
+            var l = pages.position().left;
+            if (l === -412) {
+                $(this).addClass('active');
+                pages.animate({left : '+=412px'}, { duration: 100 }).zIndex(1);
+                localStorage.setItem(activeTabLeftKey, $(this).prop('id'));
+            } else {
+                $(this).removeClass('active');
+                pages.animate({left : '-=412px'}, { duration : 100 }).zIndex(2);
+                localStorage.removeItem(activeTabLeftKey);
+            }
+        });
+
         $('#widgetsTab').on('click', function() {
             var l = widgetsSlideout.position().left;
             if (l+1 === $(window).width()) {
                 $(this).addClass('active');
                 _Pages.closeSlideOuts([palette, components, elements]);
-                widgetsSlideout.animate({right : '+=425px'}, { duration: 200 }).zIndex(1);
+                widgetsSlideout.animate({right : '+=425px'}, { duration: 100 }).zIndex(1);
                 _Elements.reloadWidgets();
                 localStorage.setItem(activeTabRightKey, $(this).prop('id'));
             } else {
@@ -152,7 +167,7 @@ var _Pages = {
             if (l+1 === $(window).width()) {
                 $(this).addClass('active');
                 _Pages.closeSlideOuts([widgetsSlideout, components, elements]);
-                palette.animate({right : '+=425px'}, { duration: 200 }).zIndex(1);
+                palette.animate({right : '+=425px'}, { duration: 100 }).zIndex(1);
                 _Elements.reloadPalette();
                 localStorage.setItem(activeTabRightKey, $(this).prop('id'));
             } else {
@@ -168,7 +183,7 @@ var _Pages = {
                 $(this).addClass('active');
                 _Pages.closeSlideOuts([widgetsSlideout, palette, elements]);
                 _Elements.reloadComponents();
-                components.animate({right : '+=425px'}, { duration: 200 }).zIndex(1);
+                components.animate({right : '+=425px'}, { duration: 100 }).zIndex(1);
                 localStorage.setItem(activeTabRightKey, $(this).prop('id'));
             } else {
                 $(this).removeClass('active');
@@ -198,8 +213,8 @@ var _Pages = {
             var l = elements.position().left;
             if (l+1 === $(window).width()) {
                 $(this).addClass('active');
-                _Pages.closeSlideOuts([widgetsSlideout, palette, components], $(this));
-                elements.animate({right : '+=425px'}, { duration: 200 }).zIndex(1);
+                _Pages.closeSlideOuts([widgetsSlideout, palette, components]);
+                elements.animate({right : '+=425px'}, { duration: 100 }).zIndex(1);
                 _Elements.reloadUnattachedNodes();
                 localStorage.setItem(activeTabRightKey, $(this).prop('id'));
             } else {
@@ -228,6 +243,10 @@ var _Pages = {
             }
         });
 
+        if (activeTabLeft) {
+            $('#' + activeTabLeft).addClass('active').click();
+        }
+
         if (activeTabRight) {
             $('#' + activeTabRight).addClass('active').click();
         }
@@ -243,11 +262,8 @@ var _Pages = {
 
     },
     closeSlideOuts: function(slideout) {
-      
         slideout.forEach(function(w) {
-            
             var s = $(w);
-            
             var l = s.position().left;
             if (l+1 !== $(window).width()) {
                 //console.log('closing open slide-out', s);
@@ -255,7 +271,6 @@ var _Pages = {
                 $('.compTab.active', s).removeClass('active');
             }
         });
-        
     },
     clearPreviews: function() {
 
@@ -265,7 +280,8 @@ var _Pages = {
 
     },
     refresh: function() {
-        pages.empty();
+
+        pages.find(':not(.compTab)').remove();
         previewTabs.empty();
 
         Structr.addPager(pages, 'Page');
