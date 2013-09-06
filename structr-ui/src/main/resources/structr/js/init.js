@@ -846,7 +846,7 @@ function formatValueInputField(key, obj) {
         return '<input name="' + key + '" type="text" value="">';
     } else if (obj.constructor === Object) {
 
-        return '<input name="' + key + '" type="text" value="' + JSON.stringify(obj) + '">';
+        return '<input name="' + key + '" type="text" value="' + escapeForHtmlAttributes(JSON.stringify(obj)) + '">';
 
     } else if (obj.constructor === Array) {
         var out = '';
@@ -858,7 +858,7 @@ function formatValueInputField(key, obj) {
         return '<textarea name="' + key + '">' + out + '</textarea>';
 
     } else {
-        return '<input name="' + key + '" type="text" value="' + obj + '">';
+        return '<input name="' + key + '" type="text" value="' + escapeForHtmlAttributes(obj) + '">';
 
     }
 }

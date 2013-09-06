@@ -321,7 +321,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 				try {
 
-					String value = getPropertyWithVariableReplacement(securityContext, renderContext, attribute);
+					String value = escapeForHtmlAttributes(getPropertyWithVariableReplacement(securityContext, renderContext, attribute));
 
 					if (value != null) {
 

@@ -99,7 +99,8 @@ function StructrApp(baseUrl) {
 
             $.each(attrs, function(i, key) {
                 if (!s.data[id]) s.data[id] = {};
-                s.data[id][key] = $('[data-structr-name="' + key + '"]').val();
+                var val = $('[data-structr-name="' + key + '"]').val();
+                s.data[id][key] = val ? val.parseIfJSON() : val;
             });
             s.create(type, s.data[id], reload);
 
@@ -691,6 +692,14 @@ String.prototype.capitalize = function() {
 String.prototype.endsWith = function(suffix) {
     return this.indexOf(suffix, this.length - suffix.length) !== -1;
 };
+
+String.prototype.parseIfJSON = function() {
+    if (this.substring(0,1) === '{') {
+        var cleaned = this.replace(/'/g, "\"");
+        return JSON.parse(cleaned);
+    }
+    return this;
+}
 
 String.prototype.splitAndTitleize = function(sep) {
 

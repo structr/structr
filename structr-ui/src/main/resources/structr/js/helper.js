@@ -54,6 +54,16 @@ function isIn(s, array) {
     return ($.inArray(s, array) > -1);
 }
 
+function escapeForHtmlAttributes(str) {
+    if (!str) return str;
+    return str
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+}
+
 function escapeTags(str) {
     if (!str) return str;
     return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');

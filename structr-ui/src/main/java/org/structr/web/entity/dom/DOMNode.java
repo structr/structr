@@ -1228,13 +1228,25 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 	protected String convertValueForHtml(java.lang.Object value) {
 
 		if (value != null) {
-
+			
 			// TODO: do more intelligent conversion here
 			return value.toString();
 		}
 
 		return null;
 
+	}
+
+	protected String escapeForHtml(final String raw) {
+		
+		return StringUtils.replaceEach(raw, new String[] { "&", "<", ">" }, new String[] { "&amp;", "&lt;", "&gt;" });
+		
+	}
+	
+	protected String escapeForHtmlAttributes(final String raw) {
+		
+		return StringUtils.replaceEach(raw, new String[] { "&", "<", ">", "\"", "'" }, new String[] { "&amp;", "&lt;", "&gt;", "&quot;", "&#39;" });
+		
 	}
 
 	protected String[] split(String source) {
