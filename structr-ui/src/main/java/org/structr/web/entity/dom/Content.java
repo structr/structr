@@ -184,8 +184,10 @@ public class Content extends DOMNode implements Text {
 		// fetch content with variable replacement
 		String _content = getPropertyWithVariableReplacement(securityContext, renderContext, Content.content);
 		
-		if (!("text/html".equals(_contentType))) {
+		if (_contentType == null || ("text/plain".equals(_contentType))) {
+
 			_content = escapeForHtml(_content);
+
 		}
 
 		if (EditMode.CONTENT.equals(edit) && inBody && securityContext.isAllowed(this, Permission.write)) {
