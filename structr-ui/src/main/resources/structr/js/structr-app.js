@@ -606,10 +606,11 @@ function StructrApp(baseUrl) {
             
             var random = Math.floor(Math.random()*1000000+1);
             
-            hideEditElements[random] = $(obj);
+            hideEditElements[random] = $(obj).clone(true,true);
             $(obj).replaceWith('<div style="display:none;" data-structr-hide-id="'+random+'"></div>');
         });
         
+        $(document).trigger("structr-edit");
     };
     this.hideNonEdit = function(container){ // shows edit mode
         
@@ -621,7 +622,7 @@ function StructrApp(baseUrl) {
                 
                 var random = Math.floor(Math.random()*1000000+1);
                 
-                hideNonEditElements[random] = $(obj);
+                hideNonEditElements[random] = $(obj).clone(true,true);
                 $(obj).replaceWith('<div style="display:none;" data-structr-hide-id="'+random+'"></div>');
             });
             
@@ -641,7 +642,7 @@ function StructrApp(baseUrl) {
                 
                 var random = Math.floor(Math.random()*1000000+1);
                 
-                hideNonEditElements[random] = $(obj);
+                hideNonEditElements[random] = $(obj).clone(true,true);
                 $(obj).replaceWith('<div style="display:none;" data-structr-hide-id="'+random+'"></div>');
                 
             });
