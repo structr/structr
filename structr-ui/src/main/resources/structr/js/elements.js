@@ -113,13 +113,13 @@ var _Elements = {
             var el = _Pages.appendElementElement(entity, localWidgetsArea, true);
 
             el.draggable({
-                iframeFix: true,
+//                iframeFix: true,
                 revert: 'invalid',
-                containment: 'body',
-                helper: 'clone',
-                appendTo: '#main',
-                stack: '.node',
-                zIndex: 99
+//                containment: 'body',
+//                helper: 'clone',
+//                appendTo: '#main',
+//                stack: '.node',
+//                zIndex: 99
             });
 
         });
@@ -172,6 +172,26 @@ var _Elements = {
     reloadComponents: function() {
 
         components.find(':not(.compTab)').remove();
+        
+        Command.getByType('ShadowDocument', 1, 1, null, null, function(entity) {
+            shadowPage = entity;
+        });
+        
+        components.droppable({
+            
+            drop : function(e, ui) {
+                var sourceEl = $(ui.draggable);
+                if (sourceEl.parent().attr('id') === 'components') {
+                    log('component dropped on components area, aborting');
+                    return false;
+                }
+                var sourceId = getId(sourceEl);
+                Command.createComponent(sourceId);
+            }
+            
+        });
+
+        _Dragndrop.makeSortable(components);
 
         Command.listComponents(1000, 1, 'name', 'asc', function(entity) {
 
@@ -181,16 +201,6 @@ var _Elements = {
             if (isExpanded(entity.id)) {
                 _Entities.ensureExpanded(el);
             }
-
-            el.draggable({
-                iframeFix: true,
-                revert: 'invalid',
-                containment: 'body',
-                helper: 'clone',
-                appendTo: '#main',
-                stack: '.node',
-                zIndex: 99
-            });
 
         });
 
@@ -314,7 +324,12 @@ var _Elements = {
         div.append('<img title="Delete ' + entity.tag + ' element ' + entity.id + '" alt="Delete ' + entity.tag + ' element ' + entity.id + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
         $('.delete_icon', div).on('click', function(e) {
             e.stopPropagation();
-            _Entities.deleteNode(this, entity);
+            _Entities.deleteNode(this, entity, function() {
+                entity.syncedNodes.forEach(function(id) {
+                    var el = Structr.node(id);
+                    el.children('img.typeIcon').attr('src', _Elements.icon);
+                });
+            });
         });
 
         _Entities.setMouseOver(div, undefined, entity.syncedNodes);

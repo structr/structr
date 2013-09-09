@@ -26,6 +26,7 @@ body {
     background: #e5e5e5;
     background: -webkit-gradient(linear, left bottom, left top, from(#e3e3e3), to(#f3f3f3)) no-repeat;
     background: -moz-linear-gradient(90deg, #e3e3e3, #f3f3f3) no-repeat;
+	position: fixed;
 }
 
 table, tr, td, th, tbody, thead {
@@ -200,7 +201,18 @@ img.disabled {
 .slideOut .compTab {
     z-index: 1000;
     position: absolute;
-    margin: 8px 2px 0 0 ! important
+    margin: 8px 2px 0 0 ! important;
+	overflow: visible ! important;
+	transform-style: preserve-3d;
+	-webkit-transform-style: preserve-3d;
+}
+
+.slideOut .compTab:hover {
+    color: #333 ! important;
+    background-color: #e3e3e3;
+    background: -webkit-gradient(linear, left bottom, left top, from(#ddd), to(#eee)) no-repeat;
+    background: -moz-linear-gradient(90deg, #ddd, #eee) no-repeat;
+    filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#eeeeee', EndColorStr='#dddddd', GradientType=0);
 }
 
 .slideOutRight .compTab {

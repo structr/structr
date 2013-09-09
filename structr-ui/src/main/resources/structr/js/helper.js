@@ -355,3 +355,38 @@ function blinkRed(element) {
         }, 500);
     });
 }
+
+function getComments(el) {
+    var comments = [];
+    var f = el.firstChild;
+    while (f) {
+        if (f.nodeType === 8) {
+            var id = f.nodeValue.extractVal('data-structr-id');
+            var raw = f.nodeValue.extractVal('data-structr-raw-value');
+            if (id) {
+                f = f.nextSibling;
+                if (f && f.nodeType === 3) {
+                    var comment = {};
+                    comment.id = id;
+                    comment.textNode = f;
+                    comment.rawContent = raw;
+                    comments.push(comment);
+                }
+            }
+        }
+        f = f.nextSibling;
+    }
+    return comments;
+}
+
+function getNonCommentSiblings(el) {
+    var siblings = [];
+    var s = el.nextSibling;
+    while (s) {
+        if (s.nodeType === 8) {
+            return siblings;
+        }
+        siblings.push(s);
+        s = s.nextSibling;
+    }
+}

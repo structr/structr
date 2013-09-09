@@ -87,14 +87,14 @@ public class ListUnattachedNodesCommand extends AbstractCommand {
 			List<AbstractNode> filteredResults     = new LinkedList();
 			List<? extends GraphObject> resultList = result.getResults();
 
-			// determine which of the nodes have incoming CONTAINS relationships
+			// determine which of the nodes have no incoming CONTAINS relationships and no page id
 			for (GraphObject obj : resultList) {
 
 				if (obj instanceof AbstractNode) {
 
 					AbstractNode node = (AbstractNode) obj;
 
-					if (!node.hasRelationship(RelType.CONTAINS, Direction.INCOMING)) {
+					if (!node.hasRelationship(RelType.CONTAINS, Direction.INCOMING) && node.getProperty(DOMNode.ownerDocument) == null) {
 
 						filteredResults.add(node);
 					}

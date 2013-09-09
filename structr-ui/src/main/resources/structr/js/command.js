@@ -43,8 +43,7 @@ var Command = {
     /**
      * Send a single GET_BY_TYPE command to the server.
      * 
-     * The server will return a single item with all properties
-     * of the node with the given id to the sending client (no broadcast).
+     * The server will return a list of nodes of the given type.
      * 
      * The optional callback function will be executed for each node in the result set.
      */
@@ -53,10 +52,10 @@ var Command = {
         obj.command = 'GET_BY_TYPE';
         var data = {};
         data.type = type;
-        obj.pageSize = pageSize;
-        obj.page = page;
-        obj.sort = sort;
-        obj.order = order;
+        if (pageSize) obj.pageSize = pageSize;
+        if (page) obj.page = page;
+        if (sort) obj.sort = sort;
+        if (order) obj.order = order;
         obj.data = data;
         log('getByType()', obj, callback);
         return sendObj(obj, callback);
@@ -388,20 +387,33 @@ var Command = {
         return sendObj(obj);
     },
     /**
-     * Send an COPY_NODE command to the server.
+     * Send an CREATE_COMPONENT command to the server.
      * 
-     * The server will clone the DOM node with the given id
-     * and append it to the node with the given parent id.
+     * The server will transform the node into a reusable component.
      * 
      */
-    copyDOMNode: function(id, parentId) {
+    createComponent: function(id) {
         var obj = {};
-        obj.command = 'COPY_NODE';
+        obj.command = 'CREATE_COMPONENT';
+        obj.id = id;
+        log('createComponent()', obj);
+        return sendObj(obj);
+    },
+    /**
+     * Send an CLONE_NODE command to the server.
+     * 
+     * The server will clone the DOM node with the given id
+     * and append it to a the parent with given parentId.
+     * 
+     */
+    cloneNode: function(id, parentId) {
+        var obj = {};
+        obj.command = 'CLONE_NODE';
         obj.id = id;
         var data = {};
         data.parentId = parentId;
         obj.data = data;
-        log('copyDOMNode()', obj);
+        log('cloneNode()', obj);
         return sendObj(obj);
     },
     /**

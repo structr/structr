@@ -47,7 +47,7 @@ var _Entities = {
         Command.children(id);
 
     },
-    deleteNode: function(button, entity) {
+    deleteNode: function(button, entity, callback) {
         buttonClicked = button;
         if (isDisabled(button))
             return;
@@ -58,6 +58,9 @@ var _Entities = {
                     $.unblockUI({
                         fadeOut: 25
                     });
+                    if (callback) {
+                        callback();
+                    }
                 });
     },
     showSyncDialog: function(source, target) {
@@ -594,7 +597,6 @@ var _Entities = {
                 paddingRight: 0 + 'px'
             }).after('<img title="Expand \'' + entity.name + '\'" alt="Expand \'' + entity.name + '\'" class="expand_icon" src="' + icon + '">');
 
-            console.log($(el));
             $(el).on('click', function(e) {
                 e.stopPropagation();
                 _Entities.toggleElement(this);
