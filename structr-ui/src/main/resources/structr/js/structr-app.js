@@ -217,10 +217,14 @@ function StructrApp(baseUrl) {
         $.each(attrs, function(i, key) {
             var inp = s.input($('[data-structr-attr="' + key + '"]', container));
             var f = s.field(inp);
-            if (f && f.val && f.val.length) {
-                s.data[id][key] = f.val;
+            if (f.type === 'Boolean') {
+                s.data[id][key] = (f.val === true ? true : false);
             } else {
-                s.data[id][key] = null;
+                if (f && f.val && f.val.length) {
+                    s.data[id][key] = f.val;
+                } else {
+                    s.data[id][key] = null;
+                }
             }
         });
         s.request('PUT', structrRestUrl + id, s.data[id], false, 'Successfully updated ' + id, 'Could not update ' + id, function() {
@@ -296,7 +300,7 @@ function StructrApp(baseUrl) {
             if (el.is('input')) {
                 val = el.is(':checked');
             } else {
-                val = el.text() === 'true';
+                val = (el.text() === 'true');
             }
         } else {
             var inp = s.input(el);
