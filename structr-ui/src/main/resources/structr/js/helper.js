@@ -55,7 +55,7 @@ function isIn(s, array) {
 }
 
 function escapeForHtmlAttributes(str) {
-    if (!str) return str;
+    if (!(typeof str === String)) return str;
     return str
             .replace(/&/g, '&amp;')
             .replace(/</g, '&lt;')

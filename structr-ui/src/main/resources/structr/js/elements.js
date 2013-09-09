@@ -212,6 +212,7 @@ var _Elements = {
                         $.unblockUI({
                             fadeOut: 25
                         });
+                        _Pages.closeSlideOuts([elements]);
                     });
         });
 
@@ -284,7 +285,28 @@ var _Elements = {
 
         _Entities.appendExpandIcon(div, entity, !isMasterComponent && hasChildren);
 
+        // Prevent type icon from being draggable
         $('.typeIcon', div).on('mousedown', function(e) {
+            e.stopPropagation();
+        });
+
+        // Prevent display name
+        $('b', div).on('mousedown', function(e) {
+            e.stopPropagation();
+        });
+
+        // Prevent id from being draggable
+        $('#id', div).on('mousedown', function(e) {
+            e.stopPropagation();
+        });
+
+        // Prevent html class from being draggable
+        $('._html_id_', div).on('mousedown', function(e) {
+            e.stopPropagation();
+        });
+
+        // Prevent html class from being draggable
+        $('._html_class_', div).on('mousedown', function(e) {
             e.stopPropagation();
         });
 
@@ -446,7 +468,6 @@ var _Elements = {
 
             });
         }
-
         return div;
     }
 };

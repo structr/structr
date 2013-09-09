@@ -270,8 +270,6 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		EditMode edit        = renderContext.getEditMode(securityContext.getUser(false));
 		boolean isVoid       = isVoidElement();
 		StringBuilder buffer = renderContext.getBuffer();
-		//String pageId        = renderContext.getPageId();
-		String id            = getUuid();
 		String tag           = getProperty(DOMElement.tag);
 		
 		boolean anyChildNodeCreatesNewLine  = false;
@@ -285,9 +283,20 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		}
 		
 		if (StringUtils.isNotBlank(tag)) {
-			
 
 			buffer.append("<").append(tag);
+			
+			if (EditMode.CONTENT.equals(edit)) {
+				
+				if (depth == 0) {
+					
+					buffer.append(" data-structr-page=\"").append(renderContext.getPageId()).append("\"");
+					
+				}
+				
+				buffer.append(" data-structr-el=\"").append(getUuid()).append("\"");
+				
+			}
 
 //			if (EditMode.DATA.equals(edit)) {
 //
