@@ -102,7 +102,7 @@ var _Elements = {
     reloadWidgets: function() {
 
         widgetsSlideout.find(':not(.compTab)').remove();
-        
+
         widgetsSlideout.append('<div class="local"><h3>Local Widgets</h3></div>');
         var localWidgetsArea = $('.local', widgetsSlideout);
 
@@ -113,17 +113,17 @@ var _Elements = {
             var el = _Pages.appendElementElement(entity, localWidgetsArea, true);
 
             el.draggable({
-                iframeFix: true,
+//                iframeFix: true,
                 revert: 'invalid',
-                containment: 'body',
-                helper: 'clone',
-                appendTo: '#main',
-                stack: '.node',
-                zIndex: 99
+//                containment: 'body',
+//                helper: 'clone',
+//                appendTo: '#main',
+//                stack: '.node',
+//                zIndex: 99
             });
 
         });
-        
+
         widgetsSlideout.append('<div class="remote"><h3>Remote Widgets</h3></div>');
         var remoteWidgetsArea = $('.remote', widgetsSlideout);
         var baseUrl = 'http://widgets.structr.org:8084/structr/rest/widgets';
@@ -171,7 +171,27 @@ var _Elements = {
      */
     reloadComponents: function() {
 
-        components.find(':not(.compTab)').empty();
+        components.find(':not(.compTab)').remove();
+        
+        Command.getByType('ShadowDocument', 1, 1, null, null, function(entity) {
+            shadowPage = entity;
+        });
+        
+        components.droppable({
+            
+            drop : function(e, ui) {
+                var sourceEl = $(ui.draggable);
+                if (sourceEl.parent().attr('id') === 'components') {
+                    log('component dropped on components area, aborting');
+                    return false;
+                }
+                var sourceId = getId(sourceEl);
+                Command.createComponent(sourceId);
+            }
+            
+        });
+
+        _Dragndrop.makeSortable(components);
 
         Command.listComponents(1000, 1, 'name', 'asc', function(entity) {
 
@@ -182,16 +202,6 @@ var _Elements = {
                 _Entities.ensureExpanded(el);
             }
 
-            el.draggable({
-                iframeFix: true,
-                revert: 'invalid',
-                containment: 'body',
-                helper: 'clone',
-                appendTo: '#main',
-                stack: '.node',
-                zIndex: 99
-            });
-
         });
 
     },
@@ -200,7 +210,21 @@ var _Elements = {
      */
     reloadUnattachedNodes: function() {
 
-        elements.find(':not(.compTab)').empty();
+        elements.find(':not(.compTab)').remove();
+
+        elements.append('<button class="btn" id="delete-all-unattached-nodes">Delete all</button>');
+
+        var btn = $('#delete-all-unattached-nodes')
+        btn.on('click', function() {
+            Structr.confirmation('<p>Delete all DOM not bound to a parent DOM element?</p>',
+                    function() {
+                        Command.deleteUnattachedNodes();
+                        $.unblockUI({
+                            fadeOut: 25
+                        });
+                        _Pages.closeSlideOuts([elements]);
+                    });
+        });
 
         Command.listUnattachedNodes(1000, 1, 'name', 'asc', function(entity) {
 
@@ -271,7 +295,28 @@ var _Elements = {
 
         _Entities.appendExpandIcon(div, entity, !isMasterComponent && hasChildren);
 
+        // Prevent type icon from being draggable
         $('.typeIcon', div).on('mousedown', function(e) {
+            e.stopPropagation();
+        });
+
+        // Prevent display name
+        $('b', div).on('mousedown', function(e) {
+            e.stopPropagation();
+        });
+
+        // Prevent id from being draggable
+        $('#id', div).on('mousedown', function(e) {
+            e.stopPropagation();
+        });
+
+        // Prevent html class from being draggable
+        $('._html_id_', div).on('mousedown', function(e) {
+            e.stopPropagation();
+        });
+
+        // Prevent html class from being draggable
+        $('._html_class_', div).on('mousedown', function(e) {
             e.stopPropagation();
         });
 
@@ -279,7 +324,12 @@ var _Elements = {
         div.append('<img title="Delete ' + entity.tag + ' element ' + entity.id + '" alt="Delete ' + entity.tag + ' element ' + entity.id + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
         $('.delete_icon', div).on('click', function(e) {
             e.stopPropagation();
-            _Entities.deleteNode(this, entity);
+            _Entities.deleteNode(this, entity, function() {
+                entity.syncedNodes.forEach(function(id) {
+                    var el = Structr.node(id);
+                    el.children('img.typeIcon').attr('src', _Elements.icon);
+                });
+            });
         });
 
         _Entities.setMouseOver(div, undefined, entity.syncedNodes);
@@ -433,7 +483,6 @@ var _Elements = {
 
             });
         }
-
         return div;
     }
 };

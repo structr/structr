@@ -20,7 +20,6 @@
 
 package org.structr.websocket.command;
 
-import org.neo4j.graphdb.Direction;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
@@ -33,7 +32,6 @@ import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.websocket.message.WebSocketMessage;
-import org.structr.web.common.RelType;
 import org.structr.common.PagingHelper;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
@@ -43,7 +41,12 @@ import org.structr.websocket.message.MessageBuilder;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.neo4j.graphdb.Direction;
+import org.structr.web.common.RelType;
 import org.structr.web.entity.dom.DOMElement;
+import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.entity.dom.Page;
+import org.structr.web.entity.dom.ShadowDocument;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -80,21 +83,33 @@ public class ListComponentsCommand extends AbstractCommand {
 
 		try {
 
-			// do search
-			Result result = (Result) Services.command(securityContext, SearchNodeCommand.class).execute(true, false, searchAttributes, sortProperty, "desc".equals(sortOrder));
-			List<AbstractNode> filteredResults     = new LinkedList();
-			List<? extends GraphObject> resultList = result.getResults();
+			// get shadow document
+			Result result = (Result) Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(Search.andExactType(ShadowDocument.class));
+			List<AbstractNode> filteredResults	= new LinkedList();
+			List<AbstractNode> resultList		= result.getResults();
 
-			// determine which of the nodes have SYNC relationships
+			if (result.isEmpty()) {
+				
+				logger.log(Level.WARNING, "No shadow document found"); 
+				return;
+				
+			}
+			
+			ShadowDocument doc = (ShadowDocument) result.get(0);
+			
+			resultList.addAll(doc.getProperty(Page.elements));
+			
+			// Filter list and return only top level nodes
 			for (GraphObject obj : resultList) {
 
-				if (obj instanceof AbstractNode) {
+				if (obj instanceof DOMNode) {
 
-					AbstractNode node = (AbstractNode) obj;
+					DOMNode node = (DOMNode) obj;
 
-					if (node.hasRelationship(RelType.SYNC, Direction.OUTGOING) && node.hasRelationship(RelType.CONTAINS, Direction.OUTGOING)) {
-
+					if (!doc.equals(node) && !node.hasRelationship(RelType.CONTAINS, Direction.INCOMING)) {
+						
 						filteredResults.add(node);
+
 					}
 
 				}

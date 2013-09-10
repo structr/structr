@@ -28,10 +28,8 @@ import org.structr.common.PropertyView;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.Date;
-import java.util.logging.Logger;
 import org.structr.core.property.Property;
 import org.structr.common.View;
-import org.structr.core.validator.TypeUniquenessValidator;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -41,15 +39,13 @@ import org.structr.core.validator.TypeUniquenessValidator;
  */
 public class Person extends AbstractNode {
 	
-	private static final Logger logger = Logger.getLogger(Person.class.getName());
-
 	public static final Property<String>  salutation          = new StringProperty("salutation");
 	public static final Property<String>  firstName           = new StringProperty("firstName").indexed();
 	public static final Property<String>  middleNameOrInitial = new StringProperty("middleNameOrInitial");
 	public static final Property<String>  lastName            = new StringProperty("lastName").indexed();
 	
-	public static final Property<String>  twitterName         = new StringProperty("twitterName").validator(new TypeUniquenessValidator(Person.class)).indexed();
-	public static final Property<String>  eMail               = new StringProperty("eMail").validator(new TypeUniquenessValidator(Person.class)).indexed();
+	public static final Property<String>  twitterName         = new StringProperty("twitterName").indexed();
+	public static final Property<String>  eMail               = new StringProperty("eMail").indexed();
 	public static final Property<String>  eMail2              = new StringProperty("eMail2");
 	
 	public static final Property<String>  phoneNumber1        = new StringProperty("phoneNumber1");

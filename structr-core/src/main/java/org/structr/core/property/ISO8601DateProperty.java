@@ -45,10 +45,12 @@ import java.util.Date;
  * @author Axel Morgner
  */
 public class ISO8601DateProperty extends DateProperty {
+	
+	public static final String PATTERN = "yyyy-MM-dd'T'HH:mm:ssZ";
 
 	public ISO8601DateProperty(String name) {
 
-		super(name, "yyyy-MM-dd'T'HH:mm:ssZ");
+		super(name, PATTERN);
 
 	}
 

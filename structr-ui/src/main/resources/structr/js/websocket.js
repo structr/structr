@@ -343,9 +343,20 @@ function connect() {
             } else if (command === 'CREATE' || command === 'ADD' || command === 'IMPORT') { /*********************** CREATE, ADD, IMPORT ************************/
 
                 $(result).each(function(i, entity) {
-
+                    
                     if (command === 'CREATE' && (entity.type === 'Page' || entity.type === 'Folder' || entity.type === 'File' || entity.type === 'Image' || entity.type === 'User' || entity.type === 'Group' || entity.type === 'PropertyDefinition' || entity.type === 'Widget')) {
                         StructrModel.create(entity);
+                    } else {
+                        
+                        if (shadowPage && entity.pageId === shadowPage.id) {
+                            _Pages.appendElementElement(entity, components, true);
+                            
+                            // Change icon
+                            entity.syncedNodes.forEach(function(id) {
+                                var el = Structr.node(id);
+                                el.children('img.typeIcon').attr('src', _Elements.icon_comp);
+                            });
+                        }
                     }
 
                     if (command === 'CREATE' && entity.type === 'Page') {

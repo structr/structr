@@ -34,7 +34,6 @@ import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.websocket.message.WebSocketMessage;
 import org.structr.web.common.RelType;
-import org.structr.common.PagingHelper;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 
@@ -43,24 +42,29 @@ import org.structr.websocket.message.MessageBuilder;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.graph.DeleteNodeCommand;
+import org.structr.core.graph.StructrTransaction;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 //~--- classes ----------------------------------------------------------------
 
 /**
- * Websocket command to retrieve DOM nodes which are not attached to a parent element
+ * Websocket command to delete all DOM nodes which are not attached to a parent element
  * 
  * @author Axel Morgner
  */
-public class ListUnattachedNodesCommand extends AbstractCommand {
+public class DeleteUnattachedNodesCommand extends AbstractCommand {
 	
-	private static final Logger logger = Logger.getLogger(ListUnattachedNodesCommand.class.getName());
+	private static final Logger logger = Logger.getLogger(DeleteUnattachedNodesCommand.class.getName());
 
 	static {
 
-		StructrWebSocket.addCommand(ListUnattachedNodesCommand.class);
+		StructrWebSocket.addCommand(DeleteUnattachedNodesCommand.class);
 
 	}
 
@@ -84,34 +88,53 @@ public class ListUnattachedNodesCommand extends AbstractCommand {
 
 			// do search
 			Result result = (Result) Services.command(securityContext, SearchNodeCommand.class).execute(true, false, searchAttributes, sortProperty, "desc".equals(sortOrder));
-			List<AbstractNode> filteredResults     = new LinkedList();
-			List<? extends GraphObject> resultList = result.getResults();
+			final List<AbstractNode> filteredResults	= new LinkedList();
+			List<? extends GraphObject> resultList		= result.getResults();
 
-			// determine which of the nodes have no incoming CONTAINS relationships and no page id
+			// determine which of the nodes have incoming CONTAINS relationships
 			for (GraphObject obj : resultList) {
 
 				if (obj instanceof AbstractNode) {
 
 					AbstractNode node = (AbstractNode) obj;
 
-					if (!node.hasRelationship(RelType.CONTAINS, Direction.INCOMING) && node.getProperty(DOMNode.ownerDocument) == null) {
+					if (!node.hasRelationship(RelType.CONTAINS, Direction.INCOMING)) {
 
 						filteredResults.add(node);
+						filteredResults.addAll(getAllChildNodes((DOMNode) node));
 					}
 
 				}
 
 			}
 
-			// save raw result count
-			int resultCountBeforePaging = filteredResults.size();
-			
 			// set full result list
-			webSocketData.setResult(PagingHelper.subList(filteredResults, pageSize, page, null));
-			webSocketData.setRawResultCount(resultCountBeforePaging);
+			final DeleteNodeCommand deleteNode = Services.command(securityContext, DeleteNodeCommand.class);
+			try {
 
-			// send only over local connection
-			getWebSocket().send(webSocketData, true);
+				StructrTransaction transaction = new StructrTransaction() {
+
+					@Override
+					public Object execute() throws FrameworkException {
+
+						for (AbstractNode node : filteredResults) {
+							
+							deleteNode.execute(node, true);
+						}
+
+						return null;
+					}
+
+				};
+
+				Services.command(securityContext, TransactionCommand.class).execute(transaction);
+
+			} catch (Throwable t) {
+
+				getWebSocket().send(MessageBuilder.status().code(400).message(t.getMessage()).build(), true);
+
+			}
+			
 			
 		} catch (FrameworkException fex) {
 
@@ -127,8 +150,25 @@ public class ListUnattachedNodesCommand extends AbstractCommand {
 	@Override
 	public String getCommand() {
 
-		return "LIST_UNATTACHED_NODES";
+		return "DELETE_UNATTACHED_NODES";
 
+	}
+	
+	public Set<DOMNode> getAllChildNodes(final DOMNode node) {
+		
+		Set<DOMNode> allChildNodes = new HashSet();
+		
+		DOMNode n = (DOMNode) node.getFirstChild();
+		
+		while (n != null) {
+		
+			allChildNodes.add(n);
+			allChildNodes.addAll(getAllChildNodes(n));
+			n = (DOMNode) n.getNextSibling();
+			
+		}
+		
+		return allChildNodes;
 	}
 
 }

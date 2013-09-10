@@ -270,8 +270,6 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		EditMode edit        = renderContext.getEditMode(securityContext.getUser(false));
 		boolean isVoid       = isVoidElement();
 		StringBuilder buffer = renderContext.getBuffer();
-		//String pageId        = renderContext.getPageId();
-		String id            = getUuid();
 		String tag           = getProperty(DOMElement.tag);
 		
 		boolean anyChildNodeCreatesNewLine  = false;
@@ -285,9 +283,20 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		}
 		
 		if (StringUtils.isNotBlank(tag)) {
-			
 
 			buffer.append("<").append(tag);
+			
+			if (EditMode.CONTENT.equals(edit)) {
+				
+				if (depth == 0) {
+					
+					buffer.append(" data-structr-page=\"").append(renderContext.getPageId()).append("\"");
+					
+				}
+				
+				buffer.append(" data-structr-el=\"").append(getUuid()).append("\"");
+				
+			}
 
 //			if (EditMode.DATA.equals(edit)) {
 //
@@ -321,7 +330,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 				try {
 
-					String value = getPropertyWithVariableReplacement(securityContext, renderContext, attribute);
+					String value = escapeForHtmlAttributes(getPropertyWithVariableReplacement(securityContext, renderContext, attribute));
 
 					if (value != null) {
 
@@ -1346,7 +1355,11 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 				
 				String value = getPropertyWithVariableReplacement(securityContext, renderContext, new GenericProperty(key));
 				
-				buffer.append(" ").append(key).append("=\"").append(value).append("\"");
+				if (StringUtils.isNotBlank(value)) {
+					
+					buffer.append(" ").append(key).append("=\"").append(value).append("\"");
+					
+				}
 				
 			}
 			
@@ -1369,7 +1382,13 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 				.append(indent(depth))
 				.append("<script type=\"text/javascript\" src=\"/structr/js/lib/jquery-1.10.2.min.js\"></script>")
 				.append(indent(depth))
-				.append("<script type=\"text/javascript\" src=\"/structr/js/structr-app.js\"></script>");
+				.append("<script type=\"text/javascript\" src=\"/structr/js/lib/jquery-ui-1.10.3.custom.min.js\"></script>")
+				.append(indent(depth))
+				.append("<script type=\"text/javascript\" src=\"/structr/js/lib/jquery-ui-timepicker-addon.min.js\"></script>")
+				.append(indent(depth))
+				.append("<script type=\"text/javascript\" src=\"/structr/js/structr-app.js\"></script>")
+				.append(indent(depth))
+				.append("<link rel=\"stylesheet\" type=\"text/css\" href=\"/structr/css/jquery-ui-1.10.3.custom.css\">");
 			
 			renderContext.setAppLibRendered(true);
 		

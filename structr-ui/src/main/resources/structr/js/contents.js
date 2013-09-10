@@ -52,18 +52,17 @@ var _Contents = {
         
         var div = Structr.node(content.id);
     
-        var page = div.closest( '.page')[0];
-        if (!page && pages) {
-            div.draggable({
-                revert: 'invalid',
-                //containment: '#pages',
-                stack: 'div',
-                //helper: 'clone',
-                start: function(event, ui) {
-                    $(this).draggable(disable);
-                }
-            });
-        }
+        _Dragndrop.makeSortable(div);
+    
+//        div.draggable({
+//            revert: 'invalid',
+//            //containment: '#pages',
+//            stack: '.node',
+//            //helper: 'clone',
+//            start: function(event, ui) {
+//                $(this).draggable(disable);
+//            }
+//        });
         
         _Entities.appendAccessControlIcon(div, content);
 
@@ -145,7 +144,7 @@ var _Contents = {
             if (!text1) text1 = '';
             if (!text2) text2 = '';
 		
-            if (true) {
+            if (debug) {
                 console.log('Element', contentNode);
                 console.log('text1', text1);
                 console.log('text2', text2);

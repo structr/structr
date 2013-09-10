@@ -17,17 +17,13 @@
  * along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
 package org.structr.websocket.command.dom;
 
 import java.util.Map;
 
-import org.structr.web.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
-import org.structr.core.graph.CreateRelationshipCommand;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.web.entity.dom.DOMNode;
@@ -38,17 +34,15 @@ import org.structr.websocket.message.WebSocketMessage;
 
 
 /**
- * Copy a DOMNode to an arbitrary location in another document (page).
- *
- * This command will create default SYNC relationships (bi-directional)
+ * Clone a DOMNode to an arbitrary location in another document (page).
  *
  * @author Axel Morgner
  */
-public class CopyDOMNodeCommand extends AbstractCommand {
+public class CloneNodeCommand extends AbstractCommand {
 
 	static {
 
-		StructrWebSocket.addCommand(CopyDOMNodeCommand.class);
+		StructrWebSocket.addCommand(CloneNodeCommand.class);
 	}
 
 	@Override
@@ -84,21 +78,17 @@ public class CopyDOMNodeCommand extends AbstractCommand {
 
 			try {
 
-
-				final CreateRelationshipCommand<?> createRel = Services.command(securityContext, CreateRelationshipCommand.class);
 				StructrTransaction transaction               = new StructrTransaction() {
 
 					@Override
 					public Object execute() throws FrameworkException {
 						
 						DOMNode clonedNode = (DOMNode) node.cloneNode(false);
-
+						
 						parent.appendChild(clonedNode);
 
 						clonedNode.setProperty(DOMNode.ownerDocument, parent.getProperty(DOMNode.ownerDocument));
 
-						createRel.execute(node, clonedNode, RelType.SYNC, true);
-						createRel.execute(clonedNode, node, RelType.SYNC, true);
 						return null;
 
 					}
@@ -123,8 +113,9 @@ public class CopyDOMNodeCommand extends AbstractCommand {
 	@Override
 	public String getCommand() {
 
-		return "COPY_NODE";
+		return "CLONE_NODE";
 
 	}
 
+	
 }

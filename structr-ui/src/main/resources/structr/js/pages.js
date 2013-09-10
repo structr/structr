@@ -17,17 +17,16 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-var pages;
-var previews, previewTabs, controls, palette, activeTab, activeTabRight, components, elements, widgetsSlideout;
+var pages, shadowPage;
+var previews, previewTabs, controls, palette, activeTab, activeTabLeft, activeTabRight, components, elements, widgetsSlideout;
 var selStart, selEnd;
 var sel;
 var contentSourceId, elementSourceId, rootId;
 var textBeforeEditing;
 var activeTabKey = 'structrActiveTab_' + port;
 var activeTabRightKey = 'structrActiveTabRight_' + port;
+var activeTabLeftKey = 'structrActiveTabLeft_' + port;
 var win = $(window);
-var sorting = false;
-var sortParent;
 
 $(document).ready(function() {
     Structr.registerModule('pages', _Pages);
@@ -59,35 +58,12 @@ var _Pages = {
         var headerOffsetHeight = 100;
         var previewOffset = 22;
 
-        //var compTabsHeight = $('#compTabs').height();
-        //console.log(pages, palette, previews);
-
         if (pages && palette) {
 
-            pages.css({
-                width: Math.max(180, Math.min(windowWidth / 3, 360)) + 'px',
-                height: windowHeight - headerOffsetHeight + 'px'
-            });
-
-            var rw = pages.width() + 74;
-
-//            palette.css({
-//                width: Math.min(300, Math.max(360, windowWidth / 4)) + 'px',
-//                height: windowHeight - (headerOffsetHeight + compTabsHeight) + 'px'
-//            });
-//
-//            components.css({
-//                width: Math.min(300, Math.max(360, windowWidth / 4)) + 'px',
-//                height: windowHeight - (headerOffsetHeight + compTabsHeight) + 'px'
-//            });
-//
-//            elements.css({
-//                width: Math.min(300, Math.max(360, windowWidth / 4)) + 'px',
-//                height: windowHeight - (headerOffsetHeight + compTabsHeight) + 'px'
-//            });
+            var rw = 65;
 
             if (previews) {
-                
+
                 previews.css({
                     width: windowWidth - rw + 'px',
                     height: win.height() - headerOffsetHeight + 'px'
@@ -112,16 +88,17 @@ var _Pages = {
         _Pages.init();
 
         activeTab = localStorage.getItem(activeTabKey);
+        activeTabLeft = localStorage.getItem(activeTabLeftKey);
         activeTabRight = localStorage.getItem(activeTabRightKey);
         log('value read from local storage', activeTab);
 
         log('onload');
 
-        main.prepend('<div id="pages"></div><div id="previews"></div>'
-                + '<div id="widgetsSlideout" class="slideOut"><div class="compTab" id="widgetsTab">Widgets</div></div>'
-                + '<div id="palette" class="slideOut"><div class="compTab" id="paletteTab">HTML Palette</div></div>'
-                + '<div id="components" class="slideOut"><div class="compTab" id="componentsTab">Reused Components</div></div>'
-                + '<div id="elements" class="slideOut"><div class="compTab" id="elementsTab">Orphaned Elements</div></div>');
+        main.prepend('<div id="pages" class="slideOut slideOutLeft"><div class="compTab" id="pagesTab">Pages Tree View</div></div><div id="previews"></div>'
+                + '<div id="widgetsSlideout" class="slideOut slideOutRight"><div class="compTab" id="widgetsTab">Widgets</div></div>'
+                + '<div id="palette" class="slideOut slideOutRight"><div class="compTab" id="paletteTab">HTML Palette</div></div>'
+                + '<div id="components" class="slideOut slideOutRight"><div class="compTab" id="componentsTab">Reused Components</div></div>'
+                + '<div id="elements" class="slideOut slideOutRight"><div class="compTab" id="elementsTab">Orphaned Elements</div></div>');
 
         pages = $('#pages');
         previews = $('#previews');
@@ -130,103 +107,85 @@ var _Pages = {
         components = $('#components');
         elements = $('#elements');
 
-        //main.before('<div id="hoverStatus">Hover status</div>');
+        $('#pagesTab').on('click', function() {
+            if (pages.position().left === -412) {
+                _Pages.openLeftSlideOut(pages, this);
+            } else {
+                _Pages.closeLeftSlideOuts([pages]);
+            }
+        }).droppable({
+            tolerance: 'touch',
+            over: function(e, ui) {
+                if (pages.position().left === -412) {
+                    _Pages.openLeftSlideOut(pages, this);
+                } else {
+                    _Pages.closeLeftSlideOuts([pages]);
+                }
+            }
+        });
 
         $('#widgetsTab').on('click', function() {
-            var l = widgetsSlideout.position().left;
-            if (l+1 === $(window).width()) {
-                $(this).addClass('active');
+            if (widgetsSlideout.position().left + 1 === $(window).width()) {
                 _Pages.closeSlideOuts([palette, components, elements]);
-                widgetsSlideout.animate({right : '+=425px'}, { duration: 200 }).zIndex(1);
-                _Elements.reloadWidgets();
-                localStorage.setItem(activeTabRightKey, $(this).prop('id'));
+                _Pages.openSlideOut(widgetsSlideout, this, function() {
+                    _Elements.reloadWidgets();
+                });
             } else {
-                $(this).removeClass('active');
-                widgetsSlideout.animate({right : '-=425px'}, { duration : 100 }).zIndex(2);
-                localStorage.removeItem(activeTabRightKey);
+                _Pages.closeSlideOuts([widgetsSlideout]);
             }
         });
 
         $('#paletteTab').on('click', function() {
-            var l = palette.position().left;
-            if (l+1 === $(window).width()) {
-                $(this).addClass('active');
+            if (palette.position().left + 1 === $(window).width()) {
                 _Pages.closeSlideOuts([widgetsSlideout, components, elements]);
-                palette.animate({right : '+=425px'}, { duration: 200 }).zIndex(1);
-                _Elements.reloadPalette();
-                localStorage.setItem(activeTabRightKey, $(this).prop('id'));
+                _Pages.openSlideOut(palette, this, function() {
+                    _Elements.reloadPalette();
+                });
             } else {
-                $(this).removeClass('active');
-                palette.animate({right : '-=425px'}, { duration : 100 }).zIndex(2);
-                localStorage.removeItem(activeTabRightKey);
+                _Pages.closeSlideOuts([palette]);
             }
         });
 
         $('#componentsTab').on('click', function() {
-            var l = components.position().left;
-            if (l+1 === $(window).width()) {
-                $(this).addClass('active');
+            if (components.position().left + 1 === $(window).width()) {
                 _Pages.closeSlideOuts([widgetsSlideout, palette, elements]);
-                _Elements.reloadComponents();
-                components.animate({right : '+=425px'}, { duration: 200 }).zIndex(1);
-                localStorage.setItem(activeTabRightKey, $(this).prop('id'));
+                _Pages.openSlideOut(components, this, function() {
+                    _Elements.reloadComponents();
+                });
             } else {
-                $(this).removeClass('active');
-                components.animate({right : '-=425px'}, { duration : 100 }).zIndex(2);
-                localStorage.removeItem(activeTabRightKey);
+                _Pages.closeSlideOuts([components]);
             }
         }).droppable({
-            accept: '.element, .content, .component, .file, .image, .widget',
-            greedy: true,
-            hoverClass: 'nodeHover',
-            tolerance: 'pointer',
+            tolerance: 'touch',
             over: function(e, ui) {
-                e.stopPropagation();
-                $('#componentsTab').droppable();
-                $(this).addClass('active');
-                $('#paletteTab').removeClass('active');
-                $('#elementsTab').removeClass('active');
-//                components.toggle('slide', {'direction' : 'right', 'distance' : '400px', 'speed' : 'fast' });
-//                elements.toggle('slide', {'direction' : 'right', 'distance' : '400px', 'speed' : 'fast' });
-//                palette.toggle('slide', {'direction' : 'right', 'distance' : '400px', 'speed' : 'fast' });
-                _Elements.reloadComponents();
-                localStorage.setItem(activeTabRightKey, $(this).prop('id'));
+                if (components.position().left + 1 === $(window).width()) {
+                    _Pages.closeSlideOuts([widgetsSlideout, palette, elements]);
+                    _Pages.openSlideOut(components, this, function() {
+                        _Elements.reloadComponents();
+                    });
+                }
             }
         });
 
         $('#elementsTab').on('click', function() {
-            var l = elements.position().left;
-            if (l+1 === $(window).width()) {
+            if (elements.position().left + 1 === $(window).width()) {
                 $(this).addClass('active');
-                _Pages.closeSlideOuts([widgetsSlideout, palette, components], $(this));
-                elements.animate({right : '+=425px'}, { duration: 200 }).zIndex(1);
-                _Elements.reloadUnattachedNodes();
-                localStorage.setItem(activeTabRightKey, $(this).prop('id'));
+                _Pages.closeSlideOuts([widgetsSlideout, palette, components]);
+                _Pages.openSlideOut(elements, this, function() {
+                    _Elements.reloadUnattachedNodes();
+                });
             } else {
-                $(this).removeClass('active');
-                elements.animate({right : '-=425px'}, { duration : 100 }).zIndex(2);
-                localStorage.removeItem(activeTabRightKey);
+                _Pages.closeSlideOuts([elements]);
             }
 
-//            if (activeTabRight === 'elementsTab') {
-//                $(this).addClass('active');
-//                elements.animate({'right' : (l+1 === $(window).width() ? '+' : '-') + '=425px' });
-//                _Elements.reloadUnattachedNodes();
-//                //localStorage.setItem(activeTabRightKey, $(this).prop('id'));
-//            }
         }).droppable({
             over: function(e, ui) {
-                e.stopPropagation();
-                $(this).addClass('active');
-                $('#paletteTab').removeClass('active');
-                $('#componentsTab').removeClass('active');
-//                components.toggle('slide', {'direction' : 'right', 'distance' : '400px', 'speed' : 'fast' });
-//                elements.toggle('slide', {'direction' : 'right', 'distance' : '400px', 'speed' : 'fast' });
-//                palette.toggle('slide', {'direction' : 'right', 'distance' : '400px', 'speed' : 'fast' });
-                _Elements.reloadUnattachedNodes();
-                localStorage.setItem(activeTabRightKey, $(this).prop('id'));
             }
         });
+
+        if (activeTabLeft) {
+            $('#' + activeTabLeft).addClass('active').click();
+        }
 
         if (activeTabRight) {
             $('#' + activeTabRight).addClass('active').click();
@@ -242,20 +201,48 @@ var _Pages = {
         window.setTimeout('_Pages.resize()', 1000);
 
     },
+    openSlideOut: function(slideout, tab, callback) {
+        var s = $(slideout);
+        var t = $(tab);
+        t.addClass('active');
+        s.animate({right: '+=425px'}, {duration: 100}).zIndex(1);
+        localStorage.setItem(activeTabRightKey, t.prop('id'));
+        if (callback) {
+            callback();
+        }
+    },
     closeSlideOuts: function(slideout) {
-      
         slideout.forEach(function(w) {
-            
             var s = $(w);
-            
             var l = s.position().left;
-            if (l+1 !== $(window).width()) {
+            if (l + 1 !== $(window).width()) {
                 //console.log('closing open slide-out', s);
-                s.animate({right : '-=425px'}, { duration : 100 }).zIndex(2);
+                s.animate({right: '-=425px'}, {duration: 100}).zIndex(2);
                 $('.compTab.active', s).removeClass('active');
             }
         });
-        
+        localStorage.removeItem(activeTabRightKey);
+    },
+    openLeftSlideOut: function(slideout, tab, callback) {
+        var s = $(slideout);
+        var t = $(tab);
+        t.addClass('active');
+        s.animate({left: '+=412px'}, {duration: 100}).zIndex(1);
+        localStorage.setItem(activeTabLeftKey, t.prop('id'));
+        if (callback) {
+            callback();
+        }
+    },
+    closeLeftSlideOuts: function(slideout) {
+        slideout.forEach(function(w) {
+            var s = $(w);
+            var l = s.position().left;
+            if (l + 1 !== $(window).width()) {
+                s.animate({left: '-=412px'}, {duration: 100}).zIndex(2);
+                $('.compTab.active', s).removeClass('active');
+            }
+        });
+        localStorage.removeItem(activeTabLeftKey);
     },
     clearPreviews: function() {
 
@@ -265,7 +252,8 @@ var _Pages = {
 
     },
     refresh: function() {
-        pages.empty();
+
+        pages.find(':not(.compTab)').remove();
         previewTabs.empty();
 
         Structr.addPager(pages, 'Page');
@@ -549,174 +537,197 @@ var _Pages = {
             var iframeDocument = $(this).contents();
             //var iframeWindow = this.contentWindow;
 
-            var droppables = iframeDocument.find('[data-structr_element_id]');
+            var droppables = iframeDocument.find('[data-structr-el]');
 
             if (droppables.length === 0) {
 
                 //iframeDocument.append('<html structr_element_id="' + entity.id + '">dummy element</html>');
                 var html = iframeDocument.find('html');
-                html.attr('data-structr_element_id', entity.id);
+                html.attr('data-structr-el', entity.id);
                 html.addClass('structr-element-container');
 
             }
-//            droppables = iframeDocument.find('[data-structr_element_id]');
-//
-//            droppables.each(function(i,element) {
-//                var el = $(element);
-//
-//                el.droppable({
-//                    accept: '.element, .content, .component',
-//                    greedy: true,
-//                    hoverClass: 'structr-droppable-area',
-//// this requires a patched jQuery, which we won't do anymore
-//// TODO: Find a better solution for dropping elements in the iframe at the right place                    
-////                    iframeOffset: { 
-////                        'top' : offset.top,
-////                        'left' : offset.left
-////                    },
-//                    drop: function(event, ui) {
-//                        
-//                        var self = $(this);
-//                        var page = self.closest( '.page')[0];
-//                        var pageId;
-//                        var pos;
-//                        
-//                        if (page) {
-//
-//                            // we're in the main page
-//                            pageId = getId(page);
-//                            pos = $('.content, .element', self).length;
-//
-//                        } else {
-//                            
-//                            // we're in the iframe
-//                            page = self.closest('[data-structr_page_id]')[0];
-//                            pageId = $(page).attr('data-structr_page_id');
-//                            pos = $('[data-structr_element_id]', self).length;
-//                        }
-//                        
-////                        var contentId = getId(ui.draggable);
-//                        var elementId = getId(self);
-//
-//                        if (!elementId) elementId = self.attr('data-structr_element_id');
-//
-////                        if (!contentId) {
-////                            // create element on the fly
-////                            var tag = $(ui.draggable).text();
-////                            
-////                            console.log('suppress dropping anything in preview iframes for now');
-////                        //Command.createAndAppendDOMNode(pageId, elementId, (tag != 'content' ? tag : ''));
-////                            
-////                        } else {
-////                            console.log('suppress dropping anything in preview iframes for now');
-////                        //Command.appendChild(contentId, elementId);
-////                        }
-//                    }
-//                });
-//
-//                var structrId = el.attr('data-structr_element_id');
-//                //var type = el.prop('structr_type');
-//                //  var name = el.prop('structr_name');
-////                var tag  = element.nodeName.toLowerCase();
-//                if (structrId) {
-//
-//                    $('.move_icon', el).on('mousedown', function(e) {
-//                        e.stopPropagation();
-//                        var self = $(this);
-//                        var element = self.closest('[data-structr_element_id]');
-//                        //var element = self.children('.structr-node');
-//                        log(element);
-//                        var entity = Structr.entity(structrId, element.prop('data-structr_element_id'));
-//                        entity.type = element.prop('data-structr_type');
-//                        entity.name = element.prop('data-structr_name');
-//                        log('move', entity);
-//                        //var parentId = element.prop('structr_element_id');
-//                        self.parent().children('.structr-node').show();
-//                    });
-//
-//                    //                    $('b', el).on('click', function(e) {
-//                    //                        e.stopPropagation();
-//                    //                        var self = $(this);
-//                    //                        var element = self.closest('[data-structr_element_id]');
-//                    //                        var entity = Structr.entity(structrId, element.prop('structr_element_id'));
-//                    //                        entity.type = element.prop('structr_type');
-//                    //                        entity.name = element.prop('structr_name');
-//                    //                        log('edit', entity);
-//                    //                        //var parentId = element.prop('structr_element_id');
-//                    //                        log(element);
-//                    ////                        Structr.dialog('Edit Properties of ' + entity.id, function() {
-//                    ////                            log('save')
-//                    ////                        }, function() {
-//                    ////                            log('cancelled')
-//                    ////                        });
-//                    //                        _Entities.showProperties(entity);
-//                    //                    });
-//
-//                    $('.delete_icon', el).on('click', function(e) {
-//                        e.stopPropagation();
-//                        var self = $(this);
-//                        var element = self.closest('[data-structr_element_id]');
-//                        var entity = Structr.entity(structrId, element.prop('structr_element_id'));
-//                        entity.type = element.prop('data-structr_type');
-//                        entity.name = element.prop('data-structr_name');
-//                        log('delete', entity);
-//                        var parentId = element.prop('data-structr_element_id');
-//
-//                        Command.removeSourceFromTarget(entity.id, parentId);
-//                        _Entities.deleteNode(this, entity);
-//                    });
-//                    var offsetTop = -30;
-//                    var offsetLeft = 0;
-//                    el.on({
-//                        mouseover: function(e) {
-//                            e.stopPropagation();
-//                            var self = $(this);
-//                            //self.off('click');
-//
-//                            self.addClass('structr-element-container-active');
-//
-//                            //                            self.parent().children('.structr-element-container-header').remove();
-//                            //
-//                            //                            self.append('<div class="structr-element-container-header">'
-//                            //                                + '<img class="typeIcon" src="/structr/'+ _Elements.icon + '">'
-//                            //                                + '<b class="name_">' + name + '</b> <span class="id">' + structrId + '</b>'
-//                            //                                + '<img class="delete_icon structr-container-button" title="Delete ' + structrId + '" alt="Delete ' + structrId + '" src="/structr/icon/delete.png">'
-//                            //                                + '<img class="edit_icon structr-container-button" title="Edit properties of ' + structrId + '" alt="Edit properties of ' + structrId + '" src="/structr/icon/application_view_detail.png">'
-//                            //                                + '<img class="move_icon structr-container-button" title="Move ' + structrId + '" alt="Move ' + structrId + '" src="/structr/icon/arrow_move.png">'
-//                            //                                + '</div>'
-//                            //                                );
-//
-//                            var node = Structr.node(structrId);
-//                            if (node) {
-//                                node.parent().removeClass('nodeHover');
-//                                node.addClass('nodeHover');
-//                            }
-//
-//                            var pos = self.position();
-//                            var header = self.children('.structr-element-container-header');
-//                            header.css({
-//                                position: "absolute",
-//                                top: pos.top + offsetTop + 'px',
-//                                left: pos.left + offsetLeft + 'px',
-//                                cursor: 'pointer'
-//                            }).show();
-//                            log(header);
-//                        },
-//                        mouseout: function(e) {
-//                            e.stopPropagation();
-//                            var self = $(this);
-//                            self.removeClass('.structr-element-container');
-//                            var header = self.children('.structr-element-container-header');
-//                            header.remove();
-//                            var node = Structr.node(structrId);
-//                            if (node) {
-//                                node.removeClass('nodeHover');
-//                            }
-//                        }
-//                    });
-//
-//                }
-//            });
+            droppables = iframeDocument.find('[data-structr-el]');
+
+            droppables.each(function(i, element) {
+                var el = $(element);
+
+                el.droppable({
+                    accept: '.element, .content, .component',
+                    greedy: true,
+                    hoverClass: 'structr-droppable-area',
+// this requires a patched jQuery, which we won't do anymore
+// TODO: Find a better solution for dropping elements in the iframe at the right place                    
+//                    iframeOffset: { 
+//                        'top' : offset.top,
+//                        'left' : offset.left
+//                    },
+                    drop: function(event, ui) {
+
+                        var self = $(this);
+                        var page = self.closest('.page')[0];
+                        var pageId;
+                        var pos;
+
+                        if (page) {
+
+                            // we're in the main page
+                            pageId = getId(page);
+                            pos = $('.content, .element', self).length;
+
+                            console.log('drop in main page (parent)');
+
+                        } else {
+
+                            // we're in the iframe
+                            page = self.closest('[data-structr-page]')[0];
+                            pageId = $(page).attr('data-structr-page');
+                            pos = $('[data-structr-el]', self).length;
+
+                            console.log('drop in iframe', page, pageId, pos);
+
+                        }
+
+                        var contentId = getId(ui.draggable);
+                        var elementId = getId(self);
+
+                        if (!elementId)
+                            elementId = self.attr('data-structr-el');
+
+                        console.log('contentId (draggable)', contentId, ', pageId', pageId, ', elementId', elementId);
+                        if (!contentId) {
+                            tag = $(ui.draggable).text();
+                            console.log(tag)
+                            Command.createAndAppendDOMNode(pageId, elementId, (tag !== 'content' ? tag : ''), {});
+                            return;
+                        } else {
+                            var baseUrl = 'http://' + remoteHost + ':' + remotePort;
+
+                            var obj = StructrModel.obj(contentId);
+
+                            console.log('widget?', obj.type === 'Widget');
+
+                            if (obj.type === 'Widget') {
+
+                                var source = obj.source;
+                                console.log('append widget', source, elementId, pageId, baseUrl);
+                                Command.appendWidget(source, elementId, pageId, baseUrl);
+                                return;
+
+                            } else {
+
+                                // TODO: handle re-used or orphanded element
+
+
+                            }
+                        }
+                    }
+
+                });
+
+                var structrId = el.attr('data-structr-el');
+                //var type = el.prop('structr_type');
+                //  var name = el.prop('structr_name');
+//                var tag  = element.nodeName.toLowerCase();
+                if (structrId) {
+
+                    $('.move_icon', el).on('mousedown', function(e) {
+                        e.stopPropagation();
+                        var self = $(this);
+                        var element = self.closest('[data-structr-el]');
+                        //var element = self.children('.structr-node');
+                        log(element);
+                        var entity = Structr.entity(structrId, element.prop('data-structr-el'));
+                        entity.type = element.prop('data-structr_type');
+                        entity.name = element.prop('data-structr_name');
+                        log('move', entity);
+                        //var parentId = element.prop('structr_element_id');
+                        self.parent().children('.structr-node').show();
+                    });
+
+                    //                    $('b', el).on('click', function(e) {
+                    //                        e.stopPropagation();
+                    //                        var self = $(this);
+                    //                        var element = self.closest('[data-structr_element_id]');
+                    //                        var entity = Structr.entity(structrId, element.prop('structr_element_id'));
+                    //                        entity.type = element.prop('structr_type');
+                    //                        entity.name = element.prop('structr_name');
+                    //                        log('edit', entity);
+                    //                        //var parentId = element.prop('structr_element_id');
+                    //                        log(element);
+                    ////                        Structr.dialog('Edit Properties of ' + entity.id, function() {
+                    ////                            log('save')
+                    ////                        }, function() {
+                    ////                            log('cancelled')
+                    ////                        });
+                    //                        _Entities.showProperties(entity);
+                    //                    });
+
+                    $('.delete_icon', el).on('click', function(e) {
+                        e.stopPropagation();
+                        var self = $(this);
+                        var element = self.closest('[data-structr-el]');
+                        var entity = Structr.entity(structrId, element.prop('data-structr-el'));
+                        entity.type = element.prop('data-structr_type');
+                        entity.name = element.prop('data-structr_name');
+                        log('delete', entity);
+                        var parentId = element.prop('data-structr-el');
+
+                        Command.removeSourceFromTarget(entity.id, parentId);
+                        _Entities.deleteNode(this, entity);
+                    });
+                    var offsetTop = -30;
+                    var offsetLeft = 0;
+                    el.on({
+                        mouseover: function(e) {
+                            e.stopPropagation();
+                            var self = $(this);
+                            //self.off('click');
+
+                            self.addClass('structr-element-container-active');
+
+                            //                            self.parent().children('.structr-element-container-header').remove();
+                            //
+                            //                            self.append('<div class="structr-element-container-header">'
+                            //                                + '<img class="typeIcon" src="/structr/'+ _Elements.icon + '">'
+                            //                                + '<b class="name_">' + name + '</b> <span class="id">' + structrId + '</b>'
+                            //                                + '<img class="delete_icon structr-container-button" title="Delete ' + structrId + '" alt="Delete ' + structrId + '" src="/structr/icon/delete.png">'
+                            //                                + '<img class="edit_icon structr-container-button" title="Edit properties of ' + structrId + '" alt="Edit properties of ' + structrId + '" src="/structr/icon/application_view_detail.png">'
+                            //                                + '<img class="move_icon structr-container-button" title="Move ' + structrId + '" alt="Move ' + structrId + '" src="/structr/icon/arrow_move.png">'
+                            //                                + '</div>'
+                            //                                );
+
+                            var node = Structr.node(structrId);
+                            if (node) {
+                                node.parent().removeClass('nodeHover');
+                                node.addClass('nodeHover');
+                            }
+
+                            var pos = self.position();
+                            var header = self.children('.structr-element-container-header');
+                            header.css({
+                                position: "absolute",
+                                top: pos.top + offsetTop + 'px',
+                                left: pos.left + offsetLeft + 'px',
+                                cursor: 'pointer'
+                            }).show();
+                            log(header);
+                        },
+                        mouseout: function(e) {
+                            e.stopPropagation();
+                            var self = $(this);
+                            self.removeClass('.structr-element-container');
+                            var header = self.children('.structr-element-container-header');
+                            header.remove();
+                            var node = Structr.node(structrId);
+                            if (node) {
+                                node.removeClass('nodeHover');
+                            }
+                        }
+                    });
+
+                }
+            });
 
             //$(this).contents().find('[data-structr-id]').each(function(i,element) {
             $(this).contents().find('*').each(function(i, element) {
@@ -728,7 +739,7 @@ var _Pages = {
                     $(c.textNode).replaceWith('<div data-structr-id="' + c.id + '" data-structr-raw-content="' + c.rawContent + '">' + c.textNode.nodeValue + '</div>');
 
                     var el = $(element).children('[data-structr-id="' + c.id + '"]');
-                    
+
                     el.append(inner);
 
                     $(el).on({
@@ -879,8 +890,10 @@ var _Pages = {
     appendElementElement: function(entity, refNode, refNodeIsParent) {
         log('_Pages.appendElementElement(', entity, refNode, refNodeIsParent, ');')
         var div = _Elements.appendElementElement(entity, refNode, refNodeIsParent);
-        if (!div)
+
+        if (!div) {
             return false;
+        }
 
         var parentId = entity.parent && entity.parent.id;
         if (parentId) {
@@ -895,274 +908,9 @@ var _Pages = {
             });
         }
 
-        var sortableOptions = {
-            sortable: '.node',
-            appendTo: '#main',
-            helper: 'clone',
-            zIndex: 99,
-            containment: 'body',
-            start: function(event, ui) {
-                sorting = true;
-                sortParent = $(ui.item).parent();
-            },
-            update: function(event, ui) {
+        _Dragndrop.makeDroppable(div);
+        _Dragndrop.makeSortable(div);
 
-                var el = $(ui.item);
-                //console.log('### sortable update: sorting?', sorting, getId(el), getId(self), getId(sortParent));
-                if (!sorting)
-                    return false;
-
-                var id = getId(el);
-                if (!id)
-                    id = getComponentId(el);
-
-                var nextNode = el.next('.node');
-                var refId = getId(nextNode);
-                if (!refId)
-                    refId = getComponentId(nextNode);
-
-                var parentId = getId(sortParent);
-                el.remove();
-                Command.insertBefore(parentId, id, refId);
-                sorting = false;
-                sortParent = undefined;
-                _Pages.reloadPreviews();
-            },
-            stop: function(event, ui) {
-                //$(ui.sortable).remove();
-                sorting = false;
-                _Entities.resetMouseOverState(ui.item);
-            }
-        };
-
-        div.sortable(sortableOptions);
-
-        div.droppable({
-            accept: '.node, .element, .content, .image, .file, .widget',
-            greedy: true,
-            hoverClass: 'nodeHover',
-            tolerance: 'pointer',
-            drop: function(event, ui) {
-
-                div.sortable('refresh');
-
-                var self = $(this);
-                log('dropped onto', self, getId(self), getId(sortParent));
-                if (getId(self) === getId(sortParent))
-                    return false;
-
-                _Entities.ensureExpanded(self);
-                sorting = false;
-                sortParent = undefined;
-
-                var nodeData = {};
-
-                var sourceId = getId(ui.draggable) || getComponentId(ui.draggable);
-                var elementId = getId(self);
-
-                var source = StructrModel.obj(sourceId);
-                var target = StructrModel.obj(elementId);
-
-                var page = self.closest('.page')[0];
-                var pageId = (page ? getId(page) : target.pageId);
-
-                log(sourceId, source, pageId);
-
-                if (source && pageId && source.pageId && pageId !== source.pageId) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    Command.copyDOMNode(source.id, target.id);
-                    //_Entities.showSyncDialog(source, target);
-                    _Elements.reloadComponents();
-                    return;
-                } else {
-                    log('not copying node');
-                }
-
-                if (sourceId === elementId) {
-                    log('drop on self not allowed');
-                    return;
-                }
-
-                var tag, name;
-
-                if (source && source.type === 'Widget') {
-
-                    var baseUrl = 'http://' + remoteHost + ':' + remotePort;
-
-                    Structr.modules['widgets'].unload();
-                    _Pages.makeMenuDroppable();
-
-                    //var pattern = /^\[[a-zA-Z]+\]$/;
-                    var pattern = /\[[a-zA-Z]+\]/g;
-                    var text = source.source;
-                    if (text) {
-
-                        var rawMatches = text.match(pattern);
-
-                        if (rawMatches) {
-
-                            var matches = $.unique(rawMatches);
-
-                            if (matches && matches.length) {
-
-                                Structr.dialog('Configure Widget', function() {
-                                }, function() {
-                                });
-
-                                dialogText.append('<p>Fill out the following parameters to correctly configure the widget.</p><table class="props"></table>');
-                                var table = $('table', dialogText);
-
-                                $.each(matches, function(i, match) {
-
-                                    var label = _Crud.formatKey(match.replace(/\[/, '').replace(/\]/, ''));
-                                    table.append('<tr><td><label for="' + label + '">' + label + '</label></td><td><input type="text" id="' + match + '" placeholder="' + label + '"></td></tr>');
-
-                                });
-
-                                dialog.append('<button id="appendWidget">Append Widget</button>');
-                                var attrs = {};
-                                $('#appendWidget').on('click', function(e) {
-
-                                    $.each(matches, function(i, match) {
-
-                                        $.each($('input[type="text"]', table), function(i, m) {
-                                            var key = $(m).prop('id').replace(/\[/, '').replace(/\]/, '')
-                                            attrs[key] = $(this).val();
-                                            //console.log(this, match, key, attrs[key]);
-                                        });
-
-                                    });
-
-                                    //console.log(source.source, elementId, pageId, attrs);
-                                    e.stopPropagation();
-                                    Command.appendWidget(text, elementId, pageId, baseUrl, attrs);
-
-                                    dialogCancelButton.click();
-                                    $(ui.draggable).remove();
-                                    return;
-                                });
-
-                            }
-
-                        } else {
-
-                            // If no matches, directly append widget
-                            Command.appendWidget(source.source, elementId, pageId, baseUrl);
-
-                        }
-
-                    }
-
-                    $(ui.draggable).remove();
-                    return;
-
-                } else if (source && source.type === 'Image') {
-
-                    sourceId = undefined;
-                    name = $(ui.draggable).find('.name_').attr('title');
-                    log('Image dropped, creating <img> node', name);
-                    nodeData._html_src = '/' + name;
-                    nodeData.name = name;
-                    tag = 'img';
-
-                    Structr.modules['images'].unload();
-                    _Pages.makeMenuDroppable();
-
-                    Command.createAndAppendDOMNode(getId(page), elementId, tag, nodeData);
-                    $(ui.draggable).remove();
-
-                    return;
-
-                } else if (source && source.type === 'File') {
-
-                    name = $(ui.draggable).children('.name_').attr('title');
-
-                    var parentTag = self.children('.tag_').text();
-                    log(parentTag);
-                    nodeData.linkableId = sourceId;
-
-                    if (parentTag === 'head') {
-
-                        log('File dropped in <head>');
-
-                        if (name.endsWith('.css')) {
-
-                            //console.log('CSS file dropped in <head>, creating <link>');
-
-                            tag = 'link';
-                            nodeData._html_href = '/${link.name}';
-                            nodeData._html_type = 'text/css';
-                            nodeData._html_rel = 'stylesheet';
-                            nodeData._html_media = 'screen';
-
-
-                        } else if (name.endsWith('.js')) {
-
-                            log('JS file dropped in <head>, creating <script>');
-
-                            tag = 'script';
-                            nodeData._html_src = '/${link.name}';
-                            nodeData._html_type = 'text/javascript';
-                        }
-
-                    } else {
-
-                        log('File dropped, creating <a> node', name);
-                        nodeData._html_href = '/${link.name}';
-                        nodeData._html_title = '${link.name}';
-                        nodeData.childContent = '${parent.link.name}';
-                        tag = 'a';
-                    }
-                    sourceId = undefined;
-
-                    Structr.modules['files'].unload();
-                    _Pages.makeMenuDroppable();
-
-                    Command.createAndAppendDOMNode(pageId, elementId, tag, nodeData);
-
-                    $(ui.draggable).remove();
-                    return;
-                }
-
-                if (!sourceId) {
-
-                    tag = $(ui.draggable).text();
-
-                    if (tag === 'a' || tag === 'p'
-                            || tag === 'h1' || tag === 'h2' || tag === 'h3' || tag === 'h4' || tag === 'h5' || tag === 'h5'
-                            || tag === 'li' || tag === 'em' || tag === 'title' || tag === 'b' || tag === 'span' || tag === 'th' || tag === 'td' || tag === 'button') {
-
-                        if (tag === 'a') {
-                            nodeData._html_href = '/${link.name}';
-                            nodeData.childContent = '${parent.link.name}';
-                        } else if (tag === 'title') {
-                            nodeData.childContent = '${page.name}';
-                        } else {
-                            nodeData.childContent = 'Initial text for ' + tag;
-                        }
-
-                        // set as expanded in advance
-                        //addExpandedNode(contentId);
-
-                    }
-
-                    Command.createAndAppendDOMNode(pageId, elementId, (tag !== 'content' ? tag : ''), nodeData);
-                    return;
-
-                } else {
-                    tag = Structr.getClass($(ui.draggable));
-                    log('appendChild', sourceId, elementId);
-                    sorting = false;
-                    Command.appendChild(sourceId, elementId);
-                    $(ui.draggable).remove();
-
-                    return;
-                }
-
-                log('drop event in appendElementElement', pageId, getId(self), (tag !== 'content' ? tag : ''));
-            }
-        });
         return div;
     },
     reloadPreviews: function() {
@@ -1238,38 +986,3 @@ var _Pages = {
         $('#pages_').removeClass('nodeHover').droppable('enable');
     }
 };
-
-function getComments(el) {
-    var comments = [];
-    var f = el.firstChild;
-    while (f) {
-        if (f.nodeType === 8) {
-            var id = f.nodeValue.extractVal('data-structr-id');
-            var raw = f.nodeValue.extractVal('data-structr-raw-value');
-            if (id) {
-                f = f.nextSibling;
-                if (f && f.nodeType === 3) {
-                    var comment = {};
-                    comment.id = id;
-                    comment.textNode = f;
-                    comment.rawContent = raw;
-                    comments.push(comment);
-                }
-            }
-        }
-        f = f.nextSibling;
-    }
-    return comments;
-}
-
-function getNonCommentSiblings(el) {
-    var siblings = [];
-    var s = el.nextSibling;
-    while (s) {
-        if (s.nodeType === 8) {
-            return siblings;
-        }
-        siblings.push(s);
-        s = s.nextSibling;
-    }
-}

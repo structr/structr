@@ -26,6 +26,7 @@ body {
     background: #e5e5e5;
     background: -webkit-gradient(linear, left bottom, left top, from(#e3e3e3), to(#f3f3f3)) no-repeat;
     background: -moz-linear-gradient(90deg, #e3e3e3, #f3f3f3) no-repeat;
+	position: fixed;
 }
 
 table, tr, td, th, tbody, thead {
@@ -85,7 +86,7 @@ input[type="text"]:disabled, input.disabled {
 #header .logo {
     position: absolute;
     top: 16px;
-    left: 16px;
+    left: 32px;
 }
 
 #footer {
@@ -172,31 +173,67 @@ img.disabled {
 #groups,
 #images,
 #users,
-.slideOut {
+.slideOutLeft,
+.slideOutRight {
     float: left;
     border: none;
     width: 400px;
     padding: 6px;
-    margin: 3px 0 6px 9px;
 }
 
-#pages {
-    overflow: auto;
+#previews {
+    margin-left: 25px;
+}
+
+.slideOutLeft {
+    margin: 3px 9px 6px 0;
+}
+
+.slideOutRight {
+    margin: 3px 0 6px 9px;
+
 }
 
 #images > div:first-child {
     margin-top: 0px ! important;
 }
 
-.compTab {
+.slideOut .compTab {
+    z-index: 1000;
+    position: absolute;
+    margin: 8px 2px 0 0 ! important;
+	overflow: visible ! important;
+	transform-style: preserve-3d;
+	-webkit-transform-style: preserve-3d;
+}
+
+.slideOut .compTab:hover {
+    color: #333 ! important;
+    background-color: #e3e3e3;
+    background: -webkit-gradient(linear, left bottom, left top, from(#ddd), to(#eee)) no-repeat;
+    background: -moz-linear-gradient(90deg, #ddd, #eee) no-repeat;
+    filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#eeeeee', EndColorStr='#dddddd', GradientType=0);
+}
+
+.slideOutRight .compTab {
     -webkit-transform: rotate(-90deg);
     -moz-transform: rotate(-90deg);
     -o-transform: rotate(-90deg);
     -ms-transform: rotate(-90deg);
     transform: rotate(-90deg);
-    z-index: 1000;
-    position: absolute;
-	margin: 8px 2px 0 0 ! important
+}
+
+.slideOutLeft .compTab {
+    -webkit-transform: rotate(90deg);
+    -moz-transform: rotate(90deg);
+    -o-transform: rotate(90deg);
+    -ms-transform: rotate(90deg);
+    transform: rotate(90deg);
+}
+
+#pagesTab {
+    right: -72px;
+    top: 60px;
 }
 
 #widgetsTab {
@@ -226,17 +263,35 @@ img.disabled {
     padding: 12px;
     margin: 0;
     border-top: 1px solid #a5a5a5;
-    border-left: 1px solid #a5a5a5;
     border-bottom: 1px solid #a5a5a5;
     position: absolute;
     z-index: 2;
     right: -424px;
     top: 72px;
+}
+
+.slideOutRight {
+    border-left: 1px solid #a5a5a5;
     border-bottom-left-radius: 5px;
     border-top-left-radius: 5px;
 }
 
-.slideOut > div.node {
+.slideOutLeft {
+    left: -412px;
+    top: 93px;
+    border-bottom-right-radius: 5px;
+    border-top-right-radius: 5px;
+    border-right: 1px solid #a5a5a5 ! important;
+    border-top: 1px solid #a5a5a5 ! important;
+    border-bottom: 1px solid #a5a5a5 ! important;
+    background-color: #f1f1f1;
+}
+
+#pages > div.node {
+    width: 380px;
+}
+
+.slideOutRight > div.node {
     width: 360px;
 }
 
@@ -400,7 +455,7 @@ ul#previewTabs {
 }
 
 ul#previewTabs {
-    width: 900px;
+    /*width: 900px;*/
 }
 
 #data-tabs, #data-tabs ul, #tabs, #tabs ul {

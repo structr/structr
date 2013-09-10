@@ -5,9 +5,9 @@ target
 structr-ui/webapps
 structr-ui/db
 structr-ui/files
+structr-ui/logs/*
 structr-ui/modules
 structr-ui/jsp
-structr-ui/logs/*
 structr-ui/structr.conf
 structr-ui/logDb.dat
 structr-ui/src/test/javascript/screenshots

@@ -755,7 +755,7 @@ StructrElement.prototype.exists = function() {
     var obj = this;
 
     var hasChildren = obj.childrenIds && obj.childrenIds.length;
-    var isComponent = obj.syncedNodes.length;
+    var isComponent = obj.syncedNodes && obj.syncedNodes.length;
 
     var isMasterComponent = (isComponent && hasChildren);
 

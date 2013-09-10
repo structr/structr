@@ -19,11 +19,7 @@
 
 /**
  * JS library for interactive web applications built with Structr.
- * 
  * This file has to be present in a web page to make Structr widgets work.
- * 
- * v 1.0.0
- * 
  */
 
 var structrRestUrl = '/structr/rest/'; // TODO: Auto-detect base URI
@@ -33,6 +29,9 @@ var altKey = false, ctrlKey = false, shiftKey = false, eKey = false;
 $(function() {
 
     var s = new StructrApp(structrRestUrl);
+    $(document).trigger('structr-ready');
+    s.hideNonEdit();
+    
 
     $(window).on('keydown', function(e) {
         var k = e.which;
@@ -75,6 +74,8 @@ function StructrApp(baseUrl) {
         structrRestUrl = baseUrl;
     }
     var s = this;
+    var hideEditElements = {}; // store elements in edit mode
+    var hideNonEditElements = {}; // store elements in not edit mode
     this.edit = false;
     this.data = {};
     this.btnLabel = undefined;
@@ -92,85 +93,230 @@ function StructrApp(baseUrl) {
         var attrs = (attrString ? attrString.split(',') : []).map(function(s) {
             return s.trim();
         });
-
         var id = btn.attr('data-structr-id');
-        //console.log(action, type, id);
+        var container = $('[data-structr-container="' + id + '"]');
 
         if (action === 'create') {
 
             $.each(attrs, function(i, key) {
-                s.data[key] = $('input[data-structr-name="' + key + '"]').val();
+                if (!s.data[id]) s.data[id] = {};
+                var val = $('[data-structr-name="' + key + '"]').val();
+                s.data[id][key] = val ? val.parseIfJSON() : val;
             });
-            s.create(type, s.data, reload);
+            s.create(type, s.data[id], reload);
 
         } else if (action === 'edit') {
             
-            s.editAction(btn, id, attrs);
+            s.editAction(btn, id, attrs, reload);
             
         } else if (action === 'cancel-edit') {
             
-            s.cancelEditAction(btn, id, attrs);
+            s.cancelEditAction(btn, id, attrs, reload);
             
         } else if (action === 'delete') {
-
-            s.delete(id, btn.attr('data-structr-confirm') === 'true', reload);
+            var f = s.field($('[data-structr-attr="name"]', container));
+            //console.log(f);
+            //container.find('[data-structr-attr="name"]').val(); console.log(id, container, name)
+            s.delete(id, btn.attr('data-structr-confirm') === 'true', reload, f ? f.val : undefined);
 
         }
     });
     
-    this.editAction = function(btn, id, attrs) {
+    this.editAction = function(btn, id, attrs, reload) {
         var container = $('[data-structr-container="' + id + '"]');
+        
+        //show edit elements and hide non-edit elements 
+        s.hideEdit(container);
+                
         $.each(attrs, function(i, key) {
             var el = $('[data-structr-attr="' + key + '"]', container);
-            var val = el.text();
-            s.data[key] = val;
-            el.html(inputField(id, key, val));
+            if (!el.length) {
+                return;
+            }
+            
+            var f = s.field(el);
+            f.id = id;
+            if (!s.data[id]) s.data[id] = {};
+            s.data[id][key] = f.val;
+            var anchor = el[0].tagName.toLowerCase() === 'a' ? el : el.parent('a');
+            if (anchor.length) {
+                var href = anchor.attr('href');
+                anchor.attr('href', '').css({textDecoration: 'none'}).on('click', function() {
+                    return false;
+                });
+            }
+            //el.html(inputField(id, key, val));
+                    
+            // don't replace select elements
+            var inp = s.input(el);
+            if (inp && inp.is('select')) {
+                return;
+            }
+            
+            var i; //console.log(f.id, f.type, f.key, f.val);
+            if (f.type === 'Boolean') {
+                i = checkbox(f.id, f.type, f.key, f.val);
+            } else {
+                if (!f.val || f.val.indexOf('\n') === -1) {
+                    i = inputField(f.id, f.type, f.key, f.val);
+                } else {
+                    i = textarea(f.id, f.key, f.val);
+                }
+            }
+
+            el.html(i);
+            var el = container.find('[data-structr-attr="' + f.key + '"]');
+            var inp = s.input(el);
+            inp.css({fontFamily: 'sans-serif'});
+            
+            //console.log('editAction: input element', inp);
+            resizeInput(inp);
+            
+            if (anchor.length) {
+                inp.attr('data-structr-href', href);
+            }
+            
+            if (f.type === 'Boolean') {
+//                inp.on('change', function(e) {
+//                    s.save(s.field($(this)));
+//                });
+            } else {
+                inp.on('keyup', function(e) {
+                    s.checkInput(e, s.field(inp), $(this));
+                });
+            }
+
+            if (f.type === 'Date') {
+                inp.on('mouseup', function(event) {
+                    event.preventDefault();
+                    var self = $(this);
+                    self.datetimepicker({
+                        // ISO8601 Format: 'yyyy-MM-dd"T"HH:mm:ssZ'
+                        separator: 'T',
+                        dateFormat: 'yy-mm-dd',
+                        timeFormat: 'HH:mm:ssz',
+                    });
+                    self.datetimepicker('show');
+                    self.off('mouseup');
+                });
+            }
+            
+            
+            
         });
-        $('<button data-structr-action="save" class="structr-button">Save</button>').insertBefore(btn);
-        $('button[data-structr-action="save"]', container).on('click', function() {
-            s.saveAction(btn, id, attrs);
+        $('<button data-structr-action="save" data-structr-id="' + id + '" class="structr-button">Save</button>').insertBefore(btn);
+        $('button[data-structr-action="save"][data-structr-id="' + id + '"]', container).on('click', function() {
+            s.saveAction(btn, id, attrs, reload);
         });
         btn.text('Cancel').attr('data-structr-action', 'cancel-edit');
     },
     
-    this.saveAction = function(btn, id, attrs) {
+    this.saveAction = function(btn, id, attrs, reload) {
         var container = $('[data-structr-container="' + id + '"]');
+        s.data[id] = {};
         $.each(attrs, function(i, key) {
-            var inp = $('input[data-structr-attr="' + key + '"]', container);
-            var val = inp.val();
-            s.data[key] = val;
+            var inp = s.input($('[data-structr-attr="' + key + '"]', container));
+            var f = s.field(inp);
+            if (f.type === 'Boolean') {
+                s.data[id][key] = (f.val === true ? true : false);
+            } else {
+                if (f && f.val && f.val.length) {
+                    s.data[id][key] = f.val;
+                } else {
+                    s.data[id][key] = null;
+                }
+            }
         });
-        s.request('PUT', structrRestUrl + id, s.data, false, 'Successfully updated ' + id, 'Could not update ' + id, function() {
-            s.cancelEditAction(btn, id, attrs);
+        s.request('PUT', structrRestUrl + id, s.data[id], false, 'Successfully updated ' + id, 'Could not update ' + id, function() {
+            s.cancelEditAction(btn, id, attrs, reload);
+        }, function() {
+//            if (reload) {
+//                window.location.reload();
+//            }
         });
     },
     
-    this.cancelEditAction = function(btn, id, attrs) {
-        var container = $('[data-structr-container="' + id + '"]');
-        $.each(attrs, function(i, key) {
-            var inp = $('input[data-structr-attr="' + key + '"]', container);
-            var val = inp.val();
-            inp.replaceWith(s.data[key]);
-        });
-        $('button[data-structr-action="save"]').remove();
-        btn.text(s.btnLabel).attr('data-structr-action', 'edit');
+    this.cancelEditAction = function(btn, id, attrs, reload) {
+        if (reload) {
+            window.location.reload();
+        } else {
+            var container = $('[data-structr-container="' + id + '"]');
+            $.each(attrs, function(i, key) {
+                var inp = s.input($('[data-structr-attr="' + key + '"]', container));
+                if (inp && inp.is('select')) {
+                    return;
+                }
+                var href = inp.attr('data-structr-href');
+                var anchor = inp.parent('a');
+                if (href && anchor.length) {
+                    anchor.attr('href', href);
+                }
+                inp.replaceWith(s.data[id][key]);
+            });
+            // clear data
+            $('button[data-structr-id="' + id + '"][data-structr-action="save"]').remove();
+            btn.text(s.btnLabel).attr('data-structr-action', 'edit');
+            
+            //hide non edit elements and show edit elements
+            s.hideNonEdit(container);
+        }
+    },
+    
+    this.input = function(elements) {
+        var el = $(elements[0]);
+        var inp;
+        if (el.is('input') || el.is('textarea') || el.is('select')) {
+            //console.log('el is input or textarea', el);
+            return el;
+        } else {
+            inp = el.children('textarea');
+            if (inp.length) {
+                //console.log('inp is textarea', inp);
+                return inp;
+            } else {
+                inp = el.children('input');
+                if (inp.length) {
+                    //console.log('inp is input field', inp);
+                    return inp;
+                } else {
+                    inp = el.children('select');
+                    if (inp.length) {
+                        //console.log('inp is select element', inp);
+                        return inp;
+                    } else {
+                        //console.log('no input found');
+                        return null;
+                    }
+                }
+            }
+        }
     },
     
     this.field = function(el) {
-
-        var type = el.attr('data-structr-type'), id = el.attr('data-structr-id'), key = el.attr('data-structr-key');
+        if (!el || !el.length) return;
+        var type = el.attr('data-structr-type') || 'String', id = el.attr('data-structr-id'), key = el.attr('data-structr-attr'), rawVal = el.attr('data-structr-raw-value');
         var val;
         if (type === 'Boolean') {
             if (el.is('input')) {
                 val = el.is(':checked');
             } else {
-                val = el.text() === 'true';
+                val = (el.text() === 'true');
             }
         } else {
-            val = el.val() ? el.val() : el.html().replace(/<br>/gi, '\n');
+            var inp = s.input(el);
+            if (inp) {
+                if (inp.is('select')) {
+                    var selection = $(':selected', inp); 
+                    val = selection.val() || selection.text();
+                } else {
+                    val = rawVal || (inp.val() && inp.val().replace(/<br>/gi, '\n'));
+                }
+            } else {
+                val = rawVal || el.html().replace(/<br>/gi, '\n');
+            }
         }
         //console.log(el, type, id, key, val);
-        return {'id': id, 'type': type, 'key': key, 'val': val};
+        return {'id': id, 'type': type, 'key': key, 'val': val, 'rawVal': rawVal};
     };
 
 
@@ -179,11 +325,13 @@ function StructrApp(baseUrl) {
         s.request('POST', structrRestUrl + type.toUnderscore(), data, reload, 'Successfully created new ' + type, 'Could not create ' + type);
     };
 
-    this.request = function(method, url, data, reload, successMsg, errorMsg, callback) {
+    this.request = function(method, url, data, reload, successMsg, errorMsg, onSuccess, onError) {
+        var dataString = JSON.stringify(data);
+        //console.log(dataString);
         $.ajax({
             type: method,
             url: url,
-            data: JSON.stringify(data),
+            data: dataString,
             contentType: 'application/json; charset=utf-8',
             statusCode: {
                 200: function(data) {
@@ -193,8 +341,8 @@ function StructrApp(baseUrl) {
                             window.location.reload();
                         }, 200);
                     }
-                    if (callback) {
-                        callback();
+                    if (onSuccess) {
+                        onSuccess();
                     }
                 },
                 201: function(data) {
@@ -204,33 +352,51 @@ function StructrApp(baseUrl) {
                             window.location.reload();
                         }, 200);
                     }
-                    if (callback) {
-                        callback();
+                    if (onSuccess) {
+                        onSuccess();
                     }
                 },
                 400: function(data, status, xhr) {
                     s.dialog('error', errorMsg + ': ' + data.responseText);
                     console.log(data, status, xhr);
+                    if (onError) {
+                        onError();
+                    }
                 },
                 401: function(data, status, xhr) {
                     s.dialog('error', errorMsg + ': ' + data.responseText);
                     console.log(data, status, xhr);
+                    if (onError) {
+                        onError();
+                    }
                 },
                 403: function(data, status, xhr) {
                     s.dialog('error', errorMsg + ': ' + data.responseText);
                     console.log(data, status, xhr);
+                    if (onError) {
+                        onError();
+                    }
                 },
                 404: function(data, status, xhr) {
                     s.dialog('error', errorMsg + ': ' + data.responseText);
                     console.log(data, status, xhr);
+                    if (onError) {
+                        onError();
+                    }
                 },
                 422: function(data, status, xhr) {
                     s.dialog('error', errorMsg + ': ' + data.responseText);
                     console.log(data, status, xhr);
+                    if (onError) {
+                        onError();
+                    }
                 },
                 500: function(data, status, xhr) {
                     s.dialog('error', errorMsg + ': ' + data.responseText);
                     console.log(data, status, xhr);
+                    if (onError) {
+                        onError();
+                    }
                 }
             }
         });
@@ -331,11 +497,11 @@ function StructrApp(baseUrl) {
 
     };
 
-    this.delete = function(id, conf, reload) {
+    this.delete = function(id, conf, reload, name) {
         console.log('Delete', id, conf, reload);
         var sure = true;
         if (conf) {
-            sure = confirm('Are you sure to delete ' + id + '?');
+            sure = confirm('Are you sure to delete ' + (name ? name : id) + '?');
         }
         if (!conf || sure) {
             $.ajax({
@@ -371,166 +537,46 @@ function StructrApp(baseUrl) {
         });
     };
 
-    this.editable = function(enable) {
-
-        if (enable === undefined) {
-            return s.edit;
-        }
-        s.edit = enable;
-
-        if (enable) {
-
-            $('.createButton').show();
-            $('.deleteButton').show();
-
-            $('[data-structr-type="Date"],[data-structr-type="String"],[data-structr-type="Integer"],[data-structr-type="Boolean"]').each(function() {
-                if (!$(this).closest('body').length)
-                    return;
-                var sp = $(this), f = s.field(sp), p = sp.parent('a');
-                if (p) {
-                    p.attr('href', '').css({textDecoration: 'none'}).on('click', function() {
-                        return false;
-                    });
-                }
-                var i; //console.log(f.id, f.type, f.key, f.val);
-                if (f.type === 'Boolean') {
-                    i = checkbox(f.id, f.type, f.key, f.val);
-                }
-                else {
-                    if (f.val.indexOf('\n') === -1) {
-                        i = inputField(f.id, f.type, f.key, f.val);
-                    } else {
-                        i = textarea(f.id, f.key, f.val);
-                    }
-                }
-
-                sp.replaceWith(i);
-                var input = $('[data-structr-id="' + f.id + '"][data-structr-key="' + f.key + '"]')
-                input.css({fontFamily: 'sans-serif'});
-
-                resizeInput(input);
-
-                if (f.type === 'Boolean') {
-                    input.on('change', function(e) {
-                        s.save(s.field($(this)));
-                    });
-                } else {
-                    input.on('keyup', function(e) {
-                        s.checkInput(e, f, $(this));
-                    });
-                }
-
-                var relatedNode = input.closest('[data-structr-data-type]');
-                var parentType = relatedNode.attr('data-structr-data-type');
-
-                var deleteButton = $('.deleteButton[data-structr-id="' + f.id + '"]');
-
-                if (parentType && !(deleteButton.length)) {
-                    relatedNode.append('<div class="clear"></div><button class="deleteButton" data-structr-id="' + f.id + '">Delete ' + parentType + '</button>');
-                }
-
-
-            });
-
-
-            $('[data-structr-related-property]:not(.createButton)').each(function(i, v) {
-
-                var relatedNode = $(this);
-                var relatedProperty = relatedNode.attr('data-structr-related-property');
-                var parentType = relatedNode.attr('data-structr-data-type');
-                var sourceType = relatedNode.attr('data-structr-source-type');
-                var sourceId = relatedNode.attr('data-structr-source-id');
-                var id = relatedNode.attr('data-structr-data-id');
-                var removeButton = $('.removeButton[data-structr-id="' + id + '"]');
-                //console.log(id, sourceId, sourceType, relatedProperty);
-                if (relatedProperty && sourceId && !(removeButton.length)) {
-                    $('<button class="removeButton" data-structr-id="' + id + '" data-structr-source-id="' + sourceId + '">Remove ' + parentType + ' from ' + relatedProperty + '</button>').insertAfter(relatedNode);
-
-                    $('.removeButton[data-structr-id="' + id + '"][data-structr-source-id="' + sourceId + '"]').on('click', function() {
-                        s.remove(id, sourceId, sourceType, relatedProperty);
-                    });
-
-                }
-
-            });
-
-
-
-        } else {
-            $('.createButton').hide();
-            $('.deleteButton').hide();
-            $('[data-structr-type="Date"],[data-structr-type="String"],[data-structr-type="Integer"],[data-structr-type="Boolean"]').each(function() {
-                var inp = $(this), f = s.field(inp), p = inp.parent('a');
-                //console.log(inp, f, p);
-                inp.next('button').remove();
-                if (p) {
-                    p.attr('href', f.val).css({textDecoration: ''}).on('click', function() {
-                        return true;
-                    });
-                }
-                inp.replaceWith(field(f.id, f.type, f.key, f.val));
-            });
-        }
-        return s.edit;
-    };
     this.checkInput = function(e, f, inp) {
-        var k = e.which, b = $('#save_' + f.id + '_' + f.key);
-        var p = inp.parent('a');
-
+        var k = e.which;
+        
         if (isTextarea(inp[0])) {
-
-            // Check for line break
+            
             if (inp.val().indexOf('\n') === -1) {
 
+                var parent = inp.parent();
+                
+                // No new line in textarea content => transform to input field
                 inp.replaceWith(inputField(f.id, f.type, f.key, inp.val()));
-                inp = $('[data-structr-id="' + f.id + '"][data-structr-key="' + f.key + '"]');
+                inp = s.input(parent);
+
                 inp.on('keyup', function(e) {
                     s.checkInput(e, f, $(this));
                 });
 
                 setCaretToEnd(inp[0]);
-
+                
             }
+            
+        } else if (k === 13) {// && shiftKey === true) {
 
-        } else {
+            // Return key in input field => replace by textarea
+            var parent = inp.parent();
 
-            // Normal input field here
-            if (k === 13) {
+            inp.replaceWith(textarea(f.id, f.key, inp.val() + '\n'));
+            inp = s.input(parent);
 
-                if (shiftKey === true) {
+            inp.on('keyup', function(e) {
+                s.checkInput(e, f, $(this));
+            });
 
-                    // Shift-return in input field => make textarea and append line break
+            inp.css({fontFamily: 'sans-serif'});
 
-                    inp.replaceWith(textarea(f.id, f.key, inp.val()));
-                    inp = $('[data-structr-id="' + f.id + '"][data-structr-key="' + f.key + '"]');
+            setCaretToEnd(inp[0]);
 
-                    inp.on('keyup', function(e) {
-                        s.checkInput(e, f, $(this));
-                    });
-
-                    inp.css({fontFamily: 'sans-serif'});
-
-                    setCaretToEnd(inp[0]);
-
-                } else {
-
-                    // Return without shift => submit button if visible
-
-                    if (b && b.length) {
-                        b.click();
-                        return true;
-                    }
-
-                }
-            }
         }
 
         resizeInput(inp);
-
-        if (!(k === 13 && shiftKey) && ((k < 46 && k > 32) || (k > 9 && k < 32))) {
-            return true;
-        }
-        s.appendSaveButton(b, p, inp, f.id, f.key);
 
     };
     this.appendSaveButton = function(b, p, inp, id, key) {
@@ -549,37 +595,92 @@ function StructrApp(baseUrl) {
         });
 
     };
+    this.hideEdit = function(container){ // shows not edit mode
+        
+        // show elements [data-structr-hide="non-edit"]
+        $.each($('div[data-structr-hide-id]',container),function(){
+            
+           var id = $(this).attr('data-structr-hide-id');
+           $(this).replaceWith(hideNonEditElements[id]);
+           delete hideNonEditElements[id];
+           
+        });
+        
+        // hide edit elements
+        $.each($('[data-structr-hide="edit"]', container), function(i, obj){
+            
+            var random = Math.floor(Math.random()*1000000+1);
+            
+            hideEditElements[random] = $(obj).clone(true,true);
+            $(obj).replaceWith('<div style="display:none;" data-structr-hide-id="'+random+'"></div>');
+        });
+        
+        $(document).trigger("structr-edit");
+    };
+    this.hideNonEdit = function(container){ // shows edit mode
+        
+        //first call to hide all non-edit elements
+        if(container === undefined){
+            
+            // hide all non-edit elements
+            $.each($('[data-structr-hide="non-edit"]'), function(i, obj){ 
+                
+                var random = Math.floor(Math.random()*1000000+1);
+                
+                hideNonEditElements[random] = $(obj).clone(true,true);
+                $(obj).replaceWith('<div style="display:none;" data-structr-hide-id="'+random+'"></div>');
+            });
+            
+        } else{
+            
+            // show elements [data-structr-hide="edit"]
+            $.each($('div[data-structr-hide-id]',container),function(){
+            
+                var id = $(this).attr("data-structr-hide-id");
+                $(this).replaceWith(hideEditElements[id]);
+                delete hideNonEditElements[id];
+
+             });
+            
+            // hide non-edit elements
+            $.each($('[data-structr-hide="non-edit"]', container),function(i, obj){
+                
+                var random = Math.floor(Math.random()*1000000+1);
+                
+                hideNonEditElements[random] = $(obj).clone(true,true);
+                $(obj).replaceWith('<div style="display:none;" data-structr-hide-id="'+random+'"></div>');
+                
+            });
+            
+        }
+    };
 }
 function resizeInput(inp) {
 
-    var text = inp.val();
+    var text = inp.val();// console.log(inp, 'value of input', text);
+    // don't resize empty input elements with preset size
+    if (!text.length && inp.attr('size')) return;
 
     if (isTextarea(inp[0])) {
 
         var n = (text.match(/\n/g) || []).length;
-        inp.prop('rows', n + 2);
+        inp.attr('rows', n+2);
 
         var lines = text.split('\n');
         var c = lines.sort(function(a, b) {
             return b.length - a.length;
         })[0].length;
 
-        inp.prop('cols', c);
+        inp.attr('cols', c+1);
 
     } else {
 
-        inp.prop('size', text.length + 1);
+        inp.attr('size', text.length + 1);
 
     }
-
-    // set the width value to the max parent width value
-    if ($(inp).parent().outerWidth() < $(inp).width()) {
-        $(inp).width($(inp).parent().outerWidth());
-    }
-
     // Focus on last empty field
-    if (!text || !text.length)
-        inp.focus();
+//    if (!text || !text.length)
+//        inp.focus();
 }
 
 function urlParam(name) {
@@ -594,6 +695,18 @@ String.prototype.capitalize = function() {
     return this.charAt(0).toUpperCase() + this.slice(1);
 };
 
+String.prototype.endsWith = function(suffix) {
+    return this.indexOf(suffix, this.length - suffix.length) !== -1;
+};
+
+String.prototype.parseIfJSON = function() {
+    if (this.substring(0,1) === '{') {
+        var cleaned = this.replace(/'/g, "\"");
+        return JSON.parse(cleaned);
+    }
+    return this;
+}
+
 String.prototype.splitAndTitleize = function(sep) {
 
     var res = new Array();
@@ -601,7 +714,7 @@ String.prototype.splitAndTitleize = function(sep) {
     parts.forEach(function(part) {
         res.push(part.capitalize());
     })
-    return res.join(" ");
+    return res.join(' ');
 };
 
 String.prototype.toUnderscore = function() {
@@ -637,23 +750,26 @@ function isTextarea(el) {
 }
 
 function textarea(id, key, val) {
-    return '<div><textarea class="editField" data-structr-id="' + id + '" data-structr-key="' + key + '">' + (val === 'null' ? '' : val) + '\n</textarea></div>';
+    return '<textarea class="structr-input-text">' + val + '</textarea>';
 }
 
-function inputField(id, key, val) {
-    return '<input class="structr-input-text" type="text" placeholder="' + key.capitalize() + '" data-structr-id="' + id + '" data-structr-attr="' + key + '" value="' + (val === 'null' ? '' : val) + '" size="' + val.length + ' ">';
+function inputField(id, type, key, val) {
+    var size = (val ? val.length : (type && type === 'Date' ? 25 : key.length));
+    return '<input class="structr-input-text" type="text" placeholder="' + (key ? key.capitalize() : '')
+            + '" value="' + (val === 'null' ? '' : val)
+            + '" size="' + size + '">';
 }
 
 function field(id, type, key, val) {
-    return '<span type="text" data-structr-id="' + id + '" data-structr-type="' + type + '" data-structr-key="' + key + '">' + val + '</span>';
+    return '<span type="text" data-structr-type="' + type + '" data-structr-attr="' + key + '">' + val + '</span>';
 }
 
 function checkbox(id, type, key, val) {
-    return '<input type="checkbox" data-structr-id="' + id + '" data-structr-type="' + type + '" data-structr-key="' + key + '" ' + (val ? 'checked="checked"' : '') + '">';
+    return '<input type="checkbox" data-structr-id="' + id + '" data-structr-type="' + type + '" ' + (val ? 'checked="checked"' : '') + '">';
 }
 
 function select(id, key, val, options) {
-    var s = '<select data-structr-id="' + id + '" data-structr-key="' + key + '">';
+    var s = '<select data-structr-id="' + id + '">';
     $.each(options, function(i, o) {
         s += '<option ' + (o === val ? 'selected' : '') + '>' + o + '</option>';
     });

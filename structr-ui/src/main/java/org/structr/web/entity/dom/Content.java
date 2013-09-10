@@ -178,19 +178,27 @@ public class Content extends DOMNode implements Text {
 		EditMode edit        = renderContext.getEditMode(securityContext.getUser(false));
 		boolean inBody       = renderContext.inBody();
 		StringBuilder buffer = renderContext.getBuffer();
+		
+		String _contentType = getProperty(contentType);
 
 		// fetch content with variable replacement
 		String _content = getPropertyWithVariableReplacement(securityContext, renderContext, Content.content);
+		
+		if (_contentType == null || ("text/plain".equals(_contentType))) {
+
+			_content = escapeForHtml(_content);
+
+		}
 
 		if (EditMode.CONTENT.equals(edit) && inBody && securityContext.isAllowed(this, Permission.write)) {
 
-			if ("text/javascript".equals(getProperty(contentType))) {
+			if ("text/javascript".equals(_contentType)) {
 				
 				// Javascript will only be given some local vars
 				// TODO: Is this neccessary?
 				buffer.append("// data-structr-type='").append(getType()).append("'\n// data-structr-id='").append(id).append("'\n");
 				
-			} else if ("text/css".equals(getProperty(contentType))) {
+			} else if ("text/css".equals(_contentType)) {
 				
 				// CSS will only be given some local vars
 				// TODO: Is this neccessary?
@@ -222,7 +230,6 @@ public class Content extends DOMNode implements Text {
 		//if (!edit.equals(EditMode.DATA)) {
 			
 			// examine content type and apply converter
-			String _contentType = getProperty(Content.contentType);
 
 			if (_contentType != null) {
 

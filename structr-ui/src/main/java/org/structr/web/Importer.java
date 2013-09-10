@@ -158,13 +158,28 @@ public class Importer {
 	}
 
 	public boolean parse() throws FrameworkException {
+		
+		return parse(false);
+		
+	}
+	
+	public boolean parse(final boolean fragment) throws FrameworkException {
 
 		init();
 		
 		if (StringUtils.isNotBlank(code)) {
 
 			logger.log(Level.INFO, "##### Start parsing code for page {0} #####", new Object[] { name });
-			parsedDocument = Jsoup.parse(code);
+			
+			if (fragment) {
+				
+				parsedDocument = Jsoup.parseBodyFragment(code);
+				
+			} else {
+				
+				parsedDocument = Jsoup.parse(code);
+				
+			}
 
 
 		} else {

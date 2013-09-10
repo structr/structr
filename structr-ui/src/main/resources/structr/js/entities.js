@@ -47,7 +47,7 @@ var _Entities = {
         Command.children(id);
 
     },
-    deleteNode: function(button, entity) {
+    deleteNode: function(button, entity, callback) {
         buttonClicked = button;
         if (isDisabled(button))
             return;
@@ -58,6 +58,9 @@ var _Entities = {
                     $.unblockUI({
                         fadeOut: 25
                     });
+                    if (callback) {
+                        callback();
+                    }
                 });
     },
     showSyncDialog: function(source, target) {
@@ -594,19 +597,18 @@ var _Entities = {
                 paddingRight: 0 + 'px'
             }).after('<img title="Expand \'' + entity.name + '\'" alt="Expand \'' + entity.name + '\'" class="expand_icon" src="' + icon + '">');
 
+            $(el).on('click', function(e) {
+                e.stopPropagation();
+                _Entities.toggleElement(this);
+            });
+
             button = $(el.children('.expand_icon').first());
 
             if (button) {
 
                 button.on('click', function(e) {
-                    log('expand icon clicked');
                     e.stopPropagation();
                     _Entities.toggleElement($(this).parent('.node'));
-                });
-
-                $(el).on('click', function(e) {
-                    log('node clicked');
-                    _Entities.toggleElement(this);
                 });
 
                 // Prevent expand icon from being draggable
@@ -740,12 +742,9 @@ var _Entities = {
         var el = $(element);
         var b;
         var src = el.prop('src');
+        var id = getId(el) || getComponentId(el);
 
-        var id = getId(el);
-
-        log(el);
-
-        log('toggleElement: ', id);
+        log('toggleElement: ', el, id);
 
         b = el.children('.expand_icon').first();
         src = b.prop('src');

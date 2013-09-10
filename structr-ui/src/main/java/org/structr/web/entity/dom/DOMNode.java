@@ -22,6 +22,8 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.text.NumberFormat;
 import java.text.DecimalFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -52,6 +54,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.Predicate;
 import org.structr.core.Result;
 import org.structr.core.Services;
+import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.StructrTransaction;
@@ -69,6 +72,7 @@ import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.search.PropertySearchAttribute;
 import org.structr.core.property.CollectionIdProperty;
 import org.structr.core.property.EntityIdProperty;
+import org.structr.core.property.ISO8601DateProperty;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.ThreadLocalMatcher;
@@ -452,13 +456,48 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 			}
 
 		});
+		functions.put("date_format", new Function<String, String>() {
+			
+			@Override
+			public String apply(String[] s) {
+
+				String result = "";
+				String errorMsg = "ERROR! Usage: ${date_format(value, pattern)}. Example: ${date_format(Tue Feb 26 10:49:26 CET 2013, \"yyyy-MM-dd'T'HH:mm:ssZ\")}";
+				
+				if (s != null && s.length == 2) {
+				
+					String dateString = s[0];
+					
+					if (StringUtils.isBlank(dateString)) {
+						return "";
+					}
+					
+					String pattern = s[1];
+
+					try {
+						// parse with format from IS
+						Date d = new SimpleDateFormat(ISO8601DateProperty.PATTERN).parse(dateString);
+						
+						// format with given pattern
+						result = new SimpleDateFormat(pattern).format(d);
+						
+					} catch (ParseException ex) {
+						logger.log(Level.WARNING, "Could not parse date " + dateString + " and format it to pattern " + pattern, ex);
+						result = errorMsg;
+					}
+				
+				}
+				
+				return result;
+			}
+		});
 		functions.put("number_format", new Function<String, String>() {
 
 			@Override
 			public String apply(String[] s) {
 
 				String result = "";
-				String errorMsg = "<strong>ERROR! Usage: ${number_format(value, ISO639LangCode, pattern)}. ex:${number_format(12345.6789, 'en', '#,##0.00')} For more infos about patterns <a href='http://docs.oracle.com/javase/6/docs/api/java/text/DecimalFormat.html'>refer to the documentation</a><strong>";
+				String errorMsg = "ERROR! Usage: ${number_format(value, ISO639LangCode, pattern)}. Example: ${number_format(12345.6789, 'en', '#,##0.00')}";
 
 				if (s != null && s.length == 3) {
 
@@ -961,6 +1000,13 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 			PropertyKey referenceKeyProperty = EntityContext.getPropertyKeyForJSONName(_data.getClass(), referenceKey);
 			//return getEditModeValue(securityContext, renderContext, _data, referenceKeyProperty, defaultValue);
 			Object value = _data.getProperty(referenceKeyProperty);
+			
+			PropertyConverter converter = referenceKeyProperty.inputConverter(securityContext);
+			
+			if (value != null && converter != null) {
+				value = converter.revert(value);
+			}
+			
 			return value != null ? value : defaultValue;
 			
 		}
@@ -1182,13 +1228,25 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 	protected String convertValueForHtml(java.lang.Object value) {
 
 		if (value != null) {
-
+			
 			// TODO: do more intelligent conversion here
 			return value.toString();
 		}
 
 		return null;
 
+	}
+
+	protected String escapeForHtml(final String raw) {
+		
+		return StringUtils.replaceEach(raw, new String[] { "&", "<", ">" }, new String[] { "&amp;", "&lt;", "&gt;" });
+		
+	}
+	
+	protected String escapeForHtmlAttributes(final String raw) {
+		
+		return StringUtils.replaceEach(raw, new String[] { "&", "<", ">", "\"", "'" }, new String[] { "&amp;", "&lt;", "&gt;", "&quot;", "&#39;" });
+		
 	}
 
 	protected String[] split(String source) {
