@@ -48,29 +48,39 @@ var _Pages = {
 
         Structr.initPager('Page', 1, 25);
         Structr.initPager('File', 1, 25);
-        _Pages.resize();
 
     },
-    resize: function() {
+    resize: function(offsetLeft, offsetRight) {
 
-        var windowWidth = win.width();
-        var windowHeight = win.height();
-        var headerOffsetHeight = 100;
-        var previewOffset = 22;
+        var windowWidth = win.width(), windowHeight = win.height();
+        var headerOffsetHeight = 100,  previewOffset = 22;
 
         if (pages && palette) {
 
-            var rw = 65;
-
             if (previews) {
 
+                if (offsetLeft) {
+                    previews.css({
+                        marginLeft: '+=' + offsetLeft + 'px'
+                    });
+                }
+
+                if (offsetRight) {
+                    previews.css({
+                        marginRight: '+=' + offsetRight + 'px'
+                    });
+                }
+
+                //console.log(offsetLeft, offsetRight, windowWidth, parseInt(previews.css('marginLeft')), parseInt(previews.css('marginRight')));
+                var w = windowWidth - parseInt(previews.css('marginLeft')) - parseInt(previews.css('marginRight')) -15 + 'px';
+
                 previews.css({
-                    width: windowWidth - rw + 'px',
-                    height: win.height() - headerOffsetHeight + 'px'
+                    width: w,
+                    height: windowHeight - headerOffsetHeight + 'px'
                 });
 
                 $('.previewBox', previews).css({
-                    width: windowWidth - rw + 'px',
+                    //width: w,
                     height: windowHeight - (headerOffsetHeight + previewOffset) + 'px'
                 });
 
@@ -198,10 +208,11 @@ var _Pages = {
 
         _Pages.refresh();
 
-        window.setTimeout('_Pages.resize()', 1000);
+        window.setTimeout('_Pages.resize(0,0)', 100);
 
     },
     openSlideOut: function(slideout, tab, callback) {
+        _Pages.resize(0, 425);
         var s = $(slideout);
         var t = $(tab);
         t.addClass('active');
@@ -212,18 +223,25 @@ var _Pages = {
         }
     },
     closeSlideOuts: function(slideout) {
+        var wasOpen = false;
         slideout.forEach(function(w) {
             var s = $(w);
             var l = s.position().left;
             if (l + 1 !== $(window).width()) {
+                wasOpen = true;
                 //console.log('closing open slide-out', s);
                 s.animate({right: '-=425px'}, {duration: 100}).zIndex(2);
                 $('.compTab.active', s).removeClass('active');
             }
         });
+        if (wasOpen) {console.log('was open');
+            _Pages.resize(0, -425);
+        }
+            
         localStorage.removeItem(activeTabRightKey);
     },
     openLeftSlideOut: function(slideout, tab, callback) {
+        _Pages.resize(412, 0);
         var s = $(slideout);
         var t = $(tab);
         t.addClass('active');
@@ -234,6 +252,7 @@ var _Pages = {
         }
     },
     closeLeftSlideOuts: function(slideout) {
+        _Pages.resize(-412, 0);
         slideout.forEach(function(w) {
             var s = $(w);
             var l = s.position().left;
@@ -318,6 +337,8 @@ var _Pages = {
             //Command.create(entity);
             Command.createSimplePage();
         });
+        
+        //_Pages.resize(0,0)
 
     },
     addTab: function(entity) {

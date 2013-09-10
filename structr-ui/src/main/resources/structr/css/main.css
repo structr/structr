@@ -182,7 +182,7 @@ img.disabled {
 }
 
 #previews {
-    margin-left: 25px;
+	margin: 0 25px;
 }
 
 .slideOutLeft {
@@ -1222,4 +1222,10 @@ button.enabled {
     right: 30px;
     bottom: 8px;
     width: 76px;
+}
+
+#pages .sticky {
+	position: absolute;
+	top: 4px;
+	right: 4px;
 }
