@@ -18,7 +18,7 @@
  */
 
 var pages, shadowPage;
-var previews, previewTabs, controls, palette, activeTab, activeTabLeft, activeTabRight, components, elements, widgetsSlideout;
+var previews, previewTabs, controls, palette, activeTab, activeTabLeft, activeTabRight, components, elements, widgetsSlideout, pagesSlideOut;
 var selStart, selEnd;
 var sel;
 var contentSourceId, elementSourceId, rootId;
@@ -56,6 +56,10 @@ var _Pages = {
         var headerOffsetHeight = 100,  previewOffset = 22;
 
         if (pages && palette) {
+
+            pages.css({
+                height: windowHeight - headerOffsetHeight - previewOffset + 'px'
+            })
 
             if (previews) {
 
@@ -110,7 +114,7 @@ var _Pages = {
                 + '<div id="components" class="slideOut slideOutRight"><div class="compTab" id="componentsTab">Reused Components</div></div>'
                 + '<div id="elements" class="slideOut slideOutRight"><div class="compTab" id="elementsTab">Orphaned Elements</div></div>');
 
-        pages = $('#pages');
+        pagesSlideOut = $('#pages');
         previews = $('#previews');
         widgetsSlideout = $('#widgetsSlideout');
         palette = $('#palette');
@@ -118,18 +122,19 @@ var _Pages = {
         elements = $('#elements');
 
         $('#pagesTab').on('click', function() {
-            if (pages.position().left === -412) {
-                _Pages.openLeftSlideOut(pages, this);
+            console.log('click on pagesTab')
+            if (pagesSlideOut.position().left === -412) {
+                _Pages.openLeftSlideOut(pagesSlideOut, this);
             } else {
-                _Pages.closeLeftSlideOuts([pages]);
+                _Pages.closeLeftSlideOuts([pagesSlideOut]);
             }
         }).droppable({
             tolerance: 'touch',
             over: function(e, ui) {
-                if (pages.position().left === -412) {
-                    _Pages.openLeftSlideOut(pages, this);
+                if (pagesSlideOut.position().left === -412) {
+                    _Pages.openLeftSlideOut(pagesSlideOut, this);
                 } else {
-                    _Pages.closeLeftSlideOuts([pages]);
+                    _Pages.closeLeftSlideOuts([pagesSlideOut]);
                 }
             }
         });
@@ -193,6 +198,13 @@ var _Pages = {
             }
         });
 
+        $('#controls', main).remove();
+
+        previews.append('<ul id="previewTabs"></ul>');
+        previewTabs = $('#previewTabs', previews);
+
+        _Pages.refresh();
+
         if (activeTabLeft) {
             $('#' + activeTabLeft).addClass('active').click();
         }
@@ -201,14 +213,7 @@ var _Pages = {
             $('#' + activeTabRight).addClass('active').click();
         }
 
-        $('#controls', main).remove();
-
-        previews.append('<ul id="previewTabs"></ul>');
-        previewTabs = $('#previewTabs', previews);
-
-        _Pages.refresh();
-
-        window.setTimeout('_Pages.resize(0,0)', 100);
+        //window.setTimeout('_Pages.resize(0,0)', 100);
 
     },
     openSlideOut: function(slideout, tab, callback) {
@@ -234,7 +239,7 @@ var _Pages = {
                 $('.compTab.active', s).removeClass('active');
             }
         });
-        if (wasOpen) {console.log('was open');
+        if (wasOpen) {
             _Pages.resize(0, -425);
         }
             
@@ -272,8 +277,11 @@ var _Pages = {
     },
     refresh: function() {
 
-        pages.find(':not(.compTab)').remove();
+        pagesSlideOut.find(':not(.compTab)').remove();
         previewTabs.empty();
+
+        pagesSlideOut.append('<div id="pagesTree"></div>')
+        pages = $('#pagesTree', pagesSlideOut);
 
         Structr.addPager(pages, 'Page');
 

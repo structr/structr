@@ -81,12 +81,6 @@ var _Entities = {
     },
     dataBindingDialog: function(entity, el) {
 
-//        Structr.dialog('Edit Data Settings of ' + entity.id, function() {
-//            return true;
-//        }, function() {
-//            return true;
-//        });
-        
         el.append('<table class="props"></table>');
         var t = $('.props', el);
 
@@ -274,21 +268,11 @@ var _Entities = {
             });
 
             var tabView = $('#tabView-' + view);
-
-//            var headers = {};
-//            headers['X-StructrSessionToken'] = token;
-//            log('showProperties URL: ' + rootUrl + entity.id + (view ? '/' + view : ''), headers);
-
             $.ajax({
                 url: rootUrl + entity.id + (view ? '/' + view : '') + '?pageSize=10',
                 dataType: 'json',
                 contentType: 'application/json; charset=utf-8',
-//                headers: headers,
                 success: function(data) {
-                    //element.append('<div class="sep"></div>');
-                    //element.append('<table class="props"></table>');
-                    log(data.result);
-
                     // Default: Edit node id
                     var id = entity.id;
                     // ID of graph object to edit
@@ -296,11 +280,7 @@ var _Entities = {
 
                         // reset id for each object group
                         id = entity.id;
-
                         var keys = Object.keys(res);
-
-                        log('keys', keys);
-                        log('res[id]', res['id']);
                         tabView.append('<table class="props ' + view + ' ' + res['id'] + '_"></table>');
 
                         var props = $('.props.' + view + '.' + res['id'] + '_', tabView);
@@ -308,35 +288,22 @@ var _Entities = {
                         $(keys).each(function(i, key) {
 
                             if (view === '_html_') {
-
                                 if (key !== 'id') {
-
                                     props.append('<tr><td class="key">' + key.replace(view, '') + '</td>'
                                             + '<td class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td><img class="nullIcon" id="null_' + key + '" src="icon/cross_small_grey.png"></td></tr>');
-
                                 }
-
                             } else if (view === 'in' || view === 'out') {
-
                                 if (key === 'id') {
                                     // set ID to rel ID
                                     id = res[key];
-                                    //console.log('Set ID to relationship ID', id);
                                 }
-
                                 props.append('<tr><td class="key">' + key + '</td><td rel_id="' + id + '" class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td><img class="nullIcon" id="null_' + key + '" src="icon/cross_small_grey.png"></td></tr>');
-
                             } else {
-
                                 if (!key.startsWith('_html_') && !isIn(key, _Entities.hiddenAttrs)) {
-
                                     if (isIn(key, _Entities.readOnlyAttrs)) {
-
                                         props.append('<tr><td class="key">' + formatKey(key) + '</td>'
                                                 + '<td class="value ' + key + '_ readonly"><input type="text" class="readonly" readonly value="' + res[key] + '"></td><td></td></tr>');
-
                                     } else if (isIn(key, _Entities.booleanAttrs)) {
-
                                         props.append('<tr><td class="key">' + formatKey(key) + '</td><td><input type="checkbox" class="' + key + '_"></td><td></td></tr>');
                                         var checkbox = $(props.find('.' + key + '_'));
                                         checkbox.on('change', function() {
@@ -345,16 +312,11 @@ var _Entities = {
                                             Command.setProperty(id, key, checked);
                                         });
                                         Command.getProperty(id, key, '#dialogBox');
-
-                                        //                                } else if (isIn(key, _Entities.numberAttrs)) {
                                     } else if (isIn(key, _Entities.dateAttrs)) {
-
                                         if (!res[key] || res[key] === 'null') {
                                             res[key] = '';
                                         }
-
                                         props.append('<tr><td class="key">' + formatKey(key) + '</td><td class="value ' + key + '_"><input class="dateField" name="' + key + '" type="text" value="' + res[key] + '"></td><td><img class="nullIcon" id="null_' + key + '" src="icon/cross_small_grey.png"></td></tr>');
-
                                         var dateField = $(props.find('.dateField'));
                                         dateField.datetimepicker({
                                             showSecond: true,
@@ -362,18 +324,13 @@ var _Entities = {
                                             dateFormat: 'yy-mm-dd',
                                             separator: 'T'
                                         });
-                                        //dateField.datepicker();
-
                                     } else {
-
                                         props.append('<tr><td class="key">' + formatKey(key) + '</td><td class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td><img class="nullIcon" id="null_' + key + '" src="icon/cross_small_grey.png"></td></tr>');
                                     }
-
                                 }
                             }
                             
                             var nullIcon = $('#null_' + key);
-
                             nullIcon.on('click', function() {
                                 var key = $(this).prop('id').substring(5);
                                 Command.setProperty(id, key, null, false, function() {
@@ -384,21 +341,14 @@ var _Entities = {
                                     $('.infoBox', dialogMsg).delay(2000).fadeOut(1000);
                                 });
                             });
-
-                            
-
                         });
-
                         props.append('<tr><td class="key"><input type="text" class="newKey" name="key"></td><td class="value"><input type="text" value=""></td><td></td></tr>');
-
                         $('.props tr td.value input', dialog).each(function(i, v) {
                             _Entities.activateInput(v, id);
                         });
                     });
-
                 }
             });
-            debug = false;
         });
 
     },
@@ -457,18 +407,13 @@ var _Entities = {
 
                         });
                     }
-
                 }
-
-
                 input.removeClass('active');
                 input.parent().children('.icon').each(function(i, img) {
                     $(img).remove();
                 });
             });
-
         }
-
     },
     appendAccessControlIcon: function(parent, entity) {
 
