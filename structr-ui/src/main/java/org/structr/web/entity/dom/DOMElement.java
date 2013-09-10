@@ -95,7 +95,6 @@ import org.structr.web.entity.html.Body;
 import org.structr.web.common.GraphDataSource;
 import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.common.UiResourceProvider;
-import org.structr.web.entity.html.Script;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -1353,7 +1352,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 			
 			if (key.startsWith("data-")) {
 				
-				String value = getPropertyWithVariableReplacement(securityContext, renderContext, new GenericProperty(key));
+				String value = escapeForHtmlAttributes(getPropertyWithVariableReplacement(securityContext, renderContext, new GenericProperty(key)));
 				
 				if (StringUtils.isNotBlank(value)) {
 					
