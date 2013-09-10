@@ -131,8 +131,8 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	public static final Property<Boolean> renderDetails           = new BooleanProperty("renderDetails");
 	public static final Property<Boolean> hideOnIndex             = new BooleanProperty("hideOnIndex");
 	public static final Property<Boolean> hideOnDetail            = new BooleanProperty("hideOnDetail");
-	public static final Property<Boolean> hideOnEdit              = new BooleanProperty("hideOnEdit");
-	public static final Property<Boolean> hideOnNonEdit           = new BooleanProperty("hideOnNonEdit");
+//	public static final Property<Boolean> hideOnEdit              = new BooleanProperty("hideOnEdit");
+//	public static final Property<Boolean> hideOnNonEdit           = new BooleanProperty("hideOnNonEdit");
 
 	public static final Property<String> _title                   = new HtmlProperty("title").indexed();
 	public static final Property<String> _tabindex                = new HtmlProperty("tabindex");
@@ -206,6 +206,17 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	public static final Property<String> _contenteditable         = new HtmlProperty("contenteditable");
 	public static final Property<String> _class                   = new HtmlProperty("class").indexed();
 
+	// Edit-mode attributes
+	public static final Property<Boolean> _reload		= new BooleanProperty("data-structr-reload");
+	public static final Property<Boolean> _confirm		= new BooleanProperty("data-structr-confirm");
+	public static final Property<String> _action		= new StringProperty("data-structr-action");
+	public static final Property<String> _attributes		= new StringProperty("data-structr-attributes");
+	public static final Property<String> _attr		= new StringProperty("data-structr-attr");
+	public static final Property<String> _fieldName		= new StringProperty("data-structr-name");
+	public static final Property<String> _hide		= new StringProperty("data-structr-hide");
+	public static final Property<String> _rawValue		= new StringProperty("data-structr-raw-value");
+	public static final Property<String> _container		= new StringProperty("data-structr-container");
+	
 	// Core attributes
 	public static final Property<String> _accesskey               = new HtmlProperty("accesskey").indexed();
 	
@@ -214,14 +225,15 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	);
 	
 	public static final org.structr.common.View uiView            = new org.structr.common.View(DOMElement.class, PropertyView.Ui, name, tag, pageId, path, parent, childrenIds, owner,
-										restQuery, cypherQuery, xpathQuery, partialUpdateKey, dataKey, syncedNodes, renderDetails, hideOnIndex, hideOnDetail, hideOnEdit, hideOnNonEdit,
+										restQuery, cypherQuery, xpathQuery, partialUpdateKey, dataKey, syncedNodes, renderDetails, hideOnIndex, hideOnDetail,
 										_accesskey, _class, _contenteditable, _contextmenu, _dir, _draggable, _dropzone, _hidden, _id, _lang, _spellcheck, _style,
 										_tabindex, _title, _onabort, _onblur, _oncanplay, _oncanplaythrough, _onchange, _onclick, _oncontextmenu, _ondblclick,
 										_ondrag, _ondragend, _ondragenter, _ondragleave, _ondragover, _ondragstart, _ondrop, _ondurationchange, _onemptied,
 										_onended, _onerror, _onfocus, _oninput, _oninvalid, _onkeydown, _onkeypress, _onkeyup, _onload, _onloadeddata,
 										_onloadedmetadata, _onloadstart, _onmousedown, _onmousemove, _onmouseout, _onmouseover, _onmouseup, _onmousewheel,
 										_onpause, _onplay, _onplaying, _onprogress, _onratechange, _onreadystatechange, _onreset, _onscroll, _onseeked,
-										_onseeking, _onselect, _onshow, _onstalled, _onsubmit, _onsuspend, _ontimeupdate, _onvolumechange, _onwaiting
+										_onseeking, _onselect, _onshow, _onstalled, _onsubmit, _onsuspend, _ontimeupdate, _onvolumechange, _onwaiting,
+										_reload, _confirm, _action, _attributes, _attr, _fieldName, _hide, _rawValue, _container
 	);
 	
 	public static final org.structr.common.View htmlView          = new org.structr.common.View(DOMElement.class, PropertyView.Html, _accesskey, _class, _contenteditable, _contextmenu, _dir,

@@ -334,7 +334,7 @@ var _Elements = {
 
         _Entities.setMouseOver(div, undefined, entity.syncedNodes);
         _Entities.appendEditPropertiesIcon(div, entity);
-        _Entities.appendDataIcon(div, entity);
+        //_Entities.appendDataIcon(div, entity);
 
         if (entity.tag === 'a' || entity.tag === 'link' || entity.tag === 'script' || entity.tag === 'img' || entity.tag === 'video' || entity.tag === 'object') {
 

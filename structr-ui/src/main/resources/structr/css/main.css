@@ -511,8 +511,16 @@ ul#previewTabs {
     margin: 6px 0 0 0;
 }
 
-#data-tabs li {
+#data-tabs li, #tabs li {
     font-size: 1em;
+}
+
+.propTabContent {
+	display: none;
+}
+
+.propTabContent section {
+	padding: 24px 0 0 0;
 }
 
 #previewTabs img {
@@ -1050,7 +1058,7 @@ button img {
 }
 
 button.switch {
-    width: 240px;
+    min-width: 48px;
     margin-right: 12px;
     color: #444;
     font-weight: normal;
@@ -1060,6 +1068,11 @@ button.switch {
     background: -webkit-gradient(linear, left bottom, left top, from(#ccc), to(#e7e7e7)) no-repeat;
     background: -moz-linear-gradient(90deg, #ccc, #e7e7e7) no-repeat;
     filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#e7e7e7', EndColorStr='#cccccc', GradientType=0);
+}
+
+button.switch img {
+	margin-top: 2px;
+	vertical-align: top;
 }
 
 button.switch:hover {

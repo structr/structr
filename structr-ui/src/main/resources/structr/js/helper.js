@@ -276,7 +276,7 @@ function formatValue(value) {
     
     //console.log('formatValue: ', value);
     
-    if (value === null) {
+    if (value === undefined || value === null) {
         return '';
     }
     
