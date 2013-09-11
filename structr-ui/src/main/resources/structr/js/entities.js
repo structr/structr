@@ -144,9 +144,9 @@ var _Entities = {
         t.append('<tr><td>Hide in index mode</td><td id="hideIndexMode"></td></tr>');
         t.append('<tr><td>Hide in details mode</td><td id="hideDetailsMode"></td></tr>');
 
-        _Entities.appendBooleanSwitch($('#queryAutoLimit', t), entity, 'renderDetails', '', 'If URL ends with an ID, the query result is limited to the object with this ID.');
-        _Entities.appendBooleanSwitch($('#hideIndexMode', t), entity, 'hideOnIndex', '', 'If URL does not end with an ID, this element is hidden.');
-        _Entities.appendBooleanSwitch($('#hideDetailsMode', t), entity, 'hideOnDetail', '', 'If URL ends with an ID, this element is hidden.');
+        _Entities.appendBooleanSwitch($('#queryAutoLimit', t), entity, 'renderDetails', ['Query is limited', 'Query is not limited'], 'Click to toggle whether the query result should be limited to the object with the ID the URL ends with.');
+        _Entities.appendBooleanSwitch($('#hideIndexMode', t), entity, 'hideOnIndex', ['Hidden in index mode', 'Visible in index mode'], 'Click to toggle whether this node should be hidden if URL does not end with an ID');
+        _Entities.appendBooleanSwitch($('#hideDetailsMode', t), entity, 'hideOnDetail', ['Hidden in details mode', 'Visible in details mode'], 'Click to toggle whether this node should be hidden if URL ends with an ID.');
 
         el.append('<div id="data-tabs"><ul><li class="active" id="tab-rest">REST Query</li><li id="tab-cypher">Cypher Query</li><li id="tab-xpath">XPath Query</li></ul>'
                 + '<div id="content-tab-rest"></div><div id="content-tab-cypher"></div><div id="content-tab-xpath"></div></div>');
@@ -435,23 +435,25 @@ var _Entities = {
                 }, function() {
                 });
 
-                _Entities.appendSimpleSelection(el, entity, 'users', 'Owner', 'owner.id');
+                
 
-                el.append('<h3>Visibility</h3>');
+                _Entities.appendSimpleSelection(dialogText, entity, 'users', 'Owner', 'owner.id');
+
+                dialogText.append('<h3>Visibility</h3>');
 
                 //('<div class="' + entity.id + '_"><button class="switch disabled visibleToPublicUsers_">Public (visible to anyone)</button><button class="switch disabled visibleToAuthenticatedUsers_">Authenticated Users</button></div>');
 
                 if (lastMenuEntry === 'pages' && !(entity.type === 'Content')) {
-                    el.append('<div>Apply visibility switches recursively? <input id="recursive" type="checkbox" name="recursive"></div><br>');
+                    dialogText.append('<div>Apply visibility switches recursively? <input id="recursive" type="checkbox" name="recursive"></div><br>');
                 }
 
-                _Entities.appendBooleanSwitch(el, entity, 'visibleToPublicUsers', 'Public', 'Node is visible to anyone not logged-in', '#recursive');
-                _Entities.appendBooleanSwitch(el, entity, 'visibleToAuthenticatedUsers', 'Authenticated', 'Node is visible to anyone logged-in', '#recursive');
+                _Entities.appendBooleanSwitch(dialogText, entity, 'visibleToPublicUsers', ['Visible to public users','Not visible to public users'], 'Click to toggle visibility for users not logged-in', '#recursive');
+                _Entities.appendBooleanSwitch(dialogText, entity, 'visibleToAuthenticatedUsers', ['Visible to auth. users', 'Not visible to auth. users'], 'Click to toggle visibility to logged-in users', '#recursive');
 
-                el.append('<h3>Access Rights</h3>');
-                el.append('<table class="props" id="principals"><thead><tr><th>Name</th><th>Read</th><th>Write</th><th>Delete</th><th>Access Control</th></tr></thead><tbody></tbody></table');
+                dialogText.append('<h3>Access Rights</h3>');
+                dialogText.append('<table class="props" id="principals"><thead><tr><th>Name</th><th>Read</th><th>Write</th><th>Delete</th><th>Access Control</th></tr></thead><tbody></tbody></table');
 
-                var tb = $('#principals tbody', el);
+                var tb = $('#principals tbody', dialogText);
                 tb.append('<tr id="new"><td><select id="newPrincipal"><option></option></select></td><td><input id="newRead" type="checkbox" disabled="disabled"></td><td><input id="newRead" type="checkbox" disabled="disabled"></td><td><input id="newRead" type="checkbox" disabled="disabled"></td><td><input id="newRead" type="checkbox" disabled="disabled"></td></tr>');
                 Command.getByType('User', 1000, 1, 'name', 'asc', function(user) {
                     $('#newPrincipal').append('<option value="' + user.id + '">' + user.name + '</option>');
@@ -528,13 +530,13 @@ var _Entities = {
         });
     },
     appendBooleanSwitch: function(el, entity, key, label, desc, recElementId) {
-        el.append('<div class="' + entity.id + '_">' + label + ' <button class="switch disabled ' + key + '_"></button>' + desc + '</div>');
+        el.append('<div class="' + entity.id + '_"><button class="switch disabled ' + key + '_"></button>' + desc + '</div>');
         var sw = $('.' + key + '_', el);
-        _Entities.changeBooleanAttribute(sw, entity[key], 'Active', 'Inactive');
+        _Entities.changeBooleanAttribute(sw, entity[key], label[0], label[1]);
         sw.on('click', function(e) {
             e.stopPropagation();
             entity.setProperty(key, sw.hasClass('disabled'), $(recElementId, el).is(':checked'), function() {
-                _Entities.changeBooleanAttribute(sw, entity[key], 'Active', 'Inactive');
+                _Entities.changeBooleanAttribute(sw, entity[key], label[0], label[1]);
                 blinkGreen(sw);
             });
         });
