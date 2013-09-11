@@ -383,7 +383,7 @@ var Command = {
             data[key] = attributes[key];
         });
         obj.data = data;
-        console.log('createAndAppendDOMNode()', obj);
+        log('createAndAppendDOMNode()', obj);
         return sendObj(obj);
     },
     /**

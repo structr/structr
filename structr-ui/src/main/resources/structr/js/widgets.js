@@ -202,11 +202,13 @@ var _Widgets = {
         }
 		
         div.draggable({
+            iframeFix: true,
             revert: 'invalid',
+            containment: 'body',
             helper: 'clone',
-            //containment: '#main',
-            stack: '.node',
             appendTo: '#main',
+            stack: '.node',
+            zIndex: 99,
             stop : function(e,ui) {
                 $('#pages_').droppable('enable').removeClass('nodeHover');
             }

@@ -539,7 +539,7 @@ var _Pages = {
 
         $('#preview_' + entity.id).load(function() {
 
-            //var offset = $(this).offset();
+            var offset = $(this).offset();
 
             var doc = $(this).contents();
             var head = $(doc).find('head');
@@ -552,7 +552,7 @@ var _Pages = {
                         //		+ '.structr-element-container-active { display; inline-block; border: 1px dotted #e5e5e5; margin: -1px; padding: -1px; min-height: 10px; min-width: 10px; }\n'
                         //		+ '.structr-element-container { }\n'
                         + '.structr-element-container-active:hover { -moz-box-shadow: 0 0 5px #888; -webkit-box-shadow: 0 0 5px #888; box-shadow: 0 0 5px #888; }\n'
-                        + '.structr-droppable-area { -moz-box-shadow: 0 0 5px #888; -webkit-box-shadow: 0 0 5px #888; box-shadow: 0 0 5px #888; }\n'
+                        + '.nodeHover { -moz-box-shadow: 0 0 5px #888; -webkit-box-shadow: 0 0 5px #888; box-shadow: 0 0 5px #888; }\n'
                         + '.structr-editable-area { background-color: #ffe; padding: 1px; margin: -1px; -moz-box-shadow: 0 0 5px #888; -webkit-box-shadow: 0 0 5px yellow; box-shadow: 0 0 5px #888; }\n'
                         + '.structr-editable-area-active { background-color: #ffe; border: 1px solid orange ! important; color: #333; margin: -1px; padding: 1px; }\n'
                         + '.link-hover { border: 1px solid #00c; }\n'
@@ -573,59 +573,65 @@ var _Pages = {
 
             }
             droppables = iframeDocument.find('[data-structr-el]');
-
+            
             droppables.each(function(i, element) {
                 var el = $(element);
+                
+                _Dragndrop.makeDroppable(el, offset);
 
-                el.droppable({
-                    accept: '.element, .content, .component',
-                    greedy: true,
-                    hoverClass: 'structr-droppable-area',
-                    iframeOffset: iframeDocument.offset(),
-                    drop: function(event, ui) {
-
-                        var self = $(this);
-                        var page = self.closest('.page')[0];
-                        var pageId;
-                        var pos;
-
-                        if (page) {
-                            // we're in the main page
-                            pageId = getId(page);
-                            pos = $('.content, .element', self).length;
-                        } else {
-                            // we're in the iframe
-                            page = self.closest('[data-structr-page]')[0];
-                            pageId = $(page).attr('data-structr-page');
-                            pos = $('[data-structr-el]', self).length;
-                        }
-
-                        var contentId = getId(ui.draggable);
-                        var elementId = getId(self);
-
-                        if (!elementId) {
-                            elementId = self.attr('data-structr-el');
-                        }
-
-                        if (!contentId) {
-                            tag = $(ui.draggable).text();
-                            Command.createAndAppendDOMNode(pageId, elementId, (tag !== 'content' ? tag : ''), {});
-                            return;
-                        } else {
-                            var baseUrl = 'http://' + remoteHost + ':' + remotePort;
-
-                            var obj = StructrModel.obj(contentId);
-
-                            if (obj.type === 'Widget') {
-                                var source = obj.source;
-                                Command.appendWidget(source, elementId, pageId, baseUrl);
-                                return;
-                            } else {
-                                // TODO: handle re-used or orphanded element
-                            }
-                        }
-                    }
-                });
+//                el.droppable({
+//                    accept: '.element, .content, .component, .widget, .node',
+//                    greedy: true,
+//                    hoverClass: 'structr-droppable-area',
+//                    iframeOffset: offset,
+//                    drop: function(e, ui) {
+//                        
+//                        e.preventDefault();
+//
+//                        var self = $(this);
+//                        var page = self.closest('.page')[0];
+//                        var pageId;
+//                        var pos;
+//
+//                        if (page) {
+//                            // we're in the main page
+//                            pageId = getId(page);
+//                            pos = $('.content, .element', self).length;
+//                        } else {
+//                            page = self.closest('[data-structr-page]')[0];
+//                            pageId = $(page).attr('data-structr-page');
+//                            pos = $('[data-structr-el]', self).length;
+//                        }
+//
+//                        var contentId = getId(ui.draggable);
+//                        var elementId = getId(self);
+//
+//                        if (!elementId) {
+//                            elementId = self.attr('data-structr-el');
+//                        }
+//
+//                        if (!contentId) {
+//                            tag = $(ui.draggable).text();
+//                            
+//                            _Dragndrop.dropAction();
+//                            
+//                            Command.createAndAppendDOMNode(pageId, elementId, (tag !== 'content' ? tag : ''), {});
+//                            return;
+//                        } else {
+//                            var baseUrl = 'http://' + remoteHost + ':' + remotePort;
+//
+//                            var obj = StructrModel.obj(contentId);
+//
+//                            if (obj.type === 'Widget') {
+//                                var source = obj.source;
+//                                Command.appendWidget(source, elementId, pageId, baseUrl);
+//                                return;
+//                            } else {
+//                                // TODO: handle re-used or orphanded element
+//                            }
+//                        }
+//                    }
+//                });
 
                 var structrId = el.attr('data-structr-el');
                 if (structrId) {
