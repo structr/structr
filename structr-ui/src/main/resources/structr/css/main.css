@@ -302,6 +302,7 @@ img.disabled {
 }
 
 #widgetsSlideout .local, #widgetsSlideout .remote {
+    min-height: 48px;
     padding: 0 24px 0 0;
 }
 

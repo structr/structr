@@ -656,7 +656,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 		renderContext.setPage(this);
 		
-		renderContext.getBuffer().append("<!DOCTYPE html>");
+		renderContext.getBuffer().append("<!DOCTYPE html>\n");
 		
 		// Skip DOCTYPE node
 		DOMNode subNode = (DOMNode) this.getFirstChild().getNextSibling();
@@ -672,16 +672,6 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 			
 		}
 
-//		// recursively render children
-//		for (AbstractRelationship rel : getChildRelationships()) {
-//
-//			DOMNode subNode = (DOMNode)rel.getEndNode();
-//
-//			if (subNode.isNotDeleted() && securityContext.isVisible(subNode)) {
-//
-//				subNode.render(securityContext, renderContext, depth);
-//			}
-//		}
 	}
 
 	@Override

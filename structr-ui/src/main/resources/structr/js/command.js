@@ -387,7 +387,7 @@ var Command = {
         return sendObj(obj);
     },
     /**
-     * Send an CREATE_COMPONENT command to the server.
+     * Send a CREATE_COMPONENT command to the server.
      * 
      * The server will transform the node into a reusable component.
      * 
@@ -400,7 +400,7 @@ var Command = {
         return sendObj(obj);
     },
     /**
-     * Send an CLONE_COMPONENT command to the server.
+     * Send a CLONE_COMPONENT command to the server.
      * 
      * The server will clone the component node with the given id
      * and append it to a the parent with given parentId.
@@ -417,7 +417,24 @@ var Command = {
         return sendObj(obj);
     },
     /**
-     * Send an CLONE_NODE command to the server.
+     * Send a CREATE_LOCAL_WIDGET command to the server.
+     * 
+     * The server will create a local widget element with the given
+     * name and source code.
+     */
+    createLocalWidget: function(id, name, source, callback) {
+        var obj = {};
+        obj.command = 'CREATE_LOCAL_WIDGET';
+        obj.id = id;
+        var data = {};
+        data.name = name;
+        data.source = source;
+        obj.data = data;
+        log('createLocalWidget()', obj);
+        return sendObj(obj, callback);
+    },
+    /**
+     * Send a CLONE_NODE command to the server.
      * 
      * The server will clone the DOM node with the given id
      * and append it to a the parent with given parentId.

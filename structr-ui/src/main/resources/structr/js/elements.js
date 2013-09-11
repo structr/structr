@@ -106,22 +106,38 @@ var _Elements = {
         widgetsSlideout.append('<div class="local"><h3>Local Widgets</h3></div>');
         var localWidgetsArea = $('.local', widgetsSlideout);
 
+        localWidgetsArea.droppable({
+            
+            drop : function(e, ui) {
+                var sourceEl = $(ui.draggable);
+                if (sourceEl.parent().attr('id') === 'widgets') {
+                    log('widget dropped on widget area, aborting');
+                    return false;
+                }
+                var sourceId = getId(sourceEl);
+                
+                $.ajax({
+                    url: viewRootUrl + sourceId + '?edit=3',
+                    contentType: 'text/html',
+                    statusCode: {
+                        200: function(data) {
+                            Command.createLocalWidget(sourceId, 'New Widget (' + sourceId + ')', data, function() {
+                                
+                                
+                            });
+                        }
+                    }
+                });
+                
+                
+            }
+            
+        });
+
+
         Command.list('Widget', 1000, 1, 'name', 'asc', function(entity) {
-
             StructrModel.create(entity, null, false);
-
-            var el = _Pages.appendElementElement(entity, localWidgetsArea, true);
-
-            el.draggable({
-//                iframeFix: true,
-                revert: 'invalid',
-//                containment: 'body',
-//                helper: 'clone',
-//                appendTo: '#main',
-//                stack: '.node',
-//                zIndex: 99
-            });
-
+            _Widgets.appendWidgetElement(entity, false, localWidgetsArea);
         });
 
         widgetsSlideout.append('<div class="remote"><h3>Remote Widgets</h3></div>');

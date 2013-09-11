@@ -286,7 +286,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 		renderStructrAppLib(buffer, securityContext, renderContext, depth);
 
-		if (!avoidWhitespace()) {
+		if (depth > 0 && !avoidWhitespace()) {
 
 			buffer.append(indent(depth));
 

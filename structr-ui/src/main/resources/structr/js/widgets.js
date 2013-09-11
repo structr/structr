@@ -183,6 +183,8 @@ var _Widgets = {
             div = Structr.node(widget.id);
             
         }
+        
+        if (!div) return;
 
         if (!remote) {
             _Entities.appendAccessControlIcon(div, widget);
