@@ -25,28 +25,40 @@ var sorting = false;
 var sortParent;
 
 var _Dragndrop = {
-
     /**
      * Make DOM element a target for drop events
      */
-    makeDroppable: function(el) {
+    makeDroppable: function(el, offset) {
+
+        var tag;
 
         el.droppable({
             iframeFix: true,
+            iframeOffset: offset,
             accept: '.node, .element, .content, .image, .file, .widget',
             greedy: true,
             hoverClass: 'nodeHover',
-            tolerance: 'pointer',
+            //tolerance: 'pointer',
             drop: function(e, ui) {
 
                 e.preventDefault();
                 e.stopPropagation();
 
                 var self = $(this);
-                el.sortable('refresh');
+                //if (el.sortable) el.sortable('refresh');
 
                 var sourceId = getId(ui.draggable) || getComponentId(ui.draggable);
+
+                if (!sourceId) {
+                    tag = $(ui.draggable).text();
+                }
+
                 var targetId = getId(self);
+
+                if (!targetId) {
+                    targetId = self.attr('data-structr-el');
+                }
+
 
                 log('dropped onto', self, targetId, getId(sortParent));
                 if (targetId === getId(sortParent)) {
@@ -61,9 +73,22 @@ var _Dragndrop = {
                 var target = StructrModel.obj(targetId);
 
                 var page = self.closest('.page')[0];
+                
+                if (!page) {
+                    page = self.closest('[data-structr-page]')[0];
+                }
                 var pageId = (page ? getId(page) : target.pageId);
 
-                if (_Dragndrop.dropAction(source, target, pageId, $(ui.draggable).text())) {
+                if (!pageId) {
+                    pageId = $(page).attr('data-structr-page');
+                }
+
+                if (!target) {
+                    return;
+                }
+
+
+                if (_Dragndrop.dropAction(source, target, pageId, tag)) {
                     $(ui.draggable).remove();
                 }
 
@@ -135,31 +160,31 @@ var _Dragndrop = {
     dropAction: function(source, target, pageId, tag) {
 
         if (source && !target) {
-            
+
             console.log('target is not defined, create component');
-            
-            
+
+
         }
 
         if (source && pageId && source.pageId && pageId !== source.pageId) {
-            
+
             if (shadowPage && source.pageId === shadowPage.id) {
-             
+
                 console.log('clone component!');
                 Command.cloneComponent(source.id, target.id);
-                
+
             } else {
-            
+
                 Command.appendChild(source.id, target.id, pageId);
                 console.log('dropped', source.id, 'onto', target.id, 'in page', pageId);
-                
+
             }
-            
+
             //Command.copyDOMNode(source.id, target.id);
             //_Entities.showSyncDialog(source, target);
             //_Elements.reloadComponents();
             return false;
-            
+
         }
 
         // element dropped on itself?
@@ -196,7 +221,7 @@ var _Dragndrop = {
             log('appendChild', source.id, target.id);
             sorting = false;
             Command.appendChild(source.id, target.id);
-            
+
             return true;
         }
 

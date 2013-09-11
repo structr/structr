@@ -85,11 +85,6 @@ import org.structr.rest.resource.NamedRelationResource;
 import org.structr.common.PagingHelper;
 import org.structr.rest.resource.Resource;
 import org.structr.rest.servlet.JsonRestServlet;
-import static org.structr.rest.servlet.JsonRestServlet.REQUEST_PARAMETER_OFFSET_ID;
-import static org.structr.rest.servlet.JsonRestServlet.REQUEST_PARAMETER_PAGE_NUMBER;
-import static org.structr.rest.servlet.JsonRestServlet.REQUEST_PARAMETER_PAGE_SIZE;
-import static org.structr.rest.servlet.JsonRestServlet.REQUEST_PARAMETER_SORT_KEY;
-import static org.structr.rest.servlet.JsonRestServlet.REQUEST_PARAMETER_SORT_ORDER;
 import org.structr.rest.servlet.ResourceHelper;
 import org.structr.web.entity.html.Body;
 import org.structr.web.common.GraphDataSource;
@@ -286,7 +281,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 		renderStructrAppLib(buffer, securityContext, renderContext, depth);
 
-		if (!avoidWhitespace()) {
+		if (depth > 0 && !avoidWhitespace()) {
 
 			buffer.append(indent(depth));
 
@@ -1167,11 +1162,11 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 				//securityContext.checkResourceAccess(request, resource.getResourceSignature(), resource.getGrant(request, response), PropertyView.Ui);
 
 				// add sorting & paging
-				String pageSizeParameter = request.getParameter(REQUEST_PARAMETER_PAGE_SIZE);
-				String pageParameter     = request.getParameter(REQUEST_PARAMETER_PAGE_NUMBER);
-				String offsetId          = request.getParameter(REQUEST_PARAMETER_OFFSET_ID);
-				String sortOrder         = request.getParameter(REQUEST_PARAMETER_SORT_ORDER);
-				String sortKeyName       = request.getParameter(REQUEST_PARAMETER_SORT_KEY);
+				String pageSizeParameter = request.getParameter(JsonRestServlet.REQUEST_PARAMETER_PAGE_SIZE);
+				String pageParameter     = request.getParameter(JsonRestServlet.REQUEST_PARAMETER_PAGE_NUMBER);
+				String offsetId          = request.getParameter(JsonRestServlet.REQUEST_PARAMETER_OFFSET_ID);
+				String sortOrder         = request.getParameter(JsonRestServlet.REQUEST_PARAMETER_SORT_ORDER);
+				String sortKeyName       = request.getParameter(JsonRestServlet.REQUEST_PARAMETER_SORT_KEY);
 				boolean sortDescending   = (sortOrder != null && "desc".equals(sortOrder.toLowerCase()));
 				int pageSize		 = parseInt(pageSizeParameter, NodeFactory.DEFAULT_PAGE_SIZE);
 				int page                 = parseInt(pageParameter, NodeFactory.DEFAULT_PAGE);
@@ -1392,7 +1387,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		
 			buffer
 				.append(indent(depth))
-				.append("<script type=\"text/javascript\" src=\"/structr/js/lib/jquery-1.10.2.min.js\"></script>")
+				.append("<script type=\"text/javascript\" src=\"/structr/js/lib/jquery-2.0.3.min.js\"></script>")
 				.append(indent(depth))
 				.append("<script type=\"text/javascript\" src=\"/structr/js/lib/jquery-ui-1.10.3.custom.min.js\"></script>")
 				.append(indent(depth))

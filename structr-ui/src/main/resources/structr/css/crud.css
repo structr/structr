@@ -1,7 +1,6 @@
 @charset "UTF-8";
 
 .resourceBox {
-    /*height: 600px;*/
     overflow: auto;
     border: 1px solid #999 ! important;
     background: #fff ! important;

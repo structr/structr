@@ -374,7 +374,7 @@ function getComments(el) {
                 }
             }
         }
-        f = f.nextSibling;
+        f = f ? f.nextSibling : f;
     }
     return comments;
 }

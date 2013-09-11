@@ -539,25 +539,22 @@ var _Pages = {
 
         $('#preview_' + entity.id).load(function() {
 
-            //var offset = $(this).offset();
+            var offset = $(this).offset();
 
             var doc = $(this).contents();
             var head = $(doc).find('head');
             if (head)
                 head.append('<style media="screen" type="text/css">'
                         + '* { z-index: 0}\n'
-                        + '.nodeHover { border: 1px dotted red; }\n'
+                        + '.nodeHover { -moz-box-shadow: 0 0 5px #888; -webkit-box-shadow: 0 0 5px #888; box-shadow: 0 0 5px #888; }\n'
                         //+ '.structr-content-container { display: inline-block; border: none; margin: 0; padding: 0; min-height: 10px; min-width: 10px; }\n'
                         + '.structr-content-container { min-height: .25em; min-width: .25em; }\n'
                         //		+ '.structr-element-container-active { display; inline-block; border: 1px dotted #e5e5e5; margin: -1px; padding: -1px; min-height: 10px; min-width: 10px; }\n'
                         //		+ '.structr-element-container { }\n'
-                        + '.structr-element-container-active:hover { border: 1px dotted red ! important; }\n'
-                        + '.structr-droppable-area { border: 1px dotted red ! important; }\n'
-                        + '.structr-editable-area { border: 1px dotted orange ! important; }\n'
+                        + '.structr-element-container-active:hover { -moz-box-shadow: 0 0 5px #888; -webkit-box-shadow: 0 0 5px #888; box-shadow: 0 0 5px #888; }\n'
+                        + '.nodeHover { -moz-box-shadow: 0 0 5px #888; -webkit-box-shadow: 0 0 5px #888; box-shadow: 0 0 5px #888; }\n'
+                        + '.structr-editable-area { background-color: #ffe; padding: 1px; margin: -1px; -moz-box-shadow: 0 0 5px #888; -webkit-box-shadow: 0 0 5px yellow; box-shadow: 0 0 5px #888; }\n'
                         + '.structr-editable-area-active { background-color: #ffe; border: 1px solid orange ! important; color: #333; margin: -1px; padding: 1px; }\n'
-                        //		+ '.structr-element-container-header { font-family: Arial, Helvetica, sans-serif ! important; position: absolute; font-size: 8pt; }\n'
-                        + '.structr-element-container-header { font-family: Arial, Helvetica, sans-serif ! important; position: absolute; font-size: 8pt; color: #333; border-radius: 5px; border: 1px solid #a5a5a5; padding: 3px 6px; margin: 6px 0 0 0; background-color: #eee; background: -webkit-gradient(linear, left bottom, left top, from(#ddd), to(#eee)) no-repeat; background: -moz-linear-gradient(90deg, #ddd, #eee) no-repeat; filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr="#eeeeee", EndColorStr="#dddddd", GradientType=0);\n'
-                        + '.structr-element-container-header img { width: 16px ! important; height: 16px ! important; }\n'
                         + '.link-hover { border: 1px solid #00c; }\n'
                         + '.edit_icon, .add_icon, .delete_icon, .close_icon, .key_icon {  cursor: pointer; heigth: 16px; width: 16px; vertical-align: top; float: right;  position: relative;}\n'
                         + '</style>');
@@ -576,87 +573,67 @@ var _Pages = {
 
             }
             droppables = iframeDocument.find('[data-structr-el]');
-
+            
             droppables.each(function(i, element) {
                 var el = $(element);
+                
+                _Dragndrop.makeDroppable(el, offset);
 
-                el.droppable({
-                    accept: '.element, .content, .component',
-                    greedy: true,
-                    hoverClass: 'structr-droppable-area',
-// this requires a patched jQuery, which we won't do anymore
-// TODO: Find a better solution for dropping elements in the iframe at the right place                    
-//                    iframeOffset: { 
-//                        'top' : offset.top,
-//                        'left' : offset.left
-//                    },
-                    drop: function(event, ui) {
-
-                        var self = $(this);
-                        var page = self.closest('.page')[0];
-                        var pageId;
-                        var pos;
-
-                        if (page) {
-
-                            // we're in the main page
-                            pageId = getId(page);
-                            pos = $('.content, .element', self).length;
-
-                            console.log('drop in main page (parent)');
-
-                        } else {
-
-                            // we're in the iframe
-                            page = self.closest('[data-structr-page]')[0];
-                            pageId = $(page).attr('data-structr-page');
-                            pos = $('[data-structr-el]', self).length;
-
-                            console.log('drop in iframe', page, pageId, pos);
-
-                        }
-
-                        var contentId = getId(ui.draggable);
-                        var elementId = getId(self);
-
-                        if (!elementId)
-                            elementId = self.attr('data-structr-el');
-
-                        console.log('contentId (draggable)', contentId, ', pageId', pageId, ', elementId', elementId);
-                        if (!contentId) {
-                            tag = $(ui.draggable).text();
-                            console.log(tag)
-                            Command.createAndAppendDOMNode(pageId, elementId, (tag !== 'content' ? tag : ''), {});
-                            return;
-                        } else {
-                            var baseUrl = 'http://' + remoteHost + ':' + remotePort;
-
-                            var obj = StructrModel.obj(contentId);
-
-                            console.log('widget?', obj.type === 'Widget');
-
-                            if (obj.type === 'Widget') {
-
-                                var source = obj.source;
-                                console.log('append widget', source, elementId, pageId, baseUrl);
-                                Command.appendWidget(source, elementId, pageId, baseUrl);
-                                return;
-
-                            } else {
-
-                                // TODO: handle re-used or orphanded element
-
-
-                            }
-                        }
-                    }
-
-                });
+//                el.droppable({
+//                    accept: '.element, .content, .component, .widget, .node',
+//                    greedy: true,
+//                    hoverClass: 'structr-droppable-area',
+//                    iframeOffset: offset,
+//                    drop: function(e, ui) {
+//                        
+//                        e.preventDefault();
+//
+//                        var self = $(this);
+//                        var page = self.closest('.page')[0];
+//                        var pageId;
+//                        var pos;
+//
+//                        if (page) {
+//                            // we're in the main page
+//                            pageId = getId(page);
+//                            pos = $('.content, .element', self).length;
+//                        } else {
+//                            page = self.closest('[data-structr-page]')[0];
+//                            pageId = $(page).attr('data-structr-page');
+//                            pos = $('[data-structr-el]', self).length;
+//                        }
+//
+//                        var contentId = getId(ui.draggable);
+//                        var elementId = getId(self);
+//
+//                        if (!elementId) {
+//                            elementId = self.attr('data-structr-el');
+//                        }
+//
+//                        if (!contentId) {
+//                            tag = $(ui.draggable).text();
+//                            
+//                            _Dragndrop.dropAction();
+//                            
+//                            Command.createAndAppendDOMNode(pageId, elementId, (tag !== 'content' ? tag : ''), {});
+//                            return;
+//                        } else {
+//                            var baseUrl = 'http://' + remoteHost + ':' + remotePort;
+//
+//                            var obj = StructrModel.obj(contentId);
+//
+//                            if (obj.type === 'Widget') {
+//                                var source = obj.source;
+//                                Command.appendWidget(source, elementId, pageId, baseUrl);
+//                                return;
+//                            } else {
+//                                // TODO: handle re-used or orphanded element
+//                            }
+//                        }
+//                    }
+//                });
 
                 var structrId = el.attr('data-structr-el');
-                //var type = el.prop('structr_type');
-                //  var name = el.prop('structr_name');
-//                var tag  = element.nodeName.toLowerCase();
                 if (structrId) {
 
                     $('.move_icon', el).on('mousedown', function(e) {

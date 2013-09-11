@@ -19,13 +19,9 @@
 
 package org.structr.web.entity;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import org.neo4j.graphdb.Direction;
 import org.structr.common.PropertyView;

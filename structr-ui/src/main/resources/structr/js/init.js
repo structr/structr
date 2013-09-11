@@ -180,8 +180,6 @@ $(document).ready(function() {
         }
     });     
     
-    Structr.resize();
-    
     $(window).on('resize', function() {
         Structr.resize();
     });
@@ -457,6 +455,10 @@ var Structr = {
         $('#dialogBox .dialogTextWrapper').css({
             width: bw,
             height: bh
+        });
+        
+        $('.fit-to-height').css({
+           height: h - 74 + 'px' 
         });
     },
 

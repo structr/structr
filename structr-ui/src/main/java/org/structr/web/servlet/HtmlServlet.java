@@ -256,8 +256,7 @@ public class HtmlServlet extends HttpServlet {
 
 					renderContext.setDetailsDataObject(dataNode);
 					
-					// Experimental: Start rendering on data node
-					// TODO: Export to Widget...
+					// Start rendering on data node
 					if (rootElement == null && dataNode instanceof DOMNode) {
 						
 						rootElement = ((DOMNode) dataNode);
