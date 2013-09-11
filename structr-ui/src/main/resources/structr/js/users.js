@@ -38,7 +38,8 @@ var _UsersAndGroups = {
         log('onload');
         if (palette) palette.remove();
 
-        main.append('<table><tr><td class="fit-to-height" id="users"></td><td class="fit-to-height" id="groups"></td></tr></table>');
+        //main.append('<table><tr><td class="fit-to-height" id="users"></td><td class="fit-to-height" id="groups"></td></tr></table>');
+        main.append('<div><div class="fit-to-height" id="users"></div><div class="fit-to-height" id="groups"></div></div>');
         groups = $('#groups');
         users = $('#users');
         _UsersAndGroups.refreshGroups();
@@ -195,13 +196,19 @@ var _UsersAndGroups = {
                 e.stopPropagation();
                 _UsersAndGroups.deleteUser(this, user);
             });
-
-			
+            
             div.draggable({
                 revert: 'invalid',
-                containment: '#main',
-                zIndex: 99
+                helper: 'clone',
+                //containment: '#main',
+                stack: '.node',
+                appendTo: '#main',
+                zIndex: 99,
+                stop : function(e,ui) {
+                    $('#pages_').droppable('enable').removeClass('nodeHover');
+                }
             });
+		
         }
         _Entities.appendEditPropertiesIcon(div, user);
         _Entities.setMouseOver(div);
