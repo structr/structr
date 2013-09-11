@@ -16,8 +16,6 @@ html {
 body {
     height: 100%;
     width: 100%;
-    overflow: auto;
-    overflow-x: hidden;
     margin: 0;
     padding: 0;
     font-family: Arial, Helvetica, Sans-serif;
@@ -26,7 +24,7 @@ body {
     background: #e5e5e5;
     background: -webkit-gradient(linear, left bottom, left top, from(#e3e3e3), to(#f3f3f3)) no-repeat;
     background: -moz-linear-gradient(90deg, #e3e3e3, #f3f3f3) no-repeat;
-	position: fixed;
+    position: fixed;
 }
 
 table, tr, td, th, tbody, thead {
@@ -181,8 +179,12 @@ img.disabled {
     padding: 6px;
 }
 
+#pagesTree {
+    overflow: auto;
+}
+
 #previews {
-    margin-left: 25px;
+	margin: 0 25px;
 }
 
 .slideOutLeft {
@@ -205,14 +207,18 @@ img.disabled {
 	overflow: visible ! important;
 	transform-style: preserve-3d;
 	-webkit-transform-style: preserve-3d;
-}
-
-.slideOut .compTab:hover {
-    color: #333 ! important;
     background-color: #e3e3e3;
     background: -webkit-gradient(linear, left bottom, left top, from(#ddd), to(#eee)) no-repeat;
     background: -moz-linear-gradient(90deg, #ddd, #eee) no-repeat;
     filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#eeeeee', EndColorStr='#dddddd', GradientType=0);
+}
+
+.slideOut .compTab:hover {
+    color: #333 ! important;
+    background-color: #f5f5f5;
+    background: -webkit-gradient(linear, left bottom, left top, from(#f3f3f3), to(#f7f7f7)) no-repeat;
+    background: -moz-linear-gradient(90deg, #f3f3f3, #f7f7f7) no-repeat;
+    filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#f7f7f7', EndColorStr='#f3f3f3', GradientType=0);
 }
 
 .slideOutRight .compTab {
@@ -511,8 +517,16 @@ ul#previewTabs {
     margin: 6px 0 0 0;
 }
 
-#data-tabs li {
+#data-tabs li, #tabs li {
     font-size: 1em;
+}
+
+.propTabContent {
+	display: none;
+}
+
+.propTabContent section {
+	padding: 24px 0 0 0;
 }
 
 #previewTabs img {
@@ -1050,7 +1064,7 @@ button img {
 }
 
 button.switch {
-    width: 240px;
+    min-width: 48px;
     margin-right: 12px;
     color: #444;
     font-weight: normal;
@@ -1060,6 +1074,11 @@ button.switch {
     background: -webkit-gradient(linear, left bottom, left top, from(#ccc), to(#e7e7e7)) no-repeat;
     background: -moz-linear-gradient(90deg, #ccc, #e7e7e7) no-repeat;
     filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#e7e7e7', EndColorStr='#cccccc', GradientType=0);
+}
+
+button.switch img {
+	margin-top: 2px;
+	vertical-align: top;
 }
 
 button.switch:hover {

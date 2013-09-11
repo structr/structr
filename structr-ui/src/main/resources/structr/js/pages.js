@@ -18,7 +18,7 @@
  */
 
 var pages, shadowPage;
-var previews, previewTabs, controls, palette, activeTab, activeTabLeft, activeTabRight, components, elements, widgetsSlideout;
+var previews, previewTabs, controls, palette, activeTab, activeTabLeft, activeTabRight, components, elements, widgetsSlideout, pagesSlideOut;
 var selStart, selEnd;
 var sel;
 var contentSourceId, elementSourceId, rootId;
@@ -48,29 +48,43 @@ var _Pages = {
 
         Structr.initPager('Page', 1, 25);
         Structr.initPager('File', 1, 25);
-        _Pages.resize();
 
     },
-    resize: function() {
+    resize: function(offsetLeft, offsetRight) {
 
-        var windowWidth = win.width();
-        var windowHeight = win.height();
-        var headerOffsetHeight = 100;
-        var previewOffset = 22;
+        var windowWidth = win.width(), windowHeight = win.height();
+        var headerOffsetHeight = 100,  previewOffset = 22;
 
         if (pages && palette) {
 
-            var rw = 65;
+            pages.css({
+                height: windowHeight - headerOffsetHeight - previewOffset + 'px'
+            })
 
             if (previews) {
 
+                if (offsetLeft) {
+                    previews.css({
+                        marginLeft: '+=' + offsetLeft + 'px'
+                    });
+                }
+
+                if (offsetRight) {
+                    previews.css({
+                        marginRight: '+=' + offsetRight + 'px'
+                    });
+                }
+
+                //console.log(offsetLeft, offsetRight, windowWidth, parseInt(previews.css('marginLeft')), parseInt(previews.css('marginRight')));
+                var w = windowWidth - parseInt(previews.css('marginLeft')) - parseInt(previews.css('marginRight')) -15 + 'px';
+
                 previews.css({
-                    width: windowWidth - rw + 'px',
-                    height: win.height() - headerOffsetHeight + 'px'
+                    width: w,
+                    height: windowHeight - headerOffsetHeight + 'px'
                 });
 
                 $('.previewBox', previews).css({
-                    width: windowWidth - rw + 'px',
+                    //width: w,
                     height: windowHeight - (headerOffsetHeight + previewOffset) + 'px'
                 });
 
@@ -100,7 +114,7 @@ var _Pages = {
                 + '<div id="components" class="slideOut slideOutRight"><div class="compTab" id="componentsTab">Reused Components</div></div>'
                 + '<div id="elements" class="slideOut slideOutRight"><div class="compTab" id="elementsTab">Orphaned Elements</div></div>');
 
-        pages = $('#pages');
+        pagesSlideOut = $('#pages');
         previews = $('#previews');
         widgetsSlideout = $('#widgetsSlideout');
         palette = $('#palette');
@@ -108,18 +122,19 @@ var _Pages = {
         elements = $('#elements');
 
         $('#pagesTab').on('click', function() {
-            if (pages.position().left === -412) {
-                _Pages.openLeftSlideOut(pages, this);
+            console.log('click on pagesTab')
+            if (pagesSlideOut.position().left === -412) {
+                _Pages.openLeftSlideOut(pagesSlideOut, this);
             } else {
-                _Pages.closeLeftSlideOuts([pages]);
+                _Pages.closeLeftSlideOuts([pagesSlideOut]);
             }
         }).droppable({
             tolerance: 'touch',
             over: function(e, ui) {
-                if (pages.position().left === -412) {
-                    _Pages.openLeftSlideOut(pages, this);
+                if (pagesSlideOut.position().left === -412) {
+                    _Pages.openLeftSlideOut(pagesSlideOut, this);
                 } else {
-                    _Pages.closeLeftSlideOuts([pages]);
+                    _Pages.closeLeftSlideOuts([pagesSlideOut]);
                 }
             }
         });
@@ -183,6 +198,13 @@ var _Pages = {
             }
         });
 
+        $('#controls', main).remove();
+
+        previews.append('<ul id="previewTabs"></ul>');
+        previewTabs = $('#previewTabs', previews);
+
+        _Pages.refresh();
+
         if (activeTabLeft) {
             $('#' + activeTabLeft).addClass('active').click();
         }
@@ -191,17 +213,11 @@ var _Pages = {
             $('#' + activeTabRight).addClass('active').click();
         }
 
-        $('#controls', main).remove();
-
-        previews.append('<ul id="previewTabs"></ul>');
-        previewTabs = $('#previewTabs', previews);
-
-        _Pages.refresh();
-
-        window.setTimeout('_Pages.resize()', 1000);
+        //window.setTimeout('_Pages.resize(0,0)', 100);
 
     },
     openSlideOut: function(slideout, tab, callback) {
+        _Pages.resize(0, 425);
         var s = $(slideout);
         var t = $(tab);
         t.addClass('active');
@@ -212,18 +228,25 @@ var _Pages = {
         }
     },
     closeSlideOuts: function(slideout) {
+        var wasOpen = false;
         slideout.forEach(function(w) {
             var s = $(w);
             var l = s.position().left;
             if (l + 1 !== $(window).width()) {
+                wasOpen = true;
                 //console.log('closing open slide-out', s);
                 s.animate({right: '-=425px'}, {duration: 100}).zIndex(2);
                 $('.compTab.active', s).removeClass('active');
             }
         });
+        if (wasOpen) {
+            _Pages.resize(0, -425);
+        }
+            
         localStorage.removeItem(activeTabRightKey);
     },
     openLeftSlideOut: function(slideout, tab, callback) {
+        _Pages.resize(412, 0);
         var s = $(slideout);
         var t = $(tab);
         t.addClass('active');
@@ -234,6 +257,7 @@ var _Pages = {
         }
     },
     closeLeftSlideOuts: function(slideout) {
+        _Pages.resize(-412, 0);
         slideout.forEach(function(w) {
             var s = $(w);
             var l = s.position().left;
@@ -253,8 +277,11 @@ var _Pages = {
     },
     refresh: function() {
 
-        pages.find(':not(.compTab)').remove();
+        pagesSlideOut.find(':not(.compTab)').remove();
         previewTabs.empty();
+
+        pagesSlideOut.append('<div id="pagesTree"></div>')
+        pages = $('#pagesTree', pagesSlideOut);
 
         Structr.addPager(pages, 'Page');
 
@@ -318,6 +345,8 @@ var _Pages = {
             //Command.create(entity);
             Command.createSimplePage();
         });
+        
+        //_Pages.resize(0,0)
 
     },
     addTab: function(entity) {

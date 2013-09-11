@@ -55,7 +55,7 @@ function isIn(s, array) {
 }
 
 function escapeForHtmlAttributes(str) {
-    if (!(typeof str === String)) return str;
+    if (!(typeof str === 'string')) return str;
     return str
             .replace(/&/g, '&amp;')
             .replace(/</g, '&lt;')
@@ -276,7 +276,7 @@ function formatValue(value) {
     
     //console.log('formatValue: ', value);
     
-    if (value === null) {
+    if (value === undefined || value === null) {
         return '';
     }
     

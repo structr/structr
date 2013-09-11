@@ -1051,12 +1051,18 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 	}
 
-	protected String replaceVariables(SecurityContext securityContext, RenderContext renderContext, String rawValue)
+	protected String replaceVariables(SecurityContext securityContext, RenderContext renderContext, Object rawValue)
 		throws FrameworkException {
 
 		String value = null;
+		
+		if (rawValue == null) {
+			
+			return null;
+			
+		}
 
-		if ((rawValue != null) && (rawValue instanceof String)) {
+		if (rawValue instanceof String) {
 
 			value = (String) rawValue;
 
@@ -1087,6 +1093,14 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 			}
 
+		} else if (rawValue instanceof Boolean) {
+			
+			value = Boolean.toString((Boolean) rawValue);
+			
+		} else {
+			
+			value = rawValue.toString();
+			
 		}
 
 //		if (value != null && renderContext.getEditMode() && renderContext.inBody()) {
