@@ -46,10 +46,6 @@ a:hover, a:active {
     color: #a5a5a5;
 }
 
-h2 {
-    color: white;
-}
-
 button {
     font-family: Arial, Helvetica, Sans-serif ! important;
 }
@@ -61,6 +57,10 @@ input {
 
 input[type="text"]:disabled, input.disabled {
 	background-color: #f0f0f0;
+}
+
+.fit-to-height {
+    overflow: auto;
 }
 
 #header {

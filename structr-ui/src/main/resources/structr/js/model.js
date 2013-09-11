@@ -48,6 +48,7 @@ var StructrModel = {
     create: function(data, refId, append) {
 
         log("StructrModel.create", data);
+        if (!data) return;
 
         var type = data.type;
         

@@ -38,11 +38,12 @@ var _UsersAndGroups = {
         log('onload');
         if (palette) palette.remove();
 
-        main.append('<table><tr><td id="users"></td><td id="groups"></td></tr></table>');
+        main.append('<table><tr><td class="fit-to-height" id="users"></td><td class="fit-to-height" id="groups"></td></tr></table>');
         groups = $('#groups');
         users = $('#users');
         _UsersAndGroups.refreshGroups();
         _UsersAndGroups.refreshUsers();
+        Structr.resize();
     },
     
     refreshGroups : function() {

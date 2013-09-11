@@ -172,7 +172,7 @@ var _Crud = {
         } else {
             _Crud.init();
         }
-    
+        
     },
 
     initTabs : function() {
@@ -197,6 +197,10 @@ var _Crud = {
                 _Crud.updateUrl(newType);
             }
         });
+        
+        _Crud.resize();
+    
+
     },
 
     isSchemaLoaded : function() {
@@ -1875,6 +1879,10 @@ var _Crud = {
         $('#dialogBox .dialogTextWrapper').css({
             width: bw,
             height: bh
+        });
+
+        $('.resourceBox').css({
+           height: h - 137 + 'px'     
         });
     },
 
