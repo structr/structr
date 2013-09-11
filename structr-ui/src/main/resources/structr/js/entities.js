@@ -93,15 +93,15 @@ var _Entities = {
         if (entity.type === 'Button') {
 
             // Buttons
-            
+
             _Entities.appendRowWithInputField(entity, t, 'data-structr-action', 'Action [create:&lt;Type&gt;|edit|delete]');
             _Entities.appendRowWithInputField(entity, t, 'data-structr-attributes', 'Attributes (for create and edit action)');
-            
+
             t.append('<tr><td>Reload</td><td id="reload"></td><td></td></tr>');
             _Entities.appendBooleanSwitch($('#reload', t), entity, 'data-structr-reload', '', 'If active, the page will refresh after a successfull action.');
-        
+
             if (entity['data-structr-action'] === 'delete') {
-                
+
                 // Delete button
                 t.append('<tr><td>Confirm on delete?</td><td id="confirmOnDel"></td><td></td></tr>');
                 _Entities.appendBooleanSwitch($('#confirmOnDel', t), entity, 'data-structr-confirm', '', 'If active, a user has to confirm the delete action.');
@@ -109,7 +109,7 @@ var _Entities = {
         } else if (entity.type === 'Input' || entity.type === 'Select' || entity.type === 'Textarea') {
             // Input fields
             _Entities.appendRowWithInputField(entity, t, 'data-structr-name', 'Field name (for create action)');
-            
+
         }
 
 //        _Entities.appendBooleanSwitch(el, entity, 'hideOnEdit', 'Hide in edit mode', 'If active, this node will not be visible in edit mode.');
@@ -118,7 +118,6 @@ var _Entities = {
         //_Entities.appendInput(dialog, entity, 'partialUpdateKey', 'Types to trigger partial update', '');
 
     },
-            
     appendRowWithInputField: function(entity, el, key, label) {
         el.append('<tr><td>' + label + '</td><td><input class="' + key + '_" name="' + key + '" value="' + formatValue(entity[key]) + '"></td><td><img class="nullIcon" id="null_' + key + '" src="icon/cross_small_grey.png"></td></tr>');
         var inp = $('[name="' + key + '"]', el);
@@ -134,7 +133,6 @@ var _Entities = {
         });
 
     },
-            
     queryDialog: function(entity, el) {
 
         el.append('<table class="props"></table>');
@@ -181,12 +179,13 @@ var _Entities = {
     },
     showProperties: function(entity) {
 
-        var views;
+        var views, activeView = 'ui';
 
         if (isIn(entity.type, ['Content', 'Page', 'User', 'Group', 'File', 'Folder', 'Widget'])) {
             views = ['ui', 'in', 'out'];
         } else {
             views = ['_html_', 'ui', 'in', 'out'];
+            activeView = '_html_';
         }
 
         var tabTexts = [];
@@ -196,12 +195,16 @@ var _Entities = {
         tabTexts.out = 'Outgoing Relationships';
 
         //dialog.empty();
-        Structr.dialog('Edit Properties of ' + (entity.name ? entity.name : entity.id), function() { return true; }, function() { return true; });
+        Structr.dialog('Edit Properties of ' + (entity.name ? entity.name : entity.id), function() {
+            return true;
+        }, function() {
+            return true;
+        });
 
         dialog.append('<div id="tabs"><ul></ul></div>');
         var mainTabs = $('#tabs', dialog);
 
-        if (!isIn(entity.type, ['User', 'Group', 'File', 'Folder', 'Widget'])) {
+        if (!isIn(entity.type, ['Content', 'User', 'Group', 'File', 'Folder', 'Widget'])) {
 
             _Entities.appendPropTab(mainTabs, 'query', 'Query and Data Binding', true, function(c) {
                 _Entities.queryDialog(entity, c);
@@ -212,8 +215,8 @@ var _Entities = {
                 _Entities.dataBindingDialog(entity, c);
             });
         }
-        
-        _Entities.appendViews(entity, views, tabTexts, mainTabs);
+
+        _Entities.appendViews(entity, views, tabTexts, mainTabs, activeView);
 
 
     },
@@ -246,7 +249,7 @@ var _Entities = {
         }
         return content;
     },
-    appendViews: function(entity, views, texts, tabs) {
+    appendViews: function(entity, views, texts, tabs, activeView) {
 
         $(views).each(function(i, view) {
 
@@ -263,100 +266,103 @@ var _Entities = {
                 var self = $(this);
                 tabs.children('div').hide();
                 $('li', tabs).removeClass('active');
-                $('#tabView-' + view).show();
                 self.addClass('active');
-            });
+                var tabView = $('#tabView-' + view);
+                tabView.show();
 
-            var tabView = $('#tabView-' + view);
-            $.ajax({
-                url: rootUrl + entity.id + (view ? '/' + view : '') + '?pageSize=10',
-                dataType: 'json',
-                contentType: 'application/json; charset=utf-8',
-                success: function(data) {
-                    // Default: Edit node id
-                    var id = entity.id;
-                    // ID of graph object to edit
-                    $(data.result).each(function(i, res) {
+                $.ajax({
+                    url: rootUrl + entity.id + (view ? '/' + view : '') + '?pageSize=10',
+                    dataType: 'json',
+                    contentType: 'application/json; charset=utf-8',
+                    success: function(data) {
+                        // Default: Edit node id
+                        var id = entity.id;
+                        // ID of graph object to edit
+                        $(data.result).each(function(i, res) {
 
-                        // reset id for each object group
-                        id = entity.id;
-                        var keys = Object.keys(res);
-                        tabView.append('<table class="props ' + view + ' ' + res['id'] + '_"></table>');
+                            // reset id for each object group
+                            id = entity.id;
+                            var keys = Object.keys(res);
+                            tabView.append('<table class="props ' + view + ' ' + res['id'] + '_"></table>');
 
-                        var props = $('.props.' + view + '.' + res['id'] + '_', tabView);
+                            var props = $('.props.' + view + '.' + res['id'] + '_', tabView);
 
-                        $(keys).each(function(i, key) {
+                            $(keys).each(function(i, key) {
 
-                            if (view === '_html_') {
-                                if (key !== 'id') {
-                                    props.append('<tr><td class="key">' + key.replace(view, '') + '</td>'
-                                            + '<td class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td><img class="nullIcon" id="null_' + key + '" src="icon/cross_small_grey.png"></td></tr>');
-                                }
-                            } else if (view === 'in' || view === 'out') {
-                                if (key === 'id') {
-                                    // set ID to rel ID
-                                    id = res[key];
-                                }
-                                props.append('<tr><td class="key">' + key + '</td><td rel_id="' + id + '" class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td><img class="nullIcon" id="null_' + key + '" src="icon/cross_small_grey.png"></td></tr>');
-                            } else {
-                                if (!key.startsWith('_html_') && !isIn(key, _Entities.hiddenAttrs)) {
-                                    if (isIn(key, _Entities.readOnlyAttrs)) {
-                                        props.append('<tr><td class="key">' + formatKey(key) + '</td>'
-                                                + '<td class="value ' + key + '_ readonly"><input type="text" class="readonly" readonly value="' + res[key] + '"></td><td></td></tr>');
-                                    } else if (isIn(key, _Entities.booleanAttrs)) {
-                                        props.append('<tr><td class="key">' + formatKey(key) + '</td><td><input type="checkbox" class="' + key + '_"></td><td></td></tr>');
-                                        var checkbox = $(props.find('.' + key + '_'));
-                                        checkbox.on('change', function() {
-                                            var checked = checkbox.prop('checked');
-                                            log('set property', id, key, checked);
-                                            Command.setProperty(id, key, checked);
-                                        });
-                                        Command.getProperty(id, key, '#dialogBox');
-                                    } else if (isIn(key, _Entities.dateAttrs)) {
-                                        if (!res[key] || res[key] === 'null') {
-                                            res[key] = '';
+                                if (view === '_html_') {
+                                    if (key !== 'id') {
+                                        props.append('<tr><td class="key">' + key.replace(view, '') + '</td>'
+                                                + '<td class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td><img class="nullIcon" id="null_' + key + '" src="icon/cross_small_grey.png"></td></tr>');
+                                    }
+                                } else if (view === 'in' || view === 'out') {
+                                    if (key === 'id') {
+                                        // set ID to rel ID
+                                        id = res[key];
+                                    }
+                                    props.append('<tr><td class="key">' + key + '</td><td rel_id="' + id + '" class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td><img class="nullIcon" id="null_' + key + '" src="icon/cross_small_grey.png"></td></tr>');
+                                } else {
+                                    if (!key.startsWith('_html_') && !isIn(key, _Entities.hiddenAttrs)) {
+                                        if (isIn(key, _Entities.readOnlyAttrs)) {
+                                            props.append('<tr><td class="key">' + formatKey(key) + '</td>'
+                                                    + '<td class="value ' + key + '_ readonly"><input type="text" class="readonly" readonly value="' + res[key] + '"></td><td></td></tr>');
+                                        } else if (isIn(key, _Entities.booleanAttrs)) {
+                                            props.append('<tr><td class="key">' + formatKey(key) + '</td><td><input type="checkbox" class="' + key + '_"></td><td></td></tr>');
+                                            var checkbox = $(props.find('.' + key + '_'));
+                                            checkbox.on('change', function() {
+                                                var checked = checkbox.prop('checked');
+                                                log('set property', id, key, checked);
+                                                Command.setProperty(id, key, checked);
+                                            });
+                                            Command.getProperty(id, key, '#dialogBox');
+                                        } else if (isIn(key, _Entities.dateAttrs)) {
+                                            if (!res[key] || res[key] === 'null') {
+                                                res[key] = '';
+                                            }
+                                            props.append('<tr><td class="key">' + formatKey(key) + '</td><td class="value ' + key + '_"><input class="dateField" name="' + key + '" type="text" value="' + res[key] + '"></td><td><img class="nullIcon" id="null_' + key + '" src="icon/cross_small_grey.png"></td></tr>');
+                                            var dateField = $(props.find('.dateField'));
+                                            dateField.datetimepicker({
+                                                showSecond: true,
+                                                timeFormat: 'hh:mm:ssz',
+                                                dateFormat: 'yy-mm-dd',
+                                                separator: 'T'
+                                            });
+                                        } else {
+                                            props.append('<tr><td class="key">' + formatKey(key) + '</td><td class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td><img class="nullIcon" id="null_' + key + '" src="icon/cross_small_grey.png"></td></tr>');
                                         }
-                                        props.append('<tr><td class="key">' + formatKey(key) + '</td><td class="value ' + key + '_"><input class="dateField" name="' + key + '" type="text" value="' + res[key] + '"></td><td><img class="nullIcon" id="null_' + key + '" src="icon/cross_small_grey.png"></td></tr>');
-                                        var dateField = $(props.find('.dateField'));
-                                        dateField.datetimepicker({
-                                            showSecond: true,
-                                            timeFormat: 'hh:mm:ssz',
-                                            dateFormat: 'yy-mm-dd',
-                                            separator: 'T'
-                                        });
-                                    } else {
-                                        props.append('<tr><td class="key">' + formatKey(key) + '</td><td class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td><img class="nullIcon" id="null_' + key + '" src="icon/cross_small_grey.png"></td></tr>');
                                     }
                                 }
-                            }
-                            
-                            var nullIcon = $('#null_' + key);
-                            nullIcon.on('click', function() {
-                                var key = $(this).prop('id').substring(5);
-                                Command.setProperty(id, key, null, false, function() {
-                                    var inp = $('.' + key + '_').find('input');
-                                    inp.val(null);
-                                    blinkGreen(inp);
-                                    dialogMsg.html('<div class="infoBox success">Property "' + key + '" was set to null.</div>');
-                                    $('.infoBox', dialogMsg).delay(2000).fadeOut(1000);
+
+                                var nullIcon = $('#null_' + key);
+                                nullIcon.on('click', function() {
+                                    var key = $(this).prop('id').substring(5);
+                                    Command.setProperty(id, key, null, false, function() {
+                                        var inp = $('.' + key + '_').find('input');
+                                        inp.val(null);
+                                        blinkGreen(inp);
+                                        dialogMsg.html('<div class="infoBox success">Property "' + key + '" was set to null.</div>');
+                                        $('.infoBox', dialogMsg).delay(2000).fadeOut(1000);
+                                    });
                                 });
                             });
+                            props.append('<tr><td class="key"><input type="text" class="newKey" name="key"></td><td class="value"><input type="text" value=""></td><td></td></tr>');
+                            $('.props tr td.value input', dialog).each(function(i, v) {
+                                _Entities.activateInput(v, id);
+                            });
                         });
-                        props.append('<tr><td class="key"><input type="text" class="newKey" name="key"></td><td class="value"><input type="text" value=""></td><td></td></tr>');
-                        $('.props tr td.value input', dialog).each(function(i, v) {
-                            _Entities.activateInput(v, id);
-                        });
-                    });
-                }
+                    }
+                });
+
             });
         });
+        
+        $('#tab-' + activeView).click();
 
     },
     activateInput: function(el, id) {
 
         var input = $(el);
         var relId = input.parent().attr('rel_id');
-        
+
         if (!input.hasClass('readonly') && !input.hasClass('newKey')) {
 
             input.on('focus', function() {
@@ -435,7 +441,7 @@ var _Entities = {
                 }, function() {
                 });
 
-                
+
 
                 _Entities.appendSimpleSelection(dialogText, entity, 'users', 'Owner', 'owner.id');
 
@@ -447,7 +453,7 @@ var _Entities = {
                     dialogText.append('<div>Apply visibility switches recursively? <input id="recursive" type="checkbox" name="recursive"></div><br>');
                 }
 
-                _Entities.appendBooleanSwitch(dialogText, entity, 'visibleToPublicUsers', ['Visible to public users','Not visible to public users'], 'Click to toggle visibility for users not logged-in', '#recursive');
+                _Entities.appendBooleanSwitch(dialogText, entity, 'visibleToPublicUsers', ['Visible to public users', 'Not visible to public users'], 'Click to toggle visibility for users not logged-in', '#recursive');
                 _Entities.appendBooleanSwitch(dialogText, entity, 'visibleToAuthenticatedUsers', ['Visible to auth. users', 'Not visible to auth. users'], 'Click to toggle visibility to logged-in users', '#recursive');
 
                 dialogText.append('<h3>Access Rights</h3>');

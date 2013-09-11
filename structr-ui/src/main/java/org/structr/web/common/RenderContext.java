@@ -69,7 +69,7 @@ public class RenderContext {
 	
 	public enum EditMode {
 	
-		NONE, DATA, CONTENT;
+		NONE, DATA, CONTENT, RAW;
 		
 	}
 	
@@ -104,6 +104,11 @@ public class RenderContext {
 				edit = EditMode.CONTENT;
 				break;
 				
+			case "3" :
+				
+				edit = EditMode.RAW;
+				break;
+
 			default :
 				
 				edit = EditMode.NONE;

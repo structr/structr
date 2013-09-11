@@ -122,7 +122,6 @@ var _Pages = {
         elements = $('#elements');
 
         $('#pagesTab').on('click', function() {
-            console.log('click on pagesTab')
             if (pagesSlideOut.position().left === -412) {
                 _Pages.openLeftSlideOut(pagesSlideOut, this);
             } else {

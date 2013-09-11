@@ -55,6 +55,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.Permission;
 import org.structr.web.common.RenderContext.EditMode;
+import static org.structr.web.entity.dom.DOMNode.hideOnDetail;
+import static org.structr.web.entity.dom.DOMNode.hideOnIndex;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -70,7 +72,6 @@ public class Content extends DOMNode implements Text {
 	public static final Property<String> contentType                                     = new StringProperty("contentType").indexed();
 	public static final Property<String> content                                         = new StringProperty("content").indexed();
 	public static final Property<Integer> size                                           = new IntProperty("size").indexed();
-	public static final Property<Boolean> editable                                       = new BooleanProperty("editable").indexed();
 	
 	private static final Map<String, Adapter<String, String>> contentConverters          = new LinkedHashMap<String, Adapter<String, String>>();
 
@@ -80,8 +81,8 @@ public class Content extends DOMNode implements Text {
 	private static final ThreadLocalMediaWikiProcessor mediaWikiProcessor                = new ThreadLocalMediaWikiProcessor();
 	private static final ThreadLocalConfluenceProcessor confluenceProcessor              = new ThreadLocalConfluenceProcessor();
 
-	public static final org.structr.common.View uiView                                   = new org.structr.common.View(Content.class, PropertyView.Ui, content, contentType, size, parent, pageId, editable);
-	public static final org.structr.common.View publicView                               = new org.structr.common.View(Content.class, PropertyView.Public, content, contentType, size, parent, pageId, editable);
+	public static final org.structr.common.View uiView                                   = new org.structr.common.View(Content.class, PropertyView.Ui, content, contentType, size, parent, pageId, hideOnDetail, hideOnIndex);
+	public static final org.structr.common.View publicView                               = new org.structr.common.View(Content.class, PropertyView.Public, content, contentType, size, parent, pageId, hideOnDetail, hideOnIndex);
 	//~--- static initializers --------------------------------------------
 
 	static {
@@ -184,7 +185,7 @@ public class Content extends DOMNode implements Text {
 		// fetch content with variable replacement
 		String _content = getPropertyWithVariableReplacement(securityContext, renderContext, Content.content);
 		
-		if (_contentType == null || ("text/plain".equals(_contentType))) {
+		if (!(EditMode.RAW.equals(edit)) && (_contentType == null || ("text/plain".equals(_contentType)))) {
 
 			_content = escapeForHtml(_content);
 

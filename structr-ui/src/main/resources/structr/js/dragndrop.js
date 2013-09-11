@@ -143,7 +143,18 @@ var _Dragndrop = {
 
         if (source && pageId && source.pageId && pageId !== source.pageId) {
             
-            Command.appendChild(source.id, target.id, pageId);
+            if (shadowPage && source.pageId === shadowPage.id) {
+             
+                console.log('clone component!');
+                Command.cloneComponent(source.id, target.id);
+                
+            } else {
+            
+                Command.appendChild(source.id, target.id, pageId);
+                console.log('dropped', source.id, 'onto', target.id, 'in page', pageId);
+                
+            }
+            
             //Command.copyDOMNode(source.id, target.id);
             //_Entities.showSyncDialog(source, target);
             //_Elements.reloadComponents();
@@ -182,7 +193,7 @@ var _Dragndrop = {
         } else {
 
             tag = target.tag;
-            console.log('appendChild', source.id, target.id);
+            log('appendChild', source.id, target.id);
             sorting = false;
             Command.appendChild(source.id, target.id);
             

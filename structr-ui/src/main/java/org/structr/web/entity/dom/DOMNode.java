@@ -70,11 +70,14 @@ import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.search.PropertySearchAttribute;
+import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.CollectionIdProperty;
 import org.structr.core.property.EntityIdProperty;
 import org.structr.core.property.ISO8601DateProperty;
+import org.structr.core.property.Property;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.common.RenderContext;
+import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.common.ThreadLocalMatcher;
 import org.structr.web.entity.PageData;
 import org.structr.web.entity.Renderable;
@@ -113,6 +116,9 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 	protected static final String NOT_SUPPORTED_ERR_MESSAGE_IMPORT_DOC      = "Document nodes cannot be imported into another document.";
 	protected static final String NOT_SUPPORTED_ERR_MESSAGE_ADOPT_DOC       = "Document nodes cannot be adopted by another document.";
 	protected static final String NOT_SUPPORTED_ERR_MESSAGE_RENAME          = "Renaming of nodes is not supported by this implementation.";
+
+	public static final Property<Boolean> hideOnIndex			= new BooleanProperty("hideOnIndex");
+	public static final Property<Boolean> hideOnDetail			= new BooleanProperty("hideOnDetail");
 	
 	protected static final Map<String, Function<String, String>> functions  = new LinkedHashMap<String, Function<String, String>>();
 	
@@ -1015,17 +1021,9 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 	}
 
-//	protected Object getEditModeValue(final SecurityContext securityContext, final RenderContext renderContext, final GraphObject dataObject, final PropertyKey referenceKeyProperty, final Object defaultValue) {
-//
-//		Object value = dataObject.getProperty(EntityContext.getPropertyKeyForJSONName(dataObject.getClass(), referenceKeyProperty.jsonName()));
-//		
-//		return value != null ? value : defaultValue;
-//		
-//	}
-	
 	protected String getPropertyWithVariableReplacement(SecurityContext securityContext, RenderContext renderContext, PropertyKey<String> key) throws FrameworkException {
 
-		return replaceVariables(securityContext, renderContext, super.getProperty(key));
+		return replaceVariables(securityContext, renderContext, getProperty(key));
 
 	}
 
@@ -1066,31 +1064,35 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 			value = (String) rawValue;
 
-			// re-use matcher from previous calls
-			Matcher matcher = threadLocalTemplateMatcher.get();
+			if (!(EditMode.RAW.equals(renderContext.getEditMode(securityContext.getUser(false))))) {
+			
+				// re-use matcher from previous calls
+				Matcher matcher = threadLocalTemplateMatcher.get();
 
-			matcher.reset(value);
+				matcher.reset(value);
 
-			while (matcher.find()) {
+				while (matcher.find()) {
 
-				String group  = matcher.group();
-				String source = group.substring(2, group.length() - 1);
+					String group  = matcher.group();
+					String source = group.substring(2, group.length() - 1);
 
-				// fetch referenced property
-				String partValue = extractFunctions(securityContext, renderContext, source);
+					// fetch referenced property
+					String partValue = extractFunctions(securityContext, renderContext, source);
 
-				if (partValue != null) {
+					if (partValue != null) {
 
-					value = value.replace(group, partValue);
-				} else {
-					
-					// If the whole expression should be replaced, and partValue is null
-					// replace it by null to make it possible for HTML attributes to not be rendered
-					// and avoid something like ... selected="" ... which is interpreted as selected==true by
-					// all browsers
-					value = value.equals(group) ? null : value.replace(group, "");
+						value = value.replace(group, partValue);
+					} else {
+
+						// If the whole expression should be replaced, and partValue is null
+						// replace it by null to make it possible for HTML attributes to not be rendered
+						// and avoid something like ... selected="" ... which is interpreted as selected==true by
+						// all browsers
+						value = value.equals(group) ? null : value.replace(group, "");
+					}
+
 				}
-
+			
 			}
 
 		} else if (rawValue instanceof Boolean) {
@@ -1103,15 +1105,6 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 			
 		}
 
-//		if (value != null && renderContext.getEditMode() && renderContext.inBody()) {
-//			
-//			GraphObject data = renderContext.getDataObject();
-//			if (data != null) {
-//				return "<span data-structr-raw-value=\"" + rawValue + "\" data-structr-data-id=\"" + data.getUuid() + "\">" + value + "</span>";
-//			}
-//			
-//		}
-		
 		return value;
 
 	}

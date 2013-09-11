@@ -400,6 +400,23 @@ var Command = {
         return sendObj(obj);
     },
     /**
+     * Send an CLONE_COMPONENT command to the server.
+     * 
+     * The server will clone the component node with the given id
+     * and append it to a the parent with given parentId.
+     * 
+     */
+    cloneComponent: function(id, parentId) {
+        var obj = {};
+        obj.command = 'CLONE_COMPONENT';
+        obj.id = id;
+        var data = {};
+        data.parentId = parentId;
+        obj.data = data;
+        log('cloneComponent()', obj);
+        return sendObj(obj);
+    },
+    /**
      * Send an CLONE_NODE command to the server.
      * 
      * The server will clone the DOM node with the given id
