@@ -801,7 +801,7 @@ var _Pages = {
                             e.stopPropagation();
                             var self = $(this);
                             var contentSourceId = self.attr('data-structr-id');
-                            var text = cleanText(self.html());
+                            var text = unescapeTags(cleanText(self.html()));
                             //Command.patch(contentSourceId, textBeforeEditing, text);
                             Command.setProperty(contentSourceId, 'content', text);
                             contentSourceId = null;

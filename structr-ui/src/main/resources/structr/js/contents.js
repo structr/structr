@@ -111,7 +111,7 @@ var _Contents = {
         //alert(contentType);
         var text1, text2, timer;
         editor = CodeMirror(contentBox.get(0), {
-            value: unescapeTags(text),
+            value: text,
             mode:  contentType,
             lineNumbers: true
         });
