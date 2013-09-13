@@ -18,7 +18,8 @@
  */
 
 var pages, shadowPage;
-var previews, previewTabs, controls, palette, activeTab, activeTabLeft, activeTabRight, components, elements, widgetsSlideout, pagesSlideOut;
+var previews, previewTabs, controls, activeTab, activeTabLeft, activeTabRight, paletteSlideOut, elementsSlideOut, componentsSlideOut, widgetsSlideout, pagesSlideOut;
+var components, elements;
 var selStart, selEnd;
 var sel;
 var contentSourceId, elementSourceId, rootId;
@@ -55,45 +56,42 @@ var _Pages = {
         var windowWidth = win.width(), windowHeight = win.height();
         var headerOffsetHeight = 100,  previewOffset = 22;
 
-        if (pages && palette) {
+        $('.ver-scrollable').css({
+            height: windowHeight - headerOffsetHeight + 'px'
+        });
 
-            pages.css({
-                height: windowHeight - headerOffsetHeight - previewOffset + 'px'
-            })
+        if (previews) {
 
-            if (previews) {
-
-                if (offsetLeft) {
-                    previews.css({
-                        marginLeft: '+=' + offsetLeft + 'px'
-                    });
-                }
-
-                if (offsetRight) {
-                    previews.css({
-                        marginRight: '+=' + offsetRight + 'px'
-                    });
-                }
-
-                //console.log(offsetLeft, offsetRight, windowWidth, parseInt(previews.css('marginLeft')), parseInt(previews.css('marginRight')));
-                var w = windowWidth - parseInt(previews.css('marginLeft')) - parseInt(previews.css('marginRight')) -15 + 'px';
-
+            if (offsetLeft) {
                 previews.css({
-                    width: w,
-                    height: windowHeight - headerOffsetHeight + 'px'
-                });
-
-                $('.previewBox', previews).css({
-                    //width: w,
-                    height: windowHeight - (headerOffsetHeight + previewOffset) + 'px'
-                });
-
-                var iframes = $('.previewBox', previews).find('iframe');
-                iframes.css({
-                    width: $('.previewBox', previews).width() + 'px',
-                    height: windowHeight - (headerOffsetHeight + previewOffset) + 'px'
+                    marginLeft: '+=' + offsetLeft + 'px'
                 });
             }
+
+            if (offsetRight) {
+                previews.css({
+                    marginRight: '+=' + offsetRight + 'px'
+                });
+            }
+
+            //console.log(offsetLeft, offsetRight, windowWidth, parseInt(previews.css('marginLeft')), parseInt(previews.css('marginRight')));
+            var w = windowWidth - parseInt(previews.css('marginLeft')) - parseInt(previews.css('marginRight')) -15 + 'px';
+
+            previews.css({
+                width: w,
+                height: windowHeight - headerOffsetHeight + 'px'
+            });
+
+            $('.previewBox', previews).css({
+                //width: w,
+                height: windowHeight - (headerOffsetHeight + previewOffset) + 'px'
+            });
+
+            var iframes = $('.previewBox', previews).find('iframe');
+            iframes.css({
+                width: $('.previewBox', previews).width() + 'px',
+                height: windowHeight - (headerOffsetHeight + previewOffset) + 'px'
+            });
         }
 
     },
@@ -114,12 +112,13 @@ var _Pages = {
                 + '<div id="components" class="slideOut slideOutRight"><div class="compTab" id="componentsTab">Reused Components</div></div>'
                 + '<div id="elements" class="slideOut slideOutRight"><div class="compTab" id="elementsTab">Orphaned Elements</div></div>');
 
-        pagesSlideOut = $('#pages');
-        previews = $('#previews');
-        widgetsSlideout = $('#widgetsSlideout');
-        palette = $('#palette');
-        components = $('#components');
-        elements = $('#elements');
+        previews        = $('#previews');
+        pagesSlideOut   = $('#pages');
+
+        widgetsSlideout     = $('#widgetsSlideout');
+        paletteSlideOut     = $('#palette');
+        componentsSlideOut  = $('#components');
+        elementsSlideOut    = $('#elements');
 
         $('#pagesTab').on('click', function() {
             if (pagesSlideOut.position().left === -412) {
@@ -140,7 +139,7 @@ var _Pages = {
 
         $('#widgetsTab').on('click', function() {
             if (widgetsSlideout.position().left + 1 === $(window).width()) {
-                _Pages.closeSlideOuts([palette, components, elements]);
+                _Pages.closeSlideOuts([paletteSlideOut, componentsSlideOut, elementsSlideOut]);
                 _Pages.openSlideOut(widgetsSlideout, this, function() {
                     _Elements.reloadWidgets();
                 });
@@ -150,31 +149,31 @@ var _Pages = {
         });
 
         $('#paletteTab').on('click', function() {
-            if (palette.position().left + 1 === $(window).width()) {
-                _Pages.closeSlideOuts([widgetsSlideout, components, elements]);
-                _Pages.openSlideOut(palette, this, function() {
+            if (paletteSlideOut.position().left + 1 === $(window).width()) {
+                _Pages.closeSlideOuts([widgetsSlideout, componentsSlideOut, elementsSlideOut]);
+                _Pages.openSlideOut(paletteSlideOut, this, function() {
                     _Elements.reloadPalette();
                 });
             } else {
-                _Pages.closeSlideOuts([palette]);
+                _Pages.closeSlideOuts([paletteSlideOut]);
             }
         });
 
         $('#componentsTab').on('click', function() {
-            if (components.position().left + 1 === $(window).width()) {
-                _Pages.closeSlideOuts([widgetsSlideout, palette, elements]);
-                _Pages.openSlideOut(components, this, function() {
+            if (componentsSlideOut.position().left + 1 === $(window).width()) {
+                _Pages.closeSlideOuts([widgetsSlideout, paletteSlideOut, elementsSlideOut]);
+                _Pages.openSlideOut(componentsSlideOut, this, function() {
                     _Elements.reloadComponents();
                 });
             } else {
-                _Pages.closeSlideOuts([components]);
+                _Pages.closeSlideOuts([componentsSlideOut]);
             }
         }).droppable({
             tolerance: 'touch',
             over: function(e, ui) {
-                if (components.position().left + 1 === $(window).width()) {
-                    _Pages.closeSlideOuts([widgetsSlideout, palette, elements]);
-                    _Pages.openSlideOut(components, this, function() {
+                if (componentsSlideOut.position().left + 1 === $(window).width()) {
+                    _Pages.closeSlideOuts([widgetsSlideout, paletteSlideOut, elementsSlideOut]);
+                    _Pages.openSlideOut(componentsSlideOut, this, function() {
                         _Elements.reloadComponents();
                     });
                 }
@@ -182,14 +181,14 @@ var _Pages = {
         });
 
         $('#elementsTab').on('click', function() {
-            if (elements.position().left + 1 === $(window).width()) {
+            if (elementsSlideOut.position().left + 1 === $(window).width()) {
                 $(this).addClass('active');
-                _Pages.closeSlideOuts([widgetsSlideout, palette, components]);
-                _Pages.openSlideOut(elements, this, function() {
+                _Pages.closeSlideOuts([widgetsSlideout, paletteSlideOut, componentsSlideOut]);
+                _Pages.openSlideOut(elementsSlideOut, this, function() {
                     _Elements.reloadUnattachedNodes();
                 });
             } else {
-                _Pages.closeSlideOuts([elements]);
+                _Pages.closeSlideOuts([elementsSlideOut]);
             }
 
         }).droppable({
@@ -279,7 +278,7 @@ var _Pages = {
         pagesSlideOut.find(':not(.compTab)').remove();
         previewTabs.empty();
 
-        pagesSlideOut.append('<div id="pagesTree"></div>')
+        pagesSlideOut.append('<div class="ver-scrollable" id="pagesTree"></div>')
         pages = $('#pagesTree', pagesSlideOut);
 
         Structr.addPager(pages, 'Page');

@@ -179,7 +179,7 @@ img.disabled {
     padding: 6px;
 }
 
-#pagesTree {
+.ver-scrollable {
     overflow: auto;
 }
 
@@ -243,22 +243,22 @@ img.disabled {
 }
 
 #widgetsTab {
-    left: -45px;
+    left: -44px;
     top: 60px;
 }
 
 #paletteTab {
-    left: -61px;
+    left: -60px;
     top: 146px;
 }
 
 #componentsTab {
-    left: -82px;
+    left: -81px;
     top: 270px;
 }
 
 #elementsTab {
-    left: -78px;
+    left: -77px;
     top: 411px;
 }
 
@@ -273,7 +273,8 @@ img.disabled {
     position: absolute;
     z-index: 2;
     right: -424px;
-    top: 72px;
+    top: 93px;
+    background-color: #f1f1f1;
 }
 
 .slideOutRight {
@@ -284,21 +285,19 @@ img.disabled {
 
 .slideOutLeft {
     left: -412px;
-    top: 93px;
     border-bottom-right-radius: 5px;
     border-top-right-radius: 5px;
     border-right: 1px solid #a5a5a5 ! important;
     border-top: 1px solid #a5a5a5 ! important;
     border-bottom: 1px solid #a5a5a5 ! important;
-    background-color: #f1f1f1;
 }
 
 #pages > div.node {
     width: 380px;
 }
 
-.slideOutRight > div.node {
-    width: 360px;
+.slideOutRight > .ver-scrollable {
+    width: 380px;
 }
 
 #widgetsSlideout .local, #widgetsSlideout .remote {

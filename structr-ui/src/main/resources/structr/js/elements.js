@@ -159,7 +159,10 @@ var _Elements = {
      */
     reloadPalette: function() {
 
-        //palette.empty();
+        paletteSlideOut.find(':not(.compTab)').remove();
+        paletteSlideOut.append('<div class="ver-scrollable" id="paletteArea"></div>')
+        palette = $('#paletteArea', paletteSlideOut);
+
         if (!$('.draggable', palette).length) {
 
             $(_Elements.elementGroups).each(function(i, group) {
@@ -187,7 +190,9 @@ var _Elements = {
      */
     reloadComponents: function() {
 
-        components.find(':not(.compTab)').remove();
+        componentsSlideOut.find(':not(.compTab)').remove();
+        componentsSlideOut.append('<div class="ver-scrollable" id="componentsArea"></div>')
+        components = $('#componentsArea', componentsSlideOut);
         
         Command.getByType('ShadowDocument', 1, 1, null, null, function(entity) {
             shadowPage = entity;
@@ -226,7 +231,9 @@ var _Elements = {
      */
     reloadUnattachedNodes: function() {
 
-        elements.find(':not(.compTab)').remove();
+        elementsSlideOut.find(':not(.compTab)').remove();
+        elementsSlideOut.append('<div class="ver-scrollable" id="elementsArea"></div>')
+        elements = $('#elementsArea', elementsSlideOut);
 
         elements.append('<button class="btn" id="delete-all-unattached-nodes">Delete all</button>');
 
