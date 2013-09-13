@@ -137,16 +137,16 @@ public class Content extends DOMNode implements Text {
 			}
 
 		});
-		contentConverters.put("text/plain", new Adapter<String, String>() {
-
-			@Override
-			public String adapt(String s) throws FrameworkException {
-
-				return StringEscapeUtils.escapeHtml(s);
-
-			}
-
-		});
+//		contentConverters.put("text/plain", new Adapter<String, String>() {
+//
+//			@Override
+//			public String adapt(String s) throws FrameworkException {
+//
+//				return StringEscapeUtils.escapeHtml(s);
+//
+//			}
+//
+//		});
 
 	}
 
