@@ -95,41 +95,6 @@ public class FixComponentsCommand extends AbstractCommand {
 		return "FIX_LOST_COMPONENTS";
 
 	}
-
-	private ShadowDocument getOrCreateHiddenDocument() throws FrameworkException {
-		
-		SecurityContext securityContext = SecurityContext.getSuperUserInstance();
-
-		Result result = (Result) Services.command(securityContext, SearchNodeCommand.class).execute(
-			Search.andExactType(ShadowDocument.class)
-		);
-
-		if (result.isEmpty()) {
-
-			final CreateNodeCommand cmd  = Services.command(securityContext, CreateNodeCommand.class);
-			final PropertyMap properties = new PropertyMap();
-			properties.put(AbstractNode.type, ShadowDocument.class.getSimpleName());
-			properties.put(AbstractNode.name, "__ShadowDocument__");
-			properties.put(AbstractNode.hidden, true);
-			properties.put(AbstractNode.visibleToAuthenticatedUsers, true);
-		
-			ShadowDocument doc = Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<ShadowDocument>() {
-
-				@Override
-				public ShadowDocument execute() throws FrameworkException {
-
-					return (ShadowDocument) cmd.execute(properties);
-				}		
-			});
-	
-			return doc;
-
-		}
-		
-		return (ShadowDocument) result.get(0);
-		
-		
-	}
 	
 	/**
 	 * Iterate over all DOM nodes and connect all nodes to the shadow document which
@@ -182,20 +147,4 @@ public class FixComponentsCommand extends AbstractCommand {
 
 	}
 
-	private void moveChildNodes(final DOMNode sourceNode, final DOMNode targetNode) {
-		
-		DOMNode child = (DOMNode) sourceNode.getFirstChild();
-		
-		while (child != null) {
-			
-			DOMNode next = (DOMNode) child.getNextSibling();
-			
-			targetNode.appendChild(child);
-			
-			child = next;
-			
-		}
-		
-	}
-	
 }
