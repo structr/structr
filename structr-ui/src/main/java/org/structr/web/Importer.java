@@ -335,7 +335,7 @@ public class Importer {
 
 //                              type    = "Content";
 				tag     = "";
-				content = ((TextNode) node).toString().trim();
+				content = ((TextNode) node).getWholeText();
 
 				// Don't add content node for whitespace
 				if (StringUtils.isBlank(content)) {
