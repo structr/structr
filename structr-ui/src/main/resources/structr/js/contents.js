@@ -116,6 +116,7 @@ var _Contents = {
             lineNumbers: true
         });
         editor.focus();
+        Structr.resize();
         
         dialogBtn.append('<button id="editorSave">Save</button>');
         dialogBtn.append('<button id="saveAndClose"> Save and close</button>');

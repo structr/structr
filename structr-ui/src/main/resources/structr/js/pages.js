@@ -18,7 +18,8 @@
  */
 
 var pages, shadowPage;
-var previews, previewTabs, controls, activeTab, activeTabLeft, activeTabRight, paletteSlideOut, elementsSlideOut, componentsSlideOut, widgetsSlideout, pagesSlideOut;
+var previews, previewTabs, controls, activeTab, activeTabLeft, activeTabRight, paletteSlideout, elementsSlideout, componentsSlideout, widgetsSlideout, pagesSlideout;
+var lsw, rsw;
 var components, elements;
 var selStart, selEnd;
 var sel;
@@ -95,6 +96,7 @@ var _Pages = {
         }
 
     },
+            
     onload: function() {
 
         _Pages.init();
@@ -113,33 +115,36 @@ var _Pages = {
                 + '<div id="elements" class="slideOut slideOutRight"><div class="compTab" id="elementsTab">Orphaned Elements</div></div>');
 
         previews        = $('#previews');
-        pagesSlideOut   = $('#pages');
+        pagesSlideout   = $('#pages');
 
         widgetsSlideout     = $('#widgetsSlideout');
-        paletteSlideOut     = $('#palette');
-        componentsSlideOut  = $('#components');
-        elementsSlideOut    = $('#elements');
+        paletteSlideout     = $('#palette');
+        componentsSlideout  = $('#components');
+        elementsSlideout    = $('#elements');
+
+        lsw = pagesSlideout.width() + 12;
+        rsw = widgetsSlideout.width() + 12;
 
         $('#pagesTab').on('click', function() {
-            if (pagesSlideOut.position().left === -412) {
-                _Pages.openLeftSlideOut(pagesSlideOut, this);
+            if (pagesSlideout.position().left === -lsw) {
+                _Pages.openLeftSlideOut(pagesSlideout, this);
             } else {
-                _Pages.closeLeftSlideOuts([pagesSlideOut]);
+                _Pages.closeLeftSlideOuts([pagesSlideout]);
             }
         }).droppable({
             tolerance: 'touch',
             over: function(e, ui) {
-                if (pagesSlideOut.position().left === -412) {
-                    _Pages.openLeftSlideOut(pagesSlideOut, this);
+                if (pagesSlideout.position().left === -lsw) {
+                    _Pages.openLeftSlideOut(pagesSlideout, this);
                 } else {
-                    _Pages.closeLeftSlideOuts([pagesSlideOut]);
+                    _Pages.closeLeftSlideOuts([pagesSlideout]);
                 }
             }
         });
 
         $('#widgetsTab').on('click', function() {
-            if (widgetsSlideout.position().left + 1 === $(window).width()) {
-                _Pages.closeSlideOuts([paletteSlideOut, componentsSlideOut, elementsSlideOut]);
+            if (widgetsSlideout.position().left === $(window).width()) {
+                _Pages.closeSlideOuts([paletteSlideout, componentsSlideout, elementsSlideout]);
                 _Pages.openSlideOut(widgetsSlideout, this, function() {
                     _Elements.reloadWidgets();
                 });
@@ -149,31 +154,31 @@ var _Pages = {
         });
 
         $('#paletteTab').on('click', function() {
-            if (paletteSlideOut.position().left + 1 === $(window).width()) {
-                _Pages.closeSlideOuts([widgetsSlideout, componentsSlideOut, elementsSlideOut]);
-                _Pages.openSlideOut(paletteSlideOut, this, function() {
+            if (paletteSlideout.position().left === $(window).width()) {
+                _Pages.closeSlideOuts([widgetsSlideout, componentsSlideout, elementsSlideout]);
+                _Pages.openSlideOut(paletteSlideout, this, function() {
                     _Elements.reloadPalette();
                 });
             } else {
-                _Pages.closeSlideOuts([paletteSlideOut]);
+                _Pages.closeSlideOuts([paletteSlideout]);
             }
         });
 
         $('#componentsTab').on('click', function() {
-            if (componentsSlideOut.position().left + 1 === $(window).width()) {
-                _Pages.closeSlideOuts([widgetsSlideout, paletteSlideOut, elementsSlideOut]);
-                _Pages.openSlideOut(componentsSlideOut, this, function() {
+            if (componentsSlideout.position().left === $(window).width()) {
+                _Pages.closeSlideOuts([widgetsSlideout, paletteSlideout, elementsSlideout]);
+                _Pages.openSlideOut(componentsSlideout, this, function() {
                     _Elements.reloadComponents();
                 });
             } else {
-                _Pages.closeSlideOuts([componentsSlideOut]);
+                _Pages.closeSlideOuts([componentsSlideout]);
             }
         }).droppable({
             tolerance: 'touch',
             over: function(e, ui) {
-                if (componentsSlideOut.position().left + 1 === $(window).width()) {
-                    _Pages.closeSlideOuts([widgetsSlideout, paletteSlideOut, elementsSlideOut]);
-                    _Pages.openSlideOut(componentsSlideOut, this, function() {
+                if (componentsSlideout.position().left === $(window).width()) {
+                    _Pages.closeSlideOuts([widgetsSlideout, paletteSlideout, elementsSlideout]);
+                    _Pages.openSlideOut(componentsSlideout, this, function() {
                         _Elements.reloadComponents();
                     });
                 }
@@ -181,14 +186,14 @@ var _Pages = {
         });
 
         $('#elementsTab').on('click', function() {
-            if (elementsSlideOut.position().left + 1 === $(window).width()) {
+            if (elementsSlideout.position().left === $(window).width()) {
                 $(this).addClass('active');
-                _Pages.closeSlideOuts([widgetsSlideout, paletteSlideOut, componentsSlideOut]);
-                _Pages.openSlideOut(elementsSlideOut, this, function() {
+                _Pages.closeSlideOuts([widgetsSlideout, paletteSlideout, componentsSlideout]);
+                _Pages.openSlideOut(elementsSlideout, this, function() {
                     _Elements.reloadUnattachedNodes();
                 });
             } else {
-                _Pages.closeSlideOuts([elementsSlideOut]);
+                _Pages.closeSlideOuts([elementsSlideout]);
             }
 
         }).droppable({
@@ -215,11 +220,11 @@ var _Pages = {
 
     },
     openSlideOut: function(slideout, tab, callback) {
-        _Pages.resize(0, 425);
+        _Pages.resize(0, rsw);
         var s = $(slideout);
         var t = $(tab);
         t.addClass('active');
-        s.animate({right: '+=425px'}, {duration: 100}).zIndex(1);
+        s.animate({right: '+=' + rsw + 'px'}, {duration: 100}).zIndex(1);
         localStorage.setItem(activeTabRightKey, t.prop('id'));
         if (callback) {
             callback();
@@ -230,37 +235,37 @@ var _Pages = {
         slideout.forEach(function(w) {
             var s = $(w);
             var l = s.position().left;
-            if (l + 1 !== $(window).width()) {
+            if (l !== $(window).width()) {
                 wasOpen = true;
                 //console.log('closing open slide-out', s);
-                s.animate({right: '-=425px'}, {duration: 100}).zIndex(2);
+                s.animate({right: '-=' + rsw + 'px'}, {duration: 100}).zIndex(2);
                 $('.compTab.active', s).removeClass('active');
             }
         });
         if (wasOpen) {
-            _Pages.resize(0, -425);
+            _Pages.resize(0, -rsw);
         }
             
         localStorage.removeItem(activeTabRightKey);
     },
     openLeftSlideOut: function(slideout, tab, callback) {
-        _Pages.resize(412, 0);
+        _Pages.resize(lsw, 0);
         var s = $(slideout);
         var t = $(tab);
         t.addClass('active');
-        s.animate({left: '+=412px'}, {duration: 100}).zIndex(1);
+        s.animate({left: '+=' + lsw + 'px'}, {duration: 100}).zIndex(1);
         localStorage.setItem(activeTabLeftKey, t.prop('id'));
         if (callback) {
             callback();
         }
     },
     closeLeftSlideOuts: function(slideout) {
-        _Pages.resize(-412, 0);
+        _Pages.resize(-lsw, 0);
         slideout.forEach(function(w) {
             var s = $(w);
             var l = s.position().left;
-            if (l + 1 !== $(window).width()) {
-                s.animate({left: '-=412px'}, {duration: 100}).zIndex(2);
+            if (l !== $(window).width()) {
+                s.animate({left: '-=' + lsw + 'px'}, {duration: 100}).zIndex(2);
                 $('.compTab.active', s).removeClass('active');
             }
         });
@@ -275,11 +280,11 @@ var _Pages = {
     },
     refresh: function() {
 
-        pagesSlideOut.find(':not(.compTab)').remove();
+        pagesSlideout.find(':not(.compTab)').remove();
         previewTabs.empty();
 
-        pagesSlideOut.append('<div class="ver-scrollable" id="pagesTree"></div>')
-        pages = $('#pagesTree', pagesSlideOut);
+        pagesSlideout.append('<div class="ver-scrollable" id="pagesTree"></div>')
+        pages = $('#pagesTree', pagesSlideout);
 
         Structr.addPager(pages, 'Page');
 
@@ -537,9 +542,6 @@ var _Pages = {
         });
 
         $('#preview_' + entity.id).load(function() {
-
-            var offset = $(this).offset();
-
             var doc = $(this).contents();
             var head = $(doc).find('head');
             if (head)
@@ -552,85 +554,16 @@ var _Pages = {
                         //		+ '.structr-element-container { }\n'
                         + '.structr-element-container-active:hover { -moz-box-shadow: 0 0 5px #888; -webkit-box-shadow: 0 0 5px #888; box-shadow: 0 0 5px #888; }\n'
                         + '.nodeHover { -moz-box-shadow: 0 0 5px #888; -webkit-box-shadow: 0 0 5px #888; box-shadow: 0 0 5px #888; }\n'
-                        + '.structr-editable-area { background-color: #ffe; padding: 1px; margin: -1px; -moz-box-shadow: 0 0 5px #888; -webkit-box-shadow: 0 0 5px yellow; box-shadow: 0 0 5px #888; }\n'
+                        + '.structr-editable-area { color: #222; background-color: #ffe; padding: 1px; margin: -1px; -moz-box-shadow: 0 0 5px #888; -webkit-box-shadow: 0 0 5px yellow; box-shadow: 0 0 5px #888; }\n'
                         + '.structr-editable-area-active { background-color: #ffe; border: 1px solid orange ! important; color: #333; margin: -1px; padding: 1px; }\n'
                         + '.link-hover { border: 1px solid #00c; }\n'
                         + '.edit_icon, .add_icon, .delete_icon, .close_icon, .key_icon {  cursor: pointer; heigth: 16px; width: 16px; vertical-align: top; float: right;  position: relative;}\n'
                         + '</style>');
 
-            var iframeDocument = $(this).contents();
-            //var iframeWindow = this.contentWindow;
-
-            var droppables = iframeDocument.find('[data-structr-el]');
-
-            if (droppables.length === 0) {
-
-                //iframeDocument.append('<html structr_element_id="' + entity.id + '">dummy element</html>');
-                var html = iframeDocument.find('html');
-                html.attr('data-structr-el', entity.id);
-                html.addClass('structr-element-container');
-
-            }
-            droppables = iframeDocument.find('[data-structr-el]');
-            
-            droppables.each(function(i, element) {
+            _Pages.findDroppablesInIframe($(this).contents(), entity.id).each(function(i, element) {
                 var el = $(element);
                 
-                _Dragndrop.makeDroppable(el, offset);
-
-//                el.droppable({
-//                    accept: '.element, .content, .component, .widget, .node',
-//                    greedy: true,
-//                    hoverClass: 'structr-droppable-area',
-//                    iframeOffset: offset,
-//                    drop: function(e, ui) {
-//                        
-//                        e.preventDefault();
-//
-//                        var self = $(this);
-//                        var page = self.closest('.page')[0];
-//                        var pageId;
-//                        var pos;
-//
-//                        if (page) {
-//                            // we're in the main page
-//                            pageId = getId(page);
-//                            pos = $('.content, .element', self).length;
-//                        } else {
-//                            page = self.closest('[data-structr-page]')[0];
-//                            pageId = $(page).attr('data-structr-page');
-//                            pos = $('[data-structr-el]', self).length;
-//                        }
-//
-//                        var contentId = getId(ui.draggable);
-//                        var elementId = getId(self);
-//
-//                        if (!elementId) {
-//                            elementId = self.attr('data-structr-el');
-//                        }
-//
-//                        if (!contentId) {
-//                            tag = $(ui.draggable).text();
-//                            
-//                            _Dragndrop.dropAction();
-//                            
-//                            Command.createAndAppendDOMNode(pageId, elementId, (tag !== 'content' ? tag : ''), {});
-//                            return;
-//                        } else {
-//                            var baseUrl = 'http://' + remoteHost + ':' + remotePort;
-//
-//                            var obj = StructrModel.obj(contentId);
-//
-//                            if (obj.type === 'Widget') {
-//                                var source = obj.source;
-//                                Command.appendWidget(source, elementId, pageId, baseUrl);
-//                                return;
-//                            } else {
-//                                // TODO: handle re-used or orphanded element
-//                            }
-//                        }
-//                    }
-//                });
+                _Dragndrop.makeDroppable(el, entity.id);
 
                 var structrId = el.attr('data-structr-el');
                 if (structrId) {
@@ -639,33 +572,13 @@ var _Pages = {
                         e.stopPropagation();
                         var self = $(this);
                         var element = self.closest('[data-structr-el]');
-                        //var element = self.children('.structr-node');
                         log(element);
                         var entity = Structr.entity(structrId, element.prop('data-structr-el'));
                         entity.type = element.prop('data-structr_type');
                         entity.name = element.prop('data-structr_name');
                         log('move', entity);
-                        //var parentId = element.prop('structr_element_id');
                         self.parent().children('.structr-node').show();
                     });
-
-                    //                    $('b', el).on('click', function(e) {
-                    //                        e.stopPropagation();
-                    //                        var self = $(this);
-                    //                        var element = self.closest('[data-structr_element_id]');
-                    //                        var entity = Structr.entity(structrId, element.prop('structr_element_id'));
-                    //                        entity.type = element.prop('structr_type');
-                    //                        entity.name = element.prop('structr_name');
-                    //                        log('edit', entity);
-                    //                        //var parentId = element.prop('structr_element_id');
-                    //                        log(element);
-                    ////                        Structr.dialog('Edit Properties of ' + entity.id, function() {
-                    ////                            log('save')
-                    ////                        }, function() {
-                    ////                            log('cancelled')
-                    ////                        });
-                    //                        _Entities.showProperties(entity);
-                    //                    });
 
                     $('.delete_icon', el).on('click', function(e) {
                         e.stopPropagation();
@@ -686,20 +599,7 @@ var _Pages = {
                         mouseover: function(e) {
                             e.stopPropagation();
                             var self = $(this);
-                            //self.off('click');
-
                             self.addClass('structr-element-container-active');
-
-                            //                            self.parent().children('.structr-element-container-header').remove();
-                            //
-                            //                            self.append('<div class="structr-element-container-header">'
-                            //                                + '<img class="typeIcon" src="/structr/'+ _Elements.icon + '">'
-                            //                                + '<b class="name_">' + name + '</b> <span class="id">' + structrId + '</b>'
-                            //                                + '<img class="delete_icon structr-container-button" title="Delete ' + structrId + '" alt="Delete ' + structrId + '" src="/structr/icon/delete.png">'
-                            //                                + '<img class="edit_icon structr-container-button" title="Edit properties of ' + structrId + '" alt="Edit properties of ' + structrId + '" src="/structr/icon/application_view_detail.png">'
-                            //                                + '<img class="move_icon structr-container-button" title="Move ' + structrId + '" alt="Move ' + structrId + '" src="/structr/icon/arrow_move.png">'
-                            //                                + '</div>'
-                            //                                );
 
                             var node = Structr.node(structrId);
                             if (node) {
@@ -733,7 +633,6 @@ var _Pages = {
                 }
             });
 
-            //$(this).contents().find('[data-structr-id]').each(function(i,element) {
             $(this).contents().find('*').each(function(i, element) {
 
                 getComments(element).forEach(function(c) {
@@ -822,6 +721,7 @@ var _Pages = {
             hoverClass: 'nodeHover',
             tolerance: 'pointer',
             drop: function(event, ui) {
+        
                 var self = $(this);
                 console.log('dropped onto', self);
                 // Only html elements are allowed, and only if none exists
@@ -890,6 +790,17 @@ var _Pages = {
 
         return div;
 
+    },
+    findDroppablesInIframe: function(iframeDocument, id) {
+        var droppables = iframeDocument.find('[data-structr-el]');
+        if (droppables.length === 0) {
+            //iframeDocument.append('<html structr_element_id="' + entity.id + '">dummy element</html>');
+            var html = iframeDocument.find('html');
+            html.attr('data-structr-el', id);
+            html.addClass('structr-element-container');
+        }
+        droppables = iframeDocument.find('[data-structr-el]');
+        return droppables;
     },
     appendElementElement: function(entity, refNode, refNodeIsParent) {
         log('_Pages.appendElementElement(', entity, refNode, refNodeIsParent, ');')

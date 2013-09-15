@@ -61,7 +61,6 @@ var _Widgets = {
         _Widgets.init();
         
         log('onload');
-        if (palette) palette.remove();
 
         main.append('<div id="dropArea"><div class="fit-to-height" id="widgets"></div><div class="fit-to-height" id="remoteWidgets"></div></div>');
         widgets = $('#widgets');
@@ -245,7 +244,6 @@ var _Widgets = {
     },
 
     editWidget : function (button, entity, text, element) {
-        
         if (isDisabled(button)) return;
         var div = element.append('<div class="editor"></div>');
         log(div);
@@ -256,6 +254,8 @@ var _Widgets = {
             lineNumbers: true
         });
         editor.focus();
+        Structr.resize();
+
         dialogBtn.append('<button id="editorSave">Save Widget</button>');
 
         $('#editorSave', dialogBtn).on('click', function() {
@@ -312,6 +312,5 @@ var _Widgets = {
         });
         
         editor.id = entity.id;
-
     }
 };

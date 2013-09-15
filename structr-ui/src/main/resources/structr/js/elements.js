@@ -103,10 +103,10 @@ var _Elements = {
 
         widgetsSlideout.find(':not(.compTab)').remove();
 
-        widgetsSlideout.append('<div class="local"><h3>Local Widgets</h3></div>');
-        var localWidgetsArea = $('.local', widgetsSlideout);
+        widgetsSlideout.append('<div class="ver-scrollable"><div id="widgets"><h3>Local Widgets</h3></div><div id="remoteWidgets"><h3>Remote Widgets</h3></div></div>');
+        widgets = $('#widgets', widgetsSlideout);
 
-        localWidgetsArea.droppable({
+        widgets.droppable({
             
             drop : function(e, ui) {
                 var sourceEl = $(ui.draggable);
@@ -121,8 +121,9 @@ var _Elements = {
                     contentType: 'text/html',
                     statusCode: {
                         200: function(data) {
-                            Command.createLocalWidget(sourceId, 'New Widget (' + sourceId + ')', data, function() {
+                            Command.createLocalWidget(sourceId, 'New Widget (' + sourceId + ')', data, function(entity) {
                                 
+                                //_Widgets.appendWidgetElement(entity, false, localWidgetsArea);
                                 
                             });
                         }
@@ -137,11 +138,10 @@ var _Elements = {
 
         Command.list('Widget', 1000, 1, 'name', 'asc', function(entity) {
             StructrModel.create(entity, null, false);
-            _Widgets.appendWidgetElement(entity, false, localWidgetsArea);
+            _Widgets.appendWidgetElement(entity, false, widgets);
         });
 
-        widgetsSlideout.append('<div class="remote"><h3>Remote Widgets</h3></div>');
-        var remoteWidgetsArea = $('.remote', widgetsSlideout);
+        var remoteWidgetsArea = $('#remoteWidgets', widgetsSlideout);
         var baseUrl = 'http://widgets.structr.org:8084/structr/rest/widgets';
         _Widgets.getRemoteWidgets(baseUrl, function(entity) {
 
@@ -159,9 +159,9 @@ var _Elements = {
      */
     reloadPalette: function() {
 
-        paletteSlideOut.find(':not(.compTab)').remove();
-        paletteSlideOut.append('<div class="ver-scrollable" id="paletteArea"></div>')
-        palette = $('#paletteArea', paletteSlideOut);
+        paletteSlideout.find(':not(.compTab)').remove();
+        paletteSlideout.append('<div class="ver-scrollable" id="paletteArea"></div>')
+        palette = $('#paletteArea', paletteSlideout);
 
         if (!$('.draggable', palette).length) {
 
@@ -190,9 +190,9 @@ var _Elements = {
      */
     reloadComponents: function() {
 
-        componentsSlideOut.find(':not(.compTab)').remove();
-        componentsSlideOut.append('<div class="ver-scrollable" id="componentsArea"></div>')
-        components = $('#componentsArea', componentsSlideOut);
+        componentsSlideout.find(':not(.compTab)').remove();
+        componentsSlideout.append('<div class="ver-scrollable" id="componentsArea"></div>')
+        components = $('#componentsArea', componentsSlideout);
         
         Command.getByType('ShadowDocument', 1, 1, null, null, function(entity) {
             shadowPage = entity;
@@ -231,9 +231,9 @@ var _Elements = {
      */
     reloadUnattachedNodes: function() {
 
-        elementsSlideOut.find(':not(.compTab)').remove();
-        elementsSlideOut.append('<div class="ver-scrollable" id="elementsArea"></div>')
-        elements = $('#elementsArea', elementsSlideOut);
+        elementsSlideout.find(':not(.compTab)').remove();
+        elementsSlideout.append('<div class="ver-scrollable" id="elementsArea"></div>')
+        elements = $('#elementsArea', elementsSlideout);
 
         elements.append('<button class="btn" id="delete-all-unattached-nodes">Delete all</button>');
 

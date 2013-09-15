@@ -71,7 +71,11 @@ function escapeTags(str) {
 
 function unescapeTags(str) {
     if (!str) return str;
-    return str.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+    return str
+            .replace(/&nbsp;/g, ' ')
+            .replace(/&amp;/g, '&')
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>');
 }
 
 $.fn.reverse = [].reverse;

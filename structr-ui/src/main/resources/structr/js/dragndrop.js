@@ -28,19 +28,21 @@ var _Dragndrop = {
     /**
      * Make DOM element a target for drop events
      */
-    makeDroppable: function(el, offset) {
+    makeDroppable: function(el, previewId) {
 
         var tag;
-
+        var offset = $('#preview_' + previewId).offset();
+        
         el.droppable({
             iframeFix: true,
             iframeOffset: offset,
             accept: '.node, .element, .content, .image, .file, .widget',
             greedy: true,
             hoverClass: 'nodeHover',
+            //appendTo: 'body',
             //tolerance: 'pointer',
             drop: function(e, ui) {
-
+                
                 e.preventDefault();
                 e.stopPropagation();
 
@@ -218,11 +220,19 @@ var _Dragndrop = {
         } else {
 
             tag = target.tag;
-            log('appendChild', source.id, target.id);
-            sorting = false;
-            Command.appendChild(source.id, target.id);
+            
+            
+            if (source && target && source.id && target.id) {
+            
+                sorting = false;
+                log('appendChild', source, target);
+                Command.appendChild(source.id, target.id);
 
-            return true;
+                return true;
+                
+            } else {
+                console.log('unknown situation', source, target);
+            }
         }
 
         log('drop event in appendElementElement', pageId, getId(self), (tag !== 'content' ? tag : ''));

@@ -689,7 +689,7 @@ var _Entities = {
 
         if (!allowClick) {
             node.on('click', function(e) {
-                e.stopPropagation();
+                return false;
             });
         }
 
@@ -729,16 +729,15 @@ var _Entities = {
             mouseout: function(e) {
                 e.stopPropagation();
                 $('#componentId_' + nodeId).removeClass('nodeHover');
-                if (isComponent)
+                if (isComponent) {
                     $('#id_' + nodeId).removeClass('nodeHover');
-
+                }
                 if (syncedNodes && syncedNodes.length) {
                     syncedNodes.forEach(function(s) {
                         $('#id_' + s).removeClass('nodeHover');
                         $('#componentId_' + s).removeClass('nodeHover');
                     });
                 }
-
                 _Entities.resetMouseOverState(this);
             }
         });

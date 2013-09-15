@@ -80,7 +80,6 @@ var _Files = {
         _Files.init();
         
         log('onload');
-        if (palette) palette.remove();
 
         //main.append('<table id="dropArea"><tr><td id="folders"></td><td id="files"></td><td id="images"></td></tr></table>');
         main.append('<div id="dropArea"><div class="fit-to-height" id="folders"></div><div class="fit-to-height" id="files"></div>');
