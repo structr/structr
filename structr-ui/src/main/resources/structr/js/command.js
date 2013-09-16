@@ -386,6 +386,17 @@ var Command = {
         log('createAndAppendDOMNode()', obj);
         return sendObj(obj);
     },
+    wrapContent: function(pageId, parentId, tagName) {
+        var obj = {};
+        obj.command = 'WRAP_CONTENT';
+        obj.pageId = pageId;
+        var data = {};
+        data.parentId = parentId;
+        data.tagName = tagName;
+        obj.data = data;
+        log('wrapContentInElement()', obj);
+        return sendObj(obj);
+    },
     /**
      * Send a CREATE_COMPONENT command to the server.
      * 

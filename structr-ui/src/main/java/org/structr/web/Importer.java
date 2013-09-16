@@ -61,11 +61,8 @@ import org.structr.web.entity.dom.Page;
 
 import java.io.IOException;
 import java.io.StringWriter;
-
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.text.ParseException;
-
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -335,10 +332,11 @@ public class Importer {
 
 //                              type    = "Content";
 				tag     = "";
-				content = ((TextNode) node).toString().trim();
+				//content = ((TextNode) node).getWholeText();
+				content = ((TextNode) node).text();
 
-				// Don't add content node for whitespace
-				if (StringUtils.isBlank(content)) {
+				// Add content node for whitespace within <p> elements only
+				if (!("p".equals(startNode.nodeName().toLowerCase())) && StringUtils.isWhitespace(content)) {
 
 					continue;
 				}

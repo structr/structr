@@ -36,7 +36,6 @@ var _UsersAndGroups = {
         _UsersAndGroups.init();
         //Structr.activateMenuEntry('usersAndGroups');
         log('onload');
-        if (palette) palette.remove();
 
         //main.append('<table><tr><td class="fit-to-height" id="users"></td><td class="fit-to-height" id="groups"></td></tr></table>');
         main.append('<div><div class="fit-to-height" id="users"></div><div class="fit-to-height" id="groups"></div></div>');

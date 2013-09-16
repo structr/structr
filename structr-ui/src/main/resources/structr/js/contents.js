@@ -53,16 +53,7 @@ var _Contents = {
         var div = Structr.node(content.id);
     
         _Dragndrop.makeSortable(div);
-    
-//        div.draggable({
-//            revert: 'invalid',
-//            //containment: '#pages',
-//            stack: '.node',
-//            //helper: 'clone',
-//            start: function(event, ui) {
-//                $(this).draggable(disable);
-//            }
-//        });
+        _Dragndrop.makeDroppable(div);
         
         _Entities.appendAccessControlIcon(div, content);
 
@@ -111,11 +102,12 @@ var _Contents = {
         //alert(contentType);
         var text1, text2, timer;
         editor = CodeMirror(contentBox.get(0), {
-            value: unescapeTags(text),
+            value: text,
             mode:  contentType,
             lineNumbers: true
         });
         editor.focus();
+        Structr.resize();
         
         dialogBtn.append('<button id="editorSave">Save</button>');
         dialogBtn.append('<button id="saveAndClose"> Save and close</button>');

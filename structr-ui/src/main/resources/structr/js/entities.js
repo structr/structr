@@ -87,6 +87,7 @@ var _Entities = {
         // General
         _Entities.appendRowWithInputField(entity, t, 'data-structr-container', 'Container (set to ${this.uuid})');
         _Entities.appendRowWithInputField(entity, t, 'data-structr-attr', 'Attribute Key (if set, render input field in edit mode)');
+        _Entities.appendRowWithInputField(entity, t, 'data-structr-type', 'Data type (e.g. Date, Boolean; default: String)');
         _Entities.appendRowWithInputField(entity, t, 'data-structr-raw-value', 'Raw value (unformatted value for Date or Number fields)');
         _Entities.appendRowWithInputField(entity, t, 'data-structr-hide', 'Hide [edit|non-edit|edit,non-edit]');
 
@@ -97,13 +98,13 @@ var _Entities = {
             _Entities.appendRowWithInputField(entity, t, 'data-structr-action', 'Action [create:&lt;Type&gt;|edit|delete]');
             _Entities.appendRowWithInputField(entity, t, 'data-structr-attributes', 'Attributes (for create and edit action)');
 
-            t.append('<tr><td>Reload</td><td id="reload"></td><td></td></tr>');
+            t.append('<tr><td class="key">Reload</td><td class="value"id="reload"></td><td></td></tr>');
             _Entities.appendBooleanSwitch($('#reload', t), entity, 'data-structr-reload', '', 'If active, the page will refresh after a successfull action.');
 
             if (entity['data-structr-action'] === 'delete') {
 
                 // Delete button
-                t.append('<tr><td>Confirm on delete?</td><td id="confirmOnDel"></td><td></td></tr>');
+                t.append('<tr><td class="key">Confirm on delete?</td><td class="value" id="confirmOnDel"></td><td></td></tr>');
                 _Entities.appendBooleanSwitch($('#confirmOnDel', t), entity, 'data-structr-confirm', '', 'If active, a user has to confirm the delete action.');
             }
         } else if (entity.type === 'Input' || entity.type === 'Select' || entity.type === 'Textarea') {
@@ -119,7 +120,7 @@ var _Entities = {
 
     },
     appendRowWithInputField: function(entity, el, key, label) {
-        el.append('<tr><td>' + label + '</td><td><input class="' + key + '_" name="' + key + '" value="' + formatValue(entity[key]) + '"></td><td><img class="nullIcon" id="null_' + key + '" src="icon/cross_small_grey.png"></td></tr>');
+        el.append('<tr><td class="key">' + label + '</td><td class="value"><input class="' + key + '_" name="' + key + '" value="' + formatValue(entity[key]) + '"></td><td><img class="nullIcon" id="null_' + key + '" src="icon/cross_small_grey.png"></td></tr>');
         var inp = $('[name="' + key + '"]', el);
         _Entities.activateInput(inp, entity.id);
         var nullIcon = $('#null_' + key, el);
@@ -138,13 +139,13 @@ var _Entities = {
         el.append('<table class="props"></table>');
         var t = $('.props', el);
 
-        t.append('<tr><td>Query auto-limit</td><td id="queryAutoLimit"></td></tr>');
-        t.append('<tr><td>Hide in index mode</td><td id="hideIndexMode"></td></tr>');
-        t.append('<tr><td>Hide in details mode</td><td id="hideDetailsMode"></td></tr>');
+        t.append('<tr><td class="key">Query auto-limit</td><td class="value" id="queryAutoLimit"></td></tr>');
+        t.append('<tr><td class="key">Hide in index mode</td><td  class="value" id="hideIndexMode"></td></tr>');
+        t.append('<tr><td class="key">Hide in details mode</td><td  class="value" id="hideDetailsMode"></td></tr>');
 
-        _Entities.appendBooleanSwitch($('#queryAutoLimit', t), entity, 'renderDetails', ['Query is limited', 'Query is not limited'], 'Click to toggle whether the query result should be limited to the object with the ID the URL ends with.');
-        _Entities.appendBooleanSwitch($('#hideIndexMode', t), entity, 'hideOnIndex', ['Hidden in index mode', 'Visible in index mode'], 'Click to toggle whether this node should be hidden if URL does not end with an ID');
-        _Entities.appendBooleanSwitch($('#hideDetailsMode', t), entity, 'hideOnDetail', ['Hidden in details mode', 'Visible in details mode'], 'Click to toggle whether this node should be hidden if URL ends with an ID.');
+        _Entities.appendBooleanSwitch($('#queryAutoLimit', t), entity, 'renderDetails', ['Query is limited', 'Query is not limited'], 'Limit result to the object with the ID the URL ends with.');
+        _Entities.appendBooleanSwitch($('#hideIndexMode', t), entity, 'hideOnIndex', ['Hidden in index mode', 'Visible in index mode'], 'if URL does not end with an ID');
+        _Entities.appendBooleanSwitch($('#hideDetailsMode', t), entity, 'hideOnDetail', ['Hidden in details mode', 'Visible in details mode'], 'if URL ends with an ID.');
 
         el.append('<div id="data-tabs"><ul><li class="active" id="tab-rest">REST Query</li><li id="tab-cypher">Cypher Query</li><li id="tab-xpath">XPath Query</li></ul>'
                 + '<div id="content-tab-rest"></div><div id="content-tab-cypher"></div><div id="content-tab-xpath"></div></div>');
@@ -689,7 +690,7 @@ var _Entities = {
 
         if (!allowClick) {
             node.on('click', function(e) {
-                e.stopPropagation();
+                return false;
             });
         }
 
@@ -729,16 +730,15 @@ var _Entities = {
             mouseout: function(e) {
                 e.stopPropagation();
                 $('#componentId_' + nodeId).removeClass('nodeHover');
-                if (isComponent)
+                if (isComponent) {
                     $('#id_' + nodeId).removeClass('nodeHover');
-
+                }
                 if (syncedNodes && syncedNodes.length) {
                     syncedNodes.forEach(function(s) {
                         $('#id_' + s).removeClass('nodeHover');
                         $('#componentId_' + s).removeClass('nodeHover');
                     });
                 }
-
                 _Entities.resetMouseOverState(this);
             }
         });

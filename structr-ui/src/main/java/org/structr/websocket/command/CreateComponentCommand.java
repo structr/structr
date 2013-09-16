@@ -23,16 +23,10 @@ package org.structr.websocket.command;
 import org.structr.web.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Result;
 import org.structr.core.Services;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.CreateRelationshipCommand;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
-import org.structr.core.graph.search.Search;
-import org.structr.core.graph.search.SearchNodeCommand;
-import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.ShadowDocument;
 import org.structr.websocket.StructrWebSocket;
@@ -111,53 +105,5 @@ public class CreateComponentCommand extends AbstractCommand {
 
 	}
 
-	private void moveChildNodes(final DOMNode sourceNode, final DOMNode targetNode) {
-		
-		DOMNode child = (DOMNode) sourceNode.getFirstChild();
-		
-		while (child != null) {
-			
-			targetNode.appendChild(child);
-			
-			child = (DOMNode) child.getNextSibling();
-			
-		}
-		
-	}
-	
-	private ShadowDocument getOrCreateHiddenDocument() throws FrameworkException {
-		
-		SecurityContext securityContext = SecurityContext.getSuperUserInstance();
 
-		Result result = (Result) Services.command(securityContext, SearchNodeCommand.class).execute(
-			Search.andExactType(ShadowDocument.class)
-		);
-
-		if (result.isEmpty()) {
-
-			final CreateNodeCommand cmd  = Services.command(securityContext, CreateNodeCommand.class);
-			final PropertyMap properties = new PropertyMap();
-			properties.put(AbstractNode.type, ShadowDocument.class.getSimpleName());
-			properties.put(AbstractNode.name, "__ShadowDocument__");
-			properties.put(AbstractNode.hidden, true);
-			properties.put(AbstractNode.visibleToAuthenticatedUsers, true);
-		
-			ShadowDocument doc = Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<ShadowDocument>() {
-
-				@Override
-				public ShadowDocument execute() throws FrameworkException {
-
-					return (ShadowDocument) cmd.execute(properties);
-				}		
-			});
-	
-			return doc;
-
-		}
-		
-		return (ShadowDocument) result.get(0);
-		
-		
-	}
-	
 }

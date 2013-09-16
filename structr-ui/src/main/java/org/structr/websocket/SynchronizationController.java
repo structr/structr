@@ -35,13 +35,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.servlet.http.HttpServletRequest;
-import org.apache.commons.lang.StringUtils;
-import org.apache.lucene.search.BooleanClause.Occur;
 import org.eclipse.jetty.util.URIUtil;
 
 import org.eclipse.jetty.websocket.WebSocket.Connection;
-import static org.mockito.Mockito.mock;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.event.PropertyEntry;
 import org.neo4j.graphdb.event.TransactionData;
@@ -49,28 +45,17 @@ import org.neo4j.graphdb.event.TransactionEventHandler;
 import org.structr.common.AccessMode;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
 import static org.structr.core.EntityContext.getPropertyKeyForDatabaseName;
-import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeService;
 import org.structr.core.graph.RelationshipFactory;
-import org.structr.core.graph.search.Search;
-import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.SearchAttributeGroup;
-import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.rest.ResourceProvider;
-import org.structr.web.common.RenderContext;
 import org.structr.web.entity.User;
-import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
-import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.html.Html;
-import org.w3c.dom.Node;
 
 /**
  *
@@ -127,7 +112,7 @@ public class SynchronizationController implements StructrTransactionListener, Tr
 		String message;
 		String pagePath = (String) webSocketData.getNodeData().get("pagePath");
 
-		//synchronized (clients) {
+		synchronized (clients) {
 
 			// create message
 			for (StructrWebSocket socket : clients) {
@@ -192,7 +177,7 @@ public class SynchronizationController implements StructrTransactionListener, Tr
 				}
 
 			}
-		//}
+		}
 
 	}
 
