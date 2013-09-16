@@ -398,7 +398,20 @@ public abstract class AbstractRelationProperty<T> extends Property<T> {
 			Class relationshipClass = rel.getClass();
 			boolean isGeneric = factoryDefinition.isGeneric(relationshipClass);
 
-			if ((!isGeneric && newRelationshipClass.isAssignableFrom(relationshipClass)) || targetType.isAssignableFrom(rel.getOtherNode(sourceNode).getClass())) {
+			AbstractNode otherNode = rel.getOtherNode(sourceNode);
+			Class otherClass = otherNode.getClass();
+			boolean removeRel = targetType.isAssignableFrom(otherClass) || (!isGeneric && newRelationshipClass.isAssignableFrom(relationshipClass));
+			
+			if (!removeRel) {
+				
+				// Check interfaces
+				for (Class iface : EntityContext.getInterfacesForType(targetType)) {
+
+					removeRel |= iface.isAssignableFrom(otherClass);
+				}
+			}
+			
+			if (removeRel) {
 
 				deleteRel.execute(rel);
 			}
@@ -422,7 +435,20 @@ public abstract class AbstractRelationProperty<T> extends Property<T> {
 			Class relationshipClass = rel.getClass();
 			boolean isGeneric = factoryDefinition.isGeneric(relationshipClass);
 
-			if ((!isGeneric && newRelationshipClass.isAssignableFrom(relationshipClass)) || sourceType.isAssignableFrom(rel.getOtherNode(targetNode).getClass())) {
+			AbstractNode otherNode = rel.getOtherNode(targetNode);
+			Class otherClass = otherNode.getClass();
+			boolean removeRel = sourceType.isAssignableFrom(otherClass) || (!isGeneric && newRelationshipClass.isAssignableFrom(relationshipClass));
+			
+			if (!removeRel) {
+				
+				// Check interfaces
+				for (Class iface : EntityContext.getInterfacesForType(sourceType)) {
+
+					removeRel |= iface.isAssignableFrom(otherClass);
+				}
+			}
+			
+			if (removeRel) {
 
 				deleteRel.execute(rel);
 			}
