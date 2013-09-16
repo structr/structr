@@ -222,13 +222,13 @@ function StructrApp(baseUrl) {
                 var prop = key.split('.');
                 var local = prop[0];
                 var related = prop[1];
-                console.log('related property (key, value)', local, related);
+                //console.log('related property (key, value)', local, related);
                 
                 key = local;
                 s.data[id][local] = {};
                 s.data[id][local][related] = f.val;
                 
-            } else if (f.type === 'Boolean') {
+            } else if (f && f.type === 'Boolean') {
                 
                 s.data[id][key] = (f.val === true ? true : false);
                 
@@ -242,7 +242,7 @@ function StructrApp(baseUrl) {
                 
             }
         });
-        console.log('PUT', structrRestUrl + id, s.data[id]);
+        //console.log('PUT', structrRestUrl + id, s.data[id]);
         s.request('PUT', structrRestUrl + id, s.data[id], false, 'Successfully updated ' + id, 'Could not update ' + id, function() {
             s.cancelEditAction(btn, id, attrs, reload);
         }, function(data) {
@@ -341,7 +341,7 @@ function StructrApp(baseUrl) {
 
     this.getRelatedType = function(type, key, callback) {
         s.request('GET', structrRestUrl + '_schema', null, false, null, null, function(data) {
-            console.log(data);
+            //console.log(data);
         });
     },
 
@@ -523,7 +523,7 @@ function StructrApp(baseUrl) {
     };
 
     this.delete = function(id, conf, reload, name) {
-        console.log('Delete', id, conf, reload);
+        //console.log('Delete', id, conf, reload);
         var sure = true;
         if (conf) {
             sure = confirm('Are you sure to delete ' + (name ? name : id) + '?');
