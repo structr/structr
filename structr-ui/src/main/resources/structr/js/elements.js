@@ -245,7 +245,7 @@ var _Elements = {
                         $.unblockUI({
                             fadeOut: 25
                         });
-                        _Pages.closeSlideOuts([elements]);
+                        _Pages.closeSlideOuts([elementsSlideout]);
                     });
         });
 

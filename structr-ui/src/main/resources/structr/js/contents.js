@@ -53,16 +53,7 @@ var _Contents = {
         var div = Structr.node(content.id);
     
         _Dragndrop.makeSortable(div);
-    
-//        div.draggable({
-//            revert: 'invalid',
-//            //containment: '#pages',
-//            stack: '.node',
-//            //helper: 'clone',
-//            start: function(event, ui) {
-//                $(this).draggable(disable);
-//            }
-//        });
+        _Dragndrop.makeDroppable(div);
         
         _Entities.appendAccessControlIcon(div, content);
 

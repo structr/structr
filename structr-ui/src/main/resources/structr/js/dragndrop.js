@@ -239,13 +239,10 @@ var _Dragndrop = {
 
     },
     htmlElementFromPaletteDropped: function(tag, target, pageId) {
-
         var nodeData = {};
-
         if (tag === 'a' || tag === 'p'
                 || tag === 'h1' || tag === 'h2' || tag === 'h3' || tag === 'h4' || tag === 'h5' || tag === 'h5' || tag === 'pre'
                 || tag === 'li' || tag === 'em' || tag === 'title' || tag === 'b' || tag === 'span' || tag === 'th' || tag === 'td' || tag === 'button') {
-
             if (tag === 'a') {
                 nodeData._html_href = '/${link.name}';
                 nodeData.childContent = '${parent.link.name}';
@@ -254,12 +251,18 @@ var _Dragndrop = {
             } else {
                 nodeData.childContent = 'Initial text for ' + tag;
             }
-
         }
-
-        Command.createAndAppendDOMNode(pageId, target.id, (tag !== 'content' ? tag : ''), nodeData);
+        if (target.type === 'Content') {
+            if (tag === 'content') {
+                log('content element dropped on content, doing nothing');
+                return false;
+            }
+            console.log('wrap content', pageId, target.id, tag);
+            Command.wrapContent(pageId, target.id, tag);
+        } else {
+            Command.createAndAppendDOMNode(pageId, target.id, (tag !== 'content' ? tag : ''), nodeData);
+        }
         return false;
-
     },
     widgetDropped: function(source, target, pageId) {
 
