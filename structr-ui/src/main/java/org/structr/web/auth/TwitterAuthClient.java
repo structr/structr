@@ -29,6 +29,7 @@ import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
 import twitter4j.auth.AccessToken;
 import twitter4j.auth.RequestToken;
+import twitter4j.conf.ConfigurationBuilder;
 
 /**
  * Twitter supports only OAuth 1.0a, therefore we need a completely different
@@ -49,7 +50,13 @@ public class TwitterAuthClient extends StructrOAuthClient {
 
 		super.init(authorizationLocation, tokenLocation, clientId, clientSecret, redirectUri, tokenResponseClass);
 
-		twitter = new TwitterFactory().getInstance();
+		ConfigurationBuilder cb = new ConfigurationBuilder();
+		cb
+			.setOAuthAuthorizationURL(authorizationLocation)
+			.setOAuthAccessTokenURL(tokenLocation);
+
+		TwitterFactory tf = new TwitterFactory(cb.build());
+		twitter = tf.getInstance();
 		twitter.setOAuthConsumer(clientId, clientSecret);
 		
 	}
