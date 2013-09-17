@@ -246,7 +246,7 @@ function StructrApp(baseUrl) {
         s.request('PUT', structrRestUrl + id, s.data[id], false, 'Successfully updated ' + id, 'Could not update ' + id, function() {
             s.cancelEditAction(btn, id, attrs, reload);
         }, function(data) {
-            if (data.status === 404) {
+            if (data && data.status === 404) {
                 // TODO: handle related properties more flexible
 //                var response = JSON.parse(data.responseText);
 //                Object.keys(response.errors).forEach(function(type) {
