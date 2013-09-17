@@ -21,6 +21,7 @@ package org.structr.web.entity.dom;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.lang.StringUtils;
 import org.structr.common.PropertyView;
 import org.structr.web.common.RelType;
 import org.structr.common.SecurityContext;
@@ -204,7 +205,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	@Override
 	public Element createElement(final String tag) throws DOMException {
 
-		final String elementType = EntityContext.normalizeEntityName(tag);
+		final String elementType = StringUtils.capitalize(tag);
 		
 		String c = Content.class.getSimpleName();
 		
