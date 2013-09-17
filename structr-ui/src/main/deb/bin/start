@@ -1,0 +1,22 @@
+#!/bin/bash
+
+cd /usr/lib/structr-ui
+PID_FILE='/var/run/structr-ui.pid'
+LOG_FILE='/var/log/structr-ui.log'
+
+if [ -e $PID_FILE ]; then
+
+	echo "Structr is already running."
+
+	exit 1
+	
+fi
+
+echo -n "        Starting structr server $DISPLAY_NAME: "
+
+java -cp lib/*:structr-ui.jar -server -d64 -Xms1g -Xmx1g -XX:+UseNUMA org.structr.Ui >>$LOG_FILE 2>&1 & echo $! >$PID_FILE
+
+sleep 1
+
+echo "OK"
+echo
