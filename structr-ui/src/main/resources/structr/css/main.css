@@ -173,7 +173,6 @@ img.disabled {
 }
 
 .ver-scrollable {
-    min-height: 600px;
     overflow: auto;
 }
 
