@@ -394,7 +394,7 @@ var _Elements = {
 
                 if (entity.tag !== 'img') {
 
-                    dialog.append('<p>Click on a Page or File to establish a hyperlink to this ' + entity.tag + ' element.</p>');
+                    dialog.append('<p>Click on a Page, File or Image to establish a hyperlink to this ' + entity.tag + ' element.</p>');
 
                     dialog.append('<h3>Pages</h3><div class="linkBox" id="pagesToLink"></div>');
 
@@ -465,7 +465,7 @@ var _Elements = {
 
                 }
 
-                if (entity.tag === 'img' || entity.tag === 'link') {
+                if (entity.tag === 'img' || entity.tag === 'link' || entity.tag === 'a') {
 
                     dialog.append('<h3>Images</h3><div class="linkBox" id="imagesToLink"></div>');
 
