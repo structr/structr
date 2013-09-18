@@ -626,7 +626,7 @@ var _Entities = {
 
         var button = $(el.children('.expand_icon').first());
         if (button && button.length) {
-            log('Expand icon already existing');
+            log('Expand icon already existing', el, button);
             return;
         }
 

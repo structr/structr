@@ -49,13 +49,13 @@ public class WebSocketMessage {
 	private String id                           = null;
 	private String pageId                       = null;
 	private String message                      = null;
-	private Map<String, Object> nodeData        = new LinkedHashMap<String, Object>();
+	private Map<String, Object> nodeData        = new LinkedHashMap();
 	private int page                            = 0;
 	private int pageSize                        = 0;
 	private String parent                       = null;
-	private Map<String, Object> relData         = new LinkedHashMap<String, Object>();
-	private Set<PropertyKey> modifiedProperties = new LinkedHashSet<PropertyKey>();
-	private Set<PropertyKey> removedProperties  = new LinkedHashSet<PropertyKey>();
+	private Map<String, Object> relData         = new LinkedHashMap();
+	private Set<PropertyKey> modifiedProperties = new LinkedHashSet();
+	private Set<PropertyKey> removedProperties  = new LinkedHashSet();
 	private List<? extends GraphObject> result  = null;
 	private int rawResultCount                  = 0;
 	private String sessionId                    = null;

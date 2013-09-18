@@ -28,10 +28,9 @@ var _Dragndrop = {
     /**
      * Make DOM element a target for drop events
      */
-    makeDroppable: function(el, previewId) {
-
-        var tag;
-        var offset = $('#preview_' + previewId).offset();
+    makeDroppable: function(element, previewId) {
+        var el = $(element);
+        var tag, offset = $('#preview_' + previewId).offset();
         
         el.droppable({
             iframeFix: true,
@@ -64,6 +63,7 @@ var _Dragndrop = {
 
                 log('dropped onto', self, targetId, getId(sortParent));
                 if (targetId === getId(sortParent)) {
+                    console.log('target id == sortParent id', targetId, getId(sortParent));
                     return false;
                 }
 
@@ -86,12 +86,14 @@ var _Dragndrop = {
                 }
 
                 if (!target) {
+                    console.log('no target');
                     return;
                 }
 
 
                 if (_Dragndrop.dropAction(source, target, pageId, tag)) {
                     $(ui.draggable).remove();
+                    sortParent = undefined;
                 }
 
             }
@@ -101,11 +103,8 @@ var _Dragndrop = {
     /**
      * Enable sorting on DOM element
      */
-    makeSortable: function(el) {
-
-//        if (el.attr('id') === 'components') {
-//            
-//        }
+    makeSortable: function(element) {
+        var el = $(element);
 
         var sortableOptions = {
             iframeFix: true,
@@ -161,7 +160,7 @@ var _Dragndrop = {
      */
     dropAction: function(source, target, pageId, tag) {
 
-        log('dropAction', source, target, pageId, tag);
+        console.log('dropAction', source, target, pageId, tag);
 
         if (source && pageId && source.pageId && pageId !== source.pageId) {
 
