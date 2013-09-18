@@ -716,13 +716,13 @@ public class SynchronizationController implements StructrTransactionListener, Tr
 		collectRemovedNodeProperties(securityContext, transactionKey, data, nodeFactory, removedNodeProperties);
 		collectRemovedRelationshipProperties(securityContext, transactionKey, data, relFactory, removedRelProperties);
 
-		// call onCreation
-		callOnNodeCreation(securityContext, transactionKey, data, nodeFactory);
-		callOnRelationshipCreation(securityContext, transactionKey, data, relFactory);
-
 		// call onDeletion
 		callOnRelationshipDeletion(securityContext, transactionKey, data, relFactory, removedRelProperties);
 		callOnNodeDeletion(securityContext, transactionKey, data, nodeFactory, removedNodeProperties);
+
+		// call onCreation
+		callOnNodeCreation(securityContext, transactionKey, data, nodeFactory);
+		callOnRelationshipCreation(securityContext, transactionKey, data, relFactory);
 
 		// call validators
 		callNodePropertyModified(securityContext, transactionKey, data, nodeFactory);
