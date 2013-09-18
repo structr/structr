@@ -111,8 +111,8 @@ var _Pages = {
         main.prepend('<div id="pages" class="slideOut slideOutLeft"><div class="compTab" id="pagesTab">Pages Tree View</div></div><div id="previews"></div>'
                 + '<div id="widgetsSlideout" class="slideOut slideOutRight"><div class="compTab" id="widgetsTab">Widgets</div></div>'
                 + '<div id="palette" class="slideOut slideOutRight"><div class="compTab" id="paletteTab">HTML Palette</div></div>'
-                + '<div id="components" class="slideOut slideOutRight"><div class="compTab" id="componentsTab">Reused Components</div></div>'
-                + '<div id="elements" class="slideOut slideOutRight"><div class="compTab" id="elementsTab">Orphaned Elements</div></div>');
+                + '<div id="components" class="slideOut slideOutRight"><div class="compTab" id="componentsTab">Shared Components</div></div>'
+                + '<div id="elements" class="slideOut slideOutRight"><div class="compTab" id="elementsTab">Unused Elements</div></div>');
 
         previews        = $('#previews');
         pagesSlideout   = $('#pages');

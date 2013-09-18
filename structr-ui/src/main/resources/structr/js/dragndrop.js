@@ -161,24 +161,19 @@ var _Dragndrop = {
      */
     dropAction: function(source, target, pageId, tag) {
 
-        if (source && !target) {
-
-            console.log('target is not defined, create component');
-
-
-        }
+        log('dropAction', source, target, pageId, tag);
 
         if (source && pageId && source.pageId && pageId !== source.pageId) {
 
             if (shadowPage && source.pageId === shadowPage.id) {
 
-                console.log('clone component!');
+                log('clone component!');
                 Command.cloneComponent(source.id, target.id);
 
             } else {
 
                 Command.appendChild(source.id, target.id, pageId);
-                console.log('dropped', source.id, 'onto', target.id, 'in page', pageId);
+                log('dropped', source.id, 'onto', target.id, 'in page', pageId);
 
             }
 
@@ -231,7 +226,7 @@ var _Dragndrop = {
                 return true;
                 
             } else {
-                console.log('unknown situation', source, target);
+                console.log('unknown drag\'n drop  situation', source, target);
             }
         }
 
