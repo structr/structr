@@ -46,31 +46,25 @@ a:hover, a:active {
     color: #a5a5a5;
 }
 
-h2 {
-    color: white;
-}
-
 button {
     font-family: Arial, Helvetica, Sans-serif ! important;
 }
 
 input {
-	border: 1px solid #a5a5a5;
-	padding: 2px;
+    border: 1px solid #a5a5a5;
+    padding: 2px;
 }
 
 input[type="text"]:disabled, input.disabled {
-	background-color: #f0f0f0;
+    background-color: #f0f0f0;
+}
+
+.fit-to-height {
+    overflow: auto;
 }
 
 #header {
-    /*    width: 100%;*/
     height: 60px;
-    /*	background-color: #f0f0f0;
-            background: -webkit-gradient(linear, left bottom, left top, from(#d5d5d5), to(#f5f5f5)) no-repeat;
-            background: -moz-linear-gradient(90deg, #d5d5d5, #f5f5f5) no-repeat;
-            filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#f5f5f5', EndColorStr='#d5d5d5', GradientType=0);*/
-    /*    border-top  : 1px solid #ccc;*/
     border-bottom: 1px solid #a5a5a5;
     font-size: 1.25em;
     line-height: 2em;
@@ -142,7 +136,6 @@ input[type="text"]:disabled, input.disabled {
 .menu .active {
     color: #333 ! important;
     padding: 3px 6px 4px 6px;
-    /*    border: 1px solid #81ce25;*/
     border: 1px solid #333;
     border-radius: 5px;
     background-color: #81ce25;
@@ -175,16 +168,16 @@ img.disabled {
 .slideOutRight {
     float: left;
     border: none;
-    width: 400px;
+    width: 374px;
     padding: 6px;
 }
 
-#pagesTree {
+.ver-scrollable {
     overflow: auto;
 }
 
 #previews {
-	margin: 0 25px;
+    margin: 0 25px;
 }
 
 .slideOutLeft {
@@ -204,9 +197,9 @@ img.disabled {
     z-index: 1000;
     position: absolute;
     margin: 8px 2px 0 0 ! important;
-	overflow: visible ! important;
-	transform-style: preserve-3d;
-	-webkit-transform-style: preserve-3d;
+    overflow: visible ! important;
+    transform-style: preserve-3d;
+    -webkit-transform-style: preserve-3d;
     background-color: #e3e3e3;
     background: -webkit-gradient(linear, left bottom, left top, from(#ddd), to(#eee)) no-repeat;
     background: -moz-linear-gradient(90deg, #ddd, #eee) no-repeat;
@@ -243,22 +236,22 @@ img.disabled {
 }
 
 #widgetsTab {
-    left: -45px;
+    left: -44px;
     top: 60px;
 }
 
 #paletteTab {
-    left: -61px;
+    left: -60px;
     top: 146px;
 }
 
 #componentsTab {
-    left: -82px;
+    left: -81px;
     top: 270px;
 }
 
 #elementsTab {
-    left: -78px;
+    left: -77px;
     top: 411px;
 }
 
@@ -266,43 +259,37 @@ img.disabled {
     width: 400px;
     min-height: 600px;
     background-color: #e5e5e5;
-    padding: 12px;
     margin: 0;
-    border-top: 1px solid #a5a5a5;
-    border-bottom: 1px solid #a5a5a5;
-    position: absolute;
-    z-index: 2;
-    right: -424px;
-    top: 72px;
-}
-
-.slideOutRight {
-    border-left: 1px solid #a5a5a5;
-    border-bottom-left-radius: 5px;
-    border-top-left-radius: 5px;
-}
-
-.slideOutLeft {
-    left: -412px;
-    top: 93px;
-    border-bottom-right-radius: 5px;
-    border-top-right-radius: 5px;
-    border-right: 1px solid #a5a5a5 ! important;
     border-top: 1px solid #a5a5a5 ! important;
     border-bottom: 1px solid #a5a5a5 ! important;
+    position: absolute;
+    z-index: 2;
+    top: 93px;
     background-color: #f1f1f1;
 }
 
-#pages > div.node {
-    width: 380px;
-}
-
-.slideOutRight > div.node {
+.ver-scrollable > .node {
     width: 360px;
 }
 
-#widgetsSlideout .local, #widgetsSlideout .remote {
-    padding: 0 24px 0 0;
+.slideOutRight {
+    right: -413px;
+    border-bottom-left-radius: 5px;
+    border-top-left-radius: 5px;
+    border-left: 1px solid #a5a5a5 ! important;
+}
+
+.slideOutLeft {
+    left: -386px;
+    border-bottom-right-radius: 5px;
+    border-top-right-radius: 5px;
+    border-right: 1px solid #a5a5a5 ! important;
+}
+
+#widgetsSlideout #widgets, #widgetsSlideout #remoteWidgets {
+    min-height: 48px;
+    margin: 0 ! important;
+    padding: 0;
 }
 
 
@@ -354,8 +341,6 @@ img.disabled {
 .sep {
     clear: both;
     height: 4px;
-    /*	width: 105%;*/
-    /*border-bottom: 1px solid #ccc;*/
     margin: 2px 0 12px -12px ! important;
 }
 
@@ -364,7 +349,6 @@ img.disabled {
 }
 
 .props {
-    /*    position: absolute;*/
     width: 776px;
     border-collapse: collapse;
     margin-bottom: 12px;
@@ -392,18 +376,12 @@ img.disabled {
     padding: 6px 6px;
     line-height: 1.7em;
     font-size: 8pt;
-    /*border: 1px solid #b5b5b5;*/
     height: 1.7em;
 }
 
 .props .key {
     width: 50%;
     font-weight: bold;
-}
-
-.props .value {
-    /*width: 50%;*/
-    /*background-color: #fff;*/
 }
 
 .props tr td.value {
@@ -414,9 +392,7 @@ img.disabled {
 .props tr td.value input {
     margin: -3px;
     height: 1.7em;
-    /*border: none;*/
     font-size: 8pt;
-    /*font-size: inherit;*/
     background: #fff;
     border: 1px solid #c0c0c0;
     border-radius: 3px;
@@ -427,7 +403,6 @@ img.disabled {
     margin: -3px;
     border: none;
     font-size: 8pt;
-    /*font-size: inherit;*/
     width: 360px;
 }
 
@@ -458,10 +433,6 @@ ul#previewTabs {
     padding: 0;
     border: none;
     height: 25px;
-}
-
-ul#previewTabs {
-    /*width: 900px;*/
 }
 
 #data-tabs, #data-tabs ul, #tabs, #tabs ul {
@@ -522,11 +493,11 @@ ul#previewTabs {
 }
 
 .propTabContent {
-	display: none;
+    display: none;
 }
 
 .propTabContent section {
-	padding: 24px 0 0 0;
+    padding: 24px 0 0 0;
 }
 
 #previewTabs img {
@@ -535,10 +506,6 @@ ul#previewTabs {
     border: none;
     margin: 1px 0 0 0;
 }
-/*#previewTabs .key_icon,
-#previewTabs .delete_icon {
-    margin: 1px 0 0 4px;
-}*/
 
 #previewTabs li input[type=text] {
     border: 1px solid #b5b5b5;
@@ -656,7 +623,6 @@ span.id {
     background: -webkit-gradient(linear, left bottom, left top, from(#ddd), to(#eee)) no-repeat;
     background: -moz-linear-gradient(90deg, #ddd, #eee) no-repeat;
     filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#eeeeee', EndColorStr='#dddddd', GradientType=0);
-    /*    min-width: 200px;*/
     position: relative;
 }
 
@@ -672,24 +638,14 @@ span.id {
     position: relative;
 }
 
-/*#images .node:hover {
-    background-color: #000;    
-}*/
-
 #images .thumbnailZoom {
     max-width: 300px;
     max-height: 300px;
     position: absolute;
     z-index: 4;
     display: none;
-    
-}
 
-/*#images .node:hover img.thumbnail {
-    max-width: 200px;
-    max-height: 200px;
-    position: absolute;
-}*/
+}
 
 #images .node div.wrap {
     position: absolute;
@@ -702,12 +658,9 @@ span.id {
     margin-left: -50%;
     max-width: 100px;
     max-height: 100px;
-    /*margin: 4px auto 0 auto;*/
 }
 
 .imageDetail {
-    /*width: 776px;*/
-    /*max-height: 776px;*/
     max-width: 776px;
     max-height: 776px;
     margin: 0;
@@ -751,7 +704,6 @@ span.id {
 }
 
 img.button {
-    /*    display: none;*/
     cursor: pointer;
 }
 
@@ -808,7 +760,6 @@ button img {
 .dialog {
     display: none;
     font-size: 11pt;
-    /*width: 240px;*/
     padding: 4px 0px 6px 12px;
     border-radius: 5px;
     border: 1px solid #999;
@@ -819,40 +770,24 @@ button img {
 }
 
 #confirmation, #infoBox, #tempInfoBox, #errorBox {
-    /*width: 300px;*/
     min-height: 24px;
     padding: 12px 0 12px 12px;
     overflow: auto;
 }
 
 #tempErrorBox, #tempInfoBox {
-    /*width: 400px;*/
     padding-bottom: 18px;
 }
 
 #dialogBox {
-/*    width: 80%;
-    height: 80%;
-    margin: 10%;*/
     padding-bottom: 48px;
     position: relative;
-    /*overflow: auto;*/
 }
 
 .dialogTitle {
     font-size: 11pt;
     text-align: center;
     color: #333;
-}
-
-.dialogMsg {
-    /*text-align: center;*/
-/*    height: 36px;
-    text-align: left;
-    width: 300px;
-    position: absolute;
-    left: 24px;
-    bottom: 6px;*/
 }
 
 .dialogBtn {
@@ -874,15 +809,10 @@ button img {
 .dialogText, .dialogMeta {
     text-align: left;
     font-size: 9.5pt;
-    /*width: 776px;*/
-    /*overflow: auto;*/
-    /*overflow-x: hidden ! important;*/
 }
 
-.dialogText {
-    /*height: 600px;*/
-    /*max-height: 800px;*/
-    
+.dialogTextWrapper {
+    overflow: auto;
 }
 
 .dialogText textarea {
@@ -892,26 +822,26 @@ button img {
 }
 
 .dialogText .node {
-	display: inline-block;
-	margin: 4px;
-	min-width: 100px;
+    display: inline-block;
+    margin: 4px;
+    min-width: 100px;
 }
 
 .dialogText .nodeHover b {
-	cursor: pointer ! important;
+    cursor: pointer ! important;
 }
 
 .dialogText .linkBox {
-	border: 1px solid #ccc;
-	background-color: #fff;
-	padding: 6px;
+    border: 1px solid #ccc;
+    background-color: #fff;
+    padding: 6px;
 }
 
 .dialogText .linkBox .pager {
-	border-bottom: 1px solid #ccc;
-	background-color: #e5e5e5;
-	margin: -6px -6px 4px -6px;
-	padding: 5px 5px 0px 5px;
+    border-bottom: 1px solid #ccc;
+    background-color: #e5e5e5;
+    margin: -6px -6px 4px -6px;
+    padding: 5px 5px 0px 5px;
 }
 
 #confirmationText, #infoText, #dialogBox .dialogText {
@@ -953,7 +883,6 @@ button img {
 }
 
 #files h1, #images h1 {
-    /*    visibility: hidden;*/
     color: #333;
     font-size: 16px;
     font-weight: bold;
@@ -967,15 +896,6 @@ button img {
     visibility: visible;
     color: #333;
 }
-
-/*#files:hover {
-    padding: 0px 8px 0px 6px ! important;
-    margin: 8px 0px 3px 8px ! important;
-    padding: 7px 12px 3px 12px! important;
-    border-radius: 5px;
-    border: 1px dashed #999;
-    background: #fff;
-}*/
 
 .ui-draggable, .ui-sortable {
     cursor: move;
@@ -1011,13 +931,12 @@ button img {
     position: absolute;
     min-width: 240px;
     min-height: 12px;
-    /*margin: 12px 0 12px 60px;*/
     text-align: left;
     padding: 6px 4px 6px 28px;
     font-size: 10pt;
     clear: both;
     overflow: auto;
-	bottom: 10px;
+    bottom: 10px;
 }
 
 .warning {
@@ -1049,10 +968,7 @@ button img {
 }
 
 .nodeSelectBox {
-    /*    background: #fff;
-        border: 1px solid #bbb;*/
     width: 240px;
-    /*    padding: 6px 12px;*/
 }
 
 .nodeSelectBox div {
@@ -1077,8 +993,8 @@ button.switch {
 }
 
 button.switch img {
-	margin-top: 2px;
-	vertical-align: top;
+    margin-top: 2px;
+    vertical-align: top;
 }
 
 button.switch:hover {
@@ -1107,12 +1023,12 @@ button.enabled {
 }
 
 .node .linkable {
-	margin-left: 12px;
-	cursor: pointer;
+    margin-left: 12px;
+    cursor: pointer;
 }
 
 .node .linkable:hover {
-	color: #555;
+    color: #555;
 }
 
 .callToAction {
@@ -1174,16 +1090,6 @@ button.enabled {
     -khtml-opacity: 0.6;
     -moz-opacity: 0.6;
     opacity: 0.6;
-}
-
-#ajaxLoader {
-/*    height: 16px;
-    width: 16px;
-    display: none;
-    position: absolute;
-    width: 100%;
-    text-align: center;
-    padding-top: 11px;*/
 }
 
 /*

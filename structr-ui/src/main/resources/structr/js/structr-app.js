@@ -213,26 +213,46 @@ function StructrApp(baseUrl) {
     
     this.saveAction = function(btn, id, attrs, reload) {
         var container = $('[data-structr-container="' + id + '"]');
-        s.data[id] = {};
         $.each(attrs, function(i, key) {
+            
             var inp = s.input($('[data-structr-attr="' + key + '"]', container));
             var f = s.field(inp);
-            if (f.type === 'Boolean') {
+
+            if (key.contains('.')) {
+                var prop = key.split('.');
+                var local = prop[0];
+                var related = prop[1];
+                //console.log('related property (key, value)', local, related);
+                
+                key = local;
+                s.data[id][local] = {};
+                s.data[id][local][related] = f.val;
+                
+            } else if (f && f.type === 'Boolean') {
+                
                 s.data[id][key] = (f.val === true ? true : false);
+                
             } else {
+                
                 if (f && f.val && f.val.length) {
                     s.data[id][key] = f.val;
                 } else {
                     s.data[id][key] = null;
                 }
+                
             }
         });
+        //console.log('PUT', structrRestUrl + id, s.data[id]);
         s.request('PUT', structrRestUrl + id, s.data[id], false, 'Successfully updated ' + id, 'Could not update ' + id, function() {
             s.cancelEditAction(btn, id, attrs, reload);
-        }, function() {
-//            if (reload) {
-//                window.location.reload();
-//            }
+        }, function(data) {
+            if (data && data.status === 404) {
+                // TODO: handle related properties more flexible
+//                var response = JSON.parse(data.responseText);
+//                Object.keys(response.errors).forEach(function(type) {
+//                });
+            }
+            
         });
     },
     
@@ -319,6 +339,11 @@ function StructrApp(baseUrl) {
         return {'id': id, 'type': type, 'key': key, 'val': val, 'rawVal': rawVal};
     };
 
+    this.getRelatedType = function(type, key, callback) {
+        s.request('GET', structrRestUrl + '_schema', null, false, null, null, function(data) {
+            //console.log(data);
+        });
+    },
 
     this.create = function(type, data, reload) {
         //console.log('Create', type, data, reload);
@@ -342,7 +367,7 @@ function StructrApp(baseUrl) {
                         }, 200);
                     }
                     if (onSuccess) {
-                        onSuccess();
+                        onSuccess(data);
                     }
                 },
                 201: function(data) {
@@ -381,7 +406,7 @@ function StructrApp(baseUrl) {
                     s.dialog('error', errorMsg + ': ' + data.responseText);
                     console.log(data, status, xhr);
                     if (onError) {
-                        onError();
+                        onError(data);
                     }
                 },
                 422: function(data, status, xhr) {
@@ -498,7 +523,7 @@ function StructrApp(baseUrl) {
     };
 
     this.delete = function(id, conf, reload, name) {
-        console.log('Delete', id, conf, reload);
+        //console.log('Delete', id, conf, reload);
         var sure = true;
         if (conf) {
             sure = confirm('Are you sure to delete ' + (name ? name : id) + '?');
@@ -722,6 +747,12 @@ String.prototype.toUnderscore = function() {
         return (offset > 0 ? '_' : '') + m.toLowerCase();
     });
 };
+
+if (typeof String.prototype.contains !== 'function') {
+    String.prototype.contains = function(pattern) {
+        return this.indexOf(pattern) > 0;
+    };
+}
 
 function setCaretToEnd(el) {
     var l = el.value.length;

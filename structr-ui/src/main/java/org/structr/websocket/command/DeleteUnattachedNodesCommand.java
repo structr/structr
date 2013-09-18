@@ -48,8 +48,8 @@ import org.structr.core.graph.TransactionCommand;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
+import org.structr.web.entity.dom.Page;
+import org.structr.web.entity.dom.ShadowDocument;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -80,8 +80,6 @@ public class DeleteUnattachedNodesCommand extends AbstractCommand {
 
 		final String sortOrder   = webSocketData.getSortOrder();
 		final String sortKey     = webSocketData.getSortKey();
-		final int pageSize       = webSocketData.getPageSize();
-		final int page           = webSocketData.getPage();
 		PropertyKey sortProperty = EntityContext.getPropertyKeyForJSONName(DOMNode.class, sortKey);
 
 		try {
@@ -91,17 +89,19 @@ public class DeleteUnattachedNodesCommand extends AbstractCommand {
 			final List<AbstractNode> filteredResults	= new LinkedList();
 			List<? extends GraphObject> resultList		= result.getResults();
 
-			// determine which of the nodes have incoming CONTAINS relationships
+			// determine which of the nodes have incoming CONTAINS relationships and are not components
 			for (GraphObject obj : resultList) {
 
-				if (obj instanceof AbstractNode) {
+				if (obj instanceof DOMNode) {
 
-					AbstractNode node = (AbstractNode) obj;
+					DOMNode node = (DOMNode) obj;
+					
+					Page page = (Page) node.getProperty(DOMNode.ownerDocument);
 
-					if (!node.hasRelationship(RelType.CONTAINS, Direction.INCOMING)) {
+					if (!node.hasRelationship(RelType.CONTAINS, Direction.INCOMING) && !(page instanceof ShadowDocument)) {
 
 						filteredResults.add(node);
-						filteredResults.addAll(getAllChildNodes((DOMNode) node));
+						filteredResults.addAll(getAllChildNodes(node));
 					}
 
 				}

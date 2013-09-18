@@ -348,13 +348,16 @@ function connect() {
                         StructrModel.create(entity);
                     } else {
                         
-                        if (shadowPage && entity.pageId === shadowPage.id) {
-                            _Pages.appendElementElement(entity, components, true);
+                        if (!entity.parent && shadowPage && entity.pageId === shadowPage.id) {
+                            var comp = _Pages.appendElementElement(entity, components, true);
+                            
+                            _Entities.ensureExpanded(comp);
                             
                             // Change icon
-                            entity.syncedNodes.forEach(function(id) {
+                            $.each(entity.syncedNodes, function(i, id) {
                                 var el = Structr.node(id);
                                 el.children('img.typeIcon').attr('src', _Elements.icon_comp);
+                                _Entities.removeExpandIcon(el);
                             });
                         }
                     }

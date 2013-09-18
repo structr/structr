@@ -383,11 +383,22 @@ var Command = {
             data[key] = attributes[key];
         });
         obj.data = data;
-        console.log('createAndAppendDOMNode()', obj);
+        log('createAndAppendDOMNode()', obj);
+        return sendObj(obj);
+    },
+    wrapContent: function(pageId, parentId, tagName) {
+        var obj = {};
+        obj.command = 'WRAP_CONTENT';
+        obj.pageId = pageId;
+        var data = {};
+        data.parentId = parentId;
+        data.tagName = tagName;
+        obj.data = data;
+        log('wrapContentInElement()', obj);
         return sendObj(obj);
     },
     /**
-     * Send an CREATE_COMPONENT command to the server.
+     * Send a CREATE_COMPONENT command to the server.
      * 
      * The server will transform the node into a reusable component.
      * 
@@ -400,7 +411,41 @@ var Command = {
         return sendObj(obj);
     },
     /**
-     * Send an CLONE_NODE command to the server.
+     * Send a CLONE_COMPONENT command to the server.
+     * 
+     * The server will clone the component node with the given id
+     * and append it to a the parent with given parentId.
+     * 
+     */
+    cloneComponent: function(id, parentId) {
+        var obj = {};
+        obj.command = 'CLONE_COMPONENT';
+        obj.id = id;
+        var data = {};
+        data.parentId = parentId;
+        obj.data = data;
+        log('cloneComponent()', obj);
+        return sendObj(obj);
+    },
+    /**
+     * Send a CREATE_LOCAL_WIDGET command to the server.
+     * 
+     * The server will create a local widget element with the given
+     * name and source code.
+     */
+    createLocalWidget: function(id, name, source, callback) {
+        var obj = {};
+        obj.command = 'CREATE_LOCAL_WIDGET';
+        obj.id = id;
+        var data = {};
+        data.name = name;
+        data.source = source;
+        obj.data = data;
+        log('createLocalWidget()', obj);
+        return sendObj(obj, callback);
+    },
+    /**
+     * Send a CLONE_NODE command to the server.
      * 
      * The server will clone the DOM node with the given id
      * and append it to a the parent with given parentId.

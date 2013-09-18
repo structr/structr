@@ -1,2 +1,1 @@
 nohup ./run.sh >logs/server.log 2>&1 &
-

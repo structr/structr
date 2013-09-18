@@ -103,29 +103,45 @@ var _Elements = {
 
         widgetsSlideout.find(':not(.compTab)').remove();
 
-        widgetsSlideout.append('<div class="local"><h3>Local Widgets</h3></div>');
-        var localWidgetsArea = $('.local', widgetsSlideout);
+        widgetsSlideout.append('<div class="ver-scrollable"><div id="widgets"><h3>Local Widgets</h3></div><div id="remoteWidgets"><h3>Remote Widgets</h3></div></div>');
+        widgets = $('#widgets', widgetsSlideout);
 
-        Command.list('Widget', 1000, 1, 'name', 'asc', function(entity) {
-
-            StructrModel.create(entity, null, false);
-
-            var el = _Pages.appendElementElement(entity, localWidgetsArea, true);
-
-            el.draggable({
-//                iframeFix: true,
-                revert: 'invalid',
-//                containment: 'body',
-//                helper: 'clone',
-//                appendTo: '#main',
-//                stack: '.node',
-//                zIndex: 99
-            });
-
+        widgets.droppable({
+            
+            drop : function(e, ui) {
+                var sourceEl = $(ui.draggable);
+                if (sourceEl.parent().attr('id') === 'widgets') {
+                    log('widget dropped on widget area, aborting');
+                    return false;
+                }
+                var sourceId = getId(sourceEl);
+                
+                $.ajax({
+                    url: viewRootUrl + sourceId + '?edit=3',
+                    contentType: 'text/html',
+                    statusCode: {
+                        200: function(data) {
+                            Command.createLocalWidget(sourceId, 'New Widget (' + sourceId + ')', data, function(entity) {
+                                
+                                //_Widgets.appendWidgetElement(entity, false, localWidgetsArea);
+                                
+                            });
+                        }
+                    }
+                });
+                
+                
+            }
+            
         });
 
-        widgetsSlideout.append('<div class="remote"><h3>Remote Widgets</h3></div>');
-        var remoteWidgetsArea = $('.remote', widgetsSlideout);
+
+        Command.list('Widget', 1000, 1, 'name', 'asc', function(entity) {
+            StructrModel.create(entity, null, false);
+            _Widgets.appendWidgetElement(entity, false, widgets);
+        });
+
+        var remoteWidgetsArea = $('#remoteWidgets', widgetsSlideout);
         var baseUrl = 'http://widgets.structr.org:8084/structr/rest/widgets';
         _Widgets.getRemoteWidgets(baseUrl, function(entity) {
 
@@ -143,7 +159,10 @@ var _Elements = {
      */
     reloadPalette: function() {
 
-        //palette.empty();
+        paletteSlideout.find(':not(.compTab)').remove();
+        paletteSlideout.append('<div class="ver-scrollable" id="paletteArea"></div>')
+        palette = $('#paletteArea', paletteSlideout);
+
         if (!$('.draggable', palette).length) {
 
             $(_Elements.elementGroups).each(function(i, group) {
@@ -171,7 +190,9 @@ var _Elements = {
      */
     reloadComponents: function() {
 
-        components.find(':not(.compTab)').remove();
+        componentsSlideout.find(':not(.compTab)').remove();
+        componentsSlideout.append('<div class="ver-scrollable" id="componentsArea"></div>')
+        components = $('#componentsArea', componentsSlideout);
         
         Command.getByType('ShadowDocument', 1, 1, null, null, function(entity) {
             shadowPage = entity;
@@ -210,7 +231,9 @@ var _Elements = {
      */
     reloadUnattachedNodes: function() {
 
-        elements.find(':not(.compTab)').remove();
+        elementsSlideout.find(':not(.compTab)').remove();
+        elementsSlideout.append('<div class="ver-scrollable" id="elementsArea"></div>')
+        elements = $('#elementsArea', elementsSlideout);
 
         elements.append('<button class="btn" id="delete-all-unattached-nodes">Delete all</button>');
 
@@ -222,7 +245,7 @@ var _Elements = {
                         $.unblockUI({
                             fadeOut: 25
                         });
-                        _Pages.closeSlideOuts([elements]);
+                        _Pages.closeSlideOuts([elementsSlideout]);
                     });
         });
 
@@ -371,7 +394,7 @@ var _Elements = {
 
                 if (entity.tag !== 'img') {
 
-                    dialog.append('<p>Click on a Page or File to establish a hyperlink to this ' + entity.tag + ' element.</p>');
+                    dialog.append('<p>Click on a Page, File or Image to establish a hyperlink to this ' + entity.tag + ' element.</p>');
 
                     dialog.append('<h3>Pages</h3><div class="linkBox" id="pagesToLink"></div>');
 
@@ -442,7 +465,7 @@ var _Elements = {
 
                 }
 
-                if (entity.tag === 'img' || entity.tag === 'link') {
+                if (entity.tag === 'img' || entity.tag === 'link' || entity.tag === 'a') {
 
                     dialog.append('<h3>Images</h3><div class="linkBox" id="imagesToLink"></div>');
 

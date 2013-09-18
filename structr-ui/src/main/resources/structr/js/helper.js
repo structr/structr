@@ -71,7 +71,11 @@ function escapeTags(str) {
 
 function unescapeTags(str) {
     if (!str) return str;
-    return str.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+    return str
+            .replace(/&nbsp;/g, ' ')
+            .replace(/&amp;/g, '&')
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>');
 }
 
 $.fn.reverse = [].reverse;
@@ -311,9 +315,14 @@ function getTypeFromResourceSignature(signature) {
 }
 
 function blinkGreen(element) {
+    
+    if (!element || !element.length) {
+        return;
+    }
+    
     var fg = element.prop('data-fg-color'), oldFg = fg || element.css('color');
     var bg = element.prop('data-bg-color'), oldBg = bg || element.css('backgroundColor');
-    
+
     if (!fg) {
         element.prop('data-fg-color', oldFg);
     }
@@ -322,9 +331,9 @@ function blinkGreen(element) {
         element.prop('data-bg-color', oldBg);
     }
 
-    element.animate({
+    $(element).animate({
         color: '#81ce25',
-        backgroundColor: (oldBg === '#fff' ? '#efe' : oldBg)
+        backgroundColor: '#efe'
     }, 100, function() {
         $(this).animate({
             color: oldFg,
@@ -334,6 +343,11 @@ function blinkGreen(element) {
 }
 
 function blinkRed(element) {
+
+    if (!element || !element.length) {
+        return;
+    }
+
     var fg = element.prop('data-fg-color'), oldFg = fg || element.css('color');
     var bg = element.prop('data-bg-color'), oldBg = bg || element.css('backgroundColor');
     
@@ -374,7 +388,7 @@ function getComments(el) {
                 }
             }
         }
-        f = f.nextSibling;
+        f = f ? f.nextSibling : f;
     }
     return comments;
 }

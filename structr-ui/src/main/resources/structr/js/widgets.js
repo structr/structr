@@ -61,9 +61,8 @@ var _Widgets = {
         _Widgets.init();
         
         log('onload');
-        if (palette) palette.remove();
 
-        main.append('<table id="dropArea"><tr><td id="widgets"></td><td id="remoteWidgets"></td></tr></table>');
+        main.append('<div id="dropArea"><div class="fit-to-height" id="widgets"></div><div class="fit-to-height" id="remoteWidgets"></div></div>');
         widgets = $('#widgets');
         remoteWidgets = $('#remoteWidgets');
         
@@ -77,7 +76,7 @@ var _Widgets = {
 
     refreshWidgets : function() {
         widgets.empty();
-        widgets.append('<h1>Local Widgets</h1>');
+        widgets.append('<h2>Local Widgets</h2>');
         widgets.append('<button class="add_widgets_icon button"><img title="Add Widget" alt="Add Widget" src="' + _Widgets.add_widget_icon + '"> Add Widget</button>');
         $('.add_widgets_icon', main).on('click', function(e) {
             e.stopPropagation();
@@ -89,7 +88,7 @@ var _Widgets = {
 
     refreshRemoteWidgets : function() {
         remoteWidgets.empty();
-        remoteWidgets.append('<h1>Remote Widgets</h1>');
+        remoteWidgets.append('<h2>Remote Widgets</h2>');
         
         if (document.location.hostname === remoteHost && document.location.port === remotePort) {
             return;
@@ -183,6 +182,8 @@ var _Widgets = {
             div = Structr.node(widget.id);
             
         }
+        
+        if (!div) return;
 
         if (!remote) {
             _Entities.appendAccessControlIcon(div, widget);
@@ -200,11 +201,13 @@ var _Widgets = {
         }
 		
         div.draggable({
+            iframeFix: true,
             revert: 'invalid',
+            containment: 'body',
             helper: 'clone',
-            //containment: '#main',
-            stack: '.node',
             appendTo: '#main',
+            stack: '.node',
+            zIndex: 99,
             stop : function(e,ui) {
                 $('#pages_').droppable('enable').removeClass('nodeHover');
             }
@@ -241,7 +244,6 @@ var _Widgets = {
     },
 
     editWidget : function (button, entity, text, element) {
-        
         if (isDisabled(button)) return;
         var div = element.append('<div class="editor"></div>');
         log(div);
@@ -252,6 +254,8 @@ var _Widgets = {
             lineNumbers: true
         });
         editor.focus();
+        Structr.resize();
+
         dialogBtn.append('<button id="editorSave">Save Widget</button>');
 
         $('#editorSave', dialogBtn).on('click', function() {
@@ -308,6 +312,5 @@ var _Widgets = {
         });
         
         editor.id = entity.id;
-
     }
 };

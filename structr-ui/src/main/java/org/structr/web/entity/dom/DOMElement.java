@@ -85,11 +85,6 @@ import org.structr.rest.resource.NamedRelationResource;
 import org.structr.common.PagingHelper;
 import org.structr.rest.resource.Resource;
 import org.structr.rest.servlet.JsonRestServlet;
-import static org.structr.rest.servlet.JsonRestServlet.REQUEST_PARAMETER_OFFSET_ID;
-import static org.structr.rest.servlet.JsonRestServlet.REQUEST_PARAMETER_PAGE_NUMBER;
-import static org.structr.rest.servlet.JsonRestServlet.REQUEST_PARAMETER_PAGE_SIZE;
-import static org.structr.rest.servlet.JsonRestServlet.REQUEST_PARAMETER_SORT_KEY;
-import static org.structr.rest.servlet.JsonRestServlet.REQUEST_PARAMETER_SORT_ORDER;
 import org.structr.rest.servlet.ResourceHelper;
 import org.structr.web.entity.html.Body;
 import org.structr.web.common.GraphDataSource;
@@ -129,8 +124,6 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	public static final Property<String> xpathQuery               = new StringProperty("xpathQuery");
 	public static final Property<String> restQuery                = new StringProperty("restQuery");
 	public static final Property<Boolean> renderDetails           = new BooleanProperty("renderDetails");
-	public static final Property<Boolean> hideOnIndex             = new BooleanProperty("hideOnIndex");
-	public static final Property<Boolean> hideOnDetail            = new BooleanProperty("hideOnDetail");
 //	public static final Property<Boolean> hideOnEdit              = new BooleanProperty("hideOnEdit");
 //	public static final Property<Boolean> hideOnNonEdit           = new BooleanProperty("hideOnNonEdit");
 
@@ -271,42 +264,49 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 	@Override
 	public void render(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException {
+		
+		StringBuilder buffer	= renderContext.getBuffer();
+		double start = System.nanoTime();
 
 		if (isDeleted() || isHidden()) {
 			return;
 		}
-		
-		double start = System.nanoTime();
-		
-		EditMode edit        = renderContext.getEditMode(securityContext.getUser(false));
-		boolean isVoid       = isVoidElement();
-		StringBuilder buffer = renderContext.getBuffer();
-		String tag           = getProperty(DOMElement.tag);
-		
+
+
+		EditMode editMode	= renderContext.getEditMode(securityContext.getUser(false));
+		boolean isVoid		= isVoidElement();
+		String _tag		= getProperty(DOMElement.tag);
+
 		boolean anyChildNodeCreatesNewLine  = false;
 
-		renderStructrAppLib(buffer, renderContext, depth);
+		renderStructrAppLib(buffer, securityContext, renderContext, depth);
 
-		if (!avoidWhitespace()) {
+		if (depth > 0 && !avoidWhitespace()) {
 
 			buffer.append(indent(depth));
 
 		}
-		
-		if (StringUtils.isNotBlank(tag)) {
 
-			buffer.append("<").append(tag);
-			
-			if (EditMode.CONTENT.equals(edit)) {
-				
+		if (StringUtils.isNotBlank(_tag)) {
+
+			buffer.append("<").append(_tag);
+
+			if (EditMode.CONTENT.equals(editMode)) {
+
 				if (depth == 0) {
-					
-					buffer.append(" data-structr-page=\"").append(renderContext.getPageId()).append("\"");
-					
+
+					String pageId = renderContext.getPageId();
+
+					if (pageId != null) {
+
+						buffer.append(" data-structr-page=\"").append(pageId).append("\"");
+
+					}
+
 				}
-				
+
 				buffer.append(" data-structr-el=\"").append(getUuid()).append("\"");
-				
+
 			}
 
 //			if (EditMode.DATA.equals(edit)) {
@@ -336,12 +336,18 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 			// include arbitrary data-* attributes
 			renderCustomAttributes(buffer, securityContext, renderContext);
-			
+
 			for (PropertyKey attribute : EntityContext.getPropertySet(getClass(), PropertyView.Html)) {
 
 				try {
 
-					String value = escapeForHtmlAttributes(getPropertyWithVariableReplacement(securityContext, renderContext, attribute));
+					String value = getPropertyWithVariableReplacement(securityContext, renderContext, attribute);
+
+					if (!(EditMode.RAW.equals(editMode))) {
+
+						value = escapeForHtmlAttributes(value);
+
+					}
 
 					if (value != null) {
 
@@ -358,188 +364,162 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 				}
 
 			}
-			
+
 			buffer.append(">");
+			
+			try {
 
-			// in body?
-			if (Body.class.getSimpleName().toLowerCase().equals(this.getTagName())) {
-				renderContext.setInBody(true);
-			}
-
-			// fetch children
-			List<AbstractRelationship> rels = getChildRelationships();
-			if (rels.isEmpty()) {
-				
-				// No child relationships, maybe this node is in sync with another node
-				for (AbstractRelationship syncRel : getRelationships(RelType.SYNC, Direction.INCOMING)) {
-
-					DOMElement syncedNode = (DOMElement)syncRel.getStartNode();
-					rels.addAll(syncedNode.getChildRelationships());
-				}
-			}
-
-			for (AbstractRelationship rel : rels) {
-
-				DOMNode subNode = (DOMNode) rel.getEndNode();
-				
-				if (!securityContext.isVisible(subNode)) {
-					continue;
+				// in body?
+				if (Body.class.getSimpleName().toLowerCase().equals(this.getTagName())) {
+					renderContext.setInBody(true);
 				}
 
-				GraphObject details = renderContext.getDetailsDataObject();
-				boolean detailMode = details != null;
+				// fetch children
+				List<AbstractRelationship> rels = getChildRelationships();
+				if (rels.isEmpty()) {
 
-//				if (EditMode.DATA.equals(edit) && subNode.getProperty(hideOnEdit)) {
-//					continue;
-//				}
-//
-//				if (!EditMode.DATA.equals(edit) && subNode.getProperty(hideOnNonEdit)) {
-//					continue;
-//				}
+					// No child relationships, maybe this node is in sync with another node
+					for (AbstractRelationship syncRel : getRelationships(RelType.SYNC, Direction.INCOMING)) {
 
-				if (detailMode && subNode.getProperty(hideOnDetail)) {
-					continue;
+						DOMElement syncedNode = (DOMElement)syncRel.getStartNode();
+						rels.addAll(syncedNode.getChildRelationships());
+					}
 				}
 
-				if (!detailMode && subNode.getProperty(hideOnIndex)) {
-					continue;
-				}
+				for (AbstractRelationship rel : rels) {
 
-				if (subNode instanceof DOMElement) {
-					// Determine the "newline-situation" for the closing tag of this element
-					anyChildNodeCreatesNewLine = ( anyChildNodeCreatesNewLine || !((DOMElement) subNode).avoidWhitespace() );
-				}
-                                
-				String subKey = subNode.getProperty(dataKey);
-				if (StringUtils.isNotBlank(subKey)) {
+					DOMNode subNode = (DOMNode) rel.getEndNode();
 
-					setDataRoot(renderContext, subNode, subKey);
-
-					GraphObject currentDataNode = renderContext.getDataObject();
-					
-					// fetch (optional) list of external data elements
-					List<GraphObject> listData = ((DOMElement) subNode).checkListSources(securityContext, renderContext);
-					
-					PropertyKey propertyKey = null;
-	
-					Class typeForCreateButton = null;
-					String sourceId = null;
-					String sourceType = null;
-					String relatedProperty = null;
-					
-					if (subNode.getProperty(renderDetails) && detailMode) {
-						
-						renderContext.setDataObject(details);
-						renderContext.putDataObject(subKey, details);
-						subNode.render(securityContext, renderContext, depth + 1);
-					
-					} else {
-						
-						if (listData.isEmpty() && currentDataNode != null) {
-
-							// There are two alternative ways of retrieving sub elements:
-							// First try to get generic properties,
-							// if that fails, try to create a propertyKey for the subKey
-							
-							Object elements = currentDataNode.getProperty(new GenericProperty(subKey));
-							renderContext.setRelatedProperty(new GenericProperty(subKey));
-							renderContext.setSourceDataObject(currentDataNode);
-							
-							if (elements != null) {
-								
-								if (elements instanceof Iterable) {
-									
-									int i=0;
-
-									for (Object o : (Iterable)elements) {
-
-										if (o instanceof GraphObject) {
-											
-//											// In edit mode, render a create button
-//											if (i==0 && EditMode.DATA.equals(edit) && o instanceof AbstractNode) {
-//												typeForCreateButton = ((AbstractNode) o).getClass();
-//											}
-											
-											i++;
-
-											GraphObject graphObject = (GraphObject)o;
-											renderContext.putDataObject(subKey, graphObject);
-											subNode.render(securityContext, renderContext, depth + 1);
-
-										}
-									}
-									
-								}
-
-								
-							} else {
-
-								propertyKey = EntityContext.getPropertyKeyForJSONName(currentDataNode.getClass(), subKey, false);
-								renderContext.setRelatedProperty(propertyKey);
-
-								if (propertyKey != null && propertyKey instanceof CollectionProperty) {
-
-									CollectionProperty<AbstractNode> collectionProperty = (CollectionProperty)propertyKey;
-									for (AbstractNode node : currentDataNode.getProperty(collectionProperty)) {
-
-										//renderContext.setStartNode(node);
-										renderContext.putDataObject(subKey, node);
-										subNode.render(securityContext, renderContext, depth + 1);
-
-									}
-									
-									typeForCreateButton = collectionProperty.getDestType();
-									sourceId = currentDataNode.getUuid();
-									sourceType = currentDataNode.getType();
-									relatedProperty = collectionProperty.jsonName();
-
-								}
-							
-							}
-
-							// reset data node in render context
-							renderContext.setDataObject(currentDataNode);
-							renderContext.setRelatedProperty(null);
-						
-						} else {
-							
-							if (!listData.isEmpty()) {
-								typeForCreateButton = listData.get(0).getClass();
-							}
-
-							renderContext.setListSource(listData);
-							((DOMElement) subNode).renderNodeList(securityContext, renderContext, depth, subKey);
-
-						}
-						
-//						// In data edit mode, render a create button, but only if 
-//						if (EditMode.DATA.equals(edit) && typeForCreateButton != null && !Renderable.class.isAssignableFrom(typeForCreateButton)) {
-//
-//							buffer.append("\n<div class=\"structr-edit\"><button class=\"createButton\"");
-//							
-//							if (sourceId != null) {
-//								buffer.append(" data-structr-source-id=\"").append(sourceId).append("\"");
-//								buffer.append(" data-structr-source-type=\"").append(sourceType).append("\"");
-//								buffer.append(" data-structr-related-property=\"").append(relatedProperty).append("\"");
-//							}
-//							
-//							buffer.append(" data-structr-type=\"")
-//								.append(typeForCreateButton.getSimpleName()).append("\">")
-//								.append(relatedProperty != null ? "Add " + typeForCreateButton.getSimpleName() + " to " + relatedProperty : "Create new " + typeForCreateButton.getSimpleName()).append("</button></div>\n");
-//
-//						}
-						
+					if (!securityContext.isVisible(subNode)) {
+						continue;
 					}
 
-				} else {
-					subNode.render(securityContext, renderContext, depth + 1);
+					GraphObject details = renderContext.getDetailsDataObject();
+					boolean detailMode = details != null;
+
+					if (detailMode && subNode.getProperty(hideOnDetail)) {
+						continue;
+					}
+
+					if (!detailMode && subNode.getProperty(hideOnIndex)) {
+						continue;
+					}
+
+					if (subNode instanceof DOMElement) {
+						// Determine the "newline-situation" for the closing tag of this element
+						anyChildNodeCreatesNewLine = ( anyChildNodeCreatesNewLine || !((DOMElement) subNode).avoidWhitespace() );
+					}
+
+					if (EditMode.RAW.equals(editMode)) {
+
+						subNode.render(securityContext, renderContext, depth + 1);
+
+					} else {
+
+						String subKey = subNode.getProperty(dataKey);
+						if (StringUtils.isNotBlank(subKey)) {
+
+							setDataRoot(renderContext, subNode, subKey);
+
+							GraphObject currentDataNode = renderContext.getDataObject();
+
+							// fetch (optional) list of external data elements
+							List<GraphObject> listData = ((DOMElement) subNode).checkListSources(securityContext, renderContext);
+
+							PropertyKey propertyKey = null;
+
+							if (subNode.getProperty(renderDetails) && detailMode) {
+
+								renderContext.setDataObject(details);
+								renderContext.putDataObject(subKey, details);
+								subNode.render(securityContext, renderContext, depth + 1);
+
+							} else {
+
+								if (listData.isEmpty() && currentDataNode != null) {
+
+									// There are two alternative ways of retrieving sub elements:
+									// First try to get generic properties,
+									// if that fails, try to create a propertyKey for the subKey
+
+									Object elements = currentDataNode.getProperty(new GenericProperty(subKey));
+									renderContext.setRelatedProperty(new GenericProperty(subKey));
+									renderContext.setSourceDataObject(currentDataNode);
+
+									if (elements != null) {
+
+										if (elements instanceof Iterable) {
+
+											int i=0;
+
+											for (Object o : (Iterable)elements) {
+
+												if (o instanceof GraphObject) {
+
+													i++;
+
+													GraphObject graphObject = (GraphObject)o;
+													renderContext.putDataObject(subKey, graphObject);
+													subNode.render(securityContext, renderContext, depth + 1);
+
+												}
+											}
+
+										}
+
+
+									} else {
+
+										propertyKey = EntityContext.getPropertyKeyForJSONName(currentDataNode.getClass(), subKey, false);
+										renderContext.setRelatedProperty(propertyKey);
+
+										if (propertyKey != null && propertyKey instanceof CollectionProperty) {
+
+											CollectionProperty<AbstractNode> collectionProperty = (CollectionProperty)propertyKey;
+											for (AbstractNode node : currentDataNode.getProperty(collectionProperty)) {
+
+												//renderContext.setStartNode(node);
+												renderContext.putDataObject(subKey, node);
+												subNode.render(securityContext, renderContext, depth + 1);
+
+											}
+
+										}
+
+									}
+
+									// reset data node in render context
+									renderContext.setDataObject(currentDataNode);
+									renderContext.setRelatedProperty(null);
+
+								} else {
+
+									renderContext.setListSource(listData);
+									((DOMElement) subNode).renderNodeList(securityContext, renderContext, depth, subKey);
+
+								}
+
+							}
+
+						} else {
+							subNode.render(securityContext, renderContext, depth + 1);
+						}
+
+					}
+
 				}
+
+			} catch (Throwable t) {
+
+				logger.log(Level.SEVERE, "Error while rendering node {0}: {1}", new java.lang.Object[] { getUuid(), t });
+
+				buffer.append("Error while rendering node ").append(getUuid()).append(": ").append(t);
 
 			}
 
 			// render end tag, if needed (= if not singleton tags)
-			if (StringUtils.isNotBlank(tag) && (!isVoid)) {
-				
+			if (StringUtils.isNotBlank(_tag) && (!isVoid)) {
+
 				// only insert a newline + indentation before the closing tag if any child-element used a newline
 				if (anyChildNodeCreatesNewLine) {
 
@@ -547,11 +527,11 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 				}
 
-				buffer.append("</").append(tag).append(">");
+				buffer.append("</").append(_tag).append(">");
 			}
-			
+
 		}
-	
+		
 		double end = System.nanoTime();
 
 		logger.log(Level.FINE, "Render node {0} in {1} seconds", new java.lang.Object[] { getUuid(), decimalFormat.format((end - start) / 1000000000.0) });
@@ -584,22 +564,6 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 				renderContext.putDataObject(dataKey, dataObject);
 
 				render(securityContext, renderContext, depth + 1);
-				
-//				if (renderContext.getEditMode()) {
-//					
-//					boolean canWrite  = dataObject instanceof AbstractNode ? securityContext.isAllowed((AbstractNode) dataObject, Permission.write) : true;
-//					
-//					if (canWrite) {
-//						
-//						renderContext.getBuffer()
-//							.append("\n<button class=\"deleteButton\" data-structr-id=\"")
-//							.append(dataObject.getUuid())
-//							.append("\">Delete ")
-//							.append(dataObject.getType())
-//							.append("</button>\n");
-//					}
-//				}
-
 
 			}
 			renderContext.clearDataObject(dataKey);
@@ -1198,11 +1162,11 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 				//securityContext.checkResourceAccess(request, resource.getResourceSignature(), resource.getGrant(request, response), PropertyView.Ui);
 
 				// add sorting & paging
-				String pageSizeParameter = request.getParameter(REQUEST_PARAMETER_PAGE_SIZE);
-				String pageParameter     = request.getParameter(REQUEST_PARAMETER_PAGE_NUMBER);
-				String offsetId          = request.getParameter(REQUEST_PARAMETER_OFFSET_ID);
-				String sortOrder         = request.getParameter(REQUEST_PARAMETER_SORT_ORDER);
-				String sortKeyName       = request.getParameter(REQUEST_PARAMETER_SORT_KEY);
+				String pageSizeParameter = request.getParameter(JsonRestServlet.REQUEST_PARAMETER_PAGE_SIZE);
+				String pageParameter     = request.getParameter(JsonRestServlet.REQUEST_PARAMETER_PAGE_NUMBER);
+				String offsetId          = request.getParameter(JsonRestServlet.REQUEST_PARAMETER_OFFSET_ID);
+				String sortOrder         = request.getParameter(JsonRestServlet.REQUEST_PARAMETER_SORT_ORDER);
+				String sortKeyName       = request.getParameter(JsonRestServlet.REQUEST_PARAMETER_SORT_KEY);
 				boolean sortDescending   = (sortOrder != null && "desc".equals(sortOrder.toLowerCase()));
 				int pageSize		 = parseInt(pageSizeParameter, NodeFactory.DEFAULT_PAGE_SIZE);
 				int page                 = parseInt(pageParameter, NodeFactory.DEFAULT_PAGE);
@@ -1358,13 +1322,20 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	private void renderCustomAttributes(final StringBuilder buffer, final SecurityContext securityContext, final RenderContext renderContext) throws FrameworkException {
 		
 		dbNode = this.getNode();
+		EditMode editMode = renderContext.getEditMode(securityContext.getUser(false));
 		
 		Iterable<String> props = dbNode.getPropertyKeys();
 		for (String key : props) {
 			
 			if (key.startsWith("data-")) {
 				
-				String value = escapeForHtmlAttributes(getPropertyWithVariableReplacement(securityContext, renderContext, new GenericProperty(key)));
+				String value = getPropertyWithVariableReplacement(securityContext, renderContext, new GenericProperty(key));
+					
+				if (!(EditMode.RAW.equals(editMode))) {
+
+					value = escapeForHtmlAttributes(value);
+
+				}
 				
 				if (StringUtils.isNotBlank(value)) {
 					
@@ -1376,6 +1347,31 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 			
 		}
 		
+		if (EditMode.RAW.equals(editMode)) {
+			
+			// In raw mode, add query-related data
+			String _dataKey		= getProperty(dataKey);
+			String _restQuery	= getProperty(restQuery);
+			String _cypherQuery	= getProperty(cypherQuery);
+			String _xpathQuery	= getProperty(xpathQuery);
+
+			if (StringUtils.isNotBlank(_dataKey)) {
+				buffer.append(" ").append("data-structr-meta-data-key").append("=\"").append(_dataKey).append("\"");
+			}
+
+			if (StringUtils.isNotBlank(_restQuery)) {
+				buffer.append(" ").append("data-structr-meta-rest-query").append("=\"").append(_restQuery).append("\"");
+			}
+
+			if (StringUtils.isNotBlank(_cypherQuery)) {
+				buffer.append(" ").append("data-structr-meta-cypher-query").append("=\"").append(_cypherQuery).append("\"");
+			}
+
+			if (StringUtils.isNotBlank(_xpathQuery)) {
+				buffer.append(" ").append("data-structr-meta-xpath-query").append("=\"").append(_xpathQuery).append("\"");
+			}
+
+		}
 	}
 	
 	/**
@@ -1385,13 +1381,13 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	 * 
 	 * @param buffer 
 	 */
-	private void renderStructrAppLib(final StringBuilder buffer, final RenderContext renderContext, final int depth) throws FrameworkException {
+	private void renderStructrAppLib(final StringBuilder buffer, final SecurityContext securityContext, final RenderContext renderContext, final int depth) throws FrameworkException {
 		
-		if (!renderContext.appLibRendered() && getProperty(new StringProperty(STRUCTR_ACTION_PROPERTY)) != null) {
+		if (!(EditMode.RAW.equals(renderContext.getEditMode(securityContext.getUser(false)))) && !renderContext.appLibRendered() && getProperty(new StringProperty(STRUCTR_ACTION_PROPERTY)) != null) {
 		
 			buffer
 				.append(indent(depth))
-				.append("<script type=\"text/javascript\" src=\"/structr/js/lib/jquery-1.10.2.min.js\"></script>")
+				.append("<script type=\"text/javascript\" src=\"/structr/js/lib/jquery-2.0.3.min.js\"></script>")
 				.append(indent(depth))
 				.append("<script type=\"text/javascript\" src=\"/structr/js/lib/jquery-ui-1.10.3.custom.min.js\"></script>")
 				.append(indent(depth))

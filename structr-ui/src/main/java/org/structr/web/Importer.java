@@ -61,16 +61,15 @@ import org.structr.web.entity.dom.Page;
 
 import java.io.IOException;
 import java.io.StringWriter;
-
 import java.net.MalformedURLException;
 import java.net.URL;
-
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.lang.WordUtils;
+import org.structr.core.property.BooleanProperty;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -333,10 +332,11 @@ public class Importer {
 
 //                              type    = "Content";
 				tag     = "";
-				content = ((TextNode) node).toString().trim();
+				//content = ((TextNode) node).getWholeText();
+				content = ((TextNode) node).text();
 
-				// Don't add content node for whitespace
-				if (StringUtils.isBlank(content)) {
+				// Add content node for whitespace within <p> elements only
+				if (!("p".equals(startNode.nodeName().toLowerCase())) && StringUtils.isWhitespace(content)) {
 
 					continue;
 				}
@@ -388,8 +388,18 @@ public class Importer {
 								
 								String upperCaseKey = WordUtils.capitalize(key.substring(l), new char[] { '-' }).replaceAll("-", "");
 								String camelCaseKey = key.substring(l, l+1).concat(upperCaseKey.substring(1));
-
-								newNode.setProperty(new StringProperty(camelCaseKey), nodeAttr.getValue());
+								
+								String value = nodeAttr.getValue();
+								
+								if (value != null) {
+									if (value.equalsIgnoreCase("true")) {
+										newNode.setProperty(new BooleanProperty(camelCaseKey), true);
+									} else if (value.equalsIgnoreCase("false")) {
+										newNode.setProperty(new BooleanProperty(camelCaseKey), false);
+									} else {
+										newNode.setProperty(new StringProperty(camelCaseKey), nodeAttr.getValue());
+									}
+								}
 								
 							}
 							

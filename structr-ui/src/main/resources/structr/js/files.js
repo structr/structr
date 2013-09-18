@@ -71,6 +71,8 @@ var _Files = {
             });
         }
 
+        Structr.resize();
+
     },
 
     onload : function() {
@@ -78,15 +80,16 @@ var _Files = {
         _Files.init();
         
         log('onload');
-        if (palette) palette.remove();
 
         //main.append('<table id="dropArea"><tr><td id="folders"></td><td id="files"></td><td id="images"></td></tr></table>');
-        main.append('<table id="dropArea"><tr><td id="folders"></td><td id="files"></td></tr></table>');
+        main.append('<div id="dropArea"><div class="fit-to-height" id="folders"></div><div class="fit-to-height" id="files"></div>');
+        //main.append('<table id="dropArea"><tr><<td class="fit-to-height" id="folders"></td><td class="fit-to-height" id="files"></td></tr></table>');
         folders = $('#folders');
         files = $('#files');
         
         _Files.refreshFolders();
         _Files.refreshFiles();
+        
     },
 
     unload : function() {
@@ -98,7 +101,7 @@ var _Files = {
         
         if (window.File && window.FileReader && window.FileList && window.Blob) {
 
-            files.append('<h1>Files</h1>');
+            files.append('<h2>Files</h2>');
             
             drop = $('#dropArea');
 

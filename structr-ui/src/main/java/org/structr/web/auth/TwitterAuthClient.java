@@ -21,6 +21,7 @@ package org.structr.web.auth;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
+import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
 import org.structr.core.Services;
 import org.structr.core.entity.Person;
 import org.structr.core.property.PropertyKey;
@@ -29,6 +30,8 @@ import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
 import twitter4j.auth.AccessToken;
 import twitter4j.auth.RequestToken;
+import twitter4j.conf.Configuration;
+import twitter4j.conf.ConfigurationBuilder;
 
 /**
  * Twitter supports only OAuth 1.0a, therefore we need a completely different
@@ -49,7 +52,15 @@ public class TwitterAuthClient extends StructrOAuthClient {
 
 		super.init(authorizationLocation, tokenLocation, clientId, clientSecret, redirectUri, tokenResponseClass);
 
-		twitter = new TwitterFactory().getInstance();
+		ConfigurationBuilder cb = new ConfigurationBuilder();
+		cb.setUseSSL(true);
+		cb.setOAuthAuthorizationURL(authorizationLocation);
+		cb.setOAuthAccessTokenURL(tokenLocation);
+
+		Configuration conf = cb.build();
+		
+		TwitterFactory tf = new TwitterFactory(conf);
+		twitter = tf.getInstance();
 		twitter.setOAuthConsumer(clientId, clientSecret);
 		
 	}
@@ -90,9 +101,11 @@ public class TwitterAuthClient extends StructrOAuthClient {
 			requestToken = twitter.getOAuthRequestToken();
 			request.getSession().setAttribute("requestToken", requestToken);
 			
-			logger.log(Level.INFO, "Authorization request location URI: {0}", requestToken.getAuthorizationURL());
+			// Workaround for requestToken.getAuthorizationURL() ignoring configuration built with ConfigurationBuilder
+			String authorizationUrl = twitter.getConfiguration().getOAuthAuthorizationURL().concat("?oauth_token=").concat(requestToken.getToken());
+			logger.log(Level.INFO, "Authorization request location URI: {0}", authorizationUrl);
 			
-			return requestToken.getAuthorizationURL();
+			return authorizationUrl;
 			
 		} catch (TwitterException ex) {
 			

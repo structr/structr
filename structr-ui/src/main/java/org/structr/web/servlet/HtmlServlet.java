@@ -255,6 +255,14 @@ public class HtmlServlet extends HttpServlet {
 					rootElement = findPage(request, PathHelper.clean(StringUtils.substringBeforeLast(path, PathHelper.PATH_SEP)));
 
 					renderContext.setDetailsDataObject(dataNode);
+					
+					// Start rendering on data node
+					if (rootElement == null && dataNode instanceof DOMNode) {
+						
+						rootElement = ((DOMNode) dataNode);
+						
+						
+					}
 
 				}
 

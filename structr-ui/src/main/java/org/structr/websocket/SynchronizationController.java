@@ -112,7 +112,7 @@ public class SynchronizationController implements StructrTransactionListener, Tr
 		String message;
 		String pagePath = (String) webSocketData.getNodeData().get("pagePath");
 
-		//synchronized (clients) {
+		synchronized (clients) {
 
 			// create message
 			for (StructrWebSocket socket : clients) {
@@ -177,7 +177,7 @@ public class SynchronizationController implements StructrTransactionListener, Tr
 				}
 
 			}
-		//}
+		}
 
 	}
 

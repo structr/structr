@@ -17,39 +17,25 @@
  * along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+package org.structr.websocket.command;
 
-
-package org.structr.websocket.command.dom;
-
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 
 import org.structr.web.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
-import org.structr.core.Result;
 import org.structr.core.Services;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.CreateRelationshipCommand;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
-import org.structr.core.graph.search.Search;
-import org.structr.core.graph.search.SearchNodeCommand;
-import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.dom.DOMNode;
-import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.dom.ShadowDocument;
 import org.structr.websocket.StructrWebSocket;
-import org.structr.websocket.command.AbstractCommand;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
 
 /**
- * Copy a DOMNode to an arbitrary location in another document (page).
+ * Create a component as a clone of the source node.
  *
  * This command will create default SYNC relationships (bi-directional)
  *
@@ -67,7 +53,6 @@ public class CreateComponentCommand extends AbstractCommand {
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 		String id                             = webSocketData.getId();
-		Map<String, Object> nodeData          = webSocketData.getNodeData();
 
 		if (id != null) {
 
@@ -84,14 +69,14 @@ public class CreateComponentCommand extends AbstractCommand {
 						
 						DOMNode clonedNode = (DOMNode) node.cloneNode(false);
 						
+						moveChildNodes(node, clonedNode);
+						
 						ShadowDocument hiddenDoc = getOrCreateHiddenDocument();
-
-						//hiddenDoc.appendChild(clonedNode);
-
 						clonedNode.setProperty(DOMNode.ownerDocument, hiddenDoc);
 
 						createRel.execute(node, clonedNode, RelType.SYNC, true);
 						createRel.execute(clonedNode, node, RelType.SYNC, true);
+
 						return null;
 
 					}
@@ -120,39 +105,5 @@ public class CreateComponentCommand extends AbstractCommand {
 
 	}
 
-	private ShadowDocument getOrCreateHiddenDocument() throws FrameworkException {
-		
-		SecurityContext securityContext = SecurityContext.getSuperUserInstance();
 
-		Result result = (Result) Services.command(securityContext, SearchNodeCommand.class).execute(
-			Search.andExactType(ShadowDocument.class)
-		);
-
-		if (result.isEmpty()) {
-
-			final CreateNodeCommand cmd  = Services.command(securityContext, CreateNodeCommand.class);
-			final PropertyMap properties = new PropertyMap();
-			properties.put(AbstractNode.type, ShadowDocument.class.getSimpleName());
-			properties.put(AbstractNode.name, "__ShadowDocument__");
-			properties.put(AbstractNode.hidden, true);
-			properties.put(AbstractNode.visibleToAuthenticatedUsers, true);
-		
-			ShadowDocument doc = Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<ShadowDocument>() {
-
-				@Override
-				public ShadowDocument execute() throws FrameworkException {
-
-					return (ShadowDocument) cmd.execute(properties);
-				}		
-			});
-	
-			return doc;
-
-		}
-		
-		return (ShadowDocument) result.get(0);
-		
-		
-	}
-	
 }

@@ -44,9 +44,14 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.Result;
+import org.structr.core.graph.CreateNodeCommand;
+import org.structr.core.graph.StructrTransaction;
+import org.structr.core.graph.TransactionCommand;
+import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.Widget;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
+import org.structr.web.entity.dom.ShadowDocument;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -233,6 +238,72 @@ public abstract class AbstractCommand {
 		}
 	}
 
+	/**
+	 * Make child nodes of the source nodes child nodes of the target node.
+	 * 
+	 * @param sourceNode
+	 * @param targetNode 
+	 */
+	protected void moveChildNodes(final DOMNode sourceNode, final DOMNode targetNode) {
+		
+		DOMNode child = (DOMNode) sourceNode.getFirstChild();
+		
+		while (child != null) {
+			
+			DOMNode next = (DOMNode) child.getNextSibling();
+			
+			targetNode.appendChild(child);
+			
+			child = next;
+			
+		}
+		
+	}
+	/**
+	 * Search for a hidden page named __ShadowDocument__ of type {@see ShadowDocument.class}.
+	 * 
+	 * If found, return it, if not, create it.
+	 * The shadow page is the DOM document all reusable components are connected to.
+	 * It is necessary to comply with DOM standards.
+	 * 
+	 * @return
+	 * @throws FrameworkException 
+	 */
+	protected ShadowDocument getOrCreateHiddenDocument() throws FrameworkException {
+		
+		SecurityContext securityContext = SecurityContext.getSuperUserInstance();
+
+		Result result = (Result) Services.command(securityContext, SearchNodeCommand.class).execute(
+			Search.andExactType(ShadowDocument.class)
+		);
+
+		if (result.isEmpty()) {
+
+			final CreateNodeCommand cmd  = Services.command(securityContext, CreateNodeCommand.class);
+			final PropertyMap properties = new PropertyMap();
+			properties.put(AbstractNode.type, ShadowDocument.class.getSimpleName());
+			properties.put(AbstractNode.name, "__ShadowDocument__");
+			properties.put(AbstractNode.hidden, true);
+			properties.put(AbstractNode.visibleToAuthenticatedUsers, true);
+		
+			ShadowDocument doc = Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<ShadowDocument>() {
+
+				@Override
+				public ShadowDocument execute() throws FrameworkException {
+
+					return (ShadowDocument) cmd.execute(properties);
+				}		
+			});
+	
+			return doc;
+
+		}
+		
+		return (ShadowDocument) result.get(0);
+		
+		
+	}
+	
 	//~--- set methods ----------------------------------------------------
 
 	public void setConnection(final Connection connection) {

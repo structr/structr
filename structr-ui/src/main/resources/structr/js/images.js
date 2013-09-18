@@ -78,10 +78,8 @@ var _Images = {
         
         _Images.init();
         
-        if (palette) palette.remove();
-
         //main.append('<table id="dropArea"><tr><td id="folders"></td><td id="images"></td></tr></table>');
-        main.append('<table id="dropArea"><tr><td id="images"></td></tr></table>');
+        main.append('<table id="dropArea"><tr><td class="fit-to-height" id="images"></td></tr></table>');
         //folders = $('#folders');
         images = $('#images');
         
