@@ -18,6 +18,7 @@
  */
 package org.structr.rest.resource;
 
+import java.util.Collections;
 import java.util.Iterator;
 import org.structr.common.PagingHelper;
 import java.util.LinkedList;
@@ -28,6 +29,7 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 
 import org.neo4j.graphdb.RelationshipType;
+import org.structr.common.GraphObjectComparator;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.common.SecurityContext;
@@ -118,6 +120,11 @@ public class NamedRelationResource extends WrappingResource {
 					if(!predicate.evaluate(securityContext, it.next())) {
 						it.remove();
 					}
+				}
+				
+				// sort results
+				if (sortKey != null) {
+					Collections.sort(relationResults, new GraphObjectComparator(sortKey, sortDescending));
 				}
 			}
 
