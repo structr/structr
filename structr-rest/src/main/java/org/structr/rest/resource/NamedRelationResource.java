@@ -121,11 +121,11 @@ public class NamedRelationResource extends WrappingResource {
 						it.remove();
 					}
 				}
-				
-				// sort results
-				if (sortKey != null) {
-					Collections.sort(relationResults, new GraphObjectComparator(sortKey, sortDescending));
-				}
+			}
+
+			// sort results
+			if (sortKey != null) {
+				Collections.sort(relationResults, new GraphObjectComparator(sortKey, sortDescending));
 			}
 
 		} else {
