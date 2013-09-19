@@ -47,7 +47,7 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.parboiled.common.StringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.structr.core.auth.AuthHelper;
 import org.structr.core.entity.Person;
 import org.structr.core.entity.Principal;
