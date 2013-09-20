@@ -358,11 +358,11 @@ function connect() {
                             }
                             
                             // Change icon
-//                            $.each(entity.syncedNodes, function(i, id) {
-//                                var el = Structr.node(id);
-//                                el.children('img.typeIcon').attr('src', _Elements.icon_comp);
-//                                _Entities.removeExpandIcon(el);
-//                            });
+                            $.each(entity.syncedNodes, function(i, id) {
+                                var el = Structr.node(id);
+                                el.children('img.typeIcon').attr('src', _Elements.icon_comp);
+                                _Entities.removeExpandIcon(el);
+                            });
                         }
                     }
 

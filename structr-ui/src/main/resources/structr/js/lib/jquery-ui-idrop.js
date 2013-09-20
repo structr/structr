@@ -28,9 +28,10 @@ $.ui.intersect = function(draggable, droppable, toleranceMode) {
 		x1 = (draggable.positionAbs || draggable.position.absolute).left,
                 y1 = (draggable.positionAbs || draggable.position.absolute).top;
 
-    if (droppable.options.iframeOffset) {
-            x1 -= droppable.options.iframeOffset.left;
-            y1 -= droppable.options.iframeOffset.top;
+    if (droppable.options.iframe) {
+            var o = droppable.options.iframe.offset();
+            x1 -= o.left;
+            y1 -= o.top;
         }
         
         var x2 = x1 + draggable.helperProportions.width, y2 = y1 + draggable.helperProportions.height,

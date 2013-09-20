@@ -30,11 +30,11 @@ var _Dragndrop = {
      */
     makeDroppable: function(element, previewId) {
         var el = $(element);
-        var tag, offset = $('#preview_' + previewId).offset();
+        var tag, iframe = previewId ? $('#preview_' + previewId) : undefined;
         
         el.droppable({
             iframeFix: true,
-            iframeOffset: offset,
+            iframe: iframe,
             accept: '.node, .element, .content, .image, .file, .widget',
             greedy: true,
             hoverClass: 'nodeHover',
@@ -160,7 +160,7 @@ var _Dragndrop = {
      */
     dropAction: function(source, target, pageId, tag) {
 
-        console.log('dropAction', source, target, pageId, tag);
+        log('dropAction', source, target, pageId, tag);
 
         if (source && pageId && source.pageId && pageId !== source.pageId) {
 
