@@ -119,6 +119,30 @@
         <url>https://github.com/structr/structr</url>
         <connection>scm:git:git@github.com:structr/structr.git</connection>
     </scm>
+    
+    <distributionManagement>
+<!--        <repository>
+            <id>releases.maven.structr.org</id>
+            <name>maven.structr.org-releases</name>
+            <url>http://maven.structr.org/artifactory/release</url>
+        </repository>
+        <snapshotRepository>
+            <id>snapshots.maven.structr.org</id>
+            <name>maven.structr.org-snapshots</name>
+            <url>http://maven.structr.org/artifactory/snapshot</url>
+        </snapshotRepository>-->
+        <repository>
+            <id>rsonatype-nexus-staging</id>
+            <name>Maven Central Staging</name>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+        </repository>
+        <snapshotRepository>
+            <id>sonatype-nexus-snapshots</id>
+            <name>Maven Central Snapshots</name>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
+    
 </project>
 
 
