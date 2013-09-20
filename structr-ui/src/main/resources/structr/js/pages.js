@@ -111,8 +111,8 @@ var _Pages = {
         main.prepend('<div id="pages" class="slideOut slideOutLeft"><div class="compTab" id="pagesTab">Pages Tree View</div></div><div id="previews"></div>'
                 + '<div id="widgetsSlideout" class="slideOut slideOutRight"><div class="compTab" id="widgetsTab">Widgets</div></div>'
                 + '<div id="palette" class="slideOut slideOutRight"><div class="compTab" id="paletteTab">HTML Palette</div></div>'
-                + '<div id="components" class="slideOut slideOutRight"><div class="compTab" id="componentsTab">Reused Components</div></div>'
-                + '<div id="elements" class="slideOut slideOutRight"><div class="compTab" id="elementsTab">Orphaned Elements</div></div>');
+                + '<div id="components" class="slideOut slideOutRight"><div class="compTab" id="componentsTab">Shared Components</div></div>'
+                + '<div id="elements" class="slideOut slideOutRight"><div class="compTab" id="elementsTab">Unused Elements</div></div>');
 
         previews        = $('#previews');
         pagesSlideout   = $('#pages');
@@ -220,7 +220,6 @@ var _Pages = {
 
     },
     openSlideOut: function(slideout, tab, callback) {
-        _Pages.resize(0, rsw);
         var s = $(slideout);
         var t = $(tab);
         t.addClass('active');
@@ -229,6 +228,7 @@ var _Pages = {
         if (callback) {
             callback();
         }
+        _Pages.resize(0, rsw);
     },
     closeSlideOuts: function(slideout) {
         var wasOpen = false;
@@ -249,7 +249,6 @@ var _Pages = {
         localStorage.removeItem(activeTabRightKey);
     },
     openLeftSlideOut: function(slideout, tab, callback) {
-        _Pages.resize(lsw, 0);
         var s = $(slideout);
         var t = $(tab);
         t.addClass('active');
@@ -258,9 +257,9 @@ var _Pages = {
         if (callback) {
             callback();
         }
+        _Pages.resize(lsw, 0);
     },
     closeLeftSlideOuts: function(slideout) {
-        _Pages.resize(-lsw, 0);
         slideout.forEach(function(w) {
             var s = $(w);
             var l = s.position().left;
@@ -270,6 +269,7 @@ var _Pages = {
             }
         });
         localStorage.removeItem(activeTabLeftKey);
+        _Pages.resize(-lsw, 0);
     },
     clearPreviews: function() {
 

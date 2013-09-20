@@ -5,12 +5,12 @@
     <parent>
         <groupId>org.structr</groupId>
         <artifactId>structr</artifactId>
-        <version>0.8</version>
+        <version>0.8.1</version>
     </parent>
 
     <groupId>org.structr</groupId>
     <artifactId>structr-simple-example-archetype</artifactId>
-    <version>0.8</version>
+    <version>0.8.1</version>
     <packaging>maven-archetype</packaging>
     <url>http://structr.org</url>
     <name>structr-simple-example-archetype</name>

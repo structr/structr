@@ -349,9 +349,13 @@ function connect() {
                     } else {
                         
                         if (!entity.parent && shadowPage && entity.pageId === shadowPage.id) {
-                            var comp = _Pages.appendElementElement(entity, components, true);
                             
-                            _Entities.ensureExpanded(comp);
+                            StructrModel.create(entity, null, false);
+                            var el = _Pages.appendElementElement(entity, components, true);
+
+                            if (isExpanded(entity.id)) {
+                                _Entities.ensureExpanded(el);
+                            }
                             
                             // Change icon
                             $.each(entity.syncedNodes, function(i, id) {

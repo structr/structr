@@ -65,10 +65,10 @@ public class SynchronizationController implements StructrTransactionListener, Tr
 
 	private static final Logger logger                              = Logger.getLogger(SynchronizationController.class.getName());
 
-	private final Map<Long, List<WebSocketMessage>> messageStackMap = new ConcurrentHashMap<Long, List<WebSocketMessage>>();
-	private final Map<Long, Set<DOMNode>> markupElementsMap         = new ConcurrentHashMap<Long, Set<DOMNode>>();
-	private final Map<Long, Set<Class>> typesMap                    = new ConcurrentHashMap<Long, Set<Class>>();
-	private final Set<StructrWebSocket> clients                     = new LinkedHashSet<StructrWebSocket>();
+	private final Map<Long, List<WebSocketMessage>> messageStackMap = new ConcurrentHashMap<>();
+	private final Map<Long, Set<DOMNode>> markupElementsMap         = new ConcurrentHashMap<>();
+	private final Map<Long, Set<Class>> typesMap                    = new ConcurrentHashMap<>();
+	private final Set<StructrWebSocket> clients                     = new LinkedHashSet<>();
 	private final AtomicLong transactionCounter                     = new AtomicLong(0);
 	private ResourceProvider resourceProvider                       = null;
 	private Gson gson                                               = null;
@@ -716,13 +716,13 @@ public class SynchronizationController implements StructrTransactionListener, Tr
 		collectRemovedNodeProperties(securityContext, transactionKey, data, nodeFactory, removedNodeProperties);
 		collectRemovedRelationshipProperties(securityContext, transactionKey, data, relFactory, removedRelProperties);
 
-		// call onCreation
-		callOnNodeCreation(securityContext, transactionKey, data, nodeFactory);
-		callOnRelationshipCreation(securityContext, transactionKey, data, relFactory);
-
 		// call onDeletion
 		callOnRelationshipDeletion(securityContext, transactionKey, data, relFactory, removedRelProperties);
 		callOnNodeDeletion(securityContext, transactionKey, data, nodeFactory, removedNodeProperties);
+
+		// call onCreation
+		callOnNodeCreation(securityContext, transactionKey, data, nodeFactory);
+		callOnRelationshipCreation(securityContext, transactionKey, data, relFactory);
 
 		// call validators
 		callNodePropertyModified(securityContext, transactionKey, data, nodeFactory);

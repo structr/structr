@@ -197,10 +197,11 @@ var _Elements = {
         Command.getByType('ShadowDocument', 1, 1, null, null, function(entity) {
             shadowPage = entity;
         });
-        
         components.droppable({
             
             drop : function(e, ui) {
+                e.preventDefault();
+                e.stopPropagation();
                 var sourceEl = $(ui.draggable);
                 if (sourceEl.parent().attr('id') === 'components') {
                     log('component dropped on components area, aborting');
@@ -211,10 +212,11 @@ var _Elements = {
             }
             
         });
-
         _Dragndrop.makeSortable(components);
 
         Command.listComponents(1000, 1, 'name', 'asc', function(entity) {
+            
+            if (!entity) return false;
 
             StructrModel.create(entity, null, false);
             var el = _Pages.appendElementElement(entity, components, true);
@@ -245,7 +247,7 @@ var _Elements = {
                         $.unblockUI({
                             fadeOut: 25
                         });
-                        _Pages.closeSlideOuts([elements]);
+                        _Pages.closeSlideOuts([elementsSlideout]);
                     });
         });
 
@@ -271,10 +273,10 @@ var _Elements = {
     appendElementElement: function(entity, refNode, refNodeIsParent) {
         log('_Elements.appendElementElement', entity);
 
+        if (!entity) return false;
+
         var hasChildren = entity.childrenIds && entity.childrenIds.length;
         var isComponent = entity.syncedNodes && entity.syncedNodes.length;
-
-        var isMasterComponent = (isComponent && hasChildren && refNode !== components);
 
         var parent;
         if (refNodeIsParent) {
@@ -291,7 +293,7 @@ var _Elements = {
 
         var id = entity.id;
 
-        var html = '<div id="' + (isMasterComponent ? 'componentId_' : 'id_') + id + '" class="node element' + (entity.tag === 'html' ? ' html_element' : '') + ' "></div>';
+        var html = '<div id="id_' + id + '" class="node element' + (entity.tag === 'html' ? ' html_element' : '') + ' "></div>';
 
         if (refNode && !refNodeIsParent) {
             refNode.before(html);
@@ -299,7 +301,7 @@ var _Elements = {
             parent.append(html);
         }
 
-        var div = (isMasterComponent ? _Elements.componentNode(id) : Structr.node(id));
+        var div = Structr.node(id);
 
         log('Element appended (div, parent)', div, parent);
 
@@ -316,7 +318,7 @@ var _Elements = {
                 + (entity._html_class ? '<span class="_html_class_">.' + entity._html_class.replace(/\${.*}/g, '${…}').replace(/ /g, '.') + '</span>' : '')
                 + '</div>');
 
-        _Entities.appendExpandIcon(div, entity, !isMasterComponent && hasChildren);
+        _Entities.appendExpandIcon(div, entity, hasChildren);
 
         // Prevent type icon from being draggable
         $('.typeIcon', div).on('mousedown', function(e) {
@@ -350,7 +352,10 @@ var _Elements = {
             _Entities.deleteNode(this, entity, function() {
                 entity.syncedNodes.forEach(function(id) {
                     var el = Structr.node(id);
-                    el.children('img.typeIcon').attr('src', _Elements.icon);
+                    if (el && el.children && el.children.length) {
+                        el.children('img.typeIcon').attr('src', _Elements.icon);
+                    }
+                        
                 });
             });
         });
@@ -394,7 +399,7 @@ var _Elements = {
 
                 if (entity.tag !== 'img') {
 
-                    dialog.append('<p>Click on a Page or File to establish a hyperlink to this ' + entity.tag + ' element.</p>');
+                    dialog.append('<p>Click on a Page, File or Image to establish a hyperlink to this ' + entity.tag + ' element.</p>');
 
                     dialog.append('<h3>Pages</h3><div class="linkBox" id="pagesToLink"></div>');
 
@@ -465,7 +470,7 @@ var _Elements = {
 
                 }
 
-                if (entity.tag === 'img' || entity.tag === 'link') {
+                if (entity.tag === 'img' || entity.tag === 'link' || entity.tag === 'a') {
 
                     dialog.append('<h3>Images</h3><div class="linkBox" id="imagesToLink"></div>');
 

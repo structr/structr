@@ -28,14 +28,13 @@ var _Dragndrop = {
     /**
      * Make DOM element a target for drop events
      */
-    makeDroppable: function(el, previewId) {
-
-        var tag;
-        var offset = $('#preview_' + previewId).offset();
+    makeDroppable: function(element, previewId) {
+        var el = $(element);
+        var tag, iframe = previewId ? $('#preview_' + previewId) : undefined;
         
         el.droppable({
             iframeFix: true,
-            iframeOffset: offset,
+            iframe: iframe,
             accept: '.node, .element, .content, .image, .file, .widget',
             greedy: true,
             hoverClass: 'nodeHover',
@@ -64,6 +63,7 @@ var _Dragndrop = {
 
                 log('dropped onto', self, targetId, getId(sortParent));
                 if (targetId === getId(sortParent)) {
+                    console.log('target id == sortParent id', targetId, getId(sortParent));
                     return false;
                 }
 
@@ -86,12 +86,14 @@ var _Dragndrop = {
                 }
 
                 if (!target) {
+                    console.log('no target');
                     return;
                 }
 
 
                 if (_Dragndrop.dropAction(source, target, pageId, tag)) {
                     $(ui.draggable).remove();
+                    sortParent = undefined;
                 }
 
             }
@@ -101,11 +103,8 @@ var _Dragndrop = {
     /**
      * Enable sorting on DOM element
      */
-    makeSortable: function(el) {
-
-//        if (el.attr('id') === 'components') {
-//            
-//        }
+    makeSortable: function(element) {
+        var el = $(element);
 
         var sortableOptions = {
             iframeFix: true,
@@ -161,24 +160,19 @@ var _Dragndrop = {
      */
     dropAction: function(source, target, pageId, tag) {
 
-        if (source && !target) {
-
-            console.log('target is not defined, create component');
-
-
-        }
+        log('dropAction', source, target, pageId, tag);
 
         if (source && pageId && source.pageId && pageId !== source.pageId) {
 
             if (shadowPage && source.pageId === shadowPage.id) {
 
-                console.log('clone component!');
+                log('clone component!');
                 Command.cloneComponent(source.id, target.id);
 
             } else {
 
                 Command.appendChild(source.id, target.id, pageId);
-                console.log('dropped', source.id, 'onto', target.id, 'in page', pageId);
+                log('dropped', source.id, 'onto', target.id, 'in page', pageId);
 
             }
 
@@ -231,7 +225,7 @@ var _Dragndrop = {
                 return true;
                 
             } else {
-                console.log('unknown situation', source, target);
+                console.log('unknown drag\'n drop  situation', source, target);
             }
         }
 
@@ -239,13 +233,10 @@ var _Dragndrop = {
 
     },
     htmlElementFromPaletteDropped: function(tag, target, pageId) {
-
         var nodeData = {};
-
         if (tag === 'a' || tag === 'p'
                 || tag === 'h1' || tag === 'h2' || tag === 'h3' || tag === 'h4' || tag === 'h5' || tag === 'h5' || tag === 'pre'
                 || tag === 'li' || tag === 'em' || tag === 'title' || tag === 'b' || tag === 'span' || tag === 'th' || tag === 'td' || tag === 'button') {
-
             if (tag === 'a') {
                 nodeData._html_href = '/${link.name}';
                 nodeData.childContent = '${parent.link.name}';
@@ -254,12 +245,18 @@ var _Dragndrop = {
             } else {
                 nodeData.childContent = 'Initial text for ' + tag;
             }
-
         }
-
-        Command.createAndAppendDOMNode(pageId, target.id, (tag !== 'content' ? tag : ''), nodeData);
+        if (target.type === 'Content') {
+            if (tag === 'content') {
+                log('content element dropped on content, doing nothing');
+                return false;
+            }
+            console.log('wrap content', pageId, target.id, tag);
+            Command.wrapContent(pageId, target.id, tag);
+        } else {
+            Command.createAndAppendDOMNode(pageId, target.id, (tag !== 'content' ? tag : ''), nodeData);
+        }
         return false;
-
     },
     widgetDropped: function(source, target, pageId) {
 

@@ -986,9 +986,7 @@ var _Crud = {
             headers: headers,
             data: json,
             type: 'PUT',
-            //dataType: 'json',
-            //contentType: 'application/json; charset=utf-8',
-            //async: false,
+            contentType: 'application/json; charset=utf-8',
             statusCode : {
                 200 : function() {
                     if (onSuccess) {
