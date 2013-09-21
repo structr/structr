@@ -65,7 +65,7 @@ All content elements are stored in a graph structure and rendered top-down from 
 
 ## Widgets
 - Create page structure by drag and drop
-- Excange widget code
+- Exchange widget code
 - Editable widget source code
 
 ## Infrastructure
