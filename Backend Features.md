@@ -4,8 +4,6 @@ The Structr backend is the foundation of any Structr system but can also be used
 
 It is realized as a wrapper around a Neo4j graph database, which supports defining and mapping schemas for your domain objects. Complex graph operations can be mapped to domain-oriented REST endpoints.
 
-Structr backend provides the features listed below.
-
 ## Features
     
 ### URL Path Mapping
@@ -17,15 +15,17 @@ Structr backend provides the features listed below.
 
 ### JSON/REST Interface
 
-- Real-time JSON documents creation out of graph objects
-    - Complex selection criteria
-    - Arbitrary depth
-    - Neo4j core API for best performance
-    - Traversal API for convenience
-    - Cypher queries for maximum flexibility
-- Scoped views
-- Streaming JSON serialization
-- Lazy evaluation (down to Neo4j Iterables)
+- Bidirectional Graph to JSON document transformation
+    - Conversion of arbitrary subgraphs into JSON documents
+    - Creation of subgraphs from JSON documents using automatic relationship creation
+    - Support for arbitrary document views on a single object / subgraph
+    - Relationship-dependent document views
+- Java-based schema declaration
+- Graph entities with creation, modification and deletion callbacks
+    - Before commit: onCreation/onModification/onDeletion
+    - After commit: afterCreation/afterModification/afterDeletion
+    - Cascading events
+- Custom REST endpoints
 - Access control (users, groups)
 - Sorting
 - Paging (incl. offset + negative paging)
@@ -43,27 +43,20 @@ Structr backend provides the features listed below.
 
 ### Schema
 
-- Polymorphic schema definitions
-- Support of
-    - type inheritance,
-    - interfaces,
-    - mix-ins
-- Type-safe property system
+- Type inheritance
+- Mix-ins (interfaces with properties, validation and functionality)
+- Type-safety
 - Constraints/validation
     - Non-null/non-empty fields
     - Regular expressions
     - Complex logic
+- Semantic error messages (error tree)
 - Filters
 - Transformations
 - Cascading delete
 - Forced delete (to enforce compliance with constraints)
 - Auto-creation of related entities
 - Synchronous/async. counters (f.e. for a view count)
-- Semantic error messages (error tree)
-- Event handlers
-    - Before commit: onCreation/onModification/onDeletion
-    - After commit: afterCreation/afterModification/afterDeletion
-    - Cascading events
 - Dynamic entity definitions (experimental)
     - Configure new types at run-time via JSON/REST
     - Add/remove properties
@@ -71,7 +64,7 @@ Structr backend provides the features listed below.
 ### Tools
 
 - Push notifications (HTTP/e-mail)
-- Cron jobs
+- Cron-like task scheduler
 - Reporting
 - Asynchronous background agents
 - Maintenance tools (rebuild index, import/export, change properties, change type, ..)
