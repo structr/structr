@@ -1,35 +1,12 @@
 # Structr Backend
 
-The Structr backend is the basis of any Structr system. It is a Java wrapper around a Neo4j graph database where you can define a schema, and which provides additional features listed below.
+The Structr backend is the foundation of any Structr system but can also be used stand-alone as high performance, domain-focused REST server for Neo4j.
+
+It is realized as a wrapper around a Neo4j graph database, which supports defining and mapping schemas for your domain objects. Complex graph operations can be mapped to domain-oriented REST endpoints.
+
+Structr backend provides the features listed below.
 
 ## Features
-
-### Schema
-
-- Polymorphic schema definitions
-- Support of
-    - type inheritance,
-    - interfaces,
-    - mix-ins
-- Type-safe property system
-- Constraints/validation
-    - Non-null/non-empty fields
-    - Regular expressions
-    - Complex logic
-- Filters
-- Transformations
-- Cascading delete
-- Forced delete (to enforce compliance with constraints)
-- Auto-creation of related entities
-- Synchronous/async. counters (f.e. for a view count)
-- Semantic error messages (error tree)
-- Event handlers
-    - Before commit: onCreation/onModification/onDeletion
-    - After commit: afterCreation/afterModification/afterDeletion
-    - Cascading events
-- Dynamic entity definitions (experimental)
-    - Configure new types at run-time via JSON/REST
-    - Add/remove properties
     
 ### URL Path Mapping
     
@@ -63,6 +40,33 @@ The Structr backend is the basis of any Structr system. It is a Java wrapper aro
 - Geocoding and spatial search
     - Configurable geo data providers
     - Predefined map providers: Google, Bing
+
+### Schema
+
+- Polymorphic schema definitions
+- Support of
+    - type inheritance,
+    - interfaces,
+    - mix-ins
+- Type-safe property system
+- Constraints/validation
+    - Non-null/non-empty fields
+    - Regular expressions
+    - Complex logic
+- Filters
+- Transformations
+- Cascading delete
+- Forced delete (to enforce compliance with constraints)
+- Auto-creation of related entities
+- Synchronous/async. counters (f.e. for a view count)
+- Semantic error messages (error tree)
+- Event handlers
+    - Before commit: onCreation/onModification/onDeletion
+    - After commit: afterCreation/afterModification/afterDeletion
+    - Cascading events
+- Dynamic entity definitions (experimental)
+    - Configure new types at run-time via JSON/REST
+    - Add/remove properties
 
 ### Tools
 
