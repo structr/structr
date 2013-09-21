@@ -25,7 +25,8 @@ The Structr backend is the basis of any Structr system. It is a Java wrapper aro
 - Semantic error messages (error tree)
 - Event handlers
     - Before commit: onCreation/onModification/onDeletion
-    - After commit: afterCreation/afterModification/afterDeletion: 
+    - After commit: afterCreation/afterModification/afterDeletion
+    - Cascading events
 - Dynamic entity definitions (experimental)
     - Configure new types at run-time via JSON/REST
     - Add/remove properties
@@ -51,7 +52,6 @@ The Structr backend is the basis of any Structr system. It is a Java wrapper aro
 - Access control (users, groups)
 - Sorting
 - Paging (incl. offset + negative paging)
-- Triggers with cascading events
 
 ### Search
 
