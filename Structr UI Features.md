@@ -15,7 +15,6 @@ All content elements are stored in a graph structure and rendered top-down from 
     - Images
     - Blog posts
     - News items
-    - 
 - Server-side implementation of W3C DOM API
 
 ## Dynamic Data Integration
