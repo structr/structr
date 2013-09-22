@@ -6,58 +6,14 @@
     <parent>
         <groupId>org.structr</groupId>
         <artifactId>structr</artifactId>
-        <version>0.8.1</version>
+        <version>0.8.2-SNAPSHOT</version>
+        <relativePath>..</relativePath>
     </parent>
 
-    <groupId>org.structr</groupId>
     <artifactId>structr-ui</artifactId>
     <packaging>jar</packaging>
-    <version>0.8.1</version>
     <name>structr-ui</name>
-    <description>Structr is an open source framework based on the popular Neo4j graph database.</description>
-    <developers>
-        <developer>
-            <name>Axel Morgner</name>
-            <email>am@structr.org</email>
-        </developer>
-        <developer>
-            <name>Christian Morgner</name>
-            <email>cm@structr.org</email>
-        </developer>
-    </developers>
-    <url>http://structr.org</url>
 
-    <properties>
-        <netbeans.hint.license>structr-agpl30</netbeans.hint.license>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
-    <repositories>
-        <repository>
-            <id>neo4j-releases</id>
-            <url>http://m2.neo4j.org/content/repositories/releases</url>
-        </repository>
-        <repository>
-            <id>neo4j-snapshots</id>
-            <url>http://m2.neo4j.org/content/repositories/snapshots</url>
-        </repository>
-        <repository>
-            <id>snapshots.maven.structr.org</id>
-            <url>http://maven.structr.org/artifactory/snapshot</url>
-        </repository>
-        <repository>
-            <id>releases.maven.structr.org</id>
-            <url>http://maven.structr.org/artifactory/release</url>
-        </repository>
-        <repository>
-            <id>google-diff-patch-match</id>
-            <name>google-diff-patch-match</name>
-            <url>http://google-diff-match-patch.googlecode.com/svn/trunk/maven/</url>
-        </repository>
-        <!--		<repository>
-                <id>apache</id>
-                <url>https://repository.apache.org/content/groups/public/</url>
-        </repository>-->
-    </repositories>
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
@@ -182,16 +138,6 @@
                         <argument>target/lib/*:target/${project.artifactId}-${project.version}.jar</argument>
                         <argument>org.structr.Ui</argument>
                     </arguments>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>2.3.2</version>
-                <configuration>
-                    <source>1.7</source>
-                    <target>1.7</target>
-                    <debug>true</debug>
                 </configuration>
             </plugin>
             <plugin>
@@ -369,9 +315,4 @@
             </comments>
         </license>
     </licenses>
-
-    <scm>
-        <url>https://github.com/structr/structr</url>
-        <connection>scm:git:git@github.com:structr/structr.git</connection>
-    </scm>
 </project>

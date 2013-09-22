@@ -159,7 +159,7 @@
 		<dependency>
 			<groupId>org.structr</groupId>
 			<artifactId>structr-ui</artifactId>
-			<version>0.8-SNAPSHOT</version>
+			<version>0.8.2-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
 
