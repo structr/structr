@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Abort when an error occurs!
+set -e
+
 #######################################################################
 # Use this script to create ResourceAccess nodes
 #
@@ -17,7 +20,9 @@
 #   up at in the structr UI. (your entities show up in the order of this file)
 #######################################################################
 
-. ./su
+# Load the environment from SU file (why the hell is it named "su"?)
+DIR=`dirname $0`
+. $DIR/su
 
 ELEM_POS=0
 
