@@ -58,7 +58,7 @@ public class PerformanceTest extends StructrTest {
 	/**
 	 * Tests basic throughput of node creation operations
 	 * 
-	 * Note that this is just a very rought test as performance is heavily
+	 * Note that this is just a very rough test as performance is heavily
 	 * depending on hardware and setup (cache parameters etc.)
 	 * 
 	 * The assumed rate is low so if this test fails, there may be issues
@@ -82,7 +82,7 @@ public class PerformanceTest extends StructrTest {
 			Double rate                 = number / ((t1 - t0) / 1000000000.0);
 
 			logger.log(Level.INFO, "Created {0} nodes in {1} seconds ({2} per s)", new Object[] { number, decimalFormat.format(time), decimalFormat.format(rate) });
-			assertTrue(rate > 50);
+			assertTrue(rate > 20);
 
 		} catch (FrameworkException ex) {
 
