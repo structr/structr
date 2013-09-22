@@ -1,8 +1,16 @@
 #!/bin/bash
 
-STRUCTR_CONF=`find ../../../.. -name structr.conf`
+# Find out where the helper scripts are!
+# The : ${...:...} syntax makes bash eval the dirname command only, if the ENV variable DIR is not set already
+: ${DIR:=`dirname $0`}
 
-PATH=$PATH:.
+# Allow to pre-define the path of structr.conf:
+# The : ${...:...} syntax makes bash eval the find command only, if the ENV variable STRUCTURE_CONF is not set already
+: ${STRUCTR_CONF:=`find ../../../.. -name structr.conf`}
+# TODO add some check to abort if there is more than one structr.conf found by the find command!
+
+# Now prepend current dir in front of other pathes!
+PATH=:$DIR:$PATH
 
 HOST=`grep application.host $STRUCTR_CONF | awk '{ print $3 }' | tr -d [:cntrl:]`
 PORT=`grep application.http.port $STRUCTR_CONF | awk '{ print $3 }' | tr -d [:cntrl:]`
@@ -16,4 +24,3 @@ export PATH
 export REST_URL
 export REST_USER
 export REST_PW
-
