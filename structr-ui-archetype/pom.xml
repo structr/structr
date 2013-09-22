@@ -5,24 +5,13 @@
     <parent>
         <groupId>org.structr</groupId>
         <artifactId>structr</artifactId>
-        <version>0.8.1</version>
+        <version>0.8.2-SNAPSHOT</version>
+        <relativePath>..</relativePath>
     </parent>
 
     <artifactId>structr-ui-archetype</artifactId>
     <packaging>maven-archetype</packaging>
-    <url>http://structr.org</url>
     <name>structr-ui-archetype</name>
-    <description>Structr is an open source framework based on the popular Neo4j graph database.</description>
-    <developers>
-        <developer>
-            <name>Axel Morgner</name>
-            <email>am@structr.org</email>
-        </developer>
-        <developer>
-            <name>Christian Morgner</name>
-            <email>cm@structr.org</email>
-        </developer>
-    </developers>
     <build>
         <extensions>
             <extension>

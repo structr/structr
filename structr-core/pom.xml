@@ -6,16 +6,14 @@
     <parent>
         <groupId>org.structr</groupId>
         <artifactId>structr</artifactId>
-        <version>0.8.1</version>
+        <version>0.8.2-SNAPSHOT</version>
+        <relativePath>..</relativePath>
     </parent>
 
     <artifactId>structr-core</artifactId>
     <packaging>jar</packaging>
     <name>structr-core</name>
     <properties>
-        <netbeans.hint.license>structr-gpl30</netbeans.hint.license>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <structr.version>0.8.1</structr.version>
         <neo4j.version>1.9.3</neo4j.version>
     </properties>
 
