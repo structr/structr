@@ -60,20 +60,11 @@ import org.structr.web.entity.dom.DOMNode;
 public class View extends DOMElement {
 
 	private static final Logger logger = Logger.getLogger(View.class.getName());
-	private DecimalFormat decimalFormat                                            = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
+	private DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 	
-	public static final Property<String> query             = new StringProperty("query");
+	public static final Property<String> query             = new StringProperty("query").indexed();
 	public static final org.structr.common.View uiView     = new org.structr.common.View(View.class, PropertyView.Ui, query);
 	public static final org.structr.common.View publicView = new org.structr.common.View(View.class, PropertyView.Public, query);
-
-	//~--- static initializers --------------------------------------------
-
-	static {
-
-		EntityContext.registerSearchablePropertySet(View.class, NodeIndex.fulltext.name(), publicView.properties());
-		EntityContext.registerSearchablePropertySet(View.class, NodeIndex.keyword.name(), publicView.properties());
-
-	}
 
 	//~--- get methods ----------------------------------------------------
 

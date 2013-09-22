@@ -21,7 +21,6 @@ package org.structr.rest;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.common.SecurityContext;
 import org.structr.core.Value;
-import org.structr.rest.resource.Resource;
 
 /**
  *
@@ -39,9 +38,6 @@ public class RequestParameterValue implements Value<String> {
 	public RequestParameterValue(String parameterName, String defaultValue) {
 		this.parameterName = parameterName;
 		this.defaultValue = defaultValue;
-		
-		// register this as a valid request parameter (make search-check ignore it)
-		Resource.registerNonSearchField(parameterName);
 	}
 	
 	@Override

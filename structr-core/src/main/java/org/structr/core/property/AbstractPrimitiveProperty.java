@@ -25,12 +25,11 @@ import org.neo4j.graphdb.PropertyContainer;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.Services;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
+import org.structr.core.graph.search.SearchCommand;
 
 
 /**
@@ -96,16 +95,14 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 				try {
 					value = converter.revert(value);
 
-				} catch(Throwable t) {
-
-					// CHM: remove debugging code later
-					t.printStackTrace();
+				} catch (Throwable t) {
 
 					logger.log(Level.WARNING, "Unable to convert property {0} of type {1}: {2}", new Object[] {
 						dbName(),
 						getClass().getSimpleName(),
-						t.getMessage()
+						t
 					});
+					
 				}
 			}
 		}
@@ -133,81 +130,78 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 			convertedValue = value;
 		}
 
-//		final Object oldValue = getProperty(securityContext, obj, true);
-//		// don't make any changes if
-//		// - old and new value both are null
-//		// - old and new value are not null but equal
-//		if (((convertedValue == null) && (oldValue == null)) || ((convertedValue != null) && (oldValue != null) && convertedValue.equals(oldValue))) {
-//
-//			return;
-//		}
-
 		final PropertyContainer propertyContainer = obj.getPropertyContainer();
 		if (propertyContainer != null) {
 
-			// Commit value directly to database
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+			if (!TransactionCommand.inTransaction()) {
 
-				@Override
-				public Object execute() throws FrameworkException {
+				logger.log(Level.SEVERE, "setProperty outside of transaction");
+				return;
+			}
 
-					try {
 
-						// notify only non-system properties
-						if (!isSystemProperty) {
-							
-							// collect modified properties
-							if (obj instanceof AbstractNode) {
+			try {
 
-								TransactionCommand.nodeModified(
-									(AbstractNode)obj,
-									AbstractPrimitiveProperty.this,
-									propertyContainer.hasProperty(dbName()) ? propertyContainer.getProperty(dbName()) : null
-								);
+				// notify only non-system properties
+				if (!unvalidated) {
 
-							} else if (obj instanceof AbstractRelationship) {
+					// collect modified properties
+					if (obj instanceof AbstractNode) {
 
-								TransactionCommand.relationshipModified(
-									(AbstractRelationship)obj,
-									AbstractPrimitiveProperty.this,
-									propertyContainer.hasProperty(dbName()) ? propertyContainer.getProperty(dbName()) : null
-								);
-							}
-						}
-						
-						// save space
-						if (convertedValue == null) {
+						TransactionCommand.nodeModified(
+							(AbstractNode)obj,
+							AbstractPrimitiveProperty.this,
+							propertyContainer.hasProperty(dbName()) ? propertyContainer.getProperty(dbName()) : null
+						);
 
-							propertyContainer.removeProperty(dbName());
+					} else if (obj instanceof AbstractRelationship) {
 
-						} else {
-
-							// Setting last modified date explicetely is not allowed
-							if (!AbstractPrimitiveProperty.this.equals(AbstractNode.lastModifiedDate)) {
-
-								propertyContainer.setProperty(dbName(), convertedValue);
-
-								// set last modified date if not already happened
-								propertyContainer.setProperty(AbstractNode.lastModifiedDate.dbName(), System.currentTimeMillis());
-
-							} else {
-
-								logger.log(Level.FINE, "Tried to set lastModifiedDate explicitely (action was denied)");
-
-							}
-						}
-						
-					} catch (Throwable t) {
-						
-						t.printStackTrace();
-
-					} finally {}
-
-					return null;
-
+						TransactionCommand.relationshipModified(
+							(AbstractRelationship)obj,
+							AbstractPrimitiveProperty.this,
+							propertyContainer.hasProperty(dbName()) ? propertyContainer.getProperty(dbName()) : null
+						);
+					}
 				}
 
-			});
+				// save space
+				if (convertedValue == null) {
+
+					propertyContainer.removeProperty(dbName());
+
+				} else {
+
+					// Setting last modified date explicetely is not allowed
+					if (!AbstractPrimitiveProperty.this.equals(AbstractNode.lastModifiedDate)) {
+
+						propertyContainer.setProperty(dbName(), convertedValue);
+
+						// set last modified date if not already happened
+						propertyContainer.setProperty(AbstractNode.lastModifiedDate.dbName(), System.currentTimeMillis());
+
+					} else {
+
+						logger.log(Level.FINE, "Tried to set lastModifiedDate explicitly (action was denied)");
+
+					}
+				}
+
+				if (isIndexed()) {
+					
+					// do indexing, needs to be done after
+					// setProperty to make spatial index
+					// work
+					if (!isPassivelyIndexed()) {
+
+						index(obj, convertedValue);
+					}
+				}
+				
+			} catch (Throwable t) {
+
+				t.printStackTrace();
+
+			} finally {}
 		}
 		
 	}
@@ -220,5 +214,10 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 	@Override
 	public boolean isCollection() {
 		return false;
+	}
+
+	@Override
+	public Object getValueForEmptyFields() {
+		return SearchCommand.EMPTY_FIELD_VALUE;
 	}
 }

@@ -37,9 +37,9 @@ import org.structr.core.entity.AbstractRelationship;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.Date;
-import java.util.List;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
+import org.neo4j.graphdb.Direction;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 
@@ -97,54 +97,43 @@ public class CreateRelationshipCommand<T extends AbstractRelationship> extends N
 
 				if (checkDuplicates) {
 
-					List<AbstractRelationship> incomingRels = toNode.getIncomingRelationships();
+					RelationshipFactory relationshipFactory = new RelationshipFactory(securityContext);
+					int contentHashCode = properties != null ? properties.contentHashCode(null, false) : -1;
+					Node dbToNode       = toNode.getNode();
+					
+					// use neo nodes here..
+					for (Relationship dbRelationship : dbToNode.getRelationships(relType, Direction.INCOMING)) {
 
-					for (AbstractRelationship rel : incomingRels) {
+						Node dbRelStartNode         = dbRelationship.getStartNode();
+						Node dbFromNode             = fromNode.getNode();
 
-                                                // Duplicate check:
-                                                // First, check if relType and start node are equal
-						if (rel.getRelType().equals(relType) && rel.getStartNode().equals(fromNode)) {
+						// Duplicate check:
+						// First, check if relType and start node are equal
+						if (dbRelStartNode.getId() == dbFromNode.getId()) {
 
-                                                        // At least one property of new rel has to be different to the tested existing node
-							PropertyMap relProps = rel.getProperties();
-							boolean propsEqual   = true;
+							if (properties != null) {
+								
+								// At least one property of new rel has to be different to the tested existing node
+								AbstractRelationship rel = relationshipFactory.instantiate(dbRelationship);
+								if (contentHashCode == rel.getProperties().contentHashCode(properties.keySet(), false)) {
 
-							for (Entry<PropertyKey, Object> entry : properties.entrySet()) {
-
-								PropertyKey key = entry.getKey();
-								Object val      = entry.getValue();
-
-								if (!relProps.containsKey(key) || !relProps.get(key).equals(val)) {
-
-									propsEqual = false;
-
-									break;
-
+									return null;
 								}
-
-							}
-
-							if (propsEqual) {
-
-								// logger.log(Level.WARNING, "Creation of duplicate relationship was blocked");
-
+								
+							} else {
+								
+								// rel. already exists
 								return null;
-
 							}
-
 						}
-
 					}
-
 				}
 
-
-				
 				RelationshipFactory<T> relationshipFactory = new RelationshipFactory<T>(securityContext);
 				Node startNode                             = fromNode.getNode();
 				Node endNode                               = toNode.getNode();
 				Relationship rel                           = startNode.createRelationshipTo(endNode, relType);
-				T newRel                                   = relationshipFactory.instantiateRelationship(securityContext, rel);
+				T newRel                                   = relationshipFactory.instantiate(rel);
 
 				if (newRel != null) {
 
@@ -153,14 +142,14 @@ public class CreateRelationshipCommand<T extends AbstractRelationship> extends N
 					newRel.unlockReadOnlyPropertiesOnce();
 					newRel.setProperty(AbstractRelationship.createdDate, new Date());
 
-					if (properties != null && !properties.isEmpty()) {
+					if (properties != null) {
 
 						for (Entry<PropertyKey, Object> entry : properties.entrySet()) {
 							
 							PropertyKey key = entry.getKey();
 							
 							// on creation, writing of read-only properties should be possible
-							if (key.isReadOnlyProperty() || key.isWriteOnceProperty()) {
+							if (key.isReadOnly() || key.isWriteOnce()) {
 								newRel.unlockReadOnlyPropertiesOnce();
 							}
 							

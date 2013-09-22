@@ -6,21 +6,32 @@
     <parent>
         <groupId>org.structr</groupId>
         <artifactId>structr</artifactId>
-        <version>0.7</version>
+        <version>0.8.1</version>
     </parent>
 
     <groupId>org.structr</groupId>
     <artifactId>structr-core</artifactId>
     <packaging>jar</packaging>
-    <version>0.7</version>
+    <version>0.8.1</version>
     <name>structr-core</name>
+    <description>Structr is an open source framework based on the popular Neo4j graph database.</description>
+    <developers>
+        <developer>
+            <name>Axel Morgner</name>
+            <email>am@structr.org</email>
+        </developer>
+        <developer>
+            <name>Christian Morgner</name>
+            <email>cm@structr.org</email>
+        </developer>
+    </developers>
     <url>http://structr.org</url>
 
     <properties>
         <netbeans.hint.license>structr-gpl30</netbeans.hint.license>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <structr.version>0.7</structr.version>
-        <neo4j.version>1.9</neo4j.version>
+        <structr.version>0.8.1</structr.version>
+        <neo4j.version>1.9.3</neo4j.version>
     </properties>
 
     <repositories>
@@ -40,10 +51,6 @@
             <id>neo4j-snapshots</id>
             <url>http://m2.neo4j.org/content/repositories/snapshots</url>
         </repository>
-        <repository>
-            <id>wordrak</id>
-            <url>http://wordrak.github.com/repo/</url>
-        </repository>
     </repositories>	
     <dependencies>
         <dependency>
@@ -54,6 +61,21 @@
             <scope>test</scope>
             <optional>false</optional>
         </dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>1.7.5</version>
+		</dependency>		<!--
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-jdk14</artifactId>
+			<version>1.7.5</version>
+		</dependency>-->
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-access</artifactId>
+			<version>1.0.13</version>
+		</dependency>
         <dependency>
             <groupId>org.neo4j</groupId>
             <artifactId>neo4j-kernel</artifactId>
@@ -236,7 +258,8 @@
     </licenses>
 
     <scm>
-        <url>https://github.com/structr/structr/tree/master/structr/structr-core</url>
+        <url>https://github.com/structr/structr</url>
+        <connection>scm:git:git@github.com:structr/structr.git</connection>
     </scm>
 
 </project>

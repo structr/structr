@@ -53,6 +53,11 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 	}
 
 	@Override
+	public Integer getSortType() {
+		return null;
+	}
+	
+	@Override
 	public PropertyConverter<T[], ?> databaseConverter(SecurityContext securityContext) {
 		return null;
 	}

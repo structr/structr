@@ -42,6 +42,7 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import org.structr.core.property.PropertyKey;
+import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotAllowedException;
 
 //~--- classes ----------------------------------------------------------------
@@ -106,6 +107,19 @@ public class UuidResource extends FilterableResource {
 
 	}
 
+	@Override
+	public Resource tryCombineWith(Resource next) throws FrameworkException {
+
+		// do not allow nesting of "bare" uuid resource with type resource
+		// as this will not do what the user expects to do. 
+		if(next instanceof TypeResource) {
+			
+			throw new IllegalPathException();
+		}
+
+		return super.tryCombineWith(next);
+	}
+
 	//~--- get methods ----------------------------------------------------
 
 	public AbstractNode getNode() throws FrameworkException {
@@ -150,12 +164,8 @@ public class UuidResource extends FilterableResource {
 
 	public AbstractRelationship getRelationship() throws FrameworkException {
 
-		List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
-
-		attrs.add(Search.andExactUuid(uuid));
-
-		List<AbstractRelationship> results = Services.command(securityContext, SearchRelationshipCommand.class).execute(attrs);
-		int size                           = results.size();
+		Result<AbstractRelationship> results = Services.command(securityContext, SearchRelationshipCommand.class).execute(Search.andExactUuid(uuid));
+		int size                             = results.size();
 
 		switch (size) {
 

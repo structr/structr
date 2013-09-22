@@ -49,4 +49,9 @@ public class SimpleMaxlengthValidator implements PropertyValidator<String> {
 
 		return false;
 	}
+	
+	@Override
+	public boolean requiresSynchronization() {
+		return false;
+	}
 }

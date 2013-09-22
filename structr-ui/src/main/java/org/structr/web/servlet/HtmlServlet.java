@@ -41,7 +41,6 @@ import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchAttributeGroup;
 import org.structr.core.graph.search.SearchNodeCommand;
-import org.structr.core.graph.search.SearchOperator;
 import org.structr.web.auth.HttpAuthenticator;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.File;
@@ -60,10 +59,16 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.time.DateUtils;
+import org.apache.lucene.search.BooleanClause.Occur;
+import org.structr.core.auth.Authenticator;
+import org.structr.core.auth.AuthenticatorCommand;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.GetNodeByIdCommand;
+import org.structr.core.graph.StructrTransaction;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.rest.ResourceProvider;
 import org.structr.web.common.RenderContext;
+import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.common.ThreadLocalMatcher;
 import org.structr.web.entity.User;
 import org.structr.web.entity.dom.DOMNode;
@@ -99,7 +104,7 @@ public class HtmlServlet extends HttpServlet {
 
 
 	private DecimalFormat decimalFormat                                         = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
-	private boolean edit;
+	private EditMode edit;
 //	private Gson gson;
 
 	public HtmlServlet() {}
@@ -127,30 +132,31 @@ public class HtmlServlet extends HttpServlet {
 		double start                    = System.nanoTime();
 
 		try {
+
+			SecurityContext securityContext = getAuthenticator().initializeAndExamineRequest(request, response);
+			
+			// Ensure access mode is frontend
+			securityContext.setAccessMode(AccessMode.Frontend);
 			
 			request.setCharacterEncoding("UTF-8");
 
 			// Important: Set character encoding before calling response.getWriter() !!, see Servlet Spec 5.4
 			response.setCharacterEncoding("UTF-8");
 
-			// create session if not already existing
-			request.getSession();
-			
 			boolean dontCache = false;
 			
 			String path = PathHelper.clean(request.getPathInfo());
 
 			logger.log(Level.FINE, "Path info {0}", path);
-
-			SecurityContext securityContext = SecurityContext.getInstance(this.getServletConfig(), request, response, AccessMode.Frontend);
-			securityContext.initializeAndExamineRequest(request, response);
+			logger.log(Level.FINE, "Request examined by security context in {0} seconds", decimalFormat.format((System.nanoTime() - start) / 1000000000.0));
 			
 			// don't continue on redirects
 			if (response.getStatus() == 302) {
 				return;
 			}
 			
-			if (securityContext.getUser(false) != null) {
+			Principal user = securityContext.getUser(false);
+			if (user != null) {
 				
 				// Don't cache if a user is logged in
 				dontCache = true;
@@ -161,7 +167,7 @@ public class HtmlServlet extends HttpServlet {
 			
 			renderContext.setResourceProvider(resourceProvider);
 			
-			edit = renderContext.getEdit();
+			edit = renderContext.getEditMode(user);
 			
 			DOMNode rootElement               = null;
 			AbstractNode dataNode             = null;
@@ -170,8 +176,8 @@ public class HtmlServlet extends HttpServlet {
 			String[] uriParts = PathHelper.getParts(path);
 			if ((uriParts == null) || (uriParts.length == 0)) {
 
-				// try to find a page with position==0
-				rootElement = findIndexPage();
+				// find a visible page
+				rootElement = findIndexPage(securityContext);
 
 				logger.log(Level.FINE, "No path supplied, trying to find index page");
 
@@ -249,6 +255,14 @@ public class HtmlServlet extends HttpServlet {
 					rootElement = findPage(request, PathHelper.clean(StringUtils.substringBeforeLast(path, PathHelper.PATH_SEP)));
 
 					renderContext.setDetailsDataObject(dataNode);
+					
+					// Start rendering on data node
+					if (rootElement == null && dataNode instanceof DOMNode) {
+						
+						rootElement = ((DOMNode) dataNode);
+						
+						
+					}
 
 				}
 
@@ -278,7 +292,7 @@ public class HtmlServlet extends HttpServlet {
 			
 			logger.log(Level.FINE, "Page found in {0} seconds", decimalFormat.format((System.nanoTime() - start) / 1000000000.0));
 			
-			if (edit || dontCache) {
+			if (EditMode.DATA.equals(edit) || dontCache) {
 
 				setNoCacheHeaders(response);
 				
@@ -295,7 +309,7 @@ public class HtmlServlet extends HttpServlet {
 				double setup     = System.nanoTime();
 				logger.log(Level.FINE, "Setup time: {0} seconds", decimalFormat.format((setup - start) / 1000000000.0));
 
-				if (!edit && !dontCache && notModifiedSince(request, response, rootElement)) {
+				if (!EditMode.DATA.equals(edit) && !dontCache && notModifiedSince(request, response, rootElement)) {
 
 					out.flush();
 					out.close();
@@ -423,17 +437,19 @@ public class HtmlServlet extends HttpServlet {
 	}
 
 	/**
-	 * Find the page with the lowest position value
+	 * Find the page with the lowest position value which is visible in the
+	 * current securit context
 	 * 
+	 * @param securityContext
 	 * @return
 	 * @throws FrameworkException 
 	 */
-	private Page findIndexPage() throws FrameworkException {
+	private Page findIndexPage(final SecurityContext securityContext) throws FrameworkException {
 
 		logger.log(Level.FINE, "Looking for an index page ...");
 
 		List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
-		searchAttrs.add(Search.orExactType(Page.class.getSimpleName()));
+		searchAttrs.add(Search.orExactType(Page.class));
 		
 		Result results = (Result) searchNodesAsSuperuser.execute(searchAttrs);
 
@@ -443,7 +459,18 @@ public class HtmlServlet extends HttpServlet {
 
 			Collections.sort(results.getResults(), new GraphObjectComparator(Page.position, GraphObjectComparator.ASCENDING));
 
-			return (Page) results.get(0);
+			// Find first visible page
+			
+			int i=0;
+			Page page = null;
+			
+			while (page == null || (i<results.size() && !securityContext.isVisible(page))) {
+				
+				page = (Page) results.get(i++);
+				
+			}
+			
+			return page;
 
 		}
 
@@ -462,7 +489,7 @@ public class HtmlServlet extends HttpServlet {
 	 */
 	private boolean checkGetSessionId(final HttpServletRequest request, final HttpServletResponse response, final String path) throws IOException {
 		
-		logger.log(Level.INFO, "Checking for {0} ...", GET_SESSION_ID_PAGE);
+		logger.log(Level.FINE, "Checking for {0} ...", GET_SESSION_ID_PAGE);
 		
 		if (GET_SESSION_ID_PAGE.equals(path)) {
 		
@@ -490,7 +517,7 @@ public class HtmlServlet extends HttpServlet {
 	 * @throws FrameworkException
 	 * @throws IOException 
 	 */
-	private boolean checkRegistration(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response, final String path) throws FrameworkException, IOException {
+	private boolean checkRegistration(final SecurityContext securityContext, final HttpServletRequest request, final HttpServletResponse response, final String path) throws FrameworkException, IOException {
 
 		logger.log(Level.FINE, "Checking registration ...");
 		
@@ -507,22 +534,29 @@ public class HtmlServlet extends HttpServlet {
 		if (CONFIRM_REGISTRATION_PAGE.equals(path)) {
 		
 			List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
-			searchAttrs.add(Search.andExactType(User.class.getSimpleName()));
-			searchAttrs.add(Search.andMatchValues(User.confirmationKey, key, SearchOperator.AND));
+			searchAttrs.add(Search.andExactType(User.class));
+			searchAttrs.add(Search.andExactProperty(securityContext, User.confirmationKey, key));
 
 			Result results = (Result) searchNodesAsSuperuser.execute(searchAttrs);
 			
 			if (!results.isEmpty()) {
 				
-				User user = (User) results.get(0);
+				final Principal user = (Principal) results.get(0);
 				
-				// Clear confirmation key and set session id
-				user.setProperty(User.confirmationKey, null);
-				user.setProperty(Principal.sessionId, request.getSession().getId());
-				
-				// Login user without password
-				securityContext.setUser(user);
+				Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
+					@Override
+					public Object execute() throws FrameworkException {
+						
+						// Clear confirmation key and set session id
+						user.setProperty(User.confirmationKey, null);
+						user.setProperty(Principal.sessionId, request.getSession().getId());
+						
+						return null;
+					}
+					
+				});
+				
 				// Redirect to target page
 				if (StringUtils.isNotBlank(targetPage)) {
 					
@@ -556,10 +590,10 @@ public class HtmlServlet extends HttpServlet {
 
 			searchAttrs.add(Search.andExactUuid(uuid));
 
-			SearchAttributeGroup group = new SearchAttributeGroup(SearchOperator.AND);
+			SearchAttributeGroup group = new SearchAttributeGroup(Occur.MUST);
 
-			group.add(Search.orExactType(Page.class.getSimpleName()));
-			group.add(Search.orExactTypeAndSubtypes(File.class.getSimpleName()));
+			group.add(Search.orExactType(Page.class));
+			group.add(Search.orExactTypeAndSubtypes(File.class));
 //			group.add(Search.orExactTypeAndSubtypes(Image.class.getSimpleName())); // redundant
 			searchAttrs.add(group);
 
@@ -591,10 +625,10 @@ public class HtmlServlet extends HttpServlet {
 
 			searchAttrs.add(Search.andExactName(name));
 
-			SearchAttributeGroup group = new SearchAttributeGroup(SearchOperator.AND);
+			SearchAttributeGroup group = new SearchAttributeGroup(Occur.MUST);
 
-			group.add(Search.orExactType(Page.class.getSimpleName()));
-			group.add(Search.orExactTypeAndSubtypes(File.class.getSimpleName()));
+			group.add(Search.orExactType(Page.class));
+			group.add(Search.orExactTypeAndSubtypes(File.class));
 //			group.add(Search.orExactTypeAndSubtypes(Image.class.getSimpleName())); // redundant
 			searchAttrs.add(group);
 
@@ -625,7 +659,7 @@ public class HtmlServlet extends HttpServlet {
 			possibleEntryPoints = findPossibleEntryPointsByName(request, name);
 		
 			if (possibleEntryPoints.isEmpty()) {
-				findPossibleEntryPointsByUuid(request, name);
+				possibleEntryPoints = findPossibleEntryPointsByUuid(request, name);
 			}
 			
 			return possibleEntryPoints;
@@ -718,7 +752,7 @@ public class HtmlServlet extends HttpServlet {
 
 		OutputStream out = response.getOutputStream();
 
-		if (!edit && notModifiedSince(request, response, file)) {
+		if (!EditMode.DATA.equals(edit) && notModifiedSince(request, response, file)) {
 
 			out.flush();
 			out.close();
@@ -764,5 +798,11 @@ public class HtmlServlet extends HttpServlet {
 				response.setStatus(HttpServletResponse.SC_OK);
 			}
 		}
+	}
+
+	private Authenticator getAuthenticator() throws FrameworkException {
+		
+		return (Authenticator) Services.command(null, AuthenticatorCommand.class).execute(getServletConfig());
+		
 	}
 }

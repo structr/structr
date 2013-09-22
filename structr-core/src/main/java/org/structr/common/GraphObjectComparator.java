@@ -35,6 +35,9 @@ import org.structr.core.entity.AbstractNode;
  * A comparator for structr entities that uses a given property key and sort
  * order for comparison.
  * 
+ * Properties with null values (not existing properties) are always handled
+ * as "lower than", so that any not-null value ranks higher.
+ * 
  * @author Axel Morgner
  */
 public class GraphObjectComparator extends ViewTransformation<GraphObject> implements Comparator<GraphObject> {
@@ -55,6 +58,10 @@ public class GraphObjectComparator extends ViewTransformation<GraphObject> imple
 	 * @param sortKey
 	 * @param sortOrder 
 	 */
+	public GraphObjectComparator(final PropertyKey sortKey, final boolean sortDescending) {
+		this(sortKey, sortDescending ? DESCENDING : ASCENDING);
+	}
+	
 	public GraphObjectComparator(final PropertyKey sortKey, final String sortOrder) {
 
 		this.sortKey   = sortKey;
@@ -66,48 +73,47 @@ public class GraphObjectComparator extends ViewTransformation<GraphObject> imple
 	@Override
 	public int compare(GraphObject n1, GraphObject n2) {
 
-		if(n1 == null || n2 == null) {
-			logger.log(Level.WARNING, "Cannot compare null objects!");
-			return -1;
+		if (n1 == null || n2 == null) {
 			
-			// FIXME: this should throw a NPE!
+			throw new NullPointerException();
+			
 		}
 	
 		try {
+			boolean desc = DESCENDING.equalsIgnoreCase(sortOrder);
 			
 			Comparable c1 = n1.getComparableProperty(sortKey);
 			Comparable c2 = n2.getComparableProperty(sortKey);
 
-			if(c1 == null || c2 == null) {
+			if (c1 == null || c2 == null) {
 
-				try {
-					logger.log(Level.WARNING, "Cannot compare {0} of type {1} to {2} of type {3}, sort key {4} not found.",
-						new Object[] {
-							n1.getProperty(AbstractNode.uuid),
-							n1.getProperty(AbstractNode.type),
-							n2.getProperty(AbstractNode.uuid),
-							n2.getProperty(AbstractNode.type),
-							sortKey
-						});
-
-				} catch(Throwable t) {
-					logger.log(Level.SEVERE, "Error in comparator", t);
+				if (c1 == null && c2 == null) {
+					
+					return 0;
+					
+				} else if (c1 == null) {
+					
+					return desc ? -1 : 1;
+					
+				} else {
+					
+					return desc ? 1 : -1;
+					
 				}
 
-				return -1;
 			}
 			
-			if (DESCENDING.equalsIgnoreCase(sortOrder)) {
+			if (desc) {
 
-				return (c2.compareTo(c1));
+				return c2.compareTo(c1);
 
 			} else {
 
-				return (c1.compareTo(c2));
+				return c1.compareTo(c2);
 
 			}
 			
-		} catch(Throwable t) {
+		} catch (Throwable t) {
 			
 			t.printStackTrace();
 			

@@ -18,13 +18,22 @@
  */
 package org.structr.common;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertTrue;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Person;
+import org.structr.core.entity.TestEight;
 import org.structr.core.entity.TestFive;
+import org.structr.core.entity.User;
 import org.structr.core.graph.CreateNodeCommand;
+import org.structr.core.graph.DeleteNodeCommand;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 
@@ -44,14 +53,133 @@ public class CallbackTest extends StructrTest {
 		
 		try {
 			
-			Person person = this.createTestNode(Person.class);
+			User person = this.createTestNode(User.class);
 			
-			final SecurityContext securityContext = SecurityContext.getInstance(person, AccessMode.Backend);
+			final SecurityContext securityContext = SecurityContext.getInstance(person, null, AccessMode.Backend);
 			testCallbacks(securityContext);
 			
 		} catch (FrameworkException fex) {
 			
 			fex.printStackTrace();
+		}
+	}
+	
+	public void testCallbackOrder() {
+		
+		try {
+
+// ##################################### test creation callbacks
+			
+			final TestEight test = (TestEight)Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+				@Override
+				public Object execute() throws FrameworkException {
+
+					return (TestEight)Services.command(securityContext, CreateNodeCommand.class).execute(
+						new NodeAttribute(AbstractNode.type, TestEight.class.getSimpleName()),
+						new NodeAttribute(TestEight.testProperty, 123)
+					);
+				}
+				
+			});
+			
+			// only the creation methods should have been called now!
+			assertTrue("onCreationTimestamp should be != 0", test.getOnCreationTimestamp() != 0L);
+			assertEquals("onModificationTimestamp should be == 0", 0L, test.getOnModificationTimestamp());
+			assertEquals("onDeletionTimestamp should be == 0", 0L, test.getOnDeletionTimestamp());
+			
+			// only the creation methods should have been called now!
+			assertTrue("afterCreationTimestamp should be != 0", test.getAfterCreationTimestamp() != 0L);
+			assertEquals("afterModificationTimestamp should be == 0", 0L, test.getAfterModificationTimestamp());
+
+
+// ##################################### test modification callbacks
+			
+			
+			// reset timestamps
+			test.resetTimestamps();
+			
+			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+				@Override
+				public Object execute() throws FrameworkException {
+
+					test.setProperty(TestEight.testProperty, 234);
+					
+					return null;
+				}
+				
+			});
+			
+			// only the modification methods should have been called now!
+			assertEquals("onCreationTimestamp should be == 0", 0L, test.getOnCreationTimestamp());
+			assertTrue("onModificationTimestamp should be != 0", test.getOnModificationTimestamp() != 0L);
+			assertEquals("onDeletionTimestamp should be == 0", 0L, test.getOnDeletionTimestamp());
+			
+			// only the modification methods should have been called now!
+			assertEquals("afterCreationTimestamp should be == 0", 0L, test.getAfterCreationTimestamp());
+			assertTrue("afterModificationTimestamp should be != 0", test.getAfterModificationTimestamp() != 0L);
+
+			
+// ##################################### test non-modifying set operation
+			
+			// reset timestamps
+			test.resetTimestamps();
+			
+			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+				@Override
+				public Object execute() throws FrameworkException {
+
+					test.setProperty(TestEight.testProperty, 234);
+					
+					return null;
+				}
+				
+			});
+			
+			// only the creation methods should have been called now!
+			assertEquals("onCreationTimestamp should be == 0", 0L, test.getOnCreationTimestamp());
+			assertEquals("onModificationTimestamp should be == 0", 0L, test.getOnModificationTimestamp());
+			assertEquals("onDeletionTimestamp should be == 0", 0L, test.getOnDeletionTimestamp());
+			
+			// only the creation methods should have been called now!
+			assertEquals("afterCreationTimestamp should be == 0", 0L, test.getAfterCreationTimestamp());
+			assertEquals("afterModificationTimestamp should be == 0", 0L, test.getAfterModificationTimestamp());
+
+			
+			
+// ##################################### test deletion
+			
+			// reset timestamps
+			test.resetTimestamps();
+			
+			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+				@Override
+				public Object execute() throws FrameworkException {
+
+					Services.command(securityContext, DeleteNodeCommand.class).execute(test);
+					
+					return null;
+				}
+				
+			});
+			
+			// only the creation methods should have been called now!
+			assertEquals("onCreationTimestamp should be == 0", 0L, test.getOnCreationTimestamp());
+			assertEquals("onModificationTimestamp should be == 0", 0L, test.getOnModificationTimestamp());
+			assertTrue("onDeletionTimestamp should be != 0", test.getOnDeletionTimestamp() != 0L);
+			
+			// only the creation methods should have been called now!
+			assertEquals("afterCreationTimestamp should be == 0", 0L, test.getAfterCreationTimestamp());
+			assertEquals("afterModificationTimestamp should be == 0", 0L, test.getAfterModificationTimestamp());
+			
+			
+			
+		} catch (FrameworkException ex) {
+			
+			Logger.getLogger(CallbackTest.class.getName()).log(Level.SEVERE, null, ex);
 		}
 	}
 	
@@ -99,7 +227,18 @@ public class CallbackTest extends StructrTest {
 		
 		// 2nd part of the test: modify node
 		try {
-			entity.setProperty(TestFive.intProperty, 123);
+			final TestFive finalEntity = entity;
+			
+			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+				@Override
+				public Object execute() throws FrameworkException {
+
+					finalEntity.setProperty(TestFive.intProperty, 123);
+					
+					return null;
+				}
+			});
 			
 		} catch (Throwable t) {
 			t.printStackTrace();

@@ -26,7 +26,10 @@ import org.apache.commons.lang.ArrayUtils;
 
 import org.neo4j.graphdb.Direction;
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
 import org.structr.common.View;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
 
 import org.structr.web.common.RelType;
 import org.structr.core.entity.AbstractNode;
@@ -36,6 +39,7 @@ import org.structr.core.property.CollectionProperty;
 import org.structr.core.property.EntityIdProperty;
 import org.structr.core.property.EntityProperty;
 import org.structr.web.common.HtmlProperty;
+import org.structr.web.entity.File;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -76,4 +80,41 @@ public class Link extends DOMElement {
 		return true;
 
 	}
+
+	@Override
+	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+		
+		Linkable target = getProperty(linkable);
+		
+		if (target instanceof File) {
+			
+			File file = (File) target;
+			
+			String contentType = file.getProperty(File.contentType);
+			
+			if (contentType != null) {
+				
+				setProperty(_type, contentType);
+				
+				if ("text/css".equals(contentType)) {
+				
+					setProperty(_rel, "stylesheet");
+					setProperty(_media, "screen");
+					
+				}
+				
+			}
+			
+			if (getProperty(_href) == null) {
+				
+				setProperty(_href, "/${link.name}");
+				
+			}
+			
+		}
+		
+		return true;
+		
+	}
+	
 }

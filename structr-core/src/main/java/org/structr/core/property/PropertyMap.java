@@ -18,10 +18,14 @@
  */
 package org.structr.core.property;
 
+import com.tinkerpop.gremlin.Tokens.T;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
@@ -38,82 +42,114 @@ import org.structr.core.entity.AbstractNode;
  * 
  * @author Christian Morgner
  */
-public class PropertyMap implements Map<PropertyKey, Object> {
+public class PropertyMap {
 	
 	private static final Logger logger = Logger.getLogger(PropertyMap.class.getName());
 	
 	protected Map<PropertyKey, Object> properties = new LinkedHashMap<PropertyKey, Object>();
 
-	public PropertyMap() {}
-	
-	public PropertyMap(Map<PropertyKey, Object> source) {
-		properties.putAll(source);
+	public PropertyMap() {
 	}
 	
-	@Override
+	public PropertyMap(PropertyMap source) {
+		
+		for (Entry<PropertyKey, Object> entry : source.entrySet()) {
+			properties.put(entry.getKey(), entry.getValue());
+		}
+	}
+	
 	public int size() {
 		return properties.size();
 	}
 
-	@Override
 	public boolean isEmpty() {
 		return properties.isEmpty();
 	}
 
-	@Override
-	public boolean containsKey(Object key) {
+	public <T> boolean containsKey(PropertyKey<T> key) {
 		return properties.containsKey(key);
 	}
 
-	@Override
-	public boolean containsValue(Object value) {
+	public boolean containsValue(T value) {
 		return properties.containsValue(value);
-	}
-
-	@Override
-	public Object get(Object key) {
-		return properties.get(key);
 	}
 
 	public <T> T get(PropertyKey<T> key) {
 		return (T)properties.get(key);
 	}
 
-	@Override
-	public Object put(PropertyKey key, Object value) {
-		return properties.put(key, value);
+	public <T> T put(PropertyKey<T> key, T value) {
+		return (T)properties.put(key, value);
 	}
 
-	@Override
-	public Object remove(Object key) {
-		return properties.remove(key);
+	public <T> T remove(PropertyKey<T> key) {
+		return (T)properties.remove(key);
 	}
 
-	@Override
-	public void putAll(Map<? extends PropertyKey, ? extends Object> m) {
-		properties.putAll(m);
-	}
-
-	@Override
 	public void clear() {
 		properties.clear();
 	}
 
-	@Override
 	public Set<PropertyKey> keySet() {
 		return properties.keySet();
 	}
 
-	@Override
 	public Collection<Object> values() {
 		return properties.values();
 	}
 
-	@Override
 	public Set<Entry<PropertyKey, Object>> entrySet() {
 		return properties.entrySet();
 	}
 	
+	public Map<PropertyKey, Object> getRawMap() {
+		return properties;
+	}
+	
+	/**
+	 * Calculates a hash code for the contents of this PropertyMap. 
+	 * 
+	 * @param comparableKeys the set of property keys to use for hash code calculation, or null to use the whole keySet
+	 * @param includeSystemProperties whether to include system properties in the calculatio9n
+	 * @return 
+	 */
+	public int contentHashCode(Set<PropertyKey> comparableKeys, boolean includeSystemProperties) {
+		
+		Map<PropertyKey, Object> sortedMap = new TreeMap<PropertyKey, Object>(new PropertyKeyComparator());
+		int hashCode                       = 42;
+		
+		sortedMap.putAll(properties);
+		
+		if (comparableKeys == null) {
+
+			// calculate hash code for all properties in this map
+			for (Entry<PropertyKey, Object> entry : sortedMap.entrySet()) {
+
+				if (includeSystemProperties || !entry.getKey().isUnvalidated()) {
+
+					hashCode ^= entry.hashCode();
+				}
+			}
+
+		} else {
+			
+			for (Entry<PropertyKey, Object> entry : sortedMap.entrySet()) {
+
+				PropertyKey key = entry.getKey();
+				
+				if (comparableKeys.contains(key)) {
+
+					if (includeSystemProperties || !key.isUnvalidated()) {
+
+						hashCode ^= entry.hashCode();
+					}
+				}
+			}
+		}
+		
+		
+		return hashCode;
+	}
 	
 	// ----- static methods -----
 	public static PropertyMap javaTypeToDatabaseType(SecurityContext securityContext, GraphObject entity, Map<String, Object> source) throws FrameworkException {
@@ -318,5 +354,13 @@ public class PropertyMap implements Map<PropertyKey, Object> {
 		}
 		
 		return map;
+	}
+	
+	private static class PropertyKeyComparator implements Comparator<PropertyKey> {
+
+		@Override
+		public int compare(PropertyKey o1, PropertyKey o2) {
+			return o1.jsonName().compareTo(o2.jsonName());
+		}
 	}
 }

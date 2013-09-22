@@ -18,7 +18,9 @@
  */
 package org.structr.rest.resource;
 
+import java.util.Collections;
 import java.util.Iterator;
+import org.structr.common.PagingHelper;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -27,13 +29,13 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 
 import org.neo4j.graphdb.RelationshipType;
+import org.structr.common.GraphObjectComparator;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Command;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Predicate;
@@ -46,7 +48,6 @@ import org.structr.core.graph.CreateRelationshipCommand;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchRelationshipCommand;
-import org.structr.core.graph.search.TextualSearchAttribute;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;
 
@@ -84,6 +85,48 @@ public class NamedRelationResource extends WrappingResource {
 					relationResults.addAll(namedRelation.getRelationships(obj));
 				}
 			}
+			
+			// filter by searchable properties
+			final List<SearchAttribute> filterAttributes = extractSearchableAttributes(securityContext, namedRelation.getEntityClass(), request);
+			if(!filterAttributes.isEmpty()) {
+
+				final Predicate<GraphObject> predicate = new Predicate<GraphObject>() {
+
+					@Override
+					public boolean evaluate(final SecurityContext securityContext, final GraphObject... objs) {
+
+						if(objs.length > 0) {
+
+							final GraphObject obj = objs[0];
+
+							for(final SearchAttribute attr : filterAttributes) {
+
+								final String value    = attr.getStringValue();
+								final PropertyKey key = attr.getKey();
+
+								final Object val = obj.getProperty(key);
+								if(val != null && val.equals(value)) {
+									return true;
+								}
+							}
+						}
+
+						return false;
+					}
+				};
+
+				for(final Iterator<GraphObject> it = relationResults.iterator(); it.hasNext();) {
+
+					if(!predicate.evaluate(securityContext, it.next())) {
+						it.remove();
+					}
+				}
+			}
+
+			// sort results
+			if (sortKey != null) {
+				Collections.sort(relationResults, new GraphObjectComparator(sortKey, sortDescending));
+			}
 
 		} else {
 
@@ -92,49 +135,10 @@ public class NamedRelationResource extends WrappingResource {
 			searchAttributes.add(Search.andExactRelType(namedRelation));
 
 			// add searchable attributes from EntityContext
-			searchAttributes.addAll(extractSearchableAttributesForRelationships(securityContext, namedRelation.getEntityClass(), request));
+			searchAttributes.addAll(extractSearchableAttributes(securityContext, namedRelation.getEntityClass(), request));
 
-			relationResults.addAll((List<AbstractRelationship>) Services.command(securityContext, SearchRelationshipCommand.class).execute(searchAttributes));
+			relationResults.addAll(Services.command(securityContext, SearchRelationshipCommand.class).execute(searchAttributes).getResults());
 
-		}
-
-		// filter by searchable properties
-		final List<SearchAttribute> filterAttributes =
-						extractSearchableAttributesForRelationships(securityContext, namedRelation.getEntityClass(), request);
-
-		if(!filterAttributes.isEmpty()) {
-
-			final Predicate<GraphObject> predicate = new Predicate<GraphObject>() {
-
-				@Override
-				public boolean evaluate(final SecurityContext securityContext, final GraphObject... objs) {
-
-					if(objs.length > 0) {
-
-						final GraphObject obj = objs[0];
-
-						for(final SearchAttribute attr : filterAttributes) {
-
-							final String value    = ((TextualSearchAttribute)attr).getValue();
-							final PropertyKey key = ((TextualSearchAttribute)attr).getKey();
-
-							final Object val = "\"" + obj.getProperty(key) + "\"";
-							if(val != null && val.equals(value)) {
-								return true;
-							}
-						}
-					}
-
-					return false;
-				}
-			};
-
-			for(final Iterator<GraphObject> it = relationResults.iterator(); it.hasNext();) {
-
-				if(!predicate.evaluate(securityContext, it.next())) {
-					it.remove();
-				}
-			}
 		}
 		
 		return PagingHelper.subResult(new Result(relationResults, null, isCollectionResource(), isPrimitiveArray()), pageSize, page, offsetId);
@@ -200,11 +204,6 @@ public class NamedRelationResource extends WrappingResource {
 
 	@Override
 	public RestMethodResult doHead() throws FrameworkException {
-		return new RestMethodResult(200);
-	}
-
-	@Override
-	public RestMethodResult doOptions() throws FrameworkException {
 		return new RestMethodResult(200);
 	}
 

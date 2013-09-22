@@ -46,5 +46,9 @@ public enum RelType implements RelationshipType {
 	
 	// blog
 	AUTHOR,
-	COMMENT
+	COMMENT,
+	
+	TAG
+	
+	
 }

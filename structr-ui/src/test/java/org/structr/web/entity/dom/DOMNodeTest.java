@@ -19,14 +19,16 @@
 package org.structr.web.entity.dom;
 
 
+import java.util.LinkedList;
 import java.util.List;
-import org.structr.web.common.RelType;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.web.common.DOMTest;
+import org.structr.web.common.RelType;
 import org.structr.web.entity.relation.ChildrenRelationship;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
@@ -40,7 +42,7 @@ import org.w3c.dom.Text;
  * @author Christian Morgner
  */
 public class DOMNodeTest extends DOMTest {
-/*
+
 	public void testAppendChild() {
 		
 		Page document = (Page)getDocument();
@@ -61,7 +63,7 @@ public class DOMNodeTest extends DOMTest {
 		div.appendChild(content1);
 		
 		// check for correct relationship management
-		List<AbstractRelationship> divRels = div.getOutgoingRelationships(RelType.CONTAINS);
+		List<AbstractRelationship> divRels = toList(div.getOutgoingRelationships(RelType.CONTAINS));
 		assertEquals(1, divRels.size());
 		assertEquals(Integer.valueOf(0), divRels.get(0).getProperty(ChildrenRelationship.position));
 		
@@ -70,7 +72,7 @@ public class DOMNodeTest extends DOMTest {
 		div.appendChild(content2);
 		
 		// check for correct relationship management
-		divRels = div.getOutgoingRelationships(RelType.CONTAINS);
+		divRels = toList(div.getOutgoingRelationships(RelType.CONTAINS));
 		assertEquals(2, divRels.size());
 		assertEquals(Integer.valueOf(0), divRels.get(0).getProperty(ChildrenRelationship.position));
 		assertEquals(Integer.valueOf(1), divRels.get(1).getProperty(ChildrenRelationship.position));
@@ -257,7 +259,7 @@ public class DOMNodeTest extends DOMTest {
 		assertEquals(test2, test1.getNextSibling());
 		assertNull(test5.getNextSibling());
 	}
-*/
+
 	public void testAppendChildErrors() {
 		
 		
@@ -331,7 +333,7 @@ public class DOMNodeTest extends DOMTest {
 			assertEquals(DOMException.HIERARCHY_REQUEST_ERR, dex.code);
 		}
 	}
-/*	
+
 	public void testReplaceChild() {
 		
 		Document document = getDocument();
@@ -731,4 +733,20 @@ public class DOMNodeTest extends DOMTest {
 		assertEquals("test6test7test8test9", children.item(6).getNodeValue());
 		assertEquals(p3,                     children.item(7));
 	}
-*/}
+
+
+	private <T extends GraphObject> List<T> toList(final Iterable<T> it) {
+
+		List<T> list = new LinkedList();
+
+		for (T obj : it) {
+			
+			list.add(obj);
+			
+		}
+
+		return list;
+	}
+
+}
+

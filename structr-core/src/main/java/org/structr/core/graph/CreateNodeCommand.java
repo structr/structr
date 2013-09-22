@@ -95,7 +95,7 @@ public class CreateNodeCommand<T extends AbstractNode> extends NodeServiceComman
 			boolean isCreation         = true;
 
 			// Create node with type
-			node = nodeFactory.instantiateNodeWithType(graphDb.createNode(), nodeType, isCreation);
+			node = nodeFactory.instantiateWithType(graphDb.createNode(), nodeType, isCreation);
 			if(node != null) {
 				
 				TransactionCommand.nodeCreated(node);
@@ -125,7 +125,7 @@ public class CreateNodeCommand<T extends AbstractNode> extends NodeServiceComman
 
 					Object value = attr.getValue();
 					PropertyKey key = attr.getKey();
-					if (key.isReadOnlyProperty()) {
+					if (key.isReadOnly()) {
 						node.unlockReadOnlyPropertiesOnce();
 					}
 					node.setProperty(key, value);

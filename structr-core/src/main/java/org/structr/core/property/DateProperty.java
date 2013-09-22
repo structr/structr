@@ -20,15 +20,17 @@ package org.structr.core.property;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.SortField;
-import org.apache.lucene.util.NumericUtils;
+import org.neo4j.index.lucene.ValueContext;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.DateFormatToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.graph.search.DateSearchAttribute;
+import org.structr.core.graph.search.SearchAttribute;
 
 /**
 * A property that stores and retrieves a simple string-based Date with
@@ -41,17 +43,22 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 	
 	private static final Logger logger = Logger.getLogger(DateProperty.class.getName());
 	
-	protected SimpleDateFormat dateFormat = null;
+	protected String pattern = null;
 	
 	public DateProperty(String name, String pattern) {
 		super(name);
 		
-		dateFormat = new SimpleDateFormat(pattern);
+		this.pattern = pattern;
 	}
 	
 	@Override
 	public String typeName() {
 		return "Date";
+	}
+
+	@Override
+	public Integer getSortType() {
+		return SortField.LONG;
 	}
 	
 	@Override
@@ -91,7 +98,7 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 			
 			try {
 				
-				return dateFormat.parse(value.toString()).getTime();
+				return new SimpleDateFormat(pattern).parse(value.toString()).getTime();
 				
 			} catch (Throwable t) {
 			}
@@ -142,7 +149,7 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 			if (source != null) {
 
 				try {
-					return dateFormat.parse(source);
+					return new SimpleDateFormat(pattern).parse(source);
 
 				} catch(Throwable t) {
 
@@ -159,34 +166,21 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 		public String revert(Date source) throws FrameworkException {
 
 			if (source != null) {
-				return dateFormat.format(source);
+				return new SimpleDateFormat(pattern).format(source);
 			}
 			
 			return null;
 		}
 		
-		@Override
-		public Integer getSortType() {
-			return SortField.LONG;
-		}
-		
 	}
-	
-	
-//	@Override
-//	public Object getSearchValue(Date source) {
-//
-//		return source;// == null ? null : source.getTime();
-////		if (source == null) {
-////			return "";
-////		}
-////		
-////		long t = source.getTime();
-////		
-////		String prefixCoded = NumericUtils.longToPrefixCoded(t);
-////		
-////		logger.log(Level.INFO, "Search value for date {0}: {1}, prefixCoded: {2}", new Object[]{source, t, prefixCoded});
-////		
-////		return prefixCoded;
-//	}
+
+	@Override
+	public SearchAttribute getSearchAttribute(SecurityContext securityContext, BooleanClause.Occur occur, Date searchValue, boolean exactMatch) {
+		return new DateSearchAttribute(this, searchValue, occur, exactMatch);
+	}
+
+	@Override
+	public void index(GraphObject entity, Object value) {
+		super.index(entity, value != null ? ValueContext.numeric((Number)value) : value);
+	}
 }

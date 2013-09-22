@@ -50,4 +50,9 @@ public class TypeValidator implements PropertyValidator<Class> {
 
 		return false;
 	}
+	
+	@Override
+	public boolean requiresSynchronization() {
+		return false;
+	}
 }

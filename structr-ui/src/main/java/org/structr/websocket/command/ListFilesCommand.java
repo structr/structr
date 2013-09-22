@@ -33,7 +33,7 @@ import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.property.PropertyKey;
-import org.structr.rest.resource.PagingHelper;
+import org.structr.common.PagingHelper;
 import org.structr.web.common.RelType;
 import org.structr.websocket.message.WebSocketMessage;
 import org.structr.websocket.StructrWebSocket;
@@ -65,11 +65,11 @@ public class ListFilesCommand extends AbstractCommand {
 		Class type                             = EntityContext.getEntityClassForRawType(rawType);
 		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 
-		searchAttributes.add(Search.andExactType(type.getSimpleName()));
+		searchAttributes.add(Search.andExactType(type));
 		
 		// for image lists, suppress thumbnails
 		if (type.equals(Image.class)) {
-			searchAttributes.add(Search.andExactProperty(Image.isThumbnail, false));
+			searchAttributes.add(Search.andExactProperty(securityContext, Image.isThumbnail, false));
 		}
 
 		final String sortOrder   = webSocketData.getSortOrder();

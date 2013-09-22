@@ -94,7 +94,7 @@ public class IdDeserializationStrategy<S, T extends GraphObject> implements Dese
 				
 					for (Entry<PropertyKey, Object> entry : map.entrySet()) {
 
-						attrs.add(Search.andExactProperty(entry.getKey(), entry.getValue().toString()));
+						attrs.add(Search.andExactProperty(securityContext, entry.getKey(), entry.getValue().toString()));
 
 					}
 				
@@ -105,7 +105,7 @@ public class IdDeserializationStrategy<S, T extends GraphObject> implements Dese
 				GraphObject obj = (GraphObject)source;
 				if (propertyKey != null) {
 					
-					attrs.add(Search.andExactProperty(propertyKey, obj.getProperty(propertyKey)));
+					attrs.add(Search.andExactProperty(securityContext, propertyKey, obj.getProperty(propertyKey)));
 					
 				} else {
 					

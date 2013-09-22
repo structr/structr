@@ -52,12 +52,12 @@ public class ResourceAccessTest extends StructrUiTest {
 
 	//~--- methods --------------------------------------------------------
 
-	@Override
-	public void test00DbAvailable() {
-
-		super.test00DbAvailable();
-
-	}
+//	@Override
+//	public void test00DbAvailable() {
+//
+//		super.test00DbAvailable();
+//
+//	}
 
 	public void test01ResourceAccessGET() {
 
@@ -111,7 +111,7 @@ public class ResourceAccessTest extends StructrUiTest {
 			
 			// allow POST for non-authenticated users => access without user/pass should be allowed
 			folderGrant.setFlag(UiAuthenticator.NON_AUTH_USER_POST);
-			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(201).when().post("/folders");
+			RestAssured.given().contentType("application/json; charset=UTF-8").body("{'name':'Test01'}").expect().statusCode(201).when().post("/folders");
 			
 		} catch (FrameworkException ex) {
 
@@ -147,11 +147,21 @@ public class ResourceAccessTest extends StructrUiTest {
 			folderGrant.setFlag(UiAuthenticator.NON_AUTH_USER_PUT);
 			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(403).when().put("/folder/" + testFolder.getUuid());
 			
-			String name = "testuser-01";
-			String password = "testpassword-01";
-			User	testUser	= createTestNodes(User.class, 1).get(0);
+			final String name        = "testuser-01";
+			final String password    = "testpassword-01";
+			final User	testUser = createTestNodes(User.class, 1).get(0);
 			testUser.setName(name);
-			testUser.setProperty(User.password, password);
+			
+			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+				@Override
+				public Object execute() throws FrameworkException {
+
+					testUser.setProperty(User.password, password);
+					
+					return null;
+				}
+			});
 			
 			// test user has no specific rights on the object => still 403
 			RestAssured.given()
@@ -159,7 +169,7 @@ public class ResourceAccessTest extends StructrUiTest {
 				.contentType("application/json; charset=UTF-8").expect().statusCode(403).when().put("/folder/" + testFolder.getUuid());
 			
 			// now we give the user ownership and expect a 200
-			testFolder.setOwner(testUser);
+			testFolder.setProperty(AbstractNode.owner, testUser);
 			
 			RestAssured.given()
 				.headers("X-User", name, "X-Password", password)
@@ -201,11 +211,21 @@ public class ResourceAccessTest extends StructrUiTest {
 			folderGrant.setFlag(UiAuthenticator.NON_AUTH_USER_DELETE);
 			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(403).when().delete("/folder/" + testFolder.getUuid());
 			
-			String name = "testuser-01";
-			String password = "testpassword-01";
-			User	testUser	= createTestNodes(User.class, 1).get(0);
+			final String name        = "testuser-01";
+			final String password    = "testpassword-01";
+			final User	testUser = createTestNodes(User.class, 1).get(0);
 			testUser.setName(name);
-			testUser.setProperty(User.password, password);
+			
+			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+				@Override
+				public Object execute() throws FrameworkException {
+
+					testUser.setProperty(User.password, password);
+					
+					return null;
+				}
+			});
 			
 			// test user has no specific rights on the object => still 403
 			RestAssured.given()
@@ -213,7 +233,7 @@ public class ResourceAccessTest extends StructrUiTest {
 				.contentType("application/json; charset=UTF-8").expect().statusCode(403).when().delete("/folder/" + testFolder.getUuid());
 			
 			// now we give the user ownership and expect a 200
-			testFolder.setOwner(testUser);
+			testFolder.setProperty(AbstractNode.owner, testUser);
 			
 			RestAssured.given()
 				.headers("X-User", name, "X-Password", password)

@@ -31,10 +31,12 @@ import org.structr.websocket.message.WebSocketMessage;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.Services;
+import org.structr.core.graph.StructrTransaction;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.websocket.StructrWebSocket;
@@ -58,38 +60,55 @@ public class SortCommand extends AbstractCommand {
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
-		String pageId                = webSocketData.getId();
-		AbstractNode node            = getNode(pageId);
-		Map<String, Object> nodeData = webSocketData.getNodeData();
+		final Map<String, Object> nodeData = webSocketData.getNodeData();
+		final String pageId                = webSocketData.getId();
+		final AbstractNode node            = getNode(pageId);
 
 		if (node != null) {
 
-			for (String id : nodeData.keySet()) {
+			try {
+				
+				Services.command(getWebSocket().getSecurityContext(), TransactionCommand.class).execute(new StructrTransaction() {
 
-				AbstractNode nodeToSort          = getNode(id);
-				Long pos                         = Long.parseLong((String) nodeData.get(id));
-				List<AbstractRelationship> rels  = nodeToSort.getRelationships(RelType.CONTAINS, Direction.INCOMING);
-				PropertyKey<Long> pageIdProperty = new LongProperty(pageId);
+					@Override
+					public Object execute() throws FrameworkException {
 
-				for (AbstractRelationship rel : rels) {
+						for (String id : nodeData.keySet()) {
 
-					try {
+							AbstractNode nodeToSort             = getNode(id);
+							Long pos                            = Long.parseLong((String) nodeData.get(id));
+							Iterable<AbstractRelationship> rels = nodeToSort.getRelationships(RelType.CONTAINS, Direction.INCOMING);
+							PropertyKey<Long> pageIdProperty    = new LongProperty(pageId);
 
-						Long oldPos = rel.getProperty(pageIdProperty);
+							for (AbstractRelationship rel : rels) {
 
-						if ((oldPos != null) && !(oldPos.equals(pos))) {
+								try {
 
-							rel.setProperty(pageIdProperty, pos);
+									Long oldPos = rel.getProperty(pageIdProperty);
+
+									if ((oldPos != null) && !(oldPos.equals(pos))) {
+
+										rel.setProperty(pageIdProperty, pos);
+									}
+
+								} catch (FrameworkException fex) {
+
+									fex.printStackTrace();
+
+								}
+
+							}
+
 						}
-
-					} catch (FrameworkException fex) {
-
-						fex.printStackTrace();
-
+						
+						return null;
 					}
-
-				}
-
+					
+				});
+				
+			} catch (Throwable t) {
+				
+				logger.log(Level.WARNING, "Unable to sort children", t);
 			}
 
 		} else {

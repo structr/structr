@@ -27,7 +27,7 @@
     this.overlay = null;
   }
   function getSearchState(cm) {
-    return cm._searchState || (cm._searchState = new SearchState());
+    return cm.state.search || (cm.state.search = new SearchState());
   }
   function getSearchCursor(cm, query, pos) {
     // Heuristic: if the query string is all lowercase, do a case insensitive search.
@@ -55,7 +55,7 @@
         if (!query || state.query) return;
         state.query = parseQuery(query);
         cm.removeOverlay(state.overlay);
-        state.overlay = searchOverlay(query);
+        state.overlay = searchOverlay(state.query);
         cm.addOverlay(state.overlay);
         state.posFrom = state.posTo = cm.getCursor();
         findNext(cm, rev);
@@ -66,7 +66,7 @@
     var state = getSearchState(cm);
     var cursor = getSearchCursor(cm, state.query, rev ? state.posFrom : state.posTo);
     if (!cursor.find(rev)) {
-      cursor = getSearchCursor(cm, state.query, rev ? {line: cm.lineCount() - 1} : {line: 0, ch: 0});
+      cursor = getSearchCursor(cm, state.query, rev ? CodeMirror.Pos(cm.lastLine()) : CodeMirror.Pos(cm.firstLine(), 0));
       if (!cursor.find(rev)) return;
     }
     cm.setSelection(cursor.from(), cursor.to());
@@ -100,7 +100,7 @@
         } else {
           clearSearch(cm);
           var cursor = getSearchCursor(cm, query, cm.getCursor());
-          function advance() {
+          var advance = function() {
             var start = cursor.from(), match;
             if (!(match = cursor.findNext())) {
               cursor = getSearchCursor(cm, query);
@@ -110,12 +110,12 @@
             cm.setSelection(cursor.from(), cursor.to());
             confirmDialog(cm, doReplaceConfirm, "Replace?",
                           [function() {doReplace(match);}, advance]);
-          }
-          function doReplace(match) {
+          };
+          var doReplace = function(match) {
             cursor.replace(typeof query == "string" ? text :
                            text.replace(/\$(\d)/, function(_, i) {return match[i];}));
             advance();
-          }
+          };
           advance();
         }
       });

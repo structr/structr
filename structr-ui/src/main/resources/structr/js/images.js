@@ -20,7 +20,7 @@
 var images, folders, drop;
 var fileList;
 var chunkSize = 1024*64;
-var sizeLimit = 1024*1024*42;
+var sizeLimit = 1024*1024*70;
 var win = $(window);
 
 $(document).ready(function() {
@@ -45,8 +45,7 @@ var _Images = {
     download_icon : 'icon/basket_put.png',
 	
     init : function() {
-    //defaultPageSize = 25;
-    //defaultPage = 1;
+        Structr.initPager('Image', 1, 100);
     },
     resize : function() {
 
@@ -79,10 +78,8 @@ var _Images = {
         
         _Images.init();
         
-        if (palette) palette.remove();
-
         //main.append('<table id="dropArea"><tr><td id="folders"></td><td id="images"></td></tr></table>');
-        main.append('<table id="dropArea"><tr><td id="images"></td></tr></table>');
+        main.append('<table id="dropArea"><tr><td class="fit-to-height" id="images"></td></tr></table>');
         //folders = $('#folders');
         images = $('#images');
         
@@ -156,25 +153,7 @@ var _Images = {
                     
                 } else {
                     
-                    var dialogMsg = $('#dialogMsg');
-
-                    dialog.empty();
-                    dialogMsg.empty();
-
-                    dialog.append('<table class="props"></table>');
-                    
-                    $(filesToUpload).each(function(i, fileToUpload) {
-                        $('.props', dialog).append('<tr><td>' + fileToUpload.name + '</td><td>' + fileToUpload.size + ' bytes</td></tr>');
-                    });
-
-                    Structr.dialog('Uploading Files', function() {
-                        return true;
-                    }, function() {
-                        return true;
-                    });
-                    
                     $(filesToUpload).each(function(i, file) {
-                        log(file);
                         if (file) Command.createFile(file);
                     });
 
@@ -189,15 +168,11 @@ var _Images = {
     refreshFolders : function() {
         folders.empty();
         folders.append('<button class="add_folder_icon button"><img title="Add Folder" alt="Add Folder" src="' + _Images.add_folder_icon + '"> Add Folder</button>');
-        if (Structr.addPager(folders, 'Folder')) {
-
-            $('.add_folder_icon', main).on('click', function(e) {
-                e.stopPropagation();
-                var entity = {};
-                entity.type = 'Folder';
-                Command.create(entity);
-            });
-        }
+        $('.add_folder_icon', main).on('click', function(e) {
+            e.stopPropagation();
+            Command.create({'type':'Folder'});
+        });
+        Structr.addPager(folders, 'Folder');
     },
 
     getIcon : function(file) {
@@ -219,13 +194,17 @@ var _Images = {
         div = Structr.node(img.id);
         
         var tn = '/structr/img/ajax-loader.gif';
+        
+        if (!images) return;
             
         //var tn = '/' + img.tnSmall.id;
         images.append('<div id="id_' + img.id + '" class="node image">'
             + '<div class="wrap"><img class="thumbnail" src="'+ tn + '"></div>'
             + '<b title="' + img.name + '" class="name_">' + fitStringToSize(img.name, 98) + '</b> <span class="id">' + img.id + '</span>'
+            + '<div class="progress"><div class="bar"><div class="indicator"><span class="part"></span>/<span class="size">' + img.size + '</span></div></div></div>'
             + '<div class="icons"></div></div>');
         div = Structr.node(img.id);
+
             
         var tnSmall = img.tnSmall;
         if (tnSmall) {
@@ -235,6 +214,8 @@ var _Images = {
         }
         
         var iconArea = $('.icons', div);
+
+        _Entities.appendAccessControlIcon(iconArea, img);
 
         delIcon = $('.delete_icon', div);
 
@@ -260,7 +241,6 @@ var _Images = {
             }
         });
 
-        _Entities.appendAccessControlIcon(iconArea, img);
         _Entities.appendEditPropertiesIcon(iconArea, img);
         _Images.appendEditFileIcon(iconArea, img);      
 
@@ -320,7 +300,7 @@ var _Images = {
                     _Images.showThumbnails(img, el);
                 }
             });
-        }, 5000);
+        }, 1000);
     },
 
     appendFolderElement : function(folder, folderId, hasChildren) {
@@ -479,6 +459,8 @@ var _Images = {
             parentElement = files;
             cls = 'file';
         }
+        
+        if (!parentElement) return;
 
         var folder = Structr.node(folderId);
         var file = Structr.node(fileId, folderId);
@@ -486,7 +468,7 @@ var _Images = {
         log(file, folder);
         
         _Entities.resetMouseOverState(file);
-        
+
         parentElement.append(file);
         
         $('.delete_icon', file).replaceWith('<img title="Delete ' + cls + ' ' + fileId + '" '
@@ -532,7 +514,7 @@ var _Images = {
 
             log(file);
 
-            if (fileObj.name == file.name) {
+            if (fileObj.name === file.name) {
      
                 log(fileObj);
                 log('Uploading chunks for file ' + file.id);

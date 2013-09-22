@@ -68,7 +68,7 @@ public class FindNodeCommand extends NodeServiceCommand {
 			 * If argument is a Neo4j node, just let the node factory create
 			 * an instance of AbstractNode out of it.
 			 */
-			result = nodeFactory.instantiateNode((Node) argument);
+			result = nodeFactory.instantiate((Node) argument);
 
 			if (result != null) {
 
@@ -140,7 +140,7 @@ public class FindNodeCommand extends NodeServiceCommand {
 
 		Node node = graphDb.getNodeById(id);
 
-		return nodeFactory.instantiateNode(node);
+		return nodeFactory.instantiate(node);
 
 	}
 

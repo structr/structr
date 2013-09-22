@@ -21,8 +21,6 @@
 package org.structr.core.entity;
 
 import org.structr.core.property.IntProperty;
-import org.structr.core.property.StringProperty;
-import org.structr.core.property.GenericProperty;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.TransactionCommand;
@@ -31,7 +29,6 @@ import org.structr.core.graph.CreateRelationshipCommand;
 import org.structr.core.graph.DeleteRelationshipCommand;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyMap;
-import org.apache.commons.lang.ArrayUtils;
 
 import org.neo4j.graphdb.*;
 
@@ -49,7 +46,6 @@ import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.Services;
-import org.structr.core.graph.NodeService.RelationshipIndex;
 import org.structr.core.notion.Notion;
 import org.structr.core.notion.RelationshipNotion;
 
@@ -57,6 +53,9 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.neo4j.graphdb.index.Index;
+import org.structr.core.graph.NodeService;
+import org.structr.core.property.CombinedTypeProperty;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -69,15 +68,17 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	private static final Logger logger = Logger.getLogger(AbstractRelationship.class.getName());
 
-	public static final Property<String>   combinedType  = new StringProperty("combinedType");
 	public static final Property<Integer>  cascadeDelete = new IntProperty("cascadeDelete");
+	public static final Property<String>   combinedType  = new CombinedTypeProperty();
+	
+	public static final View defauflView = new View(AbstractRelationship.class, PropertyView.Public,
+		uuid, type, combinedType
+	);
 	
 	
 	//~--- static initializers --------------------------------------------
 
 	static {
-
-		EntityContext.registerSearchableProperty(AbstractRelationship.class, RelationshipIndex.rel_uuid.name(), uuid);
 
 		// register transformation for automatic uuid creation
 		EntityContext.registerEntityCreationTransformation(AbstractRelationship.class, new UuidCreationTransformation());
@@ -103,7 +104,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	//~--- constructors ---------------------------------------------------
 
 //      public enum Permission implements PropertyKey {
-//              allowed, denied, scanEntity, showTree, write, execute, createNode, deleteNode, editProperties, addRelationship, removeRelationship, accessControl;
+//              allowed, denied, read, showTree, write, execute, createNode, deleteNode, editProperties, addRelationship, removeRelationship, accessControl;
 //      }
 	public AbstractRelationship() {
 
@@ -249,6 +250,9 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 				try {
 					
 					dbRelationship.removeProperty(key.dbName());
+					
+					// remove from index
+					removeFromIndex(key);
 
 				} finally {}
 
@@ -414,10 +418,9 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	}
 
 	@Override
-	public Comparable getComparableProperty(final PropertyKey<? extends Comparable> key) {
+	public <T> Comparable getComparableProperty(final PropertyKey<T> key) {
 
-		Object propertyValue = getProperty(key, false);	// get "raw" property without converter
-		Class type = getClass();
+		T propertyValue = getProperty(key, false);	// get "raw" property without converter
 		
 		// check property converter
 		PropertyConverter converter = key.databaseConverter(securityContext, this);
@@ -463,7 +466,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 		try {
 			NodeFactory nodeFactory = new NodeFactory(SecurityContext.getSuperUserInstance());
-			return (AbstractNode) nodeFactory.instantiateNode(dbRelationship.getEndNode());
+			return (AbstractNode) nodeFactory.instantiate(dbRelationship.getEndNode());
 			
 		} catch (Throwable t) {
 			// ignore
@@ -477,7 +480,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 		try {
 
 			NodeFactory nodeFactory = new NodeFactory(SecurityContext.getSuperUserInstance());
-			return (AbstractNode) nodeFactory.instantiateNode(dbRelationship.getStartNode());
+			return (AbstractNode) nodeFactory.instantiate(dbRelationship.getStartNode());
 			
 		} catch (Throwable t) {
 			// ignore
@@ -491,7 +494,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 		try {
 
 			NodeFactory nodeFactory = new NodeFactory(SecurityContext.getSuperUserInstance());
-			return (AbstractNode) nodeFactory.instantiateNode(dbRelationship.getOtherNode(node.getNode()));
+			return (AbstractNode) nodeFactory.instantiate(dbRelationship.getOtherNode(node.getNode()));
 			
 		} catch (Throwable t) {
 			// ignore
@@ -528,9 +531,13 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	 */
 	@Override
 	public Object getPropertyForIndexing(final PropertyKey key) {
-
+		
+		Object value = getProperty(key, false);
+		if (value != null) {
+			return value;
+		}
+		
 		return getProperty(key);
-
 	}
 
 	// ----- interface GraphObject -----
@@ -602,17 +609,17 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	}
 
 	@Override
-	public boolean beforeCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 		return isValid(errorBuffer);
 	}
 
 	@Override
-	public boolean beforeModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 		return isValid(errorBuffer);
 	}
 
 	@Override
-	public boolean beforeDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
+	public boolean onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
 		return true;
 	}
 	
@@ -622,10 +629,6 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	@Override
 	public void afterModification(SecurityContext securityContext) {
-	}
-
-	@Override
-	public void afterDeletion(SecurityContext securityContext) {
 	}
 
 	@Override
@@ -689,12 +692,12 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 		
 		// check for read-only properties
 		//if (EntityContext.isReadOnlyProperty(type, key) || (EntityContext.isWriteOnceProperty(type, key) && (dbRelationship != null) && dbRelationship.hasProperty(key.name()))) {
-		if (key.isReadOnlyProperty() || (key.isWriteOnceProperty() && (dbRelationship != null) && dbRelationship.hasProperty(key.dbName()))) {
+		if (key.isReadOnly() || (key.isWriteOnce() && (dbRelationship != null) && dbRelationship.hasProperty(key.dbName()))) {
 
-			if (readOnlyPropertiesUnlocked) {
+			if (readOnlyPropertiesUnlocked || securityContext.isSuperUser()) {
 
 				// permit write operation once and
-				// lock scanEntity-only properties again
+				// lock read-only properties again
 				readOnlyPropertiesUnlocked = false;
 				
 			} else {
@@ -864,5 +867,59 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 		}
 
 	}
+	
+	@Override
+	public void addToIndex() {
 
+		for (PropertyKey key : EntityContext.getPropertySet(entityType, PropertyView.All)) {
+			
+			if (key.isIndexed()) {
+				
+				key.index(this, this.getPropertyForIndexing(key));
+			}
+		}
+	}
+	
+	@Override
+	public void updateInIndex() {
+		
+		removeFromIndex();
+		addToIndex();
+	}
+	
+	@Override
+	public void removeFromIndex() {
+		
+		for (Index<Relationship> index : Services.getService(NodeService.class).getRelationshipIndices()) {
+			
+			synchronized (index) {
+				
+				index.remove(dbRelationship);
+			}
+		}
+	}
+	
+	public void removeFromIndex(PropertyKey key) {
+		
+		for (Index<Relationship> index : Services.getService(NodeService.class).getRelationshipIndices()) {
+			
+			synchronized (index) {
+				
+				index.remove(dbRelationship, key.dbName());
+			}
+		}
+	}
+	
+	@Override
+	public void indexPassiveProperties() {
+
+		for (PropertyKey key : EntityContext.getPropertySet(entityType, PropertyView.All)) {
+			
+			if (key.isPassivelyIndexed()) {
+				
+				key.index(this, this.getPropertyForIndexing(key));
+			}
+		}
+		
+	}
 }

@@ -27,8 +27,6 @@ import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.property.LongProperty;
-import org.structr.core.EntityContext;
-import org.structr.core.graph.NodeService;
 import org.structr.core.property.IntProperty;
 
 /**
@@ -53,8 +51,8 @@ public class PropertyAccess extends AbstractNode {
 	private Long cachedFlags     = null;
 	private Integer cachedPosition = null;
 	
-	public static final Property<Long>                      flags           = new LongProperty("flags");
-	public static final Property<Integer>                   position        = new IntProperty("position");
+	public static final Property<Long>    flags    = new LongProperty("flags").indexed();
+	public static final Property<Integer> position = new IntProperty("position").indexed();
 
 	public static final View uiView = new View(PropertyAccess.class, PropertyView.Ui,
 		flags, position
@@ -63,16 +61,6 @@ public class PropertyAccess extends AbstractNode {
 	public static final View publicView = new View(PropertyAccess.class, PropertyView.Public,
 		flags
 	);
-	
-	static {
-
-		EntityContext.registerSearchablePropertySet(PropertyAccess.class, NodeService.NodeIndex.fulltext.name(), publicView.properties());
-		EntityContext.registerSearchablePropertySet(PropertyAccess.class, NodeService.NodeIndex.keyword.name(),  publicView.properties());
-	}
-
-	//~--- constant enums -------------------------------------------------
-
-	//~--- methods --------------------------------------------------------
 
 	@Override
 	public String toString() {
@@ -133,12 +121,12 @@ public class PropertyAccess extends AbstractNode {
 	}
 
 	@Override
-	public boolean beforeCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) {
+	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) {
 		return isValid(errorBuffer);
 	}
 	
 	@Override
-	public boolean beforeModification(SecurityContext securityContext, ErrorBuffer errorBuffer) {
+	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer) {
 		return isValid(errorBuffer);
 	}
 	

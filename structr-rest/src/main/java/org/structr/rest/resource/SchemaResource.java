@@ -127,8 +127,8 @@ public class SchemaResource extends Resource {
 							propProperties.put("className", property.getClass().getName());
 							propProperties.put("defaultValue", property.defaultValue());
 
-							propProperties.put("readOnly", property.isReadOnlyProperty());
-							propProperties.put("system", property.isSystemProperty());
+							propProperties.put("readOnly", property.isReadOnly());
+							propProperties.put("system", property.isUnvalidated());
 
 							PropertyConverter databaseConverter = property.databaseConverter(securityContext, null);
 							PropertyConverter inputConverter    = property.inputConverter(securityContext);
@@ -163,11 +163,6 @@ public class SchemaResource extends Resource {
 
 	@Override
 	public RestMethodResult doHead() throws FrameworkException {
-		throw new IllegalMethodException();
-	}
-
-	@Override
-	public RestMethodResult doOptions() throws FrameworkException {
 		throw new IllegalMethodException();
 	}
 

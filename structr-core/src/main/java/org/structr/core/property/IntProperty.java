@@ -19,12 +19,17 @@
 package org.structr.core.property;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.SortField;
 import org.apache.lucene.util.NumericUtils;
+import org.neo4j.index.lucene.ValueContext;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.graph.search.IntegerSearchAttribute;
+import org.structr.core.graph.search.SearchAttribute;
+import org.structr.core.graph.search.PropertySearchAttribute;
 
 /**
 * A property that stores and retrieves a simple Integer value.
@@ -49,7 +54,12 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> {
 	public String typeName() {
 		return "Integer";
 	}
-	
+		
+	@Override
+	public Integer getSortType() {
+		return SortField.INT;
+	}
+
 	@Override
 	public PropertyConverter<Integer, Integer> databaseConverter(SecurityContext securityContext) {
 		return null;
@@ -62,25 +72,13 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> {
 
 	@Override
 	public PropertyConverter<?, Integer> inputConverter(SecurityContext securityContext) {
-		return new InputConverter(securityContext, SortField.INT);
+		return new InputConverter(securityContext);
 	}
 	
 	protected class InputConverter extends PropertyConverter<Object, Integer> {
 
 		public InputConverter(SecurityContext securityContext) {
-			this(securityContext, null, false);
-		}
-		
-		public InputConverter(SecurityContext securityContext, Integer sortKey) {
-			this(securityContext, sortKey, false);
-		}
-		
-		public InputConverter(SecurityContext securityContext, boolean sortFinalResults) {
-			this(securityContext, null, sortFinalResults);
-		}
-		
-		public InputConverter(SecurityContext securityContext, Integer sortKey, boolean sortFinalResults) {
-			super(securityContext, null, sortKey, sortFinalResults);
+			super(securityContext, null);
 		}
 		
 		@Override
@@ -140,8 +138,13 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> {
 		return null;
 	}
 	
-//	@Override
-//	public Object getSearchValue(Integer source) {
-//		return source != null ? NumericUtils.intToPrefixCoded(source) : "";
-//	}
+	@Override
+	public SearchAttribute getSearchAttribute(SecurityContext securityContext, BooleanClause.Occur occur, Integer searchValue, boolean exactMatch) {
+		return new IntegerSearchAttribute(this, searchValue, occur, exactMatch);
+	}
+
+	@Override
+	public void index(GraphObject entity, Object value) {
+		super.index(entity, value != null ? ValueContext.numeric((Number)value) : value);
+	}
 }

@@ -85,11 +85,6 @@ public class IdsOnlyResource extends ViewFilterResource {
 	}
 
 	@Override
-	public RestMethodResult doOptions() throws FrameworkException {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
-	@Override
 	public String getUriPart() {
 		return "ids";
 	}

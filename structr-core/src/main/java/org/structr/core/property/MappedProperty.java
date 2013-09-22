@@ -47,6 +47,11 @@ public class MappedProperty<T> extends AbstractPrimitiveProperty<T> {
 	public String typeName() {
 		return mappedKey.typeName();
 	}
+
+	@Override
+	public Integer getSortType() {
+		return mappedKey.getSortType();
+	}
 	
 	@Override
 	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext) {

@@ -69,7 +69,7 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 			if (type != null) {
 
 				// final Result<AbstractNode> result = Services.command(securityContext, SearchNodeCommand.class).execute(true, false, Search.andExactType(type.getSimpleName()));
-				final Result<AbstractNode> result = nodeFactory.instantiateAllNodes(GlobalGraphOperations.at(graphDb).getAllNodes());
+				final Result<AbstractNode> result = nodeFactory.instantiateAll(GlobalGraphOperations.at(graphDb).getAllNodes());
 				final List<AbstractNode> nodes    = result.getResults();
 
 				logger.log(Level.INFO, "Start setting UUID on all nodes of type {0}", new Object[] { type.getSimpleName() });
@@ -118,7 +118,7 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 		} else if (relType != null) {
 
 			// final Result<AbstractNode> result = Services.command(securityContext, SearchNodeCommand.class).execute(true, false, Search.andExactType(type.getSimpleName()));
-			final List<AbstractRelationship> rels = relFactory.instantiateRelationships(superUserContext, GlobalGraphOperations.at(graphDb).getAllRelationships());
+			final List<AbstractRelationship> rels = relFactory.instantiate(GlobalGraphOperations.at(graphDb).getAllRelationships());
 
 			logger.log(Level.INFO, "Start setting UUID on all rels of type {0}", new Object[] { relType });
 

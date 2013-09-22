@@ -28,7 +28,6 @@ import org.structr.core.property.LongProperty;
 import org.structr.core.property.StringProperty;
 import org.structr.core.*;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;
@@ -136,8 +135,8 @@ public class SchemaTypeResource extends Resource {
 
 						propProperties.put("declaringClass", property.getDeclaringClass());
 						propProperties.put("defaultValue", property.defaultValue());
-						propProperties.put("readOnly", property.isReadOnlyProperty());
-						propProperties.put("system", property.isSystemProperty());
+						propProperties.put("readOnly", property.isReadOnly());
+						propProperties.put("system", property.isUnvalidated());
 
 						Class<? extends GraphObject> relatedType = property.relatedType();
 						if (relatedType != null) {
@@ -190,22 +189,9 @@ public class SchemaTypeResource extends Resource {
 	}
 
 	@Override
-	public RestMethodResult doOptions() throws FrameworkException {
-
-		throw new IllegalMethodException();
-
-	}
-
-	@Override
 	public Resource tryCombineWith(Resource next) throws FrameworkException {
 
 		return null;
-
-	}
-
-	protected List<SearchAttribute> extractSearchableAttributesFromRequest(SecurityContext securityContext) throws FrameworkException {
-
-		return extractSearchableAttributesForNodes(securityContext, entityClass, request);
 
 	}
 

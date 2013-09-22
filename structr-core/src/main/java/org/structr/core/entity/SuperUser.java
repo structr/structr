@@ -29,7 +29,6 @@ import org.structr.common.error.FrameworkException;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import org.neo4j.graphdb.PropertyContainer;
 import org.structr.core.property.PropertyMap;
@@ -46,12 +45,6 @@ import org.structr.core.property.PropertyMap;
 public class SuperUser implements Principal {
 
 	@Override
-	public void block() {
-
-		// not supported
-	}
-
-	@Override
 	public void removeProperty(PropertyKey key) throws FrameworkException {}
 
 	@Override
@@ -64,21 +57,21 @@ public class SuperUser implements Principal {
 	public void unlockReadOnlyPropertiesOnce() {}
 
 	@Override
-	public boolean beforeCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 
 		return true;
 
 	}
 
 	@Override
-	public boolean beforeModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 
 		return true;
 
 	}
 
 	@Override
-	public boolean beforeDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
+	public boolean onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
 
 		return true;
 
@@ -89,9 +82,6 @@ public class SuperUser implements Principal {
 
 	@Override
 	public void afterModification(SecurityContext securityContext) {}
-
-	@Override
-	public void afterDeletion(SecurityContext securityContext) {}
 
 	@Override
 	public void ownerModified(SecurityContext securityContext) {}
@@ -118,13 +108,6 @@ public class SuperUser implements Principal {
 	public String getRealName() {
 
 		return "Super User";
-
-	}
-
-	@Override
-	public Boolean getBlocked() {
-
-		return false;
 
 	}
 
@@ -185,10 +168,9 @@ public class SuperUser implements Principal {
 	}
 
 	@Override
-	public Comparable getComparableProperty(PropertyKey<? extends Comparable> key) throws FrameworkException {
+	public <T> Comparable getComparableProperty(PropertyKey<T> key) {
 
 		return null;
-
 	}
 
 	@Override
@@ -216,13 +198,6 @@ public class SuperUser implements Principal {
 	public String getUuid() {
 
 		return null;
-
-	}
-
-	@Override
-	public Boolean isBlocked() {
-
-		return false;
 
 	}
 
@@ -254,12 +229,6 @@ public class SuperUser implements Principal {
 		// not supported
 	}
 
-	@Override
-	public void setBlocked(final Boolean blocked) {
-
-		// not supported
-	}
-
 	public void setConfirmationKey(String value) throws FrameworkException {}
 
 	public void setFrontendUser(boolean isFrontendUser) throws FrameworkException {}
@@ -277,5 +246,21 @@ public class SuperUser implements Principal {
 	@Override
 	public PropertyContainer getPropertyContainer() {
 		return null;
+	}
+
+	@Override
+	public void addToIndex() {
+	}
+
+	@Override
+	public void updateInIndex() {
+	}
+
+	@Override
+	public void removeFromIndex() {
+	}
+
+	@Override
+	public void indexPassiveProperties() {
 	}
 }

@@ -90,11 +90,6 @@ public class RelationshipIdResource extends FilterableResource {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
-	@Override
-	public RestMethodResult doOptions() throws FrameworkException {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
 	public RelationshipResource getRelationshipResource() {
 		return relationshipResource;
 	}

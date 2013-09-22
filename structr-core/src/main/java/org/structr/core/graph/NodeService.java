@@ -34,7 +34,6 @@ import org.neo4j.index.impl.lucene.LuceneIndexImplementation;
 import org.neo4j.kernel.EmbeddedGraphDatabase;
 
 import org.structr.core.Command;
-import org.structr.core.EntityContext;
 import org.structr.core.RunnableService;
 import org.structr.core.Services;
 import org.structr.core.SingletonService;
@@ -49,6 +48,8 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.cypher.javacompat.ExecutionEngine;
+import org.neo4j.graphdb.factory.GraphDatabaseBuilder;
+import org.neo4j.shell.ShellSettings;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -65,18 +66,24 @@ public class NodeService implements SingletonService {
 
 	//~--- fields ---------------------------------------------------------
 
-	private Index<Node> fulltextIndex               = null;
 	private GraphDatabaseService graphDb            = null;
+	
+	private Index<Node> caseInsensitiveUserIndex    = null;
+	private Index<Node> fulltextIndex               = null;
 	private Index<Node> keywordIndex                = null;
 	private Index<Node> layerIndex                  = null;
+	private Index<Node> userIndex                   = null;
+	private Index<Node> uuidIndex                   = null;
+	
 	private Index<Relationship> relFulltextIndex    = null;
 	private Index<Relationship> relKeywordIndex     = null;
 	private Index<Relationship> relUuidIndex        = null;
-	private RelationshipFactory relationshipFactory = null;
-	private Index<Node> userIndex                   = null;
-	private Index<Node> caseInsensitiveUserIndex               = null;
-	private Index<Node> uuidIndex                   = null;
+
 	private ExecutionEngine cypherExecutionEngine   = null;
+	
+	// indices
+	private Map<RelationshipIndex, Index<Relationship>> relIndices = new EnumMap<RelationshipIndex, Index<Relationship>>(RelationshipIndex.class);
+	private Map<NodeIndex, Index<Node>> nodeIndices                = new EnumMap<NodeIndex, Index<Node>>(NodeIndex.class);
 
 	/** Dependent services */
 	private Set<RunnableService> registeredServices = new HashSet<RunnableService>();
@@ -103,24 +110,25 @@ public class NodeService implements SingletonService {
 		if (command != null) {
 
 			command.setArgument("graphDb", graphDb);
+			
 			command.setArgument(NodeIndex.uuid.name(), uuidIndex);
 			command.setArgument(NodeIndex.fulltext.name(), fulltextIndex);
 			command.setArgument(NodeIndex.user.name(), userIndex);
 			command.setArgument(NodeIndex.caseInsensitiveUser.name(), caseInsensitiveUserIndex);
 			command.setArgument(NodeIndex.keyword.name(), keywordIndex);
 			command.setArgument(NodeIndex.layer.name(), layerIndex);
+			
 			command.setArgument(RelationshipIndex.rel_uuid.name(), relUuidIndex);
 			command.setArgument(RelationshipIndex.rel_fulltext.name(), relFulltextIndex);
 			command.setArgument(RelationshipIndex.rel_keyword.name(), relKeywordIndex);
-			//command.setArgument("nodeFactory", nodeFactory);
-			command.setArgument("relationshipFactory", relationshipFactory);
+
 			command.setArgument("filesPath", Services.getFilesPath());
+			
 			command.setArgument("indices", NodeIndex.values());
 			command.setArgument("relationshipIndices", RelationshipIndex.values());
+			
 			command.setArgument("cypherExecutionEngine", cypherExecutionEngine);
-
 		}
-
 	}
 
 	@Override
@@ -148,7 +156,7 @@ public class NodeService implements SingletonService {
 			logger.log(Level.INFO, "Database config {0}/neo4j.conf not found", dbPath);
 
 			// thanks Michael :)
-			graphDb = new EmbeddedGraphDatabase(dbPath, MapUtil.stringMap("enable_remote_shell", "true"));
+			graphDb = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(dbPath).setConfig(ShellSettings.remote_shell_enabled, "true").newGraphDatabase();
 
 		}
 
@@ -174,26 +182,31 @@ public class NodeService implements SingletonService {
 		logger.log(Level.FINE, "Initializing UUID index...");
 
 		uuidIndex = graphDb.index().forNodes("uuidAllNodes", LuceneIndexImplementation.EXACT_CONFIG);
+		nodeIndices.put(NodeIndex.uuid, uuidIndex);
 
 		logger.log(Level.FINE, "UUID index ready.");
 		logger.log(Level.FINE, "Initializing user index...");
 
 		userIndex = graphDb.index().forNodes("nameEmailAllUsers", LuceneIndexImplementation.EXACT_CONFIG);
+		nodeIndices.put(NodeIndex.user, userIndex);
 
 		logger.log(Level.FINE, "Node Email index ready.");
 		logger.log(Level.FINE, "Initializing exact email index...");
 
 		caseInsensitiveUserIndex = graphDb.index().forNodes("caseInsensitiveAllUsers", MapUtil.stringMap( "provider", "lucene", "type", "exact", "to_lower_case", "true" ));
+		nodeIndices.put(NodeIndex.caseInsensitiveUser, caseInsensitiveUserIndex);
 
 		logger.log(Level.FINE, "Node case insensitive node index ready.");
 		logger.log(Level.FINE, "Initializing case insensitive fulltext node index...");
 
 		fulltextIndex = graphDb.index().forNodes("fulltextAllNodes", LuceneIndexImplementation.FULLTEXT_CONFIG);
+		nodeIndices.put(NodeIndex.fulltext, fulltextIndex);
 
 		logger.log(Level.FINE, "Fulltext node index ready.");
 		logger.log(Level.FINE, "Initializing keyword node index...");
 
 		keywordIndex = graphDb.index().forNodes("keywordAllNodes", LuceneIndexImplementation.EXACT_CONFIG);
+		nodeIndices.put(NodeIndex.keyword, keywordIndex);
 
 		logger.log(Level.FINE, "Keyword node index ready.");
 		logger.log(Level.FINE, "Initializing layer index...");
@@ -205,31 +218,28 @@ public class NodeService implements SingletonService {
 		config.put(SpatialIndexProvider.GEOMETRY_TYPE, LayerNodeIndex.POINT_PARAMETER);
 
 		layerIndex = new LayerNodeIndex("layerIndex", graphDb, config);
+		nodeIndices.put(NodeIndex.layer, layerIndex);
 
 		logger.log(Level.FINE, "Layer index ready.");
 		logger.log(Level.FINE, "Initializing node factory...");
 
-//		nodeFactory = new NodeFactory();
-//
-//		logger.log(Level.FINE, "Node factory ready.");
-//		logger.log(Level.FINE, "Initializing relationship UUID index...");
-
 		relUuidIndex = graphDb.index().forRelationships("uuidAllRelationships", LuceneIndexImplementation.EXACT_CONFIG);
+		relIndices.put(RelationshipIndex.rel_uuid, relUuidIndex);
 
 		logger.log(Level.FINE, "Relationship UUID index ready.");
 		logger.log(Level.FINE, "Initializing relationship index...");
 
 		relFulltextIndex = graphDb.index().forRelationships("fulltextAllRelationships", LuceneIndexImplementation.FULLTEXT_CONFIG);
+		relIndices.put(RelationshipIndex.rel_fulltext, relFulltextIndex);
 
 		logger.log(Level.FINE, "Relationship fulltext index ready.");
 		logger.log(Level.FINE, "Initializing keyword relationship index...");
 
 		relKeywordIndex = graphDb.index().forRelationships("keywordAllRelationships", LuceneIndexImplementation.EXACT_CONFIG);
+		relIndices.put(RelationshipIndex.rel_keyword, relKeywordIndex);
 
 		logger.log(Level.FINE, "Relationship numeric index ready.");
 		logger.log(Level.FINE, "Initializing relationship factory...");
-
-		relationshipFactory = new RelationshipFactory();
 
 		logger.log(Level.FINE, "Relationship factory ready.");
 		cypherExecutionEngine = new ExecutionEngine(graphDb);
@@ -323,7 +333,21 @@ public class NodeService implements SingletonService {
 	public boolean isRunning() {
 
 		return ((graphDb != null) && isInitialized);
-
 	}
 
+	public Collection<Index<Node>> getNodeIndices() {
+		return nodeIndices.values();
+	}
+	
+	public Collection<Index<Relationship>> getRelationshipIndices() {
+		return relIndices.values();
+	}
+	
+	public Index<Node> getNodeIndex(NodeIndex name) {
+		return nodeIndices.get(name);
+	}
+	
+	public Index<Relationship> getRelationshipIndex(RelationshipIndex name) {
+		return relIndices.get(name);
+	}
 }

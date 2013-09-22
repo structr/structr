@@ -18,8 +18,6 @@
  */
 package org.structr.rest.resource;
 
-import org.structr.core.graph.search.SearchOperator;
-import org.structr.core.graph.search.FilterSearchAttribute;
 import org.structr.core.Result;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -28,7 +26,6 @@ import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.search.DistanceSearchAttribute;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
@@ -49,8 +46,9 @@ import org.structr.common.GraphObjectComparator;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.GraphObject;
-import org.structr.core.converter.PropertyConverter;
-import org.structr.core.graph.search.SearchAttributeGroup;
+import org.structr.core.graph.TransactionCommand;
+import static org.structr.rest.resource.Resource.parseInteger;
+import org.structr.rest.servlet.JsonRestServlet;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -86,17 +84,8 @@ public class TypeResource extends SortableResource {
 
 			// test if resource class exists
 			entityClass = EntityContext.getEntityClassForRawType(rawType);
-
-			if (entityClass == null) {
-				
-//				// test if key is a known property
-//				if (!EntityContext.isKnownProperty(new GenericProperty(part))) {
-//
-//					return false;
-//				}
-			}
 		}
-
+		
 		return true;
 
 	}
@@ -104,9 +93,9 @@ public class TypeResource extends SortableResource {
 	@Override
 	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
 
+		boolean inexactSearch                  = parseInteger(request.getParameter(JsonRestServlet.REQUEST_PARAMETER_LOOSE_SEARCH)) == 1;
 		List<SearchAttribute> searchAttributes = new LinkedList();
-		List<SearchAttribute> validAttributes;
-		
+		List<SearchAttribute> validAttributes  = null;
 		boolean includeDeletedAndHidden        = false;
 		boolean publicOnly                     = false;
 
@@ -117,25 +106,20 @@ public class TypeResource extends SortableResource {
 				throw new NotFoundException();
 			}
 
-			validAttributes = extractSearchableAttributesFromRequest(securityContext);
-	
+			validAttributes = extractSearchableAttributes(securityContext, entityClass, request);
+			
 			// distance search?
 			DistanceSearchAttribute distanceSearch = getDistanceSearch(request, keys(validAttributes));
-
 			if (distanceSearch != null) {
-
+				
 				searchAttributes.add(distanceSearch);
-				searchAttributes.add(new FilterSearchAttribute(AbstractNode.type, EntityContext.normalizeEntityName(rawType), SearchOperator.AND));
-				searchAttributes.addAll(toFilters(validAttributes));
-
-			} else {
-
-				searchAttributes.add(Search.andExactTypeAndSubtypes(EntityContext.normalizeEntityName(rawType)));
-
-				// searchable attributes from EntityContext
-                                searchAttributes.addAll(validAttributes);
-
 			}
+
+			// add type to return
+			searchAttributes.add(Search.andExactTypeAndSubtypes(entityClass, !inexactSearch));
+			
+			// searchable attributes from EntityContext
+			searchAttributes.addAll(validAttributes);
 			
 			// default sort key & order
 			if (sortKey == null) {
@@ -147,39 +131,18 @@ public class TypeResource extends SortableResource {
 					sortDescending              = GraphObjectComparator.DESCENDING.equals(templateEntity.getDefaultSortOrder());
 					
 					if (sortKeyProperty != null) {
+						
 						sortKey = sortKeyProperty;
+						
+					} else {
+						
+						sortKey = AbstractNode.name;
 					}
 					
 				} catch(Throwable t) {
 					
 					// fallback to name
 					sortKey = AbstractNode.name;
-				}
-			}
-			
-			Integer sortType = null;
-			boolean sortFinalResults = false;
-			
-//			PropertyConverter converter = EntityContext.getPropertyConverter(securityContext, entityClass, sortKey);
-			
-			if (sortKey != null) {
-				
-				PropertyConverter converter = sortKey.inputConverter(securityContext);
-				if (converter != null) {
-					
-					sortType = converter.getSortType();
-					sortFinalResults = converter.sortFinalResults();
-
-					/*
-					if (converter instanceof IntConverter) {
-						sortType = SortField.INT;
-					} else if (converter instanceof DateConverter) {
-						sortType = SortField.LONG;
-					} else if (converter instanceof ResultCountConverter) {
-						sortFinalResults = true;
-					}
-					*/
-
 				}
 			}
 			
@@ -192,16 +155,8 @@ public class TypeResource extends SortableResource {
 				sortDescending,
 				pageSize,
 				page,
-				offsetId,
-				sortType
+				offsetId
 			);
-			
-			if (sortFinalResults) {
-				// sort by result count
-				Collections.sort(results.getResults(), new GraphObjectComparator(sortKey, sortDescending ? GraphObjectComparator.DESCENDING : GraphObjectComparator.ASCENDING));
-			}
-			
-			
 			
 			return results;
 			
@@ -217,22 +172,16 @@ public class TypeResource extends SortableResource {
 	@Override
 	public RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException {
 
-		// create transaction closure
-		StructrTransaction transaction = new StructrTransaction() {
+		AbstractNode newNode = (AbstractNode) Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
 			@Override
 			public Object execute() throws FrameworkException {
 
 				return createNode(propertySet);
-
 			}
-
-		};
-
-		// execute transaction: create new node
-		AbstractNode newNode    = (AbstractNode) Services.command(securityContext, TransactionCommand.class).execute(transaction);
+		});
+		
 		RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_CREATED);
-
 		if (newNode != null) {
 
 			result.addHeader("Location", buildLocationHeader(newNode));
@@ -251,13 +200,6 @@ public class TypeResource extends SortableResource {
 
 	@Override
 	public RestMethodResult doHead() throws FrameworkException {
-
-		throw new UnsupportedOperationException("Not supported yet.");
-
-	}
-
-	@Override
-	public RestMethodResult doOptions() throws FrameworkException {
 
 		throw new UnsupportedOperationException("Not supported yet.");
 
@@ -326,10 +268,6 @@ public class TypeResource extends SortableResource {
 
 	}
 
-	protected List<SearchAttribute> extractSearchableAttributesFromRequest(SecurityContext securityContext) throws FrameworkException {
-		return extractSearchableAttributesForNodes(securityContext, entityClass, request);
-	}
-
 	@Override
 	public boolean isCollectionResource() {
 
@@ -337,17 +275,6 @@ public class TypeResource extends SortableResource {
 
 	}
 
-	private List<FilterSearchAttribute> toFilters(final List<SearchAttribute> attrs) {
-		
-		List<FilterSearchAttribute> filters = new LinkedList();
-		
-		for (SearchAttribute attr : attrs) {
-			filters.add(new FilterSearchAttribute(attr.getKey(), attr.getValue(), attr.getSearchOperator()));
-		}
-		
-		return filters;
-	}
-	
 	private Set<String> keys(final List<SearchAttribute> attrs) {
 
 		Set<String> keys = new HashSet();
@@ -366,5 +293,4 @@ public class TypeResource extends SortableResource {
 		return keys;
 		
 	}
-	
 }

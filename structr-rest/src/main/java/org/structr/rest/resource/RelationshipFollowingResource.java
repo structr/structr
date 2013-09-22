@@ -189,7 +189,7 @@ public class RelationshipFollowingResource extends SortableResource implements E
 			NodeFactory nodeFactory     = new NodeFactory<AbstractNode>(securityContext, pageSize, page, offsetId);
 
 			// traverse path to force evaluation
-			nodeFactory.instantiateAllNodes(path.nodes());
+			nodeFactory.instantiateAll(path.nodes());
 
 			return lastResource.doGet(sortKey, sortDescending, pageSize, page, offsetId);
 
@@ -262,11 +262,6 @@ public class RelationshipFollowingResource extends SortableResource implements E
 	@Override
 	public RestMethodResult doHead() throws FrameworkException {
 		return lastResource.doHead();
-	}
-
-	@Override
-	public RestMethodResult doOptions() throws FrameworkException {
-		return lastResource.doOptions();
 	}
 
 	@Override

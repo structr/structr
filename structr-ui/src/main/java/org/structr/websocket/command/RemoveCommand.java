@@ -21,7 +21,6 @@
 
 package org.structr.websocket.command;
 
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -72,11 +71,22 @@ public class RemoveCommand extends AbstractCommand {
 
 					domNode.getParentNode().removeChild(domNode);
 					
+					try {
+
+						// Remove node from page
+						domNode.setProperty(DOMNode.pageId, null);
+
+					} catch (FrameworkException ex) {
+
+						logger.log(Level.SEVERE, "Could not remove node from page " + domNode, ex);
+
+					}
+					
 				} else {
 
 					// Old style: Delete all incoming CONTAINS rels
 					DeleteRelationshipCommand deleteRel = Services.command(securityContext, DeleteRelationshipCommand.class);
-					List<AbstractRelationship> rels     = node.getIncomingRelationships(RelType.CONTAINS);
+					Iterable<AbstractRelationship> rels = node.getIncomingRelationships(RelType.CONTAINS);
 
 					for (AbstractRelationship rel : rels) {
 

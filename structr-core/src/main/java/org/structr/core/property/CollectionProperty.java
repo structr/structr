@@ -19,8 +19,10 @@
 package org.structr.core.property;
 
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.Direction;
@@ -175,6 +177,11 @@ public class CollectionProperty<T extends GraphObject> extends AbstractRelationP
 	}
 
 	@Override
+	public Integer getSortType() {
+		return null;
+	}
+
+	@Override
 	public PropertyConverter<List<T>, ?> databaseConverter(SecurityContext securityContext) {
 		return null;
 	}
@@ -191,48 +198,7 @@ public class CollectionProperty<T extends GraphObject> extends AbstractRelationP
 
 	@Override
 	public List<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
-
-		if (obj instanceof AbstractNode) {
-
-			AbstractNode node = (AbstractNode)obj;
-
-			if (cardinality.equals(Relation.Cardinality.OneToMany) || cardinality.equals(Relation.Cardinality.ManyToMany)) {
-
-				NodeFactory nodeFactory = new NodeFactory(securityContext, false, false);
-				Class destinationType   = getDestType();
-				List<T> nodes           = new LinkedList<T>();
-				Node dbNode             = node.getNode();
-				AbstractNode value      = null;
-
-				try {
-
-					for (Relationship rel : dbNode.getRelationships(getRelType(), getDirection())) {
-
-						value = nodeFactory.instantiateNode(rel.getOtherNode(dbNode));
-						if (value != null && destinationType.isInstance(value)) {
-
-							nodes.add((T)value);
-						}
-					}
-
-					return nodes;
-
-				} catch (Throwable t) {
-
-					logger.log(Level.WARNING, "Unable to fetch related node: {0}", t.getMessage());
-				}
-
-			} else {
-
-				logger.log(Level.WARNING, "Requested related nodes with wrong cardinality {0} between {1} and {2}", new Object[] { getCardinality().name(), node.getClass().getSimpleName(), getDestType()});
-			}
-
-		} else {
-
-			logger.log(Level.WARNING, "Property {0} is registered on illegal type {1}", new Object[] { this, obj.getClass() } );
-		}
-
-		return Collections.emptyList();
+		return getRelatedNodes(securityContext, obj, getDestType());
 	}
 
 	@Override
@@ -240,33 +206,32 @@ public class CollectionProperty<T extends GraphObject> extends AbstractRelationP
 
 		if (obj instanceof AbstractNode) {
 			
+			Set<T> toBeDeleted = new LinkedHashSet<T>(getProperty(securityContext, obj, true));
+			Set<T> toBeCreated = new LinkedHashSet<T>();
 			AbstractNode sourceNode = (AbstractNode)obj;
 
-			if (collection != null && !collection.isEmpty()) {
+			if (collection != null) {
+				toBeCreated.addAll(collection);
+			}
+			
+			// create intersection of both sets
+			Set<T> intersection = new LinkedHashSet<T>(toBeCreated);
+			intersection.retainAll(toBeDeleted);
+			
+			// intersection needs no change
+			toBeCreated.removeAll(intersection);
+			toBeDeleted.removeAll(intersection);
+			
+			// remove existing relationships
+			for (T targetNode : toBeDeleted) {
 
-				// FIXME: how are existing relationships handled if they need to be removed??
-				
-				for (GraphObject targetNode : collection) {
+				removeRelationship(securityContext, sourceNode, (AbstractNode)targetNode);
+			}
+			
+			// create new relationships
+			for (T targetNode : toBeCreated) {
 
-					if (targetNode != null) {
-						createRelationship(securityContext, sourceNode, (AbstractNode)targetNode);
-					}
-				}
-
-			} else {
-
-				// new value is null
-				List<T> existingCollection = getProperty(securityContext, obj, true);
-
-				// do nothing if value is already null
-				if (existingCollection == null || (existingCollection != null && existingCollection.isEmpty())) {
-					return;
-				}
-
-				for (GraphObject targetNode : existingCollection) {
-
-					removeRelationship(securityContext, sourceNode, (AbstractNode)targetNode);
-				}
+				createRelationship(securityContext, sourceNode, (AbstractNode)targetNode);
 			}
 			
 		} else {
@@ -292,5 +257,49 @@ public class CollectionProperty<T extends GraphObject> extends AbstractRelationP
 
 	public boolean isOneToMany() {
 		return oneToMany;
+	}
+	
+	public List<T> getRelatedNodes(SecurityContext securityContext, GraphObject obj, Class destinationType) {
+
+		if (obj instanceof AbstractNode) {
+
+			AbstractNode node = (AbstractNode)obj;
+
+			if (cardinality.equals(Relation.Cardinality.OneToMany) || cardinality.equals(Relation.Cardinality.ManyToMany)) {
+
+				NodeFactory nodeFactory = new NodeFactory(securityContext, false, false);
+				List<T> nodes           = new LinkedList<T>();
+				Node dbNode             = node.getNode();
+				AbstractNode value      = null;
+
+				try {
+
+					for (Relationship rel : dbNode.getRelationships(getRelType(), getDirection())) {
+
+						value = nodeFactory.instantiate(rel.getOtherNode(dbNode));
+						if (value != null && destinationType.isInstance(value)) {
+
+							nodes.add((T)value);
+						}
+					}
+
+					return nodes;
+
+				} catch (Throwable t) {
+
+					logger.log(Level.WARNING, "Unable to fetch related node: {0}", t.getMessage());
+				}
+
+			} else {
+
+				logger.log(Level.WARNING, "Requested related nodes with wrong cardinality {0} between {1} and {2}", new Object[] { getCardinality().name(), node.getClass().getSimpleName(), getDestType()});
+			}
+
+		} else {
+
+			logger.log(Level.WARNING, "Property {0} is registered on illegal type {1}", new Object[] { this, obj.getClass() } );
+		}
+
+		return Collections.emptyList();
 	}
 }

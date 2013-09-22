@@ -72,4 +72,9 @@ public class HyperRelationProperty<S extends AbstractNode, T extends AbstractNod
 	public boolean isCollection() {
 		return true;
 	}
+
+	@Override
+	public Integer getSortType() {
+		return null;
+	}
 }

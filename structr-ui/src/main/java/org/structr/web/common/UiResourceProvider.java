@@ -75,8 +75,8 @@ public class UiResourceProvider implements ResourceProvider {
 		
 		resourceMap.put(Pattern.compile("_schema"), SchemaResource.class);	               // special resource for schema information
 		
-		resourceMap.put(Pattern.compile("[a-z_]+"), DynamicTypeResource.class);		      // match dynamic types
-		resourceMap.put(Pattern.compile("[a-z_]+"), TypeResource.class);	              // any type match
+		resourceMap.put(Pattern.compile("[a-z_A-Z]+"), DynamicTypeResource.class);		      // match dynamic types
+		resourceMap.put(Pattern.compile("[a-z_A-Z]+"), TypeResource.class);	              // any type match
 
 		return resourceMap;
 

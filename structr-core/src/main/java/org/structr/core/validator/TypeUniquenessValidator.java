@@ -53,13 +53,13 @@ public class TypeUniquenessValidator<T> implements PropertyValidator<T> {
 
 	//~--- fields ---------------------------------------------------------
 
-	private String type = null;
+	private Class type = null;
 
 	//~--- constructors ---------------------------------------------------
 
 	public TypeUniquenessValidator(Class type) {
 
-		this.type = type.getSimpleName();
+		this.type = type;
 
 	}
 
@@ -76,20 +76,27 @@ public class TypeUniquenessValidator<T> implements PropertyValidator<T> {
 
 		}
 
+		if (!type.isAssignableFrom(object.getClass())) {
+			
+			// types are different
+			return true;
+		}
+		
 		if (key != null) {
 
+			SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
 			List<SearchAttribute> attributes = new LinkedList<SearchAttribute>();
 			boolean nodeExists               = false;
 			String id                        = null;
 
 			attributes.add(Search.andExactType(type));
-			attributes.add(Search.andExactProperty(key, value));
+			attributes.add(Search.andExactProperty(superUserContext, key, value));
 
-			Result resultList = null;
+			Result<AbstractNode> resultList = null;
 
 			try {
 
-				resultList = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(attributes);
+				resultList = Services.command(superUserContext, SearchNodeCommand.class).execute(attributes);
 				nodeExists = !resultList.isEmpty();
 
 			} catch (FrameworkException fex) {
@@ -100,21 +107,23 @@ public class TypeUniquenessValidator<T> implements PropertyValidator<T> {
 
 			if (nodeExists) {
 
-				id = ((AbstractNode) resultList.get(0)).getUuid();
+				AbstractNode foundNode = resultList.get(0);
+				if (foundNode.getId() != object.getId()) {
 
-				errorBuffer.add(object.getType(), new UniqueToken(id, key, value));
+					id = ((AbstractNode) resultList.get(0)).getUuid();
 
-				return false;
+					errorBuffer.add(object.getType(), new UniqueToken(id, key, value));
 
-			} else {
-
-				return true;
+					return false;
+				}
 			}
-
 		}
 
-		return false;
-
+		return true;
 	}
-
+	
+	@Override
+	public boolean requiresSynchronization() {
+		return true;
+	}
 }

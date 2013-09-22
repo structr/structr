@@ -34,7 +34,8 @@ import org.structr.rest.servlet.JsonRestServlet;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.structr.core.entity.ResourceAccess;
+import org.structr.common.AccessMode;
+import org.structr.core.entity.SuperUser;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -44,25 +45,38 @@ import org.structr.core.entity.ResourceAccess;
  * @author Christian Morgner
  */
 public class RestAuthenticator implements Authenticator {
+	
+	@Override
+	public SecurityContext initializeAndExamineRequest(HttpServletRequest request, HttpServletResponse response) throws FrameworkException {
+		
+		Principal user = getUser(request, true);
+		
+		if (user instanceof SuperUser) {
+			
+			return SecurityContext.getSuperUserInstance(request);
+			
+		} else {
+			
+			return SecurityContext.getInstance(user, request, AccessMode.Backend);
+			
+		}
+	}
 
 	@Override
-	public void initializeAndExamineRequest(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) throws FrameworkException {}
+	public void checkResourceAccess(HttpServletRequest request, String resourceSignature, String propertyView) throws FrameworkException { }
 
 	@Override
-	public void examineRequest(SecurityContext securityContext, HttpServletRequest request, String resourceSignature, ResourceAccess resourceAccess, String propertyView) throws FrameworkException { }
-
-	@Override
-	public Principal doLogin(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response, String userName, String password) throws AuthenticationException {
+	public Principal doLogin(HttpServletRequest request, String userName, String password) throws AuthenticationException {
 		return null;
 	}
 
 	@Override
-	public void doLogout(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) {}
+	public void doLogout(HttpServletRequest request) {}
 
 	//~--- get methods ----------------------------------------------------
 
 	@Override
-	public Principal getUser(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response, final boolean tryLogin) {
+	public Principal getUser(HttpServletRequest request, final boolean tryLogin) {
 
 		String userHeader = request.getHeader("X-User");
 		Principal user         = null;
@@ -72,7 +86,7 @@ public class RestAuthenticator implements Authenticator {
 			if (userHeader != null) {
 
 				long userId           = Long.parseLong(userHeader);
-				AbstractNode userNode = (AbstractNode) Services.command(securityContext, FindNodeCommand.class).execute(userId);
+				AbstractNode userNode = (AbstractNode) Services.command(SecurityContext.getSuperUserInstance(), FindNodeCommand.class).execute(userId);
 
 				if ((userNode != null) && (userNode instanceof Principal)) {
 
@@ -83,7 +97,23 @@ public class RestAuthenticator implements Authenticator {
 			}
 
 		} catch (Throwable t) {}
-
+		
 		return user;
 	}
+
+	@Override
+	public boolean hasExaminedRequest() {
+		
+		return false;
+		
+	}
+
+	@Override
+	public void setUserAutoCreate(boolean userAutoCreate) {}
+	
+	@Override
+	public boolean getUserAutoCreate() {
+		return false;
+	}
+	
 }

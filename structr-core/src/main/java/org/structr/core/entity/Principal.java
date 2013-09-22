@@ -21,15 +21,13 @@
 package org.structr.core.entity;
 
 import org.structr.common.Permission;
-import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.List;
-import org.structr.core.EntityContext;
-import org.structr.core.graph.NodeService.NodeIndex;
 import org.structr.core.property.BooleanProperty;
+import org.structr.core.property.PasswordProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
 
@@ -42,41 +40,17 @@ import org.structr.core.property.StringProperty;
  */
 public interface Principal extends GraphObject {
 
-	public static final Property<String>  sessionId = new StringProperty("sessionId");
-	//public static final Property<String>  groups    = new StringProperty("groups");
-	public static final Property<Boolean> blocked   = new BooleanProperty("blocked");
-	//public static final Property<String>  realName  = new StringProperty("realName");
-
-        static class Impl {
-
-                static {
-
-                        // ----- initialize searchable properties
-                        EntityContext.registerSearchablePropertySet(Principal.class, NodeIndex.keyword.name(), AbstractNode.name, sessionId);
-                        EntityContext.registerSearchableProperty(Principal.class, NodeIndex.fulltext.name(), AbstractNode.name);
-
-                }
-        }	
-	//~--- methods --------------------------------------------------------
-
-	public void block() throws FrameworkException;
-
+	public static final Property<String>  sessionId	= new StringProperty("sessionId").indexed();
+	public static final Property<Boolean> blocked	= new BooleanProperty("blocked");
+	public static final Property<String>  password	= new PasswordProperty("password");
+	public static final Property<String>  salt	= new StringProperty("salt");
+	
 	public void grant(final Permission permission, final AbstractNode obj);
 
 	public void revoke(final Permission permission, final AbstractNode obj);
 
-	//~--- get methods ----------------------------------------------------
-
 	public List<Principal> getParents();
 
 	public String getEncryptedPassword();
-
-	public Boolean getBlocked();
-
-	public Boolean isBlocked();
-
-	//~--- set methods ----------------------------------------------------
-
-	public void setBlocked(final Boolean blocked) throws FrameworkException;
 
 }

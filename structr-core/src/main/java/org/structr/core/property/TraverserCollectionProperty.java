@@ -25,6 +25,7 @@ import java.util.List;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
@@ -83,9 +84,15 @@ public class TraverserCollectionProperty<T extends AbstractNode> extends Abstrac
 
 		for(Node n : nodes) {
 			
-			T abstractNode = nodeFactory.instantiateNode(n);
-			if(abstractNode != null) {
-				nodeList.add(abstractNode);
+			try {
+				T abstractNode = nodeFactory.instantiate(n);
+				if(abstractNode != null) {
+					
+					nodeList.add(abstractNode);
+				}
+				
+			} catch (FrameworkException fex) {
+				
 			}
 		}
 
@@ -105,6 +112,11 @@ public class TraverserCollectionProperty<T extends AbstractNode> extends Abstrac
 	@Override
 	public boolean isCollection() {
 		return true;
+	}
+
+	@Override
+	public Integer getSortType() {
+		return null;
 	}
 
 	@Override

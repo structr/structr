@@ -21,17 +21,16 @@
 package org.structr.web.entity;
 
 import org.neo4j.graphdb.Direction;
-
-import org.structr.common.PropertyView;
-import org.structr.web.common.RelType;
 import org.structr.common.View;
-import org.structr.core.EntityContext;
-import static org.structr.core.GraphObject.type;
-import static org.structr.core.GraphObject.uuid;
-import org.structr.core.graph.NodeService.NodeIndex;
+import org.structr.common.PropertyView;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.CollectionProperty;
 import org.structr.core.property.IntProperty;
+import org.structr.core.property.Property;
+import org.structr.web.common.RelType;
+
 
 //~--- classes ----------------------------------------------------------------
 
@@ -47,16 +46,22 @@ public class Folder extends AbstractFile {
 	public static final CollectionProperty<File>   files        = new CollectionProperty<File>("files", File.class, RelType.CONTAINS, Direction.OUTGOING, new PropertySetNotion(uuid, name), true);
 	public static final CollectionProperty<Image>  images       = new CollectionProperty<Image>("images", Image.class, RelType.CONTAINS, Direction.OUTGOING, new PropertySetNotion(uuid, name), true);
 	
-	public static final IntProperty                position     = new IntProperty("position");
+	public static final Property<Integer>          position     = new IntProperty("position").indexed();
 
 	public static final View defaultView = new View(Folder.class, PropertyView.Public, uuid, type, name);
 	
 	public static final View uiView = new View(Folder.class, PropertyView.Ui,
 		parent, folders, files, images
 	);
-
-	static {
-		EntityContext.registerSearchablePropertySet(Image.class, NodeIndex.keyword.name(), uuid, type, name);
-		EntityContext.registerSearchablePropertySet(Image.class, NodeIndex.fulltext.name(), uuid, type, name);
+	
+	@Override
+	public boolean isValid(ErrorBuffer errorBuffer) {
+		
+		boolean valid = true;
+		
+		valid &= nonEmpty(AbstractNode.name, errorBuffer);
+		valid &= super.isValid(errorBuffer);
+		
+		return valid;
 	}
 }

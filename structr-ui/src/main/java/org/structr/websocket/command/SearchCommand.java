@@ -23,7 +23,6 @@ package org.structr.websocket.command;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
-import org.structr.core.GraphObject;
 import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
@@ -38,10 +37,6 @@ import org.structr.websocket.message.WebSocketMessage;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.graphdb.Direction;
-import org.structr.common.RelType;
-import org.structr.web.entity.Image;
-import org.structr.rest.resource.PagingHelper;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 
@@ -65,7 +60,13 @@ public class SearchCommand extends AbstractCommand {
 	public void processMessage(WebSocketMessage webSocketData) {
 
 		final SecurityContext securityContext  = getWebSocket().getSecurityContext();
-		String searchString                         = (String) webSocketData.getNodeData().get("searchString");
+		String searchString                    = (String) webSocketData.getNodeData().get("searchString");
+		String typeString                      = (String) webSocketData.getNodeData().get("type");
+		
+		Class type = null;
+		if (typeString != null) {
+			type = EntityContext.getEntityClassForRawType(typeString);
+		}
 
 		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 		
@@ -75,6 +76,11 @@ public class SearchCommand extends AbstractCommand {
 		}
 
 		searchAttributes.add(Search.andName(searchString));
+		if (type != null) {
+			
+			searchAttributes.add(Search.andExactType(type));
+			
+		}
 		
 
 		final String sortOrder   = webSocketData.getSortOrder();

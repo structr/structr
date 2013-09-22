@@ -66,18 +66,6 @@ public abstract class WrappingResource extends Resource {
 		throw new IllegalPathException();
 	}
 
-	@Override
-	public RestMethodResult doOptions() throws FrameworkException {
-
-		if (wrappedResource != null) {
-
-			return wrappedResource.doOptions();
-
-		}
-
-		throw new IllegalPathException();
-	}
-
 	protected void wrapResource(Resource wrappedResource) {
 
 		this.idProperty      = wrappedResource.idProperty;

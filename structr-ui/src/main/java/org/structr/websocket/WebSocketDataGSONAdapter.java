@@ -403,7 +403,8 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 
 				for (Entry<String, JsonElement> entry : nodeData.entrySet()) {
 
-					webSocketData.setNodeData(entry.getKey(), entry.getValue().getAsString());
+					JsonElement obj = entry.getValue();
+					webSocketData.setNodeData(entry.getKey(), obj instanceof JsonNull ? null : obj.getAsString());
 				}
 
 			}
@@ -412,7 +413,8 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 
 				for (Entry<String, JsonElement> entry : relData.entrySet()) {
 
-					webSocketData.setRelData(entry.getKey(), entry.getValue().getAsString());
+					JsonElement obj = entry.getValue();
+					webSocketData.setRelData(entry.getKey(), obj instanceof JsonNull ? null : obj.getAsString());
 				}
 
 			}

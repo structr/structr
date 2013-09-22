@@ -160,7 +160,7 @@ public class CreateGraphObjectsTest extends StructrTest {
 
 		try {
 
-			List<AbstractNode> nodes       = createTestNodes("UnknownTestType", 2);
+			List<AbstractNode> nodes       = createTestNodes(GenericNode.class, 2);
 			final AbstractNode startNode   = nodes.get(0);
 			final AbstractNode endNode     = nodes.get(1);
 			final RelationshipType relType = RelType.IS_AT;
@@ -253,14 +253,14 @@ public class CreateGraphObjectsTest extends StructrTest {
 							if (type.equals(ResourceAccess.class.getSimpleName())) {
 
 								props.put(ResourceAccess.signature, "/");
-								props.put(ResourceAccess.flags, 6);
+								props.put(ResourceAccess.flags, 6L);
 
 							}
 
 							// For PropertyAccess, fill mandatory fields
 							if (type.equals(PropertyAccess.class.getSimpleName())) {
 
-								props.put(PropertyAccess.flags, 6);
+								props.put(PropertyAccess.flags, 6L);
 
 							}
 
@@ -299,7 +299,9 @@ public class CreateGraphObjectsTest extends StructrTest {
 		} catch (FrameworkException ex) {
 
 			logger.log(Level.SEVERE, ex.toString());
-			System.out.println(ex.toString());
+			
+			ex.printStackTrace();
+
 			fail("Unexpected exception");
 
 		}
@@ -347,7 +349,7 @@ public class CreateGraphObjectsTest extends StructrTest {
 
 							logger.log(Level.INFO, "Creating relationship of type {0}", type);
 
-							List<AbstractNode> nodes       = createTestNodes("UnknownTestType", 2);
+							List<AbstractNode> nodes       = createTestNodes(GenericNode.class, 2);
 							final AbstractNode startNode   = nodes.get(0);
 							final AbstractNode endNode     = nodes.get(1);
 							final RelationshipType relType = RelType.IS_AT;
@@ -389,7 +391,7 @@ public class CreateGraphObjectsTest extends StructrTest {
 
 		try {
 
-			List<AbstractNode> nodes       = createTestNodes("UnknownTestType", 2);
+			List<AbstractNode> nodes       = createTestNodes(GenericNode.class, 2);
 			final AbstractNode startNode   = nodes.get(0);
 			final AbstractNode endNode     = nodes.get(1);
 			final RelationshipType relType = RelType.IS_AT;

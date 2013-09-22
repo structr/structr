@@ -1,22 +1,21 @@
-/*
- *  Copyright (C) 2013 Axel Morgner
+/**
+ * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
  *
- *  This file is part of structr <http://structr.org>.
+ * This file is part of structr <http://structr.org>.
  *
- *  structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
+ * structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- *  structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 
 package org.structr.common;
@@ -35,7 +34,6 @@ import org.neo4j.cypher.javacompat.ExecutionEngine;
 import org.neo4j.cypher.javacompat.ExecutionResult;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.Transaction;
 
@@ -43,6 +41,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.TestRelType;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.entity.GenericNode;
 import org.structr.core.graph.search.Search;
 
 /**
@@ -64,7 +63,7 @@ public class CypherNotInTransactionTest extends StructrTest {
 
 		try {
 
-			List<AbstractNode> testNodes = this.createTestNodes("UnknownTestType", 2);
+			List<AbstractNode> testNodes = this.createTestNodes(GenericNode.class, 2);
 
 			assertNotNull(testNodes);
 			assertTrue(testNodes.size() == 2);
@@ -212,7 +211,7 @@ public class CypherNotInTransactionTest extends StructrTest {
 
 		try {
 
-			List<AbstractNode> testNodes = this.createTestNodes("UnknownTestType", 2);
+			List<AbstractNode> testNodes = this.createTestNodes(GenericNode.class, 2);
 
 			assertNotNull(testNodes);
 			assertTrue(testNodes.size() == 2);
@@ -227,7 +226,7 @@ public class CypherNotInTransactionTest extends StructrTest {
 
 			try {
 
-				testNodes.get(0).getRelationships(Direction.BOTH).get(0).getRelationship().delete();
+				testNodes.get(0).getRelationships(Direction.BOTH).iterator().next().getRelationship().delete();
 				tx.success();
 
 			} finally {
@@ -252,7 +251,7 @@ public class CypherNotInTransactionTest extends StructrTest {
 
 		try {
 
-			List<AbstractNode> testNodes = this.createTestNodes("UnknownTestType", 2);
+			List<AbstractNode> testNodes = this.createTestNodes(GenericNode.class, 2);
 
 			assertNotNull(testNodes);
 			assertTrue(testNodes.size() == 2);
@@ -272,7 +271,7 @@ public class CypherNotInTransactionTest extends StructrTest {
 
 			try {
 
-				searchRes.get(0).getRelationships(Direction.BOTH).get(0).getRelationship().delete();
+				searchRes.get(0).getRelationships(Direction.BOTH).iterator().next().getRelationship().delete();
 				tx.success();
 
 			} finally {

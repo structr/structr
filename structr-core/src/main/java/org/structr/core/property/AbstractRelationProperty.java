@@ -18,6 +18,7 @@
  */
 package org.structr.core.property;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -27,6 +28,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.IdNotFoundToken;
 import org.structr.core.EntityContext;
+import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
@@ -63,15 +65,50 @@ public abstract class AbstractRelationProperty<T> extends Property<T> {
 	}
 
 	@Override
+	public Property<T> indexed() {
+		return this;
+	}
+
+	@Override
+	public Property<T> indexed(NodeService.NodeIndex nodeIndex) {
+		return this;
+	}
+	
+	@Override
+	public Property<T> indexed(NodeService.RelationshipIndex relIndex) {
+		return this;
+	}
+	
+	@Override
+	public Property<T> passivelyIndexed() {
+		return this;
+	}
+	
+	@Override
+	public Property<T> passivelyIndexed(NodeService.NodeIndex nodeIndex) {
+		return this;
+	}
+	
+	@Override
+	public Property<T> passivelyIndexed(NodeService.RelationshipIndex relIndex) {
+		return this;
+	}
+	
+	@Override
 	public Object fixDatabaseProperty(Object value) {
 		return null;
 	}
-
-	public void createRelationship(final SecurityContext securityContext, final AbstractNode sourceNode, final AbstractNode targetNode) throws FrameworkException {
-		createRelationship(securityContext, sourceNode, targetNode, new PropertyMap());
+	
+	@Override
+	public boolean isSearchable() {
+		return false;
 	}
 
-	public void createRelationship(final SecurityContext securityContext, final AbstractNode sourceNode, final AbstractNode targetNode, final PropertyMap properties) throws FrameworkException {
+	public AbstractRelationship createRelationship(final SecurityContext securityContext, final AbstractNode sourceNode, final AbstractNode targetNode) throws FrameworkException {
+		return createRelationship(securityContext, sourceNode, targetNode, new PropertyMap());
+	}
+
+	public AbstractRelationship createRelationship(final SecurityContext securityContext, final AbstractNode sourceNode, final AbstractNode targetNode, final PropertyMap properties) throws FrameworkException {
 
 		// create relationship if it does not already exist
 		final CreateRelationshipCommand<?> createRel = Services.command(securityContext, CreateRelationshipCommand.class);
@@ -82,10 +119,10 @@ public abstract class AbstractRelationProperty<T> extends Property<T> {
 			final AbstractNode finalTargetNode = targetNode;
 			final AbstractNode finalSourceNode = (AbstractNode) sourceNode;
                         
-			StructrTransaction transaction     = new StructrTransaction() {
+			StructrTransaction<AbstractRelationship> transaction = new StructrTransaction<AbstractRelationship>() {
 
 				@Override
-				public Object execute() throws FrameworkException {
+				public AbstractRelationship execute() throws FrameworkException {
 
                                         PropertyMap props           = new PropertyMap(properties);
 					AbstractRelationship newRel = null;
@@ -104,7 +141,8 @@ public abstract class AbstractRelationProperty<T> extends Property<T> {
 						String tripleKey = EntityContext.createCombinedRelationshipType(declaringClass.getSimpleName(), relType.name(), destType.getSimpleName());
 						props.put(AbstractRelationship.combinedType, Search.clean(tripleKey));
 
-						newRel = createRel.execute(sourceNode, finalTargetNode, getRelType(), props, true);
+						newRel = createRel.execute(sourceNode, finalTargetNode, getRelType(), props, false);
+//						newRel = createRel.execute(sourceNode, finalTargetNode, getRelType(), props, true);
 
 					} else {
 
@@ -112,7 +150,8 @@ public abstract class AbstractRelationProperty<T> extends Property<T> {
 						String tripleKey = EntityContext.createCombinedRelationshipType(destType.getSimpleName(), relType.name(), declaringClass.getSimpleName());
 						props.put(AbstractRelationship.combinedType, Search.clean(tripleKey));
 
-						newRel = createRel.execute(finalTargetNode, sourceNode, getRelType(), props, true);
+						newRel = createRel.execute(finalTargetNode, sourceNode, getRelType(), props, false);
+//						newRel = createRel.execute(finalTargetNode, sourceNode, getRelType(), props, true);
 
 					}
 
@@ -124,18 +163,18 @@ public abstract class AbstractRelationProperty<T> extends Property<T> {
 
 							case OneToOne:
 
-								ensureManyToOne(finalSourceNode, finalTargetNode, newRel, factoryDefinition, deleteRel);
 								ensureOneToMany(finalSourceNode, finalTargetNode, newRel, factoryDefinition, deleteRel);
+								ensureManyToOne(finalSourceNode, finalTargetNode, newRel, factoryDefinition, deleteRel);
 								break;
 								
-							case ManyToOne:
+							case OneToMany:
 
-								ensureManyToOne(finalSourceNode, finalTargetNode, newRel, factoryDefinition, deleteRel);
+								ensureOneToMany(finalSourceNode, finalTargetNode, newRel, factoryDefinition, deleteRel);
 								break;
 
-							case OneToMany:
+							case ManyToOne:
 							
-								ensureOneToMany(finalSourceNode, finalTargetNode, newRel, factoryDefinition, deleteRel);
+								ensureManyToOne(finalSourceNode, finalTargetNode, newRel, factoryDefinition, deleteRel);
 								break;
 
 						}
@@ -147,7 +186,7 @@ public abstract class AbstractRelationProperty<T> extends Property<T> {
 			};
 
 			// execute transaction
-			Services.command(securityContext, TransactionCommand.class).execute(transaction);
+			return Services.command(securityContext, TransactionCommand.class).execute(transaction);
 
 		} else {
 
@@ -174,6 +213,8 @@ public abstract class AbstractRelationProperty<T> extends Property<T> {
 			}
 
 		}
+		
+		return null;
 	}
 
 	public void removeRelationship(final SecurityContext securityContext, final AbstractNode sourceNode, final AbstractNode targetNode) throws FrameworkException {
@@ -196,9 +237,7 @@ public abstract class AbstractRelationProperty<T> extends Property<T> {
 							String destType = finalTargetNode.getType();
 
 							// delete previous relationships to nodes of the same destination combinedType and direction
-							List<AbstractRelationship> rels = sourceNode.getRelationships(getRelType(), getDirection());
-
-							for (AbstractRelationship rel : rels) {
+							for (AbstractRelationship rel : sourceNode.getRelationships(getRelType(), getDirection())) {
 
 								if (rel.getOtherNode(sourceNode).getType().equals(destType)) {
 
@@ -217,10 +256,8 @@ public abstract class AbstractRelationProperty<T> extends Property<T> {
 							String sourceType = sourceNode.getType();
 							
 							// Here, we have a OneToMany with OUTGOING Rel, so we need to remove all relationships
-							// of the same combinedType incoming to the target node
-							List<AbstractRelationship> rels = finalTargetNode.getRelationships(getRelType(), Direction.INCOMING);
-
-							for (AbstractRelationship rel : rels) {
+							// of the same combinedType incoming to the target node (which should be exaclty one relationship!)
+							for (AbstractRelationship rel : finalTargetNode.getRelationships(getRelType(), Direction.INCOMING)) {
 
 								if (rel.getOtherNode(finalTargetNode).getType().equals(sourceType)) {
 
@@ -235,9 +272,7 @@ public abstract class AbstractRelationProperty<T> extends Property<T> {
 
 							// In this case, remove exact the relationship of the given combinedType
 							// between source and target node
-							List<AbstractRelationship> rels = finalTargetNode.getRelationships(getRelType(), Direction.BOTH);
-
-							for (AbstractRelationship rel : rels) {
+							for (AbstractRelationship rel : finalTargetNode.getRelationships(getRelType(), Direction.BOTH)) {
 
 								if (rel.getOtherNode(finalTargetNode).equals(sourceNode)) {
 
@@ -296,16 +331,65 @@ public abstract class AbstractRelationProperty<T> extends Property<T> {
 		return cascadeDelete;
 	}
 	
+	@Override
+	public void index(GraphObject entity, Object value) {
+		// no indexing
+	}
+
+	@Override
+	public Object getValueForEmptyFields() {
+		return null;
+	}
+	
+	// ----- protected methods -----
+	
+	public List<T> getRelatedNodesReverse(SecurityContext securityContext, GraphObject obj, Class destinationType) {
+		
+		List<T> relatedNodes = new LinkedList<T>();
+		
+		if (obj instanceof AbstractNode) {
+
+			AbstractNode node = (AbstractNode)obj;
+
+			NodeFactory nodeFactory = new NodeFactory(securityContext);
+			Node dbNode             = node.getNode();
+			AbstractNode value      = null;
+
+			try {
+
+				for (Relationship rel : dbNode.getRelationships(getRelType(), getDirection().reverse())) {
+
+					value = nodeFactory.instantiate(rel.getOtherNode(dbNode));
+
+					// break on first hit of desired type
+					if (value != null && destinationType.isInstance(value)) {
+						relatedNodes.add((T)value);
+					}
+				}
+
+			} catch (Throwable t) {
+
+				logger.log(Level.WARNING, "Unable to fetch related node: {0}", t.getMessage());
+			}
+
+		} else {
+
+			logger.log(Level.WARNING, "Property {0} is registered on illegal type {1}", new Object[] { this, obj.getClass() } );
+		}
+
+		return relatedNodes;
+	}
+
+	
 	// ----- private methods -----
-	private void ensureOneToMany(AbstractNode finalSourceNode, AbstractNode finalTargetNode, AbstractRelationship newRel, FactoryDefinition factoryDefinition, DeleteRelationshipCommand deleteRel) throws FrameworkException {
+	private void ensureManyToOne(AbstractNode sourceNode, AbstractNode targetNode, AbstractRelationship newRel, FactoryDefinition factoryDefinition, DeleteRelationshipCommand deleteRel) throws FrameworkException {
 		
 		Class newRelationshipClass = newRel.getClass();
-		Class sourceType           = finalSourceNode.getClass();
+		Class targetType           = targetNode.getClass();
 
-		// Here, we have a OneToMany with OUTGOING Rel, so we need to remove all relationships
-		// of the same combinedType incoming to the target node
-		List<AbstractRelationship> rels = finalTargetNode.getRelationships(getRelType(), Direction.INCOMING);
-		for (AbstractRelationship rel : rels) {
+		// ManyToOne: sourceNode may not have relationships to other nodes of the same type!
+		
+		for (AbstractRelationship rel : sourceNode.getRelationships(getRelType(), getDirection())) {
 
 			if (rel.equals(newRel)) {
 				continue;
@@ -314,23 +398,35 @@ public abstract class AbstractRelationProperty<T> extends Property<T> {
 			Class relationshipClass = rel.getClass();
 			boolean isGeneric = factoryDefinition.isGeneric(relationshipClass);
 
-			if ((!isGeneric && newRelationshipClass.isAssignableFrom(relationshipClass)) || sourceType.isAssignableFrom(rel.getOtherNode(finalTargetNode).getClass())) {
+			AbstractNode otherNode = rel.getOtherNode(sourceNode);
+			Class otherClass = otherNode.getClass();
+			boolean removeRel = targetType.isAssignableFrom(otherClass) || (!isGeneric && newRelationshipClass.isAssignableFrom(relationshipClass));
+			
+			if (!removeRel) {
+				
+				// Check interfaces
+				for (Class iface : EntityContext.getInterfacesForType(targetType)) {
+
+					removeRel |= iface.isAssignableFrom(otherClass);
+				}
+			}
+			
+			if (removeRel) {
 
 				deleteRel.execute(rel);
-
 			}
 		}
 
 	}
 	
-	private void ensureManyToOne(AbstractNode finalSourceNode, AbstractNode finalTargetNode, AbstractRelationship newRel, FactoryDefinition factoryDefinition, DeleteRelationshipCommand deleteRel) throws FrameworkException {
+	private void ensureOneToMany(AbstractNode sourceNode, AbstractNode targetNode, AbstractRelationship newRel, FactoryDefinition factoryDefinition, DeleteRelationshipCommand deleteRel) throws FrameworkException {
 		
 		Class newRelationshipClass = newRel.getClass();
-		Class destType             = finalTargetNode.getClass();
+		Class sourceType           = sourceNode.getClass();
 
-		// delete previous relationships to nodes of the same destination combinedType and direction
-		List<AbstractRelationship> rels = finalSourceNode.getRelationships(getRelType(), getDirection());
-		for (AbstractRelationship rel : rels) {
+		// ManyToOne: targetNode may not have relationships to other nodes of the same type!
+		
+		for (AbstractRelationship rel : targetNode.getRelationships(getRelType(), getDirection().reverse())) {
 
 			if (rel.equals(newRel)) {
 				continue;
@@ -339,11 +435,24 @@ public abstract class AbstractRelationProperty<T> extends Property<T> {
 			Class relationshipClass = rel.getClass();
 			boolean isGeneric = factoryDefinition.isGeneric(relationshipClass);
 
-			if ((!isGeneric && newRelationshipClass.isAssignableFrom(relationshipClass) || destType.isAssignableFrom(rel.getOtherNode(finalSourceNode).getClass()))) {
+			AbstractNode otherNode = rel.getOtherNode(targetNode);
+			Class otherClass = otherNode.getClass();
+			boolean removeRel = sourceType.isAssignableFrom(otherClass) || (!isGeneric && newRelationshipClass.isAssignableFrom(relationshipClass));
+			
+			if (!removeRel) {
+				
+				// Check interfaces
+				for (Class iface : EntityContext.getInterfacesForType(sourceType)) {
+
+					removeRel |= iface.isAssignableFrom(otherClass);
+				}
+			}
+			
+			if (removeRel) {
 
 				deleteRel.execute(rel);
-
 			}
 		}
+
 	}
 }

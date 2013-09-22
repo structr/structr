@@ -39,11 +39,10 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang.StringUtils;
+import org.apache.lucene.search.BooleanClause.Occur;
 import org.structr.core.Result;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Person;
 import org.structr.core.graph.search.SearchAttributeGroup;
-import org.structr.core.graph.search.SearchOperator;
 import org.structr.core.property.PropertyKey;
 
 //~--- classes ----------------------------------------------------------------
@@ -61,26 +60,27 @@ public class AuthHelper {
 	//~--- get methods ----------------------------------------------------
 
 	/**
-	 * Find a {@link Principal} for the given email address
+	 * Find a {@link Principal} for the given credential
 	 * 
 	 * @param securityContext
-	 * @param email
+	 * @param value
 	 * @return 
 	 */
-	public static Principal getPrincipalForEmail(final String email) {
+	public static Principal getPrincipalForCredential(final PropertyKey key, final String value) {
 		
-		Principal principal = null;
+		SecurityContext securityContext = SecurityContext.getSuperUserInstance();
+		Principal principal             = null;
 		
 		Result result = Result.EMPTY_RESULT;
 		try {
 			
-			result = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(
-				Search.andExactTypeAndSubtypes(Principal.class.getSimpleName()),
-				Search.andExactProperty(Person.email, email));
+			result = Services.command(securityContext, SearchNodeCommand.class).execute(
+				Search.andExactTypeAndSubtypes(Principal.class),
+				Search.andExactProperty(securityContext, key, value));
 
 		} catch (FrameworkException ex) {
 			
-			logger.log(Level.WARNING, "Could not search for person", ex);
+			logger.log(Level.WARNING, "Error while searching for principal", ex);
 
 		}
 
@@ -118,32 +118,33 @@ public class AuthHelper {
 
 			try {
 
-				SearchNodeCommand searchNode = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class);
-				List<SearchAttribute> attrs  = new LinkedList<SearchAttribute>();
+				SecurityContext securityContext = SecurityContext.getSuperUserInstance();
+				SearchNodeCommand searchNode    = Services.command(securityContext, SearchNodeCommand.class);
+				List<SearchAttribute> attrs     = new LinkedList<SearchAttribute>();
 
-				attrs.add(Search.andExactTypeAndSubtypes(Principal.class.getSimpleName()));
-				SearchAttributeGroup group = new SearchAttributeGroup(SearchOperator.AND);
-				group.add(Search.orExactProperty(key, value));
-				group.add(Search.orExactProperty(AbstractNode.name, value));
+				attrs.add(Search.andExactTypeAndSubtypes(Principal.class));
+				SearchAttributeGroup group = new SearchAttributeGroup(Occur.MUST);
+				group.add(Search.orExactProperty(securityContext, key, value));
+				group.add(Search.orExactProperty(securityContext, AbstractNode.name, value));
 				attrs.add(group);
 
-				Result userList = searchNode.execute(attrs);
+				Result principals = searchNode.execute(attrs);
 				
-				if (!userList.isEmpty()) {
-					principal = (Principal) userList.get(0);
+				if (!principals.isEmpty()) {
+					principal = (Principal) principals.get(0);
 				}
 
 				if (principal == null) {
 
-					logger.log(Level.INFO, "No user found for {0} {1}", new Object[]{ key.dbName(), value });
+					logger.log(Level.INFO, "No principal found for {0} {1}", new Object[]{ key.dbName(), value });
 
 					errorMsg = STANDARD_ERROR_MSG;
 
 				} else {
 
-					if (principal.isBlocked()) {
+					if (principal.getProperty(Principal.blocked)) {
 
-						logger.log(Level.INFO, "User {0} is blocked", principal);
+						logger.log(Level.INFO, "Principal {0} is blocked", principal);
 
 						errorMsg = STANDARD_ERROR_MSG;
 
@@ -153,12 +154,23 @@ public class AuthHelper {
 
 						logger.log(Level.INFO, "Empty password for principal {0}", principal);
 
-						errorMsg = "Empty password, should not ever happen down here!";
+						errorMsg = "Empty password, should never happen here!";
 
 					} else {
 
-						String encryptedPasswordValue = DigestUtils.sha512Hex(password);
-						String pw                     = principal.getEncryptedPassword();
+						String salt			= principal.getProperty(Principal.salt);
+						String encryptedPasswordValue;
+						
+						if (salt != null) {
+							
+							encryptedPasswordValue	= getHash(password, salt);
+						} else {
+							
+							encryptedPasswordValue	= getSimpleHash(password);
+							
+						}
+						
+						String pw			= principal.getEncryptedPassword();
 
 						if (pw == null || !encryptedPasswordValue.equals(pw)) {
 
@@ -197,11 +209,12 @@ public class AuthHelper {
 	 */
 	public static Principal getPrincipalForSessionId(final String sessionId) {
 
-		Principal user              = null;
-		List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
+		Principal user                  = null;
+		List<SearchAttribute> attrs     = new LinkedList<SearchAttribute>();
+		SecurityContext securityContext = SecurityContext.getSuperUserInstance();
 
-		attrs.add(Search.andExactProperty(Principal.sessionId, sessionId));
-		attrs.add(Search.andExactTypeAndSubtypes(Principal.class.getSimpleName()));
+		attrs.add(Search.andExactProperty(securityContext, Principal.sessionId, sessionId));
+		attrs.add(Search.andExactTypeAndSubtypes(Principal.class));
 
 		try {
 
@@ -226,6 +239,18 @@ public class AuthHelper {
 
 		return user;
 
+	}
+
+	public static String getHash(final String password, final String salt) {
+		
+		return DigestUtils.sha512Hex(DigestUtils.sha512Hex(password).concat(salt));
+		
+	}
+	
+	public static String getSimpleHash(final String password) {
+		
+		return DigestUtils.sha512Hex(password);
+		
 	}
 
 }

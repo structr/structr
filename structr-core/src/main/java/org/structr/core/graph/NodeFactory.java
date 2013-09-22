@@ -20,18 +20,13 @@
 
 package org.structr.core.graph;
 
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.index.IndexHits;
 
-import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.IdNotFoundToken;
 import org.structr.core.Result;
 import org.structr.core.Services;
-import org.structr.core.entity.*;
 import org.structr.core.entity.AbstractNode;
 
 import java.lang.reflect.Constructor;
@@ -40,10 +35,11 @@ import java.util.*;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.FactoryDefinition;
-import org.structr.core.EntityContext;
 import org.structr.core.module.ModuleService;
 import org.neo4j.gis.spatial.indexprovider.SpatialRecordHits;
+import org.neo4j.graphdb.Direction;
+import org.structr.common.RelType;
+import org.structr.core.entity.AbstractRelationship;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -53,63 +49,45 @@ import org.neo4j.gis.spatial.indexprovider.SpatialRecordHits;
  * @author Christian Morgner
  * @author Axel Morgner
  */
-public class NodeFactory<T extends AbstractNode> {
+public class NodeFactory<T extends AbstractNode> extends Factory<Node, T> {
 
-	public static final int DEFAULT_PAGE      = 1;
-	public static final int DEFAULT_PAGE_SIZE = Integer.MAX_VALUE;
 	private static final Logger logger        = Logger.getLogger(NodeFactory.class.getName());
 
 	//~--- fields ---------------------------------------------------------
 
 	private Map<Class, Constructor<T>> constructors = new LinkedHashMap<Class, Constructor<T>>();
 
-	// encapsulates all criteria for node creation
-	private FactoryDefinition factoryDefinition = EntityContext.getFactoryDefinition();
-	private FactoryProfile factoryProfile       = null;
-
 	//~--- constructors ---------------------------------------------------
 
-	public NodeFactory() {}
-
 	public NodeFactory(final SecurityContext securityContext) {
-
-		factoryProfile = new FactoryProfile(securityContext);
-
+		super(securityContext);
 	}
 
 	public NodeFactory(final SecurityContext securityContext, final boolean includeDeletedAndHidden, final boolean publicOnly) {
-
-		factoryProfile = new FactoryProfile(securityContext, includeDeletedAndHidden, publicOnly);
-
+		super(securityContext, includeDeletedAndHidden, publicOnly);
 	}
 
 	public NodeFactory(final SecurityContext securityContext, final int pageSize, final int page, final String offsetId) {
-
-		factoryProfile = new FactoryProfile(securityContext);
-
-		factoryProfile.setPageSize(pageSize);
-		factoryProfile.setPage(page);
-		factoryProfile.setOffsetId(offsetId);
-
+		super(securityContext, pageSize, page, offsetId);
 	}
 
 	public NodeFactory(final SecurityContext securityContext, final boolean includeDeletedAndHidden, final boolean publicOnly, final int pageSize, final int page, final String offsetId) {
-
-		factoryProfile = new FactoryProfile(securityContext, includeDeletedAndHidden, publicOnly, pageSize, page, offsetId);
-
+		super(securityContext, includeDeletedAndHidden, publicOnly, pageSize, page, offsetId);
 	}
 
 	//~--- methods --------------------------------------------------------
 
-	public T instantiateNode(final Node node) {
+	@Override
+	public T instantiate(final Node node) throws FrameworkException {
 
 		String nodeType = factoryDefinition.determineNodeType(node);
 
-		return instantiateNodeWithType(node, nodeType, false);
+		return instantiateWithType(node, nodeType, false);
 
 	}
 
-	public T instantiateNodeWithType(final Node node, final String nodeType, boolean isCreation) {
+	@Override
+	public T instantiateWithType(final Node node, final String nodeType, boolean isCreation) throws FrameworkException {
 
 		SecurityContext securityContext = factoryProfile.getSecurityContext();
 		T newNode = (T)securityContext.lookup(node);
@@ -177,121 +155,26 @@ public class NodeFactory<T extends AbstractNode> {
 		return null;
 	}
 
-	public T instantiateNode(final Node node, final boolean includeDeletedAndHidden, final boolean publicOnly) throws FrameworkException {
+	@Override
+	public T instantiate(final Node node, final boolean includeDeletedAndHidden, final boolean publicOnly) throws FrameworkException {
 
 		factoryProfile.setIncludeDeletedAndHidden(includeDeletedAndHidden);
 		factoryProfile.setPublicOnly(publicOnly);
 
-		return instantiateNode(node);
-
+		return instantiate(node);
 	}
 
-	/**
-	 * Create structr nodes from the underlying database nodes
-	 *
-	 * Include only nodes which are readable in the given security context.
-	 * If includeDeletedAndHidden is true, include nodes with 'deleted' flag
-	 * If publicOnly is true, filter by 'visibleToPublicUsers' flag
-	 *
-	 * @param input
-	 * @return
-	 */
-	public Result instantiateNodes(final IndexHits<Node> input) throws FrameworkException {
+	@Override
+	public Result instantiate(final IndexHits<Node> input) throws FrameworkException {
 
-		if (input != null) {
-
-			if (input instanceof SpatialRecordHits) {
-
-				return resultFromSpatialRecords((SpatialRecordHits) input);
-			} else {
-
-				if (factoryProfile.getOffsetId() != null) {
-
-					return resultWithOffsetId(input);
-				} else {
-
-					return resultWithoutOffsetId(input);
-				}
-
-			}
-
+		if (input != null && input instanceof SpatialRecordHits) {
+			return resultFromSpatialRecords((SpatialRecordHits) input);
 		}
 
-		return Result.EMPTY_RESULT;
-
+		return super.instantiate(input);
 	}
 
-	/**
-	 * Create structr nodes from all given underlying database nodes
-	 * No paging, but security check
-	 *
-	 * @param securityContext
-	 * @param input
-	 * @return
-	 */
-	public Result instantiateAllNodes(final Iterable<Node> input) throws FrameworkException {
-
-		List<AbstractNode> nodes = new LinkedList<AbstractNode>();
-
-		if ((input != null) && input.iterator().hasNext()) {
-
-			for (Node node : input) {
-
-				AbstractNode n = instantiateNode(node);
-
-				if (n != null) {
-
-					nodes.add(n);
-				}
-
-			}
-
-		}
-
-		return new Result(nodes, nodes.size(), true, false);
-
-	}
-	/**
-	 * Create structr nodes from all given underlying database nodes
-	 * No paging, but security check
-	 *
-	 * @param securityContext
-	 * @param input
-	 * @return
-	 */
-	public List<AbstractNode> bulkInstantiateNodes(final Iterable<Node> input) throws FrameworkException {
-
-		List<AbstractNode> nodes = new LinkedList<AbstractNode>();
-
-		if ((input != null) && input.iterator().hasNext()) {
-
-			for (Node node : input) {
-
-				AbstractNode n = instantiateNode(node);
-
-				if (n != null) {
-
-					nodes.add(n);
-				}
-
-			}
-
-		}
-
-		return nodes;
-
-	}
-
-	/**
-	 * Create a dummy node (useful when you need an instance
-	 * of an {@see AbstractNode} for a db node which was deleted
-	 * in current transaction
-	 *
-	 * @param nodeType
-	 * @return
-	 * @throws FrameworkException
-	 */
-	public T instantiateDummyNode(final String nodeType) throws FrameworkException {
+	public T instantiateDummy(final String nodeType) throws FrameworkException {
 
 		Class<T> nodeClass = Services.getService(ModuleService.class).getNodeEntityClass(nodeType);
 		T newNode          = null;
@@ -324,221 +207,26 @@ public class NodeFactory<T extends AbstractNode> {
 		return newNode;
 
 	}
-
-	// <editor-fold defaultstate="collapsed" desc="private methods">
-	private List<Node> read(final Iterable<Node> it) {
-
-		List<Node> nodes = new LinkedList();
-
-		while (it.iterator().hasNext()) {
-
-			nodes.add(it.iterator().next());
-		}
-
-		return nodes;
-
-	}
-
-	private Result resultWithOffsetId(final IndexHits<Node> input) throws FrameworkException {
-
-		int size                 = input.size();
-		final int pageSize       = Math.min(size, factoryProfile.getPageSize());
-		final int page           = factoryProfile.getPage();
-		final String offsetId    = factoryProfile.getOffsetId();
-		List<AbstractNode> nodes = new LinkedList<AbstractNode>();
-		int position             = 0;
-		int count                = 0;
-		int offset               = 0;
-
-		// We have an offsetId, so first we need to
-		// find the node with this uuid to get the offset
-		List<AbstractNode> nodesUpToOffset = new LinkedList();
-		int i                       = 0;
-		boolean gotOffset           = false;
-
-		for (Node node : input) {
-
-			AbstractNode n = instantiateNode(node);
-
-			nodesUpToOffset.add(n);
-
-			if (!gotOffset) {
-
-				if (!offsetId.equals(n.getUuid())) {
-
-					i++;
-
-					continue;
-
-				}
-
-				gotOffset = true;
-				offset    = page > 0
-					    ? i
-					    : i + (page * pageSize);
-
-				break;
-
-			}
-
-		}
-
-		if (!gotOffset) {
-
-			throw new FrameworkException("offsetId", new IdNotFoundToken(offsetId));
-		}
-		
-		if (offset < 0) {
-			
-			// Remove last item
-			nodesUpToOffset.remove(nodesUpToOffset.size()-1);
-			
-			return new Result(nodesUpToOffset, size, true, false);
-		}
-
-		for (AbstractNode node : nodesUpToOffset) {
-
-			if (node != null) {
-
-				if (++position > offset) {
-
-					// stop if we got enough nodes
-					if (++count > pageSize) {
-
-						return new Result(nodes, size, true, false);
-					}
-
-					nodes.add(node);
-				}
-
-			}
-
-		}
-
-		// If we get here, the result was not complete, so we need to iterate
-		// through the index result (input) to get more items.
-		for (Node node : input) {
-
-			AbstractNode n = instantiateNode(node);
-
-			if (n != null) {
-
-				if (++position > offset) {
-
-					// stop if we got enough nodes
-					if (++count > pageSize) {
-
-						return new Result(nodes, size, true, false);
-					}
-
-					nodes.add(n);
-				}
-
-			}
-
-		}
-
-		return new Result(nodes, size, true, false);
-
-	}
-
-	private Result resultWithoutOffsetId(final IndexHits<Node> input) throws FrameworkException {
-
-		final int pageSize = factoryProfile.getPageSize();
-		final int page     = factoryProfile.getPage();
-		int fromIndex;
-
-		if (page < 0) {
-
-			List<Node> rawNodes = read(input);
-			int size            = rawNodes.size();
-
-			fromIndex = Math.max(0, size + (page * pageSize));
-
-			final List<AbstractNode> nodes = new LinkedList<AbstractNode>();
-			int toIndex                    = Math.min(size, fromIndex + pageSize);
-
-			for (Node n : rawNodes.subList(fromIndex, toIndex)) {
-
-				nodes.add(instantiateNode(n));
-			}
-
-			// We've run completely through the iterator,
-			// so the overall count from here is accurate.
-			return new Result(nodes, size, true, false);
-
-		} else {
-
-			// FIXME: IndexHits#size() may be inaccurate!
-			int size = input.size();
-
-			fromIndex = pageSize == Integer.MAX_VALUE ? 0 : (page - 1) * pageSize;
-			//fromIndex = (page - 1) * pageSize;
-
-			// The overall count may be inaccurate
-			return page(input, size, fromIndex, pageSize);
-		}
-
-	}
-
-	private Result page(final IndexHits<Node> input, final int overallResultCount, final int offset, final int pageSize) throws FrameworkException {
-
-		final List<AbstractNode> nodes = new LinkedList<AbstractNode>();
-		int position                   = 0;
-		int count                      = 0;
-		int overallCount               = 0;
-
-		for (Node node : input) {
-
-			AbstractNode n = instantiateNode(node);
-
-			overallCount++;
-
-			if (n != null) {
-
-				if (++position > offset) {
-
-					// stop if we got enough nodes
-					if (++count > pageSize) {
-
-						// The overall count may be inaccurate
-						return new Result(nodes, overallResultCount, true, false);
-					}
-
-					nodes.add(n);
-				}
-
-			}
-
-		}
-
-		// We've run completely through the iterator,
-		// so the overall count from here is accurate.
-		return new Result(nodes, overallCount, true, false);
-
-	}
-
+	
 	private Result resultFromSpatialRecords(final SpatialRecordHits spatialRecordHits) throws FrameworkException {
 
 		final int pageSize                    = factoryProfile.getPageSize();
-		final int page                        = factoryProfile.getPage();
 		final SecurityContext securityContext = factoryProfile.getSecurityContext();
 		final boolean includeDeletedAndHidden = factoryProfile.includeDeletedAndHidden();
 		final boolean publicOnly              = factoryProfile.publicOnly();
-		List<AbstractNode> nodes              = new LinkedList<AbstractNode>();
+		List<T> nodes                         = new LinkedList<T>();
+		int size                              = spatialRecordHits.size();
 		int position                          = 0;
 		int count                             = 0;
 		int offset                            = 0;
-		int size                              = spatialRecordHits.size();
-		GraphDatabaseCommand graphDbCommand   = Services.command(securityContext, GraphDatabaseCommand.class);
-		GraphDatabaseService graphDb          = graphDbCommand.execute();
 
 		for (Node node : spatialRecordHits) {
 
 			Node realNode = node;
 			if (realNode != null) {
 
-				AbstractNode n = instantiateNode(realNode);
+				// FIXME: type cast is not good here...
+				T n = instantiate(realNode);
 				
 				nodes.add(n);
 
@@ -561,7 +249,7 @@ public class NodeFactory<T extends AbstractNode> {
 									return new Result(nodes, size, true, false);
 								}
 
-								nodes.add(nodeAt);
+								nodes.add((T)nodeAt);
 							}
 
 						}
@@ -578,15 +266,13 @@ public class NodeFactory<T extends AbstractNode> {
 
 	}
 
-	//~--- get methods ----------------------------------------------------
-
 	/**
 	 * Return all nodes which are connected by an incoming IS_AT relationships
 	 *
 	 * @param locationNode
 	 * @return
 	 */
-	private List<AbstractNode> getNodesAt(final AbstractNode locationNode) {
+	protected List<AbstractNode> getNodesAt(final AbstractNode locationNode) {
 
 		List<AbstractNode> nodes = new LinkedList<AbstractNode>();
 
@@ -603,162 +289,4 @@ public class NodeFactory<T extends AbstractNode> {
 		return nodes;
 
 	}
-
-	//~--- inner classes --------------------------------------------------
-
-	private class FactoryProfile {
-
-		private boolean includeDeletedAndHidden = true;
-		private String offsetId                 = null;
-		private boolean publicOnly              = false;
-		private int pageSize                    = DEFAULT_PAGE_SIZE;
-		private int page                        = DEFAULT_PAGE;
-		private SecurityContext securityContext = null;
-
-		//~--- constructors -------------------------------------------
-
-		public FactoryProfile(final SecurityContext securityContext) {
-
-			this.securityContext = securityContext;
-
-		}
-
-		public FactoryProfile(final SecurityContext securityContext, final boolean includeDeletedAndHidden, final boolean publicOnly) {
-
-			this.securityContext         = securityContext;
-			this.includeDeletedAndHidden = includeDeletedAndHidden;
-			this.publicOnly              = publicOnly;
-
-		}
-
-		public FactoryProfile(final SecurityContext securityContext, final boolean includeDeletedAndHidden, final boolean publicOnly, final int pageSize, final int page,
-				      final String offsetId) {
-
-			this.securityContext         = securityContext;
-			this.includeDeletedAndHidden = includeDeletedAndHidden;
-			this.publicOnly              = publicOnly;
-			this.pageSize                = pageSize;
-			this.page                    = page;
-			this.offsetId                = offsetId;
-
-		}
-
-		//~--- methods ------------------------------------------------
-
-		/**
-		 * @return the includeDeletedAndHidden
-		 */
-		public boolean includeDeletedAndHidden() {
-
-			return includeDeletedAndHidden;
-
-		}
-
-		/**
-		 * @return the publicOnly
-		 */
-		public boolean publicOnly() {
-
-			return publicOnly;
-
-		}
-
-		//~--- get methods --------------------------------------------
-
-		/**
-		 * @return the offsetId
-		 */
-		public String getOffsetId() {
-
-			return offsetId;
-
-		}
-
-		/**
-		 * @return the pageSize
-		 */
-		public int getPageSize() {
-
-			return pageSize;
-
-		}
-
-		/**
-		 * @return the page
-		 */
-		public int getPage() {
-
-			return page;
-
-		}
-
-		/**
-		 * @return the securityContext
-		 */
-		public SecurityContext getSecurityContext() {
-
-			return securityContext;
-
-		}
-
-		//~--- set methods --------------------------------------------
-
-		/**
-		 * @param includeDeletedAndHidden the includeDeletedAndHidden to set
-		 */
-		public void setIncludeDeletedAndHidden(boolean includeDeletedAndHidden) {
-
-			this.includeDeletedAndHidden = includeDeletedAndHidden;
-
-		}
-
-		/**
-		 * @param offsetId the offsetId to set
-		 */
-		public void setOffsetId(String offsetId) {
-
-			this.offsetId = offsetId;
-
-		}
-
-		/**
-		 * @param publicOnly the publicOnly to set
-		 */
-		public void setPublicOnly(boolean publicOnly) {
-
-			this.publicOnly = publicOnly;
-
-		}
-
-		/**
-		 * @param pageSize the pageSize to set
-		 */
-		public void setPageSize(int pageSize) {
-
-			this.pageSize = pageSize;
-
-		}
-
-		/**
-		 * @param page the page to set
-		 */
-		public void setPage(int page) {
-
-			this.page = page;
-
-		}
-
-		/**
-		 * @param securityContext the securityContext to set
-		 */
-		public void setSecurityContext(SecurityContext securityContext) {
-
-			this.securityContext = securityContext;
-
-		}
-
-	}
-
-	// </editor-fold>
-
 }

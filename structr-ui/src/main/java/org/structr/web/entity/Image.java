@@ -32,7 +32,6 @@ import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.Services;
 import org.structr.core.graph.CreateRelationshipCommand;
-import org.structr.core.graph.DeleteNodeCommand;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 
@@ -45,12 +44,12 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.ThumbnailParameters;
-import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Relation;
-import org.structr.core.graph.NodeService.NodeIndex;
 import org.structr.core.property.BooleanProperty;
+import org.structr.core.property.PropertyKey;
+import org.structr.web.property.ImageDataProperty;
 import org.structr.web.property.ThumbnailProperty;
 
 //~--- classes ----------------------------------------------------------------
@@ -71,57 +70,45 @@ public class Image extends File {
 	public static final Property<Image> tnSmall       = new ThumbnailProperty("tnSmall", new ThumbnailParameters(100, 100, false));
 	public static final Property<Image> tnMid         = new ThumbnailProperty("tnMid", new ThumbnailParameters(300, 300, false));
 	
-	public static final Property<Boolean> isThumbnail = new BooleanProperty("isThumbnail").systemProperty().readOnly();
+	public static final Property<Boolean> isThumbnail = new BooleanProperty("isThumbnail").indexed().unvalidated().readOnly();
+	public static final ImageDataProperty imageData   = new ImageDataProperty("imageData");
 	
-//	public static final CollectionProperty<Image> thumbnails = new CollectionProperty("thumbnails", Image.class, RelType.THUMBNAIL, Direction.OUTGOING, true, Relation.DELETE_OUTGOING);
-
 	public static final org.structr.common.View uiView              = new org.structr.common.View(Image.class, PropertyView.Ui, type, name, contentType, size, relativeFilePath, width, height, tnSmall, tnMid, isThumbnail, owner);
 	public static final org.structr.common.View publicView          = new org.structr.common.View(Image.class, PropertyView.Public, type, name, width, height, tnSmall, tnMid, isThumbnail, owner);
-	
-	static {
-		EntityContext.registerSearchablePropertySet(Image.class, NodeIndex.keyword.name(), uuid, type, name, contentType, size, relativeFilePath, width, height, isThumbnail, owner);
-		EntityContext.registerSearchablePropertySet(Image.class, NodeIndex.fulltext.name(), uuid, type, name, contentType, size, relativeFilePath, width, height, isThumbnail, owner);
-	}
-
-	//~--- methods --------------------------------------------------------
 
 //	@Override
-//	public void afterDeletion(SecurityContext securityContext) {
-//
-//		removeThumbnails();
-//
+//	public boolean isValid(ErrorBuffer errorBuffer) {
+//		
+//		boolean valid = true;
+//		
+//		valid &= nonEmpty(imageData, errorBuffer);
+//		valid &= super.isValid(errorBuffer);
+//		
+//		return valid;
 //	}
-	
-	private void removeThumbnails() {
 
-		DeleteNodeCommand deleteNode                 = Services.command(securityContext, DeleteNodeCommand.class);
+	@Override
+	public void setProperty(final PropertyKey key, final Object value) throws FrameworkException {
+		
+		// Copy visibility properties and owner to all thumbnails
+		if (AbstractNode.visibleToPublicUsers.equals(key)
+		 || AbstractNode.visibleToAuthenticatedUsers.equals(key)
+		 || AbstractNode.visibilityStartDate.equals(key)
+		 || AbstractNode.visibleToAuthenticatedUsers.equals(key)
+		 || AbstractNode.owner.equals(key)) {
 
-		for (AbstractRelationship s : getThumbnailRelationships()) {
-
-			AbstractNode thumbnail = s.getEndNode();
-
-			if (((Image) thumbnail).equals(this)) {
-
-				logger.log(Level.SEVERE, "Attempted to remove me as thumbnail!!");
-
-				continue;
-
-			}
-
-			try {
-
-				deleteNode.execute(thumbnail, true);
-
-			} catch (FrameworkException fex) {
-
-				logger.log(Level.WARNING, "Unable to remove thumbnail", fex);
-
+			for (Image tn : getThumbnails()) {
+				
+				tn.setProperty(key, value);
+				
 			}
 
 		}
 
+		super.setProperty(key, value);
+		
 	}
-
+	
 	//~--- get methods ----------------------------------------------------
 
 	public Integer getWidth() {
@@ -154,7 +141,7 @@ public class Image extends File {
 	 *
 	 * @return
 	 */
-	public List<AbstractRelationship> getThumbnailRelationships() {
+	public Iterable<AbstractRelationship> getThumbnailRelationships() {
 
 		return getRelationships(RelType.THUMBNAIL, Direction.OUTGOING);
 
@@ -203,7 +190,7 @@ public class Image extends File {
 	 */
 	public Image getScaledImage(final int maxWidth, final int maxHeight, final boolean cropToFit) {
 
-		List<AbstractRelationship> thumbnailRelationships = getThumbnailRelationships();
+		Iterable<AbstractRelationship> thumbnailRelationships = getThumbnailRelationships();
 		final List<Image> oldThumbnails                   = new LinkedList();
 		Image thumbnail                                   = null;
 		final Image originalImage                         = this;
@@ -220,49 +207,38 @@ public class Image extends File {
 			newChecksum = currentChecksum;
 		}
 
-		if ((origWidth != null) && (origHeight != null)) {
+		if ((origWidth != null) && (origHeight != null) && thumbnailRelationships != null) {
 
-			if ((thumbnailRelationships != null) && !(thumbnailRelationships.isEmpty())) {
+			for (final AbstractRelationship r : thumbnailRelationships) {
 
-				for (final AbstractRelationship r : thumbnailRelationships) {
+				Integer w = (Integer) r.getProperty(Image.width);
+				Integer h = (Integer) r.getProperty(Image.height);
 
-					Integer w = (Integer) r.getProperty(Image.width);
-					Integer h = (Integer) r.getProperty(Image.height);
+				if ((w != null) && (h != null)) {
 
-					if ((w != null) && (h != null)) {
+					if (((w == maxWidth) && (h <= maxHeight)) || ((w <= maxWidth) && (h == maxHeight))
+					|| ((origWidth <= w) && (origHeight <= h)))    // orginal image is equal or smaller than requested size
+					{
 
-						if (((w == maxWidth) && (h <= maxHeight)) || ((w <= maxWidth) && (h == maxHeight))
+						thumbnail = (Image) r.getEndNode();
 
-//                                              || (cropToFit && ((w == maxWidth && h >= maxHeight) || (w >= maxWidth && h == maxHeight)))
-						|| ((origWidth <= w) && (origHeight <= h)))    // orginal image is equal or smaller than requested size
-						{
+						// Use thumbnail only if checksum of original image matches with stored checksum
+						Long storedChecksum = r.getProperty(Image.checksum);
 
-//                                                      if ((w == maxWidth && h <= maxHeight)
-//                                                              || (w <= maxWidth && h == maxHeight)
-//                                                              || (cropToFit && ((w == maxWidth && h >= maxHeight) || (w >= maxWidth && h == maxHeight)))
-//                                                              || (origWidth <= w && origHeight <= h)) // orginal image is equal or smaller than requested size
-//                                                      {
-							thumbnail = (Image) r.getEndNode();
+						if (storedChecksum != null && storedChecksum.equals(newChecksum)) {
 
-							// Use thumbnail only if checksum of original image matches with stored checksum
-							Long storedChecksum = r.getProperty(Image.checksum);
+							return thumbnail;
 
-//                                                      System.out.println("Rel ID: " + r.getUuid() + ", orig. image ID: " + originalImage.getUuid() + ", stored checksum: " + storedChecksum + ", current checksum: " + currentChecksum);
-//                                                      if (!(originalImage.getLastModifiedDate().after(thumbnail.getLastModifiedDate()))) {
-							if (storedChecksum != null && storedChecksum.equals(newChecksum)) {
+						} else {
 
-								return thumbnail;
-							} else {
-
-								oldThumbnails.add(thumbnail);
-							}
+							oldThumbnails.add(thumbnail);
 						}
-
 					}
 
 				}
 
 			}
+
 
 		}
 
@@ -323,12 +299,13 @@ public class Image extends File {
 
 							thumbnail.setSize(size);
 							thumbnail.setName(originalImage.getName() + "_thumb_" + tnWidth + "x" + tnHeight);
-							thumbnail.setWidth(tnWidth);
-							thumbnail.setHeight(tnHeight);
+							thumbnail.setProperty(Image.width, tnWidth);
+							thumbnail.setProperty(Image.height, tnHeight);
 							
-							thumbnail.setProperty(Image.hidden,				originalImage.getProperty(Image.hidden));
-							thumbnail.setProperty(Image.visibleToAuthenticatedUsers,		originalImage.getProperty(Image.visibleToAuthenticatedUsers));
-							thumbnail.setProperty(Image.visibleToPublicUsers,		originalImage.getProperty(Image.visibleToPublicUsers));
+							thumbnail.setProperty(AbstractNode.hidden,				originalImage.getProperty(AbstractNode.hidden));
+							thumbnail.setProperty(AbstractNode.visibleToAuthenticatedUsers,		originalImage.getProperty(AbstractNode.visibleToAuthenticatedUsers));
+							thumbnail.setProperty(AbstractNode.visibleToPublicUsers,		originalImage.getProperty(AbstractNode.visibleToPublicUsers));
+							thumbnail.setProperty(AbstractNode.owner,			originalImage.getProperty(AbstractNode.owner));
 							
 							thumbnailRelationship.setProperty(Image.width, tnWidth);
 							thumbnailRelationship.setProperty(Image.height, tnHeight);
@@ -385,97 +362,5 @@ public class Image extends File {
 		return getProperty(Image.isThumbnail) || hasRelationship(RelType.THUMBNAIL, Direction.INCOMING);
 
 	}
-
-	//~--- set methods ----------------------------------------------------
-
-	public void setWidth(Integer width) throws FrameworkException {
-
-		setProperty(Image.width, width);
-
-	}
-
-	public void setHeight(Integer height) throws FrameworkException {
-
-		setProperty(Image.height, height);
-
-	}
-//
-//	/** Copy public flag to all thumbnails */
-//	@Override
-//	public void setVisibleToPublicUsers(final boolean publicFlag) throws FrameworkException {
-//
-//		super.setVisibleToPublicUsers(publicFlag);
-//
-//		for (Image thumbnail : getThumbnails()) {
-//
-//			thumbnail.setProperty(AbstractNode.visibleToPublicUsers, publicFlag);
-//		}
-//
-//	}
-//
-//	/** Copy visible for authenticated users flag to all thumbnails */
-//	@Override
-//	public void setVisibleToAuthenticatedUsers(final boolean flag) throws FrameworkException {
-//
-//		super.setVisibleToAuthenticatedUsers(flag);
-//
-//		for (Image thumbnail : getThumbnails()) {
-//
-//			thumbnail.setProperty(AbstractNode.visibleToAuthenticatedUsers, flag);
-//		}
-//
-//	}
-//
-//	/** Copy hidden flag to all thumbnails */
-//	@Override
-//	public void setHidden(final boolean hidden) throws FrameworkException {
-//
-//		super.setHidden(hidden);
-//
-//		for (Image thumbnail : getThumbnails()) {
-//
-//			thumbnail.setProperty(AbstractNode.hidden, hidden);
-//		}
-//
-//	}
-//
-//	/** Copy deleted flag to all thumbnails */
-//	@Override
-//	public void setDeleted(final boolean deleted) throws FrameworkException {
-//
-//		super.setDeleted(deleted);
-//
-//		for (Image thumbnail : getThumbnails()) {
-//
-//			thumbnail.setProperty(AbstractNode.deleted, deleted);
-//		}
-//
-//	}
-//
-//	/** Copy visibility start date to all thumbnails */
-//	@Override
-//	public void setVisibilityStartDate(final Date date) throws FrameworkException {
-//
-//		super.setVisibilityStartDate(date);
-//
-//		for (Image thumbnail : getThumbnails()) {
-//
-//			thumbnail.setProperty(AbstractNode.visibilityStartDate, date);
-//		}
-//
-//	}
-//
-//	/** Copy visibility end date to all thumbnails */
-//	@Override
-//	public void setVisibilityEndDate(final Date date) throws FrameworkException {
-//
-//		super.setVisibilityEndDate(date);
-//
-//		for (Image thumbnail : getThumbnails()) {
-//
-//			thumbnail.setProperty(AbstractNode.visibilityEndDate, date);
-//		}
-//
-//	}
 
 }

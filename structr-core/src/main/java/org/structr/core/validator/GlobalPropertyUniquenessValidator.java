@@ -29,16 +29,16 @@ import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchNodeCommand;
-import org.structr.core.graph.search.SearchOperator;
-import org.structr.core.graph.search.TextualSearchAttribute;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Logger;
+import org.apache.lucene.search.BooleanClause.Occur;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.Result;
+import org.structr.core.graph.search.PropertySearchAttribute;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -57,7 +57,7 @@ public class GlobalPropertyUniquenessValidator implements PropertyValidator<Stri
 	@Override
 	public boolean isValid(SecurityContext securityContext, GraphObject object, PropertyKey key, String value, ErrorBuffer errorBuffer) {
 
-		if ((value == null) || ((value != null) && (value.toString().length() == 0))) {
+		if (value == null || (value != null && value.toString().length() == 0)) {
 
 			errorBuffer.add(object.getType(), new EmptyPropertyToken(key));
 
@@ -65,16 +65,16 @@ public class GlobalPropertyUniquenessValidator implements PropertyValidator<Stri
 
 		}
 
-		if ((key != null) && (value != null)) {
+		if (key != null && value != null) {
 
 			// String type = EntityContext.GLOBAL_UNIQUENESS;
-			boolean nodeExists               = false;
 			List<SearchAttribute> attributes = new LinkedList<SearchAttribute>();
+			boolean nodeExists               = false;
 			String id                        = null;
 
-			attributes.add(new TextualSearchAttribute(key, value, SearchOperator.AND));
+			attributes.add(new PropertySearchAttribute(key, value, Occur.MUST, true));
 
-			Result resultList = null;
+			Result<AbstractNode> resultList = null;
 
 			try {
 
@@ -88,20 +88,24 @@ public class GlobalPropertyUniquenessValidator implements PropertyValidator<Stri
 
 			if (nodeExists) {
 
-				id = ((AbstractNode) resultList.get(0)).getUuid();
+				AbstractNode foundNode = resultList.get(0);
+				if (foundNode.getId() != object.getId()) {
 
-				errorBuffer.add(object.getType(), new UniqueToken(id, key, value));
+					id = foundNode.getUuid();
 
-				return false;
+					errorBuffer.add(object.getType(), new UniqueToken(id, key, value));
 
-			} else {
-
-				return true;
+					return false;
+				}
 			}
 		}
 
-		return false;
+		return true;
 
 	}
-
+	
+	@Override
+	public boolean requiresSynchronization() {
+		return true;
+	}
 }

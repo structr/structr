@@ -24,6 +24,7 @@ import java.util.Comparator;
 import java.util.List;
 import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.helpers.collection.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.graph.StructrTransaction;
@@ -242,11 +243,11 @@ public abstract class LinkedTreeNode extends LinkedListNode {
 	
 	public int treeGetChildPosition(final RelationshipType relType, final LinkedTreeNode child) {
 		
-		List<AbstractRelationship> rels = child.getIncomingRelationships(relType);
-		if (rels != null && rels.size() == 1) {
+		Iterable<AbstractRelationship> rels = child.getIncomingRelationships(relType);
+		if (rels != null && rels.iterator().hasNext()) {
 			
 			// node should have only one parent
-			AbstractRelationship rel = rels.get(0);
+			AbstractRelationship rel = rels.iterator().next();
 			
 			Integer pos = rel.getProperty(positionProperty);
 			if (pos != null) {
@@ -271,13 +272,13 @@ public abstract class LinkedTreeNode extends LinkedListNode {
 	}
 	
 	public int treeGetChildCount(final RelationshipType relType) {
-		return getOutgoingRelationships(relType).size();
+		return (int)Iterables.count(getOutgoingRelationships(relType));
 	}
 	
 	public List<AbstractRelationship> treeGetChildRelationships(final RelationshipType relType) {
 		
 		// fetch all relationships
-		List<AbstractRelationship> childRels = getOutgoingRelationships(relType);
+		List<AbstractRelationship> childRels = Iterables.toList(getOutgoingRelationships(relType));
 		
 		// sort relationships by position
 		Collections.sort(childRels, new Comparator<AbstractRelationship>() {

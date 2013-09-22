@@ -20,7 +20,7 @@
 var images, files, folders, drop;
 var fileList;
 var chunkSize = 1024*64;
-var sizeLimit = 1024*1024*42;
+var sizeLimit = 1024*1024*70;
 var win = $(window);
 
 $(document).ready(function() {
@@ -45,6 +45,10 @@ var _Files = {
     download_icon : 'icon/basket_put.png',
 	
     init : function() {
+
+        Structr.initPager('Folder', 1, 25);
+        Structr.initPager('File', 1, 25);
+        
     },
 
     resize : function() {
@@ -67,6 +71,8 @@ var _Files = {
             });
         }
 
+        Structr.resize();
+
     },
 
     onload : function() {
@@ -74,19 +80,16 @@ var _Files = {
         _Files.init();
         
         log('onload');
-        if (palette) palette.remove();
 
         //main.append('<table id="dropArea"><tr><td id="folders"></td><td id="files"></td><td id="images"></td></tr></table>');
-        main.append('<table id="dropArea"><tr><td id="folders"></td><td id="files"></td></tr></table>');
+        main.append('<div id="dropArea"><div class="fit-to-height" id="folders"></div><div class="fit-to-height" id="files"></div>');
+        //main.append('<table id="dropArea"><tr><<td class="fit-to-height" id="folders"></td><td class="fit-to-height" id="files"></td></tr></table>');
         folders = $('#folders');
         files = $('#files');
-        //        images = $('#images');
         
         _Files.refreshFolders();
         _Files.refreshFiles();
-    //        _Files.refreshImages();
-
-    //	_Files.resize();
+        
     },
 
     unload : function() {
@@ -98,7 +101,7 @@ var _Files = {
         
         if (window.File && window.FileReader && window.FileList && window.Blob) {
 
-            files.append('<h1>Files</h1>');
+            files.append('<h2>Files</h2>');
             
             drop = $('#dropArea');
 
@@ -145,59 +148,31 @@ var _Files = {
                         });
                         $(filesToUpload).each(function(i, file) {
                             log(file);
-                            if (file) _Files.createFile(file);
+                            if (file) Command.createFile(file);
                         });
                     });
                     
                 } else {
-                    
-                    //                    var dialogMsg = $('#dialogMsg');
-                    //
-                    //                    dialog.empty();
-                    //                    dialogMsg.empty();
-                    //
-                    //                    dialog.append('<table class="props"></table>');
-                    //                    
-                    //                    $(filesToUpload).each(function(i, fileToUpload) {
-                    //                        $('.props', dialog).append('<tr><td>' + fileToUpload.name + '</td><td>' + fileToUpload.size + ' bytes</td></tr>');
-                    //                    });
-                    //
-                    //                    Structr.dialog('Uploading Files', function() {
-                    //                        return true;
-                    //                    }, function() {
-                    //                        return true;
-                    //                    });
-                    
                     $(filesToUpload).each(function(i, file) {
                         Command.createFile(file);
                     });
-
                 }
 
                 return false;
             });
         }
         Structr.addPager(files, 'File');
-        //Command.list('File', pageSize, page, sort, order);
         _Files.resize();
     },
 	
     refreshFolders : function() {
         folders.empty();
         folders.append('<button class="add_folder_icon button"><img title="Add Folder" alt="Add Folder" src="' + _Files.add_folder_icon + '"> Add Folder</button>');
-        
-        //Command.list(type, pageSize[type], page[type], sort, order);
-        Command.list('Folder', 1000, 1, 'name', 'asc');
-        
-        //if (Structr.addPager(folders, 'Folder')) {
-
         $('.add_folder_icon', main).on('click', function(e) {
             e.stopPropagation();
-            var entity = {};
-            entity.type = 'Folder';
-            Command.create(entity);
+            Command.create({'type':'Folder'});
         });
-    //}
+        Structr.addPager(folders, 'Folder');
     },
 
     getIcon : function(file) {
@@ -220,8 +195,6 @@ var _Files = {
 
         log('Files.appendFileElement', file);
         
-        //if (file.parent) return false;
-
         var icon = _Files.getIcon(file);
         var folderId = file.parent ? file.parent.id : null;
         
@@ -238,10 +211,6 @@ var _Files = {
         if (div && div.length) {
             
             var formerParent = div.parent();
-            //            parent.append(div.css({
-            //                top: 0,
-            //                left: 0
-            //            }));
             
             if (!Structr.containsNodes(formerParent)) {
                 _Entities.removeExpandIcon(formerParent);
@@ -253,10 +222,13 @@ var _Files = {
             parent.append('<div id="id_' + file.id + '" class="node file">'
                 + '<img class="typeIcon" src="'+ icon + '">'
                 + '<b title="' + file.name + '" class="name_">' + fitStringToSize(file.name, 200) + '</b> <span class="id">' + file.id + '</span>'
+                + '<div class="progress"><div class="bar"><div class="indicator"><span class="part"></span>/<span class="size">' + file.size + '</span></div></div></div>'
                 + '</div>');
             div = Structr.node(file.id);
             
         }
+
+        _Entities.appendAccessControlIcon(div, file);
 
         div.children('.typeIcon').on('click', function(e) {
             e.stopPropagation();
@@ -301,6 +273,7 @@ var _Files = {
             helper: 'clone',
             //containment: '#main',
             stack: '.node',
+            appendTo: '#main',
             stop : function(e,ui) {
                 $('#pages_').droppable('enable').removeClass('nodeHover');
             }
@@ -308,7 +281,6 @@ var _Files = {
 
         _Files.appendEditFileIcon(div, file);      
         _Entities.appendEditPropertiesIcon(div, file);
-        _Entities.appendAccessControlIcon(div, file);
 
         _Entities.setMouseOver(div);
         
@@ -331,16 +303,20 @@ var _Files = {
 
         var parent = parentFolderElement ? parentFolderElement : folders;
 
+        if (!parent) return false;
+
         parent.append('<div id="id_' + folder.id + '" structr_type="folder" class="node folder">'
             + '<img class="typeIcon" src="'+ _Files.folder_icon + '">'
             + '<b title="' + folder.name + '" class="name_">' + fitStringToSize(folder.name, 200) + '</b> <span class="id">' + folder.id + '</span>'
             + '</div>');
         
         var div = Structr.node(folder.id);
+
+        _Entities.appendAccessControlIcon(div, folder);
         
         var delIcon = div.children('.delete_icon');
         
-        if (parent != folders) {
+        if (parent !== folders) {
             var newDelIcon = '<img title="Remove folder ' + folder.name + '\' from folder ' + folder.parent.id + '" alt="Remove folder ' + folder.name + '\' from folder ' + folder.parent.id + '" class="delete_icon button" src="' + _Files.delete_folder_icon + '">';
             if (delIcon && delIcon.length) {
                 delIcon.replaceWith(newDelIcon);
@@ -391,7 +367,7 @@ var _Files = {
                 var fileId = getId(ui.draggable);
                 var folderId = getId(self);
                 log('fileId, folderId', fileId, folderId);
-                if (!(fileId == folderId)) {
+                if (!(fileId === folderId)) {
                     var nodeData = {};
                     nodeData.id = fileId;
                     addExpandedNode(folderId);
@@ -404,7 +380,6 @@ var _Files = {
         });
 
         _Entities.appendEditPropertiesIcon(div, folder);
-        _Entities.appendAccessControlIcon(div, folder);
         _Entities.setMouseOver(div);
 		
         return div;
@@ -417,11 +392,9 @@ var _Files = {
 
     uploadFile : function(file) {
         
-        console.log('upload file', file);
-
         $(fileList).each(function(i, fileObj) {
 
-            if (fileObj.name == file.name) {
+            if (fileObj.name === file.name) {
      
                 log('Uploading chunks for file ' + file.id);
                 
@@ -430,7 +403,7 @@ var _Files = {
                 //reader.readAsText(fileObj);
 
                 var chunks = Math.ceil(fileObj.size / chunkSize);
-                log('file size: ' + fileObj.size + ', chunk size: ' + chunkSize + ', chunks: ' + chunks);
+                //console.log('file size: ' + fileObj.size + ', chunk size: ' + chunkSize + ', chunks: ' + chunks);
 
                 // slicing is still unstable/browser dependent yet, see f.e. http://georgik.sinusgear.com/2011/05/06/html5-api-file-slice-changed/
 
@@ -504,7 +477,7 @@ var _Files = {
         
         $(parent.children('.edit_file_icon')).on('click', function(e) {
             e.stopPropagation();
-            var self = $(this);
+            //var self = $(this);
             //var text = self.parent().find('.file').text();
             Structr.dialog('Edit ' + file.name, function() {
                 log('content saved')
@@ -523,17 +496,19 @@ var _Files = {
         headers['X-StructrSessionToken'] = token;
         var text;
         
-        var contentType;
+        var contentType = file.contentType;
         var dataType = 'text';
                 
-        if (file.name.endsWith('.css')) {
-            contentType = 'text/css';
-        } else if (file.name.endsWith('.js')) {
-            contentType = 'text/javascript';
-        } else {
-            contentType = 'text/plain';
+        if (!contentType) {
+            if (file.name.endsWith('.css')) {
+                contentType = 'text/css';
+            } else if (file.name.endsWith('.js')) {
+                contentType = 'text/javascript';
+            } else {
+                contentType = 'text/plain';
+            }
         }
-        //console.log('contentType, dataType', contentType, dataType);
+        log(viewRootUrl, url);
         
         $.ajax({
             url: url,
@@ -545,12 +520,10 @@ var _Files = {
                 text = data;
                 if (isDisabled(button)) return;
                 var div = element.append('<div class="editor"></div>');
-                log(div);
                 var contentBox = $('.editor', element);
                 editor = CodeMirror(contentBox.get(0), {
                     value: unescapeTags(text),
-                    //value: text,
-                    mode:  contentType,
+                    mode: contentType,
                     lineNumbers: true
                 //            ,
                 //            onChange: function(cm, changes) {
@@ -580,6 +553,8 @@ var _Files = {
                 
                 dialogBtn.append('<button id="saveFile"> Save </button>');
                 dialogBtn.append('<button id="saveAndClose"> Save and close</button>');
+                
+                
                 $('button#saveFile', dialogBtn).on('click', function(e) {
                     e.stopPropagation();
                     _Files.updateTextFile(file, editor.getValue());
@@ -591,6 +566,7 @@ var _Files = {
                         dialogCancelButton.click();
                     }, 100);
                 });
+
             },
             error : function(xhr, statusText, error) {
                 console.log(xhr, statusText, error);

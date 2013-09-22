@@ -46,7 +46,7 @@ public class PingCommand extends AbstractCommand {
 	public void processMessage(final WebSocketMessage webSocketData) {
 
 
-		logger.log(Level.INFO, "PING recieved from session {0}", webSocketData.getSessionId());
+		logger.log(Level.INFO, "PING received from session {0}", webSocketData.getSessionId());
 	}
 
 	//~--- get methods ----------------------------------------------------

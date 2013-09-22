@@ -41,7 +41,6 @@ package org.structr.common;
 
 import org.structr.core.property.PropertyKey;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.Result;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.TestOne;
@@ -79,44 +78,46 @@ public class PagingTest extends StructrTest {
 
 	}
 
-//
-//      public void test01FirstPage() {
-//
-//              try {
-//
-//                      boolean includeDeletedAndHidden        = true;
-//                      boolean publicOnly                     = false;
-//                      String type                            = TestOne.class.getSimpleName();
-//                      int number                             = 43;
-//                      List<AbstractNode> nodes               = this.createTestNodes(type, number);
-//                      List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
-//
-//                      searchAttributes.add(Search.andType(type));
-//
-//                      Result result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes);
-//
-//                      assertTrue(result.size() == number);
-//
-//                      String sortKey   = "name";
-//                      boolean sortDesc = false;
-//                      int pageSize     = 10;
-//                      int page         = 1;
-//
-//                      result = (Result) searchNodeCommand.execute(null, includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page);
-//
-//                      logger.log(Level.INFO, "Raw result size: {0}, expected: {1}", new Object[] { result.getRawResultCount(), number });
-//                      assertTrue(result.getRawResultCount() == number);
-//                      logger.log(Level.INFO, "Result size: {0}, expected: {1}", new Object[] { result.size(), pageSize });
-//                      assertTrue(result.size() == pageSize);
-//
-//              } catch (FrameworkException ex) {
-//
-//                      logger.log(Level.SEVERE, ex.toString());
-//                      fail("Unexpected exception");
-//
-//              }
-//
-//      }
+
+      public void test01FirstPage() {
+
+              try {
+
+                      boolean includeDeletedAndHidden        = true;
+                      boolean publicOnly                     = false;
+                      Class type                             = TestOne.class;
+                      int number                             = 43;
+                      List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+
+		      // create nodes
+		      this.createTestNodes(type, number);
+		      
+                      searchAttributes.add(Search.andExactType(type));
+
+                      Result result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes);
+
+                      assertTrue(result.size() == number);
+
+                      PropertyKey sortKey = AbstractNode.name;
+                      boolean sortDesc    = false;
+                      int pageSize        = 10;
+                      int page            = 1;
+
+                      result = (Result) searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page);
+
+                      logger.log(Level.INFO, "Raw result size: {0}, expected: {1}", new Object[] { result.getRawResultCount(), number });
+                      assertTrue(result.getRawResultCount() == number);
+                      logger.log(Level.INFO, "Result size: {0}, expected: {1}", new Object[] { result.size(), pageSize });
+                      assertTrue(result.size() == pageSize);
+
+              } catch (FrameworkException ex) {
+
+                      logger.log(Level.SEVERE, ex.toString());
+                      fail("Unexpected exception");
+
+              }
+
+      }
 
 	/**
 	 * Test different pages and page sizes
@@ -127,7 +128,7 @@ public class PagingTest extends StructrTest {
 
 			boolean includeDeletedAndHidden = false;
 			boolean publicOnly              = false;
-			String type                     = TestOne.class.getSimpleName();
+			Class type                      = TestOne.class;
 			int number                      = 89;    // no more than 89 to avoid sort order TestOne-10, TestOne-100 ...
 			List<AbstractNode> nodes        = this.createTestNodes(type, number);
 			int offset                      = 10;
@@ -170,6 +171,8 @@ public class PagingTest extends StructrTest {
 			}
 
 		} catch (FrameworkException ex) {
+			
+			ex.printStackTrace();
 
 			logger.log(Level.SEVERE, ex.toString());
 			fail("Unexpected exception");

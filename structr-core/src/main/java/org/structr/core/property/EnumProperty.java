@@ -52,6 +52,11 @@ public class EnumProperty<T extends Enum> extends AbstractPrimitiveProperty<T> {
 	public String typeName() {
 		return "String";
 	}
+
+	@Override
+	public Integer getSortType() {
+		return null;
+	}
 	
 	@Override
 	public PropertyConverter<T, String> databaseConverter(SecurityContext securityContext) {

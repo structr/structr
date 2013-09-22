@@ -18,8 +18,8 @@
  */
 package org.structr.core.property;
 
+import java.text.SimpleDateFormat;
 import org.apache.commons.lang.StringUtils;
-import org.apache.lucene.search.SortField;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.DateFormatToken;
@@ -45,10 +45,12 @@ import java.util.Date;
  * @author Axel Morgner
  */
 public class ISO8601DateProperty extends DateProperty {
+	
+	public static final String PATTERN = "yyyy-MM-dd'T'HH:mm:ssZ";
 
 	public ISO8601DateProperty(String name) {
 
-		super(name, "yyyy-MM-dd'T'HH:mm:ssZ");
+		super(name, PATTERN);
 
 	}
 
@@ -130,7 +132,8 @@ public class ISO8601DateProperty extends DateProperty {
 						source = StringUtils.replace(source, "Z", "+0000");
 					}
 
-					return dateFormat.parse(source);
+					return new SimpleDateFormat(pattern).parse(source);
+					
 				} catch (Throwable t) {
 
 					throw new FrameworkException(declaringClass.getSimpleName(), new DateFormatToken(ISO8601DateProperty.this));
@@ -148,22 +151,11 @@ public class ISO8601DateProperty extends DateProperty {
 
 			if (source != null) {
 
-				return dateFormat.format(source);
+				return new SimpleDateFormat(pattern).format(source);
 			}
 
 			return null;
 
 		}
-
-		//~--- get methods --------------------------------------------
-
-		@Override
-		public Integer getSortType() {
-
-			return SortField.LONG;
-
-		}
-
 	}
-
 }

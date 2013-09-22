@@ -89,26 +89,26 @@ public class TypedIdResource extends FilterableResource {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
-	@Override
-	public RestMethodResult doOptions() throws FrameworkException {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
 	public AbstractNode getTypesafeNode() throws FrameworkException {
-		
-		AbstractNode node = idResource.getNode();
-		String type = EntityContext.normalizeEntityName(typeResource.getRawType());
 
-		logger.log(Level.FINE, "type from TypeResource: {0}, type from node: {1}", new Object[] { type, node != null ? node.getType() : "null" } );
-		
-		if(node != null && type.equalsIgnoreCase(node.getType())) {
+		AbstractNode node = idResource.getNode();
+
+		String type       = EntityContext.normalizeEntityName(typeResource.getRawType());
+		Class parentClass = EntityContext.getEntityClassForRawType(type);
+		Class entityClass = node.getClass();
+
+		if (parentClass.isAssignableFrom(entityClass)) {
 			return node;
 		}
-
 		
 		throw new NotFoundException();
 	}
 	
+	@Override
+	public Class getEntityClass() {
+		return typeResource.getEntityClass();
+	}
+
 	public TypeResource getTypeResource() {
 		return typeResource;
 	}
@@ -136,6 +136,17 @@ public class TypedIdResource extends FilterableResource {
 			resource.addTypedIdResource((TypedIdResource)next);
 
 			return resource;
+
+		} else if(next instanceof RelationshipResource) {
+
+			// make rel constraint wrap this
+			((RelationshipResource)next).wrapResource(this);
+			return next;
+
+		} else if(next instanceof RelationshipIdResource) {
+
+			((RelationshipIdResource)next).getRelationshipResource().wrapResource(this);
+			return next;
 		}
 
 		return super.tryCombineWith(next);

@@ -40,21 +40,17 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.Image;
 import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.CreateRelationshipCommand;
-import org.structr.core.graph.NewIndexNodeCommand;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchNodeCommand;
-import org.structr.core.property.GenericProperty;
-import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
@@ -65,15 +61,15 @@ import org.structr.web.entity.dom.Page;
 
 import java.io.IOException;
 import java.io.StringWriter;
-
 import java.net.MalformedURLException;
 import java.net.URL;
-
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.apache.commons.lang.WordUtils;
+import org.structr.core.property.BooleanProperty;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -94,9 +90,10 @@ public class Importer {
 	private static final Map<String, String> contentTypeForExtension = new HashMap<String, String>();
 	private static CreateNodeCommand createNode;
 	private static CreateRelationshipCommand createRel;
-	private static NewIndexNodeCommand indexNode;
 	private static SearchNodeCommand searchNode;
 
+	private final static String DATA_META_PREFIX = "data-structr-meta-";
+	
 	//~--- static initializers --------------------------------------------
 
 	static {
@@ -157,18 +154,31 @@ public class Importer {
 		searchNode = Services.command(securityContext, SearchNodeCommand.class);
 		createNode = Services.command(securityContext, CreateNodeCommand.class);
 		createRel  = Services.command(securityContext, CreateRelationshipCommand.class);
-		indexNode  = Services.command(securityContext, NewIndexNodeCommand.class);
-
 	}
 
 	public boolean parse() throws FrameworkException {
+		
+		return parse(false);
+		
+	}
+	
+	public boolean parse(final boolean fragment) throws FrameworkException {
 
 		init();
 		
 		if (StringUtils.isNotBlank(code)) {
 
 			logger.log(Level.INFO, "##### Start parsing code for page {0} #####", new Object[] { name });
-			parsedDocument = Jsoup.parse(code);
+			
+			if (fragment) {
+				
+				parsedDocument = Jsoup.parseBodyFragment(code);
+				
+			} else {
+				
+				parsedDocument = Jsoup.parse(code);
+				
+			}
 
 
 		} else {
@@ -232,10 +242,34 @@ public class Importer {
 
 	}
 
-	public void createChildNodes(final Node startNode, final DOMNode parent, Page page, final URL baseUrl) throws FrameworkException {
+	public void createChildNodes(final DOMNode parent, final Page page, final String baseUrl) throws FrameworkException {
+
+		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+			@Override
+			public Object execute() throws FrameworkException {
+				
+				try {
+					
+					createChildNodes(parsedDocument.body(), parent, page, new URL(baseUrl));
+					
+				} catch (MalformedURLException ex) {
+					
+					logger.log(Level.WARNING, "Could not read URL {1}, calling method without base URL", baseUrl);
+					
+					createChildNodes(parsedDocument.body(), parent, page, null);
+					
+				}
+				
+				return null;
+			}
+		});
+	}
+	
+	// ----- private methods -----
+	private void createChildNodes(final Node startNode, final DOMNode parent, Page page, final URL baseUrl) throws FrameworkException {
 
 		List<Node> children = startNode.childNodes();
-		int localIndex      = 0;
 
 		for (Node node : children) {
 
@@ -298,10 +332,11 @@ public class Importer {
 
 //                              type    = "Content";
 				tag     = "";
-				content = ((TextNode) node).toString().trim();
+				//content = ((TextNode) node).getWholeText();
+				content = ((TextNode) node).text();
 
-				// Don't add content node for whitespace
-				if (StringUtils.isBlank(content)) {
+				// Add content node for whitespace within <p> elements only
+				if (!("p".equals(startNode.nodeName().toLowerCase())) && StringUtils.isWhitespace(content)) {
 
 					continue;
 				}
@@ -313,146 +348,78 @@ public class Importer {
 			if (StringUtils.isBlank(tag)) {
 
 				newNode = (Content) page.createTextNode(content);
+				
 			} else {
 
 				newNode = (org.structr.web.entity.dom.DOMElement) page.createElement(tag);
 			}
+			
+			if (newNode != null) {
 
-			// "id" attribute: Put it into the "_html_id" field
-			if (StringUtils.isNotBlank(id)) {
+				// "id" attribute: Put it into the "_html_id" field
+				if (StringUtils.isNotBlank(id)) {
 
-				newNode.setProperty(DOMElement._id, id);
-			}
-
-			if (StringUtils.isNotBlank(classString.toString())) {
-
-				newNode.setProperty(DOMElement._class, StringUtils.trim(classString.toString()));
-			}
-
-			for (Attribute nodeAttr : node.attributes()) {
-
-				String key = nodeAttr.getKey();
-
-				// Don't add text attribute as _html_text because the text is already contained in the 'content' attribute
-				if (!key.equals("text")) {
-
-					newNode.setProperty(new StringProperty(PropertyView.Html.concat(nodeAttr.getKey())), nodeAttr.getValue());
+					newNode.setProperty(DOMElement._id, id);
 				}
 
+				if (StringUtils.isNotBlank(classString.toString())) {
+
+					newNode.setProperty(DOMElement._class, StringUtils.trim(classString.toString()));
+				}
+
+				for (Attribute nodeAttr : node.attributes()) {
+
+					String key = nodeAttr.getKey();
+
+					// Don't add text attribute as _html_text because the text is already contained in the 'content' attribute
+					if (!key.equals("text")) {
+
+						// convert data-* attributes to local camel case properties on the node,
+						// but don't convert data-structr-* attributes as they are internal
+						if (key.startsWith("data-")) {
+						
+							if (!key.startsWith(DATA_META_PREFIX)) {
+
+								newNode.setProperty(new StringProperty(nodeAttr.getKey()), nodeAttr.getValue());
+								
+							} else {
+								
+								int l = DATA_META_PREFIX.length();
+								
+								String upperCaseKey = WordUtils.capitalize(key.substring(l), new char[] { '-' }).replaceAll("-", "");
+								String camelCaseKey = key.substring(l, l+1).concat(upperCaseKey.substring(1));
+								
+								String value = nodeAttr.getValue();
+								
+								if (value != null) {
+									if (value.equalsIgnoreCase("true")) {
+										newNode.setProperty(new BooleanProperty(camelCaseKey), true);
+									} else if (value.equalsIgnoreCase("false")) {
+										newNode.setProperty(new BooleanProperty(camelCaseKey), false);
+									} else {
+										newNode.setProperty(new StringProperty(camelCaseKey), nodeAttr.getValue());
+									}
+								}
+								
+							}
+							
+						} else {
+
+							newNode.setProperty(new StringProperty(PropertyView.Html.concat(nodeAttr.getKey())), nodeAttr.getValue());
+						}
+					}
+
+				}
+
+				parent.appendChild(newNode);
+
+				// Link new node to its parent node
+				// linkNodes(parent, newNode, page, localIndex);
+				// Step down and process child nodes
+				createChildNodes(node, newNode, page, baseUrl);
+			
 			}
-
-			parent.appendChild(newNode);
-
-			// Link new node to its parent node
-			// linkNodes(parent, newNode, page, localIndex);
-			// Step down and process child nodes
-			createChildNodes(node, newNode, page, baseUrl);
-
-			// Count up position index
-			localIndex++;
-
 		}
-
-	}
-
-	/**
-	 * Find an existing node where the following matches:
-	 *
-	 * <ul>
-	 * <li>attributes
-	 * <li>parent node id
-	 * </ul>
-	 *
-	 * @param attrs
-	 * @param parentNodeId
-	 * @return
-	 * @throws FrameworkException
-	 */
-	private DOMNode findExistingNode(final List<NodeAttribute> attrs, final String nodePath) throws FrameworkException {
-
-		List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
-
-		for (NodeAttribute attr : attrs) {
-
-			PropertyKey key = attr.getKey();
-			String value    = attr.getValue().toString();
-
-			// Exclude data attribute because it may contain code with special characters, too
-			if (!key.equals(DOMElement._data)) {
-
-				searchAttrs.add(Search.andExactProperty(key, value));
-			}
-
-		}
-
-		Result<DOMNode> result = searchNode.execute(searchAttrs);
-
-		if (result.size() > 1) {
-
-			logger.log(Level.WARNING, "More than one node found.");
-		}
-
-		if (result.isEmpty()) {
-
-			return null;
-		}
-
-		for (DOMNode foundNode : result.getResults()) {
-
-			String foundNodePath = foundNode.getProperty(DOMElement.path);
-
-			logger.log(Level.INFO, "Found a node with path {0}", foundNodePath);
-
-			if (foundNodePath != null && foundNodePath.equals(nodePath)) {
-
-				logger.log(Level.INFO, "MATCH!");
-
-				// First match wins
-				return foundNode;
-
-			}
-
-		}
-
-		logger.log(Level.INFO, "Does not match expected path {0}", nodePath);
-
-		return null;
-
-	}
-
-	private DOMNode findOrCreateNode(final List<NodeAttribute> attributes, final String nodePath) throws FrameworkException {
-
-		DOMNode node = findExistingNode(attributes, nodePath);
-
-		if (node != null) {
-
-			return node;
-		}
-
-		node = (DOMNode) createNode.execute(attributes);
-
-		node.setProperty(DOMElement.path, nodePath);
-
-		if (node != null) {
-
-			logger.log(Level.INFO, "Created node with name {0}, type {1}", new Object[] { node.getName(), node.getType() });
-		} else {
-
-			logger.log(Level.WARNING, "Could not create node");
-		}
-
-		return node;
-
-	}
-
-	private AbstractRelationship linkNodes(AbstractNode startNode, AbstractNode endNode, String pageId, int index) throws FrameworkException {
-
-		AbstractRelationship rel   = (AbstractRelationship) createRel.execute(startNode, endNode, RelType.CONTAINS);
-		PropertyKey pageIdProperty = new GenericProperty(pageId);
-
-		rel.setProperty(pageIdProperty, index);
-
-		return rel;
 
 	}
 
@@ -463,9 +430,9 @@ public class Importer {
 
 		List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
 
-		searchAttrs.add(Search.andExactProperty(AbstractNode.name, name));
-		searchAttrs.add(Search.andExactProperty(File.checksum, checksum));
-		searchAttrs.add(Search.andExactTypeAndSubtypes(File.class.getSimpleName()));
+		searchAttrs.add(Search.andExactProperty(securityContext, AbstractNode.name, name));
+		searchAttrs.add(Search.andExactProperty(securityContext, File.checksum, checksum));
+		searchAttrs.add(Search.andExactTypeAndSubtypes(File.class));
 
 		Result files = searchNode.execute(searchAttrs);
 
@@ -481,8 +448,8 @@ public class Importer {
 
 		List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
 
-		searchAttrs.add(Search.andExactProperty(AbstractNode.name, name));
-		searchAttrs.add(Search.andExactType(Folder.class.getSimpleName()));
+		searchAttrs.add(Search.andExactProperty(securityContext, AbstractNode.name, name));
+		searchAttrs.add(Search.andExactType(Folder.class));
 
 		Result folders = searchNode.execute(searchAttrs);
 
@@ -620,8 +587,7 @@ public class Importer {
 				createRel.execute(parent, folder, RelType.CONTAINS);
 			}
 
-			indexNode.updateNode(folder);
-
+			folder.updateInIndex();
 		}
 
 		return folder;

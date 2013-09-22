@@ -59,6 +59,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
+import org.structr.core.entity.GenericNode;
 import org.structr.core.graph.DeleteRelationshipCommand;
 
 //~--- classes ----------------------------------------------------------------
@@ -160,10 +161,10 @@ public class StructrTest extends TestCase {
 
 	}
 
-	protected List<AbstractNode> createTestNodes(final String type, final int number) throws FrameworkException {
+	protected List<AbstractNode> createTestNodes(final Class type, final int number, final long delay) throws FrameworkException {
 
 		final PropertyMap props = new PropertyMap();
-		props.put(AbstractNode.type, type);
+		props.put(AbstractNode.type, type.getSimpleName());
 
 		return transactionCommand.execute(new StructrTransaction<List<AbstractNode>>() {
 
@@ -175,6 +176,9 @@ public class StructrTest extends TestCase {
 				for (int i = 0; i < number; i++) {
 
 					nodes.add(createNodeCommand.execute(props));
+					try {
+						Thread.sleep(delay);
+					} catch (InterruptedException ex) {}
 				}
 
 				return nodes;
@@ -185,24 +189,26 @@ public class StructrTest extends TestCase {
 
 	}
 
+	protected List<AbstractNode> createTestNodes(final Class type, final int number) throws FrameworkException {
+		
+		return createTestNodes(type, number, 0);
+
+	}
+
 	protected <T extends AbstractNode> T createTestNode(final Class<T> type) throws FrameworkException {
-		return (T)createTestNode(type.getSimpleName(), new PropertyMap());
+		return (T)createTestNode(type, new PropertyMap());
 	}
 
-	protected AbstractNode createTestNode(final String type) throws FrameworkException {
-		return createTestNode(type, new PropertyMap());
-	}
+	protected <T extends AbstractNode> T createTestNode(final Class<T> type, final PropertyMap props) throws FrameworkException {
 
-	protected AbstractNode createTestNode(final String type, final PropertyMap props) throws FrameworkException {
+		props.put(AbstractNode.type, type.getSimpleName());
 
-		props.put(AbstractNode.type, type);
-
-		return transactionCommand.execute(new StructrTransaction<AbstractNode>() {
+		return transactionCommand.execute(new StructrTransaction<T>() {
 
 			@Override
-			public AbstractNode execute() throws FrameworkException {
+			public T execute() throws FrameworkException {
 
-				return createNodeCommand.execute(props);
+				return (T)createNodeCommand.execute(props);
 
 			}
 
@@ -212,7 +218,7 @@ public class StructrTest extends TestCase {
 
 	protected List<AbstractRelationship> createTestRelationships(final RelationshipType relType, final int number) throws FrameworkException {
 
-		List<AbstractNode> nodes     = createTestNodes("UnknownTestType", 2);
+		List<AbstractNode> nodes     = createTestNodes(GenericNode.class, 2);
 		final AbstractNode startNode = nodes.get(0);
 		final AbstractNode endNode   = nodes.get(1);
 

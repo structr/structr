@@ -78,8 +78,6 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 		deletedNodes.add(node);
 		
-		// final Node node                  = graphDb.getNodeById(structrNode.getId());
-		final RemoveNodeFromIndex removeNodeFromIndex = Services.command(securityContext, RemoveNodeFromIndex.class);
 		final DeleteRelationshipCommand deleteRel     = Services.command(securityContext, DeleteRelationshipCommand.class);
 
 		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
@@ -95,9 +93,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 						// Delete all end nodes of outgoing relationships which are connected
 						// by relationships which are marked with DELETE_OUTGOING
-						List<AbstractRelationship> outgoingRels = node.getOutgoingRelationships();
-
-						for (AbstractRelationship rel : outgoingRels) {
+						for (AbstractRelationship rel : node.getOutgoingRelationships()) {
 
 							int cascadeDelete    = rel.cascadeDelete();
 							AbstractNode endNode = rel.getEndNode();
@@ -110,7 +106,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 							if (!deletedNodes.contains(endNode) && ((cascadeDelete & Relation.DELETE_OUTGOING) == Relation.DELETE_OUTGOING)) {
 
 								// remove end node from index
-								removeNodeFromIndex.execute(endNode);
+								endNode.removeFromIndex();
 								doDeleteNode(endNode, cascade);
 							}
 
@@ -118,9 +114,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 						// Delete all start nodes of incoming relationships which are connected
 						// by relationships which are marked with DELETE_INCOMING
-						List<AbstractRelationship> incomingRels = node.getIncomingRelationships();
-
-						for (AbstractRelationship rel : incomingRels) {
+						for (AbstractRelationship rel : node.getIncomingRelationships()) {
 
 							int cascadeDelete      = rel.cascadeDelete();
 							AbstractNode startNode = rel.getStartNode();
@@ -133,7 +127,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 							if (!deletedNodes.contains(startNode) && ((cascadeDelete & Relation.DELETE_INCOMING) == Relation.DELETE_INCOMING)) {
 
 								// remove start node from index
-								removeNodeFromIndex.execute(startNode);
+								startNode.removeFromIndex();
 								doDeleteNode(startNode, cascade);
 							}
 
@@ -144,14 +138,13 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 					node.onNodeDeletion();
 
 					// Delete any relationship (this is PASSIVE DELETION)
-					List<AbstractRelationship> rels = node.getRelationships();
-					for (AbstractRelationship r : rels) {
+					for (AbstractRelationship r : node.getRelationships()) {
 
 						deleteRel.execute(r, true);
 					}
 
 					// remove node from index
-					removeNodeFromIndex.execute(node);
+					node.removeFromIndex();
 
 					// delete node in database
 					node.getNode().delete();
@@ -171,10 +164,9 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 							if (!deletedNodes.contains(nodeToCheck) && !nodeToCheck.isValid(errorBuffer)) {
 
 								// remove end node from index
-								removeNodeFromIndex.execute(nodeToCheck);
+								nodeToCheck.removeFromIndex();
 								doDeleteNode(nodeToCheck, cascade);
 							}
-
 						}
 					}
 
@@ -185,13 +177,9 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 				}
 
 				return null;
-
 			}
-
 		});
 
 		return null;
-
 	}
-
 }

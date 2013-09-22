@@ -29,8 +29,8 @@ import org.structr.core.property.EntityProperty;
 public class TestSix extends AbstractNode {
 	
 	public static final CollectionProperty<TestOne> manyToManyTestOnes = new CollectionProperty<TestOne>("manyToManyTestOnes", TestOne.class, TestRelType.MANY_TO_MANY, false);
-	public static final CollectionProperty<TestOne> oneToManyTestOnes  = new CollectionProperty<TestOne>("oneToManyTestOnes",  TestOne.class, TestRelType.ONE_TO_MANY,  true);
+	public static final CollectionProperty<TestOne> manyToOneTestOnes  = new CollectionProperty<TestOne>("manyToOneTestOnes",  TestOne.class, TestRelType.MANY_TO_ONE,  true);
 	
 	public static final EntityProperty<TestThree>   oneToOneTestThree  = new EntityProperty<TestThree>("oneToOneTestThree",  TestThree.class, TestRelType.ONE_TO_ONE,  false);
-	public static final EntityProperty<TestThree>   manyToOneTestThree = new EntityProperty<TestThree>("manyToOneTestThree", TestThree.class, TestRelType.MANY_TO_ONE, true);
+	public static final EntityProperty<TestThree>   oneToManyTestThrees = new EntityProperty<TestThree>("oneToManyTestThree", TestThree.class, TestRelType.ONE_TO_MANY, true);
 }

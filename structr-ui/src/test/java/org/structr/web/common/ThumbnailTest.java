@@ -63,10 +63,6 @@ public class ThumbnailTest extends StructrTest {
 
 		try {
 
-			final PropertyMap props = new PropertyMap();
-
-			props.put(AbstractNode.type, TestImage.class.getSimpleName());
-
 			TestImage img = transactionCommand.execute(new StructrTransaction<TestImage>() {
 
 				@Override
@@ -74,7 +70,7 @@ public class ThumbnailTest extends StructrTest {
 
 					try {
 
-						return (TestImage) ImageHelper.createImageBase64(securityContext, base64Image, TestImage.class);
+						return (TestImage) ImageHelper.createFileBase64(securityContext, base64Image, TestImage.class);
 
 					} catch (IOException ex) {
 

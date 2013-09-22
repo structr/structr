@@ -21,6 +21,8 @@ package org.structr.core.property;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -34,6 +36,7 @@ import org.structr.core.converter.PropertyConverter;
  */
 public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 	
+	private static final Logger logger = Logger.getLogger(BooleanProperty.class.getName());
 	private static final Set<String> TRUE_VALUES = new LinkedHashSet<String>(Arrays.asList(new String[] { "true", "1", "on" }));
 
 	public BooleanProperty(String name, PropertyValidator<Boolean>... validators) {
@@ -45,17 +48,27 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 	}
 	
 	@Override
-	public String typeName() {
-		return "Boolean";
+	public Property<Boolean> indexed() {
+		return super.passivelyIndexed();
 	}
 	
 	@Override
-	public PropertyConverter<Boolean, Boolean> databaseConverter(SecurityContext securityContext) {
+	public String typeName() {
+		return "Boolean";
+	}
+
+	@Override
+	public Integer getSortType() {
+		return null;
+	}
+	
+	@Override
+	public PropertyConverter<Boolean, ?> databaseConverter(SecurityContext securityContext) {
 		return databaseConverter(securityContext, null);
 	}
 
 	@Override
-	public PropertyConverter<Boolean, Boolean> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+	public PropertyConverter<Boolean, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
 		return new DatabaseConverter(securityContext);
 	}
 
@@ -82,29 +95,26 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 		return false;
 	}
 	
-	protected class DatabaseConverter extends PropertyConverter<Boolean, Boolean> {
+	protected class DatabaseConverter extends PropertyConverter<Boolean, Object> {
 
 		public DatabaseConverter(SecurityContext securityContext) {
-			this(securityContext, null, false);
-		}
-		
-		public DatabaseConverter(SecurityContext securityContext, Integer sortKey) {
-			this(securityContext, sortKey, false);
-		}
-		
-		public DatabaseConverter(SecurityContext securityContext, boolean sortFinalResults) {
-			this(securityContext, null, sortFinalResults);
-		}
-		
-		public DatabaseConverter(SecurityContext securityContext, Integer sortKey, boolean sortFinalResults) {
-			super(securityContext, null, sortKey, sortFinalResults);
+			super(securityContext);
 		}
 		
 		@Override
-		public Boolean revert(Boolean source) throws FrameworkException {
+		public Boolean revert(Object source) throws FrameworkException {
 			
 			if (source != null) {
-				return source;
+				
+				if (!(source instanceof Boolean)) {
+					
+					logger.log(Level.SEVERE, "Wrong database type for {0}. Expected: {1}, found: {2}", new Object[]{dbName, Boolean.class.getName(), source.getClass().getName()});
+					
+					return (Boolean) fixDatabaseProperty(source);
+					
+				}
+				
+				return (Boolean) source;
 			}
 			
 			return false;
@@ -124,19 +134,7 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 	protected class InputConverter extends PropertyConverter<Object, Boolean> {
 
 		public InputConverter(SecurityContext securityContext) {
-			this(securityContext, null, false);
-		}
-		
-		public InputConverter(SecurityContext securityContext, Integer sortKey) {
-			this(securityContext, sortKey, false);
-		}
-		
-		public InputConverter(SecurityContext securityContext, boolean sortFinalResults) {
-			this(securityContext, null, sortFinalResults);
-		}
-		
-		public InputConverter(SecurityContext securityContext, Integer sortKey, boolean sortFinalResults) {
-			super(securityContext, null, sortKey, sortFinalResults);
+			super(securityContext);
 		}
 		
 		@Override
@@ -152,6 +150,8 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 		@Override
 		public Boolean convert(Object source) {
 			
+			boolean returnValue = false;
+			
 			// FIXME: be more strict when dealing with "wrong" input types
 			if (source != null) {
 				
@@ -161,11 +161,14 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 				
 				if (source instanceof String) {
 					
-					return TRUE_VALUES.contains(source.toString().toLowerCase());
+					returnValue = TRUE_VALUES.contains(source.toString().toLowerCase());
+
 				}
 			}
+
+			logger.log(Level.WARNING, "Wrong input type for {0}. Expected: {1}, found: {2}", new Object[]{jsonName, Boolean.class.getName(), source.getClass().getName()});
 			
-			return false;
+			return returnValue;
 		}
 	}
 }

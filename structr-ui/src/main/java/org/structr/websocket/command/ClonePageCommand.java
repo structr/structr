@@ -98,10 +98,9 @@ public class ClonePageCommand extends AbstractCommand {
 
 					if (newPage != null) {
 
-						String pageId                      = newPage.getProperty(AbstractNode.uuid);
-						List<AbstractRelationship> relsOut = nodeToClone.getOutgoingRelationships(RelType.CONTAINS);
-						String originalPageId              = nodeToClone.getProperty(AbstractNode.uuid);
-						Html htmlNode                      = null;
+						String pageId                          = newPage.getProperty(AbstractNode.uuid);
+						Iterable<AbstractRelationship> relsOut = nodeToClone.getOutgoingRelationships(RelType.CONTAINS);
+						Html htmlNode                          = null;
 
 						for (AbstractRelationship out : relsOut) {
 
@@ -120,7 +119,7 @@ public class ClonePageCommand extends AbstractCommand {
 						if (htmlNode != null) {
 
 							PropertyMap relProps = new PropertyMap();
-							relProps.put(new LongProperty(pageId), 0);
+							relProps.put(new LongProperty(pageId), 0L);
 
 							try {
 

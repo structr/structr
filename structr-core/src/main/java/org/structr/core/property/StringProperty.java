@@ -30,6 +30,10 @@ import org.structr.core.converter.PropertyConverter;
  */
 public class StringProperty extends AbstractPrimitiveProperty<String> {
 	
+	public StringProperty(String name) {
+		this(name, name, new PropertyValidator[0]);
+	}
+	
 	public StringProperty(String name, PropertyValidator<String>... validators) {
 
 		this(name, name, validators);
@@ -65,6 +69,11 @@ public class StringProperty extends AbstractPrimitiveProperty<String> {
 			return value.toString();
 		}
 		
+		return null;
+	}
+
+	@Override
+	public Integer getSortType() {
 		return null;
 	}
 

@@ -180,15 +180,21 @@ public class EntityProperty<T extends GraphObject> extends AbstractRelationPrope
 		
 		super(name, destType, relType, direction, manyToOne ? Cardinality.ManyToOne : Cardinality.OneToOne, cascadeDelete);
 
+		this.manyToOne = manyToOne;
 		this.notion = notion;
 		this.notion.setType(destType);
 		
-		EntityContext.registerConvertedProperty(this);		
+		EntityContext.registerConvertedProperty(this);
 	}
 	
 	@Override
 	public String typeName() {
 		return "Object";
+	}
+
+	@Override
+	public Integer getSortType() {
+		return null;
 	}
 
 	@Override
@@ -208,46 +214,7 @@ public class EntityProperty<T extends GraphObject> extends AbstractRelationPrope
 
 	@Override
 	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
-
-		if (obj instanceof AbstractNode) {
-
-			AbstractNode node = (AbstractNode)obj;
-
-			if (cardinality.equals(Relation.Cardinality.OneToOne) || cardinality.equals(Relation.Cardinality.ManyToOne)) {
-
-				NodeFactory nodeFactory = new NodeFactory(securityContext);
-				Class destinationType   = getDestType();
-				Node dbNode             = node.getNode();
-				AbstractNode value      = null;
-
-				try {
-
-					for (Relationship rel : dbNode.getRelationships(getRelType(), getDirection())) {
-
-						value = nodeFactory.instantiateNode(rel.getOtherNode(dbNode));
-
-						// break on first hit of desired type
-						if (value != null && destinationType.isInstance(value)) {
-							return (T)value;
-						}
-					}
-
-				} catch (Throwable t) {
-
-					logger.log(Level.WARNING, "Unable to fetch related node: {0}", t.getMessage());
-				}
-
-			} else {
-
-				logger.log(Level.WARNING, "Requested related node with wrong cardinality {0} between {1} and {2}", new Object[] { getCardinality().name(), node.getClass().getSimpleName(), getDestType()});
-			}
-
-		} else {
-
-			logger.log(Level.WARNING, "Property {0} is registered on illegal type {1}", new Object[] { this, obj.getClass() } );
-		}
-
-		return null;
+		return getRelatedNode(securityContext, obj, getDestType());
 	}
 
 	@Override
@@ -314,5 +281,47 @@ public class EntityProperty<T extends GraphObject> extends AbstractRelationPrope
 			}
 
 		});
+	}
+	
+	public T getRelatedNode(SecurityContext securityContext, GraphObject obj, Class destinationType) {
+		
+		if (obj instanceof AbstractNode) {
+
+			AbstractNode node = (AbstractNode)obj;
+
+			if (cardinality.equals(Relation.Cardinality.OneToOne) || cardinality.equals(Relation.Cardinality.ManyToOne)) {
+
+				NodeFactory nodeFactory = new NodeFactory(securityContext);
+				Node dbNode             = node.getNode();
+				AbstractNode value      = null;
+
+				try {
+
+					for (Relationship rel : dbNode.getRelationships(getRelType(), getDirection())) {
+
+						value = nodeFactory.instantiate(rel.getOtherNode(dbNode));
+
+						// break on first hit of desired type
+						if (value != null && destinationType.isInstance(value)) {
+							return (T)value;
+						}
+					}
+
+				} catch (Throwable t) {
+
+					logger.log(Level.WARNING, "Unable to fetch related node: {0}", t.getMessage());
+				}
+
+			} else {
+
+				logger.log(Level.WARNING, "Requested related node with wrong cardinality {0} between {1} and {2}", new Object[] { getCardinality().name(), node.getClass().getSimpleName(), getDestType()});
+			}
+
+		} else {
+
+			logger.log(Level.WARNING, "Property {0} is registered on illegal type {1}", new Object[] { this, obj.getClass() } );
+		}
+
+		return null;
 	}
 }

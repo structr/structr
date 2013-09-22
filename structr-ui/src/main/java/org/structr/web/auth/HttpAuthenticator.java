@@ -29,7 +29,6 @@ import org.structr.core.auth.AuthHelper;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.entity.Principal;
-import org.structr.core.entity.ResourceAccess;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -42,9 +41,14 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import org.structr.common.AccessMode;
 import org.structr.common.PathHelper;
+import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Person;
+import org.structr.core.graph.StructrTransaction;
+import org.structr.core.graph.TransactionCommand;
+import org.structr.core.property.PropertyKey;
 import org.structr.web.resource.RegistrationResource;
 import org.structr.web.servlet.HtmlServlet;
 
@@ -57,34 +61,69 @@ import org.structr.web.servlet.HtmlServlet;
 public class HttpAuthenticator implements Authenticator {
 
 	private static final Logger logger       = Logger.getLogger(HttpAuthenticator.class.getName());
+	
+	protected boolean examined = false;
+	protected static boolean userAutoCreate;
 
 	//~--- methods --------------------------------------------------------
 
 	@Override
-	public void initializeAndExamineRequest(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) throws FrameworkException {
-	
-		Principal user = checkSessionAuthentication(request, response);
+	public boolean hasExaminedRequest() {
 		
-		if (user != null) {
-
-			securityContext.setUser(user);
-			return;
-
-		}
+		return examined;
 		
-		user = checkExternalAuthentication(securityContext, request, response);
-		
-		if (user != null) {
-			
-			securityContext.setUser(user);
-
-		}
-		
-	
 	}
 
 	@Override
-	public void examineRequest(SecurityContext securityContext, HttpServletRequest request, String resourceSignature, ResourceAccess resourceAccess, String propertyView)
+	public void setUserAutoCreate(final boolean userAutoCreate) {
+		
+		HttpAuthenticator.userAutoCreate = userAutoCreate;
+		
+	}
+
+	/**
+	 * Examine request and try to find a user.
+	 * 
+	 * First, check session id, then try external (OAuth) authentication.
+	 * 
+	 * @param request
+	 * @param response
+	 * @return
+	 * @throws FrameworkException 
+	 */
+	@Override
+	public SecurityContext initializeAndExamineRequest(HttpServletRequest request, HttpServletResponse response) throws FrameworkException {
+	
+		SecurityContext securityContext;
+		
+		Principal user = checkSessionAuthentication(request);
+		
+		if (user == null) {
+
+			user = checkExternalAuthentication(request, response);
+
+		}
+
+		if (user != null) {
+
+			securityContext = SecurityContext.getInstance(user, request, AccessMode.Backend);
+
+		} else {
+
+			// If no user could be determined, assume frontend access
+			securityContext = SecurityContext.getInstance(user, request, AccessMode.Frontend);
+			
+		}
+		
+		securityContext.setAuthenticator(this);
+		
+		examined = true;
+		return securityContext;
+		
+	}
+
+	@Override
+	public void checkResourceAccess(HttpServletRequest request, String resourceSignature, String propertyView)
 		throws FrameworkException {
 	
 		logger.log(Level.FINE, "Got session? ", request.getSession(false));
@@ -93,9 +132,9 @@ public class HttpAuthenticator implements Authenticator {
 	}
 
 	@Override
-	public Principal doLogin(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response, String emailOrUsername, String password) throws AuthenticationException {
+	public Principal doLogin(HttpServletRequest request, String emailOrUsername, String password) throws AuthenticationException {
 
-		Principal user = AuthHelper.getPrincipalForPassword(Person.email, emailOrUsername, password);
+		Principal user = AuthHelper.getPrincipalForPassword(Person.eMail, emailOrUsername, password);
 		
 		if (user == null) {
 			
@@ -106,14 +145,21 @@ public class HttpAuthenticator implements Authenticator {
 
 		if (user != null) {
 
-			securityContext.setUser(user);
-			
-			String sessionIdFromRequest = request.getRequestedSessionId();
+			final String sessionIdFromRequest = request.getRequestedSessionId();
+			final Principal principal         = user;
 
 			try {
 
-				// store session id in user object
-				user.setProperty(Principal.sessionId, sessionIdFromRequest);
+				Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(new StructrTransaction() {
+
+					@Override
+					public Object execute() throws FrameworkException {
+
+						// store session id in user object
+						principal.setProperty(Principal.sessionId, sessionIdFromRequest);
+						return null;
+					}
+				});
 
 			} catch (Exception ex) {
 
@@ -128,21 +174,33 @@ public class HttpAuthenticator implements Authenticator {
 	}
 
 	@Override
-	public void doLogout(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) {
+	public void doLogout(HttpServletRequest request) {
 	
 		try {
 
-			Principal user = securityContext.getUser(false);
-			
+			Principal user = getUser(request, false);
 			if (user != null) {
-				
-				user.setProperty(Principal.sessionId, null);
 
+				final Principal principal = user;
+				
+				Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(new StructrTransaction() {
+
+					@Override
+					public Object execute() throws FrameworkException {
+
+						principal.setProperty(Principal.sessionId, null);
+						return null;
+					}
+				});
 			}
 
-			request.getSession(false).invalidate();
+			HttpSession session = request.getSession(false);
+			
+			if (session != null) {
+				session.invalidate();
+			}
+			
 			request.logout();
-			securityContext.setUser(null);
 
 		} catch (Exception ex) {
 
@@ -153,28 +211,36 @@ public class HttpAuthenticator implements Authenticator {
 	
 	}
 
-	protected static Principal checkExternalAuthentication(final SecurityContext securityContext, final HttpServletRequest request, final HttpServletResponse response) {
+	/**
+	 * This method checks all configured external authentication services.
+	 * 
+	 * @param request
+	 * @param response
+	 * @param authProperty
+	 * @return 
+	 */
+	protected static Principal checkExternalAuthentication(final HttpServletRequest request, final HttpServletResponse response) {
 		
 		String path = PathHelper.clean(request.getPathInfo());
 		String[] uriParts = PathHelper.getParts(path);
 		
-		logger.log(Level.INFO, "Checking external authentication ...");
+		logger.log(Level.FINE, "Checking external authentication ...");
 		
 		if (uriParts == null || uriParts.length != 3 || !("oauth".equals(uriParts[0]))) {
 			
-			logger.log(Level.WARNING, "Incorrect URI parts for OAuth process, need /oauth/<name>/<action>");
+			logger.log(Level.FINE, "Incorrect URI parts for OAuth process, need /oauth/<name>/<action>");
 			return null;
 		}
 		
 		String name   = uriParts[1];
 		String action = uriParts[2];
 		
-		// Try to get an OAuth2 server for the given name
-		OAuth2Server oauthServer = OAuth2Server.getServer(name);
+		// Try to getValue an OAuth2 server for the given name
+		StructrOAuthClient oauthServer = StructrOAuthClient.getServer(name);
 		
 		if (oauthServer == null) {
 			
-			logger.log(Level.INFO, "No OAuth2 authentication server configured for {0}", path);
+			logger.log(Level.FINE, "No OAuth2 authentication server configured for {0}", path);
 			return null;
 			
 		}
@@ -183,7 +249,7 @@ public class HttpAuthenticator implements Authenticator {
 		
 			try {
 
-				response.sendRedirect(oauthServer.getEndUserAuthorizationRequest(request).getLocationUri());
+				response.sendRedirect(oauthServer.getEndUserAuthorizationRequestUri(request));
 				return null;
 
 			} catch (Exception ex) {
@@ -194,32 +260,43 @@ public class HttpAuthenticator implements Authenticator {
 		} else if ("auth".equals(action)) {
 			
 			String accessToken = oauthServer.getAccessToken(request);
+			SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
 			
 			if (accessToken != null) {
 				
 				logger.log(Level.FINE, "Got access token {0}", accessToken);
 				//securityContext.setAttribute("OAuthAccessToken", accessToken);
 				
-				String email = oauthServer.getEmail(request);
-				logger.log(Level.FINE, "Got email: {0}", new Object[] { email });
+				String value = oauthServer.getCredential(request);
+				logger.log(Level.FINE, "Got email: {0}", new Object[] { value });
 
-				if (email != null) {
+				if (value != null) {
+					
+					PropertyKey credentialKey = oauthServer.getCredentialKey();
 
-					Principal user = AuthHelper.getPrincipalForEmail(email);
+					Principal user = AuthHelper.getPrincipalForCredential(credentialKey, value);
 
-					if (user == null) {
+					if (user == null && userAutoCreate) {
 
-						user = RegistrationResource.createUser(securityContext, email);
+						user = RegistrationResource.createUser(superUserContext, credentialKey, value, true);
 
 					}
 
 					if (user != null) {
 
+						final Principal principal = user;
+						
 						try {
 
-							user.setProperty(Principal.sessionId, HttpAuthenticator.getSessionId(request));
-							securityContext.setUser(user);
-							
+							Services.command(superUserContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+								@Override
+								public Object execute() throws FrameworkException {
+									principal.setProperty(Principal.sessionId, HttpAuthenticator.getSessionId(request));
+									return null;
+								}
+							});
+									
 							HtmlServlet.setNoCacheHeaders(response);
 							
 							try {
@@ -264,12 +341,14 @@ public class HttpAuthenticator implements Authenticator {
 		
 	}
 		
-	protected static Principal checkSessionAuthentication(HttpServletRequest request, HttpServletResponse response) {
+	protected static Principal checkSessionAuthentication(HttpServletRequest request) {
 
 		String sessionIdFromRequest = request.getRequestedSessionId();
 		
 		if (sessionIdFromRequest == null) {
 			
+			// create session id
+			request.getSession(true);
 			return null;
 			
 		}
@@ -317,7 +396,7 @@ public class HttpAuthenticator implements Authenticator {
 					writeUnauthorized(response);
 				}
 
-				user = AuthHelper.getPrincipalForPassword(Person.email, userAndPass[0], userAndPass[1]);
+				user = AuthHelper.getPrincipalForPassword(Person.eMail, userAndPass[0], userAndPass[1]);
 
 			} catch (Exception ex) {
 
@@ -397,25 +476,24 @@ public class HttpAuthenticator implements Authenticator {
 
 	}
 
-	//~--- get methods ----------------------------------------------------
+	//~--- getValue methods ----------------------------------------------------
 
 	@Override
-	public Principal getUser(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response, final boolean tryLogin) throws FrameworkException {
+	public Principal getUser(HttpServletRequest request, final boolean tryLogin) throws FrameworkException {
 
 		// First, check session (JSESSIONID cookie)
-		Principal user = checkSessionAuthentication(request, response);
+		Principal user = checkSessionAuthentication(request);
 		
 		if (user != null) {
 			
-			securityContext.setUser(user);
 			return user;
 		}
 
-		// Second, try basic auth, if requested
-		if (tryLogin && user == null) {
-
-			user = checkBasicAuthentication(request, response);
-		}
+//		// Second, try basic auth, if requested
+//		if (tryLogin && user == null) {
+//
+//			user = checkBasicAuthentication(request, response);
+//		}
 		
 		return user;
 
@@ -458,4 +536,10 @@ public class HttpAuthenticator implements Authenticator {
 		
 	}
 	
+	public boolean getUserAutoCreate() {
+		
+		return userAutoCreate;
+
+	}
+
 }

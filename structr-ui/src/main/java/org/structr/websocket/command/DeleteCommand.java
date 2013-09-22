@@ -17,7 +17,6 @@
  * along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 package org.structr.websocket.command;
 
 import org.structr.common.SecurityContext;
@@ -25,7 +24,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.DeleteNodeCommand;
-import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -68,9 +66,10 @@ public class DeleteCommand extends AbstractCommand {
 			}
 
 		} else {
-
-			logger.log(Level.WARNING, "Node with id {0} not found.", webSocketData.getId());
-			getWebSocket().send(MessageBuilder.status().code(404).build(), true);
+			// Don't throw a 404. If node doesn't exist, it doesn't need to be removed,
+			// and everything is fine!.
+			//logger.log(Level.WARNING, "Node with id {0} not found.", webSocketData.getId());
+			//getWebSocket().send(MessageBuilder.status().code(404).build(), true);
 
 		}
 	}

@@ -172,7 +172,7 @@ var _Crud = {
         } else {
             _Crud.init();
         }
-    
+        
     },
 
     initTabs : function() {
@@ -183,6 +183,7 @@ var _Crud = {
 
         $('#resourceTabs').tabs({
             activate: function(event, ui) {
+                _Crud.clearList(_Crud.type);
                 var newType = ui.newPanel[0].id;
                 //console.log('deactivated', _Crud.type, 'activated', newType);
                 var typeNode = $('#' + _Crud.type);
@@ -196,6 +197,10 @@ var _Crud = {
                 _Crud.updateUrl(newType);
             }
         });
+        
+        _Crud.resize();
+    
+
     },
 
     isSchemaLoaded : function() {
@@ -316,6 +321,10 @@ var _Crud = {
             
             
         });        
+    },
+    
+    getPropertyType : function(type, key) {
+        return _Crud.schema[type].views.all[key].type;
     },
     
     determinePagerData : function(type) {
@@ -520,13 +529,14 @@ var _Crud = {
     },
 
     activateList : function(type) {
+        //console.log('activateList', type);
         var url = rootUrl + _Crud.restType(type) + '/' + _Crud.view[type] + _Crud.sortAndPagingParameters(type, _Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type]);
         _Crud.list(type, url);
         document.location.hash = type;
     },
 
     clearList : function(type) {
-        //    console.log('clearList');
+        //console.log('clearList', type);
         var table = _Crud.getTable(type);
         var headerRow = '<tr>' + $($('tr:first-child', table)[0]).html() + '</tr>';
         //    console.log(headerRow);
@@ -548,9 +558,8 @@ var _Crud = {
             success: function(data) {
                 //console.log(data);
                 $.each(data.result, function(i, item) {
-                    if (item.type === type) {
-                        _Crud.appendRow(type, item);
-                    }
+                    //console.log('calling appendRow', type, item);
+                    _Crud.appendRow(type, item);
                 });
                 _Crud.updatePager(type, data.query_time, data.serialization_time, data.page_size, data.page, data.page_count);
                 _Crud.replaceSortHeader(type);
@@ -560,32 +569,6 @@ var _Crud = {
             }
         });
     },
-
-//    addResource : function() {
-//        _Crud.dialog('Add another Type', function() {
-//            }, function() {
-//            });
-//        dialogText.append('Select Types');
-//        $.each(_Crud.allTypes, function(i, type) {
-//            dialogText.append('<div id="add-resource-' + type + '" class="button">' + type + '</div>');
-//            $('#add-resource-' + type, dialogText).on('click', function() {
-//                $.ajax({
-//                    url: rootUrl + 'resource_access?signature=' + type,
-//                    headers: headers,
-//                    data : '{visibleToAuthenticatedUsers:true}',
-//                    dataType: 'json',
-//                    contentType: 'application/json; charset=utf-8',
-//                    method: 'PUT',
-//                    success: function(data) {
-//                        console.log('success');
-//                    },
-//                    error : function(a,b,c) {
-//                        console.log(a,b,c);
-//                    }
-//                });                
-//            });
-//        });
-//    },
 
     crudExport : function(type) {
         var url  = rootUrl + '/' + $('#' + type).attr('data-url') + '/' + _Crud.view[type] + _Crud.sortAndPagingParameters(type, _Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type]);
@@ -911,13 +894,14 @@ var _Crud = {
             contentType: 'application/json; charset=utf-8',
             //async: false,
             success: function(data) {
-                console.log('reset', id, key, data.result[key]);
+                //console.log('reset', id, key, data.result[key]);
                 _Crud.resetCell(id, key, data.result[key]);
             }
         });
     },
 
     crudUpdateObj : function(id, json, onSuccess, onError) {
+        //console.log('crudUpdateObj URL:', rootUrl + id, headers);
         //console.log('crudUpdateObj JSON:', json);
         $.ajax({
             url: rootUrl + id,
@@ -990,16 +974,19 @@ var _Crud = {
 
     crudUpdate : function(id, key, newValue, onSuccess, onError) {
         var url = rootUrl + id;
-        var json = '{"' + key + '":"' + newValue + '"}';
+        var json;
+        if (!newValue || newValue === '') {
+            json = '{"' + key + '":null}';
+        } else {
+            json = '{"' + key + '":"' + newValue.escapeForJSON() + '"}';
+        }
         //console.log('crudUpdate', headers, url, json);
         $.ajax({
             url: url,
             headers: headers,
             data: json,
             type: 'PUT',
-            //dataType: 'json',
-            //contentType: 'application/json; charset=utf-8',
-            //async: false,
+            contentType: 'application/json; charset=utf-8',
             statusCode : {
                 200 : function() {
                     if (onSuccess) {
@@ -1058,39 +1045,12 @@ var _Crud = {
                     }
                 }
             }
-        //            success: function() {
-        //                console.log('crudUpdate success', url, headers, json);
-        //                if (onSuccess) {
-        //                    onSuccess();
-        //                } else {
-        //                    _Crud.crudRefresh(id, key);
-        //                }
-        //            },
-        //            error: function(data, status, xhr) {
-        //                console.log('crudUpdate error', url, headers, json, data, status, xhr);
-        //                // since jQuery 1.9, an empty response body is regarded as an error
-        //                // we have to react on this here
-        //                if (data.status == 200) {
-        //                } else {
-        //                    if (onError) {
-        //                        onError();
-        //                    } else {
-        //                        _Crud.crudReset(id, key);
-        //                    }
-        //                }
-        //            //alert(data.responseText);
-        //            // TODO: Overlay with error info
-        //            }
         });
     },
     
     crudRemoveProperty : function(id, key, onSuccess, onError) {
-        
         var url = rootUrl + id;
         var json = '{"' + key + '":null}';
-        
-        //console.log('crudRemoveProperty', headers, url, json);
-        
         $.ajax({
             url: url,
             headers: headers,
@@ -1131,7 +1091,6 @@ var _Crud = {
                     }
                 },
                 403 : function(data, status, xhr) {
-                    console.log(data, status, xhr);
                     _Crud.error('Forbidden: ' + data.responseText, true);
                     if (onError) {
                         onError();
@@ -1177,11 +1136,11 @@ var _Crud = {
             //async: false,
             statusCode : {
                 200 : function() {
-                    var row = $('#' + id);
+                    var row = _Crud.row(id);
                     row.remove();
                 },
                 204 : function() {
-                    var row = $('#' + id);
+                    var row = _Crud.row(id);
                     row.remove();
                 },
                 400 : function(data, status, xhr) {
@@ -1218,7 +1177,7 @@ var _Crud = {
     },
 
     cells : function(id, key) {
-        var row = $('#' + id);
+        var row = _Crud.row(id);
         var cellInMainTable = $('.' + key, row);
         
         var cellInDetailsTable;
@@ -1262,7 +1221,7 @@ var _Crud = {
     
     refreshRow : function(id, item) {
         //    console.log('refreshCell', id, key, newValue);
-        var row = $('#' + id);
+        var row = _Crud.row(id);
         row.empty();
         _Crud.populateRow(id, item);
     },
@@ -1282,19 +1241,25 @@ var _Crud = {
             }
         });
     },
-    
+            
+    row : function(id) {
+        return $('#_' + id);
+    },
+            
     appendRow : function(type, item) {
+        //console.log('appendRow', type, item);
         var id = item['id'];
         var table = _Crud.getTable(type);
-        table.append('<tr id="' + id + '"></tr>');
-        _Crud.populateRow(id, item);
+        table.append('<tr id="_' + id + '"></tr>');
+        _Crud.populateRow(id, item, type);
     },
 
-    populateRow : function(id, item) {
-        var type = item.type;
-        var row = $('#' + id);
+    populateRow : function(id, item, type) {
+        //console.log('populateRow', id, item, type, _Crud.keys[type]);
+        var row = _Crud.row(id);
         if (_Crud.keys[type]) {
             $.each(_Crud.keys[type], function(k, key) {
+                //console.log('populateRow for key', key, row);
                 row.append('<td class="' + key + '"></td>');
                 var cells = _Crud.cells(id, key);
                 $.each(cells, function(i, cell) {
@@ -1328,15 +1293,39 @@ var _Crud = {
         }
         
         if (!relatedType) {
-            
-            //console.log(key, value, typeof value);
-            
-            if (typeof value === 'boolean') {
+    
+            var propertyType = _Crud.getPropertyType(type, key);
+
+            if (propertyType === 'Boolean') {
                 cell.append('<input ' + (readOnly ? 'class="readonly" readonly ' : '') + 'type="checkbox" ' + (value?'checked="checked"':'') + '>');
                 if (!readOnly) {
                     $('input', cell).on('change', function() {
                        //console.log('change value for ' + key + ' to ' + $(this).prop('checked'));
                        _Crud.crudUpdate(id, key, $(this).prop('checked').toString());
+                    });
+                }
+            } else if (propertyType === 'Date') {
+                cell.text(nvl(formatValue(value),''));
+                if (!readOnly) {
+                    cell.on('mouseup', function(event) {
+                        event.preventDefault();
+                        var self = $(this);
+                        var oldValue = self.text();
+                        self.html('<input class="value" type="text" size="40">');
+                        var input = $('input', self);
+                        input.val(oldValue);
+                        input.datetimepicker({
+                            // ISO8601 Format: 'yyyy-MM-dd"T"HH:mm:ssZ'
+                            separator: 'T',
+                            dateFormat: 'yy-mm-dd',
+                            timeFormat: 'HH:mm:ssz',
+                            onClose: function() {
+                                var newValue = input.val();
+                                _Crud.crudUpdate(id, key, newValue);
+                            }
+                        });
+                        input.datetimepicker('show');
+                        self.off('mouseup');
                     });
                 }
             } else {
@@ -1347,8 +1336,10 @@ var _Crud = {
                         var self = $(this);
                         var oldValue = self.text();
                         self.off('mouseup');
-                        self.html('<input class="value" type="text" size="40" value="' + oldValue + '">');
-                        _Crud.activateTextInputField($('input', self), id, key);
+                        self.html('<input class="value" type="text" size="40">');
+                        var input = $('input', self);
+                        input.val(oldValue);
+                        _Crud.activateTextInputField(input, id, key);
                     });
                 }
             }
@@ -1393,7 +1384,7 @@ var _Crud = {
     },
 
     getAndAppendNode : function(parentType, parentId, key, obj, cell) {
-        //console.log('headers', headers);
+        //console.log(parentType, parentId, key, obj, cell);
         if (!obj) return;
         var id;
         if ((typeof obj) === 'object') {
@@ -1504,13 +1495,23 @@ var _Crud = {
         
         var view = _Crud.view[_Crud.type];
         
-        var types = type ? [ type ] : _Crud.types;
+        //var types = type ? [ type ] : _Crud.types;
+        var types;
+        var posOfColon = searchString.indexOf(':');
+        if (posOfColon > -1) {
+            var type = searchString.substring(0, posOfColon);
+            if (!type.endsWith('s')) {
+                type = type + 's';
+            }
+            types = [ type.capitalize() ];
+            searchString = searchString.substring(posOfColon+1, searchString.length); 
+            //console.log('filter search type', types, searchString);
+        } else {
+            types = type ? [ type ] : _Crud.types;
+        }
         
         $.each(types, function(t, type) {
-            
-            var url = rootUrl + _Crud.restType(type) + '/' + view + _Crud.sortAndPagingParameters(type, 'name', 'asc', pageSize, 1) + '&name=' + searchString + '&loose=1';
-            console.log(url);
-            
+            var url = rootUrl + _Crud.restType(type) + '/' + view + _Crud.sortAndPagingParameters(type, 'name', 'asc', 1000, 1) + '&name=' + searchString + '&loose=1';
             $.ajax({
                 url: url,
                 headers: headers,
@@ -1551,8 +1552,9 @@ var _Crud = {
 
     displayName : function(node) {
         var displayName;
-        if (node.type === 'Content') {
-            displayName = node.content.substring(0, 100);
+        if (node.type === 'Content' && node.content) {
+            //displayName = $(node.content).text().substring(0, 100);
+            displayName = escapeTags(node.content.substring(0, 100));
         } else {
             displayName = node.name ? node.name : node.id;
         }
@@ -1619,7 +1621,6 @@ var _Crud = {
         var view = _Crud.view[_Crud.type];
         var urlType  = _Crud.restType(type); //$('#' + type).attr('data-url').substring(1);
         var url = rootUrl + urlType + '/' + id + '/' + view;
-        console.log(url);
         if (_Crud.isCollection(key, type)) {
             var objects = [];
             $.ajax({
@@ -1635,7 +1636,7 @@ var _Crud = {
                         //console.log(obj, ' equals ', relatedObj);
                         if (!_Crud.equal(obj, relatedObj)) {
                             //console.log('not equal');
-                            objects.push(obj);
+                            objects.push({'id':obj.id});
                         }
                     });
                     
@@ -1667,9 +1668,9 @@ var _Crud = {
                                     //async: false,
                                     statusCode : {
                                         200 : function(data) {
-                                            var rowEl = $('#' + id);
-                                            var nodeEl = $('.' + _Crud.id(relatedObj) + '_', rowEl);
-                                            console.log(rowEl, nodeEl);
+                                            //var rowEl = $('#' + id);
+                                            var nodeEl = $('.' + _Crud.id(relatedObj) + '_');
+                                            //console.log(rowEl, nodeEl);
                                             nodeEl.remove();
                                         },
                                         error: function(a,b,c) {
@@ -1719,11 +1720,11 @@ var _Crud = {
                 success: function(data) {
                     //console.log(data.result[key]);
                     $.each(data.result[key], function(i, node) {
-                        objects.push(node); 
+                        objects.push({'id':node.id}); 
                     });
 
-                    if (!isIn(relatedObj, objects)) {
-                        objects.push(relatedObj);
+                    if (!isIn(relatedObj.id, objects)) {
+                        objects.push({'id':relatedObj.id});
                     }
                     var json = '{"' + key + '":' + JSON.stringify(objects) + '}';
                     //console.log(headers, url, json);
@@ -1876,6 +1877,10 @@ var _Crud = {
         $('#dialogBox .dialogTextWrapper').css({
             width: bw,
             height: bh
+        });
+
+        $('.resourceBox').css({
+           height: h - 137 + 'px'     
         });
     },
 
@@ -2055,34 +2060,5 @@ var _Crud = {
         // default
         return false;
     }
-    
-}
-
-// Hook for nodejs
-if (typeof module === 'object') {
-    var $ = require('jquery');
-    var token = '';
-    var rootUrl = 'http://localhost:8180/structr/rest/';
-    module.exports = _Crud;
-    
-    function nvl(value, defaultValue) {
-        var returnValue;
-        if (value === undefined) {
-            returnValue = defaultValue;
-        } else if (value === false) {
-            returnValue = 'false';
-        } else if (!value) {
-            returnValue = '';
-        }
-        else {
-            returnValue = value;
-        }
-        return returnValue;
-    }
-    
-    function isIn(id, ids) {
-        return ($.inArray(id, ids) > -1);
-    }
-
     
 }

@@ -39,5 +39,7 @@ public interface PropertyValidator<T> {
 	 * @param parameter
 	 * @return
 	 */
-	public abstract boolean isValid(SecurityContext securityContext, GraphObject object, PropertyKey<T> key, T value, ErrorBuffer errorBuffer);
+	public boolean isValid(SecurityContext securityContext, GraphObject object, PropertyKey<T> key, T value, ErrorBuffer errorBuffer);
+	
+	public boolean requiresSynchronization();	
 }

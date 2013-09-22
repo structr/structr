@@ -53,7 +53,7 @@ public class DeleteRelationshipCommand extends NodeServiceCommand {
 		RelationshipFactory relFactory = new RelationshipFactory(securityContext);
 		
 		// default is active deletion!
-		return execute(relFactory.instantiateRelationship(securityContext, rel), false);
+		return execute(relFactory.instantiate(rel), false);
 	}
 	
 	public Object execute(final AbstractRelationship rel) throws FrameworkException {
@@ -76,7 +76,6 @@ public class DeleteRelationshipCommand extends NodeServiceCommand {
 
 			}
 
-			final RemoveRelationshipFromIndex removeRel = Services.command(SecurityContext.getSuperUserInstance(), RemoveRelationshipFromIndex.class);
 			final Relationship relToDelete              = rel.getRelationship();
 			final AbstractRelationship finalRel         = rel;
 
@@ -90,7 +89,7 @@ public class DeleteRelationshipCommand extends NodeServiceCommand {
 					try {
 
 						// remove object from index
-						removeRel.execute(finalRel);
+						finalRel.removeFromIndex();
 
 						// delete node in database
 						relToDelete.delete();

@@ -27,8 +27,8 @@ import java.util.logging.Logger;
 import org.structr.common.error.FrameworkException;
 
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Principal;
 import org.structr.web.entity.Group;
-import org.structr.web.entity.User;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -52,7 +52,6 @@ public class AppendUserCommand extends AbstractCommand {
 		String id                    = webSocketData.getId();
 		Map<String, Object> nodeData = webSocketData.getNodeData();
 		String parentId              = (String) nodeData.get("parentId");
-		String key                   = (String) nodeData.get("key");
 
 		// check node to append
 		if (id == null) {
@@ -87,11 +86,11 @@ public class AppendUserCommand extends AbstractCommand {
 
 			Group group = (Group) parentNode;
 			
-			User user = (User) getNode(id);
+			Principal user = (Principal) getNode(id);
 
 			if (user != null) {
 				try {
-					group.addUser(user);
+					group.addMember(user);
 				} catch (FrameworkException ex) {
 					logger.log(Level.SEVERE, null, ex);
 					getWebSocket().send(MessageBuilder.status().code(422).message("Cannot append file").build(), true);

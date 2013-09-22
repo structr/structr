@@ -38,6 +38,7 @@ import org.structr.web.entity.User;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -46,16 +47,15 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.parboiled.common.StringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.structr.core.auth.AuthHelper;
 import org.structr.core.entity.Person;
 import org.structr.core.entity.Principal;
-import org.structr.core.graph.NewIndexNodeCommand;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.search.Search;
+import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchNodeCommand;
-import org.structr.core.graph.search.SearchOperator;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.mail.MailTemplate;
 import org.structr.web.servlet.HtmlServlet;
@@ -112,11 +112,12 @@ public class RegistrationResource extends Resource {
 	@Override
 	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
 
-		if (propertySet.containsKey(User.email.jsonName()) && propertySet.size() == 1) {
+		if (propertySet.containsKey(User.eMail.jsonName()) && propertySet.size() == 1) {
 			
-			User user;
+			SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
+			final Principal user;
 			
-			final String emailString  = (String) propertySet.get(User.email.jsonName());
+			final String emailString  = (String) propertySet.get(User.eMail.jsonName());
 			
 			if (StringUtils.isEmpty(emailString)) {
 				return new RestMethodResult(HttpServletResponse.SC_BAD_REQUEST);
@@ -125,18 +126,27 @@ public class RegistrationResource extends Resource {
 			localeString = (String) propertySet.get(MailTemplate.locale.jsonName());
 			confKey = UUID.randomUUID().toString();
 			
-			Result result = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(
-				Search.andExactType(User.class.getSimpleName()),
-				Search.andExactProperty(User.email, emailString));
+			Result result = Services.command(superUserContext, SearchNodeCommand.class).execute(
+				Search.andExactType(User.class),
+				Search.andExactProperty(superUserContext, User.eMail, emailString));
 				
 			if (!result.isEmpty()) {
 				
-				user = (User) result.get(0);
-				user.setProperty(User.confirmationKey, confKey);
+				user = (Principal) result.get(0);
+				
+				Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+					@Override
+					public Object execute() throws FrameworkException {
+				
+						user.setProperty(User.confirmationKey, confKey);
+						return null;
+					}
+				});
 				
 			} else {
 
-				user = createUser(securityContext, emailString);
+				user = createUser(securityContext, User.eMail, emailString, securityContext.getAuthenticator().getUserAutoCreate());
 			}
 			
 			if (user != null) {
@@ -176,15 +186,15 @@ public class RegistrationResource extends Resource {
 
 	}
 
-	private boolean sendInvitationLink(final User user) {
+	private boolean sendInvitationLink(final Principal user) {
 
 		Map<String, String> replacementMap = new HashMap();
 
-		String userEmail = user.getProperty(User.email);
+		String userEmail = user.getProperty(User.eMail);
 		
-		replacementMap.put(toPlaceholder(User.email.jsonName()), userEmail);
+		replacementMap.put(toPlaceholder(User.eMail.jsonName()), userEmail);
 		replacementMap.put(toPlaceholder("link"),
-			getTemplateText(TemplateKey.BASE_URL, "//" + Services.getApplicationHost() + ":" + Services.getHttpPort())
+			getTemplateText(TemplateKey.BASE_URL, "http://" + Services.getApplicationHost() + ":" + Services.getHttpPort())
 			+ "/" + HtmlServlet.CONFIRM_REGISTRATION_PAGE
 			+ "?" + HtmlServlet.CONFIRM_KEY_KEY + "=" + confKey
 			+ "&" + HtmlServlet.TARGET_PAGE_KEY + "=" + getTemplateText(TemplateKey.TARGET_PAGE, "register_thanks"));
@@ -215,11 +225,16 @@ public class RegistrationResource extends Resource {
 
 	private String getTemplateText(final TemplateKey key, final String defaultValue) {
 		try {
-			List<MailTemplate> templates = (List<MailTemplate>) Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(
-				Search.andExactType(MailTemplate.class.getSimpleName()),
-				Search.andExactName(key.name()),
-				Search.andMatchExactValues(MailTemplate.locale, localeString, SearchOperator.AND)
-			).getResults();
+			List<SearchAttribute> attrs = new LinkedList();
+			
+			attrs.add(Search.andExactType(MailTemplate.class));
+			attrs.add(Search.andExactName(key.name()));
+			
+			if (localeString != null) {
+				attrs.add(Search.andExactProperty(securityContext, MailTemplate.locale, localeString));
+			}
+			
+			List<MailTemplate> templates = (List<MailTemplate>) Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(attrs).getResults();
 			
 			if (!templates.isEmpty()) {
 				
@@ -247,27 +262,46 @@ public class RegistrationResource extends Resource {
 
 	}
 	
+	
 	/**
-	 * Create a new user
+	 * Create a new user.
 	 * 
-	 * If a {@link Person} is found, convert that object to a {@link User} object
+	 * If a {@link Person} is found, convert that object to a {@link User} object.
+	 * Do not auto-create a new user.
 	 * 
 	 * @param securityContext
-	 * @param emailString
+	 * @param credentialKey
+	 * @param credentialValue
 	 * @return 
 	 */
-	public static User createUser(final SecurityContext securityContext, final String emailString) {
+	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue) {
+		
+		return createUser(securityContext, credentialKey, credentialValue, false);
+		
+	}	
+	
+	/**
+	 * Create a new user.
+	 * 
+	 * If a {@link Person} is found, convert that object to a {@link User} object.
+	 * If autoCreate is true, auto-create a new user, even if no matching person is found.
+	 * 
+	 * @param securityContext
+	 * @param credentialKey
+	 * @param credentialValue
+	 * @param autoCreate
+	 * @return 
+	 */
+	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final boolean autoCreate) {
 
 		try {
-			return Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<User>() {
+			return Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<Principal>() {
 
 				@Override
-				public User execute() throws FrameworkException {
+				public Principal execute() throws FrameworkException {
 
-					User user;
-					
 					// First, search for a person with that e-mail address
-					Person person = (Person) AuthHelper.getPrincipalForEmail(emailString);
+					Person person = (Person) AuthHelper.getPrincipalForCredential(credentialKey, credentialValue);
 
 					if (person != null) {
 						
@@ -275,32 +309,37 @@ public class RegistrationResource extends Resource {
 						person.unlockReadOnlyPropertiesOnce();
 						person.setProperty(AbstractNode.type, User.class.getSimpleName());
 
-						user = new User();
+						User user = new User();
 						user.init(securityContext, person.getNode());
 
 						// index manually, because type is a system property!
-						Services.command(securityContext, NewIndexNodeCommand.class).updateNode(person);
+						person.updateInIndex();
 
 						user.setProperty(User.confirmationKey, confKey);
+						
+						return user;
 
-					} else {
+					} else if (autoCreate) {
 
-						user = (User) Services.command(securityContext, CreateNodeCommand.class).execute(
+						return (Principal) Services.command(securityContext, CreateNodeCommand.class).execute(
 							new NodeAttribute(AbstractNode.type, User.class.getSimpleName()),
-							new NodeAttribute(User.email, emailString),
-							new NodeAttribute(User.name, emailString),
+							new NodeAttribute(credentialKey, credentialValue),
+							new NodeAttribute(User.name, credentialValue),
 							new NodeAttribute(User.confirmationKey, confKey));
+						
 
 					}
-
-					return user;
+					
+					logger.log(Level.WARNING, "No user created: No matching person found, and auto-creation is off");
+					
+					return null;
 
 				}
 				
 			});
 			
 		} catch (FrameworkException ex) {
-			Logger.getLogger(RegistrationResource.class.getName()).log(Level.SEVERE, null, ex);
+			logger.log(Level.SEVERE, null, ex);
 		}
 		
 		return null;

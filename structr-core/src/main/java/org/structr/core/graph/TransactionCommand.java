@@ -21,6 +21,7 @@
 package org.structr.core.graph;
 
 
+import java.util.Set;
 import java.util.logging.Level;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
@@ -28,8 +29,10 @@ import org.neo4j.graphdb.Transaction;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.logging.Logger;
+import org.neo4j.kernel.DeadlockDetectedException;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.RetryException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.property.PropertyKey;
@@ -55,22 +58,57 @@ import org.structr.core.property.PropertyKey;
 public class TransactionCommand extends NodeServiceCommand {
 
 	private static final Logger logger                                  = Logger.getLogger(TransactionCommand.class.getName());
-	private static final long THRESHOLD                                 = 300;
-	
 	private static final ThreadLocal<TransactionCommand> currentCommand = new ThreadLocal<TransactionCommand>();
 	private static final ThreadLocal<Transaction>        transactions   = new ThreadLocal<Transaction>();
+	private static final MultiSemaphore                  semaphore      = new MultiSemaphore();
 	
 	private ModificationQueue modificationQueue = null;
 	private ErrorBuffer errorBuffer             = null;
-
+	
 	public <T> T execute(StructrTransaction<T> transaction) throws FrameworkException {
 		
-		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
-		Transaction tx               = transactions.get();
-		boolean topLevel             = (tx == null);
-		FrameworkException error     = null;
-		T result                     = null;
-		long t0                      = System.currentTimeMillis();
+		boolean topLevel = (transactions.get() == null);
+		boolean retry    = true;
+		int retryCount   = 0;
+		
+		if (topLevel) {
+			
+			T result = null;
+			
+			while (retry && retryCount++ < 100) {
+
+				// assume success
+				retry = false;
+
+				try {
+					result = executeInternal(transaction);
+
+				} catch (RetryException rex) {
+
+					logger.log(Level.INFO, "Deadlock encountered, retrying transaction, count {0}", retryCount);
+
+					retry = true;
+				}
+			}
+			
+			return result;
+			 
+		} else {
+			
+			return executeInternal(transaction);
+		}
+	}
+
+	private <T> T executeInternal(StructrTransaction<T> transaction) throws FrameworkException {
+		
+		GraphDatabaseService graphDb    = (GraphDatabaseService) arguments.get("graphDb");
+		Transaction tx                  = transactions.get();
+		boolean topLevel                = (tx == null);
+		boolean error                   = false;
+		boolean deadlock                = false;
+		Set<String> synchronizationKeys = null;
+		FrameworkException exception    = null;
+		T result                        = null;
 		
 		if (topLevel) {
 		
@@ -90,69 +128,102 @@ public class TransactionCommand extends NodeServiceCommand {
 			
 			if (topLevel) {
 
-				long t1 = System.currentTimeMillis();
+				// 1. do inner callbacks (may cause transaction to fail)
+				if (!modificationQueue.doInnerCallbacks(securityContext, errorBuffer)) {
+
+					// create error
+					if (transaction.doValidation) {
+						throw new FrameworkException(422, errorBuffer);
+					}
+				}
 				
-				if (!modificationQueue.doInnerCallbacks(securityContext, errorBuffer, transaction.doValidation)) {
+				// 2. fetch all types of entities modified in this tx
+				synchronizationKeys = modificationQueue.getSynchronizationKeys();
+
+				// we need to protect the validation and indexing part of every transaction
+				// from being entered multiple times in the presence of validators
+				// 3. acquire semaphores for each modified type
+				try { semaphore.acquire(synchronizationKeys); } catch (InterruptedException iex) { return null; }
+
+				// finally, do validation under the protection of the semaphores for each type
+				if (!modificationQueue.doValidation(securityContext, errorBuffer, transaction.doValidation)) {
 
 					// create error
 					throw new FrameworkException(422, errorBuffer);
 				}
-
-				long t2 = System.currentTimeMillis();
-				if (t2-t1 > THRESHOLD) {
-					logger.log(Level.INFO, "Inner callbacks took {0} ms", t2-t1);
-				}
 			}
 			
-		} catch (Throwable t) {
-
-			// TODO: add debugging switch!
-			// t.printStackTrace();
+		} catch (DeadlockDetectedException ddex) {
 			
-			// catch everything
 			tx.failure();
 			
-			if (t instanceof FrameworkException) {
-				error = (FrameworkException)t;
-			}
-		}
+			// this block is entered when we first
+			// encounter a DeadlockDetectedException
+			// => pass on to parent transaction
+			deadlock = true;
+			error = true;
+			
+		} catch (RetryException rex) {
+			
+			tx.failure();
 
-		// finish toplevel transaction
-		if (topLevel) {
-				
-			long t3 = System.currentTimeMillis();
-			
-			tx.success();
-			tx.finish();
+			// this block is entered when we catch the
+			// RetryException from a nested transaction
+			// => pass on to parent transaction
+			deadlock = true;
+			error = true;
 
-			long t4 = System.currentTimeMillis();
-			if (t4-t3 > THRESHOLD) {
-				logger.log(Level.INFO, "Neo tx took {0} ms", t4-t3);
-			}
+		} catch (FrameworkException fex) {
 			
-			// cleanup
-			currentCommand.remove();
-			transactions.remove();
+			tx.failure();
 			
-			// no error, notify entities
-			if (error == null) {
-				modificationQueue.doOuterCallbacksAndCleanup(securityContext);
-			}
-				
-			long t5 = System.currentTimeMillis();
-			if (t5-t4 > THRESHOLD) {
-				logger.log(Level.INFO, "Outer callbacks took {0} ms", t5-t4);
-			}
+			exception = fex;
+			error = true;
+			
+		} catch (Throwable t) {
+			
+			tx.failure();
 
-			if (t5-t0 > THRESHOLD) {
-				logger.log(Level.INFO, "Transaction took {0} ms", t5-t0);
-			}
+			// TODO: add debugging switch!
+			t.printStackTrace();
 			
+			error = true;
+
+			
+		} finally {
+
+			// finish toplevel transaction
+			if (topLevel) {
+
+				try {
+					tx.success();
+					tx.finish();
+					
+				} finally {
+
+					// release semaphores as the transaction is now finished
+					semaphore.release(synchronizationKeys);	// careful: this can be null
+
+					// cleanup
+					currentCommand.remove();
+					transactions.remove();
+				}
+
+				// no error, notify entities
+				if (!error) {
+					modificationQueue.doOuterCallbacks(securityContext);
+					modificationQueue.clear();
+				}
+			}
 		}
 		
-		// throw actual error
-		if (error != null) {
-			throw error;
+		if (deadlock) {
+			throw new RetryException();
+		}
+		
+		// throw actual exception
+		if (exception != null && error) {
+			throw exception;
 		}
 		
 		return result;
@@ -282,6 +353,10 @@ public class TransactionCommand extends NodeServiceCommand {
 			
 			logger.log(Level.SEVERE, "Relationship deleted while outside of transaction!");
 		}
+	}
+	
+	public static boolean inTransaction() {
+		return currentCommand.get() != null;
 	}
 
 	private ModificationQueue getModificationQueue() {

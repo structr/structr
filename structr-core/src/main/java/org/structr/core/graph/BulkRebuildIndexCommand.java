@@ -70,10 +70,8 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 
 			if (type != null) {
 
-				final NewIndexNodeCommand indexNode = Services.command(securityContext, NewIndexNodeCommand.class);
-
 				// final Result<AbstractNode> result = Services.command(securityContext, SearchNodeCommand.class).execute(true, false, Search.andExactType(type.getSimpleName()));
-				final Result<AbstractNode> result = nodeFactory.instantiateAllNodes(GlobalGraphOperations.at(graphDb).getAllNodes());
+				final Result<AbstractNode> result = nodeFactory.instantiateAll(GlobalGraphOperations.at(graphDb).getAllNodes());
 				final List<AbstractNode> nodes    = new ArrayList<AbstractNode>();
 
 				for (AbstractNode node : result.getResults()) {
@@ -92,7 +90,7 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 					@Override
 					public void handleGraphObject(SecurityContext securityContext, AbstractNode node) {
 
-						indexNode.updateNode(node);
+						node.updateInIndex();
 
 					}
 					@Override
@@ -118,10 +116,8 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 
 		} else if (relType != null) {
 
-			final IndexRelationshipCommand indexRel = Services.command(securityContext, IndexRelationshipCommand.class);
-
 			// final Result<AbstractNode> result = Services.command(securityContext, SearchNodeCommand.class).execute(true, false, Search.andExactType(type.getSimpleName()));
-			final List<AbstractRelationship> unfilteredRels = relFactory.instantiateRelationships(superUserContext, GlobalGraphOperations.at(graphDb).getAllRelationships());
+			final List<AbstractRelationship> unfilteredRels = relFactory.instantiate(GlobalGraphOperations.at(graphDb).getAllRelationships());
 			final List<AbstractRelationship> rels           = new ArrayList<AbstractRelationship>();
 
 			for (AbstractRelationship rel : unfilteredRels) {
@@ -140,15 +136,7 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 				@Override
 				public void handleGraphObject(SecurityContext securityContext, AbstractRelationship rel) {
 
-					try {
-
-						indexRel.execute(rel);
-
-					} catch (FrameworkException fex) {
-
-						logger.log(Level.WARNING, "Unable to index relationship {0}: {1}", new Object[] { rel, fex.getMessage() });
-
-					}
+					rel.updateInIndex();
 
 				}
 				@Override

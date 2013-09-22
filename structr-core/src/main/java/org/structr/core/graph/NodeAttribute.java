@@ -26,15 +26,15 @@ import org.structr.core.property.PropertyKey;
  *
  * @author Christian Morgner
  */
-public class NodeAttribute {
+public class NodeAttribute<T> {
 
-	private PropertyKey key = null;
-	private Object value = null;
+	private PropertyKey<T> key = null;
+	private T value = null;
 
 	public NodeAttribute() {
 	}
 
-	public NodeAttribute(final PropertyKey key, final Object value) {
+	public NodeAttribute(final PropertyKey<T> key, final T value) {
 		this.key = key;
 		this.value = value;
 	}
@@ -42,28 +42,28 @@ public class NodeAttribute {
 	/**
 	 * @return the key
 	 */
-	public PropertyKey getKey() {
+	public PropertyKey<T> getKey() {
 		return key;
 	}
 
 	/**
 	 * @param key the key to set
 	 */
-	public void setKey(final PropertyKey key) {
+	public void setKey(final PropertyKey<T> key) {
 		this.key = key;
 	}
         
 	/**
 	 * @return the value
 	 */
-	public Object getValue() {
+	public T getValue() {
 		return value;
 	}
 
 	/**
 	 * @param value the value to set
 	 */
-	public void setValue(final Object value) {
+	public void setValue(final T value) {
 		this.value = value;
 	}
 

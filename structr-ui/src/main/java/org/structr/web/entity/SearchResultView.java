@@ -28,8 +28,6 @@ import org.apache.commons.lang.StringUtils;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
-import org.structr.core.graph.NodeService;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.DOMElement;
 
@@ -51,19 +49,11 @@ import org.structr.core.entity.AbstractRelationship;
  */
 public class SearchResultView extends View {
 
-	private static final Logger logger                     = Logger.getLogger(SearchResultView.class.getName());
-	private DecimalFormat decimalFormat                                            = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
+	private static final Logger logger  = Logger.getLogger(SearchResultView.class.getName());
+	private DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
+	
 	public static final org.structr.common.View uiView     = new org.structr.common.View(SearchResultView.class, PropertyView.Ui, type, name, query);
 	public static final org.structr.common.View publicView = new org.structr.common.View(SearchResultView.class, PropertyView.Public, type, name, query);
-
-	//~--- static initializers --------------------------------------------
-
-	static {
-
-		EntityContext.registerSearchablePropertySet(SearchResultView.class, NodeService.NodeIndex.fulltext.name(), uiView.properties());
-		EntityContext.registerSearchablePropertySet(SearchResultView.class, NodeService.NodeIndex.keyword.name(), uiView.properties());
-
-	}
 
 	//~--- get methods ----------------------------------------------------
 

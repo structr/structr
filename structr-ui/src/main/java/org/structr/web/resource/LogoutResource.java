@@ -64,7 +64,7 @@ public class LogoutResource extends Resource {
 	@Override
 	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
 
-		securityContext.doLogout();
+		securityContext.getAuthenticator().doLogout(securityContext.getRequest());
 		
 		return new RestMethodResult(200);
 

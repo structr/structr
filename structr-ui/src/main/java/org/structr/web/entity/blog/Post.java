@@ -28,9 +28,7 @@ import org.neo4j.graphdb.Direction;
 
 import org.structr.common.PropertyView;
 import org.structr.web.common.RelType;
-import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.NodeService.NodeIndex;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -49,10 +47,10 @@ import org.structr.web.entity.dom.Content;
  */
 public class Post extends AbstractNode {
 
-	public static final Property<String>                title = new StringProperty("title");
-	public static final CollectionProperty<Content>  sections = new CollectionProperty<Content>("sections", Content.class, RelType.CONTAINS, Direction.OUTGOING, true);
-	public static final CollectionProperty<Comment>  comments = new CollectionProperty<Comment>("comments", Comment.class, org.structr.web.common.RelType.COMMENT, Direction.OUTGOING, true);
-	public static final Property<Date>            publishDate = new ISO8601DateProperty("publishDate");
+	public static final Property<String>             title       = new StringProperty("title").indexed();
+	public static final CollectionProperty<Content>  sections    = new CollectionProperty<Content>("sections", Content.class, RelType.CONTAINS, Direction.OUTGOING, true);
+	public static final CollectionProperty<Comment>  comments    = new CollectionProperty<Comment>("comments", Comment.class, org.structr.web.common.RelType.COMMENT, Direction.OUTGOING, true);
+	public static final Property<Date>               publishDate = new ISO8601DateProperty("publishDate").indexed();
 	
 	public static final org.structr.common.View uiView = new org.structr.common.View(Post.class, PropertyView.Ui,
 		type, name, title, sections, publishDate, owner, comments
@@ -61,12 +59,6 @@ public class Post extends AbstractNode {
 	public static final org.structr.common.View publicView = new org.structr.common.View(Post.class, PropertyView.Public,
 		type, name, title, sections, publishDate, owner, comments
 	);
-	
-	static {
-
-		EntityContext.registerSearchablePropertySet(Post.class, NodeIndex.fulltext.name(), uiView.properties());
-		EntityContext.registerSearchablePropertySet(Post.class, NodeIndex.keyword.name(),  uiView.properties());
-	}
 
 	//~--- get methods ----------------------------------------------------
 

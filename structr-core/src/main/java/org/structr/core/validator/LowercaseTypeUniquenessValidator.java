@@ -40,36 +40,50 @@ import org.structr.core.graph.search.SearchUserCommand;
 public class LowercaseTypeUniquenessValidator implements PropertyValidator<String> {
 
 	private final NodeIndex nodeIndex;
+	private final Class type;
 
-	public LowercaseTypeUniquenessValidator(final NodeIndex indexKey) {
+	public LowercaseTypeUniquenessValidator(final Class type, final NodeIndex indexKey) {
 
 		nodeIndex = indexKey;
+		this.type = type;
 	}
 
 
 	@Override
 	public boolean isValid(SecurityContext securityContext, final GraphObject object, final PropertyKey<String> key, final String value, final ErrorBuffer errorBuffer) {
 
-		final AbstractNode result = lookup(nodeIndex, key, value);
-		if (result == null) {
+		if (!type.isAssignableFrom(object.getClass())) {
+			
+			// types are different
 			return true;
 		}
 
-		final String id = result.getUuid();
-		errorBuffer.add(object.getType(), new LowercaseUniqueToken(id, key, value));
+		final AbstractNode result = lookup(nodeIndex, key, value);
+		if (result != null && result.getId() != object.getId()) {
 
-		return false;
+
+			final String id = result.getUuid();
+			errorBuffer.add(object.getType(), new LowercaseUniqueToken(id, key, value));
+
+			return false;
+		}
+		
+		return true;
 	}
 
 
 	private static AbstractNode lookup(final NodeIndex index, final PropertyKey key, final String value) {
 		try {
-			return
-				(AbstractNode) Services.command(SecurityContext.getSuperUserInstance(), SearchUserCommand.class).execute(value, key, index);
+			return (AbstractNode) Services.command(SecurityContext.getSuperUserInstance(), SearchUserCommand.class).execute(value, key, index);
 
 		} catch (final FrameworkException fex) {
 			fex.printStackTrace();
 		}
 		return null;
+	}
+	
+	@Override
+	public boolean requiresSynchronization() {
+		return true;
 	}
 }

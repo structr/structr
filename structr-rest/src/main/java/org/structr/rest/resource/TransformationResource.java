@@ -18,6 +18,7 @@
  */
 package org.structr.rest.resource;
 
+import org.structr.common.PagingHelper;
 import org.structr.core.Result;
 import java.util.Collections;
 import java.util.LinkedList;

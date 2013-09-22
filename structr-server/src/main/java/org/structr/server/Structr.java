@@ -60,6 +60,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.Service;
 import org.structr.core.Services;
 import org.structr.core.agent.AgentService;
+import org.structr.core.auth.AuthenticationService;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.cron.CronService;
 import org.structr.core.entity.AbstractNode;
@@ -117,6 +118,8 @@ public class Structr {
 	private Class<? extends StructrServer> app                 = null;
 	private Class<? extends ResourceProvider> resourceProvider = null;
 	private Class<? extends Authenticator> authenticator       = null;
+	private boolean userAutoCreate                             = false;
+	
 	private String defaultPropertyView                         = PropertyView.Public;
 	
 	private Set<Class<? extends Service>> configuredServices   = new HashSet<Class<? extends Service>>();
@@ -155,108 +158,259 @@ public class Structr {
 		this.app = applicationClass;
 	}
 	
-	public static Structr createServer(Class<? extends StructrServer> applicationClass, String applicationName, int httpPort, int httpsPort) {
-		return new Structr(applicationClass, applicationName, httpPort, httpsPort);
+	/**
+	 * Creates a new server instance with the given application class, display name and ports.
+	 * @param applicationClass
+	 * @param displayName
+	 * @param httpPort
+	 * @param httpsPort
+	 * @return 
+	 */
+	public static Structr createServer(Class<? extends StructrServer> applicationClass, String displayName, int httpPort, int httpsPort) {
+		return new Structr(applicationClass, displayName, httpPort, httpsPort);
 	}
 	
-	public static Structr createServer(Class<? extends StructrServer> applicationClass, String applicationName, int httpPort) {
-		return new Structr(applicationClass, applicationName, httpPort);
+	/**
+	 * Creates an ew server instance with the given application class, display name and http port.
+	 * 
+	 * @param applicationClass
+	 * @param displayName
+	 * @param httpPort
+	 * @return 
+	 */
+	public static Structr createServer(Class<? extends StructrServer> applicationClass, String displayName, int httpPort) {
+		return new Structr(applicationClass, displayName, httpPort);
 	}
 	
-	public static Structr createServer(Class<? extends StructrServer> applicationClass, String applicationName) {
-		return new Structr(applicationClass, applicationName);
+	/**
+	 * Creates a new server instance with the given application class
+	 * and display name.
+	 * 
+	 * @param applicationClass
+	 * @param displayName
+	 * @return 
+	 */
+	public static Structr createServer(Class<? extends StructrServer> applicationClass, String displayName) {
+		return new Structr(applicationClass, displayName);
 	}
 	
+	/**
+	 * Creates a new server instance with the given application class.
+	 * 
+	 * @param applicationClass
+	 * @return 
+	 */
 	public static Structr createServer(Class<? extends StructrServer> applicationClass) {
 		return new Structr(applicationClass);
 	}
 
 	// ----- builder methods -----
+	/**
+	 * Set the host address the server is bound to when starting.
+	 * 
+	 * @param host
+	 * @return 
+	 */
 	public Structr host(String host) {
 		this.host = host;
 		return this;
 	}
 	
+	/**
+	 * Sets the base REST URL.
+	 * @param restUrl the relative base URL for the REST server
+	 * @return 
+	 */
 	public Structr restUrl(String restUrl) {
 		this.restUrl = restUrl;
 		return this;
 	}
 	
+	/**
+	 * Sets the keystore path to use when https is enabled.
+	 * 
+	 * @param keyStorePath
+	 * @return 
+	 */
 	public Structr keyStorePath(String keyStorePath) {
 		this.keyStorePath = keyStorePath;
 		return this;
 	}
 	
+	/**
+	 * Sets the keystore password to use when HTTPS is enabled.
+	 * 
+	 * @param keyStorePassword
+	 * @return 
+	 */
 	public Structr keyStorePassword(String keyStorePassword) {
 		this.keyStorePassword = keyStorePassword;
 		return this;
 	}
 	
+	/**
+	 * Sets the context path of the web application. Default: "/"
+	 * 
+	 * @param contextPath
+	 * @return 
+	 */
 	public Structr contextPath(String contextPath) {
 		this.contextPath = contextPath;
 		return this;
 	}
 	
+	/**
+	 * Sets the working directory of this structr instance.
+	 * 
+	 * @param basePath
+	 * @return 
+	 */
 	public Structr basePath(String basePath) {
 		this.basePath = basePath;
 		return this;
 	}
 	
+	/**
+	 * Sets the JSON output nesting depth.
+	 * 
+	 * @param jsonDepth
+	 * @return 
+	 */
 	public Structr jsonDepth(int jsonDepth) {
 		this.jsonDepth = jsonDepth;
 		return this;
 	}
 	
+	/**
+	 * Sets the HTTP port this structr instance listens on.
+	 * 
+	 * @param httpPort
+	 * @return 
+	 */
 	public Structr httpPort(int httpPort) {
 		this.httpPort = httpPort;
 		return this;
 	}
 	
+	/**
+	 * Sets the HTTPS port this structr instance listens on.
+	 * 
+	 * @param httpsPort
+	 * @return 
+	 */
 	public Structr httpsPort(int httpsPort) {
 		this.httpsPort = httpsPort;
 		return this;
 	}
 	
+	/**
+	 * Sets the SMTP host this structr instance uses to send e-mails.
+	 * 
+	 * @param smtpHost
+	 * @return 
+	 */
 	public Structr smtpHost(String smtpHost) {
 		this.smtpHost = smtpHost;
 		return this;
 	}
 	
+	/**
+	 * Sets the SMTP port this structr instance uses to send e-mails.
+	 * @param smtpPort
+	 * @return 
+	 */
 	public Structr smtpPort(int smtpPort) {
 		this.smtpPort = smtpPort;
 		return this;
 	}
 	
+	/**
+	 * Whether structr should log all requests to a file or not.
+	 * 
+	 * @param logRequests
+	 * @return 
+	 */
 	public Structr logRequests(boolean logRequests) {
 		this.logRequests = logRequests;
 		return this;
 	}
 		
+	/**
+	 * Sets the name of the log file to the given value.
+	 * 
+	 * @param logName
+	 * @return 
+	 */
 	public Structr logName(String logName) {
 		this.logPrefix = logName;
 		return this;
 	}
 	
+	/**
+	 * Sets the name of the log database.
+	 * 
+	 * @param logDbName
+	 * @return 
+	 */
 	public Structr logDbName(String logDbName) {
 		this.logDbName = logDbName;
 		return this;
 	}
 	
+	/**
+	 * Sets the resource provider that will be used to resolve REST paths.
+	 * 
+	 * @param resourceProviderClass
+	 * @return 
+	 */
 	public Structr resourceProvider(Class<? extends ResourceProvider> resourceProviderClass) {
 		this.resourceProvider = resourceProviderClass;
 		return this;
 	}
 	
+	/**
+	 * Sets the authenticator that will be used to authenticate requests etc.
+	 * 
+	 * @param authenticatorClass
+	 * @return 
+	 */
 	public Structr authenticator(Class<? extends Authenticator> authenticatorClass) {
 		this.authenticator = authenticatorClass;
 		return this;
 	}
 
+	/**
+	 * If true, auto-create users on successful authentication
+	 * 
+	 * @param userAutoCreate
+	 * @return 
+	 */
+	public Structr userAutoCreate(final Boolean userAutoCreate) {
+		this.userAutoCreate = userAutoCreate;
+		return this;
+	}
+	
+	/**
+	 * Adds a servlet with the given mapping to the servlet container structr runs in.
+	 * 
+	 * @param servletMapping
+	 * @param servletHolder
+	 * @return 
+	 */
 	public Structr addServlet(String servletMapping, ServletHolder servletHolder) {
 		servlets.put(servletMapping, servletHolder);
 		return this;
 	}
-		
+	
+	/**
+	 * Adds a resource handler with the given parameters to the servlet container structr runs in.
+	 * 
+	 * @param contextPath
+	 * @param resourceBase
+	 * @param directoriesListed
+	 * @param welcomeFiles
+	 * @return 
+	 */
 	public Structr addResourceHandler(String contextPath, String resourceBase, boolean directoriesListed, String[] welcomeFiles) {
 		
 		ResourceHandler resourceHandler = new ResourceHandler();
@@ -271,26 +425,58 @@ public class Structr {
 		return this;
 	}
 	
+	/**
+	 * Sets the default property view that will be used when no property
+	 * view is specified in a GET request.
+	 * 
+	 * @param defaultPropertyView the name of the default property view to use
+	 * @return 
+	 */
 	public Structr defaultPropertyView(String defaultPropertyView) {
 		this.defaultPropertyView = defaultPropertyView;
 		return this;
 	}
 
+	/**
+	 * Add a service class to the list of services that will be started when structr starts.
+	 * 
+	 * @param configuredService
+	 * @return 
+	 */
 	public Structr addConfiguredServices(Class<? extends Service> configuredService) {
 		this.configuredServices.add(configuredService);
 		return this;
 	}
 	
+	/**
+	 * Add a scheduled maintenance task with the given schedule expression.
+	 * 
+	 * @param cronServiceTask the fqcn of the task to execute
+	 * @param cronExpression the cron expression, see the user's guide for more details
+	 * @return 
+	 */
 	public Structr addCronServiceTask(String cronServiceTask, String cronExpression) {
 		this.cronServiceTasks.put(cronServiceTask, cronExpression);
 		return this;
 	}
 	
+	/**
+	 * Add the given line to the configuration file.
+	 * 
+	 * @param configLine
+	 * @return 
+	 */
 	public Structr addCustomConfig(String configLine) {
 		this.customConfigLines.add(configLine);
 		return this;
 	}
 	
+	/**
+	 * Add a callback method that will be called when the server is fully started.
+	 * 
+	 * @param callback
+	 * @return 
+	 */
 	public Structr addCallback(Callback callback) {
 		this.callbacks.add(callback);
 		return this;
@@ -316,12 +502,26 @@ public class Structr {
 		return this;
 	}
 	
+	/**
+	 * * Start the structr server with the previously specified configuration.
+	 * 
+	 * @param waitForExit whether to wait for the server process to finish or not
+	 * @return
+	 * 
+	 * @throws IOException
+	 * @throws InterruptedException
+	 * @throws Exception 
+	 */
 	public Server start(boolean waitForExit) throws IOException, InterruptedException, Exception {
 		return start(waitForExit, false);
 	}
-	
+
 	/**
 	 * Start the structr server with the previously specified configuration.
+	 * 
+	 * @param waitForExit whether to wait for the server process to finish or not
+	 * @param isTest whether the current start is an integration test run or not (modifies resource scanning behaviour)
+	 * @return
 	 * 
 	 * @throws IOException
 	 * @throws InterruptedException
@@ -394,7 +594,7 @@ public class Structr {
 		if (enableRewriteFilter) {
 			
 			FilterHolder rewriteFilter = new FilterHolder(UrlRewriteFilter.class);
-			rewriteFilter.setInitParameter("confPath", "/urlrewrite.xml");
+			rewriteFilter.setInitParameter("confPath", "urlrewrite.xml");
 			servletContext.addFilter(rewriteFilter, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
 		}
 
@@ -402,8 +602,7 @@ public class Structr {
 		
 		
 		// enable request logging
-		//if ("true".equals(configuration.getProperty("log.requests", "false"))) {
-		if (logRequests) {
+		if (logRequests || "true".equals(configuration.getProperty("log.requests", "false"))) {
 
 			String etcPath = basePath + "/etc";
 			File etcDir    = new File(etcPath);
@@ -486,7 +685,8 @@ public class Structr {
 		ServletHolder structrRestServletHolder = new ServletHolder(structrRestServlet);
 
 		servletParams.put("PropertyFormat", "FlatNameValue");
-		servletParams.put("Authenticator", authenticator.getName());
+		servletParams.put(AuthenticationService.SERVLET_PARAMETER_AUTHENTICATOR, authenticator.getName());
+		servletParams.put(AuthenticationService.SERVLET_PARAMETER_USER_AUTO_CREATE, Boolean.toString(userAutoCreate));
 
 		structrRestServletHolder.setInitParameters(servletParams);
 		structrRestServletHolder.setInitOrder(0);
@@ -812,7 +1012,7 @@ public class Structr {
 			
 			logger.log(Level.WARNING, "Using default authenticator.");
 			
-			authenticator = DefaultAuthenticator.class;
+			authenticator = SuperUserAuthenticator.class;
 		}
 		
 		if (resourceProvider == null) {

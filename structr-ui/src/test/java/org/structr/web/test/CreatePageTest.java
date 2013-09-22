@@ -35,9 +35,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jsoup.select.Elements;
 import org.structr.core.GraphObject;
+import org.structr.core.Services;
+import org.structr.core.graph.StructrTransaction;
+import org.structr.core.graph.TransactionCommand;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.w3c.dom.Text;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -52,12 +56,12 @@ public class CreatePageTest extends StructrUiTest {
 
 	//~--- methods --------------------------------------------------------
 
-	@Override
-	public void test00DbAvailable() {
-
-		super.test00DbAvailable();
-
-	}
+//	@Override
+//	public void test00DbAvailable() {
+//
+//		super.test00DbAvailable();
+//
+//	}
 
 	public void test01CreatePage() {
 
@@ -80,7 +84,11 @@ public class CreatePageTest extends StructrUiTest {
 				Element h1    = page.createElement("h1");
 				Element div   = page.createElement("div");
 				
-				makeNodesPublic(page, html, head, body, title, h1, div);
+				Text titleText   = page.createTextNode(pageTitle);
+				Text heading     = page.createTextNode(pageTitle);
+				Text bodyContent = page.createTextNode(bodyText);
+					
+				makeNodesPublic(page, html, head, body, title, h1, div, titleText, heading, bodyContent);
 				
 				try {
 					// add HTML element to page
@@ -102,9 +110,9 @@ public class CreatePageTest extends StructrUiTest {
 					div.setAttribute("class", divClassAttr);
 					
 					// add text nodes
-					title.appendChild(page.createTextNode(pageTitle));					
-					h1.appendChild(page.createTextNode(pageTitle));
-					div.appendChild(page.createTextNode(bodyText));
+					title.appendChild(titleText);					
+					h1.appendChild(heading);
+					div.appendChild(bodyContent);
 					
 				} catch (DOMException dex) {
 					
@@ -157,15 +165,22 @@ public class CreatePageTest extends StructrUiTest {
 
 	}
 	
-	private void makeNodesPublic(Node... nodes) {
+	private void makeNodesPublic(final Node... nodes) {
 		
 		try {
 
-			for (Node node : nodes) {
-			
-				((GraphObject) node).setProperty(GraphObject.visibleToPublicUsers, true);
+			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
-			}
+				@Override
+				public Object execute() throws FrameworkException {
+
+					for (Node node : nodes) {
+						((GraphObject) node).setProperty(GraphObject.visibleToPublicUsers, true);
+					}
+					
+					return null;
+				}
+			});
 			
 		} catch (FrameworkException ex) {
 			logger.log(Level.SEVERE, null, ex);

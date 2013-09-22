@@ -19,14 +19,15 @@
 package org.structr.web.entity.dom;
 
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.apache.commons.lang.StringUtils;
 import org.structr.common.PropertyView;
 import org.structr.web.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.web.entity.Linkable;
-import org.structr.core.graph.NodeService;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
@@ -53,8 +54,8 @@ import org.w3c.dom.Text;
 //~--- JDK imports ------------------------------------------------------------
 
 
-import javax.servlet.http.HttpServletRequest;
 import org.neo4j.graphdb.Direction;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.core.Predicate;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
@@ -74,26 +75,21 @@ import org.structr.core.property.PropertyMap;
  * @author Christian Morgner
  */
 public class Page extends DOMNode implements Linkable, Document, DOMImplementation {
-
-	public static final Property<Integer> version                           = new IntProperty("version");
-	public static final Property<Integer> position                          = new IntProperty("position");
-	public static final Property<String> contentType                        = new StringProperty("contentType");
-	public static final Property<Integer> cacheForSeconds                   = new IntProperty("cacheForSeconds");
-	public static final CollectionProperty<DOMNode> elements                = new CollectionProperty<DOMNode>("elements", DOMNode.class, RelType.PAGE, Direction.INCOMING, true);
 	
-	public static final org.structr.common.View uiView                      = new org.structr.common.View(Page.class, PropertyView.Ui, contentType, owner, cacheForSeconds, version, position);
-	public static final org.structr.common.View publicView                  = new org.structr.common.View(Page.class, PropertyView.Public, linkingElements, contentType, owner, cacheForSeconds, version);
+	private static final Logger logger                                      = Logger.getLogger(Page.class.getName());
+
+	public static final Property<Integer> version                           = new IntProperty("version").indexed();
+	public static final Property<Integer> position                          = new IntProperty("position").indexed();
+	public static final Property<String> contentType                        = new StringProperty("contentType").indexed();
+	public static final Property<Integer> cacheForSeconds                   = new IntProperty("cacheForSeconds");
+	public static final CollectionProperty<DOMNode> elements                = new CollectionProperty("elements", DOMNode.class, RelType.PAGE, Direction.INCOMING, true);
+	public static final CollectionProperty<DOMNode> childElements           = new CollectionProperty("childElements", DOMNode.class, RelType.CONTAINS, Direction.OUTGOING, true);
+	
+	public static final org.structr.common.View uiView                      = new org.structr.common.View(Page.class, PropertyView.Ui, childElements, linkingElements, contentType, owner, cacheForSeconds, version, position);
+	public static final org.structr.common.View publicView                  = new org.structr.common.View(Page.class, PropertyView.Public, childElements, linkingElements, contentType, owner, cacheForSeconds, version);
 
 	private Html5DocumentType docTypeNode                                   = null;
 	
-	//~--- static initializers --------------------------------------------
-
-	static {
-
-		EntityContext.registerSearchablePropertySet(Page.class, NodeService.NodeIndex.fulltext.name(), uiView.properties());
-		EntityContext.registerSearchablePropertySet(Page.class, NodeService.NodeIndex.keyword.name(), uiView.properties());
-
-	}
 
 	public Page() {
 		
@@ -101,6 +97,17 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	}
 	
 	//~--- methods --------------------------------------------------------
+
+	@Override
+	public boolean isValid(ErrorBuffer errorBuffer) {
+		
+		boolean valid = true;
+		
+		valid &= nonEmpty(AbstractNode.name, errorBuffer);
+		valid &= super.isValid(errorBuffer);
+		
+		return valid;
+	}
 
 	/**
 	 * Creates a new Page entity with the given name in the database.
@@ -118,7 +125,6 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 		properties.put(AbstractNode.name, name != null ? name : "page");
 		properties.put(AbstractNode.type, Page.class.getSimpleName());
-		properties.put(AbstractNode.visibleToPublicUsers, true);
 		properties.put(Page.contentType, "text/html");
 	
 		Page newPage = Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<Page>() {
@@ -174,23 +180,45 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 	public void increaseVersion() throws FrameworkException {
 
-		Integer _version = getProperty(Page.version);
+		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
-		if (_version == null) {
+			@Override
+			public Object execute() throws FrameworkException {
 
-			setProperty(Page.version, 1);
-			
-		} else {
+				Integer _version = getProperty(Page.version);
 
-			setProperty(Page.version, _version + 1);
-		}
+				if (_version == null) {
+
+					setProperty(Page.version, 1);
+
+				} else {
+
+					setProperty(Page.version, _version + 1);
+				}
+				
+				return null;
+			}
+		});
 
 	}
 
 	@Override
 	public Element createElement(final String tag) throws DOMException {
 
-		final String elementType = EntityContext.normalizeEntityName(tag);
+		final String elementType = StringUtils.capitalize(tag);
+		
+		String c = Content.class.getSimpleName();
+		
+		// Avoid creating an (invalid) 'Content' DOMElement
+		if (elementType == null || c.equals(elementType)) {
+			
+			logger.log(Level.WARNING, "Blocked attempt to create a DOMElement of type {0}", c);
+			
+			return null;
+			
+		}
+		
+		final Page _page = this;
 		
 		try {
 			return Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<DOMElement>() {
@@ -203,9 +231,11 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 						new NodeAttribute(AbstractNode.type, elementType),
 						new NodeAttribute(DOMElement.tag, tag)
 					);
+
+					element.doAdopt(_page);
 					
-					// create relationship from ownerDocument to new text element
-					Page.elements.createRelationship(securityContext, Page.this, element);
+					// create relationship from ownerDocument to new element
+					//Page.elements.createRelationship(securityContext, Page.this, element);
 					
 					return element;
 				}
@@ -264,8 +294,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 					// create new content element
 					Content content = (Content)Services.command(securityContext, CreateNodeCommand.class).execute(
 						new NodeAttribute(AbstractNode.type, Content.class.getSimpleName()),
-						new NodeAttribute(Content.content,   text),
-						new NodeAttribute(AbstractNode.visibleToPublicUsers, true)
+						new NodeAttribute(Content.content,   text)
 					);
 					
 					// create relationship from ownerDocument to new text element
@@ -526,6 +555,12 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 	}
 
+	@Override
+	public String toString() {
+		
+		return getClass().getSimpleName() + " " + getName() + " [" + getUuid() + "] (" + getTextContent() + ")";
+	}
+
 	//~--- get methods ----------------------------------------------------
 
 	@Override
@@ -620,22 +655,24 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	@Override
 	public void render(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException {
 
-		HttpServletRequest request = securityContext.getRequest();
-		
 		renderContext.setPage(this);
 		
-		renderContext.getBuffer().append("<!DOCTYPE html>");
-
-		// recursively render children
-		for (AbstractRelationship rel : getChildRelationships()) {
-
-			DOMNode subNode = (DOMNode)rel.getEndNode();
-
+		renderContext.getBuffer().append("<!DOCTYPE html>\n");
+		
+		// Skip DOCTYPE node
+		DOMNode subNode = (DOMNode) this.getFirstChild().getNextSibling();
+		
+		while (subNode != null) {
+			
 			if (subNode.isNotDeleted() && securityContext.isVisible(subNode)) {
 
 				subNode.render(securityContext, renderContext, depth);
 			}
+			
+			subNode = (DOMNode) subNode.getNextSibling();
+			
 		}
+
 	}
 
 	@Override

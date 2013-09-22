@@ -19,15 +19,16 @@
 package org.structr.core.property;
 
 import java.util.List;
-import java.util.Set;
+import javax.servlet.http.HttpServletRequest;
+import org.apache.lucene.search.BooleanClause.Occur;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.graph.NodeService;
 import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.SearchOperator;
 
 /**
  * Contains information about a related node property. This class can be used together
@@ -92,6 +93,16 @@ public class Reference<T> implements PropertyKey<T> {
 	}
 	
 	@Override
+	public void dbName(String dbName) {
+		propertyKey.dbName(dbName);
+	}
+
+	@Override
+	public void jsonName(String jsonName) {
+		propertyKey.jsonName(jsonName);
+	}
+	
+	@Override
 	public String typeName() {
 		return propertyKey.typeName();
 	}
@@ -99,6 +110,11 @@ public class Reference<T> implements PropertyKey<T> {
 	@Override
 	public T defaultValue() {
 		return propertyKey.defaultValue();
+	}
+
+	@Override
+	public Integer getSortType() {
+		return propertyKey.getSortType();
 	}
 
 	@Override
@@ -122,18 +138,38 @@ public class Reference<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public boolean isSystemProperty() {
-		return propertyKey.isSystemProperty();
+	public boolean isUnvalidated() {
+		return propertyKey.isUnvalidated();
 	}
 
 	@Override
-	public boolean isReadOnlyProperty() {
-		return propertyKey.isReadOnlyProperty();
+	public boolean isReadOnly() {
+		return propertyKey.isReadOnly();
 	}
 
 	@Override
-	public boolean isWriteOnceProperty() {
-		return propertyKey.isWriteOnceProperty();
+	public boolean isWriteOnce() {
+		return propertyKey.isWriteOnce();
+	}
+
+	@Override
+	public boolean isIndexed() {
+		return propertyKey.isIndexed();
+	}
+
+	@Override
+	public boolean isPassivelyIndexed() {
+		return propertyKey.isPassivelyIndexed();
+	}
+
+	@Override
+	public boolean isSearchable() {
+		return propertyKey.isSearchable();
+	}
+
+	@Override
+	public boolean isIndexedWhenEmpty() {
+		return propertyKey.isIndexedWhenEmpty();
 	}
 
 	@Override
@@ -161,18 +197,8 @@ public class Reference<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(SearchOperator op, T searchValue, boolean exactMatch) {
-		return propertyKey.getSearchAttribute(op, searchValue, exactMatch);
-	}
-
-	@Override
-	public Object getSearchValue(T source) {
-		return propertyKey.getSearchValue(source);
-	}
-
-	@Override
-	public void registerSearchableProperties(Set<PropertyKey> searchableProperties) {
-		propertyKey.registerSearchableProperties(searchableProperties);
+	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occur occur, T searchValue, boolean exactMatch) {
+		return propertyKey.getSearchAttribute(securityContext, occur, searchValue, exactMatch);
 	}
 
 	@Override
@@ -187,5 +213,65 @@ public class Reference<T> implements PropertyKey<T> {
 	@Override
 	public List<PropertyValidator<T>> getValidators() {
 		return propertyKey.getValidators();
+	}
+	
+	@Override
+	public boolean requiresSynchronization() {
+		return false;
+	}
+	
+	@Override
+	public String getSynchronizationKey() {
+		return null;
+	}
+
+	@Override
+	public void index(GraphObject entity, Object value) {
+		propertyKey.index(entity, value);
+	}
+
+	@Override
+	public List<SearchAttribute> extractSearchableAttribute(SecurityContext securityContext, HttpServletRequest request, boolean looseSearch) throws FrameworkException {
+		return propertyKey.extractSearchableAttribute(securityContext, request, looseSearch);
+	}
+
+	@Override
+	public T extractSearchableAttribute(SecurityContext securityContext, String requestParameter) throws FrameworkException {
+		return propertyKey.extractSearchableAttribute(securityContext, requestParameter);
+	}
+
+	@Override
+	public Property<T> indexed() {
+		return propertyKey.indexed();
+	}
+
+	@Override
+	public Property<T> indexed(NodeService.NodeIndex nodeIndex) {
+		return propertyKey.indexed(nodeIndex);
+	}
+
+	@Override
+	public Property<T> indexed(NodeService.RelationshipIndex relIndex) {
+		return propertyKey.indexed(relIndex);
+	}
+
+	@Override
+	public Property<T> passivelyIndexed() {
+		return propertyKey.passivelyIndexed();
+	}
+
+	@Override
+	public Property<T> passivelyIndexed(NodeService.NodeIndex nodeIndex) {
+		return propertyKey.passivelyIndexed(nodeIndex);
+	}
+
+	@Override
+	public Property<T> passivelyIndexed(NodeService.RelationshipIndex relIndex) {
+		return propertyKey.passivelyIndexed(relIndex);
+	}
+
+	@Override
+	public Property<T> indexedWhenEmpty() {
+		return propertyKey.indexedWhenEmpty();
 	}
 }

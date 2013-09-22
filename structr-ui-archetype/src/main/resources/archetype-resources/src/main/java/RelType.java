@@ -26,4 +26,5 @@ import org.neo4j.graphdb.RelationshipType;
 public enum RelType implements RelationshipType {
 
 	// add your relationship types here
+	LIVES_IN, KNOWS
 }

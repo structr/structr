@@ -20,19 +20,19 @@
 var buttonClicked;
 
 var _Entities = {
-    booleanAttrs: ['visibleToPublicUsers', 'visibleToAuthenticatedUsers', 'hidden', 'deleted', 'blocked', 'frontendUser', 'backendUser'],
+    booleanAttrs: ['visibleToPublicUsers', 'visibleToAuthenticatedUsers', 'hidden', 'deleted', 'blocked', 'frontendUser', 'backendUser', 'hideOnIndex', 'hideOnEdit', 'hideOnNonEdit', 'hideOnDetail', 'renderDetails'],
     numberAttrs: ['position', 'size'],
     dateAttrs: ['createdDate', 'lastModifiedDate', 'visibilityStartDate', 'visibilityEndDate'],
     hiddenAttrs: ['base', 'deleted', 'ownerId', 'owner', 'group', 'categories', 'tag', 'createdBy', 'visibilityStartDate', 'visibilityEndDate', 'parentFolder', 'url', 'path', 'elements', 'components', 'paths', 'parents'],
     readOnlyAttrs: ['lastModifiedDate', 'createdDate', 'id', 'checksum', 'size', 'version', 'relativeFilePath'],
-    changeBooleanAttribute: function(attrElement, value) {
+    changeBooleanAttribute: function(attrElement, value, activeLabel, inactiveLabel) {
 
-        //console.log('Change boolean attribute ', attrElement, ' to ', value);
+        log('Change boolean attribute ', attrElement, ' to ', value);
 
         if (value === true) {
-            attrElement.removeClass('disabled').addClass('enabled').prop('checked', true);
+            attrElement.removeClass('disabled').addClass('enabled').prop('checked', true).html('<img src="icon/tick.png">' + (activeLabel ? ' ' + activeLabel : ''));
         } else {
-            attrElement.removeClass('enabled').addClass('disabled').prop('checked', false);
+            attrElement.removeClass('enabled').addClass('disabled').prop('checked', false).text((inactiveLabel ? inactiveLabel : '-'));
         }
 
     },
@@ -47,7 +47,7 @@ var _Entities = {
         Command.children(id);
 
     },
-    deleteNode: function(button, entity) {
+    deleteNode: function(button, entity, callback) {
         buttonClicked = button;
         if (isDisabled(button))
             return;
@@ -58,6 +58,9 @@ var _Entities = {
                     $.unblockUI({
                         fadeOut: 25
                     });
+                    if (callback) {
+                        callback();
+                    }
                 });
     },
     showSyncDialog: function(source, target) {
@@ -76,137 +79,186 @@ var _Entities = {
         });
 
     },
-    showDataDialog: function(entity) {
+    dataBindingDialog: function(entity, el) {
 
-        Structr.dialog('Edit Data Settings of ' + entity.id, function() {
+        el.append('<table class="props"></table>');
+        var t = $('.props', el);
+
+        // General
+        _Entities.appendRowWithInputField(entity, t, 'data-structr-container', 'Container (set to ${this.uuid})');
+        _Entities.appendRowWithInputField(entity, t, 'data-structr-attr', 'Attribute Key (if set, render input field in edit mode)');
+        _Entities.appendRowWithInputField(entity, t, 'data-structr-type', 'Data type (e.g. Date, Boolean; default: String)');
+        _Entities.appendRowWithInputField(entity, t, 'data-structr-raw-value', 'Raw value (unformatted value for Date or Number fields)');
+        _Entities.appendRowWithInputField(entity, t, 'data-structr-hide', 'Hide [edit|non-edit|edit,non-edit]');
+
+        if (entity.type === 'Button') {
+
+            // Buttons
+
+            _Entities.appendRowWithInputField(entity, t, 'data-structr-action', 'Action [create:&lt;Type&gt;|edit|delete]');
+            _Entities.appendRowWithInputField(entity, t, 'data-structr-attributes', 'Attributes (for create and edit action)');
+
+            t.append('<tr><td class="key">Reload</td><td class="value"id="reload"></td><td></td></tr>');
+            _Entities.appendBooleanSwitch($('#reload', t), entity, 'data-structr-reload', '', 'If active, the page will refresh after a successfull action.');
+
+            if (entity['data-structr-action'] === 'delete') {
+
+                // Delete button
+                t.append('<tr><td class="key">Confirm on delete?</td><td class="value" id="confirmOnDel"></td><td></td></tr>');
+                _Entities.appendBooleanSwitch($('#confirmOnDel', t), entity, 'data-structr-confirm', '', 'If active, a user has to confirm the delete action.');
+            }
+        } else if (entity.type === 'Input' || entity.type === 'Select' || entity.type === 'Textarea') {
+            // Input fields
+            _Entities.appendRowWithInputField(entity, t, 'data-structr-name', 'Field name (for create action)');
+
+        }
+
+//        _Entities.appendBooleanSwitch(el, entity, 'hideOnEdit', 'Hide in edit mode', 'If active, this node will not be visible in edit mode.');
+//        _Entities.appendBooleanSwitch(el, entity, 'hideOnNonEdit', 'Hide in non-edit mode', 'If active, this node will not be visible in default (non-edit) mode.');
+
+        //_Entities.appendInput(dialog, entity, 'partialUpdateKey', 'Types to trigger partial update', '');
+
+    },
+    appendRowWithInputField: function(entity, el, key, label) {
+        el.append('<tr><td class="key">' + label + '</td><td class="value"><input class="' + key + '_" name="' + key + '" value="' + formatValue(entity[key]) + '"></td><td><img class="nullIcon" id="null_' + key + '" src="icon/cross_small_grey.png"></td></tr>');
+        var inp = $('[name="' + key + '"]', el);
+        _Entities.activateInput(inp, entity.id);
+        var nullIcon = $('#null_' + key, el);
+        nullIcon.on('click', function() {
+            Command.setProperty(entity.id, key, null, false, function() {
+                inp.val(null);
+                blinkGreen(inp);
+                dialogMsg.html('<div class="infoBox success">Property "' + key + '" was set to null.</div>');
+                $('.infoBox', dialogMsg).delay(2000).fadeOut(1000);
+            });
+        });
+
+    },
+    queryDialog: function(entity, el) {
+
+        el.append('<table class="props"></table>');
+        var t = $('.props', el);
+
+        t.append('<tr><td class="key">Query auto-limit</td><td class="value" id="queryAutoLimit"></td></tr>');
+        t.append('<tr><td class="key">Hide in index mode</td><td  class="value" id="hideIndexMode"></td></tr>');
+        t.append('<tr><td class="key">Hide in details mode</td><td  class="value" id="hideDetailsMode"></td></tr>');
+
+        _Entities.appendBooleanSwitch($('#queryAutoLimit', t), entity, 'renderDetails', ['Query is limited', 'Query is not limited'], 'Limit result to the object with the ID the URL ends with.');
+        _Entities.appendBooleanSwitch($('#hideIndexMode', t), entity, 'hideOnIndex', ['Hidden in index mode', 'Visible in index mode'], 'if URL does not end with an ID');
+        _Entities.appendBooleanSwitch($('#hideDetailsMode', t), entity, 'hideOnDetail', ['Hidden in details mode', 'Visible in details mode'], 'if URL ends with an ID.');
+
+        el.append('<div id="data-tabs"><ul><li class="active" id="tab-rest">REST Query</li><li id="tab-cypher">Cypher Query</li><li id="tab-xpath">XPath Query</li></ul>'
+                + '<div id="content-tab-rest"></div><div id="content-tab-cypher"></div><div id="content-tab-xpath"></div></div>');
+
+        _Entities.appendTextarea($('#content-tab-rest'), entity, 'restQuery', 'REST Query', '');
+        _Entities.appendTextarea($('#content-tab-cypher'), entity, 'cypherQuery', 'Cypher Query', '');
+        _Entities.appendTextarea($('#content-tab-xpath'), entity, 'xpathQuery', 'XPath Query', '');
+
+        _Entities.appendInput(el, entity, 'dataKey', 'Data Key', 'Query results are mapped to this key and can be accessed by ${<i>&lt;dataKey&gt;.&lt;propertyKey&gt;</i>}');
+
+
+
+        //_Entities.appendInput(dialog, entity, 'partialUpdateKey', 'Types to trigger partial update', '');
+
+    },
+    activateTabs: function(elId, activeId) {
+        var el = $(elId);
+        var tabs = $('li', el);
+        $.each(tabs, function(i, tab) {
+            $(tab).on('click', function() {
+                var tab = $(this);
+                tabs.removeClass('active');
+                tab.addClass('active');
+                el.children('div').hide();
+                var id = tab.prop('id').substring(4);
+                //console.log(id);
+                var content = $('#content-tab-' + id);
+                content.show();
+            });
+        });
+        $(activeId).show();
+    },
+    showProperties: function(entity) {
+
+        var views, activeView = 'ui';
+
+        if (isIn(entity.type, ['Content', 'Page', 'User', 'Group', 'File', 'Folder', 'Widget'])) {
+            views = ['ui', 'in', 'out'];
+        } else {
+            views = ['_html_', 'ui', 'in', 'out'];
+            activeView = '_html_';
+        }
+
+        var tabTexts = [];
+        tabTexts._html_ = 'HTML Attributes';
+        tabTexts.ui = 'Node Properties';
+        tabTexts.in = 'Incoming Relationships';
+        tabTexts.out = 'Outgoing Relationships';
+
+        //dialog.empty();
+        Structr.dialog('Edit Properties of ' + (entity.name ? entity.name : entity.id), function() {
             return true;
         }, function() {
             return true;
         });
 
-        dialogText.append('<div class="' + entity.id + '_"><button class="switch disabled renderDetails_">Auto-limit to single object</button> If URL ends with an ID, the query result is limited to this object automatically.</div>');
-        var detailsSwitch = $('.renderDetails_');
-        _Entities.changeBooleanAttribute(detailsSwitch, entity.renderDetails);
-        detailsSwitch.on('click', function(e) {
-            e.stopPropagation();
-            entity.setProperty('renderDetails', detailsSwitch.hasClass('disabled'), false, function() {
-                _Entities.changeBooleanAttribute(detailsSwitch, entity.renderDetails);
-                blinkGreen(detailsSwitch);
+        dialog.append('<div id="tabs"><ul></ul></div>');
+        var mainTabs = $('#tabs', dialog);
+
+        if (!isIn(entity.type, ['Content', 'User', 'Group', 'File', 'Folder', 'Widget'])) {
+
+            _Entities.appendPropTab(mainTabs, 'query', 'Query and Data Binding', true, function(c) {
+                _Entities.queryDialog(entity, c);
+                _Entities.activateTabs('#data-tabs', '#content-tab-rest');
             });
-        });
 
-        dialogText.append('<div class="' + entity.id + '_"><button class="switch disabled hideOnIndex_">Hide element in index mode</button> If URL does not end with an ID, this element is hidden.</div>');
-        var indexSwitch = $('.hideOnIndex_');
-        _Entities.changeBooleanAttribute(indexSwitch, entity.hideOnIndex);
-        indexSwitch.on('click', function(e) {
-            e.stopPropagation();
-            entity.setProperty('hideOnIndex', indexSwitch.hasClass('disabled'), false, function() {
-                _Entities.changeBooleanAttribute(indexSwitch, entity.hideOnIndex);
-                blinkGreen(indexSwitch);
+            _Entities.appendPropTab(mainTabs, 'editBinding', 'Edit Mode Binding', false, function(c) {
+                _Entities.dataBindingDialog(entity, c);
             });
-        });
-
-        dialogText.append('<div class="' + entity.id + '_"><button class="switch disabled hideOnDetail_">Hide element in details mode</button> If URL ends with an ID, this element is hidden.</div>');
-        var hideOnDetailSwitch = $('.hideOnDetail_');
-        _Entities.changeBooleanAttribute(hideOnDetailSwitch, entity.hideOnDetail);
-        hideOnDetailSwitch.on('click', function(e) {
-            e.stopPropagation();
-            entity.setProperty('hideOnDetail', hideOnDetailSwitch.hasClass('disabled'), false, function() {
-                _Entities.changeBooleanAttribute(hideOnDetailSwitch, entity.hideOnDetail);
-                blinkGreen(hideOnDetailSwitch);
-            });
-        });
-
-        dialog.append('<div><h3>Data Key</h3><p>Query results are mapped to this key and can be accessed by ${dataKey.propertyKey}</p><input type="text" id="dataKey" value="' + (entity.dataKey ? entity.dataKey : '') + '"><button id="saveDataKey">Save</button></div>');
-        $('#saveDataKey', dialog).on('click', function() {
-            entity.setProperty('dataKey', $('#dataKey', dialog).val(), false, function() {
-                log('Data Key successfully updated!', entity.dataKey);
-                blinkGreen($('#dataKey'));
-            });
-        });
-
-
-        dialog.append('<div><h3>REST Query</h3><textarea cols="60" rows="2" id="restQuery">' + (entity.restQuery ? entity.restQuery : '') + '</textarea></div>');
-        dialog.append('<div><button id="applyRestQuery">Save    </button></div>');
-        $('#applyRestQuery', dialog).on('click', function() {
-            entity.setProperty('restQuery', $('#restQuery', dialog).val(), false, function() {
-                log('REST Query successfully updated!', entity.restQuery);
-                blinkGreen($('#restQuery'));
-            });
-        });
-
-        dialog.append('<div><h3>Cypher Query</h3><textarea cols="60" rows="2" id="cypherQuery">' + (entity.cypherQuery ? entity.cypherQuery : '') + '</textarea></div>');
-        dialog.append('<div><button id="applyCypherQuery">Save</button></div>');
-        $('#applyCypherQuery', dialog).on('click', function() {
-            entity.setProperty('cypherQuery', $('#cypherQuery', dialog).val(), false, function() {
-                log('Cypher Query successfully updated!', entity.cypherQuery);
-                blinkGreen($('#cypherQuery'));
-            });
-        });
-
-        dialog.append('<div><h3>XPath Query</h3><textarea cols="60" rows="2" id="xpathQuery">' + (entity.xpathQuery ? entity.xpathQuery : '') + '</textarea></div>');
-        dialog.append('<div><button id="applyXpathQuery">Save</button></div>');
-        $('#applyXpathQuery', dialog).on('click', function() {
-            entity.setProperty('xpathQuery', $('#xpathQuery', dialog).val(), false, function() {
-                log('XPath Query successfully updated!', entity.xpathQuery);
-                blinkGreen($('#xpathQuery'));
-            });
-        });
-
-        dialog.append('<div><h3>Types to trigger partial update</h3><input type="text" id="partialUpdateKey" value="' + (entity.partialUpdateKey ? entity.partialUpdateKey : '') + '"><button id="savePartialUpdateKey">Save</button></div>');
-        $('#savePartialUpdateKey', dialog).on('click', function() {
-            entity.setProperty('partialUpdateKey', $('#partialUpdateKey', dialog).val(), false, function() {
-                log('Partial update key successfully updated!', entity.partialUpdateKey);
-                blinkGreen($('#partialUpdateKey'));
-            });
-        });
-
-        //_Entities.appendSimpleSelection(dialog, entity, 'data_node', 'Data Tree Root Node', 'dataTreeId');
-
-//        dialog.append('<div><h3>Data Node ID</h3><input type="text" id="dataNodeId" size="32" value="' + (entity.dataNodeId ? entity.dataNodeId : '') + '"><button id="saveDataNodeId">Save</button></div>');
-//        $('#saveDataNodeId', dialog).on('click', function() {
-//            log('add Data Node', entity.id, $('#dataNodeId', dialog).val());
-//            Command.addDataTree(entity.id, $('#dataNodeId', dialog).val());
-//            blinkGreen($('#dataNodeId'));
-//        });
-    },
-    showProperties: function(entity) {
-
-        var views;
-        var startView = '_html_';
-
-        if (isIn(entity.type, ['Content', 'Page', 'User', 'Group', 'File', 'Folder'])) {
-            views = ['ui', 'in', 'out'];
-            startView = 'ui';
-        } else {
-            views = ['_html_', 'ui', 'in', 'out'];
         }
 
-        var tabTexts = [];
-        tabTexts._html_ = 'HTML';
-        tabTexts.ui = 'Node';
-        tabTexts.in = 'Incoming';
-        tabTexts.out = 'Outgoing';
+        _Entities.appendViews(entity, views, tabTexts, mainTabs, activeView);
 
-        //dialog.empty();
-        Structr.dialog('Edit Properties of ' + entity.id,
-                function() {
-                    return true;
-                },
-                function() {
-                    return true;
-                }
-        );
 
-        dialog.append('<div id="tabs"><ul></ul></div>');
+    },
+    appendPropTab: function(el, name, label, active, callback) {
+        var ul = el.children('ul');
+        ul.append('<li id="tab-' + name + '">' + label + '</li>');
+        var tab = $('#tab-' + name + '');
+        if (active) {
+            tab.addClass('active');
+        }
+        tab.on('click', function(e) {
+            e.stopPropagation();
+            var self = $(this);
+            $('.propTabContent').hide();
+            $('li', ul).removeClass('active');
+            var c = $('#tabView-' + name + '');
+            c.show().children().remove();
+            if (callback) {
+                callback(c);
+            }
+            self.addClass('active');
+        });
+        el.append('<div class="propTabContent" id="tabView-' + name + '"></div>');
+        var content = $('#tabView-' + name);
+        if (active) {
+            content.show();
+        }
+        if (callback) {
+            callback(content);
+        }
+        return content;
+    },
+    appendViews: function(entity, views, texts, tabs, activeView) {
 
         $(views).each(function(i, view) {
-            var tabs = $('#tabs', dialog);
-            var tabText = tabTexts[view];
 
-            $('ul', tabs).append('<li class="' + (view === startView ? 'active' : '') + '" id="tab-' + view + '">' + tabText + '</li>');
+            var tabText = texts[view];
 
-            tabs.append('<div id="tabView-' + view + '"><br></div>');
+            tabs.children('ul').append('<li id="tab-' + view + '">' + tabText + '</li>');
+
+            tabs.append('<div class="propTabContent" id="tabView-' + view + '"><br></div>');
 
             var tab = $('#tab-' + view);
 
@@ -215,187 +267,174 @@ var _Entities = {
                 var self = $(this);
                 tabs.children('div').hide();
                 $('li', tabs).removeClass('active');
-                $('#tabView-' + view).show();
                 self.addClass('active');
-            });
+                var tabView = $('#tabView-' + view);
+                tabView.show();
 
-            var tabView = $('#tabView-' + view);
-            if (view !== startView) {
-                tabView.hide();
-            }
+                $.ajax({
+                    url: rootUrl + entity.id + (view ? '/' + view : '') + '?pageSize=10',
+                    dataType: 'json',
+                    contentType: 'application/json; charset=utf-8',
+                    success: function(data) {
+                        // Default: Edit node id
+                        var id = entity.id;
+                        // ID of graph object to edit
+                        $(data.result).each(function(i, res) {
 
-            var headers = {};
-            headers['X-StructrSessionToken'] = token;
-            log('headers', headers);
-            console.log('showProperties URL: ' + rootUrl + entity.id + (view ? '/' + view : ''), headers);
+                            // reset id for each object group
+                            id = entity.id;
+                            var keys = Object.keys(res);
+                            tabView.append('<table class="props ' + view + ' ' + res['id'] + '_"></table>');
 
-            $.ajax({
-                url: rootUrl + entity.id + (view ? '/' + view : '') + '?pageSize=10',
-                async: true,
-                dataType: 'json',
-                contentType: 'application/json; charset=utf-8',
-                headers: headers,
-                success: function(data) {
-                    //element.append('<div class="sep"></div>');
-                    //element.append('<table class="props"></table>');
-                    log(data.result);
+                            var props = $('.props.' + view + '.' + res['id'] + '_', tabView);
 
-                    // Default: Edit node id
-                    var id = entity.id;
-                    // ID of graph object to edit
-                    $(data.result).each(function(i, res) {
+                            $(keys).each(function(i, key) {
 
-                        // reset id for each object group
-                        id = entity.id;
-
-                        var keys = Object.keys(res);
-
-                        log('keys', keys);
-
-                        //			if (view == 'in' || view == 'out') {
-                        //			    tabView.append('<br><h3>Relationship ' + res['id']+ '</h3>')
-                        //			}
-                        log('res[id]', res['id']);
-                        tabView.append('<table class="props ' + view + ' ' + res['id'] + '_"></table>');
-
-                        var props = $('.props.' + view + '.' + res['id'] + '_', tabView);
-
-                        $(keys).each(function(i, key) {
-
-                            if (view === '_html_') {
-
-                                if (key !== 'id') {
-
-                                    props.append('<tr><td class="key">' + key.replace(view, '') + '</td><td class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td></tr>');
-
-                                }
-
-                            } else if (view === 'in' || view === 'out') {
-
-                                if (key === 'id') {
-                                    // set ID to rel ID
-                                    id = res[key];
-                                    //console.log('Set ID to relationship ID', id);
-                                }
-
-                                props.append('<tr><td class="key">' + key + '</td><td rel_id="' + id + '" class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td></tr>');
-
-                            } else {
-
-                                if (!key.startsWith('_html_') && !isIn(key, _Entities.hiddenAttrs)) {
-
-                                    if (isIn(key, _Entities.readOnlyAttrs)) {
-
-                                        props.append('<tr><td class="key">' + formatKey(key) + '</td><td class="value ' + key + '_ readonly"><input type="text" class="readonly" readonly value="' + res[key] + '"></td></tr>');
-
-                                    } else if (isIn(key, _Entities.booleanAttrs)) {
-
-                                        props.append('<tr><td class="key">' + formatKey(key) + '</td><td><input type="checkbox" class="' + key + '_"></td></tr>');
-                                        var checkbox = $(props.find('.' + key + '_'));
-                                        checkbox.on('change', function() {
-                                            var checked = checkbox.prop('checked');
-                                            log('set property', id, key, checked);
-                                            Command.setProperty(id, key, checked);
-                                        });
-                                        Command.getProperty(id, key, '#dialogBox');
-
-                                        //                                } else if (isIn(key, _Entities.numberAttrs)) {
-                                    } else if (isIn(key, _Entities.dateAttrs)) {
-
-                                        if (!res[key] || res[key] === 'null') {
-                                            res[key] = '';
+                                if (view === '_html_') {
+                                    if (key !== 'id') {
+                                        props.append('<tr><td class="key">' + key.replace(view, '') + '</td>'
+                                                + '<td class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td><img class="nullIcon" id="null_' + key + '" src="icon/cross_small_grey.png"></td></tr>');
+                                    }
+                                } else if (view === 'in' || view === 'out') {
+                                    if (key === 'id') {
+                                        // set ID to rel ID
+                                        id = res[key];
+                                    }
+                                    props.append('<tr><td class="key">' + key + '</td><td rel_id="' + id + '" class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td><img class="nullIcon" id="null_' + key + '" src="icon/cross_small_grey.png"></td></tr>');
+                                } else {
+                                    if (!key.startsWith('_html_') && !isIn(key, _Entities.hiddenAttrs)) {
+                                        if (isIn(key, _Entities.readOnlyAttrs)) {
+                                            props.append('<tr><td class="key">' + formatKey(key) + '</td>'
+                                                    + '<td class="value ' + key + '_ readonly"><input type="text" class="readonly" readonly value="' + res[key] + '"></td><td></td></tr>');
+                                        } else if (isIn(key, _Entities.booleanAttrs)) {
+                                            props.append('<tr><td class="key">' + formatKey(key) + '</td><td><input type="checkbox" class="' + key + '_"></td><td></td></tr>');
+                                            var checkbox = $(props.find('.' + key + '_'));
+                                            checkbox.on('change', function() {
+                                                var checked = checkbox.prop('checked');
+                                                log('set property', id, key, checked);
+                                                Command.setProperty(id, key, checked);
+                                            });
+                                            Command.getProperty(id, key, '#dialogBox');
+                                        } else if (isIn(key, _Entities.dateAttrs)) {
+                                            if (!res[key] || res[key] === 'null') {
+                                                res[key] = '';
+                                            }
+                                            props.append('<tr><td class="key">' + formatKey(key) + '</td><td class="value ' + key + '_"><input class="dateField" name="' + key + '" type="text" value="' + res[key] + '"></td><td><img class="nullIcon" id="null_' + key + '" src="icon/cross_small_grey.png"></td></tr>');
+                                            var dateField = $(props.find('.dateField'));
+                                            dateField.datetimepicker({
+                                                showSecond: true,
+                                                timeFormat: 'hh:mm:ssz',
+                                                dateFormat: 'yy-mm-dd',
+                                                separator: 'T'
+                                            });
+                                        } else {
+                                            props.append('<tr><td class="key">' + formatKey(key) + '</td><td class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td><img class="nullIcon" id="null_' + key + '" src="icon/cross_small_grey.png"></td></tr>');
                                         }
-
-                                        props.append('<tr><td class="key">' + formatKey(key) + '</td><td class="value ' + key + '_"><input class="dateField" name="' + key + '" type="text" value="' + res[key] + '"></td></tr>');
-
-                                        var dateField = $(props.find('.dateField'));
-                                        dateField.datetimepicker({
-                                            showSecond: true,
-                                            timeFormat: 'hh:mm:ssz',
-                                            dateFormat: 'yy-mm-dd',
-                                            separator: 'T'
-                                        });
-                                        //dateField.datepicker();
-
-                                    } else {
-
-                                        props.append('<tr><td class="key">' + formatKey(key) + '</td><td class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td></tr>');
                                     }
-
                                 }
-                            }
 
-                        });
-
-                        props.append('<tr><td class="key"><input type="text" class="newKey" name="key"></td><td class="value"><input type="text" value=""></td></tr>');
-
-                        $('.props tr td.value input', dialog).each(function(i, v) {
-
-                            var input = $(v);
-
-                            var relId = input.parent().attr('rel_id');
-                            //console.log('attaching events for saving attrs of relationship', relId);
-
-                            if (!input.hasClass('readonly') && !input.hasClass('newKey')) {
-
-                                input.on('focus', function() {
-                                    input.addClass('active');
-                                });
-
-                                input.on('change', function() {
-                                    input.data('changed', true);
-                                    _Pages.reloadPreviews();
-                                });
-
-                                input.on('focusout', function() {
-                                    log('relId', relId);
-                                    var objId = relId ? relId : id;
-                                    log('set properties of obj', objId);
-
-                                    var keyInput = input.parent().parent().children('td').first().children('input');
-                                    log(keyInput);
-                                    if (keyInput && keyInput.length) {
-
-                                        // new key
-                                        log('new key: Command.setProperty(', objId, keyInput.val(), input.val());
-                                        Command.setProperty(objId, keyInput.val(), input.val());
-
-
-                                    } else {
-
-                                        // existing key
-                                        log('existing key: Command.setProperty(', objId, input.prop('name'), input.val());
-                                        Command.setProperty(objId, input.prop('name'), input.val());
-
-                                    }
-
-
-                                    input.removeClass('active');
-                                    input.parent().children('.icon').each(function(i, img) {
-                                        $(img).remove();
+                                var nullIcon = $('#null_' + key);
+                                nullIcon.on('click', function() {
+                                    var key = $(this).prop('id').substring(5);
+                                    Command.setProperty(id, key, null, false, function() {
+                                        var inp = $('.' + key + '_').find('input');
+                                        inp.val(null);
+                                        blinkGreen(inp);
+                                        dialogMsg.html('<div class="infoBox success">Property "' + key + '" was set to null.</div>');
+                                        $('.infoBox', dialogMsg).delay(2000).fadeOut(1000);
                                     });
                                 });
-
-                            }
-
+                            });
+                            props.append('<tr><td class="key"><input type="text" class="newKey" name="key"></td><td class="value"><input type="text" value=""></td><td></td></tr>');
+                            $('.props tr td.value input', dialog).each(function(i, v) {
+                                _Entities.activateInput(v, id);
+                            });
                         });
-                    });
+                    }
+                });
 
-                }
             });
-            debug = false;
         });
+        
+        $('#tab-' + activeView).click();
 
     },
-    appendAccessControlIcon: function(parent, entity, hide) {
+    activateInput: function(el, id) {
+
+        var input = $(el);
+        var relId = input.parent().attr('rel_id');
+
+        if (!input.hasClass('readonly') && !input.hasClass('newKey')) {
+
+            input.on('focus', function() {
+                input.addClass('active');
+            });
+
+            input.on('change', function() {
+                input.data('changed', true);
+                _Pages.reloadPreviews();
+            });
+
+            input.on('focusout', function() {
+                log('relId', relId);
+                var objId = relId ? relId : id;
+                log('set properties of obj', objId);
+
+                var keyInput = input.parent().parent().children('td').first().children('input');
+                log(keyInput);
+                if (keyInput && keyInput.length) {
+
+                    var newKey = keyInput.val();
+                    var val = input.val();
+
+                    // new key
+                    log('new key: Command.setProperty(', objId, newKey, val);
+                    Command.setProperty(objId, newKey, val, false, function() {
+                        blinkGreen(input);
+                        dialogMsg.html('<div class="infoBox success">New property "' + newKey + '" was added and saved with value "' + val + '".</div>');
+                        $('.infoBox', dialogMsg).delay(2000).fadeOut(1000);
+                    });
+
+
+                } else {
+
+                    var key = input.prop('name');
+                    var val = input.val();
+
+                    if (input.data('changed')) {
+
+                        input.data('changed', false);
+
+                        // existing key
+                        log('existing key: Command.setProperty(', objId, key, val);
+                        Command.setProperty(objId, key, val, false, function() {
+                            blinkGreen(input);
+                            dialogMsg.html('<div class="infoBox success">Updated property "' + key + '" with value "' + val + '".</div>');
+                            $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
+
+                        });
+                    }
+                }
+                input.removeClass('active');
+                input.parent().children('.icon').each(function(i, img) {
+                    $(img).remove();
+                });
+            });
+        }
+    },
+    appendAccessControlIcon: function(parent, entity) {
+
+        var protected = !entity.visibleToPublicUsers || !entity.visibleToAuthenticatedUsers;
 
         var keyIcon = $('.key_icon', parent);
         var newKeyIcon = '<img title="Access Control and Visibility" alt="Access Control and Visibility" class="key_icon button" src="' + Structr.key_icon + '">';
         if (!(keyIcon && keyIcon.length)) {
             parent.append(newKeyIcon);
             keyIcon = $('.key_icon', parent)
-            if (hide)
-                keyIcon.hide();
+            if (protected) {
+                keyIcon.show();
+                keyIcon.addClass('donthide');
+            }
 
             keyIcon.on('click', function(e) {
                 e.stopPropagation();
@@ -403,36 +442,20 @@ var _Entities = {
                 }, function() {
                 });
 
+
+
                 _Entities.appendSimpleSelection(dialogText, entity, 'users', 'Owner', 'owner.id');
 
-                dialogText.append('<h3>Visibility</h3><div class="' + entity.id + '_"><button class="switch disabled visibleToPublicUsers_">Public (visible to anyone)</button><button class="switch disabled visibleToAuthenticatedUsers_">Authenticated Users</button></div>');
+                dialogText.append('<h3>Visibility</h3>');
 
-                if (lastMenuEntry === 'pages') {
-                    dialogText.append('<div>Apply Recursively? <input id="recursive" type="checkbox" name="recursive"></div>');
+                //('<div class="' + entity.id + '_"><button class="switch disabled visibleToPublicUsers_">Public (visible to anyone)</button><button class="switch disabled visibleToAuthenticatedUsers_">Authenticated Users</button></div>');
+
+                if (lastMenuEntry === 'pages' && !(entity.type === 'Content')) {
+                    dialogText.append('<div>Apply visibility switches recursively? <input id="recursive" type="checkbox" name="recursive"></div><br>');
                 }
 
-                var publicSwitch = $('.visibleToPublicUsers_');
-                var authSwitch = $('.visibleToAuthenticatedUsers_');
-
-                //console.log(entity);    
-
-                _Entities.changeBooleanAttribute(publicSwitch, entity.visibleToPublicUsers);
-                _Entities.changeBooleanAttribute(authSwitch, entity.visibleToAuthenticatedUsers);
-
-                publicSwitch.on('click', function(e) {
-                    e.stopPropagation();
-                    entity.setProperty('visibleToPublicUsers', publicSwitch.hasClass('disabled'), $('#recursive', dialogText).is(':checked'), function() {
-                        _Entities.changeBooleanAttribute(publicSwitch, entity.visibleToPublicUsers);
-                    });
-                });
-
-                authSwitch.on('click', function(e) {
-                    e.stopPropagation();
-                    entity.setProperty('visibleToAuthenticatedUsers', authSwitch.hasClass('disabled'), $('#recursive', dialogText).is(':checked'), function() {
-                        _Entities.changeBooleanAttribute(authSwitch, entity.visibleToAuthenticatedUsers);
-                    });
-                });
-
+                _Entities.appendBooleanSwitch(dialogText, entity, 'visibleToPublicUsers', ['Visible to public users', 'Not visible to public users'], 'Click to toggle visibility for users not logged-in', '#recursive');
+                _Entities.appendBooleanSwitch(dialogText, entity, 'visibleToAuthenticatedUsers', ['Visible to auth. users', 'Not visible to auth. users'], 'Click to toggle visibility to logged-in users', '#recursive');
 
                 dialogText.append('<h3>Access Rights</h3>');
                 dialogText.append('<table class="props" id="principals"><thead><tr><th>Name</th><th>Read</th><th>Write</th><th>Delete</th><th>Access Control</th></tr></thead><tbody></tbody></table');
@@ -453,7 +476,7 @@ var _Entities = {
                     $('#new', tb).selectedIndex = 0;
 
                     Command.get(pId, function(p) {
-                        addPrincipal(entity, p, { 'read': true});
+                        addPrincipal(entity, p, {'read': true});
                     });
 
                 });
@@ -490,13 +513,40 @@ var _Entities = {
                 });
 
             });
-
-            keyIcon.on('mouseover', function(e) {
-                var self = $(this);
-                self.show();
-
-            });
         }
+    },
+    appendTextarea: function(el, entity, key, label, desc) {
+        el.append('<div><h3>' + label + '</h3><p>' + desc + '</p><textarea cols="60" rows="4" id="' + key + '_">' + (entity[key] ? entity[key] : '') + '</textarea></div>');
+        el.append('<div><button id="apply_' + key + '">Save</button></div>');
+        var btn = $('#apply_' + key, el);
+        btn.on('click', function() {
+            entity.setProperty(key, $('#' + key + '_', el).val(), false, function() {
+                log(key + ' successfully updated!', entity[key]);
+                blinkGreen(btn);
+            });
+        });
+    },
+    appendInput: function(el, entity, key, label, desc) {
+        el.append('<div><h3>' + label + '</h3><p>' + desc + '</p><input type="text" id="' + key + '_" value="' + (entity[key] ? entity[key] : '') + '"><button id="save_' + key + '">Save</button></div>');
+        var btn = $('#save_' + key, el);
+        btn.on('click', function() {
+            entity.setProperty('dataKey', $('#' + key + '_', dialog).val(), false, function() {
+                log(key + ' successfully updated!', entity[key]);
+                blinkGreen(btn);
+            });
+        });
+    },
+    appendBooleanSwitch: function(el, entity, key, label, desc, recElementId) {
+        el.append('<div class="' + entity.id + '_"><button class="switch disabled ' + key + '_"></button>' + desc + '</div>');
+        var sw = $('.' + key + '_', el);
+        _Entities.changeBooleanAttribute(sw, entity[key], label[0], label[1]);
+        sw.on('click', function(e) {
+            e.stopPropagation();
+            entity.setProperty(key, sw.hasClass('disabled'), $(recElementId, el).is(':checked'), function() {
+                _Entities.changeBooleanAttribute(sw, entity[key], label[0], label[1]);
+                blinkGreen(sw);
+            });
+        });
     },
     appendSimpleSelection: function(el, entity, type, title, key) {
 
@@ -504,17 +554,12 @@ var _Entities = {
         if (key.contains('.')) {
             subKey = key.substring(key.indexOf('.') + 1, key.length);
             key = key.substring(0, key.indexOf('.'));
-            //console.log('object key:', key, ', sub key: ', subKey);
         }
 
         el.append('<h3>' + title + '</h3><p id="' + key + 'Box"></p>');
-
         var element = $('#' + key + 'Box');
-
         element.append('<span class="' + entity.id + '_"><select class="' + key + '_" id="' + key + 'Select"></select></span>');
-
         var selectElement = $('#' + key + 'Select');
-
         selectElement.append('<option></option>')
 
         var headers = {};
@@ -528,10 +573,7 @@ var _Entities = {
                 $(data.result).each(function(i, result) {
 
                     var id = (subKey && entity[key] ? entity[key][subKey] : entity[key]);
-                    //console.log(id, result.id);
-
                     var selected = (id === result.id ? 'selected' : '');
-
                     selectElement.append('<option ' + selected + ' value="' + result.id + '">' + result.name + '</option>');
                 });
             }
@@ -539,7 +581,15 @@ var _Entities = {
 
         var select = $('#' + key + 'Select', element);
         select.on('change', function() {
-            entity.setProperty(key, select.val(), false);
+
+            var value = select.val();
+            if (subKey) {
+                entity[key][subKey] = value;
+            }
+
+            entity.setProperty(key, value, false, function() {
+                blinkGreen(select);
+            });
         });
     },
     appendEditPropertiesIcon: function(parent, entity) {
@@ -576,33 +626,33 @@ var _Entities = {
 
         var button = $(el.children('.expand_icon').first());
         if (button && button.length) {
-            log('Expand icon already existing');
+            log('Expand icon already existing', el, button);
             return;
         }
 
         if (hasChildren) {
+
+            log('appendExpandIcon hasChildren?', hasChildren, 'expand?', expand)
 
             var typeIcon = $(el.children('.typeIcon').first());
             var icon = expand ? Structr.expanded_icon : Structr.expand_icon;
 
             typeIcon.css({
                 paddingRight: 0 + 'px'
-            })
-                    .after('<img title="Expand \'' + entity.name + '\'" alt="Expand \'' + entity.name + '\'" class="expand_icon" src="' + icon + '">');
+            }).after('<img title="Expand \'' + entity.name + '\'" alt="Expand \'' + entity.name + '\'" class="expand_icon" src="' + icon + '">');
+
+            $(el).on('click', function(e) {
+                e.stopPropagation();
+                _Entities.toggleElement(this);
+            });
 
             button = $(el.children('.expand_icon').first());
 
             if (button) {
 
                 button.on('click', function(e) {
-                    log('expand icon clicked');
                     e.stopPropagation();
                     _Entities.toggleElement($(this).parent('.node'));
-                });
-
-                $(el).on('click', function(e) {
-                    log('node clicked');
-                    _Entities.toggleElement(this);
                 });
 
                 // Prevent expand icon from being draggable
@@ -632,14 +682,15 @@ var _Entities = {
             paddingRight: 11 + 'px'
         });
     },
-    setMouseOver: function(el, allowClick) {
+    setMouseOver: function(el, allowClick, syncedNodes) {
         var node = $(el).closest('.node');
-        if (!node || !node.children)
+        if (!node || !node.children) {
             return;
+        }
 
         if (!allowClick) {
             node.on('click', function(e) {
-                e.stopPropagation();
+                return false;
             });
         }
 
@@ -648,28 +699,46 @@ var _Entities = {
             _Entities.makeNameEditable(node);
         });
 
+        var nodeId = getId(el), isComponent;
+        if (nodeId === undefined) {
+            nodeId = getComponentId(el);
+            isComponent = true;
+        }
+
         node.on({
             mouseover: function(e) {
                 e.stopPropagation();
                 var self = $(this);
-                var nodeId = getId(el);
+                $('#componentId_' + nodeId).addClass('nodeHover');
+                if (isComponent)
+                    $('#id_' + nodeId).addClass('nodeHover');
+
+                if (syncedNodes && syncedNodes.length) {
+                    syncedNodes.forEach(function(s) {
+                        $('#id_' + s).addClass('nodeHover');
+                        $('#componentId_' + s).addClass('nodeHover');
+                    });
+                }
+
                 var page = $(el).closest('.page');
                 if (page.length) {
-                    var pageId = getId(page);
-                    var previewNodes = $('#preview_' + pageId).contents().find('[structr_element_id]');
-                    previewNodes.each(function(i, v) {
-                        var self = $(v);
-                        var sid = self.attr('structr_element_id');
-                        if (sid === nodeId) {
-                            self.addClass('nodeHover');
-                        }
-                    });
+                    $('#preview_' + getId(page)).contents().find('[data-structr-id=' + nodeId + ']').addClass('nodeHover');
                 }
                 self.addClass('nodeHover').children('img.button').show();
                 self.children('.icons').children('img.button').show();
             },
             mouseout: function(e) {
                 e.stopPropagation();
+                $('#componentId_' + nodeId).removeClass('nodeHover');
+                if (isComponent) {
+                    $('#id_' + nodeId).removeClass('nodeHover');
+                }
+                if (syncedNodes && syncedNodes.length) {
+                    syncedNodes.forEach(function(s) {
+                        $('#id_' + s).removeClass('nodeHover');
+                        $('#componentId_' + s).removeClass('nodeHover');
+                    });
+                }
                 _Entities.resetMouseOverState(this);
             }
         });
@@ -679,21 +748,11 @@ var _Entities = {
         var node = el.closest('.node')
         if (node) {
             node.removeClass('nodeHover');
-            node.find('img.button').hide();
+            node.find('img.button').not('.donthide').hide();
         }
         var page = node.closest('.page');
         if (page.length) {
-            var resId = getId(page);
-            var previewNodes = $('#preview_' + resId).contents().find('[structr_element_id]');
-            previewNodes.each(function(i, v) {
-                var self = $(v);
-                var sid = self.attr('structr_element_id');
-                if (sid === nodeId) {
-                    log(sid);
-                    self.removeClass('nodeHover');
-                    log(self);
-                }
-            });
+            $('#preview_' + getId(page)).contents().find('[data-structr-id=' + getId(node) + ']').removeClass('nodeHover');
         }
     },
     ensureExpanded: function(element) {
@@ -702,9 +761,9 @@ var _Entities = {
         var b;
         var src = el.prop('src');
 
-        var id = getId(element);
+        var id = getId(el);
 
-        log('ensureExpanded: ', el, id);
+        //console.log('ensureExpanded: ', el, id);
         addExpandedNode(id);
 
         b = el.children('.expand_icon').first();
@@ -716,10 +775,9 @@ var _Entities = {
         if (src.endsWith('icon/tree_arrow_down.png')) {
             return;
         } else {
-
+            log('ensureExpanded: fetch children', el);
             Command.children(id);
             b.prop('src', 'icon/tree_arrow_down.png');
-
         }
     },
     toggleElement: function(element, expanded) {
@@ -727,12 +785,9 @@ var _Entities = {
         var el = $(element);
         var b;
         var src = el.prop('src');
+        var id = getId(el) || getComponentId(el);
 
-        var id = getId(el);
-
-        log(el);
-
-        log('toggleElement: ', id);
+        log('toggleElement: ', el, id);
 
         b = el.children('.expand_icon').first();
         src = b.prop('src');
@@ -751,8 +806,11 @@ var _Entities = {
             removeExpandedNode(id);
         } else {
 
-            if (!expanded)
+            if (!expanded) {
+                log('toggleElement: fetch children', id);
                 Command.children(id);
+
+            }
             b.prop('src', 'icon/tree_arrow_down.png');
 
             addExpandedNode(id);
@@ -841,8 +899,8 @@ function addPrincipal(entity, principal, permissions) {
                 sw.prop('checked', permissions[perm]);
                 log('Permission successfully updated!');
                 blinkGreen(sw.parent());
-                
-                
+
+
             });
         });
     });

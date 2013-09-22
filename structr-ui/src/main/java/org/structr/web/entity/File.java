@@ -30,9 +30,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.Property;
-import org.structr.core.EntityContext;
 import org.structr.core.Services;
-import org.structr.core.graph.NodeService.NodeIndex;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -44,6 +42,8 @@ import java.net.URL;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.graph.StructrTransaction;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.StringProperty;
 
 //~--- classes ----------------------------------------------------------------
@@ -57,26 +57,15 @@ public class File extends AbstractFile implements Linkable {
 
 	private static final Logger logger                          = Logger.getLogger(File.class.getName());
 	
-	public static final Property<String>       contentType      = new StringProperty("contentType");
+	public static final Property<String>       contentType      = new StringProperty("contentType").indexed();
 	public static final Property<String>       relativeFilePath = new StringProperty("relativeFilePath");
-	public static final Property<Long>         size             = new LongProperty("size");
+	public static final Property<Long>         size             = new LongProperty("size").indexed();
 	public static final Property<String>       url              = new StringProperty("url");
-	public static final Property<Long>         checksum         = new LongProperty("checksum").systemProperty();
+	public static final Property<Long>         checksum         = new LongProperty("checksum").unvalidated();
 	public static final Property<Integer>      cacheForSeconds  = new IntProperty("cacheForSeconds");
 
 	public static final View publicView = new View(File.class, PropertyView.Public, type, name, contentType, size, url, owner);
 	public static final View uiView     = new View(File.class, PropertyView.Ui, type, contentType, relativeFilePath, size, url, parent, checksum, cacheForSeconds, owner);
-
-	//~--- static initializers --------------------------------------------
-
-	static {
-
-		EntityContext.registerSearchablePropertySet(File.class, NodeIndex.fulltext.name(), uiView.properties());
-		EntityContext.registerSearchablePropertySet(File.class, NodeIndex.keyword.name(), uiView.properties());
-
-	}
-
-	//~--- methods --------------------------------------------------------
 
 	@Override
 	public void onNodeDeletion() {
@@ -98,37 +87,55 @@ public class File extends AbstractFile implements Linkable {
 
 	}
 	
-	@Override
-	public void afterCreation(SecurityContext securityContext) {
-
-		try {
-
-			setProperty(checksum,	FileHelper.getChecksum(this));
-			setProperty(size,	FileHelper.getSize(this));
-
-		} catch (FrameworkException ex) {
-
-			logger.log(Level.SEVERE, "Could not set checksum and size", ex);
-
-		}
-
-	}
-
-	@Override
-	public void afterModification(SecurityContext securityContext) {
-
-		try {
-
-			setProperty(checksum,	FileHelper.getChecksum(this));
-			setProperty(size,	FileHelper.getSize(this));
-
-		} catch (FrameworkException ex) {
-
-			logger.log(Level.SEVERE, "Could not set checksum and size", ex);
-
-		}
-
-	}
+//	@Override
+//	public void afterCreation(SecurityContext securityContext) {
+//
+//		try {
+//
+//			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+//
+//				@Override
+//				public Object execute() throws FrameworkException {
+//
+//					setProperty(checksum,	FileHelper.getChecksum(File.this));
+//					setProperty(size,	FileHelper.getSize(File.this));
+//					
+//					return null;
+//				}
+//			});
+//
+//		} catch (FrameworkException ex) {
+//
+//			logger.log(Level.SEVERE, "Could not set checksum and size", ex);
+//
+//		}
+//
+//	}
+//
+//	@Override
+//	public void afterModification(SecurityContext securityContext) {
+//
+//		try {
+//
+//			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+//
+//				@Override
+//				public Object execute() throws FrameworkException {
+//
+//					setProperty(checksum,	FileHelper.getChecksum(File.this));
+//					setProperty(size,	FileHelper.getSize(File.this));
+//					
+//					return null;
+//				}
+//			});
+//
+//		} catch (FrameworkException ex) {
+//
+//			logger.log(Level.SEVERE, "Could not set checksum and size", ex);
+//
+//		}
+//
+//	}
 
 	//~--- get methods ----------------------------------------------------
 
@@ -229,32 +236,75 @@ public class File extends AbstractFile implements Linkable {
 
 	public void setRelativeFilePath(final String filePath) throws FrameworkException {
 
-		setProperty(File.relativeFilePath, filePath);
+		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+			@Override
+			public Object execute() throws FrameworkException {
+
+				setProperty(File.relativeFilePath, filePath);
+
+				return null;
+			}
+		});
 
 	}
 
 	public void setUrl(final String url) throws FrameworkException {
 
-		setProperty(File.url, url);
+		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+			@Override
+			public Object execute() throws FrameworkException {
+				
+				setProperty(File.url, url);
+
+				return null;
+			}
+		});
 
 	}
 
 	public void setContentType(final String contentType) throws FrameworkException {
 
-		setProperty(File.contentType, contentType);
+		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+			@Override
+			public Object execute() throws FrameworkException {
+				
+				setProperty(File.contentType, contentType);
+
+				return null;
+			}
+		});
 
 	}
 
 	public void setSize(final Long size) throws FrameworkException {
 
-		setProperty(File.size, size);
+		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+			@Override
+			public Object execute() throws FrameworkException {
+				
+				setProperty(File.size, size);
+
+				return null;
+			}
+		});
 
 	}
 
 	public void setChecksum(final Long checksum) throws FrameworkException {
 
-		setProperty(File.checksum, checksum);
+		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
+			@Override
+			public Object execute() throws FrameworkException {
+				
+				setProperty(File.checksum, checksum);
+
+				return null;
+			}
+		});
 	}
-
 }

@@ -19,68 +19,22 @@
 
 var contents, editor, contentType;
 
-$(document).ready(function() {
-    Structr.registerModule('contents', _Contents);
-    Structr.classes.push('content');
-});
-
 var _Contents = {
 
     icon : 'icon/page_white.png',
     add_icon : 'icon/page_white_add.png',
     delete_icon : 'icon/page_white_delete.png',
 	
-    init : function() {
-    //Structr.classes.push('content');
-    },
-
-    onload : function() {
-        
-        _Contents.init();
-        
-        log('onload');
-        if (palette) palette.remove();
-        main.append('<div id="contents"></div>');
-
-        contents = $('#contents');
-        _Contents.refresh();
-        contents.show();
-    },
-
-    refresh : function() {
-        contents.empty();
-        if (_Contents.show()) {
-            contents.append('<button class="add_content_icon button"><img title="Add Content" alt="Add Content" src="' + _Contents.add_icon + '"> Add Content</button>');
-            $('.add_content_icon', main).on('click', function(e) {
-                e.stopPropagation();
-                var entity = {};
-                entity.type = 'Content';
-                Command.create(entity);
-            });
-        }
-    },
-
-    show : function() {
-        if (palette) {
-            palette.children().first().before('<div class="elementGroup"><h3>Content</h3><div class="draggable content" id="add_content">content</div></div>');
-            $('#add_content', palette).draggable({
-                iframeFix: true,
-                revert: 'invalid',
-                containment: 'body',
-                zIndex: 1,
-                helper: 'clone'
-            });
-        }
-
-        return Command.list('Content');
-    },
-
     appendContentElement : function(content, refNode) {
         log('Contents.appendContentElement', content, refNode);
 
         var parent;
+        
         if (content.parent && content.parent.id) {
             parent = Structr.node(content.parent.id);
+            _Entities.ensureExpanded(parent);
+        } else {
+            parent = elements;
         }
         
         if (!parent) return false;
@@ -97,6 +51,11 @@ var _Contents = {
         }
         
         var div = Structr.node(content.id);
+    
+        _Dragndrop.makeSortable(div);
+        _Dragndrop.makeDroppable(div);
+        
+        _Entities.appendAccessControlIcon(div, content);
 
         div.append('<img title="Delete content \'' + content.name + '\'" alt="Delete content \'' + content.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
         $('.delete_icon', div).on('click', function(e) {
@@ -130,7 +89,6 @@ var _Contents = {
         });
         
         _Entities.appendEditPropertiesIcon(div, content);
-        _Entities.appendAccessControlIcon(div, content);
 
         return div;
     },
@@ -144,70 +102,63 @@ var _Contents = {
         //alert(contentType);
         var text1, text2, timer;
         editor = CodeMirror(contentBox.get(0), {
-            value: unescapeTags(text),
+            value: text,
             mode:  contentType,
             lineNumbers: true
         });
         editor.focus();
-        if (true) {
+        Structr.resize();
         
-            editor.on('change', function(cm, changes) {
-                
-                window.clearTimeout(timer);
-                
-                var contentNode = Structr.node(entity.id)[0];
-                
-                text1 = $(contentNode).children('.content_').text();
-                text2 = editor.getValue();
-                
-                if (!text1) text1 = '';
-                if (!text2) text2 = '';
-//            
-                if (text1 == text2) return;
-                //editorCursor = cm.getCursor();
+        dialogBtn.append('<button id="editorSave">Save</button>');
+        dialogBtn.append('<button id="saveAndClose"> Save and close</button>');
+        
+        var saveBtn = $('#editorSave', dialogBtn);
+        var saveAndClose = $('#saveAndClose', dialogBtn);
+        
+        saveAndClose.on('click', function(e) {
+            e.stopPropagation();
+            saveBtn.click();
+            setTimeout(function() {
+                saveBtn.remove();
+                saveAndClose.remove();
+                dialogCancelButton.click();
+            }, 500);
+        });
 
-                timer = window.setTimeout(function() {
-                    Command.patch(entity.id, text1, text2, function() {
-                        _Pages.reloadPreviews();
-                    });
-                }, 250);
-				
+        saveBtn.on('click', function(e) {
+            e.stopPropagation();
+     
+            var contentNode = Structr.node(entity.id)[0];
+                
+            text1 = $(contentNode).children('.content_').text();
+            text2 = editor.getValue();
+                
+            if (!text1) text1 = '';
+            if (!text2) text2 = '';
+		
+            if (debug) {
+                console.log('Element', contentNode);
+                console.log('text1', text1);
+                console.log('text2', text2);
+            }
+                
+            if (text1 === text2) return;
+            Command.patch(entity.id, text1, text2, function() {
+                dialogMsg.html('<div class="infoBox success">Content saved.</div>');
+                $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
+                _Pages.reloadPreviews();
             });
-        }
-        
-//        element.append('<button id="editorSave">Save</button>');
-//        $('#editorSave', element).on('click', function() {
-//     
-//            var contentNode = Structr.node(entity.id)[0];
-//                
-//            text1 = $(contentNode).children('.content_').text();
-//            text2 = editor.getValue();
-//                
-//            if (!text1) text1 = '';
-//            if (!text2) text2 = '';
-//		
-//            if (debug) {
-//                console.log('Element', contentNode);
-//                console.log('text1', text1);
-//                console.log('text2', text2);
-//            }
-//                
-//            if (text1 == text2) return;
-//            //            editorCursor = cm.getCursor();
-//            //            log(editorCursor);
-//
-//            //timer = window.setTimeout(function() {
-//            Command.patch(entity.id, text1, text2);
-//        //}, 5000);
-//            
-//        });
+            
+        });
+
+        //_Entities.appendBooleanSwitch(dialogMeta, entity, 'editable', 'Editable', 'If enabled, data fields in this content element are editable in edit mode.');
         
         var values = [ 'text/plain', 'text/html', 'text/css', 'text/javascript', 'text/markdown', 'text/textile', 'text/mediawiki', 'text/tracwiki', 'text/confluence'];
         
         dialogMeta.append('<label for="contentTypeSelect">Content-Type:</label><select class="contentType_" id="contentTypeSelect"></select>');
         var select = $('#contentTypeSelect', dialogMeta);
         $.each(values, function(i, type) {
-            select.append('<option ' + (type == entity.contentType ? 'selected' : '') + ' value="' + type + '">' + type + '</option>');
+            select.append('<option ' + (type === entity.contentType ? 'selected' : '') + ' value="' + type + '">' + type + '</option>');
         });
         select.on('change', function() {
             contentType = select.val();
@@ -216,15 +167,6 @@ var _Contents = {
             });
         });
         
-//        dialogMeta.append('<tr><td><label for="data-key">Data Key:</label></td><td><input id="dataKey" class="data-key_" name="data-key" size="20" value=""></td></tr>');
-//        Command.getProperty(entity.id, 'data-key', '#dialogBox');
-//        var dataKeyInput = $('#dataKey', t);
-//        dataKeyInput.on('blur', function() {
-//            entity.setProperty('data-key', dataKeyInput.val());
-//        });
-
-//        _Entities.appendSimpleSelection($('#dialogBox .dialogMeta'), entity, 'type_definitions', 'Data Type', 'typeDefinitionId');
-
         editor.id = entity.id;
 
     }

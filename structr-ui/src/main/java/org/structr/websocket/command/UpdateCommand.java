@@ -38,6 +38,9 @@ import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.Permission;
+import org.structr.core.Services;
+import org.structr.core.graph.StructrTransaction;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.websocket.StructrWebSocket;
 
 //~--- classes ----------------------------------------------------------------
@@ -83,7 +86,6 @@ public class UpdateCommand extends AbstractCommand {
 			
 		}
 		
-//              final Map<String, Object> relData = webSocketData.getRelData();
 		if (obj == null) {
 
 			// No node? Try to find relationship
@@ -125,36 +127,35 @@ public class UpdateCommand extends AbstractCommand {
 
 	private void setProperties(final GraphObject obj, final PropertyMap properties, final boolean rec) throws FrameworkException {
 
-		for (Entry<PropertyKey, Object> entry : properties.entrySet()) {
+		Services.command(getWebSocket().getSecurityContext(), TransactionCommand.class).execute(new StructrTransaction() {
 
-			PropertyKey key = entry.getKey();
-			Object value    = entry.getValue();
+			@Override
+			public Object execute() throws FrameworkException {
 
-			obj.setProperty(key, value);
+				for (Entry<PropertyKey, Object> entry : properties.entrySet()) {
 
-			if (rec) {
+					PropertyKey key = entry.getKey();
+					Object value    = entry.getValue();
 
-				if (obj instanceof AbstractNode) {
+					obj.setProperty(key, value);
 
-					AbstractNode node = (AbstractNode) obj;
+					if (rec && obj instanceof AbstractNode) {
 
-					for (AbstractRelationship rel : node.getOutgoingRelationships(RelType.CONTAINS)) {
+						AbstractNode node = (AbstractNode) obj;
 
-						AbstractNode endNode = rel.getEndNode();
+						for (AbstractRelationship rel : node.getOutgoingRelationships(RelType.CONTAINS)) {
 
-						if (endNode != null) {
+							AbstractNode endNode = rel.getEndNode();
+							if (endNode != null) {
 
-							setProperties(endNode, properties, rec);
+								setProperties(endNode, properties, rec);
+							}
 						}
-
 					}
-
 				}
-
+				
+				return null;
 			}
-
-		}
-
+		});
 	}
-
 }

@@ -45,7 +45,7 @@ public class ThumbnailProperty extends AbstractReadOnlyProperty<Image> {
 
 		super(name);
 		
-		this.isSystemProperty = true;
+		this.unvalidated = true;
 		this.tnParams    = tnParams;
 
 	}
@@ -77,5 +77,10 @@ public class ThumbnailProperty extends AbstractReadOnlyProperty<Image> {
 	@Override
 	public boolean isCollection() {
 		return false;
+	}
+
+	@Override
+	public Integer getSortType() {
+		return null;
 	}
 }

@@ -77,4 +77,8 @@ public class StartNodeProperty<T> extends AbstractPrimitiveProperty<T> {
 
 	}
 
+	@Override
+	public Integer getSortType() {
+		return null;
+	}
 }

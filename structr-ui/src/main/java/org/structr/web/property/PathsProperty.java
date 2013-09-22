@@ -59,4 +59,9 @@ public class PathsProperty extends AbstractPrimitiveProperty<Set<String>> {
 	public Object fixDatabaseProperty(Object value) {
 		return null;
 	}
+
+	@Override
+	public Integer getSortType() {
+		return null;
+	}
 }

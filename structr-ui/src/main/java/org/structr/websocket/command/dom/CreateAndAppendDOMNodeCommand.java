@@ -22,10 +22,14 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
+import org.structr.core.Services;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.graph.StructrTransaction;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.websocket.StructrWebSocket;
@@ -52,11 +56,13 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
-		Map<String, Object> nodeData = webSocketData.getNodeData();
-		String parentId              = (String) nodeData.get("parentId");
-		nodeData.remove("parentId");
-		String pageId                = webSocketData.getPageId();
+		final Map<String, Object> nodeData = webSocketData.getNodeData();
+		final String parentId              = (String) nodeData.get("parentId");
+		final String childContent          = (String) nodeData.get("childContent");
+		final String pageId                = webSocketData.getPageId();
 		
+		nodeData.remove("parentId");
+
 		if (pageId != null) {
 
 			// check for parent ID before creating any nodes
@@ -67,72 +73,99 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 			}
 
 			// check if parent node with given ID exists
-			DOMNode parentNode = getDOMNode(parentId);
+			final DOMNode parentNode = getDOMNode(parentId);
 			if (parentNode == null) {
 		
 				getWebSocket().send(MessageBuilder.status().code(404).message("Parent node not found").build(), true);		
 				return;
 			}
 			
-			Document document = getPage(pageId);
+			final Document document = getPage(pageId);
 			if (document != null) {
 
-				String tagName  = (String) nodeData.get("tagName");
+				final String tagName  = (String) nodeData.get("tagName");
 				nodeData.remove("tagName");
-				
-				DOMNode newNode = null;
 				
 				try {
 
-					if (tagName != null && !tagName.isEmpty()) {
+					Services.command(getWebSocket().getSecurityContext(), TransactionCommand.class).execute(new StructrTransaction() {
 
-						newNode = (DOMNode)document.createElement(tagName);
+						@Override
+						public Object execute() throws FrameworkException {
+							
+							DOMNode newNode;
 
-					} else {
+							if (tagName != null && !tagName.isEmpty()) {
 
-						newNode = (DOMNode)document.createTextNode("#text");
-					}
+								newNode = (DOMNode)document.createElement(tagName);
 
-					// append new node to parent
-					if (newNode != null) {
+							} else {
 
-						parentNode.appendChild(newNode);
-						
-						for (Entry entry : nodeData.entrySet()) {
-
-							String key = (String) entry.getKey();
-							Object val = entry.getValue();
-
-							PropertyKey propertyKey = EntityContext.getPropertyKeyForDatabaseName(newNode.getClass(), key);
-							if (propertyKey != null) {
-
-								try {
-									Object convertedValue = val;
-									
-									PropertyConverter inputConverter = propertyKey.inputConverter(SecurityContext.getSuperUserInstance());
-									if (inputConverter != null) {
-										
-										convertedValue = inputConverter.convert(val);
-									}
-									
-									//newNode.unlockReadOnlyPropertiesOnce();
-									newNode.setProperty(propertyKey, convertedValue);
-									
-								} catch (FrameworkException fex) {
-
-									logger.log(Level.WARNING, "Unable to set node property {0} of node {1} to {2}: {3}", new Object[] { propertyKey, newNode.getUuid(), val, fex.getMessage() } );
-									
-								}
+								newNode = (DOMNode)document.createTextNode("#text");
 							}
 
+							// append new node to parent
+							if (newNode != null) {
+
+								parentNode.appendChild(newNode);
+
+								for (Entry entry : nodeData.entrySet()) {
+
+									String key = (String) entry.getKey();
+									Object val = entry.getValue();
+
+									PropertyKey propertyKey = EntityContext.getPropertyKeyForDatabaseName(newNode.getClass(), key);
+									if (propertyKey != null) {
+
+										try {
+											Object convertedValue = val;
+
+											PropertyConverter inputConverter = propertyKey.inputConverter(SecurityContext.getSuperUserInstance());
+											if (inputConverter != null) {
+
+												convertedValue = inputConverter.convert(val);
+											}
+
+											//newNode.unlockReadOnlyPropertiesOnce();
+											newNode.setProperty(propertyKey, convertedValue);
+
+										} catch (FrameworkException fex) {
+
+											logger.log(Level.WARNING, "Unable to set node property {0} of node {1} to {2}: {3}", new Object[] { propertyKey, newNode.getUuid(), val, fex.getMessage() } );
+
+										}
+									}
+
+								}
+								
+								// create a child text node if content is given
+								if (StringUtils.isNotBlank(childContent)) {
+									
+									DOMNode childNode = (DOMNode)document.createTextNode(childContent);
+									
+									if (newNode != null) {
+										
+										newNode.appendChild(childNode);
+
+									}
+									
+								}
+
+							}
+
+							return null;
 						}
 						
-					}
+					});
 					
 				} catch (DOMException dex) {
 						
 					// send DOM exception
 					getWebSocket().send(MessageBuilder.status().code(422).message(dex.getMessage()).build(), true);		
+					
+				} catch (FrameworkException ex) {
+					
+					Logger.getLogger(CreateAndAppendDOMNodeCommand.class.getName()).log(Level.SEVERE, null, ex);
 				}
 				
 			} else {

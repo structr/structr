@@ -18,17 +18,25 @@
  */
 package org.structr.core.graph.search;
 
+import org.apache.lucene.search.BooleanClause.Occur;
+
 /**
  *
  * @author Axel Morgner
  */
 public enum SearchOperator {
-    AND,
-    OR,
-    NOT,
-    GREATER,
-    LESS,
-    GREATER_OR_EQUAL,
-    LESS_OR_EQUAL,
-    EQUAL;
+
+	AND(Occur.MUST),
+	OR(Occur.SHOULD),
+	NOT(Occur.MUST_NOT);
+	
+	private Occur occur = null;
+
+	SearchOperator(Occur occur) {
+		this.occur = occur;
+	}
+	
+	public Occur occur() {
+		return occur;
+	}
 }

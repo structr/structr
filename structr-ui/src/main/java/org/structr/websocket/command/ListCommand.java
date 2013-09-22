@@ -35,7 +35,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.websocket.message.WebSocketMessage;
 import org.structr.web.common.RelType;
 import org.structr.web.entity.Image;
-import org.structr.rest.resource.PagingHelper;
+import org.structr.common.PagingHelper;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 
@@ -79,11 +79,11 @@ public class ListCommand extends AbstractCommand {
 			return;
 		}
 
-		searchAttributes.add(Search.andExactType(type.getSimpleName()));
+		searchAttributes.add(Search.andExactType(type));
 		
 		// for image lists, suppress thumbnails
 		if (type.equals(Image.class)) {
-			searchAttributes.add(Search.andExactProperty(Image.isThumbnail, false));
+			searchAttributes.add(Search.andExactProperty(securityContext, Image.isThumbnail, false));
 		}
 
 		final String sortOrder   = webSocketData.getSortOrder();

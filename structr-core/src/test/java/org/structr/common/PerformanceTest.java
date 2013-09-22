@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.entity.GenericNode;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -71,7 +72,7 @@ public class PerformanceTest extends StructrTest {
 
 			int number               = 1000;
 			long t0                  = System.nanoTime();
-			List<AbstractNode> nodes = createTestNodes("UnknownTestType", number);
+			List<AbstractNode> nodes = createTestNodes(GenericNode.class, number);
 			long t1                  = System.nanoTime();
 
 			assertTrue(nodes.size() == number);

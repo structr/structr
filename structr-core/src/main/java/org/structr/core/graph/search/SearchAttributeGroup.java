@@ -20,41 +20,115 @@ package org.structr.core.graph.search;
 
 import java.util.LinkedList;
 import java.util.List;
+import org.apache.lucene.search.BooleanClause.Occur;
+import static org.apache.lucene.search.BooleanClause.Occur.MUST;
+import static org.apache.lucene.search.BooleanClause.Occur.MUST_NOT;
+import static org.apache.lucene.search.BooleanClause.Occur.SHOULD;
+import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.Query;
+import org.structr.core.GraphObject;
 
 /**
- * Represents a group of search operators, to be used for queries
- * with multiple textual search attributes grouped by parenthesis.
+ * Represents a group of search operators, to be used for queries with multiple textual search attributes grouped by parenthesis.
  *
  * @author Axel Morgner
  */
 public class SearchAttributeGroup extends SearchAttribute {
 
-    private List<SearchAttribute> searchItems = new LinkedList<SearchAttribute>();
+	private List<SearchAttribute> searchItems = new LinkedList<SearchAttribute>();
 
-    public SearchAttributeGroup(final SearchOperator searchOp) {
-        setSearchOperator(searchOp);
-    }
+	public SearchAttributeGroup(final Occur occur) {
+		super(occur);
+	}
 
-    public final void setSearchAttributes(final List<SearchAttribute> searchItems) {
-        this.searchItems = searchItems;
-    }
+	public final void setSearchAttributes(final List<SearchAttribute> searchItems) {
+		this.searchItems = searchItems;
+	}
 
-    public List<SearchAttribute> getSearchAttributes() {
-        return searchItems;
-    }
+	public List<SearchAttribute> getSearchAttributes() {
+		return searchItems;
+	}
 
-    public void add(final SearchAttribute searchAttribute) {
-        searchItems.add(searchAttribute);
-    }
+	public void add(final SearchAttribute searchAttribute) {
+		searchItems.add(searchAttribute);
+	}
 
-    @Override
-    public Object getAttribute() {
-        return searchItems;
-    }
+	@Override
+	public Query getQuery() {
+		
+		BooleanQuery query = new BooleanQuery();
+		
+		for (SearchAttribute attr : getSearchAttributes()) {
+			
+			Query subQuery = attr.getQuery();
+			Occur occur    = attr.getOccur();
+			
+			query.add(subQuery, occur);
+		}
+		
+		return query;
+	}
 
-    @Override
-    public void setAttribute(Object attribute) {
-        this.searchItems = (List<SearchAttribute>) attribute;
-    }
+	@Override
+	public boolean isExactMatch() {
+		
+		boolean exactMatch = true;
+		
+		for (SearchAttribute attr : getSearchAttributes()) {
+			
+			exactMatch &= attr.isExactMatch();
+		}
+		
+		return exactMatch;
+	}
 
+	@Override
+	public String getStringValue() {
+		return null;
+	}
+
+	@Override
+	public String getInexactValue() {
+		return null;
+	}
+
+	@Override
+	public boolean includeInResult(GraphObject entity) {
+		
+		boolean includeInResult = true;
+
+		for (SearchAttribute attr : getSearchAttributes()) {
+
+			switch (attr.getOccur()) {
+
+				case MUST:
+					includeInResult &= attr.includeInResult(entity);
+					break;
+
+				case SHOULD:
+					// special behaviour for OR'ed predicates
+					if (attr.includeInResult(entity)) {
+						
+						// we're in or mode, return
+						// immediately
+						return true;
+						
+					} else {
+						
+						// set result flag to false
+						// and evaluate next search predicate
+						includeInResult = false;
+					}
+					break;
+
+
+				case MUST_NOT:
+					includeInResult &= !attr.includeInResult(entity);
+					break;
+			}
+		}
+
+		
+		return includeInResult;
+	}
 }

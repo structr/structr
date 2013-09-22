@@ -168,7 +168,7 @@ public class StructrRestTest extends TestCase {
 			ServletHolder structrRestServletHolder = new ServletHolder(structrRestServlet);
 
 			Map<String, String> servletParams = new LinkedHashMap<String, String>();
-			servletParams.put("Authenticator", DefaultAuthenticator.class.getName());
+			servletParams.put("Authenticator", SuperUserAuthenticator.class.getName());
 
 			structrRestServletHolder.setInitParameters(servletParams);
 			structrRestServletHolder.setInitOrder(0);
@@ -377,6 +377,30 @@ public class StructrRestTest extends TestCase {
 		});
 
 	}
+	
+	protected String concat(String... parts) {
+
+		StringBuilder buf = new StringBuilder();
+		
+		for (String part : parts) {
+			buf.append(part);
+		}
+		
+		return buf.toString();
+	}
+	
+	protected String createEntity(String resource, String... body) {
+		
+		StringBuilder buf = new StringBuilder();
+		
+		for (String part : body) {
+			buf.append(part);
+		}
+		
+		return getUuidFromLocation(RestAssured.given().contentType("application/json; charset=UTF-8")
+			.body(buf.toString())
+			.expect().statusCode(201).when().post(resource).getHeader("Location"));
+	}
 
 	//~--- get methods ----------------------------------------------------
 
@@ -460,7 +484,7 @@ public class StructrRestTest extends TestCase {
 			}
 			
 			config.add("# JSON output nesting depth");
-			config.add("json.depth = 1");
+			config.add("json.depth = 4");
 			config.add("");
 			config.add("# base directory");
 			config.add("base.path = " + basePath);

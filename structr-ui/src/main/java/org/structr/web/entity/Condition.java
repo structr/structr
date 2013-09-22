@@ -20,21 +20,17 @@
 
 package org.structr.web.entity;
 
-import java.util.List;
 import org.structr.common.PropertyView;
-import org.structr.common.SecurityContext;
 import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.NodeService;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
-import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.DOMElement;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import javax.servlet.http.HttpServletRequest;
-import org.structr.common.error.FrameworkException;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -44,20 +40,9 @@ import org.structr.common.error.FrameworkException;
  */
 public class Condition extends DOMElement {
 
-	public static final Property<String> query             = new StringProperty("query");
+	public static final Property<String> query             = new StringProperty("query").indexed();
 	public static final org.structr.common.View uiView     = new org.structr.common.View(Condition.class, PropertyView.Ui, query);
 	public static final org.structr.common.View publicView = new org.structr.common.View(Condition.class, PropertyView.Public, query);
-
-	//~--- static initializers --------------------------------------------
-
-	static {
-
-		EntityContext.registerSearchablePropertySet(Condition.class, NodeService.NodeIndex.fulltext.name(), uiView.properties());
-		EntityContext.registerSearchablePropertySet(Condition.class, NodeService.NodeIndex.keyword.name(), uiView.properties());
-
-	}
-
-	//~--- get methods ----------------------------------------------------
 
 	@Override
 	public short getNodeType() {

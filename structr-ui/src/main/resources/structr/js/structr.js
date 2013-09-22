@@ -32,7 +32,7 @@ function connect() {
 
         ws = null;
 
-        var isEnc = (window.location.protocol == 'https:');
+        var isEnc = (window.location.protocol === 'https:');
         var host = document.location.host;
         var wsUrl = 'ws' + (isEnc ? 's' : '') + '://' + host + wsRoot + '?' + location.pathname;
 
@@ -82,7 +82,7 @@ function connect() {
 
             //console.log('####################################### ', command, ' #########################################');
 
-            if (command == 'PARTIAL') {
+            if (command === 'PARTIAL') {
 
                 console.log(data.message);
                 var pos = data.data.parentPositionPath.split('/');

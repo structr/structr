@@ -30,7 +30,7 @@ public class ReadOnlyReference<T> extends Reference<T> {
 	}
 	
 	@Override
-	public boolean isReadOnlyProperty() {
+	public boolean isReadOnly() {
 		return true;
 	}
 }

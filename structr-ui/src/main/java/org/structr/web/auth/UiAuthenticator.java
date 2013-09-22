@@ -35,11 +35,16 @@ import org.structr.core.entity.ResourceAccess;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+import org.apache.commons.lang.StringUtils;
+import org.structr.common.AccessMode;
+import org.structr.core.Services;
 import org.structr.core.auth.exception.UnauthorizedException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Person;
 import org.structr.core.entity.SuperUser;
+import org.structr.core.graph.StructrTransaction;
+import org.structr.core.graph.TransactionCommand;
+import static org.structr.web.auth.HttpAuthenticator.checkSessionAuthentication;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -49,8 +54,8 @@ import org.structr.core.entity.SuperUser;
  */
 public class UiAuthenticator extends HttpAuthenticator {
 	
-	private enum Method { GET, PUT, POST, DELETE }
-	private static final Map<String, Method> methods = new LinkedHashMap<String, Method>();
+	private enum Method { GET, PUT, POST, DELETE, OPTIONS }
+	private static final Map<String, Method> methods = new LinkedHashMap();
 
 	private static final Logger logger       = Logger.getLogger(HttpAuthenticator.class.getName());
 
@@ -61,6 +66,7 @@ public class UiAuthenticator extends HttpAuthenticator {
 		methods.put("PUT", Method.PUT);
 		methods.put("POST", Method.POST);
 		methods.put("DELETE", Method.DELETE);
+		methods.put("OPTIONS", Method.OPTIONS);
 
 	}
 	
@@ -70,25 +76,92 @@ public class UiAuthenticator extends HttpAuthenticator {
 	public static final long AUTH_USER_PUT		= 2;
 	public static final long AUTH_USER_POST		= 4;
 	public static final long AUTH_USER_DELETE	= 8;
+	
 	public static final long NON_AUTH_USER_GET	= 16;
 	public static final long NON_AUTH_USER_PUT	= 32;
 	public static final long NON_AUTH_USER_POST	= 64;
 	public static final long NON_AUTH_USER_DELETE	= 128;
 	
+	public static final long AUTH_USER_OPTIONS	= 256;
+	public static final long NON_AUTH_USER_OPTIONS	= 512;
+
+	/**
+	 * Examine request and try to find a user.
+	 * 
+	 * First, check session id, then try external (OAuth) authentication,
+	 * finally, check standard login by credentials.
+	 * 
+	 * @param request
+	 * @param response
+	 * @return
+	 * @throws FrameworkException 
+	 */
 	@Override
-	public void initializeAndExamineRequest(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response) throws FrameworkException {
+	public SecurityContext initializeAndExamineRequest(HttpServletRequest request, HttpServletResponse response) throws FrameworkException {
 
-		getUser(securityContext, request, response, true);
+		SecurityContext securityContext;
+		
+		Principal user = checkSessionAuthentication(request);
+		
+		if (user == null) {
 
+			user = checkExternalAuthentication(request, response);
+
+		}
+
+		if (user == null) {
+
+			user = getUser(request, true);
+			
+		}
+
+		if (user == null) {
+
+			// If no user could be determined, assume frontend access
+			securityContext = SecurityContext.getInstance(user, request, AccessMode.Frontend);
+			
+		} else {
+		
+		
+			if (user instanceof SuperUser) {
+
+				securityContext = SecurityContext.getSuperUserInstance(request);
+
+			} else {
+
+				securityContext = SecurityContext.getInstance(user, request, AccessMode.Backend);
+
+			}
+
+		}
+		
+		securityContext.setAuthenticator(this);
+
+		// test for cross site resource sharing
+		String origin = request.getHeader("Origin");
+		 if (!StringUtils.isBlank(origin)) {
+
+			 // allow cross site resource sharing (read only)
+			response.setHeader("Access-Control-Allow-Origin", origin);
+			response.setHeader("Access-Control-Allow-Methods", "GET,PUT,POST");
+			response.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+		 }
+		
+		examined = true;
+		return securityContext;
+		
 	}
 
 	@Override
-	public void examineRequest(SecurityContext securityContext, HttpServletRequest request, String rawResourceSignature, ResourceAccess resourceAccess, String propertyView)
+	public void checkResourceAccess(HttpServletRequest request, String rawResourceSignature, String propertyView)
 		throws FrameworkException {
+		
+		ResourceAccess resourceAccess = ResourceAccess.findGrant(rawResourceSignature);
 		
 		Method method       = methods.get(request.getMethod());
 
-		Principal user = securityContext.getUser(true);
+		Principal user = getUser(request, true);
 		boolean validUser = (user != null);
 		
 		// super user is always authenticated
@@ -169,6 +242,21 @@ public class UiAuthenticator extends HttpAuthenticator {
 
 					break;
 
+				case OPTIONS :
+
+					if (!validUser && resourceAccess.hasFlag(NON_AUTH_USER_OPTIONS)) {
+						
+						return;
+						
+					}
+					
+					if (validUser && resourceAccess.hasFlag(AUTH_USER_OPTIONS)) {
+
+						return;
+
+					}
+
+					break;
 			}
 		}
 
@@ -177,22 +265,30 @@ public class UiAuthenticator extends HttpAuthenticator {
 	}
 	
 	@Override
-	public Principal doLogin(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response, String emailOrUsername, String password) throws AuthenticationException {
+	public Principal doLogin(HttpServletRequest request,String emailOrUsername, String password) throws AuthenticationException {
 
-		Principal user = AuthHelper.getPrincipalForPassword(Person.email, emailOrUsername, password);
+		Principal user = AuthHelper.getPrincipalForPassword(Person.eMail, emailOrUsername, password);
 
 		if (user != null) {
 
-			HttpSession session = request.getSession(false);
+			final String sessionIdFromRequest = request.getRequestedSessionId();
 			
 			// Websocket connects don't have a session
-			if (session != null) {
+			if (sessionIdFromRequest != null) {
 			
-				String sessionIdFromRequest = session.getId();
+				final Principal principal         = user;
 
 				try {
-					// store session id in user object
-					user.setProperty(Principal.sessionId, sessionIdFromRequest);
+					
+					Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(new StructrTransaction() {
+
+						@Override
+						public Object execute() throws FrameworkException {
+							// store session id in user object
+							principal.setProperty(Principal.sessionId, sessionIdFromRequest);
+							return null;
+						}
+					});
 
 				} catch (Exception ex) {
 
@@ -200,8 +296,6 @@ public class UiAuthenticator extends HttpAuthenticator {
 
 				}
 			}
-
-			securityContext.setUser(user);
 
 		}
 
@@ -212,14 +306,13 @@ public class UiAuthenticator extends HttpAuthenticator {
 	//~--- get methods ----------------------------------------------------
 
 	@Override
-	public Principal getUser(SecurityContext securityContext, HttpServletRequest request, HttpServletResponse response, final boolean tryLogin) throws FrameworkException {
+	public Principal getUser(HttpServletRequest request, final boolean tryLogin) throws FrameworkException {
 
 		// First, check session (JSESSIONID cookie)
-		Principal user = checkSessionAuthentication(request, response);
+		Principal user = checkSessionAuthentication(request);
 		
 		if (user != null) {
 			
-			securityContext.setUser(user);
 			return user;
 		}
 		
@@ -242,12 +335,6 @@ public class UiAuthenticator extends HttpAuthenticator {
 			}
 		}
 
-		if (user != null) {
-
-			securityContext.setUser(user);
-
-		}
-		
 		return user;
 
 	}

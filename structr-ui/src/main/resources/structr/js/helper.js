@@ -54,6 +54,16 @@ function isIn(s, array) {
     return ($.inArray(s, array) > -1);
 }
 
+function escapeForHtmlAttributes(str) {
+    if (!(typeof str === 'string')) return str;
+    return str
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+}
+
 function escapeTags(str) {
     if (!str) return str;
     return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -61,7 +71,11 @@ function escapeTags(str) {
 
 function unescapeTags(str) {
     if (!str) return str;
-    return str.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+    return str
+            .replace(/&nbsp;/g, ' ')
+            .replace(/&amp;/g, '&')
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>');
 }
 
 $.fn.reverse = [].reverse;
@@ -75,7 +89,7 @@ if (typeof String.prototype.endsWith !== 'function') {
 
 if (typeof String.prototype.startsWith !== 'function') {
     String.prototype.startsWith = function (str){
-        return this.indexOf(str) == 0;
+        return this.indexOf(str) === 0;
     };
 }
 
@@ -87,7 +101,7 @@ if (typeof String.prototype.capitalize !== 'function') {
 
 if (typeof String.prototype.escapeForJSON !== 'function') {
     String.prototype.escapeForJSON = function() {
-        return this.replace(/"/g, '\'');
+        return this.replace(/"/g, '\\"');
     };
 }
 
@@ -118,6 +132,14 @@ if (typeof String.prototype.splitAndTitleize !== 'function') {
     };
 }
 
+if (typeof String.prototype.extractVal !== 'function') {
+    String.prototype.extractVal = function(key) {
+        var pattern = '('+key+'=")(.*?)"';
+        var re = new RegExp(pattern);
+        var value = this.match(re);
+        return value && value[2] ? value[2] : undefined;
+    };
+}
 /**
  * Clean text from contenteditable
  * 
@@ -125,18 +147,32 @@ if (typeof String.prototype.splitAndTitleize !== 'function') {
  * any <br> tag into a line feed ('\n').
  */
 function cleanText(input) {
-    if (debug)console.log(input);
-    var output = '';
-    $(input).each(function(i, line) {
-        var cleaned = $(line).text();
-        log(cleaned.length);
-        if (cleaned.length) {
-            output += cleaned;
-        } else {
-            output += '\n';
-        }
-    });
-    log(output);
+    //console.log(input);
+    var output = input.trim()
+        .replace(/<br><\/div>/ig, '\n')
+        .replace(/<div>/ig, '\n')
+        .replace(/<br(\s*)\/*>/ig, '\n')
+        .replace(/(<([^>]+)>)/ig,"");
+
+   //console.log(output);
+   return output;
+    
+//    if (debug) console.log(input);
+//    var output = '';
+//    $(input).each(function(i, line) {
+//        var cleaned = $(line).text();
+//        console.log('>'+cleaned+'<');
+//        output += cleaned + '\n';
+//    });
+//    console.log(output);
+//    return output;
+}
+
+/**
+ * Expand literal \n to newline
+ */
+function expandNewline(text) {
+    var output = text.replace(/\\n/g, '<br>');
     return output;
 }
 
@@ -145,11 +181,11 @@ function shorten(uuid) {
 }
 
 function urlParam(name) {
-    name = name.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
-    var regexS = "[\\?&]"+name+"=([^&#]*)";
+    name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
+    var regexS = "[\\?&]" + name + "=([^&#]*)";
     var regex = new RegExp(regexS);
-    var results = regex.exec(window.location.href);
-    return (results&&results.length?results[1]:'');
+    var res = regex.exec(window.location.href);
+    return (res && res.length ? res[1] : '');
 }
 
 function nvl(value, defaultValue) {
@@ -158,8 +194,10 @@ function nvl(value, defaultValue) {
         returnValue = defaultValue;
     } else if (value === false) {
         returnValue = 'false';
+    } else if (value === 0) {
+        returnValue = '0';
     } else if (!value) {
-        returnValue = '';
+        returnValue = defaultValue;
     } else {
         returnValue = value;
     }
@@ -239,40 +277,34 @@ function hideAjaxLoader() {
 }
 
 function formatValue(value) {
-
-    if (value === null) {
+    
+    //console.log('formatValue: ', value);
+    
+    if (value === undefined || value === null) {
         return '';
-    } else if (value.constructor === String) {
-        
-        return value;
-        
-    } else if (value.constructor === Object) {
+    }
+    
+    //console.log('is String? ', value.constructor === String);
+    //console.log('is Object? ', value.constructor === Object);
+    //console.log('is Array? ', value.constructor === Array);
 
-        //return JSON.stringify(obj);
+    if (value.constructor === Object) {
+
         var out = '';
         $(Object.keys(value)).each(function(i, k) {
-            //console.log(v);
-            //out += JSON.stringify(v);
             out += k + ': ' + formatValue(value[k]) + '\n' ;
         });
         return out;
 
     } else if (value.constructor === Array) {
-        //var out = '<table>';
         var out = '';
         $(value).each(function(i, v) {
-            //console.log(v);
             out += JSON.stringify(v);
-        //out += '<tr><td>' + key + '</td><td>' + formatValue(obj[key]) + '</td></tr>' ;
         });
-        
-        //out += '</table>';
-
         return out;
 
     } else {
         return value;
-
     }
 }
 
@@ -283,10 +315,23 @@ function getTypeFromResourceSignature(signature) {
 }
 
 function blinkGreen(element) {
-    var oldFg = element.css('color');
-    var oldBg = element.css('backgroundColor');
-    //console.log('old colors' , oldFg, oldBg);
-    element.animate({
+    
+    if (!element || !element.length) {
+        return;
+    }
+    
+    var fg = element.prop('data-fg-color'), oldFg = fg || element.css('color');
+    var bg = element.prop('data-bg-color'), oldBg = bg || element.css('backgroundColor');
+
+    if (!fg) {
+        element.prop('data-fg-color', oldFg);
+    }
+    
+    if (!bg) {
+        element.prop('data-bg-color', oldBg);
+    }
+
+    $(element).animate({
         color: '#81ce25',
         backgroundColor: '#efe'
     }, 100, function() {
@@ -298,9 +343,22 @@ function blinkGreen(element) {
 }
 
 function blinkRed(element) {
-    var oldFg = element.css('color');
-    var oldBg = element.css('backgroundColor');
-    //console.log('old colors' , oldFg, oldBg);
+
+    if (!element || !element.length) {
+        return;
+    }
+
+    var fg = element.prop('data-fg-color'), oldFg = fg || element.css('color');
+    var bg = element.prop('data-bg-color'), oldBg = bg || element.css('backgroundColor');
+    
+    if (!fg) {
+        element.prop('data-fg-color', oldFg);
+    }
+    
+    if (!bg) {
+        element.prop('data-bg-color', oldBg);
+    }
+
     element.animate({
         color: '#f00',
         backgroundColor: '#fbb'
@@ -310,4 +368,39 @@ function blinkRed(element) {
             backgroundColor: oldBg
         }, 500);
     });
+}
+
+function getComments(el) {
+    var comments = [];
+    var f = el.firstChild;
+    while (f) {
+        if (f.nodeType === 8) {
+            var id = f.nodeValue.extractVal('data-structr-id');
+            var raw = f.nodeValue.extractVal('data-structr-raw-value');
+            if (id) {
+                f = f.nextSibling;
+                if (f && f.nodeType === 3) {
+                    var comment = {};
+                    comment.id = id;
+                    comment.textNode = f;
+                    comment.rawContent = raw;
+                    comments.push(comment);
+                }
+            }
+        }
+        f = f ? f.nextSibling : f;
+    }
+    return comments;
+}
+
+function getNonCommentSiblings(el) {
+    var siblings = [];
+    var s = el.nextSibling;
+    while (s) {
+        if (s.nodeType === 8) {
+            return siblings;
+        }
+        siblings.push(s);
+        s = s.nextSibling;
+    }
 }

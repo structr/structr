@@ -43,39 +43,39 @@ function connect() {
     }
 
     try {
-        
+
         ws = null;
-        
+
         var isEnc = (window.location.protocol === 'https:');
         var host = document.location.host;
         var wsUrl = 'ws' + (isEnc ? 's' : '') + '://' + host + wsRoot;
 
         log(wsUrl);
         if ('WebSocket' in window) {
-            
+
             ws = new WebSocket(wsUrl, 'structr');
-            
+
         } else if ('MozWebSocket' in window) {
-            
+
             ws = new MozWebSocket(wsUrl, 'structr');
-            
+
         } else {
-            
+
             alert('Your browser doesn\'t support WebSocket.');
             return false;
-            
+
         }
 
         log('WebSocket.readyState: ' + ws.readyState, ws);
-		
+
         ws.onopen = function() {
-            
-	    if ($.unblockUI) {
-		$.unblockUI({
-		    fadeOut: 25
-		});
-	    }
-            
+
+            if ($.unblockUI) {
+                $.unblockUI({
+                    fadeOut: 25
+                });
+            }
+
             log('de-activating reconnect loop', reconn);
             window.clearInterval(reconn);
 
@@ -87,30 +87,30 @@ function connect() {
             } else {
                 log('Current user: ' + user);
                 $('#logout_').html(' Logout <span class="username">' + (user ? user : '') + '</span>');
-				
+
                 Structr.loadInitialModule();
-				
+
             }
         }
 
         ws.onclose = function() {
-            
+
             if (reconn) {
                 log('Automatic reconnect already active');
                 return;
             }
-            
+
             main.empty();
             //Structr.confirmation('Connection lost or timed out.<br>Reconnect?', Structr.silenctReconnect);
             Structr.reconnectDialog('Connection lost or timed out. Trying to reconnect ...');
             //log('Connection was lost or timed out. Trying automatic reconnect');
             log('ws onclose');
             Structr.reconnect();
-            
+
         }
 
         ws.onmessage = function(message) {
-            
+
             var data = $.parseJSON(message.data);
             log('ws.onmessage:', data);
 
@@ -121,18 +121,14 @@ function connect() {
             var result = data.result;
             var sessionValid = data.sessionValid;
             var code = data.code;
-            
-            console.log('####################################### ', command, ' #########################################');
-            
-            rawResultCount[type] = data.rawResultCount;
-            pageCount[type] = Math.ceil(rawResultCount[type] / pageSize[type]);
-            Structr.updatePager(type);
+
+            log('####################################### ', command, ' #########################################');
 
             if (command === 'LOGIN') { /*********************** LOGIN ************************/
                 token = data.token;
                 user = data.data.username;
                 log('token', token);
-		
+
                 if (sessionValid) {
                     $.cookie(tokenCookieName, token);
                     $.cookie(userCookieName, user);
@@ -142,7 +138,7 @@ function connect() {
                     $('#logout_').html('Logout <span class="username">' + user + '</span>');
 
                     Structr.loadInitialModule();
-					
+
                 } else {
                     $.cookie(tokenCookieName, '');
                     $.cookie(userCookieName, '');
@@ -159,138 +155,217 @@ function connect() {
                 Structr.login();
 
             } else if (command === 'STATUS') { /*********************** STATUS ************************/
-                log('Error code: ' + code);
-				
+                log('Error code: ' + code, message);
+
                 if (code === 403) {
                     Structr.login('Wrong username or password!');
                 } else if (code === 401) {
                     Structr.login('Session invalid');
                 } else {
-                    
+
                     var msgClass;
                     var codeStr = code.toString();
-                    
-                    if (codeStr.startsWith('20')) {
+
+                    if (codeStr.startsWith('2')) {
                         msgClass = 'success';
-                    } else if (codeStr.startsWith('30')) {
+                    } else if (codeStr.startsWith('3')) {
                         msgClass = 'info';
-                    } else if (codeStr.startsWith('40')) {
+                    } else if (codeStr.startsWith('4')) {
                         msgClass = 'warning';
                     } else {
                         msgClass = 'error';
                     }
-                        
-                    if (dialogBox.is(':visible')){
-                        dialogMsg.html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
-                        $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
+
+                    if (msg && msg.startsWith('{')) {
+
+                        var msgObj = JSON.parse(msg);
+
+                        if (dialogBox.is(':visible')) {
+
+                            dialogMsg.html('<div class="infoBox ' + msgClass + '">' + msgObj.size + ' bytes saved to ' + msgObj.name + '</div>');
+                            $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
+
+                        } else {
+
+                            var node = Structr.node(msgObj.id);
+                            var progr = node.find('.progress');
+                            progr.show();
+
+                            var size = parseInt(node.find('.size').text());
+                            var part = msgObj.size;
+
+                            node.find('.part').text(part);
+                            var pw = node.find('.progress').width();
+                            var w = pw / size * part;
+
+                            node.find('.bar').css({width: w + 'px'});
+
+                            if (part >= size) {
+                                blinkGreen(progr);
+                                window.setTimeout(function() {
+                                    progr.fadeOut('fast');
+                                }, 1000);
+                            }
+                        }
+
                     } else {
-                        Structr.tempInfo('', true);
-                        $('#tempInfoBox .infoMsg').html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
+
+                        if (dialogBox.is(':visible')) {
+                            dialogMsg.html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
+                            $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
+                        } else {
+                            Structr.tempInfo('', true);
+                            $('#tempInfoBox .infoMsg').html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
+                        }
                     }
 
                 }
 
             } else if (command === 'GET_PROPERTY') { /*********************** GET_PROPERTY ************************/
-                
+
                 log('GET_PROPERTY', data.data['key']);
                 StructrModel.updateKey(id, key, val);
-                
-            } else if (command === 'GET' || command === 'UPDATE') { /*********************** GET_PROPERTIES / UPDATE ************************/
-                
+
+            } else if (command === 'GET' || command === 'UPDATE') { /*********************** GET / UPDATE ************************/
+
                 log(command, data);
                 var id = data.id;
                 var key = data.data['key'];
                 var val = data.data[key];
-                
+
                 var obj = StructrModel.update(data);
+
+                StructrModel.callCallback(data.callback, obj);
+
+                StructrModel.clearCallback(data.callback);
                 
-                if (data.callback) {
-                    //console.log('executing callback with id', data.callback);
-                    StructrModel.callbacks[data.callback](obj);
-                }
-                
-            } else if (command.endsWith('GET_BY_TYPE')) { /*********************** CHILDREN ************************/
-                
+
+            } else if (command.endsWith('GET_BY_TYPE')) { /*********************** GET_BY_TYPE ************************/
+
                 log('GET_BY_TYPE', data);
-                
+
                 $(result).each(function(i, entity) {
-                    
+
                     // Don't append a DOM node
                     var obj = StructrModel.create(entity, undefined, false);
-                    
-                    if (data.callback) {
-                        StructrModel.callbacks[data.callback](obj);
-                    }
-                    
+
+                    StructrModel.callCallback(data.callback, entity);
+
                 });
                 
+                StructrModel.clearCallback(data.callback);
+
             } else if (command.endsWith('CHILDREN')) { /*********************** CHILDREN ************************/
-                
+
                 log('CHILDREN', data);
-                
+
                 $(result).each(function(i, entity) {
-                    
+
                     StructrModel.create(entity);
-                    
+
                 });
-                
+
             } else if (command.startsWith('SEARCH')) { /*********************** SEARCH ************************/
-                
+
                 //console.log('SEARCH', result);
-                
-                $('.pageCount', $('#pager' + type)).val(pageCount[type]);
-                
+
+                $('.pageCount', $('.pager' + type)).val(pageCount[type]);
+
                 $(result).each(function(i, entity) {
-                    
+
                     StructrModel.createSearchResult(entity);
+
+                });
+
+            } else if (command.startsWith('LIST_UNATTACHED_NODES')) { /*********************** LIST_UNATTACHED_NODES ************************/
+
+                log('LIST_UNATTACHED_NODES', result, data);
+
+                $(result).each(function(i, entity) {
+
+                    StructrModel.callCallback(data.callback, entity);
                     
                 });
                 
+                StructrModel.clearCallback(data.callback);
+
+            } else if (command.startsWith('LIST_COMPONENTS')) { /*********************** LIST_COMPONENTS ************************/
+
+                log('LIST_COMPONENTS', result, data);
+
+                $(result).each(function(i, entity) {
+
+                    StructrModel.callCallback(data.callback, entity);
+
+                });
+
+                StructrModel.clearCallback(data.callback);
+
             } else if (command.startsWith('LIST')) { /*********************** LIST ************************/
-                
+
                 log('LIST', result, data);
                 
-                $('.pageCount', $('#pager' + type)).val(pageCount[type]);
-                
+                rawResultCount[type] = data.rawResultCount;
+                pageCount[type] = Math.max(1, Math.ceil(rawResultCount[type] / pageSize[type]));
+                Structr.updatePager(type, dialog.is(':visible') ? dialog : undefined);
+
+                $('.pageCount', $('.pager' + type)).val(pageCount[type]);
+
                 $(result).each(function(i, entity) {
-                    
-                    var obj = StructrModel.create(entity);
-                    
-                    if (data.callback) {
-                        StructrModel.callbacks[data.callback](obj);
-                    }
-                    
+
+                    //var obj = StructrModel.create(entity);
+
+                    StructrModel.callCallback(data.callback, entity);
+
                 });
-
                 
+                StructrModel.clearCallback(data.callback);
+
             } else if (command === 'DELETE') { /*********************** DELETE ************************/
-                
-                StructrModel.del(data.id);
-                
-            } else if (command === 'INSERT_BEFORE') { /*********************** INSERT_BEFORE ************************/
-            
-                StructrModel.create(result[0], data.data.refId);
-                
-            } else if (command === 'APPEND_CHILD') { /*********************** APPEND_CHILD ************************/
-            
-                StructrModel.create(result[0]);
 
-            } else if (command === 'APPEND_USER') { /*********************** APPEND_USER ************************/
-            
+                StructrModel.del(data.id);
+
+            } else if (command === 'INSERT_BEFORE') { /*********************** INSERT_BEFORE ************************/
+
+                StructrModel.create(result[0], data.data.refId);
+
+            } else if (command.startsWith('APPEND_')) { /*********************** APPEND_* ************************/
+
                 StructrModel.create(result[0]);
 
             } else if (command === 'REMOVE' || command === 'REMOVE_CHILD') { /*********************** REMOVE / REMOVE_CHILD ************************/
 
-                StructrModel.obj(data.id).remove();
-                
+                var obj = StructrModel.obj(data.id);
+                if (obj) {
+                    obj.remove();
+                }
+
             } else if (command === 'CREATE' || command === 'ADD' || command === 'IMPORT') { /*********************** CREATE, ADD, IMPORT ************************/
-                
+
                 $(result).each(function(i, entity) {
                     
-                    if (command === 'CREATE' && (entity.type === 'Page' || entity.type === 'Folder' || entity.type === 'File' || entity.type === 'Image' || entity.type === 'User' || entity.type === 'Group' || entity.type === 'PropertyDefinition')) {
+                    if (command === 'CREATE' && (entity.type === 'Page' || entity.type === 'Folder' || entity.type === 'File' || entity.type === 'Image' || entity.type === 'User' || entity.type === 'Group' || entity.type === 'PropertyDefinition' || entity.type === 'Widget')) {
                         StructrModel.create(entity);
+                    } else {
+                        
+                        if (!entity.parent && shadowPage && entity.pageId === shadowPage.id) {
+                            
+                            StructrModel.create(entity, null, false);
+                            var el = _Pages.appendElementElement(entity, components, true);
+
+                            if (isExpanded(entity.id)) {
+                                _Entities.ensureExpanded(el);
+                            }
+                            
+                            // Change icon
+                            $.each(entity.syncedNodes, function(i, id) {
+                                var el = Structr.node(id);
+                                el.children('img.typeIcon').attr('src', _Elements.icon_comp);
+                                _Entities.removeExpandIcon(el);
+                            });
+                        }
                     }
-                    
+
                     if (command === 'CREATE' && entity.type === 'Page') {
                         var tab = $('#show_' + entity.id, previews);
                         setTimeout(function() {
@@ -303,7 +378,7 @@ function connect() {
                 });
 
                 _Pages.reloadPreviews();
-                
+
             } else {
                 log('Received unknown command: ' + command);
 
@@ -329,7 +404,7 @@ function sendObj(obj, callback) {
     if (token) {
         obj.token = token;
     }
-    
+
     if (callback) {
         obj.callback = uuid.v4();
         StructrModel.callbacks[obj.callback] = callback;
@@ -371,7 +446,7 @@ function log(messages) {
                 div.append('<p>' + msg + '</p>');
                 footer.scrollTop(div.height());
             }
-            
+
         });
     }
 }
@@ -380,19 +455,19 @@ function getAnchorFromUrl(url) {
     if (url) {
         var pos = url.lastIndexOf('#');
         if (pos > 0) {
-            return url.substring(pos+1, url.length);
+            return url.substring(pos + 1, url.length);
         }
     }
     return null;
 }
 
 
-function utf8_to_b64( str ) {
-    return window.btoa(unescape(encodeURIComponent( str )));
+function utf8_to_b64(str) {
+    return window.btoa(unescape(encodeURIComponent(str)));
     //return window.btoa(str);
 }
 
-function b64_to_utf8( str ) {
-    return decodeURIComponent(escape(window.atob( str )));
+function b64_to_utf8(str) {
+    return decodeURIComponent(escape(window.atob(str)));
     //return window.atob(str);
 }

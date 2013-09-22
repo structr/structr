@@ -20,6 +20,8 @@
 
 package org.structr.web.entity.html;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.core.property.Property;
 import org.apache.commons.lang.ArrayUtils;
@@ -27,8 +29,12 @@ import org.apache.commons.lang.ArrayUtils;
 import org.neo4j.graphdb.Direction;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.Services;
 import org.structr.web.common.RelType;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.StructrTransaction;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.web.entity.Linkable;
 import org.structr.core.notion.PropertyNotion;
 import org.structr.core.property.CollectionProperty;
@@ -36,6 +42,7 @@ import org.structr.core.property.EntityIdProperty;
 import org.structr.core.property.EntityProperty;
 import org.structr.web.common.HtmlProperty;
 import org.structr.web.entity.dom.Content;
+import org.w3c.dom.Node;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -44,6 +51,8 @@ import org.structr.web.entity.dom.Content;
  */
 public class Script extends DOMElement {
 
+	private static final Logger logger = Logger.getLogger(Script.class.getName());
+	
 	public static final Property<String> _src     = new HtmlProperty("src");
 	public static final Property<String> _async   = new HtmlProperty("async");
 	public static final Property<String> _defer   = new HtmlProperty("defer");
@@ -72,5 +81,30 @@ public class Script extends DOMElement {
 
 		return (Property[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlView.properties());
 
+	}
+	
+	@Override
+	protected void handleNewChild(final Node newChild) {
+		
+		if (newChild instanceof Content) {
+			
+			try {
+				Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+					@Override
+					public Object execute() throws FrameworkException {
+
+						((Content)newChild).setProperty(Content.contentType, getProperty(_type));
+
+						return null;
+					}
+
+				});
+				
+			} catch (FrameworkException fex) {
+				
+				logger.log(Level.WARNING, "Unable to set property on new child: {0}", fex.getMessage());
+			}
+		}
 	}
 }

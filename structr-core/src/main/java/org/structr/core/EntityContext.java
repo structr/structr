@@ -22,6 +22,8 @@ package org.structr.core;
 
 import org.structr.core.graph.NodeService;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import org.apache.commons.lang.StringUtils;
 
 import org.neo4j.graphdb.RelationshipType;
@@ -57,7 +59,6 @@ public class EntityContext {
 	private static final Logger logger                                                            = Logger.getLogger(EntityContext.class.getName());
 
 	private static final Map<Class, Map<PropertyKey, Set<PropertyValidator>>> globalValidatorMap  = new LinkedHashMap<Class, Map<PropertyKey, Set<PropertyValidator>>>();
-	private static final Map<Class, Map<String, Set<PropertyKey>>> globalSearchablePropertyMap    = new LinkedHashMap<Class, Map<String, Set<PropertyKey>>>();
 
 	// This map contains a mapping from (sourceType, destType) -> Relation
 	private static final Map<Class, Map<String, Set<PropertyKey>>> globalPropertyViewMap          = new LinkedHashMap<Class, Map<String, Set<PropertyKey>>>();
@@ -77,6 +78,7 @@ public class EntityContext {
 	private static final Map<String, String> normalizedEntityNameCache                            = new LinkedHashMap<String, String>();
 	private static final Map<String, RelationshipMapping> globalRelationshipNameMap               = new LinkedHashMap<String, RelationshipMapping>();
 	private static final Map<String, Class> globalRelationshipClassMap                            = new LinkedHashMap<String, Class>();
+	private static final Map<Class, Set<Method>> exportedMethodMap                               = new LinkedHashMap<Class, Set<Method>>();
 	private static final Map<Class, Set<Class>> interfaceMap                                      = new LinkedHashMap<Class, Set<Class>>();
 	private static final Map<String, Class> reverseInterfaceMap                                   = new LinkedHashMap<String, Class>();
 	private static Map<String, Class> cachedEntities                                              = new LinkedHashMap<String, Class>();
@@ -93,74 +95,59 @@ public class EntityContext {
 	 */
 	public static void init(Class type) {
 
-		// 1. Register searchable keys of superclasses
-		for (Enum index : NodeService.NodeIndex.values()) {
+		// moved here from scanEntity, no reason to have this in a separate
+		// method requiring two different calls instead of one
+		int modifiers = type.getModifiers();
+		if (!Modifier.isAbstract(modifiers) && !Modifier.isInterface(modifiers)) {
+			
+			try {
+				
+				Object entity                         = type.newInstance();
+				Map<Field, PropertyKey> allProperties = getFieldValuesOfType(PropertyKey.class, entity);
+				Map<Field, View> views                = getFieldValuesOfType(View.class, entity);
+				Class entityType                      = entity.getClass();
 
-			String indexName                                           = index.name();
-			Map<String, Set<PropertyKey>> searchablePropertyMapForType = getSearchablePropertyMapForType(type);
-			Set<PropertyKey> searchablePropertySet                     = searchablePropertyMapForType.get(indexName);
+				for (Entry<Field, PropertyKey> entry : allProperties.entrySet()) {
 
-			if (searchablePropertySet == null) {
+					PropertyKey propertyKey = entry.getValue();
+					Field field             = entry.getKey();
+					Class declaringClass    = field.getDeclaringClass();
 
-				searchablePropertySet = new LinkedHashSet<PropertyKey>();
+					if (declaringClass != null) {
 
-				searchablePropertyMapForType.put(indexName, searchablePropertySet);
+						propertyKey.setDeclaringClass(declaringClass);
+						registerProperty(declaringClass, propertyKey);
 
-			}
+					}
 
-			Class localType = type.getSuperclass();
-
-			while ((localType != null) &&!localType.equals(Object.class)) {
-
-				Set<PropertyKey> superProperties = getSearchableProperties(localType, indexName);
-				searchablePropertySet.addAll(superProperties);
-
-				// include property sets from interfaces
-				for(Class interfaceClass : getInterfacesForType(localType)) {
-					searchablePropertySet.addAll(getSearchableProperties(interfaceClass, indexName));
+					registerProperty(entityType, propertyKey);
 				}
 
-				// one level up :)
-				localType = localType.getSuperclass();
+				for (Entry<Field, View> entry : views.entrySet()) {
 
-			}
-		}
-	}
+					Field field = entry.getKey();
+					View view   = entry.getValue();
 
-	public static void scanEntity(Object entity) {
-		
-		Map<Field, PropertyKey> allProperties = getFieldValuesOfType(PropertyKey.class, entity);
-		Map<Field, View> views                = getFieldValuesOfType(View.class, entity);
-		Class entityType                      = entity.getClass();
+					for (PropertyKey propertyKey : view.properties()) {
 
-		for (Entry<Field, PropertyKey> entry : allProperties.entrySet()) {
-
-			PropertyKey propertyKey = entry.getValue();
-			Field field             = entry.getKey();
-			Class declaringClass    = field.getDeclaringClass();
-			
-			if (declaringClass != null) {
+						// register field in view for entity class and declaring superclass
+						registerPropertySet(field.getDeclaringClass(), view.name(), propertyKey);
+						registerPropertySet(entityType, view.name(), propertyKey);
+					}
+				}
 				
-				propertyKey.setDeclaringClass(declaringClass);
-				registerProperty(declaringClass, propertyKey);
-				
+			} catch (Throwable t) {
+				logger.log(Level.WARNING, "Unable to instantiate {0}: {1}", new Object[] { type, t.getMessage() } );
 			}
-			
-			registerProperty(entityType, propertyKey);
 		}
 		
-		for (Entry<Field, View> entry : views.entrySet()) {
-			
-			Field field = entry.getKey();
-			View view   = entry.getValue();
-
-			for (PropertyKey propertyKey : view.properties()) {
-
-				// register field in view for entity class and declaring superclass
-				registerPropertySet(field.getDeclaringClass(), view.name(), propertyKey);
-				registerPropertySet(entityType, view.name(), propertyKey);
-			}
+		Set<Method> typeMethods = exportedMethodMap.get(type);
+		if (typeMethods == null) {
+			typeMethods = new LinkedHashSet<Method>();
+			exportedMethodMap.put(type, typeMethods);
 		}
+		
+		typeMethods.addAll(getAnnotatedMethods(type, Export.class));
 	}
 	
 	public static void registerProperty(Class type, PropertyKey propertyKey) {
@@ -245,48 +232,6 @@ public class EntityContext {
 
 		// add all properties from set
 		properties.addAll(Arrays.asList(propertySet));
-	}
-
-	// ----- searchable property map -----
-	/**
-	 * Registers the given set of properties of the given entity type to be stored
-	 * in the given index.
-	 * 
-	 * @param type the entitiy type
-	 * @param index the index
-	 * @param keys the keys to be indexed
-	 */
-	public static void registerSearchablePropertySet(Class type, String index, PropertyKey... keys) {
-
-		for (PropertyKey key : keys) {
-
-			registerSearchableProperty(type, index, key);
-
-		}
-	}
-
-	/**
-	 * Registers the given property of the given entity type to be stored
-	 * in the given index.
-	 * 
-	 * @param type the entitiy type
-	 * @param index the index
-	 * @param key the key to be indexed
-	 */
-	public static void registerSearchableProperty(Class type, String index, PropertyKey key) {
-
-		Map<String, Set<PropertyKey>> searchablePropertyMapForType = getSearchablePropertyMapForType(type);
-		Set<PropertyKey> searchablePropertySet                     = searchablePropertyMapForType.get(index);
-
-		if (searchablePropertySet == null) {
-
-			searchablePropertySet = new LinkedHashSet<PropertyKey>();
-
-			searchablePropertyMapForType.put(index, searchablePropertySet);
-
-		}
-
-		key.registerSearchableProperties(searchablePropertySet);
 	}
 
 	// ----- private methods -----
@@ -424,15 +369,8 @@ public class EntityContext {
 
 	public static String createCombinedRelationshipType(String sourceType, String relType, String destType) {
 
-		StringBuilder buf = new StringBuilder();
+		return sourceType.concat(COMBINED_RELATIONSHIP_KEY_SEP).concat(relType).concat(COMBINED_RELATIONSHIP_KEY_SEP).concat(destType);
 
-		buf.append(sourceType);
-		buf.append(COMBINED_RELATIONSHIP_KEY_SEP);
-		buf.append(relType);
-		buf.append(COMBINED_RELATIONSHIP_KEY_SEP);
-		buf.append(destType);
-
-		return buf.toString();
 	}
 	
 	public static void registerConvertedProperty(PropertyKey propertyKey) {
@@ -737,17 +675,6 @@ public class EntityContext {
 		return validators;
 	}
 
-	public static Set<PropertyKey> getSearchableProperties(Class type, String index) {
-
-		Set<PropertyKey> searchablePropertyMap = getSearchablePropertyMapForType(type).get(index);
-		if (searchablePropertyMap == null) {
-
-			searchablePropertyMap = new HashSet<PropertyKey>();
-		}
-
-		return searchablePropertyMap;
-	}
-
 	private static Map<String, Set<PropertyKey>> getPropertyViewMapForType(Class type) {
 
 		Map<String, Set<PropertyKey>> propertyViewMap = globalPropertyViewMap.get(type);
@@ -806,21 +733,6 @@ public class EntityContext {
 		}
 
 		return validatorMap;
-	}
-
-	public static Map<String, Set<PropertyKey>> getSearchablePropertyMapForType(Class type) {
-
-		Map<String, Set<PropertyKey>> searchablePropertyMap = globalSearchablePropertyMap.get(type);
-
-		if (searchablePropertyMap == null) {
-
-			searchablePropertyMap = new LinkedHashMap<String, Set<PropertyKey>>();
-
-			globalSearchablePropertyMap.put(type, searchablePropertyMap);
-
-		}
-
-		return searchablePropertyMap;
 	}
 
 	private static Map<String, PropertyGroup> getAggregatedPropertyGroupMapForType(Class type) {
@@ -886,15 +798,12 @@ public class EntityContext {
 		return interfaces;
 	}
 	
+	public static Set<Method> getExportedMethodsForType(Class type) {
+		return exportedMethodMap.get(type);
+	}
+	
 	public static boolean isKnownProperty(final PropertyKey key) {
 		return globalKnownPropertyKeys.contains(key);
-	}
-
-	public static boolean isSearchableProperty(Class type, String index, PropertyKey key) {
-		
-		boolean isSearchable = getSearchableProperties(type, index).contains(key);
-		
-		return isSearchable;
 	}
 
 	public static FactoryDefinition getFactoryDefinition() {
@@ -903,6 +812,25 @@ public class EntityContext {
 	
 	public static void registerFactoryDefinition(FactoryDefinition factory) {
 		factoryDefinition = factory;
+	}
+	
+	public static Set<Method> getAnnotatedMethods(Class entityType, Class annotationType) {
+		
+		Set<Method> methods    = new LinkedHashSet<Method>();
+		Set<Class<?>> allTypes = getAllTypes(entityType);
+		
+		for (Class<?> type : allTypes) {
+			
+			for (Method method : type.getDeclaredMethods()) {
+				
+				if (method.getAnnotation(annotationType) != null) {
+				
+					methods.add(method);
+				}
+			}
+		}
+		
+		return methods;
 	}
 	
 	private static <T> Map<Field, T> getFieldValuesOfType(Class<T> entityType, Object entity) {

@@ -31,7 +31,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.property.StringProperty;
-import org.structr.core.validator.SimpleRegexValidator;
+import org.structr.core.property.UuidProperty;
 
 /**
  * A common base class for {@link AbstractNode} and {@link AbstractRelationship}.
@@ -41,13 +41,13 @@ import org.structr.core.validator.SimpleRegexValidator;
 public interface GraphObject {
 
 	public static final Property<String>  base                        = new StringProperty("base");
-	public static final Property<String>  uuid                        = new StringProperty("uuid", new SimpleRegexValidator("[a-zA-Z0-9]{32}")).systemProperty().readOnly().writeOnce();
-	public static final Property<String>  type                        = new StringProperty("type").systemProperty().readOnly().writeOnce();
+	public static final Property<String>  type                        = new StringProperty("type").readOnly().indexed().writeOnce();
+	public static final Property<String>  uuid                        = new UuidProperty();
 
-	public static final Property<Date>    createdDate                 = new ISO8601DateProperty("createdDate").systemProperty().readOnly().writeOnce();
-	public static final Property<Date>    lastModifiedDate            = new ISO8601DateProperty("lastModifiedDate").systemProperty().readOnly();
-	public static final Property<Boolean> visibleToPublicUsers        = new BooleanProperty("visibleToPublicUsers");
-	public static final Property<Boolean> visibleToAuthenticatedUsers = new BooleanProperty("visibleToAuthenticatedUsers");
+	public static final Property<Date>    createdDate                 = new ISO8601DateProperty("createdDate").indexed().unvalidated().readOnly().writeOnce();
+	public static final Property<Date>    lastModifiedDate            = new ISO8601DateProperty("lastModifiedDate").passivelyIndexed().unvalidated().readOnly();
+	public static final Property<Boolean> visibleToPublicUsers        = new BooleanProperty("visibleToPublicUsers").passivelyIndexed();
+	public static final Property<Boolean> visibleToAuthenticatedUsers = new BooleanProperty("visibleToAuthenticatedUsers").passivelyIndexed();
 	public static final Property<Date>    visibilityStartDate         = new ISO8601DateProperty("visibilityStartDate");
 	public static final Property<Date>    visibilityEndDate           = new ISO8601DateProperty("visibilityEndDate");
 	
@@ -112,7 +112,7 @@ public interface GraphObject {
 	 * @param key the property key to retrieve the value for
 	 * @return the property value for the given key as a Comparable
 	 */
-	public Comparable getComparableProperty(final PropertyKey<? extends Comparable> key) throws FrameworkException;
+	public <T> Comparable getComparableProperty(final PropertyKey<T> key);
 
 	/**
 	 * Returns the property value for the given key that will be used
@@ -162,7 +162,7 @@ public interface GraphObject {
 	 * @return true if the transaction can go on, false if an error occurred
 	 * @throws FrameworkException 
 	 */
-	public boolean beforeCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException;
+	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException;
 
 	/**
 	 * Called when an entity of this type is modified. This method can cause the underlying
@@ -174,7 +174,7 @@ public interface GraphObject {
 	 * @return true if the transaction can go on, false if an error occurred
 	 * @throws FrameworkException 
 	 */
-	public boolean beforeModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException;
+	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException;
 
 	/**
 	 * Called when an entity of this type is deleted. This method can cause the underlying
@@ -186,11 +186,11 @@ public interface GraphObject {
 	 * @return true if the transaction can go on, false if an error occurred
 	 * @throws FrameworkException 
 	 */
-	public boolean beforeDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException;
+	public boolean onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException;
 
 	/**
 	 * Called when an entity was successfully created. Please note that this method
-	 * will run in its own toplevel transaction and can NOT cause the creation
+	 * will need to create its own toplevel transaction and can NOT cause the creation
 	 * transaction to be rolled back.
 	 * 
 	 * @param securityContext the context in which the creation took place
@@ -199,22 +199,13 @@ public interface GraphObject {
 
 	/**
 	 * Called when an entity was successfully modified. Please note that this method
-	 * will run in its own toplevel transaction and can NOT cause the modification
+	 * will need to create its own toplevel transaction and can NOT cause the modification
 	 * transaction to be rolled back.
 	 * 
 	 * @param securityContext the context in which the modification took place
 	 */
 	public void afterModification(SecurityContext securityContext);
 
-	/**
-	 * Called when an entity was successfully deleted. Please note that this method
-	 * will run in its own toplevel transaction and can NOT cause the deletion
-	 * transaction to be rolled back.
-	 * 
-	 * @param securityContext the context in which the deletion took place
-	 */
-	public void afterDeletion(SecurityContext securityContext);
-	
 	/**
 	 * Called when the owner of this entity was successfully modified. Please note
 	 * that this method will run in its own toplevel transaction and can NOT prevent
@@ -248,4 +239,9 @@ public interface GraphObject {
 	 * @param securityContext 
 	 */
 	public void propagatedModification(SecurityContext securityContext);
+	
+	public void addToIndex();
+	public void updateInIndex();
+	public void removeFromIndex();
+	public void indexPassiveProperties();
 }

@@ -179,14 +179,9 @@ public class ResourceHelper {
 
 		do {
 
-			StringBuilder chain = new StringBuilder();
-
 			for (Iterator<Resource> it = resourceChain.iterator(); it.hasNext(); ) {
 
 				Resource constr = it.next();
-
-				chain.append(constr.getClass().getSimpleName());
-				chain.append(", ");
 
 				if (constr instanceof ViewFilterResource) {
 
@@ -236,28 +231,24 @@ public class ResourceHelper {
 
 		} while (found);
 
-		StringBuilder chain = new StringBuilder();
-
-		for (Resource constr : resourceChain) {
-
-			chain.append(constr.getClass().getSimpleName());
-			chain.append(", ");
-
-		}
-
 		if (resourceChain.size() == 1) {
 
-			Resource finalConstraint = resourceChain.get(0);
+			Resource finalResource = resourceChain.get(0);
 
 			if (view != null) {
 
-				finalConstraint = finalConstraint.tryCombineWith(view);
+				finalResource = finalResource.tryCombineWith(view);
+			}
+			
+			if (finalResource == null) {
+				// fall back to original resource
+				finalResource = resourceChain.get(0);
 			}
 
 			// inform final constraint about the configured ID property
-			finalConstraint.configureIdProperty(defaultIdProperty);
+			finalResource.configureIdProperty(defaultIdProperty);
 
-			return finalConstraint;
+			return finalResource;
 
 		}
 

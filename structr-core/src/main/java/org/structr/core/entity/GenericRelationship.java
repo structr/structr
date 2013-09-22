@@ -36,7 +36,6 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.property.StringProperty;
 import org.structr.core.EntityContext;
-import org.structr.core.graph.NodeService.RelationshipIndex;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -56,13 +55,6 @@ public class GenericRelationship extends AbstractRelationship {
 		startNodeId, endNodeId
 	);
 	
-	static {
-
-		EntityContext.registerSearchableProperty(GenericRelationship.class, RelationshipIndex.rel_uuid.name(), AbstractRelationship.uuid);
-	}
-	
-	//~--- constructors ---------------------------------------------------
-
 	public GenericRelationship() {}
 
 	public GenericRelationship(SecurityContext securityContext, Relationship dbRelationship) {
@@ -98,17 +90,17 @@ public class GenericRelationship extends AbstractRelationship {
 	}
 
 	@Override
-	public boolean beforeCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 		return true;
 	}
 
 	@Override
-	public boolean beforeModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 		return true;
 	}
 
 	@Override
-	public boolean beforeDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
+	public boolean onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
 		return true;
 	}
 

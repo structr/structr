@@ -39,7 +39,6 @@
 
 package org.structr.common;
 
-import org.neo4j.graphdb.NotFoundException;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
@@ -49,11 +48,8 @@ import org.structr.core.entity.TestOne;
 import org.structr.core.entity.TestSeven;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.search.DistanceSearchAttribute;
-import org.structr.core.graph.search.FilterSearchAttribute;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.SearchOperator;
-import org.structr.core.graph.search.TextualSearchAttribute;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
@@ -65,6 +61,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import static junit.framework.Assert.assertTrue;
+import static junit.framework.Assert.fail;
+import org.apache.lucene.search.BooleanClause.Occur;
+import org.structr.core.Services;
+import org.structr.core.graph.TransactionCommand;
+import org.structr.core.graph.search.PropertySearchAttribute;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -92,18 +94,18 @@ public class SearchResultsTest extends StructrTest {
 
 		try {
 
-			PropertyMap props = new PropertyMap();
-			PropertyKey key   = AbstractNode.name;
-			String name       = "89w3hklsdfghsdkljth";
+			PropertyMap props     = new PropertyMap();
+			final PropertyKey key = AbstractNode.name;
+			final String name     = "89w3hkl sdfghsdkljth";
 
 			props.put(key, name);
 
-			AbstractNode node                      = createTestNode(TestOne.class.getSimpleName(), props);
+			final AbstractNode node                = createTestNode(TestOne.class, props);
 			boolean includeDeletedAndHidden        = true;
 			boolean publicOnly                     = false;
 			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 
-			searchAttributes.add(new TextualSearchAttribute(key, name, SearchOperator.AND));
+			searchAttributes.add(new PropertySearchAttribute(key, name, Occur.MUST, true));
 
 			Result result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes);
 
@@ -111,11 +113,20 @@ public class SearchResultsTest extends StructrTest {
 			assertTrue(result.get(0).equals(node));
 
 			// Change name attribute and search again
-			name = "klppptzoehigösoiutzüw0e9hg";
+			final String name2 = "klppptzoehi gösoiu tzüw0e9hg";
 
-			node.setProperty(key, name);
+			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+				@Override
+				public Object execute() throws FrameworkException {
+
+					node.setProperty(key, name2);
+					return null;
+				}
+			});
+			
 			searchAttributes.clear();
-			searchAttributes.add(new TextualSearchAttribute(key, name, SearchOperator.AND));
+			searchAttributes.add(new PropertySearchAttribute(key, name2, Occur.MUST, true));
 
 			result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes);
 
@@ -138,7 +149,7 @@ public class SearchResultsTest extends StructrTest {
 			PropertyMap props = new PropertyMap();
 			PropertyKey key   = TestOne.aDate;
 			Date date         = new Date();
-			String type       = TestOne.class.getSimpleName();
+			Class type       =TestOne.class;
 
 			props.put(key, date);
 
@@ -147,8 +158,8 @@ public class SearchResultsTest extends StructrTest {
 			boolean publicOnly                     = false;
 			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 
-			searchAttributes.add(new TextualSearchAttribute(AbstractNode.type, type, SearchOperator.AND));
-			searchAttributes.add(new FilterSearchAttribute(key, date, SearchOperator.AND));
+			searchAttributes.add(Search.andExactType(type));
+			searchAttributes.add(Search.andExactProperty(securityContext, key, date));
 
 			Result result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes);
 
@@ -168,27 +179,46 @@ public class SearchResultsTest extends StructrTest {
 
 		try {
 
-			AbstractRelationship rel = ((List<AbstractRelationship>) createTestRelationships(RelType.IS_AT, 1)).get(0);
-			PropertyKey key1         = new StringProperty("jghsdkhgshdhgsdjkfgh");
-			String val1              = "54354354546806849870";
+			final AbstractRelationship rel = ((List<AbstractRelationship>) createTestRelationships(RelType.IS_AT, 1)).get(0);
+			final PropertyKey key1         = new StringProperty("jghsdkhgshdhgsdjkfgh").indexed();
+			final String val1              = "54354354546806849870";
 
-			rel.setProperty(key1, val1);
+			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+				@Override
+				public Object execute() throws FrameworkException {
+			
+					rel.setProperty(key1, val1);
+					return null;
+				}
+			});
+			
 			assertTrue(rel.getProperty(key1).equals(val1));
 
 			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 
-			searchAttributes.add(Search.andExactProperty(key1, val1));
+			searchAttributes.add(Search.andExactProperty(securityContext, key1, val1));
 
-			List<AbstractRelationship> result = (List<AbstractRelationship>) searchRelationshipCommand.execute(searchAttributes);
+			Result<AbstractRelationship> result = searchRelationshipCommand.execute(searchAttributes);
 
 			assertTrue(result.size() == 1);
 			assertTrue(result.get(0).equals(rel));
 			searchAttributes.clear();
 
-			val1 = "ölllldjöoa8w4rasf";
+			final String val2 = "ölllldjöoa8w4rasf";
 
-			rel.setProperty(key1, val1);
-			searchAttributes.add(Search.andExactProperty(key1, val1));
+
+			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+				@Override
+				public Object execute() throws FrameworkException {
+					
+					rel.setProperty(key1, val2);
+					return null;
+				}
+			});
+			
+			searchAttributes.add(Search.andExactProperty(securityContext, key1, val2));
 			assertTrue(result.size() == 1);
 			assertTrue(result.get(0).equals(rel));
 
@@ -208,7 +238,7 @@ public class SearchResultsTest extends StructrTest {
 			final PropertyMap props = new PropertyMap();
 			final PropertyKey lat   = TestSeven.latitude;
 			final PropertyKey lon   = TestSeven.longitude;
-			final String type       = TestSeven.class.getSimpleName();
+			final Class type        = TestSeven.class;
 
 			props.put(lat, 50.12284d);
 			props.put(lon, 8.73923d);
@@ -219,9 +249,9 @@ public class SearchResultsTest extends StructrTest {
 			boolean publicOnly                     = false;
 			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 
-			searchAttributes.add(new TextualSearchAttribute(AbstractNode.type, type, SearchOperator.AND));
-			searchAttributes.add(new DistanceSearchAttribute("Hanauer Landstraße", "200", "60314", "Frankfurt", null, "Germany", 10.0, SearchOperator.AND));
-//			searchAttributes.add(new DistanceSearchAttribute("Hanauer Landstr. 200, 60314 Frankfurt, Germany", 10.0, SearchOperator.AND));
+			searchAttributes.add(new PropertySearchAttribute(AbstractNode.type, type, Occur.MUST, true));
+			searchAttributes.add(new DistanceSearchAttribute("Hanauer Landstraße", "200", "60314", "Frankfurt", null, "Germany", 10.0, Occur.MUST));
+//			searchAttributes.add(new DistanceSearchAttribute("Hanauer Landstr. 200, 60314 Frankfurt, Germany", 10.0, Occur.MUST));
 
 			Result result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes);
 
@@ -241,7 +271,7 @@ public class SearchResultsTest extends StructrTest {
 
 //		try {
 
-			final String type = TestSeven.class.getSimpleName();
+			final Class type = TestSeven.class;
 			AbstractNode node = null;
 
 			try {
@@ -256,7 +286,7 @@ public class SearchResultsTest extends StructrTest {
 						final PropertyKey lat   = TestSeven.latitude;
 						final PropertyKey lon   = TestSeven.longitude;
 
-						props.put(AbstractNode.type, type);
+						props.put(AbstractNode.type, type.getSimpleName());
 						props.put(lat, 50.12284d);
 						props.put(lon, 8.73923d);
 						props.put(AbstractNode.name, "TestSeven-0");;
@@ -278,8 +308,8 @@ public class SearchResultsTest extends StructrTest {
 //						boolean publicOnly                     = false;
 //						List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 //
-//						searchAttributes.add(new TextualSearchAttribute(AbstractNode.type, type, SearchOperator.AND));
-//						searchAttributes.add(new DistanceSearchAttribute("Hanauer Landstr. 200, 60314 Frankfurt, Germany", 10.0, SearchOperator.AND));
+//						searchAttributes.add(new TextualSearchAttribute(AbstractNode.type, type, Occur.MUST));
+//						searchAttributes.add(new DistanceSearchAttribute("Hanauer Landstr. 200, 60314 Frankfurt, Germany", 10.0, Occur.MUST));
 //
 //						Result result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes);
 //
@@ -317,8 +347,8 @@ public class SearchResultsTest extends StructrTest {
 			boolean publicOnly                     = false;
 			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 
-			searchAttributes.add(new DistanceSearchAttribute("Hanauer Landstraße", "200", "60314", "Frankfurt", null, "Germany", 10.0, SearchOperator.AND));
-//			searchAttributes.add(new DistanceSearchAttribute("Hanauer Landstr. 200, 60314 Frankfurt, Germany", 10.0, SearchOperator.AND));
+			searchAttributes.add(new DistanceSearchAttribute("Hanauer Landstraße", "200", "60314", "Frankfurt", null, "Germany", 10.0, Occur.MUST));
+//			searchAttributes.add(new DistanceSearchAttribute("Hanauer Landstr. 200, 60314 Frankfurt, Germany", 10.0, Occur.MUST));
 
 			Result result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes);
 
@@ -333,5 +363,114 @@ public class SearchResultsTest extends StructrTest {
 		}
 
 	}
+	
+	public void test07SearchByStaticMethod01() {
+
+		try {
+
+			PropertyMap props     = new PropertyMap();
+			final PropertyKey key = AbstractNode.name;
+			final String name     = "89w3hkl sdfghsdkljth";
+
+			props.put(key, name);
+
+			final AbstractNode node                = createTestNode(TestOne.class, props);
+			boolean includeDeletedAndHidden        = true;
+			boolean publicOnly                     = false;
+			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+
+			searchAttributes.add(Search.andExactName(name));
+
+			Result result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes);
+
+			assertTrue(result.size() == 1);
+			assertTrue(result.get(0).equals(node));
+
+
+		} catch (FrameworkException ex) {
+
+			logger.log(Level.SEVERE, ex.toString());
+			fail("Unexpected exception");
+
+		}
+	}
+
+	public void test08SearchByStaticMethod02() {
+
+		try {
+
+			PropertyMap props     = new PropertyMap();
+			final PropertyKey key = AbstractNode.name;
+			final String name     = "89w3hkl sdfghsdkljth";
+
+			props.put(key, name);
+
+			final AbstractNode node                = createTestNode(TestOne.class, props);
+			boolean includeDeletedAndHidden        = true;
+			boolean publicOnly                     = false;
+			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+
+			searchAttributes.add(Search.orExactName(name));
+
+			Result result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes);
+
+			assertTrue(result.size() == 1);
+			assertTrue(result.get(0).equals(node));
+
+		} catch (FrameworkException ex) {
+
+			logger.log(Level.SEVERE, ex.toString());
+			fail("Unexpected exception");
+
+		}
+	}
+
+	public void test08SearchByStaticMethodWithNullSearchValue01() {
+
+		try {
+
+			PropertyMap props     = new PropertyMap();
+			final PropertyKey key = AbstractNode.name;
+			final String name     = "abc";
+
+			props.put(key, name);
+
+			createTestNode(TestOne.class, props);
+
+			Result result = searchNodeCommand.execute(true, false, Search.andExactName(null));
+
+			assertTrue(result.isEmpty());
+
+
+		} catch (FrameworkException ex) {
+
+			logger.log(Level.SEVERE, ex.toString());
+			fail("Unexpected exception");
+
+		}
+
+	}
+
+	// FIXME: Comment in this test and fix the issue with null searchValue which leads to a NPE in SearchCommand, line 240
+//	public void test09SearchByStaticMethodWithNullSearchValue01() {
+//
+//		try {
+//
+//			PropertyMap props     = new PropertyMap();
+//			AbstractNode node = createTestNode(TestOne.class, props);
+//
+//			Result result = searchNodeCommand.execute(true, false, Search.orExactName(null));
+//
+//			assertTrue(result.size() == 1);
+//			assertTrue(result.get(0).equals(node));
+//
+//		} catch (FrameworkException ex) {
+//
+//			logger.log(Level.SEVERE, ex.toString());
+//			fail("Unexpected exception");
+//
+//		}
+//
+//	}
 
 }

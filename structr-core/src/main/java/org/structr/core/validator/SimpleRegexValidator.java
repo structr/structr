@@ -49,4 +49,9 @@ public class SimpleRegexValidator implements PropertyValidator<String> {
 		errorBuffer.add(object.getType(), new MatchToken(key, this.pattern.pattern()));
 		return false;
 	}
+	
+	@Override
+	public boolean requiresSynchronization() {
+		return false;
+	}
 }

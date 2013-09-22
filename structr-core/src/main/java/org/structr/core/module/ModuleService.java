@@ -170,9 +170,6 @@ public class ModuleService implements SingletonService {
 
 						EntityContext.init(clazz);
 						
-						// try to instantiate class
-						try { EntityContext.scanEntity(clazz.newInstance()); } catch(Throwable t) {}
-
 						String simpleName = clazz.getSimpleName();
 						String fullName   = clazz.getName();
 
@@ -202,9 +199,6 @@ public class ModuleService implements SingletonService {
 					if (AbstractRelationship.class.isAssignableFrom(clazz)) {
 
 						EntityContext.init(clazz);
-
-						// try to instantiate class
-						try { EntityContext.scanEntity(clazz.newInstance()); } catch(Throwable t) {}
 
 						String simpleName = clazz.getSimpleName();
 						String fullName   = clazz.getName();

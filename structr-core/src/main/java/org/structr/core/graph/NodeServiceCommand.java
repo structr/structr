@@ -19,7 +19,6 @@
 package org.structr.core.graph;
 
 import java.util.Iterator;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -54,7 +53,20 @@ public abstract class NodeServiceCommand extends Command {
 	 * @return the number of nodes processed
 	 * @throws FrameworkException 
 	 */
-	public static <T extends GraphObject> long bulkGraphOperation(final SecurityContext securityContext, final List<T> nodes, final long commitCount, String description, final BulkGraphOperation<T> operation) throws FrameworkException {
+	public static <T extends GraphObject> long bulkGraphOperation(final SecurityContext securityContext, final Iterable<T> nodes, final long commitCount, String description, final BulkGraphOperation<T> operation) throws FrameworkException {
+		return bulkGraphOperation(securityContext, nodes, commitCount, description, operation, true);
+	}
+	/**
+	 * Executes the given operation on all nodes in the given list.
+	 * 
+	 * @param <T>
+	 * @param securityContext
+	 * @param nodes the nodes to operate on
+	 * @param operation the operation to execute
+	 * @return the number of nodes processed
+	 * @throws FrameworkException 
+	 */
+	public static <T extends GraphObject> long bulkGraphOperation(final SecurityContext securityContext, final Iterable<T> nodes, final long commitCount, String description, final BulkGraphOperation<T> operation, boolean validation) throws FrameworkException {
 
 		final Iterator<T> iterator = nodes.iterator();
 		long objectCount           = 0L;
@@ -63,7 +75,7 @@ public abstract class NodeServiceCommand extends Command {
 
 			try {
 
-				objectCount += Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<Integer>() {
+				objectCount += Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<Integer>(validation) {
 
 					@Override
 					public Integer execute() throws FrameworkException {
@@ -99,7 +111,9 @@ public abstract class NodeServiceCommand extends Command {
 				operation.handleTransactionFailure(securityContext, t);
 			}
 			
-			logger.log(Level.INFO, "{0}: {1} objects processed", new Object[] { description, objectCount } );
+			if (description != null) {
+				logger.log(Level.INFO, "{0}: {1} objects processed", new Object[] { description, objectCount } );
+			}
 		}
 		
 		return objectCount;

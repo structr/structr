@@ -120,8 +120,8 @@ public class ExtractAndSetImageDimensionsAndFormat extends NodeServiceCommand {
 							height = img.getHeight();
 							format = FileHelper.getContentMimeType(new File(filePath));
 
-							imageNode.setWidth(width);
-							imageNode.setHeight(height);
+							imageNode.setProperty(Image.width, width);
+							imageNode.setProperty(Image.height, height);
 
 							if (format != null) {
 

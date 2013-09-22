@@ -343,7 +343,8 @@ public class Services {
 		}
 	}
 
-	public static Object getConfigurationValue(String key) {
+	public static String getConfigurationValue(String key) {
+		
 		if(context != null) {
 			return context.get(key);
 		}
@@ -352,12 +353,12 @@ public class Services {
 	
 	public static String getConfigurationValue(String key, String defaultValue) {
 		
-		Object value = getConfigurationValue(key);
+		String value = getConfigurationValue(key);
 		if(value == null) {
 			return defaultValue;
 		}
 
-		return value.toString();
+		return value;
 	}
 	
 	/**

@@ -20,21 +20,16 @@
 
 package org.structr.rest.servlet;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSyntaxException;
 
 import org.apache.commons.lang.StringUtils;
 
-import org.structr.common.AccessMode;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
-import org.structr.core.JsonInput;
-import org.structr.core.JsonInputGSONAdapter;
 import org.structr.core.Result;
 import org.structr.core.Value;
 import org.structr.core.entity.AbstractNode;
@@ -42,10 +37,8 @@ import org.structr.core.entity.RelationshipMapping;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.ResourceProvider;
-import org.structr.rest.adapter.FrameworkExceptionGSONAdapter;
-import org.structr.rest.adapter.ResultGSONAdapter;
 import org.structr.rest.resource.NamedRelationResource;
-import org.structr.rest.resource.PagingHelper;
+import org.structr.common.PagingHelper;
 import org.structr.rest.resource.Resource;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -68,7 +61,9 @@ import java.util.regex.Pattern;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.structr.core.entity.ResourceAccess;
+import org.structr.core.Services;
+import org.structr.core.auth.Authenticator;
+import org.structr.core.auth.AuthenticatorCommand;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -83,15 +78,11 @@ public class CsvServlet extends HttpServlet {
 
 	//~--- fields ---------------------------------------------------------
 
-	private Gson gson                                           = null;
-	private JsonInputGSONAdapter jsonInputAdapter               = null;
-	private Writer logWriter                                    = null;
 	private Value<String> propertyView                          = null;
 	private Map<Pattern, Class<? extends Resource>> resourceMap = new LinkedHashMap<Pattern, Class<? extends Resource>>();
 	private String defaultPropertyView                          = PropertyView.Public;
 	private PropertyKey defaultIdProperty                       = AbstractNode.uuid;
 	private ResourceProvider resourceProvider                   = null;
-	private ResultGSONAdapter resultGsonAdapter                 = null;
 
 	//~--- constructors ---------------------------------------------------
 
@@ -120,26 +111,22 @@ public class CsvServlet extends HttpServlet {
 		// initialize variables
 		this.propertyView = new ThreadLocalPropertyView();
 
-		// initialize adapters
-		this.resultGsonAdapter = new ResultGSONAdapter(propertyView, defaultIdProperty);
-		this.jsonInputAdapter  = new JsonInputGSONAdapter(propertyView, defaultIdProperty);
-
-		// create GSON serializer
-		this.gson = new GsonBuilder().setPrettyPrinting().serializeNulls().registerTypeHierarchyAdapter(FrameworkException.class,
-			new FrameworkExceptionGSONAdapter()).registerTypeAdapter(JsonInput.class, jsonInputAdapter).registerTypeAdapter(Result.class, resultGsonAdapter).create();
 	}
 
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws UnsupportedEncodingException {
 
+		SecurityContext securityContext = null;
+
 		try {
+
+			Authenticator authenticator     = getAuthenticator();
+			securityContext = authenticator.initializeAndExamineRequest(request, response);
 
 //                      logRequest("GET", request);
 			request.setCharacterEncoding("UTF-8");
 			response.setCharacterEncoding("UTF-8");
 			response.setContentType("text/csv; charset=utf-8");
-
-			SecurityContext securityContext = getSecurityContext(request, response);
 
 			// set default value for property view
 			propertyView.set(securityContext, defaultPropertyView);
@@ -152,7 +139,7 @@ public class CsvServlet extends HttpServlet {
 			String resourceSignature = resource.getResourceSignature();
 
 			// let authenticator examine request again
-			securityContext.examineRequest(request, resourceSignature, ResourceAccess.findGrant(resourceSignature), propertyView.get(securityContext));
+			authenticator.checkResourceAccess(request, resourceSignature, propertyView.get(securityContext));
 
 			// add sorting & paging
 			String pageSizeParameter = request.getParameter(JsonRestServlet.REQUEST_PARAMETER_PAGE_SIZE);
@@ -299,6 +286,21 @@ public class CsvServlet extends HttpServlet {
 	 * @throws IOException
 	 */
 	private void writeCsv(final Result result, Writer out) throws IOException {
+		
+		writeCsv(result, out, defaultPropertyView);
+		
+	}
+	
+	
+	/**
+	 * Write list of objects to output
+	 *
+	 * @param result
+	 * @param out
+	 * @param propertyView
+	 * @throws IOException
+	 */
+	public static void writeCsv(final Result result, final Writer out, final String propertyView) throws IOException {
 
 		List<GraphObject> list = result.getResults();
 		boolean headerWritten  = false;
@@ -310,13 +312,18 @@ public class CsvServlet extends HttpServlet {
 
 				StringBuilder row = new StringBuilder();
 
-				for (PropertyKey key : obj.getPropertyKeys(defaultPropertyView)) {
+				for (PropertyKey key : obj.getPropertyKeys(propertyView)) {
 
 					row.append("\"").append(key.dbName()).append("\",");
 				}
 
 				// remove last ,
-				row.deleteCharAt(row.lastIndexOf(","));
+				int pos = row.lastIndexOf(",");
+				if (pos >= 0) {
+
+					row.deleteCharAt(pos);
+				}
+				
 				out.append(row).append("\n");
 
 				// flush each line
@@ -328,7 +335,7 @@ public class CsvServlet extends HttpServlet {
 
 			StringBuilder row = new StringBuilder();
 
-			for (PropertyKey key : obj.getPropertyKeys(defaultPropertyView)) {
+			for (PropertyKey key : obj.getPropertyKeys(propertyView)) {
 
 				Object value = obj.getProperty(key);
 
@@ -349,26 +356,11 @@ public class CsvServlet extends HttpServlet {
 	}
 
 	//~--- get methods ----------------------------------------------------
-
-	private SecurityContext getSecurityContext(HttpServletRequest request, HttpServletResponse response) {
-
-		SecurityContext securityContext = null;
-
-		try {
-
-			securityContext = SecurityContext.getInstance(this.getServletConfig(), request, response, AccessMode.Backend);
-
-			// let module-specific authenticator examine the request first
-			securityContext.initializeAndExamineRequest(request, response);
-
-		} catch (FrameworkException ex) {
-
-			logger.log(Level.SEVERE, null, ex);
-
-		}
-
-		return securityContext;
-
+	
+	private Authenticator getAuthenticator() throws FrameworkException {
+		
+		return (Authenticator) Services.command(null, AuthenticatorCommand.class).execute(getServletConfig());
+		
 	}
 
 	//~--- inner classes --------------------------------------------------

@@ -57,8 +57,8 @@ public class ChildrenCommand extends AbstractCommand {
 			return;
 		}
 
-		List<AbstractRelationship> rels   = node.getOutgoingRelationships(RelType.CONTAINS);
-		List<GraphObject> result          = new LinkedList<GraphObject>();
+		Iterable<AbstractRelationship> rels = node.getOutgoingRelationships(RelType.CONTAINS);
+		List<GraphObject> result            = new LinkedList<GraphObject>();
 
 		for (AbstractRelationship rel : rels) {
 

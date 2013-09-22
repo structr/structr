@@ -65,7 +65,7 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 	}
 
 	@Override
-	public Comparable getComparableProperty(PropertyKey key) throws FrameworkException {
+	public <T> Comparable getComparableProperty(PropertyKey<T> key) {
 		return (Comparable)getProperty(key);
 	}
 
@@ -89,17 +89,17 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 	}
 
 	@Override
-	public boolean beforeCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 		return true;
 	}
 
 	@Override
-	public boolean beforeModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 		return true;
 	}
 
 	@Override
-	public boolean beforeDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
+	public boolean onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
 		return true;
 	}
 
@@ -109,10 +109,6 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 
 	@Override
 	public void afterModification(SecurityContext securityContext) {
-	}
-
-	@Override
-	public void afterDeletion(SecurityContext securityContext) {
 	}
 
 	@Override
@@ -143,33 +139,8 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 	}
 
 	@Override
-	public boolean containsKey(Object key) {
-		return properties.containsKey(key);
-	}
-
-	@Override
-	public boolean containsValue(Object value) {
-		return properties.containsValue(value);
-	}
-
-	@Override
-	public Object get(Object key) {
-		return properties.get(key);
-	}
-
-	@Override
 	public Object put(PropertyKey key, Object value) {
 		return properties.put(key, value);
-	}
-
-	@Override
-	public Object remove(Object key) {
-		return properties.remove(key);
-	}
-
-	@Override
-	public void putAll(Map m) {
-		properties.putAll(m);
 	}
 
 	@Override
@@ -200,5 +171,21 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 	@Override
 	public PropertyContainer getPropertyContainer() {
 		return null;
+	}
+
+	@Override
+	public void addToIndex() {
+	}
+
+	@Override
+	public void updateInIndex() {
+	}
+
+	@Override
+	public void removeFromIndex() {
+	}
+	
+	@Override
+	public void indexPassiveProperties() {
 	}
 }

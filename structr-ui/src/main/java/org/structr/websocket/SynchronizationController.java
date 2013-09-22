@@ -35,12 +35,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.servlet.http.HttpServletRequest;
-import org.apache.commons.lang.StringUtils;
 import org.eclipse.jetty.util.URIUtil;
 
 import org.eclipse.jetty.websocket.WebSocket.Connection;
-import static org.mockito.Mockito.mock;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.event.PropertyEntry;
 import org.neo4j.graphdb.event.TransactionData;
@@ -48,29 +45,17 @@ import org.neo4j.graphdb.event.TransactionEventHandler;
 import org.structr.common.AccessMode;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
 import static org.structr.core.EntityContext.getPropertyKeyForDatabaseName;
-import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeService;
 import org.structr.core.graph.RelationshipFactory;
-import org.structr.core.graph.search.Search;
-import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.SearchAttributeGroup;
-import org.structr.core.graph.search.SearchNodeCommand;
-import org.structr.core.graph.search.SearchOperator;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.rest.ResourceProvider;
-import org.structr.web.common.RenderContext;
 import org.structr.web.entity.User;
-import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
-import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.html.Html;
-import org.w3c.dom.Node;
 
 /**
  *
@@ -80,10 +65,10 @@ public class SynchronizationController implements StructrTransactionListener, Tr
 
 	private static final Logger logger                              = Logger.getLogger(SynchronizationController.class.getName());
 
-	private final Map<Long, List<WebSocketMessage>> messageStackMap = new ConcurrentHashMap<Long, List<WebSocketMessage>>();
-	private final Map<Long, Set<DOMNode>> markupElementsMap         = new ConcurrentHashMap<Long, Set<DOMNode>>();
-	private final Map<Long, Set<Class>> typesMap                    = new ConcurrentHashMap<Long, Set<Class>>();
-	private final Set<StructrWebSocket> clients                     = new LinkedHashSet<StructrWebSocket>();
+	private final Map<Long, List<WebSocketMessage>> messageStackMap = new ConcurrentHashMap<>();
+	private final Map<Long, Set<DOMNode>> markupElementsMap         = new ConcurrentHashMap<>();
+	private final Map<Long, Set<Class>> typesMap                    = new ConcurrentHashMap<>();
+	private final Set<StructrWebSocket> clients                     = new LinkedHashSet<>();
 	private final AtomicLong transactionCounter                     = new AtomicLong(0);
 	private ResourceProvider resourceProvider                       = null;
 	private Gson gson                                               = null;
@@ -127,7 +112,7 @@ public class SynchronizationController implements StructrTransactionListener, Tr
 		String message;
 		String pagePath = (String) webSocketData.getNodeData().get("pagePath");
 
-		//synchronized (clients) {
+		synchronized (clients) {
 
 			// create message
 			for (StructrWebSocket socket : clients) {
@@ -192,7 +177,7 @@ public class SynchronizationController implements StructrTransactionListener, Tr
 				}
 
 			}
-		//}
+		}
 
 	}
 
@@ -211,173 +196,173 @@ public class SynchronizationController implements StructrTransactionListener, Tr
 
 	}
 	
-	private void broadcastPartials(Set<Class> types, Set<DOMNode> markupElements) {
-
-		// create set of dynamic elements
-		Set<DOMNode> dynamicElements = new HashSet(markupElements);
-		SecurityContext superUserSecurityContext = SecurityContext.getSuperUserInstance();
-		List<SearchAttribute> attrs              = new LinkedList<SearchAttribute>();
-
-		if (!types.isEmpty()) {
-		
-			// Find all DOMElements which render data of the type of the obj
-			attrs.add(Search.andExactTypeAndSubtypes(DOMElement.class.getSimpleName()));
-			SearchAttributeGroup g = new SearchAttributeGroup(SearchOperator.AND);
-
-			for (Class type : types) {
-
-				g.add(Search.orExactProperty(DOMElement.dataKey, EntityContext.denormalizeEntityName(type.getSimpleName())));
-				g.add(Search.orExactProperty(DOMElement.partialUpdateKey, EntityContext.denormalizeEntityName(type.getSimpleName())));
-
-			}
-
-			attrs.add(g);
-
-			Result results;
-			try {
-
-				results = Services.command(superUserSecurityContext, SearchNodeCommand.class).execute(attrs);
-				dynamicElements.addAll(results.getResults());
-
-			} catch (FrameworkException ex) {}
-		
-		}
-
-		// create message
-		for (StructrWebSocket socket : clients) {
-
-			SecurityContext securityContext = socket.getSecurityContext();
-			
-			// For non-authenticated clients, construct a security context without user
-			if (securityContext == null) {
-
-				try {
-
-					securityContext = SecurityContext.getInstance(null, AccessMode.Frontend);
-
-				} catch (FrameworkException ex) {
-
-					continue;
-				}
-			}
-			
-			broadcastDynamicElements(securityContext, socket, new LinkedList(dynamicElements));
-			
-		}
-	}
-
-	private void broadcastDynamicElements(SecurityContext securityContext, StructrWebSocket socket, final List<DOMNode> dynamicElements) {
-
-		// filter elements
-		List<DOMNode> filteredElements = filter(securityContext, dynamicElements);
-		List<WebSocketMessage> partialMessages = createPartialMessages(securityContext, filteredElements);
-
-		for (WebSocketMessage webSocketData : partialMessages) {
-
-			webSocketData.setSessionValid(true);
-
-			String pagePath = (String) webSocketData.getNodeData().get("pagePath");
-			String clientPagePath = socket.getPagePath();
-
-			if (clientPagePath != null && !clientPagePath.equals(URIUtil.encodePath(pagePath))) {
-				continue;
-			}
-
-			Connection socketConnection = socket.getConnection();
-
-			webSocketData.setCallback(socket.getCallback());
-
-			if ((socketConnection != null)) {
-
-				String message = gson.toJson(webSocketData, WebSocketMessage.class);
-
-				try {
-
-					socketConnection.sendMessage(message);
-
-				} catch (org.eclipse.jetty.io.EofException eof) {
-
-					logger.log(Level.FINE, "EofException irgnored, may occour on SSL connections.", eof);
-
-				} catch (Throwable t) {
-
-					logger.log(Level.WARNING, "Error sending message to client.", t);
-
-				}
-			}
-		}
-	}
-	
-	private List<WebSocketMessage> createPartialMessages(SecurityContext securityContext, List<DOMNode> elements) {
-		
-		HttpServletRequest request             = mock(HttpServletRequest.class);
-		List<WebSocketMessage> partialMessages = new LinkedList<WebSocketMessage>();
-		RenderContext ctx                      = new RenderContext(request, null, false, Locale.GERMAN);
-		
-		ctx.setResourceProvider(resourceProvider);
-		
-		// Get unique parent elements
-		Set<DOMNode> parents = new HashSet();
-		
-		for (DOMNode el : elements) {
-			
-			
-			DOMNode parent = (DOMNode) el.getParentNode();
-			
-			if (parent != null && !(parent instanceof Html)) {
-				
-				boolean ancestorAlreadyInSet = false;
-				for (Node ancestor : parent.getAncestors()) {
-
-					if (parents.contains((DOMNode) ancestor)) {
-						ancestorAlreadyInSet = true;
-					}
-
-				}
-				
-				if (!ancestorAlreadyInSet) {
-					parents.add(parent);
-				}
-			}
-			
-		}
-		
-		for (DOMNode parent : parents) {
-			
-			try {
-				if (parent != null) {
-
-					Page page = parent.getProperty(DOMNode.ownerDocument);
-					
-					if (page != null) {
-
-						parent.render(securityContext, ctx, 0);
-
-						String partialContent = ctx.getBuffer().toString();
-
-						WebSocketMessage message = new WebSocketMessage();
-
-						message.setCommand("PARTIAL");
-
-						message.setNodeData("pageId", page.getUuid());
-						message.setNodeData("pagePath", "/" + page.getName());
-						message.setNodeData("parentPositionPath", parent.getPositionPath());
-
-						message.setMessage(StringUtils.remove(partialContent, "\n"));
-
-						partialMessages.add(message);
-						
-					}
-				}
-				
-			} catch (FrameworkException ex) {
-				logger.log(Level.SEVERE, null, ex);
-			}
-			
-		}
-
-		return partialMessages;
-	}
+//	private void broadcastPartials(Set<Class> types, Set<DOMNode> markupElements) {
+//
+//		// create set of dynamic elements
+//		Set<DOMNode> dynamicElements = new HashSet(markupElements);
+//		SecurityContext superUserSecurityContext = SecurityContext.getSuperUserInstance();
+//		List<SearchAttribute> attrs              = new LinkedList<SearchAttribute>();
+//
+//		if (!types.isEmpty()) {
+//		
+//			// Find all DOMElements which render data of the type of the obj
+//			attrs.add(Search.andExactTypeAndSubtypes(DOMElement.class.getSimpleName()));
+//			SearchAttributeGroup g = new SearchAttributeGroup(Occur.MUST);
+//
+//			for (Class type : types) {
+//
+//				g.add(Search.orExactProperty(superUserSecurityContext, DOMElement.dataKey, EntityContext.denormalizeEntityName(type.getSimpleName())));
+//				g.add(Search.orExactProperty(superUserSecurityContext, DOMElement.partialUpdateKey, EntityContext.denormalizeEntityName(type.getSimpleName())));
+//
+//			}
+//
+//			attrs.add(g);
+//
+//			Result results;
+//			try {
+//
+//				results = Services.command(superUserSecurityContext, SearchNodeCommand.class).execute(attrs);
+//				dynamicElements.addAll(results.getResults());
+//
+//			} catch (FrameworkException ex) {}
+//		
+//		}
+//
+//		// create message
+//		for (StructrWebSocket socket : clients) {
+//
+//			SecurityContext securityContext = socket.getSecurityContext();
+//			
+//			// For non-authenticated clients, construct a security context without user
+//			if (securityContext == null) {
+//
+//				try {
+//
+//					securityContext = SecurityContext.getInstance(null, AccessMode.Frontend);
+//
+//				} catch (FrameworkException ex) {
+//
+//					continue;
+//				}
+//			}
+//			
+//			broadcastDynamicElements(securityContext, socket, new LinkedList(dynamicElements));
+//			
+//		}
+//	}
+//
+//	private void broadcastDynamicElements(SecurityContext securityContext, StructrWebSocket socket, final List<DOMNode> dynamicElements) {
+//
+//		// filter elements
+//		List<DOMNode> filteredElements = filter(securityContext, dynamicElements);
+//		List<WebSocketMessage> partialMessages = createPartialMessages(securityContext, filteredElements);
+//
+//		for (WebSocketMessage webSocketData : partialMessages) {
+//
+//			webSocketData.setSessionValid(true);
+//
+//			String pagePath = (String) webSocketData.getNodeData().get("pagePath");
+//			String clientPagePath = socket.getPagePath();
+//
+//			if (clientPagePath != null && !clientPagePath.equals(URIUtil.encodePath(pagePath))) {
+//				continue;
+//			}
+//
+//			Connection socketConnection = socket.getConnection();
+//
+//			webSocketData.setCallback(socket.getCallback());
+//
+//			if ((socketConnection != null)) {
+//
+//				String message = gson.toJson(webSocketData, WebSocketMessage.class);
+//
+//				try {
+//
+//					socketConnection.sendMessage(message);
+//
+//				} catch (org.eclipse.jetty.io.EofException eof) {
+//
+//					logger.log(Level.FINE, "EofException irgnored, may occour on SSL connections.", eof);
+//
+//				} catch (Throwable t) {
+//
+//					logger.log(Level.WARNING, "Error sending message to client.", t);
+//
+//				}
+//			}
+//		}
+//	}
+//	
+//	private List<WebSocketMessage> createPartialMessages(SecurityContext securityContext, List<DOMNode> elements) {
+//		
+//		HttpServletRequest request             = mock(HttpServletRequest.class);
+//		List<WebSocketMessage> partialMessages = new LinkedList<WebSocketMessage>();
+//		RenderContext ctx                      = new RenderContext(request, null, false, Locale.GERMAN);
+//		
+//		ctx.setResourceProvider(resourceProvider);
+//		
+//		// Get unique parent elements
+//		Set<DOMNode> parents = new HashSet();
+//		
+//		for (DOMNode el : elements) {
+//			
+//			
+//			DOMNode parent = (DOMNode) el.getParentNode();
+//			
+//			if (parent != null && !(parent instanceof Html)) {
+//				
+//				boolean ancestorAlreadyInSet = false;
+//				for (Node ancestor : parent.getAncestors()) {
+//
+//					if (parents.contains((DOMNode) ancestor)) {
+//						ancestorAlreadyInSet = true;
+//					}
+//
+//				}
+//				
+//				if (!ancestorAlreadyInSet) {
+//					parents.add(parent);
+//				}
+//			}
+//			
+//		}
+//		
+//		for (DOMNode parent : parents) {
+//			
+//			try {
+//				if (parent != null) {
+//
+//					Page page = parent.getProperty(DOMNode.ownerDocument);
+//					
+//					if (page != null) {
+//
+//						parent.render(securityContext, ctx, 0);
+//
+//						String partialContent = ctx.getBuffer().toString();
+//
+//						WebSocketMessage message = new WebSocketMessage();
+//
+//						message.setCommand("PARTIAL");
+//
+//						message.setNodeData("pageId", page.getUuid());
+//						message.setNodeData("pagePath", "/" + page.getName());
+//						message.setNodeData("parentPositionPath", parent.getPositionPath());
+//
+//						message.setMessage(StringUtils.remove(partialContent, "\n"));
+//
+//						partialMessages.add(message);
+//						
+//					}
+//				}
+//				
+//			} catch (FrameworkException ex) {
+//				logger.log(Level.SEVERE, null, ex);
+//			}
+//			
+//		}
+//
+//		return partialMessages;
+//	}
 	
 	// ----- interface StructrTransactionListener -----
 	@Override
@@ -421,7 +406,7 @@ public class SynchronizationController implements StructrTransactionListener, Tr
 		Set<DOMNode> markupElements = markupElementsMap.get(transactionKey);
 		Set<Class> types            = typesMap.get(transactionKey);
 
-		broadcastPartials(types, markupElements);
+		//broadcastPartials(types, markupElements);
 
 		// roll back transaction
 		messageStackMap.remove(transactionKey);
@@ -654,7 +639,7 @@ public class SynchronizationController implements StructrTransactionListener, Tr
 		} else {
 
 			WebSocketMessage message = new WebSocketMessage();
-			String uuid              = properties.get(AbstractNode.uuid).toString();
+			String uuid              = properties.get(AbstractNode.uuid);
 
 			message.setId(uuid);
 			message.setCommand("DELETE");
@@ -731,13 +716,13 @@ public class SynchronizationController implements StructrTransactionListener, Tr
 		collectRemovedNodeProperties(securityContext, transactionKey, data, nodeFactory, removedNodeProperties);
 		collectRemovedRelationshipProperties(securityContext, transactionKey, data, relFactory, removedRelProperties);
 
-		// call onCreation
-		callOnNodeCreation(securityContext, transactionKey, data, nodeFactory);
-		callOnRelationshipCreation(securityContext, transactionKey, data, relFactory);
-
 		// call onDeletion
 		callOnRelationshipDeletion(securityContext, transactionKey, data, relFactory, removedRelProperties);
 		callOnNodeDeletion(securityContext, transactionKey, data, nodeFactory, removedNodeProperties);
+
+		// call onCreation
+		callOnNodeCreation(securityContext, transactionKey, data, nodeFactory);
+		callOnRelationshipCreation(securityContext, transactionKey, data, relFactory);
 
 		// call validators
 		callNodePropertyModified(securityContext, transactionKey, data, nodeFactory);
@@ -782,7 +767,7 @@ public class SynchronizationController implements StructrTransactionListener, Tr
 
 			if (!data.isDeleted(node)) {
 
-				AbstractNode modifiedNode = nodeFactory.instantiateNode(node, true, false);
+				AbstractNode modifiedNode = nodeFactory.instantiate(node, true, false);
 				if (modifiedNode != null) {
 
 					PropertyKey key = getPropertyKeyForDatabaseName(modifiedNode.getClass(), entry.key());
@@ -813,7 +798,7 @@ public class SynchronizationController implements StructrTransactionListener, Tr
 
 			if (!data.isDeleted(rel)) {
 
-				AbstractRelationship modifiedRel = relFactory.instantiateRelationship(securityContext, rel);
+				AbstractRelationship modifiedRel = relFactory.instantiate(rel);
 				if (modifiedRel != null) {
 
 					PropertyKey key = getPropertyKeyForDatabaseName(modifiedRel.getClass(), entry.key());
@@ -828,7 +813,7 @@ public class SynchronizationController implements StructrTransactionListener, Tr
 
 		for (org.neo4j.graphdb.Node node : sortNodes(data.createdNodes())) {
 
-			AbstractNode entity = nodeFactory.instantiateNode(node, true, false);
+			AbstractNode entity = nodeFactory.instantiate(node, true, false);
 			if (entity != null) {
 
 				graphObjectCreated(securityContext, transactionKey, entity);
@@ -843,7 +828,7 @@ public class SynchronizationController implements StructrTransactionListener, Tr
 
 		for (Relationship rel : sortRelationships(data.createdRelationships())) {
 
-			AbstractRelationship entity = relFactory.instantiateRelationship(securityContext, rel);
+			AbstractRelationship entity = relFactory.instantiate(rel);
 			if (entity != null) {
 
 				// notify registered listeners
@@ -860,7 +845,7 @@ public class SynchronizationController implements StructrTransactionListener, Tr
 
 		for (Relationship rel : data.deletedRelationships()) {
 
-			AbstractRelationship entity = relFactory.instantiateRelationship(securityContext, rel);
+			AbstractRelationship entity = relFactory.instantiate(rel);
 			if (entity != null) {
 
 				// convertFromInput properties
@@ -876,7 +861,7 @@ public class SynchronizationController implements StructrTransactionListener, Tr
 		for (org.neo4j.graphdb.Node node : data.deletedNodes()) {
 
 			String type = (String)removedNodeProperties.get(node).get(AbstractNode.type.dbName());
-			AbstractNode entity = nodeFactory.instantiateDummyNode(type);
+			AbstractNode entity = nodeFactory.instantiateDummy(type);
 
 			if (entity != null) {
 
@@ -890,7 +875,7 @@ public class SynchronizationController implements StructrTransactionListener, Tr
 
 		for (PropertyEntry<org.neo4j.graphdb.Node> entry : data.assignedNodeProperties()) {
 
-			AbstractNode nodeEntity = nodeFactory.instantiateNode(entry.entity(), true, false);
+			AbstractNode nodeEntity = nodeFactory.instantiate(entry.entity(), true, false);
 			if (nodeEntity != null) {
 
 				PropertyKey key  = getPropertyKeyForDatabaseName(nodeEntity.getClass(), entry.key());
@@ -905,7 +890,7 @@ public class SynchronizationController implements StructrTransactionListener, Tr
 
 		for (PropertyEntry<Relationship> entry : data.assignedRelationshipProperties()) {
 
-			AbstractRelationship relEntity    = relFactory.instantiateRelationship(securityContext, entry.entity());
+			AbstractRelationship relEntity    = relFactory.instantiate(entry.entity());
 			if (relEntity != null) {
 
 				PropertyKey key = getPropertyKeyForDatabaseName(relEntity.getClass(), entry.key());

@@ -26,25 +26,31 @@ import net.sf.jmimemagic.MagicMatch;
 import org.apache.commons.lang.StringUtils;
 
 import org.structr.web.common.ImageHelper;
+import org.structr.common.KeyAndClass;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
+import org.structr.core.Services;
+import org.structr.core.converter.PropertyConverter;
+import org.structr.core.graph.StructrTransaction;
+import org.structr.core.graph.TransactionCommand;
+import org.structr.web.entity.Image;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.KeyAndClass;
-import org.structr.common.SecurityContext;
-import org.structr.core.GraphObject;
-import org.structr.core.Services;
-import org.structr.core.converter.PropertyConverter;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.NewIndexNodeCommand;
-import org.structr.web.entity.Image;
 
 //~--- classes ----------------------------------------------------------------
 
 /**
- * Converts image data into an image node sets its id as the property
- * with the key from the given value
+ * Converts image data into an image node.
+ *  
+ * If a {@link KeyAndClass} object is given, the image will be created with
+ * the corresponding type and with setProperty to the given property key.
+ * 
+ * If no {@link KeyAndClass} object is given, the image data will be set on
+ * the image node itself.
  *
  * @author Axel Morgner
  */
@@ -64,7 +70,7 @@ public class ImageConverter extends PropertyConverter {
 	//~--- methods --------------------------------------------------------
 
 	@Override
-	public Object convert(Object source) {
+	public Object convert(final Object source) {
 
 		if (source == null) {
 
@@ -73,54 +79,75 @@ public class ImageConverter extends PropertyConverter {
 
 		try {
 
-			Image img = null;
-			
-			if (keyAndClass == null) {
-				return false;
-			}
-			
-			if (source instanceof byte[]) {
+			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
-				byte[] data      = (byte[]) source;
-				MagicMatch match = Magic.getMagicMatch(data);
-				String mimeType  = match.getMimeType();
+				@Override
+				public Object execute() throws FrameworkException {
+					
+					Image img = null;
 
-				img = ImageHelper.createImage(securityContext, data, mimeType, keyAndClass.getCls());
+					try {
+						if (source instanceof byte[]) {
 
-			} else if (source instanceof String) {
+							byte[] data      = (byte[]) source;
+							MagicMatch match = Magic.getMagicMatch(data);
+							String mimeType  = match.getMimeType();
+							
+							if (keyAndClass != null) {
 
-				if (StringUtils.isNotBlank((String) source)) {
+								img = (Image) ImageHelper.createFile(securityContext, data, mimeType, keyAndClass.getCls());
+								
+							} else {
+								
+								ImageHelper.setImageData((Image) currentObject, data, mimeType);
+								
+							}
 
-					img = ImageHelper.createImageBase64(securityContext, (String) source, keyAndClass.getCls());
+						} else if (source instanceof String) {
+
+							if (StringUtils.isNotBlank((String) source)) {
+
+								
+								if (keyAndClass != null) {
+								
+									img = (Image) ImageHelper.createFileBase64(securityContext, (String) source, keyAndClass != null ? keyAndClass.getCls() : null);
+									
+								} else {
+									
+									ImageHelper.decodeAndSetFileData((Image) currentObject, (String) source);
+									
+								}
+							}
+
+						}
+						
+					} catch (Throwable t) {
+						logger.log(Level.WARNING, "Cannot create image node from given data", t);
+					}
+
+					if (img != null) {
+
+						// manual indexing of UUID needed here to avoid a 404 in the following setProperty call
+						img.updateInIndex();
+						currentObject.setProperty(keyAndClass.getPropertyKey(), img);
+					}
+					
+					return null;
 				}
-
-			}
-
-			
-			if (img != null) {
-				
-				// manual indexing of UUID needed here to avoid a 404 in the following setProperty call
-				Services.command(securityContext, NewIndexNodeCommand.class).updateNode(img);
-				
-				currentObject.setProperty(keyAndClass.getPropertyKey(), img);
-			}
-			
-			return null;
+			});
 
 		} catch (Throwable t) {
 
 			logger.log(Level.WARNING, "Cannot create image node from given data", t);
-
-			return null;
-
 		}
-
+			
+		return null;
 	}
 
 	@Override
 	public Object revert(Object source) {
 
-		return source;
+		return ImageHelper.getBase64String((Image) currentObject);
 	}
 
 }
