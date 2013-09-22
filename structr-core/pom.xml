@@ -9,24 +9,9 @@
         <version>0.8.1</version>
     </parent>
 
-    <groupId>org.structr</groupId>
     <artifactId>structr-core</artifactId>
     <packaging>jar</packaging>
-    <version>0.8.1</version>
     <name>structr-core</name>
-    <description>Structr is an open source framework based on the popular Neo4j graph database.</description>
-    <developers>
-        <developer>
-            <name>Axel Morgner</name>
-            <email>am@structr.org</email>
-        </developer>
-        <developer>
-            <name>Christian Morgner</name>
-            <email>cm@structr.org</email>
-        </developer>
-    </developers>
-    <url>http://structr.org</url>
-
     <properties>
         <netbeans.hint.license>structr-gpl30</netbeans.hint.license>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -34,24 +19,6 @@
         <neo4j.version>1.9.3</neo4j.version>
     </properties>
 
-    <repositories>
-        <repository>
-            <id>snapshots.maven.structr.org</id>
-            <url>http://maven.structr.org/artifactory/snapshot</url>
-        </repository>
-        <repository>
-            <id>releases.maven.structr.org</id>
-            <url>http://maven.structr.org/artifactory/release</url>
-        </repository> 
-        <repository>
-            <id>neo4j-releases</id>
-            <url>http://m2.neo4j.org/content/repositories/releases</url>
-        </repository>
-        <repository>
-            <id>neo4j-snapshots</id>
-            <url>http://m2.neo4j.org/content/repositories/snapshots</url>
-        </repository>
-    </repositories>	
     <dependencies>
         <dependency>
             <groupId>junit</groupId>
@@ -109,17 +76,17 @@
             <version>1.5</version>
             <type>jar</type>
             <exclusions>
-                 <!--Sail support not needed--> 
+                 <!--Sail support not needed-->
                 <exclusion>
                     <groupId>com.tinkerpop.blueprints</groupId>
                     <artifactId>blueprints-sail-graph</artifactId>
                 </exclusion>
-                 <!--Maven support in groovy not needed--> 
+                 <!--Maven support in groovy not needed-->
                 <exclusion>
                     <groupId>org.codehaus.groovy.maven</groupId>
                     <artifactId>gmaven-plugin</artifactId>
                 </exclusion>
-                 <!--"readline" not needed - we only expose gremlin through webadmin--> 
+                 <!--"readline" not needed - we only expose gremlin through webadmin-->
                 <exclusion>
                     <groupId>jline</groupId>
                     <artifactId>jline</artifactId>
@@ -155,7 +122,7 @@
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
             <version>3.0.1</version>
-        </dependency>		
+        </dependency>
         <dependency>
             <groupId>net.sf.opencsv</groupId>
             <artifactId>opencsv</artifactId>
@@ -262,10 +229,4 @@
             </comments>
         </license>
     </licenses>
-
-    <scm>
-        <url>https://github.com/structr/structr</url>
-        <connection>scm:git:git@github.com:structr/structr.git</connection>
-    </scm>
-
 </project>

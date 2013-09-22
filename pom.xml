@@ -17,6 +17,10 @@
             <name>Christian Morgner</name>
             <email>cm@structr.org</email>
         </developer>
+        <developer>
+            <name>Gerd Aschemann</name>
+            <email>gerd@aschemann.net</email>
+        </developer>
     </developers>
 
     <properties>
@@ -108,6 +112,12 @@
         <url>https://github.com/structr/structr</url>
         <connection>scm:git:git@github.com:structr/structr.git</connection>
     </scm>
+    <repositories>
+        <repository>
+            <id>structr</id>
+            <url>https://projects.aschemann.net/nexus/content/groups/structr/</url>
+        </repository>
+    </repositories>
     <distributionManagement>
         <repository>
             <id>releases.maven.structr.org</id>
