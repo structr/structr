@@ -115,7 +115,7 @@
     <repositories>
         <repository>
             <id>structr</id>
-            <url>https://projects.aschemann.net/nexus/content/groups/structr/</url>
+            <url>http://projects.aschemann.net/nexus/content/groups/structr/</url>
         </repository>
     </repositories>
     <distributionManagement>
