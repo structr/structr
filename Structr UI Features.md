@@ -40,13 +40,14 @@ All content elements are stored in a graph structure and rendered top-down from 
 - Dynamic
 
 ## OAuth Integration
-- Sign-in with
-    - Twitter (OAuth 1.0a)
-    - LinkedIn
+- OAuth 2.0
     - Facebook
-    - Google
+    - LinkedIn
     - GitHub
-- Extendable OAuth client API
+    - Google
+- OAuth 1.0a
+    - Twitter
+- Extensible OAuth clients API
 
 ## Dynamic Edit Mode
 - Auto-generated edit UI from specific node attributes
@@ -73,6 +74,6 @@ All content elements are stored in a graph structure and rendered top-down from 
 - URL rewriting
 - Caching
   - Time-based (fixed expiration time)
-  - Expiry-based (re-render oinly if page has changed)
+  - Expiry-based (re-render only if page has changed)
   - Timestamp-based (sends 304)
 - Proper HTTP error codes and expiration headers
