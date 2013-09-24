@@ -41,7 +41,7 @@
         </plugins>
     </build>
     <repositories>
-        <repository>
+         <repository>
             <id>snapshots.maven.structr.org</id>
             <url>http://maven.structr.org/artifactory/snapshot</url>
         </repository>

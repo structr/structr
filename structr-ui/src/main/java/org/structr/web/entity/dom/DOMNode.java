@@ -18,7 +18,9 @@
  */
 package org.structr.web.entity.dom;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.URL;
 import java.net.URLEncoder;
 import java.text.NumberFormat;
 import java.text.DecimalFormat;
@@ -41,8 +43,12 @@ import java.util.regex.Matcher;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.collections.IteratorUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.lucene.search.BooleanClause.Occur;
+import org.jsoup.Jsoup;
 import org.neo4j.graphdb.Direction;
 import org.structr.common.Permission;
 import org.structr.web.common.RelType;
@@ -88,6 +94,10 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 import org.w3c.dom.UserDataHandler;
+//import jodd.http.HttpRequest;
+//import jodd.http.HttpResponse;
+//import jodd.jerry.Jerry;
+//import static jodd.jerry.Jerry.jerry;
 
 /**
  * Combines AbstractNode and org.w3c.dom.Node.
@@ -548,6 +558,75 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 				return b[0].equals("true") && b[1].equals("true") ? "true" : "false";
 			}
 
+		});
+		functions.put("GET", new Function<String, String>() {
+		
+			@Override
+			public String apply(String[] s) {
+				
+				String result = "";
+				String errorMsg = "ERROR! Usage: ${GET(URL[, contentType[, selector]])}. Example: ${GET('http://structr.org', 'text/html')}";
+				
+				if (s != null && s.length > 0) {
+
+					try {
+
+						String address = s[0];
+						String contentType = null;
+						
+						if (s.length > 1) {
+							contentType = s[1];
+						}
+						
+						//long t0 = System.currentTimeMillis();
+						
+						if ("text/html".equals(contentType)) {
+
+							String selector = null;
+							
+							if (s.length > 2) {
+								
+								selector = s[2];
+								
+//								String raw = getFromUrl2(address);
+//								long t1 = System.currentTimeMillis();
+//								Jerry doc = jerry(raw);
+//								String html = doc.$(selector).html();
+//								logger.log(Level.INFO, "Jerry took {0} ms to get and {1} ms to parse page.", new Object[]{t1 - t0, System.currentTimeMillis() - t1});
+
+								String html = Jsoup.parse(new URL(address), 5000).select(selector).html();
+								return html;
+								
+								
+							} else {
+							
+								String html = Jsoup.parse(new URL(address), 5000).html();
+								//logger.log(Level.INFO, "Jsoup took {0} ms to get and parse page.", (System.currentTimeMillis() - t0));
+								
+								return html;
+								
+							}
+							
+						} else  {
+							
+							return getFromUrl(address);
+						}
+
+
+					} catch (Throwable t) {
+						
+						result = errorMsg + "\n" + t.getMessage();
+						
+					}
+
+				} else {
+					result = errorMsg;
+				}
+
+				return result;
+				
+			}
+			
 		});
 	}
 	
@@ -1912,5 +1991,24 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 			return false;
 		}
 	}
+	
+	private static String getFromUrl(final String requestUrl) throws IOException {
+		
+		DefaultHttpClient client = new DefaultHttpClient();
+		HttpGet get              = new HttpGet(requestUrl);
+
+		get.setHeader("Connection", "close");
+
+		return IOUtils.toString(client.execute(get).getEntity().getContent(), "UTF-8");
+			
+	}
+
+//	private static String getFromUrl2(final String requestUrl) throws IOException {
+//		
+//		HttpRequest httpRequest = HttpRequest.get(requestUrl);
+//		HttpResponse response = httpRequest.send();
+//		return response.body();
+//		
+//	}
 	
 }

@@ -53,10 +53,10 @@
             <name>google-diff-patch-match</name>
             <url>http://google-diff-match-patch.googlecode.com/svn/trunk/maven/</url>
         </repository>
-        <!--		<repository>
-                <id>apache</id>
-                <url>https://repository.apache.org/content/groups/public/</url>
-        </repository>-->
+        <repository>
+            <id>jodd</id>
+            <url>http://repo1.maven.org/maven2/org/jodd/</url>
+        </repository>
     </repositories>
     <dependencies>
         <dependency>
@@ -118,6 +118,16 @@
             <artifactId>jsoup</artifactId>
             <version>1.7.1</version>
         </dependency>
+        <dependency>
+            <groupId>org.jodd</groupId>
+            <artifactId>jodd-lagarto</artifactId>
+            <version>3.4.5</version>
+        </dependency>
+<!--        <dependency>
+            <groupId>org.jodd</groupId>
+            <artifactId>jodd-http</artifactId>
+            <version>3.4.5</version>
+        </dependency>-->
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-compress</artifactId>

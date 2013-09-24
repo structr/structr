@@ -262,6 +262,16 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 	}
 
+	/**
+	 * Main render method.
+	 * 
+	 * TODO: This method is way to long!
+	 * 
+	 * @param securityContext
+	 * @param renderContext
+	 * @param depth
+	 * @throws FrameworkException 
+	 */
 	@Override
 	public void render(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException {
 		
@@ -308,31 +318,6 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 				buffer.append(" data-structr-el=\"").append(getUuid()).append("\"");
 
 			}
-
-//			if (EditMode.DATA.equals(edit)) {
-//
-////				if (depth == 1) {
-////
-////					buffer.append(" data-structr_page_id='").append(pageId).append("'");
-////				}
-//
-//				buffer.append(" data-structr-id=\"").append(id).append("\"");
-//				
-//				if (renderContext.getDataObject() != null) {
-//					buffer.append(" data-structr-data-type=\"").append(renderContext.getDataObject().getType()).append("\"");
-//				}
-//
-//				PropertyKey r = renderContext.getRelatedProperty();
-//				
-//				if (r != null) {
-//					buffer.append(" data-structr-related-property=\"").append(r.jsonName()).append("\"");
-//					buffer.append(" data-structr-source-type=\"").append(r.getDeclaringClass().getSimpleName()).append("\"");
-//					buffer.append(" data-structr-source-id=\"").append(renderContext.getSourceDataObject().getUuid()).append("\"");
-//					buffer.append(" data-structr-data-id=\"").append(renderContext.getDataObject().getUuid()).append("\"");
-//				}
-//				//buffer.append(" data-structr-name=\"").append(getName()).append("\"");
-//
-//			}
 
 			// include arbitrary data-* attributes
 			renderCustomAttributes(buffer, securityContext, renderContext);
