@@ -1,19 +1,17 @@
-# Structr Backend
+### Structr Backend
 
 The Structr backend is the foundation of any Structr system but can also be used stand-alone as high performance, domain-focused REST server for Neo4j.
 
 It is realized as a wrapper around a Neo4j graph database, which supports defining and mapping schemas for your domain objects. Complex graph operations can be mapped to domain-oriented REST endpoints.
-
-## Features
-    
-### URL Path Mapping
+  
+#### URL Path Mapping
     
 - Run-time URL path evaluation
 - Dynamic URL mapping
     - REST endpoint to graph entites
     - URL appendices for scopes, filters
 
-### JSON/REST Interface
+#### JSON/REST Interface
 
 - Bidirectional Graph to JSON document transformation
     - Conversion of arbitrary subgraphs into JSON documents
@@ -41,7 +39,7 @@ It is realized as a wrapper around a Neo4j graph database, which supports defini
     - Configurable geo data providers
     - Predefined map providers: Google, Bing
 
-### Schema
+#### Schema
 
 - Type inheritance
 - Mix-ins (interfaces with properties, validation and functionality)
@@ -61,7 +59,7 @@ It is realized as a wrapper around a Neo4j graph database, which supports defini
     - Configure new types at run-time via JSON/REST
     - Add/remove properties
 
-### Tools
+#### Tools
 
 - Push notifications (HTTP/e-mail)
 - Cron-like task scheduler
@@ -69,7 +67,7 @@ It is realized as a wrapper around a Neo4j graph database, which supports defini
 - Asynchronous background agents
 - Maintenance tools (rebuild index, import/export, change properties, change type, ..)
 
-## Infrastructure
+#### Infrastructure
 
 - Embedded Neo4j (1.9, 2.0 in development)
 - Embedded Jetty servlet container

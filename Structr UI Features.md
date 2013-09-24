@@ -1,10 +1,10 @@
-# Structr UI Features
+### Structr UI Features
 
 Structr UI is a frontend for Neo4j-based projects. It can be used either stand-alone as a Content Management system, or in combination with a custom backend.
 
 All content elements are stored in a graph structure and rendered top-down from a page node, including dynamic content.
 
-## Schema
+#### Schema
 
 - Content Management-specific entities
     - Page
@@ -17,7 +17,7 @@ All content elements are stored in a graph structure and rendered top-down from 
     - News items
 - Server-side implementation of W3C DOM API
 
-## Dynamic Data Integration
+#### Dynamic Data Integration
 - HTML markup creation from dynamic data
 - Iterate over query results
 - Query types:
@@ -26,7 +26,7 @@ All content elements are stored in a graph structure and rendered top-down from 
     - XPath
 - Remote Cypher queries (experimental)
     
-## Websocket Interface
+#### Websocket Interface
 - Real-time interaction
 - Event broadcasting to multiple clients
 
@@ -35,11 +35,11 @@ All content elements are stored in a graph structure and rendered top-down from 
 - Add DOM elements
 - Shared components (elements used on multiple pages)
 
-## CRUD UI
+#### CRUD UI
 - Create, read, update, delete
 - Dynamic
 
-## OAuth Integration
+#### OAuth Integration
 - OAuth 2.0
     - Facebook
     - LinkedIn
@@ -49,7 +49,7 @@ All content elements are stored in a graph structure and rendered top-down from 
     - Twitter
 - Extensible OAuth clients API
 
-## Dynamic Edit Mode
+#### Dynamic Edit Mode
 - Auto-generated edit UI from specific node attributes
 - Query limiting to single result (detail mode)
 - Hide elements in edit/non-edit mode
@@ -64,12 +64,12 @@ All content elements are stored in a graph structure and rendered top-down from 
     - Images
 - Creates all necessary elements in the database
 
-## Widgets
+#### Widgets
 - Create page structure by drag and drop
 - Exchange widget code
 - Editable widget source code
 
-## Infrastructure
+#### Infrastructure
 - Integrated web server
 - URL rewriting
 - Caching
