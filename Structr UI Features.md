@@ -70,6 +70,9 @@ All content elements are stored in a graph structure and rendered top-down from 
 - Auto-refresh pages after action
 
 #### Schema
+- All content objects are nodes in a Neo4j graph database
+- Page elements connected by relationships
+- Server-side implementation of W3C DOM API
 - Content Management-specific entities
     - Pages
     - HTML5 DOM elements
@@ -79,7 +82,6 @@ All content elements are stored in a graph structure and rendered top-down from 
     - News Items
     - Mail Templates
     - Tags
-- Server-side implementation of W3C DOM API
 
 #### Importer
 - Import complete web pages
@@ -101,13 +103,13 @@ All content elements are stored in a graph structure and rendered top-down from 
 #### Websocket Interface
 - Real-time interaction
 - Event broadcasting to multiple clients
-- Real-time page partial update (experimental)
+- Real-time partial page update (experimental)
 
 #### Infrastructure
 - Integrated web server
 - URL rewriting (UrlRewrite)
 - Caching
-  - Time-based (fixed expiration time)
-  - Expiry-based (re-render only if page has changed)
-  - Timestamp-based (sends 304)
+    - Time-based (fixed expiration time)
+    - Expiry-based (re-render only if page has changed)
+    - Timestamp-based (sends 304)
 - Proper HTTP error codes and expiration headers
