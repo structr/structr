@@ -4,18 +4,10 @@ The Structr backend is the foundation of any Structr system but can also be used
 
 It is realized as a wrapper around a Neo4j graph database, which supports defining and mapping schemas for your domain objects. Complex graph operations can be mapped to domain-oriented REST endpoints.
   
-#### URL Path Mapping
-    
-- Run-time URL path evaluation
-- Dynamic URL mapping
-    - REST endpoint to graph entites
-    - URL appendices for scopes, filters
-
 #### JSON/REST Interface
-
-- Bidirectional Graph to JSON document transformation
+- Bidirectional Graph-to-JSON document transformation
     - Conversion of arbitrary subgraphs into JSON documents
-    - Creation of subgraphs from JSON documents using automatic relationship creation
+    - Creation of subgraphs from JSON documents with automatic relationship creation
     - Support for arbitrary document views on a single object / subgraph
     - Relationship-dependent document views
 - Java-based schema declaration
@@ -28,8 +20,13 @@ It is realized as a wrapper around a Neo4j graph database, which supports defini
 - Sorting
 - Paging (incl. offset + negative paging)
 
-### Search
+#### URL Path Mapping
+- Run-time URL path evaluation
+- Dynamic URL mapping
+    - REST endpoint to graph entites
+    - URL appendices for scopes, filters
 
+#### Search
 - Search/filtering by complex criteria
 - Type-safe property search
 - Supports 'null' value (search for empty fields)
@@ -40,7 +37,6 @@ It is realized as a wrapper around a Neo4j graph database, which supports defini
     - Predefined map providers: Google, Bing
 
 #### Schema
-
 - Type inheritance
 - Mix-ins (interfaces with properties, validation and functionality)
 - Type-safety
@@ -60,7 +56,6 @@ It is realized as a wrapper around a Neo4j graph database, which supports defini
     - Add/remove properties
 
 #### Tools
-
 - Push notifications (HTTP/e-mail)
 - Cron-like task scheduler
 - Reporting
@@ -68,7 +63,6 @@ It is realized as a wrapper around a Neo4j graph database, which supports defini
 - Maintenance tools (rebuild index, import/export, change properties, change type, ..)
 
 #### Infrastructure
-
 - Embedded Neo4j (1.9, 2.0 in development)
 - Embedded Jetty servlet container
 - Integrated UrlRewrite engine for flexible URL mapping
@@ -82,4 +76,3 @@ It is realized as a wrapper around a Neo4j graph database, which supports defini
     - structr-rest
     - structr-server
 - Maven archetypes
-
