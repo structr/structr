@@ -18,7 +18,7 @@
  */
 
 /**************** config parameter **********************************/
-var rootUrl =     '/structr/rest/';
+var rootUrl = '/structr/rest/';
 var viewRootUrl = '/';
 var wsRoot = '/structr/ws';
 /********************************************************************/
@@ -29,7 +29,7 @@ var token, sessionId;
 var lastMenuEntry, activeTab;
 var dmp;
 var editorCursor;
-var dialog;
+var dialog, isMax = false;
 var dialogBox, dialogMsg, dialogBtn, dialogTitle, dialogMeta, dialogText, dialogCancelButton, dialogSaveButton, loginButton;
 var dialogId;
 var page = {};
@@ -39,19 +39,19 @@ var lastMenuEntryKey = 'structrLastMenuEntry_' + port;
 var pagerDataKey = 'structrPagerData_' + port + '_';
 
 $(document).ready(function() {
-    
+
     if (urlParam('debug')) {
         debug = true;
     }
-    
+
     header = $('#header');
     main = $('#main');
     footer = $('#footer');
-    
+
     if (debug) {
         footer.show();
     }
-    
+
     dialogBox = $('#dialogBox');
     dialog = $('.dialogText', dialogBox);
     dialogMsg = $('.dialogMsg', dialogBox);
@@ -64,7 +64,7 @@ $(document).ready(function() {
     loginButton = $('#loginButton');
 
     dmp = new diff_match_patch();
-        
+
     $('#import_json').on('click', function(e) {
         e.stopPropagation();
         var jsonArray = $.parseJSON($('#json_input').val());
@@ -73,7 +73,7 @@ $(document).ready(function() {
             createEntity(json);
         });
     });
-    
+
     loginButton.on('click', function(e) {
         e.stopPropagation();
         Structr.clearMain();
@@ -101,7 +101,7 @@ $(document).ready(function() {
         Structr.modules['pages'].onload();
         _Pages.resize();
     });
-    
+
     $('#widgets_').on('click', function(e) {
         e.stopPropagation();
         Structr.clearMain();
@@ -173,47 +173,43 @@ $(document).ready(function() {
             loginButton.focus().click();
         }
     });
-	
+
     Structr.init();
-    
+
     $(document).keyup(function(e) {
         if (e.keyCode === 27) {
             dialogCancelButton.click();
         }
-    });     
-    
+    });
+
     $(window).on('resize', function() {
         Structr.resize();
     });
-	
+
 });
 
 
 var Structr = {
-	
-    modules : {},
-    classes : [],
+    modules: {},
+    classes: [],
     expanded: {},
-	
-    add_icon : 'icon/add.png',
-    delete_icon : 'icon/delete.png',
-    edit_icon : 'icon/pencil.png',
+    add_icon: 'icon/add.png',
+    delete_icon: 'icon/delete.png',
+    edit_icon: 'icon/pencil.png',
     expand_icon: 'icon/tree_arrow_right.png',
     expanded_icon: 'icon/tree_arrow_down.png',
     link_icon: 'icon/link.png',
     key_icon: 'icon/key.png',
-    
-    reconnect : function() {
-        
+    reconnect: function() {
+
         console.log('activating reconnect loop');
         reconn = window.setInterval(function() {
             connect();
         }, 1000);
         console.log('activated reconnect loop', reconn);
     },
+    init: function() {
 
-    init : function() {
-        
         token = $.cookie(tokenCookieName);
         sessionId = $.cookie('JSESSIONID');
         user = $.cookie(userCookieName);
@@ -229,19 +225,19 @@ var Structr = {
         }
 
         connect();
-        
+
         window.setInterval(function() {
-            sendObj({command:'PING', sessionId: $.cookie('JSESSIONID')});
+            sendObj({command: 'PING', sessionId: $.cookie('JSESSIONID')});
         }, 60000);
 
     },
-
-    login : function(text) {
+    login: function(text) {
 
         main.empty();
-	
+
         $('#logout_').html('Login');
-        if (text) $('#errorText').html(text);
+        if (text)
+            $('#errorText').html(text);
         $.blockUI.defaults.overlayCSS.opacity = .6;
         $.blockUI.defaults.applyPlatformOpacityRules = false;
         $.blockUI({
@@ -256,8 +252,7 @@ var Structr = {
         });
         Structr.activateMenuEntry('logout');
     },
-
-    doLogin : function(username, password) {
+    doLogin: function(username, password) {
         log('doLogin ' + username + ' with ' + password);
         var obj = {};
         obj.command = 'LOGIN';
@@ -272,8 +267,7 @@ var Structr = {
         }
         return false;
     },
-
-    doLogout : function(text) {
+    doLogout: function(text) {
         log('doLogout ' + user);
         //Structr.saveSession();
         localStorage.setItem(tokenCookieName, null);
@@ -286,8 +280,7 @@ var Structr = {
         }
         return false;
     },
-
-    loadInitialModule : function() {
+    loadInitialModule: function() {
         var browserUrl = window.location.href;
         var anchor = getAnchorFromUrl(browserUrl);
         log('anchor', anchor);
@@ -303,24 +296,25 @@ var Structr = {
             if (module) {
                 //module.init();
                 module.onload();
-                if (module.resize) module.resize();
+                if (module.resize)
+                    module.resize();
             }
         }
     },
-   
-    clearMain : function() {
+    clearMain: function() {
         $.ui.ddmanager.droppables = {};
         $('iframe').unload();
         main.empty();
     },
-
-    confirmation : function(text, callback) {
-        if (text) $('#confirmation .confirmationText').html(text);
-        if (callback) $('#confirmation .yesButton').on('click', function(e) {
-            e.stopPropagation();
-            callback();
-            $(this).off('click');
-        });
+    confirmation: function(text, callback) {
+        if (text)
+            $('#confirmation .confirmationText').html(text);
+        if (callback)
+            $('#confirmation .yesButton').on('click', function(e) {
+                e.stopPropagation();
+                callback();
+                $(this).off('click');
+            });
         $('#confirmation .noButton').on('click', function(e) {
             e.stopPropagation();
             $.unblockUI({
@@ -338,15 +332,16 @@ var Structr = {
                 backgroundColor: 'transparent'
             }
         });
-	
-    },
 
-    info : function(text, callback) {
-        if (text) $('#infoText').html(text);
-        if (callback) $('#okButton').on('click', function(e) {
-            e.stopPropagation();
-            callback();
-        });
+    },
+    info: function(text, callback) {
+        if (text)
+            $('#infoText').html(text);
+        if (callback)
+            $('#okButton').on('click', function(e) {
+                e.stopPropagation();
+                callback();
+            });
         $.blockUI.defaults.overlayCSS.opacity = .6;
         $.blockUI.defaults.applyPlatformOpacityRules = false;
         $.blockUI({
@@ -360,33 +355,36 @@ var Structr = {
         });
 
     },
-
-    dialog : function(text, callbackOk, callbackCancel) {
+    dialog: function(text, callbackOk, callbackCancel) {
         if (browser) {
 
             dialogText.empty();
             dialogMsg.empty();
             dialogMeta.empty();
             //dialogBtn.empty();
-            
-            if (text) dialogTitle.html(text);
-            if (callbackCancel) dialogCancelButton.on('click', function(e) {
-                e.stopPropagation();
-                callbackCancel();
-                dialogText.empty();
-                $.unblockUI({
-                    fadeOut: 25
 
+            if (text)
+                dialogTitle.html(text);
+
+            if (callbackCancel)
+                dialogCancelButton.on('click', function(e) {
+                    e.stopPropagation();
+                    callbackCancel();
+                    dialogText.empty();
+                    $.unblockUI({
+                        fadeOut: 25
+
+                    });
+                    dialogBtn.children(':not(.closeButton)').remove();
+                    //dialogSaveButton.remove();
+                    //$('#saveProperties').remove();
+                    if (searchField)
+                        searchField.focus();
                 });
-                dialogBtn.children(':not(.closeButton)').remove();
-                //dialogSaveButton.remove();
-                //$('#saveProperties').remove();
-                if (searchField) searchField.focus();
-            });
             $.blockUI.defaults.overlayCSS.opacity = .6;
             $.blockUI.defaults.applyPlatformOpacityRules = false;
-            
-        
+
+
             var w = $(window).width();
             var h = $(window).height();
 
@@ -394,14 +392,14 @@ var Structr = {
             var mt = 24;
 
             // Calculate dimensions of dialog
-            var dw = Math.min(900, w-ml);
-            var dh = Math.min(600, h-mt);
+            var dw = Math.min(900, w - ml);
+            var dh = Math.min(600, h - mt);
             //            var dw = (w-24) + 'px';
             //            var dh = (h-24) + 'px';
-            
-            var l = parseInt((w-dw)/2);
-            var t = parseInt((h-dh)/2);
-            
+
+            var l = parseInt((w - dw) / 2);
+            var t = parseInt((h - dh) / 2);
+
             $.blockUI({
                 fadeIn: 25,
                 fadeOut: 25,
@@ -415,7 +413,7 @@ var Structr = {
                     top: t + 'px',
                     left: l + 'px'
                 },
-                themedCSS: { 
+                themedCSS: {
                     width: dw + 'px',
                     height: dh + 'px',
                     top: t + 'px',
@@ -426,11 +424,12 @@ var Structr = {
                 top: t + 'px',
                 left: l + 'px'
             });
-                        
+
+            Structr.resize();
+
         }
     },
-
-    resize : function() {
+    resize: function() {
         var w = $(window).width();
         var h = $(window).height();
 
@@ -438,50 +437,100 @@ var Structr = {
         var mt = 24;
 
         // Calculate dimensions of dialog
-        var dw = Math.min(900, w-ml);
-        var dh = Math.min(600, h-mt);
-        //            var dw = (w-24) + 'px';
-        //            var dh = (h-24) + 'px';
-            
-        var l = parseInt((w-dw)/2);
-        var t = parseInt((h-dh)/2);
-        
+        var dw = Math.min(900, w - ml);
+        var dh = Math.min(600, h - mt);
+
+        var l = parseInt((w - dw) / 2);
+        var t = parseInt((h - dh) / 2);
+
         $('.blockPage').css({
             width: dw + 'px',
             height: dh + 'px',
             top: t + 'px',
             left: l + 'px'
         });
-        
-        var bw = (dw-28) + 'px';
-        var bh = (dh-106) + 'px';
+
+        var bw = (dw - 28) + 'px';
+        var bh = (dh - 118) + 'px';
 
         $('#dialogBox .dialogTextWrapper').css({
             width: bw,
             height: bh
         });
-        
-        $('.CodeMirror').css({
-            height: (dh-106-14) + 'px'
-        });
-        
-        $('.fit-to-height').css({
-           height: h - 74 + 'px' 
-        });
-    },
 
-    error : function(text, callback) {
-        if (text) $('#errorBox .errorText').html('<img src="icon/error.png"> ' + text);
-        //console.log(callback);
-        if (callback) $('#errorBox .closeButton').on('click', function(e) {
-            e.stopPropagation();
-            //callback();
-            //console.log(callback);
-			
-            $.unblockUI({
-                fadeOut: 25
-            });
+        $('.CodeMirror').css({
+            height: (dh - 118 - 14) + 'px'
         });
+
+        $('.fit-to-height').css({
+            height: h - 74 + 'px'
+        });
+
+        $('#minimizeDialog').hide();
+        $('#maximizeDialog').show().on('click', function() {
+            Structr.maximize();
+        });
+
+    },
+    maximize: function() {
+
+        var w = $(window).width();
+        var h = $(window).height();
+
+        var ml = 24;
+        var mt = 24;
+
+        // Calculate maximized dimensions of dialog
+        var dw = w - ml;
+        var dh = h - mt;
+
+        var l = parseInt((w - dw) / 2);
+        var t = parseInt((h - dh) / 2);
+
+        $('.blockPage').css({
+            width: dw + 'px',
+            height: dh + 'px',
+            top: t + 'px',
+            left: l + 'px'
+        });
+
+        var bw = (dw - 28) + 'px';
+        var bh = (dh - 118) + 'px';
+
+        $('#dialogBox .dialogTextWrapper').css({
+            width: bw,
+            height: bh
+        });
+
+        $('.CodeMirror').css({
+            height: (dh - 118 - 14) + 'px'
+        });
+
+        $('.fit-to-height').css({
+            height: h - 74 + 'px'
+        });
+
+        isMax = true;
+        $('#maximizeDialog').hide();
+        $('#minimizeDialog').show().on('click', function() {
+            Structr.resize();
+        });
+
+    },
+    error: function(text, callback) {
+        if (text)
+            $('#errorBox .errorText').html('<img src="icon/error.png"> ' + text);
+        //console.log(callback);
+        if (callback)
+            $('#errorBox .closeButton').on('click', function(e) {
+                e.stopPropagation();
+                //callback();
+                //console.log(callback);
+
+                $.unblockUI({
+                    fadeOut: 25
+                });
+            });
         $.blockUI.defaults.overlayCSS.opacity = .6;
         $.blockUI.defaults.applyPlatformOpacityRules = false;
         $.blockUI({
@@ -492,15 +541,15 @@ var Structr = {
             }
         });
     },
-
-    tempInfo : function(text, autoclose) {
+    tempInfo: function(text, autoclose) {
         window.clearTimeout(dialogId);
-        if (text) $('#tempInfoBox .infoHeading').html('<img src="icon/information.png"> ' + text);
+        if (text)
+            $('#tempInfoBox .infoHeading').html('<img src="icon/information.png"> ' + text);
         if (autoclose) {
             dialogId = window.setTimeout(function() {
                 $.unblockUI({
                     fadeOut: 25
-                });                
+                });
             }, 3000);
         }
         $('#tempInfoBox .closeButton').on('click', function(e) {
@@ -510,7 +559,8 @@ var Structr = {
                 fadeOut: 25
             });
             dialogBtn.children(':not(.closeButton)').remove();
-            if (searchField) searchField.focus();
+            if (searchField)
+                searchField.focus();
         });
         $.blockUI.defaults.overlayCSS.opacity = .6;
         $.blockUI.defaults.applyPlatformOpacityRules = false;
@@ -522,9 +572,9 @@ var Structr = {
             }
         });
     },
-
-    reconnectDialog : function(text) {
-        if (text) $('#tempErrorBox .errorText').html('<img src="icon/error.png"> ' + text);
+    reconnectDialog: function(text) {
+        if (text)
+            $('#tempErrorBox .errorText').html('<img src="icon/error.png"> ' + text);
         //console.log(callback);
         $.blockUI.defaults.overlayCSS.opacity = .6;
         $.blockUI.defaults.applyPlatformOpacityRules = false;
@@ -536,33 +586,29 @@ var Structr = {
             }
         });
     },
-
-    activateMenuEntry : function(name) {
+    activateMenuEntry: function(name) {
         lastMenuEntry = name;
-        $('.menu a').each(function(i,v) {
+        $('.menu a').each(function(i, v) {
             $(this).removeClass('active').addClass('inactive');
         });
         var menuEntry = $('#' + name + '_');
         menuEntry.addClass('active').removeClass('inactive');
         $('#title').text('Structr ' + menuEntry.text());
-        
+
         if (lastMenuEntry && lastMenuEntry !== 'logout') {
 
             localStorage.setItem(lastMenuEntryKey, lastMenuEntry);
         }
     },
-	
-    registerModule : function(name, module) {
+    registerModule: function(name, module) {
         Structr.modules[name] = module;
         log('Module ' + name + ' registered');
     },
-
-    containsNodes : function(element) {
+    containsNodes: function(element) {
         log(element, Structr.numberOfNodes(element), Structr.numberOfNodes(element) > 0);
         return (element && Structr.numberOfNodes(element) && Structr.numberOfNodes(element) > 0);
     },
-
-    numberOfNodes : function(element, excludeId) {
+    numberOfNodes: function(element, excludeId) {
         var childNodes = $(element).children('.node');
         if (excludeId) {
             childNodes = childNodes.not('.' + excludeId + '_');
@@ -572,33 +618,29 @@ var Structr = {
         log('number of nodes in element', element, n);
         return n;
     },
-
-    findParent : function(parentId, componentId, pageId, defaultElement) {
+    findParent: function(parentId, componentId, pageId, defaultElement) {
         var parent = Structr.node(parentId, null, componentId, pageId);
         log('findParent', parentId, componentId, pageId, defaultElement, parent);
         log('findParent: parent element from Structr.node: ', parent);
-        if (!parent) parent = defaultElement;
+        if (!parent)
+            parent = defaultElement;
         log('findParent: final parent element: ', parent);
         return parent;
     },
-    
-    parent : function(id) {
+    parent: function(id) {
         return Structr.node(id) && Structr.node(id).parent().closest('.node');
     },
-    
-    node : function(id) {
+    node: function(id) {
         var node = $($('#id_' + id)[0]);
         //console.log('Structr.node', node);
         return node.length ? node : undefined;
     },
-    
-    entity : function(id, parentId) {
+    entity: function(id, parentId) {
         var entityElement = Structr.node(id, parentId);
         var entity = Structr.entityFromElement(entityElement);
         return entity;
     },
-    
-    getClass : function(el) {
+    getClass: function(el) {
         var c;
         log(Structr.classes);
         $(Structr.classes).each(function(i, cls) {
@@ -610,10 +652,9 @@ var Structr = {
         });
         return c;
     },
-	
-    entityFromElement : function(element) {
+    entityFromElement: function(element) {
         log(element);
-        
+
         var entity = {};
         entity.id = getId($(element));
         var cls = Structr.getClass(element);
@@ -622,41 +663,40 @@ var Structr = {
         }
 
         var nameEl = $(element).children('.name_');
-        
+
         if (nameEl && nameEl.length) {
             entity.name = $(nameEl[0]).text();
         }
-        
+
         var tagEl = $(element).children('.tag_');
-        
+
         if (tagEl && tagEl.length) {
             entity.tag = $(tagEl[0]).text();
         }
-        
+
         return entity;
     },
-            
-    initPager : function(type, p, ps) {
+    initPager: function(type, p, ps) {
         var pagerData = localStorage.getItem(pagerDataKey + type);
         if (!pagerData) {
-            page[type]      = parseInt(p);
-            pageSize[type]  = parseInt(ps);
+            page[type] = parseInt(p);
+            pageSize[type] = parseInt(ps);
             Structr.storePagerData(type, p, ps);
         } else {
             Structr.restorePagerData(type);
         }
     },
+    updatePager: function(type, el) {
+        if (!type)
+            return;
 
-    updatePager : function(type, el) {
-        if (!type) return;
-        
         var pager = (el && el.length) ? $('.pager' + type, el) : $('.pager' + type);
         if (pager.length) {
-            
+
             var pageLeft = $('.pageLeft', pager);
             var pageRight = $('.pageRight', pager);
             var pageNo = $('.page', pager);
-            
+
             if (page[type] === 1) {
                 pageLeft.attr('disabled', 'disabled').addClass('disabled');
             } else {
@@ -668,7 +708,7 @@ var Structr = {
             } else {
                 pageRight.removeAttr('disabled', 'disabled').removeClass('disabled');
             }
-            
+
             if (pageCount[type] === 1) {
                 pageNo.attr('disabled', 'disabled').addClass('disabled');
             } else {
@@ -678,22 +718,19 @@ var Structr = {
             Structr.storePagerData(type, page[type], pageSize[type]);
         }
     },
-    
-    storePagerData : function(type, page, pageSize) {
+    storePagerData: function(type, page, pageSize) {
         if (type, page, pageSize) {
             localStorage.setItem(pagerDataKey + type, page + ',' + pageSize);
         }
     },
-    
-    restorePagerData : function(type) {
+    restorePagerData: function(type) {
         var pagerData = localStorage.getItem(pagerDataKey + type);
         if (pagerData) {
             var pagerData = pagerData.split(',');
-            page[type]      = parseInt(pagerData[0]);
-            pageSize[type]  = parseInt(pagerData[1]);
+            page[type] = parseInt(pagerData[0]);
+            pageSize[type] = parseInt(pagerData[1]);
         }
     },
-    
     /**
      * Append a pager for the given type to the given DOM element.
      * 
@@ -703,23 +740,23 @@ var Structr = {
      * If the optional callback function is given, it will be executed
      * instead of the default action.
      */
-    addPager : function(el, type, callback) {
-        
+    addPager: function(el, type, callback) {
+
         if (!callback) {
-                callback = function(entity) {
-                    StructrModel.create(entity);
-                }
+            callback = function(entity) {
+                StructrModel.create(entity);
+            }
         }
-        
+
         var isPagesEl = (el === pages);
-        
+
         el.append('<div class="pager pager' + type + '" style="clear: both"><button class="pageLeft">&lt; Prev</button>'
-            + ' <input class="page" type="text" size="3" value="' + page[type] + '"><button class="pageRight">Next &gt;</button>'
-            + ' of <input class="readonly pageCount" readonly="readonly" size="3">'
-            + ' Items: <input class="pageSize" type="text" size="3" value="' + pageSize[type] + '"></div>');
-        
+                + ' <input class="page" type="text" size="3" value="' + page[type] + '"><button class="pageRight">Next &gt;</button>'
+                + ' of <input class="readonly pageCount" readonly="readonly" size="3">'
+                + ' Items: <input class="pageSize" type="text" size="3" value="' + pageSize[type] + '"></div>');
+
         var pager = $('.pager' + type, el);
-        
+
         var pageLeft = $('.pageLeft', pager);
         var pageRight = $('.pageRight', pager);
         var pageForm = $('.page', pager);
@@ -734,7 +771,8 @@ var Structr = {
                 $('.pageSize', pager).val(pageSize[type]);
                 $('.pageCount', pager).val(pageCount[type]);
                 $('.node', el).remove();
-                if (isPagesEl) _Pages.clearPreviews();
+                if (isPagesEl)
+                    _Pages.clearPreviews();
                 Command.list(type, pageSize[type], page[type], sort, order, callback);
             }
         });
@@ -744,7 +782,8 @@ var Structr = {
                 page[type] = $(this).val();
                 $('.page', pager).val(page[type]);
                 $('.node', el).remove();
-                if (isPagesEl) _Pages.clearPreviews();
+                if (isPagesEl)
+                    _Pages.clearPreviews();
                 Command.list(type, pageSize[type], page[type], sort, order, callback);
             }
         });
@@ -754,16 +793,18 @@ var Structr = {
             page[type]--;
             $('.page', pager).val(page[type]);
             $('.node', el).remove();
-            if (isPagesEl) _Pages.clearPreviews();
+            if (isPagesEl)
+                _Pages.clearPreviews();
             Command.list(type, pageSize[type], page[type], sort, order, callback);
         });
-        
+
         pageRight.on('click', function() {
             pageLeft.removeAttr('disabled').removeClass('disabled');
             page[type]++;
             $('.page', pager).val(page[type]);
             $('.node', el).remove();
-            if (isPagesEl) _Pages.clearPreviews();
+            if (isPagesEl)
+                _Pages.clearPreviews();
             Command.list(type, pageSize[type], page[type], sort, order, callback);
         });
         return Command.list(type, pageSize[type], page[type], sort, order, callback);
@@ -771,12 +812,13 @@ var Structr = {
 };
 
 function getElementPath(element) {
-    var i=-1;
+    var i = -1;
     return $(element).parents('.node').andSelf().map(function() {
         i++;
         var self = $(this);
         // id for top-level element
-        if (i === 0) return getId(self);
+        if (i === 0)
+            return getId(self);
         return self.prevAll('.node').length;
     }).get().join('_');
 }
@@ -794,8 +836,8 @@ function isImage(contentType) {
 }
 
 function plural(type) {
-    if (type.substring(type.length-1, type.length) === 'y') {
-        return type.substring(0, type.length-1) + 'ies';
+    if (type.substring(type.length - 1, type.length) === 'y') {
+        return type.substring(0, type.length - 1) + 'ies';
     } else {
         return type + 's';
     }
@@ -804,8 +846,9 @@ function plural(type) {
 function addExpandedNode(id) {
     log('addExpandedNode', id);
 
-    if (!id) return;
-    
+    if (!id)
+        return;
+
     var alreadyStored = getExpanded()[id];
 
     if (alreadyStored !== undefined) {
@@ -820,8 +863,9 @@ function addExpandedNode(id) {
 function removeExpandedNode(id) {
     log('removeExpandedNode', id);
 
-    if (!id) return;
-    
+    if (!id)
+        return;
+
     delete getExpanded()[id];
     localStorage.setItem(expandedIdsKey, JSON.stringify(Structr.expanded));
 }
@@ -829,7 +873,8 @@ function removeExpandedNode(id) {
 function isExpanded(id) {
     log('id, getExpanded()[id]', id, getExpanded()[id]);
 
-    if (!id) return false;
+    if (!id)
+        return false;
 
     var isExpanded = getExpanded()[id] === true ? true : false;
 
@@ -857,7 +902,7 @@ function formatValueInputField(key, obj) {
         return '<input name="' + key + '" type="text" value="' + escapeForHtmlAttributes(JSON.stringify(obj)) + '">';
     } else if (obj.constructor === Array) {
         var out = '';
-        $(obj).each(function(i,v) {
+        $(obj).each(function(i, v) {
             //console.log(v);
             out += JSON.stringify(v);
         });
@@ -869,7 +914,7 @@ function formatValueInputField(key, obj) {
 
 function formatKey(text) {
     var result = '';
-    for (var i=0; i<text.length; i++) {
+    for (var i = 0; i < text.length; i++) {
         var c = text.charAt(i);
         if (c === c.toUpperCase()) {
             result += ' ' + c;
@@ -892,7 +937,7 @@ function disable(button, callback) {
         b.off('click');
         b.on('click', callback);
         b.data('disabled', false);
-    //enable(button, callback);
+        //enable(button, callback);
     }
 }
 
@@ -910,7 +955,7 @@ function setPosition(parentId, nodeUrl, pos) {
     var toPut = '{ "' + parentId + '" : ' + pos + ' }';
     //console.log(toPut);
     var headers = {
-        'X-StructrSessionToken' : token
+        'X-StructrSessionToken': token
     };
     $.ajax({
         url: nodeUrl + '/in',
@@ -921,7 +966,7 @@ function setPosition(parentId, nodeUrl, pos) {
         headers: headers,
         data: toPut,
         success: function(data) {
-        //appendElement(parentId, elementId, data);
+            //appendElement(parentId, elementId, data);
         }
     });
 }
@@ -930,7 +975,8 @@ var keyEventBlocked = true;
 var keyEventTimeout;
 
 function getIdFromIdString(idString) {
-    if (!idString || !idString.startsWith('id_')) return false;
+    if (!idString || !idString.startsWith('id_'))
+        return false;
     return idString.substring(3);
 }
 
@@ -939,7 +985,8 @@ function getId(element) {
 }
 
 function getComponentIdFromIdString(idString) {
-    if (!idString || !idString.startsWith('componentId_')) return false;
+    if (!idString || !idString.startsWith('componentId_'))
+        return false;
     return idString.substring(12);
 }
 

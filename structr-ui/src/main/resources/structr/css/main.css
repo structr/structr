@@ -769,6 +769,26 @@ button img {
     filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#f3f3f3', EndColorStr='#e5e5e5', GradientType=0);
 }
 
+#dialogBox #minimizeDialog {
+    display: none;
+}
+
+#dialogBox .minmax {
+    position: absolute;
+    right: 1em;
+    top: 1em;
+    width: 16px;
+    height: 16px;
+}
+
+#dialogBox .minmax:hover {
+    cursor: pointer;
+    filter: alpha(opacity=60);
+    -khtml-opacity: 0.6;
+    -moz-opacity: 0.6;
+    opacity: 0.6;
+}
+
 #confirmation, #infoBox, #tempInfoBox, #errorBox {
     min-height: 24px;
     padding: 12px 0 12px 12px;
