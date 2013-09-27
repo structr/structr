@@ -21,6 +21,7 @@
 
 package org.structr.web.resource;
 
+import java.util.Collections;
 import org.structr.common.MailHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -48,6 +49,7 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang.StringUtils;
+import org.neo4j.cypher.internal.commands.expressions.Collection;
 import org.structr.core.auth.AuthHelper;
 import org.structr.core.entity.Person;
 import org.structr.core.entity.Principal;
@@ -56,6 +58,7 @@ import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchNodeCommand;
+import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.mail.MailTemplate;
 import org.structr.web.servlet.HtmlServlet;
@@ -112,7 +115,7 @@ public class RegistrationResource extends Resource {
 	@Override
 	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
 
-		if (propertySet.containsKey(User.eMail.jsonName()) && propertySet.size() == 1) {
+		if (propertySet.containsKey(User.eMail.jsonName())) {
 			
 			SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
 			final Principal user;
@@ -146,7 +149,7 @@ public class RegistrationResource extends Resource {
 				
 			} else {
 
-				user = createUser(securityContext, User.eMail, emailString, securityContext.getAuthenticator().getUserAutoCreate());
+				user = createUser(securityContext, User.eMail, emailString, propertySet, securityContext.getAuthenticator().getUserAutoCreate());
 			}
 			
 			if (user != null) {
@@ -262,7 +265,6 @@ public class RegistrationResource extends Resource {
 
 	}
 	
-	
 	/**
 	 * Create a new user.
 	 * 
@@ -276,11 +278,28 @@ public class RegistrationResource extends Resource {
 	 */
 	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue) {
 		
-		return createUser(securityContext, credentialKey, credentialValue, false);
+		return createUser(securityContext, credentialKey, credentialValue, Collections.EMPTY_MAP, false);
 		
 	}	
 	
 	/**
+	 * Create a new user.
+	 * 
+	 * If a {@link Person} is found, convert that object to a {@link User} object.
+	 * Do not auto-create a new user.
+	 * 
+	 * @param securityContext
+	 * @param credentialKey
+	 * @param credentialValue
+	 * @param propertySet
+	 * @return 
+	 */
+	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final Map<String, Object> propertySet) {
+		
+		return createUser(securityContext, credentialKey, credentialValue, propertySet, false);
+		
+	}	
+/**
 	 * Create a new user.
 	 * 
 	 * If a {@link Person} is found, convert that object to a {@link User} object.
@@ -293,6 +312,25 @@ public class RegistrationResource extends Resource {
 	 * @return 
 	 */
 	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final boolean autoCreate) {
+		
+		return createUser(securityContext, credentialKey, credentialValue, Collections.EMPTY_MAP, false);
+		
+	}	
+		
+	/**
+	 * Create a new user.
+	 * 
+	 * If a {@link Person} is found, convert that object to a {@link User} object.
+	 * If autoCreate is true, auto-create a new user, even if no matching person is found.
+	 * 
+	 * @param securityContext
+	 * @param credentialKey
+	 * @param credentialValue
+	 * @param propertySet
+	 * @param autoCreate
+	 * @return 
+	 */
+	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final Map<String, Object> propertySet, final boolean autoCreate) {
 
 		try {
 			return Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<Principal>() {
@@ -321,12 +359,13 @@ public class RegistrationResource extends Resource {
 
 					} else if (autoCreate) {
 
-						return (Principal) Services.command(securityContext, CreateNodeCommand.class).execute(
-							new NodeAttribute(AbstractNode.type, User.class.getSimpleName()),
-							new NodeAttribute(credentialKey, credentialValue),
-							new NodeAttribute(User.name, credentialValue),
-							new NodeAttribute(User.confirmationKey, confKey));
+						PropertyMap props = PropertyMap.inputTypeToJavaType(securityContext, propertySet);
+						props.put(AbstractNode.type, User.class.getSimpleName());
+						props.put(credentialKey, credentialValue);
+						props.put(User.name, credentialValue);
+						props.put(User.confirmationKey, confKey);
 						
+						return (Principal) Services.command(securityContext, CreateNodeCommand.class).execute(props);
 
 					}
 					
