@@ -52,6 +52,21 @@ All content elements are stored in a graph structure and rendered top-down from 
     - XPath
 - Remote Cypher queries (experimental)
 - Access to query results by `${object.attr}` notation
+- Access to page context and data objects:
+    - request: Request parameters
+    - size: Size of a collection
+    - link: Linked node
+    - now: Current date
+    - me: Currently logged-in user
+    - this: Current object (in results loop)
+    - page: Current page
+    - parent: Parent node
+    - owner: Owner
+- Paging context:
+    - result_size: Overall result size (unfiltered)
+    - page_size: Page size
+    - page_count: Number of pages
+    - page_no: Current page number
 - Built-in functions for content output:
     - md5
     - upper, lower, abbr, capitalize, titleize
@@ -59,6 +74,7 @@ All content elements are stored in a graph structure and rendered top-down from 
     - if, not, and
     - empty, equal
     - add, subt, mult, quot, round
+    - min, max
     - date_format, number_format
     - GET
 - Content syndication (display content from remote URLs)
