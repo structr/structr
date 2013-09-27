@@ -58,6 +58,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.LocaleUtils;
 import org.apache.commons.lang.time.DateUtils;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.structr.core.auth.Authenticator;
@@ -85,15 +86,16 @@ public class HtmlServlet extends HttpServlet {
 
 	private static final Logger logger                                          = Logger.getLogger(HtmlServlet.class.getName());
 	private static Date lastModified;
-	public static final String REST_RESPONSE = "restResponse";
-	public static final String REDIRECT = "redirect";
-	public static final String POSSIBLE_ENTRY_POINTS = "possibleEntryPoints";
-	public static final String REQUEST_CONTAINS_UUID_IDENTIFIER = "request_contains_uuids";
+	public static final String REST_RESPONSE			= "restResponse";
+	public static final String REDIRECT				= "redirect";
+	public static final String POSSIBLE_ENTRY_POINTS		= "possibleEntryPoints";
+	public static final String REQUEST_CONTAINS_UUID_IDENTIFIER	= "request_contains_uuids";
 	
-	public static final String CONFIRM_REGISTRATION_PAGE = "confirm_registration";
-	public static final String GET_SESSION_ID_PAGE = "get_session_id";
-	public static final String CONFIRM_KEY_KEY = "key";
-	public static final String TARGET_PAGE_KEY = "target";
+	public static final String CONFIRM_REGISTRATION_PAGE	= "confirm_registration";
+	public static final String GET_SESSION_ID_PAGE		= "get_session_id";
+	public static final String CONFIRM_KEY_KEY		= "key";
+	public static final String TARGET_PAGE_KEY		= "target";
+	public static final String LOCALE_KEY			= "locale";
 	
 	private ResourceProvider resourceProvider                   = null;
 
@@ -129,7 +131,7 @@ public class HtmlServlet extends HttpServlet {
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) {
 
-		double start                    = System.nanoTime();
+		double start	= System.nanoTime();
 
 		try {
 
@@ -163,7 +165,7 @@ public class HtmlServlet extends HttpServlet {
 				
 			}
 			
-			RenderContext renderContext = RenderContext.getInstance(request, response, Locale.getDefault());
+			RenderContext renderContext = RenderContext.getInstance(request, response, getEffectiveLocale(request));
 			
 			renderContext.setResourceProvider(resourceProvider);
 			
@@ -803,6 +805,32 @@ public class HtmlServlet extends HttpServlet {
 	private Authenticator getAuthenticator() throws FrameworkException {
 		
 		return (Authenticator) Services.command(null, AuthenticatorCommand.class).execute(getServletConfig());
+		
+	}
+	
+	/**
+	 * Determine the effective locale for this request.
+	 * 
+	 * Priority 1: URL parameter "locale"
+	 * Priority 2: Browser locale
+	 * 
+	 * @param request
+	 * @return 
+	 */
+	private Locale getEffectiveLocale(final HttpServletRequest request) {
+
+		// Overwrite locale if requested by URL parameter
+		String requestedLocaleString = request.getParameter(LOCALE_KEY);
+		Locale locale	= request.getLocale();
+		if (StringUtils.isNotBlank(requestedLocaleString)) {
+			try {
+				locale = LocaleUtils.toLocale(requestedLocaleString);
+			} catch (IllegalArgumentException e) {
+				locale = Locale.forLanguageTag(requestedLocaleString);
+			}
+		}
+		
+		return locale;
 		
 	}
 }

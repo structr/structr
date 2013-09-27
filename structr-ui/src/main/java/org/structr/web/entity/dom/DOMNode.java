@@ -42,7 +42,6 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.collections.IteratorUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.client.methods.HttpGet;
@@ -82,6 +81,7 @@ import org.structr.core.property.EntityIdProperty;
 import org.structr.core.property.ISO8601DateProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.property.StringProperty;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.common.ThreadLocalMatcher;
@@ -129,6 +129,8 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 	public static final Property<Boolean> hideOnIndex			= new BooleanProperty("hideOnIndex");
 	public static final Property<Boolean> hideOnDetail			= new BooleanProperty("hideOnDetail");
+	public static final Property<String> showForLocales			= new StringProperty("showForLocales");
+	public static final Property<String> hideForLocales			= new StringProperty("hideForLocales");
 	
 	protected static final Map<String, Function<String, String>> functions  = new LinkedHashMap<String, Function<String, String>>();
 	
@@ -1106,7 +1108,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 				}
 
 				// special keyword "result_size"
-				if ("result_size".equals(lowerCasePart)) {
+				if ("result_count".equals(lowerCasePart) || "result_size".equals(lowerCasePart)) {
 					
 					Result result = renderContext.getResult();
 					
@@ -1404,6 +1406,38 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 		return resultPages;
 
+	}
+
+	/**
+	 * Decide whether this node should be displayed for the given locale settings.
+	 * 
+	 * @param renderContext
+	 * @return 
+	 */
+	protected boolean displayForLocale(final RenderContext renderContext) {
+		
+		String localeString = renderContext.getLocale().toString();
+		
+		String show = getProperty(DOMNode.showForLocales);
+		String hide = getProperty(DOMNode.hideForLocales);
+
+		// If both fields are empty, render node
+		if (StringUtils.isBlank(hide) && StringUtils.isBlank(show)) {
+			return true;
+		}
+		
+		// If locale string is found in hide, don't render
+		if (StringUtils.contains(hide, localeString)) {
+			return false;
+		}
+		
+		// If locale string is found in hide, don't render
+		if (StringUtils.isNotBlank(show) && !StringUtils.contains(show, localeString)) {
+			return false;
+		}
+		
+		return true;
+		
 	}
 
 	protected String convertValueForHtml(java.lang.Object value) {

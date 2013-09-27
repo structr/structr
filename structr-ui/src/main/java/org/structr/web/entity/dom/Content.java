@@ -30,7 +30,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.Text;
-import org.apache.commons.lang.StringEscapeUtils;
 import org.pegdown.PegDownProcessor;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
@@ -43,7 +42,6 @@ import org.structr.web.common.RenderContext;
 import org.structr.core.Services;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
-import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.StringProperty;
 
@@ -81,8 +79,8 @@ public class Content extends DOMNode implements Text {
 	private static final ThreadLocalMediaWikiProcessor mediaWikiProcessor                = new ThreadLocalMediaWikiProcessor();
 	private static final ThreadLocalConfluenceProcessor confluenceProcessor              = new ThreadLocalConfluenceProcessor();
 
-	public static final org.structr.common.View uiView                                   = new org.structr.common.View(Content.class, PropertyView.Ui, content, contentType, size, parent, pageId, hideOnDetail, hideOnIndex);
-	public static final org.structr.common.View publicView                               = new org.structr.common.View(Content.class, PropertyView.Public, content, contentType, size, parent, pageId, hideOnDetail, hideOnIndex);
+	public static final org.structr.common.View uiView                                   = new org.structr.common.View(Content.class, PropertyView.Ui, content, contentType, size, parent, pageId, hideOnDetail, hideOnIndex, showForLocales, hideForLocales);
+	public static final org.structr.common.View publicView                               = new org.structr.common.View(Content.class, PropertyView.Public, content, contentType, size, parent, pageId, hideOnDetail, hideOnIndex, showForLocales, hideForLocales);
 	//~--- static initializers --------------------------------------------
 
 	static {
@@ -174,6 +172,10 @@ public class Content extends DOMNode implements Text {
 
 	@Override
 	public void render(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException {
+	
+		if (isDeleted() || isHidden() || !displayForLocale(renderContext)) {
+			return;
+		}
 
 		String id            = getUuid();
 		EditMode edit        = renderContext.getEditMode(securityContext.getUser(false));
