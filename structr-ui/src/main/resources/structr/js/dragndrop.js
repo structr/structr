@@ -63,7 +63,7 @@ var _Dragndrop = {
 
                 log('dropped onto', self, targetId, getId(sortParent));
                 if (targetId === getId(sortParent)) {
-                    console.log('target id == sortParent id', targetId, getId(sortParent));
+                    //console.log('target id == sortParent id', targetId, getId(sortParent));
                     return false;
                 }
 
@@ -86,7 +86,7 @@ var _Dragndrop = {
                 }
 
                 if (!target) {
-                    console.log('no target');
+                    //console.log('no target');
                     return;
                 }
 
