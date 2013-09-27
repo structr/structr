@@ -1175,6 +1175,8 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 				
 				List<GraphObject> res = result.getResults();
 				
+				renderContext.setResult(result);
+				
 				return res != null ? res : Collections.EMPTY_LIST;
 				
 			}

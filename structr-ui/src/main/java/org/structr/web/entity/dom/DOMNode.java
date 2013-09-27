@@ -1058,8 +1058,53 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 				// special keyword "result_size"
 				if ("result_size".equals(lowerCasePart)) {
 					
-					return IteratorUtils.toArray(renderContext.getListSource().iterator()).length;
+					Result result = renderContext.getResult();
+					
+					if (result != null) {
+						
+						return result.getRawResultCount();
+						
+					}
+					
+				}
 
+				// special keyword "page_size"
+				if ("page_size".equals(lowerCasePart)) {
+					
+					Result result = renderContext.getResult();
+					
+					if (result != null) {
+						
+						return result.getPageSize();
+						
+					}
+					
+				}
+
+				// special keyword "page_count"
+				if ("page_count".equals(lowerCasePart)) {
+					
+					Result result = renderContext.getResult();
+					
+					if (result != null) {
+						
+						return result.getPageCount();
+						
+					}
+					
+				}
+
+				// special keyword "page_no"
+				if ("page_no".equals(lowerCasePart)) {
+					
+					Result result = renderContext.getResult();
+					
+					if (result != null) {
+						
+						return result.getPage();
+						
+					}
+					
 				}
 
 				//				// special keyword "rest_result"
