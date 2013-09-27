@@ -4,6 +4,13 @@ Structr UI is a frontend for Neo4j-based projects. It can be used either stand-a
 
 All content elements are stored in a graph structure and rendered top-down from a page node, including dynamic content.
 
+#### Graph-based Page Rendering Engine
+- Page rendering by graph traversal
+- Real-time rendering of static and dynamic content
+- Per-node visibility and access control settings
+- Per-node locale settings (hide/show nodes based on language settings)
+- Response times: < 100 ms (20 ms typically)
+
 #### Page Editor
 - Modify pages by drag and drop
 - In-page content editing
