@@ -147,6 +147,10 @@ public class RegistrationResource extends Resource {
 					}
 				});
 				
+				// return 200 OK
+				return new RestMethodResult(HttpServletResponse.SC_OK);
+
+				
 			} else {
 
 				user = createUser(securityContext, User.eMail, emailString, propertySet, securityContext.getAuthenticator().getUserAutoCreate());
