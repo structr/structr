@@ -472,6 +472,56 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 			}
 
 		});
+		functions.put("max", new Function<String, String>() {
+
+			@Override
+			public String apply(String[] s) {
+
+				String result = "";
+				String errorMsg = "ERROR! Usage: ${max(val1, val2)}. Example: ${max(5,10)}";
+				
+				if (s != null && s.length == 2) {
+				
+					try {
+						result = Double.toString(Math.max(Double.parseDouble(s[0]), Double.parseDouble(s[1])));
+						
+					} catch (Throwable t) {
+						logger.log(Level.WARNING, "Could not determine max() of {0} and {1}", new Object[]{s[0], s[1]});
+						result = errorMsg;
+					}
+				
+				}
+				
+				return result;
+
+			}
+
+		});
+		functions.put("min", new Function<String, String>() {
+
+			@Override
+			public String apply(String[] s) {
+
+				String result = "";
+				String errorMsg = "ERROR! Usage: ${min(val1, val2)}. Example: ${min(5,10)}";
+				
+				if (s != null && s.length == 2) {
+				
+					try {
+						result = Double.toString(Math.min(Double.parseDouble(s[0]), Double.parseDouble(s[1])));
+						
+					} catch (Throwable t) {
+						logger.log(Level.WARNING, "Could not determine min() of {0} and {1}", new Object[]{s[0], s[1]});
+						result = errorMsg;
+					}
+				
+				}
+				
+				return result;
+
+			}
+
+		});
 		functions.put("date_format", new Function<String, String>() {
 			
 			@Override
