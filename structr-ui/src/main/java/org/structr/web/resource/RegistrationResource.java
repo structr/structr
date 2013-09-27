@@ -156,15 +156,28 @@ public class RegistrationResource extends Resource {
 
 				if (!sendInvitationLink(user)) {
 					
+					// return 400 Bad request
 					return new RestMethodResult(HttpServletResponse.SC_BAD_REQUEST);
 					
 				}
+				
+				// return 201 Created
+				return new RestMethodResult(HttpServletResponse.SC_CREATED);
+
+			} else {
+				
+				// return 400 Bad request
+				return new RestMethodResult(HttpServletResponse.SC_BAD_REQUEST);
+				
 			}
+			
 
+		} else {
+
+			// return 400 Bad request
+			return new RestMethodResult(HttpServletResponse.SC_BAD_REQUEST);
+		
 		}
-
-		// return 200 OK
-		return new RestMethodResult(HttpServletResponse.SC_OK);
 
 	}
 
@@ -358,9 +371,10 @@ public class RegistrationResource extends Resource {
 						return user;
 
 					} else if (autoCreate) {
+						
+						propertySet.put(AbstractNode.type.jsonName(), User.class.getSimpleName());
 
 						PropertyMap props = PropertyMap.inputTypeToJavaType(securityContext, propertySet);
-						props.put(AbstractNode.type, User.class.getSimpleName());
 						props.put(credentialKey, credentialValue);
 						props.put(User.name, credentialValue);
 						props.put(User.confirmationKey, confKey);

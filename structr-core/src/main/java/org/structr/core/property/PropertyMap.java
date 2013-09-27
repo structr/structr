@@ -336,7 +336,7 @@ public class PropertyMap {
 		PropertyMap map = new PropertyMap();
 
 		logger.log(Level.SEVERE, "Using fallback property set conversion without type safety!");
-		Thread.dumpStack();
+		//Thread.dumpStack();
 
 		if (source != null) {
 			
