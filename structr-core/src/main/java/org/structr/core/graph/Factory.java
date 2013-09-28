@@ -387,7 +387,7 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 
 		// We've run completely through the iterator,
 		// so the overall count from here is accurate.
-		return new Result(nodes, overallCount, true, false, true);
+		return new Result(nodes, overallCount, true, false);
 
 	}
 

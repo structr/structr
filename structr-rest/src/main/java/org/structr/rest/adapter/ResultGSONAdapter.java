@@ -70,6 +70,7 @@ public class ResultGSONAdapter implements JsonSerializer<Result>, JsonDeserializ
 		String searchString = src.getSearchString();
 		String sortKey = src.getSortKey();
 		String sortOrder = src.getSortOrder();
+		GraphObject metaData = src.getMetaData();
 
 		if(page != null) {
 			result.add("page", new JsonPrimitive(page));
@@ -112,6 +113,7 @@ public class ResultGSONAdapter implements JsonSerializer<Result>, JsonDeserializ
 
 			} else {
 
+				// FIXME: do we need this check, or does it cause trouble?
 				if (results.size() > 1 && !src.isCollection()){
 					throw new IllegalStateException(src.getClass().getSimpleName() + " is not a collection resource, but result set has size " + results.size());
 				}
@@ -160,6 +162,15 @@ public class ResultGSONAdapter implements JsonSerializer<Result>, JsonDeserializ
 
 		if(sortOrder != null) {
 			result.add("sort_order", new JsonPrimitive(sortOrder));
+		}
+		
+		if (metaData != null) {
+
+			JsonElement element = graphObjectGsonAdapter.serialize(metaData, System.currentTimeMillis());
+			if (element != null) {
+
+				result.add("meta_data", element);
+			}
 		}
 		
 		result.add("serialization_time", new JsonPrimitive(decimalFormat.format((System.nanoTime() - t0) / 1000000000.0)));

@@ -33,7 +33,6 @@ public class Result<T extends GraphObject> {
 	private boolean isCollection = false;
 	private boolean isPrimitiveArray = false;
 	private boolean hasPartialContent = false;
-	private boolean accurateResultCount = false;
 	private String propertyView = null;
 
 	private String searchString = null;
@@ -46,6 +45,8 @@ public class Result<T extends GraphObject> {
 	private Integer pageSize = null;
 	private Integer page = null;
 	
+	private GraphObject metaData = null;
+	
 	public static Result EMPTY_RESULT = new Result(Collections.EMPTY_LIST, 0, false, false);
 	
 	public Result(List<T> listResult, Integer rawResultCount, boolean isCollection, boolean isPrimitiveArray) {
@@ -55,14 +56,15 @@ public class Result<T extends GraphObject> {
 		this.resultCount = (rawResultCount != null ? rawResultCount : (results != null ? results.size() : 0));
 	}
 
-	public Result(List<T> listResult, Integer rawResultCount, boolean isCollection, boolean isPrimitiveArray, boolean accurateResultCount) {
+	/*
+	public Result(List<T> listResult, Integer rawResultCount, boolean isCollection, boolean isPrimitiveArray) {
 		this.isCollection = isCollection;
 		this.isPrimitiveArray = isPrimitiveArray;
 		this.results = listResult;
 		this.resultCount = (rawResultCount != null ? rawResultCount : (results != null ? results.size() : 0));
-		this.accurateResultCount = accurateResultCount;
 	}
-
+	*/
+	
 	public T get(final int i) {
 		return results.get(i);
 	}
@@ -178,5 +180,13 @@ public class Result<T extends GraphObject> {
 	
 	public boolean hasPartialContent() {
 		return hasPartialContent;
+	}
+
+	public GraphObject getMetaData() {
+		return metaData;
+	}
+
+	public void setMetaData(GraphObject metaData) {
+		this.metaData = metaData;
 	}
 }

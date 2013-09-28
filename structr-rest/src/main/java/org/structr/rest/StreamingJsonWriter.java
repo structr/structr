@@ -18,6 +18,7 @@
  */
 package org.structr.rest;
 
+import com.google.gson.JsonElement;
 import com.google.gson.stream.JsonWriter;
 import java.io.IOException;
 import java.util.List;
@@ -112,6 +113,7 @@ public class StreamingJsonWriter {
 		String searchString = src.getSearchString();
 		String sortKey = src.getSortKey();
 		String sortOrder = src.getSortOrder();
+		GraphObject metaData = src.getMetaData();
 		
 		// flush after 20 elements by default
 		int flushSize = pageSize != null ? pageSize.intValue() : 20;
@@ -217,6 +219,14 @@ public class StreamingJsonWriter {
 
 		if(sortOrder != null) {
 			writer.name("sort_order").value(sortOrder);
+		}
+		
+		if (metaData != null) {
+
+			String localPropertyView  = propertyView.get(null);
+			
+			writer.name("meta_data");
+			root.serialize(writer, metaData, localPropertyView, 0);
 		}
 		
 		writer.name("serialization_time").value(decimalFormat.format((System.nanoTime() - t0) / 1000000000.0));
