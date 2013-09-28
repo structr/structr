@@ -274,7 +274,7 @@
             <url>http://maven.structr.org/artifactory/snapshot</url>
         </snapshotRepository>-->
         <repository>
-            <id>rsonatype-nexus-staging</id>
+            <id>sonatype-nexus-staging</id>
             <name>Maven Central Staging</name>
             <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
         </repository>
