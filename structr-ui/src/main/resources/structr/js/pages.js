@@ -447,12 +447,34 @@ var _Pages = {
         var iframe = $('#preview_' + id);
         log(iframe);
         iframe.prop('src', viewRootUrl + name + '?edit=2');
-        iframe.parent().show();
-        iframe.on('load', function() {
-            log('iframe loaded', $(this));
-        });
+        if (iframe.parent().is(':hidden')) {
+            iframe.parent().show();
+        }
         _Pages.resize();
+    },
+    reloadPreviews: function() {
+        _Pages.clearIframeDroppables();
+        // add a small delay to avoid getting old data in very fast localhost envs
+        window.setTimeout(function() {
+            $('iframe', $('#previews')).each(function() {
+                var self = $(this);
+                var pageId = self.prop('id').substring('preview_'.length);
 
+                if (pageId === activeTab) {
+                    var doc = this.contentDocument;
+                    doc.location.reload(true);
+                }
+            });
+        }, 100);
+    },
+    clearIframeDroppables: function() {
+        var droppablesArray = [];
+        $.ui.ddmanager.droppables.default.forEach(function(d) {
+           if (!d.options.iframe) {
+               droppablesArray.push(d);
+           }
+        });
+        $.ui.ddmanager.droppables.default = droppablesArray;
     },
     makeTabEditable: function(element) {
         //element.off('dblclick');
@@ -827,23 +849,6 @@ var _Pages = {
         _Dragndrop.makeSortable(div);
 
         return div;
-    },
-    reloadPreviews: function() {
-
-        // add a small delay to avoid getting old data in very fast localhost envs
-        window.setTimeout(function() {
-
-            $('iframe', $('#previews')).each(function() {
-                var self = $(this);
-                var pageId = self.prop('id').substring('preview_'.length);
-
-                if (pageId === activeTab) {
-                    var doc = this.contentDocument;
-                    doc.location.reload(true);
-                }
-
-            });
-        }, 100);
     },
     zoomPreviews: function(value) {
         $('.previewBox', previews).each(function() {

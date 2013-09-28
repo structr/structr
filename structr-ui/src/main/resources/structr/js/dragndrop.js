@@ -31,7 +31,7 @@ var _Dragndrop = {
     makeDroppable: function(element, previewId) {
         var el = $(element);
         var tag, iframe = previewId ? $('#preview_' + previewId) : undefined;
-        
+
         el.droppable({
             iframeFix: true,
             iframe: iframe,
@@ -138,7 +138,7 @@ var _Dragndrop = {
                 Command.insertBefore(parentId, id, refId);
                 sorting = false;
                 sortParent = undefined;
-                _Pages.reloadPreviews();
+                //_Pages.reloadPreviews();
             },
             stop: function(event, ui) {
                 //$(ui.sortable).remove();

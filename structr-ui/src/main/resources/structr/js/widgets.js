@@ -31,9 +31,9 @@ $(document).ready(function() {
 
 var _Widgets = {
 
-    icon : 'icon/brick.png',
-    add_widget_icon : 'icon/brick_add.png',
-    delete_widget_icon : 'icon/brick_delete.png',
+    icon : 'icon/layout.png',
+    add_widget_icon : 'icon/layout_add.png',
+    delete_widget_icon : 'icon/layout_delete.png',
 	
     init : function() {
 
