@@ -244,6 +244,9 @@ var _Crud = {
         _Crud.loadAccessibleResources(function() {
             $.each(_Crud.types, function(t, type) {
                 //console.log('Loading type definition for ' + type + '...');
+                if (type.startsWith('_schema')) {
+                    return;
+                }
                 _Crud.loadTypeDefinition(type, callback);
             });
         });
@@ -261,10 +264,12 @@ var _Crud = {
             success: function(data) {
                 //console.log(data);
                 var types = [];
+                _Crud.types.length = 0;
                 $.each(data.result, function(i, res) {
                     var type = getTypeFromResourceSignature(res.signature);
                     //console.log(res);
-                    if (!isIn(type, _Crud.types)) {
+                    if (type !== '_schema' && !isIn(type, _Crud.types)) {
+                        _Crud.types.push(type);
                         types.push({'type': type, 'position': res.position});
                     }
                 });
@@ -272,7 +277,7 @@ var _Crud = {
                 types.sort(function(a, b) {
                     return a.position - b.position;
                 });
-
+                _Crud.types.length = 0;
                 $.each(types, function(i, typeObj) {
                     _Crud.types.push(typeObj.type);
                 });

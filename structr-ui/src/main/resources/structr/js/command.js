@@ -523,7 +523,7 @@ var Command = {
      * The server will create a new node with the given properties contained
      * in the 'nodeData' hash and broadcast a CREATE notification.
      */
-    create: function(nodeData) {
+    create: function(nodeData, callback) {
         var obj = {};
         obj.command = 'CREATE';
         if (!nodeData.name) {
@@ -534,7 +534,7 @@ var Command = {
         }
         obj.data = nodeData;
         log('create()', obj);
-        return sendObj(obj);
+        return sendObj(obj, callback);
     },
     /**
      * Send a CREATE_SIMPLE_PAGE command to the server.

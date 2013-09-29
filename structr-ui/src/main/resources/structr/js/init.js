@@ -110,11 +110,11 @@ $(document).ready(function() {
         _Widgets.resize();
     });
 
-    $('#propertyDefinitions_').on('click', function(e) {
+    $('#types_').on('click', function(e) {
         e.stopPropagation();
         Structr.clearMain();
-        Structr.activateMenuEntry('propertyDefinitions');
-        Structr.modules['propertyDefinitions'].onload();
+        Structr.activateMenuEntry('types');
+        Structr.modules['types'].onload();
     });
 
     $('#elements_').on('click', function(e) {

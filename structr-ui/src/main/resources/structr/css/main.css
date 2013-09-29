@@ -703,6 +703,13 @@ span.id {
     position: relative;
 }
 
+#add_type {
+    position: absolute;
+    right: 12px;
+    top: 68px;
+    margin: 0;
+}
+
 img.button {
     cursor: pointer;
 }
@@ -862,6 +869,11 @@ button img {
     background-color: #e5e5e5;
     margin: -6px -6px 4px -6px;
     padding: 5px 5px 0px 5px;
+}
+
+.dialogText label {
+    display: inline-block;
+    min-width: 200px;
 }
 
 #confirmationText, #infoText, #dialogBox .dialogText {

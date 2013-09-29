@@ -469,7 +469,9 @@ var _Pages = {
     },
     clearIframeDroppables: function() {
         var droppablesArray = [];
-        $.ui.ddmanager.droppables.default.forEach(function(d) {
+        var d = $.ui.ddmanager.droppables.default;
+        if (!d) return;
+        d.forEach(function(d) {
            if (!d.options.iframe) {
                droppablesArray.push(d);
            }
