@@ -253,6 +253,10 @@ var _Elements = {
 
         Command.listUnattachedNodes(1000, 1, 'name', 'asc', function(entity) {
 
+            if (!entity) {
+                return;
+            }
+
             StructrModel.create(entity, null, false);
 
             var el = _Pages.appendElementElement(entity, elements, true);
