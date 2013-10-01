@@ -377,9 +377,9 @@ function connect() {
 
                 });
 //                console.log(localStorage.getItem(autoRefreshKey + activeTab));
-//                if (localStorage.getItem(autoRefreshKey + activeTab)) {
-//                    _Pages.reloadPreviews();
-//                }
+                if (!localStorage.getItem(autoRefreshKey + activeTab)) {
+                    _Pages.reloadPreviews();
+                }
 
             } else {
                 log('Received unknown command: ' + command);
