@@ -98,10 +98,15 @@ var _Files = {
 
     refreshFiles : function() {
         files.empty();
+        files.append('<button class="add_file_icon button"><img title="Add File" alt="Add File" src="' + _Files.add_file_icon + '"> Add File</button>');
+        $('.add_file_icon', main).on('click', function(e) {
+            e.stopPropagation();
+            Command.create({'type':'File', 'size': 0});
+        });
         
         if (window.File && window.FileReader && window.FileList && window.Blob) {
 
-            files.append('<h2>Files</h2>');
+            //files.append('<h2>Files</h2>');
             
             drop = $('#dropArea');
 
@@ -167,6 +172,7 @@ var _Files = {
 	
     refreshFolders : function() {
         folders.empty();
+        //folders.append('<h2>Folders</h2>');
         folders.append('<button class="add_folder_icon button"><img title="Add Folder" alt="Add Folder" src="' + _Files.add_folder_icon + '"> Add Folder</button>');
         $('.add_folder_icon', main).on('click', function(e) {
             e.stopPropagation();

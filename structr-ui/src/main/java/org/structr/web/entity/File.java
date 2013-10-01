@@ -40,9 +40,11 @@ import java.net.URL;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.SecurityContext;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.StringProperty;
+import org.structr.web.common.FileHelper;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -64,7 +66,7 @@ public class File extends AbstractFile implements Linkable {
 
 	public static final View publicView = new View(File.class, PropertyView.Public, type, name, contentType, size, url, owner);
 	public static final View uiView     = new View(File.class, PropertyView.Ui, type, contentType, relativeFilePath, size, url, parent, checksum, cacheForSeconds, owner);
-
+	
 	@Override
 	public void onNodeDeletion() {
 
@@ -85,30 +87,48 @@ public class File extends AbstractFile implements Linkable {
 
 	}
 	
-//	@Override
-//	public void afterCreation(SecurityContext securityContext) {
-//
-//		try {
-//
-//			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-//
-//				@Override
-//				public Object execute() throws FrameworkException {
-//
-//					setProperty(checksum,	FileHelper.getChecksum(File.this));
-//					setProperty(size,	FileHelper.getSize(File.this));
-//					
-//					return null;
-//				}
-//			});
-//
-//		} catch (FrameworkException ex) {
-//
-//			logger.log(Level.SEVERE, "Could not set checksum and size", ex);
-//
-//		}
-//
-//	}
+	@Override
+	public void afterCreation(SecurityContext securityContext) {
+
+		try {
+
+			java.io.File fileOnDisk = new java.io.File(Services.getFilesPath() + "/" + getRelativeFilePath());
+
+			if (fileOnDisk.exists()) {
+				return;
+			}
+			
+			fileOnDisk.getParentFile().mkdirs();
+
+			try {
+				
+				fileOnDisk.createNewFile();
+
+			} catch (IOException ex) {
+				
+				logger.log(Level.SEVERE, "Could not create file", ex);
+				return;
+			}
+			
+			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+				@Override
+				public Object execute() throws FrameworkException {
+
+					setProperty(checksum,	FileHelper.getChecksum(File.this));
+					setProperty(size,	FileHelper.getSize(File.this));
+					
+					return null;
+				}
+			});
+
+		} catch (FrameworkException ex) {
+
+			logger.log(Level.SEVERE, "Could not create file", ex);
+
+		}
+
+	}
 //
 //	@Override
 //	public void afterModification(SecurityContext securityContext) {
