@@ -28,6 +28,8 @@ var textBeforeEditing;
 var activeTabKey = 'structrActiveTab_' + port;
 var activeTabRightKey = 'structrActiveTabRight_' + port;
 var activeTabLeftKey = 'structrActiveTabLeft_' + port;
+var autoRefreshDisabledKey = 'structrAutoRefreshDisabled_' + port;
+
 var win = $(window);
 
 $(document).ready(function() {
@@ -46,6 +48,8 @@ var _Pages = {
     add_icon: 'icon/page_add.png',
     delete_icon: 'icon/page_delete.png',
     clone_icon: 'icon/page_copy.png',
+    autoRefresh: [],
+    
     init: function() {
 
         Structr.initPager('Page', 1, 25);
@@ -358,6 +362,7 @@ var _Pages = {
         var tab = $('#show_' + entity.id, previews);
 
         tab.append('<img class="typeIcon" src="icon/page.png"> <b title="' + entity.name + '" class="name_">' + fitStringToSize(entity.name, 200) + '</b>');
+        tab.append('<input title="Auto-refresh page on changes" alt="Auto-refresh page on changes" class="auto-refresh" type="checkbox"' + (localStorage.getItem(autoRefreshDisabledKey + entity.id) ? '' : ' checked="checked"') + '>');
         tab.append('<img title="Delete page \'' + entity.name + '\'" alt="Delete page \'' + entity.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
         tab.append('<img class="view_icon button" title="View ' + entity.name + ' in new window" alt="View ' + entity.name + ' in new window" src="icon/eye.png">');
 
@@ -381,6 +386,18 @@ var _Pages = {
 
         });
 
+        $('.auto-refresh', tab).on('click', function(e) {
+            e.stopPropagation();
+            var key = autoRefreshDisabledKey + entity.id;
+            var autoRefreshDisabled = localStorage.getItem(key) === '1';
+            console.log(localStorage.getItem(key), autoRefreshDisabled);
+            if (autoRefreshDisabled) {
+                localStorage.removeItem(key);
+            } else {
+                localStorage.setItem(key, '1');
+            }
+        });
+
         return tab;
     },
     resetTab: function(element) {
@@ -391,13 +408,16 @@ var _Pages = {
         element.children('.name_').show();
 
         var icons = $('.button', element);
+        var autoRefreshSelector = $('.auto-refresh', element);
         //icon.hide();
 
         element.hover(function(e) {
             icons.show();
+            autoRefreshSelector.show()
         },
                 function(e) {
                     icons.hide();
+                    autoRefreshSelector.hide()
                 });
 
         element.on('click', function(e) {
@@ -445,9 +465,8 @@ var _Pages = {
     },
     reloadIframe: function(id, name) {
         var iframe = $('#preview_' + id);
-        log(iframe);
-        iframe.prop('src', viewRootUrl + name + '?edit=2');
-        if (iframe.parent().is(':hidden')) {
+        if (iframe.parent().is(':hidden') || !localStorage.getItem(autoRefreshDisabledKey + id)) {
+            iframe.prop('src', viewRootUrl + name + '?edit=2');
             iframe.parent().show();
         }
         _Pages.resize();
@@ -459,8 +478,7 @@ var _Pages = {
             $('iframe', $('#previews')).each(function() {
                 var self = $(this);
                 var pageId = self.prop('id').substring('preview_'.length);
-
-                if (pageId === activeTab) {
+                if (!localStorage.getItem(autoRefreshDisabledKey + pageId) && pageId === activeTab) {
                     var doc = this.contentDocument;
                     doc.location.reload(true);
                 }

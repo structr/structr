@@ -31,8 +31,8 @@ var pageSize = 25;
 var sort = 'name';
 var order = 'asc';
 
-var tokenCookieName = 'structrSessionToken_' + port;
-var userCookieName = 'structrUser_' + port;
+var tokenKey = 'structrSessionToken_' + port;
+var userKey = 'structrUser_' + port;
 
 var footer = $('#footer');
 
@@ -130,8 +130,8 @@ function connect() {
                 log('token', token);
 
                 if (sessionValid) {
-                    $.cookie(tokenCookieName, token);
-                    $.cookie(userCookieName, user);
+                    localStorage.setItem(tokenKey, token);
+                    localStorage.setItem(userKey, user);
                     $.unblockUI({
                         fadeOut: 25
                     });
@@ -140,8 +140,8 @@ function connect() {
                     Structr.loadInitialModule();
 
                 } else {
-                    $.cookie(tokenCookieName, '');
-                    $.cookie(userCookieName, '');
+                    localStorage.removeItem(tokenKey);
+                    localStorage.removeItem(userKey);
                     clearMain();
 
                     Structr.login();
@@ -149,8 +149,8 @@ function connect() {
 
             } else if (command === 'LOGOUT') { /*********************** LOGOUT ************************/
 
-                $.cookie(tokenCookieName, '');
-                $.cookie(userCookieName, '');
+                localStorage.removeItem(tokenKey);
+                localStorage.removeItem(userKey);
                 clearMain();
                 Structr.login();
 
@@ -247,7 +247,7 @@ function connect() {
                 $(result).each(function(i, entity) {
 
                     // Don't append a DOM node
-                    var obj = StructrModel.create(entity, undefined, false);
+                    //var obj = StructrModel.create(entity, undefined, false);
 
                     StructrModel.callCallback(data.callback, entity);
 
@@ -376,16 +376,18 @@ function connect() {
                     }
 
                 });
-
-                _Pages.reloadPreviews();
+//                console.log(localStorage.getItem(autoRefreshKey + activeTab));
+//                if (localStorage.getItem(autoRefreshKey + activeTab)) {
+//                    _Pages.reloadPreviews();
+//                }
 
             } else {
                 log('Received unknown command: ' + command);
 
                 if (sessionValid === false) {
                     log('invalid session');
-                    $.cookie(tokenCookieName, '');
-                    $.cookie(userCookieName, '');
+                    localStorage.removeItem(tokenKey);
+                    localStorage.removeItem(userKey);
                     clearMain();
 
                     Structr.login();

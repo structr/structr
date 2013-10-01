@@ -1180,3 +1180,13 @@ button.enabled {
     bottom: 8px;
     width: 76px;
 }
+
+input.auto-refresh {
+    vertical-align: middle;
+    float: right;
+    margin-right: 0;
+}
+
+button.add_property {
+    font-size: 2em;
+}

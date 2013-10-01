@@ -210,9 +210,9 @@ var Structr = {
     },
     init: function() {
 
-        token = $.cookie(tokenCookieName);
+        token = localStorage.getItem(tokenKey);
+        user = localStorage.getItem(userKey);
         sessionId = $.cookie('JSESSIONID');
-        user = $.cookie(userCookieName);
         log('token', token);
         log('user', user);
 
@@ -269,11 +269,10 @@ var Structr = {
     },
     doLogout: function(text) {
         log('doLogout ' + user);
-        //Structr.saveSession();
-        localStorage.setItem(tokenCookieName, null);
-        $.cookie('JSESSIONID', null);
-        localStorage.setItem(userCookieName, null);
         if (send('{ "command":"LOGOUT", "data" : { "username" : "' + user + '" } }')) {
+            localStorage.removeItem(tokenKey);
+            localStorage.removeItem(userKey);
+            $.cookie('JSESSIONID', null);
             Structr.clearMain();
             Structr.login(text);
             return true;

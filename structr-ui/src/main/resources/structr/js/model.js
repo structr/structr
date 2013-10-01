@@ -882,7 +882,7 @@ StructrPropertyDefinition.prototype.remove = function() {
 }
 
 StructrPropertyDefinition.prototype.append = function(refNode) {
-//    _Types.appendPropertyDefinitionElement(this);
+    //_Types.registerPropertyDefinitionElement(this);
 }
 
 

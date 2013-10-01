@@ -6,6 +6,7 @@
     background: #fff ! important;
     font-family: Arial, Helvetica, Sans-serif ! important;
     font-size: 8pt;
+    position: relative;
 }
 
 .resourceBox table {

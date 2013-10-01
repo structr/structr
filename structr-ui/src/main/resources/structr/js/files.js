@@ -201,7 +201,7 @@ var _Files = {
         var parent = Structr.findParent(folderId, null, null, files);
         log(parent, folderId, isExpanded(folderId));
         
-        if (parent !== files && !isExpanded(folderId)) {
+        if (!parent || (parent !== files && !isExpanded(folderId))) {
             return false;
         }
         //if (add) _Entities.ensureExpanded(parent);

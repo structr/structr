@@ -18,39 +18,45 @@
  */
 
 var propertyDefinitions, types, dynamicTypes = [];
+var typesTypeKey = 'structrTypesType_' + port;
 
 $(document).ready(function() {
     Structr.registerModule('types', _Types);
     Structr.classes.push('types');
+    
+    if (!_Types.type) {
+        _Types.restoreType();
+    }
+
+    if (!_Types.type) {
+        _Types.type = urlParam('type');
+    }
+
+    if (!_Types.type) {
+        _Types.type = defaultType;
+    }
+    
 });
 
 var _Types = {
-    
-    type_icon : 'icon/database_table.png',
-
-    schemaLoading : false,
-    schemaLoaded : false,
-    
+    type_icon: 'icon/database_table.png',
+    schemaLoading: false,
+    schemaLoaded: false,
     //allTypes : [],
-    
-    types : [],//'Page', 'User', 'Group', 'Folder', 'File', 'Image', 'Content', 'PropertyDefinition' ],
-    views : [ 'public', 'all', 'ui' ],
 
-    schema : [],
-    keys : [],
+    types: [], //'Page', 'User', 'Group', 'Folder', 'File', 'Image', 'Content', 'PropertyDefinition' ],
+    views: ['public', 'all', 'ui'],
+    schema: [],
+    keys: [],
+    type: null,
+    pageCount: null,
+    view: [],
+    sort: [],
+    order: [],
+    page: [],
+    pageSize: [],
+    init: function() {
 
-    type : null,
-    pageCount : null,
-
-    view : [],
-    sort : [],
-    order : [],
-    page : [],
-    pageSize : [],
-    
-    init : function() {
-        //Structr.initPager('PropertyDefinition', 1, 100);
-        
         _Types.schemaLoading = false;
         _Types.schemaLoaded = false;
         _Types.schema = [];
@@ -59,15 +65,15 @@ var _Types = {
         _Types.loadSchema(function() {
             _Types.initTabs();
         });
-        
+
         main.append('<div id="resourceTabs"><ul id="resourceTabsMenu"></ul></div>');
 
         main.append('<button id="add_type" class="btn"><img class="add_button icon" src="icon/add.png"> Create new custom type</button>');
         $('#add_type').on('click', function(e) {
-            _Types.addTypeDialog();
+            _Types.typeDialog();
             return false;
         });
-        
+
         $(document).keyup(function(e) {
             if (e.keyCode === 27) {
                 dialogCancelButton.click();
@@ -77,15 +83,13 @@ var _Types = {
         $(window).on('resize', function() {
             _Crud.resize();
         });
-        
+
     },
-	
-    onload : function() {
+    onload: function() {
         _Types.init();
     },
+    initTabs: function() {
 
-    initTabs : function() {
-        
         $.each(_Types.types, function(t, type) {
             _Types.addTab(type);
         });
@@ -96,22 +100,25 @@ var _Types = {
                 var newType = ui.newPanel[0].id;
                 //console.log('deactivated', _Types.type, 'activated', newType);
                 _Types.type = newType;
+                _Types.updateUrl(newType);
             }
         });
+        
+        var t = $('a[href="#' + _Types.type + '"]');
+        t.click();
 
     },
-
     /**
      * Read the schema from the _schema REST resource and call 'callback'
      * after the complete schema is loaded.
      */
-    loadSchema : function(callback) {
+    loadSchema: function(callback) {
         // Avoid duplicate loading of schema
         if (_Types.schemaLoading) {
             return;
         }
         _Types.schemaLoading = true;
-        
+
         _Types.loadAccessibleResources(function() {
             $.each(_Types.types, function(t, type) {
                 //console.log('Loading type definition for ' + type + '...');
@@ -121,10 +128,9 @@ var _Types = {
                 _Types.loadTypeDefinition(type, callback);
             });
         });
-        
-    },
 
-    isSchemaLoaded : function() {
+    },
+    isSchemaLoaded: function() {
         var all = true;
         if (!_Types.schemaLoaded) {
             //console.log('schema not loaded completely, checking all types ...');
@@ -136,12 +142,10 @@ var _Types = {
         _Types.schemaLoaded = all;
         return _Types.schemaLoaded;
     },
-
-    loadAccessibleResources : function(callback) {
+    loadAccessibleResources: function(callback) {
         var url = rootUrl + 'resource_access/ui';
         $.ajax({
             url: url,
-            headers: headers,
             dataType: 'json',
             contentType: 'application/json; charset=utf-8',
             //async: false,
@@ -170,24 +174,22 @@ var _Types = {
                 if (callback) {
                     callback();
                 }
-                
+
             }
         });
     },
+    loadTypeDefinition: function(type, callback) {
 
-    loadTypeDefinition : function(type, callback) {
-        
         //_Types.schema[type] = [];
         //console.log(type);
         var url = rootUrl + '_schema/' + type.toUnderscore();
         $.ajax({
             url: url,
-            headers: headers,
             dataType: 'json',
             contentType: 'application/json; charset=utf-8',
             //async: false,
             success: function(data) {
-                
+
                 $.each(data.result, function(i, res) {
                     //console.log(res);
                     var type = res.type;
@@ -196,35 +198,38 @@ var _Types = {
                     _Types.view[type] = 'all';
                     //console.log('Type definition for ' + type + ' loaded');
                     //console.log('schema loaded?', _Types.isSchemaLoaded());
-                    
+
                     if (_Types.isSchemaLoaded()) {
                         //console.log('Schema loaded successfully');
                         if (callback) {
                             callback();
                         }
                     }
-                    
+
                 });
-                
+
             }
-            
-            
-        });        
+
+
+        });
     },
-    
-    addTab : function(type) {
+    addTab: function(type) {
         var res = _Types.schema[type];
-        $('#resourceTabsMenu').append('<li><a href="#' +  type + '"><span>' + _Crud.formatKey(type) + '</span></a></li>');
+        $('#resourceTabsMenu').append('<li><a href="#' + type + '"><span>' + _Crud.formatKey(type) + '</span></a></li>');
         $('#resourceTabs').append('<div class="resourceBox" id="' + type + '" data-url="' + res.url + '"></div>');
         var typeNode = $('#' + type);
         typeNode.append('<div>Type: ' + res.type + '</div>');
         typeNode.append('<div>URL: <a target="_blank" href="' + rootUrl + res.url.substring(1) + '">' + res.url + '</a></div>');
+        typeNode.children('.add_property').on('click', function(e) {
+            console.log('clicked on add property, type', type);
+            _Types.propertyDialog(type);
+            return false;
+        });
         typeNode.append('<table class="props"><thead><tr>\n\
-<th>Property</th>\n\
 <th>Key</th>\n\
 <th>JSON name</th>\n\
 <th>DB name</th>\n\
-<th>Class</th>\n\
+<th>Data Type</th>\n\
 <th>Related Type</th>\n\
 <th>Input Converter</th>\n\
 <th>Collection</th>\n\
@@ -239,30 +244,71 @@ var _Types = {
             var k = Object.keys(view);
             if (k && k.length) {
                 _Types.keys[type] = k;
+                
                 $.each(_Types.keys[type], function(k, key) {
-                    tb.append('<tr>\n\
-<td class="' + key + '">' + _Crud.formatKey(key) + '</td>\n\
-<td>' + key + '</td>\n\
+                    
+                    var raw = view[key].className, cls;
+                    
+                    if (raw === 'org.structr.core.entity.PropertyDefinition') {
+                    
+                        //console.log('custom property for kind', type, ': ', key, view[key]);
+                        var url = rootUrl + 'property_definitions?kind=' + type + '&name=' + key;
+                        $.ajax({
+                            url: url,
+                            dataType: 'json',
+                            contentType: 'application/json; charset=utf-8',
+                            //async: false,
+                            success: function(data) {
+                                var pd = data.result[0];
+                                cls = pd.dataType;
+                                $('.' + key + ' .dataType').html('<select id="_dataType_' + pd.id + '">\n\
+<option>String</option>\n\
+<option>Integer</option>\n\
+<option>Long</option>\n\
+<option>Double</option>\n\
+<option>Boolean</option>\n\
+<option>Date</option>\n\
+<option>Collection</option>\n\
+<option>Entity</option>\n\
+</select>');
+                                
+                                $('.' + key + ' .key').html('<input type="text" size="30" id="_key_' + pd.id + '" value="' + key + '">');
+                                $('.' + key + ' .readOnly').html('<input type="checkbox" id="_readOnly_' + pd.id + '"' + (pd.readOnlyProperty ? '" checked="checked"' : '') + '>');
+                                $('.' + key + ' .system').html('<input type="checkbox" id="_system_' + pd.id + '"' + (pd.systemProperty ? '" checked="checked"' : '') + '>');
+                                $('.' + key + ' .defaultValue').html('<input type="text" size="30" id="_defaultValue_' + pd.id + '" value="' + nvl(pd.defaultValue, '') + '">');
+                                
+                            }
+                        });
+
+                    
+                    } else {
+                        cls = raw.substring(raw.lastIndexOf('.') + 1);
+                        cls = cls.substring(0, cls.length-'Property'.length);
+                    }
+                    
+                    tb.append('<tr class="' + key + '">\n\
+<td class="key">' + key + '</td>\n\
 <td>' + view[key].jsonName + '</td>\n\
 <td>' + view[key].dbName + '</td>\n\
-<td title="' + view[key].className + '">' + view[key].className.substring(view[key].className.lastIndexOf('.')+1) + '</td>\n\
+<td class="dataType" title="' + raw + '">' + cls + '</td>\n\
 <td>' + nvl(view[key].relatedType, '') + '</td>\n\
 <td>' + nvl(view[key].inputConverter, '') + '</td>\n\
 <td>' + (view[key].isCollection ? '<img src="icon/accept.png">' : '') + '</td>\n\
-<td>' + (view[key].readOnly ? '<img src="icon/accept.png">' : '') + '</td>\n\
-<td>' + (view[key].system ? '<img src="icon/accept.png">' : '') + '</td>\n\
-<td>' + nvl(view[key].defaultValue, '') + '</td>\n\
+<td class="readOnly">' + (view[key].readOnly ? '<img src="icon/accept.png">' : '') + '</td>\n\
+<td class="system">' + (view[key].system ? '<img src="icon/accept.png">' : '') + '</td>\n\
+<td class="defaultValue">' + nvl(view[key].defaultValue, '') + '</td>\n\
 <td>' + nvl(view[key].declaringClass, '') + '</td>\n\
 </tr>');
                 });
             }
         }
-        
-        _Crud.resize();
-        
-    },
 
-    addTypeDialog: function() {
+        typeNode.append('<button class="add_property" class="btn"><img class="add_button icon" src="icon/add.png"> Add property</button>');
+
+        _Crud.resize();
+
+    },
+    typeDialog: function() {
 
         Structr.dialog('Add custom type', function() {
             return true;
@@ -283,14 +329,14 @@ var _Types = {
 <option>Entity</option>\n\
 </select></div><br>');
         dialog.append('<button id="createType">Create type</button>');
-	
+
         $('input#_type').focus();
 
         $('#createType').on('click', function(e) {
             e.stopPropagation();
 
-            var type     = $('#_type', dialog).val();
-            var attr     = $('#_attr', dialog).val();
+            var type = $('#_type', dialog).val();
+            var attr = $('#_attr', dialog).val();
             var dataType = $('#_dataType', dialog).val();
             var entity = {};
             entity.type = 'PropertyDefinition';
@@ -305,82 +351,108 @@ var _Types = {
         });
 
     },
-        
+    propertyDialog: function(type) {
+        console.log(type);
+        Structr.dialog('Add property', function() {
+            return true;
+        }, function() {
+            return true;
+        });
+
+        dialog.append('<div><label for="attr">Attribute name:</label><input id="_attr" type="text" name="attr"></div>');
+        dialog.append('<div><label for="dataType">Data Type of first attribute:</label><select id="_dataType">\n\
+<option>String</option>\n\
+<option>Integer</option>\n\
+<option>Long</option>\n\
+<option>Double</option>\n\
+<option>Boolean</option>\n\
+<option>Date</option>\n\
+<option>Collection</option>\n\
+<option>Entity</option>\n\
+</select></div><br>');
+        dialog.append('<button id="addProperty">Add property</button>');
+
+        $('input#_attr').focus();
+
+        $('#addProperty').on('click', function(e) {
+            e.stopPropagation();
+
+            var attr = $('#_attr', dialog).val();
+            var dataType = $('#_dataType', dialog).val();
+            var entity = {};
+            entity.type = 'PropertyDefinition';
+            entity.kind = type;
+            entity.name = attr;
+            entity.dataType = dataType;
+
+            Command.create(entity, function() {
+                window.location.reload(true);
+            });
+        });
+
+    },
     addGrants: function(type) {
-        Command.create({type:'ResourceAccess', flags: 255, signature:type, visibleToPublicUsers:true});
-        Command.create({type:'ResourceAccess', flags: 255, signature:type + '/_Ui'});
-        Command.create({type:'ResourceAccess', flags: 255, signature:type + '/_Public'});
-        Command.create({type:'ResourceAccess', flags: 255, signature:type + '/_All'});
-        Command.create({type:'ResourceAccess', flags: 255, signature:'_schema/' + type});
-    }
-        
-//    refreshPropertyDefinitions : function() {
-//        propertyDefinitions.empty();
-//        if (Command.list('PropertyDefinition')) {
-//            propertyDefinitions.append('<button class="add_type_icon button"><img title="Add Custom Type" alt="Add Custom Type" src="' + _Types.type_icon + '"> Add PropertyDefinition</button>');
-//            $('.add_type_icon', main).on('click', function(e) {
-//                e.stopPropagation();
-//                var entity = {};
-//                entity.type = 'PropertyDefinition';
-//                return Command.create(entity);
-//            });
-//        }
+        Command.create({type: 'ResourceAccess', flags: 255, signature: type, visibleToPublicUsers: true});
+        Command.create({type: 'ResourceAccess', flags: 255, signature: type + '/_Ui'});
+        Command.create({type: 'ResourceAccess', flags: 255, signature: type + '/_Public'});
+        Command.create({type: 'ResourceAccess', flags: 255, signature: type + '/_All'});
+        Command.create({type: 'ResourceAccess', flags: 255, signature: '_schema/' + type});
+    },
+//    refreshPropertyDefinitions: function() {
+//
+//        Command.list('PropertyDefinition', undefined, undefined, undefined, undefined, function(entity) {
 //            
-//        Structr.addPager(propertyDefinitions, 'PropertyDefinition');
+//            console.log(entity);
+//            
+//        });
 //    },
-    
-//    appendPropertyDefinitionElement : function(propertyDefinition) {
-//		
+//    registerPropertyDefinitionElement: function(propertyDefinition) {
+//
 //        var p = propertyDefinition;
-//        
+//
 //        if (p.kind && p.name) {
-//            
-//            console.log(p.kind, p.name);
+//
 //            dynamicTypes[p.kind] = dynamicTypes[p.kind] || {};
 //            dynamicTypes[p.kind][p.name] = dynamicTypes[p.kind][p.name] || {};
-//        
-//            dynamicTypes[p.kind][p.name].dataType                       = p.dataType;
-//            dynamicTypes[p.kind][p.name].relKind                        = p.relKind;
-//            dynamicTypes[p.kind][p.name].relType                        = p.relType;
-//            dynamicTypes[p.kind][p.name].incoming                       = p.incoming;
-//            dynamicTypes[p.kind][p.name].systemProperty                 = p.systemProperty;
-//            dynamicTypes[p.kind][p.name].readOnlyProperty               = p.readOnlyProperty;
-//            dynamicTypes[p.kind][p.name].writeOnceProperty              = p.writeOnceProperty;
-//            dynamicTypes[p.kind][p.name].indexedProperty                = p.indexedProperty;
-//            dynamicTypes[p.kind][p.name].passivelyIndexedProperty       = p.passivelyIndexedProperty;
-//            dynamicTypes[p.kind][p.name].searchableProperty             = p.searchableProperty;
-//            dynamicTypes[p.kind][p.name].indexedWhenEmptyProperty       = p.indexedWhenEmptyProperty;
-//            
+//
+//            dynamicTypes[p.kind][p.name].dataType = p.dataType;
+//            dynamicTypes[p.kind][p.name].relKind = p.relKind;
+//            dynamicTypes[p.kind][p.name].relType = p.relType;
+//            dynamicTypes[p.kind][p.name].incoming = p.incoming;
+//            dynamicTypes[p.kind][p.name].systemProperty = p.systemProperty;
+//            dynamicTypes[p.kind][p.name].readOnlyProperty = p.readOnlyProperty;
+//            dynamicTypes[p.kind][p.name].writeOnceProperty = p.writeOnceProperty;
+//            dynamicTypes[p.kind][p.name].indexedProperty = p.indexedProperty;
+//            dynamicTypes[p.kind][p.name].passivelyIndexedProperty = p.passivelyIndexedProperty;
+//            dynamicTypes[p.kind][p.name].searchableProperty = p.searchableProperty;
+//            dynamicTypes[p.kind][p.name].indexedWhenEmptyProperty = p.indexedWhenEmptyProperty;
+//
 //        }
-//        
-//        console.log('Collected custom types', dynamicTypes);
-//        
-//        propertyDefinitions.append('<div id="id_' + propertyDefinition.id + '" class="node propertyDefinition">'
-//            + '<img class="typeIcon" src="'+ propertyDefinition.type_icon + '">'
-//            + '<b title="' + propertyDefinition.name + '" class="name_">' + fitStringToSize(propertyDefinition.name, 200) + '</b> <span class="id">' + propertyDefinition.id + '</span>'
-//            + '</div>');
-//        
-//        div = Structr.node(propertyDefinition.id);
-//        
-//        div.append('<img title="Delete Type ' + propertyDefinition.id + '" alt="Delete Type ' + propertyDefinition.id + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
-//        $('.delete_icon', div).on('click', function(e) {
-//            e.stopPropagation();
-//            _Entities.deleteNode(this, propertyDefinition);
-//        });
-//        
-//        _Entities.appendAccessControlIcon(div, propertyDefinition);
-//        _Entities.appendEditPropertiesIcon(div, propertyDefinition);
-//        _Entities.setMouseOver(div);
-//		
-//        _Types.updateDynamicTypes();
-//                
-//        return div;
+//
+//        //_Types.updateDynamicTypes();
 //    },
-//            
-//    updateDynamicTypes : function() {
-//        Object.keys(dynamicTypes).forEach(function(t) {
-//            if (types.children('#_' + t).length) return;
-//            types.append('<tr id="_' + t + '"><td>' + t + '</td></tr>');
+//    updateDynamicTypes: function() {
+//        Object.keys(dynamicTypes).forEach(function(type) {
+//            if (types.children('#_' + type).length)
+//                return;
+//            types.append('<tr id="_' + type + '"><td>' + type + '</td></tr>');
 //        });
 //    }
+    updateUrl : function(type) {
+        if (type) {
+            _Types.storeType();
+            window.location.hash = '#types';
+        }
+        //searchField.focus();
+    },
+    storeType : function() {
+        localStorage.setItem(typesTypeKey, _Types.type);
+    },
+    
+    restoreType : function() {
+        var val = localStorage.getItem(typesTypeKey);
+        if (val) {
+            _Types.type = val;
+        }
+    },
 };
