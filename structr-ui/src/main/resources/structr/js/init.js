@@ -37,6 +37,7 @@ var pageSize = {};
 var expandedIdsKey = 'structrTreeExpandedIds_' + port;
 var lastMenuEntryKey = 'structrLastMenuEntry_' + port;
 var pagerDataKey = 'structrPagerData_' + port + '_';
+var autoRefreshDisabledKey = 'structrAutoRefreshDisabled_' + port;
 
 $(document).ready(function() {
 

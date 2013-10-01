@@ -269,7 +269,7 @@ img.disabled {
 }
 
 .ver-scrollable > .node {
-    width: 360px;
+    /*width: 360px;*/
 }
 
 .slideOutRight {
@@ -308,7 +308,7 @@ img.disabled {
 }
 
 #palette h3, #widgetsSlideout h3 {
-    font-size: 9pt;
+    font-size: 11pt;
     color: #333;
     padding: 3px 0 2px 0;
     margin: 0 0 0 2px;
@@ -616,14 +616,27 @@ span.id {
     color: #333;
     line-height: 1.7em;
     border-radius: 5px;
-    border: 1px solid #a5a5a5;
-    padding: 2px 6px;
-    margin: 4px 0 4px 0;
-    background-color: #eee;
-    background: -webkit-gradient(linear, left bottom, left top, from(#ddd), to(#eee)) no-repeat;
+    border: 1px solid transparent;
+    padding: 2px 0 2px 4px;
+    margin: 4px 0 4px 16px;
+    /*background-color: #eee;*/
+/*    background: -webkit-gradient(linear, left bottom, left top, from(#ddd), to(#eee)) no-repeat;
     background: -moz-linear-gradient(90deg, #ddd, #eee) no-repeat;
-    filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#eeeeee', EndColorStr='#dddddd', GradientType=0);
+    filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#eeeeee', EndColorStr='#dddddd', GradientType=0);*/
     position: relative;
+}
+
+.page, .widget, .user, .group, .folder, .file, .image {
+    margin: 4px 0;
+    padding-right: 4px;
+}
+
+.group .user {
+    margin: 4px 0 4px 16px;    
+}
+
+.image {
+    padding: 4px;
 }
 
 #images {
@@ -716,10 +729,12 @@ img.button {
 
 .nodeHover, .nodeActive {
     color: #333 ! important;
-    background-color: #81ce25 ! important;
+    background-color: #e7e7e7 ! important;
+    border: 1px solid #aaa;
+/*    background-color: #81ce25 ! important;
     background: -webkit-gradient(linear, left bottom, left top, from(#73b821), to(#90e629)) no-repeat ! important;
     background: -moz-linear-gradient(90deg, #73b821, #90e629) no-repeat ! important;
-    filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#90e629', EndColorStr='#73b821', GradientType=0) ! important;
+    filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#90e629', EndColorStr='#73b821', GradientType=0) ! important;*/
 }
 
 button {

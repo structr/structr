@@ -28,7 +28,6 @@ var textBeforeEditing;
 var activeTabKey = 'structrActiveTab_' + port;
 var activeTabRightKey = 'structrActiveTabRight_' + port;
 var activeTabLeftKey = 'structrActiveTabLeft_' + port;
-var autoRefreshDisabledKey = 'structrAutoRefreshDisabled_' + port;
 
 var win = $(window);
 
