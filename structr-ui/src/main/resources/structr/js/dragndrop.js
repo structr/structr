@@ -42,6 +42,8 @@ var _Dragndrop = {
             //tolerance: 'pointer',
             drop: function(e, ui) {
                 
+                log('drop event', e, ui);
+                
                 e.preventDefault();
                 e.stopPropagation();
 
@@ -63,7 +65,7 @@ var _Dragndrop = {
 
                 log('dropped onto', self, targetId, getId(sortParent));
                 if (targetId === getId(sortParent)) {
-                    //console.log('target id == sortParent id', targetId, getId(sortParent));
+                    log('target id == sortParent id', targetId, getId(sortParent));
                     return false;
                 }
 
@@ -86,7 +88,7 @@ var _Dragndrop = {
                 }
 
                 if (!target) {
-                    //console.log('no target');
+                    console.log('no target');
                     return;
                 }
 
@@ -225,7 +227,7 @@ var _Dragndrop = {
                 return true;
                 
             } else {
-                console.log('unknown drag\'n drop  situation', source, target);
+                log('unknown drag\'n drop  situation', source, target);
             }
         }
 

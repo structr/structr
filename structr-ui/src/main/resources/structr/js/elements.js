@@ -251,6 +251,7 @@ var _Elements = {
                     });
         });
 
+        _Dragndrop.makeSortable(elements);
         Command.listUnattachedNodes(1000, 1, 'name', 'asc', function(entity) {
 
             if (!entity) {

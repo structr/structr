@@ -269,7 +269,7 @@ img.disabled {
 }
 
 .ver-scrollable > .node {
-    /*width: 360px;*/
+    width: 360px;
 }
 
 .slideOutRight {
@@ -617,8 +617,8 @@ span.id {
     line-height: 1.7em;
     border-radius: 5px;
     border: 1px solid transparent;
-    padding: 2px 0 2px 4px;
-    margin: 4px 0 0 11px;
+    padding: 2px 2px 2px 4px;
+    margin: 0 0 0 11px;
     /*background-color: #eee;*/
 /*    background: -webkit-gradient(linear, left bottom, left top, from(#ddd), to(#eee)) no-repeat;
     background: -moz-linear-gradient(90deg, #ddd, #eee) no-repeat;
@@ -626,7 +626,8 @@ span.id {
     position: relative;
 }
 
-.page, .widget, .user, .group, .folder, .file, .image {
+.page, .widget, .user, .group, .folder, .file, .image,
+.ver-scrollable > .node {
     margin: 4px 0;
     padding-right: 4px;
 }
@@ -714,6 +715,20 @@ span.id {
     vertical-align: top;
     float: right;
     position: relative;
+}
+
+.key_icon {
+    filter: alpha(opacity=30);
+    -khtml-opacity: 0.3;
+    -moz-opacity: 0.3;
+    opacity: 0.3;
+}
+
+.nodeHover > .key_icon {
+    filter: alpha(opacity=100);
+    -khtml-opacity: 1;
+    -moz-opacity: 1;
+    opacity: 1;
 }
 
 #add_type {

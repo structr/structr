@@ -105,8 +105,13 @@ var StructrModel = {
         if (obj) {
 
             if (obj.exists && obj.exists()) {
-                log('obj exists');
-                return obj;
+                var el = Structr.node(obj.id);
+                if (el.parent().prop('id') === 'elementsArea') {
+                    el.remove();
+                } else {
+                    log('obj exists');
+                    return obj;
+                }
             }
 
         }

@@ -377,7 +377,7 @@ function connect() {
 
                 });
 //                console.log(localStorage.getItem(autoRefreshKey + activeTab));
-                if (!localStorage.getItem(autoRefreshKey + activeTab)) {
+                if (!localStorage.getItem(autoRefreshDisabledKey + activeTab)) {
                     _Pages.reloadPreviews();
                 }
 
