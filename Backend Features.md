@@ -11,10 +11,6 @@ It is realized as a wrapper around a Neo4j graph database, which supports defini
     - Support for arbitrary document views on a single object / subgraph
     - Relationship-dependent document views
 - Java-based schema declaration
-- Graph entities with creation, modification and deletion callbacks
-    - Before commit: onCreation/onModification/onDeletion
-    - After commit: afterCreation/afterModification/afterDeletion
-    - Cascading events
 - Custom REST endpoints
 - Access control (users, groups)
 - Sorting
@@ -54,6 +50,14 @@ It is realized as a wrapper around a Neo4j graph database, which supports defini
 - Dynamic entity definitions (experimental)
     - Configure new types at run-time through JSON/REST
     - Add custom properties
+
+#### Transactions
+- Full Neo4j transaction support
+- Automatic deadlock detection and resolution
+- Creation, modification and deletion callbacks
+    - Before commit: onCreation/onModification/onDeletion
+    - After commit: afterCreation/afterModification/afterDeletion
+    - Cascading events
 
 #### Tools
 - Push notifications (HTTP/e-mail)
