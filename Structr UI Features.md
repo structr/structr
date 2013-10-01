@@ -105,6 +105,9 @@ All content elements are stored in a graph structure and rendered top-down from 
     - News Items
     - Mail Templates
     - Tags
+- Dynamic entity defininitions
+    - Configure new types at run-time through UI
+    - Add custom properties
 
 #### Importer
 - Import complete web pages

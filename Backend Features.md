@@ -52,8 +52,8 @@ It is realized as a wrapper around a Neo4j graph database, which supports defini
 - Auto-creation of related entities
 - Synchronous/async. counters (f.e. for a view count)
 - Dynamic entity definitions (experimental)
-    - Configure new types at run-time via JSON/REST
-    - Add/remove properties
+    - Configure new types at run-time through JSON/REST
+    - Add custom properties
 
 #### Tools
 - Push notifications (HTTP/e-mail)
