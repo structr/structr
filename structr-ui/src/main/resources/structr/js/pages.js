@@ -291,7 +291,7 @@ var _Pages = {
 
         Structr.addPager(pages, 'Page');
 
-        previewTabs.append('<li id="import_page" class="button"><img class="add_button icon" src="icon/page_white_put.png"></li>');
+        previewTabs.append('<li id="import_page" title="Import page" class="button"><img class="add_button icon" src="icon/page_white_put.png"></li>');
         $('#import_page', previewTabs).on('click', function(e) {
             e.stopPropagation();
 
@@ -343,7 +343,7 @@ var _Pages = {
 
         });
 
-        previewTabs.append('<li id="add_page" class="button"><img class="add_button icon" src="icon/add.png"></li>');
+        previewTabs.append('<li id="add_page" title="Add page" class="button"><img class="add_button icon" src="icon/add.png"></li>');
         $('#add_page', previewTabs).on('click', function(e) {
             e.stopPropagation();
             //var entity = {};
