@@ -169,7 +169,7 @@ public class File extends AbstractFile implements Linkable {
 
 	}
 
-	public long getSize() {
+	public Long getSize() {
 
 		return getProperty(size);
 
