@@ -637,7 +637,7 @@ span.id {
 }
 
 .image {
-    padding: 4px;
+    padding: 4px 8px;
 }
 
 #images {
@@ -742,7 +742,7 @@ img.button {
     cursor: pointer;
 }
 
-.nodeHover, .nodeActive {
+.nodeHover, .nodeActive, #graph .node {
     color: #333 ! important;
     background-color: #e7e7e7 ! important;
     border: 1px solid #aaa;
@@ -750,6 +750,11 @@ img.button {
     background: -webkit-gradient(linear, left bottom, left top, from(#73b821), to(#90e629)) no-repeat ! important;
     background: -moz-linear-gradient(90deg, #73b821, #90e629) no-repeat ! important;
     filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#90e629', EndColorStr='#73b821', GradientType=0) ! important;*/
+}
+
+#graph .node {
+    padding: 2px 6px;
+    margin: 4px 0 4px 0;
 }
 
 button {

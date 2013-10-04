@@ -85,7 +85,7 @@ var _Images = {
         
         //_Images.refreshFolders();
         _Images.refreshImages();
-
+        
     //_Images.resize();
     },
 

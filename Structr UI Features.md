@@ -10,6 +10,7 @@ All content elements are stored in a graph structure and rendered top-down from 
 - Per-node visibility and access control settings
 - Per-node locale settings (hide/show nodes based on language settings)
 - Response times: < 100 ms (20 ms typically)
+- Partial rendering
 
 #### Page Editor
 - Modify pages by drag and drop
