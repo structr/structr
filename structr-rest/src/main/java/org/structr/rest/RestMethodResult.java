@@ -44,17 +44,24 @@ public class RestMethodResult {
 	private List<GraphObject> content = null;
 	private Map<String, String> headers = null;
 	private int responseCode = 0;
+	private boolean serializeSingleObjectAsCollection = false;
 
 	public RestMethodResult(int responseCode) {
 		headers = new LinkedHashMap<String, String>();
 		this.responseCode = responseCode;
 	}
 
-	public void addHeader(String key, String value) {
+	public RestMethodResult(int responseCode, final boolean serializeSingleObjectAsCollection) {
+		headers = new LinkedHashMap<String, String>();
+		this.responseCode = responseCode;
+		this.serializeSingleObjectAsCollection = serializeSingleObjectAsCollection;
+	}
+
+	public void addHeader(final String key, final String value) {
 		headers.put(key, value);
 	}
 
-	public void addContent(GraphObject graphObject) {
+	public void addContent(final GraphObject graphObject) {
 
 		if(this.content == null) {
 			this.content = new LinkedList<GraphObject>();
@@ -63,7 +70,7 @@ public class RestMethodResult {
 		this.content.add(graphObject);
 	}
 
-	public void commitResponse(Gson gson, HttpServletResponse response) {
+	public void commitResponse(final Gson gson, final HttpServletResponse response) {
 
 		// set headers
 		for(Entry<String, String> header : headers.entrySet()) {
@@ -79,7 +86,7 @@ public class RestMethodResult {
 			if(content != null) {
 
 				// create result set
-				Result result = new Result(this.content, this.content.size(), this.content.size() > 1, false);
+				Result result = new Result(this.content, this.content.size(), this.content.size() > 1 || serializeSingleObjectAsCollection, false);
 
 				// serialize result set
 				gson.toJson(result, writer);
