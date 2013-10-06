@@ -142,11 +142,10 @@ var _Elements = {
         });
 
         var remoteWidgetsArea = $('#remoteWidgets', widgetsSlideout);
-        var baseUrl = 'http://widgets.structr.org:8084/structr/rest/widgets';
-        _Widgets.getRemoteWidgets(baseUrl, function(entity) {
+        _Widgets.getRemoteWidgets(widgetsUrl, function(entity) {
 
             var obj = StructrModel.create(entity, undefined, false);
-            obj.srcUrl = baseUrl + '/' + entity.id;
+            obj.srcUrl = widgetsUrl + '/' + entity.id;
             _Widgets.appendWidgetElement(obj, true, remoteWidgetsArea);
 
         });

@@ -17,7 +17,7 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-var widgets, remoteWidgets, remoteHost = 'widgets.structr.org', remotePort = 8084;
+var widgets, remoteWidgets, widgetsUrl = 'http://widgets.structr.org/structr/rest/widgets';
 var win = $(window);
 
 $(document).ready(function() {
@@ -90,15 +90,14 @@ var _Widgets = {
         remoteWidgets.empty();
         remoteWidgets.append('<h2>Remote Widgets</h2>');
         
-        if (document.location.hostname === remoteHost && document.location.port === remotePort) {
+        if (widgetsUrl.startsWith(document.location.hostname)) {
             return;
         }
         
-        var baseUrl = 'http://' + remoteHost + ':' + remotePort + '/structr/rest/widgets';
-        _Widgets.getRemoteWidgets(baseUrl, function(entity) {
+        _Widgets.getRemoteWidgets(widgetsUrl, function(entity) {
             
             var obj = StructrModel.create(entity, undefined, false);
-            obj.srcUrl = baseUrl + '/' + entity.id;
+            obj.srcUrl = widgetsUrl + '/' + entity.id;
             _Widgets.appendWidgetElement(obj, true);
             
         });

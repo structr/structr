@@ -262,8 +262,6 @@ var _Dragndrop = {
     },
     widgetDropped: function(source, target, pageId) {
 
-        var baseUrl = 'http://' + remoteHost + ':' + remotePort;
-
         Structr.modules['widgets'].unload();
         _Pages.makeMenuDroppable();
 
@@ -310,7 +308,7 @@ var _Dragndrop = {
 
                         //console.log(source.source, elementId, pageId, attrs);
                         e.stopPropagation();
-                        Command.appendWidget(text, target.id, pageId, baseUrl, attrs);
+                        Command.appendWidget(text, target.id, pageId, widgetsUrl, attrs);
 
                         dialogCancelButton.click();
                         return false;
@@ -321,7 +319,7 @@ var _Dragndrop = {
             } else {
 
                 // If no matches, directly append widget
-                Command.appendWidget(source.source, target.id, pageId, baseUrl);
+                Command.appendWidget(source.source, target.id, pageId, widgetsUrl);
 
             }
 
