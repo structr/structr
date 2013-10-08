@@ -20,21 +20,25 @@
 
 package org.structr.web.entity.html;
 
+import org.structr.common.PropertyView;
+import org.structr.core.property.Property;
+import org.structr.web.common.HtmlProperty;
 import org.structr.web.entity.dom.DOMElement;
 
 /**
  * @author Axel Morgner
  */
 public class Embed extends DOMElement {
-//
-//	static {
-//
-//		EntityContext.registerPropertySet(Embed.class, PropertyView.All, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Embed.class, PropertyView.Public, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Embed.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-//
-//	}
 
+	public static final Property<String> _src		= new HtmlProperty("src");
+	public static final Property<String> _type		= new HtmlProperty("type");
+	public static final Property<String> _width		= new HtmlProperty("width");
+	public static final Property<String> _height		= new HtmlProperty("height");
+
+	public static final org.structr.common.View htmlView	= new org.structr.common.View(Embed.class, PropertyView.Html,
+		_src, _type, _width, _height
+	);
+	
 	//~--- get methods ----------------------------------------------------
 
 	@Override

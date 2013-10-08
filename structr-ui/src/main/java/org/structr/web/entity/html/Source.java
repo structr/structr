@@ -20,20 +20,23 @@
 
 package org.structr.web.entity.html;
 
+import org.structr.common.PropertyView;
+import org.structr.core.property.Property;
+import org.structr.web.common.HtmlProperty;
 import org.structr.web.entity.dom.DOMElement;
 
 /**
  * @author Axel Morgner
  */
 public class Source extends DOMElement {
-//
-//	static {
-//
-//		EntityContext.registerPropertySet(Source.class, PropertyView.All, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Source.class, PropertyView.Public, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Source.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-//
-//	}
+
+	public static final Property<String> _src		= new HtmlProperty("src");
+	public static final Property<String> _type		= new HtmlProperty("type");
+	public static final Property<String> _media		= new HtmlProperty("media");
+	
+	public static final org.structr.common.View htmlView	= new org.structr.common.View(Source.class, PropertyView.Html,
+		_src, _type, _media
+	);
 
 	//~--- get methods ----------------------------------------------------
 
