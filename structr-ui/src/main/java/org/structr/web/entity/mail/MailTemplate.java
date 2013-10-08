@@ -51,7 +51,7 @@ public class MailTemplate extends AbstractNode {
 	public static final Property<String>        locale = new StringProperty("locale");
 	
 	public static final org.structr.common.View uiView = new org.structr.common.View(NewsTickerItem.class, PropertyView.Ui,
-		type, name, text
+		type, name, text, locale
 	);
 	
 	public static final org.structr.common.View publicView = new org.structr.common.View(NewsTickerItem.class, PropertyView.Public,
