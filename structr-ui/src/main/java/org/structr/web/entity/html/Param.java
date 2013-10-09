@@ -20,21 +20,22 @@
 
 package org.structr.web.entity.html;
 
+import org.structr.common.PropertyView;
+import org.structr.core.property.Property;
+import org.structr.web.common.HtmlProperty;
 import org.structr.web.entity.dom.DOMElement;
 
 /**
  * @author Axel Morgner
  */
 public class Param extends DOMElement {
-//
-//	static {
-//
-//		EntityContext.registerPropertySet(Param.class, PropertyView.All, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Param.class, PropertyView.Public, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Param.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-//
-//	}
 
+	public static final Property<String> _value		= new HtmlProperty("value");
+
+	public static final org.structr.common.View htmlView	= new org.structr.common.View(Param.class, PropertyView.Html,
+		_value
+	);
+	
 	//~--- get methods ----------------------------------------------------
 
 	@Override
