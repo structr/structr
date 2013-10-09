@@ -223,8 +223,10 @@ function connect() {
 
             } else if (command === 'GET_PROPERTY') { /*********************** GET_PROPERTY ************************/
 
-                log('GET_PROPERTY', data.data['key']);
-                StructrModel.updateKey(id, key, val);
+                log('GET_PROPERTY', data.id, data.data['key'], data.data[data.data['key']]);
+                StructrModel.updateKey(data.id, data.data['key'], data.data[data.data['key']]);
+                StructrModel.callCallback(data.callback, data.data[data.data['key']]);
+                StructrModel.clearCallback(data.callback);
 
             } else if (command === 'GET' || command === 'UPDATE') { /*********************** GET / UPDATE ************************/
 

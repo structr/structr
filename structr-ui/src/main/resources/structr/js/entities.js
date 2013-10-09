@@ -20,7 +20,7 @@
 var buttonClicked;
 
 var _Entities = {
-    booleanAttrs: ['visibleToPublicUsers', 'visibleToAuthenticatedUsers', 'hidden', 'deleted', 'blocked', 'frontendUser', 'backendUser', 'hideOnIndex', 'hideOnEdit', 'hideOnNonEdit', 'hideOnDetail', 'renderDetails'],
+    booleanAttrs: ['visibleToPublicUsers', 'visibleToAuthenticatedUsers', 'isAdmin', 'hidden', 'deleted', 'blocked', 'frontendUser', 'backendUser', 'hideOnIndex', 'hideOnEdit', 'hideOnNonEdit', 'hideOnDetail', 'renderDetails'],
     numberAttrs: ['position', 'size'],
     dateAttrs: ['createdDate', 'lastModifiedDate', 'visibilityStartDate', 'visibilityEndDate'],
     hiddenAttrs: ['base', 'deleted', 'ownerId', 'owner', 'group', 'categories', 'tag', 'createdBy', 'visibilityStartDate', 'visibilityEndDate', 'parentFolder', 'url', 'path', 'elements', 'components', 'paths', 'parents'],
@@ -314,7 +314,9 @@ var _Entities = {
                                                 log('set property', id, key, checked);
                                                 Command.setProperty(id, key, checked);
                                             });
-                                            Command.getProperty(id, key, '#dialogBox');
+                                            Command.getProperty(id, key, function(val) {
+                                                if (val) checkbox.prop('checked', true);
+                                            });
                                         } else if (isIn(key, _Entities.dateAttrs)) {
                                             if (!res[key] || res[key] === 'null') {
                                                 res[key] = '';

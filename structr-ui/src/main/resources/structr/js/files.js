@@ -46,7 +46,7 @@ var _Files = {
 	
     init : function() {
 
-        console.log('_Files.init');
+        log('_Files.init');
 
         Structr.initPager('Folder', 1, 25);
         Structr.initPager('File', 1, 25);
@@ -81,7 +81,7 @@ var _Files = {
         
         _Files.init();
         
-        console.log('_Files.onload');
+        log('_Files.onload');
 
         //main.append('<table id="dropArea"><tr><td id="folders"></td><td id="files"></td><td id="images"></td></tr></table>');
         main.append('<div id="dropArea"><div class="fit-to-height" id="folders"></div><div class="fit-to-height" id="files"></div>');
