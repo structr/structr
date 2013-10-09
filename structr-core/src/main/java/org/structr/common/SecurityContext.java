@@ -311,7 +311,7 @@ public class SecurityContext {
 
 		Principal user = getUser(false);
 
-		return ((user != null) && (user instanceof SuperUser));
+		return ((user != null) && (user instanceof SuperUser || user.getProperty(Principal.isAdmin)));
 
 	}
 

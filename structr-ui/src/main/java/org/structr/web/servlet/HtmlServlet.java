@@ -535,8 +535,8 @@ public class HtmlServlet extends HttpServlet {
 
 		if (CONFIRM_REGISTRATION_PAGE.equals(path)) {
 		
-			List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
-			searchAttrs.add(Search.andExactType(User.class));
+			List<SearchAttribute> searchAttrs = new LinkedList();
+			searchAttrs.add(Search.andExactTypeAndSubtypes(Principal.class));
 			searchAttrs.add(Search.andExactProperty(securityContext, User.confirmationKey, key));
 
 			Result results = (Result) searchNodesAsSuperuser.execute(searchAttrs);

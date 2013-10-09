@@ -59,7 +59,7 @@ public class User extends AbstractUser implements Principal {
 	public static final CollectionProperty<Group> groups          = new CollectionProperty<Group>("groups", Group.class, RelType.CONTAINS, Direction.INCOMING, new PropertyNotion(uuid), false);
 	
 	public static final org.structr.common.View uiView = new org.structr.common.View(User.class, PropertyView.Ui,
-		type, name, eMail, password, blocked, sessionId, confirmationKey, backendUser, frontendUser, groups, img
+		type, name, eMail, isAdmin, password, blocked, sessionId, confirmationKey, backendUser, frontendUser, groups, img
 	);
 	
 	public static final org.structr.common.View publicView = new org.structr.common.View(User.class, PropertyView.Public,

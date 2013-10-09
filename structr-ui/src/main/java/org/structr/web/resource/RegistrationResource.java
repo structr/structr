@@ -29,12 +29,10 @@ import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.CreateNodeCommand;
-import org.structr.core.graph.NodeAttribute;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.NotAllowedException;
 import org.structr.rest.resource.Resource;
-import org.structr.web.entity.User;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -49,8 +47,8 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang.StringUtils;
-import org.neo4j.cypher.internal.commands.expressions.Collection;
 import org.structr.core.auth.AuthHelper;
+import org.structr.core.auth.Authenticator;
 import org.structr.core.entity.Person;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.StructrTransaction;
@@ -59,6 +57,7 @@ import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.property.PropertyMap;
+import org.structr.web.entity.User;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.mail.MailTemplate;
 import org.structr.web.servlet.HtmlServlet;
@@ -130,7 +129,7 @@ public class RegistrationResource extends Resource {
 			confKey = UUID.randomUUID().toString();
 			
 			Result result = Services.command(superUserContext, SearchNodeCommand.class).execute(
-				Search.andExactType(User.class),
+				Search.andExactTypeAndSubtypes(User.class),
 				Search.andExactProperty(superUserContext, User.eMail, emailString));
 				
 			if (!result.isEmpty()) {
@@ -153,7 +152,8 @@ public class RegistrationResource extends Resource {
 				
 			} else {
 
-				user = createUser(securityContext, User.eMail, emailString, propertySet, securityContext.getAuthenticator().getUserAutoCreate());
+				Authenticator auth = securityContext.getAuthenticator();
+				user = createUser(securityContext, User.eMail, emailString, propertySet, auth.getUserAutoCreate(), auth.getUserClass());
 			}
 			
 			if (user != null) {
@@ -295,7 +295,7 @@ public class RegistrationResource extends Resource {
 	 */
 	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue) {
 		
-		return createUser(securityContext, credentialKey, credentialValue, Collections.EMPTY_MAP, false);
+		return createUser(securityContext, credentialKey, credentialValue, Collections.EMPTY_MAP);
 		
 	}	
 	
@@ -316,11 +316,12 @@ public class RegistrationResource extends Resource {
 		return createUser(securityContext, credentialKey, credentialValue, propertySet, false);
 		
 	}	
-/**
+
+	/**
 	 * Create a new user.
 	 * 
 	 * If a {@link Person} is found, convert that object to a {@link User} object.
-	 * If autoCreate is true, auto-create a new user, even if no matching person is found.
+	 * Do not auto-create a new user.
 	 * 
 	 * @param securityContext
 	 * @param credentialKey
@@ -330,10 +331,29 @@ public class RegistrationResource extends Resource {
 	 */
 	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final boolean autoCreate) {
 		
-		return createUser(securityContext, credentialKey, credentialValue, Collections.EMPTY_MAP, false);
+		return createUser(securityContext, credentialKey, credentialValue, Collections.EMPTY_MAP, autoCreate);
 		
 	}	
+
+	/**
+	 * Create a new user.
+	 * 
+	 * If a {@link Person} is found, convert that object to a {@link User} object.
+	 * Do not auto-create a new user.
+	 * 
+	 * @param securityContext
+	 * @param credentialKey
+	 * @param credentialValue
+	 * @param autoCreate
+	 * @param userClass
+	 * @return 
+	 */
+	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final boolean autoCreate, final Class userClass) {
 		
+		return createUser(securityContext, credentialKey, credentialValue, Collections.EMPTY_MAP, autoCreate, userClass);
+		
+	}	
+
 	/**
 	 * Create a new user.
 	 * 
@@ -348,6 +368,26 @@ public class RegistrationResource extends Resource {
 	 * @return 
 	 */
 	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final Map<String, Object> propertySet, final boolean autoCreate) {
+		
+		return createUser(securityContext, credentialKey, credentialValue, propertySet, autoCreate, User.class);
+		
+	}	
+		
+	/**
+	 * Create a new user.
+	 * 
+	 * If a {@link Person} is found, convert that object to a {@link User} object.
+	 * If autoCreate is true, auto-create a new user, even if no matching person is found.
+	 * 
+	 * @param securityContext
+	 * @param credentialKey
+	 * @param credentialValue
+	 * @param propertySet
+	 * @param autoCreate
+	 * @param userClass
+	 * @return 
+	 */
+	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final Map<String, Object> propertySet, final boolean autoCreate, final Class userClass) {
 
 		try {
 			return Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<Principal>() {
@@ -376,7 +416,7 @@ public class RegistrationResource extends Resource {
 
 					} else if (autoCreate) {
 						
-						propertySet.put(AbstractNode.type.jsonName(), User.class.getSimpleName());
+						propertySet.put(AbstractNode.type.jsonName(), userClass != null ? userClass.getSimpleName() : User.class.getSimpleName());
 
 						PropertyMap props = PropertyMap.inputTypeToJavaType(securityContext, propertySet);
 						props.put(credentialKey, credentialValue);

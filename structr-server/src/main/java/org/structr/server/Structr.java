@@ -64,6 +64,7 @@ import org.structr.core.auth.AuthenticationService;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.cron.CronService;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Principal;
 import org.structr.core.log.LogService;
 import org.structr.core.module.ModuleService;
 import org.structr.core.graph.NodeService;
@@ -119,6 +120,7 @@ public class Structr {
 	private Class<? extends ResourceProvider> resourceProvider = null;
 	private Class<? extends Authenticator> authenticator       = null;
 	private boolean userAutoCreate                             = false;
+	private Class<? extends Principal> userClass               = null;
 	
 	private String defaultPropertyView                         = PropertyView.Public;
 	
@@ -390,6 +392,17 @@ public class Structr {
 		return this;
 	}
 	
+	/**
+	 * Create a user of this class
+	 * 
+	 * @param userClass
+	 * @return 
+	 */
+	public Structr userClass(final Class userClass) {
+		this.userClass = userClass;
+		return this;
+	}
+
 	/**
 	 * Adds a servlet with the given mapping to the servlet container structr runs in.
 	 * 
@@ -686,7 +699,10 @@ public class Structr {
 
 		servletParams.put("PropertyFormat", "FlatNameValue");
 		servletParams.put(AuthenticationService.SERVLET_PARAMETER_AUTHENTICATOR, authenticator.getName());
-		servletParams.put(AuthenticationService.SERVLET_PARAMETER_USER_AUTO_CREATE, Boolean.toString(userAutoCreate));
+		servletParams.put(AuthenticationService.SERVLET_PARAMETER_USER_AUTO_CREATE,	Boolean.toString(userAutoCreate));
+		if (userClass != null) {
+			servletParams.put(AuthenticationService.SERVLET_PARAMETER_USER_CLASS,		userClass.getName());
+		}
 
 		structrRestServletHolder.setInitParameters(servletParams);
 		structrRestServletHolder.setInitOrder(0);
