@@ -620,11 +620,10 @@ function StructrApp(baseUrl) {
         });
 
     };
-    this.hideEdit = function(container){ // shows not edit mode
+    this.hideEdit = function(container) {
         
         // show elements [data-structr-hide="non-edit"]
-        $.each($('div[data-structr-hide-id]',container),function(){
-            
+        $.each($('[data-structr-hide-id]', container), function() {
            var id = $(this).attr('data-structr-hide-id');
            $(this).replaceWith(hideNonEditElements[id]);
            delete hideNonEditElements[id];
@@ -632,7 +631,7 @@ function StructrApp(baseUrl) {
         });
         
         // hide edit elements
-        $.each($('[data-structr-hide="edit"]', container), function(i, obj){
+        $.each($('[data-structr-hide="edit"]', container), function(i, obj) {
             
             var random = Math.floor(Math.random()*1000000+1);
             
@@ -642,13 +641,13 @@ function StructrApp(baseUrl) {
         
         $(document).trigger("structr-edit");
     };
-    this.hideNonEdit = function(container){ // shows edit mode
+    this.hideNonEdit = function(container) {
         
         //first call to hide all non-edit elements
-        if(container === undefined){
+        if (container === undefined){
             
             // hide all non-edit elements
-            $.each($('[data-structr-hide="non-edit"]'), function(i, obj){ 
+            $.each($('[data-structr-hide="non-edit"]'), function(i, obj) { 
                 
                 var random = Math.floor(Math.random()*1000000+1);
                 
@@ -656,10 +655,10 @@ function StructrApp(baseUrl) {
                 $(obj).replaceWith('<div style="display:none;" data-structr-hide-id="'+random+'"></div>');
             });
             
-        } else{
+        } else {
             
             // show elements [data-structr-hide="edit"]
-            $.each($('div[data-structr-hide-id]',container),function(){
+            $.each($('[data-structr-hide-id]', container), function() {
             
                 var id = $(this).attr("data-structr-hide-id");
                 $(this).replaceWith(hideEditElements[id]);
@@ -668,7 +667,7 @@ function StructrApp(baseUrl) {
              });
             
             // hide non-edit elements
-            $.each($('[data-structr-hide="non-edit"]', container),function(i, obj){
+            $.each($('[data-structr-hide="non-edit"]', container), function(i, obj) {
                 
                 var random = Math.floor(Math.random()*1000000+1);
                 
