@@ -63,19 +63,9 @@ post resource_access '{"signature":"_schema/PropertyDefinition","flags":255}'
 post resource_access '{"signature":"_schema/Post","flags":255}'
 post resource_access '{"signature":"_schema/Comment","flags":255}'
 post resource_access '{"signature":"_schema/ResourceAccess","flags":255}'
-post resource_access '{"signature":"_schema/Principal","flags":255}'
 post resource_access '{"signature":"_schema/Person","flags":255}'
 post resource_access '{"signature":"_schema/Widget","flags":255}'
 
-
-# Principals don't show up in structr UI
-post resource_access '{"signature":"Principal","flags":255}'
-post resource_access '{"signature":"Principal/_All","flags":255}'
-post resource_access '{"signature":"Principal/_Html","flags":255}'
-post resource_access '{"signature":"Principal/_Public","flags":255}'
-post resource_access '{"signature":"Principal/_Protected","flags":255}'
-post resource_access '{"signature":"Principal/_Ui","flags":255}'
-post resource_access '{"signature":"Principal/Id","flags":255}'
 
 ################################################
 #     Add your entities like so (and don't     
