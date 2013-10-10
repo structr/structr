@@ -122,7 +122,7 @@ var _Types = {
         _Types.loadAccessibleResources(function() {
             $.each(_Types.types, function(t, type) {
                 //console.log('Loading type definition for ' + type + '...');
-                if (type.startsWith('_schema')) {
+                if (type.startsWith('_')) {
                     return;
                 }
                 _Types.loadTypeDefinition(type, callback);
@@ -155,7 +155,7 @@ var _Types = {
                 $.each(data.result, function(i, res) {
                     var type = getTypeFromResourceSignature(res.signature);
                     //console.log(res);
-                    if (type !== '_schema' && !isIn(type, _Types.types)) {
+                    if (type && !(type.startsWith('_')) && !isIn(type, _Types.types)) {
                         _Types.types.push(type);
                         types.push({'type': type, 'position': res.position});
                     }

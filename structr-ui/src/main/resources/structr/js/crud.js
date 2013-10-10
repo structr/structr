@@ -236,7 +236,7 @@ var _Crud = {
         _Crud.loadAccessibleResources(function() {
             $.each(_Crud.types, function(t, type) {
                 //console.log('Loading type definition for ' + type + '...');
-                if (type.startsWith('_schema')) {
+                if (!type || type.startsWith('_')) {
                     return;
                 }
                 _Crud.loadTypeDefinition(type, callback);
@@ -259,8 +259,9 @@ var _Crud = {
                 $.each(data.result, function(i, res) {
                     var type = getTypeFromResourceSignature(res.signature);
                     //console.log(res);
-                    if (type !== '_schema' && !isIn(type, _Crud.types)) {
+                    if (type && !(type.startsWith('_')) && !isIn(type, _Crud.types)) {
                         _Crud.types.push(type);
+                        //console.log(type, res.position);
                         types.push({'type': type, 'position': res.position});
                     }
                 });
@@ -276,7 +277,7 @@ var _Crud = {
                 if (callback) {
                     callback();
                 }
-                
+
             }
         });
     },
