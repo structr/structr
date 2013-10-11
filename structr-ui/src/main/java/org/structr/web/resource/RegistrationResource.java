@@ -40,6 +40,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -113,7 +114,9 @@ public class RegistrationResource extends Resource {
 
 	@Override
 	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
-
+		
+		boolean existingUser = false;
+		
 		if (propertySet.containsKey(User.eMail.jsonName())) {
 			
 			SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
@@ -136,6 +139,8 @@ public class RegistrationResource extends Resource {
 				
 				user = (Principal) result.get(0);
 				
+				// For existing users, update confirmation key
+				
 				Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
 					@Override
@@ -146,8 +151,7 @@ public class RegistrationResource extends Resource {
 					}
 				});
 				
-				// return 200 OK
-				return new RestMethodResult(HttpServletResponse.SC_OK);
+				existingUser = true;
 
 				
 			} else {
@@ -158,15 +162,26 @@ public class RegistrationResource extends Resource {
 			
 			if (user != null) {
 
-				if (!sendInvitationLink(user)) {
+				if (!sendInvitationLink(user, propertySet)) {
 					
 					// return 400 Bad request
 					return new RestMethodResult(HttpServletResponse.SC_BAD_REQUEST);
 					
 				}
 				
-				// return 201 Created
-				return new RestMethodResult(HttpServletResponse.SC_CREATED);
+				// If we have just updated the confirmation key for an existing user,
+				// return 200 to distinguish from new users
+				if (existingUser) {
+					
+					// return 200 OK
+					return new RestMethodResult(HttpServletResponse.SC_OK);
+					
+				} else {
+				
+					// return 201 Created
+					return new RestMethodResult(HttpServletResponse.SC_CREATED);
+					
+				}
 
 			} else {
 				
@@ -206,9 +221,13 @@ public class RegistrationResource extends Resource {
 
 	}
 
-	private boolean sendInvitationLink(final Principal user) {
+	private boolean sendInvitationLink(final Principal user, final Map<String, Object> propertySetFromUserPOST) {
 
 		Map<String, String> replacementMap = new HashMap();
+		
+		// Populate the replacement map with all POSTed values
+		// WARNING! This is unchecked user input!!
+		populateReplacementMap(replacementMap, propertySetFromUserPOST);
 
 		String userEmail = user.getProperty(User.eMail);
 		
@@ -273,6 +292,16 @@ public class RegistrationResource extends Resource {
 		}
 		
 		return null;
+		
+	}
+	
+	private static void populateReplacementMap(final Map<String, String> replacementMap, final Map<String, Object> props) {
+		
+		for (Entry<String, Object> entry : props.entrySet()) {
+			
+			replacementMap.put(toPlaceholder(entry.getKey()), entry.getValue().toString());
+			
+		}
 		
 	}
 	
