@@ -34,6 +34,7 @@ import org.structr.web.common.DOMTest;
 import org.structr.web.common.RenderContext;
 import org.w3c.dom.Element;
 import static org.mockito.Mockito.*;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.web.common.RenderContext.EditMode;
@@ -58,21 +59,21 @@ public class RenderDataTest extends DOMTest {
 			
 			assertEquals(7, folders.size());
 			
-			Folder rootNode = folders.get(0); rootNode.setName("rootNode");
-			Folder folderA    = folders.get(1); folderA.setName("folderA");
-			Folder folderB    = folders.get(2); folderB.setName("folderB");
-			Folder folderC    = folders.get(3); folderC.setName("folderC");
-			Folder folderD    = folders.get(4); folderD.setName("folderD");
-			Folder folderE    = folders.get(5); folderE.setName("folderE");
-			Folder folderF    = folders.get(6); folderF.setName("folderF");
+			Folder rootNode = folders.get(0); rootNode.setProperty(AbstractNode.name, "rootNode");
+			Folder folderA    = folders.get(1); folderA.setProperty(AbstractNode.name, "folderA");
+			Folder folderB    = folders.get(2); folderB.setProperty(AbstractNode.name, "folderB");
+			Folder folderC    = folders.get(3); folderC.setProperty(AbstractNode.name, "folderC");
+			Folder folderD    = folders.get(4); folderD.setProperty(AbstractNode.name, "folderD");
+			Folder folderE    = folders.get(5); folderE.setProperty(AbstractNode.name, "folderE");
+			Folder folderF    = folders.get(6); folderF.setProperty(AbstractNode.name, "folderF");
 
-			File file1    = files.get(0); file1.setName("file1");
-			File file2    = files.get(1); file2.setName("file2");
-			File file3    = files.get(2); file3.setName("file3");
-			File file4    = files.get(3); file4.setName("file4");
-			File file5    = files.get(4); file5.setName("file5");
-			File file6    = files.get(5); file6.setName("file6");
-			File file7    = files.get(6); file7.setName("file7");
+			File file1    = files.get(0); file1.setProperty(AbstractNode.name, "file1");
+			File file2    = files.get(1); file2.setProperty(AbstractNode.name, "file2");
+			File file3    = files.get(2); file3.setProperty(AbstractNode.name, "file3");
+			File file4    = files.get(3); file4.setProperty(AbstractNode.name, "file4");
+			File file5    = files.get(4); file5.setProperty(AbstractNode.name, "file5");
+			File file6    = files.get(5); file6.setProperty(AbstractNode.name, "file6");
+			File file7    = files.get(6); file7.setProperty(AbstractNode.name, "file7");
 			
 			rootNode.treeAppendChild(RelType.CONTAINS, folderA);
 			rootNode.treeAppendChild(RelType.CONTAINS, folderB);
@@ -174,20 +175,20 @@ public class RenderDataTest extends DOMTest {
 			
 			assertEquals(3, users.size());
 			
-			User user1    = users.get(0); user1.setName("user1");
-			User user2    = users.get(1); user2.setName("user2");
-			User user3    = users.get(2); user3.setName("user3");
+			User user1    = users.get(0); user1.setProperty(AbstractNode.name, "user1");
+			User user2    = users.get(1); user2.setProperty(AbstractNode.name, "user2");
+			User user3    = users.get(2); user3.setProperty(AbstractNode.name, "user3");
 			
 			final List<File> files = this.createTestNodes(File.class, 6);
 			
 			assertEquals(6, files.size());
 			
-			File nodeA    = files.get(0); nodeA.setName("fileA");
-			File nodeB    = files.get(1); nodeB.setName("fileB");
-			File nodeC    = files.get(2); nodeC.setName("fileC");
-			File nodeD    = files.get(3); nodeD.setName("fileD");
-			File nodeE    = files.get(4); nodeE.setName("fileE");
-			File nodeF    = files.get(5); nodeF.setName("fileF");
+			File nodeA    = files.get(0); nodeA.setProperty(AbstractNode.name, "fileA");
+			File nodeB    = files.get(1); nodeB.setProperty(AbstractNode.name, "fileB");
+			File nodeC    = files.get(2); nodeC.setProperty(AbstractNode.name, "fileC");
+			File nodeD    = files.get(3); nodeD.setProperty(AbstractNode.name, "fileD");
+			File nodeE    = files.get(4); nodeE.setProperty(AbstractNode.name, "fileE");
+			File nodeF    = files.get(5); nodeF.setProperty(AbstractNode.name, "fileF");
 			
 			// create dom tree
 			Element html     = doc.createElement("html");

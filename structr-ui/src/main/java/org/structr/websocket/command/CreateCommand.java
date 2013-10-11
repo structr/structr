@@ -95,7 +95,7 @@ public class CreateCommand extends AbstractCommand {
 				fileNode.setRelativeFilePath(File.getDirectoryPath(uuid) + "/" + uuid);
 				fileNode.setSize(size);
 				fileNode.setContentType(contentType);
-				fileNode.setName(name);
+				fileNode.setProperty(AbstractNode.name, name);
 				
 				getWebSocket().createFileUploadHandler(fileNode);
 

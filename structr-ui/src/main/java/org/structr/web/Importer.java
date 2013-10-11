@@ -218,8 +218,8 @@ public class Importer {
 
 					if (page != null) {
 
-						page.setVisibleToAuthenticatedUsers(authVisible);
-						page.setVisibleToPublicUsers(publicVisible);
+						page.setProperty(AbstractNode.visibleToAuthenticatedUsers, authVisible);
+						page.setProperty(AbstractNode.visibleToPublicUsers, publicVisible);
 						createChildNodes(parsedDocument, page, page, baseUrl);
 						logger.log(Level.INFO, "##### Finished fetching {0} for page {1} #####", new Object[] { address, name });
 

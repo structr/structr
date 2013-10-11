@@ -150,7 +150,7 @@ public class ResourceAccessTest extends StructrUiTest {
 			final String name        = "testuser-01";
 			final String password    = "testpassword-01";
 			final User	testUser = createTestNodes(User.class, 1).get(0);
-			testUser.setName(name);
+			testUser.setProperty(AbstractNode.name, name);
 			
 			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
@@ -214,7 +214,7 @@ public class ResourceAccessTest extends StructrUiTest {
 			final String name        = "testuser-01";
 			final String password    = "testpassword-01";
 			final User	testUser = createTestNodes(User.class, 1).get(0);
-			testUser.setName(name);
+			testUser.setProperty(AbstractNode.name, name);
 			
 			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 

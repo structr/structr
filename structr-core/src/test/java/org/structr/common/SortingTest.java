@@ -116,7 +116,7 @@ public class SortingTest extends StructrTest {
 
 						i++;
 
-						node.setName(name);
+						node.setProperty(AbstractNode.name, name);
 
 					}
 					
@@ -190,7 +190,7 @@ public class SortingTest extends StructrTest {
 
 						i++;
 
-						node.setName(name);
+						node.setProperty(AbstractNode.name, name);
 
 					}
 					
@@ -269,7 +269,7 @@ public class SortingTest extends StructrTest {
 
 						i++;
 
-						node.setName("TestOne-" + name);
+						node.setProperty(AbstractNode.name, "TestOne-" + name);
 
 						node.setProperty(TestOne.aDate, new Date());
 						
@@ -352,7 +352,7 @@ public class SortingTest extends StructrTest {
 
 						i++;
 
-						node.setName(name);
+						node.setProperty(AbstractNode.name, name);
 
 						// slow down execution speed to make sure distinct changes fall in different milliseconds
 						try { Thread.sleep(2); } catch (Throwable t) {}
@@ -424,7 +424,7 @@ public class SortingTest extends StructrTest {
 					
 					for (AbstractNode node : nodes) {
 
-						node.setName(Integer.toString(i));
+						node.setProperty(AbstractNode.name, Integer.toString(i));
 						node.setProperty(key, i);
 
 						i++;

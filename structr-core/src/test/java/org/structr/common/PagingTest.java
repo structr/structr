@@ -144,7 +144,7 @@ public class PagingTest extends StructrTest {
 
 				i++;
 
-				node.setName(name);
+				node.setProperty(AbstractNode.name, name);
 			}
 
 			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
