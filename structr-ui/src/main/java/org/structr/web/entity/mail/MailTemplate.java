@@ -20,13 +20,22 @@
 
 package org.structr.web.entity.mail;
 
-import org.structr.web.entity.news.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.structr.core.property.Property;
 import org.neo4j.graphdb.Direction;
 
 import org.structr.common.PropertyView;
+import org.structr.common.ValidationHelper;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
+import org.structr.common.error.UniqueToken;
+import org.structr.core.Result;
+import org.structr.core.Services;
 import org.structr.web.common.RelType;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.search.Search;
+import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.notion.PropertySetNotion;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -34,7 +43,6 @@ import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.EntityProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
-import org.structr.core.validator.TypeUniquenessValidator;
 import org.structr.web.entity.dom.Content;
 
 //~--- classes ----------------------------------------------------------------
@@ -46,8 +54,10 @@ import org.structr.web.entity.dom.Content;
  *
  */
 public class MailTemplate extends AbstractNode {
+	
+	private static final Logger logger = Logger.getLogger(MailTemplate.class.getName());
 
-	public static final EntityProperty<Content> text   = new EntityProperty<Content>("text", Content.class, RelType.CONTAINS, Direction.OUTGOING, new PropertySetNotion(true, uuid, name), false);
+	public static final EntityProperty<Content> text   = new EntityProperty("text", Content.class, RelType.CONTAINS, Direction.OUTGOING, new PropertySetNotion(true, uuid, name), false);
 	public static final Property<String>        locale = new StringProperty("locale").indexed();
 	
 	public static final org.structr.common.View uiView = new org.structr.common.View(MailTemplate.class, PropertyView.Ui,
@@ -55,15 +65,47 @@ public class MailTemplate extends AbstractNode {
 	);
 	
 	public static final org.structr.common.View publicView = new org.structr.common.View(MailTemplate.class, PropertyView.Public,
-		type, name, text
+		type, name, text, locale
 	);
 	
-	static {
-		
-		MailTemplate.name.addValidator(new TypeUniquenessValidator(MailTemplate.class));
-	}
-
 	//~--- get methods ----------------------------------------------------
+	@Override
+	public boolean isValid(ErrorBuffer errorBuffer) {
+
+		boolean hasError = false;
+		
+		String _name	= getProperty(name);
+		String _locale	= getProperty(locale);
+		String _uuid	= getProperty(uuid);
+
+		hasError |= ValidationHelper.checkStringNotBlank(this, name, errorBuffer);
+		hasError |= ValidationHelper.checkStringNotBlank(this, locale, errorBuffer);
+
+		try {
+			Result<MailTemplate> res = (Result) Services.command(securityContext, SearchNodeCommand.class).execute(
+				Search.andExactType(MailTemplate.class),
+				Search.andExactName(_name),
+				Search.andExactProperty(securityContext, locale, _locale)
+			);
+
+			if (!res.isEmpty() && res.size() > 1) {
+				
+				hasError = true;
+				errorBuffer.add(MailTemplate.class.getName(), new UniqueToken(_uuid, name, _name));
+				errorBuffer.add(MailTemplate.class.getName(), new UniqueToken(_uuid, locale, _locale));
+			}
+			
+			
+		} catch (FrameworkException fe) {
+			
+			logger.log(Level.WARNING, "Could not search a MailTemplate with name {0} and locale {1}", new Object[]{getProperty(name), getProperty(locale)});
+			
+		}
+		
+
+		return !hasError;
+
+	}
 
 	@Override
 	public Object getPropertyForIndexing(final PropertyKey key) {
