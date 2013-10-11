@@ -127,54 +127,53 @@ public class ResourceAccessTest extends StructrUiTest {
 	public void test03ResourceAccessPUT() {
 
 		try {
-
-			Folder	testFolder	= createTestNodes(Folder.class, 1).get(0);
-			assertNotNull(testFolder);
-			
-			// no resource access node at all => forbidden
-			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().put("/folder/" + testFolder.getUuid());
-			
-			ResourceAccess folderGrant = createResourceAccess("Folder", UiAuthenticator.FORBIDDEN);
-
-			// resource access explicetly set to FORBIDDEN => forbidden
-			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().put("/folder/" + testFolder.getUuid());
-			
-			// allow PUT for authenticated users => access without user/pass should be still forbidden
-			folderGrant.setFlag(UiAuthenticator.AUTH_USER_PUT);
-			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().put("/folder/" + testFolder.getUuid());
-			
-			// allow PUT for non-authenticated users => access is forbidden with 403 because of missing rights for the test object
-			folderGrant.setFlag(UiAuthenticator.NON_AUTH_USER_PUT);
-			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(403).when().put("/folder/" + testFolder.getUuid());
-			
 			final String name        = "testuser-01";
 			final String password    = "testpassword-01";
 			final User	testUser = createTestNodes(User.class, 1).get(0);
-			testUser.setProperty(AbstractNode.name, name);
-			
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+			final Folder	testFolder	= createTestNodes(Folder.class, 1).get(0);
+
+			transactionCommand.execute(new StructrTransaction<AbstractNode>() {
 
 				@Override
-				public Object execute() throws FrameworkException {
+				public AbstractNode execute() throws FrameworkException {
 
+					assertNotNull(testFolder);
+
+					// no resource access node at all => forbidden
+					RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().put("/folder/" + testFolder.getUuid());
+
+					ResourceAccess folderGrant = createResourceAccess("Folder", UiAuthenticator.FORBIDDEN);
+
+					// resource access explicetly set to FORBIDDEN => forbidden
+					RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().put("/folder/" + testFolder.getUuid());
+
+					// allow PUT for authenticated users => access without user/pass should be still forbidden
+					folderGrant.setFlag(UiAuthenticator.AUTH_USER_PUT);
+					RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().put("/folder/" + testFolder.getUuid());
+
+					// allow PUT for non-authenticated users => access is forbidden with 403 because of missing rights for the test object
+					folderGrant.setFlag(UiAuthenticator.NON_AUTH_USER_PUT);
+					RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(403).when().put("/folder/" + testFolder.getUuid());
+
+					testUser.setProperty(AbstractNode.name, name);
 					testUser.setProperty(User.password, password);
-					
+				
+					// test user has no specific rights on the object => still 403
+					RestAssured.given()
+						.headers("X-User", name, "X-Password", password)
+						.contentType("application/json; charset=UTF-8").expect().statusCode(403).when().put("/folder/" + testFolder.getUuid());
+
+					// now we give the user ownership and expect a 200
+					testFolder.setProperty(AbstractNode.owner, testUser);
+
+					RestAssured.given()
+						.headers("X-User", name, "X-Password", password)
+						.contentType("application/json; charset=UTF-8").expect().statusCode(200).when().put("/folder/" + testFolder.getUuid());
+			
 					return null;
 				}
+
 			});
-			
-			// test user has no specific rights on the object => still 403
-			RestAssured.given()
-				.headers("X-User", name, "X-Password", password)
-				.contentType("application/json; charset=UTF-8").expect().statusCode(403).when().put("/folder/" + testFolder.getUuid());
-			
-			// now we give the user ownership and expect a 200
-			testFolder.setProperty(AbstractNode.owner, testUser);
-			
-			RestAssured.given()
-				.headers("X-User", name, "X-Password", password)
-				.contentType("application/json; charset=UTF-8").expect().statusCode(200).when().put("/folder/" + testFolder.getUuid());
-			
 			
 			
 		} catch (FrameworkException ex) {
@@ -192,53 +191,51 @@ public class ResourceAccessTest extends StructrUiTest {
 
 		try {
 
-			Folder	testFolder	= createTestNodes(Folder.class, 1).get(0);
+			final Folder	testFolder	= createTestNodes(Folder.class, 1).get(0);
 			assertNotNull(testFolder);
-			
-			// no resource access node at all => forbidden
-			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().delete("/folder/" + testFolder.getUuid());
-			
-			ResourceAccess folderGrant = createResourceAccess("Folder", UiAuthenticator.FORBIDDEN);
-
-			// resource access explicetly set to FORBIDDEN => forbidden
-			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().delete("/folder/" + testFolder.getUuid());
-			
-			// allow DELETE for authenticated users => access without user/pass should be still forbidden
-			folderGrant.setFlag(UiAuthenticator.AUTH_USER_DELETE);
-			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().delete("/folder/" + testFolder.getUuid());
-			
-			// allow DELETE for non-authenticated users => access is forbidden with 403 because of missing rights for the test object
-			folderGrant.setFlag(UiAuthenticator.NON_AUTH_USER_DELETE);
-			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(403).when().delete("/folder/" + testFolder.getUuid());
-			
 			final String name        = "testuser-01";
 			final String password    = "testpassword-01";
 			final User	testUser = createTestNodes(User.class, 1).get(0);
-			testUser.setProperty(AbstractNode.name, name);
-			
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+			transactionCommand.execute(new StructrTransaction<AbstractNode>() {
 
 				@Override
-				public Object execute() throws FrameworkException {
+				public AbstractNode execute() throws FrameworkException {
+			
+					// no resource access node at all => forbidden
+					RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().delete("/folder/" + testFolder.getUuid());
 
+					ResourceAccess folderGrant = createResourceAccess("Folder", UiAuthenticator.FORBIDDEN);
+
+					// resource access explicetly set to FORBIDDEN => forbidden
+					RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().delete("/folder/" + testFolder.getUuid());
+
+					// allow DELETE for authenticated users => access without user/pass should be still forbidden
+					folderGrant.setFlag(UiAuthenticator.AUTH_USER_DELETE);
+					RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().delete("/folder/" + testFolder.getUuid());
+
+					// allow DELETE for non-authenticated users => access is forbidden with 403 because of missing rights for the test object
+					folderGrant.setFlag(UiAuthenticator.NON_AUTH_USER_DELETE);
+					RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(403).when().delete("/folder/" + testFolder.getUuid());
+
+					testUser.setProperty(AbstractNode.name, name);
 					testUser.setProperty(User.password, password);
-					
+			
+					// test user has no specific rights on the object => still 403
+					RestAssured.given()
+						.headers("X-User", name, "X-Password", password)
+						.contentType("application/json; charset=UTF-8").expect().statusCode(403).when().delete("/folder/" + testFolder.getUuid());
+
+					// now we give the user ownership and expect a 200
+					testFolder.setProperty(AbstractNode.owner, testUser);
+
+					RestAssured.given()
+						.headers("X-User", name, "X-Password", password)
+						.contentType("application/json; charset=UTF-8").expect().statusCode(200).when().delete("/folder/" + testFolder.getUuid());
+			
 					return null;
 				}
 			});
-			
-			// test user has no specific rights on the object => still 403
-			RestAssured.given()
-				.headers("X-User", name, "X-Password", password)
-				.contentType("application/json; charset=UTF-8").expect().statusCode(403).when().delete("/folder/" + testFolder.getUuid());
-			
-			// now we give the user ownership and expect a 200
-			testFolder.setProperty(AbstractNode.owner, testUser);
-			
-			RestAssured.given()
-				.headers("X-User", name, "X-Password", password)
-				.contentType("application/json; charset=UTF-8").expect().statusCode(200).when().delete("/folder/" + testFolder.getUuid());
-			
 			
 			
 		} catch (FrameworkException ex) {

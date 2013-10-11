@@ -56,8 +56,18 @@ public class FrontendTest extends StructrUiTest {
 
 		try {
 			try {
-				createAdminUser();
-				createResourceAccess("_login", UiAuthenticator.NON_AUTH_USER_POST);
+				transactionCommand.execute(new StructrTransaction<AbstractNode>() {
+
+					@Override
+					public AbstractNode execute() throws FrameworkException {
+
+						createAdminUser();
+						createResourceAccess("_login", UiAuthenticator.NON_AUTH_USER_POST);
+						
+						return null;
+					}
+
+				});
 				
 			} catch (FrameworkException ex) {
 				logger.log(Level.SEVERE, "Could not create admin user", ex);
