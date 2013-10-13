@@ -63,7 +63,7 @@ public class ListFilesCommand extends AbstractCommand {
 		final SecurityContext securityContext  = getWebSocket().getSecurityContext();
 		String rawType                         = (String) webSocketData.getNodeData().get("type");
 		Class type                             = EntityContext.getEntityClassForRawType(rawType);
-		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+		List<SearchAttribute> searchAttributes = new LinkedList();
 
 		searchAttributes.add(Search.andExactType(type));
 		
@@ -82,7 +82,7 @@ public class ListFilesCommand extends AbstractCommand {
 
 			// do search
 			Result result = (Result) Services.command(securityContext, SearchNodeCommand.class).execute(true, false, searchAttributes, sortProperty, "desc".equals(sortOrder));
-			List<AbstractNode> filteredResults     = new LinkedList<AbstractNode>();
+			List<AbstractNode> filteredResults     = new LinkedList();
 			List<? extends GraphObject> resultList = result.getResults();
 
 			// add only root folders to the list

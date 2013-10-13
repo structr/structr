@@ -135,7 +135,7 @@ public class JsonInputGSONAdapter implements InstanceCreator<JsonInput>, JsonSer
 			JsonArray array = json.getAsJsonArray();
 			for(JsonElement elem : array) {
 
-				if(elem.isJsonPrimitive()) {
+				if (elem.isJsonPrimitive()) {
 					wrapper.add(elem.toString(), fromPrimitive(elem.getAsJsonPrimitive()));
 				} else if(elem.isJsonObject()) {
 					wrapper.add(elem.toString(), deserialize(elem, typeOfT, context));
@@ -151,14 +151,18 @@ public class JsonInputGSONAdapter implements InstanceCreator<JsonInput>, JsonSer
 	public static Object fromPrimitive(final JsonPrimitive p) {
 
 		if (p.isNumber()) {
-
+			
 			Number number = p.getAsNumber();
-			if (number instanceof Integer) {
-				return number.intValue();
-			} else if (number instanceof Long) {
-				return number.longValue();
-			} else {
+			
+			// Detect if value is floating point
+			if (p.getAsString().contains(".")) {
+				
 				return number.doubleValue();
+				
+			} else {
+				
+				return number.longValue();
+				
 			}
 
 		} else if (p.isBoolean()) {

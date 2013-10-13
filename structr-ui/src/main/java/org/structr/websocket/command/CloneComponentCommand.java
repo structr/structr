@@ -29,7 +29,6 @@ import org.structr.core.graph.CreateRelationshipCommand;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.web.entity.dom.DOMNode;
-import org.structr.web.entity.dom.Page;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -52,10 +51,10 @@ public class CloneComponentCommand extends AbstractCommand {
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
-		final SecurityContext securityContext = getWebSocket().getSecurityContext();
-		String id		= webSocketData.getId();
-		Map<String, Object> nodeData = webSocketData.getNodeData();
-		String parentId              = (String) nodeData.get("parentId");
+		final SecurityContext securityContext	= getWebSocket().getSecurityContext();
+		String id				= webSocketData.getId();
+		Map<String, Object> nodeData		= webSocketData.getNodeData();
+		String parentId				= (String) nodeData.get("parentId");
 		
 		// check node to append
 		if (id == null) {

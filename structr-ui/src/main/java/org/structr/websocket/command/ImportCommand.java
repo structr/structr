@@ -65,9 +65,9 @@ public class ImportCommand extends AbstractCommand {
 		final String code                     = (String) properties.get("code");
 		final String address                  = (String) properties.get("address");
 		final String name                     = (String) properties.get("name");
-		final int timeout                     = Integer.parseInt((String) properties.get("timeout"));
-		final boolean publicVisible           = Boolean.parseBoolean((String) properties.get("publicVisible"));
-		final boolean authVisible             = Boolean.parseBoolean((String) properties.get("authVisible"));
+		final int timeout                     = ((Long) properties.get("timeout")).intValue();
+		final boolean publicVisible           = (Boolean) properties.get("publicVisible");
+		final boolean authVisible             = (Boolean) properties.get("authVisible");
 		StructrTransaction transaction        = new StructrTransaction() {
 
 			@Override
@@ -82,7 +82,7 @@ public class ImportCommand extends AbstractCommand {
 					getWebSocket().send(MessageBuilder.status().code(200).message("Sucessfully parsed address " + address).build(), true);
 
 					String pageId                  = pageImporter.readPage();
-					Map<String, Object> resultData = new HashMap<String, Object>();
+					Map<String, Object> resultData = new HashMap();
 
 					if (pageId != null) {
 

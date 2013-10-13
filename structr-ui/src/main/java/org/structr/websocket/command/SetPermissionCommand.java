@@ -31,7 +31,6 @@ import org.structr.websocket.message.WebSocketMessage;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.Permission;
-import org.structr.common.SecurityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
