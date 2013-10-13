@@ -160,13 +160,13 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 				}
 				
 				if (source instanceof String) {
+
+					logger.log(Level.WARNING, "Wrong input type for {0}. Expected: {1}, found: {2}", new Object[]{jsonName, Boolean.class.getName(), source.getClass().getName()});
 					
 					returnValue = TRUE_VALUES.contains(source.toString().toLowerCase());
 
 				}
 			}
-
-			logger.log(Level.WARNING, "Wrong input type for {0}. Expected: {1}, found: {2}", new Object[]{jsonName, Boolean.class.getName(), source.getClass().getName()});
 			
 			return returnValue;
 		}
