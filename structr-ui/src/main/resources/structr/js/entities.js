@@ -30,9 +30,9 @@ var _Entities = {
         log('Change boolean attribute ', attrElement, ' to ', value);
 
         if (value === true) {
-            attrElement.removeClass('disabled').addClass('enabled').prop('checked', true).html('<img src="icon/tick.png">' + (activeLabel ? ' ' + activeLabel : ''));
+            attrElement.removeClass('inactive').addClass('active').prop('checked', true).html('<img src="icon/tick.png">' + (activeLabel ? ' ' + activeLabel : ''));
         } else {
-            attrElement.removeClass('enabled').addClass('disabled').prop('checked', false).text((inactiveLabel ? inactiveLabel : '-'));
+            attrElement.removeClass('inactive').addClass('active').prop('checked', false).text((inactiveLabel ? inactiveLabel : '-'));
         }
 
     },
@@ -177,6 +177,63 @@ var _Entities = {
             });
         });
         $(activeId).show();
+    },
+    editSource: function(entity) {
+        
+        Structr.dialog('Edit source of "' + (entity.name ? entity.name : entity.id) + '"', function() {
+            log('Element source saved')
+        }, function() {
+            log('cancelled')
+        });
+
+        // Get content in widget mode
+        var url = viewRootUrl + entity.id + '?edit=3', contentType = 'text/html';
+        
+        $.ajax({
+            url: url,
+            //async: false,
+            contentType: contentType,
+            success: function(data) {
+                text = data;
+                var div = dialog.append('<div class="editor"></div>');
+                var contentBox = $('.editor', dialog);
+                editor = CodeMirror(contentBox.get(0), {
+                    value: unescapeTags(text),
+                    mode: contentType,
+                    lineNumbers: true
+                });
+
+                editor.id = entity.id;
+                
+                dialogBtn.append('<button id="saveFile"> Save </button>');
+                dialogBtn.append('<button id="saveAndClose"> Save and close</button>');
+                
+                dialogSaveButton = $('#saveFile', dialogBtn);
+                var saveAndClose = $('#saveAndClose', dialogBtn);
+                
+                dialogSaveButton.on('click', function(e) {
+                    e.stopPropagation();
+                    var text = editor.getValue();
+                    Command.appendWidget(text, entity.parent.id, entity.pageId, null, null);
+                    Command.removeChild(entity.id);
+                });
+
+                saveAndClose.on('click', function(e) {
+                    e.stopPropagation();
+                    dialogSaveButton.click();
+                    setTimeout(function() {
+                        dialogSaveButton.remove();
+                        saveAndClose.remove();
+                        dialogCancelButton.click();
+                    }, 500);
+                });
+
+            },
+            error : function(xhr, statusText, error) {
+                console.log(xhr, statusText, error);
+            }
+        });                
+        
     },
     showProperties: function(entity) {
 
@@ -592,6 +649,20 @@ var _Entities = {
             entity.setProperty(key, value, false, function() {
                 blinkGreen(select);
             });
+        });
+    },
+    appendEditSourceIcon: function(parent, entity) {
+
+        var editIcon = $('.edit_icon', parent);
+
+        if (!(editIcon && editIcon.length)) {
+            parent.append('<img title="Edit source code" alt="Edit source code" class="edit_icon button" src="' + '/structr/icon/pencil.png' + '">');
+            editIcon = $('.edit_icon', parent);
+        }
+        editIcon.on('click', function(e) {
+            e.stopPropagation();
+            log('editSource', entity);
+            _Entities.editSource(entity);
         });
     },
     appendEditPropertiesIcon: function(parent, entity) {

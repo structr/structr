@@ -772,7 +772,7 @@ button {
     filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#e7e7e7', EndColorStr='#cccccc', GradientType=0);
 }
 
-button:hover {
+button:hover:not(.disabled) {
     color: #333;
     font-weight: bold;
     border-radius: 5px;
@@ -874,7 +874,7 @@ button img {
 }
 
 .dialogTextWrapper {
-    overflow: auto;
+    overflow-y: auto;
 }
 
 .dialogText textarea {
@@ -1152,7 +1152,7 @@ button.enabled {
     filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#e7e7e7', EndColorStr='#cccccc', GradientType=0);
 }
 
-.pager button.disabled {
+button.disabled {
     filter: alpha(opacity=60);
     -khtml-opacity: 0.6;
     -moz-opacity: 0.6;

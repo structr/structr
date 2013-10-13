@@ -352,6 +352,8 @@ var _Images = {
             div = $('#_' + folder.id);
         }
         
+        if (!div || !div.length) return;
+        
         delIcon = $('.delete_icon', div);
         
         if (folderId) {

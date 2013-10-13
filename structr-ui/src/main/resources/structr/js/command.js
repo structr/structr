@@ -579,6 +579,27 @@ var Command = {
         return sendObj(obj);
     },
     /**
+     * Send an IMPORT_PARTIAL command to the server.
+     * 
+     * This command will trigger the server-side importer to start with
+     * parsing the given source code.
+     * If successful, the server will add replace the node with the given id
+     * by the nodes resulting from the import operation.
+     * 
+     * The server will broadcast DELETE, CREATE and ADD notifications for each
+     * node respective relationship created.
+     */
+    importPartial: function(id, code, callback) {
+        var obj = {};
+        var data = {};
+        obj.command = 'IMPORT_PARTIAL';
+        obj.id = id;
+        data.code = code;
+        obj.data = data;
+        log('importPage()', obj);
+        return sendObj(obj, callback);
+    },
+    /**
      * Send a PATCH command to the server.
      * 
      * This will change the text contained in the 'content' property of the

@@ -177,9 +177,28 @@ $(document).ready(function() {
 
     Structr.init();
 
-    $(document).keyup(function(e) {
+    $(window).keyup(function(e) {
         if (e.keyCode === 27) {
+            if (dialogSaveButton.length && dialogSaveButton.is(':visible') && !dialogSaveButton.prop('disabled')) {
+                var saveBeforeExit = confirm('Save changes?');
+                if (saveBeforeExit) {
+                    dialogSaveButton.click();
+                    setTimeout(function() {
+                        dialogSaveButton.remove();
+                        saveAndClose.remove();
+                        dialogCancelButton.click();
+                    }, 500);
+                }
+            }
             dialogCancelButton.click();
+        }
+    });
+
+    $(window).on('keydown', function (e) {
+        if (e.ctrlKey && (e.which === 83)) {
+            e.preventDefault();
+            dialogSaveButton.click();
+            return false;
         }
     });
 
@@ -356,6 +375,7 @@ var Structr = {
 
     },
     dialog: function(text, callbackOk, callbackCancel) {
+
         if (browser) {
 
             dialogText.empty();
@@ -470,6 +490,10 @@ var Structr = {
         $('#maximizeDialog').show().on('click', function() {
             Structr.maximize();
         });
+        
+        $('.CodeMirror').each(function(i, el){
+            el.CodeMirror.refresh();
+        });        
 
     },
     maximize: function() {
@@ -515,6 +539,10 @@ var Structr = {
         $('#minimizeDialog').show().on('click', function() {
             Structr.resize();
         });
+        
+        $('.CodeMirror').each(function(i, el){
+            el.CodeMirror.refresh();
+        });        
 
     },
     error: function(text, callback) {

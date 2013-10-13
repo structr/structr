@@ -216,6 +216,7 @@ var _Files = {
         
         var delIcon, newDelIcon;
         var div = Structr.node(file.id);
+        
         if (div && div.length) {
             
             var formerParent = div.parent();
@@ -235,6 +236,8 @@ var _Files = {
             div = Structr.node(file.id);
             
         }
+
+        if (!div || !div.length) return;
 
         _Entities.appendAccessControlIcon(div, file);
 
@@ -319,6 +322,8 @@ var _Files = {
             + '</div>');
         
         var div = Structr.node(folder.id);
+
+        if (!div || !div.length) return;
 
         _Entities.appendAccessControlIcon(div, folder);
         
@@ -527,52 +532,57 @@ var _Files = {
             success: function(data) {
                 text = data;
                 if (isDisabled(button)) return;
-                var div = element.append('<div class="editor"></div>');
+                element.append('<div class="editor"></div>');
                 var contentBox = $('.editor', element);
                 editor = CodeMirror(contentBox.get(0), {
                     value: unescapeTags(text),
                     mode: contentType,
                     lineNumbers: true
-                //            ,
-                //            onChange: function(cm, changes) {
-                //                
-                //                var element = $( '.' + entity.id + '_')[0];
-                //                
-                //                text1 = $(element).children('.content_').text();
-                //                text2 = editor.getValue();
-                //                
-                //                if (!text1) text1 = '';
-                //                if (!text2) text2 = '';
-                //		
-                //                log('Element', element);
-                //                log(text1);
-                //                log(text2);
-                //                
-                //                if (text1 == text2) return;
-                //                editorCursor = cm.getCursor();
-                //                log(editorCursor);
-                //
-                //                Command.patch(entity.id, text1, text2);
-                //				
-                //            }
                 });
 
                 editor.id = file.id;
                 
-                dialogBtn.append('<button id="saveFile"> Save </button>');
-                dialogBtn.append('<button id="saveAndClose"> Save and close</button>');
+                dialogBtn.append('<button id="saveFile" disabled="disabled" class="disabled"> Save </button>');
+                dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="disabled"> Save and close</button>');
+
+                dialogSaveButton = $('#saveFile', dialogBtn);
+                var saveAndClose = $('#saveAndClose', dialogBtn);
+
+                text1 = text;
                 
+                editor.on('change', function(cm, change) {
+
+                    text2 = editor.getValue();
+
+                    if (text1 === text2) {
+                        dialogSaveButton.prop("disabled", true).addClass('disabled');
+                        saveAndClose.prop("disabled", true).addClass('disabled');
+                    } else {
+                        dialogSaveButton.prop("disabled", false).removeClass('disabled');
+                        saveAndClose.prop("disabled", false).removeClass('disabled');
+                    }
+                });
                 
                 $('button#saveFile', dialogBtn).on('click', function(e) {
                     e.stopPropagation();
-                    _Files.updateTextFile(file, editor.getValue());
+                    var newText = editor.getValue();
+                    if (text1 === newText) {
+                        return;
+                    }
+                    _Files.updateTextFile(file, newText);
+                    text1 = newText;
+                    dialogSaveButton.prop("disabled", true).addClass('disabled');
+                    saveAndClose.prop("disabled", true).addClass('disabled');
                 });
-                $('button#saveAndClose', dialogBtn).on('click', function(e) {
+
+                saveAndClose.on('click', function(e) {
                     e.stopPropagation();
-                    _Files.updateTextFile(file, editor.getValue());
+                    dialogSaveButton.click();
                     setTimeout(function() {
+                        dialogSaveButton.remove();
+                        saveAndClose.remove();
                         dialogCancelButton.click();
-                    }, 100);
+                    }, 500);
                 });
 
             },
