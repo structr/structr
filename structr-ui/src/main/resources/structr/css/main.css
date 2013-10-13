@@ -391,7 +391,7 @@ img.disabled {
 
 .props tr td.value input {
     margin: -3px;
-    height: 1.7em;
+    /*height: 1.7em;*/
     font-size: 8pt;
     background: #fff;
     border: 1px solid #c0c0c0;

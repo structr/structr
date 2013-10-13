@@ -1279,7 +1279,7 @@ var _Crud = {
             var propertyType = _Crud.getPropertyType(type, key);
 
             if (propertyType === 'Boolean') {
-                cell.append('<input ' + (readOnly ? 'class="readonly" readonly ' : '') + 'type="checkbox" ' + (value?'checked="checked"':'') + '>');
+                cell.append('<input ' + (readOnly ? 'class="readonly" readonly disabled ' : '') + 'type="checkbox" ' + (value?'checked="checked"':'') + '>');
                 if (!readOnly) {
                     $('input', cell).on('change', function() {
                        //console.log('change value for ' + key + ' to ' + $(this).prop('checked'));
