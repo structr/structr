@@ -476,6 +476,8 @@ public class Importer {
 		fileOnDisk.getParentFile().mkdirs();
 
 		URL downloadUrl = null;
+		long size = 0;
+		long checksum = 0;
 
 		try {
 
@@ -486,6 +488,8 @@ public class Importer {
 			// TODO: Add security features like null/integrity/virus checking before copying it to
 			// the files repo
 			FileUtils.copyURLToFile(downloadUrl, fileOnDisk);
+			size	 = fileOnDisk.length();
+			checksum = FileUtils.checksumCRC32(fileOnDisk);
 
 		} catch (IOException ioe) {
 
@@ -521,10 +525,10 @@ public class Importer {
 
 				if (ImageHelper.isImageType(fileName)) {
 
-					fileNode = createImageNode(uuid, fileName, ct);
+					fileNode = createImageNode(uuid, fileName, ct, size, checksum);
 				} else {
 
-					fileNode = createFileNode(uuid, fileName, ct);
+					fileNode = createFileNode(uuid, fileName, ct, size, checksum);
 				}
 
 				if (fileNode != null) {
@@ -594,31 +598,27 @@ public class Importer {
 
 	}
 
-	private File createFileNode(final String uuid, final String name, final String contentType) throws FrameworkException {
+	private File createFileNode(final String uuid, final String name, final String contentType, final long size, final long checksum) throws FrameworkException {
 
 		String relativeFilePath = File.getDirectoryPath(uuid) + "/" + uuid;
 		File fileNode           = (File) createNode.execute(new NodeAttribute(AbstractNode.uuid, uuid), new NodeAttribute(AbstractNode.type, File.class.getSimpleName()),
 						  new NodeAttribute(AbstractNode.name, name), new NodeAttribute(File.relativeFilePath, relativeFilePath),
 						  new NodeAttribute(File.contentType, contentType), new NodeAttribute(AbstractNode.visibleToPublicUsers, publicVisible),
+						  new NodeAttribute(File.size, size), new NodeAttribute(File.checksum, checksum),
 						  new NodeAttribute(AbstractNode.visibleToAuthenticatedUsers, authVisible));
-
-//              fileNode.getChecksum();
-//		indexNode.addNode(fileNode);
 
 		return fileNode;
 
 	}
 
-	private Image createImageNode(final String uuid, final String name, final String contentType) throws FrameworkException {
+	private Image createImageNode(final String uuid, final String name, final String contentType, final long size, final long checksum) throws FrameworkException {
 
 		String relativeFilePath = Image.getDirectoryPath(uuid) + "/" + uuid;
 		Image imageNode         = (Image) createNode.execute(new NodeAttribute(AbstractNode.uuid, uuid), new NodeAttribute(AbstractNode.type, Image.class.getSimpleName()),
 						  new NodeAttribute(AbstractNode.name, name), new NodeAttribute(File.relativeFilePath, relativeFilePath),
 						  new NodeAttribute(File.contentType, contentType), new NodeAttribute(AbstractNode.visibleToPublicUsers, publicVisible),
+						  new NodeAttribute(File.size, size), new NodeAttribute(File.checksum, checksum),
 						  new NodeAttribute(AbstractNode.visibleToAuthenticatedUsers, authVisible));
-
-//              imageNode.getChecksum();
-//		indexNode.addNode(imageNode);
 
 		return imageNode;
 
