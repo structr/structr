@@ -95,6 +95,7 @@ public class HtmlServlet extends HttpServlet {
 	public static final String GET_SESSION_ID_PAGE		= "get_session_id";
 	public static final String CONFIRM_KEY_KEY		= "key";
 	public static final String TARGET_PAGE_KEY		= "target";
+	public static final String ERROR_PAGE_KEY		= "onerror";
 	public static final String LOCALE_KEY			= "locale";
 	
 	private ResourceProvider resourceProvider                   = null;
@@ -531,7 +532,8 @@ public class HtmlServlet extends HttpServlet {
 			
 		}
 		
-		String targetPage = request.getParameter(TARGET_PAGE_KEY);
+		String targetPage	= request.getParameter(TARGET_PAGE_KEY);
+		String errorPage	= request.getParameter(ERROR_PAGE_KEY);
 
 		if (CONFIRM_REGISTRATION_PAGE.equals(path)) {
 		
@@ -563,6 +565,17 @@ public class HtmlServlet extends HttpServlet {
 				if (StringUtils.isNotBlank(targetPage)) {
 					
 					response.sendRedirect("/" + targetPage);
+					
+					return true;
+					
+				}
+				
+			} else {
+				
+				// Redirect to error page
+				if (StringUtils.isNotBlank(errorPage)) {
+					
+					response.sendRedirect("/" + errorPage);
 					
 					return true;
 					
