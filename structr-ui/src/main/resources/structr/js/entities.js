@@ -32,7 +32,7 @@ var _Entities = {
         if (value === true) {
             attrElement.removeClass('inactive').addClass('active').prop('checked', true).html('<img src="icon/tick.png">' + (activeLabel ? ' ' + activeLabel : ''));
         } else {
-            attrElement.removeClass('inactive').addClass('active').prop('checked', false).text((inactiveLabel ? inactiveLabel : '-'));
+            attrElement.removeClass('active').addClass('inactive').prop('checked', false).text((inactiveLabel ? inactiveLabel : '-'));
         }
 
     },
@@ -596,12 +596,12 @@ var _Entities = {
         });
     },
     appendBooleanSwitch: function(el, entity, key, label, desc, recElementId) {
-        el.append('<div class="' + entity.id + '_"><button class="switch disabled ' + key + '_"></button>' + desc + '</div>');
+        el.append('<div class="' + entity.id + '_"><button class="switch inactive ' + key + '_"></button>' + desc + '</div>');
         var sw = $('.' + key + '_', el);
         _Entities.changeBooleanAttribute(sw, entity[key], label[0], label[1]);
         sw.on('click', function(e) {
             e.stopPropagation();
-            entity.setProperty(key, sw.hasClass('disabled'), $(recElementId, el).is(':checked'), function() {
+            entity.setProperty(key, sw.hasClass('inactive'), $(recElementId, el).is(':checked'), function() {
                 _Entities.changeBooleanAttribute(sw, entity[key], label[0], label[1]);
                 blinkGreen(sw);
             });

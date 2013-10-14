@@ -1071,7 +1071,7 @@ button.switch:hover {
     filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#eeeeee', EndColorStr='#dddddd', GradientType=0);
 }
 
-button.enabled {
+button.enabled, button.active {
     color: #222;
     font-weight: bold;
     border: 1px solid #bbb;

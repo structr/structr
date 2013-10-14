@@ -66,13 +66,11 @@ public class UpdateCommand extends AbstractCommand {
 		
 
 		GraphObject obj  = getNode(webSocketData.getId());
-		String recString = (String) webSocketData.getNodeData().get("recursive");
+		Boolean recValue = (Boolean) webSocketData.getNodeData().get("recursive");
+		
+		boolean rec = recValue != null ? recValue : false;
 
 		webSocketData.getNodeData().remove("recursive");
-
-		boolean rec = StringUtils.isNotBlank(recString)
-			      ? Boolean.parseBoolean(recString)
-			      : false;
 
 		if (obj != null) {
 
