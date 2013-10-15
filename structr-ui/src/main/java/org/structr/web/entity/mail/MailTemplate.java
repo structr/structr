@@ -57,7 +57,7 @@ public class MailTemplate extends AbstractNode {
 	
 	private static final Logger logger = Logger.getLogger(MailTemplate.class.getName());
 
-	public static final EntityProperty<Content> text   = new EntityProperty("text", Content.class, RelType.CONTAINS, Direction.OUTGOING, new PropertySetNotion(true, uuid, name), false);
+	public static final EntityProperty<Content> text   = new EntityProperty("text", Content.class, RelType.CONTAINS, Direction.OUTGOING, new PropertySetNotion(true, uuid, name), true);
 	public static final Property<String>        locale = new StringProperty("locale").indexed();
 	
 	public static final org.structr.common.View uiView = new org.structr.common.View(MailTemplate.class, PropertyView.Ui,
