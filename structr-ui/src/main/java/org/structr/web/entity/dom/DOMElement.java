@@ -262,10 +262,58 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 	}
 
+	public void openingTag(final StringBuilder buffer, final String tag, final EditMode editMode, final RenderContext renderContext, final int depth) throws FrameworkException {
+		
+		buffer.append("<").append(tag);
+
+		if (EditMode.CONTENT.equals(editMode)) {
+
+			if (depth == 0) {
+
+				String pageId = renderContext.getPageId();
+
+				if (pageId != null) {
+
+					buffer.append(" data-structr-page=\"").append(pageId).append("\"");
+
+				}
+
+			}
+
+			buffer.append(" data-structr-el=\"").append(getUuid()).append("\"");
+
+		}
+
+		// include arbitrary data-* attributes
+		renderCustomAttributes(buffer, securityContext, renderContext);
+
+		for (PropertyKey attribute : EntityContext.getPropertySet(getClass(), PropertyView.Html)) {
+
+			String value = getPropertyWithVariableReplacement(securityContext, renderContext, attribute);
+
+			if (!(EditMode.RAW.equals(editMode))) {
+
+				value = escapeForHtmlAttributes(value);
+
+			}
+
+			if (value != null) {
+
+				String key = attribute.jsonName().substring(PropertyView.Html.length());
+
+				buffer.append(" ").append(key).append("=\"").append(value).append("\"");
+
+			}
+
+		}
+
+		buffer.append(">");		
+	}
+	
 	/**
 	 * Main render method.
 	 * 
-	 * TODO: This method is way to long!
+	 * TODO: This method is still way to long!
 	 * 
 	 * @param securityContext
 	 * @param renderContext
@@ -298,58 +346,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 		if (StringUtils.isNotBlank(_tag)) {
 
-			buffer.append("<").append(_tag);
-
-			if (EditMode.CONTENT.equals(editMode)) {
-
-				if (depth == 0) {
-
-					String pageId = renderContext.getPageId();
-
-					if (pageId != null) {
-
-						buffer.append(" data-structr-page=\"").append(pageId).append("\"");
-
-					}
-
-				}
-
-				buffer.append(" data-structr-el=\"").append(getUuid()).append("\"");
-
-			}
-
-			// include arbitrary data-* attributes
-			renderCustomAttributes(buffer, securityContext, renderContext);
-
-			for (PropertyKey attribute : EntityContext.getPropertySet(getClass(), PropertyView.Html)) {
-
-				try {
-
-					String value = getPropertyWithVariableReplacement(securityContext, renderContext, attribute);
-
-					if (!(EditMode.RAW.equals(editMode))) {
-
-						value = escapeForHtmlAttributes(value);
-
-					}
-
-					if (value != null) {
-
-						String key = attribute.jsonName().substring(PropertyView.Html.length());
-
-						buffer.append(" ").append(key).append("=\"").append(value).append("\"");
-
-					}
-
-				} catch (Throwable t) {
-
-					t.printStackTrace();
-
-				}
-
-			}
-
-			buffer.append(">");
+			openingTag(buffer, _tag, editMode, renderContext, depth);
 			
 			try {
 
