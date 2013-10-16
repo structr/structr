@@ -22,6 +22,7 @@ var fileList;
 var chunkSize = 1024*64;
 var sizeLimit = 1024*1024*70;
 var win = $(window);
+var timeout, attempts = 0, maxRetry = 10;
 
 $(document).ready(function() {
     Structr.registerModule('images', _Images);
@@ -251,7 +252,7 @@ var _Images = {
 
     showThumbnails : function(img, el) {
         $('.thumbnail', el).attr('src', '/' + img.tnSmall.id);
-        $('.thumbnail', el).on('mouseenter', function(e) {
+        $('.thumbnail', el).on('mousedown', function(e) {
             e.stopPropagation();
             $('.thumbnailZoom', images).remove();
             images.append('<img class="thumbnailZoom" src="/' + img.tnMid.id + '">');
@@ -267,7 +268,7 @@ var _Images = {
                 }).show();
             });
             
-            tnZoom.on('mouseleave', function(e) {
+            tnZoom.on('mouseup', function(e) {
                 e.stopPropagation();
                 $('.thumbnailZoom', images).remove();
             });
@@ -288,18 +289,23 @@ var _Images = {
 
     reloadThumbnail : function(id, el) {
         // wait 1 sec. and try again
-        window.setTimeout(function() {
-            headers = {
-                'X-StructrSessionToken' : token
-            };
-            _Crud.crudRead('Image', id, function(img) {
-                var tn = img.tnSmall;
-                if (!tn) {
-                    _Images.reloadThumbnail(id, el);
-                } else {
-                    _Images.showThumbnails(img, el);
-                }
-            });
+        timeout = window.setTimeout(function() {
+            if (attempts >= maxRetry) {
+                window.clearTimeout(timeout);
+            } else {
+                attempts++;
+                headers = {
+                    'X-StructrSessionToken' : token
+                };
+                _Crud.crudRead('Image', id, function(img) {
+                    var tn = img.tnSmall;
+                    if (!tn) {
+                        _Images.reloadThumbnail(id, el);
+                    } else {
+                        _Images.showThumbnails(img, el);
+                    }
+                });
+            }
         }, 1000);
     },
 
