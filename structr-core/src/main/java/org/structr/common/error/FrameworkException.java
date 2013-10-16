@@ -66,6 +66,13 @@ public class FrameworkException extends Exception {
 
 	}
 
+	public FrameworkException(int status, Throwable cause) {
+
+		super(cause);
+
+		this.status = status;
+	}
+
 	//~--- methods --------------------------------------------------------
 
 	@Override
