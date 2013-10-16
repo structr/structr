@@ -153,7 +153,7 @@ public class ResourceAccessTest extends StructrUiTest {
 
 					// allow PUT for non-authenticated users => access is forbidden with 403 because of missing rights for the test object
 					folderGrant.setFlag(UiAuthenticator.NON_AUTH_USER_PUT);
-					RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(403).when().put("/folder/" + testFolder.getUuid());
+					RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().put("/folder/" + testFolder.getUuid());
 
 					testUser.setProperty(AbstractNode.name, name);
 					testUser.setProperty(User.password, password);
@@ -216,7 +216,7 @@ public class ResourceAccessTest extends StructrUiTest {
 
 					// allow DELETE for non-authenticated users => access is forbidden with 403 because of missing rights for the test object
 					folderGrant.setFlag(UiAuthenticator.NON_AUTH_USER_DELETE);
-					RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(403).when().delete("/folder/" + testFolder.getUuid());
+					RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().delete("/folder/" + testFolder.getUuid());
 
 					testUser.setProperty(AbstractNode.name, name);
 					testUser.setProperty(User.password, password);
