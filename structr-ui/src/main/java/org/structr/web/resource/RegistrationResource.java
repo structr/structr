@@ -81,7 +81,8 @@ public class RegistrationResource extends Resource {
 		TEXT_BODY,
 		HTML_BODY,
 		BASE_URL,
-		TARGET_PAGE
+		TARGET_PAGE,
+		ERROR_PAGE
 	}
 
 	private static String localeString;
@@ -236,7 +237,8 @@ public class RegistrationResource extends Resource {
 			getTemplateText(TemplateKey.BASE_URL, "http://" + Services.getApplicationHost() + ":" + Services.getHttpPort())
 			+ "/" + HtmlServlet.CONFIRM_REGISTRATION_PAGE
 			+ "?" + HtmlServlet.CONFIRM_KEY_KEY + "=" + confKey
-			+ "&" + HtmlServlet.TARGET_PAGE_KEY + "=" + getTemplateText(TemplateKey.TARGET_PAGE, "register_thanks"));
+			+ "&" + HtmlServlet.TARGET_PAGE_KEY + "=" + getTemplateText(TemplateKey.TARGET_PAGE, "register_thanks")
+			+ "&" + HtmlServlet.ERROR_PAGE_KEY + "=" + getTemplateText(TemplateKey.ERROR_PAGE, "register_error"));
 
 		String textMailTemplate = getTemplateText(TemplateKey.TEXT_BODY, "Go to ${link} to finalize registration.");
 		String htmlMailTemplate = getTemplateText(TemplateKey.HTML_BODY, "<div>Click <a href='${link}'>here</a> to finalize registration.</div>");
