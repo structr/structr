@@ -262,7 +262,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 	}
 
-	public void openingTag(final StringBuilder buffer, final String tag, final EditMode editMode, final RenderContext renderContext, final int depth) throws FrameworkException {
+	public void openingTag(final SecurityContext securityContext, final StringBuilder buffer, final String tag, final EditMode editMode, final RenderContext renderContext, final int depth) throws FrameworkException {
 		
 		buffer.append("<").append(tag);
 
@@ -346,7 +346,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 		if (StringUtils.isNotBlank(_tag)) {
 
-			openingTag(buffer, _tag, editMode, renderContext, depth);
+			openingTag(securityContext, buffer, _tag, editMode, renderContext, depth);
 			
 			try {
 

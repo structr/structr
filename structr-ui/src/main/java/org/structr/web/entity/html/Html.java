@@ -27,6 +27,7 @@ import org.neo4j.graphdb.Direction;
 import org.structr.core.property.Property;
 
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
 import org.structr.web.common.RelType;
 import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
@@ -66,7 +67,7 @@ public class Html extends DOMElement {
 	);
 
 	@Override
-	public void openingTag(final StringBuilder buffer, final String tag, final RenderContext.EditMode editMode, final RenderContext renderContext, final int depth) throws FrameworkException {
+	public void openingTag(final SecurityContext securityContext, final StringBuilder buffer, final String tag, final RenderContext.EditMode editMode, final RenderContext renderContext, final int depth) throws FrameworkException {
 		
 		String custTag = getProperty(_customOpeningTag);
 		
@@ -76,7 +77,7 @@ public class Html extends DOMElement {
 			
 		} else {
 			
-			super.openingTag(buffer, tag, editMode, renderContext, depth);
+			super.openingTag(securityContext, buffer, tag, editMode, renderContext, depth);
 			
 		}
 		
