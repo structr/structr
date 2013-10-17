@@ -82,7 +82,11 @@ public class RegistrationResource extends Resource {
 		HTML_BODY,
 		BASE_URL,
 		TARGET_PAGE,
-		ERROR_PAGE
+		ERROR_PAGE,
+		CONFIRM_REGISTRATION_PAGE,
+		CONFIRM_KEY_KEY,
+		TARGET_PAGE_KEY,
+		ERROR_PAGE_KEY
 	}
 
 	private static String localeString;
@@ -235,10 +239,14 @@ public class RegistrationResource extends Resource {
 		replacementMap.put(toPlaceholder(User.eMail.jsonName()), userEmail);
 		replacementMap.put(toPlaceholder("link"),
 			getTemplateText(TemplateKey.BASE_URL, "http://" + Services.getApplicationHost() + ":" + Services.getHttpPort())
-			+ "/" + HtmlServlet.CONFIRM_REGISTRATION_PAGE
-			+ "?" + HtmlServlet.CONFIRM_KEY_KEY + "=" + confKey
-			+ "&" + HtmlServlet.TARGET_PAGE_KEY + "=" + getTemplateText(TemplateKey.TARGET_PAGE, "register_thanks")
-			+ "&" + HtmlServlet.ERROR_PAGE_KEY + "=" + getTemplateText(TemplateKey.ERROR_PAGE, "register_error"));
+			+ "/" + getTemplateText(TemplateKey.CONFIRM_REGISTRATION_PAGE, HtmlServlet.CONFIRM_REGISTRATION_PAGE)
+			//+ "/" + HtmlServlet.CONFIRM_REGISTRATION_PAGE
+			+ "?" + getTemplateText(TemplateKey.CONFIRM_KEY_KEY, HtmlServlet.CONFIRM_KEY_KEY)
+			+ "=" + confKey
+			+ "&" + getTemplateText(TemplateKey.TARGET_PAGE_KEY, HtmlServlet.TARGET_PAGE_KEY)
+			+ "=" + getTemplateText(TemplateKey.TARGET_PAGE, "register_thanks")
+			+ "&" + getTemplateText(TemplateKey.ERROR_PAGE_KEY, HtmlServlet.ERROR_PAGE_KEY)
+			+ "=" + getTemplateText(TemplateKey.ERROR_PAGE, "register_error"));
 
 		String textMailTemplate = getTemplateText(TemplateKey.TEXT_BODY, "Go to ${link} to finalize registration.");
 		String htmlMailTemplate = getTemplateText(TemplateKey.HTML_BODY, "<div>Click <a href='${link}'>here</a> to finalize registration.</div>");
