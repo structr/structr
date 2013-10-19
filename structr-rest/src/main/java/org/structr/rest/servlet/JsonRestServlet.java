@@ -63,10 +63,12 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.RelationshipMapping;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.property.Property;
-import org.structr.rest.StreamingJsonWriter;
+import org.structr.rest.serialization.StreamingWriter;
 import org.structr.rest.adapter.FrameworkExceptionGSONAdapter;
 import org.structr.rest.adapter.ResultGSONAdapter;
 import org.structr.rest.resource.*;
+import org.structr.rest.serialization.StreamingHtmlWriter;
+import org.structr.rest.serialization.StreamingJsonWriter;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -96,6 +98,7 @@ public class JsonRestServlet extends HttpServlet {
 	private String defaultPropertyView                          = PropertyView.Public;
 	private ThreadLocalGson gson                                = null;
 	private ThreadLocalJsonWriter jsonWriter                    = null;
+	private ThreadLocalHtmlWriter htmlWriter                    = null;
 	private Writer logWriter                                    = null;
 	private Value<String> propertyView                          = null;
 	private ResourceProvider resourceProvider                   = null;
@@ -132,9 +135,10 @@ public class JsonRestServlet extends HttpServlet {
 		resourceMap.putAll(resourceProvider.getResources());
 
 		// initialize variables
-		this.propertyView  = new ThreadLocalPropertyView();
-		this.gson          = new ThreadLocalGson();
-		this.jsonWriter    = new ThreadLocalJsonWriter(propertyView, indentJson);
+		this.propertyView   = new ThreadLocalPropertyView();
+		this.gson           = new ThreadLocalGson();
+		this.jsonWriter     = new ThreadLocalJsonWriter(propertyView, indentJson);
+		this.htmlWriter     = new ThreadLocalHtmlWriter(propertyView, indentJson);
 
 	}
 
@@ -248,7 +252,6 @@ public class JsonRestServlet extends HttpServlet {
 //			logRequest("GET", request);
 			request.setCharacterEncoding("UTF-8");
 			response.setCharacterEncoding("UTF-8");
-			response.setContentType("application/json; charset=utf-8");
 
 			// set default value for property view
 			propertyView.set(securityContext, defaultPropertyView);
@@ -299,7 +302,19 @@ public class JsonRestServlet extends HttpServlet {
 			result.setQueryTime(decimalFormat.format((queryTimeEnd - queryTimeStart) / 1000000000.0));
 
 			Writer writer = response.getWriter();
-			jsonWriter.get().stream(writer, result);
+			String accept = request.getHeader("Accept");
+
+			if (accept != null && accept.contains("text/html")) {
+				
+				response.setContentType("text/html; charset=utf-8");
+				htmlWriter.get().stream(writer, result);
+			
+			} else {
+			
+				response.setContentType("application/json; charset=utf-8");
+				jsonWriter.get().stream(writer, result);
+				
+			}
 
 			if (result.hasPartialContent()) {
 
@@ -839,7 +854,7 @@ public class JsonRestServlet extends HttpServlet {
 		}
 	}
 
-	private class ThreadLocalJsonWriter extends ThreadLocal<StreamingJsonWriter> {
+	private class ThreadLocalJsonWriter extends ThreadLocal<StreamingWriter> {
 		
 		private Value<String> propertyView;
 		private boolean indent = false;
@@ -851,9 +866,28 @@ public class JsonRestServlet extends HttpServlet {
 		}
 		
 		@Override
-		protected StreamingJsonWriter initialValue() {
+		protected StreamingWriter initialValue() {
 			
 			return new StreamingJsonWriter(this.propertyView, indent);
+		}
+
+	}
+
+	private class ThreadLocalHtmlWriter extends ThreadLocal<StreamingHtmlWriter> {
+		
+		private Value<String> propertyView;
+		private boolean indent = false;
+		
+		public ThreadLocalHtmlWriter(Value<String> propertyView, boolean indent) {
+			
+			this.propertyView = propertyView;
+			this.indent       = indent;
+		}
+		
+		@Override
+		protected StreamingHtmlWriter initialValue() {
+			
+			return new StreamingHtmlWriter(this.propertyView, indent);
 		}
 
 	}
