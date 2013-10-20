@@ -273,6 +273,7 @@ public class JsonRestServlet extends HttpServlet {
 			boolean sortDescending   = (sortOrder != null && "desc".equals(sortOrder.toLowerCase()));
 			int pageSize		 = parseInt(pageSizeParameter, NodeFactory.DEFAULT_PAGE_SIZE);
 			int page                 = parseInt(pageParameter, NodeFactory.DEFAULT_PAGE);
+			String baseUrl           = request.getRequestURI();
 			PropertyKey sortKey      = null;
 
 			// set sort key
@@ -307,12 +308,12 @@ public class JsonRestServlet extends HttpServlet {
 			if (accept != null && accept.contains("text/html")) {
 				
 				response.setContentType("text/html; charset=utf-8");
-				htmlWriter.get().stream(writer, result);
+				htmlWriter.get().stream(writer, result, baseUrl);
 			
 			} else {
 			
 				response.setContentType("application/json; charset=utf-8");
-				jsonWriter.get().stream(writer, result);
+				jsonWriter.get().stream(writer, result, baseUrl);
 				
 			}
 

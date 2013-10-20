@@ -13,7 +13,7 @@ public interface RestWriter {
 	
 	public void flush() throws IOException;
 
-	public RestWriter beginDocument() throws IOException;
+	public RestWriter beginDocument(final String baseUrl, final String propertyView) throws IOException;
 	public RestWriter endDocument() throws IOException;
 	public RestWriter beginArray() throws IOException;
 	public RestWriter endArray() throws IOException;

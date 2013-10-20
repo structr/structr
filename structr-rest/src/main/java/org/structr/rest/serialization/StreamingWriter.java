@@ -92,32 +92,32 @@ public abstract class StreamingWriter {
 		//this.writer.setIndent("   ");
 	}
 	
-	public void stream(Writer w, Result src) throws IOException {
+	public void stream(final Writer output, final Result result, final String baseUrl) throws IOException {
 		
 		long t0 = System.nanoTime();
 		
-		RestWriter writer = getRestWriter(w);
+		RestWriter writer = getRestWriter(output);
 
 		if (indent) {
 			writer.setIndent("   ");
 		}
 		
 		// result fields in alphabetical order
-		List<? extends GraphObject> results = src.getResults();
-		Integer page = src.getPage();
-		Integer pageCount = src.getPageCount();
-		Integer pageSize = src.getPageSize();
-		String queryTime = src.getQueryTime();
-		Integer resultCount = src.getRawResultCount();
-		String searchString = src.getSearchString();
-		String sortKey = src.getSortKey();
-		String sortOrder = src.getSortOrder();
-		GraphObject metaData = src.getMetaData();
+		List<? extends GraphObject> results = result.getResults();
+		Integer page = result.getPage();
+		Integer pageCount = result.getPageCount();
+		Integer pageSize = result.getPageSize();
+		String queryTime = result.getQueryTime();
+		Integer resultCount = result.getRawResultCount();
+		String searchString = result.getSearchString();
+		String sortKey = result.getSortKey();
+		String sortOrder = result.getSortOrder();
+		GraphObject metaData = result.getMetaData();
 		
 		// flush after 20 elements by default
 		int flushSize = pageSize != null ? pageSize.intValue() : 20;
 
-		writer.beginDocument();
+		writer.beginDocument(baseUrl, propertyView.get(securityContext));
 		
 		// open result set
 		writer.beginObject();
@@ -148,7 +148,7 @@ public abstract class StreamingWriter {
 
 				writer.name("result").beginArray().endArray();
 
-			} else if(src.isPrimitiveArray()) {
+			} else if(result.isPrimitiveArray()) {
 
 				writer.name("result").beginArray();
 				
@@ -166,8 +166,8 @@ public abstract class StreamingWriter {
 
 			} else {
 
-				if (results.size() > 1 && !src.isCollection()){
-					throw new IllegalStateException(src.getClass().getSimpleName() + " is not a collection resource, but result set has size " + results.size());
+				if (results.size() > 1 && !result.isCollection()){
+					throw new IllegalStateException(result.getClass().getSimpleName() + " is not a collection resource, but result set has size " + results.size());
 				}
 
 				// keep track of serialization time
@@ -175,7 +175,7 @@ public abstract class StreamingWriter {
 				String localPropertyView  = propertyView.get(null);
 				int flushCounter          = 0;
 
-				if(src.isCollection()) {
+				if(result.isCollection()) {
 
 					writer.name("result").beginArray();
 

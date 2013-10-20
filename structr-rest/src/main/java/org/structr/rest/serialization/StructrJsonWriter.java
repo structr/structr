@@ -28,7 +28,7 @@ public class StructrJsonWriter implements RestWriter {
 	}
 
 	@Override
-	public RestWriter beginDocument() throws IOException {
+	public RestWriter beginDocument(final String baseUrl, final String propertyView) throws IOException {
 		return this;
 	}
 
