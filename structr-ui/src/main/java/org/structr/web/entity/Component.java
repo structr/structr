@@ -73,8 +73,8 @@ public class Component extends DOMElement {
 		type, name, kind
 	);
 	
-	private Map<String, AbstractNode> contentNodes = new WeakHashMap<String, AbstractNode>();
-	private Set<String> subTypes                   = new LinkedHashSet<String>();
+	private Map<String, AbstractNode> contentNodes = new WeakHashMap<>();
+	private Set<String> subTypes                   = new LinkedHashSet<>();
 
 	//~--- methods --------------------------------------------------------
 

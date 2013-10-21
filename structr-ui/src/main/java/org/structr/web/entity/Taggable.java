@@ -37,7 +37,7 @@ import org.structr.web.property.UiNotion;
  */
 public interface Taggable extends GraphObject {
 	
-	public static final CollectionProperty<Tag> tags = new CollectionProperty<Tag>("tags", Tag.class, RelType.TAG, Direction.INCOMING, new UiNotion(), false);
+	public static final CollectionProperty<Tag> tags = new CollectionProperty<>("tags", Tag.class, RelType.TAG, Direction.INCOMING, new UiNotion(), false);
 	public static final Property<List<String>> tag_names = new CollectionNotionProperty("tag_names", tags, new PropertyNotion(AbstractNode.name));
 	
 }

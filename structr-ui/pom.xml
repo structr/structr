@@ -41,14 +41,6 @@
             <url>http://m2.neo4j.org/content/repositories/snapshots</url>
         </repository>
         <repository>
-            <id>snapshots.maven.structr.org</id>
-            <url>http://maven.structr.org/artifactory/snapshot</url>
-        </repository>
-        <repository>
-            <id>releases.maven.structr.org</id>
-            <url>http://maven.structr.org/artifactory/release</url>
-        </repository>
-        <repository>
             <id>google-diff-patch-match</id>
             <name>google-diff-patch-match</name>
             <url>http://google-diff-match-patch.googlecode.com/svn/trunk/maven/</url>
@@ -56,6 +48,22 @@
         <repository>
             <id>jodd</id>
             <url>http://repo1.maven.org/maven2/org/jodd/</url>
+        </repository>
+        <!--        <repository>
+            <id>alfresco-releases</id>
+            <url>https://maven.alfresco.com/nexus/content/repositories/releases</url>
+        </repository>
+        <repository>
+            <id>alfresco-snapshots</id>
+            <url>https://maven.alfresco.com/nexus/content/repositories/snapshots</url>
+        </repository>-->
+        <repository>
+            <id>snapshots.maven.structr.org</id>
+            <url>http://maven.structr.org/artifactory/snapshot</url>
+        </repository>
+        <repository>
+            <id>releases.maven.structr.org</id>
+            <url>http://maven.structr.org/artifactory/release</url>
         </repository>
     </repositories>
     <dependencies>
@@ -123,7 +131,7 @@
             <artifactId>jodd-lagarto</artifactId>
             <version>3.4.5</version>
         </dependency>
-<!--        <dependency>
+        <!--        <dependency>
             <groupId>org.jodd</groupId>
             <artifactId>jodd-http</artifactId>
             <version>3.4.5</version>
@@ -162,6 +170,16 @@
             <groupId>org.twitter4j</groupId>
             <artifactId>twitter4j-core</artifactId>
             <version>3.0.3</version>
+        </dependency>
+        <!--        <dependency>
+            <groupId>org.alfresco</groupId>
+            <artifactId>alfresco-jlan-embed</artifactId>
+            <version>4.2.e</version>
+        </dependency>-->
+        <dependency>
+            <groupId>org.apache.ftpserver</groupId>
+            <artifactId>ftpserver-core</artifactId>
+            <version>1.0.6</version>
         </dependency>
     </dependencies>
     <build>
@@ -386,7 +404,7 @@
     </scm>
     
     <distributionManagement>
-<!--        <repository>
+        <!--        <repository>
             <id>releases.maven.structr.org</id>
             <name>maven.structr.org-releases</name>
             <url>http://maven.structr.org/artifactory/release</url>

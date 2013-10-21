@@ -55,7 +55,7 @@ public class Group extends AbstractNode implements Principal {
 	
 	private static final Logger logger = Logger.getLogger(Group.class.getName());
 
-	public static final CollectionProperty<Principal> members = new CollectionProperty("members", Principal.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final CollectionProperty<Principal> members = new CollectionProperty<>("members", Principal.class, RelType.CONTAINS, Direction.OUTGOING, false);
 	
 	public static final org.structr.common.View uiView = new org.structr.common.View(User.class, PropertyView.Ui,
 		type, name, members, blocked

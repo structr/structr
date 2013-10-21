@@ -62,7 +62,7 @@ public class AuthHelper {
 	/**
 	 * Find a {@link Principal} for the given credential
 	 * 
-	 * @param securityContext
+	 * @param key
 	 * @param value
 	 * @return 
 	 */
@@ -96,7 +96,6 @@ public class AuthHelper {
 	/**
 	 * Find a {@link Principal} with matching password and given key or name
 	 * 
-	 * @param securityContext
 	 * @param key
 	 * @param value
 	 * @param password

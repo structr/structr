@@ -20,6 +20,8 @@
 
 package org.structr.web.entity;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import org.apache.commons.io.FileUtils;
 
 import org.structr.common.PropertyView;
@@ -34,12 +36,14 @@ import org.structr.core.Services;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.Path;
 import org.structr.common.SecurityContext;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
@@ -242,6 +246,29 @@ public class File extends AbstractFile implements Linkable {
 
 	}
 
+	public OutputStream getOutputStream() {
+		
+		String path = getRelativeFilePath();
+
+		if (path != null) {
+
+			String filePath         = Services.getFilePath(Path.Files, path);
+
+			try {
+
+				java.io.File fileOnDisk = new java.io.File(filePath);				
+				return new FileOutputStream(fileOnDisk);
+
+			} catch (FileNotFoundException e) {
+				logger.log(Level.SEVERE, "File not found: {0}", new Object[] { path });
+			}
+			
+		}
+
+		return null;
+		
+	}
+	
 	public static String getDirectoryPath(final String uuid) {
 
 		return (uuid != null)

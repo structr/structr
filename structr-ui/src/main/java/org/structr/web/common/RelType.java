@@ -48,7 +48,10 @@ public enum RelType implements RelationshipType {
 	AUTHOR,
 	COMMENT,
 	
-	TAG
+	TAG,
 	
+	// files
+	HOME_DIR,
+	WORKING_DIR
 	
 }

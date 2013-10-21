@@ -1,0 +1,210 @@
+/*
+ *  Copyright (C) 2013 Axel Morgner
+ * 
+ *  This file is part of structr <http://structr.org>.
+ * 
+ *  structr is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU Affero General Public License as
+ *  published by the Free Software Foundation, either version 3 of the
+ *  License, or (at your option) any later version.
+ * 
+ *  structr is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ * 
+ *  You should have received a copy of the GNU Affero General Public License
+ *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package org.structr.files.ftp;
+
+import java.util.Date;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.ftpserver.ftplet.FtpFile;
+import org.apache.ftpserver.ftplet.User;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.Services;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractUser;
+import org.structr.core.entity.Principal;
+import org.structr.core.graph.DeleteNodeCommand;
+import org.structr.core.graph.StructrTransaction;
+import org.structr.core.graph.TransactionCommand;
+import org.structr.web.common.FileHelper;
+import org.structr.web.entity.AbstractFile;
+import org.structr.web.entity.File;
+import org.structr.web.entity.Folder;
+
+/**
+ *
+ * @author Axel Morgner
+ */
+public abstract class AbstractStructrFtpFile implements FtpFile {
+
+	private static final Logger logger = Logger.getLogger(AbstractStructrFtpFile.class.getName());
+	
+	protected AbstractFile structrFile;
+
+	protected StructrFtpUser owner;
+	protected String newPath;
+	
+
+	public AbstractStructrFtpFile(final AbstractFile file) {
+		structrFile = file;
+	}
+	
+	public AbstractStructrFtpFile(final String path, final StructrFtpUser user) {
+		newPath = path;
+		owner = user;
+	}
+
+	@Override
+	public String getAbsolutePath() {
+		
+		if (structrFile == null) {
+			return newPath;
+		}
+		
+		return FileHelper.getFolderPath(structrFile);
+	}
+
+	@Override
+	public String getName() {
+		return structrFile != null ? structrFile.getProperty(File.name) : StringUtils.substringAfterLast(newPath, "/");
+	}
+
+	@Override
+	public boolean isHidden() {
+		return structrFile.getProperty(File.hidden);
+	}
+
+	@Override
+	public boolean doesExist() {
+		return structrFile != null;
+	}
+
+	@Override
+	public boolean isReadable() {
+		return true;
+	}
+
+	@Override
+	public boolean isWritable() {
+		return true;
+	}
+
+	@Override
+	public boolean isRemovable() {
+		return true;
+	}
+
+	@Override
+	public String getOwnerName() {
+		return getOwner().getProperty(AbstractUser.name);
+	}
+
+	@Override
+	public String getGroupName() {
+		
+		Principal owner = getOwner();
+		
+		if (owner != null) {
+			List<Principal> parents = owner.getParents();
+			if (!parents.isEmpty()) {
+				
+				return parents.get(0).getProperty(AbstractNode.name);
+				
+			}
+		}
+		
+		return "";
+	}
+
+	@Override
+	public int getLinkCount() {
+		return 1;
+	}
+
+	@Override
+	public long getLastModified() {
+		return structrFile.getProperty(AbstractFile.lastModifiedDate).getTime();
+	}
+
+	@Override
+	public boolean setLastModified(final long l) {
+
+		try {
+			Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(new StructrTransaction() {
+
+				@Override
+				public Object execute() throws FrameworkException {
+
+					structrFile.setProperty(AbstractFile.lastModifiedDate, new Date(l));
+					return null;
+				}
+
+			});
+		} catch (FrameworkException ex) {
+			logger.log(Level.SEVERE, null, ex);
+		}
+
+		return true;
+	}
+
+	@Override
+	public boolean delete() {
+
+		try {
+			Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(new StructrTransaction() {
+
+				@Override
+				public Object execute() throws FrameworkException {
+
+					Services.command(SecurityContext.getSuperUserInstance(), DeleteNodeCommand.class).execute(structrFile);
+					return null;
+				}
+
+			});
+		} catch (FrameworkException ex) {
+			logger.log(Level.SEVERE, null, ex);
+		}
+
+		return true;
+		
+	}
+	
+
+	@Override
+	public boolean move(final FtpFile target) {
+	
+		logger.log(Level.INFO, "move()");
+		
+		StructrFtpFolder targetFolder = (StructrFtpFolder) target;
+		
+		try {
+			structrFile.setProperty(AbstractFile.parent, (Folder) targetFolder.getStructrFile());
+			return true;
+			
+		} catch (FrameworkException ex) {
+			logger.log(Level.SEVERE, null, ex);
+			return false;
+		}
+		
+	}
+
+	
+	
+	private Principal getOwner() {
+		return structrFile.getProperty(File.owner);
+	}
+
+	protected AbstractFile getStructrFile() {
+		return structrFile;
+	}
+
+}
