@@ -51,7 +51,7 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 	protected AbstractFile structrFile;
 
 	protected StructrFtpUser owner;
-	protected String newPath;
+	protected String newPath = "/";
 	
 
 	public AbstractStructrFtpFile(final AbstractFile file) {
@@ -85,7 +85,7 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 
 	@Override
 	public boolean doesExist() {
-		return structrFile != null;
+		return true;
 	}
 
 	@Override

@@ -97,19 +97,18 @@ public class StructrFileSystemView implements FileSystemView {
 	@Override
 	public FtpFile getFile(String requestedPath) throws FtpException {
 
+		logger.log(Level.INFO, "Requested path: {0}", requestedPath);
+
 		if (requestedPath.equals("/")) {
-			logger.log(Level.INFO, "Root directrory requested: {0}", requestedPath);
 			return getHomeDirectory();
 		}
 		
 		StructrFtpFolder cur = (StructrFtpFolder) getWorkingDirectory();
 		if (requestedPath.equals("./")) {
-			logger.log(Level.INFO, "Current working directory requested: {0}", requestedPath);
 			return cur;
 		}
 
 		if (requestedPath.equals("..")) {
-			logger.log(Level.INFO, "One directrory up: {0}", requestedPath);
 			return new StructrFtpFolder(cur.getStructrFile().getProperty(AbstractFile.parent));
 		}
 		
@@ -119,15 +118,30 @@ public class StructrFileSystemView implements FileSystemView {
 		for (FtpFile file : files) {
 
 			String path = file.getAbsolutePath();
-			if (path.equals(curPath.concat("/").concat(requestedPath))) {
-	
-				logger.log(Level.INFO, "File or folder found: {0}", new Object[]{requestedPath});
+			
+			if ("/".equals(curPath)) {
+				
+				// We're on root level
+				if (file.getName().equals(requestedPath)) {
+					return file;
+				}
+			}
+			
+			if (path.equals(curPath.concat(requestedPath))) {
+				
+				String type = file.isDirectory() ? "Directory" : (file.isFile() ? "File" : "unknown");
+				logger.log(Level.INFO, "{0} found: {1}", new Object[] {type, file.getAbsolutePath()});
+				
 				return file;
 			}
 
 		}
 		
-		return new StructrFtpFolder(curPath.concat("/").concat(requestedPath), user);
+		//return new StructrFtpFolder(curPath.concat("/").concat(requestedPath), user);
+		
+		logger.log(Level.WARNING, "File not found: {0}", requestedPath);
+		
+		throw new FtpException("File not found: " + requestedPath);
 		
 	}
 

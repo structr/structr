@@ -23,20 +23,24 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ftpserver.ftplet.FtpFile;
-import org.apache.ftpserver.ftplet.User;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
+import org.structr.core.graph.search.Search;
+import org.structr.core.graph.search.SearchAttribute;
+import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
@@ -85,10 +89,69 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 
 	@Override
 	public List<FtpFile> listFiles() {
-		
-		logger.log(Level.INFO, "Children of {0} requested", getAbsolutePath());
-		
+
 		List<FtpFile> ftpFiles = new ArrayList();
+		
+		String requestedPath = getAbsolutePath();
+		logger.log(Level.INFO, "Children of {0} requested", requestedPath);
+		
+		if ("/".equals(requestedPath)) {
+			
+			// Find all folders and files which have no parent
+			List<SearchAttribute> searchAttrs = new LinkedList<>();
+			searchAttrs.add(Search.orExactTypeAndSubtypes(org.structr.web.entity.Folder.class));
+
+			try {
+				Result<Folder> results = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(false, false, searchAttrs);
+				logger.log(Level.FINE, "{0} folders found", results.size());
+				if (results.isEmpty()) return null;
+
+				for (Folder f : results.getResults()) {
+					
+					if (f.getProperty(AbstractFile.parent) != null) {
+						continue;
+					}
+					
+					FtpFile ftpFile = new StructrFtpFolder(f);
+					logger.log(Level.INFO, "Folder found: {0}", ftpFile.getAbsolutePath());
+
+					ftpFiles.add(ftpFile);
+					
+				}
+
+			} catch (FrameworkException ex) {
+				logger.log(Level.SEVERE, null, ex);
+			}
+			
+			searchAttrs = new LinkedList<>();
+			searchAttrs.add(Search.orExactTypeAndSubtypes(org.structr.web.entity.File.class));
+
+			try {
+				Result<File> results = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(false, false, searchAttrs);
+				logger.log(Level.FINE, "{0} files found", results.size());
+				if (results.isEmpty()) return null;
+
+				for (File f : results.getResults()) {
+					
+					if (f.getProperty(AbstractFile.parent) != null) {
+						continue;
+					}
+					
+					FtpFile ftpFile = new StructrFtpFile(f);
+					logger.log(Level.INFO, "File found: {0}", ftpFile.getAbsolutePath());
+
+					ftpFiles.add(ftpFile);
+					
+				}
+
+			} catch (FrameworkException ex) {
+				logger.log(Level.SEVERE, null, ex);
+			}
+
+			return ftpFiles;
+			
+		}
+		
 		List<Folder> folders = ((Folder) structrFile).getProperty(Folder.folders);
 		
 		for (Folder f : folders) {
