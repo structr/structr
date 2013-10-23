@@ -53,14 +53,14 @@ public class FindNodeCommand extends NodeServiceCommand {
 	private NodeFactory nodeFactory;
 
 	//~--- methods --------------------------------------------------------
-	public AbstractNode execute(final Object argument) throws FrameworkException {
+	public NodeInterface execute(final Object argument) throws FrameworkException {
 		return handleSingleArgument(nodeFactory, argument);
 	}
 
 	// <editor-fold defaultstate="collapsed" desc="private methods">
-	private AbstractNode handleSingleArgument(final NodeFactory nodeFactory, final Object argument) throws FrameworkException {
+	private NodeInterface handleSingleArgument(final NodeFactory nodeFactory, final Object argument) throws FrameworkException {
 
-		AbstractNode result;
+		NodeInterface result;
 
 		if (argument instanceof Node) {
 
@@ -136,7 +136,7 @@ public class FindNodeCommand extends NodeServiceCommand {
 	 * @return
 	 * @throws FrameworkException
 	 */
-	private AbstractNode findByDbId(final long id) throws FrameworkException {
+	private NodeInterface findByDbId(final long id) throws FrameworkException {
 
 		Node node = graphDb.getNodeById(id);
 

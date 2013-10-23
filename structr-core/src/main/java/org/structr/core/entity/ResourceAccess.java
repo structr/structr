@@ -24,10 +24,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.graphdb.Direction;
 import org.structr.core.property.Property;
 import org.structr.common.PropertyView;
-import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.ValidationHelper;
 import org.structr.common.View;
@@ -36,6 +34,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.property.LongProperty;
 import org.structr.core.Result;
 import org.structr.core.Services;
+import org.structr.core.entity.relationship.Access;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.search.Search;
@@ -73,7 +72,8 @@ public class ResourceAccess extends AbstractNode {
 	public static final Property<String>                    signature       = new StringProperty("signature", new TypeUniquenessValidator(ResourceAccess.class)).indexed();
 	public static final Property<Long>                      flags           = new LongProperty("flags").indexed();
 	public static final Property<Integer>                   position        = new IntProperty("position").indexed();
-	public static final CollectionProperty<PropertyAccess>  propertyAccess  = new CollectionProperty<PropertyAccess>("propertyAccess", PropertyAccess.class, RelType.PROPERTY_ACCESS, Direction.OUTGOING, new PropertySetNotion(uuid, name), true);
+	
+	public static final CollectionProperty<ResourceAccess, PropertyAccess>  propertyAccess  = new CollectionProperty<ResourceAccess, PropertyAccess>("propertyAccess", Access.class, new PropertySetNotion(uuid, name), true);
 
 	public static final View uiView = new View(ResourceAccess.class, PropertyView.Ui,
 		signature, flags, position

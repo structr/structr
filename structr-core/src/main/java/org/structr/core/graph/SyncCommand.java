@@ -714,7 +714,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 				
 				for (Node node : nodes) {
 					
-					AbstractNode entity = nodeFactory.instantiate(node);
+					NodeInterface entity = nodeFactory.instantiate(node);
 					TransactionCommand.nodeCreated(entity);
 					entity.addToIndex();
 					
@@ -722,7 +722,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 				
 				for (Relationship rel : rels) {
 					
-					AbstractRelationship entity = relFactory.instantiate(rel);
+					RelationshipInterface entity = relFactory.instantiate(rel);
 					TransactionCommand.relationshipCreated(entity);
 					entity.addToIndex();
 				}

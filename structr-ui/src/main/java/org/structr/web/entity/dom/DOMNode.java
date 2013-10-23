@@ -73,6 +73,8 @@ import org.structr.core.property.PropertyKey;
 import org.structr.web.common.Function;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.entity.Principal;
+import org.structr.core.entity.relationship.IncomingOwnership;
+import org.structr.core.entity.relationship.TreeChild;
 import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.search.PropertySearchAttribute;
 import org.structr.core.property.BooleanProperty;
@@ -1129,7 +1131,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 				// special keyword "owner"
 				if ("owner".equals(lowerCasePart)) {
 
-					for (AbstractRelationship rel : getRelationships(org.structr.common.RelType.OWNS, Direction.INCOMING)) {
+					for (AbstractRelationship rel : getRelationships(IncomingOwnership.class)) {
 
 						_data = rel.getStartNode();
 
@@ -1702,27 +1704,27 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 		
 		checkReadAccess();
 		
-		return new DOMNodeList(treeGetChildren(RelType.CONTAINS));
+		return new DOMNodeList(treeGetChildren(TreeChild.class));
 	}
 
 	@Override
 	public Node getFirstChild() {
-		return (DOMNode)treeGetFirstChild(RelType.CONTAINS);
+		return (DOMNode)treeGetFirstChild(TreeChild.class);
 	}
 
 	@Override
 	public Node getLastChild() {
-		return (DOMNode)treeGetLastChild(RelType.CONTAINS);
+		return (DOMNode)treeGetLastChild(TreeChild.class);
 	}
 
 	@Override
 	public Node getPreviousSibling() {
-		return (DOMNode)listGetPrevious(RelType.CONTAINS_NEXT_SIBLING, this);
+		return (DOMNode)listGetPrevious(getListKey(TreeChild.class), this);
 	}
 
 	@Override
 	public Node getNextSibling() {
-		return (DOMNode)listGetNext(RelType.CONTAINS_NEXT_SIBLING, this);
+		return (DOMNode)listGetNext(getListKey(TreeChild.class), this);
 	}
 
 	@Override
@@ -1784,7 +1786,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 					_parent.removeChild(newChild);
 				}
 
-				treeInsertBefore(RelType.CONTAINS, (DOMNode)newChild, (DOMNode)refChild);
+				treeInsertBefore(DOMChild.class, (DOMNode)newChild, (DOMNode)refChild);
 				
 				// allow parent to set properties in new child
 				handleNewChild(newChild);
@@ -1851,7 +1853,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 				}
 
 				// replace directly
-				treeReplaceChild(RelType.CONTAINS, (DOMNode)newChild, (DOMNode)oldChild);
+				treeReplaceChild(DOMChild.class, (DOMNode)newChild, (DOMNode)oldChild);
 				
 				// allow parent to set properties in new child
 				handleNewChild(newChild);
@@ -1874,7 +1876,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 		
 		try {
 			
-			treeRemoveChild(RelType.CONTAINS, (DOMNode)node);
+			treeRemoveChild(DOMChild.class, (DOMNode)node);
 
 		} catch (FrameworkException fex) {
 
@@ -1930,7 +1932,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 					_parent.removeChild(newChild);
 				}
 			
-				treeAppendChild(RelType.CONTAINS, (DOMNode)newChild);
+				treeAppendChild(DOMChild.class, (DOMNode)newChild);
 				
 				// allow parent to set properties in new child
 				handleNewChild(newChild);

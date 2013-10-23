@@ -6,14 +6,12 @@
 package org.structr.core.property;
 
 import java.util.List;
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.helpers.collection.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.Notion;
 
 /**
@@ -22,21 +20,19 @@ import org.structr.core.notion.Notion;
  */
 public class RelationshipProperty<T extends AbstractRelationship> extends AbstractReadOnlyProperty<List<T>> {
 
-	private RelationshipType relType = null;
-	private Direction direction      = null;
-	private Notion notion            = null;
+	private Notion notion = null;
+	private Class<T> type = null;
 	
-	public RelationshipProperty(String name, final RelationshipType relType, final Direction direction) {
-		this(name, relType, direction, null);
+	public RelationshipProperty(String name, final Class<T> type) {
+		this(name, type, null);
 	}
 	
-	public RelationshipProperty(String name, final RelationshipType relType, final Direction direction, final Notion notion) {
+	public RelationshipProperty(String name, final Class<T> type, final Notion notion) {
 		
 		super(name);
-
-		this.relType   = relType;
-		this.direction = direction;
-		this.notion    = notion;
+		
+		this.type   = type;
+		this.notion = notion;
 	}
 
 	@Override
@@ -71,11 +67,8 @@ public class RelationshipProperty<T extends AbstractRelationship> extends Abstra
 
 	@Override
 	public List<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
-		
-		AbstractNode node = (AbstractNode)obj;
-		Iterable<T> rels  = (Iterable<T>)node.getRelationships(relType, direction);
-		
-		return Iterables.toList(rels);
+		NodeInterface node = (NodeInterface)obj;
+		return Iterables.toList(node.getRelationships(type));
 	}
 
 	@Override

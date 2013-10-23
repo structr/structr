@@ -23,6 +23,7 @@ import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
+import org.structr.core.entity.relationship.LocationRelationship;
 import org.structr.core.property.DoubleProperty;
 
 //~--- classes ----------------------------------------------------------------
@@ -78,9 +79,11 @@ public class Location extends AbstractNode {
 	
 	private boolean notifyLocatables() {
 		
+		// FIXME: LocationRelationship has a direction. but it is ignored here
+		
 		boolean allLocatablesAreValid = false;
 		
-		for(AbstractRelationship rel : this.getRelationships()) {
+		for(LocationRelationship rel : this.getRelationships(LocationRelationship.class)) {
 			
 			AbstractNode otherNode = rel.getOtherNode(this);
 			if(otherNode != null && otherNode instanceof Locatable) {

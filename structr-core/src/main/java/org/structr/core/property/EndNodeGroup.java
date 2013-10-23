@@ -20,8 +20,8 @@ package org.structr.core.property;
 
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
 
 /**
  * A property group that returns grouped properties from the end node of a relationship.
@@ -37,10 +37,10 @@ public class EndNodeGroup extends GroupProperty {
 	@Override
 	public PropertyMap getGroupedProperties(SecurityContext securityContext, GraphObject source) {
 
-		if(source instanceof AbstractRelationship) {
+		if(source instanceof RelationshipInterface) {
 
-			AbstractRelationship rel = (AbstractRelationship)source;
-			AbstractNode end         = rel.getEndNode();
+			RelationshipInterface rel = (RelationshipInterface)source;
+			NodeInterface end         = rel.getEndNode();
 
 			return super.getGroupedProperties(securityContext, end);
 		}

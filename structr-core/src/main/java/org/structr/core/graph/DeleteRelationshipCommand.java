@@ -21,19 +21,16 @@
 package org.structr.core.graph;
 
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.graphdb.Relationship;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
-import org.structr.core.UnsupportedArgumentError;
 import org.structr.core.entity.AbstractRelationship;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.SecurityContext;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -53,7 +50,7 @@ public class DeleteRelationshipCommand extends NodeServiceCommand {
 		RelationshipFactory relFactory = new RelationshipFactory(securityContext);
 		
 		// default is active deletion!
-		return execute(relFactory.instantiate(rel), false);
+		return execute((AbstractRelationship)relFactory.instantiate(rel), false);
 	}
 	
 	public Object execute(final AbstractRelationship rel) throws FrameworkException {

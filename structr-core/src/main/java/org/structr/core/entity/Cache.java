@@ -58,6 +58,5 @@ public class Cache extends AbstractNode {
 	public void onNodeInstantiation() {
 		Integer _size = getProperty(Cache.size);
 		this.internalSize = _size != null ? _size : 0;
-	}
-	
+	}	
 }

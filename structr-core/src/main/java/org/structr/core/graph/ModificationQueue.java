@@ -30,7 +30,6 @@ import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.property.PropertyKey;
 
@@ -133,17 +132,17 @@ public class ModificationQueue {
 		modifications.clear();
 	}
 
-	public void create(AbstractNode node) {
+	public void create(NodeInterface node) {
 		getState(node).create();
 		
 //		synchronizationKeys.add(node.getType());
 	}
 
-	public void create(AbstractRelationship relationship) {
+	public <S extends NodeInterface, T extends NodeInterface> void create(final RelationshipInterface relationship) {
 
 		getState(relationship).create();
 
-		modifyEndNodes(relationship.getStartNode(), relationship.getEndNode(), relationship.getRelType());
+		modifyEndNodes(relationship.getStartNode(), relationship.getEndNode(), relationship.getRelationshipType());
 		
 		String combinedType = relationship.getProperty(AbstractRelationship.combinedType);
 		if (combinedType != null) {
@@ -151,19 +150,19 @@ public class ModificationQueue {
 		}
 	}
 
-	public void modifyOwner(AbstractNode node) {
+	public void modifyOwner(NodeInterface node) {
 		getState(node).modifyOwner();
 	}
 	
-	public void modifySecurity(AbstractNode node) {
+	public void modifySecurity(NodeInterface node) {
 		getState(node).modifySecurity();
 	}
 	
-	public void modifyLocation(AbstractNode node) {
+	public void modifyLocation(NodeInterface node) {
 		getState(node).modifyLocation();
 	}
 	
-	public void modify(AbstractNode node, PropertyKey key, Object previousValue) {
+	public void modify(NodeInterface node, PropertyKey key, Object previousValue) {
 		getState(node).modify(key, previousValue);
 		
 		if (key != null&& key.requiresSynchronization()) {
@@ -171,7 +170,7 @@ public class ModificationQueue {
 		}
 	}
 
-	public void modify(AbstractRelationship relationship, PropertyKey key, Object previousValue) {
+	public void modify(RelationshipInterface relationship, PropertyKey key, Object previousValue) {
 		getState(relationship).modify(key, previousValue);
 		
 		if (key != null && key.requiresSynchronization()) {
@@ -179,7 +178,7 @@ public class ModificationQueue {
 		}
 	}
 	
-	public void propagatedModification(AbstractNode node) {
+	public void propagatedModification(NodeInterface node) {
 
 		if (node != null) {
 		
@@ -194,18 +193,18 @@ public class ModificationQueue {
 	}
 	}
 
-	public void delete(AbstractNode node) {
+	public void delete(NodeInterface node) {
 		getState(node).delete(false);
 	}
 
-	public void delete(AbstractRelationship relationship, boolean passive) {
+	public void delete(RelationshipInterface relationship, boolean passive) {
 
 		getState(relationship).delete(passive);
 
-		modifyEndNodes(relationship.getStartNode(), relationship.getEndNode(), relationship.getRelType());
+		modifyEndNodes(relationship.getStartNode(), relationship.getEndNode(), relationship.getRelationshipType());
 	}
 
-	private void modifyEndNodes(AbstractNode startNode, AbstractNode endNode, RelationshipType relType) {
+	private void modifyEndNodes(NodeInterface startNode, NodeInterface endNode, RelationshipType relType) {
 		
 //		synchronizationKeys.add(relType.name());
 
@@ -234,11 +233,11 @@ public class ModificationQueue {
 		modify(endNode, null, null);
 	}
 
-	private GraphObjectModificationState getState(AbstractNode node) {
+	private GraphObjectModificationState getState(NodeInterface node) {
 		return getState(node, false);
 	}
 	
-	private GraphObjectModificationState getState(AbstractNode node, boolean checkPropagation) {
+	private GraphObjectModificationState getState(NodeInterface node, boolean checkPropagation) {
 
 		String hash = hash(node);
 		GraphObjectModificationState state = modifications.get(hash);
@@ -252,7 +251,7 @@ public class ModificationQueue {
 		return state;
 	}
 
-	private GraphObjectModificationState getState(AbstractRelationship rel) {
+	private GraphObjectModificationState getState(RelationshipInterface rel) {
 
 		String hash = hash(rel);
 		GraphObjectModificationState state = modifications.get(hash);
@@ -266,11 +265,11 @@ public class ModificationQueue {
 		return state;
 	}
 
-	private String hash(AbstractNode node) {
+	private String hash(NodeInterface node) {
 		return "N" + node.getId();
 	}
 
-	private String hash(AbstractRelationship rel) {
+	private String hash(RelationshipInterface rel) {
 		return "R" + rel.getId();
 	}
 }

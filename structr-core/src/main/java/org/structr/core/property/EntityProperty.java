@@ -38,6 +38,7 @@ import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.CreateRelationshipCommand;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeFactory;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.notion.Notion;
@@ -48,7 +49,7 @@ import org.structr.core.notion.ObjectNotion;
  *
  * @author Christian Morgner
  */
-public class EntityProperty<T extends GraphObject> extends AbstractRelationProperty<T> {
+public class EntityProperty<T extends NodeInterface> extends AbstractRelationProperty<T> {
 
 	private static final Logger logger = Logger.getLogger(EntityProperty.class.getName());
 
@@ -293,7 +294,7 @@ public class EntityProperty<T extends GraphObject> extends AbstractRelationPrope
 
 				NodeFactory nodeFactory = new NodeFactory(securityContext);
 				Node dbNode             = node.getNode();
-				AbstractNode value      = null;
+				NodeInterface value     = null;
 
 				try {
 

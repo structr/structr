@@ -20,8 +20,8 @@ package org.structr.core.converter;
 
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.graph.NodeInterface;
 
 /**
  * Returns the "type" property of the start node when evaluated.
@@ -42,7 +42,7 @@ public class RelationshipStartNodeTypeConverter extends PropertyConverter {
 			AbstractRelationship rel = (AbstractRelationship)currentObject;
 			if(rel != null) {
 				
-				AbstractNode startNode = rel.getStartNode();
+				NodeInterface startNode = rel.getStartNode();
 				if(startNode != null) {
 					
 					return startNode.getType();

@@ -32,7 +32,6 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
 
 import org.structr.common.*;
-import org.structr.common.AccessControllable;
 import org.structr.common.GraphObjectComparator;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.PropertyView;
@@ -44,7 +43,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.NullArgumentToken;
 import org.structr.common.error.ReadOnlyPropertyToken;
 import org.structr.core.EntityContext;
-import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.Services;
 import org.structr.core.graph.NodeRelationshipStatisticsCommand;
@@ -60,9 +58,14 @@ import java.util.logging.Logger;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.index.Index;
+import org.structr.core.Incoming;
+import org.structr.core.Outgoing;
 import org.structr.core.IterableAdapter;
+import org.structr.core.entity.relationship.Ownership;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeService;
 import org.structr.core.graph.RelationshipFactory;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.EntityIdProperty;
 import org.structr.core.property.EntityProperty;
 
@@ -74,7 +77,7 @@ import org.structr.core.property.EntityProperty;
  * @author Axel Morgner
  * @author Christian Morgner
  */
-public abstract class AbstractNode implements GraphObject, Comparable<AbstractNode>, AccessControllable {
+public abstract class AbstractNode implements NodeInterface, AccessControllable {
 
 	private static final Logger logger = Logger.getLogger(AbstractNode.class.getName());
 
@@ -127,22 +130,27 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	}
 
 	//~--- methods --------------------------------------------------------
-	
+
+	@Override
 	public void onNodeCreation() {
 	}
 
+	@Override
 	public void onNodeInstantiation() {
 	}
 	
+	@Override
 	public void onNodeDeletion() {
 	}
 	
+	@Override
 	public final void init(final SecurityContext securityContext, final Node dbNode) {
 
 		this.dbNode          = dbNode;
 		this.securityContext = securityContext;
 	}
 
+	@Override
 	public void setSecurityContext(SecurityContext securityContext) {
 		this.securityContext = securityContext;
 	}
@@ -181,7 +189,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	}
 
 	@Override
-	public int compareTo(final AbstractNode node) {
+	public int compareTo(final NodeInterface node) {
 
 		if(node == null) {
 			return -1;
@@ -328,6 +336,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 *
 	 * If name is null, return node id as fallback
 	 */
+	@Override
 	public String getName() {
 		
 		String name = getProperty(AbstractNode.name);
@@ -629,19 +638,18 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * @param principal
 	 * @return incoming security relationship
 	 */
-	@Override
-	public SecurityRelationship getSecurityRelationship(final Principal p) {
+	public Security getSecurityRelationship(final Principal p) {
 
 		if (p == null) {
 
 			return null;
 		}
 
-		for (AbstractRelationship r : getRelationships(RelType.SECURITY, Direction.INCOMING)) {
+		for (Security r : getIncomingRelationships(Security.class)) {
 			
 			if (r.getStartNode().equals(p)) {
 				
-				return (SecurityRelationship) r;
+				return r;
 				
 			}
 		}
@@ -655,25 +663,158 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 *
 	 * @return list with relationships
 	 */
-	public Iterable<AbstractRelationship> getRelationships(RelationshipType type, Direction dir) {
+	@Override
+	public <T extends AbstractRelationship> Iterable<T> getRelationships(final Class<T> type) {
 
-		RelationshipFactory factory = new RelationshipFactory(securityContext);
-		Iterable<Relationship> rels = null;
+		RelationshipFactory<T> factory = new RelationshipFactory<T>(securityContext);
+		AbstractRelationship template  = getRelationshipForType(type);
+		Direction dir                  = template.getDirectionForType(entityType);
+		RelationshipType relType       = template.getRelationshipType();
+		Iterable<Relationship> rels    = null;
 		
 		if (type != null && dir != null) {
 			
-			rels = dbNode.getRelationships(type, dir);
+			rels = dbNode.getRelationships(relType, dir);
 			
 		} else if (type != null) {
 			
-			rels = dbNode.getRelationships(type);
+			rels = dbNode.getRelationships(relType);
 			
 		} else if (dir != null) {
 			
 			rels = dbNode.getRelationships(dir);
 		}
 		
-		return new IterableAdapter<Relationship, AbstractRelationship>(rels, factory);
+		return new IterableAdapter<Relationship, T>(rels, factory);
+	}
+
+	/**
+	 * Return all relationships of given type and direction in lazy way.
+	 *
+	 * @return list with relationships
+	 */
+	@Override
+	public <T extends AbstractRelationship> Iterable<T> getRelationships() {
+
+		RelationshipFactory<T> factory = new RelationshipFactory<T>(securityContext);
+		return new IterableAdapter<Relationship, T>(dbNode.getRelationships(), factory);
+	}
+
+	/**
+	 * Return all relationships of given type and direction in lazy way.
+	 *
+	 * @return list with relationships
+	 */
+	@Override
+	public <T extends Incoming> Iterable<T> getReverseRelationships(final Class<T> type) {
+
+		RelationshipFactory<T> factory = new RelationshipFactory<T>(securityContext);
+		RelationshipInterface template = getRelationshipForType(type);
+		Direction dir                  = template.getDirectionForType(entityType).reverse();
+		RelationshipType relType       = template.getRelationshipType();
+		Iterable<Relationship> rels    = null;
+		
+		if (type != null && dir != null) {
+			
+			rels = dbNode.getRelationships(relType, dir);
+			
+		} else if (type != null) {
+			
+			rels = dbNode.getRelationships(relType);
+			
+		} else if (dir != null) {
+			
+			rels = dbNode.getRelationships(dir);
+		}
+		
+		return new IterableAdapter<Relationship, T>(rels, factory);
+	}
+
+	/**
+	 * Return all relationships of given type and direction in lazy way.
+	 *
+	 * @return list with relationships
+	 */
+	@Override
+	public <T extends Outgoing & Incoming> Iterable<T> getAllRelationships(final Class<T> type) {
+
+		RelationshipFactory<T> factory = new RelationshipFactory<T>(securityContext);
+		RelationshipInterface template = getRelationshipForType(type);
+		RelationshipType relType       = template.getRelationshipType();
+		Iterable<Relationship> rels    = null;
+		
+		if (type != null) {
+			
+			rels = dbNode.getRelationships(relType, Direction.BOTH);
+		}			
+		
+		return new IterableAdapter<Relationship, T>(rels, factory);
+	}
+
+	/**
+	 * Return all incoming relationships of given type and direction in lazy way.
+	 *
+	 * @return list with relationships
+	 */
+	@Override
+	public <T extends Incoming> Iterable<T> getIncomingRelationships(final Class<T> type) {
+
+		RelationshipFactory<T> factory = new RelationshipFactory<T>(securityContext);
+		RelationshipInterface template = getRelationshipForType(type);
+		RelationshipType relType       = template.getRelationshipType();
+		Iterable<Relationship> rels    = null;
+		
+		if (type != null) {
+			
+			rels = dbNode.getRelationships(relType, Direction.INCOMING);
+		}
+		
+		return new IterableAdapter<Relationship, T>(rels, factory);
+	}
+
+	/**
+	 * Return all incoming relationships of given type and direction in lazy way.
+	 *
+	 * @return list with relationships
+	 */
+	@Override
+	public <T extends Incoming> Iterable<T> getIncomingRelationships() {
+
+		RelationshipFactory<T> factory = new RelationshipFactory<T>(securityContext);
+		return new IterableAdapter<Relationship, T>(dbNode.getRelationships(Direction.INCOMING), factory);
+	}
+
+	/**
+	 * Return all outgoing relationships of given type and direction in lazy way.
+	 *
+	 * @return list with relationships
+	 */
+	@Override
+	public <T extends Outgoing> Iterable<T> getOutgoingRelationships(final Class<T> type) {
+
+		RelationshipFactory<T> factory = new RelationshipFactory<T>(securityContext);
+		RelationshipInterface template = getRelationshipForType(type);
+		RelationshipType relType       = template.getRelationshipType();
+		Iterable<Relationship> rels    = null;
+		
+		if (type != null) {
+			
+			rels = dbNode.getRelationships(relType, Direction.OUTGOING);
+		}
+		
+		return new IterableAdapter<Relationship, T>(rels, factory);
+	}
+
+	/**
+	 * Return all outgoing relationships of given type and direction in lazy way.
+	 *
+	 * @return list with relationships
+	 */
+	@Override
+	public <T extends Outgoing> Iterable<T> getOutgoingRelationships() {
+
+		RelationshipFactory<T> factory = new RelationshipFactory<T>(securityContext);
+		return new IterableAdapter<Relationship, T>(dbNode.getRelationships(Direction.OUTGOING), factory);
 	}
 
 	/**
@@ -698,85 +839,17 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	}
 
 	/**
-	 * Convenience method to get all relationships of this node
-	 *
-	 * @return
-	 */
-	public Iterable<AbstractRelationship> getRelationships() {
-
-		return getRelationships(null, Direction.BOTH);
-
-	}
-
-	/**
-	 * Convenience method to get all relationships of this node of given direction
-	 *
-	 * @return
-	 */
-	public Iterable<AbstractRelationship> getRelationships(final Direction dir) {
-
-		return getRelationships(null, dir);
-
-	}
-
-	/**
-	 * Convenience method to get all incoming relationships of this node
-	 *
-	 * @return
-	 */
-	public Iterable<AbstractRelationship> getIncomingRelationships() {
-
-		return getRelationships(null, Direction.INCOMING);
-
-	}
-
-	/**
-	 * Convenience method to get all outgoing relationships of this node
-	 *
-	 * @return
-	 */
-	public Iterable<AbstractRelationship> getOutgoingRelationships() {
-
-		return getRelationships(null, Direction.OUTGOING);
-
-	}
-
-	/**
-	 * Convenience method to get all incoming relationships of this node of given type
-	 *
-	 * @return
-	 */
-	public Iterable<AbstractRelationship> getIncomingRelationships(final RelationshipType type) {
-
-		return getRelationships(type, Direction.INCOMING);
-
-	}
-	
-	/**
-	 * Convenience method to get all outgoing relationships of this node of given type
-	 *
-	 * @return
-	 */
-	public Iterable<AbstractRelationship> getOutgoingRelationships(final RelationshipType type) {
-
-		return getRelationships(type, Direction.OUTGOING);
-
-	}
-
-	/**
 	 * Returns the owner node of this node, following an INCOMING OWNS relationship.
 	 *
 	 * @return the owner node of this node
 	 */
-	@Override
 	public Principal getOwnerNode() {
 
 		if (cachedOwnerNode == null) {
 
-			for (AbstractRelationship s : getRelationships(RelType.OWNS, Direction.INCOMING)) {
+			for (Incoming s : getIncomingRelationships(Ownership.class)) {
 
-				AbstractNode n = s.getStartNode();
-				
+				Principal n = s.getStartNode();
 				if (n == null) {
 					
 					logger.log(Level.WARNING, "Could not determine owner node!");
@@ -784,22 +857,12 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 					return null;
 				}
 
-				if (n instanceof Principal) {
-
-					cachedOwnerNode = (Principal) n;
-
-					break;
-
-				}
-
-				logger.log(Level.SEVERE, "Owner node is not a user: {0}[{1}]", new Object[] { n.getName(), n.getId() });
-
+				cachedOwnerNode = (Principal) n;
+				break;
 			}
-
 		}
 
 		return cachedOwnerNode;
-
 	}
 
 	/**
@@ -817,15 +880,15 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * Return a list with the connected principals (user, group, role)
 	 * @return
 	 */
-	public List<AbstractNode> getSecurityPrincipals() {
+	public List<Principal> getSecurityPrincipals() {
 
-		List<AbstractNode> principalList = new LinkedList<AbstractNode>();
+		List<Principal> principalList = new LinkedList<Principal>();
 
 		// check any security relationships
-		for (AbstractRelationship r : getRelationships(RelType.SECURITY, Direction.INCOMING)) {
+		for (Incoming r : getIncomingRelationships(Security.class)) {
 
 			// check security properties
-			AbstractNode principalNode = r.getEndNode();
+			Principal principalNode = r.getStartNode();
 
 			principalList.add(principalNode);
 		}
@@ -841,13 +904,12 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * @param dir
 	 * @return
 	 */
-	public boolean hasRelationship(final RelationshipType type, final Direction dir) {
-		return this.getRelationships(type, dir).iterator().hasNext();
+	public boolean hasRelationship(final Class<? extends AbstractRelationship> type) {
+		return this.getRelationships(type).iterator().hasNext();
 
 	}
 
 	// ----- interface AccessControllable -----
-	@Override
 	public boolean isGranted(final Permission permission, final Principal principal) {
 
 		if (principal == null) {
@@ -873,7 +935,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 			return true;
 		}
 
-		SecurityRelationship r = getSecurityRelationship(principal);
+		Security r = getSecurityRelationship(principal);
 
 		if ((r != null) && r.isAllowed(permission)) {
 
@@ -944,50 +1006,42 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	}
 
-	@Override
 	public boolean isVisibleToPublicUsers() {
 
 		return getVisibleToPublicUsers();
 
 	}
 
-	@Override
 	public boolean isVisibleToAuthenticatedUsers() {
 
 		return getProperty(visibleToAuthenticatedUsers);
 
 	}
 
-	@Override
 	public boolean isNotHidden() {
 
 		return !getHidden();
 
 	}
 
-	@Override
 	public boolean isHidden() {
 
 		return getHidden();
 
 	}
 	
-	@Override
 	public Date getVisibilityStartDate() {
 		return getProperty(visibilityStartDate);
 	}
 	
-	@Override
 	public Date getVisibilityEndDate() {
 		return getProperty(visibilityEndDate);
 	}
 
-	@Override
 	public Date getCreatedDate() {
 		return getProperty(createdDate);
 	}
 	
-	@Override
 	public Date getLastModifiedDate() {
 		return getProperty(lastModifiedDate);
 	}
@@ -999,6 +1053,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	}
 
+	@Override
 	public boolean isDeleted() {
 
 		return getDeleted();
@@ -1190,30 +1245,18 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 			}
 		}
 	}
+	
+	protected <T extends RelationshipInterface> T getRelationshipForType(final Class<T> type) {
+		
+		try {
+			
+			return type.newInstance();
+			
+		} catch (Throwable t) {
+			
+			t.printStackTrace();
+		}
+		
+		return null;
+	}
 }
-
-
-/*
-		Set<AbstractNode> propagationNodes = new LinkedHashSet<AbstractNode>();
-		
-		// iterate over incoming relationships
-		for (AbstractRelationship rel : getIncomingRelationships()) {
-			
-			if (rel.propagatesModifications(Direction.INCOMING)) {
-				
-				propagationNodes.add(rel.getStartNode());
-			}
-		}
-		
-		// iterate over outgoing relationships
-		for (AbstractRelationship rel : getOutgoingRelationships()) {
-			
-			if (rel.propagatesModifications(Direction.OUTGOING)) {
-				
-				propagationNodes.add(rel.getEndNode());
-			}
-		}
-		
-		return propagationNodes;
-
- */

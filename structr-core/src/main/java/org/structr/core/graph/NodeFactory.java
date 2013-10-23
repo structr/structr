@@ -37,9 +37,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.module.ModuleService;
 import org.neo4j.gis.spatial.indexprovider.SpatialRecordHits;
-import org.neo4j.graphdb.Direction;
-import org.structr.common.RelType;
-import org.structr.core.entity.AbstractRelationship;
+import org.structr.common.AccessControllable;
+import org.structr.core.Incoming;
+import org.structr.core.entity.relationship.LocationRelationship;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -49,7 +49,7 @@ import org.structr.core.entity.AbstractRelationship;
  * @author Christian Morgner
  * @author Axel Morgner
  */
-public class NodeFactory<T extends AbstractNode> extends Factory<Node, T> {
+public class NodeFactory<T extends NodeInterface & AccessControllable> extends Factory<Node, T> {
 
 	private static final Logger logger        = Logger.getLogger(NodeFactory.class.getName());
 
@@ -233,11 +233,11 @@ public class NodeFactory<T extends AbstractNode> extends Factory<Node, T> {
 				// Check is done in createNodeWithType already, so we don't have to do it again
 				if (n != null) {    // && isReadable(securityContext, n, includeDeletedAndHidden, publicOnly)) {
 
-					List<AbstractNode> nodesAt = getNodesAt(n);
+					List<T> nodesAt = getNodesAt(n);
 
 					size += nodesAt.size();
 
-					for (AbstractNode nodeAt : nodesAt) {
+					for (T nodeAt : nodesAt) {
 
 						if (nodeAt != null && securityContext.isReadable(nodeAt, includeDeletedAndHidden, publicOnly)) {
 
@@ -272,13 +272,13 @@ public class NodeFactory<T extends AbstractNode> extends Factory<Node, T> {
 	 * @param locationNode
 	 * @return
 	 */
-	protected List<AbstractNode> getNodesAt(final AbstractNode locationNode) {
+	protected List<T> getNodesAt(final T locationNode) {
 
-		List<AbstractNode> nodes = new LinkedList<AbstractNode>();
+		List<T> nodes = new LinkedList<T>();
 
-		for (AbstractRelationship rel : locationNode.getRelationships(RelType.IS_AT, Direction.INCOMING)) {
+		for (Incoming rel : locationNode.getIncomingRelationships(LocationRelationship.class)) {
 
-			AbstractNode startNode = rel.getStartNode();
+			T startNode = rel.getStartNode();
 			
 			nodes.add(startNode);
 			

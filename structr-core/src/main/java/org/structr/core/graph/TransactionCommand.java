@@ -230,7 +230,7 @@ public class TransactionCommand extends NodeServiceCommand {
 		return result;
 	}
 	
-	public static void nodeCreated(AbstractNode node) {
+	public static void nodeCreated(NodeInterface node) {
 		
 		TransactionCommand command = currentCommand.get();
 		if (command != null) {
@@ -272,7 +272,7 @@ public class TransactionCommand extends NodeServiceCommand {
 		}
 	}
 	
-	public static void nodeDeleted(AbstractNode node) {
+	public static void nodeDeleted(NodeInterface node) {
 		
 		TransactionCommand command = currentCommand.get();
 		if (command != null) {
@@ -293,7 +293,7 @@ public class TransactionCommand extends NodeServiceCommand {
 		}
 	}
 	
-	public static void relationshipCreated(AbstractRelationship relationship) {
+	public static void relationshipCreated(RelationshipInterface relationship) {
 		
 		TransactionCommand command = currentCommand.get();
 		if (command != null) {
@@ -314,7 +314,7 @@ public class TransactionCommand extends NodeServiceCommand {
 		}
 	}
 	
-	public static void relationshipModified(AbstractRelationship relationship, PropertyKey key, Object value) {
+	public static void relationshipModified(RelationshipInterface relationship, PropertyKey key, Object value) {
 		
 		TransactionCommand command = currentCommand.get();
 		if (command != null) {
@@ -335,7 +335,7 @@ public class TransactionCommand extends NodeServiceCommand {
 		}
 	}
 	
-	public static void relationshipDeleted(AbstractRelationship relationship, boolean passive) {
+	public static void relationshipDeleted(RelationshipInterface relationship, boolean passive) {
 		
 		TransactionCommand command = currentCommand.get();
 		if (command != null) {

@@ -46,7 +46,7 @@ import org.structr.web.property.ImageDataProperty;
  * @author Axel Morgner
  *
  */
-public class User extends AbstractUser implements Principal {
+public class User extends AbstractUser {
 	
 	private static final Logger logger = Logger.getLogger(User.class.getName());
 

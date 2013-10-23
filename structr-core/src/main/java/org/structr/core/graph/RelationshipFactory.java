@@ -34,11 +34,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.graphdb.index.IndexHits;
 import static org.structr.common.RelType.SECURITY;
-import org.structr.core.Result;
-import org.structr.core.entity.SecurityRelationship;
-import org.structr.core.property.PropertyMap;
+import org.structr.core.entity.Security;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -49,7 +46,7 @@ import org.structr.core.property.PropertyMap;
  *
  * @author Axel Morgner
  */
-public class RelationshipFactory<T extends AbstractRelationship> extends Factory<Relationship, T> {
+public class RelationshipFactory<T extends RelationshipInterface> extends Factory<Relationship, T> {
 
 	private static final Logger logger = Logger.getLogger(RelationshipFactory.class.getName());
 
@@ -83,16 +80,6 @@ public class RelationshipFactory<T extends AbstractRelationship> extends Factory
 		return newRel;
 	}
 
-	public T instantiate(final PropertyMap properties) throws FrameworkException {
-
-		String combinedRelType = (String) properties.get(AbstractRelationship.combinedType);
-		T newRel               = instantiate(combinedRelType);
-
-		newRel.setProperties(properties);
-
-		return newRel;
-	}
-
 	@Override
 	public T instantiate(final Relationship relationship) throws FrameworkException {
 
@@ -117,7 +104,7 @@ public class RelationshipFactory<T extends AbstractRelationship> extends Factory
 			// 3rd: Try security relationship directly
 			if (newRel == null && relClass == null && SECURITY.name().equals(relationship.getType().name())) {
 				
-				relClass = (Class) SecurityRelationship.class;
+				relClass = (Class) Security.class;
 
 			}
 			
