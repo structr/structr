@@ -31,7 +31,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang.ArrayUtils;
 import org.neo4j.graphdb.Relationship;
-import org.structr.common.AccessControllable;
+import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.Permission;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
@@ -46,6 +46,7 @@ import org.structr.core.property.StringProperty;
 import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.graph.DeleteRelationshipCommand;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.ArrayProperty;
 
 //~--- classes ----------------------------------------------------------------
@@ -57,40 +58,30 @@ import org.structr.core.property.ArrayProperty;
  * @author Axel Morgner
  *
  */
-public class SecurityRelationship extends AbstractRelationship {
+public class Security extends AbstractRelationship<Principal, NodeInterface> {
 
-	private static final Logger logger = Logger.getLogger(SecurityRelationship.class.getName());
+	private static final Logger logger = Logger.getLogger(Security.class.getName());
 	
 	public static final Property<String> principalId          = new StringProperty("principalId");
 	public static final Property<String> accessControllableId = new StringProperty("accessControllableId");
 	public static final Property<String[]> allowed            = new ArrayProperty("allowed", String.class);
 
-	public static final View uiView = new View(SecurityRelationship.class, PropertyView.Ui,
+	public static final View uiView = new View(Security.class, PropertyView.Ui,
 		allowed
 	);
 	
 	static {
 
 		//EntityContext.registerSearchableProperty(SecurityRelationship.class, RelationshipIndex.rel_uuid.name(), AbstractRelationship.uuid);
-		EntityContext.registerNamedRelation("security", SecurityRelationship.class, Principal.class, AccessControllable.class, RelType.SECURITY);
+		EntityContext.registerNamedRelation("security", Security.class, Principal.class, NodeInterface.class, RelType.SECURITY);
 	}
 	
 	//~--- constructors ---------------------------------------------------
 
-	public SecurityRelationship() {}
+	public Security() {}
 
-	public SecurityRelationship(SecurityContext securityContext, Relationship dbRelationship) {
+	public Security(SecurityContext securityContext, Relationship dbRelationship) {
 		init(securityContext, dbRelationship);
-	}
-
-	@Override
-	public PropertyKey getStartNodeIdKey() {
-		return principalId;
-	}
-
-	@Override
-	public PropertyKey getEndNodeIdKey() {
-		return accessControllableId;
 	}
 		
 	@Override
@@ -179,16 +170,16 @@ public class SecurityRelationship extends AbstractRelationship {
 
 	public void setAllowed(final String[] allowed) {
 
-		dbRelationship.setProperty(SecurityRelationship.allowed.dbName(), allowed);
+		dbRelationship.setProperty(Security.allowed.dbName(), allowed);
 
 	}
 	
 	public String[] getPermissions() {
 
-		if (dbRelationship.hasProperty(SecurityRelationship.allowed.dbName())) {
+		if (dbRelationship.hasProperty(Security.allowed.dbName())) {
 
 			// StringBuilder result             = new StringBuilder();
-			String[] allowedProperties = (String[]) dbRelationship.getProperty(SecurityRelationship.allowed.dbName());
+			String[] allowedProperties = (String[]) dbRelationship.getProperty(Security.allowed.dbName());
 
 			return allowedProperties;
 
@@ -253,4 +244,19 @@ public class SecurityRelationship extends AbstractRelationship {
 
 	}
 		
+	// ----- class AbstractRelationship -----
+	@Override
+	public Class<AbstractNode> getSourceType() {
+		return AbstractNode.class;
+	}
+
+	@Override
+	public RelationshipType getRelationshipType() {
+		return RelType.SECURITY;
+	}
+
+	@Override
+	public Class<Principal> getDestinationType() {
+		return Principal.class;
+	}
 }

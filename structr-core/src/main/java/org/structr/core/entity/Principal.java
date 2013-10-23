@@ -21,11 +21,12 @@
 package org.structr.core.entity;
 
 import org.structr.common.Permission;
-import org.structr.core.GraphObject;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.List;
+import org.structr.common.AccessControllable;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.PasswordProperty;
 import org.structr.core.property.Property;
@@ -38,7 +39,7 @@ import org.structr.core.property.StringProperty;
  * @author Axel Morgner
  *
  */
-public interface Principal extends GraphObject {
+public interface Principal extends NodeInterface, AccessControllable {
 
 	public static final Property<String>	sessionId	= new StringProperty("sessionId").indexed();
 	public static final Property<Boolean>	blocked		= new BooleanProperty("blocked");

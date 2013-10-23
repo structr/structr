@@ -89,8 +89,8 @@ public class FtpService extends Thread implements RunnableService {
 	public void stopService() {
 		if (doRun) {
 			this.shutdown();
+			}
 		}
-	}
 
 	@Override
 	public boolean runOnStartup() {
@@ -118,4 +118,4 @@ public class FtpService extends Thread implements RunnableService {
 		}
 	}
 
-}
+			}

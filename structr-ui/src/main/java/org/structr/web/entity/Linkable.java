@@ -23,8 +23,8 @@ package org.structr.web.entity;
 import org.neo4j.graphdb.Direction;
 import org.structr.common.PropertyView;
 import org.structr.web.common.RelType;
-import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.PropertyNotion;
 import org.structr.core.property.CollectionProperty;
 
@@ -34,7 +34,7 @@ import org.structr.core.property.CollectionProperty;
  *
  * @author Axel Morgner
  */
-public interface Linkable extends GraphObject {
+public interface Linkable extends NodeInterface {
 
 	public static final CollectionProperty<AbstractNode> linkingElements = new CollectionProperty<>("linkingElements", AbstractNode.class, RelType.LINK, Direction.INCOMING, new PropertyNotion(AbstractNode.uuid), true);
 

@@ -25,7 +25,7 @@ import java.util.Map;
 import java.util.Set;
 import org.structr.common.SecurityContext;
 import org.structr.core.Value;
-import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.Notion;
 import org.structr.core.property.AggregatorProperty;
 import org.structr.core.property.CollectionProperty;
@@ -38,13 +38,13 @@ import org.structr.core.property.CollectionProperty;
  */
 public class Aggregation implements Value<Aggregation> {
 
-	private Set<CollectionProperty<? extends AbstractNode>> aggregationProperties = new LinkedHashSet<CollectionProperty<? extends AbstractNode>>();
-	private Map<Class, Notion> notions                                            = new LinkedHashMap<Class, Notion>();
-	private Comparator<AbstractNode> comparator                                   = null;
+	private Set<CollectionProperty<?, ?>> aggregationProperties = new LinkedHashSet<CollectionProperty<?, ?>>();
+	private Map<Class, Notion> notions                          = new LinkedHashMap<Class, Notion>();
+	private Comparator<NodeInterface> comparator                = null;
 
-	public Aggregation(Comparator<AbstractNode> comparator, CollectionProperty<? extends AbstractNode>... properties) {
+	public Aggregation(Comparator<NodeInterface> comparator, CollectionProperty<?, ?>... properties) {
 		
-		for(CollectionProperty<? extends AbstractNode> property : properties) {
+		for(CollectionProperty<?, ?> property : properties) {
 			this.aggregationProperties.add(property);
 		}
 		
@@ -59,11 +59,11 @@ public class Aggregation implements Value<Aggregation> {
 		return notions.get(type);
 	}
 	
-	public Comparator<AbstractNode> getComparator() {
+	public Comparator<NodeInterface> getComparator() {
 		return comparator;
 	}
 
-	public Set<CollectionProperty<? extends AbstractNode>> getAggregationProperties() {
+	public Set<CollectionProperty<?, ?>> getAggregationProperties() {
 		return aggregationProperties;
 	}
 

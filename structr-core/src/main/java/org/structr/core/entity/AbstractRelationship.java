@@ -20,51 +20,54 @@
 
 package org.structr.core.entity;
 
-import org.structr.core.property.IntProperty;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.NodeFactory;
-import org.structr.core.graph.TransactionCommand;
-import org.structr.core.graph.GetNodeByIdCommand;
-import org.structr.core.graph.CreateRelationshipCommand;
-import org.structr.core.graph.DeleteRelationshipCommand;
-import org.structr.core.property.Property;
-import org.structr.core.property.PropertyMap;
+//~--- classes ----------------------------------------------------------------
 
-import org.neo4j.graphdb.*;
-
-import org.structr.common.*;
-import org.structr.core.property.PropertyKey;
-import org.structr.common.PropertyView;
-import org.structr.common.SecurityContext;
-import org.structr.common.UuidCreationTransformation;
-import org.structr.common.error.*;
-import org.structr.common.error.FrameworkException;
-import org.structr.common.error.IdNotFoundToken;
-import org.structr.common.error.NullPropertyToken;
-import org.structr.common.error.ReadOnlyPropertyToken;
-import org.structr.core.EntityContext;
-import org.structr.core.GraphObject;
-import org.structr.core.converter.PropertyConverter;
-import org.structr.core.Services;
-import org.structr.core.notion.Notion;
-import org.structr.core.notion.RelationshipNotion;
-
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.neo4j.graphdb.Direction;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.PropertyContainer;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.index.Index;
+import org.structr.common.GraphObjectComparator;
+import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
+import org.structr.common.UuidCreationTransformation;
+import org.structr.common.ValidationHelper;
+import org.structr.common.View;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
+import org.structr.common.error.ReadOnlyPropertyToken;
+import org.structr.core.Incoming;
+import org.structr.core.EntityContext;
+import org.structr.core.Outgoing;
+import org.structr.core.Services;
+import org.structr.core.converter.PropertyConverter;
+import org.structr.core.graph.CreateRelationshipCommand;
+import org.structr.core.graph.DeleteRelationshipCommand;
+import org.structr.core.graph.NodeFactory;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeService;
+import org.structr.core.graph.StructrTransaction;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.CombinedTypeProperty;
+import org.structr.core.property.IntProperty;
+import org.structr.core.property.Property;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
 
-//~--- classes ----------------------------------------------------------------
 
 /**
  * Bbstract base class for all relationship entities in structr.
  * 
  * @author Axel Morgner
  */
-public abstract class AbstractRelationship implements GraphObject, Comparable<AbstractRelationship> {
+public abstract class AbstractRelationship<S extends NodeInterface, T extends NodeInterface> implements Comparable<AbstractRelationship>, Outgoing<S, T>, Incoming<T, S> {
 
 	private static final Logger logger = Logger.getLogger(AbstractRelationship.class.getName());
 
@@ -99,13 +102,6 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	protected String cachedUuid = null;
 	protected boolean isDirty;
 
-	//~--- constant enums -------------------------------------------------
-
-	//~--- constructors ---------------------------------------------------
-
-//      public enum Permission implements PropertyKey {
-//              allowed, denied, read, showTree, write, execute, createNode, deleteNode, editProperties, addRelationship, removeRelationship, accessControl;
-//      }
 	public AbstractRelationship() {
 
 		this.properties = new PropertyMap();
@@ -138,13 +134,39 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	}
 
-	//~--- methods --------------------------------------------------------
+	@Override
+	public Direction getDirection() {
+		return Direction.OUTGOING;
+	}
+	
+	public Class<? extends AbstractRelationship<T, S>> reverse() {
+		return null;
+	}
+	
+	@Override
+	public Direction getDirectionForType(final Class<? extends NodeInterface> type) {
 
+		if (getSourceType().equals(getDestinationType())) {
+			return Direction.BOTH;
+		}
+		
+		if (type.equals(getSourceType())) {
+			return Direction.OUTGOING;
+		}
+
+		if (type.equals(getDestinationType())) {
+			return Direction.INCOMING;
+		}
+		
+		return null;
+	}
+	
 	/**
 	 * Called when a relationship of this combinedType is instatiated. Please note that
 	 * a relationship can (and will) be instantiated several times during a
 	 * normal rendering turn.
 	 */
+	@Override
 	public void onRelationshipInstantiation() {
 
 		try {
@@ -167,50 +189,7 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 		}
 	}
 
-	public AbstractNode identifyStartNode(RelationshipMapping namedRelation, Map<String, Object> propertySet) throws FrameworkException {
-
-		Notion startNodeNotion = getStartNodeNotion();    // new RelationshipNotion(getStartNodeIdKey());
-
-		startNodeNotion.setType(namedRelation.getSourceType());
-
-		PropertyKey startNodeIdentifier = startNodeNotion.getPrimaryPropertyKey();
-
-		if (startNodeIdentifier != null) {
-
-			Object identifierValue = propertySet.get(startNodeIdentifier.jsonName());
-
-			propertySet.remove(startNodeIdentifier.jsonName());
-
-			return (AbstractNode) startNodeNotion.getAdapterForSetter(securityContext).adapt(identifierValue);
-
-		}
-
-		return null;
-
-	}
-
-	public AbstractNode identifyEndNode(RelationshipMapping namedRelation, Map<String, Object> propertySet) throws FrameworkException {
-
-		Notion endNodeNotion = getEndNodeNotion();    // new RelationshipNotion(getEndNodeIdKey());
-
-		endNodeNotion.setType(namedRelation.getDestType());
-
-		PropertyKey endNodeIdentifier = endNodeNotion.getPrimaryPropertyKey();
-
-		if (endNodeIdentifier != null) {
-
-			Object identifierValue = propertySet.get(endNodeIdentifier.jsonName());
-
-			propertySet.remove(endNodeIdentifier.jsonName());
-
-			return (AbstractNode) endNodeNotion.getAdapterForSetter(securityContext).adapt(identifierValue);
-
-		}
-
-		return null;
-
-	}
-
+	@Override
 	public void init(final SecurityContext securityContext, final Relationship dbRel) {
 
 		this.dbRelationship  = dbRel;
@@ -333,22 +312,6 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	}
 
-	public abstract PropertyKey getStartNodeIdKey();
-
-	public abstract PropertyKey getEndNodeIdKey();
-
-	public Notion getEndNodeNotion() {
-
-		return new RelationshipNotion(getEndNodeIdKey());
-
-	}
-
-	public Notion getStartNodeNotion() {
-
-		return new RelationshipNotion(getStartNodeIdKey());
-
-	}
-
 	@Override
 	public long getId() {
 
@@ -401,19 +364,6 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 			return null;
 		}
 
-		PropertyKey startNodeIdKey = getStartNodeIdKey();
-		PropertyKey endNodeIdKey   = getEndNodeIdKey();
-
-		if (startNodeIdKey != null && key.equals(startNodeIdKey)) {
-
-			return (T) getStartNodeId();
-		}
-
-		if (endNodeIdKey != null && key.equals(endNodeIdKey)) {
-
-			return (T)getEndNodeId();
-		}
-		
 		return key.getProperty(securityContext, this, applyConverter);
 	}
 
@@ -456,17 +406,19 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	 *
 	 * @return
 	 */
+	@Override
 	public Relationship getRelationship() {
 
 		return dbRelationship;
 
 	}
 
-	public AbstractNode getEndNode() {
+	@Override
+	public T getEndNode() {
 
 		try {
-			NodeFactory nodeFactory = new NodeFactory(SecurityContext.getSuperUserInstance());
-			return (AbstractNode) nodeFactory.instantiate(dbRelationship.getEndNode());
+			NodeFactory<T> nodeFactory = new NodeFactory<T>(SecurityContext.getSuperUserInstance());
+			return nodeFactory.instantiate(dbRelationship.getEndNode());
 			
 		} catch (Throwable t) {
 			// ignore
@@ -475,12 +427,13 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 		return null;
 	}
 
-	public AbstractNode getStartNode() {
+	@Override
+	public S getStartNode() {
 
 		try {
 
-			NodeFactory nodeFactory = new NodeFactory(SecurityContext.getSuperUserInstance());
-			return (AbstractNode) nodeFactory.instantiate(dbRelationship.getStartNode());
+			NodeFactory<S> nodeFactory = new NodeFactory<S>(SecurityContext.getSuperUserInstance());
+			return nodeFactory.instantiate(dbRelationship.getStartNode());
 			
 		} catch (Throwable t) {
 			// ignore
@@ -590,12 +543,6 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 	}
 
-	private AbstractNode getNodeByUuid(final String uuid) throws FrameworkException {
-
-		return (AbstractNode) Services.command(securityContext, GetNodeByIdCommand.class).execute(uuid);
-
-	}
-
 	public String getCachedStartNodeId() {
 
 		return cachedStartNodeId;
@@ -671,25 +618,6 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 	@Override
 	public <T> void setProperty(final PropertyKey<T> key, final T value) throws FrameworkException {
 
-		PropertyKey startNodeIdKey = getStartNodeIdKey();
-		PropertyKey endNodeIdKey   = getEndNodeIdKey();
-		
-		if ((startNodeIdKey != null) && key.equals(startNodeIdKey)) {
-
-			setStartNodeId((String) value);
-
-			return;
-
-		}
-
-		if ((endNodeIdKey != null) && key.equals(endNodeIdKey)) {
-
-			setEndNodeId((String) value);
-
-			return;
-
-		}
-		
 		// check for read-only properties
 		//if (EntityContext.isReadOnlyProperty(type, key) || (EntityContext.isWriteOnceProperty(type, key) && (dbRelationship != null) && dbRelationship.hasProperty(key.name()))) {
 		if (key.isReadOnly() || (key.isWriteOnce() && (dbRelationship != null) && dbRelationship.hasProperty(key.dbName()))) {
@@ -708,120 +636,6 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 		}
 		
 		key.setProperty(securityContext, this, value);
-	}
-
-	/**
-	 * Set node id of start node.
-	 *
-	 * Internally, this method deletes the old relationship
-	 * and creates a new one, ends at the same end node,
-	 * but starting from the node with startNodeId
-	 *
-	 */
-	public void setStartNodeId(final String startNodeId) throws FrameworkException {
-
-		final String type     = this.getClass().getSimpleName();
-		final PropertyKey key = getStartNodeIdKey();
-
-		// May never be null!!
-		if (startNodeId == null) {
-
-			throw new FrameworkException(type, new NullPropertyToken(key));
-		}
-		
-		// Do nothing if new id equals old
-		if (getStartNodeId().equals(startNodeId)) {
-			return;
-		}
-
-		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-			@Override
-			public Object execute() throws FrameworkException {
-
-				DeleteRelationshipCommand deleteRel = Services.command(securityContext, DeleteRelationshipCommand.class);
-				CreateRelationshipCommand createRel = Services.command(securityContext, CreateRelationshipCommand.class);
-				AbstractNode newStartNode           = getNodeByUuid(startNodeId);
-				AbstractNode endNode                = getEndNode();
-
-				if (newStartNode == null) {
-
-					throw new FrameworkException(type, new IdNotFoundToken(startNodeId));
-				}
-
-				RelationshipType type = dbRelationship.getType();
-
-				properties = getProperties();
-
-				deleteRel.execute(dbRelationship);
-
-				AbstractRelationship newRel = (AbstractRelationship) createRel.execute(newStartNode, endNode, type, properties, false);
-
-				dbRelationship = newRel.getRelationship();
-
-				return (null);
-
-			}
-
-		});
-
-	}
-
-	/**
-	 * Set node id of end node.
-	 *
-	 * Internally, this method deletes the old relationship
-	 * and creates a new one, start from the same start node,
-	 * but pointing to the node with endNodeId
-	 *
-	 */
-	public void setEndNodeId(final String endNodeId) throws FrameworkException {
-
-		final String type     = this.getClass().getSimpleName();
-		final PropertyKey key = getStartNodeIdKey();
-
-		// May never be null!!
-		if (endNodeId == null) {
-
-			throw new FrameworkException(type, new NullPropertyToken(key));
-		}
-		
-		// Do nothing if new id equals old
-		if (getEndNodeId().equals(endNodeId)) {
-			return;
-		}
-
-		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-			@Override
-			public Object execute() throws FrameworkException {
-
-				DeleteRelationshipCommand deleteRel = Services.command(securityContext, DeleteRelationshipCommand.class);
-				CreateRelationshipCommand createRel = Services.command(securityContext, CreateRelationshipCommand.class);
-				AbstractNode startNode              = getStartNode();
-				AbstractNode newEndNode             = getNodeByUuid(endNodeId);
-
-				if (newEndNode == null) {
-
-					throw new FrameworkException(type, new IdNotFoundToken(endNodeId));
-				}
-
-				RelationshipType type = dbRelationship.getType();
-
-				properties = getProperties();
-
-				deleteRel.execute(dbRelationship);
-
-				AbstractRelationship newRel = (AbstractRelationship) createRel.execute(startNode, newEndNode, type, properties, false);
-
-				dbRelationship = newRel.getRelationship();
-
-				return (null);
-
-			}
-
-		});
-
 	}
 
 	/**
@@ -845,8 +659,8 @@ public abstract class AbstractRelationship implements GraphObject, Comparable<Ab
 
 						DeleteRelationshipCommand deleteRel = Services.command(securityContext, DeleteRelationshipCommand.class);
 						CreateRelationshipCommand createRel = Services.command(securityContext, CreateRelationshipCommand.class);
-						AbstractNode startNode = getStartNode();
-						AbstractNode endNode   = getEndNode();
+						S startNode                         = getStartNode();
+						T endNode                           = getEndNode();
 
 						deleteRel.execute(dbRelationship);
 

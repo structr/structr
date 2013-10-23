@@ -24,22 +24,14 @@ import org.neo4j.graphdb.Direction;
 
 import org.structr.web.common.RelType;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Principal;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.Permission;
 import org.structr.common.PropertyView;
-import org.structr.common.SecurityContext;
 import org.structr.core.Services;
-import org.structr.core.entity.SecurityRelationship;
-import org.structr.core.graph.CreateRelationshipCommand;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.CollectionProperty;
@@ -51,7 +43,7 @@ import org.structr.core.property.CollectionProperty;
  * @author amorgner
  *
  */
-public class Group extends AbstractNode implements Principal {
+public class Group extends Principal {
 	
 	private static final Logger logger = Logger.getLogger(Group.class.getName());
 
@@ -65,78 +57,11 @@ public class Group extends AbstractNode implements Principal {
 		type, name, members, blocked
 	);
 
-	//~--- methods --------------------------------------------------------
-	@Override
-	public void grant(Permission permission, AbstractNode obj) {
-
-		SecurityRelationship secRel = obj.getSecurityRelationship(this);
-
-		if (secRel == null) {
-
-			try {
-
-				secRel = createSecurityRelationshipTo(obj);
-
-			} catch (FrameworkException ex) {
-
-				logger.log(Level.SEVERE, "Could not create security relationship!", ex);
-
-			}
-
-		}
-
-		secRel.addPermission(permission);
-
-	}
-
-	@Override
-	public void revoke(Permission permission, AbstractNode obj) {
-
-		SecurityRelationship secRel = obj.getSecurityRelationship(this);
-
-		if (secRel == null) {
-
-			logger.log(Level.SEVERE, "Could not create revoke permission, no security relationship exists!");
-
-		} else {
-
-			secRel.removePermission(permission);
-		}
-
-	}
-
-	private SecurityRelationship createSecurityRelationshipTo(final AbstractNode obj) throws FrameworkException {
-
-		return (SecurityRelationship) Services.command(SecurityContext.getSuperUserInstance(), CreateRelationshipCommand.class).execute(this, obj, org.structr.common.RelType.SECURITY);
-
-	}
-
 	@Override
 	public String getEncryptedPassword() {
 
 		// A group has no password
 		return null;
-	}
-
-	@Override
-	public List<Principal> getParents() {
-
-		List<Principal> parents                   = new LinkedList();
-		Iterable<AbstractRelationship> parentRels = getIncomingRelationships(RelType.CONTAINS);
-
-		for (AbstractRelationship rel : parentRels) {
-
-			AbstractNode node = rel.getEndNode();
-
-			if (node instanceof Principal) {
-
-				parents.add((Principal) node);
-			}
-
-		}
-
-		return parents;
-
 	}
 
 	public void addMember(final Principal user) throws FrameworkException {

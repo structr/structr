@@ -31,7 +31,6 @@ import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.Transformation;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -46,7 +45,7 @@ import org.structr.core.property.PropertyMap;
 //~--- classes ----------------------------------------------------------------
 
 /**
- * Creates a relationship between two AbstractNode instances. The execute
+ * Creates a relationship between two NodeInterface instances. The execute
  * method of this command takes the following parameters.
  *
  * @param startNode the start node
@@ -63,31 +62,31 @@ public class CreateRelationshipCommand<T extends AbstractRelationship> extends N
 
 	//~--- methods --------------------------------------------------------
 
-	public T execute(final AbstractNode fromNode, final AbstractNode toNode, final RelationshipType relType) throws FrameworkException {
+	public T execute(final NodeInterface fromNode, final NodeInterface toNode, final RelationshipType relType) throws FrameworkException {
 		return createRelationship(fromNode, toNode, relType, null, false);
 	}
 
-	public T execute(final AbstractNode fromNode, final AbstractNode toNode, final String relType) throws FrameworkException {
+	public T execute(final NodeInterface fromNode, final NodeInterface toNode, final String relType) throws FrameworkException {
 		return createRelationship(fromNode, toNode, getRelationshipTypeFor(relType), null, false);
 	}
 
-	public T execute(final AbstractNode fromNode, final AbstractNode toNode, final RelationshipType relType, boolean checkDuplicates) throws FrameworkException {
+	public T execute(final NodeInterface fromNode, final NodeInterface toNode, final RelationshipType relType, boolean checkDuplicates) throws FrameworkException {
 		return createRelationship(fromNode, toNode, relType, null, checkDuplicates);
 	}
 
-	public T execute(final AbstractNode fromNode, final AbstractNode toNode, final String relType, boolean checkDuplicates) throws FrameworkException {
+	public T execute(final NodeInterface fromNode, final NodeInterface toNode, final String relType, boolean checkDuplicates) throws FrameworkException {
 		return createRelationship(fromNode, toNode, getRelationshipTypeFor(relType), null, checkDuplicates);
 	}
 
-	public T execute(final AbstractNode fromNode, final AbstractNode toNode, final RelationshipType relType, final PropertyMap properties, boolean checkDuplicates) throws FrameworkException {
+	public T execute(final NodeInterface fromNode, final NodeInterface toNode, final RelationshipType relType, final PropertyMap properties, boolean checkDuplicates) throws FrameworkException {
 		return createRelationship(fromNode, toNode, relType, properties, checkDuplicates);
 	}
 
-	public T execute(final AbstractNode fromNode, final AbstractNode toNode, final String relType, final PropertyMap properties, boolean checkDuplicates) throws FrameworkException {
+	public T execute(final NodeInterface fromNode, final NodeInterface toNode, final String relType, final PropertyMap properties, boolean checkDuplicates) throws FrameworkException {
 		return createRelationship(fromNode, toNode, getRelationshipTypeFor(relType), properties, checkDuplicates);
 	}
 	
-	private synchronized T createRelationship(final AbstractNode fromNode, final AbstractNode toNode, final RelationshipType relType, final PropertyMap properties, final boolean checkDuplicates)
+	private synchronized T createRelationship(final NodeInterface fromNode, final NodeInterface toNode, final RelationshipType relType, final PropertyMap properties, final boolean checkDuplicates)
 		throws FrameworkException {
 
 		return (T) Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
@@ -114,7 +113,7 @@ public class CreateRelationshipCommand<T extends AbstractRelationship> extends N
 							if (properties != null) {
 								
 								// At least one property of new rel has to be different to the tested existing node
-								AbstractRelationship rel = relationshipFactory.instantiate(dbRelationship);
+								RelationshipInterface rel = relationshipFactory.instantiate(dbRelationship);
 								if (contentHashCode == rel.getProperties().contentHashCode(properties.keySet(), false)) {
 
 									return null;

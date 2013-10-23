@@ -26,8 +26,6 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -63,11 +61,11 @@ public class NodeRelationshipsCommand extends NodeServiceCommand {
 	 * @return a list of relationships
 	 * @throws FrameworkException 
 	 */
-	public List<AbstractRelationship> execute(AbstractNode sourceNode, RelationshipType relType, Direction dir) throws FrameworkException {
+	public List<RelationshipInterface> execute(NodeInterface sourceNode, RelationshipType relType, Direction dir) throws FrameworkException {
 
-		RelationshipFactory factory       = new RelationshipFactory(securityContext);
-		List<AbstractRelationship> result = new LinkedList<AbstractRelationship>();
-		Node node                         = sourceNode.getNode();
+		RelationshipFactory factory        = new RelationshipFactory(securityContext);
+		List<RelationshipInterface> result = new LinkedList<RelationshipInterface>();
+		Node node                          = sourceNode.getNode();
 		Iterable<Relationship> rels;
 
 		if (node == null) {

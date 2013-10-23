@@ -29,15 +29,30 @@ import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
+import org.structr.common.FactoryDefinition;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.IdNotFoundToken;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
+import org.structr.core.Services;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.Relation.Cardinality;
+import static org.structr.core.entity.Relation.Cardinality.ManyToMany;
+import static org.structr.core.entity.Relation.Cardinality.ManyToOne;
+import static org.structr.core.entity.Relation.Cardinality.OneToMany;
+import static org.structr.core.entity.Relation.Cardinality.OneToOne;
+import org.structr.core.graph.CreateRelationshipCommand;
+import org.structr.core.graph.DeleteRelationshipCommand;
 import org.structr.core.graph.NodeFactory;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.NodeService;
+import org.structr.core.graph.StructrTransaction;
+import org.structr.core.graph.TransactionCommand;
+import org.structr.core.graph.search.Search;
 import org.structr.core.notion.Notion;
 import org.structr.core.notion.ObjectNotion;
 
@@ -46,12 +61,19 @@ import org.structr.core.notion.ObjectNotion;
  *
  * @author Christian Morgner
  */
-public class CollectionProperty<T extends GraphObject> extends AbstractRelationProperty<List<T>> {
+public class CollectionProperty<S extends NodeInterface, T extends NodeInterface> extends Property<List<T>> {
 
 	private static final Logger logger = Logger.getLogger(CollectionProperty.class.getName());
 
-	private boolean oneToMany = false;
-	private Notion notion     = null;
+	private Class<? extends AbstractRelationship<S, T>> relationClass = null;
+	private AbstractRelationship<S, T> relationship                   = null;
+	private boolean oneToMany                                         = false;
+	private Notion notion                                             = null;
+	private Class destType                                            = null;
+	private RelationshipType relType                                  = null;
+	private Direction direction                                       = null;
+	private Cardinality cardinality                                   = null;
+	private int cascadeDelete                                         = 0;
 	
 	/**
 	 * Constructs a collection property with the given name, based on the given property, transformed by the given notion.
@@ -61,7 +83,7 @@ public class CollectionProperty<T extends GraphObject> extends AbstractRelationP
 	 * @param notion
 	 */
 	public CollectionProperty(String name, CollectionProperty base, Notion notion) {
-		this(name, base.getDestType(), base.getRelType(), base.getDirection(), notion, base.isOneToMany(), base.getCascadeDelete());
+		this(name, base.getRelationType(), notion, base.isOneToMany(), base.getCascadeDelete());
 	}
 
 	/**
@@ -72,7 +94,7 @@ public class CollectionProperty<T extends GraphObject> extends AbstractRelationP
 	 * @param notion
 	 */
 	public CollectionProperty(String name, CollectionProperty base, Notion notion, int deleteCascade) {
-		this(name, base.getDestType(), base.getRelType(), base.getDirection(), notion, base.isOneToMany(), deleteCascade);
+		this(name, base.getRelationType(), notion, base.isOneToMany(), deleteCascade);
 	}
 
 	/**
@@ -82,8 +104,8 @@ public class CollectionProperty<T extends GraphObject> extends AbstractRelationP
 	 * @param destType
 	 * @param relType
 	 */
-	public CollectionProperty(String name, Class destType, RelationshipType relType, boolean oneToMany) {
-		this(name, destType, relType, Direction.OUTGOING, oneToMany);
+	public CollectionProperty(String name, Class<? extends AbstractRelationship<S, T>> relationClass, boolean oneToMany) {
+		this(name, relationClass, new ObjectNotion(), oneToMany);
 	}
 
 	/**
@@ -93,8 +115,8 @@ public class CollectionProperty<T extends GraphObject> extends AbstractRelationP
 	 * @param destType
 	 * @param relType
 	 */
-	public CollectionProperty(String name, Class destType, RelationshipType relType, Notion notion, boolean oneToMany) {
-		this(name, destType, relType, Direction.OUTGOING, notion, oneToMany);
+	public CollectionProperty(String name, Class<? extends AbstractRelationship<S, T>> relationClass, Notion notion, boolean oneToMany) {
+		this(name, relationClass, notion, oneToMany, 0);
 	}
 
 	/**
@@ -106,46 +128,8 @@ public class CollectionProperty<T extends GraphObject> extends AbstractRelationP
 	 * @param direction
 	 * @param cascadeDelete
 	 */
-	public CollectionProperty(String name, Class destType, RelationshipType relType, boolean oneToMany, int cascadeDelete) {
-		this(name, destType, relType, Direction.OUTGOING, new ObjectNotion(), oneToMany, cascadeDelete);
-	}
-
-	/**
-	 * Constructs a collection property with the given name, the given destination type, the given relationship type, the given direction and the given cascade delete flag.
-	 *
-	 * @param name
-	 * @param destType
-	 * @param relType
-	 * @param direction
-	 * @param cascadeDelete
-	 */
-	public CollectionProperty(String name, Class destType, RelationshipType relType, Direction direction, boolean oneToMany, int cascadeDelete) {
-		this(name, destType, relType, direction, new ObjectNotion(), oneToMany, cascadeDelete);
-	}
-
-	/**
-	 * Constructs a collection property with the given name, the given destination type, the given relationship type and the given direction.
-	 *
-	 * @param name
-	 * @param destType
-	 * @param relType
-	 * @param direction
-	 */
-	public CollectionProperty(String name, Class destType, RelationshipType relType, Direction direction, boolean oneToMany) {
-		this(name, destType, relType, direction, new ObjectNotion(), oneToMany);
-	}
-
-	/**
-	 * Constructs a collection property with the given name, the given destination type, the given relationship type, the given direction and the given notion.
-	 *
-	 * @param name
-	 * @param destType
-	 * @param relType
-	 * @param direction
-	 * @param notion
-	 */
-	public CollectionProperty(String name, Class destType, RelationshipType relType, Direction direction, Notion notion, boolean oneToMany) {
-		this(name, destType, relType, direction, notion, oneToMany, Relation.DELETE_NONE);
+	public CollectionProperty(String name, Class<? extends AbstractRelationship<S, T>> relationClass, boolean oneToMany, int cascadeDelete) {
+		this(name, relationClass, new ObjectNotion(), oneToMany, cascadeDelete);
 	}
 
 	/**
@@ -159,14 +143,27 @@ public class CollectionProperty<T extends GraphObject> extends AbstractRelationP
 	 * @param notion
 	 * @param cascadeDelete
 	 */
-	public CollectionProperty(String name, Class destType, RelationshipType relType, Direction direction, Notion notion, boolean oneToMany, int cascadeDelete) {
+	public CollectionProperty(String name, Class<? extends AbstractRelationship<S, T>> relationClass, Notion notion, boolean oneToMany, int cascadeDelete) {
 
-		super(name, destType, relType, direction, oneToMany ? Cardinality.OneToMany : Cardinality.ManyToMany, cascadeDelete);
+		super(name);
+		
+		try {
+			
+			this.relationship  = relationClass.newInstance();
+			this.relationClass = relationClass;
+			
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
 
 		this.notion    = notion;
 		this.oneToMany = oneToMany;
+		this.destType      = relationship.getDestinationType();
+		this.relType       = relationship.getRelationshipType();
+		this.cardinality   = oneToMany ? Cardinality.OneToMany : Cardinality.ManyToMany;
+		this.cascadeDelete = cascadeDelete;
 
-		this.notion.setType(destType);
+		this.notion.setType(this.relationship.getDestinationType());
 		
 		EntityContext.registerConvertedProperty(this);
 	}
@@ -250,7 +247,6 @@ public class CollectionProperty<T extends GraphObject> extends AbstractRelationP
 		return true;
 	}
 
-	@Override
 	public Notion getNotion() {
 		return notion;
 	}
@@ -270,7 +266,7 @@ public class CollectionProperty<T extends GraphObject> extends AbstractRelationP
 				NodeFactory nodeFactory = new NodeFactory(securityContext, false, false);
 				List<T> nodes           = new LinkedList<T>();
 				Node dbNode             = node.getNode();
-				AbstractNode value      = null;
+				NodeInterface value     = null;
 
 				try {
 
@@ -301,5 +297,401 @@ public class CollectionProperty<T extends GraphObject> extends AbstractRelationP
 		}
 
 		return Collections.emptyList();
+	}
+	
+	public Class<? extends AbstractRelationship<S, T>> getRelationType() {
+		return relationClass;
+	}
+
+	@Override
+	public Property<List<T>> indexed() {
+		return this;
+	}
+
+	@Override
+	public Property<List<T>> indexed(NodeService.NodeIndex nodeIndex) {
+		return this;
+	}
+	
+	@Override
+	public Property<List<T>> indexed(NodeService.RelationshipIndex relIndex) {
+		return this;
+	}
+	
+	@Override
+	public Property<List<T>> passivelyIndexed() {
+		return this;
+	}
+	
+	@Override
+	public Property<List<T>> passivelyIndexed(NodeService.NodeIndex nodeIndex) {
+		return this;
+	}
+	
+	@Override
+	public Property<List<T>> passivelyIndexed(NodeService.RelationshipIndex relIndex) {
+		return this;
+	}
+	
+	@Override
+	public Object fixDatabaseProperty(Object value) {
+		return null;
+	}
+	
+	@Override
+	public boolean isSearchable() {
+		return false;
+	}
+
+	public AbstractRelationship createRelationship(final SecurityContext securityContext, final AbstractNode sourceNode, final AbstractNode targetNode) throws FrameworkException {
+		return createRelationship(securityContext, sourceNode, targetNode, new PropertyMap());
+	}
+
+	public AbstractRelationship createRelationship(final SecurityContext securityContext, final AbstractNode sourceNode, final AbstractNode targetNode, final PropertyMap properties) throws FrameworkException {
+
+		// create relationship if it does not already exist
+		final CreateRelationshipCommand<?> createRel = Services.command(securityContext, CreateRelationshipCommand.class);
+		final DeleteRelationshipCommand deleteRel    = Services.command(securityContext, DeleteRelationshipCommand.class);
+
+		if ((sourceNode != null) && (targetNode != null)) {
+
+			final AbstractNode finalTargetNode = targetNode;
+			final AbstractNode finalSourceNode = (AbstractNode) sourceNode;
+                        
+			StructrTransaction<AbstractRelationship> transaction = new StructrTransaction<AbstractRelationship>() {
+
+				@Override
+				public AbstractRelationship execute() throws FrameworkException {
+
+                                        PropertyMap props           = new PropertyMap(properties);
+					AbstractRelationship newRel = null;
+
+					// set cascade delete value
+					if (getCascadeDelete() > 0) {
+
+						props.put(AbstractRelationship.cascadeDelete, new Integer(getCascadeDelete()));
+
+					}
+					
+					
+					if (getDirection().equals(Direction.OUTGOING)) {
+
+						// set combined type
+						String tripleKey = EntityContext.createCombinedRelationshipType(declaringClass.getSimpleName(), relType.name(), destType.getSimpleName());
+						props.put(AbstractRelationship.combinedType, Search.clean(tripleKey));
+
+						newRel = createRel.execute(sourceNode, finalTargetNode, getRelType(), props, false);
+//						newRel = createRel.execute(sourceNode, finalTargetNode, getRelType(), props, true);
+
+					} else {
+
+						// set combined type
+						String tripleKey = EntityContext.createCombinedRelationshipType(destType.getSimpleName(), relType.name(), declaringClass.getSimpleName());
+						props.put(AbstractRelationship.combinedType, Search.clean(tripleKey));
+
+						newRel = createRel.execute(finalTargetNode, sourceNode, getRelType(), props, false);
+//						newRel = createRel.execute(finalTargetNode, sourceNode, getRelType(), props, true);
+
+					}
+
+					if (newRel != null) {
+
+						FactoryDefinition factoryDefinition = EntityContext.getFactoryDefinition();
+						
+						switch (getCardinality()) {
+
+							case OneToOne:
+
+								ensureOneToMany(finalSourceNode, finalTargetNode, newRel, factoryDefinition, deleteRel);
+								ensureManyToOne(finalSourceNode, finalTargetNode, newRel, factoryDefinition, deleteRel);
+								break;
+								
+							case OneToMany:
+
+								ensureOneToMany(finalSourceNode, finalTargetNode, newRel, factoryDefinition, deleteRel);
+								break;
+
+							case ManyToOne:
+							
+								ensureManyToOne(finalSourceNode, finalTargetNode, newRel, factoryDefinition, deleteRel);
+								break;
+
+						}
+
+					}
+
+					return newRel;
+				}
+			};
+
+			// execute transaction
+			return Services.command(securityContext, TransactionCommand.class).execute(transaction);
+
+		} else {
+
+			String type = "unknown";
+
+			if (sourceNode != null) {
+
+				type = sourceNode.getType();
+
+			} else if (targetNode != null) {
+
+				type = targetNode.getType();
+
+			}
+
+			if (sourceNode == null) {
+				logger.log(Level.WARNING, "No source node!");
+				throw new FrameworkException(type, new IdNotFoundToken(sourceNode));
+			}
+			
+			if (targetNode == null) {
+				logger.log(Level.WARNING, "No target node!");
+				throw new FrameworkException(type, new IdNotFoundToken(targetNode));
+			}
+
+		}
+		
+		return null;
+	}
+
+	public void removeRelationship(final SecurityContext securityContext, final AbstractNode sourceNode, final AbstractNode targetNode) throws FrameworkException {
+
+		final DeleteRelationshipCommand deleteRel = Services.command(securityContext, DeleteRelationshipCommand.class);
+
+		if ((sourceNode != null) && (targetNode != null)) {
+
+			final AbstractNode finalTargetNode = targetNode;
+			StructrTransaction transaction     = new StructrTransaction() {
+
+				@Override
+				public Object execute() throws FrameworkException {
+
+					switch (getCardinality()) {
+
+						case ManyToOne :
+						case OneToOne : {
+
+							String destType = finalTargetNode.getType();
+
+							// delete previous relationships to nodes of the same destination combinedType and direction
+							for (AbstractRelationship rel : sourceNode.getIncomingRelationships(CollectionProperty.this.relationClass)) {
+
+								if (rel.getOtherNode(sourceNode).getType().equals(destType)) {
+
+									deleteRel.execute(rel);
+
+								}
+
+							}
+
+							break;
+
+						}
+
+						case OneToMany : {
+
+							String sourceType = sourceNode.getType();
+							
+							// Here, we have a OneToMany with OUTGOING Rel, so we need to remove all relationships
+							// of the same combinedType incoming to the target node (which should be exaclty one relationship!)
+							for (AbstractRelationship rel : finalTargetNode.getIncomingRelationships(CollectionProperty.this.relationClass)) {
+
+								if (rel.getOtherNode(finalTargetNode).getType().equals(sourceType)) {
+
+									deleteRel.execute(rel);
+
+								}
+
+							}
+						}
+
+						case ManyToMany : {
+
+							// In this case, remove exact the relationship of the given combinedType
+							// between source and target node
+							for (AbstractRelationship rel : finalTargetNode.getAllRelationships(CollectionProperty.this.relationClass)) {
+
+								if (rel.getOtherNode(finalTargetNode).equals(sourceNode)) {
+
+									deleteRel.execute(rel);
+
+								}
+
+							}
+						}
+
+					}
+
+					return null;
+				}
+			};
+
+			// execute transaction
+			Services.command(securityContext, TransactionCommand.class).execute(transaction);
+
+		} else {
+
+			String type = "unknown";
+
+			if (sourceNode != null) {
+
+				type = sourceNode.getType();
+
+			} else if (targetNode != null) {
+
+				type = targetNode.getType();
+
+			}
+
+			throw new FrameworkException(type, new IdNotFoundToken(targetNode));
+
+		}
+	}
+
+	public Class<T> getDestType() {
+		return destType;
+	}
+
+	public RelationshipType getRelType() {
+		return relType;
+	}
+
+	public Direction getDirection() {
+		return direction;
+	}
+
+	public Cardinality getCardinality() {
+		return cardinality;
+	}
+
+	public int getCascadeDelete() {
+		return cascadeDelete;
+	}
+	
+	@Override
+	public void index(GraphObject entity, Object value) {
+		// no indexing
+	}
+
+	@Override
+	public Object getValueForEmptyFields() {
+		return null;
+	}
+	
+	// ----- protected methods -----
+	
+	public List<T> getRelatedNodesReverse(SecurityContext securityContext, GraphObject obj, Class destinationType) {
+		
+		List<T> relatedNodes = new LinkedList<T>();
+		
+		if (obj instanceof AbstractNode) {
+
+			AbstractNode node = (AbstractNode)obj;
+
+			NodeFactory nodeFactory = new NodeFactory(securityContext);
+			Node dbNode             = node.getNode();
+			NodeInterface value     = null;
+
+			try {
+
+				for (Relationship rel : dbNode.getRelationships(getRelType(), getDirection().reverse())) {
+
+					value = nodeFactory.instantiate(rel.getOtherNode(dbNode));
+
+					// break on first hit of desired type
+					if (value != null && destinationType.isInstance(value)) {
+						relatedNodes.add((T)value);
+					}
+				}
+
+			} catch (Throwable t) {
+
+				logger.log(Level.WARNING, "Unable to fetch related node: {0}", t.getMessage());
+			}
+
+		} else {
+
+			logger.log(Level.WARNING, "Property {0} is registered on illegal type {1}", new Object[] { this, obj.getClass() } );
+		}
+
+		return relatedNodes;
+	}
+
+	
+	// ----- private methods -----
+	private void ensureManyToOne(AbstractNode sourceNode, AbstractNode targetNode, AbstractRelationship newRel, FactoryDefinition factoryDefinition, DeleteRelationshipCommand deleteRel) throws FrameworkException {
+		
+		Class newRelationshipClass = newRel.getClass();
+		Class targetType           = targetNode.getClass();
+
+		// ManyToOne: sourceNode may not have relationships to other nodes of the same type!
+		
+		for (AbstractRelationship rel : sourceNode.getRelationships(CollectionProperty.this.relationClass)) {
+
+			if (rel.equals(newRel)) {
+				continue;
+			}
+
+			Class relationshipClass = rel.getClass();
+			boolean isGeneric = factoryDefinition.isGeneric(relationshipClass);
+
+			AbstractNode otherNode = rel.getOtherNode(sourceNode);
+			Class otherClass = otherNode.getClass();
+			boolean removeRel = targetType.isAssignableFrom(otherClass) || (!isGeneric && newRelationshipClass.isAssignableFrom(relationshipClass));
+			
+			if (!removeRel) {
+				
+				// Check interfaces
+				for (Class iface : EntityContext.getInterfacesForType(targetType)) {
+
+					removeRel |= iface.isAssignableFrom(otherClass);
+				}
+			}
+			
+			if (removeRel) {
+
+				deleteRel.execute(rel);
+			}
+		}
+
+	}
+	
+	private void ensureOneToMany(AbstractNode sourceNode, AbstractNode targetNode, AbstractRelationship newRel, FactoryDefinition factoryDefinition, DeleteRelationshipCommand deleteRel) throws FrameworkException {
+		
+		Class newRelationshipClass = newRel.getClass();
+		Class sourceType           = sourceNode.getClass();
+
+		// ManyToOne: targetNode may not have relationships to other nodes of the same type!
+		
+		for (AbstractRelationship rel : targetNode.getReverseRelationships(CollectionProperty.this.relationClass)) {
+
+			if (rel.equals(newRel)) {
+				continue;
+			}
+
+			Class relationshipClass = rel.getClass();
+			boolean isGeneric = factoryDefinition.isGeneric(relationshipClass);
+
+			AbstractNode otherNode = rel.getOtherNode(targetNode);
+			Class otherClass = otherNode.getClass();
+			boolean removeRel = sourceType.isAssignableFrom(otherClass) || (!isGeneric && newRelationshipClass.isAssignableFrom(relationshipClass));
+			
+			if (!removeRel) {
+				
+				// Check interfaces
+				for (Class iface : EntityContext.getInterfacesForType(sourceType)) {
+
+					removeRel |= iface.isAssignableFrom(otherClass);
+				}
+			}
+			
+			if (removeRel) {
+
+				deleteRel.execute(rel);
+			}
+		}
+
 	}
 }

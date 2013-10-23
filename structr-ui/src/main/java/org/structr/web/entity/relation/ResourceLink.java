@@ -20,8 +20,8 @@
 
 package org.structr.web.entity.relation;
 
+import org.neo4j.graphdb.RelationshipType;
 import org.structr.core.property.Property;
-import org.structr.core.property.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.web.common.RelType;
 import org.structr.common.View;
@@ -38,35 +38,43 @@ import org.structr.web.entity.html.Link;
  *
  * @author Christian Morgner
  */
-public class LinkRelationship extends AbstractRelationship {
+public class ResourceLink extends AbstractRelationship<A, Linkable> {
 
 	public static final Property<String> sourceId = new StringProperty("sourceId");
 	public static final Property<String> targetId = new StringProperty("targetId");
 	public static final Property<String> type     = new StringProperty("type");
 
-	public static final View uiView = new View(LinkRelationship.class, PropertyView.Ui,
+	public static final View uiView = new View(ResourceLink.class, PropertyView.Ui,
 		sourceId, targetId, type	
 	);
 	
 	static {
 
-		EntityContext.registerNamedRelation("resource_link", LinkRelationship.class, Link.class, Linkable.class, RelType.LINK);
-		EntityContext.registerNamedRelation("hyperlink", LinkRelationship.class, A.class, Linkable.class, RelType.LINK);
+		EntityContext.registerNamedRelation("resource_link", ResourceLink.class, Link.class, Linkable.class, RelType.LINK);
+		EntityContext.registerNamedRelation("hyperlink", ResourceLink.class, A.class, Linkable.class, RelType.LINK);
 		
 //		EntityContext.registerPropertySet(LinkRelationship.class, PropertyView.Ui, uiView.properties());
 
 	}
 
-	//~--- get methods ----------------------------------------------------
-
 	@Override
-	public PropertyKey getStartNodeIdKey() {
-		return sourceId;
+	public Class<A> getSourceType() {
+		return A.class;
 	}
 
 	@Override
-	public PropertyKey getEndNodeIdKey() {
-		return targetId;
+	public RelationshipType getRelationshipType() {
+		return RelType.LINK;
+	}
+
+	@Override
+	public Class<Linkable> getDestinationType() {
+		return Linkable.class;
+	}
+
+	@Override
+	public Class<? extends AbstractRelationship<Linkable, A>> reverse() {
+		return LinkResource.class;
 	}
 
 }

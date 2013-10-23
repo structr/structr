@@ -20,10 +20,10 @@ package org.structr.core.entity;
 
 import java.util.List;
 import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.helpers.collection.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
+import org.structr.core.entity.relationship.TreeChild;
 import org.structr.core.graph.CreateRelationshipCommand;
 import org.structr.core.graph.DeleteRelationshipCommand;
 import org.structr.core.graph.StructrTransaction;
@@ -49,9 +49,9 @@ public abstract class LinkedListNode extends ValidatedNode {
 	 * @param currentElement
 	 * @return
 	 */
-	public LinkedListNode listGetPrevious(final RelationshipType relType, final LinkedListNode currentElement) {
+	public LinkedListNode listGetPrevious(final Class<? extends TreeChild> type, final LinkedListNode currentElement) {
 
-		final List<AbstractRelationship> incomingRelationships = Iterables.toList(currentElement.getIncomingRelationships(relType));
+		final List<? extends TreeChild> incomingRelationships = Iterables.toList(currentElement.getIncomingRelationships(type));
 		
 		if (incomingRelationships != null && !incomingRelationships.isEmpty()) {
 
@@ -78,9 +78,9 @@ public abstract class LinkedListNode extends ValidatedNode {
 	 * @param currentElement
 	 * @return
 	 */
-	public LinkedListNode listGetNext(final RelationshipType relType, final LinkedListNode currentElement) {
+	public LinkedListNode listGetNext(final Class<? extends TreeChild> type, final LinkedListNode currentElement) {
 		
-		List<AbstractRelationship> outgoingRelationships = Iterables.toList(currentElement.getOutgoingRelationships(relType));
+		List<? extends TreeChild> outgoingRelationships = Iterables.toList(currentElement.getOutgoingRelationships(type));
 		
 		if (outgoingRelationships != null && !outgoingRelationships.isEmpty()) {
 
@@ -94,7 +94,7 @@ public abstract class LinkedListNode extends ValidatedNode {
 				}
 			}
 
-			throw new IllegalStateException("Given node is not a valid list node for the given relationship type: found " + size + " outgoing relationships of type " + relType);
+			throw new IllegalStateException("Given node is not a valid list node for the given relationship type: found " + size + " outgoing relationships of type " + type);
 		}
 
 		return null;
@@ -107,13 +107,13 @@ public abstract class LinkedListNode extends ValidatedNode {
 	 * @param currentElement the reference element
 	 * @param newElement the new element
 	 */
-	public void listInsertBefore(final RelationshipType relType, final LinkedListNode currentElement, final LinkedListNode newElement) throws FrameworkException {
+	public void listInsertBefore(final Class<? extends TreeChild> type, final LinkedListNode currentElement, final LinkedListNode newElement) throws FrameworkException {
 
 		if (currentElement.getId() == newElement.getId()) {
 			throw new IllegalStateException("Cannot link a node to itself!");
 		}
 
-		final LinkedListNode previousElement = listGetPrevious(relType, currentElement);
+		final LinkedListNode previousElement = listGetPrevious(type, currentElement);
 		if (previousElement == null) {
 
 			// trivial: new node will become new head of existing list
@@ -121,7 +121,7 @@ public abstract class LinkedListNode extends ValidatedNode {
 				@Override
 				public Object execute() throws FrameworkException {
 
-					linkNodes(relType, newElement, currentElement);
+					linkNodes(type, newElement, currentElement);
 
 					return null;
 				}
@@ -135,10 +135,10 @@ public abstract class LinkedListNode extends ValidatedNode {
 				public Object execute() throws FrameworkException {
 
 					// delete old relationship
-					unlinkNodes(relType, previousElement, currentElement);
+					unlinkNodes(type, previousElement, currentElement);
 					
-					linkNodes(relType, previousElement, newElement);
-					linkNodes(relType, newElement, currentElement);
+					linkNodes(type, previousElement, newElement);
+					linkNodes(type, newElement, currentElement);
 
 					return null;
 				}
@@ -153,13 +153,13 @@ public abstract class LinkedListNode extends ValidatedNode {
 	 * @param currentElement the reference element
 	 * @param newElement the new element
 	 */
-	public void listInsertAfter(final RelationshipType relType, final LinkedListNode currentElement, final LinkedListNode newElement) throws FrameworkException {
+	public void listInsertAfter(final Class<? extends TreeChild> type, final LinkedListNode currentElement, final LinkedListNode newElement) throws FrameworkException {
 
 		if (currentElement.getId() == newElement.getId()) {
 			throw new IllegalStateException("Cannot link a node to itself!");
 		}
 
-		final LinkedListNode next = listGetNext(relType, currentElement);
+		final LinkedListNode next = listGetNext(type, currentElement);
 		if (next == null) {
 
 			// trivial: new node will become new tail of existing list
@@ -167,7 +167,7 @@ public abstract class LinkedListNode extends ValidatedNode {
 				@Override
 				public Object execute() throws FrameworkException {
 
-					linkNodes(relType, currentElement, newElement);
+					linkNodes(type, currentElement, newElement);
 
 					return null;
 				}
@@ -180,10 +180,10 @@ public abstract class LinkedListNode extends ValidatedNode {
 				@Override
 				public Object execute() throws FrameworkException {
 
-					unlinkNodes(relType, currentElement, next);
+					unlinkNodes(type, currentElement, next);
 
-					linkNodes(relType, currentElement, newElement);
-					linkNodes(relType, newElement, next);
+					linkNodes(type, currentElement, newElement);
+					linkNodes(type, newElement, next);
 
 					return null;
 				}
@@ -197,21 +197,21 @@ public abstract class LinkedListNode extends ValidatedNode {
 	 *
 	 * @param currentElement the element to be removed
 	 */
-	public void listRemove(final RelationshipType relType, final LinkedListNode currentElement) throws FrameworkException {
+	public void listRemove(final Class<? extends TreeChild> type, final LinkedListNode currentElement) throws FrameworkException {
 		
-		final LinkedListNode previousElement = listGetPrevious(relType, currentElement);
-		final LinkedListNode nextElement     = listGetNext(relType, currentElement);
+		final LinkedListNode previousElement = listGetPrevious(type, currentElement);
+		final LinkedListNode nextElement     = listGetNext(type, currentElement);
 
 		if (currentElement != null) {
 			
 			if (previousElement != null) {
 
-				unlinkNodes(relType, previousElement, currentElement);
+				unlinkNodes(type, previousElement, currentElement);
 			}
 
 			if (nextElement != null) {
 
-				unlinkNodes(relType, currentElement, nextElement);
+				unlinkNodes(type, currentElement, nextElement);
 			}
 		}
 
@@ -222,25 +222,26 @@ public abstract class LinkedListNode extends ValidatedNode {
 
 			if (previousNode != null && nextNode != null) {
 
-				linkNodes(relType, previousElement, nextElement);
+				linkNodes(type, previousElement, nextElement);
 			}
 
 		}
 	}
 	
-	public void linkNodes(final RelationshipType relType, LinkedListNode startNode, LinkedListNode endNode) throws FrameworkException {
-		linkNodes(relType, startNode, endNode, null);
+	public void linkNodes(final Class<? extends TreeChild> type, final LinkedListNode startNode, final LinkedListNode endNode) throws FrameworkException {
+		linkNodes(type, startNode, endNode, null);
 	}
 	
-	public void linkNodes(final RelationshipType relType, LinkedListNode startNode, LinkedListNode endNode, PropertyMap properties) throws FrameworkException {
+	public void linkNodes(final Class<? extends TreeChild> type, final LinkedListNode startNode, final LinkedListNode endNode, final PropertyMap properties) throws FrameworkException {
 		
 		CreateRelationshipCommand cmd = Services.command(securityContext, CreateRelationshipCommand.class);
-
+		AbstractRelationship rel      = getRelationshipForType(type);
+		
 		// do not check for duplicates here
-		cmd.execute(startNode, endNode, relType, properties, false);
+		cmd.execute(startNode, endNode, rel.getRelationshipType(), properties, false);
 	}
 	
-	public void unlinkNodes(final RelationshipType relType, final LinkedListNode startNode, final LinkedListNode endNode) throws FrameworkException {
+	public void unlinkNodes(final Class<? extends TreeChild> type, final LinkedListNode startNode, final LinkedListNode endNode) throws FrameworkException {
 		
 		final DeleteRelationshipCommand cmd = Services.command(securityContext, DeleteRelationshipCommand.class);
 		
@@ -249,7 +250,7 @@ public abstract class LinkedListNode extends ValidatedNode {
 			@Override
 			public Object execute() throws FrameworkException {
 				
-				for (AbstractRelationship rel : startNode.getOutgoingRelationships(relType)) {
+				for (AbstractRelationship rel : startNode.getOutgoingRelationships(type)) {
 					
 					if (rel.getEndNode().equals(endNode)) {
 						cmd.execute(rel);

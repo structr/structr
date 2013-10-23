@@ -35,6 +35,8 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.error.ErrorBuffer;
+import org.structr.core.Incoming;
+import org.structr.core.Outgoing;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -93,7 +95,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 						// Delete all end nodes of outgoing relationships which are connected
 						// by relationships which are marked with DELETE_OUTGOING
-						for (AbstractRelationship rel : node.getOutgoingRelationships()) {
+						for (Outgoing rel : node.getOutgoingRelationships()) {
 
 							int cascadeDelete    = rel.cascadeDelete();
 							AbstractNode endNode = rel.getEndNode();
@@ -114,7 +116,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 						// Delete all start nodes of incoming relationships which are connected
 						// by relationships which are marked with DELETE_INCOMING
-						for (AbstractRelationship rel : node.getIncomingRelationships()) {
+						for (Incoming rel : node.getIncomingRelationships()) {
 
 							int cascadeDelete      = rel.cascadeDelete();
 							AbstractNode startNode = rel.getStartNode();

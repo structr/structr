@@ -79,14 +79,14 @@ public class RenderTreeRelationship extends AbstractRelationship {
 	@Override
 	public PropertyKey getStartNodeIdKey() {
 
-		return LinkRelationship.sourceId;
+		return ResourceLink.sourceId;
 
 	}
 
 	@Override
 	public PropertyKey getEndNodeIdKey() {
 
-		return LinkRelationship.targetId;
+		return ResourceLink.targetId;
 
 	}
 

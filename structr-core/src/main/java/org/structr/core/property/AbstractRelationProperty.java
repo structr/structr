@@ -45,21 +45,18 @@ import org.structr.core.notion.Notion;
 public abstract class AbstractRelationProperty<T> extends Property<T> {
 	
 	private static final Logger logger = Logger.getLogger(AbstractRelationProperty.class.getName());
-	protected Class destType           = null;
-	protected RelationshipType relType = null;
-	protected Direction direction      = null;
+	
+	protected Class<T> type            = null;
 	protected Cardinality cardinality  = null;
 	protected int cascadeDelete        = 0;
 	
 	public abstract Notion getNotion();
 	
-	public AbstractRelationProperty(String name, Class destType, RelationshipType relType, Direction direction, Cardinality cardinality, int cascadeDelete) {
+	public AbstractRelationProperty(String name, Class<T> type, Cardinality cardinality, int cascadeDelete) {
 
 		super(name);
 		
-		this.destType      = destType;
-		this.relType       = relType;
-		this.direction     = direction;
+		this.type          = type;
 		this.cardinality   = cardinality;
 		this.cascadeDelete = cascadeDelete;
 	}
