@@ -73,7 +73,7 @@ public class RelationshipProperty<T extends AbstractRelationship> extends Abstra
 	public List<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
 		
 		AbstractNode node = (AbstractNode)obj;
-		List<T> rels      = (List<T>)node.getRelationships(relType, direction);
+		Iterable<T> rels  = (Iterable<T>)node.getRelationships(relType, direction);
 		
 		return Iterables.toList(rels);
 	}
