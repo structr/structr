@@ -41,7 +41,7 @@ import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.notion.PropertySetNotion;
-import org.structr.core.property.CollectionProperty;
+import org.structr.core.property.Endpoints;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
@@ -73,7 +73,7 @@ public class ResourceAccess extends AbstractNode {
 	public static final Property<Long>                      flags           = new LongProperty("flags").indexed();
 	public static final Property<Integer>                   position        = new IntProperty("position").indexed();
 	
-	public static final CollectionProperty<ResourceAccess, PropertyAccess>  propertyAccess  = new CollectionProperty<ResourceAccess, PropertyAccess>("propertyAccess", Access.class, new PropertySetNotion(uuid, name), true);
+	public static final Endpoints<ResourceAccess, PropertyAccess>  propertyAccess  = new Endpoints<ResourceAccess, PropertyAccess>("propertyAccess", Access.class, new PropertySetNotion(uuid, name), true);
 
 	public static final View uiView = new View(ResourceAccess.class, PropertyView.Ui,
 		signature, flags, position

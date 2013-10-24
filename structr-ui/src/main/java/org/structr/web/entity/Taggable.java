@@ -26,7 +26,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.notion.PropertyNotion;
 import org.structr.core.property.CollectionNotionProperty;
-import org.structr.core.property.CollectionProperty;
+import org.structr.core.property.Endpoints;
 import org.structr.core.property.Property;
 import org.structr.web.common.RelType;
 import org.structr.web.property.UiNotion;
@@ -37,7 +37,7 @@ import org.structr.web.property.UiNotion;
  */
 public interface Taggable extends GraphObject {
 	
-	public static final CollectionProperty<Tag> tags = new CollectionProperty<>("tags", Tag.class, RelType.TAG, Direction.INCOMING, new UiNotion(), false);
+	public static final Endpoints<Tag> tags = new Endpoints<>("tags", Tag.class, RelType.TAG, Direction.INCOMING, new UiNotion(), false);
 	public static final Property<List<String>> tag_names = new CollectionNotionProperty("tag_names", tags, new PropertyNotion(AbstractNode.name));
 	
 }

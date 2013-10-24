@@ -28,7 +28,7 @@ import org.structr.core.property.Property;
 import org.structr.common.PropertyView;
 import org.structr.web.common.RelType;
 import org.structr.common.View;
-import org.structr.core.property.CollectionProperty;
+import org.structr.core.property.Endpoints;
 import org.structr.web.common.HtmlProperty;
 import org.structr.web.entity.dom.Content;
 
@@ -41,13 +41,13 @@ public class Li extends DOMElement {
 
 	public static final Property<String> _value = new HtmlProperty("value");
 
-	public static final CollectionProperty<Content> contents = new CollectionProperty<Content>("contents", Content.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<A>       as       = new CollectionProperty<A>("as", A.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<Span>    spans    = new CollectionProperty<Span>("spans", Span.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<Div>     divs     = new CollectionProperty<Div>("divs", Div.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<Img>     imgs     = new CollectionProperty<Img>("imgs", Img.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<Ul>      uls      = new CollectionProperty<Ul>("uls", Ul.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<Ol>      ols      = new CollectionProperty<Ol>("ols", Ol.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final Endpoints<Content> contents = new Endpoints<Content>("contents", Content.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final Endpoints<A>       as       = new Endpoints<A>("as", A.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final Endpoints<Span>    spans    = new Endpoints<Span>("spans", Span.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final Endpoints<Div>     divs     = new Endpoints<Div>("divs", Div.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final Endpoints<Img>     imgs     = new Endpoints<Img>("imgs", Img.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final Endpoints<Ul>      uls      = new Endpoints<Ul>("uls", Ul.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final Endpoints<Ol>      ols      = new Endpoints<Ol>("ols", Ol.class, RelType.CONTAINS, Direction.OUTGOING, false);
 	
 	public static final View htmlView = new View(Li.class, PropertyView.Html,
 		_value

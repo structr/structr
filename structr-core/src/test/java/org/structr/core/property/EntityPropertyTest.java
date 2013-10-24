@@ -256,7 +256,7 @@ public class EntityPropertyTest extends StructrTest {
 	 */
 	public void testTypeName() {
 
-		Forward instance = TestSix.oneToOneTestThree;
+		End instance = TestSix.oneToOneTestThree;
 		String expResult = "Object";
 		String result = instance.typeName();
 		assertEquals(expResult, result);
@@ -267,7 +267,7 @@ public class EntityPropertyTest extends StructrTest {
 	 */
 	public void testDatabaseConverter() {
 
-		Forward instance = TestSix.oneToOneTestThree;
+		End instance = TestSix.oneToOneTestThree;
 		PropertyConverter expResult = null;
 		PropertyConverter result = instance.databaseConverter(securityContext, null);
 		assertEquals(expResult, result);
@@ -278,7 +278,7 @@ public class EntityPropertyTest extends StructrTest {
 	 */
 	public void testInputConverter() {
 
-		Forward instance = TestSix.oneToOneTestThree;
+		End instance = TestSix.oneToOneTestThree;
 		PropertyConverter result = instance.inputConverter(securityContext);
 		
 		assertTrue(result != null);
@@ -289,7 +289,7 @@ public class EntityPropertyTest extends StructrTest {
 	 */
 	public void testRelatedType() {
 
-		Forward instance = TestSix.oneToOneTestThree;
+		End instance = TestSix.oneToOneTestThree;
 		Class expResult = TestThree.class;
 		Class result = instance.relatedType();
 		assertEquals(expResult, result);
@@ -300,7 +300,7 @@ public class EntityPropertyTest extends StructrTest {
 	 */
 	public void testIsCollection() {
 
-		Forward instance = TestSix.oneToOneTestThree;
+		End instance = TestSix.oneToOneTestThree;
 		boolean expResult = false;
 		boolean result = instance.isCollection();
 		assertEquals(expResult, result);
@@ -311,7 +311,7 @@ public class EntityPropertyTest extends StructrTest {
 	 */
 	public void testGetNotion() {
 
-		Forward instance = TestSix.oneToOneTestThree;
+		End instance = TestSix.oneToOneTestThree;
 		Notion result = instance.getNotion();
 		
 		assertTrue(result != null && result instanceof ObjectNotion);
@@ -322,7 +322,7 @@ public class EntityPropertyTest extends StructrTest {
 	 */
 	public void testIsManyToOne() {
 
-		Forward instance = TestSix.oneToOneTestThree;
+		End instance = TestSix.oneToOneTestThree;
 		boolean expResult = false;
 		boolean result = instance.isManyToOne();
 		assertEquals(expResult, result);

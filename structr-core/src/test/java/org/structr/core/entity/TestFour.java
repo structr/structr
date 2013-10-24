@@ -31,7 +31,7 @@ import org.structr.core.property.*;
  */
 public class TestFour extends AbstractNode {
 	
-	public static final Property<TestOne>       testOne             = new Backward<TestOne>("testOne", OneFour.class, false, Relation.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED);
+	public static final Property<TestOne>       testOne             = new End<TestOne>("testOne", OneFour.class, false, Relation.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED);
 	public static final Property<String[]>      stringArrayProperty = new ArrayProperty<String>("stringArrayProperty", String.class);
 	public static final Property<Boolean>       booleanProperty     = new BooleanProperty("booleanProperty").indexed();
 	public static final Property<Double>        doubleProperty      = new DoubleProperty("doubleProperty").indexed();

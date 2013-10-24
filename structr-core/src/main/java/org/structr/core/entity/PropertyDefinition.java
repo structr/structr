@@ -50,9 +50,9 @@ import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.notion.Notion;
 import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.BooleanProperty;
-import org.structr.core.property.CollectionProperty;
+import org.structr.core.property.Endpoints;
 import org.structr.core.property.DoubleProperty;
-import org.structr.core.property.Forward;
+import org.structr.core.property.End;
 import org.structr.core.property.ISO8601DateProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.LongProperty;
@@ -115,8 +115,8 @@ public class PropertyDefinition<T> extends AbstractNode implements PropertyKey<T
 		delegateMap.put("Double",     DoubleProperty.class);
 		delegateMap.put("Boolean",    BooleanProperty.class);
 		delegateMap.put("Date",       ISO8601DateProperty.class);
-		delegateMap.put("Collection", CollectionProperty.class);
-		delegateMap.put("Entity",     Forward.class);
+		delegateMap.put("Collection", Endpoints.class);
+		delegateMap.put("Entity",     End.class);
 	}
 	
 	public static void clearPropertyDefinitions() {
@@ -408,7 +408,7 @@ public class PropertyDefinition<T> extends AbstractNode implements PropertyKey<T
 				
 				if (keyClass != null) {
 
-					if (CollectionProperty.class.isAssignableFrom(keyClass) || Forward.class.isAssignableFrom(keyClass)) {
+					if (Endpoints.class.isAssignableFrom(keyClass) || End.class.isAssignableFrom(keyClass)) {
 					
 						try {
 

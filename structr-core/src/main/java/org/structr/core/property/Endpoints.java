@@ -61,9 +61,9 @@ import org.structr.core.notion.ObjectNotion;
  *
  * @author Christian Morgner
  */
-public class CollectionProperty<T extends NodeInterface> extends Property<List<T>> {
+public class Endpoints<S extends NodeInterface, T extends NodeInterface> extends Property<List<T>> {
 
-	private static final Logger logger = Logger.getLogger(CollectionProperty.class.getName());
+	private static final Logger logger = Logger.getLogger(Endpoints.class.getName());
 
 	private Class<? extends AbstractRelationship> relationClass = null;
 	private AbstractRelationship relationship                   = null;
@@ -76,35 +76,13 @@ public class CollectionProperty<T extends NodeInterface> extends Property<List<T
 	private int cascadeDelete                                   = 0;
 	
 	/**
-	 * Constructs a collection property with the given name, based on the given property, transformed by the given notion.
-	 *
-	 * @param name
-	 * @param base
-	 * @param notion
-	 */
-	public CollectionProperty(String name, CollectionProperty base, Notion notion) {
-		this(name, base.getRelationType(), notion, base.isOneToMany(), base.getCascadeDelete());
-	}
-
-	/**
-	 * Constructs a collection property with the given name, based on the given property, transformed by the given notion, with the given delete cascade flag.
-	 *
-	 * @param name
-	 * @param base
-	 * @param notion
-	 */
-	public <S extends NodeInterface> CollectionProperty(String name, CollectionProperty base, Notion notion, int deleteCascade) {
-		this(name, base.getRelationType(), notion, base.isOneToMany(), deleteCascade);
-	}
-
-	/**
 	 * Constructs a collection property with the given name, the given destination type and the given relationship type.
 	 *
 	 * @param name
 	 * @param destType
 	 * @param relType
 	 */
-	public <S extends NodeInterface> CollectionProperty(String name, Class<? extends AbstractRelationship<S, T>> relationClass, boolean oneToMany) {
+	public  Endpoints(String name, Class<? extends AbstractRelationship<S, T>> relationClass, boolean oneToMany) {
 		this(name, relationClass, new ObjectNotion(), oneToMany);
 	}
 
@@ -115,7 +93,7 @@ public class CollectionProperty<T extends NodeInterface> extends Property<List<T
 	 * @param destType
 	 * @param relType
 	 */
-	public <S extends NodeInterface> CollectionProperty(String name, Class<? extends AbstractRelationship<S, T>> relationClass, Notion notion, boolean oneToMany) {
+	public Endpoints(String name, Class<? extends AbstractRelationship<S, T>> relationClass, Notion notion, boolean oneToMany) {
 		this(name, relationClass, notion, oneToMany, 0);
 	}
 
@@ -128,7 +106,7 @@ public class CollectionProperty<T extends NodeInterface> extends Property<List<T
 	 * @param direction
 	 * @param cascadeDelete
 	 */
-	public <S extends NodeInterface> CollectionProperty(String name, Class<? extends AbstractRelationship<S, T>> relationClass, boolean oneToMany, int cascadeDelete) {
+	public Endpoints(String name, Class<? extends AbstractRelationship<S, T>> relationClass, boolean oneToMany, int cascadeDelete) {
 		this(name, relationClass, new ObjectNotion(), oneToMany, cascadeDelete);
 	}
 
@@ -143,7 +121,7 @@ public class CollectionProperty<T extends NodeInterface> extends Property<List<T
 	 * @param notion
 	 * @param cascadeDelete
 	 */
-	public <S extends NodeInterface> CollectionProperty(String name, Class<? extends AbstractRelationship<S, T>> relationClass, Notion notion, boolean oneToMany, int cascadeDelete) {
+	public Endpoints(String name, Class<? extends AbstractRelationship<S, T>> relationClass, Notion notion, boolean oneToMany, int cascadeDelete) {
 
 		super(name);
 		
@@ -476,7 +454,7 @@ public class CollectionProperty<T extends NodeInterface> extends Property<List<T
 							String destType = finalTargetNode.getType();
 
 							// delete previous relationships to nodes of the same destination combinedType and direction
-							for (AbstractRelationship rel : sourceNode.getIncomingRelationships(CollectionProperty.this.relationClass)) {
+							for (AbstractRelationship rel : sourceNode.getIncomingRelationships(Endpoints.this.relationClass)) {
 
 								if (rel.getOtherNode(sourceNode).getType().equals(destType)) {
 
@@ -496,7 +474,7 @@ public class CollectionProperty<T extends NodeInterface> extends Property<List<T
 							
 							// Here, we have a OneToMany with OUTGOING Rel, so we need to remove all relationships
 							// of the same combinedType incoming to the target node (which should be exaclty one relationship!)
-							for (AbstractRelationship rel : finalTargetNode.getIncomingRelationships(CollectionProperty.this.relationClass)) {
+							for (AbstractRelationship rel : finalTargetNode.getIncomingRelationships(Endpoints.this.relationClass)) {
 
 								if (rel.getOtherNode(finalTargetNode).getType().equals(sourceType)) {
 
@@ -511,7 +489,7 @@ public class CollectionProperty<T extends NodeInterface> extends Property<List<T
 
 							// In this case, remove exact the relationship of the given combinedType
 							// between source and target node
-							for (AbstractRelationship rel : finalTargetNode.getAllRelationships(CollectionProperty.this.relationClass)) {
+							for (AbstractRelationship rel : finalTargetNode.getAllRelationships(Endpoints.this.relationClass)) {
 
 								if (rel.getOtherNode(finalTargetNode).equals(sourceNode)) {
 
@@ -628,7 +606,7 @@ public class CollectionProperty<T extends NodeInterface> extends Property<List<T
 
 		// ManyToOne: sourceNode may not have relationships to other nodes of the same type!
 		
-		for (AbstractRelationship rel : sourceNode.getRelationships(CollectionProperty.this.relationClass)) {
+		for (AbstractRelationship rel : sourceNode.getRelationships(Endpoints.this.relationClass)) {
 
 			if (rel.equals(newRel)) {
 				continue;
@@ -665,7 +643,7 @@ public class CollectionProperty<T extends NodeInterface> extends Property<List<T
 
 		// ManyToOne: targetNode may not have relationships to other nodes of the same type!
 		
-		for (AbstractRelationship rel : targetNode.getReverseRelationships(CollectionProperty.this.relationClass)) {
+		for (AbstractRelationship rel : targetNode.getReverseRelationships(Endpoints.this.relationClass)) {
 
 			if (rel.equals(newRel)) {
 				continue;

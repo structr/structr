@@ -18,7 +18,7 @@
  */
 package org.structr.core.entity;
 
-import org.structr.core.property.Backward;
+import org.structr.core.property.End;
 
 /**
  * A simple entity for the most basic tests.
@@ -32,5 +32,5 @@ import org.structr.core.property.Backward;
  */
 public class TestThree extends AbstractNode {
 	
-	public static final Backward<TestOne> testOne = new Backward<TestOne>("testOne", OneThree.class, false, Relation.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED);
+	public static final End<TestOne> testOne = new End<TestOne>("testOne", OneThree.class, false, Relation.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED);
 }

@@ -23,7 +23,7 @@ package org.structr.web.entity.html;
 
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.common.RelType;
-import org.structr.core.property.CollectionProperty;
+import org.structr.core.property.Endpoints;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -32,5 +32,5 @@ import org.structr.core.property.CollectionProperty;
  */
 public class Ul extends DOMElement {
 
-	public static final CollectionProperty<Li> lis = new CollectionProperty<Li>("lis", Li.class, RelType.CONTAINS, false);
+	public static final Endpoints<Li> lis = new Endpoints<Li>("lis", Li.class, RelType.CONTAINS, false);
 }

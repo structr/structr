@@ -28,7 +28,7 @@ import org.structr.core.property.Property;
 import org.structr.common.PropertyView;
 import org.structr.web.common.RelType;
 import org.structr.common.View;
-import org.structr.core.property.CollectionProperty;
+import org.structr.core.property.Endpoints;
 import org.structr.web.common.HtmlProperty;
 
 //~--- classes ----------------------------------------------------------------
@@ -46,9 +46,9 @@ public class Img extends DOMElement {
 	public static final Property<String> _width       = new HtmlProperty("width");
 	public static final Property<String> _height      = new HtmlProperty("height");
 	
-	public static final CollectionProperty<Div> divs = new CollectionProperty<Div>("divs", Div.class, RelType.CONTAINS, Direction.INCOMING, false);
-	public static final CollectionProperty<P>   ps   = new CollectionProperty<P>("ps", P.class, RelType.CONTAINS, Direction.INCOMING, false);
-	public static final CollectionProperty<A>   as   = new CollectionProperty<A>("as", A.class, RelType.CONTAINS, Direction.INCOMING, false);
+	public static final Endpoints<Div> divs = new Endpoints<Div>("divs", Div.class, RelType.CONTAINS, Direction.INCOMING, false);
+	public static final Endpoints<P>   ps   = new Endpoints<P>("ps", P.class, RelType.CONTAINS, Direction.INCOMING, false);
+	public static final Endpoints<A>   as   = new Endpoints<A>("as", A.class, RelType.CONTAINS, Direction.INCOMING, false);
 	
 	public static final View htmlView = new View(Img.class, PropertyView.Html,
 	    _alt, _src, _crossorigin, _usemap, _ismap, _width, _height

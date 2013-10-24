@@ -140,7 +140,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 
 		try {
 			
-			List<AbstractNode> nodes        = this.createTestNodes(GenericNode.class, 2);
+			List<NodeInterface> nodes = this.createTestNodes(GenericNode.class, 2);
 
 			assertNotNull(nodes);
 			assertTrue(nodes.size() == 2);

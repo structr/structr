@@ -18,6 +18,7 @@
  */
 package org.structr.core.property;
 
+import com.tinkerpop.gremlin.Tokens.T;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
@@ -42,6 +43,7 @@ import static org.structr.core.entity.Relation.Cardinality.ManyToMany;
 import static org.structr.core.entity.Relation.Cardinality.ManyToOne;
 import static org.structr.core.entity.Relation.Cardinality.OneToMany;
 import static org.structr.core.entity.Relation.Cardinality.OneToOne;
+import org.structr.core.entity.test.OneToOne;
 import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.CreateRelationshipCommand;
 import org.structr.core.graph.DeleteRelationshipCommand;
@@ -60,9 +62,9 @@ import org.structr.core.notion.ObjectNotion;
  *
  * @author Christian Morgner
  */
-public class Forward<S extends NodeInterface, T extends NodeInterface> extends Property<T> {
+public class Startpoint<S extends NodeInterface, T extends NodeInterface> extends Property<T> {
 
-	private static final Logger logger = Logger.getLogger(Forward.class.getName());
+	private static final Logger logger = Logger.getLogger(Startpoint.class.getName());
 
 	private Class<? extends AbstractRelationship> relationClass = null;
 	private AbstractRelationship relationship                   = null;
@@ -82,7 +84,7 @@ public class Forward<S extends NodeInterface, T extends NodeInterface> extends P
 	 * @param base
 	 * @param notion 
 	 */
-	public Forward(String name, Forward base, Notion notion) {
+	public Startpoint(String name, Startpoint base, Notion notion) {
 		this(name, base.getRelationType(), notion, base.isManyToOne(), base.getCascadeDelete());
 	}
 	
@@ -95,7 +97,7 @@ public class Forward<S extends NodeInterface, T extends NodeInterface> extends P
 	 * @param base
 	 * @param notion 
 	 */
-	public Forward(String name, Forward base, Notion notion, int deleteCascade) {
+	public Startpoint(String name, Startpoint base, Notion notion, int deleteCascade) {
 		this(name, base.getRelationType(), notion, base.isManyToOne(), deleteCascade);
 	}
 	
@@ -110,7 +112,7 @@ public class Forward<S extends NodeInterface, T extends NodeInterface> extends P
 	 * @param direction
 	 * @param cascadeDelete 
 	 */
-	public Forward(String name, Class<? extends AbstractRelationship<S, T>> relationClass, boolean manyToOne, int cascadeDelete) {
+	public <S extends NodeInterface> Startpoint(String name, Class<? extends OneToOne<T, S>> relationClass, boolean manyToOne, int cascadeDelete) {
 		this(name, relationClass, new ObjectNotion(), manyToOne, cascadeDelete);
 	}
 
@@ -123,7 +125,7 @@ public class Forward<S extends NodeInterface, T extends NodeInterface> extends P
 	 * @param relType
 	 * @param direction 
 	 */
-	public Forward(String name, Class<? extends AbstractRelationship<S, T>> relationClass, boolean manyToOne) {
+	public <S extends NodeInterface> Startpoint(String name, Class<? extends OneToOne<T, S>> relationClass, boolean manyToOne) {
 		this(name, relationClass, new ObjectNotion(), manyToOne);
 	}
 	
@@ -137,7 +139,7 @@ public class Forward<S extends NodeInterface, T extends NodeInterface> extends P
 	 * @param direction
 	 * @param notion 
 	 */
-	public Forward(String name, Class<? extends AbstractRelationship<S, T>> relationClass, Notion notion, boolean manyToOne) {
+	public <S extends NodeInterface> Startpoint(String name, Class<? extends OneToOne<T, S>> relationClass, Notion notion, boolean manyToOne) {
 		this(name, relationClass, notion, manyToOne, Relation.DELETE_NONE);
 	}
 	
@@ -154,7 +156,7 @@ public class Forward<S extends NodeInterface, T extends NodeInterface> extends P
 	 * @param notion
 	 * @param cascadeDelete 
 	 */
-	public Forward(String name, Class<? extends AbstractRelationship<S, T>> relationClass, Notion notion, boolean manyToOne, int cascadeDelete) {
+	public <S extends NodeInterface> Startpoint(String name, Class<? extends OneToOne<T, S>> relationClass, Notion notion, boolean manyToOne, int cascadeDelete) {
 
 		super(name);
 		
@@ -493,7 +495,7 @@ public class Forward<S extends NodeInterface, T extends NodeInterface> extends P
 							String destType = finalTargetNode.getType();
 
 							// delete previous relationships to nodes of the same destination combinedType and direction
-							for (AbstractRelationship rel : sourceNode.getIncomingRelationships(Forward.this.relationClass)) {
+							for (AbstractRelationship rel : sourceNode.getIncomingRelationships(Startpoint.this.relationClass)) {
 
 								if (rel.getOtherNode(sourceNode).getType().equals(destType)) {
 
@@ -513,7 +515,7 @@ public class Forward<S extends NodeInterface, T extends NodeInterface> extends P
 							
 							// Here, we have a OneToMany with OUTGOING Rel, so we need to remove all relationships
 							// of the same combinedType incoming to the target node (which should be exaclty one relationship!)
-							for (AbstractRelationship rel : finalTargetNode.getIncomingRelationships(Forward.this.relationClass)) {
+							for (AbstractRelationship rel : finalTargetNode.getIncomingRelationships(Startpoint.this.relationClass)) {
 
 								if (rel.getOtherNode(finalTargetNode).getType().equals(sourceType)) {
 
@@ -528,7 +530,7 @@ public class Forward<S extends NodeInterface, T extends NodeInterface> extends P
 
 							// In this case, remove exact the relationship of the given combinedType
 							// between source and target node
-							for (AbstractRelationship rel : finalTargetNode.getAllRelationships(Forward.this.relationClass)) {
+							for (AbstractRelationship rel : finalTargetNode.getAllRelationships(Startpoint.this.relationClass)) {
 
 								if (rel.getOtherNode(finalTargetNode).equals(sourceNode)) {
 
@@ -645,7 +647,7 @@ public class Forward<S extends NodeInterface, T extends NodeInterface> extends P
 
 		// ManyToOne: sourceNode may not have relationships to other nodes of the same type!
 		
-		for (AbstractRelationship rel : sourceNode.getRelationships(Forward.this.relationClass)) {
+		for (AbstractRelationship rel : sourceNode.getRelationships(Startpoint.this.relationClass)) {
 
 			if (rel.equals(newRel)) {
 				continue;
@@ -682,7 +684,7 @@ public class Forward<S extends NodeInterface, T extends NodeInterface> extends P
 
 		// ManyToOne: targetNode may not have relationships to other nodes of the same type!
 		
-		for (AbstractRelationship rel : targetNode.getReverseRelationships(Forward.this.relationClass)) {
+		for (AbstractRelationship rel : targetNode.getReverseRelationships(Startpoint.this.relationClass)) {
 
 			if (rel.equals(newRel)) {
 				continue;

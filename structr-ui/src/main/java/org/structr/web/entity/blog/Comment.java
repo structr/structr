@@ -31,7 +31,7 @@ import org.structr.core.entity.AbstractNode;
 //~--- JDK imports ------------------------------------------------------------
 
 import org.structr.core.entity.Principal;
-import org.structr.core.property.Forward;
+import org.structr.core.property.End;
 import org.structr.core.property.ISO8601DateProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.web.entity.dom.Content;
@@ -46,9 +46,9 @@ import org.structr.web.entity.dom.Content;
  */
 public class Comment extends AbstractNode {
 
-	public static final Forward<Content>	text = new Forward<Content>("contents", Content.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final End<Content>	text = new End<Content>("contents", Content.class, RelType.CONTAINS, Direction.OUTGOING, false);
 	public static final Property<Date>		publishDate = new ISO8601DateProperty("publishDate").indexed();
-	public static final Forward<Principal>   author = new Forward<Principal>("author", Principal.class, org.structr.web.common.RelType.AUTHOR, Direction.INCOMING, true);
+	public static final End<Principal>   author = new End<Principal>("author", Principal.class, org.structr.web.common.RelType.AUTHOR, Direction.INCOMING, true);
 	
 	public static final org.structr.common.View uiView = new org.structr.common.View(Comment.class, PropertyView.Ui,
 		type, name, publishDate, author, text

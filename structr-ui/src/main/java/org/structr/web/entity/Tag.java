@@ -26,7 +26,7 @@ import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.property.CollectionProperty;
+import org.structr.core.property.Endpoints;
 import org.structr.web.common.RelType;
 import org.structr.web.property.UiNotion;
 
@@ -36,7 +36,7 @@ import org.structr.web.property.UiNotion;
  */
 public class Tag extends ValidatedNode {
 
-	public static final CollectionProperty<Taggable> taggables = new CollectionProperty<>("taggables", Taggable.class, RelType.TAG, new UiNotion(), false);
+	public static final Endpoints<Taggable> taggables = new Endpoints<>("taggables", Taggable.class, RelType.TAG, new UiNotion(), false);
 	
 	public static final View defaultView = new View(Tag.class, PropertyView.Public, name, taggables);
 	public static final View uiView      = new View(Tag.class, PropertyView.Ui, name, taggables);

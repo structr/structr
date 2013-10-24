@@ -28,7 +28,7 @@ import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.Forward;
+import org.structr.core.property.End;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -41,10 +41,10 @@ public class RelatedNodePropertyMapper extends PropertyConverter {
 
 	private static final Logger logger = Logger.getLogger(RelatedNodePropertyMapper.class.getName());
 
-	private Forward<?> sourceKey  = null;
+	private End<?> sourceKey  = null;
 	private PropertyKey targetKey = null;
 	
-	public RelatedNodePropertyMapper(SecurityContext securityContext, GraphObject currentObject, Forward<?> sourceKey, PropertyKey targetKey) {
+	public RelatedNodePropertyMapper(SecurityContext securityContext, GraphObject currentObject, End<?> sourceKey, PropertyKey targetKey) {
 		
 		super(securityContext, currentObject);
 		
