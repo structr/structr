@@ -8,6 +8,16 @@ import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.module.ModuleService;
+import org.structr.rest.serialization.html.Document;
+import org.structr.rest.serialization.html.Tag;
+import org.structr.rest.serialization.html.attr.Css;
+import org.structr.rest.serialization.html.attr.AtDepth;
+import org.structr.rest.serialization.html.attr.Href;
+import org.structr.rest.serialization.html.attr.If;
+import org.structr.rest.serialization.html.attr.Onload;
+import org.structr.rest.serialization.html.attr.Rel;
+import org.structr.rest.serialization.html.attr.Src;
+import org.structr.rest.serialization.html.attr.Type;
 
 /**
  *
@@ -19,27 +29,24 @@ public class StructrJsonHtmlWriter implements RestWriter {
 	private static final String LI = "li";
 	private static final String UL = "ul";
 	
-	private PrintWriter writer = null;
+	private Document doc       = null;
+	private Tag currentElement = null;
 	private boolean hasName    = false;
 	private String lastName    = null;
-	private String indent      = "";
-	private int level          = 0;
 	
 	public StructrJsonHtmlWriter(final Writer rawWriter) {
 		
-		this.writer = new PrintWriter(rawWriter, false);
-		
-		writer.println("<!DOCTYPE html>");
+		this.doc = new Document(new PrintWriter(rawWriter, false));
 	}
 	
 	@Override
 	public void setIndent(String indent) {
-		this.indent = indent;
+		doc.setIndent(indent);
 	}
 
 	@Override
 	public void flush() throws IOException {
-		writer.flush();
+		doc.flush();
 	}
 
 	@Override
@@ -47,67 +54,46 @@ public class StructrJsonHtmlWriter implements RestWriter {
 		
 		String restPath    = Services.getConfigurationValue(Services.REST_PATH);
 		String currentType = baseUrl.replace(restPath + "/", "").replace("/" + propertyView, "");
-		
-		beginTag("html", true);
 
-		beginTag("head", true);
-		beginTag("link", true, true, new Rel("stylesheet"), new Type("text/css"), new Href("//structr.org/rest.css"));
-		beginTag("script", false, new Type("text/javascript"), new Src("//structr.org/CollapsibleLists.js"));
-		endTag("script", false);
-		beginTag("title", false);
-		writer.print(baseUrl);
-		endTag("title", false);
-		endTag("head", true);
+		Tag head = doc.block("head");
+		head.empty("link").attr(new Rel("stylesheet"), new Type("text/css"), new Href("//structr.org/rest.css"));
+		head.inline("script").attr(new Type("text/javascript"), new Src("//structr.org/CollapsibleLists.js"));
+		head.inline("title").text(baseUrl);
 		
-		beginTag("body", true, new Onload("CollapsibleLists.apply(true);"));
-		beginTag("div", true, new Id("top"));
-		beginTag("ul", true);
+		Tag body = doc.block("body").attr(new Onload("CollapsibleLists.apply(true);"));
+		Tag top  = body.block("div").id("top");
+		Tag ul1  = top.block("ul");
 
 		for (String view : EntityContext.getPropertyViews()) {
 			
-			beginTag("li", true);
-			beginTag("a", false, new Href(restPath + "/" + currentType + "/" + view), new Conditional(view.equals(propertyView), new Css("active")));
-			writer.print(view);
-			endTag("a", false);
-			endTag("li", true);
+			ul1.block("li").inline("a").attr(new Href(restPath + "/" + currentType + "/" + view), new If(view.equals(propertyView), new Css("active"))).text(view);
 		}
 		
-		endTag("ul", true);
-		endTag("div", true);
-		
-		beginTag("div", true, new Id("left"));
+		Tag left = body.block("div").id("left");
 
 		ModuleService moduleService = (ModuleService)Services.getService(ModuleService.class);
 		for (String rawType : moduleService.getCachedNodeEntityTypes()) {
 			
-			beginTag("p", true);
-			beginTag("a", false, new Href(restPath + "/" + rawType), new Conditional(rawType.equals(currentType), new Css("active")));
-			writer.print(rawType);
-			endTag("a", false);
-			endTag("p", true);
+			left.block("p").inline("a").attr(new Href(restPath + "/" + rawType), new If(rawType.equals(currentType), new Css("active"))).text(rawType);
 		}
 
-		endTag("div", true);
+		// main div
+		currentElement = body.block("div").id("right");
 		
-		beginTag("div", true, new Id("right"));
-		
-		// display url
-		beginTag("h1", false);
-		writer.print(baseUrl);
-		endTag("h1", false);
-		
-		beginTag("ul", true);
+		// h1 title
+		currentElement.block("h1").text(baseUrl);
+
+		// begin ul
+		currentElement = currentElement.block("ul");
 		
 		return this;
 	}
 
 	@Override
 	public RestWriter endDocument() throws IOException {
-		
-		endTag("ul", true);
-		endTag("div", true);
-		endTag("body", true);
-		endTag("html", true);
+
+		// finally render document
+		doc.render();
 		
 		return this;
 	}
@@ -115,7 +101,7 @@ public class StructrJsonHtmlWriter implements RestWriter {
 	@Override
 	public RestWriter beginArray() throws IOException {
 
-		beginTag(UL, true, new Conditional(level > CLOSE_LEVEL, new Css("collapsibleList")));
+		currentElement = currentElement.block(UL).attr(new AtDepth(CLOSE_LEVEL, new Css("collapsibleList")));
 
 		hasName = false;
 		
@@ -125,8 +111,8 @@ public class StructrJsonHtmlWriter implements RestWriter {
 	@Override
 	public RestWriter endArray() throws IOException {
 		
-		endTag(LI, true);
-		endTag(UL, true);
+		currentElement = currentElement.parent();	// end LI
+		currentElement = currentElement.parent();	// end UL
 		
 		return this;
 	}
@@ -141,8 +127,9 @@ public class StructrJsonHtmlWriter implements RestWriter {
 		
 		if (!hasName) {
 
-			beginTag(LI, true);
-			beginTag("b", true);
+			currentElement = currentElement.block(LI);
+			
+			Tag b = currentElement.block("b");
 			
 			if (graphObject != null) {
 
@@ -151,33 +138,25 @@ public class StructrJsonHtmlWriter implements RestWriter {
 				final String type = graphObject.getType();
 
 				if (name != null) {
-					
-					beginTag("span", false, new Css("name"));
-					writer.print(name);
-					endTag("span", false);
+
+					b.inline("span").css("name").text(name);
 				}
 
 				if (uuid != null) {
 					
-					beginTag("span", false, new Css("id"));
-					writer.print(uuid);
-					endTag("span", false);
+					b.inline("span").css("id").text(uuid);
 				}
 
 				if (type != null) {
 					
-					beginTag("span", false, new Css("type"));
-					writer.print(type);
-					endTag("span", false);
+					b.inline("span").css("type").text(type);
 				}
 			}
-			
-			endTag("b", true);
 		}
 		
-		writer.println(" {");
-		
-		beginTag(UL, true, new Conditional(level > CLOSE_LEVEL, new Css("collapsibleList")));
+		currentElement.inline("span").text("{");
+
+		currentElement = currentElement.block(UL).attr(new AtDepth(CLOSE_LEVEL, new Css("collapsibleList")));
 
 		hasName = false;
 		
@@ -192,9 +171,9 @@ public class StructrJsonHtmlWriter implements RestWriter {
 	@Override
 	public RestWriter endObject(final GraphObject graphObject) throws IOException {
 		
-		endTag(UL, true);
-		writer.println("}");
-		endTag(LI, true);
+		currentElement = currentElement.parent();	// end UL
+		currentElement.inline("span").text("}");	// print }
+		currentElement = currentElement.parent();	// end LI
 		
 		return this;
 	}
@@ -202,11 +181,9 @@ public class StructrJsonHtmlWriter implements RestWriter {
 	@Override
 	public RestWriter name(String name) throws IOException {
 
-		beginTag(LI, true);
+		currentElement = currentElement.block(LI);
 		
-		beginTag("b", false);
-		writer.print(name + ":");
-		endTag("b", false);
+		currentElement.inline("b").text(name, ":");
 
 		lastName = name;
 		hasName = true;
@@ -218,20 +195,16 @@ public class StructrJsonHtmlWriter implements RestWriter {
 	public RestWriter value(String value) throws IOException {
 
 		if ("id".equals(lastName)) {
-		
-			beginTag("a", false, new Css("id"), new Href(value));
-			writer.print(value);
-			endTag("a", false);
+
+			currentElement.inline("a").css("id").attr(new Href(value)).text(value);
 			
 		} else {
 		
-			beginTag("span", false, new Css("string"));
-			writer.print(value);
-			endTag("span", false);
+			currentElement.inline("span").css("string").text(value);
 			
 		}
 
-		endTag(LI, true);
+		currentElement = currentElement.parent();	// end LI
 		
 		hasName = false;
 		
@@ -241,10 +214,8 @@ public class StructrJsonHtmlWriter implements RestWriter {
 	@Override
 	public RestWriter nullValue() throws IOException {
 		
-		beginTag("span", false, new Css("null"));
-		writer.print("null");
-		endTag("span", false);
-		endTag(LI, true);
+		currentElement.inline("span").css("null").text("null");
+		currentElement = currentElement.parent();
 		
 		hasName = false;
 		
@@ -254,10 +225,8 @@ public class StructrJsonHtmlWriter implements RestWriter {
 	@Override
 	public RestWriter value(boolean value) throws IOException {
 		
-		beginTag("span", false, new Css("boolean"));
-		writer.print(value);
-		endTag("span", false);
-		endTag(LI, true);
+		currentElement.inline("span").css("boolean").text(value);
+		currentElement = currentElement.parent();
 
 		hasName = false;
 		
@@ -267,10 +236,8 @@ public class StructrJsonHtmlWriter implements RestWriter {
 	@Override
 	public RestWriter value(double value) throws IOException {
 		
-		beginTag("span", false, new Css("number"));
-		writer.print(value);
-		endTag("span", false);
-		endTag(LI, true);
+		currentElement.inline("span").css("number").text(value);
+		currentElement = currentElement.parent();
 
 		hasName = false;
 		
@@ -280,10 +247,8 @@ public class StructrJsonHtmlWriter implements RestWriter {
 	@Override
 	public RestWriter value(long value) throws IOException {
 		
-		beginTag("span", false, new Css("number"));
-		writer.print(value);
-		endTag("span", false);
-		endTag(LI, true);
+		currentElement.inline("span").css("number").text(value);
+		currentElement = currentElement.parent();
 		
 		hasName = false;
 		
@@ -293,176 +258,11 @@ public class StructrJsonHtmlWriter implements RestWriter {
 	@Override
 	public RestWriter value(Number value) throws IOException {
 		
-		beginTag("span", false, new Css("number"));
-		writer.print(value);
-		endTag("span", false);
-		endTag(LI, true);
+		currentElement.inline("span").css("number").text(value);
+		currentElement = currentElement.parent();
 
 		hasName = false;
 		
 		return this;
-	}
-	
-	private void beginTag(final String tagName, final boolean newline, final Attr... attributes) throws IOException {
-		beginTag(tagName, newline, false, attributes);
-	}
-	
-	private void beginTag(final String tagName, final boolean newline, final boolean empty, final Attr... attributes) throws IOException {
-		
-		writer.flush();
-		
-		for (int i=0; i<level; i++) {
-			writer.print(indent);
-		}
-			
-		writer.print("<" + tagName);
-
-		// print attributes
-		for (Attr attr : attributes) {
-			
-			String value = attr.toString();
-			if (value.length() > 0) {
-				
-				writer.print(" " + attr.toString());
-			}
-		}
-		
-		if (newline) {
-			
-			if (empty) {
-	
-				writer.println("/>");
-				
-			} else {
-				
-				writer.println(">");
-			}
-			
-		} else {
-
-			if (empty) {
-
-				writer.print("/>");
-				
-			} else {
-				
-				writer.print(">");
-			}
-		}
-
-		if (!empty) {
-			level++;
-		}
-	}
-	
-	private void endTag(final String tagName, final boolean hasNewline) throws IOException {
-		
-		level--;
-
-		writer.flush();
-		
-		if (hasNewline) {
-			
-			for (int i=0; i<level; i++) {
-				writer.print(indent);
-			}
-		}
-		
-		writer.println("</" + tagName + ">");
-	}
-	
-	private static class Attr {
-		
-		private String key = null;
-		private String value = null;
-		
-		public Attr(final String key, final String value) {
-			this.key = key;
-			this.value = value;
-		}
-		
-		@Override
-		public String toString() {
-			return key + "=\"" + value + "\"";
-		}
-		
-		public String getKey() {
-			return key;
-		}
-		
-		public String getValue() {
-			return value;
-		}
-	}
-	
-	private static class Id extends Attr {
-		
-		public Id(final String id) {
-			super("id", id);
-		}
-	}
-	
-	private static class Css extends Attr {
-		
-		public Css(final String css) {
-			super("class", css);
-		}
-	}
-	
-	private static class Type extends Attr {
-		
-		public Type(final String type) {
-			super("type", type);
-		}
-	}
-	
-	private static class Rel extends Attr {
-		
-		public Rel(final String rel) {
-			super("rel", rel);
-		}
-	}
-	
-	private static class Href extends Attr {
-		
-		public Href(final String href) {
-			super("href", href);
-		}
-	}
-	
-	private static class Src extends Attr {
-		
-		public Src(final String src) {
-			super("src", src);
-		}
-	}
-	
-	private static class Onload extends Attr {
-		
-		public Onload(final String onload) {
-			super("onload", onload);
-		}
-	}
-	
-	private static class Conditional extends Attr {
-	
-		private boolean condition = false;
-		
-		public Conditional(boolean condition, Attr attr) {
-			
-			super(attr.key, attr.value);
-			
-			this.condition = condition;
-		}
-		
-		@Override
-		public String toString() {
-			
-			if (condition) {
-				return super.toString();
-			}
-			
-			return "";
-		}
 	}
 }
