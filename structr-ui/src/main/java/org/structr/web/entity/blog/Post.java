@@ -32,7 +32,7 @@ import org.structr.core.entity.AbstractNode;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import org.structr.core.property.CollectionProperty;
+import org.structr.core.property.Endpoints;
 import org.structr.core.property.ISO8601DateProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.web.entity.dom.Content;
@@ -48,8 +48,8 @@ import org.structr.web.entity.dom.Content;
 public class Post extends AbstractNode {
 
 	public static final Property<String>             title       = new StringProperty("title").indexed().indexedWhenEmpty();
-	public static final CollectionProperty<Content>  sections    = new CollectionProperty<>("sections", Content.class, RelType.CONTAINS, Direction.OUTGOING, true);
-	public static final CollectionProperty<Comment>  comments    = new CollectionProperty<>("comments", Comment.class, org.structr.web.common.RelType.COMMENT, Direction.OUTGOING, true);
+	public static final Endpoints<Content>  sections    = new Endpoints<Content>("sections", Content.class, RelType.CONTAINS, Direction.OUTGOING, true);
+	public static final Endpoints<Comment>  comments    = new Endpoints<Comment>("comments", Comment.class, org.structr.web.common.RelType.COMMENT, Direction.OUTGOING, true);
 	public static final Property<Date>               publishDate = new ISO8601DateProperty("publishDate").indexed().indexedWhenEmpty();
 	
 	public static final org.structr.common.View uiView = new org.structr.common.View(Post.class, PropertyView.Ui,

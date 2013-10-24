@@ -53,7 +53,7 @@ public class AggregatorProperty<T> extends AbstractReadOnlyCollectionProperty<T>
 			List<NodeInterface> nodes = new LinkedList<NodeInterface>();
 
 			// 1. step: add all nodes
-			for(CollectionProperty<?, ?> property : aggregation.getAggregationProperties()) {
+			for(Endpoints<?, ?> property : aggregation.getAggregationProperties()) {
 				
 				nodes.addAll(sourceNode.getProperty(property));
 			}

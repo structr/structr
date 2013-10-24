@@ -24,9 +24,9 @@ import org.structr.common.View;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.notion.PropertyNotion;
 import org.structr.core.property.CollectionNotionProperty;
-import org.structr.core.property.CollectionProperty;
+import org.structr.core.property.Endpoints;
 import org.structr.core.property.EntityNotionProperty;
-import org.structr.core.property.Forward;
+import org.structr.core.property.End;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
@@ -38,10 +38,10 @@ import org.structr.rest.common.TestRestRelType;
  */
 public class TestSix extends AbstractNode {
 
-	public static final Forward<TestSeven>     testSeven        = new Forward<TestSeven>("testSeven", TestSeven.class, TestRestRelType.HAS, true);
+	public static final End<TestSeven>     testSeven        = new End<TestSeven>("testSeven", TestSeven.class, TestRestRelType.HAS, true);
 	public static final Property<String>              testSevenName    = new EntityNotionProperty("testSevenName", testSeven, new PropertyNotion(TestSeven.name));
 	
-	public static final CollectionProperty<TestEight> testEights       = new CollectionProperty<TestEight>("testEights", TestEight.class, TestRestRelType.HAS, false);
+	public static final Endpoints<TestEight> testEights       = new Endpoints<TestEight>("testEights", TestEight.class, TestRestRelType.HAS, false);
 	public static final Property<List<Integer>>       testEightInts    = new CollectionNotionProperty("testEightInts", testEights, new PropertyNotion(TestEight.anInt));
 	public static final Property<List<String>>        testEightStrings = new CollectionNotionProperty("testEightStrings", testEights, new PropertyNotion(TestEight.aString));
 	    

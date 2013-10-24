@@ -67,8 +67,8 @@ import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchNodeCommand;
-import org.structr.core.property.CollectionProperty;
-import org.structr.core.property.Forward;
+import org.structr.core.property.Endpoints;
+import org.structr.core.property.End;
 import org.structr.core.property.PropertyKey;
 import org.structr.web.common.Function;
 import org.structr.core.entity.LinkedTreeNode;
@@ -96,6 +96,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 import org.w3c.dom.UserDataHandler;
+import scala.collection.script.End;
 //import jodd.http.HttpRequest;
 //import jodd.http.HttpResponse;
 //import jodd.jerry.Jerry;
@@ -139,16 +140,17 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 	protected static final Map<String, Function<String, String>> functions  = new LinkedHashMap<>();
 	
-	public static final CollectionProperty<DOMNode> children                = new CollectionProperty<>("children", DOMNode.class, RelType.CONTAINS,              Direction.OUTGOING, true);
+	public static final Endpoints<DOMNode> children                = new Endpoints<DOMNode>("children", DOMNode.class, RelType.CONTAINS,              Direction.OUTGOING, true);
 	public static final CollectionIdProperty childrenIds                    = new CollectionIdProperty("childrenIds", children);
 
-	public static final CollectionProperty<DOMNode> siblings                = new CollectionProperty<>("siblings", DOMNode.class, RelType.CONTAINS_NEXT_SIBLING, Direction.OUTGOING, true);
+	public static final Endpoints<DOMNode> siblings                = new Endpoints<DOMNode>("siblings", DOMNode.class, RelType.CONTAINS_NEXT_SIBLING, Direction.OUTGOING, true);
 	public static final CollectionIdProperty siblingsIds                    = new CollectionIdProperty("siblingIds", siblings);
 
-	public static final EntityProperty<DOMNode> parent                      = new EntityProperty<>("parent", DOMNode.class, RelType.CONTAINS, Direction.INCOMING, false);
+	public static final End<DOMNode> parent                      = new End<DOMNode>("parent", DOMNode.class, RelType.CONTAINS, Direction.INCOMING, false);
 	public static final EntityIdProperty parentId                           = new EntityIdProperty("parentId", parent);
 
-	public static final EntityProperty<Page> ownerDocument                  = new EntityProperty<>("ownerDocument", Page.class, RelType.PAGE, Direction.OUTGOING, true);
+	public static final End<Page> ownerDocument                  = new End<Page>("ownerDocument", Page.class, RelType.PAGE, Direction.OUTGOING, true);
+
 	public static final EntityIdProperty pageId                             = new EntityIdProperty("pageId", ownerDocument);
 
 	private static Set<Page> resultPages                                    = new HashSet<Page>();

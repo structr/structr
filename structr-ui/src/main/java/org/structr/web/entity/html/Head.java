@@ -23,7 +23,7 @@ package org.structr.web.entity.html;
 import org.structr.web.entity.dom.DOMElement;
 import org.neo4j.graphdb.Direction;
 import org.structr.web.common.RelType;
-import org.structr.core.property.CollectionProperty;
+import org.structr.core.property.Endpoints;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -32,12 +32,12 @@ import org.structr.core.property.CollectionProperty;
  */
 public class Head extends DOMElement {
 
-	public static final CollectionProperty<Html>   htmls   = new CollectionProperty<Html>("htmls", Html.class, RelType.CONTAINS, Direction.INCOMING, false);
-	public static final CollectionProperty<Title>  titles  = new CollectionProperty<Title>("titles", Title.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<Style>  styles  = new CollectionProperty<Style>("styles", Style.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<Script> scripts = new CollectionProperty<Script>("scripts", Script.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<Link>   links   = new CollectionProperty<Link>("links", Link.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<Meta>   metas   = new CollectionProperty<Meta>("metas", Meta.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<Base>   bases   = new CollectionProperty<Base>("bases", Base.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final Endpoints<Html>   htmls   = new Endpoints<Html>("htmls", Html.class, RelType.CONTAINS, Direction.INCOMING, false);
+	public static final Endpoints<Title>  titles  = new Endpoints<Title>("titles", Title.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final Endpoints<Style>  styles  = new Endpoints<Style>("styles", Style.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final Endpoints<Script> scripts = new Endpoints<Script>("scripts", Script.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final Endpoints<Link>   links   = new Endpoints<Link>("links", Link.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final Endpoints<Meta>   metas   = new Endpoints<Meta>("metas", Meta.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final Endpoints<Base>   bases   = new Endpoints<Base>("bases", Base.class, RelType.CONTAINS, Direction.OUTGOING, false);
 	
 }

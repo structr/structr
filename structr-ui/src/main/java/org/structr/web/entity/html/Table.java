@@ -24,7 +24,7 @@ import org.structr.web.entity.dom.DOMElement;
 import org.neo4j.graphdb.Direction;
 
 import org.structr.web.common.RelType;
-import org.structr.core.property.CollectionProperty;
+import org.structr.core.property.Endpoints;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -33,7 +33,7 @@ import org.structr.core.property.CollectionProperty;
  */
 public class Table extends DOMElement {
 
-	public static final CollectionProperty<Tr>    trs    = new CollectionProperty<Tr>("trs", Tr.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<Thead> theads = new CollectionProperty<Thead>("theads", Thead.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<Tbody> tbodys = new CollectionProperty<Tbody>("tbodys", Tbody.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final Endpoints<Tr>    trs    = new Endpoints<Tr>("trs", Tr.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final Endpoints<Thead> theads = new Endpoints<Thead>("theads", Thead.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final Endpoints<Tbody> tbodys = new Endpoints<Tbody>("tbodys", Tbody.class, RelType.CONTAINS, Direction.OUTGOING, false);
 }

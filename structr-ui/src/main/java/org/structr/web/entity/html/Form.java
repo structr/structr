@@ -28,7 +28,7 @@ import org.structr.core.property.Property;
 import org.structr.common.PropertyView;
 import org.structr.web.common.RelType;
 import org.structr.common.View;
-import org.structr.core.property.CollectionProperty;
+import org.structr.core.property.Endpoints;
 import org.structr.web.common.HtmlProperty;
 import org.structr.web.entity.dom.Content;
 
@@ -48,15 +48,15 @@ public class Form extends DOMElement {
 	public static final Property<String> _novalidate    = new HtmlProperty("novalidate");
 	public static final Property<String> _target        = new HtmlProperty("target");
 	
-	public static final CollectionProperty<Div>      divParents = new CollectionProperty<Div>("divParents", Div.class, RelType.CONTAINS, Direction.INCOMING, false);
-	public static final CollectionProperty<P>        pParents   = new CollectionProperty<P>("pParents", P.class, RelType.CONTAINS, Direction.INCOMING, false);
-	public static final CollectionProperty<Content>  contents   = new CollectionProperty<Content>("contents", Content.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<Div>      divs       = new CollectionProperty<Div>("divs", Div.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<Input>    inputs     = new CollectionProperty<Input>("inputs", Input.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<Button>   buttons    = new CollectionProperty<Button>("buttons", Button.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<Select>   selects    = new CollectionProperty<Select>("selects", Select.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<Label>    labels     = new CollectionProperty<Label>("labels", Label.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<Textarea> textareas  = new CollectionProperty<Textarea>("textareas", Textarea.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final Endpoints<Div>      divParents = new Endpoints<Div>("divParents", Div.class, RelType.CONTAINS, Direction.INCOMING, false);
+	public static final Endpoints<P>        pParents   = new Endpoints<P>("pParents", P.class, RelType.CONTAINS, Direction.INCOMING, false);
+	public static final Endpoints<Content>  contents   = new Endpoints<Content>("contents", Content.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final Endpoints<Div>      divs       = new Endpoints<Div>("divs", Div.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final Endpoints<Input>    inputs     = new Endpoints<Input>("inputs", Input.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final Endpoints<Button>   buttons    = new Endpoints<Button>("buttons", Button.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final Endpoints<Select>   selects    = new Endpoints<Select>("selects", Select.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final Endpoints<Label>    labels     = new Endpoints<Label>("labels", Label.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final Endpoints<Textarea> textareas  = new Endpoints<Textarea>("textareas", Textarea.class, RelType.CONTAINS, Direction.OUTGOING, false);
 
 	public static final View htmlView = new View(Form.class, PropertyView.Html,
 	    _acceptCharset, _action, _autocomplete, _enctype, _method, _name, _novalidate, _target

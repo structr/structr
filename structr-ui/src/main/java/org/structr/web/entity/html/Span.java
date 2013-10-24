@@ -24,7 +24,7 @@ import org.structr.web.entity.dom.DOMElement;
 import org.neo4j.graphdb.Direction;
 
 import org.structr.web.common.RelType;
-import org.structr.core.property.CollectionProperty;
+import org.structr.core.property.Endpoints;
 import org.structr.web.entity.dom.Content;
 
 //~--- classes ----------------------------------------------------------------
@@ -34,17 +34,17 @@ import org.structr.web.entity.dom.Content;
  */
 public class Span extends DOMElement {
 
-	public static final CollectionProperty<Content> contents = new CollectionProperty<Content>("contents", Content.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<Span>    spans    = new CollectionProperty<Span>("spans", Span.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<B>       bs       = new CollectionProperty<B>("bs", B.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<P>       ps       = new CollectionProperty<P>("ps", P.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<Label>   labels   = new CollectionProperty<Label>("labels", Label.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<Input>   inputs   = new CollectionProperty<Input>("inputs", Input.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<Address> addresss = new CollectionProperty<Address>("addresss", Address.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<Footer>  footers  = new CollectionProperty<Footer>("footers", Footer.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<A>       as       = new CollectionProperty<A>("as", A.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<Img>     imgs     = new CollectionProperty<Img>("imgs", Img.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<Script>  scripts  = new CollectionProperty<Script>("scripts", Script.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final Endpoints<Content> contents = new Endpoints<Content>("contents", Content.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final Endpoints<Span>    spans    = new Endpoints<Span>("spans", Span.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final Endpoints<B>       bs       = new Endpoints<B>("bs", B.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final Endpoints<P>       ps       = new Endpoints<P>("ps", P.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final Endpoints<Label>   labels   = new Endpoints<Label>("labels", Label.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final Endpoints<Input>   inputs   = new Endpoints<Input>("inputs", Input.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final Endpoints<Address> addresss = new Endpoints<Address>("addresss", Address.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final Endpoints<Footer>  footers  = new Endpoints<Footer>("footers", Footer.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final Endpoints<A>       as       = new Endpoints<A>("as", A.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final Endpoints<Img>     imgs     = new Endpoints<Img>("imgs", Img.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final Endpoints<Script>  scripts  = new Endpoints<Script>("scripts", Script.class, RelType.CONTAINS, Direction.OUTGOING, false);
 
 	//~--- methods --------------------------------------------------------
 

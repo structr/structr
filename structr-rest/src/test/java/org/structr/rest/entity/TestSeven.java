@@ -26,7 +26,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.notion.PropertyNotion;
 import org.structr.core.property.CollectionNotionProperty;
-import org.structr.core.property.CollectionProperty;
+import org.structr.core.property.Endpoints;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
@@ -38,7 +38,7 @@ import org.structr.rest.common.TestRestRelType;
  */
 public class TestSeven extends AbstractNode {
 
-	public static final CollectionProperty<TestSix> testSixs   = new CollectionProperty<TestSix>("testSixs", TestSix.class, TestRestRelType.HAS, Direction.INCOMING, true);
+	public static final Endpoints<TestSix> testSixs   = new Endpoints<TestSix>("testSixs", TestSix.class, TestRestRelType.HAS, Direction.INCOMING, true);
 	public static final Property<List<String>>      testSixIds = new CollectionNotionProperty("testSixIds", testSixs, new PropertyNotion(GraphObject.uuid));
 	
 	public static final Property<String>            aString    = new StringProperty("aString").indexed().indexedWhenEmpty();

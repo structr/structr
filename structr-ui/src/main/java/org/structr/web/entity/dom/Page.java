@@ -63,7 +63,7 @@ import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
-import org.structr.core.property.CollectionProperty;
+import org.structr.core.property.Endpoints;
 import org.structr.core.property.PropertyMap;
 
 //~--- classes ----------------------------------------------------------------
@@ -82,8 +82,8 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	public static final Property<Integer> position                          = new IntProperty("position").indexed();
 	public static final Property<String> contentType                        = new StringProperty("contentType").indexed();
 	public static final Property<Integer> cacheForSeconds                   = new IntProperty("cacheForSeconds");
-	public static final CollectionProperty<DOMNode> elements                = new CollectionProperty("elements", DOMNode.class, RelType.PAGE, Direction.INCOMING, true);
-	public static final CollectionProperty<DOMNode> childElements           = new CollectionProperty("childElements", DOMNode.class, RelType.CONTAINS, Direction.OUTGOING, true);
+	public static final Endpoints<DOMNode> elements                = new Endpoints("elements", DOMNode.class, RelType.PAGE, Direction.INCOMING, true);
+	public static final Endpoints<DOMNode> childElements           = new Endpoints("childElements", DOMNode.class, RelType.CONTAINS, Direction.OUTGOING, true);
 	
 	public static final org.structr.common.View uiView                      = new org.structr.common.View(Page.class, PropertyView.Ui, childElements, linkingElements, contentType, owner, cacheForSeconds, version, position);
 	public static final org.structr.common.View publicView                  = new org.structr.common.View(Page.class, PropertyView.Public, childElements, linkingElements, contentType, owner, cacheForSeconds, version);

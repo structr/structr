@@ -19,7 +19,7 @@
 package org.structr.core.entity;
 
 import org.structr.common.error.ErrorBuffer;
-import org.structr.core.property.Backward;
+import org.structr.core.property.End;
 
 /**
  * A simple entity for the most basic tests.
@@ -31,7 +31,7 @@ import org.structr.core.property.Backward;
  */
 public class TestTwo extends AbstractNode {
 	
-	public static final Backward<TestOne> testOne = new Backward<TestOne>("testOne", OneTwo.class, false, Relation.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED);
+	public static final End<TestOne> testOne = new End<TestOne>("testOne", OneTwo.class, false, Relation.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED);
 	
 	@Override
 	public boolean isValid(ErrorBuffer errorBuffer) {

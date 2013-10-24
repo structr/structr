@@ -207,7 +207,7 @@ public class CollectionNotionProperty<S extends GraphObject, T> extends Property
 		
 		SourceSearchAttribute attr            = new SourceSearchAttribute(occur);
 		Set<GraphObject> intersectionResult   = new LinkedHashSet<GraphObject>();
-		CollectionProperty collectionProperty = (CollectionProperty)base;
+		Endpoints collectionProperty = (Endpoints)base;
 		boolean alreadyAdded                  = false;
 	
 		try {

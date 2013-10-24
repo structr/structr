@@ -2,6 +2,7 @@ package org.structr.core.entity;
 
 import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.RelType;
+import org.structr.core.entity.test.OneToOne;
 import org.structr.core.property.ArrayProperty;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.DoubleProperty;
@@ -15,11 +16,7 @@ import org.structr.core.property.StringProperty;
  *
  * @author Christian Morgner
  */
-public class OneFour extends AbstractRelationship<TestOne, TestFour> {
-	
-	public enum Relation {
-		test_relationships
-	}
+public class OneFour extends OneToOne<TestOne, TestFour> {
 
 	public static final Property<String>   startNodeId         = new StringProperty("startNodeId");
 	public static final Property<String>   endNodeId           = new StringProperty("endNodeId");

@@ -37,9 +37,9 @@ import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.web.entity.Linkable;
 import org.structr.core.notion.PropertyNotion;
-import org.structr.core.property.CollectionProperty;
+import org.structr.core.property.Endpoints;
 import org.structr.core.property.EntityIdProperty;
-import org.structr.core.property.Forward;
+import org.structr.core.property.End;
 import org.structr.web.common.HtmlProperty;
 import org.structr.web.entity.dom.Content;
 import org.w3c.dom.Node;
@@ -59,11 +59,11 @@ public class Script extends DOMElement {
 	public static final Property<String> _type    = new HtmlProperty("type");
 	public static final Property<String> _charset = new HtmlProperty("charset");
 		
-	public static final CollectionProperty<Content> contents = new CollectionProperty<Content>("contents", Content.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<Head>    heads    = new CollectionProperty<Head>("heads", Head.class, RelType.CONTAINS, Direction.INCOMING, false);
-	public static final CollectionProperty<Div>     divs     = new CollectionProperty<Div>("divs", Div.class, RelType.CONTAINS, Direction.INCOMING, false);
+	public static final Endpoints<Content> contents = new Endpoints<Content>("contents", Content.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final Endpoints<Head>    heads    = new Endpoints<Head>("heads", Head.class, RelType.CONTAINS, Direction.INCOMING, false);
+	public static final Endpoints<Div>     divs     = new Endpoints<Div>("divs", Div.class, RelType.CONTAINS, Direction.INCOMING, false);
  
-	public static final Forward<Linkable>    linkable    = new Forward<Linkable>("linkable", Linkable.class, RelType.LINK, Direction.OUTGOING, new PropertyNotion(AbstractNode.name), true);
+	public static final End<Linkable>    linkable    = new End<Linkable>("linkable", Linkable.class, RelType.LINK, Direction.OUTGOING, new PropertyNotion(AbstractNode.name), true);
 	public static final Property<String>            linkableId  = new EntityIdProperty("linkableId", linkable);
 
 	public static final View uiView = new View(Script.class, PropertyView.Ui,

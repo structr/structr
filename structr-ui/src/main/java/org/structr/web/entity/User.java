@@ -29,8 +29,8 @@ import org.structr.core.entity.AbstractUser;
 import org.structr.core.entity.Principal;
 import org.structr.core.notion.PropertyNotion;
 import org.structr.core.property.BooleanProperty;
-import org.structr.core.property.CollectionProperty;
-import org.structr.core.property.Forward;
+import org.structr.core.property.Endpoints;
+import org.structr.core.property.End;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
 import org.structr.core.validator.SimpleRegexValidator;
@@ -53,12 +53,12 @@ public class User extends AbstractUser {
 	public static final Property<String>		confirmationKey		= new StringProperty("confirmationKey").indexed();
 	public static final Property<Boolean>		backendUser		= new BooleanProperty("backendUser").indexed();
 	public static final Property<Boolean>		frontendUser		= new BooleanProperty("frontendUser").indexed();
-	public static final Property<Image>		userImg			= new EntityProperty<>("userImg", Image.class, RelType.PICTURE_OF, Direction.INCOMING, false);
-	public static final ImageDataProperty		userImageData		= new ImageDataProperty("userImageData", new KeyAndClass(userImg, Image.class));
-	public static final Property<Folder>		homeDirectory		= new EntityProperty<>("homeDirecory", Folder.class, RelType.HOME_DIR, Direction.OUTGOING, false);
-	public static final Property<Folder>		workingDirectory	= new EntityProperty<>("workingDirectory", Folder.class, RelType.WORKING_DIR, Direction.OUTGOING, false);
+	public static final Property<Image>		img			= new End<>("img", Image.class, RelType.PICTURE_OF, Direction.INCOMING, false);
+	public static final ImageDataProperty		imageData		= new ImageDataProperty("imageData", new KeyAndClass(img, Image.class));
+	public static final Property<Folder>		homeDirectory		= new End<>("homeDirecory", Folder.class, RelType.HOME_DIR, Direction.OUTGOING, false);
+	public static final Property<Folder>		workingDirectory	= new End<>("workingDirectory", Folder.class, RelType.WORKING_DIR, Direction.OUTGOING, false);
 	
-	public static final CollectionProperty<Group> groups          = new CollectionProperty("groups", Group.class, RelType.CONTAINS, Direction.INCOMING, new PropertyNotion(uuid), false);
+	public static final Endpoints<Group> groups          = new Endpoints("groups", Group.class, RelType.CONTAINS, Direction.INCOMING, new PropertyNotion(uuid), false);
 	
 	public static final org.structr.common.View uiView = new org.structr.common.View(User.class, PropertyView.Ui,
 		type, name, eMail, isAdmin, password, blocked, sessionId, confirmationKey, backendUser, frontendUser, groups, userImg, homeDirectory

@@ -26,7 +26,7 @@ import org.structr.common.PropertyView;
 import org.structr.common.RelType;
 import org.structr.common.View;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.property.Forward;
+import org.structr.core.property.End;
 import org.structr.core.property.GroupProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.StringProperty;
@@ -40,12 +40,12 @@ public class TestGroupPropThree extends AbstractNode{
 	public static final GroupProperty gP = new GroupProperty("gP", TestGroupPropThree.class, 
 			new StringProperty("sP"),
 			new IntProperty("iP"), 
-			new Forward<TestGroupPropOne>("gpNode", TestGroupPropOne.class, RelType.OWNS,false));
+			new End<TestGroupPropOne>("gpNode", TestGroupPropOne.class, RelType.OWNS,false));
 	
 	public static final GroupProperty ggP = 
 			new GroupProperty("ggP", TestGroupPropThree.class, 
 				new GroupProperty("igP", TestGroupPropThree.class, 
-					new Forward<TestGroupPropTwo>("gpNode", TestGroupPropTwo.class, RelType.OWNS,false),
+					new End<TestGroupPropTwo>("gpNode", TestGroupPropTwo.class, RelType.OWNS,false),
 					new StringProperty("isP")));
 	
 	public static final View defaultView = new View(TestGroupPropThree.class, PropertyView.Public,name,gP,ggP );

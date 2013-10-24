@@ -26,7 +26,7 @@ import org.structr.web.common.RelType;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.PropertyNotion;
-import org.structr.core.property.CollectionProperty;
+import org.structr.core.property.Endpoints;
 
 //~--- interfaces -------------------------------------------------------------
 
@@ -36,7 +36,7 @@ import org.structr.core.property.CollectionProperty;
  */
 public interface Linkable extends NodeInterface {
 
-	public static final CollectionProperty<AbstractNode> linkingElements = new CollectionProperty<>("linkingElements", AbstractNode.class, RelType.LINK, Direction.INCOMING, new PropertyNotion(AbstractNode.uuid), true);
+	public static final Endpoints<AbstractNode> linkingElements = new Endpoints<>("linkingElements", AbstractNode.class, RelType.LINK, Direction.INCOMING, new PropertyNotion(AbstractNode.uuid), true);
 
 	public static final org.structr.common.View uiView = new org.structr.common.View(Linkable.class, PropertyView.Ui, linkingElements);
 }

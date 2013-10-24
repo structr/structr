@@ -42,6 +42,7 @@ import static org.structr.core.entity.Relation.Cardinality.ManyToMany;
 import static org.structr.core.entity.Relation.Cardinality.ManyToOne;
 import static org.structr.core.entity.Relation.Cardinality.OneToMany;
 import static org.structr.core.entity.Relation.Cardinality.OneToOne;
+import org.structr.core.entity.test.OneToOne;
 import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.CreateRelationshipCommand;
 import org.structr.core.graph.DeleteRelationshipCommand;
@@ -60,9 +61,9 @@ import org.structr.core.notion.ObjectNotion;
  *
  * @author Christian Morgner
  */
-public class Backward<T extends NodeInterface> extends Property<T> {
+public class Endpoint<S extends NodeInterface, T extends NodeInterface> extends Property<T> {
 
-	private static final Logger logger = Logger.getLogger(Backward.class.getName());
+	private static final Logger logger = Logger.getLogger(Endpoint.class.getName());
 
 	private Class<? extends AbstractRelationship> relationClass = null;
 	private AbstractRelationship relationship                   = null;
@@ -75,31 +76,6 @@ public class Backward<T extends NodeInterface> extends Property<T> {
 	private int cascadeDelete                                   = 0;
 	
 	/**
-	 * Constructs an entity property with the given name, based on the given property,
-	 * transformed by the given notion.
-	 * 
-	 * @param name
-	 * @param base
-	 * @param notion 
-	 */
-	public Backward(String name, Backward base, Notion notion) {
-		this(name, base.getRelationType(), notion, base.isManyToOne(), base.getCascadeDelete());
-	}
-	
-	
-	/**
-	 * Constructs an entity property with the given name, based on the given property,
-	 * transformed by the given notion, with the given delete cascade flag.
-	 * 
-	 * @param name
-	 * @param base
-	 * @param notion 
-	 */
-	public Backward(String name, Backward base, Notion notion, int deleteCascade) {
-		this(name, base.getRelationType(), notion, base.isManyToOne(), deleteCascade);
-	}
-	
-	/**
 	 * Constructs an entity property with the given name, the given destination type,
 	 * the given relationship type, the given direction and the given cascade delete
 	 * flag.
@@ -110,37 +86,10 @@ public class Backward<T extends NodeInterface> extends Property<T> {
 	 * @param direction
 	 * @param cascadeDelete 
 	 */
-	public <S extends NodeInterface> Backward(String name, Class<? extends AbstractRelationship<T, S>> relationClass, boolean manyToOne, int cascadeDelete) {
-		this(name, relationClass, new ObjectNotion(), manyToOne, cascadeDelete);
+	public Endpoint(String name, Class<? extends OneToOne<S, T>> relationClass) {
+		this(name, relationClass, new ObjectNotion());
 	}
 
-	/**
-	 * Constructs an entity property with the given name, the given destination type,
-	 * the given relationship type and the given direction.
-	 * 
-	 * @param name
-	 * @param destType
-	 * @param relType
-	 * @param direction 
-	 */
-	public <S extends NodeInterface> Backward(String name, Class<? extends AbstractRelationship<T, S>> relationClass, boolean manyToOne) {
-		this(name, relationClass, new ObjectNotion(), manyToOne);
-	}
-	
-	/**
-	 * Constructs an entity property with the given name, the given destination type,
-	 * the given relationship type, the given direction and the given notion.
-	 * 
-	 * @param name
-	 * @param destType
-	 * @param relType
-	 * @param direction
-	 * @param notion 
-	 */
-	public <S extends NodeInterface> Backward(String name, Class<? extends AbstractRelationship<T, S>> relationClass, Notion notion, boolean manyToOne) {
-		this(name, relationClass, notion, manyToOne, Relation.DELETE_NONE);
-	}
-	
 	/**
 	 * Constructs an entity property with the name of the declaring field, the
 	 * given destination type, the given relationship type, the given direction,
@@ -154,7 +103,7 @@ public class Backward<T extends NodeInterface> extends Property<T> {
 	 * @param notion
 	 * @param cascadeDelete 
 	 */
-	public <S extends NodeInterface> Backward(String name, Class<? extends AbstractRelationship<T, S>> relationClass, Notion notion, boolean manyToOne, int cascadeDelete) {
+	public Endpoint(String name, Class<? extends OneToOne<S, T>> relationClass, Notion notion) {
 
 		super(name);
 		
@@ -493,7 +442,7 @@ public class Backward<T extends NodeInterface> extends Property<T> {
 							String destType = finalTargetNode.getType();
 
 							// delete previous relationships to nodes of the same destination combinedType and direction
-							for (AbstractRelationship rel : sourceNode.getIncomingRelationships(Backward.this.relationClass)) {
+							for (AbstractRelationship rel : sourceNode.getIncomingRelationships(Endpoint.this.relationClass)) {
 
 								if (rel.getOtherNode(sourceNode).getType().equals(destType)) {
 
@@ -513,7 +462,7 @@ public class Backward<T extends NodeInterface> extends Property<T> {
 							
 							// Here, we have a OneToMany with OUTGOING Rel, so we need to remove all relationships
 							// of the same combinedType incoming to the target node (which should be exaclty one relationship!)
-							for (AbstractRelationship rel : finalTargetNode.getIncomingRelationships(Backward.this.relationClass)) {
+							for (AbstractRelationship rel : finalTargetNode.getIncomingRelationships(Endpoint.this.relationClass)) {
 
 								if (rel.getOtherNode(finalTargetNode).getType().equals(sourceType)) {
 
@@ -528,7 +477,7 @@ public class Backward<T extends NodeInterface> extends Property<T> {
 
 							// In this case, remove exact the relationship of the given combinedType
 							// between source and target node
-							for (AbstractRelationship rel : finalTargetNode.getAllRelationships(Backward.this.relationClass)) {
+							for (AbstractRelationship rel : finalTargetNode.getAllRelationships(Endpoint.this.relationClass)) {
 
 								if (rel.getOtherNode(finalTargetNode).equals(sourceNode)) {
 
@@ -645,7 +594,7 @@ public class Backward<T extends NodeInterface> extends Property<T> {
 
 		// ManyToOne: sourceNode may not have relationships to other nodes of the same type!
 		
-		for (AbstractRelationship rel : sourceNode.getRelationships(Backward.this.relationClass)) {
+		for (AbstractRelationship rel : sourceNode.getRelationships(Endpoint.this.relationClass)) {
 
 			if (rel.equals(newRel)) {
 				continue;
@@ -682,7 +631,7 @@ public class Backward<T extends NodeInterface> extends Property<T> {
 
 		// ManyToOne: targetNode may not have relationships to other nodes of the same type!
 		
-		for (AbstractRelationship rel : targetNode.getReverseRelationships(Backward.this.relationClass)) {
+		for (AbstractRelationship rel : targetNode.getReverseRelationships(Endpoint.this.relationClass)) {
 
 			if (rel.equals(newRel)) {
 				continue;

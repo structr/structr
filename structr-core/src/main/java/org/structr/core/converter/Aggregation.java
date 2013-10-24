@@ -28,7 +28,7 @@ import org.structr.core.Value;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.Notion;
 import org.structr.core.property.AggregatorProperty;
-import org.structr.core.property.CollectionProperty;
+import org.structr.core.property.Endpoints;
 
 /**
  * Encapsulates a sorted collection of related nodes of different types, to be
@@ -38,13 +38,13 @@ import org.structr.core.property.CollectionProperty;
  */
 public class Aggregation implements Value<Aggregation> {
 
-	private Set<CollectionProperty<?, ?>> aggregationProperties = new LinkedHashSet<CollectionProperty<?, ?>>();
-	private Map<Class, Notion> notions                          = new LinkedHashMap<Class, Notion>();
-	private Comparator<NodeInterface> comparator                = null;
+	private Set<Endpoints<?, ?>> aggregationProperties = new LinkedHashSet<Endpoints<?, ?>>();
+	private Map<Class, Notion> notions                 = new LinkedHashMap<Class, Notion>();
+	private Comparator<NodeInterface> comparator       = null;
 
-	public Aggregation(Comparator<NodeInterface> comparator, CollectionProperty<?, ?>... properties) {
+	public Aggregation(Comparator<NodeInterface> comparator, Endpoints<?, ?>... properties) {
 		
-		for(CollectionProperty<?, ?> property : properties) {
+		for(Endpoints<?, ?> property : properties) {
 			this.aggregationProperties.add(property);
 		}
 		
@@ -63,7 +63,7 @@ public class Aggregation implements Value<Aggregation> {
 		return comparator;
 	}
 
-	public Set<CollectionProperty<?, ?>> getAggregationProperties() {
+	public Set<Endpoints<?, ?>> getAggregationProperties() {
 		return aggregationProperties;
 	}
 

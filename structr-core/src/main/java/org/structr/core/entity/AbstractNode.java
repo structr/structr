@@ -66,7 +66,7 @@ import org.structr.core.graph.NodeService;
 import org.structr.core.graph.RelationshipFactory;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.EntityIdProperty;
-import org.structr.core.property.Forward;
+import org.structr.core.property.End;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -86,7 +86,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	public static final Property<Boolean>         deleted          = new BooleanProperty("deleted").indexed();
 	public static final Property<Boolean>         hidden           = new BooleanProperty("hidden").indexed();
       
-	public static final Forward<Principal>        owner            = new Forward<Principal>("owner", Ownership.class, true);
+	public static final End<Principal>        owner            = new End<Principal>("owner", Ownership.class, true);
 	public static final Property<String>          ownerId          = new EntityIdProperty("ownerId", owner);
 
 	public static final View defaultView = new View(AbstractNode.class, PropertyView.Public, uuid, type);
