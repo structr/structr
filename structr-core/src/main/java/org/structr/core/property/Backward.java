@@ -18,11 +18,8 @@
  */
 package org.structr.core.property;
 
-import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.Direction;
@@ -45,8 +42,10 @@ import static org.structr.core.entity.Relation.Cardinality.ManyToMany;
 import static org.structr.core.entity.Relation.Cardinality.ManyToOne;
 import static org.structr.core.entity.Relation.Cardinality.OneToMany;
 import static org.structr.core.entity.Relation.Cardinality.OneToOne;
+import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.CreateRelationshipCommand;
 import org.structr.core.graph.DeleteRelationshipCommand;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeService;
@@ -57,17 +56,17 @@ import org.structr.core.notion.Notion;
 import org.structr.core.notion.ObjectNotion;
 
 /**
- * A property that defines a relationship with the given parameters between a node and a collection of other nodes.
+ * A property that defines a relationship with the given parameters between two nodes.
  *
  * @author Christian Morgner
  */
-public class CollectionProperty<T extends NodeInterface> extends Property<List<T>> {
+public class Backward<T extends NodeInterface> extends Property<T> {
 
-	private static final Logger logger = Logger.getLogger(CollectionProperty.class.getName());
+	private static final Logger logger = Logger.getLogger(Backward.class.getName());
 
 	private Class<? extends AbstractRelationship> relationClass = null;
 	private AbstractRelationship relationship                   = null;
-	private boolean oneToMany                                   = false;
+	private boolean manyToOne                                   = false;
 	private Notion notion                                       = null;
 	private Class destType                                      = null;
 	private RelationshipType relType                            = null;
@@ -76,74 +75,86 @@ public class CollectionProperty<T extends NodeInterface> extends Property<List<T
 	private int cascadeDelete                                   = 0;
 	
 	/**
-	 * Constructs a collection property with the given name, based on the given property, transformed by the given notion.
-	 *
+	 * Constructs an entity property with the given name, based on the given property,
+	 * transformed by the given notion.
+	 * 
 	 * @param name
 	 * @param base
-	 * @param notion
+	 * @param notion 
 	 */
-	public CollectionProperty(String name, CollectionProperty base, Notion notion) {
-		this(name, base.getRelationType(), notion, base.isOneToMany(), base.getCascadeDelete());
+	public Backward(String name, Backward base, Notion notion) {
+		this(name, base.getRelationType(), notion, base.isManyToOne(), base.getCascadeDelete());
 	}
-
+	
+	
 	/**
-	 * Constructs a collection property with the given name, based on the given property, transformed by the given notion, with the given delete cascade flag.
-	 *
+	 * Constructs an entity property with the given name, based on the given property,
+	 * transformed by the given notion, with the given delete cascade flag.
+	 * 
 	 * @param name
 	 * @param base
-	 * @param notion
+	 * @param notion 
 	 */
-	public <S extends NodeInterface> CollectionProperty(String name, CollectionProperty base, Notion notion, int deleteCascade) {
-		this(name, base.getRelationType(), notion, base.isOneToMany(), deleteCascade);
+	public Backward(String name, Backward base, Notion notion, int deleteCascade) {
+		this(name, base.getRelationType(), notion, base.isManyToOne(), deleteCascade);
 	}
-
+	
 	/**
-	 * Constructs a collection property with the given name, the given destination type and the given relationship type.
-	 *
-	 * @param name
-	 * @param destType
-	 * @param relType
-	 */
-	public <S extends NodeInterface> CollectionProperty(String name, Class<? extends AbstractRelationship<S, T>> relationClass, boolean oneToMany) {
-		this(name, relationClass, new ObjectNotion(), oneToMany);
-	}
-
-	/**
-	 * Constructs a collection property with the given name, the given destination type and the given relationship type.
-	 *
-	 * @param name
-	 * @param destType
-	 * @param relType
-	 */
-	public <S extends NodeInterface> CollectionProperty(String name, Class<? extends AbstractRelationship<S, T>> relationClass, Notion notion, boolean oneToMany) {
-		this(name, relationClass, notion, oneToMany, 0);
-	}
-
-	/**
-	 * Constructs a collection property with the given name, the given destination type, the given relationship type, the given direction and the given cascade delete flag.
-	 *
+	 * Constructs an entity property with the given name, the given destination type,
+	 * the given relationship type, the given direction and the given cascade delete
+	 * flag.
+	 * 
 	 * @param name
 	 * @param destType
 	 * @param relType
 	 * @param direction
-	 * @param cascadeDelete
+	 * @param cascadeDelete 
 	 */
-	public <S extends NodeInterface> CollectionProperty(String name, Class<? extends AbstractRelationship<S, T>> relationClass, boolean oneToMany, int cascadeDelete) {
-		this(name, relationClass, new ObjectNotion(), oneToMany, cascadeDelete);
+	public <S extends NodeInterface> Backward(String name, Class<? extends AbstractRelationship<T, S>> relationClass, boolean manyToOne, int cascadeDelete) {
+		this(name, relationClass, new ObjectNotion(), manyToOne, cascadeDelete);
 	}
 
 	/**
-	 * Constructs a collection property with the name of the declaring field, the given destination type, the given relationship type, the given direction, the given cascade delete flag, the given
-	 * notion and the given cascade delete flag.
-	 *
+	 * Constructs an entity property with the given name, the given destination type,
+	 * the given relationship type and the given direction.
+	 * 
+	 * @param name
+	 * @param destType
+	 * @param relType
+	 * @param direction 
+	 */
+	public <S extends NodeInterface> Backward(String name, Class<? extends AbstractRelationship<T, S>> relationClass, boolean manyToOne) {
+		this(name, relationClass, new ObjectNotion(), manyToOne);
+	}
+	
+	/**
+	 * Constructs an entity property with the given name, the given destination type,
+	 * the given relationship type, the given direction and the given notion.
+	 * 
+	 * @param name
+	 * @param destType
+	 * @param relType
+	 * @param direction
+	 * @param notion 
+	 */
+	public <S extends NodeInterface> Backward(String name, Class<? extends AbstractRelationship<T, S>> relationClass, Notion notion, boolean manyToOne) {
+		this(name, relationClass, notion, manyToOne, Relation.DELETE_NONE);
+	}
+	
+	/**
+	 * Constructs an entity property with the name of the declaring field, the
+	 * given destination type, the given relationship type, the given direction,
+	 * the given cascade delete flag, the given notion and the given cascade
+	 * delete flag.
+	 * 
 	 * @param name
 	 * @param destType
 	 * @param relType
 	 * @param direction
 	 * @param notion
-	 * @param cascadeDelete
+	 * @param cascadeDelete 
 	 */
-	public <S extends NodeInterface> CollectionProperty(String name, Class<? extends AbstractRelationship<S, T>> relationClass, Notion notion, boolean oneToMany, int cascadeDelete) {
+	public <S extends NodeInterface> Backward(String name, Class<? extends AbstractRelationship<T, S>> relationClass, Notion notion, boolean manyToOne, int cascadeDelete) {
 
 		super(name);
 		
@@ -157,15 +168,19 @@ public class CollectionProperty<T extends NodeInterface> extends Property<List<T
 		}
 
 		this.notion    = notion;
-		this.oneToMany = oneToMany;
+		this.manyToOne = manyToOne;
 		this.destType      = relationship.getDestinationType();
 		this.relType       = relationship.getRelationshipType();
-		this.cardinality   = oneToMany ? Cardinality.OneToMany : Cardinality.ManyToMany;
+		this.cardinality   = manyToOne ? Cardinality.ManyToOne : Cardinality.OneToOne;
 		this.cascadeDelete = cascadeDelete;
 
 		this.notion.setType(this.relationship.getDestinationType());
 		
 		EntityContext.registerConvertedProperty(this);
+	}
+	
+	public Class<? extends AbstractRelationship> getRelationType() {
+		return relationClass;
 	}
 	
 	@Override
@@ -179,61 +194,44 @@ public class CollectionProperty<T extends NodeInterface> extends Property<List<T
 	}
 
 	@Override
-	public PropertyConverter<List<T>, ?> databaseConverter(SecurityContext securityContext) {
+	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext) {
 		return null;
 	}
 
 	@Override
-	public PropertyConverter<List<T>, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
 		return null;
 	}
 
 	@Override
-	public PropertyConverter<?, List<T>> inputConverter(SecurityContext securityContext) {
-		return getNotion().getCollectionConverter(securityContext);
+	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext) {
+		return notion.getEntityConverter(securityContext);
 	}
 
 	@Override
-	public List<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
-		return getRelatedNodes(securityContext, obj, getDestType());
+	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+		return getRelatedNode(securityContext, obj, getDestType());
 	}
 
 	@Override
-	public void setProperty(SecurityContext securityContext, GraphObject obj, List<T> collection) throws FrameworkException {
+	public void setProperty(SecurityContext securityContext, GraphObject obj, T value) throws FrameworkException {
+		
+		if (value != null) {
 
-		if (obj instanceof AbstractNode) {
-			
-			Set<T> toBeDeleted = new LinkedHashSet<T>(getProperty(securityContext, obj, true));
-			Set<T> toBeCreated = new LinkedHashSet<T>();
-			AbstractNode sourceNode = (AbstractNode)obj;
+			createRelationship(securityContext, (AbstractNode)obj, (AbstractNode)value);
 
-			if (collection != null) {
-				toBeCreated.addAll(collection);
-			}
-			
-			// create intersection of both sets
-			Set<T> intersection = new LinkedHashSet<T>(toBeCreated);
-			intersection.retainAll(toBeDeleted);
-			
-			// intersection needs no change
-			toBeCreated.removeAll(intersection);
-			toBeDeleted.removeAll(intersection);
-			
-			// remove existing relationships
-			for (T targetNode : toBeDeleted) {
-
-				removeRelationship(securityContext, sourceNode, (AbstractNode)targetNode);
-			}
-			
-			// create new relationships
-			for (T targetNode : toBeCreated) {
-
-				createRelationship(securityContext, sourceNode, (AbstractNode)targetNode);
-			}
-			
 		} else {
 
-			logger.log(Level.WARNING, "Property {0} is registered on illegal type {1}", new Object[] { this, obj.getClass() } );
+			// new value is null
+			T existingValue = getProperty(securityContext, obj, true);
+
+			// do nothing if value is already null
+			if (existingValue == null) {
+
+				return;
+			}
+
+			removeRelationship(securityContext, (AbstractNode)obj, (AbstractNode)existingValue);
 		}
 	}
 	
@@ -244,27 +242,51 @@ public class CollectionProperty<T extends NodeInterface> extends Property<List<T
 
 	@Override
 	public boolean isCollection() {
-		return true;
+		return false;
 	}
 
 	public Notion getNotion() {
 		return notion;
 	}
-
-	public boolean isOneToMany() {
-		return oneToMany;
+	
+	public boolean isManyToOne() {
+		return manyToOne;
 	}
 	
-	public List<T> getRelatedNodes(SecurityContext securityContext, GraphObject obj, Class destinationType) {
+	public NodeInterface createRelatedNode(final SecurityContext securityContext, final NodeInterface node) throws FrameworkException {
 
+		return Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<AbstractNode>() {
+
+			@Override
+			public AbstractNode execute() throws FrameworkException {
+
+				AbstractNode relatedNode = Services.command(securityContext, CreateNodeCommand.class).execute(new NodeAttribute(AbstractNode.type, getDestType().getSimpleName()));
+                                PropertyMap props        = new PropertyMap();
+
+                                if (cascadeDelete > 0) {
+
+					props.put(AbstractRelationship.cascadeDelete, new Integer(cascadeDelete));
+
+				}
+                                
+				// create relationship
+				Services.command(securityContext, CreateRelationshipCommand.class).execute(node, relatedNode, getRelType(), props, false);
+
+				return relatedNode;
+			}
+
+		});
+	}
+	
+	public T getRelatedNode(SecurityContext securityContext, GraphObject obj, Class destinationType) {
+		
 		if (obj instanceof AbstractNode) {
 
 			AbstractNode node = (AbstractNode)obj;
 
-			if (cardinality.equals(Relation.Cardinality.OneToMany) || cardinality.equals(Relation.Cardinality.ManyToMany)) {
+			if (cardinality.equals(Relation.Cardinality.OneToOne) || cardinality.equals(Relation.Cardinality.ManyToOne)) {
 
-				NodeFactory nodeFactory = new NodeFactory(securityContext, false, false);
-				List<T> nodes           = new LinkedList<T>();
+				NodeFactory nodeFactory = new NodeFactory(securityContext);
 				Node dbNode             = node.getNode();
 				NodeInterface value     = null;
 
@@ -273,13 +295,12 @@ public class CollectionProperty<T extends NodeInterface> extends Property<List<T
 					for (Relationship rel : dbNode.getRelationships(getRelType(), getDirection())) {
 
 						value = nodeFactory.instantiate(rel.getOtherNode(dbNode));
-						if (value != null && destinationType.isInstance(value)) {
 
-							nodes.add((T)value);
+						// break on first hit of desired type
+						if (value != null && destinationType.isInstance(value)) {
+							return (T)value;
 						}
 					}
-
-					return nodes;
 
 				} catch (Throwable t) {
 
@@ -288,7 +309,7 @@ public class CollectionProperty<T extends NodeInterface> extends Property<List<T
 
 			} else {
 
-				logger.log(Level.WARNING, "Requested related nodes with wrong cardinality {0} between {1} and {2}", new Object[] { getCardinality().name(), node.getClass().getSimpleName(), getDestType()});
+				logger.log(Level.WARNING, "Requested related node with wrong cardinality {0} between {1} and {2}", new Object[] { getCardinality().name(), node.getClass().getSimpleName(), getDestType()});
 			}
 
 		} else {
@@ -296,40 +317,36 @@ public class CollectionProperty<T extends NodeInterface> extends Property<List<T
 			logger.log(Level.WARNING, "Property {0} is registered on illegal type {1}", new Object[] { this, obj.getClass() } );
 		}
 
-		return Collections.emptyList();
-	}
-	
-	public Class<? extends AbstractRelationship> getRelationType() {
-		return relationClass;
+		return null;
 	}
 
 	@Override
-	public Property<List<T>> indexed() {
+	public Property<T> indexed() {
 		return this;
 	}
 
 	@Override
-	public Property<List<T>> indexed(NodeService.NodeIndex nodeIndex) {
+	public Property<T> indexed(NodeService.NodeIndex nodeIndex) {
 		return this;
 	}
 	
 	@Override
-	public Property<List<T>> indexed(NodeService.RelationshipIndex relIndex) {
+	public Property<T> indexed(NodeService.RelationshipIndex relIndex) {
 		return this;
 	}
 	
 	@Override
-	public Property<List<T>> passivelyIndexed() {
+	public Property<T> passivelyIndexed() {
 		return this;
 	}
 	
 	@Override
-	public Property<List<T>> passivelyIndexed(NodeService.NodeIndex nodeIndex) {
+	public Property<T> passivelyIndexed(NodeService.NodeIndex nodeIndex) {
 		return this;
 	}
 	
 	@Override
-	public Property<List<T>> passivelyIndexed(NodeService.RelationshipIndex relIndex) {
+	public Property<T> passivelyIndexed(NodeService.RelationshipIndex relIndex) {
 		return this;
 	}
 	
@@ -476,7 +493,7 @@ public class CollectionProperty<T extends NodeInterface> extends Property<List<T
 							String destType = finalTargetNode.getType();
 
 							// delete previous relationships to nodes of the same destination combinedType and direction
-							for (AbstractRelationship rel : sourceNode.getIncomingRelationships(CollectionProperty.this.relationClass)) {
+							for (AbstractRelationship rel : sourceNode.getIncomingRelationships(Backward.this.relationClass)) {
 
 								if (rel.getOtherNode(sourceNode).getType().equals(destType)) {
 
@@ -496,7 +513,7 @@ public class CollectionProperty<T extends NodeInterface> extends Property<List<T
 							
 							// Here, we have a OneToMany with OUTGOING Rel, so we need to remove all relationships
 							// of the same combinedType incoming to the target node (which should be exaclty one relationship!)
-							for (AbstractRelationship rel : finalTargetNode.getIncomingRelationships(CollectionProperty.this.relationClass)) {
+							for (AbstractRelationship rel : finalTargetNode.getIncomingRelationships(Backward.this.relationClass)) {
 
 								if (rel.getOtherNode(finalTargetNode).getType().equals(sourceType)) {
 
@@ -511,7 +528,7 @@ public class CollectionProperty<T extends NodeInterface> extends Property<List<T
 
 							// In this case, remove exact the relationship of the given combinedType
 							// between source and target node
-							for (AbstractRelationship rel : finalTargetNode.getAllRelationships(CollectionProperty.this.relationClass)) {
+							for (AbstractRelationship rel : finalTargetNode.getAllRelationships(Backward.this.relationClass)) {
 
 								if (rel.getOtherNode(finalTargetNode).equals(sourceNode)) {
 
@@ -628,7 +645,7 @@ public class CollectionProperty<T extends NodeInterface> extends Property<List<T
 
 		// ManyToOne: sourceNode may not have relationships to other nodes of the same type!
 		
-		for (AbstractRelationship rel : sourceNode.getRelationships(CollectionProperty.this.relationClass)) {
+		for (AbstractRelationship rel : sourceNode.getRelationships(Backward.this.relationClass)) {
 
 			if (rel.equals(newRel)) {
 				continue;
@@ -665,7 +682,7 @@ public class CollectionProperty<T extends NodeInterface> extends Property<List<T
 
 		// ManyToOne: targetNode may not have relationships to other nodes of the same type!
 		
-		for (AbstractRelationship rel : targetNode.getReverseRelationships(CollectionProperty.this.relationClass)) {
+		for (AbstractRelationship rel : targetNode.getReverseRelationships(Backward.this.relationClass)) {
 
 			if (rel.equals(newRel)) {
 				continue;

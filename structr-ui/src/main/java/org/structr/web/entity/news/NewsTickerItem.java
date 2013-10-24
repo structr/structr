@@ -32,7 +32,7 @@ import org.structr.core.entity.AbstractNode;
 
 import org.structr.core.entity.Principal;
 import org.structr.core.notion.PropertySetNotion;
-import org.structr.core.property.EntityProperty;
+import org.structr.core.property.Forward;
 import org.structr.core.property.ISO8601DateProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.web.entity.dom.Content;
@@ -47,9 +47,9 @@ import org.structr.web.entity.dom.Content;
  */
 public class NewsTickerItem extends AbstractNode {
 
-	public static final EntityProperty<Content>	text		= new EntityProperty("text", Content.class, RelType.CONTAINS, Direction.OUTGOING, new PropertySetNotion(true, uuid, Content.content), false);
+	public static final Forward<Content>	text		= new Forward("text", Content.class, RelType.CONTAINS, Direction.OUTGOING, new PropertySetNotion(true, uuid, Content.content), false);
 	public static final Property<Date>		publishDate	= new ISO8601DateProperty("publishDate").indexed();
-	public static final EntityProperty<Principal>   author		= new EntityProperty("author", Principal.class, org.structr.web.common.RelType.AUTHOR, Direction.INCOMING, true);
+	public static final Forward<Principal>   author		= new Forward("author", Principal.class, org.structr.web.common.RelType.AUTHOR, Direction.INCOMING, true);
 	
 	public static final org.structr.common.View uiView = new org.structr.common.View(NewsTickerItem.class, PropertyView.Ui,
 		type, name, publishDate, author, text

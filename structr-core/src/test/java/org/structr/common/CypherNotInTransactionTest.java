@@ -32,7 +32,6 @@ import static junit.framework.Assert.fail;
 
 import org.neo4j.cypher.javacompat.ExecutionEngine;
 import org.neo4j.cypher.javacompat.ExecutionResult;
-import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.Transaction;
@@ -42,6 +41,7 @@ import org.structr.core.TestRelType;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.GenericNode;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.search.Search;
 
 /**
@@ -63,7 +63,7 @@ public class CypherNotInTransactionTest extends StructrTest {
 
 		try {
 
-			List<AbstractNode> testNodes = this.createTestNodes(GenericNode.class, 2);
+			List<NodeInterface> testNodes = this.createTestNodes(GenericNode.class, 2);
 
 			assertNotNull(testNodes);
 			assertTrue(testNodes.size() == 2);
@@ -211,7 +211,7 @@ public class CypherNotInTransactionTest extends StructrTest {
 
 		try {
 
-			List<AbstractNode> testNodes = this.createTestNodes(GenericNode.class, 2);
+			List<NodeInterface> testNodes = this.createTestNodes(GenericNode.class, 2);
 
 			assertNotNull(testNodes);
 			assertTrue(testNodes.size() == 2);
@@ -226,7 +226,7 @@ public class CypherNotInTransactionTest extends StructrTest {
 
 			try {
 
-				testNodes.get(0).getRelationships(Direction.BOTH).iterator().next().getRelationship().delete();
+				testNodes.get(0).getRelationships().iterator().next().getRelationship().delete();
 				tx.success();
 
 			} finally {
@@ -251,7 +251,7 @@ public class CypherNotInTransactionTest extends StructrTest {
 
 		try {
 
-			List<AbstractNode> testNodes = this.createTestNodes(GenericNode.class, 2);
+			List<NodeInterface> testNodes = this.createTestNodes(GenericNode.class, 2);
 
 			assertNotNull(testNodes);
 			assertTrue(testNodes.size() == 2);
@@ -271,7 +271,7 @@ public class CypherNotInTransactionTest extends StructrTest {
 
 			try {
 
-				searchRes.get(0).getRelationships(Direction.BOTH).iterator().next().getRelationship().delete();
+				searchRes.get(0).getRelationships().iterator().next().getRelationship().delete();
 				tx.success();
 
 			} finally {

@@ -26,7 +26,7 @@ import org.structr.core.notion.PropertyNotion;
 import org.structr.core.property.CollectionNotionProperty;
 import org.structr.core.property.CollectionProperty;
 import org.structr.core.property.EntityNotionProperty;
-import org.structr.core.property.EntityProperty;
+import org.structr.core.property.Forward;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
@@ -38,7 +38,7 @@ import org.structr.rest.common.TestRestRelType;
  */
 public class TestSix extends AbstractNode {
 
-	public static final EntityProperty<TestSeven>     testSeven        = new EntityProperty<TestSeven>("testSeven", TestSeven.class, TestRestRelType.HAS, true);
+	public static final Forward<TestSeven>     testSeven        = new Forward<TestSeven>("testSeven", TestSeven.class, TestRestRelType.HAS, true);
 	public static final Property<String>              testSevenName    = new EntityNotionProperty("testSevenName", testSeven, new PropertyNotion(TestSeven.name));
 	
 	public static final CollectionProperty<TestEight> testEights       = new CollectionProperty<TestEight>("testEights", TestEight.class, TestRestRelType.HAS, false);

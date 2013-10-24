@@ -40,7 +40,7 @@ import org.structr.core.notion.PropertySetNotion;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import org.structr.core.property.EntityProperty;
+import org.structr.core.property.Forward;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.web.entity.dom.Content;
@@ -57,7 +57,7 @@ public class MailTemplate extends AbstractNode {
 	
 	private static final Logger logger = Logger.getLogger(MailTemplate.class.getName());
 
-	public static final EntityProperty<Content> text   = new EntityProperty("text", Content.class, RelType.CONTAINS, Direction.OUTGOING, new PropertySetNotion(true, uuid, name), true);
+	public static final Forward<Content> text   = new Forward("text", Content.class, RelType.CONTAINS, Direction.OUTGOING, new PropertySetNotion(true, uuid, name), true);
 	public static final Property<String>        locale = new StringProperty("locale").indexed();
 	
 	public static final org.structr.common.View uiView = new org.structr.common.View(MailTemplate.class, PropertyView.Ui,

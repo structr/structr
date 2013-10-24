@@ -31,7 +31,7 @@ import org.structr.common.SecurityContext;
 import org.structr.web.common.RelType;
 import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.property.EntityProperty;
+import org.structr.core.property.Forward;
 import org.structr.core.property.StringProperty;
 import org.structr.web.common.HtmlProperty;
 import org.structr.web.common.RenderContext;
@@ -55,8 +55,8 @@ public class Html extends DOMElement {
 	*/
 	public static final Property<String> _customOpeningTag = new StringProperty("customOpeningTag");
 	
-	public static final EntityProperty<Head> head = new EntityProperty("head", Head.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final EntityProperty<Body> body = new EntityProperty("body", Body.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final Forward<Head> head = new Forward("head", Head.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final Forward<Body> body = new Forward("body", Body.class, RelType.CONTAINS, Direction.OUTGOING, false);
 
 	public static final View htmlView = new View(Html.class, PropertyView.Html,
 		_manifest

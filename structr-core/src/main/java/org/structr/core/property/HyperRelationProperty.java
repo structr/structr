@@ -33,9 +33,9 @@ import org.structr.core.entity.AbstractNode;
 public class HyperRelationProperty<S extends AbstractNode, T extends AbstractNode> extends AbstractReadOnlyProperty<List<T>> {
 	
 	CollectionProperty<T, S> step1 = null;
-	EntityProperty<T> step2     = null;
+	Forward<T> step2               = null;
 	
-	public HyperRelationProperty(String name, CollectionProperty<T, S> step1, EntityProperty<T> step2) {
+	public HyperRelationProperty(String name, CollectionProperty<T, S> step1, Forward<T> step2) {
 		
 		super(name);
 		

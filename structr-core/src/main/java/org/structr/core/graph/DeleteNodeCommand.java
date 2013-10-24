@@ -53,22 +53,22 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 	private static final Logger logger            = Logger.getLogger(DeleteNodeCommand.class.getName());
 	
 	
-	private Set<AbstractNode> deletedNodes = new LinkedHashSet<AbstractNode>();
+	private Set<NodeInterface> deletedNodes = new LinkedHashSet<NodeInterface>();
 
 	//~--- methods --------------------------------------------------------
 
-	public void execute(AbstractNode node) throws FrameworkException {
+	public void execute(NodeInterface node) throws FrameworkException {
 		execute(node, false);
 	}
 
-	public void execute(AbstractNode node, boolean cascade) throws FrameworkException {
+	public void execute(NodeInterface node, boolean cascade) throws FrameworkException {
 
 		doDeleteNode(node, cascade);
 		deletedNodes.clear();
 
 	}
 
-	private AbstractNode doDeleteNode(final AbstractNode node, final Boolean cascade) throws FrameworkException {
+	private AbstractNode doDeleteNode(final NodeInterface node, final Boolean cascade) throws FrameworkException {
 
 		if (!deletedNodes.contains(node) && node.getUuid() == null) {
 

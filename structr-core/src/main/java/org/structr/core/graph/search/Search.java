@@ -26,11 +26,9 @@ import org.apache.commons.lang.StringUtils;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.RelationshipMapping;
 import org.structr.core.module.ModuleService;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -199,34 +197,12 @@ public abstract class Search {
 		return new TypeSearchAttribute(type, Occur.MUST, isExactMatch);
 	}
 
-	public static SearchAttribute andExactRelType(final RelationshipMapping namedRelation) {
-
-		return andExactRelType(namedRelation.getRelType().name(), namedRelation.getSourceType().getSimpleName(), namedRelation.getDestType().getSimpleName());
-
+	public static SearchAttribute andExactRelType(final Class<? extends AbstractRelationship> namedRelation) {
+		return new PropertySearchAttribute(AbstractRelationship.type, namedRelation.getClass().getSimpleName(), Occur.MUST, true);
 	}
 
-	public static SearchAttribute andExactRelType(final String relType, final String sourceType, final String destType) {
-
-		String searchString  = EntityContext.createCombinedRelationshipType(sourceType, relType, destType);
-		SearchAttribute attr = new PropertySearchAttribute(AbstractRelationship.combinedType, searchString, Occur.MUST, true);
-
-		return attr;
-
-	}
-
-	public static SearchAttribute orExactRelType(final RelationshipMapping namedRelation) {
-
-		return orExactRelType(namedRelation.getRelType().name(), namedRelation.getSourceType().getSimpleName(), namedRelation.getDestType().getSimpleName());
-
-	}
-
-	public static SearchAttribute orExactRelType(final String relType, final String sourceType, final String destType) {
-
-		String searchString  = EntityContext.createCombinedRelationshipType(sourceType, relType, destType);
-		SearchAttribute attr = new PropertySearchAttribute(AbstractRelationship.combinedType, searchString, Occur.SHOULD, true);
-
-		return attr;
-
+	public static SearchAttribute orExactRelType(final Class<? extends AbstractRelationship> namedRelation) {
+		return new PropertySearchAttribute(AbstractRelationship.type, namedRelation.getClass().getSimpleName(), Occur.SHOULD, true);
 	}
 
 	public static SearchAttribute orExactName(final String searchString) {

@@ -35,7 +35,6 @@ import org.structr.common.*;
 import org.structr.common.GraphObjectComparator;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.PropertyView;
-import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.UuidCreationTransformation;
 import org.structr.common.error.ErrorBuffer;
@@ -67,7 +66,7 @@ import org.structr.core.graph.NodeService;
 import org.structr.core.graph.RelationshipFactory;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.EntityIdProperty;
-import org.structr.core.property.EntityProperty;
+import org.structr.core.property.Forward;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -82,13 +81,13 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	private static final Logger logger = Logger.getLogger(AbstractNode.class.getName());
 
 	// properties
-	public static final Property<String>          name                        = new StringProperty("name").indexed();
-	public static final Property<String>          createdBy                   = new StringProperty("createdBy").readOnly().writeOnce();
-	public static final Property<Boolean>         deleted                     = new BooleanProperty("deleted").indexed();
-	public static final Property<Boolean>         hidden                      = new BooleanProperty("hidden").indexed();
-
-	public static final EntityProperty<Principal> owner                       = new EntityProperty<Principal>("owner", Principal.class, RelType.OWNS, Direction.INCOMING, true);
-	public static final Property<String>          ownerId                     = new EntityIdProperty("ownerId", owner);
+	public static final Property<String>          name             = new StringProperty("name").indexed();
+	public static final Property<String>          createdBy        = new StringProperty("createdBy").readOnly().writeOnce();
+	public static final Property<Boolean>         deleted          = new BooleanProperty("deleted").indexed();
+	public static final Property<Boolean>         hidden           = new BooleanProperty("hidden").indexed();
+      
+	public static final Forward<Principal>        owner            = new Forward<Principal>("owner", Ownership.class, true);
+	public static final Property<String>          ownerId          = new EntityIdProperty("ownerId", owner);
 
 	public static final View defaultView = new View(AbstractNode.class, PropertyView.Public, uuid, type);
 	

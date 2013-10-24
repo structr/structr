@@ -18,10 +18,8 @@
  */
 package org.structr.core.entity;
 
-import org.neo4j.graphdb.Direction;
-import org.structr.common.RelType;
 import org.structr.common.error.ErrorBuffer;
-import org.structr.core.property.EntityProperty;
+import org.structr.core.property.Backward;
 
 /**
  * A simple entity for the most basic tests.
@@ -33,7 +31,7 @@ import org.structr.core.property.EntityProperty;
  */
 public class TestTwo extends AbstractNode {
 	
-	public static final EntityProperty<TestOne> testOne = new EntityProperty<TestOne>("testOne", TestOne.class, RelType.IS_AT, Direction.INCOMING, false, Relation.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED);
+	public static final Backward<TestOne> testOne = new Backward<TestOne>("testOne", OneTwo.class, false, Relation.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED);
 	
 	@Override
 	public boolean isValid(ErrorBuffer errorBuffer) {

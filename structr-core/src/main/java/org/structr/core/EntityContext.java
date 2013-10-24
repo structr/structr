@@ -20,7 +20,6 @@
 
 package org.structr.core;
 
-import org.structr.core.graph.NodeService;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -31,7 +30,6 @@ import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.CaseHelper;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;
-import org.structr.core.entity.RelationshipMapping;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -76,7 +74,6 @@ public class EntityContext {
 	private static final Set<PropertyKey> globalKnownPropertyKeys                                 = new LinkedHashSet<PropertyKey>();
 	private static final Map<Class, Set<Transformation<GraphObject>>> globalTransformationMap     = new LinkedHashMap<Class, Set<Transformation<GraphObject>>>();
 	private static final Map<String, String> normalizedEntityNameCache                            = new LinkedHashMap<String, String>();
-	private static final Map<String, RelationshipMapping> globalRelationshipNameMap               = new LinkedHashMap<String, RelationshipMapping>();
 	private static final Map<String, Class> globalRelationshipClassMap                            = new LinkedHashMap<String, Class>();
 	private static final Map<Class, Set<Method>> exportedMethodMap                               = new LinkedHashMap<Class, Set<Method>>();
 	private static final Map<Class, Set<Class>> interfaceMap                                      = new LinkedHashMap<Class, Set<Class>>();
@@ -189,25 +186,6 @@ public class EntityContext {
 	 */
 	public static void registerPropertyGroup(Class type, PropertyKey key, PropertyGroup propertyGroup) {
 		getPropertyGroupMapForType(type).put(key.dbName(), propertyGroup);
-	}
-
-	// ----- named relations -----
-	/**
-	 * Registers a relationship entity with the given name and type to be instantiated for relationships
-	 * with type <code>relType</code> from <code>sourceType</code> to <code>destType</code>. Relationship
-	 * entity types registered with this method will be instantiated when a database relationship with
-	 * the given parameters are encountered.
-	 * 
-	 * @param relationName the name of the relationship as it should appear in the REST resource
-	 * @param relationshipEntityType the type of the relationship entity
-	 * @param sourceType the type of the source entity
-	 * @param destType the type of the destination entity
-	 * @param relType the relationship type
-	 */
-	public static void registerNamedRelation(String relationName, Class relationshipEntityType, Class sourceType, Class destType, RelationshipType relType) {
-
-		globalRelationshipNameMap.put(relationName, new RelationshipMapping(relationName, sourceType, destType, relType));
-		globalRelationshipClassMap.put(createCombinedRelationshipType(sourceType.getSimpleName(), relType.name(), destType.getSimpleName()), relationshipEntityType);
 	}
 
 	// ----- property set methods -----
@@ -398,10 +376,6 @@ public class EntityContext {
 		return null;
 	}
 
-	public static RelationshipMapping getNamedRelation(String relationName) {
-		return globalRelationshipNameMap.get(relationName);
-	}
-	
 	private static Class getSourceType(final String combinedRelationshipType) {
 
 		String sourceType = getPartsOfCombinedRelationshipType(combinedRelationshipType)[0];
@@ -481,10 +455,6 @@ public class EntityContext {
 		}
 
 		return globalRelationshipClassMap.get(createCombinedRelationshipType(sourceType, relType, destType));
-	}
-
-	public static Collection<RelationshipMapping> getNamedRelations() {
-		return globalRelationshipNameMap.values();
 	}
 
 	public static Set<Transformation<GraphObject>> getEntityCreationTransformations(Class type) {

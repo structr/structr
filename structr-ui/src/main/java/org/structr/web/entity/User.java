@@ -30,7 +30,7 @@ import org.structr.core.entity.Principal;
 import org.structr.core.notion.PropertyNotion;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.CollectionProperty;
-import org.structr.core.property.EntityProperty;
+import org.structr.core.property.Forward;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
 import org.structr.core.validator.SimpleRegexValidator;

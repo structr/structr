@@ -21,13 +21,12 @@ package org.structr.core.entity;
 import java.util.Date;
 import org.structr.core.property.Property;
 import org.structr.common.PropertyView;
-import org.structr.common.RelType;
 import org.structr.common.View;
 import org.structr.core.property.DoubleProperty;
 import org.structr.core.property.ISO8601DateProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.LongProperty;
-import org.structr.core.property.EntityProperty;
+import org.structr.core.property.Forward;
 import org.structr.core.property.StringProperty;
 
 /**
@@ -47,7 +46,7 @@ public class TestOne extends AbstractNode {
 	public static final EntityProperty<TestTwo>   testTwo	= new EntityProperty<TestTwo>("testTwo", TestTwo.class, RelType.IS_AT, false, Relation.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED);
 	public static final EntityProperty<TestThree> testThree	= new EntityProperty<TestThree>("testThree", TestThree.class, RelType.OWNS, false, Relation.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED);
 	public static final EntityProperty<TestFour>  testFour	= new EntityProperty<TestFour>("testFour", TestFour.class, RelType.IS_AT, false, Relation.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED);
-
+	
 	public static final View publicView = new View(TestOne.class, PropertyView.Public,
 		name, anInt, aDouble, aLong, aDate, createdDate, aString
 	);
