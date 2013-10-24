@@ -53,8 +53,8 @@ public class User extends AbstractUser implements Principal {
 	public static final Property<String>		confirmationKey		= new StringProperty("confirmationKey").indexed();
 	public static final Property<Boolean>		backendUser		= new BooleanProperty("backendUser").indexed();
 	public static final Property<Boolean>		frontendUser		= new BooleanProperty("frontendUser").indexed();
-	public static final Property<Image>		userImg			= new EntityProperty<>("img", Image.class, RelType.PICTURE_OF, Direction.INCOMING, false);
-	public static final ImageDataProperty		userImageData		= new ImageDataProperty("imageData", new KeyAndClass(userImg, Image.class));
+	public static final Property<Image>		userImg			= new EntityProperty<>("userImg", Image.class, RelType.PICTURE_OF, Direction.INCOMING, false);
+	public static final ImageDataProperty		userImageData		= new ImageDataProperty("userImageData", new KeyAndClass(userImg, Image.class));
 	public static final Property<Folder>		homeDirectory		= new EntityProperty<>("homeDirecory", Folder.class, RelType.HOME_DIR, Direction.OUTGOING, false);
 	public static final Property<Folder>		workingDirectory	= new EntityProperty<>("workingDirectory", Folder.class, RelType.WORKING_DIR, Direction.OUTGOING, false);
 	
