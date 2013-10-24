@@ -39,7 +39,7 @@ import org.structr.web.entity.Linkable;
 import org.structr.core.notion.PropertyNotion;
 import org.structr.core.property.CollectionProperty;
 import org.structr.core.property.EntityIdProperty;
-import org.structr.core.property.EntityProperty;
+import org.structr.core.property.Forward;
 import org.structr.web.common.HtmlProperty;
 import org.structr.web.entity.dom.Content;
 import org.w3c.dom.Node;
@@ -63,7 +63,7 @@ public class Script extends DOMElement {
 	public static final CollectionProperty<Head>    heads    = new CollectionProperty<Head>("heads", Head.class, RelType.CONTAINS, Direction.INCOMING, false);
 	public static final CollectionProperty<Div>     divs     = new CollectionProperty<Div>("divs", Div.class, RelType.CONTAINS, Direction.INCOMING, false);
  
-	public static final EntityProperty<Linkable>    linkable    = new EntityProperty<Linkable>("linkable", Linkable.class, RelType.LINK, Direction.OUTGOING, new PropertyNotion(AbstractNode.name), true);
+	public static final Forward<Linkable>    linkable    = new Forward<Linkable>("linkable", Linkable.class, RelType.LINK, Direction.OUTGOING, new PropertyNotion(AbstractNode.name), true);
 	public static final Property<String>            linkableId  = new EntityIdProperty("linkableId", linkable);
 
 	public static final View uiView = new View(Script.class, PropertyView.Ui,

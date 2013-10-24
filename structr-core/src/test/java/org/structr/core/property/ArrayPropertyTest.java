@@ -32,7 +32,7 @@ import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.entity.TestFour;
 import org.structr.core.entity.TestOne;
-import org.structr.core.entity.TestRelationship;
+import org.structr.core.entity.OneFour;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.search.Search;

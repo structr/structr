@@ -20,7 +20,7 @@ package org.structr.rest.entity;
 
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.CollectionProperty;
-import org.structr.core.property.EntityProperty;
+import org.structr.core.property.Forward;
 import org.structr.rest.common.TestRestRelType;
 
 /**
@@ -32,6 +32,6 @@ public class TestFour extends AbstractNode {
 	public static final CollectionProperty<TestOne> manyToManyTestOnes = new CollectionProperty<TestOne>("manyToManyTestOnes", TestOne.class, TestRestRelType.MANY_TO_MANY, false);
 	public static final CollectionProperty<TestOne> oneToManyTestOnes  = new CollectionProperty<TestOne>("oneToManyTestOnes",  TestOne.class, TestRestRelType.ONE_TO_MANY,  true);
 	
-	public static final EntityProperty<TestThree>   oneToOneTestThree  = new EntityProperty<TestThree>("oneToOneTestThree",  TestThree.class, TestRestRelType.ONE_TO_ONE,  false);
-	public static final EntityProperty<TestThree>   manyToOneTestThree = new EntityProperty<TestThree>("manyToOneTestThree", TestThree.class, TestRestRelType.MANY_TO_ONE, true);
+	public static final Forward<TestThree>   oneToOneTestThree  = new Forward<TestThree>("oneToOneTestThree",  TestThree.class, TestRestRelType.ONE_TO_ONE,  false);
+	public static final Forward<TestThree>   manyToOneTestThree = new Forward<TestThree>("manyToOneTestThree", TestThree.class, TestRestRelType.MANY_TO_ONE, true);
 }

@@ -27,7 +27,7 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.CollectionProperty;
-import org.structr.core.property.EntityProperty;
+import org.structr.core.property.Forward;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.web.common.RelType;

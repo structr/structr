@@ -20,7 +20,6 @@ package org.structr.core.converter;
 
 import org.structr.core.property.PropertyKey;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -28,7 +27,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
-import org.structr.core.property.EntityProperty;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.Forward;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -41,10 +41,10 @@ public class RelatedNodePropertyMapper extends PropertyConverter {
 
 	private static final Logger logger = Logger.getLogger(RelatedNodePropertyMapper.class.getName());
 
-	private EntityProperty<? extends AbstractNode> sourceKey = null;
-	private PropertyKey targetKey         = null;
+	private Forward<?> sourceKey  = null;
+	private PropertyKey targetKey = null;
 	
-	public RelatedNodePropertyMapper(SecurityContext securityContext, GraphObject currentObject, EntityProperty<? extends AbstractNode> sourceKey, PropertyKey targetKey) {
+	public RelatedNodePropertyMapper(SecurityContext securityContext, GraphObject currentObject, Forward<?> sourceKey, PropertyKey targetKey) {
 		
 		super(securityContext, currentObject);
 		
@@ -57,7 +57,7 @@ public class RelatedNodePropertyMapper extends PropertyConverter {
 	@Override
 	public Object convert(Object source) {
 
-		AbstractNode relatedNode = getRelatedNode(true);
+		NodeInterface relatedNode = getRelatedNode(true);
 		if (relatedNode != null) {
 
 			try {
@@ -76,7 +76,7 @@ public class RelatedNodePropertyMapper extends PropertyConverter {
 	@Override
 	public Object revert(Object source) {
 
-		AbstractNode relatedNode = getRelatedNode(false);
+		NodeInterface relatedNode = getRelatedNode(false);
 		if (relatedNode != null) {
 
 			return relatedNode.getProperty(targetKey);
@@ -87,13 +87,13 @@ public class RelatedNodePropertyMapper extends PropertyConverter {
 
 	//~--- get methods ----------------------------------------------------
 
-	private AbstractNode getRelatedNode(boolean add) {
+	private NodeInterface getRelatedNode(boolean add) {
 
-		AbstractNode relatedNode = null;
+		NodeInterface relatedNode = null;
 
-		if ((currentObject != null) && (currentObject instanceof AbstractNode)) {
+		if ((currentObject != null) && (currentObject instanceof NodeInterface)) {
 
-			AbstractNode localNode = (AbstractNode) currentObject;
+			NodeInterface localNode = (NodeInterface) currentObject;
 			relatedNode = localNode.getProperty(sourceKey);
 			
 			if (relatedNode == null && add) {

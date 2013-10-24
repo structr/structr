@@ -18,9 +18,8 @@
  */
 package org.structr.core.entity;
 
-import org.structr.core.TestRelType;
-import org.structr.core.property.CollectionProperty;
-import org.structr.core.property.EntityProperty;
+import org.structr.core.property.Forward;
+import org.structr.core.property.Property;
 
 /**
  *
@@ -28,9 +27,11 @@ import org.structr.core.property.EntityProperty;
  */
 public class TestSix extends AbstractNode {
 	
-	public static final CollectionProperty<TestOne> manyToManyTestOnes = new CollectionProperty<TestOne>("manyToManyTestOnes", TestOne.class, TestRelType.MANY_TO_MANY, false);
-	public static final CollectionProperty<TestOne> manyToOneTestOnes  = new CollectionProperty<TestOne>("manyToOneTestOnes",  TestOne.class, TestRelType.MANY_TO_ONE,  true);
+//	public static final CollectionProperty<TestOne> manyToManyTestOnes = new CollectionProperty<TestOne>("manyToManyTestOnes", TestOne.class, TestRelType.MANY_TO_MANY, false);
+//	public static final CollectionProperty<TestOne> manyToOneTestOnes  = new CollectionProperty<TestOne>("manyToOneTestOnes",  TestOne.class, TestRelType.MANY_TO_ONE,  true);
 	
-	public static final EntityProperty<TestThree>   oneToOneTestThree  = new EntityProperty<TestThree>("oneToOneTestThree",  TestThree.class, TestRelType.ONE_TO_ONE,  false);
-	public static final EntityProperty<TestThree>   oneToManyTestThrees = new EntityProperty<TestThree>("oneToManyTestThree", TestThree.class, TestRelType.ONE_TO_MANY, true);
+	public static final Property<TestOne> manyToManyTestOnes = new Forward<TestSix, TestOne>("manyToManyTestOnes", SixOne.class, false);
+	
+	public static final Property<TestThree>   oneToOneTestThree   = new Forward<TestSix, TestThree>("oneToOneTestThree",  SixThree.class, false);
+	public static final Property<TestThree>   oneToManyTestThrees = new Forward<TestThree, TestThree>("oneToManyTestThree", ThreeThree.class, true);
 }

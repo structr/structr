@@ -176,7 +176,7 @@ public class EntityNotionProperty<S extends GraphObject, T> extends Property<T> 
 		
 		SourceSearchAttribute attr            = new SourceSearchAttribute(occur);
 		Set<GraphObject> intersectionResult   = new LinkedHashSet<GraphObject>();
-		EntityProperty entityProperty         = (EntityProperty)base;
+		Forward entityProperty         = (Forward)base;
 		boolean alreadyAdded                  = false;
 		
 		try {

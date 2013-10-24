@@ -70,14 +70,6 @@ public class Security extends AbstractRelationship<Principal, NodeInterface> {
 		allowed
 	);
 	
-	static {
-
-		//EntityContext.registerSearchableProperty(SecurityRelationship.class, RelationshipIndex.rel_uuid.name(), AbstractRelationship.uuid);
-		EntityContext.registerNamedRelation("security", Security.class, Principal.class, NodeInterface.class, RelType.SECURITY);
-	}
-	
-	//~--- constructors ---------------------------------------------------
-
 	public Security() {}
 
 	public Security(SecurityContext securityContext, Relationship dbRelationship) {

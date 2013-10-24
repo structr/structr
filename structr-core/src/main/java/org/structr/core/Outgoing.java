@@ -7,5 +7,5 @@ import org.structr.core.graph.RelationshipInterface;
  *
  * @author Christian Morgner
  */
-public interface Outgoing<S extends NodeInterface, T extends NodeInterface> extends RelationshipInterface {
+public interface Outgoing<S, T> extends RelationshipInterface {
 }

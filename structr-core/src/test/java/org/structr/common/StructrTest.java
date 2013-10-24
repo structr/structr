@@ -61,6 +61,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 import org.structr.core.entity.GenericNode;
 import org.structr.core.graph.DeleteRelationshipCommand;
+import org.structr.core.graph.NodeInterface;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -161,17 +162,17 @@ public class StructrTest extends TestCase {
 
 	}
 
-	protected List<AbstractNode> createTestNodes(final Class type, final int number, final long delay) throws FrameworkException {
+	protected List<NodeInterface> createTestNodes(final Class type, final int number, final long delay) throws FrameworkException {
 
 		final PropertyMap props = new PropertyMap();
 		props.put(AbstractNode.type, type.getSimpleName());
 
-		return transactionCommand.execute(new StructrTransaction<List<AbstractNode>>() {
+		return transactionCommand.execute(new StructrTransaction<List<NodeInterface>>() {
 
 			@Override
-			public List<AbstractNode> execute() throws FrameworkException {
+			public List<NodeInterface> execute() throws FrameworkException {
 
-				List<AbstractNode> nodes = new LinkedList<AbstractNode>();
+				List<NodeInterface> nodes = new LinkedList<NodeInterface>();
 
 				for (int i = 0; i < number; i++) {
 
@@ -189,7 +190,7 @@ public class StructrTest extends TestCase {
 
 	}
 
-	protected List<AbstractNode> createTestNodes(final Class type, final int number) throws FrameworkException {
+	protected List<NodeInterface> createTestNodes(final Class type, final int number) throws FrameworkException {
 		
 		return createTestNodes(type, number, 0);
 
@@ -218,9 +219,9 @@ public class StructrTest extends TestCase {
 
 	protected List<AbstractRelationship> createTestRelationships(final RelationshipType relType, final int number) throws FrameworkException {
 
-		List<AbstractNode> nodes     = createTestNodes(GenericNode.class, 2);
-		final AbstractNode startNode = nodes.get(0);
-		final AbstractNode endNode   = nodes.get(1);
+		List<NodeInterface> nodes     = createTestNodes(GenericNode.class, 2);
+		final NodeInterface startNode = nodes.get(0);
+		final NodeInterface endNode   = nodes.get(1);
 
 		return transactionCommand.execute(new StructrTransaction<List<AbstractRelationship>>() {
 

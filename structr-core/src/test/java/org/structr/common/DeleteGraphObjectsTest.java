@@ -43,6 +43,7 @@ import static junit.framework.Assert.fail;
 import org.structr.core.Result;
 import org.structr.core.TestRelType;
 import org.structr.core.entity.GenericNode;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 
@@ -449,7 +450,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 
 	}
 
-	private void deleteCascade(final AbstractNode node) throws FrameworkException {
+	private void deleteCascade(final NodeInterface node) throws FrameworkException {
 
 		transactionCommand.execute(new StructrTransaction() {
 
