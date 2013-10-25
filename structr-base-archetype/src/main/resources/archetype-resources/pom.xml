@@ -139,7 +139,7 @@
 		<dependency>
 			<groupId>org.structr</groupId>
 			<artifactId>structr-server</artifactId>
-			<version>0.8-SNAPSHOT</version>
+			<version>0.9-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
 
