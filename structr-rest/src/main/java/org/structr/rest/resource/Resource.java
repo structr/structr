@@ -339,7 +339,7 @@ public abstract class Resource {
 		
 		if (type != null && request != null && !request.getParameterMap().isEmpty()) {
 
-			 boolean looseSearch = parseInteger(request.getParameter(JsonRestServlet.REQUEST_PARAMETER_LOOSE_SEARCH)) == 1;
+			boolean looseSearch = parseInteger(request.getParameter(JsonRestServlet.REQUEST_PARAMETER_LOOSE_SEARCH)) == 1;
 
 			for (final PropertyKey key : EntityContext.getPropertySet(type, PropertyView.All)) {
 

@@ -287,6 +287,7 @@ img.thumbnail {
 
 .searchResults {
     margin-top: 42px;
+    overflow-y: auto;
 }
 
 h2.searchResultsTitle {
@@ -333,4 +334,9 @@ h2.searchResultsTitle {
 .dialogText .searchResultGroup {
     position: absolute;
     top: 42px;
+}
+
+img.loader {
+    vertical-align: middle;
+    margin-right: 12px;
 }

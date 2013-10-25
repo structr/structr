@@ -433,7 +433,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 			if (looseSearch) {
 
 				// no quotes allowed in loose search queries!
-				searchValue = removeQuotes(searchValue);
+				//searchValue = removeQuotes(searchValue);
 
 				searchAttributes.add(Search.andProperty(securityContext, this, extractSearchableAttribute(securityContext, searchValue)));
 

@@ -230,17 +230,14 @@ function connect() {
 
             } else if (command === 'GET' || command === 'UPDATE') { /*********************** GET / UPDATE ************************/
 
-                log(command, data);
-                var id = data.id;
-                var key = data.data['key'];
-                var val = data.data[key];
-
-                var obj = StructrModel.update(data);
+                var obj = StructrModel.obj(data.id);
+                if (!obj) {
+                    data.data.id = data.id;
+                    obj = StructrModel.create(data.data, null, false);
+                }
 
                 StructrModel.callCallback(data.callback, obj);
-
                 StructrModel.clearCallback(data.callback);
-                
 
             } else if (command.endsWith('GET_BY_TYPE')) { /*********************** GET_BY_TYPE ************************/
 

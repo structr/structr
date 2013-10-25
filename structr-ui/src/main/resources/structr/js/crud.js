@@ -1471,6 +1471,8 @@ var _Crud = {
         el.append('<h2 class="searchResultsTitle">Search Results</h2>');
         el.append('<div class="searchResults"></div>');
         var searchResults = $('.searchResults', el);
+
+        _Crud.resize();
         
         //$('.search').select();
         
@@ -1492,7 +1494,10 @@ var _Crud = {
         }
         
         $.each(types, function(t, type) {
-            var url = rootUrl + _Crud.restType(type) + '/' + view + _Crud.sortAndPagingParameters(type, 'name', 'asc', 1000, 1) + '&name=' + searchString + '&loose=1';
+            
+            var url = rootUrl + _Crud.restType(type) + '/' + view + _Crud.sortAndPagingParameters(type, 'name', 'asc', 1000, 1) + '&name=' + encodeURIComponent(searchString) + '&loose=1';
+            searchResults.append('<div id="placeholderFor' + type + '" class="searchResultGroup resourceBox"><img class="loader" src="img/ajax-loader.gif">Searching for "' + searchString + '" in ' + type + '</div>');
+            
             $.ajax({
                 url: url,
                 type: 'GET',
@@ -1501,8 +1506,17 @@ var _Crud = {
                 //async: false,
                 success: function(data) {
 
+                    $('#placeholderFor' + type + '').remove();
                     if (data.result.length) {
+                        
                         searchResults.append('<div id="resultsFor' + type + '" class="searchResultGroup resourceBox"><h3>' + type.capitalize() + '</h3></div>');
+
+                    } else {
+ 
+                        searchResults.append('<div id="resultsFor' + type + '" class="searchResultGroup resourceBox">No results for ' + type.capitalize() + '</div>');
+                        window.setTimeout(function() { $('#resultsFor' + type).fadeOut('fast') }, 1000);
+                        
+                       
                     }
                 
                     $.each(data.result, function(i, node) {
@@ -1852,8 +1866,12 @@ var _Crud = {
             height: bh
         });
 
-        $('.resourceBox').css({
+        $('#resourceTabs .resourceBox').css({
            height: h - 137 + 'px'     
+        });
+
+        $('.searchResults').css({
+           height: h - 103 + 'px'     
         });
     },
 

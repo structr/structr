@@ -560,7 +560,6 @@ var _Entities = {
 
                             var principalId = result.principalId;
                             if (principalId) {
-
                                 Command.get(principalId, function(p) {
                                     addPrincipal(entity, p, permissions);
                                 });
@@ -936,7 +935,7 @@ var _Entities = {
 };
 
 function addPrincipal(entity, principal, permissions) {
-
+    
     $('#newPrincipal option[value="' + principal.id + '"]').remove();
     $('#new').before('<tr id="_' + principal.id + '"><td><img class="typeIcon" src="' + (principal.type === 'Group' ? 'icon/group.png' : 'icon/user.png') + '"> <span class="name">' + principal.name + '</span></td><tr>');
 
