@@ -256,8 +256,34 @@ public class File extends AbstractFile implements Linkable {
 
 			try {
 
-				java.io.File fileOnDisk = new java.io.File(filePath);				
-				return new FileOutputStream(fileOnDisk);
+				java.io.File fileOnDisk = new java.io.File(filePath);
+				
+				// Return file output stream and save checksum and size after closing
+				FileOutputStream fos = new FileOutputStream(fileOnDisk) {
+					
+					@Override
+					public void close() throws IOException {
+						super.close();
+						try {
+							Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+								
+								@Override
+								public Object execute() throws FrameworkException {
+									
+									setProperty(checksum,	FileHelper.getChecksum(File.this));
+									setProperty(size,	FileHelper.getSize(File.this));
+									
+									return null;
+								}
+							});
+						} catch (FrameworkException ex) {
+							logger.log(Level.SEVERE, "Could not determine or save checksum and size after closing file output stream", ex);
+						}
+					}
+					
+				};
+				
+				return fos;
 
 			} catch (FileNotFoundException e) {
 				logger.log(Level.SEVERE, "File not found: {0}", new Object[] { path });

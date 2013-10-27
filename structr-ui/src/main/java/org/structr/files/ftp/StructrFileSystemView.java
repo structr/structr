@@ -19,9 +19,9 @@
 
 package org.structr.files.ftp;
 
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.lang.StringUtils;
 import org.apache.ftpserver.ftplet.FileSystemView;
 import org.apache.ftpserver.ftplet.FtpException;
 import org.apache.ftpserver.ftplet.FtpFile;
@@ -33,7 +33,9 @@ import org.structr.core.auth.AuthHelper;
 import org.structr.core.entity.AbstractUser;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
+import org.structr.web.common.FileHelper;
 import org.structr.web.entity.AbstractFile;
+import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 
 /**
@@ -99,49 +101,68 @@ public class StructrFileSystemView implements FileSystemView {
 
 		logger.log(Level.INFO, "Requested path: {0}", requestedPath);
 
-		if (requestedPath.equals("/")) {
+		
+		if (StringUtils.isBlank(requestedPath) || "/".equals(requestedPath)) {
 			return getHomeDirectory();
 		}
 		
 		StructrFtpFolder cur = (StructrFtpFolder) getWorkingDirectory();
-		if (requestedPath.equals("./")) {
+		
+		if (".".equals(requestedPath) || "./".equals(requestedPath)) {
 			return cur;
 		}
 
-		if (requestedPath.equals("..")) {
+		if ("..".equals(requestedPath) || "../".equals(requestedPath)) {
 			return new StructrFtpFolder(cur.getStructrFile().getProperty(AbstractFile.parent));
 		}
-		
-		String curPath = cur.getAbsolutePath();
-		
-		List<FtpFile> files = cur.listFiles();
-		for (FtpFile file : files) {
 
-			String path = file.getAbsolutePath();
-			
-			if ("/".equals(curPath)) {
-				
-				// We're on root level
-				if (file.getName().equals(requestedPath)) {
-					return file;
-				}
-			}
-			
-			if (path.equals(curPath.concat(requestedPath))) {
-				
-				String type = file.isDirectory() ? "Directory" : (file.isFile() ? "File" : "unknown");
-				logger.log(Level.INFO, "{0} found: {1}", new Object[] {type, file.getAbsolutePath()});
-				
-				return file;
-			}
+		// If relative path requested, prepend base path
+		if (!requestedPath.startsWith("/")) {
 
+			String basePath = cur.getAbsolutePath();
+			
+			logger.log(Level.INFO, "Base path: {0}", basePath);
+
+			while (requestedPath.startsWith("..")) {
+				requestedPath = StringUtils.stripStart(StringUtils.stripStart(requestedPath, ".."), "/");
+				basePath = StringUtils.substringBeforeLast(basePath, "/");
+			}
+		
+			requestedPath = StringUtils.stripEnd(basePath.equals("/") ? "/".concat(requestedPath) : basePath.concat("/").concat(requestedPath), "/");
+
+			logger.log(Level.INFO, "Base path: {0}, requestedPath: {1}", new Object[] {basePath, requestedPath});
+		
+		}
+
+		AbstractFile file = FileHelper.getFileByAbsolutePath(requestedPath);
+		
+		if (file != null) {
+			
+			if (file instanceof Folder) {
+				return new StructrFtpFolder((Folder) file);
+			} else {
+				return new StructrFtpFile((File) file);
+			}
 		}
 		
-		//return new StructrFtpFolder(curPath.concat("/").concat(requestedPath), user);
+//		List<FtpFile> files = cur.listFiles();
+//		for (FtpFile file : files) {
+//
+//			String path = file.getAbsolutePath();
+//
+//			if (path.equals(requestedPath)) {
+//
+//				String type = file.isDirectory() ? "Directory" : (file.isFile() ? "File" : "unknown");
+//				logger.log(Level.INFO, "{0} found: {1}", new Object[] {type, file.getAbsolutePath()});
+//
+//				return file;
+//			}
+//
+//		}
 		
-		logger.log(Level.WARNING, "File not found: {0}", requestedPath);
+		logger.log(Level.WARNING, "No existing file found: {0}", requestedPath);
 		
-		throw new FtpException("File not found: " + requestedPath);
+		return new FileOrFolder(requestedPath, user);
 		
 	}
 

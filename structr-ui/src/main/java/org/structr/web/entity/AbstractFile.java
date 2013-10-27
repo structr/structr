@@ -29,7 +29,7 @@ import org.structr.core.property.CollectionProperty;
 import org.structr.core.property.EntityProperty;
 
 /**
- * Abstract base class for filesystem objects in structr.
+ * Base class for filesystem objects in structr.
  *
  * @author Christian Morgner
  */

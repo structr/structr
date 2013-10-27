@@ -157,6 +157,12 @@
             <version>3.1</version>
         </dependency>
         <dependency>
+            <groupId>commons-net</groupId>
+            <artifactId>commons-net</artifactId>
+            <version>3.3</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-all</artifactId>
             <version>1.9.5</version>
@@ -169,13 +175,8 @@
         <dependency>
             <groupId>org.twitter4j</groupId>
             <artifactId>twitter4j-core</artifactId>
-            <version>3.0.3</version>
+            <version>3.0.5</version>
         </dependency>
-        <!--        <dependency>
-            <groupId>org.alfresco</groupId>
-            <artifactId>alfresco-jlan-embed</artifactId>
-            <version>4.2.e</version>
-        </dependency>-->
         <dependency>
             <groupId>org.apache.ftpserver</groupId>
             <artifactId>ftpserver-core</artifactId>

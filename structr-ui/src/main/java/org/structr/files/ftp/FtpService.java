@@ -19,23 +19,14 @@
 
 package org.structr.files.ftp;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.lang.StringUtils;
 import org.apache.ftpserver.FtpServer;
 import org.apache.ftpserver.FtpServerFactory;
-import org.apache.ftpserver.ftplet.Authority;
-import org.apache.ftpserver.ftplet.FileSystemFactory;
 import org.apache.ftpserver.ftplet.FtpException;
-import org.apache.ftpserver.ftplet.UserManager;
 import org.apache.ftpserver.listener.ListenerFactory;
-import org.apache.ftpserver.usermanager.PropertiesUserManagerFactory;
-import org.apache.ftpserver.usermanager.SaltedPasswordEncryptor;
-import org.apache.ftpserver.usermanager.UserFactory;
-import org.apache.ftpserver.usermanager.impl.BaseUser;
-import org.apache.ftpserver.usermanager.impl.WritePermission;
 import org.structr.core.Command;
 import org.structr.core.RunnableService;
 import org.structr.core.Services;
@@ -47,17 +38,21 @@ import org.structr.core.Services;
 public class FtpService extends Thread implements RunnableService {
 
 	private static final Logger logger = Logger.getLogger(FtpService.class.getName());
-	private static final int port = 2221;
-	
 	private boolean doRun = false;
+	
+	private static int port;
+	private FtpServer server;
 
 	@Override
 	public void run() {
-
-		// wait for service layer to be initialized
-		while (!Services.isInitialized()) {
-			try { Thread.sleep(1000); } catch(InterruptedException iex) { }
+		
+		String configuredPort = Services.getFtpPort();
+		if (StringUtils.isBlank(configuredPort)) {
+			logger.log(Level.SEVERE, "Unable to start FTP service. Reason: No FTP port configured.");
+			return;
 		}
+		
+		port = Integer.parseInt(configuredPort);
 
 		try {
 			
@@ -72,8 +67,10 @@ public class FtpService extends Thread implements RunnableService {
 			
 			logger.log(Level.INFO, "Starting FTP server on port {0}", new Object[] {port});
 
-			FtpServer server = serverFactory.createServer();         
+			server = serverFactory.createServer();         
 			server.start();
+			
+			this.doRun = true;
 			
 		} catch (FtpException ex) {
 			
@@ -84,15 +81,15 @@ public class FtpService extends Thread implements RunnableService {
 	@Override
 	public void startService() {
 
-		this.doRun = true;
 		this.start();
-		
 		
 	}
 
 	@Override
 	public void stopService() {
-		//throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		if (doRun) {
+			this.shutdown();
+		}
 	}
 
 	@Override
@@ -102,22 +99,23 @@ public class FtpService extends Thread implements RunnableService {
 
 	@Override
 	public boolean isRunning() {
-		return true;
+		return !server.isStopped();
 	}
 
 	@Override
 	public void injectArguments(Command command) {
-		//throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public void initialize(Map<String, String> context) {
-		//throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public void shutdown() {
-		//throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		if (!server.isStopped()) {
+			server.stop();
+			this.doRun = false;
+		}
 	}
 
 }

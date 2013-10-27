@@ -25,6 +25,7 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import org.structr.common.PropertyView;
 import org.structr.core.auth.AuthenticationService;
 import org.structr.core.entity.AbstractNode;
+import org.structr.files.ftp.FtpService;
 import org.structr.rest.servlet.CsvServlet;
 import org.structr.server.DefaultResourceProvider;
 import org.structr.server.Structr;
@@ -80,6 +81,9 @@ public class Ui implements org.structr.server.StructrServer {
 				.addServlet("/structr/csv/*", csvServletHolder)
 			    
 				.addResourceHandler("/structr", "src/main/resources/structr", true, new String[] { "index.html"})
+				
+				.addConfiguredServices(FtpService.class)
+				.ftpPort(8022)
 			    
 				.enableRewriteFilter()
 				//.logRequests(true)

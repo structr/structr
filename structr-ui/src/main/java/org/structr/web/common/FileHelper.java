@@ -41,7 +41,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.lucene.search.BooleanClause;
 import org.structr.common.Path;
 import org.structr.common.PathHelper;
 import org.structr.common.SecurityContext;
@@ -51,13 +50,10 @@ import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.SearchAttributeGroup;
 import org.structr.core.property.PropertyMap;
 import org.structr.util.Base64;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.Image;
-import org.structr.web.entity.dom.Page;
-import static org.structr.web.servlet.HtmlServlet.POSSIBLE_ENTRY_POINTS;
 import static org.structr.web.servlet.HtmlServlet.searchNodesAsSuperuser;
 
 //~--- classes ----------------------------------------------------------------
@@ -432,15 +428,15 @@ public class FileHelper {
 	}
 
 	/**
-	 * Find a file by its ancestor path.
+	 * Find a file by its absolute ancestor path.
 	 * 
 	 * File may not be hidden or deleted.
-	 * @param path
+	 * @param absolutePath
 	 * @return 
 	 */
-	public static AbstractFile getFileByPath(final String path) {
+	public static AbstractFile getFileByAbsolutePath(final String absolutePath) {
 		
-		String[] parts = PathHelper.getParts(path);
+		String[] parts = PathHelper.getParts(absolutePath);
 		
 		if (parts == null || parts.length == 0) return null;
 		

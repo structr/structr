@@ -58,8 +58,14 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 		super(folder);
 	}
 
-	public StructrFtpFolder(final String newPath, final StructrFtpUser user) {
-		super(newPath, user);
+//	public StructrFtpFolder(final String newPath, final StructrFtpUser user) {
+//		super(newPath, user);
+//	}
+
+	@Override
+	public boolean doesExist() {
+		boolean exists = "/".equals(newPath) || super.doesExist();
+		return exists;
 	}
 
 	@Override
@@ -103,8 +109,7 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 
 			try {
 				Result<Folder> results = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(false, false, searchAttrs);
-				logger.log(Level.FINE, "{0} folders found", results.size());
-				if (results.isEmpty()) return null;
+				logger.log(Level.INFO, "{0} folders found", results.size());
 
 				for (Folder f : results.getResults()) {
 					
@@ -128,8 +133,7 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 
 			try {
 				Result<File> results = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(false, false, searchAttrs);
-				logger.log(Level.FINE, "{0} files found", results.size());
-				if (results.isEmpty()) return null;
+				logger.log(Level.INFO, "{0} files found", results.size());
 
 				for (File f : results.getResults()) {
 					
@@ -176,58 +180,20 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 
 	@Override
 	public boolean mkdir() {
-		
-		logger.log(Level.INFO, "mkdir() Folder");
-		
-		AbstractFile existing = FileHelper.getFileByPath(newPath);
-		if (existing != null) {
-			logger.log(Level.WARNING, "File {0} already exists.", newPath);
-			return false;
-		}
-		
-		final Folder parentFolder = (Folder) FileHelper.getFileByPath(StringUtils.substringBeforeLast(newPath, "/"));
-		
-		if (parentFolder != null) {
-
-			try {
-				Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(new StructrTransaction() {
-
-					@Override
-					public Object execute() throws FrameworkException {
-
-						Folder newFolder = (Folder) Services.command(SecurityContext.getSuperUserInstance(), CreateNodeCommand.class).execute(
-							new NodeAttribute(AbstractNode.type, Folder.class.getSimpleName()),
-							new NodeAttribute(AbstractNode.owner, owner.getStructrUser()),
-							new NodeAttribute(AbstractNode.name, getName())
-						);
-
-						newFolder.setProperty(AbstractFile.parent, parentFolder);
-
-						return null;
-					}
-
-				});
-
-			} catch (FrameworkException ex) {
-				logger.log(Level.SEVERE, null, ex);
-				return false;
-			}
-		}
-		
-		return true;
-		
+		logger.log(Level.SEVERE, "Use FileOrFolder#createOutputStream() instead!");
+		throw new UnsupportedOperationException("Not supported yet.");
 	}
 	
 	@Override
 	public OutputStream createOutputStream(final long l) throws IOException {
 		logger.log(Level.INFO, "createOutputStream()");
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		throw new UnsupportedOperationException("Not supported.");
 	}
 
 	@Override
 	public InputStream createInputStream(final long l) throws IOException {
 		logger.log(Level.INFO, "createInputStream()");
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		throw new UnsupportedOperationException("Not supported.");
 	}
 
 }

@@ -51,8 +51,13 @@ public class StructrUserManager implements UserManager {
 	private SecurityContext securityContext = SecurityContext.getSuperUserInstance();
 	
 	@Override
-	public User getUserByName(String string) throws FtpException {
-		return new StructrFtpUser(getStructrUser(string));
+	public User getUserByName(String userName) throws FtpException {
+		org.structr.web.entity.User structrUser = getStructrUser(userName);
+		if (structrUser != null) {
+			return new StructrFtpUser(structrUser);
+		} else {
+			return null;
+		}
 	}
 
 	@Override
@@ -121,7 +126,7 @@ public class StructrUserManager implements UserManager {
 			try {
 				user = (org.structr.web.entity.User) AuthHelper.getPrincipalForPassword(AbstractUser.name, userName, password);
 			} catch (AuthenticationException ex) {
-				Logger.getLogger(StructrUserManager.class.getName()).log(Level.SEVERE, null, ex);
+				logger.log(Level.WARNING, "FTP authentication attempt failed with username {0} and password {1}", new Object[]{userName, password});
 			}
 			
 			if (user != null) {

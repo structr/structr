@@ -92,8 +92,9 @@ public class Structr {
 	private String contextPath                                 = System.getProperty("contextPath", "/");
 	private String basePath                                    = "";
 
-	private int httpPort                                       = 8082;
-	private int httpsPort                                      = 8083;
+	private static int httpPort				= 8082;
+	private static int httpsPort				= 8083;
+	public static int ftpPort				= 8022;
 	
 	private int jsonDepth                                      = 4;
 	private boolean logRequests                                = false;
@@ -302,6 +303,17 @@ public class Structr {
 	 */
 	public Structr httpsPort(int httpsPort) {
 		this.httpsPort = httpsPort;
+		return this;
+	}
+
+	/**
+	 * Sets the FTP port this structr instance listens on.
+	 * 
+	 * @param ftpPort
+	 * @return 
+	 */
+	public Structr ftpPort(int ftpPort) {
+		this.ftpPort = ftpPort;
 		return this;
 	}
 	
@@ -916,6 +928,9 @@ public class Structr {
 			config.add("application.https.port = " + httpsPort);
 			config.add("application.keystore.path = " + keyStorePath);
 			config.add("application.keystore.password = " + keyStorePassword);
+			config.add("");
+			config.add("# built-in FTP server");
+			config.add("application.ftp.port = " + ftpPort);
 			config.add("");
 			config.add("# SMTP settings");
 			config.add("smtp.host = " + smtpHost);

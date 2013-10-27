@@ -23,7 +23,6 @@ import com.jayway.restassured.RestAssured;
 import java.io.ByteArrayOutputStream;
 import org.apache.commons.io.FileUtils;
 
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.RelationshipType;
 
 import org.structr.common.error.FrameworkException;
@@ -56,6 +55,7 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import org.structr.Ui;
 import org.structr.core.property.PropertyMap;
 import org.structr.common.SecurityContext;
+import org.structr.files.ftp.FtpService;
 import org.structr.server.Structr;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.servlet.HtmlServlet;
@@ -162,6 +162,9 @@ public class StructrUiTest extends TestCase {
 				//.addServlet("/structr/csv/*", csvServletHolder)
 			    
 				.addResourceHandler("/structr", "src/main/resources/structr", true, new String[] { "index.html"})
+				
+				.addConfiguredServices(FtpService.class)
+				.ftpPort(8876)
 			    
 				.enableRewriteFilter()
 				//.logRequests(true)
@@ -276,7 +279,7 @@ public class StructrUiTest extends TestCase {
 			@Override
 			public List<T> execute() throws FrameworkException {
 
-				List<T> nodes = new LinkedList<T>();
+				List<T> nodes = new LinkedList<>();
 
 				for (int i = 0; i < number; i++) {
 
@@ -294,8 +297,12 @@ public class StructrUiTest extends TestCase {
 	}
 
 	protected List<AbstractNode> createTestNodes(final String type, final int number) throws FrameworkException {
-
 		final PropertyMap props = new PropertyMap();
+		return createTestNodes(type, number, props);
+	}
+
+	protected List<AbstractNode> createTestNodes(final String type, final int number, final PropertyMap props) throws FrameworkException {
+
 		props.put(AbstractNode.type, type);
 
 		return (List<AbstractNode>) transactionCommand.execute(new StructrTransaction() {
@@ -303,7 +310,7 @@ public class StructrUiTest extends TestCase {
 			@Override
 			public Object execute() throws FrameworkException {
 
-				List<AbstractNode> nodes = new LinkedList<AbstractNode>();
+				List<AbstractNode> nodes = new LinkedList<>();
 
 				for (int i = 0; i < number; i++) {
 
@@ -329,7 +336,7 @@ public class StructrUiTest extends TestCase {
 			@Override
 			public Object execute() throws FrameworkException {
 
-				List<AbstractRelationship> rels = new LinkedList<AbstractRelationship>();
+				List<AbstractRelationship> rels = new LinkedList<>();
 
 				for (int i = 0; i < number; i++) {
 

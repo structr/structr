@@ -25,20 +25,8 @@ import java.io.OutputStream;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.ftpserver.ftplet.FtpFile;
-import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.CreateNodeCommand;
-import org.structr.core.graph.NodeAttribute;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
-import org.structr.web.common.FileHelper;
-import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
-import org.structr.web.entity.Folder;
 
 /**
  *
@@ -52,9 +40,9 @@ public class StructrFtpFile extends AbstractStructrFtpFile {
 		super(file);
 	}
 
-	public StructrFtpFile(final String newPath, final StructrFtpUser user) {
-		super(newPath, user);
-	}
+//	public StructrFtpFile(final String newPath, final StructrFtpUser user) {
+//		super(newPath, user);
+//	}
 
 	@Override
 	public boolean isDirectory() {
@@ -73,47 +61,8 @@ public class StructrFtpFile extends AbstractStructrFtpFile {
 
 	@Override
 	public boolean mkdir() {
-		
-		logger.log(Level.INFO, "mkdir() File");
-		
-		AbstractFile existing = FileHelper.getFileByPath(newPath);
-		if (existing != null) {
-			logger.log(Level.WARNING, "File {0} already exists.", newPath);
-			return false;
-		}
-		
-		final Folder parentFolder = (Folder) FileHelper.getFileByPath(StringUtils.substringBeforeLast(newPath, "/"));
-		
-		if (parentFolder != null) {
-		
-			try {
-				Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(new StructrTransaction() {
-
-					@Override
-					public Object execute() throws FrameworkException {
-
-						File newFile = (File) Services.command(SecurityContext.getSuperUserInstance(), CreateNodeCommand.class).execute(
-							new NodeAttribute(AbstractNode.type, File.class.getSimpleName()),
-							new NodeAttribute(AbstractNode.name, getName())
-						);
-
-						newFile.setProperty(AbstractFile.parent, parentFolder);
-
-						return null;
-					}
-
-				});
-
-			} catch (FrameworkException ex) {
-				logger.log(Level.SEVERE, null, ex);
-				return false;
-			}
-
-		}
-
-		return true;
-		
-		
+		logger.log(Level.INFO, "mkdir()");
+		throw new UnsupportedOperationException("Not supported.");
 	}
 
 	@Override
