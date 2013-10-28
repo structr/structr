@@ -186,7 +186,7 @@ var StructrModel = {
      * This function is usually triggered by a websocket message
      * and will trigger a UI refresh.
      **/
-    update: function(data) { console.log('StructrModel.update, data.id', data.id, data)
+    update: function(data) {
         var obj = StructrModel.obj(data.id);
 
         if (obj) {
