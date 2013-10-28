@@ -29,6 +29,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.PropertySearchAttribute;
+import org.structr.core.graph.search.SearchCommand;
 
 /**
  * A property that stores and retrieves a simple Long value.
@@ -143,5 +144,10 @@ public class LongProperty extends AbstractPrimitiveProperty<Long> {
 	@Override
 	public void index(GraphObject entity, Object value) {
 		super.index(entity, value != null ? ValueContext.numeric((Number)value) : value);
+	}
+
+	@Override
+	public Long getValueForEmptyFields() {
+		return SearchCommand.EMPTY_FIELD_VALUE_LONG;
 	}
 }
