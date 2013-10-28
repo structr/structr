@@ -78,7 +78,7 @@ import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.notion.PropertyNotion;
 import org.structr.core.property.BooleanProperty;
-import org.structr.core.property.Endpoints;
+import org.structr.core.property.EndNodes;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.rest.ResourceProvider;
@@ -109,7 +109,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	private static final int HtmlPrefixLength			= PropertyView.Html.length();
 	private final static String STRUCTR_ACTION_PROPERTY		= "data-structr-action";
 	
-	public static final  Property<List<DOMElement>> syncedNodes   = new Endpoints("syncedNodes", DOMElement.class, RelType.SYNC, Direction.OUTGOING, new PropertyNotion(uuid), false);
+	public static final  Property<List<DOMElement>> syncedNodes   = new EndNodes("syncedNodes", DOMElement.class, RelType.SYNC, Direction.OUTGOING, new PropertyNotion(uuid), false);
 	
 	private static final Map<String, HtmlProperty> htmlProperties              = new LRUMap(200);	// use LURMap here to avoid infinite growing
 	private static final List<GraphDataSource<List<GraphObject>>> listSources  = new LinkedList<GraphDataSource<List<GraphObject>>>();
@@ -456,9 +456,9 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 										propertyKey = EntityContext.getPropertyKeyForJSONName(currentDataNode.getClass(), subKey, false);
 										renderContext.setRelatedProperty(propertyKey);
 
-										if (propertyKey != null && propertyKey instanceof Endpoints) {
+										if (propertyKey != null && propertyKey instanceof EndNodes) {
 
-											Endpoints<AbstractNode> collectionProperty = (Endpoints)propertyKey;
+											EndNodes<AbstractNode> collectionProperty = (EndNodes)propertyKey;
 											for (AbstractNode node : currentDataNode.getProperty(collectionProperty)) {
 
 												//renderContext.setStartNode(node);

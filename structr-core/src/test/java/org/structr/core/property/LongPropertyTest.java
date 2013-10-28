@@ -24,7 +24,6 @@ import static junit.framework.Assert.fail;
 import org.structr.common.RelType;
 import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
 import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.entity.TestFour;
@@ -134,7 +133,7 @@ public class LongPropertyTest extends StructrTest {
 			assertEquals((Long)2857312362L, (Long)testEntity.getProperty(key));
 			
 			Result<TestFour> result = Services.command(securityContext, SearchRelationshipCommand.class).execute(
-				Search.andExactRelType(EntityContext.getNamedRelation(OneFour.Relation.test_relationships.name())),
+				Search.andExactRelType(OneFour.class),
 				Search.andExactProperty(securityContext, key, 2857312362L)
 			);
 			

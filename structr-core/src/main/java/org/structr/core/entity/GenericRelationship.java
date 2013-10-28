@@ -26,7 +26,6 @@ package org.structr.core.entity;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.RelationshipType;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -65,7 +64,7 @@ public class GenericRelationship extends AbstractRelationship {
 	@Override
 	public Iterable<PropertyKey> getPropertyKeys(String propertyView) {
 		
-		Set<PropertyKey> keys = new LinkedHashSet<PropertyKey>();
+		Set<PropertyKey> keys = new LinkedHashSet<>();
 		
 		keys.add(startNodeId);
 		keys.add(endNodeId);
@@ -98,21 +97,6 @@ public class GenericRelationship extends AbstractRelationship {
 	@Override
 	public boolean isValid(ErrorBuffer errorBuffer) {
 		return true;
-	}
-
-	@Override
-	public Class getSourceType() {
-		return AbstractNode.class;
-	}
-
-	@Override
-	public RelationshipType getRelationshipType() {
-		return null;
-	}
-
-	@Override
-	public Class getDestinationType() {
-		return AbstractNode.class;
 	}
 
 	@Override

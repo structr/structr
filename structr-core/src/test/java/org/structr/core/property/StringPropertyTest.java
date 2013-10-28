@@ -134,7 +134,7 @@ public class StringPropertyTest extends StructrTest {
 			assertEquals("test", testEntity.getProperty(key));
 			
 			Result<TestFour> result = Services.command(securityContext, SearchRelationshipCommand.class).execute(
-				Search.andExactRelType(EntityContext.getNamedRelation(OneFour.Relation.test_relationships.name())),
+				Search.andExactRelType(OneFour.class),
 				Search.andExactProperty(securityContext, key, "test")
 			);
 			

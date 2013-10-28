@@ -60,6 +60,7 @@ import org.structr.core.entity.Person;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.User;
 import org.structr.core.graph.CreateNodeCommand;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.property.PropertyKey;
@@ -89,7 +90,7 @@ public class AccessControlTest extends StructrTest {
 
 		try {
 
-			List<AbstractNode> users = createTestNodes(User.class, 1);
+			List<NodeInterface> users = createTestNodes(User.class, 1);
 			User user = (User) users.get(0);
 			
 			// Create node with user context
@@ -97,7 +98,7 @@ public class AccessControlTest extends StructrTest {
 			TestOne t1 = createTestNode(TestOne.class, user);
 			
 			SecurityContext publicContext = SecurityContext.getInstance(null, AccessMode.Frontend);
-			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+			List<SearchAttribute> searchAttributes = new LinkedList<>();
 			searchAttributes.add(Search.andExactTypeAndSubtypes(type));
 
 			Result result = Services.command(publicContext, SearchNodeCommand.class).execute(searchAttributes);
@@ -119,7 +120,7 @@ public class AccessControlTest extends StructrTest {
 
 		try {
 
-			List<AbstractNode> users = createTestNodes(User.class, 1);
+			List<NodeInterface> users = createTestNodes(User.class, 1);
 			User user = (User) users.get(0);
 			
 			PropertyMap props = new PropertyMap();
@@ -131,7 +132,7 @@ public class AccessControlTest extends StructrTest {
 			TestOne t2 = createTestNode(TestOne.class, user);
 			
 			SecurityContext publicContext = SecurityContext.getInstance(null, AccessMode.Frontend);
-			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+			List<SearchAttribute> searchAttributes = new LinkedList<>();
 			searchAttributes.add(Search.andExactTypeAndSubtypes(type));
 
 			Result result = Services.command(publicContext, SearchNodeCommand.class).execute(searchAttributes);
@@ -152,7 +153,7 @@ public class AccessControlTest extends StructrTest {
 
 		try {
 
-			List<AbstractNode> users = createTestNodes(User.class, 1);
+			List<NodeInterface> users = createTestNodes(User.class, 1);
 			User user = (User) users.get(0);
 			
 			PropertyMap props = new PropertyMap();
@@ -168,7 +169,7 @@ public class AccessControlTest extends StructrTest {
 			TestOne t2 = createTestNode(TestOne.class, props, user);
 			
 			SecurityContext publicContext = SecurityContext.getInstance(null, AccessMode.Frontend);
-			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+			List<SearchAttribute> searchAttributes = new LinkedList<>();
 			searchAttributes.add(Search.andExactTypeAndSubtypes(type));
 
 			Result result = Services.command(publicContext, SearchNodeCommand.class).execute(searchAttributes);
@@ -189,7 +190,7 @@ public class AccessControlTest extends StructrTest {
 
 		try {
 
-			List<AbstractNode> users = createTestNodes(User.class, 2);
+			List<NodeInterface> users = createTestNodes(User.class, 2);
 			User user1 = (User) users.get(0);
 			User user2 = (User) users.get(1);
 
@@ -207,7 +208,7 @@ public class AccessControlTest extends StructrTest {
 			
 			// Let another user search
 			SecurityContext user2Context = SecurityContext.getInstance(user2, AccessMode.Backend);
-			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+			List<SearchAttribute> searchAttributes = new LinkedList<>();
 			searchAttributes.add(Search.andExactTypeAndSubtypes(type));
 
 			Result result = Services.command(user2Context, SearchNodeCommand.class).execute(searchAttributes);
@@ -227,7 +228,7 @@ public class AccessControlTest extends StructrTest {
 
 		try {
 
-			List<AbstractNode> users = createTestNodes(User.class, 2);
+			List<NodeInterface> users = createTestNodes(User.class, 2);
 			User user1 = (User) users.get(0);
 			User user2 = (User) users.get(1);
 			
@@ -245,7 +246,7 @@ public class AccessControlTest extends StructrTest {
 			
 			// Let another user search
 			SecurityContext user2Context = SecurityContext.getInstance(user2, AccessMode.Frontend);
-			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+			List<SearchAttribute> searchAttributes = new LinkedList<>();
 			searchAttributes.add(Search.andExactTypeAndSubtypes(type));
 
 			Result result = Services.command(user2Context, SearchNodeCommand.class).execute(searchAttributes);
@@ -265,7 +266,7 @@ public class AccessControlTest extends StructrTest {
 
 		try {
 
-			List<AbstractNode> users = createTestNodes(User.class, 2);
+			List<NodeInterface> users = createTestNodes(User.class, 2);
 			User user1 = (User) users.get(0);
 			final User user2 = (User) users.get(1);
 			
@@ -285,7 +286,7 @@ public class AccessControlTest extends StructrTest {
 			
 			// Let user 2 search
 			SecurityContext user2Context = SecurityContext.getInstance(user2, AccessMode.Backend);
-			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+			List<SearchAttribute> searchAttributes = new LinkedList<>();
 			searchAttributes.add(Search.andExactTypeAndSubtypes(type));
 
 			Result result = Services.command(user2Context, SearchNodeCommand.class).execute(searchAttributes);
@@ -320,12 +321,12 @@ public class AccessControlTest extends StructrTest {
 
 		try {
 
-			List<AbstractNode> persons = createTestNodes(Person.class, 1);
+			List<NodeInterface> persons = createTestNodes(Person.class, 1);
 			Person user = (Person) persons.get(0);
 			
 			Class type = TestOne.class;
 			
-			final List<AbstractNode> nodes = createTestNodes(type, 10);
+			final List<NodeInterface> nodes = createTestNodes(type, 10);
 			
 			transactionCommand.execute(new StructrTransaction<Object>() {
 				@Override
@@ -340,7 +341,7 @@ public class AccessControlTest extends StructrTest {
 			});
 
 			SecurityContext publicContext = SecurityContext.getInstance(null, AccessMode.Frontend);
-			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+			List<SearchAttribute> searchAttributes = new LinkedList<>();
 			searchAttributes.add(Search.andExactTypeAndSubtypes(type));
 
 			Result result = Services.command(publicContext, SearchNodeCommand.class).execute(searchAttributes);
@@ -365,12 +366,12 @@ public class AccessControlTest extends StructrTest {
 
 		try {
 
-			List<AbstractNode> persons = createTestNodes(Person.class, 1);
+			List<NodeInterface> persons = createTestNodes(Person.class, 1);
 			Person user = (Person) persons.get(0);
 			
 			Class type = TestOne.class;
 			
-			final List<AbstractNode> nodes = createTestNodes(type, 10);
+			final List<NodeInterface> nodes = createTestNodes(type, 10);
 			
 			transactionCommand.execute(new StructrTransaction<Object>() {
 				@Override

@@ -3,17 +3,17 @@ package org.structr.core.entity.relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.RelType;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.entity.OneToMany;
 import org.structr.core.entity.Principal;
 
 /**
  *
  * @author Christian Morgner
  */
-public class Ownership extends AbstractRelationship<AbstractNode, Principal> {
+public class Ownership extends OneToMany<Principal, AbstractNode> {
 
 	@Override
-	public Class<Principal> getDestinationType() {
+	public Class<Principal> getSourceType() {
 		return Principal.class;
 	}
 
@@ -23,7 +23,7 @@ public class Ownership extends AbstractRelationship<AbstractNode, Principal> {
 	}
 
 	@Override
-	public Class<AbstractNode> getSourceType() {
+	public Class<AbstractNode> getTargetType() {
 		return AbstractNode.class;
 	}
 }

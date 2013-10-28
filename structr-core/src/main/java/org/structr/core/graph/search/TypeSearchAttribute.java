@@ -4,16 +4,17 @@ import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermQuery;
+import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 
 /**
  *
  * @author Christian Morgner
  */
-public class TypeSearchAttribute extends PropertySearchAttribute<String> {
+public class TypeSearchAttribute<S extends GraphObject> extends PropertySearchAttribute<String> {
 
-	public TypeSearchAttribute(Class type, Occur occur, boolean isExactMatch) {
-		super(AbstractNode.type, type.getSimpleName(), occur, isExactMatch);
+	public TypeSearchAttribute(String type, Occur occur, boolean isExactMatch) {
+		super(AbstractNode.type, type, occur, isExactMatch);
 	}
 	
 	@Override

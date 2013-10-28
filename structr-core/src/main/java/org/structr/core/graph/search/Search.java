@@ -43,6 +43,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.lucene.search.BooleanClause.Occur;
+import org.structr.core.GraphObject;
 import org.structr.core.Result;
 
 //~--- classes ----------------------------------------------------------------
@@ -173,28 +174,28 @@ public abstract class Search {
 		return new PropertySearchAttribute(AbstractNode.name, searchString, Occur.SHOULD, false);
 	}
 
-	public static SearchAttribute andName(final String searchString) {
+	public static SearchAttribute<String> andName(final String searchString) {
 		return new PropertySearchAttribute(AbstractNode.name, searchString, Occur.MUST, false);
 	}
 
-	public static <T> SearchAttribute andProperty(final SecurityContext securityContext, final PropertyKey<T> key, final T searchValue) {
+	public static <T> SearchAttribute<T> andProperty(final SecurityContext securityContext, final PropertyKey<T> key, final T searchValue) {
 		return key.getSearchAttribute(securityContext, Occur.MUST, searchValue, false);
 	}
 
-	public static SearchAttribute orExactType(final Class type) {
+	public static SearchAttribute<String> orExactType(final Class type) {
 		return orExactType(type, true);
 	}
 	
-	public static SearchAttribute orExactType(final Class type, boolean isExactMatch) {
-		return new TypeSearchAttribute(type, Occur.SHOULD, isExactMatch);
+	public static SearchAttribute<String> orExactType(final Class type, boolean isExactMatch) {
+		return new TypeSearchAttribute(type.getSimpleName(), Occur.SHOULD, isExactMatch);
 	}
 
-	public static SearchAttribute andExactType(final Class type) {
+	public static SearchAttribute<String> andExactType(final Class type) {
 		return andExactType(type, true);
 	}
 
-	public static SearchAttribute andExactType(final Class type, boolean isExactMatch) {
-		return new TypeSearchAttribute(type, Occur.MUST, isExactMatch);
+	public static SearchAttribute<String> andExactType(final Class type, boolean isExactMatch) {
+		return new TypeSearchAttribute(type.getSimpleName(), Occur.MUST, isExactMatch);
 	}
 
 	public static SearchAttribute andExactRelType(final Class<? extends AbstractRelationship> namedRelation) {
@@ -217,11 +218,11 @@ public abstract class Search {
 		return new PropertySearchAttribute(AbstractNode.uuid, searchString, Occur.MUST, true);
 	}
 
-	public static <T> SearchAttribute andExactProperty(final SecurityContext securityContext, final PropertyKey<T> propertyKey, final T searchValue) {
+	public static <T> SearchAttribute<T> andExactProperty(final SecurityContext securityContext, final PropertyKey<T> propertyKey, final T searchValue) {
 		return propertyKey.getSearchAttribute(securityContext, Occur.MUST, searchValue, true);
 	}
 
-	public static <T> SearchAttribute orExactProperty(final SecurityContext securityContext, final PropertyKey<T> propertyKey, final T searchValue) {
+	public static <T> SearchAttribute<T> orExactProperty(final SecurityContext securityContext, final PropertyKey<T> propertyKey, final T searchValue) {
 		return propertyKey.getSearchAttribute(securityContext, Occur.SHOULD, searchValue, true);
 	}
 

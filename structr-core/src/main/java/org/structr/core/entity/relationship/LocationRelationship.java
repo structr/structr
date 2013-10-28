@@ -2,18 +2,20 @@ package org.structr.core.entity.relationship;
 
 import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.RelType;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.entity.ManyEndpoint;
+import org.structr.core.entity.ManyStartpoint;
+import org.structr.core.entity.ManyToMany;
+import org.structr.core.graph.NodeInterface;
 
 /**
  *
  * @author Christian Morgner
  */
-public class LocationRelationship extends AbstractRelationship<AbstractNode, AbstractNode> {
+public class LocationRelationship extends ManyToMany<NodeInterface, NodeInterface> {
 
 	@Override
-	public Class<AbstractNode> getSourceType() {
-		return AbstractNode.class;
+	public Class<NodeInterface> getSourceType() {
+		return NodeInterface.class;
 	}
 
 	@Override
@@ -22,7 +24,17 @@ public class LocationRelationship extends AbstractRelationship<AbstractNode, Abs
 	}
 
 	@Override
-	public Class<AbstractNode> getDestinationType() {
-		return AbstractNode.class;
+	public Class<NodeInterface> getTargetType() {
+		return NodeInterface.class;
+	}
+
+	@Override
+	public ManyStartpoint<NodeInterface> getSource() {
+		return new ManyStartpoint<>(getRelationshipType());
+	}
+
+	@Override
+	public ManyEndpoint<NodeInterface> getTarget() {
+		return new ManyEndpoint<>(getRelationshipType());
 	}
 }

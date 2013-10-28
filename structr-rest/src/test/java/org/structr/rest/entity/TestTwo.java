@@ -27,7 +27,7 @@ import org.structr.core.property.IntProperty;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.Property;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.property.Endpoints;
+import org.structr.core.property.EndNodes;
 
 /**
  * Another simple entity for the most basic tests.
@@ -40,7 +40,7 @@ public class TestTwo extends AbstractNode {
 	public static final Property<Long> aLong    = new LongProperty("aLong").indexed();
 	public static final Property<Date> aDate    = new ISO8601DateProperty("aDate").indexed();
 	
-	public static final Endpoints<TestOne> testOnes = new Endpoints<TestOne>("test_ones", TestOne.class, RelType.OWNS, true);
+	public static final EndNodes<TestOne> testOnes = new EndNodes<TestOne>("test_ones", TestOne.class, RelType.OWNS, true);
 
 	public static final View publicView = new View(TestTwo.class, PropertyView.Public,
 		name, anInt, aLong, aDate

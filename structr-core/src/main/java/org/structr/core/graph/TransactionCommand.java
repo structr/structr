@@ -34,7 +34,6 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.RetryException;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.property.PropertyKey;
 
 //~--- classes ----------------------------------------------------------------
@@ -58,8 +57,8 @@ import org.structr.core.property.PropertyKey;
 public class TransactionCommand extends NodeServiceCommand {
 
 	private static final Logger logger                                  = Logger.getLogger(TransactionCommand.class.getName());
-	private static final ThreadLocal<TransactionCommand> currentCommand = new ThreadLocal<TransactionCommand>();
-	private static final ThreadLocal<Transaction>        transactions   = new ThreadLocal<Transaction>();
+	private static final ThreadLocal<TransactionCommand> currentCommand = new ThreadLocal<>();
+	private static final ThreadLocal<Transaction>        transactions   = new ThreadLocal<>();
 	private static final MultiSemaphore                  semaphore      = new MultiSemaphore();
 	
 	private ModificationQueue modificationQueue = null;

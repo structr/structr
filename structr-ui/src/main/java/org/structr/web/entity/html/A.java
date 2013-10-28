@@ -31,7 +31,7 @@ import org.structr.common.View;
 import org.structr.core.entity.AbstractNode;
 import org.structr.web.entity.Linkable;
 import org.structr.core.notion.PropertyNotion;
-import org.structr.core.property.Endpoints;
+import org.structr.core.property.EndNodes;
 import org.structr.core.property.EntityIdProperty;
 import org.structr.core.property.End;
 import org.structr.web.common.HtmlProperty;
@@ -52,22 +52,22 @@ public class A extends DOMElement {
 	public static final Property<String>            _hreflang   = new HtmlProperty("hreflang");
 	public static final Property<String>            _type       = new HtmlProperty("type");
   
-	public static final Endpoints<Content> contents    = new Endpoints<Content>("contents", Content.class, RelType.CONTAINS, false);
-	public static final Endpoints<Span>    spans       = new Endpoints<Span>("spans", Span.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final Endpoints<Img>     imgs        = new Endpoints<Img>("imgs", Img.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final Endpoints<Div>     div         = new Endpoints<Div>("div", Div.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final Endpoints<Section> sections    = new Endpoints<Section>("sections", Section.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final Endpoints<P>       ps          = new Endpoints<P>("ps", P.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final Endpoints<H1>      h1s         = new Endpoints<H1>("h1s", H1.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final Endpoints<H2>      h2s         = new Endpoints<H2>("h2s", H2.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final Endpoints<H3>      h3s         = new Endpoints<H3>("h3s", H3.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final Endpoints<H4>      h4s         = new Endpoints<H4>("h4s", H4.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final Endpoints<H5>      h5s         = new Endpoints<H5>("h5s", H5.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final Endpoints<H6>      h6s         = new Endpoints<H6>("h6s", H6.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final Endpoints<Li>      lis         = new Endpoints<Li>("lis", Li.class, RelType.CONTAINS, Direction.INCOMING, false);
+	public static final EndNodes<Content> contents    = new EndNodes<Content>("contents", Content.class, RelType.CONTAINS, false);
+	public static final EndNodes<Span>    spans       = new EndNodes<Span>("spans", Span.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final EndNodes<Img>     imgs        = new EndNodes<Img>("imgs", Img.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final EndNodes<Div>     div         = new EndNodes<Div>("div", Div.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final EndNodes<Section> sections    = new EndNodes<Section>("sections", Section.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final EndNodes<P>       ps          = new EndNodes<P>("ps", P.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final EndNodes<H1>      h1s         = new EndNodes<H1>("h1s", H1.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final EndNodes<H2>      h2s         = new EndNodes<H2>("h2s", H2.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final EndNodes<H3>      h3s         = new EndNodes<H3>("h3s", H3.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final EndNodes<H4>      h4s         = new EndNodes<H4>("h4s", H4.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final EndNodes<H5>      h5s         = new EndNodes<H5>("h5s", H5.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final EndNodes<H6>      h6s         = new EndNodes<H6>("h6s", H6.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final EndNodes<Li>      lis         = new EndNodes<Li>("lis", Li.class, RelType.CONTAINS, Direction.INCOMING, false);
  
-	public static final Endpoints<Div>     divParents  = new Endpoints<Div>("divParents", Div.class, RelType.CONTAINS, Direction.INCOMING, false);
-	public static final Endpoints<P>       pParents    = new Endpoints<P>("pParents", P.class, RelType.CONTAINS, Direction.INCOMING, false);
+	public static final EndNodes<Div>     divParents  = new EndNodes<Div>("divParents", Div.class, RelType.CONTAINS, Direction.INCOMING, false);
+	public static final EndNodes<P>       pParents    = new EndNodes<P>("pParents", P.class, RelType.CONTAINS, Direction.INCOMING, false);
  
 	public static final End<Linkable>    linkable    = new End<Linkable>("linkable", Linkable.class, RelType.LINK, Direction.OUTGOING, new PropertyNotion(AbstractNode.name), true);
 	public static final Property<String>            linkableId  = new EntityIdProperty("linkableId", linkable);

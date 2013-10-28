@@ -25,7 +25,7 @@ import org.neo4j.graphdb.Direction;
 
 import org.structr.web.common.RelType;
 import org.structr.core.entity.LinkedTreeNode;
-import org.structr.core.property.Endpoints;
+import org.structr.core.property.EndNodes;
 import org.structr.core.property.End;
 
 /**
@@ -37,7 +37,7 @@ public class AbstractFile extends LinkedTreeNode {
 
 	public static final End<AbstractFile> previousSibling = new End<>("previousSibling", AbstractFile.class, RelType.CONTAINS_NEXT_SIBLING, Direction.INCOMING, false);
 	public static final End<AbstractFile> nextSibling     = new End<>("nextSibling", AbstractFile.class, RelType.CONTAINS_NEXT_SIBLING, Direction.OUTGOING, false);
-	public static final Endpoints<AbstractFile> children    = new Endpoints<>("children", AbstractFile.class, RelType.CONTAINS, Direction.OUTGOING, true);
+	public static final EndNodes<AbstractFile> children    = new EndNodes<>("children", AbstractFile.class, RelType.CONTAINS, Direction.OUTGOING, true);
 	public static final End<Folder> parent                = new End<>("parent", Folder.class, RelType.CONTAINS, Direction.INCOMING, true);
 
 }

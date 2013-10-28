@@ -134,7 +134,7 @@ public class DoublePropertyTest extends StructrTest {
 			assertEquals(3.141592653589793238, testEntity.getProperty(key));
 			
 			Result<TestFour> result = Services.command(securityContext, SearchRelationshipCommand.class).execute(
-				Search.andExactRelType(EntityContext.getNamedRelation(OneFour.Relation.test_relationships.name())),
+				Search.andExactRelType(OneFour.class),
 				Search.andExactProperty(securityContext, key, 3.141592653589793238)
 			);
 			

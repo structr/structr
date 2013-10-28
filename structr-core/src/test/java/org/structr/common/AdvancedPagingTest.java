@@ -58,6 +58,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.StructrTransaction;
 
 //~--- classes ----------------------------------------------------------------
@@ -93,7 +94,7 @@ public class AdvancedPagingTest extends PagingTest {
 			boolean publicOnly              = false;
 			Class type                      = TestOne.class;
 			int number                      = 20;    // no more than 89 to avoid sort order TestOne-10, TestOne-100 ...
-			final List<AbstractNode> nodes  = this.createTestNodes(type, number);
+			final List<NodeInterface> nodes = this.createTestNodes(type, number);
 			final int offset                = 10;
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
 			
@@ -103,7 +104,7 @@ public class AdvancedPagingTest extends PagingTest {
 				public AbstractNode execute() throws FrameworkException {
 
 					int i                           = offset;
-					for (AbstractNode node : nodes) {
+					for (NodeInterface node : nodes) {
 
 						// System.out.println("Node ID: " + node.getNodeId());
 						String _name = "TestOne-" + i;
@@ -118,7 +119,7 @@ public class AdvancedPagingTest extends PagingTest {
 
 			});
 
-			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+			List<SearchAttribute> searchAttributes = new LinkedList<>();
 
 			searchAttributes.add(Search.andExactTypeAndSubtypes(type));
 
@@ -157,7 +158,7 @@ public class AdvancedPagingTest extends PagingTest {
 			boolean publicOnly              = false;
 			Class type                      = TestOne.class;
 			int number                      = 8;
-			final List<AbstractNode> nodes  = this.createTestNodes(type, number);
+			final List<NodeInterface> nodes = this.createTestNodes(type, number);
 			final int offset                = 0;
 
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
@@ -168,7 +169,7 @@ public class AdvancedPagingTest extends PagingTest {
 				public AbstractNode execute() throws FrameworkException {
 
 					int i                           = offset;
-					for (AbstractNode node : nodes) {
+					for (NodeInterface node : nodes) {
 
 						// System.out.println("Node ID: " + node.getNodeId());
 						String _name = "TestOne-" + i;
@@ -269,7 +270,7 @@ public class AdvancedPagingTest extends PagingTest {
 			boolean publicOnly              = false;
 			Class type                      = TestOne.class;
 			int number                      = 10;
-			final List<AbstractNode> nodes  = this.createTestNodes(type, number);
+			final List<NodeInterface> nodes = this.createTestNodes(type, number);
 			final int offset                = 0;
 
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
@@ -279,8 +280,8 @@ public class AdvancedPagingTest extends PagingTest {
 				@Override
 				public AbstractNode execute() throws FrameworkException {
 
-					int i                           = offset;
-					for (AbstractNode node : nodes) {
+					int i = offset;
+					for (NodeInterface node : nodes) {
 
 						// System.out.println("Node ID: " + node.getNodeId());
 						String _name = "TestOne-" + i;
@@ -338,7 +339,7 @@ public class AdvancedPagingTest extends PagingTest {
 			boolean publicOnly              = false;
 			Class type                      = TestOne.class;
 			int number                      = 8;
-			final List<AbstractNode> nodes  = this.createTestNodes(type, number);
+			final List<NodeInterface> nodes = this.createTestNodes(type, number);
 			final int offset                = 0;
 
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
@@ -349,7 +350,7 @@ public class AdvancedPagingTest extends PagingTest {
 				public AbstractNode execute() throws FrameworkException {
 
 					int i                           = offset;
-					for (AbstractNode node : nodes) {
+					for (NodeInterface node : nodes) {
 
 						// System.out.println("Node ID: " + node.getNodeId());
 						String _name = "TestOne-" + i;

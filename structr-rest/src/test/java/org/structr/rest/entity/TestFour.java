@@ -19,7 +19,7 @@
 package org.structr.rest.entity;
 
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.property.Endpoints;
+import org.structr.core.property.EndNodes;
 import org.structr.core.property.End;
 import org.structr.rest.common.TestRestRelType;
 
@@ -29,8 +29,8 @@ import org.structr.rest.common.TestRestRelType;
  */
 public class TestFour extends AbstractNode {
 	
-	public static final Endpoints<TestOne> manyToManyTestOnes = new Endpoints<TestOne>("manyToManyTestOnes", TestOne.class, TestRestRelType.MANY_TO_MANY, false);
-	public static final Endpoints<TestOne> oneToManyTestOnes  = new Endpoints<TestOne>("oneToManyTestOnes",  TestOne.class, TestRestRelType.ONE_TO_MANY,  true);
+	public static final EndNodes<TestOne> manyToManyTestOnes = new EndNodes<TestOne>("manyToManyTestOnes", TestOne.class, TestRestRelType.MANY_TO_MANY, false);
+	public static final EndNodes<TestOne> oneToManyTestOnes  = new EndNodes<TestOne>("oneToManyTestOnes",  TestOne.class, TestRestRelType.ONE_TO_MANY,  true);
 	
 	public static final End<TestThree>   oneToOneTestThree  = new End<TestThree>("oneToOneTestThree",  TestThree.class, TestRestRelType.ONE_TO_ONE,  false);
 	public static final End<TestThree>   manyToOneTestThree = new End<TestThree>("manyToOneTestThree", TestThree.class, TestRestRelType.MANY_TO_ONE, true);

@@ -4,12 +4,13 @@ import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.RelType;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.entity.OneToMany;
 
 /**
  *
  * @author Christian Morgner
  */
-public class Parentship extends AbstractRelationship<AbstractNode, AbstractNode> {
+public class Parentship extends OneToMany<AbstractNode, AbstractNode> {
 
 	@Override
 	public Class<AbstractNode> getSourceType() {
@@ -22,7 +23,7 @@ public class Parentship extends AbstractRelationship<AbstractNode, AbstractNode>
 	}
 
 	@Override
-	public Class<AbstractNode> getDestinationType() {
+	public Class<AbstractNode> getTargetType() {
 		return AbstractNode.class;
 	}
 

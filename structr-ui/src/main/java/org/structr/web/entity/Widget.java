@@ -30,7 +30,7 @@ import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.property.Endpoints;
+import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
 import org.structr.web.Importer;
@@ -49,7 +49,7 @@ public class Widget extends AbstractNode implements Taggable {
 	private static final ThreadLocalMatcher		threadLocalTemplateMatcher	= new ThreadLocalMatcher("\\[[a-zA-Z]+\\]");
 	public static final Property<String>		source				= new StringProperty("source");
 	public static final Property<String>		description			= new StringProperty("description");
-	public static final Endpoints<Image>	pictures				= new Endpoints<>("pictures", Image.class, RelType.PICTURE_OF, Direction.INCOMING, new UiNotion(), true);
+	public static final EndNodes<Image>	pictures				= new EndNodes<>("pictures", Image.class, RelType.PICTURE_OF, Direction.INCOMING, new UiNotion(), true);
 	
 	public static final org.structr.common.View uiView = new org.structr.common.View(User.class, PropertyView.Ui,
 		type, name, source, description, pictures, tags

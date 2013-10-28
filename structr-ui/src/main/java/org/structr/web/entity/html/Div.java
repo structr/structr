@@ -24,7 +24,7 @@ import org.structr.web.entity.dom.DOMElement;
 import org.neo4j.graphdb.Direction;
 
 import org.structr.web.common.RelType;
-import org.structr.core.property.Endpoints;
+import org.structr.core.property.EndNodes;
 import org.structr.web.entity.dom.Content;
 
 //~--- classes ----------------------------------------------------------------
@@ -35,31 +35,31 @@ import org.structr.web.entity.dom.Content;
  */
 public class Div extends DOMElement {
 
-	public static final Endpoints<Content>  contents  = new Endpoints<Content>("contents", Content.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final Endpoints<Div>      divs      = new Endpoints<Div>("divs", Div.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final Endpoints<Span>     spans     = new Endpoints<Span>("spans", Span.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final Endpoints<B>        bs        = new Endpoints<B>("bs", B.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final Endpoints<P>        ps        = new Endpoints<P>("ps", P.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final Endpoints<Label>    labels    = new Endpoints<Label>("labels", Label.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final Endpoints<Textarea> textareas = new Endpoints<Textarea>("textareas", Textarea.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final Endpoints<Input>    inputs    = new Endpoints<Input>("inputs", Input.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final Endpoints<Address>  addresss  = new Endpoints<Address>("addresss", Address.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final Endpoints<Header>   headers   = new Endpoints<Header>("headers", Header.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final Endpoints<Footer>   footers   = new Endpoints<Footer>("footers", Footer.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final Endpoints<Br>       brs       = new Endpoints<Br>("brs", Br.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final Endpoints<Hr>       hrs       = new Endpoints<Hr>("hrs", Hr.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final Endpoints<A>        as        = new Endpoints<A>("as", A.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final Endpoints<H1>       h1s       = new Endpoints<H1>("h1s", H1.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final Endpoints<H2>       h2s       = new Endpoints<H2>("h2s", H2.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final Endpoints<H3>       h3s       = new Endpoints<H3>("h3s", H3.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final Endpoints<H4>       h4s       = new Endpoints<H4>("h4s", H4.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final Endpoints<H5>       h5s       = new Endpoints<H5>("h5s", H5.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final Endpoints<H6>       h6s       = new Endpoints<H6>("h6s", H6.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final Endpoints<Img>      imgs      = new Endpoints<Img>("imgs", Img.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final Endpoints<Ul>       uls       = new Endpoints<Ul>("uls", Ul.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final Endpoints<Ol>       ols       = new Endpoints<Ol>("ols", Ol.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final Endpoints<Form>     forms     = new Endpoints<Form>("forms", Form.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final Endpoints<Script>   scripts   = new Endpoints<Script>("scripts", Script.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final Endpoints<Table>    tables    = new Endpoints<Table>("tables", Table.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final Endpoints<Pre>      pres      = new Endpoints<Pre>("pres", Pre.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final EndNodes<Content>  contents  = new EndNodes<Content>("contents", Content.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final EndNodes<Div>      divs      = new EndNodes<Div>("divs", Div.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final EndNodes<Span>     spans     = new EndNodes<Span>("spans", Span.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final EndNodes<B>        bs        = new EndNodes<B>("bs", B.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final EndNodes<P>        ps        = new EndNodes<P>("ps", P.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final EndNodes<Label>    labels    = new EndNodes<Label>("labels", Label.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final EndNodes<Textarea> textareas = new EndNodes<Textarea>("textareas", Textarea.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final EndNodes<Input>    inputs    = new EndNodes<Input>("inputs", Input.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final EndNodes<Address>  addresss  = new EndNodes<Address>("addresss", Address.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final EndNodes<Header>   headers   = new EndNodes<Header>("headers", Header.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final EndNodes<Footer>   footers   = new EndNodes<Footer>("footers", Footer.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final EndNodes<Br>       brs       = new EndNodes<Br>("brs", Br.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final EndNodes<Hr>       hrs       = new EndNodes<Hr>("hrs", Hr.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final EndNodes<A>        as        = new EndNodes<A>("as", A.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final EndNodes<H1>       h1s       = new EndNodes<H1>("h1s", H1.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final EndNodes<H2>       h2s       = new EndNodes<H2>("h2s", H2.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final EndNodes<H3>       h3s       = new EndNodes<H3>("h3s", H3.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final EndNodes<H4>       h4s       = new EndNodes<H4>("h4s", H4.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final EndNodes<H5>       h5s       = new EndNodes<H5>("h5s", H5.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final EndNodes<H6>       h6s       = new EndNodes<H6>("h6s", H6.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final EndNodes<Img>      imgs      = new EndNodes<Img>("imgs", Img.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final EndNodes<Ul>       uls       = new EndNodes<Ul>("uls", Ul.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final EndNodes<Ol>       ols       = new EndNodes<Ol>("ols", Ol.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final EndNodes<Form>     forms     = new EndNodes<Form>("forms", Form.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final EndNodes<Script>   scripts   = new EndNodes<Script>("scripts", Script.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final EndNodes<Table>    tables    = new EndNodes<Table>("tables", Table.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final EndNodes<Pre>      pres      = new EndNodes<Pre>("pres", Pre.class, RelType.CONTAINS, Direction.OUTGOING, false);
 }

@@ -18,7 +18,8 @@
  */
 package org.structr.core.entity;
 
-import org.structr.core.property.End;
+import org.structr.core.property.Property;
+import org.structr.core.property.StartNode;
 
 /**
  * A simple entity for the most basic tests.
@@ -32,5 +33,5 @@ import org.structr.core.property.End;
  */
 public class TestThree extends AbstractNode {
 	
-	public static final End<TestOne> testOne = new End<TestOne>("testOne", OneThree.class, false, Relation.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED);
+	public static final Property<TestOne> testOne = new StartNode<>("testOne", OneThree.class);
 }

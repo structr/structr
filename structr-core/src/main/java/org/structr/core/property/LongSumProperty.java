@@ -30,10 +30,10 @@ import org.structr.core.GraphObject;
  */
 public class LongSumProperty extends AbstractReadOnlyProperty<Long> {
 
-	private Endpoints<?, ?> collectionProperty = null;
+	private EndNodes<?, ?> collectionProperty = null;
 	private Property<Long> valueProperty                = null;
 	
-	public LongSumProperty(String name, Endpoints<?, ?> collectionProperty, Property<Long> valueProperty, Long defaultValue) {
+	public LongSumProperty(String name, EndNodes<?, ?> collectionProperty, Property<Long> valueProperty, Long defaultValue) {
 		
 		super(name, defaultValue);
 		

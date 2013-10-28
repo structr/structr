@@ -175,8 +175,8 @@ public class EntityNotionProperty<S extends GraphObject, T> extends Property<T> 
 	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occur occur, T searchValue, boolean exactMatch) {
 		
 		SourceSearchAttribute attr            = new SourceSearchAttribute(occur);
-		Set<GraphObject> intersectionResult   = new LinkedHashSet<GraphObject>();
-		End entityProperty         = (End)base;
+		Set<GraphObject> intersectionResult   = new LinkedHashSet<>();
+//		End entityProperty                    = (End)base;
 		boolean alreadyAdded                  = false;
 		
 		try {
@@ -200,20 +200,20 @@ public class EntityNotionProperty<S extends GraphObject, T> extends Property<T> 
 								if (!alreadyAdded) {
 
 									// the first result is the basis of all subsequent intersections
-									intersectionResult.addAll(entityProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
+//									intersectionResult.addAll(entityProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
 
 									// the next additions are intersected with this one
 									alreadyAdded = true;
 
 								} else {
 
-									intersectionResult.retainAll(entityProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
+//									intersectionResult.retainAll(entityProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
 								}
 
 								break;
 
 							case SHOULD:
-								intersectionResult.addAll(entityProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
+//								intersectionResult.addAll(entityProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
 								break;
 
 							case MUST_NOT:
@@ -232,7 +232,7 @@ public class EntityNotionProperty<S extends GraphObject, T> extends Property<T> 
 					// loose search behaves differently, all results must be combined
 					for (AbstractNode node : result.getResults()) {
 
-						intersectionResult.addAll(entityProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
+//						intersectionResult.addAll(entityProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
 					}
 				}
 

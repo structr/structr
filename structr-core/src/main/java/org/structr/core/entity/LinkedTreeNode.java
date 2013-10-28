@@ -27,6 +27,7 @@ import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.helpers.collection.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
+import org.structr.core.entity.relationship.ListSibling;
 import org.structr.core.entity.relationship.TreeChild;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
@@ -48,13 +49,13 @@ public abstract class LinkedTreeNode<T extends LinkedTreeNode> extends LinkedLis
 	public static final PropertyKey<Integer> positionProperty = new IntProperty("position");
 	
 	public T treeGetParent(final Class<? extends TreeChild> type) {
-		
-		for (TreeChild rel : getIncomingRelationships(type)) {
+
+		TreeChild prevRel = getIncomingRelationship(type);
+		if (prevRel != null) {
 			
-			return (T)rel.getStartNode();
+			return (T)prevRel.getStartNode();
 		}
 
-		
 		return null;
 	}
 
@@ -71,11 +72,11 @@ public abstract class LinkedTreeNode<T extends LinkedTreeNode> extends LinkedLis
 				properties.put(positionProperty, treeGetChildCount(type));
 
 				// create child relationship
-				linkNodes(type, LinkedTreeNode.this, childElement, properties);
+				linkNodes(ListSibling.class, LinkedTreeNode.this, childElement, properties);
 				
 				// add new node to linked list
 				if (lastChild != null) {
-					LinkedTreeNode.super.listInsertAfter(getListKey(type), lastChild, childElement);
+					LinkedTreeNode.super.listInsertAfter(ListSibling.class, lastChild, childElement);
 				}
 
 				return null;
@@ -115,7 +116,7 @@ public abstract class LinkedTreeNode<T extends LinkedTreeNode> extends LinkedLis
 				}
 
 				// insert new node in linked list
-				LinkedTreeNode.super.listInsertBefore(getListKey(type), refChild, newChild);
+				LinkedTreeNode.super.listInsertBefore(ListSibling.class, refChild, newChild);
 
 				
 				return null;
@@ -154,7 +155,7 @@ public abstract class LinkedTreeNode<T extends LinkedTreeNode> extends LinkedLis
 				}
 
 				// insert new node in linked list
-				LinkedTreeNode.super.listInsertAfter(getListKey(type), refChild, newChild);
+				LinkedTreeNode.super.listInsertAfter(ListSibling.class, refChild, newChild);
 				
 				return null;
 			}
@@ -170,7 +171,7 @@ public abstract class LinkedTreeNode<T extends LinkedTreeNode> extends LinkedLis
 			public Object execute() throws FrameworkException {
 				
 				// remove element from linked list
-				LinkedTreeNode.super.listRemove(getListKey(type), childToRemove);
+				LinkedTreeNode.super.listRemove(ListSibling.class, childToRemove);
 
 				unlinkNodes(type, LinkedTreeNode.this, childToRemove);
 				
@@ -202,8 +203,8 @@ public abstract class LinkedTreeNode<T extends LinkedTreeNode> extends LinkedLis
 				linkNodes(type, LinkedTreeNode.this, newChild, properties);
 
 				// replace element in linked list as well
-				LinkedTreeNode.super.listInsertBefore(getListKey(type), oldChild, newChild);
-				LinkedTreeNode.super.listRemove(getListKey(type), oldChild);
+				LinkedTreeNode.super.listInsertBefore(ListSibling.class, oldChild, newChild);
+				LinkedTreeNode.super.listRemove(ListSibling.class, oldChild);
 				
 				return null;
 			}
@@ -244,17 +245,12 @@ public abstract class LinkedTreeNode<T extends LinkedTreeNode> extends LinkedLis
 	
 	public int treeGetChildPosition(final Class<? extends TreeChild> type, final T child) {
 		
-		Iterable<? extends TreeChild> rels = child.getIncomingRelationships(type);
-		if (rels != null && rels.iterator().hasNext()) {
-			
-			// node should have only one parent
-			TreeChild rel = rels.iterator().next();
-			
-			Integer pos = rel.getProperty(positionProperty);
-			if (pos != null) {
-				
-				return pos.intValue();
-			}
+		TreeChild rel = child.getIncomingRelationship(type);
+
+		Integer pos = rel.getProperty(positionProperty);
+		if (pos != null) {
+
+			return pos.intValue();
 		}
 		
 		return -1;
@@ -262,7 +258,7 @@ public abstract class LinkedTreeNode<T extends LinkedTreeNode> extends LinkedLis
 	
 	public List<T> treeGetChildren(final Class<? extends TreeChild> type) {
 		
-		List<T> children = new ArrayList<T>();
+		List<T> children = new ArrayList<>();
 		
 		for (TreeChild rel : treeGetChildRelationships(type)) {
 			
@@ -332,29 +328,5 @@ public abstract class LinkedTreeNode<T extends LinkedTreeNode> extends LinkedLis
 			}
 
 		});
-	}
-	
-	/**
-	 * Creates a list key from the give tree key by appending a fixed string
-	 */
-	public Class<? extends TreeChild> getListKey(final Class<? extends TreeChild> type) {
-		
-		final TreeChild rel            = getRelationshipForType(type);
-		final RelationshipType treeRel = rel.getRelationshipType();
-		
-		TreeChild x = new TreeChild() {	
-
-			@Override
-			public RelationshipType getRelationshipType() {
-				return DynamicRelationshipType.withName(treeRel.name().concat(LIST_KEY_SUFFIX));
-			}
-
-			@Override
-			public Class reverse() {
-				return this.getClass();
-			}
-		};
-		
-		return x.getClass();
 	}
 }

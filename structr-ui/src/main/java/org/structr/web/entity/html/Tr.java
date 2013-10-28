@@ -24,7 +24,7 @@ import org.structr.web.entity.dom.DOMElement;
 import org.neo4j.graphdb.Direction;
 
 import org.structr.web.common.RelType;
-import org.structr.core.property.Endpoints;
+import org.structr.core.property.EndNodes;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -33,6 +33,6 @@ import org.structr.core.property.Endpoints;
  */
 public class Tr extends DOMElement {
 
-	public static final Endpoints<Td> tds = new Endpoints<Td>("tds", Td.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final Endpoints<Th> ths = new Endpoints<Th>("ths", Th.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final EndNodes<Td> tds = new EndNodes<Td>("tds", Td.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final EndNodes<Th> ths = new EndNodes<Th>("ths", Th.class, RelType.CONTAINS, Direction.OUTGOING, false);
 }

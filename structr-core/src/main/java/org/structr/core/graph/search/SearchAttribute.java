@@ -34,7 +34,7 @@ public abstract class SearchAttribute<T> {
 
 	public static final String WILDCARD = "*";
 
-	private List<GraphObject> result = new LinkedList<GraphObject>();
+	private List<GraphObject> result = new LinkedList<>();
 	private PropertyKey<T> key       = null;
 	private Occur occur              = null;
 	private T value                  = null;

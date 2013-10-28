@@ -55,6 +55,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.StructrTransaction;
 
 //~--- classes ----------------------------------------------------------------
@@ -132,7 +133,7 @@ public class PagingTest extends StructrTest {
 			Class type                      = TestOne.class;
 			int number                      = 89;    // no more than 89 to avoid sort order TestOne-10, TestOne-100 ...
 			final int offset                = 10;
-			final List<AbstractNode> nodes  = this.createTestNodes(type, number);
+			final List<NodeInterface> nodes = this.createTestNodes(type, number);
 
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
 			
@@ -142,7 +143,7 @@ public class PagingTest extends StructrTest {
 				public AbstractNode execute() throws FrameworkException {
 
 					int i                           = offset;
-					for (AbstractNode node : nodes) {
+					for (NodeInterface node : nodes) {
 
 						// System.out.println("Node ID: " + node.getNodeId());
 						String _name = "TestOne-" + i;

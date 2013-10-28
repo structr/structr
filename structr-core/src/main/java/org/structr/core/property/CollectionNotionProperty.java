@@ -206,8 +206,8 @@ public class CollectionNotionProperty<S extends GraphObject, T> extends Property
 	public SearchAttribute getSearchAttribute(SecurityContext securityContext, BooleanClause.Occur occur, List<T> searchValues, boolean exactMatch) {
 		
 		SourceSearchAttribute attr            = new SourceSearchAttribute(occur);
-		Set<GraphObject> intersectionResult   = new LinkedHashSet<GraphObject>();
-		Endpoints collectionProperty = (Endpoints)base;
+		Set<GraphObject> intersectionResult   = new LinkedHashSet<>();
+		EndNodes collectionProperty = (EndNodes)base;
 		boolean alreadyAdded                  = false;
 	
 		try {
@@ -245,20 +245,20 @@ public class CollectionNotionProperty<S extends GraphObject, T> extends Property
 									if (!alreadyAdded) {
 
 										// the first result is the basis of all subsequent intersections
-										intersectionResult.addAll(collectionProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
+//										intersectionResult.addAll(collectionProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
 
 										// the next additions are intersected with this one
 										alreadyAdded = true;
 
 									} else {
 
-										intersectionResult.retainAll(collectionProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
+//										intersectionResult.retainAll(collectionProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
 									}
 
 									break;
 
 								case SHOULD:
-									intersectionResult.addAll(collectionProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
+//									intersectionResult.addAll(collectionProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
 									break;
 
 								case MUST_NOT:
@@ -277,7 +277,7 @@ public class CollectionNotionProperty<S extends GraphObject, T> extends Property
 						// loose search behaves differently, all results must be combined
 						for (AbstractNode node : result.getResults()) {
 
-							intersectionResult.addAll(collectionProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
+//							intersectionResult.addAll(collectionProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
 						}
 
 					}
@@ -292,7 +292,7 @@ public class CollectionNotionProperty<S extends GraphObject, T> extends Property
 					
 				} else {
 
-					attr.setResult(new LinkedList<GraphObject>(intersectionResult));
+					attr.setResult(new LinkedList<>(intersectionResult));
 				}
 				
 			} else {

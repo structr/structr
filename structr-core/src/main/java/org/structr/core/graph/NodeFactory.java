@@ -38,7 +38,6 @@ import java.util.logging.Logger;
 import org.structr.core.module.ModuleService;
 import org.neo4j.gis.spatial.indexprovider.SpatialRecordHits;
 import org.structr.common.AccessControllable;
-import org.structr.core.Incoming;
 import org.structr.core.entity.relationship.LocationRelationship;
 
 //~--- classes ----------------------------------------------------------------
@@ -55,7 +54,7 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 
 	//~--- fields ---------------------------------------------------------
 
-	private Map<Class, Constructor<T>> constructors = new LinkedHashMap<Class, Constructor<T>>();
+	private Map<Class, Constructor<T>> constructors = new LinkedHashMap<>();
 
 	//~--- constructors ---------------------------------------------------
 
@@ -214,7 +213,7 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 		final SecurityContext securityContext = factoryProfile.getSecurityContext();
 		final boolean includeDeletedAndHidden = factoryProfile.includeDeletedAndHidden();
 		final boolean publicOnly              = factoryProfile.publicOnly();
-		List<T> nodes                         = new LinkedList<T>();
+		List<T> nodes                         = new LinkedList<>();
 		int size                              = spatialRecordHits.size();
 		int position                          = 0;
 		int count                             = 0;
@@ -233,7 +232,7 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 				// Check is done in createNodeWithType already, so we don't have to do it again
 				if (n != null) {    // && isReadable(securityContext, n, includeDeletedAndHidden, publicOnly)) {
 
-					List<T> nodesAt = getNodesAt(n);
+					List<T> nodesAt = (List<T>)getNodesAt(n);
 
 					size += nodesAt.size();
 
@@ -272,18 +271,22 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 	 * @param locationNode
 	 * @return
 	 */
-	protected List<T> getNodesAt(final T locationNode) {
+	protected List<NodeInterface> getNodesAt(final NodeInterface locationNode) {
 
-		List<T> nodes = new LinkedList<T>();
+		final List<NodeInterface> nodes           = new LinkedList<>();
+		final Iterable<LocationRelationship> rels = locationNode.getRelationships(LocationRelationship.class);
 
-		for (Incoming rel : locationNode.getIncomingRelationships(LocationRelationship.class)) {
-
-			T startNode = rel.getStartNode();
+		if (rels != null) {
 			
-			nodes.add(startNode);
-			
-			// add more nodes which are "at" this one
-			nodes.addAll(getNodesAt(startNode));
+			for (LocationRelationship rel : rels) {
+
+				NodeInterface startNode = rel.getStartNode();
+
+				nodes.add(startNode);
+
+				// add more nodes which are "at" this one
+				nodes.addAll(getNodesAt(startNode));
+			}
 		}
 
 		return nodes;

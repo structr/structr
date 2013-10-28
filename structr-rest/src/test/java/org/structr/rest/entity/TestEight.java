@@ -26,7 +26,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.notion.PropertyNotion;
 import org.structr.core.property.CollectionNotionProperty;
-import org.structr.core.property.Endpoints;
+import org.structr.core.property.EndNodes;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
@@ -38,10 +38,10 @@ import org.structr.rest.common.TestRestRelType;
  */
 public class TestEight extends AbstractNode {
 
-	public static final Endpoints<TestSix>  testSixs            = new Endpoints<TestSix>("testSixs", TestSix.class, TestRestRelType.HAS, Direction.INCOMING, false);
+	public static final EndNodes<TestSix>  testSixs            = new EndNodes<TestSix>("testSixs", TestSix.class, TestRestRelType.HAS, Direction.INCOMING, false);
 	public static final Property<List<String>>       testSixIds          = new CollectionNotionProperty("testSixIds", testSixs, new PropertyNotion(GraphObject.uuid));
 	        
-	public static final Endpoints<TestNine> testNines           = new Endpoints<TestNine>("testNines", TestNine.class, TestRestRelType.HAS, Direction.INCOMING, false);
+	public static final EndNodes<TestNine> testNines           = new EndNodes<TestNine>("testNines", TestNine.class, TestRestRelType.HAS, Direction.INCOMING, false);
 	public static final Property<List<String>>       testNineIds         = new CollectionNotionProperty("testNineIds", testNines, new PropertyNotion(GraphObject.uuid));
 	public static final Property<List<String>>       testNinePostalCodes = new CollectionNotionProperty("testNinePostalCodes", testNines, new PropertyNotion(TestNine.postalCode));
 	

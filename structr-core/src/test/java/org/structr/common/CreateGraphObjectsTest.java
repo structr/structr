@@ -52,6 +52,7 @@ import org.structr.core.entity.TestSeven;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.StringProperty;
 import org.structr.core.entity.TestTwo;
+import org.structr.core.graph.NodeInterface;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -160,9 +161,9 @@ public class CreateGraphObjectsTest extends StructrTest {
 
 		try {
 
-			List<AbstractNode> nodes       = createTestNodes(GenericNode.class, 2);
-			final AbstractNode startNode   = nodes.get(0);
-			final AbstractNode endNode     = nodes.get(1);
+			List<NodeInterface> nodes      = createTestNodes(GenericNode.class, 2);
+			final NodeInterface startNode  = nodes.get(0);
+			final NodeInterface endNode    = nodes.get(1);
 			final RelationshipType relType = RelType.IS_AT;
 
 			assertTrue(startNode != null);
@@ -349,9 +350,9 @@ public class CreateGraphObjectsTest extends StructrTest {
 
 							logger.log(Level.INFO, "Creating relationship of type {0}", type);
 
-							List<AbstractNode> nodes       = createTestNodes(GenericNode.class, 2);
-							final AbstractNode startNode   = nodes.get(0);
-							final AbstractNode endNode     = nodes.get(1);
+							List<NodeInterface> nodes      = createTestNodes(GenericNode.class, 2);
+							final NodeInterface startNode  = nodes.get(0);
+							final NodeInterface endNode    = nodes.get(1);
 							final RelationshipType relType = RelType.IS_AT;
 							AbstractRelationship rel       = (AbstractRelationship) createRelationshipCommand.execute(startNode, endNode, relType);
 
@@ -391,9 +392,9 @@ public class CreateGraphObjectsTest extends StructrTest {
 
 		try {
 
-			List<AbstractNode> nodes       = createTestNodes(GenericNode.class, 2);
-			final AbstractNode startNode   = nodes.get(0);
-			final AbstractNode endNode     = nodes.get(1);
+			List<NodeInterface> nodes      = createTestNodes(GenericNode.class, 2);
+			final NodeInterface startNode  = nodes.get(0);
+			final NodeInterface endNode    = nodes.get(1);
 			final RelationshipType relType = RelType.IS_AT;
 			final PropertyMap props        = new PropertyMap();
 

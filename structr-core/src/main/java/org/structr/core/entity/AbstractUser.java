@@ -95,10 +95,9 @@ public abstract class AbstractUser extends Person implements Principal {
 	@Override
 	public List<Principal> getParents() {
 
-		List<Principal> parents         = new LinkedList<Principal>();
-		Iterable<Parentship> parentRels = getIncomingRelationships(Parentship.class);
+		List<Principal> parents         = new LinkedList<>();
 
-		for (AbstractRelationship rel : parentRels) {
+		for (Parentship rel : getRelationships(Parentship.class)) {
 
 			NodeInterface node = rel.getStartNode();
 

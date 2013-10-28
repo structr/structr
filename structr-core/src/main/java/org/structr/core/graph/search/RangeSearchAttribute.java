@@ -36,13 +36,13 @@ import org.structr.core.property.PropertyKey;
  * @author Christian Morgner
  * @author Axel Morgner
  */
-public class RangeSearchAttribute<T> extends SearchAttribute {
+public class RangeSearchAttribute<T> extends SearchAttribute<T> {
 	
 	private static final Logger logger = Logger.getLogger(RangeSearchAttribute.class.getName());
 
 	private PropertyKey<T> searchKey = null;
-	private T rangeStart = null;
-	private T rangeEnd = null;
+	private T rangeStart             = null;
+	private T rangeEnd               = null;
 
 	public RangeSearchAttribute(final PropertyKey<T> searchKey, final T rangeStart, final T rangeEnd, final Occur occur) {
 
@@ -87,15 +87,8 @@ public class RangeSearchAttribute<T> extends SearchAttribute {
 	}
 
 	@Override
-	public String getValue() {
-		
-		Query query = getQuery();
-		if (query != null) {
-			
-			return getQuery().toString();
-		}
-		
-		return "";
+	public T getValue() {
+		return null;
 	}
 
 	@Override
@@ -105,7 +98,14 @@ public class RangeSearchAttribute<T> extends SearchAttribute {
 
 	@Override
 	public String getStringValue() {
-		return null;
+		
+		Query query = getQuery();
+		if (query != null) {
+			
+			return getQuery().toString();
+		}
+		
+		return "";
 	}
 
 	@Override

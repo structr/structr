@@ -134,7 +134,7 @@ public class IntegerPropertyTest extends StructrTest {
 			assertEquals((Integer)2345, (Integer)testEntity.getProperty(key));
 			
 			Result<TestFour> result = Services.command(securityContext, SearchRelationshipCommand.class).execute(
-				Search.andExactRelType(EntityContext.getNamedRelation(OneFour.Relation.test_relationships.name())),
+				Search.andExactRelType(OneFour.class),
 				Search.andExactProperty(securityContext, key, 2345)
 			);
 			

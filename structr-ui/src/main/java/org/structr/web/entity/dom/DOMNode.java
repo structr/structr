@@ -67,7 +67,7 @@ import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchNodeCommand;
-import org.structr.core.property.Endpoints;
+import org.structr.core.property.EndNodes;
 import org.structr.core.property.End;
 import org.structr.core.property.PropertyKey;
 import org.structr.web.common.Function;
@@ -140,10 +140,10 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 	protected static final Map<String, Function<String, String>> functions  = new LinkedHashMap<>();
 	
-	public static final Endpoints<DOMNode> children                = new Endpoints<DOMNode>("children", DOMNode.class, RelType.CONTAINS,              Direction.OUTGOING, true);
+	public static final EndNodes<DOMNode> children                = new EndNodes<DOMNode>("children", DOMNode.class, RelType.CONTAINS,              Direction.OUTGOING, true);
 	public static final CollectionIdProperty childrenIds                    = new CollectionIdProperty("childrenIds", children);
 
-	public static final Endpoints<DOMNode> siblings                = new Endpoints<DOMNode>("siblings", DOMNode.class, RelType.CONTAINS_NEXT_SIBLING, Direction.OUTGOING, true);
+	public static final EndNodes<DOMNode> siblings                = new EndNodes<DOMNode>("siblings", DOMNode.class, RelType.CONTAINS_NEXT_SIBLING, Direction.OUTGOING, true);
 	public static final CollectionIdProperty siblingsIds                    = new CollectionIdProperty("siblingIds", siblings);
 
 	public static final End<DOMNode> parent                      = new End<DOMNode>("parent", DOMNode.class, RelType.CONTAINS, Direction.INCOMING, false);

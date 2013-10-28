@@ -2,7 +2,7 @@ package org.structr.core.entity.relationship;
 
 import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.RelType;
-import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.entity.OneToMany;
 import org.structr.core.entity.PropertyAccess;
 import org.structr.core.entity.ResourceAccess;
 
@@ -10,7 +10,7 @@ import org.structr.core.entity.ResourceAccess;
  *
  * @author Christian Morgner
  */
-public class Access extends AbstractRelationship<ResourceAccess, PropertyAccess> {
+public class Access extends OneToMany<ResourceAccess, PropertyAccess> {
 
 	@Override
 	public Class<ResourceAccess> getSourceType() {
@@ -23,7 +23,7 @@ public class Access extends AbstractRelationship<ResourceAccess, PropertyAccess>
 	}
 
 	@Override
-	public Class<PropertyAccess> getDestinationType() {
+	public Class<PropertyAccess> getTargetType() {
 		return PropertyAccess.class;
 	}
 

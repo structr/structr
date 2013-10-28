@@ -50,9 +50,8 @@ import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.notion.Notion;
 import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.BooleanProperty;
-import org.structr.core.property.Endpoints;
+import org.structr.core.property.EndNodes;
 import org.structr.core.property.DoubleProperty;
-import org.structr.core.property.End;
 import org.structr.core.property.ISO8601DateProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.LongProperty;
@@ -60,6 +59,7 @@ import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
+import scala.collection.script.End;
 
 /**
  *
@@ -100,9 +100,9 @@ public class PropertyDefinition<T> extends AbstractNode implements PropertyKey<T
 	);
 	
 	// ----- private members -----
-	private static final Map<String, Map<String, PropertyDefinition>> dynamicTypes = new ConcurrentHashMap<String, Map<String, PropertyDefinition>>();
-	private static final Map<String, Class<? extends PropertyKey>> delegateMap     = new LinkedHashMap<String, Class<? extends PropertyKey>>();
-	private List<PropertyValidator> validators                                     = new LinkedList<PropertyValidator>();
+	private static final Map<String, Map<String, PropertyDefinition>> dynamicTypes = new ConcurrentHashMap<>();
+	private static final Map<String, Class<? extends PropertyKey>> delegateMap     = new LinkedHashMap<>();
+	private List<PropertyValidator> validators                                     = new LinkedList<>();
 	private Class declaringClass                                                   = null;
 	private PropertyKey<T> delegate                                                = null;
 
@@ -115,8 +115,8 @@ public class PropertyDefinition<T> extends AbstractNode implements PropertyKey<T
 		delegateMap.put("Double",     DoubleProperty.class);
 		delegateMap.put("Boolean",    BooleanProperty.class);
 		delegateMap.put("Date",       ISO8601DateProperty.class);
-		delegateMap.put("Collection", Endpoints.class);
-		delegateMap.put("Entity",     End.class);
+//		delegateMap.put("Collection", EndNodes.class);
+//		delegateMap.put("Entity",     End.class);
 	}
 	
 	public static void clearPropertyDefinitions() {
@@ -408,7 +408,7 @@ public class PropertyDefinition<T> extends AbstractNode implements PropertyKey<T
 				
 				if (keyClass != null) {
 
-					if (Endpoints.class.isAssignableFrom(keyClass) || End.class.isAssignableFrom(keyClass)) {
+					if (EndNodes.class.isAssignableFrom(keyClass) || End.class.isAssignableFrom(keyClass)) {
 					
 						try {
 

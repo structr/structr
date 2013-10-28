@@ -34,7 +34,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import static org.structr.common.RelType.SECURITY;
+import org.structr.common.RelType;
 import org.structr.core.entity.Security;
 
 //~--- classes ----------------------------------------------------------------
@@ -102,7 +102,7 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 			}
 
 			// 3rd: Try security relationship directly
-			if (newRel == null && relClass == null && SECURITY.name().equals(relationship.getType().name())) {
+			if (newRel == null && relClass == null && RelType.SECURITY.name().equals(relationship.getType().name())) {
 				
 				relClass = (Class) Security.class;
 

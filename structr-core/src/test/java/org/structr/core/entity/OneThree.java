@@ -2,7 +2,6 @@ package org.structr.core.entity;
 
 import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.RelType;
-import org.structr.core.entity.test.OneToOne;
 
 /**
  *
@@ -21,7 +20,7 @@ public class OneThree extends OneToOne<TestOne, TestThree> {
 	}
 
 	@Override
-	public Class<TestThree> getDestinationType() {
+	public Class<TestThree> getTargetType() {
 		return TestThree.class;
 	}
 }

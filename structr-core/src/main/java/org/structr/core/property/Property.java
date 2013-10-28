@@ -58,7 +58,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	private static final Logger logger             = Logger.getLogger(Property.class.getName());
 	private static final Pattern rangeQueryPattern = Pattern.compile("\\[(.+) TO (.+)\\]");
 	
-	protected List<PropertyValidator<T>> validators        = new LinkedList<PropertyValidator<T>>();
+	protected List<PropertyValidator<T>> validators        = new LinkedList<>();
 	protected Class<? extends GraphObject> declaringClass  = null;
 	protected T defaultValue                               = null;
 	protected boolean readOnly                             = false;
@@ -73,8 +73,8 @@ public abstract class Property<T> implements PropertyKey<T> {
 
 	private boolean requiresSynchronization                = false;
 	
-	protected Set<RelationshipIndex> relationshipIndices   = new LinkedHashSet<RelationshipIndex>();
-	protected Set<NodeIndex> nodeIndices                   = new LinkedHashSet<NodeIndex>();
+	protected Set<RelationshipIndex> relationshipIndices   = new LinkedHashSet<>();
+	protected Set<NodeIndex> nodeIndices                   = new LinkedHashSet<>();
 
 	protected Property(String name) {
 		this(name, name);
@@ -241,7 +241,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	}
 	
 	@Override
-	public void setDeclaringClass(Class<? extends GraphObject> declaringClass) {
+	public void setDeclaringClass(Class declaringClass) {
 		this.declaringClass = declaringClass;
 	}
 	
@@ -250,7 +250,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	}
 	
 	@Override
-	public Class<? extends GraphObject> getDeclaringClass() {
+	public Class getDeclaringClass() {
 		return declaringClass;
 	}
 
@@ -427,7 +427,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	@Override
 	public List<SearchAttribute> extractSearchableAttribute(SecurityContext securityContext, HttpServletRequest request, boolean looseSearch) throws FrameworkException {
 					
-		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+		List<SearchAttribute> searchAttributes = new LinkedList<>();
 		String searchValue                     = request.getParameter(jsonName());
 		if (searchValue != null) {
 
