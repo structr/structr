@@ -359,8 +359,10 @@ function connect() {
                             // Change icon
                             $.each(entity.syncedNodes, function(i, id) {
                                 var el = Structr.node(id);
-                                el.children('img.typeIcon').attr('src', _Elements.icon_comp);
-                                _Entities.removeExpandIcon(el);
+                                if (el && el.length) {
+                                    el.children('img.typeIcon').attr('src', _Elements.icon_comp);
+                                    _Entities.removeExpandIcon(el);
+                                }
                             });
                         }
                     }
