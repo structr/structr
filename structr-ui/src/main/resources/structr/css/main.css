@@ -632,7 +632,7 @@ span.id {
     padding-right: 4px;
 }
 
-.group .user, .folder .file {
+.group .user, .folder .file, .folder .folder {
     margin: 4px 0 4px 11px;    
 }
 

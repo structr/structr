@@ -26,13 +26,8 @@ import org.apache.ftpserver.ftplet.FileSystemView;
 import org.apache.ftpserver.ftplet.FtpException;
 import org.apache.ftpserver.ftplet.FtpFile;
 import org.apache.ftpserver.ftplet.User;
-import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
 import org.structr.core.auth.AuthHelper;
 import org.structr.core.entity.AbstractUser;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
@@ -46,6 +41,8 @@ public class StructrFileSystemView implements FileSystemView {
 
 	private static final Logger logger = Logger.getLogger(StructrFileSystemView.class.getName());
 	private final StructrFtpUser user;
+	
+	private String workingDir = "/";
 
 	public StructrFileSystemView(final User user) {
 		org.structr.web.entity.User structrUser = (org.structr.web.entity.User) AuthHelper.getPrincipalForCredential(AbstractUser.name, user.getName());
@@ -60,37 +57,43 @@ public class StructrFileSystemView implements FileSystemView {
 
 	@Override
 	public FtpFile getWorkingDirectory() throws FtpException {
-		org.structr.web.entity.User structrUser = (org.structr.web.entity.User) AuthHelper.getPrincipalForCredential(AbstractUser.name, user.getName());
-		
-		Folder workingDir = structrUser.getProperty(org.structr.web.entity.User.workingDirectory);
-		if (workingDir == null) {
-			workingDir = structrUser.getProperty(org.structr.web.entity.User.homeDirectory);
+//		org.structr.web.entity.User structrUser = (org.structr.web.entity.User) AuthHelper.getPrincipalForCredential(AbstractUser.name, user.getName());
+//		
+//		Folder workingDir = structrUser.getProperty(org.structr.web.entity.User.workingDirectory);
+//		if (workingDir == null) {
+//			workingDir = structrUser.getProperty(org.structr.web.entity.User.homeDirectory);
+//		}
+		AbstractFile structrWorkingDir = FileHelper.getFileByAbsolutePath(workingDir);
+		if (structrWorkingDir == null || structrWorkingDir instanceof File) {
+			return new StructrFtpFolder(null);
 		}
 		
-		return new StructrFtpFolder(workingDir);
+		return new StructrFtpFolder((Folder) structrWorkingDir);
 	}
 
 	@Override
 	public boolean changeWorkingDirectory(String requestedPath) throws FtpException {
 		
-		final org.structr.web.entity.User structrUser = (org.structr.web.entity.User) AuthHelper.getPrincipalForCredential(AbstractUser.name, user.getName());
+		//final org.structr.web.entity.User structrUser = (org.structr.web.entity.User) AuthHelper.getPrincipalForCredential(AbstractUser.name, user.getName());
 		final StructrFtpFolder newWorkingDirectory = (StructrFtpFolder) getFile(requestedPath);
 		
-		try {
-			Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(new StructrTransaction() {
-
-				@Override
-				public Object execute() throws FrameworkException {
-
-					structrUser.setProperty(org.structr.web.entity.User.workingDirectory, (Folder) newWorkingDirectory.getStructrFile());
-					return null;
-				}
-
-			});
-		} catch (FrameworkException ex) {
-			logger.log(Level.SEVERE, null, ex);
-			return false;
-		}
+		workingDir = newWorkingDirectory.getAbsolutePath();
+		
+//		try {
+//			Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(new StructrTransaction() {
+//
+//				@Override
+//				public Object execute() throws FrameworkException {
+//
+//					structrUser.setProperty(org.structr.web.entity.User.workingDirectory, (Folder) newWorkingDirectory.getStructrFile());
+//					return null;
+//				}
+//
+//			});
+//		} catch (FrameworkException ex) {
+//			logger.log(Level.SEVERE, null, ex);
+//			return false;
+//		}
 
 		return true;
 		
