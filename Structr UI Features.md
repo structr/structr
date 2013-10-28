@@ -41,6 +41,9 @@ All content elements are stored in a graph structure and rendered top-down from 
 - Dynamic frontend creation based on schema definition
 - CSV export
 
+#### File Server
+- Full access to directories and files over FTP
+
 #### OAuth Integration
 - OAuth 2.0 support, with pre-defined clients for
     - Facebook,
