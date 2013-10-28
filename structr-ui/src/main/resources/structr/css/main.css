@@ -746,10 +746,6 @@ img.button {
     color: #333 ! important;
     background-color: #e7e7e7 ! important;
     border: 1px solid #aaa;
-/*    background-color: #81ce25 ! important;
-    background: -webkit-gradient(linear, left bottom, left top, from(#73b821), to(#90e629)) no-repeat ! important;
-    background: -moz-linear-gradient(90deg, #73b821, #90e629) no-repeat ! important;
-    filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#90e629', EndColorStr='#73b821', GradientType=0) ! important;*/
 }
 
 #graph .node {
@@ -774,7 +770,6 @@ button {
 
 button:hover:not(.disabled) {
     color: #333;
-    font-weight: bold;
     border-radius: 5px;
     padding: 2px 8px 2px 4px;
     margin-bottom: 6px;

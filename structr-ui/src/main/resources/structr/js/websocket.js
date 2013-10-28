@@ -235,6 +235,8 @@ function connect() {
                     data.data.id = data.id;
                     obj = StructrModel.create(data.data, null, false);
                 }
+                
+                obj = StructrModel.update(data);
 
                 StructrModel.callCallback(data.callback, obj);
                 StructrModel.clearCallback(data.callback);
