@@ -41,7 +41,7 @@ public class IntegerSearchAttribute extends PropertySearchAttribute<Integer> {
 			return NumericUtils.intToPrefixCoded(value);
 		}
 		
-		return null;
+		return NumericUtils.intToPrefixCoded(SearchCommand.EMPTY_FIELD_VALUE_INT);
 	}
 
 }

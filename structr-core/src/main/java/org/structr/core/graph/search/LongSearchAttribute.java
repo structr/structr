@@ -41,6 +41,6 @@ public class LongSearchAttribute extends PropertySearchAttribute<Long> {
 			return NumericUtils.longToPrefixCoded(value);
 		}
 		
-		return null;
+		return NumericUtils.longToPrefixCoded(SearchCommand.EMPTY_FIELD_VALUE_LONG);
 	}
 }
