@@ -37,7 +37,7 @@ import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.web.entity.Linkable;
 import org.structr.core.notion.PropertyNotion;
-import org.structr.core.property.Endpoints;
+import org.structr.core.property.EndNodes;
 import org.structr.core.property.EntityIdProperty;
 import org.structr.core.property.End;
 import org.structr.web.common.HtmlProperty;
@@ -59,9 +59,9 @@ public class Script extends DOMElement {
 	public static final Property<String> _type    = new HtmlProperty("type");
 	public static final Property<String> _charset = new HtmlProperty("charset");
 		
-	public static final Endpoints<Content> contents = new Endpoints<Content>("contents", Content.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final Endpoints<Head>    heads    = new Endpoints<Head>("heads", Head.class, RelType.CONTAINS, Direction.INCOMING, false);
-	public static final Endpoints<Div>     divs     = new Endpoints<Div>("divs", Div.class, RelType.CONTAINS, Direction.INCOMING, false);
+	public static final EndNodes<Content> contents = new EndNodes<Content>("contents", Content.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final EndNodes<Head>    heads    = new EndNodes<Head>("heads", Head.class, RelType.CONTAINS, Direction.INCOMING, false);
+	public static final EndNodes<Div>     divs     = new EndNodes<Div>("divs", Div.class, RelType.CONTAINS, Direction.INCOMING, false);
  
 	public static final End<Linkable>    linkable    = new End<Linkable>("linkable", Linkable.class, RelType.LINK, Direction.OUTGOING, new PropertyNotion(AbstractNode.name), true);
 	public static final Property<String>            linkableId  = new EntityIdProperty("linkableId", linkable);

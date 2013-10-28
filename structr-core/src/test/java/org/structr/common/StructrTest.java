@@ -172,7 +172,7 @@ public class StructrTest extends TestCase {
 			@Override
 			public List<NodeInterface> execute() throws FrameworkException {
 
-				List<NodeInterface> nodes = new LinkedList<NodeInterface>();
+				List<NodeInterface> nodes = new LinkedList<>();
 
 				for (int i = 0; i < number; i++) {
 

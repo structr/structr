@@ -61,6 +61,7 @@ import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
 import org.structr.core.Services;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 
@@ -94,7 +95,7 @@ public class SortingTest extends StructrTest {
 			boolean publicOnly              = false;
 			Class type                      = TestOne.class;
 			int number                      = 4; // no more than 89 to avoid sort order TestOne-10, TestOne-100 ...
-			final List<AbstractNode> nodes  = this.createTestNodes(type, number);
+			final List<NodeInterface> nodes = this.createTestNodes(type, number);
 			final int offset                = 10;
 
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
@@ -108,7 +109,7 @@ public class SortingTest extends StructrTest {
 					int i = offset;
 					String name;
 					
-					for (AbstractNode node : nodes) {
+					for (NodeInterface node : nodes) {
 
 						//System.out.println("Node ID: " + node.getNodeId());
 
@@ -171,7 +172,7 @@ public class SortingTest extends StructrTest {
 			boolean publicOnly              = false;
 			Class type                      = TestOne.class;
 			int number                      = 43;
-			final List<AbstractNode> nodes  = this.createTestNodes(type, number);
+			final List<NodeInterface> nodes = this.createTestNodes(type, number);
 			final int offset                = 10;
 
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
@@ -184,7 +185,7 @@ public class SortingTest extends StructrTest {
 					int i = offset;
 					String name;
 					
-					for (AbstractNode node : nodes) {
+					for (NodeInterface node : nodes) {
 
 						name = Integer.toString(i);
 
@@ -250,7 +251,7 @@ public class SortingTest extends StructrTest {
 			boolean publicOnly              = false;
 			Class type                      = TestOne.class;
 			int number                      = 97;
-			final List<AbstractNode> nodes  = this.createTestNodes(type, number);
+			final List<NodeInterface> nodes = this.createTestNodes(type, number);
 			final int offset                = 10;
 
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
@@ -263,7 +264,7 @@ public class SortingTest extends StructrTest {
 					int i = offset;
 					String name;
 					
-					for (AbstractNode node : nodes) {
+					for (NodeInterface node : nodes) {
 
 						name = Integer.toString(i);
 
@@ -282,7 +283,7 @@ public class SortingTest extends StructrTest {
 				}
 			});
 
-			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+			List<SearchAttribute> searchAttributes = new LinkedList<>();
 
 			searchAttributes.add(Search.andExactType(type));
 
@@ -333,7 +334,7 @@ public class SortingTest extends StructrTest {
 			boolean publicOnly              = false;
 			Class type                      = TestOne.class;
 			int number                      = 131;
-			final List<AbstractNode> nodes  = this.createTestNodes(type, number);
+			final List<NodeInterface> nodes = this.createTestNodes(type, number);
 			final int offset                = 10;
 
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
@@ -346,7 +347,7 @@ public class SortingTest extends StructrTest {
 					int i = offset;
 					String name;
 					
-					for (AbstractNode node : nodes) {
+					for (NodeInterface node : nodes) {
 
 						name = Integer.toString(i);
 
@@ -409,7 +410,7 @@ public class SortingTest extends StructrTest {
 			boolean publicOnly              = false;
 			Class type                      = TestOne.class;
 			int number                      = 61;
-			final List<AbstractNode> nodes  = this.createTestNodes(type, number);
+			final List<NodeInterface> nodes = this.createTestNodes(type, number);
 			final PropertyKey key           = TestOne.anInt;
 			final int offset                = 10;
 
@@ -422,7 +423,7 @@ public class SortingTest extends StructrTest {
 
 					int i = offset;
 					
-					for (AbstractNode node : nodes) {
+					for (NodeInterface node : nodes) {
 
 						node.setProperty(AbstractNode.name, Integer.toString(i));
 						node.setProperty(key, i);
@@ -435,7 +436,7 @@ public class SortingTest extends StructrTest {
 				
 			});
 
-			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+			List<SearchAttribute> searchAttributes = new LinkedList<>();
 
 			searchAttributes.add(Search.andExactType(type));
 

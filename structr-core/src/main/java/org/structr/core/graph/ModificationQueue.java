@@ -30,7 +30,6 @@ import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.property.PropertyKey;
 
 /**
@@ -42,9 +41,9 @@ public class ModificationQueue {
 
 	private static final Logger logger = Logger.getLogger(ModificationQueue.class.getName());
 	
-	private ConcurrentSkipListMap<String, GraphObjectModificationState> modifications = new ConcurrentSkipListMap<String, GraphObjectModificationState>();
-	private Set<String> alreadyPropagated                                             = new LinkedHashSet<String>();
-	private Set<String> synchronizationKeys                                           = new TreeSet<String>();
+	private ConcurrentSkipListMap<String, GraphObjectModificationState> modifications = new ConcurrentSkipListMap<>();
+	private Set<String> alreadyPropagated                                             = new LinkedHashSet<>();
+	private Set<String> synchronizationKeys                                           = new TreeSet<>();
 	
 	/**
 	 * Returns a set containing the different entity types of
@@ -142,12 +141,13 @@ public class ModificationQueue {
 
 		getState(relationship).create();
 
-		modifyEndNodes(relationship.getStartNode(), relationship.getEndNode(), relationship.getRelationshipType());
+		modifyEndNodes(relationship.getStartNode(), relationship.getEndNode(), relationship.getRelType());
 		
-		String combinedType = relationship.getProperty(AbstractRelationship.combinedType);
-		if (combinedType != null) {
-			synchronizationKeys.add(combinedType);
-		}
+		// FIXME
+//		String combinedType = relationship.getProperty(RelationshipInterface.combinedType);
+//		if (combinedType != null) {
+//			synchronizationKeys.add(combinedType);
+//		}
 	}
 
 	public void modifyOwner(NodeInterface node) {
@@ -201,7 +201,7 @@ public class ModificationQueue {
 
 		getState(relationship).delete(passive);
 
-		modifyEndNodes(relationship.getStartNode(), relationship.getEndNode(), relationship.getRelationshipType());
+		modifyEndNodes(relationship.getStartNode(), relationship.getEndNode(), relationship.getRelType());
 	}
 
 	private void modifyEndNodes(NodeInterface startNode, NodeInterface endNode, RelationshipType relType) {

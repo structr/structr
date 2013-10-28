@@ -28,7 +28,6 @@ import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.End;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -37,14 +36,14 @@ import org.structr.core.property.End;
  * 
  * @author Christian Morgner
  */
-public class RelatedNodePropertyMapper extends PropertyConverter {
+public class RelatedNodePropertyMapper<T extends NodeInterface> extends PropertyConverter {
 
 	private static final Logger logger = Logger.getLogger(RelatedNodePropertyMapper.class.getName());
 
-	private End<?> sourceKey  = null;
+	private PropertyKey<T> sourceKey  = null;
 	private PropertyKey targetKey = null;
 	
-	public RelatedNodePropertyMapper(SecurityContext securityContext, GraphObject currentObject, End<?> sourceKey, PropertyKey targetKey) {
+	public RelatedNodePropertyMapper(SecurityContext securityContext, GraphObject currentObject, PropertyKey<T> sourceKey, PropertyKey targetKey) {
 		
 		super(securityContext, currentObject);
 		
@@ -98,13 +97,14 @@ public class RelatedNodePropertyMapper extends PropertyConverter {
 			
 			if (relatedNode == null && add) {
 				
-				try {
-					relatedNode = sourceKey.createRelatedNode(securityContext, localNode);
-					
-				} catch (FrameworkException fex) {
-					
-					logger.log(Level.WARNING, "Unable to create related node from property {0}", sourceKey);
-				}
+				// FIXME!
+//				try {
+//					relatedNode = sourceKey.createRelatedNode(securityContext, localNode);
+//					
+//				} catch (FrameworkException fex) {
+//					
+//					logger.log(Level.WARNING, "Unable to create related node from property {0}", sourceKey);
+//				}
 			}
 		}
 

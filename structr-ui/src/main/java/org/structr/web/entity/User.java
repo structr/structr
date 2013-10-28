@@ -29,7 +29,7 @@ import org.structr.core.entity.AbstractUser;
 import org.structr.core.entity.Principal;
 import org.structr.core.notion.PropertyNotion;
 import org.structr.core.property.BooleanProperty;
-import org.structr.core.property.Endpoints;
+import org.structr.core.property.EndNodes;
 import org.structr.core.property.End;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
@@ -58,7 +58,7 @@ public class User extends AbstractUser {
 	public static final Property<Folder>		homeDirectory		= new End<>("homeDirecory", Folder.class, RelType.HOME_DIR, Direction.OUTGOING, false);
 	public static final Property<Folder>		workingDirectory	= new End<>("workingDirectory", Folder.class, RelType.WORKING_DIR, Direction.OUTGOING, false);
 	
-	public static final Endpoints<Group> groups          = new Endpoints("groups", Group.class, RelType.CONTAINS, Direction.INCOMING, new PropertyNotion(uuid), false);
+	public static final EndNodes<Group> groups          = new EndNodes("groups", Group.class, RelType.CONTAINS, Direction.INCOMING, new PropertyNotion(uuid), false);
 	
 	public static final org.structr.common.View uiView = new org.structr.common.View(User.class, PropertyView.Ui,
 		type, name, eMail, isAdmin, password, blocked, sessionId, confirmationKey, backendUser, frontendUser, groups, userImg, homeDirectory

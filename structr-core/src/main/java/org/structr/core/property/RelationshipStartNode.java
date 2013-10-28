@@ -5,34 +5,30 @@
 
 package org.structr.core.property;
 
-import java.util.List;
-import org.neo4j.helpers.collection.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.Notion;
 
 /**
  *
  * @author Christian Morgner
  */
-public class RelationshipProperty<T extends AbstractRelationship> extends AbstractReadOnlyProperty<List<T>> {
+public class RelationshipStartNode<T extends AbstractNode> extends AbstractReadOnlyProperty<T> {
 
-	private Notion notion = null;
-	private Class<T> type = null;
+	private Notion notion            = null;
 	
-	public RelationshipProperty(String name, final Class<T> type) {
-		this(name, type, null);
+	public RelationshipStartNode(String name) {
+		this(name, null);
 	}
 	
-	public RelationshipProperty(String name, final Class<T> type, final Notion notion) {
+	public RelationshipStartNode(String name, final Notion notion) {
 		
 		super(name);
 		
-		this.type   = type;
-		this.notion = notion;
+		this.notion    = notion;
 	}
 
 	@Override
@@ -47,7 +43,7 @@ public class RelationshipProperty<T extends AbstractRelationship> extends Abstra
 
 	@Override
 	public String typeName() {
-		return "Relationship";
+		return "Node";
 	}
 
 	@Override
@@ -56,28 +52,28 @@ public class RelationshipProperty<T extends AbstractRelationship> extends Abstra
 	}
 
 	@Override
-	public PropertyConverter<?, List<T>> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext) {
 		
 		if (notion != null) {
-			return notion.getCollectionConverter(securityContext);
+			return notion.getEntityConverter(securityContext);
 		}
 		
 		return null;
 	}
 
 	@Override
-	public List<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
-		NodeInterface node = (NodeInterface)obj;
-		return Iterables.toList(node.getRelationships(type));
+	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+		return (T)((AbstractRelationship)obj).getStartNode();
 	}
 
 	@Override
 	public boolean isCollection() {
-		return true;
+		return false;
 	}
 
 	@Override
 	public Integer getSortType() {
 		return null;
 	}
+
 }

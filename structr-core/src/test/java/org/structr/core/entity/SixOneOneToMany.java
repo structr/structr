@@ -2,13 +2,12 @@ package org.structr.core.entity;
 
 import org.neo4j.graphdb.RelationshipType;
 import org.structr.core.TestRelType;
-import org.structr.core.entity.test.OneToMany;
 
 /**
  *
  * @author Christian Morgner
  */
-public class SixOne extends OneToMany<TestSix, TestOne> {
+public class SixOneOneToMany extends OneToMany<TestSix, TestOne> {
 	
 	@Override
 	public Class<TestSix> getSourceType() {
@@ -21,7 +20,7 @@ public class SixOne extends OneToMany<TestSix, TestOne> {
 	}
 
 	@Override
-	public Class<TestOne> getDestinationType() {
+	public Class<TestOne> getTargetType() {
 		return TestOne.class;
 	}
 }

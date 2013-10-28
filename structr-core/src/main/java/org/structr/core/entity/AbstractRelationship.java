@@ -43,9 +43,7 @@ import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.ReadOnlyPropertyToken;
-import org.structr.core.Incoming;
 import org.structr.core.EntityContext;
-import org.structr.core.Outgoing;
 import org.structr.core.Services;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.CreateRelationshipCommand;
@@ -53,6 +51,7 @@ import org.structr.core.graph.DeleteRelationshipCommand;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeService;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.CombinedTypeProperty;
@@ -67,7 +66,7 @@ import org.structr.core.property.PropertyMap;
  * 
  * @author Axel Morgner
  */
-public abstract class AbstractRelationship<S extends NodeInterface, T extends NodeInterface> implements Comparable<AbstractRelationship>, Outgoing<S, T>, Incoming<T, S> {
+public abstract class AbstractRelationship<S extends NodeInterface, T extends NodeInterface> implements Comparable<AbstractRelationship>, RelationshipInterface {
 
 	private static final Logger logger = Logger.getLogger(AbstractRelationship.class.getName());
 
@@ -134,30 +133,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 	}
 
-	@Override
-	public Direction getDirection() {
-		return Direction.OUTGOING;
-	}
-	
 	public Class<? extends AbstractRelationship<T, S>> reverse() {
-		return null;
-	}
-	
-	@Override
-	public Direction getDirectionForType(final Class<? extends NodeInterface> type) {
-
-		if (getSourceType().equals(getDestinationType())) {
-			return Direction.BOTH;
-		}
-		
-		if (type.equals(getSourceType())) {
-			return Direction.OUTGOING;
-		}
-
-		if (type.equals(getDestinationType())) {
-			return Direction.INCOMING;
-		}
-		
 		return null;
 	}
 	
@@ -273,6 +249,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 		return ((Long) this.getId()).compareTo((Long) rel.getId());
 	}
 
+	@Override
 	public int cascadeDelete() {
 
 		Integer cd = getProperty(AbstractRelationship.cascadeDelete);
@@ -338,9 +315,10 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 	}
 
+	@Override
 	public PropertyMap getProperties() throws FrameworkException {
 
-		Map<String, Object> properties = new LinkedHashMap<String, Object>();
+		Map<String, Object> properties = new LinkedHashMap<>();
 
 		for (String key : dbRelationship.getPropertyKeys()) {
 
@@ -413,7 +391,6 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 	}
 
-	@Override
 	public T getEndNode() {
 
 		try {
@@ -427,7 +404,6 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 		return null;
 	}
 
-	@Override
 	public S getStartNode() {
 
 		try {

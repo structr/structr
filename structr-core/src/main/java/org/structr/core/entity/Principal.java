@@ -26,8 +26,10 @@ import org.structr.common.Permission;
 
 import java.util.List;
 import org.structr.common.AccessControllable;
+import org.structr.core.entity.relationship.Ownership;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.BooleanProperty;
+import org.structr.core.property.EndNodes;
 import org.structr.core.property.PasswordProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
@@ -46,6 +48,8 @@ public interface Principal extends NodeInterface, AccessControllable {
 	public static final Property<String>	password	= new PasswordProperty("password");
 	public static final Property<String>	salt		= new StringProperty("salt");
 	public static final Property<Boolean>	isAdmin		= new BooleanProperty("isAdmin").readOnly();
+	
+	public static final Property<List<AbstractNode>> ownedNodes = new EndNodes<>("ownedNodes", Ownership.class);
 	
 	public void grant(final Permission permission, final AbstractNode obj);
 

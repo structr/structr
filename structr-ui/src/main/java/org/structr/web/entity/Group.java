@@ -34,7 +34,7 @@ import org.structr.common.PropertyView;
 import org.structr.core.Services;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
-import org.structr.core.property.Endpoints;
+import org.structr.core.property.EndNodes;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -47,7 +47,7 @@ public class Group extends Principal {
 	
 	private static final Logger logger = Logger.getLogger(Group.class.getName());
 
-	public static final Endpoints<Principal> members = new Endpoints<>("members", Principal.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final EndNodes<Principal> members = new EndNodes<>("members", Principal.class, RelType.CONTAINS, Direction.OUTGOING, false);
 	
 	public static final org.structr.common.View uiView = new org.structr.common.View(User.class, PropertyView.Ui,
 		type, name, members, blocked

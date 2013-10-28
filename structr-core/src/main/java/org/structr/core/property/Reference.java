@@ -178,7 +178,7 @@ public class Reference<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public void setDeclaringClass(Class<? extends GraphObject> declaringClass) {
+	public void setDeclaringClass(Class declaringClass) {
 	}
 	
 	@Override

@@ -28,8 +28,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.TestOne;
 import org.structr.core.entity.TestSix;
-import org.structr.core.notion.Notion;
-import org.structr.core.notion.ObjectNotion;
 
 /**
  *
@@ -39,11 +37,11 @@ public class CollectionPropertyTest extends StructrTest {
 
 	public void testManyToMany() throws Exception {
 		
-		Endpoints instance = TestSix.manyToManyTestOnes;
-		TestSix testSix1            = null;
-		TestSix testSix2            = null;
-		TestOne testOne1            = null;
-		TestOne testOne2            = null;
+		Property<List<TestOne>> instance = TestSix.manyToManyTestOnes;
+		TestSix testSix1  = null;
+		TestSix testSix2  = null;
+		TestOne testOne1  = null;
+		TestOne testOne2  = null;
 		
 		try {
 			
@@ -64,7 +62,7 @@ public class CollectionPropertyTest extends StructrTest {
 		assertNotNull(testOne2);
 
 		// set two TestOne entities on both TestSix entities
-		List<TestOne> twoTestOnesList = new LinkedList<TestOne>();
+		List<TestOne> twoTestOnesList = new LinkedList<>();
 		twoTestOnesList.add(testOne1);
 		twoTestOnesList.add(testOne2);
 
@@ -82,7 +80,7 @@ public class CollectionPropertyTest extends StructrTest {
 		assertEquals(2, testOnesFromTestSix2.size());
 		
 		// create new list with one TestOne entity
-		List<TestOne> oneTestOneList = new LinkedList<TestOne>();
+		List<TestOne> oneTestOneList = new LinkedList<>();
 		oneTestOneList.add(testOne1);
 
 		// set list with one TestOne node as related nodes
@@ -99,11 +97,11 @@ public class CollectionPropertyTest extends StructrTest {
 
 	public void testOneToMany() throws Exception {
 		
-		Endpoints instance = TestSix.manyToOneTestOnes;
-		TestSix testSix1            = null;
-		TestSix testSix2            = null;
-		TestOne testOne1            = null;
-		TestOne testOne2            = null;
+		Property<List<TestOne>> instance = TestSix.oneToManyTestOnes;
+		TestSix testSix1                 = null;
+		TestSix testSix2                 = null;
+		TestOne testOne1                 = null;
+		TestOne testOne2                 = null;
 		
 		try {
 			
@@ -123,11 +121,11 @@ public class CollectionPropertyTest extends StructrTest {
 		assertNotNull(testOne1);
 		assertNotNull(testOne2);
 
-		List<TestOne> twoTestOnesToList = new LinkedList<TestOne>();
+		List<TestOne> twoTestOnesToList = new LinkedList<>();
 		twoTestOnesToList.add(testOne1);
 		twoTestOnesToList.add(testOne2);
 
-		List<TestOne> oneTestOneToList = new LinkedList<TestOne>();
+		List<TestOne> oneTestOneToList = new LinkedList<>();
 		oneTestOneToList.add(testOne1);
 
 		// set two TestOne entities on textSix1
@@ -233,7 +231,7 @@ public class CollectionPropertyTest extends StructrTest {
 	 */
 	public void testTypeName() {
 
-		Endpoints instance = TestSix.manyToManyTestOnes;
+		Property<List<TestOne>> instance = TestSix.manyToManyTestOnes;
 		String expResult = "Object";
 		String result = instance.typeName();
 		assertEquals(expResult, result);
@@ -244,7 +242,7 @@ public class CollectionPropertyTest extends StructrTest {
 	 */
 	public void testDatabaseConverter() {
 
-		Endpoints instance = TestSix.manyToManyTestOnes;
+		Property<List<TestOne>> instance = TestSix.manyToManyTestOnes;
 		PropertyConverter expResult = null;
 		PropertyConverter result = instance.databaseConverter(securityContext, null);
 		assertEquals(expResult, result);
@@ -255,7 +253,7 @@ public class CollectionPropertyTest extends StructrTest {
 	 */
 	public void testInputConverter() {
 
-		Endpoints instance = TestSix.manyToManyTestOnes;
+		Property<List<TestOne>> instance = TestSix.manyToManyTestOnes;
 		PropertyConverter result = instance.inputConverter(securityContext);
 		
 		assertTrue(result != null);
@@ -266,7 +264,7 @@ public class CollectionPropertyTest extends StructrTest {
 	 */
 	public void testRelatedType() {
 
-		Endpoints instance = TestSix.manyToManyTestOnes;
+		Property<List<TestOne>> instance = TestSix.manyToManyTestOnes;
 		Class expResult = TestOne.class;
 		Class result = instance.relatedType();
 		assertEquals(expResult, result);
@@ -277,31 +275,9 @@ public class CollectionPropertyTest extends StructrTest {
 	 */
 	public void testIsCollection() {
 
-		Endpoints instance = TestSix.manyToManyTestOnes;
+		Property<List<TestOne>> instance = TestSix.manyToManyTestOnes;
 		boolean expResult = true;
 		boolean result = instance.isCollection();
-		assertEquals(expResult, result);
-	}
-
-	/**
-	 * Test of getNotion method, of class CollectionProperty.
-	 */
-	public void testGetNotion() {
-
-		Endpoints instance = TestSix.manyToManyTestOnes;
-		Notion result = instance.getNotion();
-		
-		assertTrue(result != null && result instanceof ObjectNotion);
-	}
-
-	/**
-	 * Test of isOneToMany method, of class CollectionProperty.
-	 */
-	public void testIsOneToMany() {
-
-		Endpoints instance = TestSix.manyToManyTestOnes;
-		boolean expResult = false;
-		boolean result = instance.isOneToMany();
 		assertEquals(expResult, result);
 	}
 }

@@ -26,7 +26,7 @@ import org.structr.common.PropertyView;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.notion.PropertySetNotion;
-import org.structr.core.property.Endpoints;
+import org.structr.core.property.EndNodes;
 import org.structr.core.property.End;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
@@ -43,9 +43,9 @@ import org.structr.web.common.RelType;
  */
 public class Folder extends AbstractFile {
 
-	public static final Endpoints<Folder>	folders      = new Endpoints<>("folders", Folder.class, RelType.CONTAINS, Direction.OUTGOING, new PropertySetNotion(uuid, name), true);
-	public static final Endpoints<File>	files        = new Endpoints<>("files", File.class, RelType.CONTAINS, Direction.OUTGOING, new PropertySetNotion(uuid, name), true);
-	public static final Endpoints<Image>	images       = new Endpoints<>("images", Image.class, RelType.CONTAINS, Direction.OUTGOING, new PropertySetNotion(uuid, name), true);
+	public static final EndNodes<Folder>	folders      = new EndNodes<>("folders", Folder.class, RelType.CONTAINS, Direction.OUTGOING, new PropertySetNotion(uuid, name), true);
+	public static final EndNodes<File>	files        = new EndNodes<>("files", File.class, RelType.CONTAINS, Direction.OUTGOING, new PropertySetNotion(uuid, name), true);
+	public static final EndNodes<Image>	images       = new EndNodes<>("images", Image.class, RelType.CONTAINS, Direction.OUTGOING, new PropertySetNotion(uuid, name), true);
 	
 	public static final Property<Integer>		position     = new IntProperty("position").indexed();
 

@@ -18,12 +18,16 @@
  */
 package org.structr.core.entity;
 
+import org.neo4j.graphdb.RelationshipType;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
+
 /**
  * Defines constants for structr's relationship entities.
  *
  * @author Christian Morgner
  */
-public interface Relation {
+public interface Relation<A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target> extends RelationshipInterface {
 
 	public static final int DELETE_NONE                            = 0;
 	public static final int DELETE_OUTGOING                        = 1;
@@ -31,4 +35,17 @@ public interface Relation {
 	public static final int DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED = 4;
 
 	public enum Cardinality { OneToOne, ManyToOne, OneToMany, ManyToMany }
+
+	public enum Multiplicity { One, Many }
+	
+	public Class<A> getSourceType();
+	public Class<B> getTargetType();
+	
+	public RelationshipType getRelationshipType();
+	
+	public Multiplicity getSourceMultiplicity();
+	public Multiplicity getTargetMultiplicity();
+	
+	public S getSource();
+	public T getTarget();
 }

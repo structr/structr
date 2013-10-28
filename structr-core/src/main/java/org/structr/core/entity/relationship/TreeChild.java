@@ -2,14 +2,14 @@ package org.structr.core.entity.relationship;
 
 import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.RelType;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.LinkedTreeNode;
+import org.structr.core.entity.OneToMany;
 
 /**
  *
  * @author Christian Morgner
  */
-public class TreeChild extends AbstractRelationship<LinkedTreeNode, LinkedTreeNode> {
+public class TreeChild extends OneToMany<LinkedTreeNode, LinkedTreeNode> {
 
 	@Override
 	public Class<LinkedTreeNode> getSourceType() {
@@ -22,12 +22,7 @@ public class TreeChild extends AbstractRelationship<LinkedTreeNode, LinkedTreeNo
 	}
 
 	@Override
-	public Class<LinkedTreeNode> getDestinationType() {
+	public Class<LinkedTreeNode> getTargetType() {
 		return LinkedTreeNode.class;
-	}
-
-	@Override
-	public Class<? extends AbstractRelationship<LinkedTreeNode, LinkedTreeNode>> reverse() {
-		return TreeChild.class;
 	}
 }

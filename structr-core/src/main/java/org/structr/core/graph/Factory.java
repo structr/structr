@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.index.IndexHits;
+import org.neo4j.helpers.Function;
 import org.structr.common.FactoryDefinition;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -37,7 +38,7 @@ import org.structr.core.Result;
  * @author Christian Morgner
  */
 
-public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T> {
+public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>, Function<S, T> {
 
 	private static final Logger logger = Logger.getLogger(Factory.class.getName());
 	
@@ -138,7 +139,7 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 	 */
 	public List<T> bulkInstantiate(final Iterable<S> input) throws FrameworkException {
 
-		List<T> nodes = new LinkedList<T>();
+		List<T> nodes = new LinkedList<>();
 
 		if ((input != null) && input.iterator().hasNext()) {
 
@@ -167,6 +168,11 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 		}
 
 		return null;
+	}
+
+	@Override
+	public T apply(final S from) {
+		return adapt(from);
 	}
 
 

@@ -34,8 +34,6 @@ import java.util.List;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
 import org.structr.common.AccessControllable;
-import org.structr.core.Incoming;
-import org.structr.core.Outgoing;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
 
@@ -311,42 +309,42 @@ public class SuperUser implements Principal, AccessControllable {
 	}
 
 	@Override
-	public <T extends AbstractRelationship> Iterable<T> getRelationships(Class<T> type) {
+	public <R extends AbstractRelationship> Iterable<R> getRelationships() {
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public <T extends AbstractRelationship> Iterable<T> getRelationships() {
+	public <R extends AbstractRelationship> Iterable<R> getIncomingRelationships() {
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public <T extends Incoming> Iterable<T> getReverseRelationships(Class<T> type) {
+	public <R extends AbstractRelationship> Iterable<R> getOutgoingRelationships() {
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public <T extends Object & Outgoing & Incoming> Iterable<T> getAllRelationships(Class<T> type) {
+	public <A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> Iterable<R> getRelationships(Class<R> type) {
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public <T extends Incoming> Iterable<T> getIncomingRelationships(Class<T> type) {
+	public <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, OneStartpoint<A>, T>> R getIncomingRelationship(Class<R> type) {
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public <T extends Incoming> Iterable<T> getIncomingRelationships() {
+	public <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, ManyStartpoint<A>, T>> Iterable<R> getIncomingRelationships(Class<R> type) {
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public <T extends Outgoing> Iterable<T> getOutgoingRelationships(Class<T> type) {
+	public <A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, OneEndpoint<B>>> R getOutgoingRelationship(Class<R> type) {
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public <T extends Outgoing> Iterable<T> getOutgoingRelationships() {
+	public <A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, ManyEndpoint<B>>> Iterable<R> getOutgoingRelationships(Class<R> type) {
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
@@ -410,4 +408,8 @@ public class SuperUser implements Principal, AccessControllable {
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
+	@Override
+	public boolean isValid(ErrorBuffer errorBuffer) {
+		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+	}
 }

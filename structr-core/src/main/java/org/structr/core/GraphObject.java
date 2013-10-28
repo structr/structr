@@ -104,7 +104,7 @@ public interface GraphObject {
 	 * @param propertyKey the property key to retrieve the value for
 	 * @return the converted, validated, transformed property value
 	 */
-	public <T> T getProperty(final PropertyKey<T> propertyKey);
+	public <T>  T getProperty(final PropertyKey<T> propertyKey);
 	
 	/**
 	 * Returns the property value for the given key as a Comparable

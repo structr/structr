@@ -41,7 +41,7 @@ import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.notion.PropertySetNotion;
-import org.structr.core.property.Endpoints;
+import org.structr.core.property.EndNodes;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
@@ -66,14 +66,14 @@ import org.structr.core.validator.TypeUniquenessValidator;
  */
 public class ResourceAccess extends AbstractNode {
 
-	private static final Map<String, ResourceAccess> grantCache = new ConcurrentHashMap<String, ResourceAccess>();
+	private static final Map<String, ResourceAccess> grantCache = new ConcurrentHashMap<>();
 	private static final Logger logger                          = Logger.getLogger(ResourceAccess.class.getName());
 
 	public static final Property<String>                    signature       = new StringProperty("signature", new TypeUniquenessValidator(ResourceAccess.class)).indexed();
 	public static final Property<Long>                      flags           = new LongProperty("flags").indexed();
 	public static final Property<Integer>                   position        = new IntProperty("position").indexed();
 	
-	public static final Endpoints<ResourceAccess, PropertyAccess>  propertyAccess  = new Endpoints<ResourceAccess, PropertyAccess>("propertyAccess", Access.class, new PropertySetNotion(uuid, name), true);
+	public static final Property<List<PropertyAccess>>  propertyAccess      = new EndNodes<>("propertyAccess", Access.class, new PropertySetNotion(uuid, name));
 
 	public static final View uiView = new View(ResourceAccess.class, PropertyView.Ui,
 		signature, flags, position

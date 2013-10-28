@@ -256,7 +256,7 @@ public class EntityPropertyTest extends StructrTest {
 	 */
 	public void testTypeName() {
 
-		End instance = TestSix.oneToOneTestThree;
+		Property instance = TestSix.oneToOneTestThree;
 		String expResult = "Object";
 		String result = instance.typeName();
 		assertEquals(expResult, result);
@@ -267,7 +267,7 @@ public class EntityPropertyTest extends StructrTest {
 	 */
 	public void testDatabaseConverter() {
 
-		End instance = TestSix.oneToOneTestThree;
+		Property instance = TestSix.oneToOneTestThree;
 		PropertyConverter expResult = null;
 		PropertyConverter result = instance.databaseConverter(securityContext, null);
 		assertEquals(expResult, result);
@@ -278,7 +278,7 @@ public class EntityPropertyTest extends StructrTest {
 	 */
 	public void testInputConverter() {
 
-		End instance = TestSix.oneToOneTestThree;
+		Property instance = TestSix.oneToOneTestThree;
 		PropertyConverter result = instance.inputConverter(securityContext);
 		
 		assertTrue(result != null);
@@ -289,7 +289,7 @@ public class EntityPropertyTest extends StructrTest {
 	 */
 	public void testRelatedType() {
 
-		End instance = TestSix.oneToOneTestThree;
+		Property instance = TestSix.oneToOneTestThree;
 		Class expResult = TestThree.class;
 		Class result = instance.relatedType();
 		assertEquals(expResult, result);
@@ -300,31 +300,9 @@ public class EntityPropertyTest extends StructrTest {
 	 */
 	public void testIsCollection() {
 
-		End instance = TestSix.oneToOneTestThree;
+		Property instance = TestSix.oneToOneTestThree;
 		boolean expResult = false;
 		boolean result = instance.isCollection();
-		assertEquals(expResult, result);
-	}
-
-	/**
-	 * Test of getNotion method, of class EntityProperty.
-	 */
-	public void testGetNotion() {
-
-		End instance = TestSix.oneToOneTestThree;
-		Notion result = instance.getNotion();
-		
-		assertTrue(result != null && result instanceof ObjectNotion);
-	}
-
-	/**
-	 * Test of isManyToOne method, of class EntityProperty.
-	 */
-	public void testIsManyToOne() {
-
-		End instance = TestSix.oneToOneTestThree;
-		boolean expResult = false;
-		boolean result = instance.isManyToOne();
 		assertEquals(expResult, result);
 	}
 }

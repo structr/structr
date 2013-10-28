@@ -35,8 +35,6 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.error.ErrorBuffer;
-import org.structr.core.Incoming;
-import org.structr.core.Outgoing;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -53,7 +51,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 	private static final Logger logger            = Logger.getLogger(DeleteNodeCommand.class.getName());
 	
 	
-	private Set<NodeInterface> deletedNodes = new LinkedHashSet<NodeInterface>();
+	private Set<NodeInterface> deletedNodes = new LinkedHashSet<>();
 
 	//~--- methods --------------------------------------------------------
 
@@ -89,16 +87,16 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 				try {
 
-					List<AbstractNode> nodesToCheckAfterDeletion = new LinkedList<AbstractNode>();
+					List<NodeInterface> nodesToCheckAfterDeletion = new LinkedList<>();
 
 					if (cascade) {
 
 						// Delete all end nodes of outgoing relationships which are connected
 						// by relationships which are marked with DELETE_OUTGOING
-						for (Outgoing rel : node.getOutgoingRelationships()) {
+						for (AbstractRelationship rel : node.getOutgoingRelationships()) {
 
-							int cascadeDelete    = rel.cascadeDelete();
-							AbstractNode endNode = rel.getEndNode();
+							int cascadeDelete     = rel.cascadeDelete();
+							NodeInterface endNode = rel.getEndNode();
 
 							if ((cascadeDelete & Relation.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED) == Relation.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED) {
 
@@ -116,10 +114,10 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 						// Delete all start nodes of incoming relationships which are connected
 						// by relationships which are marked with DELETE_INCOMING
-						for (Incoming rel : node.getIncomingRelationships()) {
+						for (AbstractRelationship rel : node.getIncomingRelationships()) {
 
-							int cascadeDelete      = rel.cascadeDelete();
-							AbstractNode startNode = rel.getStartNode();
+							int cascadeDelete       = rel.cascadeDelete();
+							NodeInterface startNode = rel.getStartNode();
 
 							if ((cascadeDelete & Relation.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED) == Relation.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED) {
 
@@ -159,7 +157,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 						// Check all end nodes of outgoing relationships which are connected if they are
 						// still valid after node deletion
-						for (AbstractNode nodeToCheck : nodesToCheckAfterDeletion) {
+						for (NodeInterface nodeToCheck : nodesToCheckAfterDeletion) {
 
 							ErrorBuffer errorBuffer = new ErrorBuffer();
 							

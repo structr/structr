@@ -58,7 +58,7 @@ import org.structr.core.property.ArrayProperty;
  * @author Axel Morgner
  *
  */
-public class Security extends AbstractRelationship<Principal, NodeInterface> {
+public class Security extends ManyToMany<Principal, NodeInterface> {
 
 	private static final Logger logger = Logger.getLogger(Security.class.getName());
 	
@@ -79,7 +79,7 @@ public class Security extends AbstractRelationship<Principal, NodeInterface> {
 	@Override
 	public Iterable<PropertyKey> getPropertyKeys(String propertyView) {
 		
-		Set<PropertyKey> keys = new LinkedHashSet<PropertyKey>();
+		Set<PropertyKey> keys = new LinkedHashSet<>();
 		
 		keys.add(principalId);
 		keys.add(accessControllableId);
@@ -238,8 +238,8 @@ public class Security extends AbstractRelationship<Principal, NodeInterface> {
 		
 	// ----- class AbstractRelationship -----
 	@Override
-	public Class<AbstractNode> getSourceType() {
-		return AbstractNode.class;
+	public Class<Principal> getSourceType() {
+		return Principal.class;
 	}
 
 	@Override
@@ -248,7 +248,7 @@ public class Security extends AbstractRelationship<Principal, NodeInterface> {
 	}
 
 	@Override
-	public Class<Principal> getDestinationType() {
-		return Principal.class;
+	public Class<NodeInterface> getTargetType() {
+		return NodeInterface.class;
 	}
 }
