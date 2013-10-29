@@ -132,18 +132,21 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 	public static final Property<String> showForLocales			= new StringProperty("showForLocales");
 	public static final Property<String> hideForLocales			= new StringProperty("hideForLocales");
 	
-	protected static final Map<String, Function<String, String>> functions  = new LinkedHashMap<String, Function<String, String>>();
+	public static final Property<String> showConditions			= new StringProperty("showConditions");
+	public static final Property<String> hideConditions			= new StringProperty("hideConditions");
+
+	protected static final Map<String, Function<String, String>> functions  = new LinkedHashMap<>();
 	
-	public static final CollectionProperty<DOMNode> children                = new CollectionProperty<DOMNode>("children", DOMNode.class, RelType.CONTAINS,              Direction.OUTGOING, true);
+	public static final CollectionProperty<DOMNode> children                = new CollectionProperty<>("children", DOMNode.class, RelType.CONTAINS,              Direction.OUTGOING, true);
 	public static final CollectionIdProperty childrenIds                    = new CollectionIdProperty("childrenIds", children);
 
-	public static final CollectionProperty<DOMNode> siblings                = new CollectionProperty<DOMNode>("siblings", DOMNode.class, RelType.CONTAINS_NEXT_SIBLING, Direction.OUTGOING, true);
+	public static final CollectionProperty<DOMNode> siblings                = new CollectionProperty<>("siblings", DOMNode.class, RelType.CONTAINS_NEXT_SIBLING, Direction.OUTGOING, true);
 	public static final CollectionIdProperty siblingsIds                    = new CollectionIdProperty("siblingIds", siblings);
 
-	public static final EntityProperty<DOMNode> parent                      = new EntityProperty<DOMNode>("parent", DOMNode.class, RelType.CONTAINS, Direction.INCOMING, false);
+	public static final EntityProperty<DOMNode> parent                      = new EntityProperty<>("parent", DOMNode.class, RelType.CONTAINS, Direction.INCOMING, false);
 	public static final EntityIdProperty parentId                           = new EntityIdProperty("parentId", parent);
 
-	public static final EntityProperty<Page> ownerDocument                  = new EntityProperty<Page>("ownerDocument", Page.class, RelType.PAGE, Direction.OUTGOING, true);
+	public static final EntityProperty<Page> ownerDocument                  = new EntityProperty<>("ownerDocument", Page.class, RelType.PAGE, Direction.OUTGOING, true);
 	public static final EntityIdProperty pageId                             = new EntityIdProperty("pageId", ownerDocument);
 
 	private static Set<Page> resultPages                                    = new HashSet<Page>();
@@ -1408,6 +1411,51 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 	}
 
+
+	/**
+	 * Decide whether this node should be displayed for the given conditions string.
+	 * 
+	 * @param securityContext
+	 * @param renderContext
+	 * @return 
+	 */
+	protected boolean displayForConditions(final SecurityContext securityContext, final RenderContext renderContext) {
+
+		// In raw mode, render everything
+		if (EditMode.RAW.equals(renderContext.getEditMode(securityContext.getUser(false)))) {
+			return true;
+		}
+		
+		String _showConditions = getProperty(DOMNode.showConditions);
+		String _hideConditions = getProperty(DOMNode.hideConditions);
+
+		// If both fields are empty, render node
+		if (StringUtils.isBlank(_hideConditions) && StringUtils.isBlank(_showConditions)) {
+			return true;
+		}
+		try {
+			// If hide conditions evaluate to "true", don't render
+			if ("true".equals(extractFunctions(securityContext, renderContext, _hideConditions))) {
+				return false;
+			}
+
+		} catch (FrameworkException ex) {
+			logger.log(Level.SEVERE, "Hide conditions " + _hideConditions + " could not be evaluated.", ex);
+		}
+		try {
+			// If show conditions don't evaluate to "true", don't render
+			if (StringUtils.isNotBlank(_showConditions) && !("true".equals(extractFunctions(securityContext, renderContext, _showConditions)))) {
+				return false;
+			}
+
+		} catch (FrameworkException ex) {
+			logger.log(Level.SEVERE, "Show conditions " + _showConditions + " could not be evaluated.", ex);
+		}
+		
+		return true;
+		
+	}
+
 	/**
 	 * Decide whether this node should be displayed for the given locale settings.
 	 * 
@@ -1415,6 +1463,11 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 	 * @return 
 	 */
 	protected boolean displayForLocale(final RenderContext renderContext) {
+		
+		// In raw mode, render everything
+		if (EditMode.RAW.equals(renderContext.getEditMode(securityContext.getUser(false)))) {
+			return true;
+		}
 		
 		String localeString = renderContext.getLocale().toString();
 		

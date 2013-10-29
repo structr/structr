@@ -79,8 +79,11 @@ public class Content extends DOMNode implements Text {
 	private static final ThreadLocalMediaWikiProcessor mediaWikiProcessor                = new ThreadLocalMediaWikiProcessor();
 	private static final ThreadLocalConfluenceProcessor confluenceProcessor              = new ThreadLocalConfluenceProcessor();
 
-	public static final org.structr.common.View uiView                                   = new org.structr.common.View(Content.class, PropertyView.Ui, content, contentType, size, parent, pageId, hideOnDetail, hideOnIndex, showForLocales, hideForLocales);
-	public static final org.structr.common.View publicView                               = new org.structr.common.View(Content.class, PropertyView.Public, content, contentType, size, parent, pageId, hideOnDetail, hideOnIndex, showForLocales, hideForLocales);
+	public static final org.structr.common.View uiView                                   = new org.structr.common.View(Content.class, PropertyView.Ui,
+		content, contentType, size, parent, pageId, hideOnDetail, hideOnIndex, showForLocales, hideForLocales, showConditions, hideConditions);
+
+	public static final org.structr.common.View publicView                               = new org.structr.common.View(Content.class, PropertyView.Public,
+		content, contentType, size, parent, pageId, hideOnDetail, hideOnIndex, showForLocales, hideForLocales, showConditions, hideConditions);
 	//~--- static initializers --------------------------------------------
 
 	static {
@@ -173,7 +176,7 @@ public class Content extends DOMNode implements Text {
 	@Override
 	public void render(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException {
 	
-		if (isDeleted() || isHidden() || !displayForLocale(renderContext)) {
+		if (isDeleted() || isHidden() || !displayForLocale(renderContext) || !displayForConditions(securityContext, renderContext)) {
 			return;
 		}
 
