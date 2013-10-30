@@ -77,7 +77,8 @@ public class BulkDeleteSoftDeletedNodesCommand extends NodeServiceCommand implem
 						if (erase) {
 						
 							try {
-								deleteNode.execute(node, true);
+								deleteNode.execute(node);
+								
 							} catch (FrameworkException ex) {
 								logger.log(Level.WARNING, "Could not delete node " + node, ex);
 							}

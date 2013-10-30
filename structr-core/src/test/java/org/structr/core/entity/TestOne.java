@@ -26,6 +26,7 @@ import org.structr.core.property.ISO8601DateProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.EndNode;
+import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
 
 /**
@@ -41,9 +42,9 @@ public class TestOne extends AbstractNode {
 	public static final Property<Date>      aDate     = new ISO8601DateProperty("aDate").indexed();
 	  
 	public static final Property<String>    aString   = new StringProperty("aString").indexed();
-	public static final Property<TestTwo>   testTwo   = new EndNode<>("testTwo",   OneTwo.class);
-	public static final Property<TestThree> testThree = new EndNode<>("testThree", OneThree.class);
-	public static final Property<TestFour>  testFour  = new EndNode<>("testFour",  OneFour.class);
+	public static final Property<TestTwo>   testTwo   = new EndNode<>("testTwo",   OneTwoOneToOne.class);
+	public static final Property<TestThree> testThree = new EndNode<>("testThree", OneThreeOneToOne.class);
+	public static final Property<TestFour>  testFour  = new EndNode<>("testFour",  OneFourOneToOne.class);
 	
 //	public static final Property<TestTwo>   testTwo   = new Forward<TestOne, TestTwo>("testTwo",     OneTwo.class, false, Relation.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED);
 //	public static final Property<TestThree> testThree = new Forward<TestOne, TestThree>("testThree", OneThree.class, false, Relation.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED);

@@ -80,7 +80,7 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 	
 	public abstract T instantiate(final S obj) throws FrameworkException;
 	
-	public abstract T instantiateWithType(final S obj, final String nodeType, boolean isCreation) throws FrameworkException;
+	public abstract T instantiateWithType(final S obj, final Class<T> type, boolean isCreation) throws FrameworkException;
 	
 	public abstract T instantiate(final S obj, final boolean includeDeletedAndHidden, final boolean publicOnly) throws FrameworkException;
 	
@@ -175,6 +175,9 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 		return adapt(from);
 	}
 
+	protected Class<T> getClassForName(final String rawType) {
+		return EntityContext.getEntityClassForRawType(rawType);
+	}
 
 	// <editor-fold defaultstate="collapsed" desc="private methods">
 	protected List<S> read(final Iterable<S> it) {
@@ -553,5 +556,4 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 	}
 
 	// </editor-fold>
-
 }

@@ -25,7 +25,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import org.apache.commons.lang.StringUtils;
 
-import org.neo4j.graphdb.RelationshipType;
 
 import org.structr.common.CaseHelper;
 import org.structr.core.property.PropertyKey;
@@ -37,7 +36,6 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.graphdb.DynamicRelationshipType;
 import org.structr.common.*;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.module.ModuleService;
@@ -53,7 +51,6 @@ import org.structr.core.module.ModuleService;
  */
 public class EntityContext {
 
-	private static final String COMBINED_RELATIONSHIP_KEY_SEP                                     = " ";
 	private static final Logger logger                                                            = Logger.getLogger(EntityContext.class.getName());
 
 	private static final Map<Class, Map<PropertyKey, Set<PropertyValidator>>> globalValidatorMap  = new LinkedHashMap<Class, Map<PropertyKey, Set<PropertyValidator>>>();
@@ -74,8 +71,7 @@ public class EntityContext {
 	private static final Set<PropertyKey> globalKnownPropertyKeys                                 = new LinkedHashSet<PropertyKey>();
 	private static final Map<Class, Set<Transformation<GraphObject>>> globalTransformationMap     = new LinkedHashMap<Class, Set<Transformation<GraphObject>>>();
 	private static final Map<String, String> normalizedEntityNameCache                            = new LinkedHashMap<String, String>();
-	private static final Map<String, Class> globalRelationshipClassMap                            = new LinkedHashMap<String, Class>();
-	private static final Map<Class, Set<Method>> exportedMethodMap                               = new LinkedHashMap<Class, Set<Method>>();
+	private static final Map<Class, Set<Method>> exportedMethodMap                                = new LinkedHashMap<Class, Set<Method>>();
 	private static final Map<Class, Set<Class>> interfaceMap                                      = new LinkedHashMap<Class, Set<Class>>();
 	private static final Map<String, Class> reverseInterfaceMap                                   = new LinkedHashMap<String, Class>();
 	private static Map<String, Class> cachedEntities                                              = new LinkedHashMap<String, Class>();
@@ -327,29 +323,6 @@ public class EntityContext {
 		
 		return buf.toString();
 	}
-
-	public static String createCombinedRelationshipType(String oldCombinedRelationshipType, Class newDestType) {
-
-		String[] parts = getPartsOfCombinedRelationshipType(oldCombinedRelationshipType);
-
-		return createCombinedRelationshipType(parts[0], parts[1], newDestType.getSimpleName());
-	}
-
-	public static String createCombinedRelationshipType(Class sourceType, RelationshipType relType, Class destType) {
-		
-		if (sourceType != null && relType != null && destType != null) {
-			
-			return createCombinedRelationshipType(sourceType.getSimpleName(), relType.name(), destType.getSimpleName());
-		}
-		
-		return "";
-	}
-
-	public static String createCombinedRelationshipType(String sourceType, String relType, String destType) {
-
-		return sourceType.concat(COMBINED_RELATIONSHIP_KEY_SEP).concat(relType).concat(COMBINED_RELATIONSHIP_KEY_SEP).concat(destType);
-
-	}
 	
 	public static void registerConvertedProperty(PropertyKey propertyKey) {
 		globalKnownPropertyKeys.add(propertyKey);
@@ -374,87 +347,6 @@ public class EntityContext {
 		}
 
 		return null;
-	}
-
-	private static Class getSourceType(final String combinedRelationshipType) {
-
-		String sourceType = getPartsOfCombinedRelationshipType(combinedRelationshipType)[0];
-		Class realType  = getEntityClassForRawType(sourceType);
-
-		return realType;
-	}
-	
-	private static RelationshipType getRelType(final String combinedRelationshipType) {
-		String relType = getPartsOfCombinedRelationshipType(combinedRelationshipType)[1];
-		return DynamicRelationshipType.withName(relType);
-	}
-
-	private static Class getDestType(final String combinedRelationshipType) {
-
-		String destType = getPartsOfCombinedRelationshipType(combinedRelationshipType)[2];
-		Class realType  = getEntityClassForRawType(destType);
-
-		return realType;
-	}
-
-	private static String[] getPartsOfCombinedRelationshipType(final String combinedRelationshipType) {
-		return StringUtils.split(combinedRelationshipType, COMBINED_RELATIONSHIP_KEY_SEP);
-	}
-
-	public static Class getNamedRelationClass(String sourceType, String destType, String relType) {
-		return getNamedRelationClass(createCombinedRelationshipType(sourceType, relType, destType));
-	}
-
-	public static Class getNamedRelationClass(String combinedRelationshipType) {
-
-		Class relEntity = globalRelationshipClassMap.get(combinedRelationshipType);
-		if (relEntity == null) {
-
-			Class sourceType         = getSourceType(combinedRelationshipType);
-			Class destType           = getDestType(combinedRelationshipType);
-			RelationshipType relType = getRelType(combinedRelationshipType);
-
-			relEntity = getNamedRelationClass(sourceType, destType, relType);
-		}
-		
-		return relEntity;
-	}
-
-	public static Class getNamedRelationClass(Class sourceType, Class destType, RelationshipType relType) {
-
-		Class namedRelationClass = null;
-		Class sourceSuperClass   = sourceType;
-		Class destSuperClass     = destType;
-
-		while ((namedRelationClass == null) && sourceSuperClass != null && destSuperClass != null && !Object.class.equals(sourceSuperClass) && !Object.class.equals(destSuperClass)) {
-
-			namedRelationClass = globalRelationshipClassMap.get(createCombinedRelationshipType(sourceSuperClass, relType, destSuperClass));
-
-			// check interfaces of dest class
-			if (namedRelationClass == null) {
-				
-				for(Class interfaceClass : getInterfacesForType(destSuperClass)) {
-					
-					namedRelationClass = globalRelationshipClassMap.get(createCombinedRelationshipType(sourceSuperClass, relType, interfaceClass));
-					if(namedRelationClass != null) {
-						break;
-					}
-				}
-			}
-			// do not check superclass for source type
-			// sourceSuperClass = sourceSuperClass.getSuperclass();
-			// one level up
-			destSuperClass = destSuperClass.getSuperclass();
-
-		}
-
-		if (namedRelationClass != null) {
-
-			return namedRelationClass;
-
-		}
-
-		return globalRelationshipClassMap.get(createCombinedRelationshipType(sourceType, relType, destType));
 	}
 
 	public static Set<Transformation<GraphObject>> getEntityCreationTransformations(Class type) {

@@ -42,7 +42,7 @@ public class RelationshipStartNodeTypeConverter extends PropertyConverter {
 			AbstractRelationship rel = (AbstractRelationship)currentObject;
 			if(rel != null) {
 				
-				NodeInterface startNode = rel.getStartNode();
+				NodeInterface startNode = rel.getSourceNode();
 				if(startNode != null) {
 					
 					return startNode.getType();

@@ -158,7 +158,7 @@ public class View extends DOMElement {
 
 				for (AbstractRelationship rel : rels) {
 
-					DOMElement subNode = (DOMElement) rel.getEndNode();
+					DOMElement subNode = (DOMElement) rel.getTargetNode();
 
 					if (subNode.isNotDeleted() && subNode.isNotDeleted()) {
 

@@ -85,9 +85,7 @@ public abstract class AbstractUser extends Person implements Principal {
 	}
 
 	private Security createSecurityRelationshipTo(final AbstractNode obj) throws FrameworkException {
-
-		return (Security) Services.command(SecurityContext.getSuperUserInstance(), CreateRelationshipCommand.class).execute(this, obj, org.structr.common.RelType.SECURITY);
-
+		return Services.command(SecurityContext.getSuperUserInstance(), CreateRelationshipCommand.class).execute(this, obj, Security.class);
 	}
 
 	//~--- get methods ----------------------------------------------------
@@ -99,7 +97,7 @@ public abstract class AbstractUser extends Person implements Principal {
 
 		for (Parentship rel : getRelationships(Parentship.class)) {
 
-			NodeInterface node = rel.getStartNode();
+			NodeInterface node = rel.getSourceNode();
 
 			if (node instanceof Principal) {
 

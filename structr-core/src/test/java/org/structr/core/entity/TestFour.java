@@ -31,7 +31,7 @@ import org.structr.core.property.*;
  */
 public class TestFour extends AbstractNode {
 	
-	public static final Property<TestOne>       testOne             = new StartNode<>("testOne", OneFour.class);
+	public static final Property<TestOne>       testOne             = new StartNode<>("testOne", OneFourOneToOne.class);
 	
 	public static final Property<String[]>      stringArrayProperty = new ArrayProperty<>("stringArrayProperty", String.class);
 	public static final Property<Boolean>       booleanProperty     = new BooleanProperty("booleanProperty").indexed();

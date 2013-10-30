@@ -53,7 +53,7 @@ public abstract class LinkedListNode extends ValidatedNode {
 		ListSibling prevRel = currentElement.getIncomingRelationship(type);
 		if (prevRel != null) {
 			
-			return prevRel.getStartNode();
+			return prevRel.getSourceNode();
 		}
 
 		return null;
@@ -71,7 +71,7 @@ public abstract class LinkedListNode extends ValidatedNode {
 		ListSibling nextRel = currentElement.getOutgoingRelationship(type);
 		if (nextRel != null) {
 			
-			return nextRel.getStartNode();
+			return nextRel.getSourceNode();
 		}
 
 		return null;
@@ -212,10 +212,9 @@ public abstract class LinkedListNode extends ValidatedNode {
 	public void linkNodes(final Class<? extends Relation> type, final LinkedListNode startNode, final LinkedListNode endNode, final PropertyMap properties) throws FrameworkException {
 		
 		CreateRelationshipCommand cmd = Services.command(securityContext, CreateRelationshipCommand.class);
-		Relation rel                  = getRelationshipForType(type);
 		
 		// do not check for duplicates here
-		cmd.execute(startNode, endNode, rel.getRelationshipType(), properties, false);
+		cmd.execute(startNode, endNode, type, properties);
 	}
 	
 	public void unlinkNodes(final Class<? extends Relation> type, final NodeInterface startNode, final NodeInterface endNode) throws FrameworkException {
@@ -231,7 +230,7 @@ public abstract class LinkedListNode extends ValidatedNode {
 				
 				for (AbstractRelationship rel : startNode.getRelationships()) {
 					
-					if (rel != null && rel.getEndNode().equals(endNode)) {
+					if (rel != null && rel.getTargetNode().equals(endNode)) {
 						cmd.execute(rel);
 					}
 				}

@@ -62,7 +62,7 @@ public class ChildrenCommand extends AbstractCommand {
 
 		for (AbstractRelationship rel : rels) {
 
-			AbstractNode endNode = rel.getEndNode();
+			AbstractNode endNode = rel.getTargetNode();
 			if (endNode == null) {
 
 				continue;

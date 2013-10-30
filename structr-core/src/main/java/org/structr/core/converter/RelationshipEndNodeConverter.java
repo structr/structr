@@ -50,7 +50,7 @@ public class RelationshipEndNodeConverter extends PropertyConverter {
 
 			if (rel != null) {
 
-				return rel.getEndNode();
+				return rel.getTargetNode();
 			}
 
 		}

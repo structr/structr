@@ -364,14 +364,14 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 					// No child relationships, maybe this node is in sync with another node
 					for (AbstractRelationship syncRel : getRelationships(RelType.SYNC, Direction.INCOMING)) {
 
-						DOMElement syncedNode = (DOMElement)syncRel.getStartNode();
+						DOMElement syncedNode = (DOMElement)syncRel.getSourceNode();
 						rels.addAll(syncedNode.getChildRelationships());
 					}
 				}
 
 				for (AbstractRelationship rel : rels) {
 
-					DOMNode subNode = (DOMNode) rel.getEndNode();
+					DOMNode subNode = (DOMNode) rel.getTargetNode();
 
 					if (!securityContext.isVisible(subNode)) {
 						continue;
@@ -526,7 +526,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		// an outgoing RENDER_NODE relationship points to the data node where rendering starts
 		for (AbstractRelationship rel : node.getOutgoingRelationships(RelType.RENDER_NODE)) {
 
-			AbstractNode dataRoot = rel.getEndNode();			
+			AbstractNode dataRoot = rel.getTargetNode();			
 
 			// set start node of this rendering to the data root node
 			renderContext.putDataObject(dataKey, dataRoot);
@@ -998,7 +998,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 			
 			for (AbstractRelationship rel : referenceNode.getOutgoingRelationships(RelType.RENDER_NODE)) {
 				
-				data.add(rel.getEndNode());
+				data.add(rel.getTargetNode());
 			}
 			
 			if (!data.isEmpty()) {
@@ -1285,7 +1285,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		
 		for (AbstractRelationship rel : getRelationships(RelType.SYNC, Direction.OUTGOING)) {
 			
-			DOMElement syncedNode = (DOMElement) rel.getEndNode();
+			DOMElement syncedNode = (DOMElement) rel.getTargetNode();
 			
 			// sync HTML properties only
 			for (Property htmlProp : syncedNode.getHtmlAttributes()) {

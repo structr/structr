@@ -74,7 +74,7 @@ public class SearchResultView extends View {
 
 				for (AbstractRelationship rel : rels) {
 
-					DOMElement subNode = (DOMElement) rel.getEndNode();
+					DOMElement subNode = (DOMElement) rel.getTargetNode();
 
 					if (subNode.isNotDeleted() && subNode.isNotDeleted()) {
 

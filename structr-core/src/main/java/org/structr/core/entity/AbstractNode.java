@@ -55,6 +55,7 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.PropertyContainer;
+import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.index.Index;
 import org.structr.core.IterableAdapter;
 import org.structr.core.entity.relationship.Ownership;
@@ -644,7 +645,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		
 		for (Security r : getIncomingRelationships(Security.class)) {
 			
-			if (r.getStartNode().equals(p)) {
+			if (r.getSourceNode().equals(p)) {
 				
 				return r;
 				
@@ -675,8 +676,13 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		
 		final RelationshipFactory<R> factory = new RelationshipFactory<>(securityContext);
 		final R template                     = getRelationshipForType(type);
+		final Relationship relationship      = template.getSource().getRaw(dbNode);
 		
-		return factory.adapt(template.getSource().getRaw(dbNode));
+		if (relationship != null) {
+			return factory.adapt(relationship);
+		}
+		
+		return null;
 	}
 	
 	@Override
@@ -693,8 +699,13 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		
 		final RelationshipFactory<R> factory = new RelationshipFactory<>(securityContext);
 		final R template                     = getRelationshipForType(type);
+		final Relationship relationship      = template.getTarget().getRaw(dbNode);
 		
-		return factory.adapt(template.getTarget().getRaw(dbNode));
+		if (relationship != null) {
+			return factory.adapt(relationship);
+		}
+		
+		return null;
 	}
 	
 	@Override
@@ -750,7 +761,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			final Ownership ownership = getIncomingRelationship(Ownership.class);
 			if (ownership != null) {
 				
-				Principal principal = ownership.getStartNode();
+				Principal principal = ownership.getSourceNode();
 				cachedOwnerNode = (Principal) principal;
 			}
 		}
@@ -781,7 +792,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		for (Security r : getIncomingRelationships(Security.class)) {
 
 			// check security properties
-			Principal principalNode = r.getStartNode();
+			Principal principalNode = r.getSourceNode();
 
 			principalList.add(principalNode);
 		}
@@ -1050,6 +1061,21 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		}
 
 	}
+	
+	public <T> void setPropertyTransactional(final PropertyKey<T> key, final T value) throws FrameworkException {
+		
+		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+			@Override
+			public Object execute() throws FrameworkException {
+				
+				setProperty(key, value);
+				
+				return null;
+			}
+			
+		});
+	}
 
 	private <T> void setPropertyInternal(final PropertyKey<T> key, final T value) throws FrameworkException {
 
@@ -1079,20 +1105,6 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 		key.setProperty(securityContext, this, value);
 	}
-
-//	public void setOwner(final AbstractNode owner) {
-//
-//		try {
-//
-//			Services.command(securityContext, SetOwnerCommand.class).execute(this, owner);
-//
-//		} catch (FrameworkException fex) {
-//
-//			logger.log(Level.WARNING, "Unable to set owner node", fex);
-//
-//		}
-//
-//	}
 
 	@Override
 	public void addToIndex() {

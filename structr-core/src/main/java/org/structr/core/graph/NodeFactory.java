@@ -21,24 +21,24 @@
 package org.structr.core.graph;
 
 import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.index.IndexHits;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Result;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 
 import java.lang.reflect.Constructor;
 
 import java.util.*;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.core.module.ModuleService;
 import org.neo4j.gis.spatial.indexprovider.SpatialRecordHits;
+import org.neo4j.graphdb.index.IndexHits;
 import org.structr.common.AccessControllable;
+import org.structr.core.GraphObject;
+import org.structr.core.Result;
+import org.structr.core.Services;
 import org.structr.core.entity.relationship.LocationRelationship;
+import org.structr.core.module.ModuleService;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -78,66 +78,56 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 
 	@Override
 	public T instantiate(final Node node) throws FrameworkException {
-
-		String nodeType = factoryDefinition.determineNodeType(node);
-
-		return instantiateWithType(node, nodeType, false);
-
+		return instantiateWithType(node, factoryDefinition.determineNodeType(node), false);
 	}
 
 	@Override
-	public T instantiateWithType(final Node node, final String nodeType, boolean isCreation) throws FrameworkException {
+	public T instantiateWithType(final Node node, final Class<T> nodeClass, boolean isCreation) throws FrameworkException {
 
 		SecurityContext securityContext = factoryProfile.getSecurityContext();
 		T newNode = (T)securityContext.lookup(node);
 		
 		if (newNode == null) {
 
-			Class<T> nodeClass = Services.getService(ModuleService.class).getNodeEntityClass(nodeType);
-			if (nodeClass != null) {
+			try {
 
-				try {
+				Constructor<T> constructor = constructors.get(nodeClass);
+				if (constructor == null) {
 
-					Constructor<T> constructor = constructors.get(nodeClass);
-					if (constructor == null) {
+					constructor = nodeClass.getConstructor();
 
-						constructor = nodeClass.getConstructor();
-
-						constructors.put(nodeClass, constructor);
-
-					}
-
-					// newNode = (AbstractNode) nodeClass.newInstance();
-					newNode = constructor.newInstance();
-
-				} catch (Throwable t) {
-
-					newNode = null;
+					constructors.put(nodeClass, constructor);
 
 				}
+
+				// newNode = (AbstractNode) nodeClass.newInstance();
+				newNode = constructor.newInstance();
+
+			} catch (Throwable t) {
+
+				newNode = null;
 
 			}
 
 			if (newNode == null) {
-				// FIXME
 				newNode = (T)factoryDefinition.createGenericNode();
 			}
-
 
 			newNode.init(factoryProfile.getSecurityContext(), node);
 			newNode.onNodeInstantiation();
 
-			String newNodeType = newNode.getProperty(AbstractNode.type);
-			if (newNodeType == null) { //  || (newNodeType != null && !newNodeType.equals(nodeType))) {
+			String newNodeType = newNode.getProperty(GraphObject.type);
+			if (newNodeType == null && nodeClass != null) {
 				
 				try {
 
 					newNode.unlockReadOnlyPropertiesOnce();
-					newNode.setProperty(AbstractNode.type, nodeType);
+					newNode.setProperty(GraphObject.type, nodeClass.getSimpleName());
 
 				} catch (Throwable t) {
 
-					logger.log(Level.SEVERE, "Unable to set type property {0} on node {1}: {2}", new Object[] { nodeType, newNode, t.getMessage() } );
+					t.printStackTrace();
+					logger.log(Level.SEVERE, "Unable to set type property {0} on node {1}: {2}", new Object[] { nodeClass, newNode, t.getMessage() } );
 				}
 			}
 			
@@ -280,7 +270,7 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 			
 			for (LocationRelationship rel : rels) {
 
-				NodeInterface startNode = rel.getStartNode();
+				NodeInterface startNode = rel.getSourceNode();
 
 				nodes.add(startNode);
 

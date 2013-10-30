@@ -143,7 +143,7 @@ public class UpdateCommand extends AbstractCommand {
 
 						for (AbstractRelationship rel : node.getOutgoingRelationships(RelType.CONTAINS)) {
 
-							AbstractNode endNode = rel.getEndNode();
+							AbstractNode endNode = rel.getTargetNode();
 							if (endNode != null) {
 
 								setProperties(endNode, properties, rec);

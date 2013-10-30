@@ -19,6 +19,7 @@
 package org.structr.core.entity;
 
 import org.neo4j.graphdb.RelationshipType;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 
@@ -29,11 +30,37 @@ import org.structr.core.graph.RelationshipInterface;
  */
 public interface Relation<A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target> extends RelationshipInterface {
 
-	public static final int DELETE_NONE                            = 0;
-	public static final int DELETE_OUTGOING                        = 1;
-	public static final int DELETE_INCOMING                        = 2;
-	public static final int DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED = 4;
+	/**
+	 * No cascading delete.
+	 */
+	public static final int NONE              = 0;
+	
+	/**
+	 * Target node will be deleted if source node
+	 * gets deleted.
+	 */
+	public static final int SOURCE_TO_TARGET  = 1;
+	
+	/**
+	 * Source node will be deleted if target node
+	 * gets deleted.
+	 */
+	public static final int TARGET_TO_SOURCE  = 2;
+	
+	/**
+	 * Both nodes will be deleted whenever one of
+	 * the two nodes gets deleted.
+	 * 
+	 */
+	public static final int ALWAYS            = 3;
+	
+	/**
+	 * Source and/or target nodes will be deleted
+	 * if they become invalid.
+	 */
+	public static final int CONSTRAINT_BASED  = 4;
 
+	
 	public enum Cardinality { OneToOne, ManyToOne, OneToMany, ManyToMany }
 
 	public enum Multiplicity { One, Many }
@@ -48,4 +75,8 @@ public interface Relation<A extends NodeInterface, B extends NodeInterface, S ex
 	
 	public S getSource();
 	public T getTarget();
+
+	public int getCascadingDeleteFlag();
+	
+	public void checkMultiplicity(final NodeInterface sourceNode, final NodeInterface targetNode) throws FrameworkException;
 }

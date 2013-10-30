@@ -33,7 +33,6 @@ import org.structr.core.GraphObject;
 import org.structr.core.Result;
 import org.structr.core.Value;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.RelationshipMapping;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.ResourceProvider;
@@ -98,12 +97,6 @@ public class CsvServlet extends HttpServlet {
 
 	@Override
 	public void init() {
-
-		// initialize internal resources with exact matching from EntityContext
-		for (RelationshipMapping relMapping : EntityContext.getNamedRelations()) {
-
-			resourceMap.put(Pattern.compile(relMapping.getName()), NamedRelationResource.class);
-		}
 
 		// inject resources
 		resourceMap.putAll(resourceProvider.getResources());

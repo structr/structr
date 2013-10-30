@@ -20,12 +20,8 @@
 
 package org.structr.core.graph;
 
-import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.RelationshipType;
-
-import org.structr.common.RelType;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
@@ -38,7 +34,7 @@ import org.structr.core.entity.AbstractRelationship;
 import java.util.Date;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
-import org.neo4j.graphdb.Direction;
+import org.structr.core.entity.Relation;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 
@@ -56,91 +52,52 @@ import org.structr.core.property.PropertyMap;
  *
  * @author cmorgner
  */
-public class CreateRelationshipCommand<T extends AbstractRelationship> extends NodeServiceCommand {
+public class CreateRelationshipCommand extends NodeServiceCommand {
 
 	private static final Logger logger = Logger.getLogger(CreateRelationshipCommand.class.getName());
 
 	//~--- methods --------------------------------------------------------
 
-	public T execute(final NodeInterface fromNode, final NodeInterface toNode, final RelationshipType relType) throws FrameworkException {
-		return createRelationship(fromNode, toNode, relType, null, false);
+	public <T extends Relation> T execute(final NodeInterface fromNode, final NodeInterface toNode, final Class<T> relType) throws FrameworkException {
+		return createRelationship(fromNode, toNode, relType, null);
 	}
 
-	public T execute(final NodeInterface fromNode, final NodeInterface toNode, final String relType) throws FrameworkException {
-		return createRelationship(fromNode, toNode, getRelationshipTypeFor(relType), null, false);
+	public <T extends Relation> T execute(final NodeInterface fromNode, final NodeInterface toNode, final Class<T> relType, final PropertyMap properties) throws FrameworkException {
+		return createRelationship(fromNode, toNode, relType, properties);
 	}
 
-	public T execute(final NodeInterface fromNode, final NodeInterface toNode, final RelationshipType relType, boolean checkDuplicates) throws FrameworkException {
-		return createRelationship(fromNode, toNode, relType, null, checkDuplicates);
-	}
-
-	public T execute(final NodeInterface fromNode, final NodeInterface toNode, final String relType, boolean checkDuplicates) throws FrameworkException {
-		return createRelationship(fromNode, toNode, getRelationshipTypeFor(relType), null, checkDuplicates);
-	}
-
-	public T execute(final NodeInterface fromNode, final NodeInterface toNode, final RelationshipType relType, final PropertyMap properties, boolean checkDuplicates) throws FrameworkException {
-		return createRelationship(fromNode, toNode, relType, properties, checkDuplicates);
-	}
-
-	public T execute(final NodeInterface fromNode, final NodeInterface toNode, final String relType, final PropertyMap properties, boolean checkDuplicates) throws FrameworkException {
-		return createRelationship(fromNode, toNode, getRelationshipTypeFor(relType), properties, checkDuplicates);
-	}
-	
-	private synchronized T createRelationship(final NodeInterface fromNode, final NodeInterface toNode, final RelationshipType relType, final PropertyMap properties, final boolean checkDuplicates)
-		throws FrameworkException {
+	private synchronized <T extends Relation> T createRelationship(final NodeInterface fromNode, final NodeInterface toNode, final Class<T> relType, final PropertyMap properties) throws FrameworkException {
 
 		return (T) Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
 			@Override
 			public Object execute() throws FrameworkException {
 
-				if (checkDuplicates) {
-
-					RelationshipFactory relationshipFactory = new RelationshipFactory(securityContext);
-					int contentHashCode = properties != null ? properties.contentHashCode(null, false) : -1;
-					Node dbToNode       = toNode.getNode();
-					
-					// use neo nodes here..
-					for (Relationship dbRelationship : dbToNode.getRelationships(relType, Direction.INCOMING)) {
-
-						Node dbRelStartNode         = dbRelationship.getStartNode();
-						Node dbFromNode             = fromNode.getNode();
-
-						// Duplicate check:
-						// First, check if relType and start node are equal
-						if (dbRelStartNode.getId() == dbFromNode.getId()) {
-
-							if (properties != null) {
-								
-								// At least one property of new rel has to be different to the tested existing node
-								RelationshipInterface rel = relationshipFactory.instantiate(dbRelationship);
-								if (contentHashCode == rel.getProperties().contentHashCode(properties.keySet(), false)) {
-
-									return null;
-								}
-								
-							} else {
-								
-								// rel. already exists
-								return null;
-							}
-						}
-					}
-				}
-
-				RelationshipFactory<T> relationshipFactory = new RelationshipFactory<T>(securityContext);
-				Node startNode                             = fromNode.getNode();
-				Node endNode                               = toNode.getNode();
-				Relationship rel                           = startNode.createRelationshipTo(endNode, relType);
-				T newRel                                   = relationshipFactory.instantiate(rel);
+				final RelationshipFactory<T> factory = new RelationshipFactory(securityContext);
+				final T template                     = instantiate(relType);
+				final Node startNode                 = fromNode.getNode();
+				final Node endNode                   = toNode.getNode();
+				final Relationship rel               = startNode.createRelationshipTo(endNode, template.getRelationshipType());
+				final T newRel                       = factory.instantiateWithType(rel, relType, true);
+				final Date now                       = new Date();
 
 				if (newRel != null) {
 
-					TransactionCommand.relationshipCreated(newRel);
+					newRel.unlockReadOnlyPropertiesOnce();
+					newRel.setProperty(GraphObject.type, relType.getSimpleName());
 					
 					newRel.unlockReadOnlyPropertiesOnce();
-					newRel.setProperty(AbstractRelationship.createdDate, new Date());
+					newRel.setProperty(AbstractRelationship.createdDate, now);
 
+					newRel.unlockReadOnlyPropertiesOnce();
+					newRel.setProperty(AbstractRelationship.lastModifiedDate, now);
+
+					newRel.unlockReadOnlyPropertiesOnce();
+					newRel.setProperty(AbstractRelationship.cascadeDelete, template.getCascadingDeleteFlag());
+
+					// notify transaction handler
+					TransactionCommand.relationshipCreated(newRel);
+					
 					if (properties != null) {
 
 						for (Entry<PropertyKey, Object> entry : properties.entrySet()) {
@@ -175,22 +132,16 @@ public class CreateRelationshipCommand<T extends AbstractRelationship> extends N
 		});
 	}
 
-	//~--- get methods ----------------------------------------------------
-
-	private RelationshipType getRelationshipTypeFor(final String relTypeString) {
-
-		RelationshipType relType = null;
-
+	private <T extends Relation> T instantiate(final Class<T> type) {
+		
 		try {
-			relType = RelType.valueOf(relTypeString);
-		} catch (Exception ignore) {}
-
-		if (relType == null) {
-
-			relType = DynamicRelationshipType.withName(relTypeString);
-
+			
+			return type.newInstance();
+			
+		} catch(Throwable t) {
+			
 		}
-
-		return relType;
+		
+		return null;
 	}
 }

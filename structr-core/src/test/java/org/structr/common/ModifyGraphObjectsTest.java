@@ -27,14 +27,12 @@ import org.structr.common.error.FrameworkException;
 //~--- JDK imports ------------------------------------------------------------
 
 
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertTrue;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.entity.relationship.LocationRelationship;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyMap;
@@ -133,7 +131,7 @@ public class ModifyGraphObjectsTest extends StructrTest {
 
 		try {
 
-			final AbstractRelationship rel = ((List<AbstractRelationship>) createTestRelationships(RelType.IS_AT, 1)).get(0);
+			final LocationRelationship rel = (createTestRelationships(LocationRelationship.class, 1)).get(0);
 			final PropertyKey key1         = new StringProperty("jghsdkhgshdhgsdjkfgh");
 			final String val1              = "54354354546806849870";
 

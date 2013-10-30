@@ -29,7 +29,7 @@ import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.entity.TestFour;
 import org.structr.core.entity.TestOne;
-import org.structr.core.entity.OneFour;
+import org.structr.core.entity.OneFourOneToOne;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.search.Search;
@@ -108,12 +108,12 @@ public class IntegerPropertyTest extends StructrTest {
 		try {
 			final TestOne testOne        = createTestNode(TestOne.class);
 			final TestFour testFour      = createTestNode(TestFour.class);
-			final Property<Integer> key = OneFour.integerProperty;
+			final Property<Integer> key = OneFourOneToOne.integerProperty;
 			
 			assertNotNull(testOne);
 			assertNotNull(testFour);
 			
-			final OneFour testEntity = (OneFour)createTestRelationship(testOne, testFour, RelType.IS_AT);
+			final OneFourOneToOne testEntity = createTestRelationship(testOne, testFour, OneFourOneToOne.class);
 			
 			assertNotNull(testEntity);
 
@@ -134,7 +134,7 @@ public class IntegerPropertyTest extends StructrTest {
 			assertEquals((Integer)2345, (Integer)testEntity.getProperty(key));
 			
 			Result<TestFour> result = Services.command(securityContext, SearchRelationshipCommand.class).execute(
-				Search.andExactRelType(OneFour.class),
+				Search.andExactRelType(OneFourOneToOne.class),
 				Search.andExactProperty(securityContext, key, 2345)
 			);
 			

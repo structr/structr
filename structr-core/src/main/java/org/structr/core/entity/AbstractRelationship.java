@@ -46,15 +46,12 @@ import org.structr.common.error.ReadOnlyPropertyToken;
 import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.graph.CreateRelationshipCommand;
-import org.structr.core.graph.DeleteRelationshipCommand;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeService;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
-import org.structr.core.property.CombinedTypeProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
@@ -70,42 +67,32 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 	private static final Logger logger = Logger.getLogger(AbstractRelationship.class.getName());
 
-	public static final Property<Integer>  cascadeDelete = new IntProperty("cascadeDelete");
-	public static final Property<String>   combinedType  = new CombinedTypeProperty();
+	public static final Property<Integer> cascadeDelete = new IntProperty("cascadeDelete").writeOnce();
 	
 	public static final View defauflView = new View(AbstractRelationship.class, PropertyView.Public,
-		uuid, type, combinedType
+		uuid, type
 	);
 	
-	
-	//~--- static initializers --------------------------------------------
-
 	static {
 
-		// register transformation for automatic uuid creation
 		EntityContext.registerEntityCreationTransformation(AbstractRelationship.class, new UuidCreationTransformation());
 	}
 
-	//~--- fields ---------------------------------------------------------
-
-	protected Class entityType     = getClass();
-	private String cachedEndNodeId = null;
-
-	private String cachedStartNodeId                = null;
-	protected SecurityContext securityContext       = null;
-	private boolean readOnlyPropertiesUnlocked      = false;
-
-	// reference to database relationship
-	protected Relationship dbRelationship;
-	protected PropertyMap properties;
-	protected String cachedUuid = null;
-	protected boolean isDirty;
+	private boolean readOnlyPropertiesUnlocked = false;
+	private String cachedEndNodeId             = null;
+	private String cachedStartNodeId           = null;
+	
+	protected SecurityContext securityContext  = null;
+	protected Relationship dbRelationship      = null;
+	protected PropertyMap properties           = null;
+	protected Class entityType                 = getClass();
+	protected String cachedUuid                = null;
+	protected boolean isDirty                  = false;
 
 	public AbstractRelationship() {
 
 		this.properties = new PropertyMap();
 		isDirty         = true;
-
 	}
 
 	public AbstractRelationship(final PropertyMap properties) {
@@ -252,12 +239,9 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	@Override
 	public int cascadeDelete() {
 
-		Integer cd = getProperty(AbstractRelationship.cascadeDelete);
+		Integer value = getProperty(AbstractRelationship.cascadeDelete);
 
-		return (cd != null)
-		       ? cd
-		       : 0;
-
+		return value != null ? value : 0;
 	}
 
 	/**
@@ -391,7 +375,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 	}
 
-	public T getEndNode() {
+	public T getTargetNode() {
 
 		try {
 			NodeFactory<T> nodeFactory = new NodeFactory<T>(SecurityContext.getSuperUserInstance());
@@ -404,7 +388,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 		return null;
 	}
 
-	public S getStartNode() {
+	public S getSourceNode() {
 
 		try {
 
@@ -503,13 +487,13 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 	public String getStartNodeId() {
 
-		return getStartNode().getUuid();
+		return getSourceNode().getUuid();
 
 	}
 
 	public String getEndNodeId() {
 
-		return getEndNode().getUuid();
+		return getTargetNode().getUuid();
 
 	}
 
@@ -614,50 +598,6 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 		key.setProperty(securityContext, this, value);
 	}
 
-	/**
-	 * Set relationship combinedType
-	 *
-	 * Internally, this method deletes the old relationship
-	 * and creates a new one, with the same start and end node,
-	 * but with another combinedType
-	 *
-	 */
-	public void setType(final String type) {
-
-		if (type != null) {
-
-			try {
-
-				Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-					@Override
-					public Object execute() throws FrameworkException {
-
-						DeleteRelationshipCommand deleteRel = Services.command(securityContext, DeleteRelationshipCommand.class);
-						CreateRelationshipCommand createRel = Services.command(securityContext, CreateRelationshipCommand.class);
-						S startNode                         = getStartNode();
-						T endNode                           = getEndNode();
-
-						deleteRel.execute(dbRelationship);
-
-						dbRelationship = createRel.execute(startNode, endNode, type).getRelationship();
-
-						return (null);
-
-					}
-
-				});
-
-			} catch (FrameworkException fex) {
-
-				logger.log(Level.WARNING, "Unable to set relationship type", fex);
-
-			}
-
-		}
-
-	}
-	
 	@Override
 	public void addToIndex() {
 

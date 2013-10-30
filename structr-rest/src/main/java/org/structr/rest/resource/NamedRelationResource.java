@@ -18,38 +18,19 @@
  */
 package org.structr.rest.resource;
 
-import java.util.Collections;
-import java.util.Iterator;
-import org.structr.common.PagingHelper;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.neo4j.graphdb.RelationshipType;
-import org.structr.common.GraphObjectComparator;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.property.PropertyMap;
 import org.structr.common.SecurityContext;
-import org.structr.common.error.EmptyPropertyToken;
-import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
-import org.structr.core.GraphObject;
-import org.structr.core.Predicate;
 import org.structr.core.Result;
-import org.structr.core.Services;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.RelationshipMapping;
-import org.structr.core.graph.CreateRelationshipCommand;
-import org.structr.core.graph.search.Search;
-import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.SearchRelationshipCommand;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;
+import org.structr.rest.exception.IllegalPathException;
 
 /**
  *
@@ -59,22 +40,23 @@ public class NamedRelationResource extends WrappingResource {
 
 	private static final Logger logger = Logger.getLogger(NamedRelationResource.class.getName());
 
-	private RelationshipMapping namedRelation = null;
-	private HttpServletRequest request = null;
+	private String part                = null;
 
 	@Override
 	public boolean checkAndConfigure(final String part, final SecurityContext securityContext, final HttpServletRequest request) {
 
-		this.namedRelation = EntityContext.getNamedRelation(part);
 		this.securityContext = securityContext;
-		this.request = request;
-
-		return namedRelation != null;
+		this.part            = part;
+		
+		return false;
 	}
 
 	@Override
 	public Result doGet(final PropertyKey sortKey, final boolean sortDescending, final int pageSize, final int page, final String offsetId) throws FrameworkException {
 
+		throw new IllegalPathException();
+		
+		/*
 		final List<GraphObject> relationResults = new LinkedList<GraphObject>();
 		if(wrappedResource != null) {
 
@@ -142,11 +124,15 @@ public class NamedRelationResource extends WrappingResource {
 		}
 		
 		return PagingHelper.subResult(new Result(relationResults, null, isCollectionResource(), isPrimitiveArray()), pageSize, page, offsetId);
+		*/
+		
+		
 	}
 
 	@Override
 	public RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException {
 
+		/*
 		// create new relationship of specified combinedType here
 
 		final AbstractRelationship relationshipEntity = namedRelation.newEntityClass();
@@ -193,7 +179,8 @@ public class NamedRelationResource extends WrappingResource {
 			return result;
 
 		}
-
+		*/
+		
 		throw new FrameworkException(422, "FIXME");
 	}
 
@@ -219,7 +206,7 @@ public class NamedRelationResource extends WrappingResource {
 
 	@Override
 	public String getUriPart() {
-		return namedRelation.getName();
+		return part;
 	}
 
 	@Override

@@ -19,18 +19,16 @@
 package org.structr.rest.entity;
 
 import java.util.List;
-import org.neo4j.graphdb.Direction;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.notion.PropertyNotion;
 import org.structr.core.property.CollectionNotionProperty;
-import org.structr.core.property.EndNodes;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
+import org.structr.core.property.StartNodes;
 import org.structr.core.property.StringProperty;
-import org.structr.rest.common.TestRestRelType;
 
 /**
  *
@@ -38,15 +36,15 @@ import org.structr.rest.common.TestRestRelType;
  */
 public class TestEight extends AbstractNode {
 
-	public static final EndNodes<TestSix>  testSixs            = new EndNodes<TestSix>("testSixs", TestSix.class, TestRestRelType.HAS, Direction.INCOMING, false);
-	public static final Property<List<String>>       testSixIds          = new CollectionNotionProperty("testSixIds", testSixs, new PropertyNotion(GraphObject.uuid));
+	public static final Property<List<TestSix>>  testSixs            = new StartNodes<>("testSixs", SixEightManyToMany.class);
+	public static final Property<List<String>>   testSixIds          = new CollectionNotionProperty("testSixIds", testSixs, new PropertyNotion(GraphObject.uuid));
 	        
-	public static final EndNodes<TestNine> testNines           = new EndNodes<TestNine>("testNines", TestNine.class, TestRestRelType.HAS, Direction.INCOMING, false);
-	public static final Property<List<String>>       testNineIds         = new CollectionNotionProperty("testNineIds", testNines, new PropertyNotion(GraphObject.uuid));
-	public static final Property<List<String>>       testNinePostalCodes = new CollectionNotionProperty("testNinePostalCodes", testNines, new PropertyNotion(TestNine.postalCode));
+	public static final Property<List<TestNine>> testNines           = new StartNodes<>("testNines", NineEightManyToMany.class);
+	public static final Property<List<String>>   testNineIds         = new CollectionNotionProperty("testNineIds", testNines, new PropertyNotion(GraphObject.uuid));
+	public static final Property<List<String>>   testNinePostalCodes = new CollectionNotionProperty("testNinePostalCodes", testNines, new PropertyNotion(TestNine.postalCode));
 	
-	public static final Property<String>             aString             = new StringProperty("aString").indexed().indexedWhenEmpty();
-	public static final Property<Integer>            anInt               = new IntProperty("anInt").indexed();
+	public static final Property<String>         aString             = new StringProperty("aString").indexed().indexedWhenEmpty();
+	public static final Property<Integer>        anInt               = new IntProperty("anInt").indexed();
 	
 	public static final View defaultView = new View(TestEight.class, PropertyView.Public,
 		name, testSixIds, aString, anInt

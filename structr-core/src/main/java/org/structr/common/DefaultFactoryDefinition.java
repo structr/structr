@@ -18,14 +18,18 @@
  */
 package org.structr.common;
 
+import org.apache.commons.lang.StringUtils;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.GenericNode;
 import org.structr.core.entity.GenericRelationship;
+import org.structr.core.entity.Relation;
 import org.structr.core.experimental.NodeExtender;
+import org.structr.core.module.ModuleService;
 
 /**
  * The default factory for unknown types in structr. When structr needs to
@@ -36,11 +40,13 @@ import org.structr.core.experimental.NodeExtender;
  */
 public class DefaultFactoryDefinition implements FactoryDefinition {
 
-	public static final String GENERIC_NODE_TYPE = GenericNode.class.getSimpleName();
-	public static final String GENERIC_REL_TYPE  = GenericRelationship.class.getSimpleName();
+	private static final String COMBINED_RELATIONSHIP_KEY_SEP = " ";
 	
 	public static final NodeExtender genericNodeExtender = new NodeExtender(GenericNode.class, "org.structr.core.entity.dynamic");
+	public static final Class GENERIC_NODE_TYPE          = GenericNode.class;
+	public static final Class GENERIC_REL_TYPE           = GenericRelationship.class;
 	
+	private ModuleService moduleService = null;
 	private String externalNodeTypeName = null;
 
 	@Override
@@ -49,7 +55,7 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 	}
 
 	@Override
-	public String getGenericRelationshiType() {
+	public Class getGenericRelationshipType() {
 		return GENERIC_REL_TYPE;
 	}
 
@@ -59,7 +65,7 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 	}
 
 	@Override
-	public String getGenericNodeType() {
+	public Class getGenericNodeType() {
 		return GENERIC_NODE_TYPE;
 	}
 
@@ -73,14 +79,15 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 	}
 
 	@Override
-	public String determineNodeType(Node node) {
+	public Class determineNodeType(Node node) {
 		
-		String type = GraphObject.type.dbName();
+		final String type = GraphObject.type.dbName();
 		if (node.hasProperty(type)) {
 			
-			Object obj =  node.getProperty(type);
+			final Object obj =  node.getProperty(type);
 			if (obj != null) {
-				return obj.toString();
+				
+				return getModuleService().getNodeEntityClass(obj.toString());
 			}
 			
 		} else {
@@ -103,7 +110,7 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 					genericNodeExtender.getType(externalNodeType);
 					
 					// return dynamic type
-					return typeObj.toString();
+					return moduleService.getNodeEntityClass(typeObj.toString());
 				}
 			}
 			
@@ -111,5 +118,82 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 		}
 		
 		return getGenericNodeType();
+	}
+
+	@Override
+	public Class determineRelationshipType(Relationship relationship) {
+
+		final String type = GraphObject.type.dbName();
+		if (relationship.hasProperty(type)) {
+			
+			Object obj =  relationship.getProperty(type);
+			if (obj != null) {
+				
+				return getModuleService().getRelationshipEntityClass(obj.toString());
+			}
+		}
+
+		// fallback to old type
+		final String combinedTypeName = "combinedType";
+		if (relationship.hasProperty(combinedTypeName)) {
+			
+			Object obj =  relationship.getProperty(combinedTypeName);
+			if (obj != null) {
+				
+				final String combinedType = obj.toString();
+				final Class entityType = getClassForCombinedType(combinedType);
+				
+				if (entityType != null) {
+					
+					return entityType;
+				}
+				
+			}
+		}
+		
+		return getGenericRelationshipType();
+	}
+
+	private Class getClassForCombinedType(final String combinedType) {
+		
+		final String[] parts = StringUtils.split(combinedType, COMBINED_RELATIONSHIP_KEY_SEP);
+		final String sourceType = parts[0];
+		final String relType    = parts[1];
+		final String targetType = parts[2];
+		
+		for (final Class candidate : getModuleService().getCachedRelationshipEntities().values()) {
+			
+			final Relation rel = instantiate(candidate);
+			if (rel != null) {
+				
+				final String sourceTypeName = rel.getSourceType().getSimpleName();
+				final String relTypeName    = rel.getRelationshipType().name();
+				final String targetTypeName = rel.getTargetType().getSimpleName();
+				
+				if (sourceType.equals(sourceTypeName) && relType.equals(relTypeName) && targetType.equals(targetTypeName)) {
+					
+					return candidate;
+				}
+			}
+		}
+		
+		return null;
+	}
+	
+	private Relation instantiate(final Class clazz) {
+		
+		try {
+			
+			return (Relation)clazz.newInstance();
+			
+		} catch (Throwable t) {
+			
+		}
+		
+		return null;
+	}
+	
+	private ModuleService getModuleService() {
+		return Services.getService(ModuleService.class);
 	}
 }

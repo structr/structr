@@ -25,8 +25,6 @@ import org.neo4j.graphdb.Relationship;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -34,8 +32,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.RelType;
-import org.structr.core.entity.Security;
+import org.structr.core.GraphObject;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -55,66 +52,24 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 		super(securityContext);
 	}
 
-	//~--- methods --------------------------------------------------------
-
-	public T instantiate(final String combinedRelType) throws FrameworkException {
-
-		Class<T> relClass = EntityContext.getNamedRelationClass(combinedRelType);
-		T newRel          = null;
-
-		if (relClass != null) {
-
-			try {
-				newRel = relClass.newInstance();				
-				newRel.onRelationshipInstantiation();
-				
-			} catch (InstantiationException ex) {
-				logger.log(Level.FINE, "Could not instantiate relationship", ex);
-			} catch (IllegalAccessException ex) {
-				logger.log(Level.SEVERE, "Could not access relationship", ex);
-			}
-
-		}
-
-
-		return newRel;
+	@Override
+	public T instantiate(final Relationship relationship) throws FrameworkException {
+		return instantiateWithType(relationship, factoryDefinition.determineRelationshipType(relationship), false);
 	}
 
 	@Override
-	public T instantiate(final Relationship relationship) throws FrameworkException {
+	public T instantiateWithType(Relationship relationship, Class<T> relClass, boolean isCreation) throws FrameworkException {
 
 		SecurityContext securityContext = factoryProfile.getSecurityContext();
-		Class<T> relClass = null;
 		T newRel          = null;
 
 		try {
 
-			if (relClass == null && relationship.hasProperty(AbstractRelationship.combinedType.dbName())) {
+			try {
+				newRel = relClass.newInstance();
 
-				// Relationship has a combined type
-				String combinedRelType = (String) relationship.getProperty(AbstractRelationship.combinedType.dbName());
-				newRel = instantiate(combinedRelType);
-
-			} else {
-			
-				// Create combined relationship type on the fly
-				relClass = findNamedRelation(relationship);
-			}
-
-			// 3rd: Try security relationship directly
-			if (newRel == null && relClass == null && RelType.SECURITY.name().equals(relationship.getType().name())) {
-				
-				relClass = (Class) Security.class;
-
-			}
-			
-			if (relClass != null && newRel == null) {
-
-				try {
-					newRel = relClass.newInstance();
-				} catch (Throwable t2) {
-					newRel = null;
-				}
+			} catch (Throwable t2) {
+				newRel = null;
 			}
 
 		} catch (Throwable t) { }
@@ -125,15 +80,29 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 
 		newRel.init(securityContext, relationship);
 		newRel.onRelationshipInstantiation();
+
+		String newRelType = newRel.getProperty(GraphObject.type);
+		if (newRelType == null) { //  || (newNodeType != null && !newNodeType.equals(nodeType))) {
+
+			try {
+
+				newRel.unlockReadOnlyPropertiesOnce();
+				newRel.setProperty(GraphObject.type, relClass.getSimpleName());
+
+			} catch (Throwable t) {
+
+				logger.log(Level.SEVERE, "Unable to set type property {0} on relationship {1}: {2}", new Object[] { relClass, newRel, t.getMessage() } );
+			}
+		}
 			
 		return newRel;
 	}
 
 	@Override
-	public T adapt(Relationship s) {
+	public T adapt(Relationship relationship) {
 
 		try {
-			return instantiate(s);
+			return instantiate(relationship);
 			
 		} catch (FrameworkException fex) {
 			
@@ -151,7 +120,7 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 	 */
 	public List<T> instantiate(final Iterable<Relationship> input) throws FrameworkException {
 
-		List<T> rels = new LinkedList<T>();
+		List<T> rels = new LinkedList<>();
 
 		if ((input != null) && input.iterator().hasNext()) {
 
@@ -166,23 +135,6 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 		}
 
 		return rels;
-	}
-	
-	private Class<T> findNamedRelation(Relationship relationship) {
-		
-		String sourceNodeType = (String) relationship.getStartNode().getProperty(AbstractNode.type.dbName());
-		String destNodeType   = (String) relationship.getEndNode().getProperty(AbstractNode.type.dbName());
-
-		
-		Class sourceType = EntityContext.getEntityClassForRawType(sourceNodeType);
-		Class destType   = EntityContext.getEntityClassForRawType(destNodeType);
-		
-		return EntityContext.getNamedRelationClass(sourceType, destType, relationship.getType());
-	}
-
-	@Override
-	public T instantiateWithType(Relationship obj, String nodeType, boolean isCreation) throws FrameworkException {
-		return instantiate(obj);
 	}
 
 	@Override

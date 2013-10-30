@@ -40,7 +40,7 @@ public class EndNodeGroup extends GroupProperty {
 		if(source instanceof RelationshipInterface) {
 
 			RelationshipInterface rel = (RelationshipInterface)source;
-			NodeInterface end         = rel.getEndNode();
+			NodeInterface end         = rel.getTargetNode();
 
 			return super.getGroupedProperties(securityContext, end);
 		}

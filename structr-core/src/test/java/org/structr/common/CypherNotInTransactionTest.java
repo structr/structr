@@ -37,10 +37,10 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.Transaction;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.TestRelType;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.GenericNode;
+import org.structr.core.entity.SixOneOneToOne;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.search.Search;
 
@@ -68,7 +68,7 @@ public class CypherNotInTransactionTest extends StructrTest {
 			assertNotNull(testNodes);
 			assertTrue(testNodes.size() == 2);
 
-			AbstractRelationship rel = createRelationshipCommand.execute(testNodes.get(0), testNodes.get(1), TestRelType.ONE_TO_ONE);
+			SixOneOneToOne rel = createRelationshipCommand.execute(testNodes.get(0), testNodes.get(1), SixOneOneToOne.class);
 
 			assertNotNull(rel);
 
@@ -216,7 +216,7 @@ public class CypherNotInTransactionTest extends StructrTest {
 			assertNotNull(testNodes);
 			assertTrue(testNodes.size() == 2);
 
-			AbstractRelationship rel = createRelationshipCommand.execute(testNodes.get(0), testNodes.get(1), TestRelType.ONE_TO_ONE);
+			AbstractRelationship rel = createRelationshipCommand.execute(testNodes.get(0), testNodes.get(1), SixOneOneToOne.class);
 
 			assertNotNull(rel);
 
@@ -256,7 +256,7 @@ public class CypherNotInTransactionTest extends StructrTest {
 			assertNotNull(testNodes);
 			assertTrue(testNodes.size() == 2);
 
-			AbstractRelationship rel = createRelationshipCommand.execute(testNodes.get(0), testNodes.get(1), TestRelType.ONE_TO_ONE);
+			AbstractRelationship rel = createRelationshipCommand.execute(testNodes.get(0), testNodes.get(1), SixOneOneToOne.class);
 
 			assertNotNull(rel);
 

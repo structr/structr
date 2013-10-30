@@ -136,34 +136,34 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 			if (!TransactionCommand.inTransaction()) {
 
 				logger.log(Level.SEVERE, "setProperty outside of transaction");
-				return;
+				throw new FrameworkException(500, "setProperty outside of transaction.");
 			}
 
+			// notify only non-system properties
+			if (!unvalidated) {
 
-			try {
+				// collect modified properties
+				if (obj instanceof AbstractNode) {
 
-				// notify only non-system properties
-				if (!unvalidated) {
+					TransactionCommand.nodeModified(
+						(AbstractNode)obj,
+						AbstractPrimitiveProperty.this,
+						propertyContainer.hasProperty(dbName()) ? propertyContainer.getProperty(dbName()) : null
+					);
 
-					// collect modified properties
-					if (obj instanceof AbstractNode) {
+				} else if (obj instanceof AbstractRelationship) {
 
-						TransactionCommand.nodeModified(
-							(AbstractNode)obj,
-							AbstractPrimitiveProperty.this,
-							propertyContainer.hasProperty(dbName()) ? propertyContainer.getProperty(dbName()) : null
-						);
-
-					} else if (obj instanceof AbstractRelationship) {
-
-						TransactionCommand.relationshipModified(
-							(AbstractRelationship)obj,
-							AbstractPrimitiveProperty.this,
-							propertyContainer.hasProperty(dbName()) ? propertyContainer.getProperty(dbName()) : null
-						);
-					}
+					TransactionCommand.relationshipModified(
+						(AbstractRelationship)obj,
+						AbstractPrimitiveProperty.this,
+						propertyContainer.hasProperty(dbName()) ? propertyContainer.getProperty(dbName()) : null
+					);
 				}
+			}
 
+			// catch all sorts of errors and wrap them in a FrameworkException
+			try {
+				
 				// save space
 				if (convertedValue == null) {
 
@@ -185,23 +185,23 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 
 					}
 				}
-
-				if (isIndexed()) {
-					
-					// do indexing, needs to be done after
-					// setProperty to make spatial index
-					// work
-					if (!isPassivelyIndexed()) {
-
-						index(obj, convertedValue);
-					}
-				}
 				
 			} catch (Throwable t) {
+				
+				// throw FrameworkException with the given cause
+				throw new FrameworkException(500, t);
+			}
 
-				t.printStackTrace();
+			if (isIndexed()) {
 
-			} finally {}
+				// do indexing, needs to be done after
+				// setProperty to make spatial index
+				// work
+				if (!isPassivelyIndexed()) {
+
+					index(obj, convertedValue);
+				}
+			}
 		}
 		
 	}

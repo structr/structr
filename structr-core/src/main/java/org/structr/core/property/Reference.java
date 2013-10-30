@@ -68,13 +68,13 @@ public class Reference<T> implements PropertyKey<T> {
 			switch (referenceType) {
 
 				case StartNode:
-					return relationship.getStartNode();
+					return relationship.getSourceNode();
 
 				case Relationship:
 					return relationship;
 
 				case EndNode:
-					return relationship.getEndNode();
+					return relationship.getTargetNode();
 			}
 		}
 		

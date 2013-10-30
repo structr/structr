@@ -1,24 +1,32 @@
 package org.structr.core.entity;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.helpers.Function;
 import org.neo4j.helpers.collection.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.Services;
+import org.structr.core.graph.CreateRelationshipCommand;
+import org.structr.core.graph.DeleteRelationshipCommand;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.StructrTransaction;
+import org.structr.core.graph.TransactionCommand;
 
 /**
  *
  * @author Christian Morgner
  */
-public class ManyStartpoint<S extends NodeInterface> extends Endpoint implements Source<Iterable<Relationship>, Iterable<S>> {
+public class ManyStartpoint<S extends NodeInterface> implements Source<Iterable<Relationship>, Iterable<S>> {
 
-	public ManyStartpoint(final RelationshipType relType) {
-		super(relType);
+	private Relation<S, ?, ManyStartpoint<S>, ?> relation = null;
+	
+	public ManyStartpoint(final Relation<S, ?, ManyStartpoint<S>, ?> relation) {
+		this.relation = relation;
 	}
 	
 	@Override
@@ -43,46 +51,60 @@ public class ManyStartpoint<S extends NodeInterface> extends Endpoint implements
 	}
 
 	@Override
-	public void set(final SecurityContext securityContext, final NodeInterface node, final Iterable<S> value) throws FrameworkException {
+	public void set(final SecurityContext securityContext, final NodeInterface targetNode, final Iterable<S> collection) throws FrameworkException {
 
-//		if (obj instanceof AbstractNode) {
-//			
-//			Set<S> toBeDeleted = new LinkedHashSet<S>(getProperty(securityContext, obj, true));
-//			Set<S> toBeCreated = new LinkedHashSet<S>();
-//			AbstractNode sourceNode = (AbstractNode)obj;
-//
-//			if (collection != null) {
-//				toBeCreated.addAll(collection);
-//			}
-//			
-//			// create intersection of both sets
-//			Set<S> intersection = new LinkedHashSet<S>(toBeCreated);
-//			intersection.retainAll(toBeDeleted);
-//			
-//			// intersection needs no change
-//			toBeCreated.removeAll(intersection);
-//			toBeDeleted.removeAll(intersection);
-//			
-//			// remove existing relationships
-//			for (S targetNode : toBeDeleted) {
-//
-//				removeRelationship(securityContext, sourceNode, (AbstractNode)targetNode);
-//			}
-//			
-//			// create new relationships
-//			for (S targetNode : toBeCreated) {
-//
-//				createRelationship(securityContext, sourceNode, (AbstractNode)targetNode);
-//			}
-//			
-//		} else {
-//
-//			logger.log(Level.WARNING, "Property {0} is registered on illegal type {1}", new Object[] { this, obj.getClass() } );
-//		}
+		final Set<S> toBeDeleted = new LinkedHashSet<>(Iterables.toList(get(securityContext, targetNode)));
+		final Set<S> toBeCreated = new LinkedHashSet<>();
+
+		if (collection != null) {
+			Iterables.addAll(toBeCreated, collection);
+		}
+
+		// create intersection of both sets
+		final Set<S> intersection = new LinkedHashSet<>(toBeCreated);
+		intersection.retainAll(toBeDeleted);
+
+		// intersection needs no change
+		toBeCreated.removeAll(intersection);
+		toBeDeleted.removeAll(intersection);
+		
+		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+			@Override
+			public Object execute() throws FrameworkException {
+
+				final CreateRelationshipCommand create = Services.command(securityContext, CreateRelationshipCommand.class);
+				final DeleteRelationshipCommand delete = Services.command(securityContext, DeleteRelationshipCommand.class);
+				
+				// remove existing relationships
+				for (S sourceNode : toBeDeleted) {
+
+					for (AbstractRelationship rel : targetNode.getIncomingRelationships()) {
+						
+						if (rel.getRelType().equals(relation.getRelationshipType()) && rel.getSourceNode().equals(sourceNode)) {
+							
+							delete.execute(rel);
+						}
+						
+					}
+				}
+				
+				// create new relationships
+				for (S sourceNode : toBeCreated) {
+
+					relation.checkMultiplicity(sourceNode, targetNode);
+					
+					create.execute(sourceNode, targetNode, relation.getClass());
+				}
+				
+				return null;
+			}
+			
+		});
 	}
 
 	@Override
 	public Iterable<Relationship> getRaw(final Node dbNode) {
-		return dbNode.getRelationships(relType, Direction.INCOMING);
+		return dbNode.getRelationships(relation.getRelationshipType(), Direction.INCOMING);
 	}
 }

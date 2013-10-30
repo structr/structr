@@ -7,7 +7,7 @@ import org.structr.common.RelType;
  *
  * @author Christian Morgner
  */
-public class OneTwo extends OneToOne<TestOne, TestTwo> {
+public class OneTwoOneToOne extends OneToOne<TestOne, TestTwo> {
 	
 	@Override
 	public Class<TestOne> getSourceType() {

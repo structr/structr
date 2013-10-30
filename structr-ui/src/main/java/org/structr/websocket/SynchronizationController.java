@@ -428,8 +428,8 @@ public class SynchronizationController implements StructrTransactionListener, Tr
 		if (graphObject instanceof AbstractRelationship) {
 
 			AbstractRelationship relationship = (AbstractRelationship) graphObject;
-			AbstractNode startNode            = relationship.getStartNode();
-			AbstractNode endNode              = relationship.getEndNode();
+			AbstractNode startNode            = relationship.getSourceNode();
+			AbstractNode endNode              = relationship.getTargetNode();
 
 			try {
 
@@ -495,8 +495,8 @@ public class SynchronizationController implements StructrTransactionListener, Tr
 		if (graphObject instanceof AbstractRelationship) {
 
 			AbstractRelationship relationship = (AbstractRelationship) graphObject;
-			AbstractNode startNode            = relationship.getStartNode();
-			AbstractNode endNode              = relationship.getEndNode();
+			AbstractNode startNode            = relationship.getSourceNode();
+			AbstractNode endNode              = relationship.getTargetNode();
 
 			try {
 
@@ -539,8 +539,8 @@ public class SynchronizationController implements StructrTransactionListener, Tr
 
 			if (!ignoreRelationship(relationship)) {
 
-				AbstractNode startNode   = (AbstractNode) relationship.getStartNode();
-				AbstractNode endNode     = (AbstractNode) relationship.getEndNode();
+				AbstractNode startNode   = (AbstractNode) relationship.getSourceNode();
+				AbstractNode endNode     = (AbstractNode) relationship.getTargetNode();
 				WebSocketMessage message = new WebSocketMessage();
 
 				message.setResult(Arrays.asList(new GraphObject[] { endNode }));
