@@ -37,19 +37,15 @@ import org.structr.core.property.StringProperty;
  */
 public class TestOne extends AbstractNode {
 	
-	public static final Property<Integer>   anInt     = new IntProperty("anInt").indexed();
-	public static final Property<Long>      aLong     = new LongProperty("aLong").indexed();
-	public static final Property<Double>    aDouble   = new DoubleProperty("aDouble").indexed();
-	public static final Property<Date>      aDate     = new ISO8601DateProperty("aDate").indexed();
-	  
-	public static final Property<String>    aString   = new StringProperty("aString").indexed();
+	public static final Property<Integer>   anInt     = new IntProperty("anInt").indexed().indexedWhenEmpty();
+	public static final Property<Long>      aLong     = new LongProperty("aLong").indexed().indexedWhenEmpty();
+	public static final Property<Double>    aDouble   = new DoubleProperty("aDouble").indexed().indexedWhenEmpty();
+	public static final Property<Date>      aDate     = new ISO8601DateProperty("aDate").indexed().indexedWhenEmpty();
+	public static final Property<String>    aString   = new StringProperty("aString").indexed().indexedWhenEmpty();
+	
 	public static final Property<TestTwo>   testTwo   = new EndNode<>("testTwo",   OneTwoOneToOne.class);
 	public static final Property<TestThree> testThree = new EndNode<>("testThree", OneThreeOneToOne.class);
 	public static final Property<TestFour>  testFour  = new EndNode<>("testFour",  OneFourOneToOne.class);
-	
-//	public static final Property<TestTwo>   testTwo   = new Forward<TestOne, TestTwo>("testTwo",     OneTwo.class, false, Relation.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED);
-//	public static final Property<TestThree> testThree = new Forward<TestOne, TestThree>("testThree", OneThree.class, false, Relation.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED);
-//	public static final Property<TestFour>  testFour  = new Forward<TestOne, TestFour>("testFour",   OneFour.class, false, Relation.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED);
 
 	public static final View publicView = new View(TestOne.class, PropertyView.Public,
 		name, anInt, aDouble, aLong, aDate, createdDate, aString

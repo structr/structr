@@ -801,7 +801,7 @@ public class JsonRestServlet extends HttpServlet {
 			return propertySet.getAttributes();
 		}
 		
-		return new LinkedHashMap<String, Object>();
+		return new LinkedHashMap<>();
 	}
 
 	private Authenticator getAuthenticator() throws FrameworkException {

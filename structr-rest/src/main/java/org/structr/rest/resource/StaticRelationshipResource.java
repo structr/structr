@@ -23,7 +23,6 @@ package org.structr.rest.resource;
 import org.structr.common.PagingHelper;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -37,7 +36,6 @@ import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.TypeToken;
-import org.structr.core.Adapter;
 import org.structr.core.EntityContext;
 import org.structr.core.Export;
 import org.structr.core.GraphObject;
@@ -53,6 +51,7 @@ import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.notion.Notion;
+import org.structr.core.property.RelationProperty;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
@@ -109,7 +108,7 @@ public class StaticRelationshipResource extends SortableResource {
 					} else if (value instanceof Iterable) {
 
 						// check type of value (must be an Iterable of GraphObjects in order to proceed here)
-						final List<GraphObject> propertyListResult = new LinkedList<GraphObject>();
+						final List<GraphObject> propertyListResult = new LinkedList<>();
 						final Iterable sourceIterable              = (Iterable) value;
 
 						for (final Object o : sourceIterable) {
@@ -142,13 +141,12 @@ public class StaticRelationshipResource extends SortableResource {
 
 		if (results != null) {
 
-			/*
 			// fetch static relationship definition
 			final PropertyKey key = findPropertyKey(typedIdResource, typeResource);
-			if (key != null && key instanceof AbstractRelationProperty) {
+			if (key != null && key instanceof RelationProperty) {
 
-				final AbstractRelationProperty staticRel = (AbstractRelationProperty)key;
-				final AbstractNode startNode             = typedIdResource.getTypesafeNode();
+				final RelationProperty staticRel = (RelationProperty)key;
+				final AbstractNode startNode     = typedIdResource.getTypesafeNode();
 
 				if (startNode != null) {
 
@@ -195,7 +193,7 @@ public class StaticRelationshipResource extends SortableResource {
 							for (final Object obj : propertySet.values()) {
 
 								final String uuid                 = (String) obj;
-								final List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
+								final List<SearchAttribute> attrs = new LinkedList<>();
 
 								attrs.add(Search.andExactUuid(uuid));
 
@@ -238,7 +236,6 @@ public class StaticRelationshipResource extends SortableResource {
 				}
 
 			}
-			*/
 		}
 
 		return new RestMethodResult(HttpServletResponse.SC_OK);
@@ -250,18 +247,17 @@ public class StaticRelationshipResource extends SortableResource {
 		final AbstractNode sourceNode = typedIdResource.getIdResource().getNode();
 		final PropertyKey propertyKey = findPropertyKey(typedIdResource, typeResource);
 
-		/*
-		if (sourceNode != null && propertyKey != null && propertyKey instanceof AbstractRelationProperty) {
+		if (sourceNode != null && propertyKey != null && propertyKey instanceof RelationProperty) {
 
 			final StructrTransaction transaction = new StructrTransaction() {
 
 				@Override
 				public Object execute() throws FrameworkException {
 
-					final AbstractRelationProperty relationshipProperty = (AbstractRelationProperty)propertyKey;
-					final Class sourceNodeType                          = sourceNode.getClass();
+					final RelationProperty relationProperty = (RelationProperty)propertyKey;
+					final Class sourceNodeType                  = sourceNode.getClass();
 
-					if (relationshipProperty.isReadOnly()) {
+					if (propertyKey.isReadOnly()) {
 
 						logger.log(Level.INFO, "Read-only property on {0}: {1}", new Object[] { sourceNodeType, typeResource.getRawType() });
 
@@ -269,21 +265,35 @@ public class StaticRelationshipResource extends SortableResource {
 					}
 
 					// fetch notion
-					final Notion notion                  = relationshipProperty.getNotion();
+					final Notion notion                  = relationProperty.getNotion();
 					final PropertyKey primaryPropertyKey = notion.getPrimaryPropertyKey();
 
+					
 					// apply notion if the property set contains the ID property as the only element
 					if (primaryPropertyKey != null && propertySet.containsKey(primaryPropertyKey.jsonName()) && propertySet.size() == 1) {
 
+						/*
+						 * FIXME: is this needed at all??
+
+* 
+* 
 						// the notion that is defined for this relationship can deserialize
 						// objects with a single key (uuid for example), and the POSTed
 						// property set contains value(s) for this key, so we only need
 						// to create relationships
-						final Adapter<Object, GraphObject> deserializationStrategy = notion.getAdapterForSetter(securityContext);
-						final Object keySource                                     = propertySet.get(primaryPropertyKey.jsonName());
-
+						final Object keySource = propertySet.get(primaryPropertyKey.jsonName());
 						if (keySource != null) {
 
+							if (keySource instanceof Collection) {
+								
+								sourceNode.setProperty(propertyKey, notion.getCollectionAdapterForSetter(securityContext).adapt(keySource));
+								
+							} else {
+								
+								sourceNode.setProperty(propertyKey, notion.getAdapterForSetter(securityContext).adapt(keySource));
+							}
+							
+							/*
 							GraphObject otherNode = null;
 
 							if (keySource instanceof Collection) {
@@ -320,7 +330,7 @@ public class StaticRelationshipResource extends SortableResource {
 
 								}
 							}
-
+							
 							return otherNode;
 
 						} else {
@@ -328,29 +338,17 @@ public class StaticRelationshipResource extends SortableResource {
 							logger.log(Level.INFO, "Key {0} not found in {1}", new Object[] { primaryPropertyKey.jsonName(), propertySet.toString() });
 
 						}
+						*/
 
+						
 					} else {
 
-						// the notion can not deserialize objects with a single key, or
-						// the POSTed propertySet did not contain a key to deserialize,
-						// so we create a new node from the POSTed properties and link
-						// the source node to it. (this is the "old" implementation)
+						// the notion can not deserialize objects with a single key, or the POSTed propertySet did not contain a key to deserialize,
+						// so we create a new node from the POSTed properties and link the source node to it. (this is the "old" implementation)
 						final AbstractNode otherNode = typeResource.createNode(propertySet);
-
-						// FIXME: this prevents post creation transformations from working
-						// properly if they rely on an already existing relationship when
-						// the transformation runs.
-
-						// TODO: we need to find a way to notify the listener at the end of the
-						// transaction, when all entities and relationships are created!
 						if (otherNode != null) {
 
-							// FIXME: this creates duplicate relationships when the related
-							//        node ID is already present in the property set..
-
-
-
-							relationshipProperty.createRelationship(securityContext, sourceNode, otherNode);
+							relationProperty.addSingleElement(securityContext, sourceNode, otherNode);
 
 							return otherNode;
 
@@ -416,8 +414,6 @@ public class StaticRelationshipResource extends SortableResource {
 			}
 
 		}
-		*/
-			
 
 		throw new IllegalPathException();
 	}

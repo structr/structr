@@ -38,7 +38,7 @@ import org.structr.core.notion.ObjectNotion;
  *
  * @author Christian Morgner
  */
-public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends Property<List<T>> {
+public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends Property<List<T>> implements RelationProperty<T> {
 
 	private Relation<S, T, ? extends Source, ManyEndpoint<T>> relation = null;
 	private Notion notion                                              = null;
@@ -133,10 +133,6 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 		return true;
 	}
 
-	public Notion getNotion() {
-		return notion;
-	}
-
 	@Override
 	public Property<List<T>> indexed() {
 		return this;
@@ -185,5 +181,20 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 	@Override
 	public Object getValueForEmptyFields() {
 		return null;
+	}
+
+	// ----- interface RelationProperty -----
+	@Override
+	public Notion getNotion() {
+		return notion;
+	}
+
+	@Override
+	public void addSingleElement(final SecurityContext securityContext, final GraphObject obj, final T t) throws FrameworkException {
+		
+		List<T> list = getProperty(securityContext, obj, false);
+		list.add(t);
+		
+		setProperty(securityContext, obj, list);
 	}
 }
