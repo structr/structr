@@ -104,7 +104,7 @@ public class SearchResultsTest extends StructrTest {
 			final AbstractNode node                = createTestNode(TestOne.class, props);
 			boolean includeDeletedAndHidden        = true;
 			boolean publicOnly                     = false;
-			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+			List<SearchAttribute> searchAttributes = new LinkedList<>();
 
 			searchAttributes.add(new PropertySearchAttribute(key, name, Occur.MUST, true));
 

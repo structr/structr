@@ -22,11 +22,11 @@ import java.util.Date;
 import org.structr.core.property.Property;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
+import org.structr.core.property.DoubleProperty;
 import org.structr.core.property.ISO8601DateProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.EndNode;
-import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
 
 /**
@@ -39,6 +39,7 @@ public class TestOne extends AbstractNode {
 	
 	public static final Property<Integer>   anInt     = new IntProperty("anInt").indexed();
 	public static final Property<Long>      aLong     = new LongProperty("aLong").indexed();
+	public static final Property<Double>    aDouble   = new DoubleProperty("aDouble").indexed();
 	public static final Property<Date>      aDate     = new ISO8601DateProperty("aDate").indexed();
 	  
 	public static final Property<String>    aString   = new StringProperty("aString").indexed();
