@@ -203,6 +203,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	@Override
 	public Property<T> indexedWhenEmpty() {
 		
+		passivelyIndexed();
 		this.indexedWhenEmpty = true;
 		
 		return this;

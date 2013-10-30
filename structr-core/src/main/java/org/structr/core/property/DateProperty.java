@@ -185,9 +185,4 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 		super.index(entity, value != null ? ValueContext.numeric((Number)value) : value);
 	}
 	
-	@Override
-	public Long getValueForEmptyFields() {
-		return SearchCommand.EMPTY_FIELD_VALUE_DATE;
-	}
-	
 }

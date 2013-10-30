@@ -64,9 +64,6 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 	// the value that will be indexed for "empty" fields
 	public static final String EMPTY_FIELD_VALUE		= new String(new byte[] { 0 } );
-	public static final Long EMPTY_FIELD_VALUE_DATE		= Long.MAX_VALUE;
-	public static final Long EMPTY_FIELD_VALUE_LONG		= Long.MAX_VALUE;
-	public static final Integer EMPTY_FIELD_VALUE_INT	= Integer.MAX_VALUE;
 	
 	public abstract Factory<S, T> getFactory(final SecurityContext securityContext, final boolean includeDeletedAndHidden, final boolean publicOnly, final int pageSize, final int page, final String offsetId);
 	public abstract Index<S> getFulltextIndex();

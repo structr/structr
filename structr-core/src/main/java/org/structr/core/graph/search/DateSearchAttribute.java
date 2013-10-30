@@ -42,6 +42,6 @@ public class DateSearchAttribute extends PropertySearchAttribute<Date> {
 			return NumericUtils.longToPrefixCoded(value.getTime());
 		}
 		
-		return NumericUtils.longToPrefixCoded(SearchCommand.EMPTY_FIELD_VALUE_DATE);
+		return SearchCommand.EMPTY_FIELD_VALUE;
 	}
 }

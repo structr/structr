@@ -88,27 +88,22 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> {
 
 		@Override
 		public Integer convert(Object source) {
-			
-			// FIXME: be more strict when dealing with "wrong" input types
-			if (source != null) {
-				
-				if (source instanceof Number) {
 
-					return ((Number)source).intValue();
-					
-				}
-				
-				if (source instanceof String) {
-					
-					if (StringUtils.isBlank((String) source)) {
-						return null;
-					}
-					
-					return Integer.parseInt(source.toString());
-				}
+			if (source == null) return null;
+			
+			if (source instanceof Number) {
+
+				return ((Number)source).intValue();
+
+			}
+
+			if (source instanceof String && StringUtils.isNotBlank((String) source)) {
+
+				return Integer.parseInt(source.toString());
 			}
 			
 			return null;
+			
 		}
 	}
 

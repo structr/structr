@@ -19,6 +19,7 @@
 package org.structr.core.property;
 
 import java.util.logging.Logger;
+import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.SortField;
 import org.apache.lucene.util.NumericUtils;
@@ -83,19 +84,17 @@ public class LongProperty extends AbstractPrimitiveProperty<Long> {
 		@Override
 		public Long convert(Object source) {
 			
-			// FIXME: be more strict when dealing with "wrong" input types
-			if (source != null) {
-				
-				if (source instanceof Number) {
+			if (source == null) return null;
+			
+			if (source instanceof Number) {
 
-					return ((Number)source).longValue();
-					
-				}
-				
-				if (source instanceof String) {
-					
-					return Long.parseLong(source.toString());
-				}
+				return ((Number)source).longValue();
+
+			}
+
+			if (source instanceof String && StringUtils.isNotBlank((String) source)) {
+
+				return Long.parseLong(source.toString());
 			}
 			
 			return null;
@@ -146,8 +145,4 @@ public class LongProperty extends AbstractPrimitiveProperty<Long> {
 		super.index(entity, value != null ? ValueContext.numeric((Number)value) : value);
 	}
 
-	@Override
-	public Long getValueForEmptyFields() {
-		return SearchCommand.EMPTY_FIELD_VALUE_LONG;
-	}
 }
