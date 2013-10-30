@@ -307,7 +307,7 @@ var Command = {
      * to the new one.
      * 
      */
-    appendWidget: function(source, parentId, pageId, widgetHostBaseUrl, attributes) {
+    appendWidget: function(source, parentId, pageId, widgetHostBaseUrl, attributes, callback) {
         var obj = {};
         obj.command = 'APPEND_WIDGET';
         obj.pageId = pageId;
@@ -322,7 +322,26 @@ var Command = {
         }
         obj.data = data;
         log('appendWidget()', obj);
-        return sendObj(obj);
+        return sendObj(obj, callback);
+    },
+    /**
+     * Send a REPLACE_WIDGET command to the server.
+     * 
+     * The server will create nodes from the given source and
+     * replace the original node with the nodes created.
+     * 
+     */
+    replaceWidget: function(source, id, parentId, pageId, callback) {
+        var obj = {};
+        obj.command = 'REPLACE_WIDGET';
+        obj.id = id;
+        obj.pageId = pageId;
+        var data = {};
+        data.source = source;
+        data.parentId = parentId;
+        obj.data = data;
+        log('replaceWidget()', obj);
+        return sendObj(obj, callback);
     },
     /**
      * Send an INSERT_BEFORE command to the server.
