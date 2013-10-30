@@ -33,5 +33,7 @@ import org.structr.core.property.StartNode;
  */
 public class TestThree extends AbstractNode {
 	
-	public static final Property<TestOne> testOne = new StartNode<>("testOne", OneThree.class);
+	public static final Property<TestOne> testOne          = new StartNode<>("testOne",         OneThreeOneToOne.class);
+	public static final Property<TestSix> oneToOneTestSix  = new StartNode<>("oneToOneTestSix", SixThreeOneToOne.class);
+	public static final Property<TestSix> oneToManyTestSix = new StartNode<>("oneToManyTestSix", SixThreeOneToMany.class);
 }

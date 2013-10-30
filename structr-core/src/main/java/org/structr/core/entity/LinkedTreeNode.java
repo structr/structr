@@ -53,7 +53,7 @@ public abstract class LinkedTreeNode<T extends LinkedTreeNode> extends LinkedLis
 		TreeChild prevRel = getIncomingRelationship(type);
 		if (prevRel != null) {
 			
-			return (T)prevRel.getStartNode();
+			return (T)prevRel.getSourceNode();
 		}
 
 		return null;
@@ -97,7 +97,7 @@ public abstract class LinkedTreeNode<T extends LinkedTreeNode> extends LinkedLis
 
 				for (TreeChild rel : rels) {
 
-					AbstractNode node = rel.getEndNode();
+					AbstractNode node = rel.getTargetNode();
 
 					if (node.equals(refChild)) {
 
@@ -137,7 +137,7 @@ public abstract class LinkedTreeNode<T extends LinkedTreeNode> extends LinkedLis
 
 				for (TreeChild rel : rels) {
 
-					AbstractNode node = rel.getEndNode();
+					AbstractNode node = rel.getTargetNode();
 
 					rel.setProperty(positionProperty, position);
 					position++;
@@ -235,7 +235,7 @@ public abstract class LinkedTreeNode<T extends LinkedTreeNode> extends LinkedLis
 			
 			if (pos != null && pos.intValue() == position) {
 				
-				return (T)rel.getEndNode();
+				return (T)rel.getTargetNode();
 			}
 		}
 
@@ -262,7 +262,7 @@ public abstract class LinkedTreeNode<T extends LinkedTreeNode> extends LinkedLis
 		
 		for (TreeChild rel : treeGetChildRelationships(type)) {
 			
-			children.add((T)rel.getEndNode());
+			children.add((T)rel.getTargetNode());
 		}
 		
 		return children;

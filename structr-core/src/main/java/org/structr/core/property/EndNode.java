@@ -39,8 +39,8 @@ import org.structr.core.notion.ObjectNotion;
 public class EndNode<S extends NodeInterface, T extends NodeInterface> extends Property<T> {
 
 	private Relation<S, T, ? extends Source, OneEndpoint<T>> relation = null;
-	private Notion notion                                                   = null;
-	private Class<T> destType                                               = null;
+	private Notion notion                                             = null;
+	private Class<T> destType                                         = null;
 
 	/**
 	 * Constructs an entity property with the given name, the given destination type,
@@ -89,7 +89,7 @@ public class EndNode<S extends NodeInterface, T extends NodeInterface> extends P
 	
 	@Override
 	public String typeName() {
-		return destType.getSimpleName();
+		return "Object";
 	}
 
 	@Override

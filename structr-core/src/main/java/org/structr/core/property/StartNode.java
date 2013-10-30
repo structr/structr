@@ -40,7 +40,6 @@ import org.structr.core.notion.ObjectNotion;
 public class StartNode<S extends NodeInterface, T extends NodeInterface> extends Property<S> {
 
 	// relationship members
-	private Class<? extends Relation<S, T, OneStartpoint<S>, ? extends Target>> relationClass = null;
 	private Relation<S, T, OneStartpoint<S>, ? extends Target> relation = null;
 	private Notion notion                                               = null;
 	private Class<T> destType                                           = null;
@@ -81,7 +80,6 @@ public class StartNode<S extends NodeInterface, T extends NodeInterface> extends
 
 		this.notion        = notion;
 		this.destType      = relation.getTargetType();
-		this.relationClass = relationClass;
 
 		// configure notion
 		this.notion.setType(destType);
@@ -91,7 +89,7 @@ public class StartNode<S extends NodeInterface, T extends NodeInterface> extends
 	
 	@Override
 	public String typeName() {
-		return destType.getSimpleName();
+		return "Object";
 	}
 
 	@Override
@@ -114,11 +112,6 @@ public class StartNode<S extends NodeInterface, T extends NodeInterface> extends
 		return notion.getEntityConverter(securityContext);
 	}
 
-	public <A extends NodeInterface, B extends NodeInterface, R extends Relation<A, B, OneStartpoint<A>, ?>> R getIncomingRelationship(final Class<R> type) {
-		return null;
-	}
-
-	
 	@Override
 	public S getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
 		

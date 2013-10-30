@@ -129,7 +129,7 @@ public class Image extends File {
 
 		for (AbstractRelationship s : getThumbnailRelationships()) {
 
-			thumbnails.add((Image) s.getEndNode());
+			thumbnails.add((Image) s.getTargetNode());
 		}
 
 		return thumbnails;
@@ -220,7 +220,7 @@ public class Image extends File {
 					|| ((origWidth <= w) && (origHeight <= h)))    // orginal image is equal or smaller than requested size
 					{
 
-						thumbnail = (Image) r.getEndNode();
+						thumbnail = (Image) r.getTargetNode();
 
 						// Use thumbnail only if checksum of original image matches with stored checksum
 						Long storedChecksum = r.getProperty(Image.checksum);
@@ -291,7 +291,7 @@ public class Image extends File {
 							AbstractRelationship thumbnailRelationship = createRel.execute(originalImage, thumbnail, RelType.THUMBNAIL, true);
 							
 							// Thumbnails always have to be removed along with origin image
-							thumbnailRelationship.setProperty(AbstractRelationship.cascadeDelete, Relation.DELETE_OUTGOING);
+							thumbnailRelationship.setProperty(AbstractRelationship.cascadeDelete, Relation.SOURCE_TO_TARGET);
 
 							// Add to cache list
 							// thumbnailRelationships.add(thumbnailRelationship);

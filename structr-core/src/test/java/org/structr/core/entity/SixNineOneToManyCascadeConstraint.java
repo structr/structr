@@ -7,7 +7,7 @@ import org.structr.core.TestRelType;
  *
  * @author Christian Morgner
  */
-public class SixThree extends OneToOne<TestSix, TestThree> {
+public class SixNineOneToManyCascadeConstraint extends OneToMany<TestSix, TestNine> {
 	
 	@Override
 	public Class<TestSix> getSourceType() {
@@ -16,11 +16,16 @@ public class SixThree extends OneToOne<TestSix, TestThree> {
 
 	@Override
 	public RelationshipType getRelationshipType() {
-		return TestRelType.ONE_TO_ONE;
+		return TestRelType.ONE_TO_MANY;
 	}
 
 	@Override
-	public Class<TestThree> getTargetType() {
-		return TestThree.class;
+	public Class<TestNine> getTargetType() {
+		return TestNine.class;
+	}
+	
+	@Override
+	public int getCascadingDeleteFlag() {
+		return Relation.CONSTRAINT_BASED;
 	}
 }

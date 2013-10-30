@@ -65,6 +65,7 @@ import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.structr.core.Services;
+import org.structr.core.entity.relationship.LocationRelationship;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.search.PropertySearchAttribute;
 
@@ -156,7 +157,7 @@ public class SearchResultsTest extends StructrTest {
 			AbstractNode node                      = createTestNode(type, props);
 			boolean includeDeletedAndHidden        = true;
 			boolean publicOnly                     = false;
-			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+			List<SearchAttribute> searchAttributes = new LinkedList<>();
 
 			searchAttributes.add(Search.andExactType(type));
 			searchAttributes.add(Search.andExactProperty(securityContext, key, date));
@@ -179,7 +180,7 @@ public class SearchResultsTest extends StructrTest {
 
 		try {
 
-			final AbstractRelationship rel = ((List<AbstractRelationship>) createTestRelationships(RelType.IS_AT, 1)).get(0);
+			final LocationRelationship rel = (createTestRelationships(LocationRelationship.class, 1)).get(0);
 			final PropertyKey key1         = new StringProperty("jghsdkhgshdhgsdjkfgh").indexed();
 			final String val1              = "54354354546806849870";
 
@@ -195,7 +196,7 @@ public class SearchResultsTest extends StructrTest {
 			
 			assertTrue(rel.getProperty(key1).equals(val1));
 
-			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+			List<SearchAttribute> searchAttributes = new LinkedList<>();
 
 			searchAttributes.add(Search.andExactProperty(securityContext, key1, val1));
 

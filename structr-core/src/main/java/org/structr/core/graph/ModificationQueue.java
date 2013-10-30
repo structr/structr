@@ -141,7 +141,7 @@ public class ModificationQueue {
 
 		getState(relationship).create();
 
-		modifyEndNodes(relationship.getStartNode(), relationship.getEndNode(), relationship.getRelType());
+		modifyEndNodes(relationship.getSourceNode(), relationship.getTargetNode(), relationship.getRelType());
 		
 		// FIXME
 //		String combinedType = relationship.getProperty(RelationshipInterface.combinedType);
@@ -201,7 +201,7 @@ public class ModificationQueue {
 
 		getState(relationship).delete(passive);
 
-		modifyEndNodes(relationship.getStartNode(), relationship.getEndNode(), relationship.getRelType());
+		modifyEndNodes(relationship.getSourceNode(), relationship.getTargetNode(), relationship.getRelType());
 	}
 
 	private void modifyEndNodes(NodeInterface startNode, NodeInterface endNode, RelationshipType relType) {

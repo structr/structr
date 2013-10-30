@@ -32,7 +32,7 @@ import org.structr.core.property.Property;
  */
 public class TestTwo extends AbstractNode {
 	
-	public static final Property<TestOne> testOne = new StartNode<>("testOne", OneTwo.class);
+	public static final Property<TestOne> testOne = new StartNode<>("testOne", OneTwoOneToOne.class);
 	
 	@Override
 	public boolean isValid(ErrorBuffer errorBuffer) {

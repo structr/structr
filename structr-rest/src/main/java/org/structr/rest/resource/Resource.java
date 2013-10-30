@@ -136,7 +136,7 @@ public abstract class Resource {
 							}
 
 							// delete cascading
-							deleteNode.execute((AbstractNode)obj, true);
+							deleteNode.execute((AbstractNode)obj);
 						}
 
 					}

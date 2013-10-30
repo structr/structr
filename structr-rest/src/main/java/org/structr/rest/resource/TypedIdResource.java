@@ -129,14 +129,6 @@ public class TypedIdResource extends FilterableResource {
 			resource.configureIdProperty(idProperty);
 			return resource;
 
-		} else if(next instanceof TypedIdResource) {
-
-			RelationshipFollowingResource resource = new RelationshipFollowingResource(securityContext, this);
-			resource.configureIdProperty(idProperty);
-			resource.addTypedIdResource((TypedIdResource)next);
-
-			return resource;
-
 		} else if(next instanceof RelationshipResource) {
 
 			// make rel constraint wrap this

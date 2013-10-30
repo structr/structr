@@ -43,8 +43,8 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.lucene.search.BooleanClause.Occur;
-import org.structr.core.GraphObject;
 import org.structr.core.Result;
+import org.structr.core.entity.Relation;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -198,12 +198,12 @@ public abstract class Search {
 		return new TypeSearchAttribute(type.getSimpleName(), Occur.MUST, isExactMatch);
 	}
 
-	public static SearchAttribute andExactRelType(final Class<? extends AbstractRelationship> namedRelation) {
-		return new PropertySearchAttribute(AbstractRelationship.type, namedRelation.getClass().getSimpleName(), Occur.MUST, true);
+	public static SearchAttribute andExactRelType(final Class<? extends Relation> namedRelation) {
+		return new PropertySearchAttribute(AbstractRelationship.type, namedRelation.getSimpleName(), Occur.MUST, true);
 	}
 
-	public static SearchAttribute orExactRelType(final Class<? extends AbstractRelationship> namedRelation) {
-		return new PropertySearchAttribute(AbstractRelationship.type, namedRelation.getClass().getSimpleName(), Occur.SHOULD, true);
+	public static SearchAttribute orExactRelType(final Class<? extends Relation> namedRelation) {
+		return new PropertySearchAttribute(AbstractRelationship.type, namedRelation.getSimpleName(), Occur.SHOULD, true);
 	}
 
 	public static SearchAttribute orExactName(final String searchString) {

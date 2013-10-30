@@ -6,13 +6,12 @@ import static junit.framework.Assert.fail;
 import org.structr.common.RelType;
 import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
 import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.entity.TestEnum;
 import org.structr.core.entity.TestFour;
 import org.structr.core.entity.TestOne;
-import org.structr.core.entity.OneFour;
+import org.structr.core.entity.OneFourOneToOne;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.search.Search;
@@ -81,12 +80,12 @@ public class EnumPropertyTest extends StructrTest {
 		try {
 			final TestOne testOne        = createTestNode(TestOne.class);
 			final TestFour testFour      = createTestNode(TestFour.class);
-			final Property<TestEnum> key = OneFour.enumProperty;
+			final Property<TestEnum> key = OneFourOneToOne.enumProperty;
 			
 			assertNotNull(testOne);
 			assertNotNull(testFour);
 			
-			final OneFour testEntity = (OneFour)createTestRelationship(testOne, testFour, RelType.IS_AT);
+			final OneFourOneToOne testEntity = createTestRelationship(testOne, testFour, OneFourOneToOne.class);
 			
 			assertNotNull(testEntity);
 
@@ -107,7 +106,7 @@ public class EnumPropertyTest extends StructrTest {
 			assertEquals(TestEnum.Status1, testEntity.getProperty(key));
 			
 			Result<TestFour> result = Services.command(securityContext, SearchRelationshipCommand.class).execute(
-				Search.andExactRelType(OneFour.class),
+				Search.andExactRelType(OneFourOneToOne.class),
 				Search.andExactProperty(securityContext, key, TestEnum.Status1)
 			);
 			

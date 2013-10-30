@@ -17,8 +17,8 @@ public interface RelationshipInterface extends GraphObject {
 	
 	public void onRelationshipInstantiation();
 
-	public NodeInterface getStartNode();
-	public NodeInterface getEndNode();
+	public NodeInterface getSourceNode();
+	public NodeInterface getTargetNode();
 	public RelationshipType getRelType();
 	
 	public Relationship getRelationship();

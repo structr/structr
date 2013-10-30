@@ -7,20 +7,20 @@ import org.structr.core.TestRelType;
  *
  * @author Christian Morgner
  */
-public class ThreeThree extends OneToOne<TestThree, TestThree> {
+public class SixOneOneToOne extends OneToMany<TestSix, TestOne> {
 	
 	@Override
-	public Class<TestThree> getSourceType() {
-		return TestThree.class;
+	public Class<TestSix> getSourceType() {
+		return TestSix.class;
 	}
 
 	@Override
 	public RelationshipType getRelationshipType() {
-		return TestRelType.ONE_TO_MANY;
+		return TestRelType.ONE_TO_ONE;
 	}
 
 	@Override
-	public Class<TestThree> getTargetType() {
-		return TestThree.class;
+	public Class<TestOne> getTargetType() {
+		return TestOne.class;
 	}
 }

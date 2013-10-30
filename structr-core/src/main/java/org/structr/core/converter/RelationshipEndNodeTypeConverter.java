@@ -43,7 +43,7 @@ public class RelationshipEndNodeTypeConverter extends PropertyConverter<Object, 
 			AbstractRelationship rel = (AbstractRelationship) currentObject;
 			if (rel != null) {
 				
-				NodeInterface endNode = rel.getEndNode();
+				NodeInterface endNode = rel.getTargetNode();
 				if (endNode != null) {
 					
 					return endNode.getType();

@@ -39,7 +39,6 @@ import org.structr.core.property.EndNodes;
 import org.structr.core.property.DoubleProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
-import org.structr.rest.common.TestRestRelType;
 
 /**
  *
@@ -47,15 +46,15 @@ import org.structr.rest.common.TestRestRelType;
  */
 public class TestNine extends AbstractNode {
 
-	public static final EndNodes<TestEight> testEights   = new EndNodes<TestEight>("testEights", TestEight.class, TestRestRelType.HAS, false);
-	public static final Property<List<String>>        testEightIds = new CollectionNotionProperty("testEightIds", testEights, new PropertyNotion(GraphObject.uuid));
+	public static final Property<List<TestEight>> testEights   = new EndNodes<>("testEights", NineEightManyToMany.class);
+	public static final Property<List<String>>    testEightIds = new CollectionNotionProperty("testEightIds", testEights, new PropertyNotion(GraphObject.uuid));
 	
-	public static final Property<String>              city         = new StringProperty("city").indexed().indexedWhenEmpty();
-	public static final Property<String>              street       = new StringProperty("street").indexed().indexedWhenEmpty();
-	public static final Property<String>              postalCode   = new StringProperty("postalCode").indexed().indexedWhenEmpty();
+	public static final Property<String>          city         = new StringProperty("city").indexed().indexedWhenEmpty();
+	public static final Property<String>          street       = new StringProperty("street").indexed().indexedWhenEmpty();
+	public static final Property<String>          postalCode   = new StringProperty("postalCode").indexed().indexedWhenEmpty();
 	               
-	public static final Property<Double>              latitude     = new DoubleProperty("latitude");
-	public static final Property<Double>              longitude    = new DoubleProperty("longitude");
+	public static final Property<Double>          latitude     = new DoubleProperty("latitude");
+	public static final Property<Double>          longitude    = new DoubleProperty("longitude");
 	
 	public static final View defaultView = new View(TestNine.class, PropertyView.Public,
 		name, city, street, postalCode, latitude, longitude

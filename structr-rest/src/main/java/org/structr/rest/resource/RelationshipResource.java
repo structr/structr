@@ -74,7 +74,7 @@ public class RelationshipResource extends WrappingResource {
 
 					if(obj instanceof AbstractNode) {
 
-						List relationships = Iterables.toList(((AbstractNode) obj).getRelationships(null, direction));
+						List relationships = Iterables.toList(((AbstractNode) obj).getRelationships());
 						if(relationships != null) {
 
 							resultList.addAll(relationships);

@@ -189,7 +189,7 @@ public class Component extends DOMElement {
 		// collection of properties must not depend on page
 		for (AbstractRelationship rel : startNode.getChildRelationships()) {
 
-			DOMNode endNode = (DOMNode)rel.getEndNode();
+			DOMNode endNode = (DOMNode)rel.getTargetNode();
 
 			if (endNode == null) {
 

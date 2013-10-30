@@ -19,7 +19,6 @@
 package org.structr.core.property;
 
 import java.util.List;
-import java.util.logging.Logger;
 import org.neo4j.helpers.collection.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -85,7 +84,7 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 	
 	@Override
 	public String typeName() {
-		return destType.getSimpleName();
+		return "Object";
 	}
 
 	@Override

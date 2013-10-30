@@ -1,22 +1,22 @@
 package org.structr.core.entity;
 
 import org.neo4j.graphdb.RelationshipType;
-import org.structr.common.RelType;
+import org.structr.core.TestRelType;
 
 /**
  *
  * @author Christian Morgner
  */
-public class OneThree extends OneToOne<TestOne, TestThree> {
+public class SixThreeOneToOne extends OneToOne<TestSix, TestThree> {
 	
 	@Override
-	public Class<TestOne> getSourceType() {
-		return TestOne.class;
+	public Class<TestSix> getSourceType() {
+		return TestSix.class;
 	}
 
 	@Override
 	public RelationshipType getRelationshipType() {
-		return RelType.OWNS;
+		return TestRelType.ONE_TO_ONE;
 	}
 
 	@Override

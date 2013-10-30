@@ -56,13 +56,13 @@ import org.structr.core.*;
 public class ModuleService implements SingletonService {
 
 	private static final Logger logger                                       = Logger.getLogger(ModuleService.class.getName());
-	private static final Map<String, Class<? extends Agent>> agentClassCache = new ConcurrentHashMap<String, Class<? extends Agent>>(10, 0.9f, 8);
-	private static final Set<String> nodeEntityPackages                      = new LinkedHashSet<String>();
-	private static final Set<String> relationshipPackages                    = new LinkedHashSet<String>();
-	private static final Map<String, Class> relationshipClassCache           = new ConcurrentHashMap<String, Class>(10, 0.9f, 8);
-	private static final Map<String, Class> nodeEntityClassCache             = new ConcurrentHashMap<String, Class>(100, 0.9f, 8);
-	private static final Map<String, Set<Class>> interfaceCache              = new ConcurrentHashMap<String, Set<Class>>(10, 0.9f, 8);
-	private static final Set<String> agentPackages                           = new LinkedHashSet<String>();
+	private static final Map<String, Class<? extends Agent>> agentClassCache = new ConcurrentHashMap<>(10, 0.9f, 8);
+	private static final Set<String> nodeEntityPackages                      = new LinkedHashSet<>();
+	private static final Set<String> relationshipPackages                    = new LinkedHashSet<>();
+	private static final Map<String, Class> relationshipEntityClassCache           = new ConcurrentHashMap<>(10, 0.9f, 8);
+	private static final Map<String, Class> nodeEntityClassCache             = new ConcurrentHashMap(100, 0.9f, 8);
+	private static final Map<String, Set<Class>> interfaceCache              = new ConcurrentHashMap<>(10, 0.9f, 8);
+	private static final Set<String> agentPackages                           = new LinkedHashSet<>();
 	private static final String fileSep                                      = System.getProperty("file.separator");
 	private static final String fileSepEscaped                               = fileSep.replaceAll("\\\\", "\\\\\\\\");	// ....
 	private static final String pathSep                                      = System.getProperty("path.separator");
@@ -121,7 +121,7 @@ public class ModuleService implements SingletonService {
 	public void shutdown() {
 
 		nodeEntityClassCache.clear();
-		relationshipClassCache.clear();
+		relationshipEntityClassCache.clear();
 		agentClassCache.clear();
 
 	}
@@ -183,7 +183,7 @@ public class ModuleService implements SingletonService {
 
 							if (classesForInterface == null) {
 
-								classesForInterface = new LinkedHashSet<Class>();
+								classesForInterface = new LinkedHashSet<>();
 
 								interfaceCache.put(interfaceName, classesForInterface);
 
@@ -203,7 +203,7 @@ public class ModuleService implements SingletonService {
 						String simpleName = clazz.getSimpleName();
 						String fullName   = clazz.getName();
 
-						relationshipClassCache.put(simpleName, clazz);
+						relationshipEntityClassCache.put(simpleName, clazz);
 						relationshipPackages.add(fullName.substring(0, fullName.lastIndexOf(".")));
 
 						for (Class interfaceClass : clazz.getInterfaces()) {
@@ -213,7 +213,7 @@ public class ModuleService implements SingletonService {
 
 							if (classesForInterface == null) {
 
-								classesForInterface = new LinkedHashSet<Class>();
+								classesForInterface = new LinkedHashSet<>();
 
 								interfaceCache.put(interfaceName, classesForInterface);
 
@@ -395,13 +395,13 @@ public class ModuleService implements SingletonService {
 
 	public Set<String> getCachedRelationshipTypes() {
 
-		return relationshipClassCache.keySet();
+		return relationshipEntityClassCache.keySet();
 
 	}
 
-	public Map<String, Class> getCachedRelationships() {
+	public Map<String, Class> getCachedRelationshipEntities() {
 
-		return relationshipClassCache;
+		return relationshipEntityClassCache;
 
 	}
 
@@ -449,13 +449,13 @@ public class ModuleService implements SingletonService {
 
 	}
 
-	public Class getRelationshipClass(final String name) {
+	public Class getRelationshipEntityClass(final String name) {
 
 		Class ret = AbstractNode.class;
 
 		if ((name != null) && (name.length() > 0)) {
 
-			ret = relationshipClassCache.get(name);
+			ret = relationshipEntityClassCache.get(name);
 
 			if (ret == null) {
 
@@ -469,7 +469,7 @@ public class ModuleService implements SingletonService {
 
 							if (!Modifier.isAbstract(nodeClass.getModifiers())) {
 
-								relationshipClassCache.put(name, nodeClass);
+								relationshipEntityClassCache.put(name, nodeClass);
 
 								// first match wins
 								break;

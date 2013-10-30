@@ -37,13 +37,13 @@ public interface FactoryDefinition {
 	 * @return an uninitialized instance of a generic relationship
 	 */
 	public AbstractRelationship createGenericRelationship();
-	public String getGenericRelationshiType();
+	public Class getGenericRelationshipType();
 	
 	/**
 	 * @return an uninitialized instance of a generic node
 	 */
 	public AbstractNode createGenericNode();
-	public String getGenericNodeType();
+	public Class getGenericNodeType();
 	
 	/**
 	 * Indicates whether the given class is a generic type according to
@@ -62,5 +62,15 @@ public interface FactoryDefinition {
 	 * @param node
 	 * @return the entity name as returned by Class.getSimpleName()
 	 */
-	public String determineNodeType(Node node);
+	public Class determineNodeType(Node node);
+	
+	/**
+	 * Returns an entity name for the given relationship. A relationship type
+	 * can be defined by the relationship's surroundings or by a given type
+	 * property. Its up to the user of Structr to specify this.
+	 * 
+	 * @param relationship
+	 * @return the entity name as returned by Class.getSimpleName()
+	 */
+	public Class determineRelationshipType(Relationship relationship);
 }

@@ -41,7 +41,7 @@ public class StartNodeGroup extends GroupProperty {
 		if(source instanceof AbstractRelationship) {
 
 			RelationshipInterface rel = (RelationshipInterface)source;
-			NodeInterface startNode   = rel.getStartNode();
+			NodeInterface startNode   = rel.getSourceNode();
 
 			return super.getGroupedProperties(securityContext, startNode);
 		}

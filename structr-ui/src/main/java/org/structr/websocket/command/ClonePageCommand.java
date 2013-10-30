@@ -104,7 +104,7 @@ public class ClonePageCommand extends AbstractCommand {
 						for (AbstractRelationship out : relsOut) {
 
 							// Use first HTML element of existing node (the node to be cloned)
-							AbstractNode endNode = out.getEndNode();
+							AbstractNode endNode = out.getTargetNode();
 
 							if (endNode.getType().equals(Html.class.getSimpleName())) {
 

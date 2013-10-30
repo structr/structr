@@ -33,7 +33,7 @@ public class GetRelationshipEntitiesCommand extends ModuleServiceCommand {
 		ModuleService service = (ModuleService)getArgument("moduleService");
 		if(service != null) {
 
-			return service.getCachedRelationships();
+			return service.getCachedRelationshipEntities();
 		}
 
 		return null;

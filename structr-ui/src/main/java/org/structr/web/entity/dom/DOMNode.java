@@ -1011,7 +1011,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 					for (AbstractRelationship rel : ((AbstractNode) _data).getRelationships(org.structr.web.common.RelType.LINK, Direction.OUTGOING)) {
 
-						_data = rel.getEndNode();
+						_data = rel.getTargetNode();
 
 						break;
 
@@ -1111,7 +1111,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 					for (AbstractRelationship rel : getRelationships(org.structr.web.common.RelType.LINK, Direction.OUTGOING)) {
 
-						_data = rel.getEndNode();
+						_data = rel.getTargetNode();
 
 						break;
 
@@ -1135,7 +1135,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 					for (AbstractRelationship rel : getRelationships(IncomingOwnership.class)) {
 
-						_data = rel.getStartNode();
+						_data = rel.getSourceNode();
 
 						break;
 

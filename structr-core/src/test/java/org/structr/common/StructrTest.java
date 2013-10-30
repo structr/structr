@@ -26,12 +26,10 @@ import junit.framework.TestCase;
 import org.apache.commons.io.FileUtils;
 
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.RelationshipType;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.log.ReadLogCommand;
 import org.structr.core.log.WriteLogCommand;
 import org.structr.core.graph.CreateNodeCommand;
@@ -52,6 +50,7 @@ import java.io.IOException;
 import java.net.URL;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.LinkedList;
@@ -60,6 +59,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 import org.structr.core.entity.GenericNode;
+import org.structr.core.entity.Relation;
 import org.structr.core.graph.DeleteRelationshipCommand;
 import org.structr.core.graph.NodeInterface;
 
@@ -217,18 +217,18 @@ public class StructrTest extends TestCase {
 
 	}
 
-	protected List<AbstractRelationship> createTestRelationships(final RelationshipType relType, final int number) throws FrameworkException {
+	protected <T extends Relation> List<T> createTestRelationships(final Class<T> relType, final int number) throws FrameworkException {
 
 		List<NodeInterface> nodes     = createTestNodes(GenericNode.class, 2);
 		final NodeInterface startNode = nodes.get(0);
 		final NodeInterface endNode   = nodes.get(1);
 
-		return transactionCommand.execute(new StructrTransaction<List<AbstractRelationship>>() {
+		return transactionCommand.execute(new StructrTransaction<List<T>>() {
 
 			@Override
-			public List<AbstractRelationship> execute() throws FrameworkException {
+			public List<T> execute() throws FrameworkException {
 
-				List<AbstractRelationship> rels = new LinkedList<AbstractRelationship>();
+				List<T> rels = new LinkedList<>();
 
 				for (int i = 0; i < number; i++) {
 
@@ -243,12 +243,12 @@ public class StructrTest extends TestCase {
 
 	}
 
-	protected AbstractRelationship createTestRelationship(final AbstractNode startNode, final AbstractNode endNode, final RelType relType) throws FrameworkException {
+	protected <T extends Relation> T createTestRelationship(final AbstractNode startNode, final AbstractNode endNode, final Class<T> relType) throws FrameworkException {
 
-		return transactionCommand.execute(new StructrTransaction<AbstractRelationship>() {
+		return transactionCommand.execute(new StructrTransaction<T>() {
 
 			@Override
-			public AbstractRelationship execute() throws FrameworkException {
+			public T execute() throws FrameworkException {
 
 				return createRelationshipCommand.execute(startNode, endNode, relType);
 
@@ -283,6 +283,10 @@ public class StructrTest extends TestCase {
 
 	}
 
+	protected <T> List<T> toList(T... elements) {
+		return Arrays.asList(elements);
+	}
+	
 	//~--- get methods ----------------------------------------------------
 
 	/**
@@ -301,7 +305,7 @@ public class StructrTest extends TestCase {
 
 		String path                = packageName.replace('.', '/');
 		Enumeration<URL> resources = classLoader.getResources(path);
-		List<File> dirs            = new ArrayList<File>();
+		List<File> dirs            = new ArrayList<>();
 
 		while (resources.hasMoreElements()) {
 
@@ -311,7 +315,7 @@ public class StructrTest extends TestCase {
 
 		}
 
-		List<Class> classList = new ArrayList<Class>();
+		List<Class> classList = new ArrayList<>();
 
 		for (File directory : dirs) {
 

@@ -31,6 +31,7 @@ import org.structr.core.entity.AbstractRelationship;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.entity.Relation;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -50,16 +51,16 @@ public class DeleteRelationshipCommand extends NodeServiceCommand {
 		RelationshipFactory relFactory = new RelationshipFactory(securityContext);
 		
 		// default is active deletion!
-		return execute((AbstractRelationship)relFactory.instantiate(rel), false);
+		return execute(relFactory.instantiate(rel), false);
 	}
 	
-	public Object execute(final AbstractRelationship rel) throws FrameworkException {
+	public Object execute(final RelationshipInterface rel) throws FrameworkException {
 		
 		// default is active deletion!
 		return execute(rel, false);
 	}
 	
-	public Object execute(final AbstractRelationship rel, final boolean passiveDeletion) throws FrameworkException {
+	public Object execute(final RelationshipInterface rel, final boolean passiveDeletion) throws FrameworkException {
 
 		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
 
@@ -67,14 +68,14 @@ public class DeleteRelationshipCommand extends NodeServiceCommand {
 
 			if (rel.getProperty(AbstractRelationship.uuid) == null) {
 
-				logger.log(Level.WARNING, "Will not delete relationship which has no UUID: {0} --[:{1}]-->{2}", new Object[] { rel.getStartNode(), rel.getType(), rel.getEndNode() });
+				logger.log(Level.WARNING, "Will not delete relationship which has no UUID: {0} --[:{1}]-->{2}", new Object[] { rel.getSourceNode(), rel.getType(), rel.getTargetNode() });
 
 				return null;
 
 			}
 
-			final Relationship relToDelete              = rel.getRelationship();
-			final AbstractRelationship finalRel         = rel;
+			final Relationship relToDelete       = rel.getRelationship();
+			final RelationshipInterface finalRel = rel;
 
 			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 

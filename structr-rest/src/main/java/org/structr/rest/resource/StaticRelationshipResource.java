@@ -53,7 +53,6 @@ import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.notion.Notion;
-import org.structr.core.property.AbstractRelationProperty;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
@@ -143,6 +142,7 @@ public class StaticRelationshipResource extends SortableResource {
 
 		if (results != null) {
 
+			/*
 			// fetch static relationship definition
 			final PropertyKey key = findPropertyKey(typedIdResource, typeResource);
 			if (key != null && key instanceof AbstractRelationProperty) {
@@ -238,6 +238,7 @@ public class StaticRelationshipResource extends SortableResource {
 				}
 
 			}
+			*/
 		}
 
 		return new RestMethodResult(HttpServletResponse.SC_OK);
@@ -249,6 +250,7 @@ public class StaticRelationshipResource extends SortableResource {
 		final AbstractNode sourceNode = typedIdResource.getIdResource().getNode();
 		final PropertyKey propertyKey = findPropertyKey(typedIdResource, typeResource);
 
+		/*
 		if (sourceNode != null && propertyKey != null && propertyKey instanceof AbstractRelationProperty) {
 
 			final StructrTransaction transaction = new StructrTransaction() {
@@ -414,6 +416,8 @@ public class StaticRelationshipResource extends SortableResource {
 			}
 
 		}
+		*/
+			
 
 		throw new IllegalPathException();
 	}

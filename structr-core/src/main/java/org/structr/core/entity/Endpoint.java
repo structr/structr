@@ -1,19 +1,19 @@
 package org.structr.core.entity;
 
-import org.neo4j.graphdb.RelationshipType;
+import org.structr.core.graph.NodeInterface;
 
 /**
  *
  * @author Christian Morgner
  */
-public class Endpoint {
+public class Endpoint<A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target> {
 
-	protected RelationshipType relType = null;
+	protected Relation<A, B, S, T> relType = null;
 	
-	public Endpoint(final RelationshipType relType) {
-		this.relType   = relType;
+	public Endpoint(final Relation<A, B, S, T> relation) {
+		this.relType = relation;
 	}
-
+	
 	/*
 	
 	public NodeInterface createRelatedNode(final SecurityContext securityContext, final NodeInterface node) throws FrameworkException {

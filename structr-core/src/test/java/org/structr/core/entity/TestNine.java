@@ -16,36 +16,23 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.property;
+package org.structr.core.entity;
 
-import org.structr.core.EntityContext;
-import org.structr.core.GraphObject;
-import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.graph.NodeInterface;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.core.property.Property;
+import org.structr.core.property.StartNode;
 
 /**
- *
+ * A simple entity for testing constraint-based cascading delete.
+ * 
  * @author Christian Morgner
  */
-public class CombinedTypeProperty extends AutoStringProperty {
-
-	public CombinedTypeProperty() {
-		
-		super("combinedType");
-	}
+public class TestNine extends AbstractNode {
+	
+	public static final Property<TestSix>  oneToManyTestSixConstraint  = new StartNode<>("oneToManyTestSixConstraint", SixNineOneToManyCascadeConstraint.class);
 	
 	@Override
-	public String createValue(GraphObject entity) {
-		
-		if (entity instanceof AbstractRelationship) {
-
-			AbstractRelationship rel = (AbstractRelationship)entity;
-			NodeInterface startNode  = rel.getStartNode();
-			NodeInterface endNode    = rel.getEndNode();
-			
-			return EntityContext.createCombinedRelationshipType(startNode.getType(), rel.getType(), endNode.getType());
-		}
-	
-		return null;
+	public boolean isValid(final ErrorBuffer errorBuffer) {
+		return getProperty(oneToManyTestSixConstraint) != null;
 	}
 }

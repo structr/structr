@@ -16,7 +16,7 @@ public class SixOneOneToMany extends OneToMany<TestSix, TestOne> {
 
 	@Override
 	public RelationshipType getRelationshipType() {
-		return TestRelType.ONE_TO_ONE;
+		return TestRelType.ONE_TO_MANY;
 	}
 
 	@Override

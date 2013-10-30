@@ -205,6 +205,7 @@
                     <target>1.7</target>
                     <encoding>${project.build.sourceEncoding}</encoding>
                     <debug>true</debug>
+                    <showDeprecation>true</showDeprecation>
                 </configuration>
             </plugin>
             <plugin>
