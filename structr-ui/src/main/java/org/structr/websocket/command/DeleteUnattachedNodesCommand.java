@@ -101,7 +101,7 @@ public class DeleteUnattachedNodesCommand extends AbstractCommand {
 					if (!node.hasRelationship(RelType.CONTAINS, Direction.INCOMING) && !(page instanceof ShadowDocument)) {
 
 						filteredResults.add(node);
-						filteredResults.addAll(getAllChildNodes(node));
+						filteredResults.addAll(DOMNode.getAllChildNodes(node));
 					}
 
 				}
@@ -154,21 +154,4 @@ public class DeleteUnattachedNodesCommand extends AbstractCommand {
 
 	}
 	
-	public Set<DOMNode> getAllChildNodes(final DOMNode node) {
-		
-		Set<DOMNode> allChildNodes = new HashSet();
-		
-		DOMNode n = (DOMNode) node.getFirstChild();
-		
-		while (n != null) {
-		
-			allChildNodes.add(n);
-			allChildNodes.addAll(getAllChildNodes(n));
-			n = (DOMNode) n.getNextSibling();
-			
-		}
-		
-		return allChildNodes;
-	}
-
 }

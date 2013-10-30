@@ -2192,5 +2192,24 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 //		return response.body();
 //		
 //	}
+
+	public static Set<DOMNode> getAllChildNodes(final DOMNode node) {
+		
+		Set<DOMNode> allChildNodes = new HashSet();
+		
+		DOMNode n = (DOMNode) node.getFirstChild();
+		
+		while (n != null) {
+		
+			allChildNodes.add(n);
+			allChildNodes.addAll(getAllChildNodes(n));
+			n = (DOMNode) n.getNextSibling();
+			
+		}
+		
+		return allChildNodes;
+	}
+
+	
 	
 }
