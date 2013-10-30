@@ -222,11 +222,11 @@ var Structr = {
     key_icon: 'icon/key.png',
     reconnect: function() {
 
-        console.log('activating reconnect loop');
+        log('activating reconnect loop');
         reconn = window.setInterval(function() {
             connect();
         }, 1000);
-        console.log('activated reconnect loop', reconn);
+        log('activated reconnect loop', reconn);
     },
     init: function() {
 

@@ -239,22 +239,22 @@ var _Entities = {
                     
                     
                     var parent = entity.parent;
-//                    if (parent) {
-//                        Command.removeChild(entity.id);
-//                        Command.appendWidget(text2, entity.parent.id, entity.pageId, null, null, function() {
-//                            dialogSaveButton.prop("disabled", true).addClass('disabled');
-//                            saveAndClose.prop("disabled", true).addClass('disabled');
-//                            dialogMsg.html('<div class="infoBox success">New nodes created from source.</div>');
-//                            $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
-//                        });
-//                    } else {
+                    if (parent) {
+                        Command.removeChild(entity.id);
+                        Command.appendWidget(text2, entity.parent.id, entity.pageId, null, null, function() {
+                            dialogSaveButton.prop("disabled", true).addClass('disabled');
+                            saveAndClose.prop("disabled", true).addClass('disabled');
+                            dialogMsg.html('<div class="infoBox success">New nodes created from source.</div>');
+                            $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
+                        });
+                    } else {
                         Command.replaceWidget(text2, entity.id, entity.parent ? entity.parent.id : undefined, entity.pageId, function() {
                             dialogSaveButton.prop("disabled", true).addClass('disabled');
                             saveAndClose.prop("disabled", true).addClass('disabled');
                             dialogMsg.html('<div class="infoBox success">New nodes created from source.</div>');
                             $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
                         });
-//                    }
+                    }
                 });
 
                 saveAndClose.on('click', function(e) {
