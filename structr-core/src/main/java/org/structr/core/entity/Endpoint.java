@@ -364,42 +364,6 @@ public class Endpoint<A extends NodeInterface, B extends NodeInterface, S extend
 	
 	// ----- protected methods -----
 	
-	public List<T> getRelatedNodesReverse(SecurityContext securityContext, GraphObject obj, Class destinationType) {
-		
-		List<T> relatedNodes = new LinkedList<T>();
-		
-		if (obj instanceof AbstractNode) {
-
-			AbstractNode node = (AbstractNode)obj;
-
-			NodeFactory nodeFactory = new NodeFactory(securityContext);
-			Node dbNode             = node.getNode();
-			NodeInterface value     = null;
-
-			try {
-
-				for (Relationship rel : dbNode.getRelationships(getRelType(), getDirection().reverse())) {
-
-					value = nodeFactory.instantiate(rel.getOtherNode(dbNode));
-
-					// break on first hit of desired type
-					if (value != null && destinationType.isInstance(value)) {
-						relatedNodes.add((T)value);
-					}
-				}
-
-			} catch (Throwable t) {
-
-				logger.log(Level.WARNING, "Unable to fetch related node: {0}", t.getMessage());
-			}
-
-		} else {
-
-			logger.log(Level.WARNING, "Property {0} is registered on illegal type {1}", new Object[] { this, obj.getClass() } );
-		}
-
-		return relatedNodes;
-	}
 
 	
 	// ----- private methods -----

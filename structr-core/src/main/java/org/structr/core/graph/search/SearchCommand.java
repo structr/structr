@@ -169,7 +169,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		}
 
 		// At this point, all search attributes are ready
-		List<SourceSearchAttribute> sources    = new ArrayList<SourceSearchAttribute>();
+		List<SourceSearchAttribute> sources    = new ArrayList<>();
 		boolean hasEmptySearchFields           = false;
 		DistanceSearchAttribute distanceSearch = null;
 		GeoCodingResult coords                 = null;
@@ -279,7 +279,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 				if (coords != null) {
 
-					Map<String, Object> params = new HashMap<String, Object>();
+					Map<String, Object> params = new HashMap<>();
 
 					params.put(LayerNodeIndex.POINT_PARAMETER, coords.toArray());
 					params.put(LayerNodeIndex.DISTANCE_IN_KM_PARAMETER, dist);
@@ -356,7 +356,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		if (filterResults) {
 
 			// sorted result set
-			List<GraphObject> finalResult            = new LinkedList<GraphObject>();
+			List<GraphObject> finalResult            = new LinkedList<>();
 			List<GraphObject> intermediateResultList = intermediateResult.getResults();
 			int resultCount                          = 0;
 
@@ -405,7 +405,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	
 	private List<GraphObject> mergeSources(List<SourceSearchAttribute> sources) {
 		
-		LinkedList<GraphObject> mergedResult = new LinkedList<GraphObject>();
+		LinkedList<GraphObject> mergedResult = new LinkedList<>();
 		boolean alreadyAdded                 = false;
 		
 		for (Iterator<SourceSearchAttribute> it = sources.iterator(); it.hasNext();) {

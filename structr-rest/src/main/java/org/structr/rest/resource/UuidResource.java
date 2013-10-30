@@ -26,11 +26,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.SearchNodeCommand;
-import org.structr.core.graph.search.SearchRelationshipCommand;
 import org.structr.rest.exception.NotFoundException;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -41,6 +38,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
+import org.structr.core.graph.search.SearchCommand;
+import org.structr.core.graph.search.SearchNodeCommand;
+import org.structr.core.graph.search.SearchRelationshipCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotAllowedException;
@@ -70,21 +70,20 @@ public class UuidResource extends FilterableResource {
 		// search for node first, then fall back to relationship
 		try {
 
-			obj = getNode();
+			obj = getEntity(SearchNodeCommand.class);
 
 		} catch (NotFoundException nfex1) {
 
 			try {
 
-				obj = getRelationship();
+				obj = getEntity(SearchRelationshipCommand.class);
 
 			} catch (NotFoundException nfex2) {}
-
 		}
 
 		if (obj != null) {
 
-			List<GraphObject> results = new LinkedList<GraphObject>();
+			List<GraphObject> results = new LinkedList<>();
 
 			results.add(obj);
 
@@ -93,7 +92,6 @@ public class UuidResource extends FilterableResource {
 		}
 
 		throw new NotFoundException();
-
 	}
 
 	@Override
@@ -120,17 +118,15 @@ public class UuidResource extends FilterableResource {
 		return super.tryCombineWith(next);
 	}
 
-	//~--- get methods ----------------------------------------------------
+	public GraphObject getEntity(final Class<? extends SearchCommand> searchCommandType) throws FrameworkException {
 
-	public AbstractNode getNode() throws FrameworkException {
-
-		List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
+		List<SearchAttribute> attrs = new LinkedList<>();
 
 		attrs.add(Search.andExactUuid(uuid));
 
-		Result results    = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(attrs);
-		int size          = results.size();
-		AbstractNode node = null;
+		Result results     = Services.command(SecurityContext.getSuperUserInstance(), searchCommandType).execute(attrs);
+		int size           = results.size();
+		GraphObject entity = null;
 
 		switch (size) {
 
@@ -139,46 +135,24 @@ public class UuidResource extends FilterableResource {
 
 			case 1 :
 				
-				node = (AbstractNode) results.get(0);
+				entity = results.get(0);
 				
-				if (!securityContext.isReadable(node, true, false)) {
+				if (entity instanceof AbstractNode && !securityContext.isReadable((AbstractNode)entity, true, false)) {
 					throw new NotAllowedException();
 				}
 				
-				node.setSecurityContext(securityContext);
+				entity.setSecurityContext(securityContext);
 				
-				return node;
+				return entity;
 
 			default :
-				logger.log(Level.WARNING, "Got more than one result for UUID {0}, this is very likely to be a UUID collision!", uuid);
+				logger.log(Level.SEVERE, "Got more than one result for UUID {0}, this is very likely to be a UUID collision!", uuid);
 
-				node = (AbstractNode)results.get(0);
+				entity = results.get(0);
 				
-				node.setSecurityContext(securityContext);
+				entity.setSecurityContext(securityContext);
 				
-				return node;
-
-		}
-
-	}
-
-	public AbstractRelationship getRelationship() throws FrameworkException {
-
-		Result<AbstractRelationship> results = Services.command(securityContext, SearchRelationshipCommand.class).execute(Search.andExactUuid(uuid));
-		int size                             = results.size();
-
-		switch (size) {
-
-			case 0 :
-				throw new NotFoundException();
-
-			case 1 :
-				return results.get(0);
-
-			default :
-				logger.log(Level.WARNING, "Got more than one result for UUID {0}, this is very likely to be a UUID collision!", uuid);
-
-				return results.get(0);
+				return entity;
 
 		}
 

@@ -74,6 +74,13 @@ public interface GraphObject {
 	public String getType();
 
 	/**
+	 * Sets the security context to be used by this entity.
+	 * 
+	 * @param securityContext 
+	 */
+	public void setSecurityContext(final SecurityContext securityContext);
+	
+	/**
 	 * Returns the underlying property container for this graph object.
 	 * 
 	 * @return 

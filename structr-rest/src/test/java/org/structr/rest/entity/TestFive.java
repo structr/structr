@@ -21,6 +21,7 @@ package org.structr.rest.entity;
 import java.util.List;
 import org.structr.common.PropertyView;
 import org.structr.core.EntityContext;
+import static org.structr.core.GraphObject.uuid;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.notion.PropertyNotion;
 import org.structr.core.property.EndNode;
@@ -33,7 +34,7 @@ import org.structr.core.property.Property;
  */
 public class TestFive extends AbstractNode {
 	
-	public static final Property<List<TestOne>> manyToManyTestOnes = new EndNodes<>("manyToManyTestOnes", FiveOneManyToMany.class);
+	public static final Property<List<TestOne>> manyToManyTestOnes = new EndNodes<>("manyToManyTestOnes", FiveOneManyToMany.class, new PropertyNotion(uuid));
 	public static final Property<List<TestOne>> oneToManyTestOnes  = new EndNodes<>("oneToManyTestOnes",  FiveOneOneToMany.class, new PropertyNotion(uuid));
 	
 	public static final Property<TestThree>     oneToOneTestThree  = new EndNode<>("oneToOneTestThree",  FiveThreeOneToOne.class);
