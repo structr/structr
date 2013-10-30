@@ -56,7 +56,8 @@ public class StructrFtpFile extends AbstractStructrFtpFile {
 
 	@Override
 	public long getSize() {
-		return ((File) structrFile).getSize();
+		Long size = ((File) structrFile).getSize();
+		return size == null ? 0 : size;
 	}
 
 	@Override

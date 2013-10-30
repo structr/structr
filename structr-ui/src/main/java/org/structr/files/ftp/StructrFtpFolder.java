@@ -141,8 +141,10 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 						continue;
 					}
 					
+					logger.log(Level.FINEST, "Structr file found: {0}", f);
+					
 					FtpFile ftpFile = new StructrFtpFile(f);
-					logger.log(Level.INFO, "File found: {0}", ftpFile.getAbsolutePath());
+					logger.log(Level.FINE, "File found: {0}", ftpFile.getAbsolutePath());
 
 					ftpFiles.add(ftpFile);
 					

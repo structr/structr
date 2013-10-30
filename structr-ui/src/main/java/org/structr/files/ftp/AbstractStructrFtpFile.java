@@ -74,8 +74,10 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 
 	@Override
 	public String getName() {
-		return structrFile != null ? structrFile.getProperty(File.name) : 
+		String name = structrFile != null ? structrFile.getProperty(File.name) : 
 			(newPath.contains("/") ? StringUtils.substringAfterLast(newPath, "/") : newPath);
+		
+		return name == null ? structrFile.getUuid() : name;
 	}
 
 	@Override

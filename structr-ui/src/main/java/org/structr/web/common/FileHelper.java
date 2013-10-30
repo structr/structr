@@ -506,6 +506,8 @@ public class FileHelper {
 		
 		String folderPath = file.getProperty(AbstractFile.name);
 		
+		if (folderPath == null) folderPath = file.getProperty(AbstractNode.uuid);
+		
 		while (parentFolder != null) {
 			folderPath = parentFolder.getName().concat("/").concat(folderPath);
 			parentFolder = parentFolder.getProperty(AbstractFile.parent);
