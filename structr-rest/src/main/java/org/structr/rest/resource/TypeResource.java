@@ -46,7 +46,10 @@ import org.structr.common.GraphObjectComparator;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.GraphObject;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.TransactionCommand;
+import org.structr.core.graph.search.SearchCommand;
+import org.structr.core.graph.search.SearchRelationshipCommand;
 import static org.structr.rest.resource.Resource.parseInteger;
 import org.structr.rest.servlet.JsonRestServlet;
 
@@ -67,9 +70,10 @@ public class TypeResource extends SortableResource {
 
 	//~--- fields ---------------------------------------------------------
 
-	protected Class entityClass          = null;
-	protected String rawType             = null;
-	protected HttpServletRequest request = null;
+	protected Class<? extends SearchCommand> searchCommandType = null;
+	protected Class entityClass                            = null;
+	protected String rawType                               = null;
+	protected HttpServletRequest request                   = null;
 
 	//~--- methods --------------------------------------------------------
 
@@ -84,6 +88,16 @@ public class TypeResource extends SortableResource {
 
 			// test if resource class exists
 			entityClass = EntityContext.getEntityClassForRawType(rawType);
+			if (entityClass != null) {
+				
+				if (AbstractNode.class.isAssignableFrom(entityClass)) {
+					searchCommandType = SearchNodeCommand.class;
+				}
+				
+				if (AbstractRelationship.class.isAssignableFrom(entityClass)) {
+					searchCommandType = SearchRelationshipCommand.class;
+				}
+			}
 		}
 		
 		return true;
@@ -94,24 +108,21 @@ public class TypeResource extends SortableResource {
 	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
 
 		boolean inexactSearch                  = parseInteger(request.getParameter(JsonRestServlet.REQUEST_PARAMETER_LOOSE_SEARCH)) == 1;
-		List<SearchAttribute> searchAttributes = new LinkedList();
-		List<SearchAttribute> validAttributes  = null;
+		List<SearchAttribute> searchAttributes = new LinkedList<>();
 		boolean includeDeletedAndHidden        = false;
 		boolean publicOnly                     = false;
 
 		if (rawType != null) {
 
 			if (entityClass == null) {
-
 				throw new NotFoundException();
 			}
 
-			validAttributes = extractSearchableAttributes(securityContext, entityClass, request);
+			final List<SearchAttribute> validAttributes = extractSearchableAttributes(securityContext, entityClass, request);
+			final DistanceSearchAttribute distanceSearch = getDistanceSearch(request, keys(validAttributes));
 			
 			// distance search?
-			DistanceSearchAttribute distanceSearch = getDistanceSearch(request, keys(validAttributes));
 			if (distanceSearch != null) {
-				
 				searchAttributes.add(distanceSearch);
 			}
 
@@ -147,7 +158,7 @@ public class TypeResource extends SortableResource {
 			}
 			
 			// do search
-			Result results = Services.command(securityContext, SearchNodeCommand.class).execute(
+			Result results = Services.command(securityContext, searchCommandType).execute(
 				includeDeletedAndHidden,
 				publicOnly,
 				searchAttributes,

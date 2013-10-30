@@ -188,4 +188,8 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 	@Override
 	public void indexPassiveProperties() {
 	}
+
+	@Override
+	public void setSecurityContext(SecurityContext securityContext) {
+	}
 }

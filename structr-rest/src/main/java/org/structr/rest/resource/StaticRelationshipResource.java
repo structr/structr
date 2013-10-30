@@ -35,20 +35,17 @@ import javax.servlet.http.HttpServletResponse;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.TypeToken;
 import org.structr.core.EntityContext;
 import org.structr.core.Export;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.graph.DeleteRelationshipCommand;
 import org.structr.core.graph.NodeFactory;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.search.Search;
-import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.notion.Notion;
 import org.structr.core.property.RelationProperty;
@@ -88,13 +85,13 @@ public class StaticRelationshipResource extends SortableResource {
 	public Result doGet(final PropertyKey sortKey, final boolean sortDescending, final int pageSize, final int page, final String offsetId) throws FrameworkException {
 
 		// ok, source node exists, fetch it
-		final AbstractNode sourceNode = typedIdResource.getTypesafeNode();
-		if (sourceNode != null) {
+		final GraphObject sourceEntity = typedIdResource.getEntity();
+		if (sourceEntity != null) {
 
 			final PropertyKey key = findPropertyKey(typedIdResource, typeResource);
 			if (key != null) {
 
-				final Object value = sourceNode.getProperty(key);
+				final Object value = sourceEntity.getProperty(key);
 				if (value != null) {
 
 					if (value instanceof List) {
@@ -145,60 +142,27 @@ public class StaticRelationshipResource extends SortableResource {
 			final PropertyKey key = findPropertyKey(typedIdResource, typeResource);
 			if (key != null && key instanceof RelationProperty) {
 
-				final RelationProperty staticRel = (RelationProperty)key;
-				final AbstractNode startNode     = typedIdResource.getTypesafeNode();
+				final GraphObject sourceEntity = typedIdResource.getEntity();
+				if (sourceEntity != null) {
 
-				if (startNode != null) {
+					if (key.isReadOnly()) {
 
-					Class startNodeType = startNode.getClass();
-					
-					//if (EntityContext.isReadOnlyProperty(startNodeType, EntityContext.getPropertyKeyForName(startNodeType, typeResource.getRawType()))) {
-					if (EntityContext.getPropertyKeyForJSONName(startNodeType, typeResource.getRawType()).isReadOnly()) {
-
-						logger.log(Level.INFO, "Read-only property on {1}: {0}", new Object[] { startNode.getClass(), typeResource.getRawType() });
-
+						logger.log(Level.INFO, "Read-only property on {1}: {0}", new Object[] { sourceEntity.getClass(), typeResource.getRawType() });
 						return new RestMethodResult(HttpServletResponse.SC_FORBIDDEN);
 
 					}
 
-					final DeleteRelationshipCommand deleteRel = Services.command(securityContext, DeleteRelationshipCommand.class);
-					final Iterable<AbstractRelationship> rels = startNode.getRelationships(staticRel.getRelType(), staticRel.getDirection());
-					final StructrTransaction transaction      = new StructrTransaction() {
+					final StructrTransaction transaction = new StructrTransaction() {
 
 						@Override
 						public Object execute() throws FrameworkException {
 
-							for (final AbstractRelationship rel : rels) {
-
-								final AbstractNode otherNode = rel.getOtherNode(startNode);
-								final Class otherNodeType    = otherNode.getClass();
-								final String id              = otherNode.getProperty(AbstractNode.uuid);
-
-								// Delete relationship only if not contained in property set
-								// check type of other node as well, there can be relationships
-								// of the same type to more than one destTypes!
-								if (staticRel.getDestType().equals(otherNodeType) &&!propertySet.containsValue(id)) {
-
-									deleteRel.execute(rel);
-
-								} else {
-
-									// Remove id from set because there's already an existing relationship
-									propertySet.values().remove(id);
-								}
-
-							}
+							final List<NodeInterface> nodes = new LinkedList<>();
 
 							// Now add new relationships for any new id: This should be the rest of the property set
 							for (final Object obj : propertySet.values()) {
 
-								final String uuid                 = (String) obj;
-								final List<SearchAttribute> attrs = new LinkedList<>();
-
-								attrs.add(Search.andExactUuid(uuid));
-
-								final Result results = searchNode.execute(attrs);
-
+								final Result<NodeInterface> results = searchNode.execute(Search.andExactUuid(obj.toString()));
 								if (results.isEmpty()) {
 
 									throw new NotFoundException();
@@ -207,24 +171,15 @@ public class StaticRelationshipResource extends SortableResource {
 
 								if (results.size() > 1) {
 
-									throw new SystemException("More than one result found for uuid " + uuid + "!");
+									throw new SystemException("More than one result found for uuid " + obj.toString() + "!");
 
 								}
-
-								final AbstractNode targetNode = (AbstractNode) results.get(0);
-
-//                                                              String type             = EntityContext.normalizeEntityName(typeResource.getRawType());
-								final Class type = staticRel.getDestType();
-
-								if (!type.equals(targetNode.getClass())) {
-
-									throw new FrameworkException(startNode.getClass().getSimpleName(), new TypeToken(AbstractNode.uuid, type.getSimpleName()));
-
-								}
-
-								staticRel.createRelationship(securityContext, startNode, targetNode);
-
+								
+								nodes.addAll(results.getResults());
 							}
+							
+							// set property on source node
+							sourceEntity.setProperty(key, nodes);
 
 							return null;
 						}
@@ -244,7 +199,7 @@ public class StaticRelationshipResource extends SortableResource {
 	@Override
 	public RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException {
 
-		final AbstractNode sourceNode = typedIdResource.getIdResource().getNode();
+		final GraphObject sourceNode  = typedIdResource.getEntity();
 		final PropertyKey propertyKey = findPropertyKey(typedIdResource, typeResource);
 
 		if (sourceNode != null && propertyKey != null && propertyKey instanceof RelationProperty) {
@@ -371,10 +326,10 @@ public class StaticRelationshipResource extends SortableResource {
 		} else {
 
 			// look for methods that have an @Export annotation
-			AbstractNode entity = typedIdResource.getTypesafeNode();
-			Class entityType    = typedIdResource.getEntityClass();
-			String methodName   = typeResource.getRawType();
-			boolean success     = false;
+			GraphObject entity = typedIdResource.getEntity();
+			Class entityType   = typedIdResource.getEntityClass();
+			String methodName  = typeResource.getRawType();
+			boolean success    = false;
 
 			if (entityType != null && methodName != null) {
 

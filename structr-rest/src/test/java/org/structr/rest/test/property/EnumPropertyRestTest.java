@@ -43,8 +43,6 @@ public class EnumPropertyRestTest extends StructrRestTest {
 			.post("/test_threes")
 			.getHeader("Location");
 		
-		
-		
 		Response response = RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
@@ -103,8 +101,9 @@ public class EnumPropertyRestTest extends StructrRestTest {
 	
 	public void testSearchOnRelationship() {
 
-		String test01 = createEntity("/test_ones", "{ name: test01 }");
-		String test02 = createEntity("/test_twos", "{ name: test02, test_ones: [", test01, "] }");
+		final String test01   = createEntity("/test_ones", "{ name: test01 }");
+		final String test02   = createEntity("/test_twos", "{ name: test02, test_ones: [", test01, "] }");
+		final String resource = "/two_one_one_to_manys";
 
 		String id = RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -118,7 +117,7 @@ public class EnumPropertyRestTest extends StructrRestTest {
 			.statusCode(200)
 			.body("result_count", equalTo(1))
 		.when()
-			.get("/test_relationships")
+			.get(resource)
 			.body().path("result[0].id");
 		
 		RestAssured.given()
@@ -133,7 +132,7 @@ public class EnumPropertyRestTest extends StructrRestTest {
 		.expect()
 			.statusCode(200)
 		.when()
-			.put(concat("/test_relationships/", id));
+			.put(concat(resource, "/", id));
 		
 		// test strict search
 		RestAssured.given()
@@ -150,7 +149,7 @@ public class EnumPropertyRestTest extends StructrRestTest {
 			.body("result_count", equalTo(1))
 			.body("result[0].enumProperty", equalTo(TestEnum.Status2.name()))
 		.when()
-			.get("/test_relationships?enumProperty=Status2");
+			.get(concat(resource, "?enumProperty=Status2"));
 		
 	}
 }

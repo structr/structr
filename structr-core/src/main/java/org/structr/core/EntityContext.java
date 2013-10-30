@@ -53,30 +53,22 @@ public class EntityContext {
 
 	private static final Logger logger                                                            = Logger.getLogger(EntityContext.class.getName());
 
-	private static final Map<Class, Map<PropertyKey, Set<PropertyValidator>>> globalValidatorMap  = new LinkedHashMap<Class, Map<PropertyKey, Set<PropertyValidator>>>();
-
-	// This map contains a mapping from (sourceType, destType) -> Relation
-	private static final Map<Class, Map<String, Set<PropertyKey>>> globalPropertyViewMap          = new LinkedHashMap<Class, Map<String, Set<PropertyKey>>>();
-	private static final Map<Class, Map<String, PropertyKey>> globalClassDBNamePropertyMap        = new LinkedHashMap<Class, Map<String, PropertyKey>>();
-	private static final Map<Class, Map<String, PropertyKey>> globalClassJSNamePropertyMap        = new LinkedHashMap<Class, Map<String, PropertyKey>>();
-
-	// This map contains a mapping from (sourceType, propertyKey) -> Relation
-	private static final Map<Class, Map<String, PropertyGroup>> globalAggregatedPropertyGroupMap  = new LinkedHashMap<Class, Map<String, PropertyGroup>>();
-	private static final Map<Class, Map<String, PropertyGroup>> globalPropertyGroupMap            = new LinkedHashMap<Class, Map<String, PropertyGroup>>();
-
-	// This map contains view-dependent result set transformations
-	private static final Map<Class, Map<String, ViewTransformation>> viewTransformations          = new LinkedHashMap<Class, Map<String, ViewTransformation>>();
-	
-	// This set contains all known properties
-	private static final Set<PropertyKey> globalKnownPropertyKeys                                 = new LinkedHashSet<PropertyKey>();
-	private static final Map<Class, Set<Transformation<GraphObject>>> globalTransformationMap     = new LinkedHashMap<Class, Set<Transformation<GraphObject>>>();
-	private static final Map<String, String> normalizedEntityNameCache                            = new LinkedHashMap<String, String>();
-	private static final Map<Class, Set<Method>> exportedMethodMap                                = new LinkedHashMap<Class, Set<Method>>();
-	private static final Map<Class, Set<Class>> interfaceMap                                      = new LinkedHashMap<Class, Set<Class>>();
-	private static final Map<String, Class> reverseInterfaceMap                                   = new LinkedHashMap<String, Class>();
-	private static Map<String, Class> cachedEntities                                              = new LinkedHashMap<String, Class>();
+	private static final Map<Class, Map<PropertyKey, Set<PropertyValidator>>> globalValidatorMap  = new LinkedHashMap<>();
+	private static final Map<Class, Map<String, Set<PropertyKey>>> globalPropertyViewMap          = new LinkedHashMap<>();
+	private static final Map<Class, Map<String, PropertyKey>> globalClassDBNamePropertyMap        = new LinkedHashMap<>();
+	private static final Map<Class, Map<String, PropertyKey>> globalClassJSNamePropertyMap        = new LinkedHashMap<>();
+	private static final Map<Class, Map<String, PropertyGroup>> globalAggregatedPropertyGroupMap  = new LinkedHashMap<>();
+	private static final Map<Class, Map<String, PropertyGroup>> globalPropertyGroupMap            = new LinkedHashMap<>();
+	private static final Map<Class, Map<String, ViewTransformation>> viewTransformations          = new LinkedHashMap<>();
+	private static final Map<Class, Set<Transformation<GraphObject>>> globalTransformationMap     = new LinkedHashMap<>();
+	private static final Map<String, String> normalizedEntityNameCache                            = new LinkedHashMap<>();
+	private static final Map<Class, Set<Method>> exportedMethodMap                                = new LinkedHashMap<>();
+	private static final Map<Class, Set<Class>> interfaceMap                                      = new LinkedHashMap<>();
+	private static final Map<String, Class> reverseInterfaceMap                                   = new LinkedHashMap<>();
+	private static final Set<PropertyKey> globalKnownPropertyKeys                                 = new LinkedHashSet<>();
 
 	private static FactoryDefinition factoryDefinition                                            = new DefaultFactoryDefinition();
+	private static ModuleService staticModuleService                                                    = null;
 
 	//~--- methods --------------------------------------------------------
 
@@ -152,14 +144,6 @@ public class EntityContext {
 		
 		// inform property key of its registration
 		propertyKey.registrationCallback(type);
-	}
-	
-	/**
-	 * Initialize the entity context with all classes from the module service,
-	 */
-	public static void init() {
-
-		cachedEntities = Services.getService(ModuleService.class).getCachedNodeEntities();
 	}
 	
 	/**
@@ -332,26 +316,29 @@ public class EntityContext {
 
 	public static Class getEntityClassForRawType(final String rawType) {
 
-		String normalizedEntityName = normalizeEntityName(rawType);
+		final String normalizedEntityName = normalizeEntityName(rawType);
+		final ModuleService moduleService = getModuleService();
 
-		if (cachedEntities.containsKey(normalizedEntityName)) {
-
-			return (Class) cachedEntities.get(normalizedEntityName);
-
+		// first try: node entity
+		Class type = moduleService.getNodeEntityClass(normalizedEntityName);
+		
+		// second try: relationship entity
+		if (type == null) {
+			type = moduleService.getRelationshipEntityClass(normalizedEntityName);
 		}
 		
-		if (reverseInterfaceMap.containsKey(normalizedEntityName)) {
-
-			return (Class) reverseInterfaceMap.get(normalizedEntityName);
+		// third try: interface
+		if (type == null) {
+			type = reverseInterfaceMap.get(normalizedEntityName);
 
 		}
 
-		return null;
+		return type;
 	}
 
 	public static Set<Transformation<GraphObject>> getEntityCreationTransformations(Class type) {
 
-		Set<Transformation<GraphObject>> transformations = new TreeSet<Transformation<GraphObject>>();
+		Set<Transformation<GraphObject>> transformations = new TreeSet<>();
 		Class localType                                  = type;
 
 		// collect for all superclasses
@@ -719,7 +706,7 @@ public class EntityContext {
 	
 	private static Set<Class<?>> getAllTypes(Class<?> type) {
 
-		Set<Class<?>> types = new LinkedHashSet<Class<?>>();
+		Set<Class<?>> types = new LinkedHashSet<>();
 		Class localType     = type;
 			
 		do {
@@ -745,5 +732,14 @@ public class EntityContext {
 			collectAllInterfaces(iface, interfaces);
 			interfaces.add(iface);
 		}
+	}
+	
+	private static ModuleService getModuleService() {
+		
+		if (staticModuleService == null) {
+			staticModuleService = Services.getService(ModuleService.class);
+		}
+		
+		return staticModuleService;
 	}
 }

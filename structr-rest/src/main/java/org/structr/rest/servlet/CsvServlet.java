@@ -36,7 +36,6 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.ResourceProvider;
-import org.structr.rest.resource.NamedRelationResource;
 import org.structr.common.PagingHelper;
 import org.structr.rest.resource.Resource;
 

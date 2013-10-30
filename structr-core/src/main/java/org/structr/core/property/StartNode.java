@@ -18,14 +18,23 @@
  */
 package org.structr.core.property;
 
+import java.util.LinkedList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.neo4j.graphdb.Direction;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Target;
 import org.structr.core.entity.OneStartpoint;
 import org.structr.core.entity.Relation;
+import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeService.NodeIndex;
 import org.structr.core.graph.NodeService.RelationshipIndex;
@@ -39,6 +48,8 @@ import org.structr.core.notion.ObjectNotion;
  */
 public class StartNode<S extends NodeInterface, T extends NodeInterface> extends Property<S> implements RelationProperty<S> {
 
+	private static final Logger logger = Logger.getLogger(StartNode.class.getName());
+	
 	// relationship members
 	private Relation<S, T, OneStartpoint<S>, ? extends Target> relation = null;
 	private Notion notion                                               = null;
@@ -197,5 +208,44 @@ public class StartNode<S extends NodeInterface, T extends NodeInterface> extends
 	@Override
 	public void addSingleElement(final SecurityContext securityContext, final GraphObject obj, final S s) throws FrameworkException {
 		setProperty(securityContext, obj, s);
+	}
+	
+	// ----- overridden methods from super class -----
+	@Override
+	protected <T extends NodeInterface> List<T> getRelatedNodesReverse(final SecurityContext securityContext, final NodeInterface obj, final Class destinationType) {
+
+		List<T> relatedNodes = new LinkedList<>();
+		
+		if (obj instanceof AbstractNode) {
+
+			AbstractNode node = (AbstractNode)obj;
+
+			NodeFactory nodeFactory = new NodeFactory(securityContext);
+			Node dbNode             = node.getNode();
+			NodeInterface value     = null;
+
+			try {
+
+				for (Relationship rel : dbNode.getRelationships(relation.getRelationshipType(), Direction.OUTGOING)) {
+
+					value = nodeFactory.instantiate(rel.getOtherNode(dbNode));
+
+					// break on first hit of desired type
+					if (value != null && destinationType.isInstance(value)) {
+						relatedNodes.add((T)value);
+					}
+				}
+
+			} catch (Throwable t) {
+
+				logger.log(Level.WARNING, "Unable to fetch related node: {0}", t.getMessage());
+			}
+
+		} else {
+
+			logger.log(Level.WARNING, "Property {0} is registered on illegal type {1}", new Object[] { this, obj.getClass() } );
+		}
+
+		return relatedNodes;
 	}
 }

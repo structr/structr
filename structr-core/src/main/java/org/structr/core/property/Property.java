@@ -18,6 +18,7 @@
  */
 package org.structr.core.property;
 
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -40,6 +41,7 @@ import org.structr.core.Services;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeService;
 import org.structr.core.graph.NodeService.NodeIndex;
 import org.structr.core.graph.NodeService.RelationshipIndex;
@@ -531,4 +533,10 @@ public abstract class Property<T> implements PropertyKey<T> {
 			return Search.andExactProperty(securityContext, key, extractSearchableAttribute(securityContext, requestParameter));
 		}
 	}
+	
+	protected <T extends NodeInterface> List<T> getRelatedNodesReverse(final SecurityContext securityContext, final NodeInterface obj, final Class destinationType) {
+		// this is the default implementation
+		return Collections.emptyList();
+	}
+	
 }

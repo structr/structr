@@ -189,6 +189,8 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 				
 			} catch (Throwable t) {
 				
+				t.printStackTrace();
+				
 				// throw FrameworkException with the given cause
 				throw new FrameworkException(500, t);
 			}

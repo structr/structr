@@ -37,6 +37,7 @@ import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeService;
 import org.structr.core.graph.search.EmptySearchAttribute;
 import org.structr.core.graph.search.Search;
@@ -54,19 +55,19 @@ import org.structr.core.notion.Notion;
  *
  * @author Christian Morgner
  */
-public class CollectionNotionProperty<S extends GraphObject, T> extends Property<List<T>> {
+public class CollectionNotionProperty<S extends NodeInterface, T> extends Property<List<T>> {
 	
 	private static final Logger logger = Logger.getLogger(CollectionIdProperty.class.getName());
 	
-	private Property<List<S>> base = null;
-	private Notion<S, T> notion    = null;
+	private Property<List<S>> collectionProperty = null;
+	private Notion<S, T> notion                  = null;
 	
 	public CollectionNotionProperty(String name, Property<List<S>> base, Notion<S, T> notion) {
 		
 		super(name);
 		
 		this.notion = notion;
-		this.base   = base;
+		this.collectionProperty   = base;
 		
 		notion.setType(base.relatedType());
 	}
@@ -141,7 +142,7 @@ public class CollectionNotionProperty<S extends GraphObject, T> extends Property
 		
 		try {
 			
-			return (notion.getCollectionAdapterForGetter(securityContext).adapt(base.getProperty(securityContext, obj, applyConverter)));
+			return (notion.getCollectionAdapterForGetter(securityContext).adapt(collectionProperty.getProperty(securityContext, obj, applyConverter)));
 			
 		} catch (FrameworkException fex) {
 			
@@ -156,17 +157,17 @@ public class CollectionNotionProperty<S extends GraphObject, T> extends Property
 		
 		if (value != null) {
 		
-			base.setProperty(securityContext, obj, notion.getCollectionAdapterForSetter(securityContext).adapt(value));
+			collectionProperty.setProperty(securityContext, obj, notion.getCollectionAdapterForSetter(securityContext).adapt(value));
 			
 		} else {
 		
-			base.setProperty(securityContext, obj, null);
+			collectionProperty.setProperty(securityContext, obj, null);
 		}
 	}
 
 	@Override
 	public Class relatedType() {
-		return base.relatedType();
+		return collectionProperty.relatedType();
 	}
 
 	@Override
@@ -178,7 +179,7 @@ public class CollectionNotionProperty<S extends GraphObject, T> extends Property
 	public List<T> extractSearchableAttribute(SecurityContext securityContext, String requestParameter) throws FrameworkException {
 
 		PropertyKey propertyKey = notion.getPrimaryPropertyKey();
-		List<T> list            = new LinkedList<T>();
+		List<T> list            = new LinkedList<>();
 		
 		if (propertyKey != null) {
 			
@@ -205,10 +206,9 @@ public class CollectionNotionProperty<S extends GraphObject, T> extends Property
 	@Override
 	public SearchAttribute getSearchAttribute(SecurityContext securityContext, BooleanClause.Occur occur, List<T> searchValues, boolean exactMatch) {
 		
-		SourceSearchAttribute attr            = new SourceSearchAttribute(occur);
-		Set<GraphObject> intersectionResult   = new LinkedHashSet<>();
-		EndNodes collectionProperty = (EndNodes)base;
-		boolean alreadyAdded                  = false;
+		SourceSearchAttribute attr          = new SourceSearchAttribute(occur);
+		Set<GraphObject> intersectionResult = new LinkedHashSet<>();
+		boolean alreadyAdded                = false;
 	
 		try {
 
@@ -232,7 +232,7 @@ public class CollectionNotionProperty<S extends GraphObject, T> extends Property
 					
 						Result<AbstractNode> result = Services.command(securityContext, SearchNodeCommand.class).execute(
 
-							Search.andExactTypeAndSubtypes(base.relatedType(), exactMatch),
+							Search.andExactTypeAndSubtypes(collectionProperty.relatedType(), exactMatch),
 							Search.andExactProperty(securityContext, notion.getPrimaryPropertyKey(), searchValue)
 						);
 
@@ -245,20 +245,20 @@ public class CollectionNotionProperty<S extends GraphObject, T> extends Property
 									if (!alreadyAdded) {
 
 										// the first result is the basis of all subsequent intersections
-//										intersectionResult.addAll(collectionProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
+										intersectionResult.addAll(collectionProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
 
 										// the next additions are intersected with this one
 										alreadyAdded = true;
 
 									} else {
 
-//										intersectionResult.retainAll(collectionProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
+										intersectionResult.retainAll(collectionProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
 									}
 
 									break;
 
 								case SHOULD:
-//									intersectionResult.addAll(collectionProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
+									intersectionResult.addAll(collectionProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
 									break;
 
 								case MUST_NOT:
@@ -270,14 +270,14 @@ public class CollectionNotionProperty<S extends GraphObject, T> extends Property
 
 						Result<AbstractNode> result = Services.command(securityContext, SearchNodeCommand.class).execute(
 
-							Search.andExactTypeAndSubtypes(base.relatedType(), exactMatch),
+							Search.andExactTypeAndSubtypes(collectionProperty.relatedType(), exactMatch),
 							Search.andProperty(securityContext, notion.getPrimaryPropertyKey(), searchValue)
 						);
 
 						// loose search behaves differently, all results must be combined
 						for (AbstractNode node : result.getResults()) {
 
-//							intersectionResult.addAll(collectionProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
+							intersectionResult.addAll(collectionProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
 						}
 
 					}

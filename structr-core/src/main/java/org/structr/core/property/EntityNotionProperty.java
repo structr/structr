@@ -20,6 +20,7 @@ package org.structr.core.property;
 
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -28,6 +29,8 @@ import org.apache.lucene.search.BooleanClause.Occur;
 import static org.apache.lucene.search.BooleanClause.Occur.MUST;
 import static org.apache.lucene.search.BooleanClause.Occur.MUST_NOT;
 import static org.apache.lucene.search.BooleanClause.Occur.SHOULD;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -35,6 +38,8 @@ import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeFactory;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeService;
 import org.structr.core.graph.search.EmptySearchAttribute;
 import org.structr.core.graph.search.Search;
@@ -52,19 +57,19 @@ import org.structr.core.notion.Notion;
  *
  * @author Christian Morgner
  */
-public class EntityNotionProperty<S extends GraphObject, T> extends Property<T> {
+public class EntityNotionProperty<S extends NodeInterface, T> extends Property<T> {
 	
 	private static final Logger logger = Logger.getLogger(EntityNotionProperty.class.getName());
 	
-	private Property<S> base    = null;
-	private Notion<S, T> notion = null;
+	private Property<S> entityProperty = null;
+	private Notion<S, T> notion        = null;
 	
-	public EntityNotionProperty(String name, Property<S> base, Notion<S, T> notion) {
+	public EntityNotionProperty(final String name, final Property<S> base, final Notion<S, T> notion) {
 		
 		super(name);
 		
 		this.notion = notion;
-		this.base   = base;
+		this.entityProperty   = base;
 		
 		notion.setType(base.relatedType());
 	}
@@ -138,7 +143,7 @@ public class EntityNotionProperty<S extends GraphObject, T> extends Property<T> 
 	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
 		
 		try {
-			return notion.getAdapterForGetter(securityContext).adapt(base.getProperty(securityContext, obj, applyConverter));
+			return notion.getAdapterForGetter(securityContext).adapt(entityProperty.getProperty(securityContext, obj, applyConverter));
 			
 		} catch (FrameworkException fex) {
 			
@@ -153,17 +158,17 @@ public class EntityNotionProperty<S extends GraphObject, T> extends Property<T> 
 		
 		if (value != null) {
 	
-			base.setProperty(securityContext, obj, notion.getAdapterForSetter(securityContext).adapt(value));
+			entityProperty.setProperty(securityContext, obj, notion.getAdapterForSetter(securityContext).adapt(value));
 			
 		} else {
 			
-			base.setProperty(securityContext, obj, null);
+			entityProperty.setProperty(securityContext, obj, null);
 		}
 	}
 
 	@Override
 	public Class relatedType() {
-		return base.relatedType();
+		return entityProperty.relatedType();
 	}
 
 	@Override
@@ -176,9 +181,8 @@ public class EntityNotionProperty<S extends GraphObject, T> extends Property<T> 
 		
 		SourceSearchAttribute attr            = new SourceSearchAttribute(occur);
 		Set<GraphObject> intersectionResult   = new LinkedHashSet<>();
-//		End entityProperty                    = (End)base;
 		boolean alreadyAdded                  = false;
-		
+
 		try {
 
 			if (searchValue != null && !StringUtils.isBlank(searchValue.toString())) {
@@ -187,7 +191,7 @@ public class EntityNotionProperty<S extends GraphObject, T> extends Property<T> 
 					
 					Result<AbstractNode> result = Services.command(securityContext, SearchNodeCommand.class).execute(
 
-						Search.andExactTypeAndSubtypes(base.relatedType(), exactMatch),
+						Search.andExactTypeAndSubtypes(entityProperty.relatedType(), exactMatch),
 						Search.andExactProperty(securityContext, notion.getPrimaryPropertyKey(), searchValue)
 					);
 
@@ -200,20 +204,20 @@ public class EntityNotionProperty<S extends GraphObject, T> extends Property<T> 
 								if (!alreadyAdded) {
 
 									// the first result is the basis of all subsequent intersections
-//									intersectionResult.addAll(entityProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
+									intersectionResult.addAll(entityProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
 
 									// the next additions are intersected with this one
 									alreadyAdded = true;
 
 								} else {
 
-//									intersectionResult.retainAll(entityProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
+									intersectionResult.retainAll(entityProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
 								}
 
 								break;
 
 							case SHOULD:
-//								intersectionResult.addAll(entityProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
+								intersectionResult.addAll(entityProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
 								break;
 
 							case MUST_NOT:
@@ -225,18 +229,18 @@ public class EntityNotionProperty<S extends GraphObject, T> extends Property<T> 
 					
 					Result<AbstractNode> result = Services.command(securityContext, SearchNodeCommand.class).execute(
 
-						Search.andExactTypeAndSubtypes(base.relatedType(), exactMatch),
+						Search.andExactTypeAndSubtypes(entityProperty.relatedType(), exactMatch),
 						Search.andProperty(securityContext, notion.getPrimaryPropertyKey(), searchValue)
 					);
 					
 					// loose search behaves differently, all results must be combined
 					for (AbstractNode node : result.getResults()) {
 
-//						intersectionResult.addAll(entityProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
+						intersectionResult.addAll(entityProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
 					}
 				}
 
-				attr.setResult(new LinkedList<GraphObject>(intersectionResult));
+				attr.setResult(new LinkedList<>(intersectionResult));
 				
 			} else {
 				
