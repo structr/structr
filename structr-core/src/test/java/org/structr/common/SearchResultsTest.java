@@ -451,26 +451,108 @@ public class SearchResultsTest extends StructrTest {
 
 	}
 
-	// FIXME: Comment in this test and fix the issue with null searchValue which leads to a NPE in SearchCommand, line 240
-//	public void test09SearchByStaticMethodWithNullSearchValue01() {
-//
-//		try {
-//
-//			PropertyMap props     = new PropertyMap();
-//			AbstractNode node = createTestNode(TestOne.class, props);
-//
-//			Result result = searchNodeCommand.execute(true, false, Search.orExactName(null));
-//
-//			assertTrue(result.size() == 1);
-//			assertTrue(result.get(0).equals(node));
-//
-//		} catch (FrameworkException ex) {
-//
-//			logger.log(Level.SEVERE, ex.toString());
-//			fail("Unexpected exception");
-//
-//		}
-//
-//	}
+	public void test09SearchByEmptyStringField() {
 
+		try {
+
+			PropertyMap props     = new PropertyMap();
+			AbstractNode node = createTestNode(TestOne.class, props);
+
+			Result result = searchNodeCommand.execute(true, false, new PropertySearchAttribute(TestOne.aString, null, Occur.MUST, true));
+
+			assertTrue(result.size() == 1);
+			assertTrue(result.get(0).equals(node));
+
+		} catch (FrameworkException ex) {
+
+			logger.log(Level.SEVERE, ex.toString());
+			fail("Unexpected exception");
+
+		}
+
+	}
+
+	public void test10SearchByEmptyDateField() {
+
+		try {
+
+			PropertyMap props     = new PropertyMap();
+			AbstractNode node = createTestNode(TestOne.class, props);
+
+			Result result = searchNodeCommand.execute(true, false, Search.orExactProperty(SecurityContext.getSuperUserInstance(), TestOne.aDate, null));
+
+			assertTrue(result.size() == 1);
+			assertTrue(result.get(0).equals(node));
+
+		} catch (FrameworkException ex) {
+
+			logger.log(Level.SEVERE, ex.toString());
+			fail("Unexpected exception");
+
+		}
+
+	}
+	
+	public void test11SearchByEmptyIntField() {
+
+		try {
+
+			PropertyMap props     = new PropertyMap();
+			AbstractNode node = createTestNode(TestOne.class, props);
+
+			Result result = searchNodeCommand.execute(true, false, Search.orExactProperty(SecurityContext.getSuperUserInstance(), TestOne.anInt, null));
+
+			assertTrue(result.size() == 1);
+			assertTrue(result.get(0).equals(node));
+
+		} catch (FrameworkException ex) {
+
+			logger.log(Level.SEVERE, ex.toString());
+			fail("Unexpected exception");
+
+		}
+
+	}
+	
+	public void test11SearchByEmptyLongField() {
+
+		try {
+
+			PropertyMap props     = new PropertyMap();
+			AbstractNode node = createTestNode(TestOne.class, props);
+
+			Result result = searchNodeCommand.execute(true, false, Search.orExactProperty(SecurityContext.getSuperUserInstance(), TestOne.aLong, null));
+
+			assertTrue(result.size() == 1);
+			assertTrue(result.get(0).equals(node));
+
+		} catch (FrameworkException ex) {
+
+			logger.log(Level.SEVERE, ex.toString());
+			fail("Unexpected exception");
+
+		}
+
+	}	
+
+	public void test12SearchByEmptyDoubleField() {
+
+		try {
+
+			PropertyMap props     = new PropertyMap();
+			AbstractNode node = createTestNode(TestOne.class, props);
+
+			Result result = searchNodeCommand.execute(true, false, Search.orExactProperty(SecurityContext.getSuperUserInstance(), TestOne.aDouble, null));
+
+			assertTrue(result.size() == 1);
+			assertTrue(result.get(0).equals(node));
+
+		} catch (FrameworkException ex) {
+
+			logger.log(Level.SEVERE, ex.toString());
+			fail("Unexpected exception");
+
+		}
+
+	}	
 }
