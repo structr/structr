@@ -108,7 +108,7 @@ public abstract class Notion<S extends GraphObject, T> {
 			@Override
 			public List<T> adapt(List<S> s) throws FrameworkException {
 
-				List<T> list = new LinkedList<T>();
+				List<T> list = new LinkedList<>();
 
 				for (S o : s) {
 
@@ -132,7 +132,7 @@ public abstract class Notion<S extends GraphObject, T> {
 					return Collections.EMPTY_LIST;
 				}
 
-				List<S> list = new LinkedList<S>();
+				List<S> list = new LinkedList<>();
 				for (T t : s) {
 
 					list.add(deserializationStrategy.deserialize(securityContext, type, t));

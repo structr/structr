@@ -20,10 +20,8 @@ package org.structr.rest.test;
 
 import static org.hamcrest.Matchers.*;
 import com.jayway.restassured.RestAssured;
-import net.sf.json.JSONNull;
 import org.structr.rest.common.StructrRestTest;
 import org.structr.rest.entity.TestObject;
-import org.structr.rest.entity.TestOne;
 
 /**
  *
