@@ -287,7 +287,8 @@ public class RegistrationResource extends Resource {
 			
 			if (!templates.isEmpty()) {
 				
-				return templates.get(0).getProperty(MailTemplate.text).getProperty(Content.content);
+				Content content = templates.get(0).getProperty(MailTemplate.text);
+				return content != null ? content.getProperty(Content.content) : defaultValue;
 				
 			} else {
 				
