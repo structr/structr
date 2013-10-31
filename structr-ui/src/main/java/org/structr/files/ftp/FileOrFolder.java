@@ -57,16 +57,19 @@ public class FileOrFolder extends AbstractStructrFtpFile {
 	
 	@Override
 	public boolean isDirectory() {
+		logger.log(Level.SEVERE, "isDirectory()");
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public boolean isFile() {
+		logger.log(Level.SEVERE, "isFile()");
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public long getSize() {
+		logger.log(Level.SEVERE, "getSize()");
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
@@ -114,6 +117,7 @@ public class FileOrFolder extends AbstractStructrFtpFile {
 
 	@Override
 	public List<FtpFile> listFiles() {
+		logger.log(Level.SEVERE, "listFiles()");
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
@@ -169,6 +173,7 @@ public class FileOrFolder extends AbstractStructrFtpFile {
 
 	@Override
 	public InputStream createInputStream(long l) throws IOException {
+		logger.log(Level.SEVERE, "createInputStream()");
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 

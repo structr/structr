@@ -60,7 +60,7 @@ public class FtpFilesTest extends FtpTest {
 
 			String name2 = "file2";
 			
-			// Create second folder in /
+			// Create second file in /
 			createFTPFile(null, name2);
 			fileNames = ftp.listNames();
 			
@@ -77,4 +77,128 @@ public class FtpFilesTest extends FtpTest {
 		}
 	}
 	
+	public void test02RenameFile() {
+		
+		FTPClient ftp = setupFTPClient();
+		try {
+			
+			FTPFile[] files = ftp.listFiles();
+			
+			assertNotNull(files);
+			assertEquals(0, files.length);
+			
+			String name1 = "file1";
+			
+			// Create files by API methods
+			createFTPFile(null, name1);
+			
+			String name2 = "file2";
+			
+			ftp.rename(name1, name2);
+			
+			String[] fileNames = ftp.listNames();
+			
+			assertNotNull(fileNames);
+			assertEquals(1, fileNames.length);
+			assertEquals(name2, fileNames[0]);
+
+			ftp.disconnect();
+			
+		} catch (IOException | FrameworkException ex) {
+			logger.log(Level.SEVERE, "Error while renaming FTP file", ex);
+			fail("Unexpected exception: " + ex.getMessage());
+		}
+	}
+
+	public void test03MoveFile() {
+		
+		FTPClient ftp = setupFTPClient();
+		try {
+			
+			FTPFile[] files = ftp.listFiles();
+			
+			assertNotNull(files);
+			assertEquals(0, files.length);
+			
+			String name1 = "file1";
+			
+			// Create files by API methods
+			createFTPFile(null, name1);
+
+			String name2 = "dir1";
+			
+			// Create folder in /
+			createFTPDirectory(null, name2);
+			
+			 // Move file to dir
+			ftp.rename("/" + name1, "/" + name2 + "/" + name1);
+			
+			ftp.changeWorkingDirectory("/" + name2);
+			
+			String[] fileNames = ftp.listNames();
+			
+			assertNotNull(fileNames);
+			assertEquals(1, fileNames.length);
+			assertEquals(name1, fileNames[0]);
+			
+			ftp.disconnect();
+			
+		} catch (IOException | FrameworkException ex) {
+			logger.log(Level.SEVERE, "Error while moving FTP file", ex);
+			fail("Unexpected exception: " + ex.getMessage());
+		}
+	}
+
+	public void test04MoveFileToRoot() {
+		
+		FTPClient ftp = setupFTPClient();
+		try {
+			
+			FTPFile[] files = ftp.listFiles();
+			
+			assertNotNull(files);
+			assertEquals(0, files.length);
+			
+			String name1 = "file1";
+			
+			// Create files by API methods
+			createFTPFile(null, name1);
+
+			String name2 = "dir1";
+			
+			// Create folder in /
+			createFTPDirectory(null, name2);
+			
+			 // Move file to dir
+			ftp.rename("/" + name1, "/" + name2 + "/" + name1);
+			
+			ftp.changeWorkingDirectory("/" + name2);
+			
+			String[] fileNames = ftp.listNames();
+			
+			assertNotNull(fileNames);
+			assertEquals(1, fileNames.length);
+			assertEquals(name1, fileNames[0]);
+			
+			// Move file back to /
+			ftp.rename("/" + name2 + "/" + name1, "/" + name1);
+			
+			ftp.changeWorkingDirectory("/");
+			
+			fileNames = ftp.listNames();
+			
+			assertNotNull(fileNames);
+			assertEquals(2, fileNames.length);
+			assertEquals(name2, fileNames[0]);
+			assertEquals(name1, fileNames[1]);
+			
+			
+			ftp.disconnect();
+			
+		} catch (IOException | FrameworkException ex) {
+			logger.log(Level.SEVERE, "Error while moving FTP file", ex);
+			fail("Unexpected exception: " + ex.getMessage());
+		}
+	}
+
 }
