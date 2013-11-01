@@ -20,12 +20,10 @@
 
 package org.structr.websocket.command;
 
-import org.structr.web.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.StructrTransaction;
@@ -40,9 +38,11 @@ import org.structr.websocket.message.WebSocketMessage;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.graph.CreateRelationshipCommand;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.PropertyMap;
-import org.structr.web.entity.dom.DOMElement;
+import org.structr.web.entity.dom.relationship.DOMChildren;
 import org.structr.websocket.StructrWebSocket;
 
 //~--- classes ----------------------------------------------------------------
@@ -97,14 +97,14 @@ public class ClonePageCommand extends AbstractCommand {
 
 					if (newPage != null) {
 
-						String pageId                          = newPage.getProperty(AbstractNode.uuid);
-						Iterable<AbstractRelationship> relsOut = nodeToClone.getOutgoingRelationships(RelType.CONTAINS);
-						Html htmlNode                          = null;
+						String pageId                     = newPage.getProperty(AbstractNode.uuid);
+						Iterable<DOMChildren> relsOut = nodeToClone.getOutgoingRelationships(DOMChildren.class);
+						Html htmlNode                     = null;
 
-						for (AbstractRelationship out : relsOut) {
+						for (DOMChildren out : relsOut) {
 
 							// Use first HTML element of existing node (the node to be cloned)
-							AbstractNode endNode = out.getTargetNode();
+							NodeInterface endNode = out.getTargetNode();
 
 							if (endNode.getType().equals(Html.class.getSimpleName())) {
 
@@ -122,7 +122,8 @@ public class ClonePageCommand extends AbstractCommand {
 
 							try {
 
-								DOMElement.children.createRelationship(securityContext, newPage, htmlNode, relProps);
+								Services.command(securityContext, CreateRelationshipCommand.class).execute(newPage, htmlNode, DOMChildren.class, relProps);
+								// DOMElement.children.createRelationship(securityContext, newPage, htmlNode, relProps);
 
 							} catch (Throwable t) {
 

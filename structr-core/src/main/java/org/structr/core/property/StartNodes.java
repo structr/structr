@@ -51,8 +51,8 @@ public class StartNodes<S extends NodeInterface, T extends NodeInterface> extend
 	private static final Logger logger = Logger.getLogger(StartNodes.class.getName());
 
 	private Relation<S, T, ManyStartpoint<S>, ? extends Target> relation = null;
-	private Notion notion                                                   = null;
-	private Class destType                                                  = null;
+	private Notion notion                                                = null;
+	private Class<S> destType                                            = null;
 	
 	/**
 	 * Constructs a collection property with the given name, the given destination type and the given relationship type.
@@ -85,7 +85,7 @@ public class StartNodes<S extends NodeInterface, T extends NodeInterface> extend
 		}
 
 		this.notion   = notion;
-		this.destType = relation.getTargetType();
+		this.destType = relation.getSourceType();
 
 		this.notion.setType(destType);
 		
@@ -121,7 +121,7 @@ public class StartNodes<S extends NodeInterface, T extends NodeInterface> extend
 	public List<S> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
 		
 		ManyStartpoint<S> startpoint = relation.getSource();
-		
+
 		return Iterables.toList(startpoint.get(securityContext, (NodeInterface)obj));
 	}
 

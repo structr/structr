@@ -676,7 +676,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		
 		final RelationshipFactory<R> factory = new RelationshipFactory<>(securityContext);
 		final R template                     = getRelationshipForType(type);
-		final Relationship relationship      = template.getSource().getRaw(dbNode);
+		final Relationship relationship      = template.getSource().getRawSource(securityContext, dbNode);
 		
 		if (relationship != null) {
 			return factory.adapt(relationship);
@@ -691,7 +691,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		final RelationshipFactory<R> factory = new RelationshipFactory<>(securityContext);
 		final R template                     = getRelationshipForType(type);
 		
-		return new IterableAdapter<>(template.getSource().getRaw(dbNode), factory);
+		return new IterableAdapter<>(template.getSource().getRawSource(securityContext, dbNode), factory);
 	}
 	
 	@Override
@@ -699,7 +699,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		
 		final RelationshipFactory<R> factory = new RelationshipFactory<>(securityContext);
 		final R template                     = getRelationshipForType(type);
-		final Relationship relationship      = template.getTarget().getRaw(dbNode);
+		final Relationship relationship      = template.getTarget().getRawSource(securityContext, dbNode);
 		
 		if (relationship != null) {
 			return factory.adapt(relationship);
@@ -714,7 +714,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		final RelationshipFactory<R> factory = new RelationshipFactory<>(securityContext);
 		final R template                     = getRelationshipForType(type);
 		
-		return new IterableAdapter<>(template.getTarget().getRaw(dbNode), factory);
+		return new IterableAdapter<>(template.getTarget().getRawSource(securityContext, dbNode), factory);
 	}
 	
 	@Override
@@ -810,6 +810,14 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	 */
 	public <A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target> boolean hasRelationship(final Class<? extends Relation<A, B, S, T>> type) {
 		return this.getRelationships(type).iterator().hasNext();
+	}
+
+	public <A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> boolean hasIncomingRelationships(final Class<R> type) {
+		return getRelationshipForType(type).getSource().hasElements(securityContext, dbNode);
+	}
+
+	public <A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> boolean hasOutgoingRelationships(final Class<R> type) {
+		return getRelationshipForType(type).getTarget().hasElements(securityContext, dbNode);
 	}
 
 	// ----- interface AccessControllable -----

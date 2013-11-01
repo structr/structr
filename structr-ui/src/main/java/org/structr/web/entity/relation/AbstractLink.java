@@ -25,12 +25,10 @@ import org.structr.core.property.Property;
 import org.structr.common.PropertyView;
 import org.structr.web.common.RelType;
 import org.structr.common.View;
+import org.structr.core.entity.ManyToMany;
 import org.structr.core.property.StringProperty;
-import org.structr.core.EntityContext;
-import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.graph.NodeInterface;
 import org.structr.web.entity.Linkable;
-import org.structr.web.entity.html.A;
-import org.structr.web.entity.html.Link;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -38,28 +36,17 @@ import org.structr.web.entity.html.Link;
  *
  * @author Christian Morgner
  */
-public class LinkResource extends AbstractRelationship<Linkable, A> {
+public class AbstractLink extends ManyToMany<NodeInterface, Linkable> {
 
-	public static final Property<String> sourceId = new StringProperty("sourceId");
-	public static final Property<String> targetId = new StringProperty("targetId");
 	public static final Property<String> type     = new StringProperty("type");
 
-	public static final View uiView = new View(LinkResource.class, PropertyView.Ui,
-		sourceId, targetId, type	
+	public static final View uiView = new View(AbstractLink.class, PropertyView.Ui,
+		type	
 	);
-	
-	static {
-
-		EntityContext.registerNamedRelation("resource_link", LinkResource.class, Link.class, Linkable.class, RelType.LINK);
-		EntityContext.registerNamedRelation("hyperlink", LinkResource.class, A.class, Linkable.class, RelType.LINK);
-		
-//		EntityContext.registerPropertySet(LinkRelationship.class, PropertyView.Ui, uiView.properties());
-
-	}
 
 	@Override
-	public Class<A> getDestinationType() {
-		return A.class;
+	public Class<Linkable> getTargetType() {
+		return Linkable.class;
 	}
 
 	@Override
@@ -68,13 +55,7 @@ public class LinkResource extends AbstractRelationship<Linkable, A> {
 	}
 
 	@Override
-	public Class<Linkable> getSourceType() {
-		return Linkable.class;
+	public Class<NodeInterface> getSourceType() {
+		return NodeInterface.class;
 	}
-
-	@Override
-	public Class<? extends AbstractRelationship<A, Linkable>> reverse() {
-		return ResourceLink.class;
-	}
-
 }

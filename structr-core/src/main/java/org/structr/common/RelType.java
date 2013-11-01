@@ -32,6 +32,7 @@ public enum RelType implements RelationshipType {
 	IS_AT,
 	PROPERTY_ACCESS,
 	CONTAINS,
-	CONTAINS_NEXT_CHILD
+	CONTAINS_NEXT_CHILD,
+	GENERIC
 
 }

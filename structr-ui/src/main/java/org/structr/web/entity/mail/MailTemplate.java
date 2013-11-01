@@ -23,7 +23,6 @@ package org.structr.web.entity.mail;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.property.Property;
-import org.neo4j.graphdb.Direction;
 
 import org.structr.common.PropertyView;
 import org.structr.common.ValidationHelper;
@@ -32,15 +31,14 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UniqueToken;
 import org.structr.core.Result;
 import org.structr.core.Services;
-import org.structr.web.common.RelType;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.notion.PropertySetNotion;
+import org.structr.core.property.EndNode;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import org.structr.core.property.End;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.web.entity.dom.Content;
@@ -57,8 +55,8 @@ public class MailTemplate extends AbstractNode {
 	
 	private static final Logger logger = Logger.getLogger(MailTemplate.class.getName());
 
-	public static final End<Content> text   = new End("text", Content.class, RelType.CONTAINS, Direction.OUTGOING, new PropertySetNotion(true, uuid, name), true);
-	public static final Property<String>        locale = new StringProperty("locale").indexed();
+	public static final Property<Content> text   = new EndNode<>("text", TemplateText.class, new PropertySetNotion(true, uuid, name));
+	public static final Property<String>  locale = new StringProperty("locale").indexed();
 	
 	public static final org.structr.common.View uiView = new org.structr.common.View(MailTemplate.class, PropertyView.Ui,
 		type, name, text, locale

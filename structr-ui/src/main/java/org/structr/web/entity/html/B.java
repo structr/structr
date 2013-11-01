@@ -34,7 +34,7 @@ import org.structr.web.entity.dom.Content;
  */
 public class B extends DOMElement {
 	
-	public static final EndNodes<Content> contents = new EndNodes<Content>("contents", Content.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final EndNodes<Content> contents = new EndNodes<Content>("contents", Content.class, RelType.CONTAINS, Direction.OUTGOING, false);
 
 	//~--- methods --------------------------------------------------------
 

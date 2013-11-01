@@ -31,6 +31,7 @@ import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.common.PropertyView;
+import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
@@ -118,6 +119,6 @@ public class GenericRelationship extends ManyToMany<NodeInterface, NodeInterface
 
 	@Override
 	public RelationshipType getRelationshipType() {
-		return getRelType();
+		return RelType.GENERIC;
 	}
 }

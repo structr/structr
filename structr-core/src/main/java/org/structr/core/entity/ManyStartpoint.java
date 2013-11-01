@@ -21,7 +21,7 @@ import org.structr.core.graph.TransactionCommand;
  *
  * @author Christian Morgner
  */
-public class ManyStartpoint<S extends NodeInterface> implements Source<Iterable<Relationship>, Iterable<S>> {
+public class ManyStartpoint<S extends NodeInterface> extends AbstractEndpoint implements Source<Iterable<Relationship>, Iterable<S>> {
 
 	private Relation<S, ?, ManyStartpoint<S>, ?> relation = null;
 	
@@ -33,7 +33,7 @@ public class ManyStartpoint<S extends NodeInterface> implements Source<Iterable<
 	public Iterable<S> get(final SecurityContext securityContext, final NodeInterface node) {
 		
 		final NodeFactory<S> nodeFactory  = new NodeFactory<>(securityContext);
-		final Iterable<Relationship> rels = getRaw(node.getNode());
+		final Iterable<Relationship> rels = getRawSource(securityContext, node.getNode());
 		
 		if (rels != null) {
 			
@@ -104,7 +104,12 @@ public class ManyStartpoint<S extends NodeInterface> implements Source<Iterable<
 	}
 
 	@Override
-	public Iterable<Relationship> getRaw(final Node dbNode) {
-		return dbNode.getRelationships(relation.getRelationshipType(), Direction.INCOMING);
+	public Iterable<Relationship> getRawSource(final SecurityContext securityContext, final Node dbNode) {
+		return getMultiple(securityContext, dbNode, relation.getRelationshipType(), Direction.INCOMING, relation.getSourceType());
+	}
+
+	@Override
+	public boolean hasElements(SecurityContext securityContext, Node dbNode) {
+		return getRawSource(securityContext, dbNode).iterator().hasNext();
 	}
 }

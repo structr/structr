@@ -23,13 +23,10 @@ package org.structr.web.entity.html;
 import org.structr.web.entity.dom.DOMElement;
 import org.apache.commons.lang.ArrayUtils;
 
-import org.neo4j.graphdb.Direction;
 import org.structr.core.property.Property;
 
 import org.structr.common.PropertyView;
-import org.structr.web.common.RelType;
 import org.structr.common.View;
-import org.structr.core.property.EndNodes;
 import org.structr.web.common.HtmlProperty;
 
 //~--- classes ----------------------------------------------------------------
@@ -44,7 +41,7 @@ public class Meta extends DOMElement {
 	public static final Property<String> _content   = new HtmlProperty("content");
 	public static final Property<String> _charset   = new HtmlProperty("charset");
 
-	public static final EndNodes<Head> heads = new EndNodes<Head>("heads", Head.class, RelType.CONTAINS, Direction.INCOMING, false);
+//	public static final EndNodes<Head> heads = new EndNodes<Head>("heads", Head.class, RelType.CONTAINS, Direction.INCOMING, false);
 
 	public static final View htmlView = new View(Meta.class, PropertyView.Html,
 		_name, _httpEquiv, _content, _charset

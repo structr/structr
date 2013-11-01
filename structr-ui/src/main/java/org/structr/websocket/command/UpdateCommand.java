@@ -20,15 +20,11 @@
 
 package org.structr.websocket.command;
 
-import org.apache.commons.lang.StringUtils;
-
-import org.structr.web.common.RelType;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
@@ -39,8 +35,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.Permission;
 import org.structr.core.Services;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
+import org.structr.web.entity.dom.relationship.DOMChildren;
 import org.structr.websocket.StructrWebSocket;
 
 //~--- classes ----------------------------------------------------------------
@@ -141,9 +139,9 @@ public class UpdateCommand extends AbstractCommand {
 
 						AbstractNode node = (AbstractNode) obj;
 
-						for (AbstractRelationship rel : node.getOutgoingRelationships(RelType.CONTAINS)) {
+						for (DOMChildren rel : node.getOutgoingRelationships(DOMChildren.class)) {
 
-							AbstractNode endNode = rel.getTargetNode();
+							NodeInterface endNode = rel.getTargetNode();
 							if (endNode != null) {
 
 								setProperties(endNode, properties, rec);

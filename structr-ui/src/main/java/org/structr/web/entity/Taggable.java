@@ -21,23 +21,22 @@
 package org.structr.web.entity;
 
 import java.util.List;
-import org.neo4j.graphdb.Direction;
-import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.PropertyNotion;
 import org.structr.core.property.CollectionNotionProperty;
-import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
-import org.structr.web.common.RelType;
+import org.structr.core.property.StartNodes;
+import org.structr.web.entity.relation.Tagging;
 import org.structr.web.property.UiNotion;
 
 /**
  *
  * @author Christian Morgner
  */
-public interface Taggable extends GraphObject {
+public interface Taggable extends NodeInterface {
 	
-	public static final EndNodes<Tag> tags = new EndNodes<>("tags", Tag.class, RelType.TAG, Direction.INCOMING, new UiNotion(), false);
+	public static final Property<List<Tag>>    tags      = new StartNodes<>("tags", Tagging.class, new UiNotion());
 	public static final Property<List<String>> tag_names = new CollectionNotionProperty("tag_names", tags, new PropertyNotion(AbstractNode.name));
 	
 }

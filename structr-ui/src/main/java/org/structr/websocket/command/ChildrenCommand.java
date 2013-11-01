@@ -24,12 +24,16 @@ import org.structr.common.PropertyView;
 import org.structr.web.common.RelType;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.websocket.message.WebSocketMessage;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.*;
+import org.neo4j.graphdb.Direction;
+import org.structr.core.IterableAdapter;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipFactory;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.websocket.StructrWebSocket;
 
 //~--- classes ----------------------------------------------------------------
@@ -50,19 +54,20 @@ public class ChildrenCommand extends AbstractCommand {
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
-		AbstractNode node = getNode(webSocketData.getId());
+		final RelationshipFactory factory = new RelationshipFactory(this.getWebSocket().getSecurityContext());
+		final AbstractNode node           = getNode(webSocketData.getId());
 
 		if (node == null) {
 
 			return;
 		}
 
-		Iterable<AbstractRelationship> rels = node.getOutgoingRelationships(RelType.CONTAINS);
-		List<GraphObject> result            = new LinkedList();
+		Iterable<RelationshipInterface> rels = new IterableAdapter<>(node.getNode().getRelationships(RelType.CONTAINS, Direction.OUTGOING), factory);
+		List<GraphObject> result             = new LinkedList();
 
-		for (AbstractRelationship rel : rels) {
+		for (RelationshipInterface rel : rels) {
 
-			AbstractNode endNode = rel.getTargetNode();
+			NodeInterface endNode = rel.getTargetNode();
 			if (endNode == null) {
 
 				continue;

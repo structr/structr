@@ -83,7 +83,8 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 	public abstract T instantiateWithType(final S obj, final Class<T> type, boolean isCreation) throws FrameworkException;
 	
 	public abstract T instantiate(final S obj, final boolean includeDeletedAndHidden, final boolean publicOnly) throws FrameworkException;
-	
+
+	public abstract T instantiateDummy(final S entity, final String entityType) throws FrameworkException;
 
 	/**
 	 * Create structr nodes from all given underlying database nodes

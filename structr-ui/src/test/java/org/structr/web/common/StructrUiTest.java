@@ -23,7 +23,6 @@ import com.jayway.restassured.RestAssured;
 import java.io.ByteArrayOutputStream;
 import org.apache.commons.io.FileUtils;
 
-import org.neo4j.graphdb.RelationshipType;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
@@ -325,7 +324,7 @@ public class StructrUiTest extends TestCase {
 
 	}
 
-	protected List<AbstractRelationship> createTestRelationships(final RelationshipType relType, final int number) throws FrameworkException {
+	protected List<AbstractRelationship> createTestRelationships(final Class relType, final int number) throws FrameworkException {
 
 		List<AbstractNode> nodes     = createTestNodes("UnknownTestType", 2);
 		final AbstractNode startNode = nodes.get(0);

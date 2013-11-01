@@ -18,21 +18,22 @@
  */
 
 
-package org.structr.web.entity.relation;
+package org.structr.web.entity.blog.relation;
 
 import org.structr.core.property.PropertyKey;
-import org.structr.web.common.RelType;
 import org.structr.core.EntityContext;
-import org.structr.core.entity.AbstractRelationship;
-import org.structr.web.entity.dom.Content;
-import org.structr.web.entity.dom.DOMElement;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.LinkedHashSet;
 import java.util.Set;
+import org.neo4j.graphdb.RelationshipType;
+import org.structr.core.entity.OneToMany;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
+import org.structr.web.common.RelType;
+import org.structr.web.entity.blog.Post;
+import org.structr.web.entity.dom.Content;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -40,7 +41,7 @@ import org.structr.core.property.StringProperty;
  *
  * @author Christian Morgner
  */
-public class ContentRelationship extends AbstractRelationship {
+public class PostContents extends OneToMany<Post, Content> {
 
 	public static final Property<String> parentId    = new StringProperty("parentId");
 	public static final Property<String> contentId   = new StringProperty("contentId");
@@ -50,7 +51,7 @@ public class ContentRelationship extends AbstractRelationship {
 
 	static {
 
-		EntityContext.registerNamedRelation("data", ContentRelationship.class, DOMElement.class, Content.class, RelType.CONTAINS);
+		// EntityContext.registerNamedRelation("data", ContentRelationship.class, DOMElement.class, Content.class, RelType.CONTAINS);
 
 		// not needed, overridden below
 		// EntityContext.registerPropertySet(ContentRelationship.class, PropertyView.All,    ContentRelationship.Key.values());
@@ -58,22 +59,10 @@ public class ContentRelationship extends AbstractRelationship {
 
 	}
 
-	//~--- get methods ----------------------------------------------------
-
-	@Override
-	public PropertyKey getStartNodeIdKey() {
-		return parentId;
-	}
-
-	@Override
-	public PropertyKey getEndNodeIdKey() {
-		return contentId;
-	}
-
 	@Override
 	public Iterable<PropertyKey> getPropertyKeys(String propertyView) {
 
-		Set<PropertyKey> keys = new LinkedHashSet<PropertyKey>();
+		Set<PropertyKey> keys = new LinkedHashSet<>();
 
 		keys.add(parentId);
 		keys.add(contentId);
@@ -91,6 +80,21 @@ public class ContentRelationship extends AbstractRelationship {
 
 		return keys;
 
+	}
+
+	@Override
+	public Class<Post> getSourceType() {
+		return Post.class;
+	}
+
+	@Override
+	public Class<Content> getTargetType() {
+		return Content.class;
+	}
+
+	@Override
+	public RelationshipType getRelationshipType() {
+		return RelType.CONTAINS;
 	}
 
 }

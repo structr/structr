@@ -19,6 +19,7 @@
 
 package org.structr.web.entity;
 
+import java.util.List;
 import org.structr.core.entity.ValidatedNode;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
@@ -27,7 +28,8 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.EndNodes;
-import org.structr.web.common.RelType;
+import org.structr.core.property.Property;
+import org.structr.web.entity.relation.Tagging;
 import org.structr.web.property.UiNotion;
 
 /**
@@ -36,7 +38,7 @@ import org.structr.web.property.UiNotion;
  */
 public class Tag extends ValidatedNode {
 
-	public static final EndNodes<Taggable> taggables = new EndNodes<>("taggables", Taggable.class, RelType.TAG, new UiNotion(), false);
+	public static final Property<List<Taggable>> taggables = new EndNodes<>("taggables", Tagging.class, new UiNotion());
 	
 	public static final View defaultView = new View(Tag.class, PropertyView.Public, name, taggables);
 	public static final View uiView      = new View(Tag.class, PropertyView.Ui, name, taggables);

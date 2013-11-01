@@ -21,10 +21,6 @@
 package org.structr.web.entity.html;
 
 import org.structr.web.entity.dom.DOMElement;
-import org.neo4j.graphdb.Direction;
-import org.structr.web.common.RelType;
-import org.structr.core.property.EndNodes;
-import org.structr.web.entity.dom.Content;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -33,7 +29,7 @@ import org.structr.web.entity.dom.Content;
  */
 public class Pre extends DOMElement {
 
-	public static final EndNodes<Content> contents = new EndNodes<Content>("contents", Content.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final EndNodes<Content> contents = new EndNodes<Content>("contents", Content.class, RelType.CONTAINS, Direction.OUTGOING, false);
 
 	@Override
 	public boolean avoidWhitespace() {

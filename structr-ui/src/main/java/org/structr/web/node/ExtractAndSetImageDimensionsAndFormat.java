@@ -26,7 +26,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.UnsupportedArgumentError;
 import org.structr.web.entity.Image;
-import org.structr.web.entity.Image;
 import org.structr.core.graph.NodeServiceCommand;
 
 //~--- JDK imports ------------------------------------------------------------

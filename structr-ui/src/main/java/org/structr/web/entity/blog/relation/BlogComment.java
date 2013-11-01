@@ -18,23 +18,23 @@
  */
 
 
-package org.structr.web.entity.blog;
+package org.structr.web.entity.blog.relation;
 
 import java.util.Date;
 import org.structr.core.property.Property;
-import org.neo4j.graphdb.Direction;
 
 import org.structr.common.PropertyView;
-import org.structr.web.common.RelType;
 import org.structr.core.entity.AbstractNode;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import org.structr.core.entity.Principal;
-import org.structr.core.property.End;
+import org.structr.core.property.EndNode;
 import org.structr.core.property.ISO8601DateProperty;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.StartNode;
 import org.structr.web.entity.dom.Content;
+import org.structr.web.entity.relation.Data;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -44,17 +44,17 @@ import org.structr.web.entity.dom.Content;
  * @author Axel Morgner
  *
  */
-public class Comment extends AbstractNode {
+public class BlogComment extends AbstractNode {
 
-	public static final End<Content>	text = new End<Content>("contents", Content.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final Property<Date>		publishDate = new ISO8601DateProperty("publishDate").indexed();
-	public static final End<Principal>   author = new End<Principal>("author", Principal.class, org.structr.web.common.RelType.AUTHOR, Direction.INCOMING, true);
+	public static final Property<Content>    text        = new EndNode<>("contents", Data.class);
+	public static final Property<Date>       publishDate = new ISO8601DateProperty("publishDate").indexed();
+	public static final Property<Principal>  author      = new StartNode<>("author", BlogAuthor.class);
 	
-	public static final org.structr.common.View uiView = new org.structr.common.View(Comment.class, PropertyView.Ui,
+	public static final org.structr.common.View uiView = new org.structr.common.View(BlogComment.class, PropertyView.Ui,
 		type, name, publishDate, author, text
 	);
 	
-	public static final org.structr.common.View publicView = new org.structr.common.View(Comment.class, PropertyView.Public,
+	public static final org.structr.common.View publicView = new org.structr.common.View(BlogComment.class, PropertyView.Public,
 		type, name, publishDate, author, text
 	);
 

@@ -21,47 +21,53 @@
 package org.structr.web.entity.relation;
 
 import org.structr.core.property.PropertyKey;
-import org.structr.web.common.RelType;
 import org.structr.core.EntityContext;
-import org.structr.core.entity.AbstractRelationship;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.property.GenericProperty;
+import org.neo4j.graphdb.RelationshipType;
+import org.structr.core.entity.OneToOne;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
+import org.structr.web.common.RelType;
+import org.structr.web.entity.dom.Content;
+import org.structr.web.entity.dom.DOMElement;
 
 //~--- classes ----------------------------------------------------------------
 
 /**
  *
- * @author Axel Morgner
+ * @author Christian Morgner
  */
-public class RenderTreeRelationship extends AbstractRelationship {
+public class Data extends OneToOne<DOMElement, Content> {
 
-	public static final Property<String>       sourceNode = new StringProperty("sourceNode");
-	public static final Property<String>       targetNode = new StringProperty("targetNode");
-	public static final Property<List<String>> names    = new GenericProperty<List<String>>("names");
-	
+	public static final Property<String> parentId    = new StringProperty("parentId");
+	public static final Property<String> contentId   = new StringProperty("contentId");
+	public static final Property<String> componentId = new StringProperty("componentId");
+	public static final Property<String> pageId      = new StringProperty("pageId");
+	public static final Property<String> foo         = new StringProperty("foo");
+
 	static {
 
-		EntityContext.registerNamedRelation("renderTree", RenderTreeRelationship.class, AbstractNode.class, AbstractNode.class, RelType.RENDER_TREE);
-	}
+		// EntityContext.registerNamedRelation("data", ContentRelationship.class, DOMElement.class, Content.class, RelType.CONTAINS);
 
-	//~--- get methods ----------------------------------------------------
+		// not needed, overridden below
+		// EntityContext.registerPropertySet(ContentRelationship.class, PropertyView.All,    ContentRelationship.Key.values());
+		// EntityContext.registerPropertySet(ContentRelationship.class, PropertyView.Public, ContentRelationship.Key.values());
+
+	}
 
 	@Override
 	public Iterable<PropertyKey> getPropertyKeys(String propertyView) {
 
-		Set<PropertyKey> keys = new LinkedHashSet<PropertyKey>();
+		Set<PropertyKey> keys = new LinkedHashSet<>();
 
-		keys.add(sourceNode);
-		keys.add(targetNode);
-		keys.add(names);
+		keys.add(parentId);
+		keys.add(contentId);
+		keys.add(componentId);
+		keys.add(pageId);
 
 		if (dbRelationship != null) {
 
@@ -77,17 +83,18 @@ public class RenderTreeRelationship extends AbstractRelationship {
 	}
 
 	@Override
-	public PropertyKey getStartNodeIdKey() {
-
-		return ResourceLink.sourceId;
-
+	public Class<DOMElement> getSourceType() {
+		return DOMElement.class;
 	}
 
 	@Override
-	public PropertyKey getEndNodeIdKey() {
+	public Class<Content> getTargetType() {
+		return Content.class;
+	}
 
-		return ResourceLink.targetId;
-
+	@Override
+	public RelationshipType getRelationshipType() {
+		return RelType.CONTAINS;
 	}
 
 }

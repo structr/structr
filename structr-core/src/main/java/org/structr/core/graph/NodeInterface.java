@@ -21,7 +21,6 @@ import org.structr.core.entity.Target;
 public interface NodeInterface extends GraphObject, Comparable<NodeInterface>, AccessControllable {
 	
 	public void init(final SecurityContext securityContext, final Node dbNode);
-	public void setSecurityContext(final SecurityContext securityContext);
 	
 	public void onNodeCreation();
 	public void onNodeInstantiation();

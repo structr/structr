@@ -9,20 +9,10 @@ import org.structr.core.entity.OneToOne;
  *
  * @author Christian Morgner
  */
-public class ListSibling extends OneToOne<LinkedListNode, LinkedListNode> {
-
-	@Override
-	public Class<LinkedListNode> getSourceType() {
-		return LinkedListNode.class;
-	}
+public abstract class AbstractListSiblings<S extends LinkedListNode, T extends LinkedListNode> extends OneToOne<S, T> {
 
 	@Override
 	public RelationshipType getRelationshipType() {
 		return RelType.CONTAINS_NEXT_CHILD;
-	}
-
-	@Override
-	public Class<LinkedListNode> getTargetType() {
-		return LinkedListNode.class;
 	}
 }

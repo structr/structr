@@ -45,6 +45,7 @@ import org.structr.common.Path;
 import org.structr.common.PathHelper;
 import org.structr.common.SecurityContext;
 import org.structr.core.Result;
+import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
@@ -53,7 +54,6 @@ import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.property.PropertyMap;
 import org.structr.util.Base64;
 import org.structr.web.entity.AbstractFile;
-import org.structr.web.entity.Image;
 import static org.structr.web.servlet.HtmlServlet.searchNodesAsSuperuser;
 
 //~--- classes ----------------------------------------------------------------
@@ -104,8 +104,8 @@ public class FileHelper {
 	public static org.structr.web.entity.File createFile(final SecurityContext securityContext, final byte[] fileData, final String contentType, final Class<? extends org.structr.web.entity.File> fileType)
 		throws FrameworkException, IOException {
 
-		CreateNodeCommand<Image> createNodeCommand = Services.command(securityContext, CreateNodeCommand.class);
-		PropertyMap props                          = new PropertyMap();
+		CreateNodeCommand createNodeCommand = Services.command(securityContext, CreateNodeCommand.class);
+		PropertyMap props                   = new PropertyMap();
 		
 		props.put(AbstractNode.type, fileType == null ? File.class.getSimpleName() : fileType.getSimpleName());
 
@@ -502,7 +502,7 @@ public class FileHelper {
 	 */
 	public static String getFolderPath(final AbstractFile file) {
 		
-		AbstractFile parentFolder = file.getProperty(AbstractFile.parent);
+		LinkedTreeNode parentFolder = file.getProperty(AbstractFile.parent);
 		
 		String folderPath = file.getProperty(AbstractFile.name);
 		

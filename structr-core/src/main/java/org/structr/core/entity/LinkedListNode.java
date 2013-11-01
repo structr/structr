@@ -21,7 +21,7 @@ package org.structr.core.entity;
 import org.neo4j.graphdb.Node;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
-import org.structr.core.entity.relationship.ListSibling;
+import org.structr.core.entity.relationship.AbstractListSiblings;
 import org.structr.core.graph.CreateRelationshipCommand;
 import org.structr.core.graph.DeleteRelationshipCommand;
 import org.structr.core.graph.NodeInterface;
@@ -36,11 +36,13 @@ import org.structr.core.property.StringProperty;
  * 
  * @author Christian Morgner
  */
-public abstract class LinkedListNode extends ValidatedNode {
+public abstract class LinkedListNode<R extends AbstractListSiblings<T, T>, T extends LinkedListNode> extends ValidatedNode {
 	
 	// this is not used for the node itself but for the relationship(s) this node maintains
-	public static final PropertyKey<String> keyProperty = new StringProperty("key");
+	public static final PropertyKey<String>      keyProperty     = new StringProperty("key");
 
+	public abstract Class<R> getSiblingLinkType();
+	
 	/**
 	 * Returns the predecessor of the given element in the list structure
 	 * defined by this LinkedListManager.
@@ -48,9 +50,9 @@ public abstract class LinkedListNode extends ValidatedNode {
 	 * @param currentElement
 	 * @return
 	 */
-	public LinkedListNode listGetPrevious(final Class<? extends ListSibling> type, final LinkedListNode currentElement) {
+	public  T listGetPrevious(final T currentElement) {
 
-		ListSibling prevRel = currentElement.getIncomingRelationship(type);
+		R prevRel = currentElement.getIncomingRelationship(getSiblingLinkType());
 		if (prevRel != null) {
 			
 			return prevRel.getSourceNode();
@@ -66,12 +68,12 @@ public abstract class LinkedListNode extends ValidatedNode {
 	 * @param currentElement
 	 * @return
 	 */
-	public LinkedListNode listGetNext(final Class<? extends ListSibling> type, final LinkedListNode currentElement) {
+	public T listGetNext(final T currentElement) {
 
-		ListSibling nextRel = currentElement.getOutgoingRelationship(type);
+		R nextRel = currentElement.getOutgoingRelationship(getSiblingLinkType());
 		if (nextRel != null) {
 			
-			return nextRel.getSourceNode();
+			return nextRel.getTargetNode();
 		}
 
 		return null;
@@ -84,13 +86,13 @@ public abstract class LinkedListNode extends ValidatedNode {
 	 * @param currentElement the reference element
 	 * @param newElement the new element
 	 */
-	public void listInsertBefore(final Class<? extends ListSibling> type, final LinkedListNode currentElement, final LinkedListNode newElement) throws FrameworkException {
+	public void listInsertBefore(final T currentElement, final T newElement) throws FrameworkException {
 
 		if (currentElement.getId() == newElement.getId()) {
 			throw new IllegalStateException("Cannot link a node to itself!");
 		}
 
-		final LinkedListNode previousElement = listGetPrevious(type, currentElement);
+		final T previousElement = listGetPrevious(currentElement);
 		if (previousElement == null) {
 
 			// trivial: new node will become new head of existing list
@@ -98,7 +100,7 @@ public abstract class LinkedListNode extends ValidatedNode {
 				@Override
 				public Object execute() throws FrameworkException {
 
-					linkNodes(type, newElement, currentElement);
+					linkNodes(getSiblingLinkType(), newElement, currentElement);
 
 					return null;
 				}
@@ -112,10 +114,10 @@ public abstract class LinkedListNode extends ValidatedNode {
 				public Object execute() throws FrameworkException {
 
 					// delete old relationship
-					unlinkNodes(type, previousElement, currentElement);
+					unlinkNodes(previousElement, currentElement);
 					
-					linkNodes(type, previousElement, newElement);
-					linkNodes(type, newElement, currentElement);
+					linkNodes(getSiblingLinkType(), previousElement, newElement);
+					linkNodes(getSiblingLinkType(), newElement, currentElement);
 
 					return null;
 				}
@@ -130,13 +132,13 @@ public abstract class LinkedListNode extends ValidatedNode {
 	 * @param currentElement the reference element
 	 * @param newElement the new element
 	 */
-	public void listInsertAfter(final Class<? extends ListSibling> type, final LinkedListNode currentElement, final LinkedListNode newElement) throws FrameworkException {
+	public void listInsertAfter(final T currentElement, final T newElement) throws FrameworkException {
 
 		if (currentElement.getId() == newElement.getId()) {
 			throw new IllegalStateException("Cannot link a node to itself!");
 		}
 
-		final LinkedListNode next = listGetNext(type, currentElement);
+		final T next = listGetNext(currentElement);
 		if (next == null) {
 
 			// trivial: new node will become new tail of existing list
@@ -144,7 +146,7 @@ public abstract class LinkedListNode extends ValidatedNode {
 				@Override
 				public Object execute() throws FrameworkException {
 
-					linkNodes(type, currentElement, newElement);
+					linkNodes(getSiblingLinkType(), currentElement, newElement);
 
 					return null;
 				}
@@ -157,10 +159,10 @@ public abstract class LinkedListNode extends ValidatedNode {
 				@Override
 				public Object execute() throws FrameworkException {
 
-					unlinkNodes(type, currentElement, next);
+					unlinkNodes(currentElement, next);
 
-					linkNodes(type, currentElement, newElement);
-					linkNodes(type, newElement, next);
+					linkNodes(getSiblingLinkType(), currentElement, newElement);
+					linkNodes(getSiblingLinkType(), newElement, next);
 
 					return null;
 				}
@@ -174,21 +176,21 @@ public abstract class LinkedListNode extends ValidatedNode {
 	 *
 	 * @param currentElement the element to be removed
 	 */
-	public void listRemove(final Class<? extends ListSibling> type, final LinkedListNode currentElement) throws FrameworkException {
+	public void listRemove(final T currentElement) throws FrameworkException {
 		
-		final LinkedListNode previousElement = listGetPrevious(type, currentElement);
-		final LinkedListNode nextElement     = listGetNext(type, currentElement);
+		final T previousElement = listGetPrevious(currentElement);
+		final T nextElement     = listGetNext(currentElement);
 
 		if (currentElement != null) {
 			
 			if (previousElement != null) {
 
-				unlinkNodes(type, previousElement, currentElement);
+				unlinkNodes(previousElement, currentElement);
 			}
 
 			if (nextElement != null) {
 
-				unlinkNodes(type, currentElement, nextElement);
+				unlinkNodes(currentElement, nextElement);
 			}
 		}
 
@@ -199,25 +201,25 @@ public abstract class LinkedListNode extends ValidatedNode {
 
 			if (previousNode != null && nextNode != null) {
 
-				linkNodes(type, previousElement, nextElement);
+				linkNodes(getSiblingLinkType(), previousElement, nextElement);
 			}
 
 		}
 	}
 	
-	public void linkNodes(final Class<? extends Relation> type, final LinkedListNode startNode, final LinkedListNode endNode) throws FrameworkException {
-		linkNodes(type, startNode, endNode, null);
+	public <R extends Relation<T, T, ?, ?>> void linkNodes(final Class<R> linkType, final T startNode, final T endNode) throws FrameworkException {
+		linkNodes(linkType, startNode, endNode, null);
 	}
 	
-	public void linkNodes(final Class<? extends Relation> type, final LinkedListNode startNode, final LinkedListNode endNode, final PropertyMap properties) throws FrameworkException {
+	public <R extends Relation<T, T, ?, ?>> void linkNodes(final Class<R> linkType, final T startNode, final T endNode, final PropertyMap properties) throws FrameworkException {
 		
 		CreateRelationshipCommand cmd = Services.command(securityContext, CreateRelationshipCommand.class);
 		
 		// do not check for duplicates here
-		cmd.execute(startNode, endNode, type, properties);
+		cmd.execute(startNode, endNode, linkType, properties);
 	}
 	
-	public void unlinkNodes(final Class<? extends Relation> type, final NodeInterface startNode, final NodeInterface endNode) throws FrameworkException {
+	public void unlinkNodes(final NodeInterface startNode, final NodeInterface endNode) throws FrameworkException {
 		
 		final DeleteRelationshipCommand cmd = Services.command(securityContext, DeleteRelationshipCommand.class);
 		

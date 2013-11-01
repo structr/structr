@@ -26,7 +26,6 @@ import junit.framework.TestCase;
 import org.apache.commons.io.FileUtils;
 
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.RelationshipType;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
@@ -61,6 +60,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
 import org.structr.core.graph.DeleteRelationshipCommand;
+import org.structr.core.graph.RelationshipInterface;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -211,18 +211,18 @@ public class StructrTest extends TestCase {
 
 	}
 
-	protected List<AbstractRelationship> createTestRelationships(final RelationshipType relType, final int number) throws FrameworkException {
+	protected List<RelationshipInterface> createTestRelationships(final Class relType, final int number) throws FrameworkException {
 
 		List<AbstractNode> nodes     = createTestNodes("UnknownTestType", 2);
 		final AbstractNode startNode = nodes.get(0);
 		final AbstractNode endNode   = nodes.get(1);
 
-		return transactionCommand.execute(new StructrTransaction<List<AbstractRelationship>>() {
+		return transactionCommand.execute(new StructrTransaction<List<RelationshipInterface>>() {
 
 			@Override
-			public List<AbstractRelationship> execute() throws FrameworkException {
+			public List<RelationshipInterface> execute() throws FrameworkException {
 
-				List<AbstractRelationship> rels = new LinkedList<AbstractRelationship>();
+				List<RelationshipInterface> rels = new LinkedList<>();
 
 				for (int i = 0; i < number; i++) {
 
@@ -237,12 +237,12 @@ public class StructrTest extends TestCase {
 
 	}
 
-	protected AbstractRelationship createTestRelationship(final AbstractNode startNode, final AbstractNode endNode, final RelType relType) throws FrameworkException {
+	protected RelationshipInterface createTestRelationship(final AbstractNode startNode, final AbstractNode endNode, final Class relType) throws FrameworkException {
 
-		return transactionCommand.execute(new StructrTransaction<AbstractRelationship>() {
+		return transactionCommand.execute(new StructrTransaction<RelationshipInterface>() {
 
 			@Override
-			public AbstractRelationship execute() throws FrameworkException {
+			public RelationshipInterface execute() throws FrameworkException {
 
 				return createRelationshipCommand.execute(startNode, endNode, relType);
 

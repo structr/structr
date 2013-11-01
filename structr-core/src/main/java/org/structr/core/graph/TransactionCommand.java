@@ -184,7 +184,7 @@ public class TransactionCommand extends NodeServiceCommand {
 			tx.failure();
 
 			// TODO: add debugging switch!
-			// t.printStackTrace();
+			t.printStackTrace();
 
 			exception = new FrameworkException(500, t);
 			error = true;

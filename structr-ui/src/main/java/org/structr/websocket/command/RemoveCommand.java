@@ -24,14 +24,13 @@ package org.structr.websocket.command;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.structr.web.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.DeleteRelationshipCommand;
+import org.structr.core.graph.NodeInterface;
 import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.entity.dom.relationship.DOMChildren;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -59,7 +58,7 @@ public class RemoveCommand extends AbstractCommand {
 
 		if (id != null) {
 
-			final AbstractNode node = getNode(id);
+			final NodeInterface node = getNode(id);
 
 			if (node != null) {
 
@@ -85,9 +84,9 @@ public class RemoveCommand extends AbstractCommand {
 
 					// Old style: Delete all incoming CONTAINS rels
 					DeleteRelationshipCommand deleteRel = Services.command(securityContext, DeleteRelationshipCommand.class);
-					Iterable<AbstractRelationship> rels = node.getIncomingRelationships(RelType.CONTAINS);
+					DOMChildren rel                     = node.getIncomingRelationship(DOMChildren.class);
 
-					for (AbstractRelationship rel : rels) {
+					if (rel != null) {
 
 						try {
 

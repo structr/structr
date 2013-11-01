@@ -48,8 +48,10 @@ import org.structr.common.error.FrameworkException;
 import static org.structr.core.EntityContext.getPropertyKeyForDatabaseName;
 import org.structr.core.Services;
 import org.structr.core.graph.NodeFactory;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeService;
 import org.structr.core.graph.RelationshipFactory;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
@@ -183,7 +185,7 @@ public class SynchronizationController implements StructrTransactionListener, Tr
 
 	private <T extends GraphObject> List<T> filter(final SecurityContext securityContext, final List<T> all) {
 
-		List<T> filteredResult = new LinkedList<T>();
+		List<T> filteredResult = new LinkedList<>();
 		for (T obj : all) {
 			
 			if (securityContext.isVisible((AbstractNode)obj)) {
@@ -428,8 +430,8 @@ public class SynchronizationController implements StructrTransactionListener, Tr
 		if (graphObject instanceof AbstractRelationship) {
 
 			AbstractRelationship relationship = (AbstractRelationship) graphObject;
-			AbstractNode startNode            = relationship.getSourceNode();
-			AbstractNode endNode              = relationship.getTargetNode();
+			NodeInterface startNode           = relationship.getSourceNode();
+			NodeInterface endNode             = relationship.getTargetNode();
 
 			try {
 
@@ -456,7 +458,7 @@ public class SynchronizationController implements StructrTransactionListener, Tr
 
 				registerPartialType(graphObject, transactionKey);
 			
-				Map<String, Object> nodeProperties = new HashMap<String, Object>();
+				Map<String, Object> nodeProperties = new HashMap<>();
 				
 				nodeProperties.put(key.dbName(), newValue);
 				nodeProperties.put(AbstractNode.type.dbName(), node.getType());    // needed for type resolution
@@ -495,8 +497,8 @@ public class SynchronizationController implements StructrTransactionListener, Tr
 		if (graphObject instanceof AbstractRelationship) {
 
 			AbstractRelationship relationship = (AbstractRelationship) graphObject;
-			AbstractNode startNode            = relationship.getSourceNode();
-			AbstractNode endNode              = relationship.getTargetNode();
+			NodeInterface startNode           = relationship.getSourceNode();
+			NodeInterface endNode             = relationship.getTargetNode();
 
 			try {
 
@@ -767,7 +769,7 @@ public class SynchronizationController implements StructrTransactionListener, Tr
 
 			if (!data.isDeleted(node)) {
 
-				AbstractNode modifiedNode = nodeFactory.instantiate(node, true, false);
+				NodeInterface modifiedNode = nodeFactory.instantiate(node, true, false);
 				if (modifiedNode != null) {
 
 					PropertyKey key = getPropertyKeyForDatabaseName(modifiedNode.getClass(), entry.key());
@@ -788,7 +790,7 @@ public class SynchronizationController implements StructrTransactionListener, Tr
 
 			if (propertyMap == null) {
 
-				propertyMap = new LinkedHashMap<String, Object>();
+				propertyMap = new LinkedHashMap<>();
 
 				removedRelProperties.put(rel, propertyMap);
 
@@ -798,7 +800,7 @@ public class SynchronizationController implements StructrTransactionListener, Tr
 
 			if (!data.isDeleted(rel)) {
 
-				AbstractRelationship modifiedRel = relFactory.instantiate(rel);
+				RelationshipInterface modifiedRel = relFactory.instantiate(rel);
 				if (modifiedRel != null) {
 
 					PropertyKey key = getPropertyKeyForDatabaseName(modifiedRel.getClass(), entry.key());
@@ -813,7 +815,7 @@ public class SynchronizationController implements StructrTransactionListener, Tr
 
 		for (org.neo4j.graphdb.Node node : sortNodes(data.createdNodes())) {
 
-			AbstractNode entity = nodeFactory.instantiate(node, true, false);
+			NodeInterface entity = nodeFactory.instantiate(node, true, false);
 			if (entity != null) {
 
 				graphObjectCreated(securityContext, transactionKey, entity);
@@ -828,7 +830,7 @@ public class SynchronizationController implements StructrTransactionListener, Tr
 
 		for (Relationship rel : sortRelationships(data.createdRelationships())) {
 
-			AbstractRelationship entity = relFactory.instantiate(rel);
+			RelationshipInterface entity = relFactory.instantiate(rel);
 			if (entity != null) {
 
 				// notify registered listeners
@@ -845,10 +847,11 @@ public class SynchronizationController implements StructrTransactionListener, Tr
 
 		for (Relationship rel : data.deletedRelationships()) {
 
-			AbstractRelationship entity = relFactory.instantiate(rel);
+			String type                  = (String)removedRelProperties.get(rel).get(AbstractNode.type.dbName());
+			RelationshipInterface entity = relFactory.instantiateDummy(rel, type);
+
 			if (entity != null) {
 
-				// convertFromInput properties
 				PropertyMap properties = PropertyMap.databaseTypeToJavaType(securityContext, entity, removedRelProperties.get(rel));
 				graphObjectDeleted(securityContext, transactionKey, entity, properties);
 			}
@@ -861,7 +864,7 @@ public class SynchronizationController implements StructrTransactionListener, Tr
 		for (org.neo4j.graphdb.Node node : data.deletedNodes()) {
 
 			String type = (String)removedNodeProperties.get(node).get(AbstractNode.type.dbName());
-			AbstractNode entity = nodeFactory.instantiateDummy(type);
+			NodeInterface entity = nodeFactory.instantiateDummy(node, type);
 
 			if (entity != null) {
 
@@ -875,7 +878,7 @@ public class SynchronizationController implements StructrTransactionListener, Tr
 
 		for (PropertyEntry<org.neo4j.graphdb.Node> entry : data.assignedNodeProperties()) {
 
-			AbstractNode nodeEntity = nodeFactory.instantiate(entry.entity(), true, false);
+			NodeInterface nodeEntity = nodeFactory.instantiate(entry.entity(), true, false);
 			if (nodeEntity != null) {
 
 				PropertyKey key  = getPropertyKeyForDatabaseName(nodeEntity.getClass(), entry.key());
@@ -890,7 +893,7 @@ public class SynchronizationController implements StructrTransactionListener, Tr
 
 		for (PropertyEntry<Relationship> entry : data.assignedRelationshipProperties()) {
 
-			AbstractRelationship relEntity    = relFactory.instantiate(entry.entity());
+			RelationshipInterface relEntity    = relFactory.instantiate(entry.entity());
 			if (relEntity != null) {
 
 				PropertyKey key = getPropertyKeyForDatabaseName(relEntity.getClass(), entry.key());
@@ -903,7 +906,7 @@ public class SynchronizationController implements StructrTransactionListener, Tr
 	
 	private ArrayList<org.neo4j.graphdb.Node> sortNodes(final Iterable<org.neo4j.graphdb.Node> it) {
 		
-		ArrayList<org.neo4j.graphdb.Node> list = new ArrayList<org.neo4j.graphdb.Node>();
+		ArrayList<org.neo4j.graphdb.Node> list = new ArrayList<>();
 		
 		for (org.neo4j.graphdb.Node p : it) {
 			
@@ -928,7 +931,7 @@ public class SynchronizationController implements StructrTransactionListener, Tr
 	
 	private ArrayList<Relationship> sortRelationships(final Iterable<Relationship> it) {
 		
-		ArrayList<Relationship> list = new ArrayList<Relationship>();
+		ArrayList<Relationship> list = new ArrayList<>();
 		
 		for (Relationship p : it) {
 			

@@ -21,9 +21,9 @@
 package org.structr.web.entity.html;
 
 import org.structr.web.entity.dom.DOMElement;
-import org.neo4j.graphdb.Direction;
-import org.structr.web.common.RelType;
-import org.structr.core.property.EndNodes;
+import org.structr.core.property.Property;
+import org.structr.core.property.StartNode;
+import org.structr.web.entity.html.relation.HtmlHead;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -32,12 +32,12 @@ import org.structr.core.property.EndNodes;
  */
 public class Head extends DOMElement {
 
-	public static final EndNodes<Html>   htmls   = new EndNodes<Html>("htmls", Html.class, RelType.CONTAINS, Direction.INCOMING, false);
-	public static final EndNodes<Title>  titles  = new EndNodes<Title>("titles", Title.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final EndNodes<Style>  styles  = new EndNodes<Style>("styles", Style.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final EndNodes<Script> scripts = new EndNodes<Script>("scripts", Script.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final EndNodes<Link>   links   = new EndNodes<Link>("links", Link.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final EndNodes<Meta>   metas   = new EndNodes<Meta>("metas", Meta.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final EndNodes<Base>   bases   = new EndNodes<Base>("bases", Base.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	
+	public static final Property<Html>   html   = new StartNode<>("html", HtmlHead.class);
+
+//	public static final EndNodes<Title>  titles  = new EndNodes<Title>("titles", Title.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final EndNodes<Style>  styles  = new EndNodes<Style>("styles", Style.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final EndNodes<Script> scripts = new EndNodes<Script>("scripts", Script.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final EndNodes<Link>   links   = new EndNodes<Link>("links", Link.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final EndNodes<Meta>   metas   = new EndNodes<Meta>("metas", Meta.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final EndNodes<Base>   bases   = new EndNodes<Base>("bases", Base.class, RelType.CONTAINS, Direction.OUTGOING, false);
 }

@@ -23,18 +23,18 @@ package org.structr.web.entity.html;
 import org.structr.web.entity.dom.DOMElement;
 import org.apache.commons.lang.ArrayUtils;
 
-import org.neo4j.graphdb.Direction;
 import org.structr.core.property.Property;
 
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.web.common.RelType;
 import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.property.End;
+import org.structr.core.property.EndNode;
 import org.structr.core.property.StringProperty;
 import org.structr.web.common.HtmlProperty;
 import org.structr.web.common.RenderContext;
+import org.structr.web.entity.html.relation.HtmlBody;
+import org.structr.web.entity.html.relation.HtmlHead;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -55,8 +55,8 @@ public class Html extends DOMElement {
 	*/
 	public static final Property<String> _customOpeningTag = new StringProperty("customOpeningTag");
 	
-	public static final End<Head> head = new End("head", Head.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final End<Body> body = new End("body", Body.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final Property<Head> head = new EndNode<>("head", HtmlHead.class);
+	public static final Property<Body> body = new EndNode<>("body", HtmlBody.class);
 
 	public static final View htmlView = new View(Html.class, PropertyView.Html,
 		_manifest

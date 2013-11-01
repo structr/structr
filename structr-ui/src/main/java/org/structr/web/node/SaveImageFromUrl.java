@@ -140,7 +140,7 @@ public class SaveImageFromUrl extends NodeServiceCommand {
 								     new NodeAttribute(AbstractNode.visibleToAuthenticatedUsers, true),
 								     new NodeAttribute(AbstractNode.visibleToPublicUsers, true));
 
-					Services.command(securityContext, CreateRelationshipCommand.class).execute(finalParentNode, newImageNode, RelType.CONTAINS);
+					// Services.command(securityContext, CreateRelationshipCommand.class).execute(finalParentNode, newImageNode, RelType.CONTAINS);
 
 					// Then save image from URL
 					refreshImageFromUrl(newImageNode);

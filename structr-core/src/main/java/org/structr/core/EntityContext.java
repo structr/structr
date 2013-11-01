@@ -68,7 +68,7 @@ public class EntityContext {
 	private static final Set<PropertyKey> globalKnownPropertyKeys                                 = new LinkedHashSet<>();
 
 	private static FactoryDefinition factoryDefinition                                            = new DefaultFactoryDefinition();
-	private static ModuleService staticModuleService                                                    = null;
+	private static ModuleService staticModuleService                                              = null;
 
 	//~--- methods --------------------------------------------------------
 
@@ -665,7 +665,7 @@ public class EntityContext {
 	
 	public static Set<Method> getAnnotatedMethods(Class entityType, Class annotationType) {
 		
-		Set<Method> methods    = new LinkedHashSet<Method>();
+		Set<Method> methods    = new LinkedHashSet<>();
 		Set<Class<?>> allTypes = getAllTypes(entityType);
 		
 		for (Class<?> type : allTypes) {

@@ -35,8 +35,10 @@ import org.structr.websocket.message.WebSocketMessage;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.graph.CreateRelationshipCommand;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.dom.DOMElement;
+import org.structr.web.entity.dom.relationship.DOMChildren;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -94,7 +96,9 @@ public class InsertCommand extends AbstractCommand {
 				try {
 
 					PropertyMap relProperties = PropertyMap.inputTypeToJavaType(securityContext, relData);
-					DOMElement.children.createRelationship(securityContext, parentNode, nodeToInsert, relProperties);
+					
+					Services.command(securityContext, CreateRelationshipCommand.class).execute(parentNode, nodeToInsert, DOMChildren.class, relProperties);
+					// DOMElement.children.createRelationship(securityContext, parentNode, nodeToInsert, relProperties);
 
 				} catch (Throwable t) {
 
