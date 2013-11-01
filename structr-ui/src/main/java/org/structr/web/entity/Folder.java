@@ -20,17 +20,18 @@
 
 package org.structr.web.entity;
 
-import org.neo4j.graphdb.Direction;
+import java.util.List;
 import org.structr.common.View;
 import org.structr.common.PropertyView;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.EndNodes;
-import org.structr.core.property.End;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
-import org.structr.web.common.RelType;
+import org.structr.web.entity.relation.Files;
+import org.structr.web.entity.relation.Folders;
+import org.structr.web.entity.relation.Images;
 
 
 //~--- classes ----------------------------------------------------------------
@@ -43,9 +44,9 @@ import org.structr.web.common.RelType;
  */
 public class Folder extends AbstractFile {
 
-	public static final EndNodes<Folder>	folders      = new EndNodes<>("folders", Folder.class, RelType.CONTAINS, Direction.OUTGOING, new PropertySetNotion(uuid, name), true);
-	public static final EndNodes<File>	files        = new EndNodes<>("files", File.class, RelType.CONTAINS, Direction.OUTGOING, new PropertySetNotion(uuid, name), true);
-	public static final EndNodes<Image>	images       = new EndNodes<>("images", Image.class, RelType.CONTAINS, Direction.OUTGOING, new PropertySetNotion(uuid, name), true);
+	public static final Property<List<Folder>> folders = new EndNodes<>("folders", Folders.class, new PropertySetNotion(uuid, name));
+	public static final Property<List<File>>   files   = new EndNodes<>("files", Files.class, new PropertySetNotion(uuid, name));
+	public static final Property<List<Image>>  images  = new EndNodes<>("images", Images.class, new PropertySetNotion(uuid, name));
 	
 	public static final Property<Integer>		position     = new IntProperty("position").indexed();
 

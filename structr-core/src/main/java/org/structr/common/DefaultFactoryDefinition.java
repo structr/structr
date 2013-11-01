@@ -151,6 +151,17 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 			}
 		}
 		
+		// last chance: source type, target type and relationship type
+		final String sourceType = relationship.getStartNode().hasProperty(type) ? relationship.getStartNode().getProperty(type).toString() : null;
+		final String targetType = relationship.getEndNode().hasProperty(type) ? relationship.getEndNode().getProperty(type).toString() : null;
+		final String relType    = relationship.getType().name();
+		final Class entityType  = getClassForCombinedType(sourceType, relType, targetType);
+
+		if (entityType != null) {
+			return entityType;
+		}
+		
+		
 		return getGenericRelationshipType();
 	}
 
@@ -160,6 +171,11 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 		final String sourceType = parts[0];
 		final String relType    = parts[1];
 		final String targetType = parts[2];
+
+		return getClassForCombinedType(sourceType, relType, targetType);
+	}
+
+	private Class getClassForCombinedType(final String sourceType, final String relType, final String targetType) {
 		
 		for (final Class candidate : getModuleService().getCachedRelationshipEntities().values()) {
 			

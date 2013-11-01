@@ -92,7 +92,7 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends GraphObject>
 
 		if (attributes != null) {
 			
-			List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
+			List<SearchAttribute> attrs = new LinkedList<>();
 
 			// Check if properties contain the UUID attribute
 			if (attributes.containsKey(GraphObject.uuid)) {

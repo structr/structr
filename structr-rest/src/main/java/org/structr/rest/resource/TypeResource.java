@@ -92,10 +92,12 @@ public class TypeResource extends SortableResource {
 				
 				if (AbstractNode.class.isAssignableFrom(entityClass)) {
 					searchCommandType = SearchNodeCommand.class;
+					return true;
 				}
 				
 				if (AbstractRelationship.class.isAssignableFrom(entityClass)) {
 					searchCommandType = SearchRelationshipCommand.class;
+					return true;
 				}
 			}
 		}

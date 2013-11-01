@@ -20,7 +20,6 @@
 package org.structr.websocket.command;
 
 
-import org.structr.web.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
@@ -29,6 +28,7 @@ import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.ShadowDocument;
+import org.structr.web.entity.relation.Sync;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -61,8 +61,8 @@ public class CreateComponentCommand extends AbstractCommand {
 			try {
 
 
-				final CreateRelationshipCommand<?> createRel = Services.command(securityContext, CreateRelationshipCommand.class);
-				StructrTransaction transaction               = new StructrTransaction() {
+				final CreateRelationshipCommand createRel = Services.command(securityContext, CreateRelationshipCommand.class);
+				StructrTransaction transaction            = new StructrTransaction() {
 
 					@Override
 					public Object execute() throws FrameworkException {
@@ -80,8 +80,8 @@ public class CreateComponentCommand extends AbstractCommand {
 							child.setProperty((DOMNode.ownerDocument), hiddenDoc);
 						}
 
-						createRel.execute(node, clonedNode, RelType.SYNC, true);
-						createRel.execute(clonedNode, node, RelType.SYNC, true);
+						createRel.execute(node, clonedNode, Sync.class);
+						createRel.execute(clonedNode, node, Sync.class);
 
 						return null;
 

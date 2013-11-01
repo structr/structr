@@ -21,7 +21,7 @@ import org.structr.core.graph.TransactionCommand;
  *
  * @author Christian Morgner
  */
-public class ManyEndpoint<T extends NodeInterface> implements Target<Iterable<Relationship>, Iterable<T>> {
+public class ManyEndpoint<T extends NodeInterface> extends AbstractEndpoint implements Target<Iterable<Relationship>, Iterable<T>> {
 
 	private Relation<?, T, ?, ManyEndpoint<T>> relation = null;
 	
@@ -33,7 +33,7 @@ public class ManyEndpoint<T extends NodeInterface> implements Target<Iterable<Re
 	public Iterable<T> get(SecurityContext securityContext, NodeInterface node) {
 		
 		final NodeFactory<T> nodeFactory  = new NodeFactory<>(securityContext);
-		final Iterable<Relationship> rels = getRaw(node.getNode());
+		final Iterable<Relationship> rels = getRawSource(securityContext, node.getNode());
 		
 		if (rels != null) {
 			
@@ -104,7 +104,12 @@ public class ManyEndpoint<T extends NodeInterface> implements Target<Iterable<Re
 	}
 
 	@Override
-	public Iterable<Relationship> getRaw(final Node dbNode) {
-		return dbNode.getRelationships(relation.getRelationshipType(), Direction.OUTGOING);
+	public Iterable<Relationship> getRawSource(final SecurityContext securityContext, final Node dbNode) {
+		return getMultiple(securityContext, dbNode, relation.getRelationshipType(), Direction.OUTGOING, relation.getTargetType());
+	}
+
+	@Override
+	public boolean hasElements(SecurityContext securityContext, Node dbNode) {
+		return getRawSource(securityContext, dbNode).iterator().hasNext();
 	}
 }

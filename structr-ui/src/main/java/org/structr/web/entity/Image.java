@@ -49,6 +49,7 @@ import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Relation;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.PropertyKey;
+import org.structr.web.entity.relation.Thumbnails;
 import org.structr.web.property.ImageDataProperty;
 import org.structr.web.property.ThumbnailProperty;
 
@@ -141,9 +142,8 @@ public class Image extends File {
 	 *
 	 * @return
 	 */
-	public Iterable<AbstractRelationship> getThumbnailRelationships() {
-
-		return getRelationships(RelType.THUMBNAIL, Direction.OUTGOING);
+	public Iterable<Thumbnails> getThumbnailRelationships() {
+		return getOutgoingRelationships(Thumbnails.class);
 
 	}
 
@@ -190,13 +190,13 @@ public class Image extends File {
 	 */
 	public Image getScaledImage(final int maxWidth, final int maxHeight, final boolean cropToFit) {
 
-		Iterable<AbstractRelationship> thumbnailRelationships = getThumbnailRelationships();
-		final List<Image> oldThumbnails                   = new LinkedList();
-		Image thumbnail                                   = null;
-		final Image originalImage                         = this;
-		Integer origWidth                                 = originalImage.getWidth();
-		Integer origHeight                                = originalImage.getHeight();
-		Long currentChecksum                              = originalImage.getProperty(Image.checksum);
+		Iterable<Thumbnails> thumbnailRelationships = getThumbnailRelationships();
+		final List<Image> oldThumbnails             = new LinkedList();
+		Image thumbnail                             = null;
+		final Image originalImage                   = this;
+		Integer origWidth                           = originalImage.getWidth();
+		Integer origHeight                          = originalImage.getHeight();
+		Long currentChecksum                        = originalImage.getProperty(Image.checksum);
 		final Long newChecksum;
 
 		if (currentChecksum == null || currentChecksum == 0) {
@@ -209,7 +209,7 @@ public class Image extends File {
 
 		if ((origWidth != null) && (origHeight != null) && thumbnailRelationships != null) {
 
-			for (final AbstractRelationship r : thumbnailRelationships) {
+			for (final Thumbnails r : thumbnailRelationships) {
 
 				Integer w = (Integer) r.getProperty(Image.width);
 				Integer h = (Integer) r.getProperty(Image.height);
@@ -288,7 +288,7 @@ public class Image extends File {
 						if (thumbnail != null) {
 
 							// Create a thumbnail relationship
-							AbstractRelationship thumbnailRelationship = createRel.execute(originalImage, thumbnail, RelType.THUMBNAIL, true);
+							Thumbnails thumbnailRelationship = createRel.execute(originalImage, thumbnail, Thumbnails.class);
 							
 							// Thumbnails always have to be removed along with origin image
 							thumbnailRelationship.setProperty(AbstractRelationship.cascadeDelete, Relation.SOURCE_TO_TARGET);
@@ -359,7 +359,7 @@ public class Image extends File {
 	 */
 	public boolean isThumbnail() {
 
-		return getProperty(Image.isThumbnail) || hasRelationship(RelType.THUMBNAIL, Direction.INCOMING);
+		return getProperty(Image.isThumbnail) || getIncomingRelationship(Thumbnails.class) != null;
 
 	}
 

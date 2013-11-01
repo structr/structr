@@ -19,14 +19,13 @@
 package org.structr.web.entity.dom;
 
 
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.PropertyView;
-import org.structr.web.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
 import org.structr.web.entity.Linkable;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
@@ -54,17 +53,21 @@ import org.w3c.dom.Text;
 //~--- JDK imports ------------------------------------------------------------
 
 
-import org.neo4j.graphdb.Direction;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.core.Predicate;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
+import static org.structr.core.entity.AbstractNode.owner;
 import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
-import org.structr.core.property.EndNodes;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.property.RelationProperty;
+import org.structr.core.property.StartNodes;
+import static org.structr.web.entity.Linkable.linkingElements;
+import static org.structr.web.entity.dom.DOMNode.children;
+import org.structr.web.entity.relation.PageLink;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -76,17 +79,21 @@ import org.structr.core.property.PropertyMap;
  */
 public class Page extends DOMNode implements Linkable, Document, DOMImplementation {
 	
-	private static final Logger logger                                      = Logger.getLogger(Page.class.getName());
+	private static final Logger logger                          = Logger.getLogger(Page.class.getName());
 
-	public static final Property<Integer> version                           = new IntProperty("version").indexed();
-	public static final Property<Integer> position                          = new IntProperty("position").indexed();
-	public static final Property<String> contentType                        = new StringProperty("contentType").indexed();
-	public static final Property<Integer> cacheForSeconds                   = new IntProperty("cacheForSeconds");
-	public static final EndNodes<DOMNode> elements                = new EndNodes("elements", DOMNode.class, RelType.PAGE, Direction.INCOMING, true);
-	public static final EndNodes<DOMNode> childElements           = new EndNodes("childElements", DOMNode.class, RelType.CONTAINS, Direction.OUTGOING, true);
+	public static final Property<Integer>       version         = new IntProperty("version").indexed();
+	public static final Property<Integer>       position        = new IntProperty("position").indexed();
+	public static final Property<String>        contentType     = new StringProperty("contentType").indexed();
+	public static final Property<Integer>       cacheForSeconds = new IntProperty("cacheForSeconds");
+	public static final Property<List<DOMNode>> elements        = new StartNodes<>("elements", PageLink.class);
 	
-	public static final org.structr.common.View uiView                      = new org.structr.common.View(Page.class, PropertyView.Ui, childElements, linkingElements, contentType, owner, cacheForSeconds, version, position);
-	public static final org.structr.common.View publicView                  = new org.structr.common.View(Page.class, PropertyView.Public, childElements, linkingElements, contentType, owner, cacheForSeconds, version);
+	public static final org.structr.common.View publicView = new org.structr.common.View(Page.class, PropertyView.Public,
+		children, linkingElements, contentType, owner, cacheForSeconds, version
+	);
+	
+	public static final org.structr.common.View uiView = new org.structr.common.View(Page.class, PropertyView.Ui,
+		children, linkingElements, contentType, owner, cacheForSeconds, version, position
+	);
 
 	private Html5DocumentType docTypeNode                                   = null;
 	
@@ -266,7 +273,8 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 					);
 					
 					// create relationship from ownerDocument to new text element
-					Page.elements.createRelationship(securityContext, Page.this, fragment);
+					((RelationProperty<DOMNode>)Page.elements).addSingleElement(securityContext, Page.this, fragment);
+					// Page.elements.createRelationship(securityContext, Page.this, fragment);
 					
 					return fragment;
 				}
@@ -298,7 +306,8 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 					);
 					
 					// create relationship from ownerDocument to new text element
-					Page.elements.createRelationship(securityContext, Page.this, content);
+					((RelationProperty<DOMNode>)Page.elements).addSingleElement(securityContext, Page.this, content);
+					//Page.elements.createRelationship(securityContext, Page.this, content);
 					
 					return content;
 				}
@@ -328,7 +337,8 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 					);
 					
 					// create relationship from ownerDocument to new text element
-					Page.elements.createRelationship(securityContext, Page.this, content);
+					((RelationProperty<DOMNode>)Page.elements).addSingleElement(securityContext, Page.this, content);
+					//Page.elements.createRelationship(securityContext, Page.this, content);
 					
 					return content;
 				}
@@ -358,7 +368,8 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 					);
 					
 					// create relationship from ownerDocument to new text element
-					Page.elements.createRelationship(securityContext, Page.this, content);
+					((RelationProperty<DOMNode>)Page.elements).addSingleElement(securityContext, Page.this, content);
+					//Page.elements.createRelationship(securityContext, Page.this, content);
 					
 					return content;
 				}
@@ -430,11 +441,16 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 							// recursion inside of a transaction?
 
 							Node child = domNode.getFirstChild();
-							while (child != null) {
 
+							logger.log(Level.INFO, "child is {0}", child);
+							
+							while (child != null) {
+							
 								// do not remove parent for child nodes
 								importNode(child, deep, false);
 								child = child.getNextSibling();
+
+								logger.log(Level.INFO, "sibling is {0}", child);
 							}
 							
 						}

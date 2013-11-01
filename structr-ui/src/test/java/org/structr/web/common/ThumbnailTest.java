@@ -21,8 +21,6 @@
 package org.structr.web.common;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.property.PropertyMap;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.StructrTransaction;
 
 //~--- JDK imports ------------------------------------------------------------

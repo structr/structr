@@ -20,7 +20,6 @@
 
 package org.structr.websocket.command;
 
-import org.neo4j.graphdb.Direction;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
@@ -33,7 +32,6 @@ import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.websocket.message.WebSocketMessage;
-import org.structr.web.common.RelType;
 import org.structr.web.entity.Image;
 import org.structr.common.PagingHelper;
 import org.structr.websocket.StructrWebSocket;
@@ -44,6 +42,7 @@ import org.structr.websocket.message.MessageBuilder;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.web.entity.dom.relationship.DOMChildren;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -72,7 +71,7 @@ public class ListCommand extends AbstractCommand {
 		final SecurityContext securityContext  = getWebSocket().getSecurityContext();
 		String rawType                         = (String) webSocketData.getNodeData().get("type");
 		Class type                             = EntityContext.getEntityClassForRawType(rawType);
-		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+		List<SearchAttribute> searchAttributes = new LinkedList<>();
 		
 		if (type == null) {
 			getWebSocket().send(MessageBuilder.status().code(404).message("Type " + rawType + " not found").build(), true);
@@ -96,7 +95,7 @@ public class ListCommand extends AbstractCommand {
 
 			// do search
 			Result result = (Result) Services.command(securityContext, SearchNodeCommand.class).execute(true, false, searchAttributes, sortProperty, "desc".equals(sortOrder));
-			List<AbstractNode> filteredResults     = new LinkedList<AbstractNode>();
+			List<AbstractNode> filteredResults     = new LinkedList<>();
 			List<? extends GraphObject> resultList = result.getResults();
 
 			// determine which of the nodes have children
@@ -106,7 +105,7 @@ public class ListCommand extends AbstractCommand {
 
 					AbstractNode node = (AbstractNode) obj;
 
-					if (!node.hasRelationship(RelType.CONTAINS, Direction.INCOMING)) {
+					if (!node.hasIncomingRelationships(DOMChildren.class)) {
 
 						filteredResults.add(node);
 					}

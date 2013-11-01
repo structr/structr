@@ -15,5 +15,6 @@ public interface Target<R, T> {
 	
 	public void set(final SecurityContext securityContext, final NodeInterface node, final T value) throws FrameworkException;
 
-	public R getRaw(final Node dbNode);
+	public R getRawSource(final SecurityContext securityContext, final Node dbNode);
+	public boolean hasElements(final SecurityContext securityContext, final Node dbNode);
 }

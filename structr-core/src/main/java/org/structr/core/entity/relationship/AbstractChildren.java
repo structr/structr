@@ -4,25 +4,19 @@ import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.RelType;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.entity.OneToMany;
+import org.structr.core.property.IntProperty;
+import org.structr.core.property.Property;
 
 /**
  *
  * @author Christian Morgner
  */
-public class TreeChild extends OneToMany<LinkedTreeNode, LinkedTreeNode> {
+public abstract class AbstractChildren<S extends LinkedTreeNode, T extends LinkedTreeNode> extends OneToMany<S, T> {
 
-	@Override
-	public Class<LinkedTreeNode> getSourceType() {
-		return LinkedTreeNode.class;
-	}
+	public static final Property<Integer> position = new IntProperty("position").indexed();
 
 	@Override
 	public RelationshipType getRelationshipType() {
 		return RelType.CONTAINS;
-	}
-
-	@Override
-	public Class<LinkedTreeNode> getTargetType() {
-		return LinkedTreeNode.class;
 	}
 }

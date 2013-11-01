@@ -59,7 +59,7 @@ import org.structr.core.property.PropertyMap;
 
 
 /**
- * Bbstract base class for all relationship entities in structr.
+ * Abstract base class for all relationship entities in structr.
  * 
  * @author Axel Morgner
  */
@@ -380,10 +380,11 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 	}
 
+	@Override
 	public T getTargetNode() {
 
 		try {
-			NodeFactory<T> nodeFactory = new NodeFactory<T>(SecurityContext.getSuperUserInstance());
+			NodeFactory<T> nodeFactory = new NodeFactory<>(SecurityContext.getSuperUserInstance());
 			return nodeFactory.instantiate(dbRelationship.getEndNode());
 			
 		} catch (Throwable t) {
@@ -393,11 +394,12 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 		return null;
 	}
 
+	@Override
 	public S getSourceNode() {
 
 		try {
 
-			NodeFactory<S> nodeFactory = new NodeFactory<S>(SecurityContext.getSuperUserInstance());
+			NodeFactory<S> nodeFactory = new NodeFactory<>(SecurityContext.getSuperUserInstance());
 			return nodeFactory.instantiate(dbRelationship.getStartNode());
 			
 		} catch (Throwable t) {
@@ -422,10 +424,15 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 	}
 
+	@Override
 	public RelationshipType getRelType() {
 
-		return dbRelationship.getType();
+		if (dbRelationship != null) {
+			
+			return dbRelationship.getType();
+		}
 
+		return null;
 	}
 
 	/**
@@ -481,8 +488,12 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	@Override
 	public String getType() {
 
-		return getRelType().name();
+		final RelationshipType relType = getRelType();
+		if (relType != null) {
+			return relType.name();
+		}
 
+		return null;
 	}
 	
 	@Override

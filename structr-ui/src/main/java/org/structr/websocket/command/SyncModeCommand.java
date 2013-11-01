@@ -32,8 +32,8 @@ import org.structr.websocket.message.WebSocketMessage;
 
 import java.util.Map;
 
-import org.structr.web.common.RelType;
 import org.structr.core.graph.CreateRelationshipCommand;
+import org.structr.web.entity.relation.Sync;
 import org.structr.websocket.StructrWebSocket;
 
 /**
@@ -62,17 +62,17 @@ public class SyncModeCommand extends AbstractCommand {
 
 			try {
 
-				final CreateRelationshipCommand<?> createRel = Services.command(securityContext, CreateRelationshipCommand.class);
-				StructrTransaction transaction               = new StructrTransaction() {
+				final CreateRelationshipCommand createRel = Services.command(securityContext, CreateRelationshipCommand.class);
+				StructrTransaction transaction            = new StructrTransaction() {
 
 					@Override
 					public Object execute() throws FrameworkException {
 
-						createRel.execute(sourceNode, targetNode, RelType.SYNC, true);
+						createRel.execute(sourceNode, targetNode, Sync.class);
 
 						if (syncMode.equals("bidir")) {
 
-							createRel.execute(targetNode, sourceNode, RelType.SYNC, true);
+							createRel.execute(targetNode, sourceNode, Sync.class);
 						}
 
 						return null;

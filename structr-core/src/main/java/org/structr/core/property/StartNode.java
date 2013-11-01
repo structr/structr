@@ -53,7 +53,7 @@ public class StartNode<S extends NodeInterface, T extends NodeInterface> extends
 	// relationship members
 	private Relation<S, T, OneStartpoint<S>, ? extends Target> relation = null;
 	private Notion notion                                               = null;
-	private Class<T> destType                                           = null;
+	private Class<S> destType                                           = null;
 	
 	/**
 	 * Constructs an entity property with the given name, the given destination type,
@@ -90,7 +90,7 @@ public class StartNode<S extends NodeInterface, T extends NodeInterface> extends
 		}
 
 		this.notion        = notion;
-		this.destType      = relation.getTargetType();
+		this.destType      = relation.getSourceType();
 
 		// configure notion
 		this.notion.setType(destType);

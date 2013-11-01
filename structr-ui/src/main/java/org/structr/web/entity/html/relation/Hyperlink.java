@@ -18,18 +18,17 @@
  */
 
 
-package org.structr.web.entity.relation;
+package org.structr.web.entity.html.relation;
 
+import org.neo4j.graphdb.RelationshipType;
 import org.structr.core.property.Property;
-import org.structr.core.property.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.web.common.RelType;
 import org.structr.common.View;
 import org.structr.core.property.StringProperty;
-import org.structr.core.EntityContext;
-import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.property.IntProperty;
-import org.structr.web.entity.dom.DOMNode;
+import org.structr.core.entity.OneToOne;
+import org.structr.web.entity.Linkable;
+import org.structr.web.entity.html.A;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -37,30 +36,34 @@ import org.structr.web.entity.dom.DOMNode;
  *
  * @author Christian Morgner
  */
-public class ChildrenRelationship extends AbstractRelationship {
+public class Hyperlink extends OneToOne<A, Linkable> {
 
-	public static final Property<String>   parentId = new StringProperty("parentId").indexed();
-	public static final Property<String>   childId  = new StringProperty("childId").indexed();
-	public static final Property<Integer>  position = new IntProperty("position").indexed();
+	public static final Property<String> sourceId = new StringProperty("sourceId");
+	public static final Property<String> targetId = new StringProperty("targetId");
+	public static final Property<String> type     = new StringProperty("type");
 
-	public static final View uiView = new View(ChildrenRelationship.class, PropertyView.Ui,
-		parentId, childId, position
+	public static final View uiView = new View(Hyperlink.class, PropertyView.Ui,
+		sourceId, targetId, type	
 	);
 	
 	static {
 
-		EntityContext.registerNamedRelation("children", ChildrenRelationship.class, DOMNode.class, DOMNode.class, RelType.CONTAINS);
-	}
-
-	//~--- get methods ----------------------------------------------------
-
-	@Override
-	public PropertyKey getStartNodeIdKey() {
-		return parentId;
+		// EntityContext.registerNamedRelation("resource_link", Hyperlink.class, Link.class, Linkable.class, RelType.LINK);
+		// EntityContext.registerNamedRelation("hyperlink", Hyperlink.class, A.class, Linkable.class, RelType.LINK);
 	}
 
 	@Override
-	public PropertyKey getEndNodeIdKey() {
-		return childId;
+	public Class<Linkable> getTargetType() {
+		return Linkable.class;
+	}
+
+	@Override
+	public RelationshipType getRelationshipType() {
+		return RelType.LINK;
+	}
+
+	@Override
+	public Class<A> getSourceType() {
+		return A.class;
 	}
 }

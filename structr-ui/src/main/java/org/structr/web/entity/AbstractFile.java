@@ -21,23 +21,44 @@
 
 package org.structr.web.entity;
 
-import org.neo4j.graphdb.Direction;
 
-import org.structr.web.common.RelType;
+import java.util.List;
 import org.structr.core.entity.LinkedTreeNode;
+import org.structr.core.property.CollectionIdProperty;
+import org.structr.core.property.EndNode;
 import org.structr.core.property.EndNodes;
-import org.structr.core.property.End;
+import org.structr.core.property.EntityIdProperty;
+import org.structr.core.property.Property;
+import org.structr.core.property.StartNode;
+import org.structr.web.entity.relation.FileChildren;
+import org.structr.web.entity.relation.FileSiblings;
+import org.structr.web.entity.relation.Folders;
 
 /**
  * Base class for filesystem objects in structr.
  *
  * @author Christian Morgner
  */
-public class AbstractFile extends LinkedTreeNode {
+public class AbstractFile extends LinkedTreeNode<FileChildren, FileSiblings, AbstractFile> {
+	
+	public static final Property<List<AbstractFile>> children  = new EndNodes<>("children", FileChildren.class);
+	public static final Property<Folder> parent                = new StartNode<>("parent", Folders.class);
+	public static final Property<AbstractFile> previousSibling = new StartNode<>("previousSibling", FileSiblings.class);
+	public static final Property<AbstractFile> nextSibling     = new EndNode<>("nextSibling", FileSiblings.class);
+	 
+	public static final Property<List<String>> childrenIds     = new CollectionIdProperty("childrenIds", children);
+	public static final Property<String> nextSiblingId         = new EntityIdProperty("nextSiblingId", nextSibling);
+ 
+	public static final Property<String> parentId              = new EntityIdProperty("parentId", parent);
 
-	public static final End<AbstractFile> previousSibling = new End<>("previousSibling", AbstractFile.class, RelType.CONTAINS_NEXT_SIBLING, Direction.INCOMING, false);
-	public static final End<AbstractFile> nextSibling     = new End<>("nextSibling", AbstractFile.class, RelType.CONTAINS_NEXT_SIBLING, Direction.OUTGOING, false);
-	public static final EndNodes<AbstractFile> children    = new EndNodes<>("children", AbstractFile.class, RelType.CONTAINS, Direction.OUTGOING, true);
-	public static final End<Folder> parent                = new End<>("parent", Folder.class, RelType.CONTAINS, Direction.INCOMING, true);
-
+	
+	@Override
+	public Class<FileChildren> getChildLinkType() {
+		return FileChildren.class;
+	}
+	
+	@Override
+	public Class<FileSiblings> getSiblingLinkType() {
+		return FileSiblings.class;
+	}
 }

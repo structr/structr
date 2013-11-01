@@ -20,6 +20,7 @@
 
 package org.structr.core.graph;
 
+import java.lang.reflect.Constructor;
 import org.neo4j.graphdb.Relationship;
 
 import org.structr.common.SecurityContext;
@@ -33,6 +34,8 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.GraphObject;
+import org.structr.core.Services;
+import org.structr.core.module.ModuleService;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -144,5 +147,30 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 		factoryProfile.setPublicOnly(publicOnly);
 
 		return instantiate(obj);
+	}
+
+	@Override
+	public T instantiateDummy(final Relationship entity, final String entityType) throws FrameworkException {
+
+		Class<T> relClass = Services.getService(ModuleService.class).getRelationshipEntityClass(entityType);
+		T newRel          = null;
+
+		if (relClass != null) {
+
+			try {
+
+				newRel = relClass.newInstance();
+				newRel.init(factoryProfile.getSecurityContext(), entity);
+
+			} catch (Throwable t) {
+
+				newRel = null;
+
+			}
+
+		}
+
+		return newRel;
+
 	}
 }

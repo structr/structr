@@ -24,7 +24,6 @@ import org.neo4j.graphdb.Node;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
 
 import java.lang.reflect.Constructor;
 
@@ -163,9 +162,10 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 		return super.instantiate(input);
 	}
 
-	public T instantiateDummy(final String nodeType) throws FrameworkException {
+	@Override
+	public T instantiateDummy(final Node entity, final String entityType) throws FrameworkException {
 
-		Class<T> nodeClass = Services.getService(ModuleService.class).getNodeEntityClass(nodeType);
+		Class<T> nodeClass = Services.getService(ModuleService.class).getNodeEntityClass(entityType);
 		T newNode          = null;
 
 		if (nodeClass != null) {
@@ -182,8 +182,8 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 
 				}
 
-				// newNode = (AbstractNode) nodeClass.newInstance();
 				newNode = constructor.newInstance();
+				newNode.init(factoryProfile.getSecurityContext(), entity);
 
 			} catch (Throwable t) {
 

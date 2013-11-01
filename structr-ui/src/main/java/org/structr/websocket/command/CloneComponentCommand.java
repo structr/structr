@@ -21,7 +21,6 @@ package org.structr.websocket.command;
 
 
 import java.util.Map;
-import org.structr.web.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
@@ -29,6 +28,7 @@ import org.structr.core.graph.CreateRelationshipCommand;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.entity.relation.Sync;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -90,8 +90,8 @@ public class CloneComponentCommand extends AbstractCommand {
 
 		try {
 
-			final CreateRelationshipCommand<?> createRel = Services.command(securityContext, CreateRelationshipCommand.class);
-			StructrTransaction transaction               = new StructrTransaction() {
+			final CreateRelationshipCommand createRel = Services.command(securityContext, CreateRelationshipCommand.class);
+			StructrTransaction transaction            = new StructrTransaction() {
 
 				@Override
 				public Object execute() throws FrameworkException {
@@ -101,8 +101,8 @@ public class CloneComponentCommand extends AbstractCommand {
 					parentNode.appendChild(clonedNode);
 					//clonedNode.setProperty(DOMNode.parent, parentNode);
 
-					createRel.execute(node, clonedNode, RelType.SYNC, true);
-					createRel.execute(clonedNode, node, RelType.SYNC, true);
+					createRel.execute(node, clonedNode, Sync.class);
+					createRel.execute(clonedNode, node, Sync.class);
 
 					return null;
 

@@ -34,7 +34,6 @@ import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
 import org.structr.common.Path;
 import org.structr.common.PropertyView;
-import org.structr.web.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
@@ -70,6 +69,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.lang.WordUtils;
 import org.structr.core.property.BooleanProperty;
+import org.structr.web.entity.relation.Folders;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -537,7 +537,7 @@ public class Importer {
 
 					if (parent != null) {
 
-						createRel.execute(parent, fileNode, RelType.CONTAINS);
+						createRel.execute(parent, fileNode, Folders.class);
 					}
 
 					if (contentType.equals("text/css")) {
@@ -588,7 +588,7 @@ public class Importer {
 
 			if (parent != null) {
 
-				createRel.execute(parent, folder, RelType.CONTAINS);
+				createRel.execute(parent, folder, Folders.class);
 			}
 
 			folder.updateInIndex();

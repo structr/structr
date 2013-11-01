@@ -23,7 +23,6 @@ import java.util.Locale;
 import javax.servlet.http.HttpServletRequest;
 import static junit.framework.TestCase.assertEquals;
 import org.jsoup.Jsoup;
-import org.structr.web.common.RelType;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.web.entity.File;
@@ -36,9 +35,10 @@ import org.w3c.dom.Element;
 import static org.mockito.Mockito.*;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.entity.User;
+import org.structr.web.entity.relation.FileChildren;
+import org.structr.web.entity.relation.RenderNode;
 
 /**
  * Test to render data mixed with markup
@@ -79,20 +79,20 @@ public class RenderDataTest extends DOMTest {
 					File file6    = files.get(5); file6.setProperty(AbstractNode.name, "file6");
 					File file7    = files.get(6); file7.setProperty(AbstractNode.name, "file7");
 
-					rootNode.treeAppendChild(RelType.CONTAINS, folderA);
-					rootNode.treeAppendChild(RelType.CONTAINS, folderB);
-					rootNode.treeAppendChild(RelType.CONTAINS, file1);
-					rootNode.treeAppendChild(RelType.CONTAINS, file2);
+					rootNode.treeAppendChild(FileChildren.class, folderA);
+					rootNode.treeAppendChild(FileChildren.class, folderB);
+					rootNode.treeAppendChild(FileChildren.class, file1);
+					rootNode.treeAppendChild(FileChildren.class, file2);
 
-					folderA.treeAppendChild(RelType.CONTAINS, folderC);
-					folderA.treeAppendChild(RelType.CONTAINS, folderD);
-					folderA.treeAppendChild(RelType.CONTAINS, file3);
-					folderA.treeAppendChild(RelType.CONTAINS, file4);
+					folderA.treeAppendChild(FileChildren.class, folderC);
+					folderA.treeAppendChild(FileChildren.class, folderD);
+					folderA.treeAppendChild(FileChildren.class, file3);
+					folderA.treeAppendChild(FileChildren.class, file4);
 
-					folderB.treeAppendChild(RelType.CONTAINS, folderE);
-					folderB.treeAppendChild(RelType.CONTAINS, folderF);
-					folderB.treeAppendChild(RelType.CONTAINS, file5);
-					folderB.treeAppendChild(RelType.CONTAINS, file6);
+					folderB.treeAppendChild(FileChildren.class, folderE);
+					folderB.treeAppendChild(FileChildren.class, folderF);
+					folderB.treeAppendChild(FileChildren.class, file5);
+					folderB.treeAppendChild(FileChildren.class, file6);
 
 
 					// create dom tree
@@ -121,7 +121,7 @@ public class RenderDataTest extends DOMTest {
 					// create RENDER_NODE relationship between first ul and rootNode
 					PropertyMap properties = new PropertyMap();
 					//properties.put(LinkedListNode.keyProperty, key);
-					Services.command(securityContext, CreateRelationshipCommand.class).execute((DOMElement)div, rootNode, RelType.RENDER_NODE, properties, false);
+					Services.command(securityContext, CreateRelationshipCommand.class).execute((DOMElement)div, rootNode, RenderNode.class, properties);
 
 					((DOMElement) div).setProperty(DOMElement.dataKey, "root");
 

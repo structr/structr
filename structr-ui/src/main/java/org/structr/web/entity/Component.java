@@ -89,82 +89,17 @@ public class Component extends DOMElement {
 		try {
 
 			DeleteNodeCommand deleteCommand = Services.command(securityContext, DeleteNodeCommand.class);
-			boolean cascade                 = true;
 
 			for (AbstractNode contentNode : contentNodes.values()) {
 
-				deleteCommand.execute(contentNode, cascade);
+				deleteCommand.execute(contentNode);
 
 			}
-
-			// delete linked components
-//                      for(AbstractRelationship rel : getRelationships(RelType.DATA, Direction.INCOMING)) {
-//                              deleteCommand.execute(rel.getStartNode());
-//                      }
 
 		} catch (Throwable t) {
 			logger.log(Level.SEVERE, "Exception while deleting nested Components: {0}", t.getMessage());
 		}
 	}
-
-	// ----- private methods ----
-	/*
-	private void collectProperties(AbstractNode startNode, String componentId, int depth, AbstractRelationship ref) {
-
-		if (depth > MAX_DEPTH) {
-
-			return;
-
-		}
-
-		if (ref != null) {
-
-			if (componentId.equals(ref.getProperty(Component.componentId))) {
-
-				String dataKey = startNode.getProperty(Content.dataKey);
-
-				if (dataKey != null) {
-
-					contentNodes.put(dataKey, startNode);
-
-					return;
-
-				}
-
-			}
-
-		}
-
-		// collection of properties must not depend on page
-		for (AbstractRelationship rel : getChildRelationships(null, startNode, null, componentId)) {
-
-			AbstractNode endNode = rel.getEndNode();
-
-			if (endNode == null) {
-
-				continue;
-
-			}
-
-			if (endNode instanceof Component) {
-
-				String subType = endNode.getProperty(Component.kind);
-
-				if (subType != null) {
-
-					subTypes.add(subType);
-
-				}
-
-			} else {
-
-				collectProperties(endNode, componentId, depth + 1, rel);
-
-			}
-
-		}
-	}
-	*/
 	
 	private void collectChildren(List<Component> children, DOMNode startNode, int depth, AbstractRelationship ref) {
 

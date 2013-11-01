@@ -52,7 +52,7 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 
 	private Relation<S, T, ? extends Source, ManyEndpoint<T>> relation = null;
 	private Notion notion                                              = null;
-	private Class destType                                             = null;
+	private Class<T> destType                                          = null;
 	
 	/**
 	 * Constructs a collection property with the given name, the given destination type and the given relationship type.

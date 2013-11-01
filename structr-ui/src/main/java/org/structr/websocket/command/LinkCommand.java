@@ -24,7 +24,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.web.entity.Linkable;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.websocket.message.MessageBuilder;
@@ -33,7 +32,9 @@ import org.structr.websocket.message.WebSocketMessage;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.Map;
+import org.structr.core.graph.CreateRelationshipCommand;
 import org.structr.web.entity.html.Link;
+import org.structr.web.entity.html.relation.ResourceLink;
 import org.structr.websocket.StructrWebSocket;
 
 //~--- classes ----------------------------------------------------------------
@@ -68,7 +69,8 @@ public class LinkCommand extends AbstractCommand {
 					@Override
 					public Object execute() throws FrameworkException {
 
-						Link.linkable.createRelationship(securityContext, sourceNode, targetNode);
+						Services.command(securityContext, CreateRelationshipCommand.class).execute(sourceNode, targetNode, ResourceLink.class);
+						// Link.linkable.createRelationship(securityContext, sourceNode, targetNode);
 
 						return null;
 					}
