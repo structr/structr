@@ -1,7 +1,7 @@
 package org.structr.web.entity.relation;
 
 import org.neo4j.graphdb.RelationshipType;
-import org.structr.core.entity.ManyToOne;
+import org.structr.core.entity.OneToMany;
 import org.structr.web.common.RelType;
 import org.structr.web.entity.Image;
 import org.structr.web.entity.Widget;
@@ -10,16 +10,16 @@ import org.structr.web.entity.Widget;
  *
  * @author Christian Morgner
  */
-public class WidgetImage extends ManyToOne<Image, Widget> {
+public class ImageWidget extends OneToMany<Widget, Image> {
 
 	@Override
-	public Class<Widget> getTargetType() {
-		return Widget.class;
+	public Class<Image> getTargetType() {
+		return Image.class;
 	}
 
 	@Override
-	public Class<Image> getSourceType() {
-		return Image.class;
+	public Class<Widget> getSourceType() {
+		return Widget.class;
 	}
 
 	@Override

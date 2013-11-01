@@ -23,6 +23,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.EndNode;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
+import org.structr.core.property.StartNode;
 
 /**
  *
@@ -34,5 +35,5 @@ public class TestFour extends AbstractNode {
 	public static final Property<List<TestOne>> oneToManyTestOnes  = new EndNodes<>("oneToManyTestOnes",  FourOneOneToMany.class);
 	
 	public static final Property<TestThree>     oneToOneTestThree  = new EndNode<>("oneToOneTestThree",  FourThreeOneToOne.class);
-	public static final Property<TestThree>     manyToOneTestThree = new EndNode<>("manyToOneTestThree", FourThreeManyToOne.class);
+	public static final Property<TestThree>     manyToOneTestThree = new StartNode<>("manyToOneTestThree", ThreeFourOneToMany.class);
 }

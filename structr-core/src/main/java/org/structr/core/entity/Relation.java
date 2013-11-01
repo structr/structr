@@ -78,5 +78,5 @@ public interface Relation<A extends NodeInterface, B extends NodeInterface, S ex
 
 	public int getCascadingDeleteFlag();
 	
-	public void checkMultiplicity(final NodeInterface sourceNode, final NodeInterface targetNode) throws FrameworkException;
+	public void ensureCardinality(final NodeInterface sourceNode, final NodeInterface targetNode) throws FrameworkException;
 }
