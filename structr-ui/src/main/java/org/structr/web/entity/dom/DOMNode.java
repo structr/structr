@@ -148,7 +148,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 	public static final Property<String> parentId                           = new EntityIdProperty("parentId", parent);
 
-	public static final Property<Page> ownerDocument                        = new EndNode<>("ownerDocument", PageLink.class);
+	public static final Property<Page> ownerDocument                        = new StartNode<>("ownerDocument", PageLink.class);
 	public static final Property<String> pageId                             = new EntityIdProperty("pageId", ownerDocument);
 
 

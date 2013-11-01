@@ -92,7 +92,7 @@ public class ManyStartpoint<S extends NodeInterface> extends AbstractEndpoint im
 				// create new relationships
 				for (S sourceNode : toBeCreated) {
 
-					relation.checkMultiplicity(sourceNode, targetNode);
+					relation.ensureCardinality(sourceNode, targetNode);
 					
 					create.execute(sourceNode, targetNode, relation.getClass());
 				}

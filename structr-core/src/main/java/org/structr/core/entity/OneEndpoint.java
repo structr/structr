@@ -46,7 +46,7 @@ public class OneEndpoint<T extends NodeInterface> extends AbstractEndpoint imple
 			public Object execute() throws FrameworkException {
 
 				// let relation check multiplicity
-				relation.checkMultiplicity(sourceNode, targetNode);
+				relation.ensureCardinality(sourceNode, targetNode);
 				
 				// create new relationship
 				Services.command(securityContext, CreateRelationshipCommand.class).execute(sourceNode, targetNode, relation.getClass());

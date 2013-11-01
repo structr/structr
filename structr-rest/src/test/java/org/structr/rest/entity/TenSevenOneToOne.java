@@ -1,18 +1,18 @@
 package org.structr.rest.entity;
 
 import org.neo4j.graphdb.RelationshipType;
-import org.structr.core.entity.ManyToOne;
+import org.structr.core.entity.OneToOne;
 import org.structr.rest.common.TestRestRelType;
 
 /**
  *
  * @author Christian Morgner
  */
-public class SixSevenManyToOne extends ManyToOne<TestSix, TestSeven> {
+public class TenSevenOneToOne extends OneToOne<TestTen, TestSeven> {
 
 	@Override
-	public Class<TestSix> getSourceType() {
-		return TestSix.class;
+	public Class<TestTen> getSourceType() {
+		return TestTen.class;
 	}
 
 	@Override
@@ -24,5 +24,4 @@ public class SixSevenManyToOne extends ManyToOne<TestSix, TestSeven> {
 	public RelationshipType getRelationshipType() {
 		return TestRestRelType.HAS;
 	}
-
 }

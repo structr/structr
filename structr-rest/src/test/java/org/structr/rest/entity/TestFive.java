@@ -27,6 +27,7 @@ import org.structr.core.notion.PropertyNotion;
 import org.structr.core.property.EndNode;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
+import org.structr.core.property.StartNode;
 
 /**
  *
@@ -38,7 +39,7 @@ public class TestFive extends AbstractNode {
 	public static final Property<List<TestOne>> oneToManyTestOnes  = new EndNodes<>("oneToManyTestOnes",  FiveOneOneToMany.class, new PropertyNotion(uuid));
 	
 	public static final Property<TestThree>     oneToOneTestThree  = new EndNode<>("oneToOneTestThree",  FiveThreeOneToOne.class);
-	public static final Property<TestThree>     manyToOneTestThree = new EndNode<>("manyToOneTestThree", FiveThreeManyToOne.class);
+	public static final Property<TestThree>     manyToOneTestThree = new StartNode<>("manyToOneTestThree", ThreeFiveOneToMany.class);
 	
 	static {
 		

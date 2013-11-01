@@ -24,11 +24,11 @@ import org.structr.common.View;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.notion.PropertyNotion;
 import org.structr.core.property.CollectionNotionProperty;
-import org.structr.core.property.EndNode;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.EntityNotionProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
+import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
 
 /**
@@ -37,7 +37,7 @@ import org.structr.core.property.StringProperty;
  */
 public class TestSix extends AbstractNode {
 
-	public static final Property<TestSeven>       testSeven        = new EndNode<>("testSeven", SixSevenManyToOne.class);
+	public static final Property<TestSeven>       testSeven        = new StartNode<>("testSeven", SevenSixOneToMany.class);
 	public static final Property<String>          testSevenName    = new EntityNotionProperty("testSevenName", testSeven, new PropertyNotion(TestSeven.name));
 	
 	public static final Property<List<TestEight>> testEights       = new EndNodes<>("testEights", SixEightManyToMany.class);

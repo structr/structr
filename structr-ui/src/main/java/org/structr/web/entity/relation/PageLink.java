@@ -25,7 +25,7 @@ import org.structr.core.property.Property;
 import org.structr.common.PropertyView;
 import org.structr.web.common.RelType;
 import org.structr.common.View;
-import org.structr.core.entity.ManyToOne;
+import org.structr.core.entity.OneToMany;
 import org.structr.core.property.StringProperty;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
@@ -36,7 +36,7 @@ import org.structr.web.entity.dom.Page;
  *
  * @author Christian Morgner
  */
-public class PageLink extends ManyToOne<DOMNode, Page> {
+public class PageLink extends OneToMany<Page, DOMNode> {
 
 	public static final Property<String> sourceId = new StringProperty("sourceId");
 	public static final Property<String> targetId = new StringProperty("targetId");
@@ -53,17 +53,17 @@ public class PageLink extends ManyToOne<DOMNode, Page> {
 	}
 
 	@Override
-	public Class<Page> getTargetType() {
-		return Page.class;
+	public Class<DOMNode> getTargetType() {
+		return DOMNode.class;
 	}
 
 	@Override
 	public RelationshipType getRelationshipType() {
-		return RelType.LINK;
+		return RelType.PAGE;
 	}
 
 	@Override
-	public Class<DOMNode> getSourceType() {
-		return DOMNode.class;
+	public Class<Page> getSourceType() {
+		return Page.class;
 	}
 }
