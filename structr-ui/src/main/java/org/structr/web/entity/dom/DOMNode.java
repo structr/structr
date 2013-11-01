@@ -334,19 +334,18 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 				Double result = 0.0d;
 
 				if (s != null) {
-
-					for (int i = 0; i < s.length; i++) {
+					
+					for (String i : s) {
 
 						try {
-
-							result += Double.parseDouble(s[i]);
-
-						} catch (Throwable t) {
 						
+							result += Double.parseDouble(i);
+						
+						} catch (Throwable t) {
+							
 							return t.getMessage();
 
 						}
-
 					}
 
 				}
@@ -397,19 +396,18 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 				Double result = 1.0d;
 
 				if (s != null) {
-
-					for (int i = 0; i < s.length; i++) {
-
-						try {
-
-							result *= Double.parseDouble(s[i]);
-
-						} catch (Throwable t) {
+					
+					for (String i : s) {
 						
+						try {
+							
+							result *= Double.parseDouble(i);
+							
+						} catch (Throwable t) {
+							
 							return t.getMessage();
 
 						}
-
 					}
 
 				}
@@ -610,7 +608,54 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 			@Override
 			public String apply(String[] b) {
 				
-				return b[0].equals("true") && b[1].equals("true") ? "true" : "false";
+				boolean result = true;
+				
+				if (b != null) {
+					
+					for (String i : b) {
+						
+						try {
+							
+							result &= "true".equals(i);
+							
+						} catch (Throwable t) {
+							
+							return t.getMessage();
+
+						}
+					}
+
+				}
+				
+				return Boolean.toString(result);
+			}
+
+		});
+		functions.put("or", new Function<String, String>() {
+
+			@Override
+			public String apply(String[] b) {
+				
+				boolean result = false;
+				
+				if (b != null) {
+					
+					for (String i : b) {
+						
+						try {
+							
+							result |= "true".equals(i);
+							
+						} catch (Throwable t) {
+							
+							return t.getMessage();
+
+						}
+					}
+
+				}
+				
+				return Boolean.toString(result);
 			}
 
 		});
