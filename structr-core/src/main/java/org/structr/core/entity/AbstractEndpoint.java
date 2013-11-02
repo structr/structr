@@ -1,6 +1,8 @@
 package org.structr.core.entity;
 
 import java.util.Iterator;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
@@ -18,6 +20,8 @@ import org.structr.core.graph.NodeInterface;
  */
 public abstract class AbstractEndpoint {
 
+	private static final Logger logger = Logger.getLogger(AbstractEndpoint.class.getName());
+	
 	public Relationship getSingle(final SecurityContext securityContext, final Node dbNode, final RelationshipType relationshipType, final Direction direction, final Class otherNodeType) {
 		
 		final Iterable<Relationship> rels     = getMultiple(securityContext, dbNode, relationshipType, direction, otherNodeType);
@@ -55,6 +59,8 @@ public abstract class AbstractEndpoint {
 				final NodeInterface otherNode = nodeFactory.instantiate(item.getOtherNode(thisNode));
 				
 				final Class otherNodeType     = otherNode.getClass();
+				
+				logger.log(Level.INFO, "Checking relationship {0}-[{1}]->{2}", new Object[] {  item.getStartNode().getProperty("type"), item.getType(), item.getEndNode().getProperty("type") } );
 				
 				return desiredType.isAssignableFrom(otherNodeType) || otherNodeType.isAssignableFrom(desiredType);
 				

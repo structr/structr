@@ -1,6 +1,5 @@
 package org.structr.core.entity;
 
-import org.structr.common.error.CardinalityToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.graph.DeleteRelationshipCommand;
