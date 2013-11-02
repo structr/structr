@@ -79,20 +79,20 @@ public class RenderDataTest extends DOMTest {
 					File file6    = files.get(5); file6.setProperty(AbstractNode.name, "file6");
 					File file7    = files.get(6); file7.setProperty(AbstractNode.name, "file7");
 
-					rootNode.treeAppendChild(FileChildren.class, folderA);
-					rootNode.treeAppendChild(FileChildren.class, folderB);
-					rootNode.treeAppendChild(FileChildren.class, file1);
-					rootNode.treeAppendChild(FileChildren.class, file2);
+					rootNode.treeAppendChild(folderA);
+					rootNode.treeAppendChild(folderB);
+					rootNode.treeAppendChild(file1);
+					rootNode.treeAppendChild(file2);
 
-					folderA.treeAppendChild(FileChildren.class, folderC);
-					folderA.treeAppendChild(FileChildren.class, folderD);
-					folderA.treeAppendChild(FileChildren.class, file3);
-					folderA.treeAppendChild(FileChildren.class, file4);
+					folderA.treeAppendChild(folderC);
+					folderA.treeAppendChild(folderD);
+					folderA.treeAppendChild(file3);
+					folderA.treeAppendChild(file4);
 
-					folderB.treeAppendChild(FileChildren.class, folderE);
-					folderB.treeAppendChild(FileChildren.class, folderF);
-					folderB.treeAppendChild(FileChildren.class, file5);
-					folderB.treeAppendChild(FileChildren.class, file6);
+					folderB.treeAppendChild(folderE);
+					folderB.treeAppendChild(folderF);
+					folderB.treeAppendChild(file5);
+					folderB.treeAppendChild(file6);
 
 
 					// create dom tree

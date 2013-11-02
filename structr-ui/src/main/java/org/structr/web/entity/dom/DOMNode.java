@@ -761,11 +761,11 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	@Override
 	public String toString() {
 		
-		return getClass().getSimpleName() + " [" + getUuid() + "] (" + getTextContent() + ", " + treeGetChildPosition(DOMChildren.class, this) + ")";
+		return getClass().getSimpleName() + " [" + getUuid() + "] (" + getTextContent() + ", " + treeGetChildPosition(this) + ")";
 	}
 
 	public List<DOMChildren> getChildRelationships() {
-		return treeGetChildRelationships(DOMChildren.class);
+		return treeGetChildRelationships();
 	}
 
 	
@@ -778,7 +778,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			
 			DOMNode parentNode = (DOMNode) currentNode.getParentNode();
 			
-			path = "/" + parentNode.treeGetChildPosition(DOMChildren.class, currentNode) + path;
+			path = "/" + parentNode.treeGetChildPosition(currentNode) + path;
 			
 			currentNode = parentNode;
 			
@@ -1724,17 +1724,17 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		
 		checkReadAccess();
 		
-		return new DOMNodeList(treeGetChildren(DOMChildren.class));
+		return new DOMNodeList(treeGetChildren());
 	}
 
 	@Override
 	public Node getFirstChild() {
-		return treeGetFirstChild(DOMChildren.class);
+		return treeGetFirstChild();
 	}
 
 	@Override
 	public Node getLastChild() {
-		return treeGetLastChild(DOMChildren.class);
+		return treeGetLastChild();
 	}
 
 	@Override
@@ -1806,7 +1806,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 					_parent.removeChild(newChild);
 				}
 
-				treeInsertBefore(DOMChildren.class, (DOMNode)newChild, (DOMNode)refChild);
+				treeInsertBefore((DOMNode)newChild, (DOMNode)refChild);
 				
 				// allow parent to set properties in new child
 				handleNewChild(newChild);
@@ -1873,7 +1873,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 				}
 
 				// replace directly
-				treeReplaceChild(DOMChildren.class, (DOMNode)newChild, (DOMNode)oldChild);
+				treeReplaceChild((DOMNode)newChild, (DOMNode)oldChild);
 				
 				// allow parent to set properties in new child
 				handleNewChild(newChild);
@@ -1896,7 +1896,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		
 		try {
 			
-			treeRemoveChild(DOMChildren.class, (DOMNode)node);
+			treeRemoveChild((DOMNode)node);
 
 		} catch (FrameworkException fex) {
 
@@ -1952,7 +1952,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 					_parent.removeChild(newChild);
 				}
 			
-				treeAppendChild(DOMChildren.class, (DOMNode)newChild);
+				treeAppendChild((DOMNode)newChild);
 				
 				// allow parent to set properties in new child
 				handleNewChild(newChild);

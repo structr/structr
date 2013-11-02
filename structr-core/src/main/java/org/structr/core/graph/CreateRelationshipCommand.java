@@ -82,7 +82,7 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 				final T newRel                       = factory.instantiateWithType(rel, relType, true);
 				final Date now                       = new Date();
 
-				logger.log(Level.INFO, "CREATING relationship {0}-[{1}]->{2}", new Object[] {  fromNode.getType(), newRel.getRelType(), toNode.getType() } );
+				// logger.log(Level.INFO, "CREATING relationship {0}-[{1}]->{2}", new Object[] {  fromNode.getType(), newRel.getRelType(), toNode.getType() } );
 				
 				if (newRel != null) {
 
