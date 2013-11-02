@@ -224,7 +224,7 @@ public class StartNodes<S extends NodeInterface, T extends NodeInterface> extend
 
 			try {
 
-				for (Relationship rel : dbNode.getRelationships(relation.getRelationshipType(), Direction.OUTGOING)) {
+				for (Relationship rel : dbNode.getRelationships(relation, Direction.OUTGOING)) {
 
 					value = nodeFactory.instantiate(rel.getOtherNode(dbNode));
 

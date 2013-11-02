@@ -1,7 +1,5 @@
 package org.structr.core.entity.relationship;
 
-import org.neo4j.graphdb.RelationshipType;
-import org.structr.common.RelType;
 import org.structr.core.entity.OneToMany;
 import org.structr.core.entity.PropertyAccess;
 import org.structr.core.entity.ResourceAccess;
@@ -18,8 +16,8 @@ public class Access extends OneToMany<ResourceAccess, PropertyAccess> {
 	}
 
 	@Override
-	public RelationshipType getRelationshipType() {
-		return RelType.PROPERTY_ACCESS;
+	public String name() {
+		return "PROPERTY_ACCESS";
 	}
 
 	@Override

@@ -77,7 +77,7 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 
 	@Override
 	public T instantiate(final Node node) throws FrameworkException {
-		return instantiateWithType(node, factoryDefinition.determineNodeType(node), false);
+		return (T) instantiateWithType(node, factoryDefinition.determineNodeType(node), false);
 	}
 
 	@Override

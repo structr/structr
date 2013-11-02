@@ -243,8 +243,8 @@ public class Security extends ManyToMany<Principal, NodeInterface> {
 	}
 
 	@Override
-	public RelationshipType getRelationshipType() {
-		return RelType.SECURITY;
+	public String name() {
+		return "SECURITY";
 	}
 
 	@Override

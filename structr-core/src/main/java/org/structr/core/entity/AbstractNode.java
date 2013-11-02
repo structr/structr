@@ -666,7 +666,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		
 		final RelationshipFactory<R> factory = new RelationshipFactory<>(securityContext);
 		final R template                     = getRelationshipForType(type);
-		final RelationshipType relType       = template.getRelationshipType();
+		final RelationshipType relType       = template;
 	
 		return new IterableAdapter<>(dbNode.getRelationships(relType), factory);
 	}

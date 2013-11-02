@@ -1,8 +1,6 @@
 package org.structr.web.entity.relation;
 
-import org.neo4j.graphdb.RelationshipType;
 import org.structr.core.entity.OneToOne;
-import org.structr.web.common.RelType;
 import org.structr.web.entity.Image;
 import org.structr.web.entity.User;
 
@@ -23,7 +21,7 @@ public class UserImage extends OneToOne<Image, User> {
 	}
 
 	@Override
-	public RelationshipType getRelationshipType() {
-		return RelType.PICTURE_OF;
+	public String name() {
+		return "PICTURE_OF";
 	}
 }

@@ -1,9 +1,7 @@
 package org.structr.web.entity.relation;
 
-import org.neo4j.graphdb.RelationshipType;
 import org.structr.core.entity.ManyToMany;
 import org.structr.core.entity.Principal;
-import org.structr.web.common.RelType;
 import org.structr.web.entity.Group;
 
 /**
@@ -23,7 +21,7 @@ public class Groups extends ManyToMany<Group, Principal> {
 	}
 
 	@Override
-	public RelationshipType getRelationshipType() {
-		return RelType.CONTAINS;
+	public String name() {
+		return "CONTAINS";
 	}
 }

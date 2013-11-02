@@ -81,7 +81,7 @@ public class ManyEndpoint<T extends NodeInterface> extends AbstractEndpoint impl
 
 					for (AbstractRelationship rel : sourceNode.getOutgoingRelationships()) {
 						
-						if (rel.getRelType().equals(relation.getRelationshipType()) && rel.getTargetNode().equals(targetNode)) {
+						if (rel.getRelType().equals(relation) && rel.getTargetNode().equals(targetNode)) {
 							
 							delete.execute(rel);
 						}
@@ -105,7 +105,7 @@ public class ManyEndpoint<T extends NodeInterface> extends AbstractEndpoint impl
 
 	@Override
 	public Iterable<Relationship> getRawSource(final SecurityContext securityContext, final Node dbNode) {
-		return getMultiple(securityContext, dbNode, relation.getRelationshipType(), Direction.OUTGOING, relation.getTargetType());
+		return getMultiple(securityContext, dbNode, relation, Direction.OUTGOING, relation.getTargetType());
 	}
 
 	@Override

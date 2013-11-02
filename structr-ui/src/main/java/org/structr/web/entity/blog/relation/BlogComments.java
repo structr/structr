@@ -27,11 +27,9 @@ import org.structr.core.EntityContext;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
-import org.neo4j.graphdb.RelationshipType;
 import org.structr.core.entity.OneToMany;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
-import org.structr.web.common.RelType;
 import org.structr.web.entity.dom.DOMElement;
 
 //~--- classes ----------------------------------------------------------------
@@ -92,8 +90,8 @@ public class BlogComments extends OneToMany<DOMElement, BlogComment> {
 	}
 
 	@Override
-	public RelationshipType getRelationshipType() {
-		return RelType.COMMENT;
+	public String name() {
+		return "COMMENT";
 	}
 
 }

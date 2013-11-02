@@ -1,8 +1,6 @@
 package org.structr.web.entity.relation;
 
-import org.neo4j.graphdb.RelationshipType;
 import org.structr.core.entity.OneToOne;
-import org.structr.web.common.RelType;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.User;
 
@@ -23,7 +21,7 @@ public class UserHomeDir extends OneToOne<User, Folder> {
 	}
 
 	@Override
-	public RelationshipType getRelationshipType() {
-		return RelType.HOME_DIR;
+	public String name() {
+		return "HOME_DIR";
 	}
 }

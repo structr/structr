@@ -1,7 +1,5 @@
 package org.structr.core.entity.relationship;
 
-import org.neo4j.graphdb.RelationshipType;
-import org.structr.common.RelType;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.entity.OneToMany;
 import org.structr.core.property.IntProperty;
@@ -16,7 +14,7 @@ public abstract class AbstractChildren<S extends LinkedTreeNode, T extends Linke
 	public static final Property<Integer> position = new IntProperty("position").indexed();
 
 	@Override
-	public RelationshipType getRelationshipType() {
-		return RelType.CONTAINS;
+	public String name() {
+		return "CONTAINS";
 	}
 }

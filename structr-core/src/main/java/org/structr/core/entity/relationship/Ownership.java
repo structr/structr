@@ -1,7 +1,5 @@
 package org.structr.core.entity.relationship;
 
-import org.neo4j.graphdb.RelationshipType;
-import org.structr.common.RelType;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.OneToMany;
 import org.structr.core.entity.Principal;
@@ -18,8 +16,8 @@ public class Ownership extends OneToMany<Principal, AbstractNode> {
 	}
 
 	@Override
-	public RelationshipType getRelationshipType() {
-		return RelType.OWNS;
+	public String name() {
+		return "OWNS";
 	}
 
 	@Override

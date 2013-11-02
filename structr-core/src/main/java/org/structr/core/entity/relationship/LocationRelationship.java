@@ -1,7 +1,5 @@
 package org.structr.core.entity.relationship;
 
-import org.neo4j.graphdb.RelationshipType;
-import org.structr.common.RelType;
 import org.structr.core.entity.ManyToMany;
 import org.structr.core.graph.NodeInterface;
 
@@ -17,8 +15,8 @@ public class LocationRelationship extends ManyToMany<NodeInterface, NodeInterfac
 	}
 
 	@Override
-	public RelationshipType getRelationshipType() {
-		return RelType.IS_AT;
+	public String name() {
+		return "IS_AT";
 	}
 
 	@Override

@@ -1,9 +1,7 @@
 package org.structr.web.entity.news.relation;
 
-import org.neo4j.graphdb.RelationshipType;
 import org.structr.core.entity.OneToMany;
 import org.structr.core.entity.Principal;
-import org.structr.web.common.RelType;
 import org.structr.web.entity.news.NewsTickerItem;
 
 /**
@@ -23,7 +21,7 @@ public class NewsAuthor extends OneToMany<Principal, NewsTickerItem> {
 	}
 
 	@Override
-	public RelationshipType getRelationshipType() {
-		return RelType.AUTHOR;
+	public String name() {
+		return "AUTHOR";
 	}
 }

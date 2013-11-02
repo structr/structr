@@ -183,7 +183,7 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 			if (rel != null) {
 				
 				final String sourceTypeName = rel.getSourceType().getSimpleName();
-				final String relTypeName    = rel.getRelationshipType().name();
+				final String relTypeName    = rel.name();
 				final String targetTypeName = rel.getTargetType().getSimpleName();
 				
 				if (sourceType.equals(sourceTypeName) && relType.equals(relTypeName) && targetType.equals(targetTypeName)) {

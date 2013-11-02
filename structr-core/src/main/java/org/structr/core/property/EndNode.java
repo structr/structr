@@ -226,7 +226,7 @@ public class EndNode<S extends NodeInterface, T extends NodeInterface> extends P
 
 			try {
 
-				for (Relationship rel : dbNode.getRelationships(relation.getRelationshipType(), Direction.INCOMING)) {
+				for (Relationship rel : dbNode.getRelationships(relation, Direction.INCOMING)) {
 
 					value = nodeFactory.instantiate(rel.getOtherNode(dbNode));
 

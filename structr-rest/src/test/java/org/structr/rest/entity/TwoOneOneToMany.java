@@ -1,8 +1,6 @@
 package org.structr.rest.entity;
 
-import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.PropertyView;
-import org.structr.common.RelType;
 import org.structr.common.View;
 import org.structr.core.entity.OneToMany;
 import org.structr.core.property.ArrayProperty;
@@ -46,8 +44,8 @@ public class TwoOneOneToMany extends OneToMany<TestTwo, TestOne> {
 	}
 
 	@Override
-	public RelationshipType getRelationshipType() {
-		return RelType.OWNS;
+	public String name() {
+		return "OWNS";
 	}
 
 }

@@ -57,7 +57,7 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 
 	@Override
 	public T instantiate(final Relationship relationship) throws FrameworkException {
-		return instantiateWithType(relationship, factoryDefinition.determineRelationshipType(relationship), false);
+		return (T) instantiateWithType(relationship, factoryDefinition.determineRelationshipType(relationship), false);
 	}
 
 	@Override

@@ -1,7 +1,5 @@
 package org.structr.core.entity.relationship;
 
-import org.neo4j.graphdb.RelationshipType;
-import org.structr.common.RelType;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.OneToMany;
@@ -18,8 +16,8 @@ public class Parentship extends OneToMany<AbstractNode, AbstractNode> {
 	}
 
 	@Override
-	public RelationshipType getRelationshipType() {
-		return RelType.CONTAINS;
+	public String name() {
+		return "CONTAINS";
 	}
 
 	@Override

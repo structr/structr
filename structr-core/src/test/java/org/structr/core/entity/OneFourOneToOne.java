@@ -1,7 +1,5 @@
 package org.structr.core.entity;
 
-import org.neo4j.graphdb.RelationshipType;
-import org.structr.common.RelType;
 import org.structr.core.property.ArrayProperty;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.DoubleProperty;
@@ -33,8 +31,8 @@ public class OneFourOneToOne extends OneToOne<TestOne, TestFour> {
 	}
 
 	@Override
-	public RelationshipType getRelationshipType() {
-		return RelType.IS_AT;
+	public String name() {
+		return "IS_AT";
 	}
 
 	@Override

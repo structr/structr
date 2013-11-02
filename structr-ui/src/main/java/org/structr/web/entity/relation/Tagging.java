@@ -1,8 +1,6 @@
 package org.structr.web.entity.relation;
 
-import org.neo4j.graphdb.RelationshipType;
 import org.structr.core.entity.ManyToMany;
-import org.structr.web.common.RelType;
 import org.structr.web.entity.Tag;
 import org.structr.web.entity.Taggable;
 
@@ -23,7 +21,7 @@ public class Tagging extends ManyToMany<Tag, Taggable> {
 	}
 
 	@Override
-	public RelationshipType getRelationshipType() {
-		return RelType.TAG;
+	public String name() {
+		return "TAG";
 	}
 }
