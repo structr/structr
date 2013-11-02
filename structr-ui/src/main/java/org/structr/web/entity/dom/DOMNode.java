@@ -1480,7 +1480,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 		}
 		try {
 			// If hide conditions evaluate to "true", don't render
-			if ("true".equals(extractFunctions(securityContext, renderContext, _hideConditions))) {
+			if (StringUtils.isNotBlank(_hideConditions) && "true".equals(extractFunctions(securityContext, renderContext, _hideConditions))) {
 				return false;
 			}
 
