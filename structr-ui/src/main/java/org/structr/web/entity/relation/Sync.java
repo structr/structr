@@ -1,8 +1,6 @@
 package org.structr.web.entity.relation;
 
-import org.neo4j.graphdb.RelationshipType;
 import org.structr.core.entity.ManyToMany;
-import org.structr.web.common.RelType;
 import org.structr.web.entity.dom.DOMElement;
 
 /**
@@ -22,7 +20,7 @@ public class Sync extends ManyToMany<DOMElement, DOMElement> {
 	}
 
 	@Override
-	public RelationshipType getRelationshipType() {
-		return RelType.SYNC;
+	public String name() {
+		return "SYNC";
 	}
 }

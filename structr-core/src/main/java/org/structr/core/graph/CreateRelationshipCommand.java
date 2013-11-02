@@ -78,7 +78,7 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 				final T template                     = instantiate(relType);
 				final Node startNode                 = fromNode.getNode();
 				final Node endNode                   = toNode.getNode();
-				final Relationship rel               = startNode.createRelationshipTo(endNode, template.getRelationshipType());
+				final Relationship rel               = startNode.createRelationshipTo(endNode, template);
 				final T newRel                       = factory.instantiateWithType(rel, relType, true);
 				final Date now                       = new Date();
 

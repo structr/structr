@@ -95,7 +95,7 @@ public class CreateNodeCommand extends NodeServiceCommand {
 			boolean isCreation         = true;
 
 			// Create node with type
-			node = nodeFactory.instantiateWithType(graphDb.createNode(), nodeType, isCreation);
+			node = (T) nodeFactory.instantiateWithType(graphDb.createNode(), nodeType, isCreation);
 			if(node != null) {
 				
 				TransactionCommand.nodeCreated(node);

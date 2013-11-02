@@ -1,8 +1,6 @@
 package org.structr.rest.entity;
 
-import org.neo4j.graphdb.RelationshipType;
 import org.structr.core.entity.OneToOne;
-import org.structr.rest.common.TestRestRelType;
 
 /**
  *
@@ -21,7 +19,7 @@ public class TenSevenOneToOne extends OneToOne<TestTen, TestSeven> {
 	}
 
 	@Override
-	public RelationshipType getRelationshipType() {
-		return TestRestRelType.HAS;
+	public String name() {
+		return "HAS";
 	}
 }

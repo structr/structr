@@ -1,8 +1,5 @@
 package org.structr.core.entity;
 
-import org.neo4j.graphdb.RelationshipType;
-import org.structr.core.TestRelType;
-
 /**
  *
  * @author Christian Morgner
@@ -15,8 +12,8 @@ public class SixOneOneToOne extends OneToMany<TestSix, TestOne> {
 	}
 
 	@Override
-	public RelationshipType getRelationshipType() {
-		return TestRelType.ONE_TO_ONE;
+	public String name() {
+		return "ONE_TO_ONE";
 	}
 
 	@Override

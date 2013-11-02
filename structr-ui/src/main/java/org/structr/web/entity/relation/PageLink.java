@@ -20,10 +20,8 @@
 
 package org.structr.web.entity.relation;
 
-import org.neo4j.graphdb.RelationshipType;
 import org.structr.core.property.Property;
 import org.structr.common.PropertyView;
-import org.structr.web.common.RelType;
 import org.structr.common.View;
 import org.structr.core.entity.OneToMany;
 import org.structr.core.property.StringProperty;
@@ -58,8 +56,8 @@ public class PageLink extends OneToMany<Page, DOMNode> {
 	}
 
 	@Override
-	public RelationshipType getRelationshipType() {
-		return RelType.PAGE;
+	public String name() {
+		return "PAGE";
 	}
 
 	@Override

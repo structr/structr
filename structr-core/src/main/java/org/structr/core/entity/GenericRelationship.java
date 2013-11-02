@@ -118,7 +118,7 @@ public class GenericRelationship extends ManyToMany<NodeInterface, NodeInterface
 	}
 
 	@Override
-	public RelationshipType getRelationshipType() {
-		return RelType.GENERIC;
+	public String name() {
+		return "GENERIC";
 	}
 }

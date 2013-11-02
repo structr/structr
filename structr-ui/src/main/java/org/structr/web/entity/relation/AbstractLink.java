@@ -20,10 +20,8 @@
 
 package org.structr.web.entity.relation;
 
-import org.neo4j.graphdb.RelationshipType;
 import org.structr.core.property.Property;
 import org.structr.common.PropertyView;
-import org.structr.web.common.RelType;
 import org.structr.common.View;
 import org.structr.core.entity.ManyToMany;
 import org.structr.core.property.StringProperty;
@@ -50,8 +48,8 @@ public class AbstractLink extends ManyToMany<NodeInterface, Linkable> {
 	}
 
 	@Override
-	public RelationshipType getRelationshipType() {
-		return RelType.LINK;
+	public String name() {
+		return "LINK";
 	}
 
 	@Override

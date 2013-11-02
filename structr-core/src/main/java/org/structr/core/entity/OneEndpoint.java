@@ -60,7 +60,7 @@ public class OneEndpoint<T extends NodeInterface> extends AbstractEndpoint imple
 
 	@Override
 	public Relationship getRawSource(final SecurityContext securityContext, final Node dbNode) {
-		return getSingle(securityContext, dbNode, relation.getRelationshipType(), Direction.OUTGOING, relation.getTargetType());
+		return getSingle(securityContext, dbNode, relation, Direction.OUTGOING, relation.getTargetType());
 	}
 
 	@Override

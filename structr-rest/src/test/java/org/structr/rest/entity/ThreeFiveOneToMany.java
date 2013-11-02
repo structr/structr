@@ -1,8 +1,6 @@
 package org.structr.rest.entity;
 
-import org.neo4j.graphdb.RelationshipType;
 import org.structr.core.entity.OneToMany;
-import org.structr.rest.common.TestRestRelType;
 
 /**
  *
@@ -21,7 +19,7 @@ public class ThreeFiveOneToMany extends OneToMany<TestThree, TestFive> {
 	}
 
 	@Override
-	public RelationshipType getRelationshipType() {
-		return TestRestRelType.ONE_TO_MANY;
+	public String name() {
+		return "ONE_TO_MANY";
 	}
 }

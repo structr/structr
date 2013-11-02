@@ -27,11 +27,9 @@ import org.structr.core.EntityContext;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
-import org.neo4j.graphdb.RelationshipType;
 import org.structr.core.entity.OneToOne;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
-import org.structr.web.common.RelType;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
 
@@ -93,8 +91,8 @@ public class Data extends OneToOne<DOMElement, Content> {
 	}
 
 	@Override
-	public RelationshipType getRelationshipType() {
-		return RelType.CONTAINS;
+	public String name() {
+		return "CONTAINS";
 	}
 
 }

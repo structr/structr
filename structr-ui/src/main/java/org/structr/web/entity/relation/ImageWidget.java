@@ -1,8 +1,6 @@
 package org.structr.web.entity.relation;
 
-import org.neo4j.graphdb.RelationshipType;
 import org.structr.core.entity.OneToMany;
-import org.structr.web.common.RelType;
 import org.structr.web.entity.Image;
 import org.structr.web.entity.Widget;
 
@@ -23,7 +21,7 @@ public class ImageWidget extends OneToMany<Widget, Image> {
 	}
 
 	@Override
-	public RelationshipType getRelationshipType() {
-		return RelType.PICTURE_OF;
+	public String name() {
+		return "PICTURE_OF";
 	}
 }

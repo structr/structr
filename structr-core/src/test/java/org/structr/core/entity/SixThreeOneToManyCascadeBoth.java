@@ -1,8 +1,5 @@
 package org.structr.core.entity;
 
-import org.neo4j.graphdb.RelationshipType;
-import org.structr.core.TestRelType;
-
 /**
  *
  * @author Christian Morgner
@@ -15,8 +12,8 @@ public class SixThreeOneToManyCascadeBoth extends OneToMany<TestSix, TestThree> 
 	}
 
 	@Override
-	public RelationshipType getRelationshipType() {
-		return TestRelType.ONE_TO_MANY;
+	public String name() {
+		return "ONE_TO_MANY";
 	}
 
 	@Override

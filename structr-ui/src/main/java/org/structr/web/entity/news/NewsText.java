@@ -1,8 +1,6 @@
 package org.structr.web.entity.news;
 
-import org.neo4j.graphdb.RelationshipType;
 import org.structr.core.entity.OneToOne;
-import org.structr.web.common.RelType;
 import org.structr.web.entity.dom.Content;
 
 /**
@@ -22,7 +20,7 @@ public class NewsText extends OneToOne<NewsTickerItem, Content> {
 	}
 
 	@Override
-	public RelationshipType getRelationshipType() {
-		return RelType.CONTAINS;
+	public String name() {
+		return "CONTAINS";
 	}
 }

@@ -1,8 +1,6 @@
 package org.structr.rest.entity;
 
-import org.neo4j.graphdb.RelationshipType;
 import org.structr.core.entity.ManyToMany;
-import org.structr.rest.common.TestRestRelType;
 
 /**
  *
@@ -21,8 +19,8 @@ public class SixEightManyToMany extends ManyToMany<TestSix, TestEight> {
 	}
 
 	@Override
-	public RelationshipType getRelationshipType() {
-		return TestRestRelType.HAS;
+	public String name() {
+		return "HAS";
 	}
 
 }

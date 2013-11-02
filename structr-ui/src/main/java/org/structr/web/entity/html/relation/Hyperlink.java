@@ -20,10 +20,8 @@
 
 package org.structr.web.entity.html.relation;
 
-import org.neo4j.graphdb.RelationshipType;
 import org.structr.core.property.Property;
 import org.structr.common.PropertyView;
-import org.structr.web.common.RelType;
 import org.structr.common.View;
 import org.structr.core.property.StringProperty;
 import org.structr.core.entity.OneToOne;
@@ -58,8 +56,8 @@ public class Hyperlink extends OneToOne<A, Linkable> {
 	}
 
 	@Override
-	public RelationshipType getRelationshipType() {
-		return RelType.LINK;
+	public String name() {
+		return "LINK";
 	}
 
 	@Override

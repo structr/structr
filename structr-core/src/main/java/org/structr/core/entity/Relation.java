@@ -28,7 +28,7 @@ import org.structr.core.graph.RelationshipInterface;
  *
  * @author Christian Morgner
  */
-public interface Relation<A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target> extends RelationshipInterface {
+public interface Relation<A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target> extends RelationshipInterface, RelationshipType {
 
 	/**
 	 * No cascading delete.
@@ -68,7 +68,7 @@ public interface Relation<A extends NodeInterface, B extends NodeInterface, S ex
 	public Class<A> getSourceType();
 	public Class<B> getTargetType();
 	
-	public RelationshipType getRelationshipType();
+	//public RelationshipType getRelationshipType();
 	
 	public Multiplicity getSourceMultiplicity();
 	public Multiplicity getTargetMultiplicity();
