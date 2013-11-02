@@ -67,6 +67,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.property.RelationProperty;
 import static org.structr.web.entity.Linkable.linkingElements;
 import static org.structr.web.entity.dom.DOMNode.children;
+import org.structr.web.entity.dom.relationship.DOMChildren;
 import org.structr.web.entity.relation.PageLink;
 
 //~--- classes ----------------------------------------------------------------
@@ -86,13 +87,14 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	public static final Property<String>        contentType     = new StringProperty("contentType").indexed();
 	public static final Property<Integer>       cacheForSeconds = new IntProperty("cacheForSeconds");
 	public static final Property<List<DOMNode>> elements        = new EndNodes<>("elements", PageLink.class);
+	public static final Property<List<DOMNode>> childElements   = new EndNodes<>("childElements", DOMChildren.class);
 	
 	public static final org.structr.common.View publicView = new org.structr.common.View(Page.class, PropertyView.Public,
-		children, linkingElements, contentType, owner, cacheForSeconds, version
+		children, linkingElements, childElements, contentType, owner, cacheForSeconds, version
 	);
 	
 	public static final org.structr.common.View uiView = new org.structr.common.View(Page.class, PropertyView.Ui,
-		children, linkingElements, contentType, owner, cacheForSeconds, version, position
+		children, linkingElements, childElements, contentType, owner, cacheForSeconds, version, position
 	);
 
 	private Html5DocumentType docTypeNode                                   = null;
