@@ -60,8 +60,6 @@ public abstract class AbstractEndpoint {
 				
 				final Class otherNodeType     = otherNode.getClass();
 				
-				logger.log(Level.INFO, "Checking relationship {0}-[{1}]->{2}", new Object[] {  item.getStartNode().getProperty("type"), item.getType(), item.getEndNode().getProperty("type") } );
-				
 				return desiredType.isAssignableFrom(otherNodeType) || otherNodeType.isAssignableFrom(desiredType);
 				
 			} catch (FrameworkException fex) {

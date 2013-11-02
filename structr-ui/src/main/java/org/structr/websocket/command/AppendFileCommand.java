@@ -94,14 +94,14 @@ public class AppendFileCommand extends AbstractCommand {
 				
 				try {
 					// Remove from existing parent
-					Folder currentParent = (Folder)file.treeGetParent(Folders.class);
+					Folder currentParent = (Folder)file.treeGetParent();
 					if (currentParent != null) {
 						
-						currentParent.treeRemoveChild(FileChildren.class, file);
+						currentParent.treeRemoveChild(file);
 						
 					}
 					
-					folder.treeAppendChild(FileChildren.class, file);
+					folder.treeAppendChild(file);
 					
 				} catch (FrameworkException ex) {
 					logger.log(Level.SEVERE, null, ex);

@@ -77,7 +77,7 @@ public class DeleteRelationshipCommand extends NodeServiceCommand {
 			final Relationship relToDelete       = rel.getRelationship();
 			final RelationshipInterface finalRel = rel;
 
-			logger.log(Level.INFO, "DELETING relationship {0}-[{1}]->{2}", new Object[] {  rel.getSourceNode().getType(), rel.getRelType(), rel.getTargetNode().getType() } );
+			// logger.log(Level.INFO, "DELETING relationship {0}-[{1}]->{2}", new Object[] {  rel.getSourceNode().getType(), rel.getRelType(), rel.getTargetNode().getType() } );
 
 			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 

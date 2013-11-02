@@ -24,7 +24,7 @@ import org.structr.core.Services;
 import org.structr.core.entity.relationship.AbstractListSiblings;
 import org.structr.core.graph.CreateRelationshipCommand;
 import org.structr.core.graph.DeleteRelationshipCommand;
-import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyKey;
@@ -114,7 +114,7 @@ public abstract class LinkedListNode<R extends AbstractListSiblings<T, T>, T ext
 				public Object execute() throws FrameworkException {
 
 					// delete old relationship
-					unlinkNodes(previousElement, currentElement);
+					unlinkNodes(getSiblingLinkType(), previousElement, currentElement);
 					
 					linkNodes(getSiblingLinkType(), previousElement, newElement);
 					linkNodes(getSiblingLinkType(), newElement, currentElement);
@@ -159,7 +159,7 @@ public abstract class LinkedListNode<R extends AbstractListSiblings<T, T>, T ext
 				@Override
 				public Object execute() throws FrameworkException {
 
-					unlinkNodes(currentElement, next);
+					unlinkNodes(getSiblingLinkType(), currentElement, next);
 
 					linkNodes(getSiblingLinkType(), currentElement, newElement);
 					linkNodes(getSiblingLinkType(), newElement, next);
@@ -185,12 +185,12 @@ public abstract class LinkedListNode<R extends AbstractListSiblings<T, T>, T ext
 			
 			if (previousElement != null) {
 
-				unlinkNodes(previousElement, currentElement);
+				unlinkNodes(getSiblingLinkType(), previousElement, currentElement);
 			}
 
 			if (nextElement != null) {
 
-				unlinkNodes(currentElement, nextElement);
+				unlinkNodes(getSiblingLinkType(), currentElement, nextElement);
 			}
 		}
 
@@ -219,7 +219,7 @@ public abstract class LinkedListNode<R extends AbstractListSiblings<T, T>, T ext
 		cmd.execute(startNode, endNode, linkType, properties);
 	}
 	
-	public void unlinkNodes(final NodeInterface startNode, final NodeInterface endNode) throws FrameworkException {
+	private void unlinkNodes(final Class<R> linkType, final T startNode, final T endNode) throws FrameworkException {
 		
 		final DeleteRelationshipCommand cmd = Services.command(securityContext, DeleteRelationshipCommand.class);
 		
@@ -228,9 +228,7 @@ public abstract class LinkedListNode<R extends AbstractListSiblings<T, T>, T ext
 			@Override
 			public Object execute() throws FrameworkException {
 
-				// FIXME: this is not complete!
-				
-				for (AbstractRelationship rel : startNode.getRelationships()) {
+				for (RelationshipInterface rel : startNode.getRelationships(linkType)) {
 					
 					if (rel != null && rel.getTargetNode().equals(endNode)) {
 						cmd.execute(rel);
