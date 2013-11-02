@@ -442,8 +442,6 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 							Node child = domNode.getFirstChild();
 
-							logger.log(Level.INFO, "child is {0}", child);
-							
 							while (child != null) {
 							
 								// do not remove parent for child nodes

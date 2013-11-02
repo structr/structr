@@ -33,6 +33,7 @@ import org.structr.core.entity.AbstractRelationship;
 
 import java.util.Date;
 import java.util.Map.Entry;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.entity.Relation;
 import org.structr.core.property.PropertyKey;
@@ -81,6 +82,8 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 				final T newRel                       = factory.instantiateWithType(rel, relType, true);
 				final Date now                       = new Date();
 
+				logger.log(Level.INFO, "CREATING relationship {0}-[{1}]->{2}", new Object[] {  fromNode.getType(), newRel.getRelType(), toNode.getType() } );
+				
 				if (newRel != null) {
 
 					newRel.unlockReadOnlyPropertiesOnce();
