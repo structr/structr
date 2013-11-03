@@ -7,6 +7,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.graph.CreateRelationshipCommand;
+import org.structr.core.graph.DeleteRelationshipCommand;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.StructrTransaction;
@@ -47,9 +48,13 @@ public class OneStartpoint<S extends NodeInterface> extends AbstractEndpoint imp
 
 				// let relation check multiplicity
 				relation.ensureCardinality(sourceNode, targetNode);
+
+				if (sourceNode != null) {
 				
-				// create new relationship
-				Services.command(securityContext, CreateRelationshipCommand.class).execute(sourceNode, targetNode, relation.getClass());
+					// create new relationship
+					Services.command(securityContext, CreateRelationshipCommand.class).execute(sourceNode, targetNode, relation.getClass());
+					
+				}
 
 				return null;
 			}
