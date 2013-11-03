@@ -67,7 +67,6 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.property.RelationProperty;
 import static org.structr.web.entity.Linkable.linkingElements;
 import static org.structr.web.entity.dom.DOMNode.children;
-import org.structr.web.entity.dom.relationship.DOMChildren;
 import org.structr.web.entity.relation.PageLink;
 
 //~--- classes ----------------------------------------------------------------
