@@ -47,9 +47,12 @@ public class OneEndpoint<T extends NodeInterface> extends AbstractEndpoint imple
 
 				// let relation check multiplicity
 				relation.ensureCardinality(sourceNode, targetNode);
-				
-				// create new relationship
-				Services.command(securityContext, CreateRelationshipCommand.class).execute(sourceNode, targetNode, relation.getClass());
+
+				if (targetNode != null) {
+					
+					// create new relationship
+					Services.command(securityContext, CreateRelationshipCommand.class).execute(sourceNode, targetNode, relation.getClass());
+				}
 				
 				return null;
 			}
