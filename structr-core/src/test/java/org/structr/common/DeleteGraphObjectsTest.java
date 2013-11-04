@@ -88,10 +88,10 @@ public class DeleteGraphObjectsTest extends StructrTest {
 			props.put(AbstractNode.type, type);
 			props.put(AbstractNode.name, name);
 
-			final AbstractNode node = transactionCommand.execute(new StructrTransaction<AbstractNode>() {
+			final NodeInterface node = transactionCommand.execute(new StructrTransaction<NodeInterface>() {
 
 				@Override
-				public AbstractNode execute() throws FrameworkException {
+				public NodeInterface execute() throws FrameworkException {
 
 					// Create node with a type which has no entity class => should result in a node of type 'GenericNode'
 					return createNodeCommand.execute(props);

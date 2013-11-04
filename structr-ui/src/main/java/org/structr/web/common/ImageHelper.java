@@ -78,8 +78,8 @@ public abstract class ImageHelper extends FileHelper {
 	public static Image createImage(final SecurityContext securityContext, final byte[] imageData, final String contentType, final Class<? extends Image> imageType, final boolean markAsThumbnail)
 		throws FrameworkException, IOException {
 
-		CreateNodeCommand createNodeCommand = Services.command(securityContext, CreateNodeCommand.class);
-		PropertyMap props                   = new PropertyMap();
+		CreateNodeCommand<Image> createNodeCommand = Services.command(securityContext, CreateNodeCommand.class);
+		PropertyMap props                          = new PropertyMap();
 		
 		props.put(AbstractNode.type, imageType == null ? Image.class.getSimpleName() : imageType.getSimpleName());
 		props.put(Image.isThumbnail, markAsThumbnail);

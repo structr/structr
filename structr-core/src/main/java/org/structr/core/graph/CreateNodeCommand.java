@@ -49,11 +49,11 @@ import org.structr.core.property.PropertyMap;
  *
  * @author Christian Morgner
  */
-public class CreateNodeCommand extends NodeServiceCommand {
+public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceCommand {
 
 	private static final Logger logger = Logger.getLogger(CreateNodeCommand.class.getName());
 
-	public <T extends AbstractNode> T execute(Collection<NodeAttribute> attributes) throws FrameworkException {
+	public T execute(Collection<NodeAttribute<?>> attributes) throws FrameworkException {
 		
 		PropertyMap properties = new PropertyMap();
 		for (NodeAttribute attribute : attributes) {
@@ -65,7 +65,7 @@ public class CreateNodeCommand extends NodeServiceCommand {
 		
 	}
 	
-	public <T extends AbstractNode> T execute(NodeAttribute... attributes) throws FrameworkException {
+	public T execute(NodeAttribute<?>... attributes) throws FrameworkException {
 		
 		PropertyMap properties = new PropertyMap();
 		for (NodeAttribute attribute : attributes) {
@@ -76,7 +76,7 @@ public class CreateNodeCommand extends NodeServiceCommand {
 		return execute(properties);
 	}
 	
-	public <T extends AbstractNode> T execute(PropertyMap attributes) throws FrameworkException {
+	public T execute(PropertyMap attributes) throws FrameworkException {
 
 		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
 		Principal user               = securityContext.getUser(false);

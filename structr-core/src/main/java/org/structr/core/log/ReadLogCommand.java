@@ -55,13 +55,13 @@ public class ReadLogCommand extends LogServiceCommand {
 	public Map<String, Object> execute(String key) throws FrameworkException {
 
 		TxPageFile logDb           = (TxPageFile) arguments.get("logDb");
-		Map<String, Object> result = new HashMap<String, Object>();
+		Map<String, Object> result = new HashMap<>();
 
 		if (logDb != null) {
 
 			Transaction tx                            = logDb.tx();
 			MultiIndexFactory multiIndexFactory       = new MultiIndexFactory(tx);
-			IndexFactory<String, Object> indexFactory = new BTreeIndexFactory<String, Object>();
+			IndexFactory<String, Object> indexFactory = new BTreeIndexFactory<>();
 
 			try {
 
@@ -76,8 +76,10 @@ public class ReadLogCommand extends LogServiceCommand {
 
 				}
 
-			} catch (org.fusesource.hawtdb.api.IndexException e) {
+			} catch (Throwable t) {
 
+				t.printStackTrace();
+				
 				logger.log(Level.WARNING, "Could not read log db page for key {0}", key);
 
 			}

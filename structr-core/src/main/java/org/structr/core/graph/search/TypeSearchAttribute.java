@@ -13,8 +13,8 @@ import org.structr.core.entity.AbstractNode;
  */
 public class TypeSearchAttribute<S extends GraphObject> extends PropertySearchAttribute<String> {
 
-	public TypeSearchAttribute(String type, Occur occur, boolean isExactMatch) {
-		super(AbstractNode.type, type, occur, isExactMatch);
+	public TypeSearchAttribute(Class<S> type, Occur occur, boolean isExactMatch) {
+		super(AbstractNode.type, type.getSimpleName(), occur, isExactMatch);
 	}
 	
 	@Override

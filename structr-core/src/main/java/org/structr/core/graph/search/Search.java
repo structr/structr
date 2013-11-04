@@ -187,7 +187,7 @@ public abstract class Search {
 	}
 	
 	public static SearchAttribute<String> orExactType(final Class type, boolean isExactMatch) {
-		return new TypeSearchAttribute(type.getSimpleName(), Occur.SHOULD, isExactMatch);
+		return new TypeSearchAttribute(type, Occur.SHOULD, isExactMatch);
 	}
 
 	public static SearchAttribute<String> andExactType(final Class type) {
@@ -195,7 +195,7 @@ public abstract class Search {
 	}
 
 	public static SearchAttribute<String> andExactType(final Class type, boolean isExactMatch) {
-		return new TypeSearchAttribute(type.getSimpleName(), Occur.MUST, isExactMatch);
+		return new TypeSearchAttribute(type, Occur.MUST, isExactMatch);
 	}
 
 	public static SearchAttribute andExactRelType(final Class<? extends Relation> namedRelation) {

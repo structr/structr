@@ -42,6 +42,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.*;
+import org.structr.core.graph.NodeInterface;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -76,7 +77,7 @@ public class IdDeserializationStrategy<S, T extends GraphObject> implements Dese
 
 		if (source != null) {
 
-			List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
+			List<SearchAttribute> attrs = new LinkedList<>();
 
 			if (source instanceof JsonInput) {
 
@@ -140,13 +141,13 @@ public class IdDeserializationStrategy<S, T extends GraphObject> implements Dese
 
 		} else if (createIfNotExisting) {
 
-			return (T)Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<AbstractNode>() {
+			return (T)Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<NodeInterface>() {
 
 				@Override
-				public AbstractNode execute() throws FrameworkException {
+				public NodeInterface execute() throws FrameworkException {
 
 					// create node and return it
-					AbstractNode newNode = Services.command(securityContext, CreateNodeCommand.class).execute(new NodeAttribute(AbstractNode.type, type.getSimpleName()));
+					NodeInterface newNode = Services.command(securityContext, CreateNodeCommand.class).execute(new NodeAttribute(AbstractNode.type, type.getSimpleName()));
 					if (newNode == null) {
 
 						logger.log(Level.WARNING, "Unable to create node of type {0} for property {1}", new Object[] { type.getSimpleName(), propertyKey.dbName() });

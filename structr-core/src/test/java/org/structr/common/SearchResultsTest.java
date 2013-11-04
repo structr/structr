@@ -66,8 +66,11 @@ import static junit.framework.Assert.fail;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.structr.core.Services;
 import org.structr.core.entity.relationship.LocationRelationship;
+import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.search.PropertySearchAttribute;
+import org.structr.core.graph.search.TypeSearchAttribute;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -248,9 +251,9 @@ public class SearchResultsTest extends StructrTest {
 			AbstractNode node                      = createTestNode(type, props);
 			boolean includeDeletedAndHidden        = true;
 			boolean publicOnly                     = false;
-			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+			List<SearchAttribute> searchAttributes = new LinkedList<>();
 
-			searchAttributes.add(new PropertySearchAttribute(AbstractNode.type, type, Occur.MUST, true));
+			searchAttributes.add(new TypeSearchAttribute(type, Occur.MUST, true));
 			searchAttributes.add(new DistanceSearchAttribute("Hanauer Landstraße", "200", "60314", "Frankfurt", null, "Germany", 10.0, Occur.MUST));
 //			searchAttributes.add(new DistanceSearchAttribute("Hanauer Landstr. 200, 60314 Frankfurt, Germany", 10.0, Occur.MUST));
 
@@ -273,15 +276,15 @@ public class SearchResultsTest extends StructrTest {
 //		try {
 
 			final Class type = TestSeven.class;
-			AbstractNode node = null;
+			NodeInterface node = null;
 
 			try {
 
 				// outer transaction
-				node = transactionCommand.execute(new StructrTransaction<AbstractNode>() {
+				node = transactionCommand.execute(new StructrTransaction<NodeInterface>() {
 
 					@Override
-					public AbstractNode execute() throws FrameworkException {
+					public NodeInterface execute() throws FrameworkException {
 
 						final PropertyMap props = new PropertyMap();
 						final PropertyKey lat   = TestSeven.latitude;
@@ -293,17 +296,17 @@ public class SearchResultsTest extends StructrTest {
 						props.put(AbstractNode.name, "TestSeven-0");;
 
 						// this will work
-						AbstractNode node = createNodeCommand.execute(props);
+						NodeInterface node = createNodeCommand.execute(props);
 
 						props.remove(AbstractNode.name);
 						props.put(lat, 50.12285d);
 						props.put(lon, 8.73924d);
 
 						// this will fail
-						AbstractNode node2 = createNodeCommand.execute(props);
+						NodeInterface node2 = createNodeCommand.execute(props);
 						
 						// adding another 
-						AbstractNode node3 = createNodeCommand.execute(props);
+						NodeInterface node3 = createNodeCommand.execute(props);
 						
 //						boolean includeDeletedAndHidden        = true;
 //						boolean publicOnly                     = false;

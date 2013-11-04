@@ -104,8 +104,8 @@ public class FileHelper {
 	public static org.structr.web.entity.File createFile(final SecurityContext securityContext, final byte[] fileData, final String contentType, final Class<? extends org.structr.web.entity.File> fileType)
 		throws FrameworkException, IOException {
 
-		CreateNodeCommand createNodeCommand = Services.command(securityContext, CreateNodeCommand.class);
-		PropertyMap props                   = new PropertyMap();
+		CreateNodeCommand<org.structr.web.entity.File> createNodeCommand = Services.command(securityContext, CreateNodeCommand.class);
+		PropertyMap props                                                = new PropertyMap();
 		
 		props.put(AbstractNode.type, fileType == null ? File.class.getSimpleName() : fileType.getSimpleName());
 
