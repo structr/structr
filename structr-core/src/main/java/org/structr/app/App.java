@@ -80,17 +80,17 @@ public class App {
 	
 	public <T extends NodeInterface> T create(final Class<T> type, final NodeAttribute<?>... attributes) throws FrameworkException {
 		
-//		final CreateNodeCommand<T> cmd = getCommand(CreateNodeCommand.class);
-//		final TransactionCommand tx    = getCommand(TransactionCommand.class);
-//		
-//		tx.execute(new StructrTransaction<T>() {
-//
-//			@Override
-//			public T execute() throws FrameworkException {
-//				
-//				return cmd.execute(attributes);
-//			}
-//		});
+		final CreateNodeCommand<T> cmd = getCommand(CreateNodeCommand.class);
+		final TransactionCommand tx    = getCommand(TransactionCommand.class);
+		
+		tx.execute(new StructrTransaction<T>() {
+
+			@Override
+			public T execute() throws FrameworkException {
+				
+				return cmd.execute(attributes);
+			}
+		});
 		
 		return null;
 	}
