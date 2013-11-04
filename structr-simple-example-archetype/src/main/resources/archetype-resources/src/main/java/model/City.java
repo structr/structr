@@ -19,28 +19,26 @@
 #set( $symbol_pound = '#' )
 #set( $symbol_dollar = '$' )
 #set( $symbol_escape = '\' )
-package ${package}.entity;
+package ${package}.model;
 
 import java.util.List;
-import org.neo4j.graphdb.Direction;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.property.CollectionProperty;
 import org.structr.core.property.Property;
+import org.structr.core.property.EndNodes;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.validator.TypeUniquenessValidator;
-import ${package}.RelType;
 
 public class City extends AbstractNode {
 
-	public static final Property<List<Person>> persons = new CollectionProperty<Person>("persons", Person.class, RelType.LIVES_IN, Direction.INCOMING, true);
+	public static final Property<List<Person>> citizen = new EndNodes<>("citizen", Citizen.class);
 	
 	public static final View publicView = new View(Person.class, PropertyView.Public,
-		name, persons
+		name, citizen
 	);
 	
 	static {
