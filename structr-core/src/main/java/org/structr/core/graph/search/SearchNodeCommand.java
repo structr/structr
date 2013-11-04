@@ -21,8 +21,6 @@
 package org.structr.core.graph.search;
 
 
-import org.structr.core.GraphObject;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeFactory;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -32,6 +30,7 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.index.Index;
 import org.structr.common.SecurityContext;
 import org.structr.core.graph.Factory;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeService;
 
 //~--- classes ----------------------------------------------------------------
@@ -53,7 +52,7 @@ import org.structr.core.graph.NodeService;
  *
  * @author Axel Morgner
  */
-public class SearchNodeCommand<T extends GraphObject> extends SearchCommand<Node, T> {
+public class SearchNodeCommand<T extends NodeInterface> extends SearchCommand<Node, T> {
 
 	@Override
 	public Factory<Node, T> getFactory(SecurityContext securityContext, boolean includeDeletedAndHidden, boolean publicOnly, int pageSize, int page, String offsetId) {
