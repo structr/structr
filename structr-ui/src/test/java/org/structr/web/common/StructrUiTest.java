@@ -126,7 +126,7 @@ public class StructrUiTest extends TestCase {
 			// HTML Servlet
 			HtmlServlet htmlServlet = new HtmlServlet();
 			ServletHolder htmlServletHolder = new ServletHolder(htmlServlet);
-			Map<String, String> htmlInitParams = new HashMap<String, String>();
+			Map<String, String> htmlInitParams = new HashMap<>();
 
 			htmlInitParams.put("Authenticator", "org.structr.web.auth.HttpAuthenticator");
 			htmlServletHolder.setInitParameters(htmlInitParams);
@@ -144,7 +144,7 @@ public class StructrUiTest extends TestCase {
 			// WebSocket Servlet
 			WebSocketServlet wsServlet = new WebSocketServlet(AbstractNode.uuid);
 			ServletHolder wsServletHolder = new ServletHolder(wsServlet);
-			Map<String, String> wsInitParams = new HashMap<String, String>();
+			Map<String, String> wsInitParams = new HashMap<>();
 
 			wsInitParams.put("Authenticator", "org.structr.web.auth.UiAuthenticator");
 			wsInitParams.put("IdProperty", "uuid");
