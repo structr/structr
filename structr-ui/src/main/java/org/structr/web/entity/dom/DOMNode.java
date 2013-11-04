@@ -70,6 +70,7 @@ import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.relationship.Ownership;
 import org.structr.core.graph.CreateNodeCommand;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.search.PropertySearchAttribute;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.CollectionIdProperty;
@@ -1446,12 +1447,12 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 		if (resultPages == null) {
 
-			resultPages = new HashSet<Page>();
+			resultPages = new HashSet<>();
 		}
 
 		// fetch search results
 		// List<GraphObject> results              = ((SearchResultView) startNode).getGraphObjects(request);
-		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+		List<SearchAttribute> searchAttributes = new LinkedList<>();
 
 		searchAttributes.add(new PropertySearchAttribute(Content.content, search, Occur.MUST, false));
 		searchAttributes.add(Search.andExactType(Content.class));

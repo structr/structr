@@ -38,6 +38,7 @@ import java.util.logging.Logger;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.Result;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.search.PropertySearchAttribute;
 
 //~--- classes ----------------------------------------------------------------
@@ -68,7 +69,7 @@ public class GlobalPropertyUniquenessValidator implements PropertyValidator<Stri
 		if (key != null && value != null) {
 
 			// String type = EntityContext.GLOBAL_UNIQUENESS;
-			List<SearchAttribute> attributes = new LinkedList<SearchAttribute>();
+			List<SearchAttribute> attributes = new LinkedList<>();
 			boolean nodeExists               = false;
 			String id                        = null;
 

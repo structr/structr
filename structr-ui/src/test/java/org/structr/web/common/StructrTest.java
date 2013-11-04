@@ -30,7 +30,6 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.log.ReadLogCommand;
 import org.structr.core.log.WriteLogCommand;
 import org.structr.core.graph.CreateNodeCommand;
@@ -60,6 +59,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
 import org.structr.core.graph.DeleteRelationshipCommand;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 
 //~--- classes ----------------------------------------------------------------
@@ -161,17 +161,17 @@ public class StructrTest extends TestCase {
 
 	}
 
-	protected List<AbstractNode> createTestNodes(final String type, final int number) throws FrameworkException {
+	protected List<NodeInterface> createTestNodes(final String type, final int number) throws FrameworkException {
 
 		final PropertyMap props = new PropertyMap();
 		props.put(AbstractNode.type, type);
 
-		return transactionCommand.execute(new StructrTransaction<List<AbstractNode>>() {
+		return transactionCommand.execute(new StructrTransaction<List<NodeInterface>>() {
 
 			@Override
-			public List<AbstractNode> execute() throws FrameworkException {
+			public List<NodeInterface> execute() throws FrameworkException {
 
-				List<AbstractNode> nodes = new LinkedList<AbstractNode>();
+				List<NodeInterface> nodes = new LinkedList<>();
 
 				for (int i = 0; i < number; i++) {
 
@@ -186,22 +186,22 @@ public class StructrTest extends TestCase {
 
 	}
 
-	protected <T extends AbstractNode> T createTestNode(final Class<T> type) throws FrameworkException {
+	protected <T extends NodeInterface> T createTestNode(final Class<T> type) throws FrameworkException {
 		return (T)createTestNode(type.getSimpleName(), new PropertyMap());
 	}
 
-	protected AbstractNode createTestNode(final String type) throws FrameworkException {
+	protected NodeInterface createTestNode(final String type) throws FrameworkException {
 		return createTestNode(type, new PropertyMap());
 	}
 
-	protected AbstractNode createTestNode(final String type, final PropertyMap props) throws FrameworkException {
+	protected NodeInterface createTestNode(final String type, final PropertyMap props) throws FrameworkException {
 
 		props.put(AbstractNode.type, type);
 
-		return transactionCommand.execute(new StructrTransaction<AbstractNode>() {
+		return transactionCommand.execute(new StructrTransaction<NodeInterface>() {
 
 			@Override
-			public AbstractNode execute() throws FrameworkException {
+			public NodeInterface execute() throws FrameworkException {
 
 				return createNodeCommand.execute(props);
 
@@ -213,9 +213,9 @@ public class StructrTest extends TestCase {
 
 	protected List<RelationshipInterface> createTestRelationships(final Class relType, final int number) throws FrameworkException {
 
-		List<AbstractNode> nodes     = createTestNodes("UnknownTestType", 2);
-		final AbstractNode startNode = nodes.get(0);
-		final AbstractNode endNode   = nodes.get(1);
+		List<NodeInterface> nodes     = createTestNodes("UnknownTestType", 2);
+		final NodeInterface startNode = nodes.get(0);
+		final NodeInterface endNode   = nodes.get(1);
 
 		return transactionCommand.execute(new StructrTransaction<List<RelationshipInterface>>() {
 

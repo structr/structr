@@ -73,10 +73,11 @@ public class Services {
 	public static final String CONFIG_FILE_PATH      = "configfile.path";
 
 	// Database-related constants
-	public static final String DATABASE_PATH     = "database.path";
-	public static final String FILES_PATH        = "files.path";
-	public static final String LOG_DATABASE_PATH = "log.database.path";
-	public static final String FOREIGN_TYPE      = "foreign.type.key";
+	public static final String DATABASE_PATH       = "database.path";
+	public static final String FILES_PATH          = "files.path";
+	public static final String LOG_DATABASE_PATH   = "log.database.path";
+	public static final String FOREIGN_TYPE        = "foreign.type.key";
+	public static final String NEO4J_SHELL_ENABLED = "neo4j.shell.enabled";
 	
 	// LogService-related constants
 	public static final String LOG_SERVICE_INTERVAL  = "structr.logging.interval";
@@ -111,10 +112,10 @@ public class Services {
 	private static Map<String, String> context    = null;
 	private static final Logger logger            = Logger.getLogger(Services.class.getName());
 
-	private static final Map<String, Object> attributes      = new ConcurrentHashMap<String, Object>(10, 0.9f, 8);
-	private static final Map<Class, Service> serviceCache    = new ConcurrentHashMap<Class, Service>(10, 0.9f, 8);
-	private static final Set<Class> registeredServiceClasses = new LinkedHashSet<Class>();
-	private static final Set<Class> configuredServiceClasses = new LinkedHashSet<Class>();
+	private static final Map<String, Object> attributes      = new ConcurrentHashMap<>(10, 0.9f, 8);
+	private static final Map<Class, Service> serviceCache    = new ConcurrentHashMap<>(10, 0.9f, 8);
+	private static final Set<Class> registeredServiceClasses = new LinkedHashSet<>();
+	private static final Set<Class> configuredServiceClasses = new LinkedHashSet<>();
 	private static boolean initializationDone = false;
 	private static String httpsEnabled;
 	private static String appTitle;
@@ -408,7 +409,7 @@ public class Services {
 		if (service instanceof RunnableService) {
 
 			RunnableService runnableService = (RunnableService) service;
-
+			
 			if (runnableService.runOnStartup()) {
 
 				logger.log(Level.FINER, "Starting RunnableService instance ", serviceClass.getName());

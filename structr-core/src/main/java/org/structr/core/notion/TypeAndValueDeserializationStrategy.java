@@ -38,6 +38,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.error.TypeToken;
 import org.structr.core.*;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
 
 //~--- classes ----------------------------------------------------------------
@@ -131,7 +132,7 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 				if ((convertedSource != null) && createIfNotExisting) {
 
 					// create node and return it
-					AbstractNode newNode = Services.command(securityContext, CreateNodeCommand.class).execute(
+					NodeInterface newNode = Services.command(securityContext, CreateNodeCommand.class).execute(
 								   new NodeAttribute(AbstractNode.type, type.getSimpleName()),
 								   new NodeAttribute(propertyKey, convertedSource)
 							       );
@@ -162,7 +163,7 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 
 		if (convertedSource != null) {
 
-			Map<PropertyKey, Object> attributes = new LinkedHashMap<PropertyKey, Object>();
+			Map<PropertyKey, Object> attributes = new LinkedHashMap<>();
 
 			attributes.put(propertyKey,       convertedSource);
 			attributes.put(AbstractNode.type, type.getSimpleName());

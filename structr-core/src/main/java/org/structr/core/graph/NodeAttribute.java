@@ -29,7 +29,7 @@ import org.structr.core.property.PropertyKey;
 public class NodeAttribute<T> {
 
 	private PropertyKey<T> key = null;
-	private T value = null;
+	private T value            = null;
 
 	public NodeAttribute() {
 	}
@@ -83,7 +83,12 @@ public class NodeAttribute<T> {
 
 	@Override
 	public int hashCode() {
-		return key.hashCode();
+		
+		if (key != null) {
+			return key.hashCode();
+		}
+		
+		return super.hashCode();
 	}
 
 	@Override

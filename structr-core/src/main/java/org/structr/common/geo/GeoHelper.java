@@ -37,6 +37,7 @@ import org.structr.core.property.PropertyMap;
 
 import java.util.logging.Logger;
 import org.apache.commons.collections.map.LRUMap;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.search.DistanceSearchAttribute;
 
 //~--- classes ----------------------------------------------------------------
@@ -74,10 +75,10 @@ public class GeoHelper {
 		props.put(Location.latitude,  latitude);
 		props.put(Location.longitude, longitude);
 
-		StructrTransaction transaction = new StructrTransaction<AbstractNode>() {
+		StructrTransaction transaction = new StructrTransaction<NodeInterface>() {
 
 			@Override
-			public AbstractNode execute() throws FrameworkException {
+			public NodeInterface execute() throws FrameworkException {
 				return Services.command(SecurityContext.getSuperUserInstance(), CreateNodeCommand.class).execute(props);
 			}
 		};
