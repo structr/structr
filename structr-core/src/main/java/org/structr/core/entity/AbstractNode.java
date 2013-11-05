@@ -45,8 +45,6 @@ import org.structr.core.EntityContext;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.Services;
 import org.structr.core.graph.NodeRelationshipStatisticsCommand;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -62,6 +60,8 @@ import org.structr.core.entity.relationship.Ownership;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeService;
 import org.structr.core.graph.RelationshipFactory;
+import org.structr.core.graph.search.SearchCommand;
+import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.property.EntityIdProperty;
 import org.structr.core.property.StartNode;
 
@@ -285,22 +285,10 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 			}
 
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+			dbNode.removeProperty(key.dbName());
 
-				@Override
-				public Object execute() throws FrameworkException {
-
-					dbNode.removeProperty(key.dbName());
-					
-					// remove from index
-					removeFromIndex(key);
-					
-					return null;
-
-				}
-
-			});
-
+			// remove from index
+			removeFromIndex(key);
 		}
 
 	}
@@ -1070,21 +1058,6 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 	}
 	
-	public <T> void setPropertyTransactional(final PropertyKey<T> key, final T value) throws FrameworkException {
-		
-		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-			@Override
-			public Object execute() throws FrameworkException {
-				
-				setProperty(key, value);
-				
-				return null;
-			}
-			
-		});
-	}
-
 	private <T> void setPropertyInternal(final PropertyKey<T> key, final T value) throws FrameworkException {
 
 		if (key == null) {

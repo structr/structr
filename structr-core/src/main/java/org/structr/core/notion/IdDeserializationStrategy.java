@@ -23,15 +23,11 @@ package org.structr.core.notion;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchNodeCommand;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.IdNotFoundToken;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.CreateNodeCommand;
-import org.structr.core.graph.NodeAttribute;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -42,6 +38,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.*;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 
 //~--- classes ----------------------------------------------------------------
@@ -51,7 +49,7 @@ import org.structr.core.graph.NodeInterface;
  *
  * @author Christian Morgner
  */
-public class IdDeserializationStrategy<S, T extends GraphObject> implements DeserializationStrategy<S, T> {
+public class IdDeserializationStrategy<S, T extends NodeInterface> implements DeserializationStrategy<S, T> {
 
 	private static final Logger logger = Logger.getLogger(IdDeserializationStrategy.class.getName());
 
@@ -141,23 +139,23 @@ public class IdDeserializationStrategy<S, T extends GraphObject> implements Dese
 
 		} else if (createIfNotExisting) {
 
-			return (T)Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<NodeInterface>() {
+			final App app = StructrApp.getInstance(securityContext);
 
-				@Override
-				public NodeInterface execute() throws FrameworkException {
+			try {
+				
+				app.beginTx();
+				
+				final T newNode = app.create(type);
 
-					// create node and return it
-					NodeInterface newNode = Services.command(securityContext, CreateNodeCommand.class).execute(new NodeAttribute(AbstractNode.type, type.getSimpleName()));
-					if (newNode == null) {
-
-						logger.log(Level.WARNING, "Unable to create node of type {0} for property {1}", new Object[] { type.getSimpleName(), propertyKey.dbName() });
-
-					}
-
-					return newNode;
-				}
-
-			});
+				app.commitTx();
+				
+				return newNode;
+				
+			} catch (FrameworkException fex) {
+				
+				logger.log(Level.WARNING, "Unable to create node of type {0} for property {1}", new Object[] { type.getSimpleName(), propertyKey.dbName() });
+				
+			}
 
 		}
 

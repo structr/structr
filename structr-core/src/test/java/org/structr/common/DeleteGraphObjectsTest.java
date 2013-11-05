@@ -29,11 +29,9 @@ import org.structr.core.entity.TestFour;
 import org.structr.core.entity.TestOne;
 import org.structr.core.entity.TestThree;
 import org.structr.core.entity.TestTwo;
-import org.structr.core.graph.StructrTransaction;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -45,8 +43,7 @@ import org.structr.core.entity.GenericNode;
 import org.structr.core.entity.SixOneOneToOne;
 import org.structr.core.entity.relationship.LocationRelationship;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.search.Search;
-import org.structr.core.graph.search.SearchAttribute;
+import org.structr.core.graph.RelationshipInterface;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -88,39 +85,21 @@ public class DeleteGraphObjectsTest extends StructrTest {
 			props.put(AbstractNode.type, type);
 			props.put(AbstractNode.name, name);
 
-			final NodeInterface node = transactionCommand.execute(new StructrTransaction<NodeInterface>() {
-
-				@Override
-				public NodeInterface execute() throws FrameworkException {
-
-					// Create node with a type which has no entity class => should result in a node of type 'GenericNode'
-					return createNodeCommand.execute(props);
-				}
-
-			});
+			app.beginTx();
+			final NodeInterface node = app.create(NodeInterface.class, props);
+			app.commitTx();
 
 			assertTrue(node != null);
 
 			String uuid = node.getUuid();
 			
-			transactionCommand.execute(new StructrTransaction() {
-
-				@Override
-				public Object execute() throws FrameworkException {
-
-					deleteNodeCommand.execute(node);
-					return null;
-				}
-
-			});
+			app.beginTx();
+			app.delete(node);
+			app.commitTx();
 
 			try {
 
-				// Node should not be found after deletion
-				List<SearchAttribute> attrs = new LinkedList<>();
-				attrs.add(Search.andExactUuid(uuid));
-				
-				Result result = searchNodeCommand.execute(attrs);
+				Result result = app.nodeQuery().uuid(uuid).getResult();
 				
 				assertEquals("Node should have been deleted", 0, result.size());
 				
@@ -146,7 +125,9 @@ public class DeleteGraphObjectsTest extends StructrTest {
 			assertNotNull(nodes);
 			assertTrue(nodes.size() == 2);
 			
-			AbstractRelationship rel = createRelationshipCommand.execute(nodes.get(0), nodes.get(1), SixOneOneToOne.class);
+			app.beginTx();
+			RelationshipInterface rel = app.create(nodes.get(0), nodes.get(1), SixOneOneToOne.class);
+			app.commitTx();
 			
 			assertNotNull(rel);
 			
@@ -161,9 +142,9 @@ public class DeleteGraphObjectsTest extends StructrTest {
 			assertNotNull(rel);
 			
 			
-			// Delete relationship in transaction
-			// This works because structr's DeleteRelationshipCommand creates a tx 
-			deleteRelationshipCommand.execute(rel);
+			app.beginTx();
+			app.delete(rel);
+			app.commitTx();
 			
 			String uuid = rel.getUuid();
 			assertNull("UUID of deleted relationship should be null", uuid);
@@ -187,7 +168,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 	public void test03CascadeDeleteNone() {
 
 		/* this test is flawed in that it expects the cascading
-		 * not to take place but expectes to run without an
+		 * not to take place but expects to run without an
 		 * exception, but deleting one node of the two will leave
 		 * the other (TestTwo) in an invalid state according
 		 * to its isValid() method!
@@ -432,38 +413,23 @@ public class DeleteGraphObjectsTest extends StructrTest {
 
 	private AbstractRelationship cascadeRel(final Class type1, final Class type2, final int cascadeDeleteFlag) throws FrameworkException {
 
-		return (AbstractRelationship) transactionCommand.execute(new StructrTransaction() {
+		app.beginTx();
 
-			@Override
-			public Object execute() throws FrameworkException {
+		AbstractNode start       = createTestNode(type1);
+		AbstractNode end         = createTestNode(type2);
+		AbstractRelationship rel = createTestRelationship(start, end, LocationRelationship.class);
 
-				AbstractNode start       = createTestNode(type1);
-				AbstractNode end         = createTestNode(type2);
-				AbstractRelationship rel = createTestRelationship(start, end, LocationRelationship.class);
-
-				rel.setProperty(AbstractRelationship.cascadeDelete, cascadeDeleteFlag);
-
-				return rel;
-
-			}
-
-		});
-
+		rel.setProperty(AbstractRelationship.cascadeDelete, cascadeDeleteFlag);
+		
+		app.commitTx();
+		
+		return rel;
 	}
 
 	private void deleteCascade(final NodeInterface node) throws FrameworkException {
 
-		transactionCommand.execute(new StructrTransaction() {
-
-			@Override
-			public Object execute() throws FrameworkException {
-
-				deleteNodeCommand.execute(node);
-				return null;
-			}
-
-		});
-
+		app.beginTx();
+		app.delete(node);
+		app.commitTx();
 	}
-
 }

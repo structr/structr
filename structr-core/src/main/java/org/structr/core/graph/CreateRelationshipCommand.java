@@ -68,70 +68,62 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 
 	private synchronized <T extends Relation> T createRelationship(final NodeInterface fromNode, final NodeInterface toNode, final Class<T> relType, final PropertyMap properties) throws FrameworkException {
 
-		return (T) Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+		final RelationshipFactory<T> factory = new RelationshipFactory(securityContext);
+		final T template                     = instantiate(relType);
+		final Node startNode                 = fromNode.getNode();
+		final Node endNode                   = toNode.getNode();
+		final Relationship rel               = startNode.createRelationshipTo(endNode, template);
+		final T newRel                       = factory.instantiateWithType(rel, relType, true);
+		final Date now                       = new Date();
 
-			@Override
-			public Object execute() throws FrameworkException {
+		// logger.log(Level.INFO, "CREATING relationship {0}-[{1}]->{2}", new Object[] {  fromNode.getType(), newRel.getRelType(), toNode.getType() } );
 
-				final RelationshipFactory<T> factory = new RelationshipFactory(securityContext);
-				final T template                     = instantiate(relType);
-				final Node startNode                 = fromNode.getNode();
-				final Node endNode                   = toNode.getNode();
-				final Relationship rel               = startNode.createRelationshipTo(endNode, template);
-				final T newRel                       = factory.instantiateWithType(rel, relType, true);
-				final Date now                       = new Date();
+		if (newRel != null) {
 
-				// logger.log(Level.INFO, "CREATING relationship {0}-[{1}]->{2}", new Object[] {  fromNode.getType(), newRel.getRelType(), toNode.getType() } );
-				
-				if (newRel != null) {
+			newRel.unlockReadOnlyPropertiesOnce();
+			newRel.setProperty(GraphObject.type, relType.getSimpleName());
 
-					newRel.unlockReadOnlyPropertiesOnce();
-					newRel.setProperty(GraphObject.type, relType.getSimpleName());
-					
-					newRel.unlockReadOnlyPropertiesOnce();
-					newRel.setProperty(AbstractRelationship.createdDate, now);
+			newRel.unlockReadOnlyPropertiesOnce();
+			newRel.setProperty(AbstractRelationship.createdDate, now);
 
-					newRel.unlockReadOnlyPropertiesOnce();
-					newRel.setProperty(AbstractRelationship.lastModifiedDate, now);
+			newRel.unlockReadOnlyPropertiesOnce();
+			newRel.setProperty(AbstractRelationship.lastModifiedDate, now);
 
-					newRel.unlockReadOnlyPropertiesOnce();
-					newRel.setProperty(AbstractRelationship.cascadeDelete, template.getCascadingDeleteFlag());
+			newRel.unlockReadOnlyPropertiesOnce();
+			newRel.setProperty(AbstractRelationship.cascadeDelete, template.getCascadingDeleteFlag());
 
-					// notify transaction handler
-					TransactionCommand.relationshipCreated(newRel);
-					
-					if (properties != null) {
+			// notify transaction handler
+			TransactionCommand.relationshipCreated(newRel);
 
-						for (Entry<PropertyKey, Object> entry : properties.entrySet()) {
-							
-							PropertyKey key = entry.getKey();
-							
-							// on creation, writing of read-only properties should be possible
-							if (key.isReadOnly() || key.isWriteOnce()) {
-								newRel.unlockReadOnlyPropertiesOnce();
-							}
-							
-							newRel.setProperty(entry.getKey(), entry.getValue());
-						}
+			if (properties != null) {
 
+				for (Entry<PropertyKey, Object> entry : properties.entrySet()) {
+
+					PropertyKey key = entry.getKey();
+
+					// on creation, writing of read-only properties should be possible
+					if (key.isReadOnly() || key.isWriteOnce()) {
+						newRel.unlockReadOnlyPropertiesOnce();
 					}
 
-					// notify relationship of its creation
-					newRel.onRelationshipInstantiation();
-
-					// iterate post creation transformations
-					for (Transformation<GraphObject> transformation : EntityContext.getEntityCreationTransformations(newRel.getClass())) {
-
-						transformation.apply(securityContext, newRel);
-
-					}
-
+					newRel.setProperty(entry.getKey(), entry.getValue());
 				}
 
-				return newRel;
 			}
 
-		});
+			// notify relationship of its creation
+			newRel.onRelationshipInstantiation();
+
+			// iterate post creation transformations
+			for (Transformation<GraphObject> transformation : EntityContext.getEntityCreationTransformations(newRel.getClass())) {
+
+				transformation.apply(securityContext, newRel);
+
+			}
+
+		}
+
+		return newRel;
 	}
 
 	private <T extends Relation> T instantiate(final Class<T> type) {

@@ -30,17 +30,7 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.log.ReadLogCommand;
-import org.structr.core.log.WriteLogCommand;
-import org.structr.core.graph.CreateNodeCommand;
-import org.structr.core.graph.CreateRelationshipCommand;
-import org.structr.core.graph.DeleteNodeCommand;
-import org.structr.core.graph.FindNodeCommand;
 import org.structr.core.graph.GraphDatabaseCommand;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
-import org.structr.core.graph.search.SearchNodeCommand;
-import org.structr.core.graph.search.SearchRelationshipCommand;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -53,15 +43,18 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.GenericNode;
 import org.structr.core.entity.Relation;
-import org.structr.core.graph.DeleteRelationshipCommand;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.log.ReadLogCommand;
+import org.structr.core.log.WriteLogCommand;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -78,19 +71,23 @@ public class StructrTest extends TestCase {
 
 	//~--- fields ---------------------------------------------------------
 
-	protected Map<String, String> context = new ConcurrentHashMap<String, String>(20, 0.9f, 8);
-	protected CreateNodeCommand createNodeCommand;
-	protected CreateRelationshipCommand createRelationshipCommand;
-	protected DeleteNodeCommand deleteNodeCommand;
-	protected DeleteRelationshipCommand deleteRelationshipCommand;
-	protected FindNodeCommand findNodeCommand;
-	protected GraphDatabaseCommand graphDbCommand;
+	protected Map<String, String> context         = new LinkedHashMap<>();
+	protected GraphDatabaseCommand graphDbCommand = null;
+	protected SecurityContext securityContext     = null;
 	protected ReadLogCommand readLogCommand;
-	protected SearchNodeCommand searchNodeCommand;
-	protected SearchRelationshipCommand searchRelationshipCommand;
-	protected SecurityContext securityContext;
-	protected TransactionCommand transactionCommand;
 	protected WriteLogCommand writeLogCommand;
+
+	
+	//	protected CreateNodeCommand createNodeCommand;
+//	protected CreateRelationshipCommand createRelationshipCommand;
+//	protected DeleteNodeCommand deleteNodeCommand;
+//	protected DeleteRelationshipCommand deleteRelationshipCommand;
+//	protected FindNodeCommand findNodeCommand;
+//	protected SearchNodeCommand searchNodeCommand;
+//	protected SearchRelationshipCommand searchRelationshipCommand;
+//	protected TransactionCommand transactionCommand;
+	
+	protected App app = null;
 
 	//~--- methods --------------------------------------------------------
 
@@ -134,7 +131,7 @@ public class StructrTest extends TestCase {
 	 */
 	private static List<Class> findClasses(File directory, String packageName) throws ClassNotFoundException {
 
-		List<Class> classes = new ArrayList<Class>();
+		List<Class> classes = new ArrayList<>();
 
 		if (!directory.exists()) {
 
@@ -164,30 +161,22 @@ public class StructrTest extends TestCase {
 
 	protected List<NodeInterface> createTestNodes(final Class type, final int number, final long delay) throws FrameworkException {
 
-		final PropertyMap props = new PropertyMap();
-		props.put(AbstractNode.type, type.getSimpleName());
+		app.beginTx();
+		
+		List<NodeInterface> nodes = new LinkedList<>();
 
-		return transactionCommand.execute(new StructrTransaction<List<NodeInterface>>() {
+		for (int i = 0; i < number; i++) {
 
-			@Override
-			public List<NodeInterface> execute() throws FrameworkException {
+			nodes.add(app.create(type));
+			
+			try {
+				Thread.sleep(delay);
+			} catch (InterruptedException ex) {}
+		}
+		
+		app.commitTx();
 
-				List<NodeInterface> nodes = new LinkedList<>();
-
-				for (int i = 0; i < number; i++) {
-
-					nodes.add(createNodeCommand.execute(props));
-					try {
-						Thread.sleep(delay);
-					} catch (InterruptedException ex) {}
-				}
-
-				return nodes;
-
-			}
-
-		});
-
+		return nodes;
 	}
 
 	protected List<NodeInterface> createTestNodes(final Class type, final int number) throws FrameworkException {
@@ -204,16 +193,13 @@ public class StructrTest extends TestCase {
 
 		props.put(AbstractNode.type, type.getSimpleName());
 
-		return transactionCommand.execute(new StructrTransaction<T>() {
-
-			@Override
-			public T execute() throws FrameworkException {
-
-				return (T)createNodeCommand.execute(props);
-
-			}
-
-		});
+		app.beginTx();
+		
+		final T newNode = app.create(type, props);
+		
+		app.commitTx();
+		
+		return newNode;
 
 	}
 
@@ -223,64 +209,39 @@ public class StructrTest extends TestCase {
 		final NodeInterface startNode = nodes.get(0);
 		final NodeInterface endNode   = nodes.get(1);
 
-		return transactionCommand.execute(new StructrTransaction<List<T>>() {
+		app.beginTx();
 
-			@Override
-			public List<T> execute() throws FrameworkException {
+		List<T> rels = new LinkedList<>();
 
-				List<T> rels = new LinkedList<>();
+		for (int i = 0; i < number; i++) {
 
-				for (int i = 0; i < number; i++) {
-
-					rels.add(createRelationshipCommand.execute(startNode, endNode, relType));
-				}
-
-				return rels;
-
-			}
-
-		});
+			rels.add(app.create(startNode, endNode, relType));
+		}
+		
+		app.commitTx();
+		
+		return rels;
 
 	}
 
 	protected <T extends Relation> T createTestRelationship(final AbstractNode startNode, final AbstractNode endNode, final Class<T> relType) throws FrameworkException {
 
-		return transactionCommand.execute(new StructrTransaction<T>() {
+		app.beginTx();
 
-			@Override
-			public T execute() throws FrameworkException {
+		final T rel = app.create(startNode, endNode, relType);
 
-				return createRelationshipCommand.execute(startNode, endNode, relType);
-
-			}
-
-		});
-
+		app.commitTx();
+		
+		return rel;
 	}
 
 	protected void assertNodeExists(final String nodeId) throws FrameworkException {
-
-		AbstractNode node = null;
-
-		try {
-
-			node = (AbstractNode) findNodeCommand.execute(nodeId);
-
-		} catch (Throwable t) {}
-
-		assertTrue(node != null);
+		assertNotNull(app.get(nodeId));
 
 	}
 
-	protected void assertNodeNotFound(final String nodeId) {
-
-		try {
-
-			findNodeCommand.execute(nodeId);
-			fail("Node exists!");
-
-		} catch (FrameworkException fe) {}
-
+	protected void assertNodeNotFound(final String nodeId) throws FrameworkException {
+		assertNull(app.get(nodeId));
 	}
 
 	protected <T> List<T> toList(T... elements) {
@@ -351,15 +312,16 @@ public class StructrTest extends TestCase {
 		Services.initialize(context);
 
 		securityContext           = SecurityContext.getSuperUserInstance();
-		createNodeCommand         = Services.command(securityContext, CreateNodeCommand.class);
-		createRelationshipCommand = Services.command(securityContext, CreateRelationshipCommand.class);
-		deleteNodeCommand         = Services.command(securityContext, DeleteNodeCommand.class);
-		deleteRelationshipCommand = Services.command(securityContext, DeleteRelationshipCommand.class);
-		transactionCommand        = Services.command(securityContext, TransactionCommand.class);
+		
+//		createNodeCommand         = Services.command(securityContext, CreateNodeCommand.class);
+//		createRelationshipCommand = Services.command(securityContext, CreateRelationshipCommand.class);
+//		deleteNodeCommand         = Services.command(securityContext, DeleteNodeCommand.class);
+//		deleteRelationshipCommand = Services.command(securityContext, DeleteRelationshipCommand.class);
+//		transactionCommand        = Services.command(securityContext, TransactionCommand.class);
 		graphDbCommand            = Services.command(securityContext, GraphDatabaseCommand.class);
-		findNodeCommand           = Services.command(securityContext, FindNodeCommand.class);
-		searchNodeCommand         = Services.command(securityContext, SearchNodeCommand.class);
-		searchRelationshipCommand = Services.command(securityContext, SearchRelationshipCommand.class);
+//		findNodeCommand           = Services.command(securityContext, FindNodeCommand.class);
+//		searchNodeCommand         = Services.command(securityContext, SearchNodeCommand.class);
+//		searchRelationshipCommand = Services.command(securityContext, SearchRelationshipCommand.class);
 		writeLogCommand           = Services.command(securityContext, WriteLogCommand.class);
 		readLogCommand            = Services.command(securityContext, ReadLogCommand.class);
 
@@ -369,6 +331,8 @@ public class StructrTest extends TestCase {
 			
 		} while(!Services.isInitialized());
 
+		app = StructrApp.getInstance(securityContext);
+		
 	}
 
 }

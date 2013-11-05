@@ -31,7 +31,6 @@ import org.structr.core.entity.AbstractRelationship;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.core.entity.Relation;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -79,30 +78,13 @@ public class DeleteRelationshipCommand extends NodeServiceCommand {
 
 			// logger.log(Level.INFO, "DELETING relationship {0}-[{1}]->{2}", new Object[] {  rel.getSourceNode().getType(), rel.getRelType(), rel.getTargetNode().getType() } );
 
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+			TransactionCommand.relationshipDeleted(finalRel, passiveDeletion);
 
-				@Override
-				public Object execute() throws FrameworkException {
+			// remove object from index
+			finalRel.removeFromIndex();
 
-					TransactionCommand.relationshipDeleted(finalRel, passiveDeletion);
-
-					try {
-
-						// remove object from index
-						finalRel.removeFromIndex();
-
-						// delete node in database
-						relToDelete.delete();
-						
-					} catch (IllegalStateException ise) {
-						logger.log(Level.WARNING, ise.getMessage());
-					}
-
-					return null;
-				}
-
-			});
-
+			// delete node in database
+			relToDelete.delete();
 		}
 
 		return null;

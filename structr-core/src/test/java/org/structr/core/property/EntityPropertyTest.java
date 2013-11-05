@@ -24,13 +24,10 @@ import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.fail;
 import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.TestThree;
 import org.structr.core.entity.TestSix;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 
 /**
  *
@@ -47,20 +44,12 @@ public class EntityPropertyTest extends StructrTest {
 		
 		try {
 
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-				@Override
-				public Object execute() throws FrameworkException {
-
-					a.setProperty(AbstractNode.name, "a");
-					c.setProperty(AbstractNode.name, "c");
-					b.setProperty(AbstractNode.name, "b");
-					d.setProperty(AbstractNode.name, "d");
-
-					return null;
-				}
-
-			});
+			app.beginTx();
+			a.setProperty(AbstractNode.name, "a");
+			c.setProperty(AbstractNode.name, "c");
+			b.setProperty(AbstractNode.name, "b");
+			d.setProperty(AbstractNode.name, "d");
+			app.commitTx();
 			
 		} catch (FrameworkException fex) {
 		
@@ -86,18 +75,10 @@ public class EntityPropertyTest extends StructrTest {
 		// create two connections
 		try {
 
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-				@Override
-				public Object execute() throws FrameworkException {
-					
-					a.setProperty(TestSix.oneToOneTestThree, b);
-					c.setProperty(TestSix.oneToOneTestThree, d);
-
-					return null;
-				}
-
-			});
+			app.beginTx();
+			a.setProperty(TestSix.oneToOneTestThree, b);
+			c.setProperty(TestSix.oneToOneTestThree, d);
+			app.commitTx();
 			
 		} catch (FrameworkException fex) {
 		
@@ -115,18 +96,9 @@ public class EntityPropertyTest extends StructrTest {
 		
 		try {
 
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-				@Override
-				public Object execute() throws FrameworkException {
-		
-					// connect a and d
-					a.setProperty(TestSix.oneToOneTestThree, d);
-
-					return null;
-				}
-
-			});
+			app.beginTx();
+			a.setProperty(TestSix.oneToOneTestThree, d);
+			app.commitTx();
 			
 		} catch (FrameworkException fex) {
 		
@@ -154,20 +126,12 @@ public class EntityPropertyTest extends StructrTest {
 				
 		try {
 
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-				@Override
-				public Object execute() throws FrameworkException {
-
-					testSix1.setProperty(AbstractNode.name, "a");
-					testSix2.setProperty(AbstractNode.name, "c");
-					testThree1.setProperty(AbstractNode.name, "b");
-					testThree2.setProperty(AbstractNode.name, "d");
-
-					return null;
-				}
-
-			});
+			app.beginTx();
+			testSix1.setProperty(AbstractNode.name, "a");
+			testSix2.setProperty(AbstractNode.name, "c");
+			testThree1.setProperty(AbstractNode.name, "b");
+			testThree2.setProperty(AbstractNode.name, "d");
+			app.commitTx();
 			
 		} catch (FrameworkException fex) {
 		
@@ -191,19 +155,10 @@ public class EntityPropertyTest extends StructrTest {
 		 */
 		try {
 
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-				@Override
-				public Object execute() throws FrameworkException {
-					
-					// create two connections
-					testSix1.setProperty(TestSix.oneToManyTestThrees, toList(testThree1));
-					testSix2.setProperty(TestSix.oneToManyTestThrees, toList(testThree2));
-
-					return null;
-				}
-
-			});
+			app.beginTx();
+			testSix1.setProperty(TestSix.oneToManyTestThrees, toList(testThree1));
+			testSix2.setProperty(TestSix.oneToManyTestThrees, toList(testThree2));
+			app.commitTx();
 			
 		} catch (FrameworkException fex) {
 		
@@ -220,19 +175,9 @@ public class EntityPropertyTest extends StructrTest {
 		assertTrue(verifyD != null && verifyD.get(0).equals(testThree2));
 		
 		try {
-
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-				@Override
-				public Object execute() throws FrameworkException {
-					
-					// connect testSix1 and testThree2
-					testSix1.setProperty(TestSix.oneToManyTestThrees, toList(testThree2));
-
-					return null;
-				}
-
-			});
+			app.beginTx();
+			testSix1.setProperty(TestSix.oneToManyTestThrees, toList(testThree2));
+			app.commitTx();
 			
 		} catch (FrameworkException fex) {
 		

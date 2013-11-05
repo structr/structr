@@ -3,7 +3,6 @@ package org.structr.core.property;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.fail;
-import org.structr.common.RelType;
 import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
@@ -12,8 +11,6 @@ import org.structr.core.entity.TestEnum;
 import org.structr.core.entity.TestFour;
 import org.structr.core.entity.TestOne;
 import org.structr.core.entity.OneFourOneToOne;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.graph.search.SearchRelationshipCommand;
@@ -89,18 +86,9 @@ public class EnumPropertyTest extends StructrTest {
 			
 			assertNotNull(testEntity);
 
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-				@Override
-				public Object execute() throws FrameworkException {
-					
-					// set property
-					testEntity.setProperty(key, TestEnum.Status1);
-					
-					return null;
-				}
-				
-			});
+			app.beginTx();
+			testEntity.setProperty(key, TestEnum.Status1);
+			app.commitTx();
 			
 			// check value from database
 			assertEquals(TestEnum.Status1, testEntity.getProperty(key));

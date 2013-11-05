@@ -19,25 +19,13 @@
 package org.structr.core.property;
 
 import java.lang.String;
-import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
 import org.apache.commons.lang.ArrayUtils;
-import org.structr.common.RelType;
 import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
-import org.structr.core.Result;
-import org.structr.core.Services;
 import org.structr.core.entity.TestFour;
-import org.structr.core.entity.TestOne;
-import org.structr.core.entity.OneFourOneToOne;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
-import org.structr.core.graph.search.Search;
-import org.structr.core.graph.search.SearchNodeCommand;
-import org.structr.core.graph.search.SearchRelationshipCommand;
 
 /**
  *
@@ -57,16 +45,9 @@ public class ArrayPropertyTest extends StructrTest {
 			// store a string array in the test entitiy
 			final String[] arr = new String[] { "one", "two", "three", "four", "five" };
 
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-				@Override
-				public Object execute() throws FrameworkException {
-					
-					instance.setProperty(securityContext, testEntity, arr);
-					return null;
-				}
-				
-			});
+			app.beginTx();
+			instance.setProperty(securityContext, testEntity, arr);
+			app.commitTx();
 			
 			String[] newArr = instance.getProperty(securityContext, testEntity, true);
 

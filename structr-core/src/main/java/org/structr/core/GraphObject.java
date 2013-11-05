@@ -30,6 +30,7 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.property.StringProperty;
 import org.structr.core.property.UuidProperty;
 

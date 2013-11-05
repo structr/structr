@@ -42,6 +42,7 @@ import org.structr.common.error.TypeToken;
 import org.structr.core.JsonInput;
 import org.structr.core.Result;
 import org.structr.core.graph.CreateNodeCommand;
+import org.structr.core.graph.NodeInterface;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -50,7 +51,7 @@ import org.structr.core.graph.CreateNodeCommand;
  *
  * @author Christian Morgner
  */
-public class TypeAndPropertySetDeserializationStrategy<S, T extends GraphObject> implements DeserializationStrategy<S, T> {
+public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterface> implements DeserializationStrategy<S, T> {
 
 	private static final Logger logger = Logger.getLogger(TypeAndPropertySetDeserializationStrategy.class.getName());
 	

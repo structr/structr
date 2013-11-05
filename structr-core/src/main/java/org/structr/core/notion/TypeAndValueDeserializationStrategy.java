@@ -68,8 +68,7 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 	//~--- methods --------------------------------------------------------
 
 	@Override
-	public GraphObject deserialize(SecurityContext securityContext, Class type, Object source)
-		throws FrameworkException {
+	public NodeInterface deserialize(SecurityContext securityContext, Class type, Object source) throws FrameworkException {
 
 		List<SearchAttribute> attrs = new LinkedList();
 
@@ -79,7 +78,7 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 		
 		
 		// create and fill input map with source object
-		Map<String, Object> sourceMap = new LinkedHashMap<String, Object>();
+		Map<String, Object> sourceMap = new LinkedHashMap<>();
 		sourceMap.put(propertyKey.jsonName(), source);
 
 		// try to convert input type to java type in order to create object correctly
@@ -123,7 +122,7 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 
 
 		// just check for existance
-		Result result = Services.command(securityContext, SearchNodeCommand.class).execute(attrs);
+		Result<NodeInterface> result = Services.command(securityContext, SearchNodeCommand.class).execute(attrs);
 		int resultCount = result.size();
 
 		switch (resultCount) {
@@ -153,7 +152,8 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 				break;
 
 			case 1 :
-				GraphObject obj = result.get(0);
+				
+				NodeInterface obj = result.get(0);
 				//if(!type.getSimpleName().equals(node.getType())) {
 				if (!type.isAssignableFrom(obj.getClass())) {
 					throw new FrameworkException("base", new TypeToken(propertyKey, type.getSimpleName()));

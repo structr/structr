@@ -26,7 +26,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Adapter;
 import org.structr.core.EntityContext;
-import org.structr.core.GraphObject;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -35,6 +34,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.graph.NodeInterface;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -48,7 +48,7 @@ import org.structr.core.converter.PropertyConverter;
  *
  * @author Christian Morgner
  */
-public abstract class Notion<S extends GraphObject, T> {
+public abstract class Notion<S extends NodeInterface, T> {
 
 	private static final Logger logger = Logger.getLogger(Notion.class.getName());
 	

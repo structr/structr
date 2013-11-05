@@ -2,6 +2,7 @@ package org.structr.core.entity.relationship;
 
 import org.structr.core.entity.ManyToMany;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
 
 /**
  *

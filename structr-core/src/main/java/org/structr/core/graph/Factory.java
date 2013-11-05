@@ -200,7 +200,7 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 		final int pageSize       = Math.min(size, factoryProfile.getPageSize());
 		final int page           = factoryProfile.getPage();
 		final String offsetId    = factoryProfile.getOffsetId();
-		List<T> elements         = new LinkedList<T>();
+		List<T> elements         = new LinkedList<>();
 		int position             = 0;
 		int count                = 0;
 		int offset               = 0;
@@ -244,7 +244,7 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 
 		}
 
-		if (!gotOffset) {
+		if (!nodesUpToOffset.isEmpty() && !gotOffset) {
 
 			throw new FrameworkException("offsetId", new IdNotFoundToken(offsetId));
 		}

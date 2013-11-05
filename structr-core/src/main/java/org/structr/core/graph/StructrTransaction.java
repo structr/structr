@@ -29,11 +29,11 @@ public abstract class StructrTransaction<T> {
 	
 	protected boolean doValidation = true;
 	
-	public StructrTransaction() {
+	private StructrTransaction() {
 		this.doValidation = true;
 	}
 	
-	public StructrTransaction(boolean doValidation) {
+	private StructrTransaction(boolean doValidation) {
 		this.doValidation = doValidation;
 	}
 	

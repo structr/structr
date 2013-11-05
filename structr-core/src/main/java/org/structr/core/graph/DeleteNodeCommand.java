@@ -76,99 +76,90 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 		
 		final DeleteRelationshipCommand deleteRel     = Services.command(securityContext, DeleteRelationshipCommand.class);
 
-		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+		try {
 
-			@Override
-			public Object execute() throws FrameworkException {
+			List<NodeInterface> nodesToCheckAfterDeletion = new LinkedList<>();
 
-				try {
+			// Delete all end nodes of outgoing relationships which are connected
+			// by relationships which are marked with DELETE_OUTGOING
+			for (AbstractRelationship rel : node.getOutgoingRelationships()) {
 
-					List<NodeInterface> nodesToCheckAfterDeletion = new LinkedList<>();
+				int cascadeDelete     = rel.cascadeDelete();
+				NodeInterface endNode = rel.getTargetNode();
 
-					// Delete all end nodes of outgoing relationships which are connected
-					// by relationships which are marked with DELETE_OUTGOING
-					for (AbstractRelationship rel : node.getOutgoingRelationships()) {
+				if ((cascadeDelete & Relation.CONSTRAINT_BASED) == Relation.CONSTRAINT_BASED) {
 
-						int cascadeDelete     = rel.cascadeDelete();
-						NodeInterface endNode = rel.getTargetNode();
-
-						if ((cascadeDelete & Relation.CONSTRAINT_BASED) == Relation.CONSTRAINT_BASED) {
-
-							nodesToCheckAfterDeletion.add(endNode);
-						}
-
-						if (!deletedNodes.contains(endNode) && ((cascadeDelete & Relation.SOURCE_TO_TARGET) == Relation.SOURCE_TO_TARGET)) {
-
-							// remove end node from index
-							endNode.removeFromIndex();
-							doDeleteNode(endNode);
-						}
-
-					}
-
-					// Delete all start nodes of incoming relationships which are connected
-					// by relationships which are marked with DELETE_INCOMING
-					for (AbstractRelationship rel : node.getIncomingRelationships()) {
-
-						int cascadeDelete       = rel.cascadeDelete();
-						NodeInterface startNode = rel.getSourceNode();
-
-						if ((cascadeDelete & Relation.CONSTRAINT_BASED) == Relation.CONSTRAINT_BASED) {
-
-							nodesToCheckAfterDeletion.add(startNode);
-						}
-
-						if (!deletedNodes.contains(startNode) && ((cascadeDelete & Relation.TARGET_TO_SOURCE) == Relation.TARGET_TO_SOURCE)) {
-
-							// remove start node from index
-							startNode.removeFromIndex();
-							doDeleteNode(startNode);
-						}
-
-					}
-
-					// deletion callback, must not prevent node deletion!
-					node.onNodeDeletion();
-
-					// Delete any relationship (this is PASSIVE DELETION)
-					for (AbstractRelationship r : node.getRelationships()) {
-
-						deleteRel.execute(r, true);
-					}
-
-					// remove node from index
-					node.removeFromIndex();
-
-					// delete node in database
-					node.getNode().delete();
-
-					// mark node as deleted in transaction
-					TransactionCommand.nodeDeleted(node);
-					
-					// now check again the deletion cascade for violated constraints
-					// Check all end nodes of outgoing relationships which are connected if they are
-					// still valid after node deletion
-					for (NodeInterface nodeToCheck : nodesToCheckAfterDeletion) {
-
-						ErrorBuffer errorBuffer = new ErrorBuffer();
-
-						if (!deletedNodes.contains(nodeToCheck) && !nodeToCheck.isValid(errorBuffer)) {
-
-							// remove end node from index
-							nodeToCheck.removeFromIndex();
-							doDeleteNode(nodeToCheck);
-						}
-					}
-
-				} catch (Throwable t) {
-
-					logger.log(Level.WARNING, "Exception while deleting node: {0}", t);
-
+					nodesToCheckAfterDeletion.add(endNode);
 				}
 
-				return null;
+				if (!deletedNodes.contains(endNode) && ((cascadeDelete & Relation.SOURCE_TO_TARGET) == Relation.SOURCE_TO_TARGET)) {
+
+					// remove end node from index
+					endNode.removeFromIndex();
+					doDeleteNode(endNode);
+				}
+
 			}
-		});
+
+			// Delete all start nodes of incoming relationships which are connected
+			// by relationships which are marked with DELETE_INCOMING
+			for (AbstractRelationship rel : node.getIncomingRelationships()) {
+
+				int cascadeDelete       = rel.cascadeDelete();
+				NodeInterface startNode = rel.getSourceNode();
+
+				if ((cascadeDelete & Relation.CONSTRAINT_BASED) == Relation.CONSTRAINT_BASED) {
+
+					nodesToCheckAfterDeletion.add(startNode);
+				}
+
+				if (!deletedNodes.contains(startNode) && ((cascadeDelete & Relation.TARGET_TO_SOURCE) == Relation.TARGET_TO_SOURCE)) {
+
+					// remove start node from index
+					startNode.removeFromIndex();
+					doDeleteNode(startNode);
+				}
+
+			}
+
+			// deletion callback, must not prevent node deletion!
+			node.onNodeDeletion();
+
+			// Delete any relationship (this is PASSIVE DELETION)
+			for (AbstractRelationship r : node.getRelationships()) {
+
+				deleteRel.execute(r, true);
+			}
+
+			// remove node from index
+			node.removeFromIndex();
+
+			// delete node in database
+			node.getNode().delete();
+
+			// mark node as deleted in transaction
+			TransactionCommand.nodeDeleted(node);
+
+			// now check again the deletion cascade for violated constraints
+			// Check all end nodes of outgoing relationships which are connected if they are
+			// still valid after node deletion
+			for (NodeInterface nodeToCheck : nodesToCheckAfterDeletion) {
+
+				ErrorBuffer errorBuffer = new ErrorBuffer();
+
+				if (!deletedNodes.contains(nodeToCheck) && !nodeToCheck.isValid(errorBuffer)) {
+
+					// remove end node from index
+					nodeToCheck.removeFromIndex();
+					doDeleteNode(nodeToCheck);
+				}
+			}
+
+		} catch (Throwable t) {
+
+			logger.log(Level.WARNING, "Exception while deleting node: {0}", t);
+
+		}
 
 		return null;
 	}

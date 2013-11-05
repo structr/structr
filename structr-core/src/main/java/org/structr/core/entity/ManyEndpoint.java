@@ -10,6 +10,8 @@ import org.neo4j.helpers.collection.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.graph.CreateRelationshipCommand;
 import org.structr.core.graph.DeleteRelationshipCommand;
 import org.structr.core.graph.NodeFactory;
@@ -53,6 +55,7 @@ public class ManyEndpoint<T extends NodeInterface> extends AbstractEndpoint impl
 	@Override
 	public void set(final SecurityContext securityContext, final NodeInterface sourceNode, final Iterable<T> collection) throws FrameworkException {
 
+		final App app            = StructrApp.getInstance(securityContext);
 		final Set<T> toBeDeleted = new LinkedHashSet<>(Iterables.toList(get(securityContext, sourceNode)));
 		final Set<T> toBeCreated = new LinkedHashSet<>();
 
@@ -68,39 +71,26 @@ public class ManyEndpoint<T extends NodeInterface> extends AbstractEndpoint impl
 		toBeCreated.removeAll(intersection);
 		toBeDeleted.removeAll(intersection);
 		
-		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+		// remove existing relationships
+		for (T targetNode : toBeDeleted) {
 
-			@Override
-			public Object execute() throws FrameworkException {
+			for (AbstractRelationship rel : sourceNode.getOutgoingRelationships()) {
 
-				final CreateRelationshipCommand create = Services.command(securityContext, CreateRelationshipCommand.class);
-				final DeleteRelationshipCommand delete = Services.command(securityContext, DeleteRelationshipCommand.class);
-				
-				// remove existing relationships
-				for (T targetNode : toBeDeleted) {
+				if (rel.getRelType().equals(relation) && rel.getTargetNode().equals(targetNode)) {
 
-					for (AbstractRelationship rel : sourceNode.getOutgoingRelationships()) {
-						
-						if (rel.getRelType().equals(relation) && rel.getTargetNode().equals(targetNode)) {
-							
-							delete.execute(rel);
-						}
-						
-					}
+					app.delete(rel);
 				}
 
-				// create new relationships
-				for (T targetNode : toBeCreated) {
-
-					relation.ensureCardinality(sourceNode, targetNode);
-					
-					create.execute(sourceNode, targetNode, relation.getClass());
-				}
-				
-				return null;
 			}
-			
-		});
+		}
+
+		// create new relationships
+		for (T targetNode : toBeCreated) {
+
+			relation.ensureCardinality(sourceNode, targetNode);
+
+			app.create(sourceNode, targetNode, relation.getClass());
+		}
 	}
 
 	@Override

@@ -43,11 +43,8 @@ package org.structr.common;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.TestOne;
 import org.structr.core.entity.TestSeven;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.search.DistanceSearchAttribute;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.property.PropertyKey;
@@ -63,14 +60,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
-import org.apache.lucene.search.BooleanClause.Occur;
-import org.structr.core.Services;
 import org.structr.core.entity.relationship.LocationRelationship;
-import org.structr.core.graph.NodeAttribute;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.TransactionCommand;
-import org.structr.core.graph.search.PropertySearchAttribute;
-import org.structr.core.graph.search.TypeSearchAttribute;
+import org.structr.core.graph.RelationshipInterface;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -104,14 +95,9 @@ public class SearchResultsTest extends StructrTest {
 
 			props.put(key, name);
 
-			final AbstractNode node                = createTestNode(TestOne.class, props);
-			boolean includeDeletedAndHidden        = true;
-			boolean publicOnly                     = false;
-			List<SearchAttribute> searchAttributes = new LinkedList<>();
+			final AbstractNode node = createTestNode(TestOne.class, props);
 
-			searchAttributes.add(new PropertySearchAttribute(key, name, Occur.MUST, true));
-
-			Result result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes);
+			Result result = app.nodeQuery().name(name).includeDeletedAndHidden().getResult();
 
 			assertTrue(result.size() == 1);
 			assertTrue(result.get(0).equals(node));
@@ -119,20 +105,11 @@ public class SearchResultsTest extends StructrTest {
 			// Change name attribute and search again
 			final String name2 = "klppptzoehi gösoiu tzüw0e9hg";
 
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-				@Override
-				public Object execute() throws FrameworkException {
-
-					node.setProperty(key, name2);
-					return null;
-				}
-			});
+			app.beginTx();
+			node.setProperty(key, name2);
+			app.commitTx();
 			
-			searchAttributes.clear();
-			searchAttributes.add(new PropertySearchAttribute(key, name2, Occur.MUST, true));
-
-			result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes);
+			result = app.nodeQuery().name(name2).includeDeletedAndHidden().getResult();
 
 			assertTrue(result.size() == 1);
 			assertTrue(result.get(0).equals(node));
@@ -153,19 +130,13 @@ public class SearchResultsTest extends StructrTest {
 			PropertyMap props = new PropertyMap();
 			PropertyKey key   = TestOne.aDate;
 			Date date         = new Date();
-			Class type       =TestOne.class;
+			Class type        = TestOne.class;
 
 			props.put(key, date);
 
-			AbstractNode node                      = createTestNode(type, props);
-			boolean includeDeletedAndHidden        = true;
-			boolean publicOnly                     = false;
-			List<SearchAttribute> searchAttributes = new LinkedList<>();
+			AbstractNode node = createTestNode(type, props);
 
-			searchAttributes.add(Search.andExactType(type));
-			searchAttributes.add(Search.andExactProperty(securityContext, key, date));
-
-			Result result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes);
+			Result result = app.nodeQuery().type(type).and(key, date).includeDeletedAndHidden().getResult();
 
 			assertEquals(1, result.size());
 			assertTrue(result.get(0).equals(node));
@@ -183,19 +154,14 @@ public class SearchResultsTest extends StructrTest {
 
 		try {
 
-			final LocationRelationship rel = (createTestRelationships(LocationRelationship.class, 1)).get(0);
+			final LocationRelationship rel = createTestRelationships(LocationRelationship.class, 1).get(0);
 			final PropertyKey key1         = new StringProperty("jghsdkhgshdhgsdjkfgh").indexed();
+			final Class type               = LocationRelationship.class;
 			final String val1              = "54354354546806849870";
 
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-				@Override
-				public Object execute() throws FrameworkException {
-			
-					rel.setProperty(key1, val1);
-					return null;
-				}
-			});
+			app.beginTx();
+			rel.setProperty(key1, val1);
+			app.commitTx();
 			
 			assertTrue(rel.getProperty(key1).equals(val1));
 
@@ -203,7 +169,7 @@ public class SearchResultsTest extends StructrTest {
 
 			searchAttributes.add(Search.andExactProperty(securityContext, key1, val1));
 
-			Result<AbstractRelationship> result = searchRelationshipCommand.execute(searchAttributes);
+			Result<RelationshipInterface> result = app.relationshipQuery().type(type).and(key1, val1).getResult();
 
 			assertTrue(result.size() == 1);
 			assertTrue(result.get(0).equals(rel));
@@ -211,18 +177,10 @@ public class SearchResultsTest extends StructrTest {
 
 			final String val2 = "ölllldjöoa8w4rasf";
 
-
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-				@Override
-				public Object execute() throws FrameworkException {
-					
-					rel.setProperty(key1, val2);
-					return null;
-				}
-			});
+			app.beginTx();
+			rel.setProperty(key1, val2);
+			app.commitTx();
 			
-			searchAttributes.add(Search.andExactProperty(securityContext, key1, val2));
 			assertTrue(result.size() == 1);
 			assertTrue(result.get(0).equals(rel));
 
@@ -248,16 +206,9 @@ public class SearchResultsTest extends StructrTest {
 			props.put(lon, 8.73923d);
 			props.put(AbstractNode.name, "TestSeven-0");
 
-			AbstractNode node                      = createTestNode(type, props);
-			boolean includeDeletedAndHidden        = true;
-			boolean publicOnly                     = false;
-			List<SearchAttribute> searchAttributes = new LinkedList<>();
+			AbstractNode node = createTestNode(type, props);
 
-			searchAttributes.add(new TypeSearchAttribute(type, Occur.MUST, true));
-			searchAttributes.add(new DistanceSearchAttribute("Hanauer Landstraße", "200", "60314", "Frankfurt", null, "Germany", 10.0, Occur.MUST));
-//			searchAttributes.add(new DistanceSearchAttribute("Hanauer Landstr. 200, 60314 Frankfurt, Germany", 10.0, Occur.MUST));
-
-			Result result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes);
+			Result result = app.nodeQuery().type(type).location("Hanauer Landstraße", "200", "60314", "Frankfurt", "Germany", 10.0).includeDeletedAndHidden().getResult();
 
 			assertEquals(1, result.size());
 			assertTrue(result.get(0).equals(node));
@@ -273,73 +224,39 @@ public class SearchResultsTest extends StructrTest {
 
 	public void test05SpatialRollback() {
 
-//		try {
+		try {
 
-			final Class type = TestSeven.class;
-			NodeInterface node = null;
+			final Class type        = TestSeven.class;
+			final PropertyMap props = new PropertyMap();
+			final PropertyKey lat   = TestSeven.latitude;
+			final PropertyKey lon   = TestSeven.longitude;
 
-			try {
+			props.put(AbstractNode.type, type.getSimpleName());
+			props.put(lat, 50.12284d);
+			props.put(lon, 8.73923d);
+			props.put(AbstractNode.name, "TestSeven-0");;
 
-				// outer transaction
-				node = transactionCommand.execute(new StructrTransaction<NodeInterface>() {
+			app.beginTx();
+			
+			// this will work
+			TestSeven node = app.create(TestSeven.class, props);
 
-					@Override
-					public NodeInterface execute() throws FrameworkException {
+			props.remove(AbstractNode.name);
+			props.put(lat, 50.12285d);
+			props.put(lon, 8.73924d);
 
-						final PropertyMap props = new PropertyMap();
-						final PropertyKey lat   = TestSeven.latitude;
-						final PropertyKey lon   = TestSeven.longitude;
+			// this will fail
+			TestSeven node2 = app.create(TestSeven.class, props);
 
-						props.put(AbstractNode.type, type.getSimpleName());
-						props.put(lat, 50.12284d);
-						props.put(lon, 8.73923d);
-						props.put(AbstractNode.name, "TestSeven-0");;
+			// adding another 
+			TestSeven node3 = app.create(TestSeven.class, props);
 
-						// this will work
-						NodeInterface node = createNodeCommand.execute(props);
-
-						props.remove(AbstractNode.name);
-						props.put(lat, 50.12285d);
-						props.put(lon, 8.73924d);
-
-						// this will fail
-						NodeInterface node2 = createNodeCommand.execute(props);
-						
-						// adding another 
-						NodeInterface node3 = createNodeCommand.execute(props);
-						
-//						boolean includeDeletedAndHidden        = true;
-//						boolean publicOnly                     = false;
-//						List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
-//
-//						searchAttributes.add(new TextualSearchAttribute(AbstractNode.type, type, Occur.MUST));
-//						searchAttributes.add(new DistanceSearchAttribute("Hanauer Landstr. 200, 60314 Frankfurt, Germany", 10.0, Occur.MUST));
-//
-//						Result result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes);
-//
-//						assertEquals(1, result.size());
-//						assertTrue(result.get(0).equals(node));
-
-						return node2;
-
-					}
-
-				});
-
-				fail("Expected a FrameworkException (name must_not_be_empty)");
-			} catch (FrameworkException nfe) {
-
-				// Expected
-			}
-
-//
-//		} catch (FrameworkException ex) {
-//
-//			logger.log(Level.SEVERE, ex.toString());
-//			System.out.println(ex.toString());
-//			fail("Unexpected exception");
-//
-//		}
+			app.commitTx();
+			
+			fail("Expected a FrameworkException (name must_not_be_empty)");
+			
+		} catch (FrameworkException nfe) {
+		}
 
 	}
 
@@ -347,14 +264,7 @@ public class SearchResultsTest extends StructrTest {
 
 		try {
 
-			boolean includeDeletedAndHidden        = true;
-			boolean publicOnly                     = false;
-			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
-
-			searchAttributes.add(new DistanceSearchAttribute("Hanauer Landstraße", "200", "60314", "Frankfurt", null, "Germany", 10.0, Occur.MUST));
-//			searchAttributes.add(new DistanceSearchAttribute("Hanauer Landstr. 200, 60314 Frankfurt, Germany", 10.0, Occur.MUST));
-
-			Result result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes);
+			Result result = app.nodeQuery().location("Hanauer Landstraße", "200", "60314", "Frankfurt", "Germany", 10.0).includeDeletedAndHidden().getResult();
 
 			assertEquals(0, result.size());
 
@@ -378,14 +288,9 @@ public class SearchResultsTest extends StructrTest {
 
 			props.put(key, name);
 
-			final AbstractNode node                = createTestNode(TestOne.class, props);
-			boolean includeDeletedAndHidden        = true;
-			boolean publicOnly                     = false;
-			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+			final AbstractNode node = createTestNode(TestOne.class, props);
 
-			searchAttributes.add(Search.andExactName(name));
-
-			Result result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes);
+			Result result = app.nodeQuery().name(name).includeDeletedAndHidden().getResult();
 
 			assertTrue(result.size() == 1);
 			assertTrue(result.get(0).equals(node));
@@ -409,14 +314,9 @@ public class SearchResultsTest extends StructrTest {
 
 			props.put(key, name);
 
-			final AbstractNode node                = createTestNode(TestOne.class, props);
-			boolean includeDeletedAndHidden        = true;
-			boolean publicOnly                     = false;
-			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+			final AbstractNode node = createTestNode(TestOne.class, props);
 
-			searchAttributes.add(Search.orExactName(name));
-
-			Result result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes);
+			Result result = app.nodeQuery().name(name).includeDeletedAndHidden().getResult();
 
 			assertTrue(result.size() == 1);
 			assertTrue(result.get(0).equals(node));
@@ -441,7 +341,7 @@ public class SearchResultsTest extends StructrTest {
 
 			createTestNode(TestOne.class, props);
 
-			Result result = searchNodeCommand.execute(true, false, Search.andExactName(null));
+			Result result = app.nodeQuery().name(null).includeDeletedAndHidden().getResult();
 
 			assertTrue(result.isEmpty());
 
@@ -459,10 +359,10 @@ public class SearchResultsTest extends StructrTest {
 
 		try {
 
-			PropertyMap props     = new PropertyMap();
+			PropertyMap props = new PropertyMap();
 			AbstractNode node = createTestNode(TestOne.class, props);
 
-			Result result = searchNodeCommand.execute(true, false, new PropertySearchAttribute(TestOne.aString, null, Occur.MUST, true));
+			Result result = app.nodeQuery().name(null).includeDeletedAndHidden().getResult();
 
 			assertTrue(result.size() == 1);
 			assertTrue(result.get(0).equals(node));
@@ -483,7 +383,7 @@ public class SearchResultsTest extends StructrTest {
 			PropertyMap props     = new PropertyMap();
 			AbstractNode node = createTestNode(TestOne.class, props);
 
-			Result result = searchNodeCommand.execute(true, false, Search.orExactProperty(SecurityContext.getSuperUserInstance(), TestOne.aDate, null));
+			Result result = app.nodeQuery().and(TestOne.aDate, null).includeDeletedAndHidden().getResult();
 
 			assertTrue(result.size() == 1);
 			assertTrue(result.get(0).equals(node));
@@ -504,7 +404,7 @@ public class SearchResultsTest extends StructrTest {
 			PropertyMap props     = new PropertyMap();
 			AbstractNode node = createTestNode(TestOne.class, props);
 
-			Result result = searchNodeCommand.execute(true, false, Search.orExactProperty(SecurityContext.getSuperUserInstance(), TestOne.anInt, null));
+			Result result = app.nodeQuery().and(TestOne.anInt, null).includeDeletedAndHidden().getResult();
 
 			assertTrue(result.size() == 1);
 			assertTrue(result.get(0).equals(node));
@@ -525,7 +425,7 @@ public class SearchResultsTest extends StructrTest {
 			PropertyMap props     = new PropertyMap();
 			AbstractNode node = createTestNode(TestOne.class, props);
 
-			Result result = searchNodeCommand.execute(true, false, Search.orExactProperty(SecurityContext.getSuperUserInstance(), TestOne.aLong, null));
+			Result result = app.nodeQuery().and(TestOne.aLong, null).includeDeletedAndHidden().getResult();
 
 			assertTrue(result.size() == 1);
 			assertTrue(result.get(0).equals(node));
@@ -546,7 +446,7 @@ public class SearchResultsTest extends StructrTest {
 			PropertyMap props     = new PropertyMap();
 			AbstractNode node = createTestNode(TestOne.class, props);
 
-			Result result = searchNodeCommand.execute(true, false, Search.orExactProperty(SecurityContext.getSuperUserInstance(), TestOne.aDouble, null));
+			Result result = app.nodeQuery().and(TestOne.aDouble, null).includeDeletedAndHidden().getResult();
 
 			assertTrue(result.size() == 1);
 			assertTrue(result.get(0).equals(node));

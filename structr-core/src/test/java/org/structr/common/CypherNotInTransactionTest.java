@@ -37,12 +37,10 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.Transaction;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.GenericNode;
 import org.structr.core.entity.SixOneOneToOne;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.search.Search;
 
 /**
  *
@@ -68,7 +66,9 @@ public class CypherNotInTransactionTest extends StructrTest {
 			assertNotNull(testNodes);
 			assertTrue(testNodes.size() == 2);
 
-			SixOneOneToOne rel = createRelationshipCommand.execute(testNodes.get(0), testNodes.get(1), SixOneOneToOne.class);
+			app.beginTx();
+			SixOneOneToOne rel = app.create(testNodes.get(0), testNodes.get(1), SixOneOneToOne.class);
+			app.commitTx();
 
 			assertNotNull(rel);
 
@@ -216,7 +216,9 @@ public class CypherNotInTransactionTest extends StructrTest {
 			assertNotNull(testNodes);
 			assertTrue(testNodes.size() == 2);
 
-			AbstractRelationship rel = createRelationshipCommand.execute(testNodes.get(0), testNodes.get(1), SixOneOneToOne.class);
+			app.beginTx();
+			AbstractRelationship rel = app.create(testNodes.get(0), testNodes.get(1), SixOneOneToOne.class);
+			app.commitTx();
 
 			assertNotNull(rel);
 
@@ -256,18 +258,18 @@ public class CypherNotInTransactionTest extends StructrTest {
 			assertNotNull(testNodes);
 			assertTrue(testNodes.size() == 2);
 
-			AbstractRelationship rel = createRelationshipCommand.execute(testNodes.get(0), testNodes.get(1), SixOneOneToOne.class);
+			app.beginTx();
+			AbstractRelationship rel = app.create(testNodes.get(0), testNodes.get(1), SixOneOneToOne.class);
+			app.commitTx();
 
 			assertNotNull(rel);
 
-			GraphDatabaseService graphDb      = graphDbCommand.execute();
-			
-			List<AbstractNode> searchRes = searchNodeCommand.execute(Search.andExactUuid(testNodes.get(0).getUuid())).getResults();
+			GraphDatabaseService graphDb  = graphDbCommand.execute();
+			List<NodeInterface> searchRes = app.nodeQuery().uuid(testNodes.get(0).getUuid()).getAsList();
 			
 			assertTrue(searchRes.size() == 1);
 			
-			
-			Transaction tx                    = graphDb.beginTx();
+			Transaction tx = graphDb.beginTx();
 
 			try {
 

@@ -24,13 +24,11 @@ import java.util.Comparator;
 import java.util.List;
 import org.neo4j.helpers.collection.Iterables;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.relationship.AbstractChildren;
 import org.structr.core.entity.relationship.AbstractListSiblings;
-import org.structr.core.graph.DeleteRelationshipCommand;
 import org.structr.core.graph.RelationshipInterface;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -61,154 +59,131 @@ public abstract class LinkedTreeNode<R extends AbstractChildren<T, T>, S extends
 
 	public void treeAppendChild(final T childElement) throws FrameworkException {
 		
+		final App app     = StructrApp.getInstance(securityContext);
 		final T lastChild = treeGetLastChild();
-		
-		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
-			@Override
-			public Object execute() throws FrameworkException {
+		app.beginTx();
 
-				PropertyMap properties = new PropertyMap();
-				properties.put(positionProperty, treeGetChildCount());
+		PropertyMap properties = new PropertyMap();
+		properties.put(positionProperty, treeGetChildCount());
 
-				// create child relationship
-				linkNodes(getChildLinkType(), (T)LinkedTreeNode.this, childElement, properties);
-				
-				// add new node to linked list
-				if (lastChild != null) {
-					LinkedTreeNode.super.listInsertAfter(lastChild, childElement);
-				}
+		// create child relationship
+		linkNodes(getChildLinkType(), (T)LinkedTreeNode.this, childElement, properties);
 
-				return null;
-			}
+		// add new node to linked list
+		if (lastChild != null) {
+			LinkedTreeNode.super.listInsertAfter(lastChild, childElement);
+		}
 
-		});
+		app.commitTx();
 	}
 	
 	public void treeInsertBefore(final T newChild, final T refChild) throws FrameworkException {
 		
-		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+		final App app = StructrApp.getInstance(securityContext);
+		
+		app.beginTx();
 
-			@Override
-			public Object execute() throws FrameworkException {
+		List<R> rels = treeGetChildRelationships();
+		int position = 0;
 
-				List<R> rels = treeGetChildRelationships();
-				int position = 0;
+		for (R rel : rels) {
 
-				for (R rel : rels) {
+			T node = rel.getTargetNode();
+			if (node.equals(refChild)) {
 
-					T node = rel.getTargetNode();
-					if (node.equals(refChild)) {
+				// will be used only once here..
+				PropertyMap properties = new PropertyMap();
+				properties.put(positionProperty, position);
 
-						// will be used only once here..
-						PropertyMap properties = new PropertyMap();
-						properties.put(positionProperty, position);
-						
-						linkNodes(getChildLinkType(), (T)LinkedTreeNode.this, newChild, properties);
-						
-						position++;
-					}
+				linkNodes(getChildLinkType(), (T)LinkedTreeNode.this, newChild, properties);
 
-					rel.setProperty(positionProperty, position);
-
-					position++;
-				}
-
-				// insert new node in linked list
-				LinkedTreeNode.super.listInsertBefore(refChild, newChild);
-
-				
-				return null;
+				position++;
 			}
 
-		});
+			rel.setProperty(positionProperty, position);
+
+			position++;
+		}
+
+		// insert new node in linked list
+		LinkedTreeNode.super.listInsertBefore(refChild, newChild);
+
+		app.commitTx();
 	}
 	
 	public void treeInsertAfter(final T newChild, final T refChild) throws FrameworkException {
 		
-		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+		final App app = StructrApp.getInstance(securityContext);
+		
+		app.beginTx();
 
-			@Override
-			public Object execute() throws FrameworkException {
+		List<R> rels = treeGetChildRelationships();
+		int position = 0;
 
-				List<R> rels = treeGetChildRelationships();
-				int position = 0;
+		for (R rel : rels) {
 
-				for (R rel : rels) {
+			T node = rel.getTargetNode();
 
-					T node = rel.getTargetNode();
+			rel.setProperty(positionProperty, position);
+			position++;
 
-					rel.setProperty(positionProperty, position);
-					position++;
+			if (node.equals(refChild)) {
 
-					if (node.equals(refChild)) {
+				// will be used only once here..
+				PropertyMap properties = new PropertyMap();
+				properties.put(positionProperty, position);
 
-						// will be used only once here..
-						PropertyMap properties = new PropertyMap();
-						properties.put(positionProperty, position);
-						
-						linkNodes(getChildLinkType(), (T)LinkedTreeNode.this, newChild, properties);
-						
-						position++;
-					}
-				}
+				linkNodes(getChildLinkType(), (T)LinkedTreeNode.this, newChild, properties);
 
-				// insert new node in linked list
-				LinkedTreeNode.super.listInsertAfter(refChild, newChild);
-				
-				return null;
+				position++;
 			}
+		}
 
-		});
+		// insert new node in linked list
+		LinkedTreeNode.super.listInsertAfter(refChild, newChild);
+
+		app.commitTx();
 	}
 
 	public void treeRemoveChild(final T childToRemove) throws FrameworkException {
 
-		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+		final App app = StructrApp.getInstance(securityContext);
+		app.beginTx();
 
-			@Override
-			public Object execute() throws FrameworkException {
-				
-				// remove element from linked list
-				LinkedTreeNode.super.listRemove(childToRemove);
+		// remove element from linked list
+		LinkedTreeNode.super.listRemove(childToRemove);
 
-				unlinkNodes(getChildLinkType(), (T)LinkedTreeNode.this, childToRemove);
-				
-				ensureCorrectChildPositions();
+		unlinkNodes(getChildLinkType(), (T)LinkedTreeNode.this, childToRemove);
 
-				return null;
-			}
+		ensureCorrectChildPositions();
 
-		});
+		app.commitTx();
 	}
 	
 	public void treeReplaceChild(final T newChild, final T oldChild) throws FrameworkException {
-		
-		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
-			@Override
-			public Object execute() throws FrameworkException {
+		final App app = StructrApp.getInstance(securityContext);
 
-				// save old position
-				int oldPosition = treeGetChildPosition(oldChild);
+		app.beginTx();
 
-				// remove old node
-				unlinkNodes(getChildLinkType(), (T)LinkedTreeNode.this, oldChild);
+		// save old position
+		int oldPosition = treeGetChildPosition(oldChild);
 
-				// insert new node with position from old node
-				PropertyMap properties = new PropertyMap();
-				properties.put(positionProperty, oldPosition);
-				
-				linkNodes(getChildLinkType(), (T)LinkedTreeNode.this, newChild, properties);
+		// remove old node
+		unlinkNodes(getChildLinkType(), (T)LinkedTreeNode.this, oldChild);
 
-				// replace element in linked list as well
-				LinkedTreeNode.super.listInsertBefore(oldChild, newChild);
-				LinkedTreeNode.super.listRemove(oldChild);
-				
-				return null;
-			}
+		// insert new node with position from old node
+		PropertyMap properties = new PropertyMap();
+		properties.put(positionProperty, oldPosition);
 
-		});
+		linkNodes(getChildLinkType(), (T)LinkedTreeNode.this, newChild, properties);
+
+		// replace element in linked list as well
+		LinkedTreeNode.super.listInsertBefore(oldChild, newChild);
+		LinkedTreeNode.super.listRemove(oldChild);
+
+		app.commitTx();
 	}
 	
 	public T treeGetFirstChild() {
@@ -310,46 +285,36 @@ public abstract class LinkedTreeNode<R extends AbstractChildren<T, T>, S extends
 	 * call creates its own transaction.
 	 */
 	private void ensureCorrectChildPositions() throws FrameworkException {
+
+		final App app = StructrApp.getInstance(securityContext);
 		
-		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+		app.beginTx();
 
-			@Override
-			public Object execute() throws FrameworkException {
+		List<R> childRels = treeGetChildRelationships();
+		int position      = 0;
 
-				List<R> childRels = treeGetChildRelationships();
-				int position      = 0;
+		for (R childRel : childRels) {
 
-				for (R childRel : childRels) {
+			childRel.removeProperty(positionProperty);
+			childRel.setProperty(positionProperty, position++);
+		}
 
-					childRel.removeProperty(positionProperty);
-					childRel.setProperty(positionProperty, position++);
-				}
-
-				return null;
-			}
-
-		});
+		app.commitTx();
 	}
 	
 	private void unlinkNodes(final Class<R> linkType, final T startNode, final T endNode) throws FrameworkException {
-		
-		final DeleteRelationshipCommand cmd = Services.command(securityContext, DeleteRelationshipCommand.class);
-		
-		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
-			@Override
-			public Object execute() throws FrameworkException {
+		final App app = StructrApp.getInstance(securityContext);
+		
+		app.beginTx();
 
-				for (RelationshipInterface rel : startNode.getRelationships(linkType)) {
-					
-					if (rel != null && rel.getTargetNode().equals(endNode)) {
-						cmd.execute(rel);
-					}
-				}
-				
-				return null;
+		for (RelationshipInterface rel : startNode.getRelationships(linkType)) {
+
+			if (rel != null && rel.getTargetNode().equals(endNode)) {
+				app.delete(rel);
 			}
-			
-		});
+		}
+
+		app.commitTx();
 	}
 }

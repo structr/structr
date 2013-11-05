@@ -5,12 +5,9 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
-import org.structr.core.graph.CreateRelationshipCommand;
+import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 
 /**
  *
@@ -40,25 +37,14 @@ public class OneEndpoint<T extends NodeInterface> extends AbstractEndpoint imple
 	@Override
 	public void set(final SecurityContext securityContext, final NodeInterface sourceNode, final T targetNode) throws FrameworkException {
 		
-		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+		// let relation check multiplicity
+		relation.ensureCardinality(sourceNode, targetNode);
 
-			@Override
-			public Object execute() throws FrameworkException {
+		if (targetNode != null) {
 
-				// let relation check multiplicity
-				relation.ensureCardinality(sourceNode, targetNode);
-
-				if (targetNode != null) {
-					
-					// create new relationship
-					Services.command(securityContext, CreateRelationshipCommand.class).execute(sourceNode, targetNode, relation.getClass());
-				}
-				
-				return null;
-			}
-			
-		});
-		
+			// create new relationship
+			StructrApp.getInstance(securityContext).create(sourceNode, targetNode, relation.getClass());
+		}
 	}
 
 	@Override

@@ -24,7 +24,6 @@ package org.structr.core.graph;
 import java.util.Set;
 import java.util.logging.Level;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Transaction;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -58,8 +57,8 @@ public class TransactionCommand extends NodeServiceCommand {
 
 	private static final Logger logger                                  = Logger.getLogger(TransactionCommand.class.getName());
 	private static final ThreadLocal<TransactionCommand> currentCommand = new ThreadLocal<>();
-	private static final ThreadLocal<Transaction>        transactions   = new ThreadLocal<>();
-	private static final MultiSemaphore                  semaphore      = new MultiSemaphore();
+	private static final ThreadLocal<TransactionReference> transactions = new ThreadLocal<>();
+	private static final MultiSemaphore                    semaphore    = new MultiSemaphore();
 	
 	private ModificationQueue modificationQueue = null;
 	private ErrorBuffer errorBuffer             = null;
@@ -101,7 +100,7 @@ public class TransactionCommand extends NodeServiceCommand {
 	private <T> T executeInternal(StructrTransaction<T> transaction) throws FrameworkException {
 		
 		GraphDatabaseService graphDb    = (GraphDatabaseService) arguments.get("graphDb");
-		Transaction tx                  = transactions.get();
+		TransactionReference tx         = transactions.get();
 		boolean topLevel                = (tx == null);
 		boolean error                   = false;
 		boolean deadlock                = false;
@@ -114,7 +113,7 @@ public class TransactionCommand extends NodeServiceCommand {
 			// start new transaction
 			this.modificationQueue = new ModificationQueue();
 			this.errorBuffer       = new ErrorBuffer();
-			tx                     = graphDb.beginTx();
+			tx                     = new TransactionReference(graphDb.beginTx());
 			
 			transactions.set(tx);
 			currentCommand.set(this);
@@ -227,6 +226,101 @@ public class TransactionCommand extends NodeServiceCommand {
 		}
 		
 		return result;
+	}
+
+	public void beginTx() {
+		
+		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
+		TransactionReference tx      = transactions.get();
+		
+		if (tx == null) {
+		
+			// start new transaction
+			this.modificationQueue = new ModificationQueue();
+			this.errorBuffer       = new ErrorBuffer();
+			tx                     = new TransactionReference(graphDb.beginTx());
+			
+			transactions.set(tx);
+			currentCommand.set(this);
+		}
+		
+		// increase depth
+		tx.begin();
+	}
+	
+	public void commitTx() throws FrameworkException {
+		commitTx(true);
+	}
+	
+	public void commitTx(final boolean doValidation) throws FrameworkException {
+	
+		TransactionReference tx = transactions.get();
+		Set<String> synchronizationKeys = null;
+		
+		if (tx != null) {
+			
+			if (tx.isToplevel()) {
+
+				// 1. do inner callbacks (may cause transaction to fail)
+				if (!modificationQueue.doInnerCallbacks(securityContext, errorBuffer)) {
+
+					// create error
+					if (doValidation) {
+
+						tx.failure();
+						tx.finish();
+
+						// cleanup
+						currentCommand.remove();
+						transactions.remove();
+
+						throw new FrameworkException(422, errorBuffer);
+					}
+				}
+
+				// 2. fetch all types of entities modified in this tx
+				synchronizationKeys = modificationQueue.getSynchronizationKeys();
+
+				// we need to protect the validation and indexing part of every transaction
+				// from being entered multiple times in the presence of validators
+				// 3. acquire semaphores for each modified type
+				try { semaphore.acquire(synchronizationKeys); } catch (InterruptedException iex) { return; }
+
+				// finally, do validation under the protection of the semaphores for each type
+				if (!modificationQueue.doValidation(securityContext, errorBuffer, doValidation)) {
+
+					tx.failure();
+					tx.finish();
+
+					// release semaphores as the transaction is now finished
+					semaphore.release(synchronizationKeys);	// careful: this can be null
+
+					// cleanup
+					currentCommand.remove();
+					transactions.remove();
+
+					// create error
+					throw new FrameworkException(422, errorBuffer);
+				}
+
+				tx.success();
+				tx.finish();
+
+				// release semaphores as the transaction is now finished
+				semaphore.release(synchronizationKeys);	// careful: this can be null
+
+				// cleanup
+				currentCommand.remove();
+				transactions.remove();
+
+				modificationQueue.doOuterCallbacks(securityContext);
+				modificationQueue.clear();
+				
+			} else {
+				
+				tx.end();
+			}
+		}
 	}
 	
 	public static void nodeCreated(NodeInterface node) {

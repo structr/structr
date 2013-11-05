@@ -21,17 +21,13 @@ package org.structr.core.property;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.fail;
-import org.structr.common.RelType;
 import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
 import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.entity.TestFour;
 import org.structr.core.entity.TestOne;
 import org.structr.core.entity.OneFourOneToOne;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.graph.search.SearchRelationshipCommand;
@@ -54,15 +50,9 @@ public class BooleanPropertyTest extends StructrTest {
 			// store boolean in the test entitiy
 			final Boolean value = Boolean.TRUE;
 
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-				@Override
-				public Object execute() throws FrameworkException {
-					
-					testEntity.setProperty(key, value);
-					return null;
-				}
-			});
+			app.beginTx();
+			testEntity.setProperty(key, value);
+			app.commitTx();
 
 			// check value from database
 			assertEquals(value, testEntity.getProperty(key));
@@ -118,18 +108,9 @@ public class BooleanPropertyTest extends StructrTest {
 			
 			assertNotNull(testEntity);
 
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-				@Override
-				public Object execute() throws FrameworkException {
-					
-					// set property
-					testEntity.setProperty(key, true);
-					
-					return null;
-				}
-				
-			});
+			app.beginTx();
+			testEntity.setProperty(key, true);
+			app.commitTx();
 			
 			// check value from database
 			assertEquals((Boolean)true, (Boolean)testEntity.getProperty(key));

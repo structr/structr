@@ -57,12 +57,12 @@ public class ApplicationContextListener implements ServletContextListener, HttpS
 
 		logger.log(Level.INFO, "Servlet context created");
 
-		Map<String, String> context   = new ConcurrentHashMap<String, String>(20, 0.9f, 8);
+		Map<String, String> configMap = new ConcurrentHashMap<>(20, 0.9f, 8);
 		ServletContext servletContext = sce.getServletContext();
 		String configFilePath         = servletContext.getInitParameter(Services.CONFIG_FILE_PATH);
 
-		context.put(Services.CONFIG_FILE_PATH, configFilePath);
-		context.put(Services.SERVLET_REAL_ROOT_PATH, servletContext.getRealPath("/"));
+		configMap.put(Services.CONFIG_FILE_PATH, configFilePath);
+		configMap.put(Services.SERVLET_REAL_ROOT_PATH, servletContext.getRealPath("/"));
 
 		try {
 
@@ -117,65 +117,65 @@ public class ApplicationContextListener implements ServletContextListener, HttpS
 
 			if (configuredServices != null) {
 
-				context.put(Services.CONFIGURED_SERVICES, configuredServices);
+				configMap.put(Services.CONFIGURED_SERVICES, configuredServices);
 			}
 
 			if (appTitle != null) {
 
-				context.put(Services.APPLICATION_TITLE, appTitle);
+				configMap.put(Services.APPLICATION_TITLE, appTitle);
 			}
 
 			if (tmpPath != null) {
 
-				context.put(Services.TMP_PATH, tmpPath);
+				configMap.put(Services.TMP_PATH, tmpPath);
 			}
 
 			if (basePath != null) {
 
-				context.put(Services.BASE_PATH, basePath);
+				configMap.put(Services.BASE_PATH, basePath);
 			}
 
 			if (databasePath != null) {
 
-				context.put(Services.DATABASE_PATH, databasePath);
+				configMap.put(Services.DATABASE_PATH, databasePath);
 			}
 
 			if (filesPath != null) {
 
-				context.put(Services.FILES_PATH, filesPath);
+				configMap.put(Services.FILES_PATH, filesPath);
 			}
 
 			if (tcpPort != null) {
 
-				context.put(Services.TCP_PORT, tcpPort);
+				configMap.put(Services.TCP_PORT, tcpPort);
 			}
 
 			if (serverIp != null) {
 
-				context.put(Services.SERVER_IP, serverIp);
+				configMap.put(Services.SERVER_IP, serverIp);
 			}
 
 			if (udpPort != null) {
 
-				context.put(Services.UDP_PORT, udpPort);
+				configMap.put(Services.UDP_PORT, udpPort);
 			}
 
 			if (superuserUsername != null) {
 
-				context.put(Services.SUPERUSER_USERNAME, superuserUsername);
+				configMap.put(Services.SUPERUSER_USERNAME, superuserUsername);
 			}
 
 			if (superuserPassword != null) {
 
-				context.put(Services.SUPERUSER_PASSWORD, superuserPassword);
+				configMap.put(Services.SUPERUSER_PASSWORD, superuserPassword);
 			}
 
 			// load all properties into context
 			for (String name : properties.stringPropertyNames()) {
 
-				if (!context.containsKey(name)) {
+				if (!configMap.containsKey(name)) {
 
-					context.put(name, properties.getProperty(name));
+					configMap.put(name, properties.getProperty(name));
 				}
 
 			}
@@ -185,7 +185,7 @@ public class ApplicationContextListener implements ServletContextListener, HttpS
 			logger.log(Level.WARNING, "Could not inititialize all values");
 		}
 
-		Services.initialize(context);
+		Services.initialize(configMap);
 
 		// Services.setContext(context);
 

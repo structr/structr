@@ -21,6 +21,8 @@ package org.structr.core.entity;
 import org.neo4j.graphdb.Node;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.relationship.AbstractListSiblings;
 import org.structr.core.graph.CreateRelationshipCommand;
 import org.structr.core.graph.DeleteRelationshipCommand;
@@ -88,6 +90,8 @@ public abstract class LinkedListNode<R extends AbstractListSiblings<T, T>, T ext
 	 */
 	public void listInsertBefore(final T currentElement, final T newElement) throws FrameworkException {
 
+		final App app = StructrApp.getInstance(securityContext);
+		
 		if (currentElement.getId() == newElement.getId()) {
 			throw new IllegalStateException("Cannot link a node to itself!");
 		}
@@ -95,33 +99,23 @@ public abstract class LinkedListNode<R extends AbstractListSiblings<T, T>, T ext
 		final T previousElement = listGetPrevious(currentElement);
 		if (previousElement == null) {
 
-			// trivial: new node will become new head of existing list
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-				@Override
-				public Object execute() throws FrameworkException {
+			app.beginTx();
 
-					linkNodes(getSiblingLinkType(), newElement, currentElement);
+			linkNodes(getSiblingLinkType(), newElement, currentElement);
 
-					return null;
-				}
-			});
+			app.commitTx();
 
 		} else {
 
-			// not-so-trivial: insert new element between predecessor and current node
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-				@Override
-				public Object execute() throws FrameworkException {
+			app.beginTx();
 
-					// delete old relationship
-					unlinkNodes(getSiblingLinkType(), previousElement, currentElement);
+			// delete old relationship
+			unlinkNodes(getSiblingLinkType(), previousElement, currentElement);
 					
-					linkNodes(getSiblingLinkType(), previousElement, newElement);
-					linkNodes(getSiblingLinkType(), newElement, currentElement);
+			linkNodes(getSiblingLinkType(), previousElement, newElement);
+			linkNodes(getSiblingLinkType(), newElement, currentElement);
 
-					return null;
-				}
-			});
+			app.commitTx();
 		}
 	}
 
@@ -134,6 +128,8 @@ public abstract class LinkedListNode<R extends AbstractListSiblings<T, T>, T ext
 	 */
 	public void listInsertAfter(final T currentElement, final T newElement) throws FrameworkException {
 
+		final App app = StructrApp.getInstance(securityContext);
+
 		if (currentElement.getId() == newElement.getId()) {
 			throw new IllegalStateException("Cannot link a node to itself!");
 		}
@@ -141,32 +137,22 @@ public abstract class LinkedListNode<R extends AbstractListSiblings<T, T>, T ext
 		final T next = listGetNext(currentElement);
 		if (next == null) {
 
-			// trivial: new node will become new tail of existing list
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-				@Override
-				public Object execute() throws FrameworkException {
+			app.beginTx();
 
-					linkNodes(getSiblingLinkType(), currentElement, newElement);
+			linkNodes(getSiblingLinkType(), currentElement, newElement);
 
-					return null;
-				}
-			});
+			app.commitTx();
 
 		} else {
 
-			// not-so-trivial: insert new element between current node and successor
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-				@Override
-				public Object execute() throws FrameworkException {
+			app.beginTx();
+			
+			unlinkNodes(getSiblingLinkType(), currentElement, next);
 
-					unlinkNodes(getSiblingLinkType(), currentElement, next);
-
-					linkNodes(getSiblingLinkType(), currentElement, newElement);
-					linkNodes(getSiblingLinkType(), newElement, next);
-
-					return null;
-				}
-			});
+			linkNodes(getSiblingLinkType(), currentElement, newElement);
+			linkNodes(getSiblingLinkType(), newElement, next);
+			
+			app.commitTx();
 		}
 	}
 
@@ -178,20 +164,23 @@ public abstract class LinkedListNode<R extends AbstractListSiblings<T, T>, T ext
 	 */
 	public void listRemove(final T currentElement) throws FrameworkException {
 		
+		final App app           = StructrApp.getInstance(securityContext);
 		final T previousElement = listGetPrevious(currentElement);
 		final T nextElement     = listGetNext(currentElement);
 
 		if (currentElement != null) {
 			
+			app.beginTx();
+			
 			if (previousElement != null) {
-
 				unlinkNodes(getSiblingLinkType(), previousElement, currentElement);
 			}
 
 			if (nextElement != null) {
-
 				unlinkNodes(getSiblingLinkType(), currentElement, nextElement);
 			}
+			
+			app.commitTx();
 		}
 
 		if (previousElement != null && nextElement != null) {
@@ -201,7 +190,9 @@ public abstract class LinkedListNode<R extends AbstractListSiblings<T, T>, T ext
 
 			if (previousNode != null && nextNode != null) {
 
+				app.beginTx();
 				linkNodes(getSiblingLinkType(), previousElement, nextElement);
+				app.commitTx();
 			}
 
 		}
@@ -221,23 +212,17 @@ public abstract class LinkedListNode<R extends AbstractListSiblings<T, T>, T ext
 	
 	private void unlinkNodes(final Class<R> linkType, final T startNode, final T endNode) throws FrameworkException {
 		
-		final DeleteRelationshipCommand cmd = Services.command(securityContext, DeleteRelationshipCommand.class);
+		final App app = StructrApp.getInstance(securityContext);
 		
-		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+		app.beginTx();
+		
+		for (RelationshipInterface rel : startNode.getRelationships(linkType)) {
 
-			@Override
-			public Object execute() throws FrameworkException {
-
-				for (RelationshipInterface rel : startNode.getRelationships(linkType)) {
-					
-					if (rel != null && rel.getTargetNode().equals(endNode)) {
-						cmd.execute(rel);
-					}
-				}
-				
-				return null;
+			if (rel != null && rel.getTargetNode().equals(endNode)) {
+				app.delete(rel);
 			}
-			
-		});
+		}
+		
+		app.commitTx();
 	}
 }

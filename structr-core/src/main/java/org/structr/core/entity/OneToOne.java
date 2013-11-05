@@ -1,9 +1,8 @@
 package org.structr.core.entity;
 
-import org.structr.common.error.CardinalityToken;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
-import org.structr.core.graph.DeleteRelationshipCommand;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 
 /**
@@ -40,7 +39,7 @@ public abstract class OneToOne<S extends NodeInterface, T extends NodeInterface>
 	@Override
 	public void ensureCardinality(final NodeInterface sourceNode, final NodeInterface targetNode) throws FrameworkException {
 
-		final DeleteRelationshipCommand cmd   = Services.command(securityContext, DeleteRelationshipCommand.class);
+		final App app                         = StructrApp.getInstance(securityContext);
 		final Class<? extends OneToOne> clazz = getClass();
 		final Class<S> sourceType             = getSourceType();
 		final Class<T> targetType             = getTargetType();
@@ -51,11 +50,11 @@ public abstract class OneToOne<S extends NodeInterface, T extends NodeInterface>
 
 		// remove relationship if exists
 		if (outgoingRel != null && outgoingRel.getTargetNode().getClass().equals(targetType)) {
-			cmd.execute(outgoingRel);
+			app.delete(outgoingRel);
 		}
 		
 		if (incomingRel != null && incomingRel.getSourceNode().getClass().equals(sourceType)) {
-			cmd.execute(incomingRel);
+			app.delete(incomingRel);
 		}
 	}
 }

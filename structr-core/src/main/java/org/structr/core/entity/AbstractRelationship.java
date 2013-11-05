@@ -50,8 +50,6 @@ import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeService;
 import org.structr.core.graph.RelationshipInterface;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
@@ -189,25 +187,10 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	@Override
 	public void removeProperty(final PropertyKey key) throws FrameworkException {
 
-		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+		dbRelationship.removeProperty(key.dbName());
 
-			@Override
-			public Object execute() throws FrameworkException {
-
-				try {
-					
-					dbRelationship.removeProperty(key.dbName());
-					
-					// remove from index
-					removeFromIndex(key);
-
-				} finally {}
-
-				return null;
-
-			}
-
-		});
+		// remove from index
+		removeFromIndex(key);
 	}
 
 	@Override

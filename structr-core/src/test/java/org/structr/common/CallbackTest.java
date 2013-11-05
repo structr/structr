@@ -27,7 +27,6 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Person;
 import org.structr.core.entity.TestEight;
 import org.structr.core.entity.TestFive;
 import org.structr.core.entity.User;
@@ -70,18 +69,9 @@ public class CallbackTest extends StructrTest {
 
 // ##################################### test creation callbacks
 			
-			final TestEight test = (TestEight)Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-				@Override
-				public Object execute() throws FrameworkException {
-
-					return (TestEight)Services.command(securityContext, CreateNodeCommand.class).execute(
-						new NodeAttribute(AbstractNode.type, TestEight.class.getSimpleName()),
-						new NodeAttribute(TestEight.testProperty, 123)
-					);
-				}
-				
-			});
+			app.beginTx();
+			final TestEight test = app.create(TestEight.class, new NodeAttribute(TestEight.testProperty, 123));
+			app.commitTx();
 			
 			// only the creation methods should have been called now!
 			assertTrue("onCreationTimestamp should be != 0", test.getOnCreationTimestamp() != 0L);
@@ -99,17 +89,9 @@ public class CallbackTest extends StructrTest {
 			// reset timestamps
 			test.resetTimestamps();
 			
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-				@Override
-				public Object execute() throws FrameworkException {
-
-					test.setProperty(TestEight.testProperty, 234);
-					
-					return null;
-				}
-				
-			});
+			app.beginTx();
+			test.setProperty(TestEight.testProperty, 234);
+			app.commitTx();
 			
 			// only the modification methods should have been called now!
 			assertEquals("onCreationTimestamp should be == 0", 0L, test.getOnCreationTimestamp());
@@ -126,17 +108,9 @@ public class CallbackTest extends StructrTest {
 			// reset timestamps
 			test.resetTimestamps();
 			
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-				@Override
-				public Object execute() throws FrameworkException {
-
-					test.setProperty(TestEight.testProperty, 234);
-					
-					return null;
-				}
-				
-			});
+			app.beginTx();
+			test.setProperty(TestEight.testProperty, 234);
+			app.commitTx();
 			
 			// only the creation methods should have been called now!
 			assertEquals("onCreationTimestamp should be == 0", 0L, test.getOnCreationTimestamp());
@@ -154,17 +128,9 @@ public class CallbackTest extends StructrTest {
 			// reset timestamps
 			test.resetTimestamps();
 			
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-				@Override
-				public Object execute() throws FrameworkException {
-
-					Services.command(securityContext, DeleteNodeCommand.class).execute(test);
-					
-					return null;
-				}
-				
-			});
+			app.beginTx();
+			app.delete(test);
+			app.commitTx();
 			
 			// only the creation methods should have been called now!
 			assertEquals("onCreationTimestamp should be == 0", 0L, test.getOnCreationTimestamp());
@@ -185,27 +151,15 @@ public class CallbackTest extends StructrTest {
 	
 	private void testCallbacks(final SecurityContext securityContext) {
 		
-		final PropertyMap properties = new PropertyMap();
-		
 		TestFive entity = null;
 		Integer zero = 0;
 		Integer one  = 1;
 		
-		// set type of new entity
-		properties.put(GraphObject.type, TestFive.class.getSimpleName());
-
 		try {
 
-			entity = Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<TestFive>() {
-
-				@Override
-				public TestFive execute() throws FrameworkException {
-
-					return (TestFive)Services.command(securityContext, CreateNodeCommand.class).execute(properties);
-				}
-
-
-			});
+			app.beginTx();
+			entity = app.create(TestFive.class);
+			app.commitTx();
 			
 			
 		} catch (Throwable t) {
@@ -229,16 +183,9 @@ public class CallbackTest extends StructrTest {
 		try {
 			final TestFive finalEntity = entity;
 			
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-				@Override
-				public Object execute() throws FrameworkException {
-
-					finalEntity.setProperty(TestFive.intProperty, 123);
-					
-					return null;
-				}
-			});
+			app.beginTx();
+			finalEntity.setProperty(TestFive.intProperty, 123);
+			app.commitTx();
 			
 		} catch (Throwable t) {
 			t.printStackTrace();

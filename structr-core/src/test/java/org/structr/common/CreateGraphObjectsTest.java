@@ -20,17 +20,13 @@
 
 package org.structr.common;
 
-import org.structr.core.property.PropertyMap;
 import org.neo4j.graphdb.RelationshipType;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.Cache;
 import org.structr.core.entity.GenericNode;
 import org.structr.core.entity.GenericRelationship;
-import org.structr.core.entity.Person;
-import org.structr.core.graph.StructrTransaction;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -41,18 +37,21 @@ import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
 import org.apache.commons.lang.StringUtils;
+import org.structr.core.entity.Cache;
 import org.structr.core.entity.Location;
+import org.structr.core.entity.Person;
 import org.structr.core.entity.PropertyAccess;
 import org.structr.core.entity.PropertyDefinition;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.core.entity.TestNine;
+import org.structr.core.entity.TestOne;
 import org.structr.core.entity.TestSeven;
 import org.structr.core.entity.TestTwo;
 import org.structr.core.entity.relationship.LocationRelationship;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.PropertyMap;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -78,42 +77,33 @@ public class CreateGraphObjectsTest extends StructrTest {
 
 		try {
 
-			AbstractNode node;
-
 			try {
 
 				// Create node out of transaction => should give a NotInTransactionException
-				createNodeCommand.execute();
+				app.create(TestOne.class);
 				fail("Should have raised an org.neo4j.graphdb.NotInTransactionException");
-			} catch (org.neo4j.graphdb.NotInTransactionException e) {}
-
-			final PropertyMap props = new PropertyMap();
-
-			props.put(AbstractNode.type, "UnknownTestTypeÄÖLß");
+			} catch (org.neo4j.graphdb.NotInTransactionException e) {
+				e.printStackTrace();
+			}
 
 			try {
 
 				// Try to create node without parameters => should fail
-				createNodeCommand.execute();
+				app.create(TestOne.class);
 				fail("Should have raised an org.neo4j.graphdb.NotInTransactionException");
 			} catch (org.neo4j.graphdb.NotInTransactionException e) {}
 
-			node = transactionCommand.execute(new StructrTransaction<AbstractNode>() {
-
-				@Override
-				public AbstractNode execute() throws FrameworkException {
-
-					// Create node with a type which has no entity class => should result in a node of type 'GenericNode'
-					return (AbstractNode) createNodeCommand.execute(props);
-				}
-
-			});
+			app.beginTx();
+			AbstractNode node = app.create(TestOne.class);
+			app.commitTx();
 
 			assertTrue(node != null);
-			assertTrue(node instanceof GenericNode);
+			assertTrue(node instanceof TestOne);
 
 		} catch (FrameworkException ex) {
 
+			ex.printStackTrace();
+			
 			logger.log(Level.SEVERE, ex.toString());
 			fail("Unexpected exception");
 
@@ -124,28 +114,18 @@ public class CreateGraphObjectsTest extends StructrTest {
 
 		try {
 
-			AbstractNode node;
-
 			final PropertyMap props = new PropertyMap();
 			
 			String uuid = StringUtils.replace(UUID.randomUUID().toString(), "-", "");
 
-			props.put(AbstractNode.type, "UnknownTestTypeÄÖLß");
 			props.put(AbstractNode.uuid, uuid);
 
-			node = transactionCommand.execute(new StructrTransaction<AbstractNode>() {
-
-				@Override
-				public AbstractNode execute() throws FrameworkException {
-
-					// Create node with a type which has no entity class => should result in a node of type 'GenericNode'
-					return (AbstractNode) createNodeCommand.execute(props);
-				}
-
-			});
+			app.beginTx();
+			TestOne node = app.create(TestOne.class, props);
+			app.commitTx();
 
 			assertTrue(node != null);
-			assertTrue(node instanceof GenericNode);
+			assertTrue(node instanceof TestOne);
 			assertEquals(node.getUuid(), uuid);
 
 		} catch (FrameworkException ex) {
@@ -168,16 +148,9 @@ public class CreateGraphObjectsTest extends StructrTest {
 			assertTrue(startNode != null);
 			assertTrue(endNode != null);
 
-			LocationRelationship rel = transactionCommand.execute(new StructrTransaction<LocationRelationship>() {
-
-				@Override
-				public LocationRelationship execute() throws FrameworkException {
-
-					return createRelationshipCommand.execute(startNode, endNode, LocationRelationship.class);
-
-				}
-
-			});
+			app.beginTx();
+			LocationRelationship rel = app.create(startNode, endNode, LocationRelationship.class);
+			app.commitTx();
 
 			assertEquals(startNode.getUuid(), rel.getStartNodeId());
 			assertEquals(endNode.getUuid(), rel.getEndNodeId());
@@ -202,96 +175,86 @@ public class CreateGraphObjectsTest extends StructrTest {
 
 		try {
 
-			transactionCommand.execute(new StructrTransaction() {
+			app.beginTx();
 
-				@Override
-				public Object execute() throws FrameworkException {
+			List<Class> entityList = Collections.EMPTY_LIST;
 
-					List<Class> entityList = Collections.EMPTY_LIST;
+			try {
 
-					try {
+				entityList = getClasses("org.structr.core.entity");
 
-						entityList = getClasses("org.structr.core.entity");
+			} catch (IOException | ClassNotFoundException ex) {
 
-					} catch (IOException | ClassNotFoundException ex) {
+				logger.log(Level.SEVERE, null, ex);
+			}
 
-						logger.log(Level.SEVERE, null, ex);
+			assertTrue(entityList.contains(AbstractNode.class));
+			assertTrue(entityList.contains(Cache.class));
+			assertTrue(entityList.contains(GenericNode.class));
+			assertTrue(entityList.contains(Location.class));
+			assertTrue(entityList.contains(Person.class));
+			assertTrue(entityList.contains(ResourceAccess.class));
+			assertTrue(entityList.contains(PropertyAccess.class));
+
+			// Don't test these, it would fail due to violated constraints
+			entityList.remove(TestTwo.class);
+			entityList.remove(TestNine.class);
+			entityList.remove(PropertyDefinition.class);
+
+			for (Class type : entityList) {
+
+				// for (Entry<String, Class> entity : entities.entrySet()) {
+				// Class entityClass = entity.getValue();
+				if (AbstractNode.class.isAssignableFrom(type)) {
+
+					// For TestSeven, fill mandatory fields
+					if (type.equals(TestSeven.class)) {
+
+						props.put(TestSeven.name, "TestSeven-0");
+
 					}
 
-					assertTrue(entityList.contains(AbstractNode.class));
-					assertTrue(entityList.contains(Cache.class));
-					assertTrue(entityList.contains(GenericNode.class));
-					assertTrue(entityList.contains(Location.class));
-					assertTrue(entityList.contains(Person.class));
-					assertTrue(entityList.contains(ResourceAccess.class));
-					assertTrue(entityList.contains(PropertyAccess.class));
-					
-					// Don't test these, it would fail due to violated constraints
-					entityList.remove(TestTwo.class);
-					entityList.remove(TestNine.class);
-					entityList.remove(PropertyDefinition.class);
+					// For ResourceAccess, fill mandatory fields
+					if (type.equals(ResourceAccess.class)) {
 
-					for (Class entityClass : entityList) {
+						props.put(ResourceAccess.signature, "/");
+						props.put(ResourceAccess.flags, 6L);
 
-						// for (Entry<String, Class> entity : entities.entrySet()) {
-						// Class entityClass = entity.getValue();
-						if (AbstractNode.class.isAssignableFrom(entityClass)) {
-
-							String type = entityClass.getSimpleName();
-							
-							// For TestSeven, fill mandatory fields
-							if (type.equals(TestSeven.class.getSimpleName())) {
-
-								props.put(TestSeven.name, "TestSeven-0");
-
-							}
-
-							// For ResourceAccess, fill mandatory fields
-							if (type.equals(ResourceAccess.class.getSimpleName())) {
-
-								props.put(ResourceAccess.signature, "/");
-								props.put(ResourceAccess.flags, 6L);
-
-							}
-
-							// For PropertyAccess, fill mandatory fields
-							if (type.equals(PropertyAccess.class.getSimpleName())) {
-
-								props.put(PropertyAccess.flags, 6L);
-
-							}
-
-							// For Location, set coordinates
-							if (type.equals(Location.class.getSimpleName())) {
-
-								props.put(Location.latitude, 12.34);
-								props.put(Location.longitude, 56.78);
-
-							}
-							
-							logger.log(Level.INFO, "Creating node of type {0}", type);
-							props.put(AbstractNode.type, type);
-
-							AbstractNode node = (AbstractNode) createNodeCommand.execute(props);
-
-							assertTrue(type.equals(node.getProperty(AbstractNode.type)));
-
-							// Remove mandatory fields for ResourceAccess from props map
-							if (type.equals(ResourceAccess.class.getSimpleName())) {
-
-								props.remove(ResourceAccess.signature);
-								props.remove(ResourceAccess.flags);
-
-							}
-
-						}
 					}
 
-					return null;
+					// For PropertyAccess, fill mandatory fields
+					if (type.equals(PropertyAccess.class)) {
+
+						props.put(PropertyAccess.flags, 6L);
+
+					}
+
+					// For Location, set coordinates
+					if (type.equals(Location.class)) {
+
+						props.put(Location.latitude, 12.34);
+						props.put(Location.longitude, 56.78);
+
+					}
+
+					logger.log(Level.INFO, "Creating node of type {0}", type);
+
+					NodeInterface node = app.create(type, props);
+
+					assertTrue(type.getSimpleName().equals(node.getProperty(AbstractNode.type)));
+
+					// Remove mandatory fields for ResourceAccess from props map
+					if (type.equals(ResourceAccess.class)) {
+
+						props.remove(ResourceAccess.signature);
+						props.remove(ResourceAccess.flags);
+
+					}
 
 				}
-
-			});
+			}
+			
+			app.commitTx();
 
 		} catch (FrameworkException ex) {
 
@@ -311,53 +274,46 @@ public class CreateGraphObjectsTest extends StructrTest {
 	public void test05CheckRelationshipEntities() {
 
 		try {
+			
+			app.beginTx();
 
-			transactionCommand.execute(new StructrTransaction() {
+			List<Class> entityList = null;
 
-				@Override
-				public Object execute() throws FrameworkException {
+			try {
 
-					List<Class> entityList = null;
+				entityList = getClasses("org.structr.core.entity");
 
-					try {
+			} catch (IOException | ClassNotFoundException ex) {
 
-						entityList = getClasses("org.structr.core.entity");
+				Logger.getLogger(CreateGraphObjectsTest.class.getName()).log(Level.SEVERE, null, ex);
+			}
 
-					} catch (IOException | ClassNotFoundException ex) {
+			assertTrue(entityList.contains(AbstractRelationship.class));
+			assertTrue(entityList.contains(GenericRelationship.class));
 
-						Logger.getLogger(CreateGraphObjectsTest.class.getName()).log(Level.SEVERE, null, ex);
-					}
+			for (Class entityClass : entityList) {
 
-					assertTrue(entityList.contains(AbstractRelationship.class));
-					assertTrue(entityList.contains(GenericRelationship.class));
+				// for (Entry<String, Class> entity : entities.entrySet()) {
+				// Class entityClass = entity.getValue();
+				if (AbstractRelationship.class.isAssignableFrom(entityClass)) {
 
-					for (Class entityClass : entityList) {
+					String type = entityClass.getSimpleName();
 
-						// for (Entry<String, Class> entity : entities.entrySet()) {
-						// Class entityClass = entity.getValue();
-						if (AbstractRelationship.class.isAssignableFrom(entityClass)) {
+					logger.log(Level.INFO, "Creating relationship of type {0}", type);
 
-							String type = entityClass.getSimpleName();
+					List<NodeInterface> nodes      = createTestNodes(GenericNode.class, 2);
+					final NodeInterface startNode  = nodes.get(0);
+					final NodeInterface endNode    = nodes.get(1);
+					final RelationshipType relType = RelType.IS_AT;
+					LocationRelationship rel       = app.create(startNode, endNode, LocationRelationship.class);
 
-							logger.log(Level.INFO, "Creating relationship of type {0}", type);
-
-							List<NodeInterface> nodes      = createTestNodes(GenericNode.class, 2);
-							final NodeInterface startNode  = nodes.get(0);
-							final NodeInterface endNode    = nodes.get(1);
-							final RelationshipType relType = RelType.IS_AT;
-							LocationRelationship rel       = createRelationshipCommand.execute(startNode, endNode, LocationRelationship.class);
-
-							assertTrue(rel != null);
-							assertTrue(rel.getType().equals(relType.name()));
-
-						}
-					}
-
-					return null;
+					assertTrue(rel != null);
+					assertTrue(rel.getType().equals(relType.name()));
 
 				}
-
-			});
+			}
+			
+			app.commitTx();
 
 		} catch (FrameworkException ex) {
 

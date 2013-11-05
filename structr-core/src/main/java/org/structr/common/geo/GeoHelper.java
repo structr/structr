@@ -37,6 +37,8 @@ import org.structr.core.property.PropertyMap;
 
 import java.util.logging.Logger;
 import org.apache.commons.collections.map.LRUMap;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.search.DistanceSearchAttribute;
 
@@ -75,15 +77,7 @@ public class GeoHelper {
 		props.put(Location.latitude,  latitude);
 		props.put(Location.longitude, longitude);
 
-		StructrTransaction transaction = new StructrTransaction<NodeInterface>() {
-
-			@Override
-			public NodeInterface execute() throws FrameworkException {
-				return Services.command(SecurityContext.getSuperUserInstance(), CreateNodeCommand.class).execute(props);
-			}
-		};
-
-		return (Location) Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(transaction);
+		return StructrApp.getInstance().create(Location.class, props);
 	}
 
 	public static GeoCodingResult geocode(DistanceSearchAttribute distanceSearch) throws FrameworkException {
