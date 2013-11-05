@@ -65,8 +65,10 @@ public class CollectionPropertyTest extends StructrTest {
 		twoTestOnesList.add(testOne1);
 		twoTestOnesList.add(testOne2);
 
+		app.beginTx();
 		instance.setProperty(securityContext, testSix1, twoTestOnesList);
 		instance.setProperty(securityContext, testSix2, twoTestOnesList);
+		app.commitTx();
 		
 		List<TestOne> testOnesFromTestSix1 = instance.getProperty(securityContext, testSix1, true);
 		List<TestOne> testOnesFromTestSix2 = instance.getProperty(securityContext, testSix2, true);
@@ -82,8 +84,11 @@ public class CollectionPropertyTest extends StructrTest {
 		List<TestOne> oneTestOneList = new LinkedList<>();
 		oneTestOneList.add(testOne1);
 
+		app.beginTx();
 		// set list with one TestOne node as related nodes
 		instance.setProperty(securityContext, testSix1, oneTestOneList);
+		app.commitTx();
+
 		List<TestOne> oneTestOnesFromTestSix1 = instance.getProperty(securityContext, testSix1, true);
 		
 		// entity should have exactly one related node
