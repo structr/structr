@@ -64,103 +64,108 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 		final NodeFactory nodeFactory          = new NodeFactory(superUserContext);
 		final RelationshipFactory relFactory   = new RelationshipFactory(superUserContext);
 
+		Class type = null;
 		if (entityType != null) {
 
-			final Class type = EntityContext.getEntityClassForRawType(entityType);
+			type = EntityContext.getEntityClassForRawType(entityType);
+		}
+		// final Result<AbstractNode> result = Services.command(securityContext, SearchNodeCommand.class).execute(true, false, Search.andExactType(type.getSimpleName()));
+		final Result<AbstractNode> result = nodeFactory.instantiateAll(GlobalGraphOperations.at(graphDb).getAllNodes());
+		final List<AbstractNode> nodes    = new ArrayList<AbstractNode>();
 
-			if (type != null) {
+		for (AbstractNode node : result.getResults()) {
 
-				// final Result<AbstractNode> result = Services.command(securityContext, SearchNodeCommand.class).execute(true, false, Search.andExactType(type.getSimpleName()));
-				final Result<AbstractNode> result = nodeFactory.instantiateAll(GlobalGraphOperations.at(graphDb).getAllNodes());
-				final List<AbstractNode> nodes    = new ArrayList<AbstractNode>();
+			if (type == null || node.getClass().equals(type)) {
 
-				for (AbstractNode node : result.getResults()) {
-
-					if (node.getClass().equals(type)) {
-
-						nodes.add(node);
-					}
-
-				}
-
-				logger.log(Level.INFO, "Start (re-)indexing all nodes of type {0}", new Object[] { type.getSimpleName() });
-
-				long count = bulkGraphOperation(securityContext, nodes, 1000, "RebuildIndex", new BulkGraphOperation<AbstractNode>() {
-
-					@Override
-					public void handleGraphObject(SecurityContext securityContext, AbstractNode node) {
-
-						node.updateInIndex();
-
-					}
-					@Override
-					public void handleThrowable(SecurityContext securityContext, Throwable t, AbstractNode node) {
-
-						logger.log(Level.WARNING, "Unable to index node {0}: {1}", new Object[] { node, t.getMessage() });
-
-					}
-					@Override
-					public void handleTransactionFailure(SecurityContext securityContext, Throwable t) {
-
-						logger.log(Level.WARNING, "Unable to index node: {0}", t.getMessage());
-
-					}
-
-				});
-
-				logger.log(Level.INFO, "Done with (re-)indexing {0} nodes", count);
-
-				return;
-
+				nodes.add(node);
 			}
-
-		} else if (relType != null) {
-
-			// final Result<AbstractNode> result = Services.command(securityContext, SearchNodeCommand.class).execute(true, false, Search.andExactType(type.getSimpleName()));
-			final List<AbstractRelationship> unfilteredRels = relFactory.instantiate(GlobalGraphOperations.at(graphDb).getAllRelationships());
-			final List<AbstractRelationship> rels           = new ArrayList<AbstractRelationship>();
-
-			for (AbstractRelationship rel : unfilteredRels) {
-
-				if (!rel.getType().equals(relType)) {
-
-					rels.add(rel);
-				}
-
-			}
-
-			logger.log(Level.INFO, "Start setting UUID on all rels of type {0}", new Object[] { relType });
-
-			long count = bulkGraphOperation(securityContext, rels, 1000, "SetRelationshipUuid", new BulkGraphOperation<AbstractRelationship>() {
-
-				@Override
-				public void handleGraphObject(SecurityContext securityContext, AbstractRelationship rel) {
-
-					rel.updateInIndex();
-
-				}
-				@Override
-				public void handleThrowable(SecurityContext securityContext, Throwable t, AbstractRelationship rel) {
-
-					logger.log(Level.WARNING, "Unable to index relationship {0}: {1}", new Object[] { rel, t.getMessage() });
-
-				}
-				@Override
-				public void handleTransactionFailure(SecurityContext securityContext, Throwable t) {
-
-					logger.log(Level.WARNING, "Unable to index relationship: {0}", t.getMessage());
-
-				}
-
-			});
-
-			logger.log(Level.INFO, "Done with (re-)indexing {0} relationships", count);
-
-			return;
 
 		}
 
-		logger.log(Level.INFO, "Unable to determine entity type to re-index.");
+		if (type == null) {
+	
+			logger.log(Level.INFO, "Node type not set or no entity class found. Starting (re-)indexing all nodes");
+			
+		} else {
+			
+			logger.log(Level.INFO, "Starting (re-)indexing all nodes of type {0}", new Object[] { type.getSimpleName() });
+		}
+
+		long count = bulkGraphOperation(securityContext, nodes, 1000, "RebuildNodeIndex", new BulkGraphOperation<AbstractNode>() {
+
+			@Override
+			public void handleGraphObject(SecurityContext securityContext, AbstractNode node) {
+
+				node.updateInIndex();
+
+			}
+			@Override
+			public void handleThrowable(SecurityContext securityContext, Throwable t, AbstractNode node) {
+
+				logger.log(Level.WARNING, "Unable to index node {0}: {1}", new Object[] { node, t.getMessage() });
+
+			}
+			@Override
+			public void handleTransactionFailure(SecurityContext securityContext, Throwable t) {
+
+				logger.log(Level.WARNING, "Unable to index node: {0}", t.getMessage());
+
+			}
+
+		});
+
+		logger.log(Level.INFO, "Done with (re-)indexing {0} nodes", count);
+
+		// final Result<AbstractNode> result = Services.command(securityContext, SearchNodeCommand.class).execute(true, false, Search.andExactType(type.getSimpleName()));
+		final List<AbstractRelationship> unfilteredRels = relFactory.instantiate(GlobalGraphOperations.at(graphDb).getAllRelationships());
+		final List<AbstractRelationship> rels           = new ArrayList<AbstractRelationship>();
+
+		for (AbstractRelationship rel : unfilteredRels) {
+
+			if (relType == null || !rel.getType().equals(relType)) {
+
+				rels.add(rel);
+			}
+
+		}
+
+		if (relType == null) {
+
+			logger.log(Level.INFO, "Relationship type not set, starting (re-)indexing all relationships");
+			
+		} else {
+		
+			logger.log(Level.INFO, "Starting (re-)indexing all relationships of type {0}", new Object[] { relType });
+			
+		}
+
+		count = bulkGraphOperation(securityContext, rels, 1000, "RebuildRelIndex", new BulkGraphOperation<AbstractRelationship>() {
+
+			@Override
+			public void handleGraphObject(SecurityContext securityContext, AbstractRelationship rel) {
+
+				rel.updateInIndex();
+
+			}
+			@Override
+			public void handleThrowable(SecurityContext securityContext, Throwable t, AbstractRelationship rel) {
+
+				logger.log(Level.WARNING, "Unable to index relationship {0}: {1}", new Object[] { rel, t.getMessage() });
+
+			}
+			@Override
+			public void handleTransactionFailure(SecurityContext securityContext, Throwable t) {
+
+				logger.log(Level.WARNING, "Unable to index relationship: {0}", t.getMessage());
+
+			}
+
+		});
+
+		logger.log(Level.INFO, "Done with (re-)indexing {0} relationships", count);
+
+		return;
+
 
 	}
 
