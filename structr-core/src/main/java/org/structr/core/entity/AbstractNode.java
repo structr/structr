@@ -60,8 +60,6 @@ import org.structr.core.entity.relationship.Ownership;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeService;
 import org.structr.core.graph.RelationshipFactory;
-import org.structr.core.graph.search.SearchCommand;
-import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.property.EntityIdProperty;
 import org.structr.core.property.StartNode;
 

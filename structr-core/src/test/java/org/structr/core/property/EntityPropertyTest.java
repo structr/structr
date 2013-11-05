@@ -24,10 +24,13 @@ import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.fail;
 import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.Services;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.TestThree;
 import org.structr.core.entity.TestSix;
+import org.structr.core.graph.StructrTransaction;
+import org.structr.core.graph.TransactionCommand;
 
 /**
  *

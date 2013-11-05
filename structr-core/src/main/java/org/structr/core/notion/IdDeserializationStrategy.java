@@ -36,10 +36,14 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.core.property.PropertyMap;
-import org.structr.core.*;
+import org.structr.core.EntityContext;
+import org.structr.core.GraphObject;
+import org.structr.core.JsonInput;
+import org.structr.core.Result;
+import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.property.PropertyMap;
 import org.structr.core.graph.NodeInterface;
 
 //~--- classes ----------------------------------------------------------------
@@ -146,7 +150,6 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> implements De
 				app.beginTx();
 				
 				final T newNode = app.create(type);
-
 				app.commitTx();
 				
 				return newNode;

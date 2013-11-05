@@ -24,7 +24,6 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Relationship;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractRelationship;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -75,8 +74,6 @@ public class DeleteRelationshipCommand extends NodeServiceCommand {
 
 			final Relationship relToDelete       = rel.getRelationship();
 			final RelationshipInterface finalRel = rel;
-
-			// logger.log(Level.INFO, "DELETING relationship {0}-[{1}]->{2}", new Object[] {  rel.getSourceNode().getType(), rel.getRelType(), rel.getTargetNode().getType() } );
 
 			TransactionCommand.relationshipDeleted(finalRel, passiveDeletion);
 

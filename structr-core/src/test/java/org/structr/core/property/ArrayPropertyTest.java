@@ -18,10 +18,6 @@
  */
 package org.structr.core.property;
 
-import java.lang.String;
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertTrue;
-import static junit.framework.Assert.fail;
 import org.apache.commons.lang.ArrayUtils;
 import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;

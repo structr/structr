@@ -4,7 +4,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.graph.DeleteRelationshipCommand;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.RelationshipInterface;
 
 /**
  *

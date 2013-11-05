@@ -23,23 +23,17 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Location;
-import org.structr.core.graph.CreateNodeCommand;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyMap;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.logging.Logger;
 import org.apache.commons.collections.map.LRUMap;
-import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.search.DistanceSearchAttribute;
 
 //~--- classes ----------------------------------------------------------------

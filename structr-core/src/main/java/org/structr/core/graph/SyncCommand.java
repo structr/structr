@@ -718,6 +718,26 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 				TransactionCommand.nodeCreated(entity);
 				entity.addToIndex();
 
+//				// make nodes visible in transaction context
+//				RelationshipFactory relFactory     = new RelationshipFactory(securityContext);
+//				NodeFactory nodeFactory            = new NodeFactory(securityContext);
+//				
+//				for (Node node : nodes) {
+//					
+//					NodeInterface entity = nodeFactory.instantiate(node);
+//					TransactionCommand.nodeCreated(entity);
+//					entity.addToIndex();
+//					
+//				}
+//				
+//				for (Relationship rel : rels) {
+//					
+//					RelationshipInterface entity = relFactory.instantiate(rel);
+//					TransactionCommand.relationshipCreated(entity);
+//					entity.addToIndex();
+//				}
+//				
+//				return null;
 			}
 
 			for (Relationship rel : rels) {
