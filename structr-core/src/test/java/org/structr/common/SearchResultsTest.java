@@ -514,7 +514,7 @@ public class SearchResultsTest extends StructrTest {
 
 	}
 	
-	public void test11SearchByEmptyLongField() {
+	public void test12SearchByEmptyLongField() {
 
 		try {
 
@@ -535,7 +535,7 @@ public class SearchResultsTest extends StructrTest {
 
 	}	
 
-	public void test12SearchByEmptyDoubleField() {
+	public void test13SearchByEmptyDoubleField() {
 
 		try {
 

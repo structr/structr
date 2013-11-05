@@ -29,6 +29,7 @@ import org.structr.core.property.PropertyKey;
  * Wrapper representing a part of a search query. All parts of a search query must have a search operator and a payload. The payload can be either a node attribute oder a group of serach attributes.
  *
  * @author Axel Morgner
+ * @param <T>
  */
 public abstract class SearchAttribute<T> {
 
@@ -44,6 +45,7 @@ public abstract class SearchAttribute<T> {
 	public abstract boolean includeInResult(GraphObject entity);
 	public abstract String getStringValue();
 	public abstract String getInexactValue();
+	public abstract String getValueForEmptyField();
 
 	public SearchAttribute() {
 		this(null, null);

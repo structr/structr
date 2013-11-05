@@ -117,4 +117,9 @@ public class RangeSearchAttribute<T> extends SearchAttribute {
 	public boolean includeInResult(GraphObject entity) {
 		return true;
 	}
+
+	@Override
+	public String getValueForEmptyField() {
+		return null;
+	}
 }

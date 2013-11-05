@@ -131,4 +131,9 @@ public class SearchAttributeGroup extends SearchAttribute {
 		
 		return includeInResult;
 	}
+
+	@Override
+	public String getValueForEmptyField() {
+		return null;
+	}
 }

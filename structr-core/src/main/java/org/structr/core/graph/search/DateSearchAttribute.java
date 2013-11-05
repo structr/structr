@@ -21,6 +21,7 @@ package org.structr.core.graph.search;
 import java.util.Date;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.util.NumericUtils;
+import org.structr.core.property.DateProperty;
 import org.structr.core.property.PropertyKey;
 
 /**
@@ -37,11 +38,20 @@ public class DateSearchAttribute extends PropertySearchAttribute<Date> {
 	public String getStringValue() {
 		
 		Date value = getValue();
-		if (value != null) {
+		
+		if (value == null) {
 			
-			return NumericUtils.longToPrefixCoded(value.getTime());
+			return getValueForEmptyField();
+			
 		}
 		
-		return SearchCommand.EMPTY_FIELD_VALUE;
+		return NumericUtils.longToPrefixCoded(value.getTime());
+
 	}
+
+	@Override
+	public String getValueForEmptyField() {
+		return DateProperty.DATE_EMPTY_FIELD_VALUE;
+	}
+
 }

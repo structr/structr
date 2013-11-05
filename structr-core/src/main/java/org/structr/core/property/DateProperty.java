@@ -20,9 +20,9 @@ package org.structr.core.property;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.logging.Logger;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.SortField;
+import org.apache.lucene.util.NumericUtils;
 import org.neo4j.index.lucene.ValueContext;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.DateFormatToken;
@@ -31,7 +31,6 @@ import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.search.DateSearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.SearchCommand;
 
 /**
 * A property that stores and retrieves a simple string-based Date with
@@ -42,7 +41,7 @@ import org.structr.core.graph.search.SearchCommand;
  */
 public class DateProperty extends AbstractPrimitiveProperty<Date> {
 	
-	private static final Logger logger = Logger.getLogger(DateProperty.class.getName());
+	public static final String DATE_EMPTY_FIELD_VALUE = NumericUtils.longToPrefixCoded(Long.MIN_VALUE);
 	
 	protected String pattern = null;
 	
@@ -183,6 +182,11 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 	@Override
 	public void index(GraphObject entity, Object value) {
 		super.index(entity, value != null ? ValueContext.numeric((Number)value) : value);
+	}
+	
+	@Override
+	public String getValueForEmptyFields() {
+		return DATE_EMPTY_FIELD_VALUE;
 	}
 	
 }

@@ -28,6 +28,7 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.WildcardQuery;
 import org.structr.core.GraphObject;
+import org.structr.core.property.AbstractPrimitiveProperty;
 import org.structr.core.property.PropertyKey;
 
 /**
@@ -57,7 +58,7 @@ public class PropertySearchAttribute<T> extends SearchAttribute<T> {
 
 			if (StringUtils.isEmpty(value)) {
 
-				value = SearchNodeCommand.EMPTY_FIELD_VALUE;
+				value = getValueForEmptyField();
 			}
 
 			if (value.matches("[\\s]+")) {
@@ -183,5 +184,10 @@ public class PropertySearchAttribute<T> extends SearchAttribute<T> {
 		}
 		
 		return 0;
+	}
+
+	@Override
+	public String getValueForEmptyField() {
+		return AbstractPrimitiveProperty.STRING_EMPTY_FIELD_VALUE;
 	}
 }

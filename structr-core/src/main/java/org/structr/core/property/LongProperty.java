@@ -18,7 +18,6 @@
  */
 package org.structr.core.property;
 
-import java.util.logging.Logger;
 import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.SortField;
@@ -28,9 +27,8 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.graph.search.LongSearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.PropertySearchAttribute;
-import org.structr.core.graph.search.SearchCommand;
 
 /**
  * A property that stores and retrieves a simple Long value.
@@ -39,7 +37,7 @@ import org.structr.core.graph.search.SearchCommand;
  */
 public class LongProperty extends AbstractPrimitiveProperty<Long> {
 	
-	private static final Logger logger = Logger.getLogger(LongProperty.class.getName());
+	public static final String LONG_EMPTY_FIELD_VALUE = NumericUtils.longToPrefixCoded(Long.MIN_VALUE);
 	
 	public LongProperty(String name) {
 		super(name);
@@ -129,15 +127,7 @@ public class LongProperty extends AbstractPrimitiveProperty<Long> {
 	
 	@Override
 	public SearchAttribute getSearchAttribute(SecurityContext securityContext, BooleanClause.Occur occur, Long searchValue, boolean exactMatch) {
-		
-		String value = "";
-		
-		if (searchValue != null) {
-			
-			value = NumericUtils.longToPrefixCoded(searchValue);
-		}
-		
-		return new PropertySearchAttribute(this, value, occur, exactMatch);
+		return new LongSearchAttribute(this, searchValue, occur, exactMatch);
 	}
 
 	@Override
@@ -145,4 +135,10 @@ public class LongProperty extends AbstractPrimitiveProperty<Long> {
 		super.index(entity, value != null ? ValueContext.numeric((Number)value) : value);
 	}
 
+	@Override
+	public String getValueForEmptyFields() {
+		return LONG_EMPTY_FIELD_VALUE;
+	}
+	
+	
 }

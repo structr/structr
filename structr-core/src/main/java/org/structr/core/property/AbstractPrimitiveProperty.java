@@ -29,7 +29,6 @@ import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.TransactionCommand;
-import org.structr.core.graph.search.SearchCommand;
 
 
 /**
@@ -40,6 +39,8 @@ import org.structr.core.graph.search.SearchCommand;
 public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 
 	private static final Logger logger = Logger.getLogger(AbstractPrimitiveProperty.class.getName());
+	
+	public static final String STRING_EMPTY_FIELD_VALUE		= new String(new byte[] { 0 } );
 	
 	public AbstractPrimitiveProperty(String name) {
 		super(name);
@@ -217,7 +218,7 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 	}
 
 	@Override
-	public Object getValueForEmptyFields() {
-		return SearchCommand.EMPTY_FIELD_VALUE;
+	public String getValueForEmptyFields() {
+		return STRING_EMPTY_FIELD_VALUE;
 	}
 }
