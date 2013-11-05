@@ -23,9 +23,8 @@ import java.util.Map;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.command.AbstractCommand;
@@ -77,27 +76,16 @@ public class CloneNodeCommand extends AbstractCommand {
 			}
 
 			try {
+				final App app = StructrApp.getInstance();
+				app.beginTx();
 
-				StructrTransaction transaction               = new StructrTransaction() {
+				DOMNode clonedNode = (DOMNode) node.cloneNode(false);
+				parent.appendChild(clonedNode);
+				clonedNode.setProperty(DOMNode.ownerDocument, parent.getProperty(DOMNode.ownerDocument));
 
-					@Override
-					public Object execute() throws FrameworkException {
-						
-						DOMNode clonedNode = (DOMNode) node.cloneNode(false);
-						
-						parent.appendChild(clonedNode);
+				app.commitTx();
 
-						clonedNode.setProperty(DOMNode.ownerDocument, parent.getProperty(DOMNode.ownerDocument));
-
-						return null;
-
-					}
-
-				};
-
-				Services.command(securityContext, TransactionCommand.class).execute(transaction);
-
-			} catch (Exception ex) {
+			} catch (FrameworkException ex) {
 
 				// send DOM exception
 				getWebSocket().send(MessageBuilder.status().code(422).message(ex.getMessage()).build(), true);

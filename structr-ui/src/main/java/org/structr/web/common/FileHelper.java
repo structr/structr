@@ -45,10 +45,10 @@ import org.structr.common.Path;
 import org.structr.common.PathHelper;
 import org.structr.common.SecurityContext;
 import org.structr.core.Result;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.graph.CreateNodeCommand;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.property.PropertyMap;
@@ -222,18 +222,20 @@ public class FileHelper {
 		if (uuid == null) {
 
 			final String newUuid = UUID.randomUUID().toString().replaceAll("[\\-]+", "");
+			final App app        = StructrApp.getInstance(fileNode.getSecurityContext());
 			uuid                 = newUuid;
-			
-			Services.command(fileNode.getSecurityContext(), TransactionCommand.class).execute(new StructrTransaction() {
 
-				@Override
-				public Object execute() throws FrameworkException {
+			try {
 
-					fileNode.unlockReadOnlyPropertiesOnce();
-					fileNode.setProperty(AbstractNode.uuid, newUuid);
-					return null;
-				}
-			});
+				app.beginTx();
+				fileNode.unlockReadOnlyPropertiesOnce();
+				fileNode.setProperty(AbstractNode.uuid, newUuid);
+				app.commitTx();
+				
+			} finally {
+				
+				app.finishTx();
+			}
 
 		}
 

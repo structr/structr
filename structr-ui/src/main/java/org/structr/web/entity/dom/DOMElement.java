@@ -80,6 +80,8 @@ import org.structr.core.property.GenericProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.rest.ResourceProvider;
 import org.structr.common.PagingHelper;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.rest.resource.Resource;
 import org.structr.rest.servlet.JsonRestServlet;
@@ -689,52 +691,52 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	@Override
 	public void setAttribute(final String name, final String value) throws DOMException {
 
+		final App app = StructrApp.getInstance(securityContext);
+
 		try {
+			app.beginTx();
 
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+			HtmlProperty htmlProperty = findOrCreateAttributeKey(name);
+			if (htmlProperty != null) {
 
-				@Override
-				public Object execute() throws FrameworkException {
-
-					HtmlProperty htmlProperty = findOrCreateAttributeKey(name);
-					if (htmlProperty != null) {
-
-						htmlProperty.setProperty(securityContext, DOMElement.this, value);
-					}
-					
-					return null;
-				}
-			});
+				htmlProperty.setProperty(securityContext, DOMElement.this, value);
+			}
+			
+			app.commitTx();
 
 		} catch (FrameworkException fex) {
 
 			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.getMessage());
+			
+		} finally {
+			
+			app.finishTx();
 		}
 	}
 
 	@Override
 	public void removeAttribute(final String name) throws DOMException {
 
+		final App app = StructrApp.getInstance(securityContext);
+		
 		try {
+			app.beginTx();
 
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+			HtmlProperty htmlProperty = findOrCreateAttributeKey(name);
+			if (htmlProperty != null) {
 
-				@Override
-				public Object execute() throws FrameworkException {
-
-					HtmlProperty htmlProperty = findOrCreateAttributeKey(name);
-					if (htmlProperty != null) {
-
-						htmlProperty.setProperty(securityContext, DOMElement.this, null);
-					}
-					
-					return null;
-				}
-			});
+				htmlProperty.setProperty(securityContext, DOMElement.this, null);
+			}
+			
+			app.commitTx();
 
 		} catch (FrameworkException fex) {
 
 			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.getMessage());
+			
+		} finally {
+			
+			app.finishTx();
 		}
 	}
 
@@ -846,22 +848,22 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 		checkWriteAccess();
 
+		final App app = StructrApp.getInstance(securityContext);
+
 		try {
+			app.beginTx();
 
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-				@Override
-				public Object execute() throws FrameworkException {
-
-					setProperty(DOMElement._id, idString);
+			setProperty(DOMElement._id, idString);
 			
-					return null;
-				}
-			});
-			
+			app.commitTx();
+
 		} catch (FrameworkException fex) {
 
 			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());			
+			
+		} finally {
+			
+			app.finishTx();
 		}
 	}
 

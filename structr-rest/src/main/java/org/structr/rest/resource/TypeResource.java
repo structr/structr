@@ -24,14 +24,11 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.CreateNodeCommand;
-import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.search.DistanceSearchAttribute;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.rest.RestMethodResult;
-import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -44,12 +41,16 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.structr.common.GraphObjectComparator;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.property.PropertyMap;
 import org.structr.core.GraphObject;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.graph.TransactionCommand;
+import org.structr.core.graph.CreateNodeCommand;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.graph.search.SearchRelationshipCommand;
+import org.structr.core.property.PropertyMap;
+import org.structr.rest.exception.IllegalPathException;
 import static org.structr.rest.resource.Resource.parseInteger;
 import org.structr.rest.servlet.JsonRestServlet;
 
@@ -185,14 +186,11 @@ public class TypeResource extends SortableResource {
 	@Override
 	public RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException {
 
-		AbstractNode newNode = (AbstractNode) Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+		final App app = StructrApp.getInstance(securityContext);
 
-			@Override
-			public Object execute() throws FrameworkException {
-
-				return createNode(propertySet);
-			}
-		});
+		app.beginTx();
+		final NodeInterface newNode = createNode(propertySet);
+		app.commitTx();
 		
 		RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_CREATED);
 		if (newNode != null) {

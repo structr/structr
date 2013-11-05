@@ -101,7 +101,7 @@ public abstract class Search {
 
 	private static List<SearchAttribute> getExactTypeAndSubtypesInternal(final Class type, final boolean isExactMatch) {
 
-		List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
+		List<SearchAttribute> attrs = new LinkedList<>();
 
 		ModuleService moduleService = Services.getService(ModuleService.class);
 		Map<String, Class> entities = moduleService.getCachedNodeEntities();

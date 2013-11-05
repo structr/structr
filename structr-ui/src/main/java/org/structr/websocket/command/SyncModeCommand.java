@@ -22,17 +22,14 @@
 package org.structr.websocket.command;
 
 import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
 import java.util.Map;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 
-import org.structr.core.graph.CreateRelationshipCommand;
 import org.structr.web.entity.relation.Sync;
 import org.structr.websocket.StructrWebSocket;
 
@@ -57,36 +54,28 @@ public class SyncModeCommand extends AbstractCommand {
 		final String syncMode                 = (String) properties.get("syncMode");
 		final AbstractNode sourceNode         = getNode(sourceId);
 		final AbstractNode targetNode         = getNode(targetId);
+		final App app                         = StructrApp.getInstance(securityContext);
 
 		if ((sourceNode != null) && (targetNode != null)) {
 
 			try {
 
-				final CreateRelationshipCommand createRel = Services.command(securityContext, CreateRelationshipCommand.class);
-				StructrTransaction transaction            = new StructrTransaction() {
+				app.beginTx();
+				
+				app.create(sourceNode, targetNode, Sync.class);
 
-					@Override
-					public Object execute() throws FrameworkException {
+				if (syncMode.equals("bidir")) {
 
-						createRel.execute(sourceNode, targetNode, Sync.class);
-
-						if (syncMode.equals("bidir")) {
-
-							createRel.execute(targetNode, sourceNode, Sync.class);
-						}
-
-						return null;
-
-					}
-
-				};
-
-				Services.command(securityContext, TransactionCommand.class).execute(transaction);
+					app.create(targetNode, sourceNode, Sync.class);
+				}
+				app.commitTx();
 
 			} catch (Throwable t) {
 
 				getWebSocket().send(MessageBuilder.status().code(400).message(t.getMessage()).build(), true);
 
+			} finally {
+				app.finishTx();
 			}
 
 		} else {

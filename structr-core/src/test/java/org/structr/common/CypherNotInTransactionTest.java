@@ -37,6 +37,8 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.Transaction;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.GenericNode;
 import org.structr.core.entity.SixOneOneToOne;
@@ -264,16 +266,16 @@ public class CypherNotInTransactionTest extends StructrTest {
 
 			assertNotNull(rel);
 
-			GraphDatabaseService graphDb  = graphDbCommand.execute();
-			List<NodeInterface> searchRes = app.nodeQuery(NodeInterface.class).uuid(testNodes.get(0).getUuid()).getAsList();
+			GraphDatabaseService graphDb = graphDbCommand.execute();
+			GraphObject  searchRes       = app.get(testNodes.get(0).getUuid());
 			
-			assertTrue(searchRes.size() == 1);
+			assertNotNull(searchRes);
 			
 			Transaction tx = graphDb.beginTx();
 
 			try {
 
-				searchRes.get(0).getRelationships().iterator().next().getRelationship().delete();
+				((AbstractNode)searchRes).getRelationships().iterator().next().getRelationship().delete();
 				tx.success();
 
 			} finally {

@@ -40,19 +40,16 @@ import org.structr.core.Export;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
 import org.structr.core.Services;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeFactory;
-import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
-import org.structr.core.graph.search.Search;
-import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.notion.Notion;
 import org.structr.core.property.RelationProperty;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
-import org.structr.rest.exception.NotFoundException;
-import org.structr.rest.exception.SystemException;
 //~--- JDK imports ------------------------------------------------------------
 
 //~--- classes ----------------------------------------------------------------
@@ -134,8 +131,8 @@ public class StaticRelationshipResource extends SortableResource {
 	public RestMethodResult doPut(final Map<String, Object> propertySet) throws FrameworkException {
 
 		final List<? extends GraphObject> results = typedIdResource.doGet(null, false, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE, null).getResults();
-		final SearchNodeCommand searchNode        = Services.command(securityContext, SearchNodeCommand.class);
-
+		final App app                             = StructrApp.getInstance(securityContext);
+		
 		if (results != null) {
 
 			// fetch static relationship definition
@@ -152,42 +149,18 @@ public class StaticRelationshipResource extends SortableResource {
 
 					}
 
-					final StructrTransaction transaction = new StructrTransaction() {
+					app.beginTx();
+					final List<GraphObject> nodes = new LinkedList<>();
 
-						@Override
-						public Object execute() throws FrameworkException {
+					// Now add new relationships for any new id: This should be the rest of the property set
+					for (final Object obj : propertySet.values()) {
 
-							final List<NodeInterface> nodes = new LinkedList<>();
+						nodes.add(app.get(obj.toString()));
+					}
 
-							// Now add new relationships for any new id: This should be the rest of the property set
-							for (final Object obj : propertySet.values()) {
-
-								final Result<NodeInterface> results = searchNode.execute(Search.andExactUuid(obj.toString()));
-								if (results.isEmpty()) {
-
-									throw new NotFoundException();
-
-								}
-
-								if (results.size() > 1) {
-
-									throw new SystemException("More than one result found for uuid " + obj.toString() + "!");
-
-								}
-								
-								nodes.addAll(results.getResults());
-							}
-							
-							// set property on source node
-							sourceEntity.setProperty(key, nodes);
-
-							return null;
-						}
-					};
-
-					// execute transaction
-					Services.command(securityContext, TransactionCommand.class).execute(transaction);
-
+					// set property on source node
+					sourceEntity.setProperty(key, nodes);
+					app.commitTx();
 				}
 
 			}
@@ -201,120 +174,111 @@ public class StaticRelationshipResource extends SortableResource {
 
 		final GraphObject sourceNode  = typedIdResource.getEntity();
 		final PropertyKey propertyKey = findPropertyKey(typedIdResource, typeResource);
+		final App app                 = StructrApp.getInstance(securityContext);
 
 		if (sourceNode != null && propertyKey != null && propertyKey instanceof RelationProperty) {
 
-			final StructrTransaction transaction = new StructrTransaction() {
+			final RelationProperty relationProperty = (RelationProperty)propertyKey;
+			final Class sourceNodeType              = sourceNode.getClass();
+			AbstractNode newNode                    = null;
 
-				@Override
-				public Object execute() throws FrameworkException {
+			if (propertyKey.isReadOnly()) {
 
-					final RelationProperty relationProperty = (RelationProperty)propertyKey;
-					final Class sourceNodeType                  = sourceNode.getClass();
+				logger.log(Level.INFO, "Read-only property on {0}: {1}", new Object[] { sourceNodeType, typeResource.getRawType() });
 
-					if (propertyKey.isReadOnly()) {
+				return null;
+			}
 
-						logger.log(Level.INFO, "Read-only property on {0}: {1}", new Object[] { sourceNodeType, typeResource.getRawType() });
+			// fetch notion
+			final Notion notion                  = relationProperty.getNotion();
+			final PropertyKey primaryPropertyKey = notion.getPrimaryPropertyKey();
 
-						return null;
+			app.beginTx();
+
+			// apply notion if the property set contains the ID property as the only element
+			if (primaryPropertyKey != null && propertySet.containsKey(primaryPropertyKey.jsonName()) && propertySet.size() == 1) {
+
+				/*
+				 * FIXME: is this needed at all??
+
+* 
+* 
+				// the notion that is defined for this relationship can deserialize
+				// objects with a single key (uuid for example), and the POSTed
+				// property set contains value(s) for this key, so we only need
+				// to create relationships
+				final Object keySource = propertySet.get(primaryPropertyKey.jsonName());
+				if (keySource != null) {
+
+					if (keySource instanceof Collection) {
+
+						sourceNode.setProperty(propertyKey, notion.getCollectionAdapterForSetter(securityContext).adapt(keySource));
+
+					} else {
+
+						sourceNode.setProperty(propertyKey, notion.getAdapterForSetter(securityContext).adapt(keySource));
 					}
 
-					// fetch notion
-					final Notion notion                  = relationProperty.getNotion();
-					final PropertyKey primaryPropertyKey = notion.getPrimaryPropertyKey();
+					/*
+					GraphObject otherNode = null;
 
-					
-					// apply notion if the property set contains the ID property as the only element
-					if (primaryPropertyKey != null && propertySet.containsKey(primaryPropertyKey.jsonName()) && propertySet.size() == 1) {
+					if (keySource instanceof Collection) {
 
-						/*
-						 * FIXME: is this needed at all??
+						final Collection collection = (Collection) keySource;
 
-* 
-* 
-						// the notion that is defined for this relationship can deserialize
-						// objects with a single key (uuid for example), and the POSTed
-						// property set contains value(s) for this key, so we only need
-						// to create relationships
-						final Object keySource = propertySet.get(primaryPropertyKey.jsonName());
-						if (keySource != null) {
+						for (final Object key : collection) {
 
-							if (keySource instanceof Collection) {
-								
-								sourceNode.setProperty(propertyKey, notion.getCollectionAdapterForSetter(securityContext).adapt(keySource));
-								
-							} else {
-								
-								sourceNode.setProperty(propertyKey, notion.getAdapterForSetter(securityContext).adapt(keySource));
-							}
-							
-							/*
-							GraphObject otherNode = null;
+							otherNode = deserializationStrategy.adapt(key);
 
-							if (keySource instanceof Collection) {
+							if (otherNode != null && otherNode instanceof AbstractNode) {
 
-								final Collection collection = (Collection) keySource;
-
-								for (final Object key : collection) {
-
-									otherNode = deserializationStrategy.adapt(key);
-
-									if (otherNode != null && otherNode instanceof AbstractNode) {
-
-										relationshipProperty.createRelationship(securityContext, sourceNode, (AbstractNode)otherNode);
-
-									} else {
-
-										logger.log(Level.WARNING, "Relationship end node has invalid type {0}", otherNode.getClass().getName());
-									}
-
-								}
+								relationshipProperty.createRelationship(securityContext, sourceNode, (AbstractNode)otherNode);
 
 							} else {
 
-								// create a single relationship
-								otherNode = deserializationStrategy.adapt(keySource);
-
-								if (otherNode != null && otherNode instanceof AbstractNode) {
-
-									relationshipProperty.createRelationship(securityContext, sourceNode, (AbstractNode)otherNode);
-
-								} else {
-
-									logger.log(Level.WARNING, "Relationship end node has invalid type {0}", otherNode.getClass().getName());
-
-								}
+								logger.log(Level.WARNING, "Relationship end node has invalid type {0}", otherNode.getClass().getName());
 							}
-							
-							return otherNode;
+
+						}
+
+					} else {
+
+						// create a single relationship
+						otherNode = deserializationStrategy.adapt(keySource);
+
+						if (otherNode != null && otherNode instanceof AbstractNode) {
+
+							relationshipProperty.createRelationship(securityContext, sourceNode, (AbstractNode)otherNode);
 
 						} else {
 
-							logger.log(Level.INFO, "Key {0} not found in {1}", new Object[] { primaryPropertyKey.jsonName(), propertySet.toString() });
-
-						}
-						*/
-
-						
-					} else {
-
-						// the notion can not deserialize objects with a single key, or the POSTed propertySet did not contain a key to deserialize,
-						// so we create a new node from the POSTed properties and link the source node to it. (this is the "old" implementation)
-						final AbstractNode otherNode = typeResource.createNode(propertySet);
-						if (otherNode != null) {
-
-							relationProperty.addSingleElement(securityContext, sourceNode, otherNode);
-
-							return otherNode;
+							logger.log(Level.WARNING, "Relationship end node has invalid type {0}", otherNode.getClass().getName());
 
 						}
 					}
 
-					return null;
-				}
-			};
+					return otherNode;
 
-			AbstractNode newNode = (AbstractNode) Services.command(securityContext, TransactionCommand.class).execute(transaction);
+				} else {
+
+					logger.log(Level.INFO, "Key {0} not found in {1}", new Object[] { primaryPropertyKey.jsonName(), propertySet.toString() });
+
+				}
+				*/
+
+
+			} else {
+
+				// the notion can not deserialize objects with a single key, or the POSTed propertySet did not contain a key to deserialize,
+				// so we create a new node from the POSTed properties and link the source node to it. (this is the "old" implementation)
+				newNode = typeResource.createNode(propertySet);
+				if (newNode != null) {
+
+					relationProperty.addSingleElement(securityContext, sourceNode, newNode);
+				}
+			}
+			app.commitTx();
+
 			if (newNode != null) {
 
 				RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_CREATED);

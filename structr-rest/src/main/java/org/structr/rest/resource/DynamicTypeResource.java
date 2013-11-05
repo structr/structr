@@ -31,10 +31,10 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.Result;
 import org.structr.core.Services;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.CreateNodeCommand;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchNodeCommand;
@@ -44,6 +44,7 @@ import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
 import org.structr.core.entity.PropertyDefinition;
+import org.structr.core.graph.NodeInterface;
 
 /**
  *
@@ -121,20 +122,14 @@ public class DynamicTypeResource extends TypeResource {
 	@Override
 	public RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException {
 
+		final App app = StructrApp.getInstance(securityContext);
 		// create transaction closure
-		StructrTransaction transaction = new StructrTransaction() {
-
-			@Override
-			public Object execute() throws FrameworkException {
-
-				return createNode(propertySet);
-
-			}
-
-		};
+		
+		app.beginTx();
+		final NodeInterface newNode = createNode(propertySet);
+		app.commitTx();
 
 		// execute transaction: create new node
-		AbstractNode newNode    = (AbstractNode) Services.command(securityContext, TransactionCommand.class).execute(transaction);
 		RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_CREATED);
 
 		if (newNode != null) {

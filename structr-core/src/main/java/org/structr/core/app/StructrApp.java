@@ -187,6 +187,11 @@ public class StructrApp implements App {
 	}
 	
 	@Override
+	public void finishTx() {
+		command(TransactionCommand.class).finishTx();
+	}
+	
+	@Override
 	public void shutdown() {
 		Services.shutdown();
 	}

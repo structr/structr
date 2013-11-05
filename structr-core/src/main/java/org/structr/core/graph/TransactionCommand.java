@@ -230,7 +230,7 @@ public class TransactionCommand extends NodeServiceCommand {
 
 	public void beginTx() {
 		
-		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
+		final GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
 		TransactionReference tx      = transactions.get();
 		
 		if (tx == null) {
@@ -254,9 +254,7 @@ public class TransactionCommand extends NodeServiceCommand {
 	
 	public void commitTx(final boolean doValidation) throws FrameworkException {
 	
-		TransactionReference tx = transactions.get();
-		Set<String> synchronizationKeys = null;
-		
+		final TransactionReference tx = transactions.get();
 		if (tx != null) {
 			
 			if (tx.isToplevel()) {
@@ -268,18 +266,14 @@ public class TransactionCommand extends NodeServiceCommand {
 					if (doValidation) {
 
 						tx.failure();
-						tx.finish();
-
-						// cleanup
-						currentCommand.remove();
-						transactions.remove();
+						finishTx();
 
 						throw new FrameworkException(422, errorBuffer);
 					}
 				}
 
 				// 2. fetch all types of entities modified in this tx
-				synchronizationKeys = modificationQueue.getSynchronizationKeys();
+				Set<String> synchronizationKeys = modificationQueue.getSynchronizationKeys();
 
 				// we need to protect the validation and indexing part of every transaction
 				// from being entered multiple times in the presence of validators
@@ -290,36 +284,41 @@ public class TransactionCommand extends NodeServiceCommand {
 				if (!modificationQueue.doValidation(securityContext, errorBuffer, doValidation)) {
 
 					tx.failure();
-					tx.finish();
-
-					// release semaphores as the transaction is now finished
-					semaphore.release(synchronizationKeys);	// careful: this can be null
-
-					// cleanup
-					currentCommand.remove();
-					transactions.remove();
+					finishTx();
 
 					// create error
 					throw new FrameworkException(422, errorBuffer);
 				}
 
 				tx.success();
-				tx.finish();
-
-				// release semaphores as the transaction is now finished
-				semaphore.release(synchronizationKeys);	// careful: this can be null
-
-				// cleanup
-				currentCommand.remove();
-				transactions.remove();
-
-				modificationQueue.doOuterCallbacks(securityContext);
-				modificationQueue.clear();
+				
+				finishTx();
 				
 			} else {
 				
 				tx.end();
 			}
+		}
+	}
+	
+	public void finishTx() {
+		
+		final Set<String> synchronizationKeys = modificationQueue.getSynchronizationKeys();
+		final TransactionReference tx         = transactions.get();
+
+		if (tx != null && tx.isToplevel()) {
+
+			tx.finish();
+
+			// release semaphores as the transaction is now finished
+			semaphore.release(synchronizationKeys);	// careful: this can be null
+
+			// cleanup
+			currentCommand.remove();
+			transactions.remove();
+
+			modificationQueue.doOuterCallbacks(securityContext);
+			modificationQueue.clear();
 		}
 	}
 	

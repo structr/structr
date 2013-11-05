@@ -57,10 +57,10 @@ import org.structr.core.GraphObject;
 import org.structr.core.Predicate;
 import org.structr.core.Result;
 import org.structr.core.Services;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchNodeCommand;
@@ -69,8 +69,6 @@ import org.structr.web.common.Function;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.relationship.Ownership;
-import org.structr.core.graph.CreateNodeCommand;
-import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.search.PropertySearchAttribute;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.CollectionIdProperty;
@@ -1997,23 +1995,23 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 					properties.put(key, getProperty(key));
 				}
 			}
+
+			final App app = StructrApp.getInstance(securityContext);
 			
 			try {
+				app.beginTx();
+				DOMNode node = app.create(DOMNode.class, properties);
+				app.commitTx();
 				
-				return (DOMNode) Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<DOMNode>() {
-
-					@Override
-					public DOMNode execute() throws FrameworkException {
-
-						return (DOMNode) Services.command(securityContext, CreateNodeCommand.class).execute(properties);
-					}
-
-				});
+				return node;
 				
 			} catch (FrameworkException ex) {
 				
 				throw new DOMException(DOMException.INVALID_STATE_ERR, ex.toString());
 				
+			} finally {
+				
+				app.finishTx();
 			}
 			
 		}
@@ -2101,72 +2099,70 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	
 	@Override
 	public final void normalize() {
+
+		final App app = StructrApp.getInstance(securityContext);
 		
 		try {
 
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+			Document document = getOwnerDocument();
+			if (document != null) {
 
-				@Override
-				public Object execute() throws FrameworkException {
+				// merge adjacent text nodes until there is only one left
+				Node child = getFirstChild();
+				while (child != null) {
 
-					Document document = getOwnerDocument();
-					if (document != null) {
+					if (child instanceof Text) {
 
-						// merge adjacent text nodes until there is only one left
-						Node child = getFirstChild();
-						while (child != null) {
+						Node next = child.getNextSibling();
+						if (next != null && next instanceof Text) {
 
-							if (child instanceof Text) {
+							String text1 = child.getNodeValue();
+							String text2 = next.getNodeValue();
 
-								Node next = child.getNextSibling();
-								if (next != null && next instanceof Text) {
+							// create new text node
+							Text newText = document.createTextNode(text1.concat(text2));
 
-									String text1 = child.getNodeValue();
-									String text2 = next.getNodeValue();
+							removeChild(child);
+							insertBefore(newText, next);
+							removeChild(next);
 
-									// create new text node
-									Text newText = document.createTextNode(text1.concat(text2));
+							child = newText;
 
-									removeChild(child);
-									insertBefore(newText, next);
-									removeChild(next);
+						} else {
 
-									child = newText;
-
-								} else {
-
-									// advance to next node
-									child = next;
-								}
-
-							} else {
-
-								// advance to next node
-								child = child.getNextSibling();
-
-							}
+							// advance to next node
+							child = next;
 						}
 
-						// recursively normalize child nodes
-						if (hasChildNodes()) {
+					} else {
 
-							Node currentChild = getFirstChild();
-							while (currentChild != null) {
+						// advance to next node
+						child = child.getNextSibling();
 
-								currentChild.normalize();
-								currentChild = currentChild.getNextSibling();
-							}
-						}
 					}
-					
-					return null;
 				}
-				
-			});
+
+				// recursively normalize child nodes
+				if (hasChildNodes()) {
+
+					Node currentChild = getFirstChild();
+					while (currentChild != null) {
+
+						currentChild.normalize();
+						currentChild = currentChild.getNextSibling();
+					}
+				}
+			}
+			
+			app.commitTx();
 			
 		} catch (FrameworkException fex) {
 			
 			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.getMessage());
+			
+		} finally {
+			
+			app.finishTx();
 		}
 	}
 
@@ -2176,22 +2172,21 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		
 		if (_page != null) {
 
+			final App app = StructrApp.getInstance(securityContext);
+
 			try {
-
-				Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-					@Override
-					public Object execute() throws FrameworkException {
-
-						setProperty(ownerDocument, _page);
-
-						return null;
-					}
-				});
+				
+				app.beginTx();
+				setProperty(ownerDocument, _page);
+				app.commitTx();
 				
 			} catch (FrameworkException fex) {
 				
 				throw new DOMException(DOMException.INVALID_STATE_ERR, fex.getMessage());
+				
+			} finally {
+				
+				app.finishTx();
 			}
 		}
 		

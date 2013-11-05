@@ -20,7 +20,6 @@
 
 package org.structr.web.test;
 
-import java.io.IOException;
 import java.util.logging.Level;
 import org.structr.web.common.StructrUiTest;
 
@@ -32,8 +31,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.CreateNodeCommand;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.entity.User;
@@ -55,23 +52,12 @@ public class FrontendTest extends StructrUiTest {
 	protected int run(final String testName) {
 
 		try {
-			try {
-				transactionCommand.execute(new StructrTransaction<AbstractNode>() {
+			
+			app.beginTx();
 
-					@Override
-					public AbstractNode execute() throws FrameworkException {
-
-						createAdminUser();
-						createResourceAccess("_login", UiAuthenticator.NON_AUTH_USER_POST);
-						
-						return null;
-					}
-
-				});
-				
-			} catch (FrameworkException ex) {
-				logger.log(Level.SEVERE, "Could not create admin user", ex);
-			}
+			createAdminUser();
+			createResourceAccess("_login", UiAuthenticator.NON_AUTH_USER_POST);
+			app.commitTx();
 			
 			String[] args = {"/bin/sh", "-c", "cd src/test/javascript; PATH=$PATH:./bin/`uname`/ casperjs/bin/casperjs test " + testName+ ".js"};
 
@@ -85,8 +71,12 @@ public class FrontendTest extends StructrUiTest {
 			
 			return exitValue;
 			
-		} catch (IOException ex) {
+		} catch (Exception ex) {
 			logger.log(Level.SEVERE, null, ex);
+			
+		} finally {
+			
+			app.finishTx();
 		}
 		
 		return 1;
@@ -98,21 +88,20 @@ public class FrontendTest extends StructrUiTest {
 
 	protected void createAdminUser() throws FrameworkException {
 		
-		final CreateNodeCommand cmd  = Services.command(securityContext, CreateNodeCommand.class);
 		final PropertyMap properties = new PropertyMap();
 
-		properties.put(AbstractNode.type, User.class.getSimpleName());
 		properties.put(User.name, "admin");
 		properties.put(User.password, "admin");
-	
-		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<User>() {
 
-			@Override
-			public User execute() throws FrameworkException {
-
-				return (User)cmd.execute(properties);
-			}		
-		});
+		try {
+			app.beginTx();
+			User user = app.create(User.class, properties);
+			app.commitTx();
+			
+		} finally {
+			
+			app.finishTx();
+		}
 		
 	}
 	

@@ -20,12 +20,6 @@
 
 package org.structr.web.common;
 
-import org.structr.common.error.FrameworkException;
-import org.structr.core.graph.StructrTransaction;
-
-//~--- JDK imports ------------------------------------------------------------
-
-import java.io.IOException;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -60,27 +54,11 @@ public class ThumbnailTest extends StructrTest {
 	public void test01CreateThumbnail() {
 
 		try {
+			app.beginTx();
 
-			TestImage img = transactionCommand.execute(new StructrTransaction<TestImage>() {
-
-				@Override
-				public TestImage execute() throws FrameworkException {
-
-					try {
-
-						return (TestImage) ImageHelper.createFileBase64(securityContext, base64Image, TestImage.class);
-
-					} catch (IOException ex) {
-
-						logger.log(Level.SEVERE, null, ex);
-
-					}
-
-					return null;
-
-				}
-
-			});
+			TestImage img = (TestImage) ImageHelper.createFileBase64(securityContext, base64Image, TestImage.class);
+			
+			app.commitTx();
 
 			assertNotNull(img);
 			assertTrue(img instanceof TestImage);
@@ -92,11 +70,14 @@ public class ThumbnailTest extends StructrTest {
 			assertEquals(new Integer(48), tn.getHeight());  // cropToFit = false
 			assertEquals("image/" + Thumbnail.FORMAT, tn.getContentType());
 
-		} catch (FrameworkException ex) {
+		} catch (Exception ex) {
 
 			logger.log(Level.SEVERE, ex.toString());
 			fail("Unexpected exception");
 
+		} finally {
+			
+			app.finishTx();
 		}
 
 	}

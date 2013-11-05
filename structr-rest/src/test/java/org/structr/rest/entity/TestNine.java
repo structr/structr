@@ -28,11 +28,10 @@ import org.structr.common.geo.AddressComponent;
 import org.structr.common.geo.GeoCodingResult;
 import org.structr.common.geo.GeoHelper;
 import org.structr.core.GraphObject;
-import org.structr.core.Services;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import static org.structr.core.entity.AbstractNode.name;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.core.notion.PropertyNotion;
 import org.structr.core.property.CollectionNotionProperty;
 import org.structr.core.property.EndNodes;
@@ -78,40 +77,35 @@ public class TestNine extends AbstractNode {
 
 	public void geocode() throws FrameworkException {
 
-		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+		final App app = StructrApp.getInstance(securityContext);
+		
+		app.beginTx();
 
-			@Override
-			public Object execute() throws FrameworkException {
+		Double lat              = getProperty(latitude);
+		Double lon              = getProperty(longitude);
 
-				Double lat              = getProperty(latitude);
-				Double lon              = getProperty(longitude);
+		if (lat == null || lon == null) {
 
-				if (lat == null || lon == null) {
+			String _city       = getProperty(city);
+			String _street     = getProperty(street);
+			String _postalCode = getProperty(postalCode);
 
-					String _city       = getProperty(city);
-					String _street     = getProperty(street);
-					String _postalCode = getProperty(postalCode);
+			GeoCodingResult geoCodingResult = GeoHelper.geocode(_street, null, _postalCode, _city, null, null);
+			if (geoCodingResult == null) {
 
-					GeoCodingResult geoCodingResult = GeoHelper.geocode(_street, null, _postalCode, _city, null, null);
-					if (geoCodingResult == null) {
-
-						return null;
-
-					}
-
-					setProperty(latitude, geoCodingResult.getLatitude());
-					setProperty(longitude, geoCodingResult.getLongitude());
-					
-					// set postal code if found
-					AddressComponent postalCodeComponent = geoCodingResult.getAddressComponent(GeoCodingResult.Type.postal_code);
-					if (postalCodeComponent != null) {
-						
-						setProperty(postalCode, postalCodeComponent.getLongValue());
-					}
-				}
-
-				return null;
+				return;
 			}
-		});
+
+			setProperty(latitude, geoCodingResult.getLatitude());
+			setProperty(longitude, geoCodingResult.getLongitude());
+
+			// set postal code if found
+			AddressComponent postalCodeComponent = geoCodingResult.getAddressComponent(GeoCodingResult.Type.postal_code);
+			if (postalCodeComponent != null) {
+
+				setProperty(postalCode, postalCodeComponent.getLongValue());
+			}
+		}
+		app.commitTx();
 	}
 }

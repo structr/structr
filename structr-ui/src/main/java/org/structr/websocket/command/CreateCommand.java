@@ -22,11 +22,7 @@ package org.structr.websocket.command;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.CreateNodeCommand;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
@@ -35,6 +31,8 @@ import org.structr.websocket.message.WebSocketMessage;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.File;
 import org.structr.websocket.StructrWebSocket;
@@ -61,26 +59,16 @@ public class CreateCommand extends AbstractCommand {
 	public void processMessage(final WebSocketMessage webSocketData) {
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
-		StructrTransaction transaction        = new StructrTransaction() {
+		final App app = StructrApp.getInstance(securityContext);
 
-			@Override
-			public Object execute() throws FrameworkException {
-
-				Map<String, Object> nodeData = webSocketData.getNodeData();
-
-				//nodeData.put(AbstractNode.visibleToAuthenticatedUsers.jsonName(), true);
-
-				// convertFromInput
-				PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, nodeData);
-				
-				return Services.command(securityContext, CreateNodeCommand.class).execute(properties);
-			}
-		};
+		Map<String, Object> nodeData = webSocketData.getNodeData();
 
 		try {
 
-			// create node in transaction
-			AbstractNode newNode = (AbstractNode) Services.command(securityContext, TransactionCommand.class).execute(transaction);
+			app.beginTx();
+			
+			final PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, nodeData);
+			final AbstractNode newNode   = app.create(AbstractNode.class, properties);
 
 			// check for File node and store in WebSocket to receive chunks
 			if (newNode instanceof File) {
@@ -100,6 +88,9 @@ public class CreateCommand extends AbstractCommand {
 				getWebSocket().createFileUploadHandler(fileNode);
 
 			}
+			
+			app.commitTx();
+			
 		} catch (FrameworkException fex) {
 
 			logger.log(Level.WARNING, "Could not create node.", fex);

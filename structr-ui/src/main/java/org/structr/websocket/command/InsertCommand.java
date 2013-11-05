@@ -23,10 +23,6 @@ package org.structr.websocket.command;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.CreateNodeCommand;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
@@ -35,9 +31,11 @@ import org.structr.websocket.message.WebSocketMessage;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.CreateRelationshipCommand;
 import org.structr.core.property.PropertyMap;
-import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.relationship.DOMChildren;
 
 //~--- classes ----------------------------------------------------------------
@@ -57,6 +55,7 @@ public class InsertCommand extends AbstractCommand {
 	public void processMessage(WebSocketMessage webSocketData) {
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
+		final App app                         = StructrApp.getInstance(securityContext);
 
 		// new node properties
 		final Map<String, Object> properties = webSocketData.getNodeData();
@@ -67,43 +66,43 @@ public class InsertCommand extends AbstractCommand {
 
 			AbstractNode parentNode        = getNode(parentId);
 			AbstractNode nodeToInsert      = null;
-			StructrTransaction transaction = new StructrTransaction() {
-
-				@Override
-				public Object execute() throws FrameworkException {
-
-					PropertyMap nodeProperties = PropertyMap.inputTypeToJavaType(securityContext, properties);
-					return Services.command(securityContext, CreateNodeCommand.class).execute(nodeProperties);
-
-				}
-
-			};
 
 			try {
 
-				// create node in transaction
-				nodeToInsert = (AbstractNode) Services.command(securityContext, TransactionCommand.class).execute(transaction);
+				PropertyMap nodeProperties = PropertyMap.inputTypeToJavaType(securityContext, properties);
+
+				app.beginTx();
+				nodeToInsert = app.create(AbstractNode.class, nodeProperties);
+				app.commitTx();
 				
 			} catch (FrameworkException fex) {
 
 				logger.log(Level.WARNING, "Could not create node.", fex);
 				getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
 
+			} finally {
+				
+				app.finishTx();
 			}
 
 			if ((nodeToInsert != null) && (parentNode != null)) {
 
 				try {
 
-					PropertyMap relProperties = PropertyMap.inputTypeToJavaType(securityContext, relData);
-					
-					Services.command(securityContext, CreateRelationshipCommand.class).execute(parentNode, nodeToInsert, DOMChildren.class, relProperties);
-					// DOMElement.children.createRelationship(securityContext, parentNode, nodeToInsert, relProperties);
+					app.beginTx();
 
+					PropertyMap relProperties = PropertyMap.inputTypeToJavaType(securityContext, relData);
+					app.create(parentNode, nodeToInsert, DOMChildren.class, relProperties);
+
+					app.commitTx();
+					
 				} catch (Throwable t) {
 
 					getWebSocket().send(MessageBuilder.status().code(400).message(t.getMessage()).build(), true);
 
+				} finally {
+					
+					app.finishTx();
 				}
 
 			} else {

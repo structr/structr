@@ -45,8 +45,6 @@ import org.structr.web.entity.Image;
 import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.CreateRelationshipCommand;
 import org.structr.core.graph.NodeAttribute;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchNodeCommand;
@@ -68,6 +66,8 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.lang.WordUtils;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.property.BooleanProperty;
 import org.structr.web.entity.relation.Folders;
 
@@ -204,38 +204,33 @@ public class Importer {
 
 	public String readPage() throws FrameworkException {
 
+		final App app = StructrApp.getInstance(securityContext);
+
 		try {
-			
 			final URL baseUrl = StringUtils.isNotBlank(address) ? new URL(address) : null;
+			
+			app.beginTx();
 
-			return Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<String>() {
+			// AbstractNode page = findOrCreateNode(attrs, "/");
+			Page page = Page.createNewPage(securityContext, name);
 
-				@Override
-				public String execute() throws FrameworkException {
+			if (page != null) {
 
-					// AbstractNode page = findOrCreateNode(attrs, "/");
-					Page page = Page.createNewPage(securityContext, name);
+				page.setProperty(AbstractNode.visibleToAuthenticatedUsers, authVisible);
+				page.setProperty(AbstractNode.visibleToPublicUsers, publicVisible);
+				createChildNodes(parsedDocument, page, page, baseUrl);
+				logger.log(Level.INFO, "##### Finished fetching {0} for page {1} #####", new Object[] { address, name });
 
-					if (page != null) {
-
-						page.setProperty(AbstractNode.visibleToAuthenticatedUsers, authVisible);
-						page.setProperty(AbstractNode.visibleToPublicUsers, publicVisible);
-						createChildNodes(parsedDocument, page, page, baseUrl);
-						logger.log(Level.INFO, "##### Finished fetching {0} for page {1} #####", new Object[] { address, name });
-
-						return page.getProperty(AbstractNode.uuid);
-
-					}
-
-					return null;
-				}
-
-			});
+				return page.getProperty(AbstractNode.uuid);
+			}
 
 		} catch (MalformedURLException ex) {
 
 			logger.log(Level.SEVERE, "Could not resolve address " + address, ex);
 
+		} finally {
+			
+			app.finishTx();
 		}
 
 		return null;
@@ -244,33 +239,37 @@ public class Importer {
 
 	public void createChildNodes(final DOMNode parent, final Page page, final String baseUrl) throws FrameworkException {
 
-		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+		final App app = StructrApp.getInstance(securityContext);
 
-			@Override
-			public Object execute() throws FrameworkException {
-				
-				try {
-					
-					createChildNodes(parsedDocument.body(), parent, page, new URL(baseUrl));
-					
-				} catch (MalformedURLException ex) {
-					
-					logger.log(Level.WARNING, "Could not read URL {1}, calling method without base URL", baseUrl);
-					
-					createChildNodes(parsedDocument.body(), parent, page, null);
-					
-				}
-				
-				return null;
+		try {
+			
+			app.beginTx();
+
+			try {
+
+				createChildNodes(parsedDocument.body(), parent, page, new URL(baseUrl));
+
+			} catch (MalformedURLException ex) {
+
+				logger.log(Level.WARNING, "Could not read URL {1}, calling method without base URL", baseUrl);
+
+				createChildNodes(parsedDocument.body(), parent, page, null);
+
 			}
-		});
+			
+			app.commitTx();
+			
+		} finally {
+			
+			app.finishTx();
+		}
+
 	}
 	
 	// ----- private methods -----
 	private void createChildNodes(final Node startNode, final DOMNode parent, Page page, final URL baseUrl) throws FrameworkException {
 
-		List<Node> children = startNode.childNodes();
-
+		final List<Node> children = startNode.childNodes();
 		for (Node node : children) {
 
 			String tag                = node.nodeName();
@@ -348,12 +347,12 @@ public class Importer {
 			if (StringUtils.isBlank(tag)) {
 
 				newNode = (Content) page.createTextNode(content);
-				
+
 			} else {
 
 				newNode = (org.structr.web.entity.dom.DOMElement) page.createElement(tag);
 			}
-			
+
 			if (newNode != null) {
 
 				// "id" attribute: Put it into the "_html_id" field
@@ -377,20 +376,20 @@ public class Importer {
 						// convert data-* attributes to local camel case properties on the node,
 						// but don't convert data-structr-* attributes as they are internal
 						if (key.startsWith("data-")) {
-						
+
 							if (!key.startsWith(DATA_META_PREFIX)) {
 
 								newNode.setProperty(new StringProperty(nodeAttr.getKey()), nodeAttr.getValue());
-								
+
 							} else {
-								
+
 								int l = DATA_META_PREFIX.length();
-								
+
 								String upperCaseKey = WordUtils.capitalize(key.substring(l), new char[] { '-' }).replaceAll("-", "");
 								String camelCaseKey = key.substring(l, l+1).concat(upperCaseKey.substring(1));
-								
+
 								String value = nodeAttr.getValue();
-								
+
 								if (value != null) {
 									if (value.equalsIgnoreCase("true")) {
 										newNode.setProperty(new BooleanProperty(camelCaseKey), true);
@@ -400,9 +399,9 @@ public class Importer {
 										newNode.setProperty(new StringProperty(camelCaseKey), nodeAttr.getValue());
 									}
 								}
-								
+
 							}
-							
+
 						} else {
 
 							newNode.setProperty(new StringProperty(PropertyView.Html.concat(nodeAttr.getKey())), nodeAttr.getValue());
@@ -417,10 +416,9 @@ public class Importer {
 				// linkNodes(parent, newNode, page, localIndex);
 				// Step down and process child nodes
 				createChildNodes(node, newNode, page, baseUrl);
-			
+
 			}
 		}
-
 	}
 
 	/**

@@ -40,10 +40,9 @@ import org.structr.websocket.message.MessageBuilder;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.core.graph.DeleteNodeCommand;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
@@ -72,7 +71,9 @@ public class DeleteUnattachedNodesCommand extends AbstractCommand {
 	public void processMessage(WebSocketMessage webSocketData) {
 
 		final SecurityContext securityContext  = getWebSocket().getSecurityContext();
+		final App app                          = StructrApp.getInstance(securityContext);
 		List<SearchAttribute> searchAttributes = new LinkedList();
+
 
 		// Search for all DOM elements and Contents
 		searchAttributes.add(Search.orExactTypeAndSubtypes(DOMElement.class));
@@ -84,7 +85,6 @@ public class DeleteUnattachedNodesCommand extends AbstractCommand {
 
 		try {
 
-			// do search
 			Result result = (Result) Services.command(securityContext, SearchNodeCommand.class).execute(true, false, searchAttributes, sortProperty, "desc".equals(sortOrder));
 			final List<AbstractNode> filteredResults	= new LinkedList();
 			List<? extends GraphObject> resultList		= result.getResults();
@@ -108,39 +108,21 @@ public class DeleteUnattachedNodesCommand extends AbstractCommand {
 
 			}
 
-			// set full result list
-			final DeleteNodeCommand deleteNode = Services.command(securityContext, DeleteNodeCommand.class);
-			try {
-
-				StructrTransaction transaction = new StructrTransaction() {
-
-					@Override
-					public Object execute() throws FrameworkException {
-
-						for (NodeInterface node : filteredResults) {
-							
-							deleteNode.execute(node);
-						}
-
-						return null;
-					}
-
-				};
-
-				Services.command(securityContext, TransactionCommand.class).execute(transaction);
-
-			} catch (Throwable t) {
-
-				getWebSocket().send(MessageBuilder.status().code(400).message(t.getMessage()).build(), true);
-
+			app.beginTx();
+			for (NodeInterface node : filteredResults) {
+				app.delete(node);
 			}
-			
+			app.commitTx();
+
 			
 		} catch (FrameworkException fex) {
 
 			logger.log(Level.WARNING, "Exception occured", fex);
 			getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
 
+		} finally {
+			
+			app.finishTx();
 		}
 
 	}

@@ -21,11 +21,8 @@ package org.structr.websocket.command;
 
 
 import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
-import org.structr.core.graph.CreateRelationshipCommand;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.ShadowDocument;
 import org.structr.web.entity.relation.Sync;
@@ -60,36 +57,24 @@ public class CreateComponentCommand extends AbstractCommand {
 
 			try {
 
+				final App app = StructrApp.getInstance(securityContext);
+				app.beginTx();
 
-				final CreateRelationshipCommand createRel = Services.command(securityContext, CreateRelationshipCommand.class);
-				StructrTransaction transaction            = new StructrTransaction() {
+				DOMNode clonedNode = (DOMNode) node.cloneNode(false);
+				moveChildNodes(node, clonedNode);
 
-					@Override
-					public Object execute() throws FrameworkException {
-						
-						DOMNode clonedNode = (DOMNode) node.cloneNode(false);
-						
-						moveChildNodes(node, clonedNode);
-						
-						
-						ShadowDocument hiddenDoc = getOrCreateHiddenDocument();
-						clonedNode.setProperty(DOMNode.ownerDocument, hiddenDoc);
+				ShadowDocument hiddenDoc = getOrCreateHiddenDocument();
+				clonedNode.setProperty(DOMNode.ownerDocument, hiddenDoc);
 
-						// Change page (owner document) of all children recursively
-						for (DOMNode child : DOMNode.getAllChildNodes(clonedNode)) {
-							child.setProperty((DOMNode.ownerDocument), hiddenDoc);
-						}
+				// Change page (owner document) of all children recursively
+				for (DOMNode child : DOMNode.getAllChildNodes(clonedNode)) {
+					child.setProperty((DOMNode.ownerDocument), hiddenDoc);
+				}
 
-						createRel.execute(node, clonedNode, Sync.class);
-						createRel.execute(clonedNode, node, Sync.class);
-
-						return null;
-
-					}
-
-				};
-
-				Services.command(securityContext, TransactionCommand.class).execute(transaction);
+				app.create(node, clonedNode, Sync.class);
+				app.create(clonedNode, node, Sync.class);
+				
+				app.commitTx();
 
 			} catch (Exception ex) {
 

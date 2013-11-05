@@ -28,9 +28,10 @@ import org.structr.core.entity.Principal;
 
 import java.util.List;
 import java.util.logging.Logger;
-import org.neo4j.helpers.collection.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.core.Services;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractUser;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
@@ -68,36 +69,43 @@ public class Group extends AbstractUser implements Principal {
 
 	public void addMember(final Principal user) throws FrameworkException {
 
-		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+		final App app = StructrApp.getInstance(securityContext);
+		try {
+			
+			app.beginTx();
 
-			@Override
-			public Object execute() throws FrameworkException {
+			List<Principal> _users = getProperty(members);
+			_users.add(user);
 
-				List<Principal> _users = getProperty(members);
-				_users.add(user);
-
-				setProperty(members, _users);
-				return null;
-			}
-		});
+			setProperty(members, _users);
+			
+			app.commitTx();
+			
+		} finally {
+			
+			app.finishTx();
+		}
 		
 	}
 	
 	public void removeMember(final Principal user) throws FrameworkException {
 
-		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+		final App app = StructrApp.getInstance(securityContext);
+		try {
+			
+			app.beginTx();
 
-			@Override
-			public Object execute() throws FrameworkException {
+			List<Principal> _users = getProperty(members);
+			_users.remove(user);
 
-				List<Principal> _users = getProperty(members);
-				_users.remove(user);
-
-				setProperty(members, _users);
-				return null;
-			}
-		});
-		
+			setProperty(members, _users);
+			
+			app.commitTx();
+			
+		} finally {
+			
+			app.finishTx();
+		}
 	}
 	
 	@Override

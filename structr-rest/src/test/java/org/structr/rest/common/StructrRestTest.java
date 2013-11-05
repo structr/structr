@@ -35,7 +35,6 @@ import org.structr.core.graph.CreateRelationshipCommand;
 import org.structr.core.graph.DeleteNodeCommand;
 import org.structr.core.graph.FindNodeCommand;
 import org.structr.core.graph.GraphDatabaseCommand;
-import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -43,7 +42,6 @@ import org.structr.core.graph.TransactionCommand;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-
 import java.net.URL;
 import java.nio.charset.Charset;
 
@@ -62,11 +60,15 @@ import org.eclipse.jetty.util.resource.JarResource;
 import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.util.resource.ResourceCollection;
 import org.hamcrest.Matcher;
-import org.structr.core.property.PropertyMap;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.context.ApplicationContextListener;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Relation;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.StructrTransaction;
+import org.structr.rest.entity.TestOne;
 import org.structr.rest.servlet.JsonRestServlet;
 
 //~--- classes ----------------------------------------------------------------
@@ -326,55 +328,37 @@ public class StructrRestTest extends TestCase {
 
 	}
 
-	protected List<AbstractNode> createTestNodes(final String type, final int number) throws FrameworkException {
+	protected <T extends NodeInterface> List<T> createTestNodes(final Class<T> type, final int number) throws FrameworkException {
 
-		final PropertyMap props = new PropertyMap();
-		props.put(AbstractNode.type, type);
+		final App app       = StructrApp.getInstance(securityContext);
+		final List<T> nodes = new LinkedList<>();
 
-		return (List<AbstractNode>) transactionCommand.execute(new StructrTransaction() {
-
-			@Override
-			public Object execute() throws FrameworkException {
-
-				List<AbstractNode> nodes = new LinkedList<AbstractNode>();
-
-				for (int i = 0; i < number; i++) {
-
-					nodes.add((AbstractNode) createNodeCommand.execute(props));
-				}
-
-				return nodes;
-
-			}
-
-		});
-
+		app.beginTx();
+		for (int i = 0; i < number; i++) {
+			nodes.add(app.create(type));
+		}
+		app.commitTx();
+		
+		return nodes;
 	}
 
 	protected <T extends Relation> List<T> createTestRelationships(final Class<T> relType, final int number) throws FrameworkException {
 
-		final List<AbstractNode> nodes = createTestNodes("UnknownTestType", 2);
-		final AbstractNode startNode   = nodes.get(0);
-		final AbstractNode endNode     = nodes.get(1);
+		final List<TestOne> nodes = createTestNodes(TestOne.class, 2);
+		final TestOne startNode   = nodes.get(0);
+		final TestOne endNode     = nodes.get(1);
+		final App app             = StructrApp.getInstance(securityContext);
 
-		return transactionCommand.execute(new StructrTransaction<List<T>>() {
+		app.beginTx();
+		List<T> rels = new LinkedList<>();
 
-			@Override
-			public List<T> execute() throws FrameworkException {
+		for (int i = 0; i < number; i++) {
 
-				List<T> rels = new LinkedList<>();
+			rels.add(createRelationshipCommand.execute(startNode, endNode, relType));
+		}
+		app.commitTx();
 
-				for (int i = 0; i < number; i++) {
-
-					rels.add(createRelationshipCommand.execute(startNode, endNode, relType));
-				}
-
-				return rels;
-
-			}
-
-		});
-
+		return rels;
 	}
 	
 	protected String concat(String... parts) {

@@ -49,13 +49,13 @@ import org.structr.core.GraphObject;
 import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.Value;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.DeleteNodeCommand;
 import org.structr.core.graph.DeleteRelationshipCommand;
 import org.structr.core.graph.NodeFactory;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NoResultsException;
@@ -115,35 +115,30 @@ public abstract class Resource {
 		if (results != null) {
 
 			final Iterable<? extends GraphObject> finalResults = results;
+			final App app                                      = StructrApp.getInstance(securityContext);
+			
+			app.beginTx();
+			for (final GraphObject obj : finalResults) {
 
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-				@Override
-				public Object execute() throws FrameworkException {
+				if (obj instanceof AbstractRelationship) {
 
-					for (final GraphObject obj : finalResults) {
+					deleteRel.execute((AbstractRelationship)obj);
 
-						if (obj instanceof AbstractRelationship) {
+				} else if (obj instanceof AbstractNode) {
 
-							deleteRel.execute((AbstractRelationship)obj);
+					if (!securityContext.isAllowed((AbstractNode)obj, Permission.delete)) {
 
-						} else if (obj instanceof AbstractNode) {
-
-							if (!securityContext.isAllowed((AbstractNode)obj, Permission.delete)) {
-
-								logger.log(Level.WARNING, "Could not delete {0} because {1} has no delete permission", new Object[]{obj, securityContext.getUser(true)});
-								throw new NotAllowedException();
-
-							}
-
-							// delete cascading
-							deleteNode.execute((AbstractNode)obj);
-						}
+						logger.log(Level.WARNING, "Could not delete {0} because {1} has no delete permission", new Object[]{obj, securityContext.getUser(true)});
+						throw new NotAllowedException();
 
 					}
 
-					return null;
+					// delete cascading
+					deleteNode.execute((AbstractNode)obj);
 				}
-			});
+
+			}
+			app.commitTx();
 
 		}
 
@@ -153,34 +148,27 @@ public abstract class Resource {
 	public RestMethodResult doPut(final Map<String, Object> propertySet) throws FrameworkException {
 
 		final Result<GraphObject> result = doGet(null, false, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE, null);
-		final List<GraphObject> results = result.getResults();
+		final List<GraphObject> results  = result.getResults();
+		final App app                    = StructrApp.getInstance(securityContext);
 
 		if (results != null && !results.isEmpty()) {
 
 			final Class type = results.get(0).getClass();
+			
+			app.beginTx();
 
-			final StructrTransaction transaction = new StructrTransaction() {
-				@Override
-				public Object execute() throws FrameworkException {
+			PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, type, propertySet);
 
-					PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, type, propertySet);
+			for (final GraphObject obj : results) {
 
-					for (final GraphObject obj : results) {
+				for (final Entry<PropertyKey, Object> attr : properties.entrySet()) {
 
-						for (final Entry<PropertyKey, Object> attr : properties.entrySet()) {
+					obj.setProperty(attr.getKey(), attr.getValue());
 
-							obj.setProperty(attr.getKey(), attr.getValue());
-
-						}
-
-					}
-
-					return null;
 				}
-			};
 
-			// modify results in a single transaction
-			Services.command(securityContext, TransactionCommand.class).execute(transaction);
+			}
+			app.commitTx();
 
 			return new RestMethodResult(HttpServletResponse.SC_OK);
 

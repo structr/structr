@@ -40,6 +40,8 @@ import org.structr.web.entity.Image;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -77,68 +79,61 @@ public class ImageConverter extends PropertyConverter {
 			return false;
 		}
 
+		final App app = StructrApp.getInstance(securityContext);
+		
 		try {
+			
+			app.beginTx();
 
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+			Image img = null;
+			if (source instanceof byte[]) {
 
-				@Override
-				public Object execute() throws FrameworkException {
-					
-					Image img = null;
+				byte[] data      = (byte[]) source;
+				MagicMatch match = Magic.getMagicMatch(data);
+				String mimeType  = match.getMimeType();
 
-					try {
-						if (source instanceof byte[]) {
+				if (keyAndClass != null) {
 
-							byte[] data      = (byte[]) source;
-							MagicMatch match = Magic.getMagicMatch(data);
-							String mimeType  = match.getMimeType();
-							
-							if (keyAndClass != null) {
+					img = (Image) ImageHelper.createFile(securityContext, data, mimeType, keyAndClass.getCls());
 
-								img = (Image) ImageHelper.createFile(securityContext, data, mimeType, keyAndClass.getCls());
-								
-							} else {
-								
-								ImageHelper.setImageData((Image) currentObject, data, mimeType);
-								
-							}
+				} else {
 
-						} else if (source instanceof String) {
+					ImageHelper.setImageData((Image) currentObject, data, mimeType);
 
-							if (StringUtils.isNotBlank((String) source)) {
-
-								
-								if (keyAndClass != null) {
-								
-									img = (Image) ImageHelper.createFileBase64(securityContext, (String) source, keyAndClass != null ? keyAndClass.getCls() : null);
-									
-								} else {
-									
-									ImageHelper.decodeAndSetFileData((Image) currentObject, (String) source);
-									
-								}
-							}
-
-						}
-						
-					} catch (Throwable t) {
-						logger.log(Level.WARNING, "Cannot create image node from given data", t);
-					}
-
-					if (img != null) {
-
-						// manual indexing of UUID needed here to avoid a 404 in the following setProperty call
-						img.updateInIndex();
-						currentObject.setProperty(keyAndClass.getPropertyKey(), img);
-					}
-					
-					return null;
 				}
-			});
+
+			} else if (source instanceof String) {
+
+				if (StringUtils.isNotBlank((String) source)) {
+
+
+					if (keyAndClass != null) {
+
+						img = (Image) ImageHelper.createFileBase64(securityContext, (String) source, keyAndClass != null ? keyAndClass.getCls() : null);
+
+					} else {
+
+						ImageHelper.decodeAndSetFileData((Image) currentObject, (String) source);
+
+					}
+				}
+
+			}
+
+			if (img != null) {
+
+				// manual indexing of UUID needed here to avoid a 404 in the following setProperty call
+				img.updateInIndex();
+				currentObject.setProperty(keyAndClass.getPropertyKey(), img);
+			}
 
 		} catch (Throwable t) {
 
 			logger.log(Level.WARNING, "Cannot create image node from given data", t);
+			
+		} finally {
+			
+			app.finishTx();
 		}
 			
 		return null;

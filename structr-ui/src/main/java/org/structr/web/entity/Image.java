@@ -21,12 +21,10 @@
 package org.structr.web.entity;
 
 import org.structr.web.common.FileHelper;
-import org.neo4j.graphdb.Direction;
 
 import org.structr.web.common.ImageHelper;
 import org.structr.web.common.ImageHelper.Thumbnail;
 import org.structr.common.PropertyView;
-import org.structr.web.common.RelType;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
@@ -44,6 +42,8 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.ThumbnailParameters;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Relation;
@@ -245,99 +245,93 @@ public class Image extends File {
 		// No thumbnail exists, or thumbnail was too old, so let's create a new one
 		logger.log(Level.FINE, "Creating thumbnail for {0}", getName());
 
+		final App app = StructrApp.getInstance(securityContext);
+		
 		try {
+			app.beginTx();
 
-			thumbnail = Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<Image>() {
+			try {
 
-				@Override
-				public Image execute() throws FrameworkException {
+				originalImage.setChecksum(newChecksum);
 
-					try {
+			} catch (Exception ex) {
 
-						originalImage.setChecksum(newChecksum);
+				logger.log(Level.SEVERE, "Could not store checksum for original image", ex);
 
-					} catch (Exception ex) {
+			}
 
-						logger.log(Level.SEVERE, "Could not store checksum for original image", ex);
+			CreateRelationshipCommand createRel = Services.command(securityContext, CreateRelationshipCommand.class);
+			Thumbnail thumbnailData             = ImageHelper.createThumbnail(originalImage, maxWidth, maxHeight, cropToFit);
 
-					}
+			if (thumbnailData != null) {
 
-					CreateRelationshipCommand createRel = Services.command(securityContext, CreateRelationshipCommand.class);
-					Thumbnail thumbnailData             = ImageHelper.createThumbnail(originalImage, maxWidth, maxHeight, cropToFit);
+				Integer tnWidth  = thumbnailData.getWidth();
+				Integer tnHeight = thumbnailData.getHeight();
+				byte[] data      = null;
 
-					if (thumbnailData != null) {
+				try {
 
-						Integer tnWidth  = thumbnailData.getWidth();
-						Integer tnHeight = thumbnailData.getHeight();
-						Image thumbnail  = null;
-						byte[] data      = null;
+					data = thumbnailData.getBytes();
 
-						try {
+					// create thumbnail node
+					thumbnail = ImageHelper.createImage(securityContext, data, "image/" + Thumbnail.FORMAT, Image.class, true);
 
-							data = thumbnailData.getBytes();
+				} catch (IOException ex) {
 
-							// create thumbnail node
-							thumbnail = ImageHelper.createImage(securityContext, data, "image/" + Thumbnail.FORMAT, Image.class, true);
-
-						} catch (IOException ex) {
-
-							logger.log(Level.WARNING, "Could not create thumbnail image", ex);
-
-						}
-
-						if (thumbnail != null) {
-
-							// Create a thumbnail relationship
-							Thumbnails thumbnailRelationship = createRel.execute(originalImage, thumbnail, Thumbnails.class);
-							
-							// Thumbnails always have to be removed along with origin image
-							thumbnailRelationship.setProperty(AbstractRelationship.cascadeDelete, Relation.SOURCE_TO_TARGET);
-
-							// Add to cache list
-							// thumbnailRelationships.add(thumbnailRelationship);
-							long size = data.length;
-
-							thumbnail.setSize(size);
-							thumbnail.setProperty(name, originalImage.getName() + "_thumb_" + tnWidth + "x" + tnHeight);
-							thumbnail.setProperty(Image.width, tnWidth);
-							thumbnail.setProperty(Image.height, tnHeight);
-							
-							thumbnail.setProperty(AbstractNode.hidden,				originalImage.getProperty(AbstractNode.hidden));
-							thumbnail.setProperty(AbstractNode.visibleToAuthenticatedUsers,		originalImage.getProperty(AbstractNode.visibleToAuthenticatedUsers));
-							thumbnail.setProperty(AbstractNode.visibleToPublicUsers,		originalImage.getProperty(AbstractNode.visibleToPublicUsers));
-							thumbnail.setProperty(AbstractNode.owner,			originalImage.getProperty(AbstractNode.owner));
-							
-							thumbnailRelationship.setProperty(Image.width, tnWidth);
-							thumbnailRelationship.setProperty(Image.height, tnHeight);
-							thumbnailRelationship.setProperty(Image.checksum, newChecksum);
-
-//                                                      System.out.println("Thumbnail ID: " + thumbnail.getUuid() + ", orig. image ID: " + originalImage.getUuid() + ", orig. image checksum: " + originalImage.getProperty(checksum));
-							// Soft-delete outdated thumbnails
-							for (Image tn : oldThumbnails) {
-
-								tn.setProperty(deleted, true);
-							}
-						}
-
-						// Services.command(securityContext, IndexNodeCommand.class).execute(thumbnail);
-						return thumbnail;
-
-					} else {
-
-						logger.log(Level.WARNING, "Could not create thumbnail for image {0} ({1})", new Object[] { getName(), getId() });
-
-						return null;
-
-					}
+					logger.log(Level.WARNING, "Could not create thumbnail image", ex);
 
 				}
 
-			});
+				if (thumbnail != null) {
 
+					// Create a thumbnail relationship
+					Thumbnails thumbnailRelationship = app.create(originalImage, thumbnail, Thumbnails.class);
+
+					// Thumbnails always have to be removed along with origin image
+					thumbnailRelationship.setProperty(AbstractRelationship.cascadeDelete, Relation.SOURCE_TO_TARGET);
+
+					// Add to cache list
+					// thumbnailRelationships.add(thumbnailRelationship);
+					long size = data.length;
+
+					thumbnail.setSize(size);
+					thumbnail.setProperty(name, originalImage.getName() + "_thumb_" + tnWidth + "x" + tnHeight);
+					thumbnail.setProperty(Image.width, tnWidth);
+					thumbnail.setProperty(Image.height, tnHeight);
+
+					thumbnail.setProperty(AbstractNode.hidden,				originalImage.getProperty(AbstractNode.hidden));
+					thumbnail.setProperty(AbstractNode.visibleToAuthenticatedUsers,		originalImage.getProperty(AbstractNode.visibleToAuthenticatedUsers));
+					thumbnail.setProperty(AbstractNode.visibleToPublicUsers,		originalImage.getProperty(AbstractNode.visibleToPublicUsers));
+					thumbnail.setProperty(AbstractNode.owner,			originalImage.getProperty(AbstractNode.owner));
+
+					thumbnailRelationship.setProperty(Image.width, tnWidth);
+					thumbnailRelationship.setProperty(Image.height, tnHeight);
+					thumbnailRelationship.setProperty(Image.checksum, newChecksum);
+
+//                                                      System.out.println("Thumbnail ID: " + thumbnail.getUuid() + ", orig. image ID: " + originalImage.getUuid() + ", orig. image checksum: " + originalImage.getProperty(checksum));
+					// Soft-delete outdated thumbnails
+					for (Image tn : oldThumbnails) {
+
+						tn.setProperty(deleted, true);
+					}
+				}
+
+				app.commitTx();
+				
+			} else {
+
+				logger.log(Level.WARNING, "Could not create thumbnail for image {0} ({1})", new Object[] { getName(), getId() });
+
+				return null;
+			}
+			
 		} catch (FrameworkException fex) {
 
 			logger.log(Level.WARNING, "Unable to create thumbnail", fex);
 
+		} finally {
+			
+			app.finishTx();
 		}
 
 		return thumbnail;

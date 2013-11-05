@@ -26,6 +26,8 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
 import org.structr.core.Services;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.graph.CreateRelationshipCommand;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
@@ -57,29 +59,21 @@ public class FixComponentsCommand extends AbstractCommand {
 	public void processMessage(WebSocketMessage webSocketData) {
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
+		final App app                         = StructrApp.getInstance(securityContext);
 
 		try {
-
-
-			StructrTransaction transaction               = new StructrTransaction() {
-
-				@Override
-				public Object execute() throws FrameworkException {
-
-					fixLostComponents();
-
-					return null;
-
-				}
-
-			};
-
-			Services.command(securityContext, TransactionCommand.class).execute(transaction);
+			app.beginTx();
+			fixLostComponents();
+			app.commitTx();
 
 		} catch (Exception ex) {
 
 			// send DOM exception
 			getWebSocket().send(MessageBuilder.status().code(422).message(ex.getMessage()).build(), true);
+			
+		} finally {
+			
+			app.finishTx();
 		}
 
 	}

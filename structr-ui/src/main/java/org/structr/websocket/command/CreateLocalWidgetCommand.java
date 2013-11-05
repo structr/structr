@@ -23,12 +23,9 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.CreateNodeCommand;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.Widget;
 import org.structr.web.entity.dom.DOMNode;
@@ -81,22 +78,18 @@ public class CreateLocalWidgetCommand extends AbstractCommand {
 			
 				
 			final SecurityContext securityContext = getWebSocket().getSecurityContext();
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+			final App app = StructrApp.getInstance(securityContext);
 
-				@Override
-				public Object execute() throws FrameworkException {
+			// convertFromInput
+			PropertyMap properties = new PropertyMap();
 
-					// convertFromInput
-					PropertyMap properties = new PropertyMap();
-					
-					properties.put(AbstractNode.type, Widget.class.getSimpleName());
-					properties.put(AbstractNode.name, name);
-					properties.put(Widget.source, source);
+			properties.put(AbstractNode.type, Widget.class.getSimpleName());
+			properties.put(AbstractNode.name, name);
+			properties.put(Widget.source, source);
 
-					return Services.command(securityContext, CreateNodeCommand.class).execute(properties);
-				}
-			});
-
+			app.beginTx();
+			final Widget newWidget = app.create(Widget.class, properties);
+			app.commitTx();
 
 		} catch (Throwable t) {
 

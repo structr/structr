@@ -27,6 +27,8 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.Services;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
@@ -87,76 +89,69 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 				nodeData.remove("tagName");
 				
 				try {
+					final App app = StructrApp.getInstance();
+					app.beginTx();
 
-					Services.command(getWebSocket().getSecurityContext(), TransactionCommand.class).execute(new StructrTransaction() {
+					DOMNode newNode;
 
-						@Override
-						public Object execute() throws FrameworkException {
-							
-							DOMNode newNode;
+					if (tagName != null && !tagName.isEmpty()) {
 
-							if (tagName != null && !tagName.isEmpty()) {
+						newNode = (DOMNode)document.createElement(tagName);
 
-								newNode = (DOMNode)document.createElement(tagName);
+					} else {
 
-							} else {
+						newNode = (DOMNode)document.createTextNode("#text");
+					}
 
-								newNode = (DOMNode)document.createTextNode("#text");
+					// append new node to parent
+					if (newNode != null) {
+
+						parentNode.appendChild(newNode);
+
+						for (Entry entry : nodeData.entrySet()) {
+
+							String key = (String) entry.getKey();
+							Object val = entry.getValue();
+
+							PropertyKey propertyKey = EntityContext.getPropertyKeyForDatabaseName(newNode.getClass(), key);
+							if (propertyKey != null) {
+
+								try {
+									Object convertedValue = val;
+
+									PropertyConverter inputConverter = propertyKey.inputConverter(SecurityContext.getSuperUserInstance());
+									if (inputConverter != null) {
+
+										convertedValue = inputConverter.convert(val);
+									}
+
+									//newNode.unlockReadOnlyPropertiesOnce();
+									newNode.setProperty(propertyKey, convertedValue);
+
+								} catch (FrameworkException fex) {
+
+									logger.log(Level.WARNING, "Unable to set node property {0} of node {1} to {2}: {3}", new Object[] { propertyKey, newNode.getUuid(), val, fex.getMessage() } );
+
+								}
 							}
 
-							// append new node to parent
+						}
+
+						// create a child text node if content is given
+						if (StringUtils.isNotBlank(childContent)) {
+
+							DOMNode childNode = (DOMNode)document.createTextNode(childContent);
+
 							if (newNode != null) {
 
-								parentNode.appendChild(newNode);
-
-								for (Entry entry : nodeData.entrySet()) {
-
-									String key = (String) entry.getKey();
-									Object val = entry.getValue();
-
-									PropertyKey propertyKey = EntityContext.getPropertyKeyForDatabaseName(newNode.getClass(), key);
-									if (propertyKey != null) {
-
-										try {
-											Object convertedValue = val;
-
-											PropertyConverter inputConverter = propertyKey.inputConverter(SecurityContext.getSuperUserInstance());
-											if (inputConverter != null) {
-
-												convertedValue = inputConverter.convert(val);
-											}
-
-											//newNode.unlockReadOnlyPropertiesOnce();
-											newNode.setProperty(propertyKey, convertedValue);
-
-										} catch (FrameworkException fex) {
-
-											logger.log(Level.WARNING, "Unable to set node property {0} of node {1} to {2}: {3}", new Object[] { propertyKey, newNode.getUuid(), val, fex.getMessage() } );
-
-										}
-									}
-
-								}
-								
-								// create a child text node if content is given
-								if (StringUtils.isNotBlank(childContent)) {
-									
-									DOMNode childNode = (DOMNode)document.createTextNode(childContent);
-									
-									if (newNode != null) {
-										
-										newNode.appendChild(childNode);
-
-									}
-									
-								}
+								newNode.appendChild(childNode);
 
 							}
 
-							return null;
 						}
-						
-					});
+
+					}
+					app.commitTx();
 					
 				} catch (DOMException dex) {
 						

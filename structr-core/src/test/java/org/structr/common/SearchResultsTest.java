@@ -362,7 +362,7 @@ public class SearchResultsTest extends StructrTest {
 			PropertyMap props = new PropertyMap();
 			AbstractNode node = createTestNode(TestOne.class, props);
 
-			Result result = app.nodeQuery(TestOne.class).name(null).includeDeletedAndHidden().getResult();
+			Result result = app.nodeQuery(TestOne.class).and(TestOne.aString, null).includeDeletedAndHidden().getResult();
 
 			assertTrue(result.size() == 1);
 			assertTrue(result.get(0).equals(node));

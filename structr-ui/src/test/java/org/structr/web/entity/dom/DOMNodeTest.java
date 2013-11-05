@@ -684,34 +684,32 @@ public class DOMNodeTest extends DOMTest {
 		assertNotNull(p3);
 
 		try {
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+			app.beginTx();
 
-				@Override
-				public Object execute() throws FrameworkException {
-
-					div.appendChild(test0);
-					div.appendChild(p0);
-					div.appendChild(test1);
-					div.appendChild(test2);
-					div.appendChild(p1);
-					div.appendChild(test3);
-					div.appendChild(test4);
-					div.appendChild(test5);
-					div.appendChild(p2);
-					div.appendChild(test6);
-					div.appendChild(test7);
-					div.appendChild(test8);
-					div.appendChild(test9);
-					div.appendChild(p3);
-
-					return null;
-				}
-
-			});
+			div.appendChild(test0);
+			div.appendChild(p0);
+			div.appendChild(test1);
+			div.appendChild(test2);
+			div.appendChild(p1);
+			div.appendChild(test3);
+			div.appendChild(test4);
+			div.appendChild(test5);
+			div.appendChild(p2);
+			div.appendChild(test6);
+			div.appendChild(test7);
+			div.appendChild(test8);
+			div.appendChild(test9);
+			div.appendChild(p3);
+			
+			app.commitTx();
 			
 		} catch (FrameworkException fex) {
 			
 			fail("unexpected exception");
+			
+		} finally {
+			
+			app.finishTx();
 		}
 		
 		// normalize 
