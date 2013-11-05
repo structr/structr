@@ -265,7 +265,7 @@ public class CypherNotInTransactionTest extends StructrTest {
 			assertNotNull(rel);
 
 			GraphDatabaseService graphDb  = graphDbCommand.execute();
-			List<NodeInterface> searchRes = app.nodeQuery().uuid(testNodes.get(0).getUuid()).getAsList();
+			List<NodeInterface> searchRes = app.nodeQuery(NodeInterface.class).uuid(testNodes.get(0).getUuid()).getAsList();
 			
 			assertTrue(searchRes.size() == 1);
 			

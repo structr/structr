@@ -109,7 +109,7 @@ public class SortingTest extends StructrTest {
 			}
 			app.commitTx();
 
-			Result result = app.nodeQuery().type(type).getResult();
+			Result result = app.nodeQuery(type).getResult();
 
 			assertEquals(number, result.size());
 
@@ -118,7 +118,7 @@ public class SortingTest extends StructrTest {
 			int pageSize        = 10;
 			int page            = 1;
 
-			result = app.nodeQuery().type(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getResult();
+			result = app.nodeQuery(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getResult();
 
 			logger.log(Level.INFO, "Raw result size: {0}, expected: {1}", new Object[] { result.getRawResultCount(), number });
 			assertEquals(number, (int) result.getRawResultCount());
@@ -170,7 +170,7 @@ public class SortingTest extends StructrTest {
 			}
 			app.commitTx();
 
-			Result result = app.nodeQuery().type(type).getResult();
+			Result result = app.nodeQuery(type).getResult();
 
 			assertEquals(number, result.size());
 
@@ -179,7 +179,7 @@ public class SortingTest extends StructrTest {
 			int pageSize        = 10;
 			int page            = 1;
 
-			result = app.nodeQuery().type(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getResult();
+			result = app.nodeQuery(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getResult();
 
 //                      for (GraphObject obj : result.getResults()) {
 //                              
@@ -241,7 +241,7 @@ public class SortingTest extends StructrTest {
 			}
 			app.commitTx();
 
-			Result result = app.nodeQuery().type(type).getResult();
+			Result result = app.nodeQuery(type).getResult();
 
 			assertEquals(number, result.size());
 
@@ -250,7 +250,7 @@ public class SortingTest extends StructrTest {
 			int pageSize        = 10;
 			int page            = 1;
 
-			result = app.nodeQuery().type(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getResult();
+			result = app.nodeQuery(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getResult();
 
 //                      for (GraphObject obj : result.getResults()) {
 //
@@ -308,7 +308,7 @@ public class SortingTest extends StructrTest {
 			}
 			app.commitTx();
 
-			Result result = app.nodeQuery().type(type).getResult();
+			Result result = app.nodeQuery(type).getResult();
 
 			assertEquals(number, result.size());
 
@@ -317,7 +317,7 @@ public class SortingTest extends StructrTest {
 			int pageSize        = 10;
 			int page            = 1;
 
-			result = app.nodeQuery().type(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getResult();
+			result = app.nodeQuery(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getResult();
 
 			logger.log(Level.INFO, "Raw result size: {0}, expected: {1}", new Object[] { result.getRawResultCount(), number });
 			assertTrue(result.getRawResultCount() == number);
@@ -369,7 +369,7 @@ public class SortingTest extends StructrTest {
 			app.commitTx();
 
 
-			Result result = app.nodeQuery().type(type).getResult();
+			Result result = app.nodeQuery(type).getResult();
 
 			assertEquals(number, result.size());
 
@@ -378,7 +378,7 @@ public class SortingTest extends StructrTest {
 			int pageSize        = 5;
 			int page            = 1;
 
-			result = app.nodeQuery().type(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getResult();
+			result = app.nodeQuery(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getResult();
 
 //                      for (GraphObject obj : result.getResults()) {
 //
@@ -448,7 +448,7 @@ public class SortingTest extends StructrTest {
 			
 			app.commitTx();
 
-			Result result = app.nodeQuery().type(type).getResult();
+			Result result = app.nodeQuery(type).getResult();
 
 			assertEquals(number, result.size());
 
@@ -457,7 +457,7 @@ public class SortingTest extends StructrTest {
 			int pageSize        = 10;
 			int page            = 1;
 
-			result = app.nodeQuery().type(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getResult();
+			result = app.nodeQuery(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getResult();
 
 			logger.log(Level.INFO, "Raw result size: {0}, expected: {1}", new Object[] { result.getRawResultCount(), number });
 			assertTrue(result.getRawResultCount() == number);

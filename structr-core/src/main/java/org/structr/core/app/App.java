@@ -52,8 +52,8 @@ public interface App {
 	public <T extends GraphObject> List<T> get(final Class<T> type) throws FrameworkException;
 	public <T extends GraphObject> T get(final Class<T> type, final String uuid) throws FrameworkException;
 
-	public <T extends NodeInterface> Query<T> nodeQuery();
-	public <T extends RelationshipInterface> Query<T> relationshipQuery();
+	public <T extends NodeInterface> Query<T> nodeQuery(final Class<T> type);
+	public <T extends RelationshipInterface> Query<T> relationshipQuery(final Class<T> type);
 	
 	public void shutdown();
 }

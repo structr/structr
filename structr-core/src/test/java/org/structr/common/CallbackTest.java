@@ -23,18 +23,10 @@ import java.util.logging.Logger;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertTrue;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.property.PropertyMap;
-import org.structr.core.GraphObject;
-import org.structr.core.Services;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.TestEight;
 import org.structr.core.entity.TestFive;
 import org.structr.core.entity.User;
-import org.structr.core.graph.CreateNodeCommand;
-import org.structr.core.graph.DeleteNodeCommand;
 import org.structr.core.graph.NodeAttribute;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 
 /**
  *

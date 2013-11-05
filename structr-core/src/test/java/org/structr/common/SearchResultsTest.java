@@ -97,7 +97,7 @@ public class SearchResultsTest extends StructrTest {
 
 			final AbstractNode node = createTestNode(TestOne.class, props);
 
-			Result result = app.nodeQuery().name(name).includeDeletedAndHidden().getResult();
+			Result result = app.nodeQuery(TestOne.class).name(name).includeDeletedAndHidden().getResult();
 
 			assertTrue(result.size() == 1);
 			assertTrue(result.get(0).equals(node));
@@ -109,7 +109,7 @@ public class SearchResultsTest extends StructrTest {
 			node.setProperty(key, name2);
 			app.commitTx();
 			
-			result = app.nodeQuery().name(name2).includeDeletedAndHidden().getResult();
+			result = app.nodeQuery(TestOne.class).name(name2).includeDeletedAndHidden().getResult();
 
 			assertTrue(result.size() == 1);
 			assertTrue(result.get(0).equals(node));
@@ -136,7 +136,7 @@ public class SearchResultsTest extends StructrTest {
 
 			AbstractNode node = createTestNode(type, props);
 
-			Result result = app.nodeQuery().type(type).and(key, date).includeDeletedAndHidden().getResult();
+			Result result = app.nodeQuery(type).and(key, date).includeDeletedAndHidden().getResult();
 
 			assertEquals(1, result.size());
 			assertTrue(result.get(0).equals(node));
@@ -169,7 +169,7 @@ public class SearchResultsTest extends StructrTest {
 
 			searchAttributes.add(Search.andExactProperty(securityContext, key1, val1));
 
-			Result<RelationshipInterface> result = app.relationshipQuery().type(type).and(key1, val1).getResult();
+			Result<RelationshipInterface> result = app.relationshipQuery(type).and(key1, val1).getResult();
 
 			assertTrue(result.size() == 1);
 			assertTrue(result.get(0).equals(rel));
@@ -208,7 +208,7 @@ public class SearchResultsTest extends StructrTest {
 
 			AbstractNode node = createTestNode(type, props);
 
-			Result result = app.nodeQuery().type(type).location("Hanauer Landstraße", "200", "60314", "Frankfurt", "Germany", 10.0).includeDeletedAndHidden().getResult();
+			Result result = app.nodeQuery(type).location("Hanauer Landstraße", "200", "60314", "Frankfurt", "Germany", 10.0).includeDeletedAndHidden().getResult();
 
 			assertEquals(1, result.size());
 			assertTrue(result.get(0).equals(node));
@@ -264,7 +264,7 @@ public class SearchResultsTest extends StructrTest {
 
 		try {
 
-			Result result = app.nodeQuery().location("Hanauer Landstraße", "200", "60314", "Frankfurt", "Germany", 10.0).includeDeletedAndHidden().getResult();
+			Result result = app.nodeQuery(TestOne.class).location("Hanauer Landstraße", "200", "60314", "Frankfurt", "Germany", 10.0).includeDeletedAndHidden().getResult();
 
 			assertEquals(0, result.size());
 
@@ -290,7 +290,7 @@ public class SearchResultsTest extends StructrTest {
 
 			final AbstractNode node = createTestNode(TestOne.class, props);
 
-			Result result = app.nodeQuery().name(name).includeDeletedAndHidden().getResult();
+			Result result = app.nodeQuery(TestOne.class).name(name).includeDeletedAndHidden().getResult();
 
 			assertTrue(result.size() == 1);
 			assertTrue(result.get(0).equals(node));
@@ -316,7 +316,7 @@ public class SearchResultsTest extends StructrTest {
 
 			final AbstractNode node = createTestNode(TestOne.class, props);
 
-			Result result = app.nodeQuery().name(name).includeDeletedAndHidden().getResult();
+			Result result = app.nodeQuery(TestOne.class).name(name).includeDeletedAndHidden().getResult();
 
 			assertTrue(result.size() == 1);
 			assertTrue(result.get(0).equals(node));
@@ -341,7 +341,7 @@ public class SearchResultsTest extends StructrTest {
 
 			createTestNode(TestOne.class, props);
 
-			Result result = app.nodeQuery().name(null).includeDeletedAndHidden().getResult();
+			Result result = app.nodeQuery(TestOne.class).name(null).includeDeletedAndHidden().getResult();
 
 			assertTrue(result.isEmpty());
 
@@ -362,7 +362,7 @@ public class SearchResultsTest extends StructrTest {
 			PropertyMap props = new PropertyMap();
 			AbstractNode node = createTestNode(TestOne.class, props);
 
-			Result result = app.nodeQuery().name(null).includeDeletedAndHidden().getResult();
+			Result result = app.nodeQuery(TestOne.class).name(null).includeDeletedAndHidden().getResult();
 
 			assertTrue(result.size() == 1);
 			assertTrue(result.get(0).equals(node));
@@ -383,7 +383,7 @@ public class SearchResultsTest extends StructrTest {
 			PropertyMap props     = new PropertyMap();
 			AbstractNode node = createTestNode(TestOne.class, props);
 
-			Result result = app.nodeQuery().and(TestOne.aDate, null).includeDeletedAndHidden().getResult();
+			Result result = app.nodeQuery(TestOne.class).and(TestOne.aDate, null).includeDeletedAndHidden().getResult();
 
 			assertTrue(result.size() == 1);
 			assertTrue(result.get(0).equals(node));
@@ -404,7 +404,7 @@ public class SearchResultsTest extends StructrTest {
 			PropertyMap props     = new PropertyMap();
 			AbstractNode node = createTestNode(TestOne.class, props);
 
-			Result result = app.nodeQuery().and(TestOne.anInt, null).includeDeletedAndHidden().getResult();
+			Result result = app.nodeQuery(TestOne.class).and(TestOne.anInt, null).includeDeletedAndHidden().getResult();
 
 			assertTrue(result.size() == 1);
 			assertTrue(result.get(0).equals(node));
@@ -425,7 +425,7 @@ public class SearchResultsTest extends StructrTest {
 			PropertyMap props     = new PropertyMap();
 			AbstractNode node = createTestNode(TestOne.class, props);
 
-			Result result = app.nodeQuery().and(TestOne.aLong, null).includeDeletedAndHidden().getResult();
+			Result result = app.nodeQuery(TestOne.class).and(TestOne.aLong, null).includeDeletedAndHidden().getResult();
 
 			assertTrue(result.size() == 1);
 			assertTrue(result.get(0).equals(node));
@@ -446,7 +446,7 @@ public class SearchResultsTest extends StructrTest {
 			PropertyMap props     = new PropertyMap();
 			AbstractNode node = createTestNode(TestOne.class, props);
 
-			Result result = app.nodeQuery().and(TestOne.aDouble, null).includeDeletedAndHidden().getResult();
+			Result result = app.nodeQuery(TestOne.class).and(TestOne.aDouble, null).includeDeletedAndHidden().getResult();
 
 			assertTrue(result.size() == 1);
 			assertTrue(result.get(0).equals(node));

@@ -159,13 +159,21 @@ public class StructrApp implements App {
 	}
 	
 	@Override
-	public <T extends NodeInterface> Query<T> nodeQuery() {
-		return new Query<>(securityContext, SearchNodeCommand.class);
+	public <T extends NodeInterface> Query<T> nodeQuery(final Class<T> type) {
+
+		Query<T> query = new Query<>(securityContext, SearchNodeCommand.class);
+		query.type(type);
+		
+		return query;
 	}
 	
 	@Override
-	public <T extends RelationshipInterface> Query<T> relationshipQuery() {
-		return new Query<>(securityContext, SearchRelationshipCommand.class);
+	public <T extends RelationshipInterface> Query<T> relationshipQuery(final Class<T> type) {
+
+		Query<T> query = new Query<>(securityContext, SearchRelationshipCommand.class);
+		query.type(type);
+		
+		return query;
 	}
 	
 	@Override

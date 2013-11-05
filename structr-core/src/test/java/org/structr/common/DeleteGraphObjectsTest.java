@@ -99,7 +99,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 
 			try {
 
-				Result result = app.nodeQuery().uuid(uuid).getResult();
+				Result result = app.nodeQuery(NodeInterface.class).uuid(uuid).getResult();
 				
 				assertEquals("Node should have been deleted", 0, result.size());
 				
