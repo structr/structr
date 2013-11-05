@@ -26,7 +26,6 @@ import org.structr.core.graph.BulkFixNodePropertiesCommand;
 import org.structr.core.Result;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.agent.RebuildIndexTask;
 import org.structr.core.graph.BulkSetNodePropertiesCommand;
 import org.structr.core.graph.ClearDatabase;
 import org.structr.rest.RestMethodResult;
@@ -61,7 +60,7 @@ public class MaintenanceParameterResource extends Resource {
 
 	static {
 
-		maintenanceCommandMap.put("rebuildIndex", RebuildIndexTask.class);
+		maintenanceCommandMap.put("rebuildIndex", BulkRebuildIndexCommand.class);
 		maintenanceCommandMap.put("rebuildIndexForType", BulkRebuildIndexCommand.class);
 		maintenanceCommandMap.put("clearDatabase", ClearDatabase.class);
 		maintenanceCommandMap.put("fixNodeProperties", BulkFixNodePropertiesCommand.class);
