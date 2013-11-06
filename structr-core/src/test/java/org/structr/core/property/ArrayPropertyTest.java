@@ -41,9 +41,15 @@ public class ArrayPropertyTest extends StructrTest {
 			// store a string array in the test entitiy
 			final String[] arr = new String[] { "one", "two", "three", "four", "five" };
 
-			app.beginTx();
-			instance.setProperty(securityContext, testEntity, arr);
-			app.commitTx();
+			try {
+				app.beginTx();
+				instance.setProperty(securityContext, testEntity, arr);
+				app.commitTx();
+
+			} finally {
+
+				app.finishTx();
+			}
 			
 			String[] newArr = instance.getProperty(securityContext, testEntity, true);
 

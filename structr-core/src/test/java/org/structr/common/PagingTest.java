@@ -128,20 +128,25 @@ public class PagingTest extends StructrTest {
 
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
 
-			app.beginTx();
+			try {
+				app.beginTx();
 
-			int i                           = offset;
-			for (NodeInterface node : nodes) {
+				int i                           = offset;
+				for (NodeInterface node : nodes) {
 
-				// System.out.println("Node ID: " + node.getNodeId());
-				String _name = "TestOne-" + i;
+					// System.out.println("Node ID: " + node.getNodeId());
+					String _name = "TestOne-" + i;
 
-				i++;
+					i++;
 
-				node.setProperty(AbstractNode.name, _name);
+					node.setProperty(AbstractNode.name, _name);
+				}
+				app.commitTx();
+
+			} finally {
+
+				app.finishTx();
 			}
-			app.commitTx();
-
 
 			Result result = app.nodeQuery(type).getResult();
 

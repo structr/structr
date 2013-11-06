@@ -612,9 +612,9 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 			long nodeCount                  = 0;
 			long relCount                   = 0;
 
-			app.beginTx();
-			
 			try {
+				app.beginTx();
+			
 				reader = new BufferedReader(new InputStreamReader(zis));
 
 				do {
@@ -752,6 +752,10 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 		} catch (FrameworkException fex) {
 			
 			fex.printStackTrace();
+			
+		} finally {
+			
+			app.finishTx();
 		}
 		
 		double t1   = System.nanoTime();

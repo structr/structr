@@ -49,9 +49,15 @@ public class IntegerPropertyTest extends StructrTest {
 			// store integer in the test entitiy
 			final Integer value = 2345;
 
-			app.beginTx();
-			instance.setProperty(securityContext, testEntity, value);
-			app.commitTx();
+			try {
+				app.beginTx();
+				instance.setProperty(securityContext, testEntity, value);
+				app.commitTx();
+
+			} finally {
+
+				app.finishTx();
+			}
 
 			// check value from database
 			assertEquals(value, instance.getProperty(securityContext, testEntity, true));
@@ -107,10 +113,16 @@ public class IntegerPropertyTest extends StructrTest {
 			
 			assertNotNull(testEntity);
 
-			app.beginTx();
-			testEntity.setProperty(key, 2345);
-			app.commitTx();
-			
+			try {
+				app.beginTx();
+				testEntity.setProperty(key, 2345);
+				app.commitTx();
+
+			} finally {
+
+				app.finishTx();
+			}
+
 			// check value from database
 			assertEquals((Integer)2345, (Integer)testEntity.getProperty(key));
 			

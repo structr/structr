@@ -108,31 +108,42 @@ public class ResourceAccess extends AbstractNode {
 
 		App app = StructrApp.getInstance(securityContext);
 
-		app.beginTx();
-		
-		// reset cached field
-		cachedFlags = null;
+		try {
+			app.beginTx();
 
-		// set modified property
-		setProperty(ResourceAccess.flags, getFlags() | flag);
-		
-		app.commitTx();
+			// reset cached field
+			cachedFlags = null;
+
+			// set modified property
+			setProperty(ResourceAccess.flags, getFlags() | flag);
+
+			app.commitTx();
+
+		} finally {
+
+			app.finishTx();
+		}
 	}
 	
 	public void clearFlag(final long flag) throws FrameworkException {
 
 		App app = StructrApp.getInstance(securityContext);
 
-		app.beginTx();
-		
+		try {
 
-		// reset cached field
-		cachedFlags = null;
+			app.beginTx();
 
-		// set modified property
-		setProperty(ResourceAccess.flags, getFlags() & ~flag);
-		
-		app.commitTx();
+			// reset cached field
+			cachedFlags = null;
+
+			// set modified property
+			setProperty(ResourceAccess.flags, getFlags() & ~flag);
+			app.commitTx();
+
+		} finally {
+
+			app.finishTx();
+		}
 	}
 	
 	public long getFlags() {

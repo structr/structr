@@ -70,29 +70,35 @@ public class DeleteSpatialIndexCommand extends NodeServiceCommand implements Mai
 		}
 
 		final App app = StructrApp.getInstance(securityContext);
-		app.beginTx();;
 		
-		for (Node node : toDelete) {
+		try {
+			app.beginTx();
 
-			logger.log(Level.INFO, "Deleting node {0}", node);
+			for (Node node : toDelete) {
 
-			try {
+				logger.log(Level.INFO, "Deleting node {0}", node);
 
-				for (Relationship rel : node.getRelationships()) {
+				try {
 
-					rel.delete();
+					for (Relationship rel : node.getRelationships()) {
+
+						rel.delete();
+					}
+
+					node.delete();
+
+				} catch (Throwable t) {
+
+					t.printStackTrace();
 				}
 
-				node.delete();
-
-			} catch (Throwable t) {
-
-				t.printStackTrace();
 			}
 
+			app.commitTx();
+
+		} finally {
+			app.finishTx();
 		}
-		
-		app.commitTx();
 	}
 
 }

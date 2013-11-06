@@ -26,7 +26,11 @@ public class AppExample {
 			app.commitTx();
 
 		} catch (FrameworkException fex) {
-		}			
+
+		} finally {
+
+			app.finishTx();
+		}
 
 
 		try {

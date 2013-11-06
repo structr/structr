@@ -49,9 +49,15 @@ public class DoublePropertyTest extends StructrTest {
 			// store double in the test entitiy
 			final Double value = 3.141592653589793238;
 
-			app.beginTx();
-			instance.setProperty(securityContext, testEntity, value);
-			app.commitTx();
+			try {
+				app.beginTx();
+				instance.setProperty(securityContext, testEntity, value);
+				app.commitTx();
+
+			} finally {
+
+				app.finishTx();
+			}
 
 			// check value from database
 			assertEquals(value, instance.getProperty(securityContext, testEntity, true));
@@ -107,9 +113,15 @@ public class DoublePropertyTest extends StructrTest {
 			
 			assertNotNull(testEntity);
 
-			app.beginTx();
-			testEntity.setProperty(key, 3.141592653589793238);
-			app.commitTx();
+			try {
+				app.beginTx();
+				testEntity.setProperty(key, 3.141592653589793238);
+				app.commitTx();
+
+			} finally {
+
+				app.finishTx();
+			}
 			
 			// check value from database
 			assertEquals(3.141592653589793238, testEntity.getProperty(key));

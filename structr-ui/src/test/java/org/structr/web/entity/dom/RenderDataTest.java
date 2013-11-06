@@ -34,7 +34,6 @@ import org.structr.web.common.RenderContext;
 import org.w3c.dom.Element;
 import static org.mockito.Mockito.*;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.StructrTransaction;
 import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.entity.User;
 import org.structr.web.entity.relation.RenderNode;
@@ -57,77 +56,82 @@ public class RenderDataTest extends DOMTest {
 			final Page doc                 = (Page)getDocument();
 			
 			assertEquals(7, folders.size());
-			
-			app.beginTx();
 
-			Folder rootNode = folders.get(0); rootNode.setProperty(AbstractNode.name, "rootNode");
-			Folder folderA    = folders.get(1); folderA.setProperty(AbstractNode.name, "folderA");
-			Folder folderB    = folders.get(2); folderB.setProperty(AbstractNode.name, "folderB");
-			Folder folderC    = folders.get(3); folderC.setProperty(AbstractNode.name, "folderC");
-			Folder folderD    = folders.get(4); folderD.setProperty(AbstractNode.name, "folderD");
-			Folder folderE    = folders.get(5); folderE.setProperty(AbstractNode.name, "folderE");
-			Folder folderF    = folders.get(6); folderF.setProperty(AbstractNode.name, "folderF");
+			try {
+				app.beginTx();
 
-			File file1    = files.get(0); file1.setProperty(AbstractNode.name, "file1");
-			File file2    = files.get(1); file2.setProperty(AbstractNode.name, "file2");
-			File file3    = files.get(2); file3.setProperty(AbstractNode.name, "file3");
-			File file4    = files.get(3); file4.setProperty(AbstractNode.name, "file4");
-			File file5    = files.get(4); file5.setProperty(AbstractNode.name, "file5");
-			File file6    = files.get(5); file6.setProperty(AbstractNode.name, "file6");
-			File file7    = files.get(6); file7.setProperty(AbstractNode.name, "file7");
+				Folder rootNode = folders.get(0); rootNode.setProperty(AbstractNode.name, "rootNode");
+				Folder folderA    = folders.get(1); folderA.setProperty(AbstractNode.name, "folderA");
+				Folder folderB    = folders.get(2); folderB.setProperty(AbstractNode.name, "folderB");
+				Folder folderC    = folders.get(3); folderC.setProperty(AbstractNode.name, "folderC");
+				Folder folderD    = folders.get(4); folderD.setProperty(AbstractNode.name, "folderD");
+				Folder folderE    = folders.get(5); folderE.setProperty(AbstractNode.name, "folderE");
+				Folder folderF    = folders.get(6); folderF.setProperty(AbstractNode.name, "folderF");
 
-			rootNode.treeAppendChild(folderA);
-			rootNode.treeAppendChild(folderB);
-			rootNode.treeAppendChild(file1);
-			rootNode.treeAppendChild(file2);
+				File file1    = files.get(0); file1.setProperty(AbstractNode.name, "file1");
+				File file2    = files.get(1); file2.setProperty(AbstractNode.name, "file2");
+				File file3    = files.get(2); file3.setProperty(AbstractNode.name, "file3");
+				File file4    = files.get(3); file4.setProperty(AbstractNode.name, "file4");
+				File file5    = files.get(4); file5.setProperty(AbstractNode.name, "file5");
+				File file6    = files.get(5); file6.setProperty(AbstractNode.name, "file6");
+				File file7    = files.get(6); file7.setProperty(AbstractNode.name, "file7");
 
-			folderA.treeAppendChild(folderC);
-			folderA.treeAppendChild(folderD);
-			folderA.treeAppendChild(file3);
-			folderA.treeAppendChild(file4);
+				rootNode.treeAppendChild(folderA);
+				rootNode.treeAppendChild(folderB);
+				rootNode.treeAppendChild(file1);
+				rootNode.treeAppendChild(file2);
 
-			folderB.treeAppendChild(folderE);
-			folderB.treeAppendChild(folderF);
-			folderB.treeAppendChild(file5);
-			folderB.treeAppendChild(file6);
+				folderA.treeAppendChild(folderC);
+				folderA.treeAppendChild(folderD);
+				folderA.treeAppendChild(file3);
+				folderA.treeAppendChild(file4);
+
+				folderB.treeAppendChild(folderE);
+				folderB.treeAppendChild(folderF);
+				folderB.treeAppendChild(file5);
+				folderB.treeAppendChild(file6);
 
 
-			// create dom tree
-			Element html = doc.createElement("html"); doc.appendChild(html);
-			Element body = doc.createElement("body"); html.appendChild(body);
+				// create dom tree
+				Element html = doc.createElement("html"); doc.appendChild(html);
+				Element body = doc.createElement("body"); html.appendChild(body);
 
-			final Element div  = doc.createElement("div"); body.appendChild(div);
-			div.appendChild(doc.createTextNode("${root.name}"));
+				final Element div  = doc.createElement("div"); body.appendChild(div);
+				div.appendChild(doc.createTextNode("${root.name}"));
 
-			final Element ul1  = doc.createElement("ul"); div.appendChild(ul1);
+				final Element ul1  = doc.createElement("ul"); div.appendChild(ul1);
 
-			final Element li1  = doc.createElement("li"); ul1.appendChild(li1);
-			li1.appendChild(doc.createTextNode("${folders.name}"));
+				final Element li1  = doc.createElement("li"); ul1.appendChild(li1);
+				li1.appendChild(doc.createTextNode("${folders.name}"));
 
-			final Element li2  = doc.createElement("li"); ul1.appendChild(li2);
-			li2.appendChild(doc.createTextNode("${files.name}"));
+				final Element li2  = doc.createElement("li"); ul1.appendChild(li2);
+				li2.appendChild(doc.createTextNode("${files.name}"));
 
-			final Element ul2  = doc.createElement("ul"); li1.appendChild(ul2);
+				final Element ul2  = doc.createElement("ul"); li1.appendChild(ul2);
 
-			final Element li3  = doc.createElement("li"); ul2.appendChild(li3);
-			li3.appendChild(doc.createTextNode("${files.name}"));
+				final Element li3  = doc.createElement("li"); ul2.appendChild(li3);
+				li3.appendChild(doc.createTextNode("${files.name}"));
 
-			final Element li4  = doc.createElement("li"); ul2.appendChild(li4);
-			li4.appendChild(doc.createTextNode("${folders.name}"));
+				final Element li4  = doc.createElement("li"); ul2.appendChild(li4);
+				li4.appendChild(doc.createTextNode("${folders.name}"));
 
-			// create RENDER_NODE relationship between first ul and rootNode
-			PropertyMap properties = new PropertyMap();
-			//properties.put(LinkedListNode.keyProperty, key);
-			Services.command(securityContext, CreateRelationshipCommand.class).execute((DOMElement)div, rootNode, RenderNode.class, properties);
+				// create RENDER_NODE relationship between first ul and rootNode
+				PropertyMap properties = new PropertyMap();
+				//properties.put(LinkedListNode.keyProperty, key);
+				Services.command(securityContext, CreateRelationshipCommand.class).execute((DOMElement)div, rootNode, RenderNode.class, properties);
 
-			((DOMElement) div).setProperty(DOMElement.dataKey, "root");
+				((DOMElement) div).setProperty(DOMElement.dataKey, "root");
 
-			((DOMElement) li1).setProperty(DOMElement.dataKey, "folders");
-			((DOMElement) li2).setProperty(DOMElement.dataKey, "files");
-			((DOMElement) li3).setProperty(DOMElement.dataKey, "files");
-			((DOMElement) li4).setProperty(DOMElement.dataKey, "folders");
+				((DOMElement) li1).setProperty(DOMElement.dataKey, "folders");
+				((DOMElement) li2).setProperty(DOMElement.dataKey, "files");
+				((DOMElement) li3).setProperty(DOMElement.dataKey, "files");
+				((DOMElement) li4).setProperty(DOMElement.dataKey, "folders");
 
-			app.commitTx();
+				app.commitTx();
+
+			} finally {
+				app.finishTx();
+			}
 			
 			RenderContext ctx = new RenderContext(null, null, EditMode.NONE, Locale.GERMAN);
 			doc.render(securityContext, ctx, 0);
@@ -154,10 +158,6 @@ public class RenderDataTest extends DOMTest {
 		} catch (FrameworkException fex) {
 			
 			fail("unexpected exception");
-			
-		} finally {
-			
-			app.finishTx();
 		}
 		
 	}
@@ -168,56 +168,61 @@ public class RenderDataTest extends DOMTest {
 		try {
 			final Page doc = (Page)getDocument();
 			
-			app.beginTx();
+			try {
+				app.beginTx();
 
-			final List<User> users = createTestNodes(User.class, 3);
+				final List<User> users = createTestNodes(User.class, 3);
 
-			assertEquals(3, users.size());
+				assertEquals(3, users.size());
 
-			User user1    = users.get(0); user1.setProperty(AbstractNode.name, "user1");
-			User user2    = users.get(1); user2.setProperty(AbstractNode.name, "user2");
-			User user3    = users.get(2); user3.setProperty(AbstractNode.name, "user3");
+				User user1    = users.get(0); user1.setProperty(AbstractNode.name, "user1");
+				User user2    = users.get(1); user2.setProperty(AbstractNode.name, "user2");
+				User user3    = users.get(2); user3.setProperty(AbstractNode.name, "user3");
 
-			final List<File> files = createTestNodes(File.class, 6);
+				final List<File> files = createTestNodes(File.class, 6);
 
-			assertEquals(6, files.size());
+				assertEquals(6, files.size());
 
-			File nodeA    = files.get(0); nodeA.setProperty(AbstractNode.name, "fileA");
-			File nodeB    = files.get(1); nodeB.setProperty(AbstractNode.name, "fileB");
-			File nodeC    = files.get(2); nodeC.setProperty(AbstractNode.name, "fileC");
-			File nodeD    = files.get(3); nodeD.setProperty(AbstractNode.name, "fileD");
-			File nodeE    = files.get(4); nodeE.setProperty(AbstractNode.name, "fileE");
-			File nodeF    = files.get(5); nodeF.setProperty(AbstractNode.name, "fileF");
+				File nodeA    = files.get(0); nodeA.setProperty(AbstractNode.name, "fileA");
+				File nodeB    = files.get(1); nodeB.setProperty(AbstractNode.name, "fileB");
+				File nodeC    = files.get(2); nodeC.setProperty(AbstractNode.name, "fileC");
+				File nodeD    = files.get(3); nodeD.setProperty(AbstractNode.name, "fileD");
+				File nodeE    = files.get(4); nodeE.setProperty(AbstractNode.name, "fileE");
+				File nodeF    = files.get(5); nodeF.setProperty(AbstractNode.name, "fileF");
 
-			// create dom tree
-			Element html     = doc.createElement("html");
-			Element body     = doc.createElement("body");
-			Element b        = doc.createElement("b");
-			final Element p1 = doc.createElement("p");
+				// create dom tree
+				Element html     = doc.createElement("html");
+				Element body     = doc.createElement("body");
+				Element b        = doc.createElement("b");
+				final Element p1 = doc.createElement("p");
 
-			((DOMElement) p1).setProperty(DOMElement.restQuery, "users?sort=name");
-			((DOMElement) p1).setProperty(DOMElement.dataKey, "user");
-
-
-			p1.appendChild(doc.createTextNode("${user.name}"));
-
-			Element div      = doc.createElement("div");
-			final Element p2 = doc.createElement("p");
-
-			((DOMElement) p2).setProperty(DOMElement.restQuery, "files?sort=name");
-			((DOMElement) p2).setProperty(DOMElement.dataKey, "file");
+				((DOMElement) p1).setProperty(DOMElement.restQuery, "users?sort=name");
+				((DOMElement) p1).setProperty(DOMElement.dataKey, "user");
 
 
-			p2.appendChild(doc.createTextNode("${file.name}"));
+				p1.appendChild(doc.createTextNode("${user.name}"));
 
-			doc.appendChild(html);
-			html.appendChild(body);
-			body.appendChild(b);
-			body.appendChild(div);
-			b.appendChild(p1);
-			div.appendChild(p2);
+				Element div      = doc.createElement("div");
+				final Element p2 = doc.createElement("p");
 
-			app.commitTx();
+				((DOMElement) p2).setProperty(DOMElement.restQuery, "files?sort=name");
+				((DOMElement) p2).setProperty(DOMElement.dataKey, "file");
+
+
+				p2.appendChild(doc.createTextNode("${file.name}"));
+
+				doc.appendChild(html);
+				html.appendChild(body);
+				body.appendChild(b);
+				body.appendChild(div);
+				b.appendChild(p1);
+				div.appendChild(p2);
+
+				app.commitTx();
+
+			} finally {
+				app.finishTx();
+			}
 						
 			HttpServletRequest request = mock(HttpServletRequest.class);
 			
@@ -243,10 +248,6 @@ public class RenderDataTest extends DOMTest {
 		} catch (FrameworkException fex) {
 			
 			fail("unexpected exception");
-			
-		} finally {
-			
-			app.finishTx();
 		}
 		
 	}	

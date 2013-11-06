@@ -59,6 +59,10 @@ public class EntityPropertyTest extends StructrTest {
 			fex.printStackTrace();
 			
 			fail("Unable to create test nodes");
+
+		} finally {
+
+			app.finishTx();
 		}
 		
 		assertNotNull(a);
@@ -88,6 +92,10 @@ public class EntityPropertyTest extends StructrTest {
 			fex.printStackTrace();
 			
 			fail("Unable to link test nodes");
+
+		} finally {
+
+			app.finishTx();
 		}
 		
 		// verify connections
@@ -108,6 +116,10 @@ public class EntityPropertyTest extends StructrTest {
 			fex.printStackTrace();
 			
 			fail("Unable to link test nodes");
+
+		} finally {
+
+			app.finishTx();
 		}
 		
 
@@ -141,6 +153,10 @@ public class EntityPropertyTest extends StructrTest {
 			fex.printStackTrace();
 			
 			fail("Unable to create test nodes");
+
+		} finally {
+
+			app.finishTx();
 		}
 
 		assertNotNull(testSix1);
@@ -168,6 +184,10 @@ public class EntityPropertyTest extends StructrTest {
 			fex.printStackTrace();
 			
 			fail("Unable to link test nodes");
+
+		} finally {
+
+			app.finishTx();
 		}
 		
 		// verify connections
@@ -187,6 +207,10 @@ public class EntityPropertyTest extends StructrTest {
 			fex.printStackTrace();
 			
 			fail("Unable to link test nodes");
+
+		} finally {
+
+			app.finishTx();
 		}
 
 		// verify connection

@@ -93,9 +93,17 @@ public class CreateGraphObjectsTest extends StructrTest {
 				fail("Should have raised an org.neo4j.graphdb.NotInTransactionException");
 			} catch (org.neo4j.graphdb.NotInTransactionException e) {}
 
-			app.beginTx();
-			AbstractNode node = app.create(TestOne.class);
-			app.commitTx();
+			AbstractNode node = null;
+			
+			try {
+				app.beginTx();
+				node = app.create(TestOne.class);
+				app.commitTx();
+
+			} finally {
+
+				app.finishTx();
+			}
 
 			assertTrue(node != null);
 			assertTrue(node instanceof TestOne);
@@ -115,14 +123,21 @@ public class CreateGraphObjectsTest extends StructrTest {
 		try {
 
 			final PropertyMap props = new PropertyMap();
+			TestOne node            = null;
 			
-			String uuid = StringUtils.replace(UUID.randomUUID().toString(), "-", "");
+			final String uuid = StringUtils.replace(UUID.randomUUID().toString(), "-", "");
 
 			props.put(AbstractNode.uuid, uuid);
 
-			app.beginTx();
-			TestOne node = app.create(TestOne.class, props);
-			app.commitTx();
+			try {
+				app.beginTx();
+				node = app.create(TestOne.class, props);
+				app.commitTx();
+
+			} finally {
+
+				app.finishTx();
+			}
 
 			assertTrue(node != null);
 			assertTrue(node instanceof TestOne);
@@ -141,16 +156,24 @@ public class CreateGraphObjectsTest extends StructrTest {
 
 		try {
 
-			List<NodeInterface> nodes      = createTestNodes(GenericNode.class, 2);
-			final NodeInterface startNode  = nodes.get(0);
-			final NodeInterface endNode    = nodes.get(1);
+			final List<NodeInterface> nodes = createTestNodes(GenericNode.class, 2);
+			final NodeInterface startNode   = nodes.get(0);
+			final NodeInterface endNode     = nodes.get(1);
+			LocationRelationship rel        = null;
+			
 
 			assertTrue(startNode != null);
 			assertTrue(endNode != null);
 
-			app.beginTx();
-			LocationRelationship rel = app.create(startNode, endNode, LocationRelationship.class);
-			app.commitTx();
+			try {
+				app.beginTx();
+				rel = app.create(startNode, endNode, LocationRelationship.class);
+				app.commitTx();
+
+			} finally {
+
+				app.finishTx();
+			}
 
 			assertEquals(startNode.getUuid(), rel.getStartNodeId());
 			assertEquals(endNode.getUuid(), rel.getEndNodeId());
@@ -264,8 +287,10 @@ public class CreateGraphObjectsTest extends StructrTest {
 
 			fail("Unexpected exception");
 
-		}
+		} finally {
 
+			app.finishTx();
+		}
 	}
 
 	/**
@@ -275,8 +300,6 @@ public class CreateGraphObjectsTest extends StructrTest {
 
 		try {
 			
-			app.beginTx();
-
 			List<Class> entityList = null;
 
 			try {
@@ -290,6 +313,8 @@ public class CreateGraphObjectsTest extends StructrTest {
 
 			assertTrue(entityList.contains(AbstractRelationship.class));
 			assertTrue(entityList.contains(GenericRelationship.class));
+
+			app.beginTx();
 
 			for (Class entityClass : entityList) {
 
@@ -315,13 +340,17 @@ public class CreateGraphObjectsTest extends StructrTest {
 			
 			app.commitTx();
 
-		} catch (FrameworkException ex) {
+		} catch (Throwable ex) {
 
+			ex.printStackTrace();
+			
 			logger.log(Level.SEVERE, ex.toString());
 			fail("Unexpected exception");
 
-		}
+		} finally {
 
+			app.finishTx();
+		}
 	}
 
 	/**

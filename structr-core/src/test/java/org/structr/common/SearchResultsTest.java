@@ -105,10 +105,16 @@ public class SearchResultsTest extends StructrTest {
 			// Change name attribute and search again
 			final String name2 = "klppptzoehi gösoiu tzüw0e9hg";
 
-			app.beginTx();
-			node.setProperty(key, name2);
-			app.commitTx();
+			try {
+				app.beginTx();
+				node.setProperty(key, name2);
+				app.commitTx();
 			
+			} finally {
+
+				app.finishTx();
+			}
+
 			result = app.nodeQuery(TestOne.class).name(name2).includeDeletedAndHidden().getResult();
 
 			assertTrue(result.size() == 1);
@@ -159,10 +165,16 @@ public class SearchResultsTest extends StructrTest {
 			final Class type               = LocationRelationship.class;
 			final String val1              = "54354354546806849870";
 
-			app.beginTx();
-			rel.setProperty(key1, val1);
-			app.commitTx();
+			try {
+				app.beginTx();
+				rel.setProperty(key1, val1);
+				app.commitTx();
 			
+			} finally {
+
+				app.finishTx();
+			}
+
 			assertTrue(rel.getProperty(key1).equals(val1));
 
 			List<SearchAttribute> searchAttributes = new LinkedList<>();
@@ -177,10 +189,16 @@ public class SearchResultsTest extends StructrTest {
 
 			final String val2 = "ölllldjöoa8w4rasf";
 
-			app.beginTx();
-			rel.setProperty(key1, val2);
-			app.commitTx();
+			try {
+				app.beginTx();
+				rel.setProperty(key1, val2);
+				app.commitTx();
 			
+			} finally {
+
+				app.finishTx();
+			}
+
 			assertTrue(result.size() == 1);
 			assertTrue(result.get(0).equals(rel));
 
@@ -236,23 +254,29 @@ public class SearchResultsTest extends StructrTest {
 			props.put(lon, 8.73923d);
 			props.put(AbstractNode.name, "TestSeven-0");;
 
-			app.beginTx();
+			try {
+				app.beginTx();
+
+				// this will work
+				TestSeven node = app.create(TestSeven.class, props);
+
+				props.remove(AbstractNode.name);
+				props.put(lat, 50.12285d);
+				props.put(lon, 8.73924d);
+
+				// this will fail
+				TestSeven node2 = app.create(TestSeven.class, props);
+
+				// adding another 
+				TestSeven node3 = app.create(TestSeven.class, props);
+
+				app.commitTx();
 			
-			// this will work
-			TestSeven node = app.create(TestSeven.class, props);
+			} finally {
 
-			props.remove(AbstractNode.name);
-			props.put(lat, 50.12285d);
-			props.put(lon, 8.73924d);
+				app.finishTx();
+			}
 
-			// this will fail
-			TestSeven node2 = app.create(TestSeven.class, props);
-
-			// adding another 
-			TestSeven node3 = app.create(TestSeven.class, props);
-
-			app.commitTx();
-			
 			fail("Expected a FrameworkException (name must_not_be_empty)");
 			
 		} catch (FrameworkException nfe) {

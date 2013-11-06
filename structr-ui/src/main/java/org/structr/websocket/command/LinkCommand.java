@@ -21,11 +21,7 @@
 package org.structr.websocket.command;
 
 import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
@@ -34,7 +30,6 @@ import org.structr.websocket.message.WebSocketMessage;
 import java.util.Map;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.graph.CreateRelationshipCommand;
 import org.structr.web.entity.html.relation.ResourceLink;
 import org.structr.websocket.StructrWebSocket;
 

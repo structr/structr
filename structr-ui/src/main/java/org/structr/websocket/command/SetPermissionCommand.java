@@ -126,18 +126,25 @@ public class SetPermissionCommand extends AbstractCommand {
 	private void setPermission(final AbstractNode obj, final Principal principal, final String action, final String permission, final boolean rec) throws FrameworkException {
 
 		final App app = StructrApp.getInstance(getWebSocket().getSecurityContext());
-		app.beginTx();
-
-		switch (action) {
-			case "grant":
-				principal.grant(Permission.valueOf(permission), obj);
-				break;
-			case "revoke":
-				principal.revoke(Permission.valueOf(permission), obj);
-				break;
-		}
 		
-		app.commitTx();
+		try {
+			app.beginTx();
+
+			switch (action) {
+				case "grant":
+					principal.grant(Permission.valueOf(permission), obj);
+					break;
+				case "revoke":
+					principal.revoke(Permission.valueOf(permission), obj);
+					break;
+			}
+
+			app.commitTx();
+
+		} finally {
+
+			app.finishTx();
+		}
 	}
 
 }

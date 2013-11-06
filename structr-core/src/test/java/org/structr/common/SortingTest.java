@@ -92,22 +92,28 @@ public class SortingTest extends StructrTest {
 
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
 
-			app.beginTx();
-			int i = offset;
-			String name;
+			try {
+				app.beginTx();
+				int i = offset;
+				String name;
 
-			for (NodeInterface node : nodes) {
+				for (NodeInterface node : nodes) {
 
-				//System.out.println("Node ID: " + node.getNodeId());
+					//System.out.println("Node ID: " + node.getNodeId());
 
-				name = "TestOne-" + i;
+					name = "TestOne-" + i;
 
-				i++;
+					i++;
 
-				node.setProperty(AbstractNode.name, name);
+					node.setProperty(AbstractNode.name, name);
 
+				}
+				app.commitTx();
+
+			} finally {
+
+				app.finishTx();
 			}
-			app.commitTx();
 
 			Result result = app.nodeQuery(type).getResult();
 
@@ -155,20 +161,26 @@ public class SortingTest extends StructrTest {
 
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
 
-			app.beginTx();
-			int i = offset;
-			String name;
+			try {
+				app.beginTx();
+				int i = offset;
+				String name;
 
-			for (NodeInterface node : nodes) {
+				for (NodeInterface node : nodes) {
 
-				name = Integer.toString(i);
+					name = Integer.toString(i);
 
-				i++;
+					i++;
 
-				node.setProperty(AbstractNode.name, name);
+					node.setProperty(AbstractNode.name, name);
 
+				}
+				app.commitTx();
+
+			} finally {
+
+				app.finishTx();
 			}
-			app.commitTx();
 
 			Result result = app.nodeQuery(type).getResult();
 
@@ -221,25 +233,31 @@ public class SortingTest extends StructrTest {
 
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
 
-			app.beginTx();
-			int i = offset;
-			String name;
+			try {
+				app.beginTx();
+				int i = offset;
+				String name;
 
-			for (NodeInterface node : nodes) {
+				for (NodeInterface node : nodes) {
 
-				name = Integer.toString(i);
+					name = Integer.toString(i);
 
-				i++;
+					i++;
 
-				node.setProperty(AbstractNode.name, "TestOne-" + name);
+					node.setProperty(AbstractNode.name, "TestOne-" + name);
 
-				node.setProperty(TestOne.aDate, new Date());
+					node.setProperty(TestOne.aDate, new Date());
 
-				// slow down execution speed to make sure distinct changes fall in different milliseconds
-				try { Thread.sleep(2); } catch (Throwable t) {}
+					// slow down execution speed to make sure distinct changes fall in different milliseconds
+					try { Thread.sleep(2); } catch (Throwable t) {}
 
+				}
+				app.commitTx();
+
+			} finally {
+
+				app.finishTx();
 			}
-			app.commitTx();
 
 			Result result = app.nodeQuery(type).getResult();
 
@@ -291,22 +309,28 @@ public class SortingTest extends StructrTest {
 
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
 
-			app.beginTx();
-			int i = offset;
-			String name;
+			try {
+				app.beginTx();
+				int i = offset;
+				String name;
 
-			for (NodeInterface node : nodes) {
+				for (NodeInterface node : nodes) {
 
-				name = Integer.toString(i);
+					name = Integer.toString(i);
 
-				i++;
+					i++;
 
-				node.setProperty(AbstractNode.name, name);
+					node.setProperty(AbstractNode.name, name);
 
-				// slow down execution speed to make sure distinct changes fall in different milliseconds
-				try { Thread.sleep(2); } catch (Throwable t) {}
+					// slow down execution speed to make sure distinct changes fall in different milliseconds
+					try { Thread.sleep(2); } catch (Throwable t) {}
+				}
+				app.commitTx();
+
+			} finally {
+
+				app.finishTx();
 			}
-			app.commitTx();
 
 			Result result = app.nodeQuery(type).getResult();
 
@@ -355,18 +379,24 @@ public class SortingTest extends StructrTest {
 
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
 
-			app.beginTx();
-			
-			int i = offset;
+			try {
+				app.beginTx();
 
-			for (NodeInterface node : nodes) {
+				int i = offset;
 
-				node.setProperty(AbstractNode.name, Integer.toString(i));
-				node.setProperty(key, i);
+				for (NodeInterface node : nodes) {
 
-				i++;
+					node.setProperty(AbstractNode.name, Integer.toString(i));
+					node.setProperty(key, i);
+
+					i++;
+				}
+				app.commitTx();
+
+			} finally {
+
+				app.finishTx();
 			}
-			app.commitTx();
 
 
 			Result result = app.nodeQuery(type).getResult();
@@ -412,8 +442,6 @@ public class SortingTest extends StructrTest {
 
 		try {
 
-			boolean includeDeletedAndHidden = false;
-			boolean publicOnly              = false;
 			Class type                      = TestOne.class;
 			int number                      = 20;
 			final List<NodeInterface> nodes = this.createTestNodes(type, number);
@@ -424,29 +452,35 @@ public class SortingTest extends StructrTest {
 			int i = offset;
 			String name;
 
-			app.beginTx();
-			for (NodeInterface node : nodes) {
+			try {
+				app.beginTx();
+				for (NodeInterface node : nodes) {
 
-				name = Integer.toString(i);
+					name = Integer.toString(i);
 
-				i++;
+					i++;
 
-				node.setProperty(AbstractNode.name, "TestOne-" + name);
+					node.setProperty(AbstractNode.name, "TestOne-" + name);
 
-				if ((i % 2) != 0) {
-					node.setProperty(TestOne.aDate, new Date());
-					System.out.println("TestOne-" + name + ": indexed with date");
-				} else {
-					node.setProperty(TestOne.aDate, null);
-					System.out.println("TestOne-" + name + ": null date");
+					if ((i % 2) != 0) {
+						node.setProperty(TestOne.aDate, new Date());
+						System.out.println("TestOne-" + name + ": indexed with date");
+					} else {
+						node.setProperty(TestOne.aDate, null);
+						System.out.println("TestOne-" + name + ": null date");
+					}
+
+					// slow down execution speed to make sure distinct changes fall in different milliseconds
+					try { Thread.sleep(2); } catch (Throwable t) {}
+
 				}
 
-				// slow down execution speed to make sure distinct changes fall in different milliseconds
-				try { Thread.sleep(2); } catch (Throwable t) {}
+				app.commitTx();
 
+			} finally {
+
+				app.finishTx();
 			}
-			
-			app.commitTx();
 
 			Result result = app.nodeQuery(type).getResult();
 

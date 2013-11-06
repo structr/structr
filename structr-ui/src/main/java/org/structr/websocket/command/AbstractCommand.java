@@ -24,26 +24,16 @@ import org.eclipse.jetty.websocket.WebSocket.Connection;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.graph.FindNodeCommand;
-import org.structr.core.graph.FindRelationshipCommand;
-import org.structr.core.graph.search.Search;
-import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.SearchNodeCommand;
-import org.structr.core.graph.search.SearchRelationshipCommand;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.WebSocketMessage;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.LinkedList;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.Result;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyMap;
@@ -233,9 +223,15 @@ public abstract class AbstractCommand {
 			properties.put(AbstractNode.hidden, true);
 			properties.put(AbstractNode.visibleToAuthenticatedUsers, true);
 
-			app.beginTx();
-			doc = app.create(ShadowDocument.class, properties);
-			app.commitTx();
+			try {
+				app.beginTx();
+				doc = app.create(ShadowDocument.class, properties);
+				app.commitTx();
+
+			} finally {
+
+				app.finishTx();
+			}
 		}
 		
 		return doc;

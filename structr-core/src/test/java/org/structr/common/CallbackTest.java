@@ -61,9 +61,17 @@ public class CallbackTest extends StructrTest {
 
 // ##################################### test creation callbacks
 			
-			app.beginTx();
-			final TestEight test = app.create(TestEight.class, new NodeAttribute(TestEight.testProperty, 123));
-			app.commitTx();
+			TestEight test = null;
+			
+			try {
+				app.beginTx();
+				test = app.create(TestEight.class, new NodeAttribute(TestEight.testProperty, 123));
+				app.commitTx();
+
+			} finally {
+
+				app.finishTx();
+			}
 			
 			// only the creation methods should have been called now!
 			assertTrue("onCreationTimestamp should be != 0", test.getOnCreationTimestamp() != 0L);
@@ -81,10 +89,16 @@ public class CallbackTest extends StructrTest {
 			// reset timestamps
 			test.resetTimestamps();
 			
-			app.beginTx();
-			test.setProperty(TestEight.testProperty, 234);
-			app.commitTx();
+			try {
+				app.beginTx();
+				test.setProperty(TestEight.testProperty, 234);
+				app.commitTx();
 			
+			} finally {
+
+				app.finishTx();
+			}
+
 			// only the modification methods should have been called now!
 			assertEquals("onCreationTimestamp should be == 0", 0L, test.getOnCreationTimestamp());
 			assertTrue("onModificationTimestamp should be != 0", test.getOnModificationTimestamp() != 0L);
@@ -100,10 +114,16 @@ public class CallbackTest extends StructrTest {
 			// reset timestamps
 			test.resetTimestamps();
 			
-			app.beginTx();
-			test.setProperty(TestEight.testProperty, 234);
-			app.commitTx();
+			try {
+				app.beginTx();
+				test.setProperty(TestEight.testProperty, 234);
+				app.commitTx();
 			
+			} finally {
+
+				app.finishTx();
+			}
+
 			// only the creation methods should have been called now!
 			assertEquals("onCreationTimestamp should be == 0", 0L, test.getOnCreationTimestamp());
 			assertEquals("onModificationTimestamp should be == 0", 0L, test.getOnModificationTimestamp());
@@ -120,10 +140,16 @@ public class CallbackTest extends StructrTest {
 			// reset timestamps
 			test.resetTimestamps();
 			
-			app.beginTx();
-			app.delete(test);
-			app.commitTx();
+			try {
+				app.beginTx();
+				app.delete(test);
+				app.commitTx();
 			
+			} finally {
+
+				app.finishTx();
+			}
+
 			// only the creation methods should have been called now!
 			assertEquals("onCreationTimestamp should be == 0", 0L, test.getOnCreationTimestamp());
 			assertEquals("onModificationTimestamp should be == 0", 0L, test.getOnModificationTimestamp());
@@ -157,6 +183,10 @@ public class CallbackTest extends StructrTest {
 		} catch (Throwable t) {
 			
 			t.printStackTrace();
+
+		} finally {
+
+			app.finishTx();
 		}
 
 		assertNotNull("Entity should have been created", entity);
@@ -181,6 +211,10 @@ public class CallbackTest extends StructrTest {
 			
 		} catch (Throwable t) {
 			t.printStackTrace();
+
+		} finally {
+
+			app.finishTx();
 		}
 		
 		

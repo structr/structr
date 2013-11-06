@@ -31,11 +31,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
 import org.structr.websocket.StructrWebSocket;
@@ -107,10 +104,16 @@ public class ChunkCommand extends AbstractCommand {
 			
 			if (size != oldSize) {
 
-				app.beginTx();
-				file.setProperty(File.size, FileHelper.getSize(file));
-				file.setProperty(File.checksum, FileHelper.getChecksum(file));
-				app.commitTx();
+				try {
+					app.beginTx();
+					file.setProperty(File.size, FileHelper.getSize(file));
+					file.setProperty(File.checksum, FileHelper.getChecksum(file));
+					app.commitTx();
+
+				} finally {
+
+					app.finishTx();
+				}
 			}
 
 			

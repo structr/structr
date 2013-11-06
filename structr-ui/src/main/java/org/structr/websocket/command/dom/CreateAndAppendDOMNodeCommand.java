@@ -85,11 +85,12 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 			final Document document = getPage(pageId);
 			if (document != null) {
 
-				final String tagName  = (String) nodeData.get("tagName");
+				final String tagName = (String) nodeData.get("tagName");
+				final App app        = StructrApp.getInstance();
+				
 				nodeData.remove("tagName");
 				
 				try {
-					final App app = StructrApp.getInstance();
 					app.beginTx();
 
 					DOMNode newNode;
@@ -161,6 +162,10 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 				} catch (FrameworkException ex) {
 					
 					Logger.getLogger(CreateAndAppendDOMNodeCommand.class.getName()).log(Level.SEVERE, null, ex);
+					
+				} finally {
+					
+					app.finishTx();
 				}
 				
 			} else {

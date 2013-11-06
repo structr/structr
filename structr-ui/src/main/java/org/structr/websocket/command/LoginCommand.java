@@ -38,8 +38,6 @@ import java.util.logging.Logger;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -88,9 +86,16 @@ public class LoginCommand extends AbstractCommand {
 
 					final Principal principal = user;
 					
-					app.beginTx();
-					principal.setProperty(Principal.sessionId, sessionId);
-					app.commitTx();
+					try {
+						
+						app.beginTx();
+						principal.setProperty(Principal.sessionId, sessionId);
+						app.commitTx();
+
+					} finally {
+
+						app.finishTx();
+					}
 
 					// store token in response data
 					webSocketData.getNodeData().clear();
@@ -113,10 +118,6 @@ public class LoginCommand extends AbstractCommand {
 			} catch (FrameworkException fex) {
 				
 				logger.log(Level.WARNING, "Unable to execute command", fex);
-				
-			} finally {
-				
-				app.finishTx();
 			}
 		}
 	}

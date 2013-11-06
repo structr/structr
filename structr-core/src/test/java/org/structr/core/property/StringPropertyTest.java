@@ -49,9 +49,15 @@ public class StringPropertyTest extends StructrTest {
 			// store string in the test entitiy
 			final String value = "This is a test!";
 
-			app.beginTx();
-			instance.setProperty(securityContext, testEntity, value);
-			app.commitTx();
+			try {
+				app.beginTx();
+				instance.setProperty(securityContext, testEntity, value);
+				app.commitTx();
+
+			} finally {
+
+				app.finishTx();
+			}
 
 			// check value from database
 			assertEquals(value, instance.getProperty(securityContext, testEntity, true));
@@ -107,10 +113,16 @@ public class StringPropertyTest extends StructrTest {
 			
 			assertNotNull(testEntity);
 
-			app.beginTx();
-			testEntity.setProperty(key, "test");
-			app.commitTx();
-			
+			try {
+				app.beginTx();
+				testEntity.setProperty(key, "test");
+				app.commitTx();
+
+			} finally {
+
+				app.finishTx();
+			}
+
 			// check value from database
 			assertEquals("test", testEntity.getProperty(key));
 			

@@ -85,9 +85,9 @@ public class FileOrFolder extends AbstractStructrFtpFile {
 		}
 		
 		final Folder parentFolder = (Folder) FileHelper.getFileByAbsolutePath(StringUtils.substringBeforeLast(newPath, "/"));
+		final App app             = StructrApp.getInstance();
 
 		try {
-			final App app = StructrApp.getInstance();
 			app.beginTx();
 			
 			Folder newFolder = (Folder) Services.command(SecurityContext.getSuperUserInstance(), CreateNodeCommand.class).execute(
@@ -105,7 +105,11 @@ public class FileOrFolder extends AbstractStructrFtpFile {
 		} catch (FrameworkException ex) {
 			logger.log(Level.SEVERE, null, ex);
 			return false;
-		}
+
+			} finally {
+
+				app.finishTx();
+			}
 		
 		return true;
 	}
@@ -122,9 +126,9 @@ public class FileOrFolder extends AbstractStructrFtpFile {
 		if (structrFile == null) {
 
 			final Folder parentFolder = (Folder) FileHelper.getFileByAbsolutePath(StringUtils.substringBeforeLast(newPath, "/"));
+			final App app             = StructrApp.getInstance();
 
 			try {
-				final App app = StructrApp.getInstance();
 				app.beginTx();
 				
 				structrFile = FileHelper.createFile(SecurityContext.getSuperUserInstance(), new byte[0], null, File.class);
@@ -141,6 +145,10 @@ public class FileOrFolder extends AbstractStructrFtpFile {
 			} catch (FrameworkException ex) {
 				logger.log(Level.SEVERE, null, ex);
 				return null;
+
+			} finally {
+
+				app.finishTx();
 			}
 		}
 		

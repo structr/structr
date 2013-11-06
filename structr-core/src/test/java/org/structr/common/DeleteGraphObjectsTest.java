@@ -79,23 +79,36 @@ public class DeleteGraphObjectsTest extends StructrTest {
 		try {
 
 			final PropertyMap props = new PropertyMap();
-			String type             = "UnknownTestType";
-			String name             = "GenericNode-name";
+			final String type             = "UnknownTestType";
+			final String name             = "GenericNode-name";
+			NodeInterface node      = null;
 
 			props.put(AbstractNode.type, type);
 			props.put(AbstractNode.name, name);
 
-			app.beginTx();
-			final NodeInterface node = app.create(NodeInterface.class, props);
-			app.commitTx();
+			try {
+				app.beginTx();
+				node = app.create(NodeInterface.class, props);
+				app.commitTx();
+
+			} finally {
+
+				app.finishTx();
+			}
 
 			assertTrue(node != null);
 
 			String uuid = node.getUuid();
-			
-			app.beginTx();
-			app.delete(node);
-			app.commitTx();
+
+			try {
+				app.beginTx();
+				app.delete(node);
+				app.commitTx();
+
+			} finally {
+
+				app.finishTx();
+			}
 
 			try {
 
@@ -120,15 +133,22 @@ public class DeleteGraphObjectsTest extends StructrTest {
 
 		try {
 			
-			List<NodeInterface> nodes = this.createTestNodes(GenericNode.class, 2);
+			final List<NodeInterface> nodes = this.createTestNodes(GenericNode.class, 2);
+			RelationshipInterface rel       = null;
 
 			assertNotNull(nodes);
 			assertTrue(nodes.size() == 2);
 			
-			app.beginTx();
-			RelationshipInterface rel = app.create(nodes.get(0), nodes.get(1), SixOneOneToOne.class);
-			app.commitTx();
+			try {
+				app.beginTx();
+				rel = app.create(nodes.get(0), nodes.get(1), SixOneOneToOne.class);
+				app.commitTx();
 			
+			} finally {
+
+				app.finishTx();
+			}
+
 			assertNotNull(rel);
 			
 			try {
@@ -141,11 +161,16 @@ public class DeleteGraphObjectsTest extends StructrTest {
 			// Relationship still there
 			assertNotNull(rel);
 			
+			try {
+				app.beginTx();
+				app.delete(rel);
+				app.commitTx();
 			
-			app.beginTx();
-			app.delete(rel);
-			app.commitTx();
-			
+			} finally {
+
+				app.finishTx();
+			}
+
 			String uuid = rel.getUuid();
 			assertNull("UUID of deleted relationship should be null", uuid);
 			
@@ -413,23 +438,35 @@ public class DeleteGraphObjectsTest extends StructrTest {
 
 	private AbstractRelationship cascadeRel(final Class type1, final Class type2, final int cascadeDeleteFlag) throws FrameworkException {
 
-		app.beginTx();
+		try {
+			app.beginTx();
 
-		AbstractNode start       = createTestNode(type1);
-		AbstractNode end         = createTestNode(type2);
-		AbstractRelationship rel = createTestRelationship(start, end, LocationRelationship.class);
+			AbstractNode start       = createTestNode(type1);
+			AbstractNode end         = createTestNode(type2);
+			AbstractRelationship rel = createTestRelationship(start, end, LocationRelationship.class);
 
-		rel.setProperty(AbstractRelationship.cascadeDelete, cascadeDeleteFlag);
-		
-		app.commitTx();
-		
-		return rel;
+			rel.setProperty(AbstractRelationship.cascadeDelete, cascadeDeleteFlag);
+
+			app.commitTx();
+
+			return rel;
+
+		} finally {
+
+			app.finishTx();
+		}
 	}
 
 	private void deleteCascade(final NodeInterface node) throws FrameworkException {
 
-		app.beginTx();
-		app.delete(node);
-		app.commitTx();
+		try {
+			app.beginTx();
+			app.delete(node);
+			app.commitTx();
+
+		} finally {
+
+			app.finishTx();
+		}
 	}
 }

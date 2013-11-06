@@ -108,21 +108,23 @@ public class DeleteUnattachedNodesCommand extends AbstractCommand {
 
 			}
 
-			app.beginTx();
-			for (NodeInterface node : filteredResults) {
-				app.delete(node);
+			try {
+				app.beginTx();
+				for (NodeInterface node : filteredResults) {
+					app.delete(node);
+				}
+				app.commitTx();
+
+			} finally {
+
+				app.finishTx();
 			}
-			app.commitTx();
 
 			
 		} catch (FrameworkException fex) {
 
 			logger.log(Level.WARNING, "Exception occured", fex);
 			getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
-
-		} finally {
-			
-			app.finishTx();
 		}
 
 	}

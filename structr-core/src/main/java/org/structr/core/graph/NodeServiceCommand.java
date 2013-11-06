@@ -27,7 +27,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 import org.structr.core.GraphObject;
 import org.structr.core.Predicate;
-import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 
@@ -105,6 +104,10 @@ public abstract class NodeServiceCommand extends Command {
 				
 				// bulk transaction failed, what to do?
 				operation.handleTransactionFailure(securityContext, t);
+				
+			} finally {
+				
+				app.finishTx();
 			}
 			
 			if (description != null) {
@@ -133,17 +136,23 @@ public abstract class NodeServiceCommand extends Command {
 		
 		while (!stopCondition.evaluate(securityContext, objectCount.get())) {
 
-			app.beginTx();
-			
-			long loopCount = 0;
+			try {
+				app.beginTx();
 
-			while (loopCount++ < commitCount && !stopCondition.evaluate(securityContext, objectCount.get())) {
+				long loopCount = 0;
 
-				transaction.execute();
-				objectCount.incrementAndGet();
+				while (loopCount++ < commitCount && !stopCondition.evaluate(securityContext, objectCount.get())) {
+
+					transaction.execute();
+					objectCount.incrementAndGet();
+				}
+
+				app.commitTx();
+				
+			} finally {
+				
+				app.finishTx();
 			}
-			
-			app.commitTx();
 		}
 	}
 }

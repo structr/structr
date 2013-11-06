@@ -28,10 +28,8 @@ import org.neo4j.graphdb.GraphDatabaseService;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.logging.Logger;
-import org.neo4j.kernel.DeadlockDetectedException;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.RetryException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.PropertyKey;
 
@@ -62,7 +60,8 @@ public class TransactionCommand extends NodeServiceCommand {
 	
 	private ModificationQueue modificationQueue = null;
 	private ErrorBuffer errorBuffer             = null;
-	
+
+	/*
 	public <T> T execute(StructrTransaction<T> transaction) throws FrameworkException {
 		
 		boolean topLevel = (transactions.get() == null);
@@ -227,11 +226,12 @@ public class TransactionCommand extends NodeServiceCommand {
 		
 		return result;
 	}
-
+	*/
+	
 	public void beginTx() {
 		
 		final GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
-		TransactionReference tx      = transactions.get();
+		TransactionReference tx            = transactions.get();
 		
 		if (tx == null) {
 		
@@ -255,70 +255,68 @@ public class TransactionCommand extends NodeServiceCommand {
 	public void commitTx(final boolean doValidation) throws FrameworkException {
 	
 		final TransactionReference tx = transactions.get();
-		if (tx != null) {
-			
-			if (tx.isToplevel()) {
+		if (tx != null && tx.isToplevel()) {
 
-				// 1. do inner callbacks (may cause transaction to fail)
-				if (!modificationQueue.doInnerCallbacks(securityContext, errorBuffer)) {
+			// 1. do inner callbacks (may cause transaction to fail)
+			if (!modificationQueue.doInnerCallbacks(securityContext, errorBuffer)) {
 
-					// create error
-					if (doValidation) {
-
-						tx.failure();
-						finishTx();
-
-						throw new FrameworkException(422, errorBuffer);
-					}
-				}
-
-				// 2. fetch all types of entities modified in this tx
-				Set<String> synchronizationKeys = modificationQueue.getSynchronizationKeys();
-
-				// we need to protect the validation and indexing part of every transaction
-				// from being entered multiple times in the presence of validators
-				// 3. acquire semaphores for each modified type
-				try { semaphore.acquire(synchronizationKeys); } catch (InterruptedException iex) { return; }
-
-				// finally, do validation under the protection of the semaphores for each type
-				if (!modificationQueue.doValidation(securityContext, errorBuffer, doValidation)) {
+				// create error
+				if (doValidation) {
 
 					tx.failure();
-					finishTx();
 
-					// create error
 					throw new FrameworkException(422, errorBuffer);
 				}
-
-				tx.success();
-				
-				finishTx();
-				
-			} else {
-				
-				tx.end();
 			}
+
+			// 2. fetch all types of entities modified in this tx
+			Set<String> synchronizationKeys = modificationQueue.getSynchronizationKeys();
+
+			// we need to protect the validation and indexing part of every transaction
+			// from being entered multiple times in the presence of validators
+			// 3. acquire semaphores for each modified type
+			try { semaphore.acquire(synchronizationKeys); } catch (InterruptedException iex) { return; }
+
+			// finally, do validation under the protection of the semaphores for each type
+			if (!modificationQueue.doValidation(securityContext, errorBuffer, doValidation)) {
+
+				tx.failure();
+
+				// release semaphores as the transaction is now finished
+				semaphore.release(synchronizationKeys);	// careful: this can be null
+
+				// create error
+				throw new FrameworkException(422, errorBuffer);
+			}
+
+			tx.success();
+
+			// release semaphores as the transaction is now finished
+			semaphore.release(synchronizationKeys);	// careful: this can be null
 		}
 	}
 	
 	public void finishTx() {
 		
-		final Set<String> synchronizationKeys = modificationQueue.getSynchronizationKeys();
-		final TransactionReference tx         = transactions.get();
+		final TransactionReference tx = transactions.get();
+		
+		if (tx != null) {
+			
+			if (tx.isToplevel()) {
 
-		if (tx != null && tx.isToplevel()) {
+				tx.finish();
 
-			tx.finish();
+				// cleanup
+				currentCommand.remove();
+				transactions.remove();
 
-			// release semaphores as the transaction is now finished
-			semaphore.release(synchronizationKeys);	// careful: this can be null
-
-			// cleanup
-			currentCommand.remove();
-			transactions.remove();
-
-			modificationQueue.doOuterCallbacks(securityContext);
-			modificationQueue.clear();
+				modificationQueue.doOuterCallbacks(securityContext);
+				modificationQueue.clear();
+				
+			} else {
+				
+				tx.end();
+			}
 		}
 	}
 	

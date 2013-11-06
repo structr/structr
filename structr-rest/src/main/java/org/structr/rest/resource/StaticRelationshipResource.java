@@ -149,18 +149,23 @@ public class StaticRelationshipResource extends SortableResource {
 
 					}
 
-					app.beginTx();
-					final List<GraphObject> nodes = new LinkedList<>();
+					try {
+						app.beginTx();
+						final List<GraphObject> nodes = new LinkedList<>();
 
-					// Now add new relationships for any new id: This should be the rest of the property set
-					for (final Object obj : propertySet.values()) {
+						// Now add new relationships for any new id: This should be the rest of the property set
+						for (final Object obj : propertySet.values()) {
 
-						nodes.add(app.get(obj.toString()));
+							nodes.add(app.get(obj.toString()));
+						}
+
+						// set property on source node
+						sourceEntity.setProperty(key, nodes);
+						app.commitTx();
+
+					} finally {
+						app.finishTx();
 					}
-
-					// set property on source node
-					sourceEntity.setProperty(key, nodes);
-					app.commitTx();
 				}
 
 			}
@@ -193,42 +198,59 @@ public class StaticRelationshipResource extends SortableResource {
 			final Notion notion                  = relationProperty.getNotion();
 			final PropertyKey primaryPropertyKey = notion.getPrimaryPropertyKey();
 
-			app.beginTx();
+			try {
+				app.beginTx();
 
-			// apply notion if the property set contains the ID property as the only element
-			if (primaryPropertyKey != null && propertySet.containsKey(primaryPropertyKey.jsonName()) && propertySet.size() == 1) {
-
-				/*
-				 * FIXME: is this needed at all??
-
-* 
-* 
-				// the notion that is defined for this relationship can deserialize
-				// objects with a single key (uuid for example), and the POSTed
-				// property set contains value(s) for this key, so we only need
-				// to create relationships
-				final Object keySource = propertySet.get(primaryPropertyKey.jsonName());
-				if (keySource != null) {
-
-					if (keySource instanceof Collection) {
-
-						sourceNode.setProperty(propertyKey, notion.getCollectionAdapterForSetter(securityContext).adapt(keySource));
-
-					} else {
-
-						sourceNode.setProperty(propertyKey, notion.getAdapterForSetter(securityContext).adapt(keySource));
-					}
+				// apply notion if the property set contains the ID property as the only element
+				if (primaryPropertyKey != null && propertySet.containsKey(primaryPropertyKey.jsonName()) && propertySet.size() == 1) {
 
 					/*
-					GraphObject otherNode = null;
+					 * FIXME: is this needed at all??
 
-					if (keySource instanceof Collection) {
+	* 
+	* 
+					// the notion that is defined for this relationship can deserialize
+					// objects with a single key (uuid for example), and the POSTed
+					// property set contains value(s) for this key, so we only need
+					// to create relationships
+					final Object keySource = propertySet.get(primaryPropertyKey.jsonName());
+					if (keySource != null) {
 
-						final Collection collection = (Collection) keySource;
+						if (keySource instanceof Collection) {
 
-						for (final Object key : collection) {
+							sourceNode.setProperty(propertyKey, notion.getCollectionAdapterForSetter(securityContext).adapt(keySource));
 
-							otherNode = deserializationStrategy.adapt(key);
+						} else {
+
+							sourceNode.setProperty(propertyKey, notion.getAdapterForSetter(securityContext).adapt(keySource));
+						}
+
+						/*
+						GraphObject otherNode = null;
+
+						if (keySource instanceof Collection) {
+
+							final Collection collection = (Collection) keySource;
+
+							for (final Object key : collection) {
+
+								otherNode = deserializationStrategy.adapt(key);
+
+								if (otherNode != null && otherNode instanceof AbstractNode) {
+
+									relationshipProperty.createRelationship(securityContext, sourceNode, (AbstractNode)otherNode);
+
+								} else {
+
+									logger.log(Level.WARNING, "Relationship end node has invalid type {0}", otherNode.getClass().getName());
+								}
+
+							}
+
+						} else {
+
+							// create a single relationship
+							otherNode = deserializationStrategy.adapt(keySource);
 
 							if (otherNode != null && otherNode instanceof AbstractNode) {
 
@@ -237,47 +259,35 @@ public class StaticRelationshipResource extends SortableResource {
 							} else {
 
 								logger.log(Level.WARNING, "Relationship end node has invalid type {0}", otherNode.getClass().getName());
-							}
 
+							}
 						}
+
+						return otherNode;
 
 					} else {
 
-						// create a single relationship
-						otherNode = deserializationStrategy.adapt(keySource);
+						logger.log(Level.INFO, "Key {0} not found in {1}", new Object[] { primaryPropertyKey.jsonName(), propertySet.toString() });
 
-						if (otherNode != null && otherNode instanceof AbstractNode) {
-
-							relationshipProperty.createRelationship(securityContext, sourceNode, (AbstractNode)otherNode);
-
-						} else {
-
-							logger.log(Level.WARNING, "Relationship end node has invalid type {0}", otherNode.getClass().getName());
-
-						}
 					}
+					*/
 
-					return otherNode;
 
 				} else {
 
-					logger.log(Level.INFO, "Key {0} not found in {1}", new Object[] { primaryPropertyKey.jsonName(), propertySet.toString() });
+					// the notion can not deserialize objects with a single key, or the POSTed propertySet did not contain a key to deserialize,
+					// so we create a new node from the POSTed properties and link the source node to it. (this is the "old" implementation)
+					newNode = typeResource.createNode(propertySet);
+					if (newNode != null) {
 
+						relationProperty.addSingleElement(securityContext, sourceNode, newNode);
+					}
 				}
-				*/
+				app.commitTx();
 
-
-			} else {
-
-				// the notion can not deserialize objects with a single key, or the POSTed propertySet did not contain a key to deserialize,
-				// so we create a new node from the POSTed properties and link the source node to it. (this is the "old" implementation)
-				newNode = typeResource.createNode(propertySet);
-				if (newNode != null) {
-
-					relationProperty.addSingleElement(securityContext, sourceNode, newNode);
-				}
+			} finally {
+				app.finishTx();
 			}
-			app.commitTx();
 
 			if (newNode != null) {
 

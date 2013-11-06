@@ -67,7 +67,6 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.StructrTransaction;
 import org.structr.rest.entity.TestOne;
 import org.structr.rest.servlet.JsonRestServlet;
 
@@ -333,30 +332,42 @@ public class StructrRestTest extends TestCase {
 		final App app       = StructrApp.getInstance(securityContext);
 		final List<T> nodes = new LinkedList<>();
 
-		app.beginTx();
-		for (int i = 0; i < number; i++) {
-			nodes.add(app.create(type));
+		try {
+			app.beginTx();
+			for (int i = 0; i < number; i++) {
+				nodes.add(app.create(type));
+			}
+			app.commitTx();
+
+		} finally {
+
+			app.finishTx();
 		}
-		app.commitTx();
 		
 		return nodes;
 	}
 
 	protected <T extends Relation> List<T> createTestRelationships(final Class<T> relType, final int number) throws FrameworkException {
 
+		final App app             = StructrApp.getInstance(securityContext);
 		final List<TestOne> nodes = createTestNodes(TestOne.class, 2);
 		final TestOne startNode   = nodes.get(0);
 		final TestOne endNode     = nodes.get(1);
-		final App app             = StructrApp.getInstance(securityContext);
+		final List<T> rels        = new LinkedList<>();
 
-		app.beginTx();
-		List<T> rels = new LinkedList<>();
+		try {
+			app.beginTx();
 
-		for (int i = 0; i < number; i++) {
+			for (int i = 0; i < number; i++) {
 
-			rels.add(createRelationshipCommand.execute(startNode, endNode, relType));
+				rels.add(createRelationshipCommand.execute(startNode, endNode, relType));
+			}
+			app.commitTx();
+
+		} finally {
+			
+			app.finishTx();
 		}
-		app.commitTx();
 
 		return rels;
 	}

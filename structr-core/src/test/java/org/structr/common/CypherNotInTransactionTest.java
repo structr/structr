@@ -63,14 +63,21 @@ public class CypherNotInTransactionTest extends StructrTest {
 
 		try {
 
-			List<NodeInterface> testNodes = this.createTestNodes(GenericNode.class, 2);
+			final List<NodeInterface> testNodes = this.createTestNodes(GenericNode.class, 2);
+			SixOneOneToOne rel                  = null;
 
 			assertNotNull(testNodes);
 			assertTrue(testNodes.size() == 2);
 
-			app.beginTx();
-			SixOneOneToOne rel = app.create(testNodes.get(0), testNodes.get(1), SixOneOneToOne.class);
-			app.commitTx();
+			try {
+				app.beginTx();
+				rel = app.create(testNodes.get(0), testNodes.get(1), SixOneOneToOne.class);
+				app.commitTx();
+
+			} finally {
+
+				app.finishTx();
+			}
 
 			assertNotNull(rel);
 
@@ -213,14 +220,21 @@ public class CypherNotInTransactionTest extends StructrTest {
 
 		try {
 
-			List<NodeInterface> testNodes = this.createTestNodes(GenericNode.class, 2);
+			final List<NodeInterface> testNodes = this.createTestNodes(GenericNode.class, 2);
+			AbstractRelationship rel            = null;
 
 			assertNotNull(testNodes);
 			assertTrue(testNodes.size() == 2);
 
-			app.beginTx();
-			AbstractRelationship rel = app.create(testNodes.get(0), testNodes.get(1), SixOneOneToOne.class);
-			app.commitTx();
+			try {
+				app.beginTx();
+				rel = app.create(testNodes.get(0), testNodes.get(1), SixOneOneToOne.class);
+				app.commitTx();
+
+			} finally {
+
+				app.finishTx();
+			}
 
 			assertNotNull(rel);
 
@@ -255,14 +269,21 @@ public class CypherNotInTransactionTest extends StructrTest {
 
 		try {
 
-			List<NodeInterface> testNodes = this.createTestNodes(GenericNode.class, 2);
+			final List<NodeInterface> testNodes = this.createTestNodes(GenericNode.class, 2);
+			AbstractRelationship rel            = null;
 
 			assertNotNull(testNodes);
 			assertTrue(testNodes.size() == 2);
 
-			app.beginTx();
-			AbstractRelationship rel = app.create(testNodes.get(0), testNodes.get(1), SixOneOneToOne.class);
-			app.commitTx();
+			try {
+				app.beginTx();
+				rel = app.create(testNodes.get(0), testNodes.get(1), SixOneOneToOne.class);
+				app.commitTx();
+
+			} finally {
+
+				app.finishTx();
+			}
 
 			assertNotNull(rel);
 

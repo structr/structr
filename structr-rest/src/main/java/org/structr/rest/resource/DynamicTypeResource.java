@@ -122,12 +122,18 @@ public class DynamicTypeResource extends TypeResource {
 	@Override
 	public RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException {
 
-		final App app = StructrApp.getInstance(securityContext);
+		final App app         = StructrApp.getInstance(securityContext);
+		NodeInterface newNode = null;
 		// create transaction closure
 		
-		app.beginTx();
-		final NodeInterface newNode = createNode(propertySet);
-		app.commitTx();
+		try {
+			app.beginTx();
+			newNode = createNode(propertySet);
+			app.commitTx();
+
+		} finally {
+			app.finishTx();
+		}
 
 		// execute transaction: create new node
 		RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_CREATED);

@@ -49,10 +49,11 @@ public class CreateLocalWidgetCommand extends AbstractCommand {
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
-		String id			= webSocketData.getId();
-		Map<String, Object> nodeData	= webSocketData.getNodeData();
-		final String source		= (String) nodeData.get("source");
-		final String name		= (String) nodeData.get("name");
+		final App app                      = StructrApp.getInstance(getWebSocket().getSecurityContext());
+		final String id	                   = webSocketData.getId();
+		final Map<String, Object> nodeData = webSocketData.getNodeData();
+		final String source                = (String) nodeData.get("source");
+		final String name                  = (String) nodeData.get("name");
 
 		// check for ID
 		if (id == null) {
@@ -76,10 +77,6 @@ public class CreateLocalWidgetCommand extends AbstractCommand {
 		
 		try {
 			
-				
-			final SecurityContext securityContext = getWebSocket().getSecurityContext();
-			final App app = StructrApp.getInstance(securityContext);
-
 			// convertFromInput
 			PropertyMap properties = new PropertyMap();
 
@@ -88,7 +85,7 @@ public class CreateLocalWidgetCommand extends AbstractCommand {
 			properties.put(Widget.source, source);
 
 			app.beginTx();
-			final Widget newWidget = app.create(Widget.class, properties);
+			app.create(Widget.class, properties);
 			app.commitTx();
 
 		} catch (Throwable t) {
@@ -97,6 +94,10 @@ public class CreateLocalWidgetCommand extends AbstractCommand {
 
 			// send exception
 			getWebSocket().send(MessageBuilder.status().code(422).message(t.toString()).build(), true);
+
+		} finally {
+
+			app.finishTx();
 		}
 
 	}

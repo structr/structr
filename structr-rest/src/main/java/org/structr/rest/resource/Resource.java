@@ -117,28 +117,33 @@ public abstract class Resource {
 			final Iterable<? extends GraphObject> finalResults = results;
 			final App app                                      = StructrApp.getInstance(securityContext);
 			
-			app.beginTx();
-			for (final GraphObject obj : finalResults) {
+			try {
+				app.beginTx();
+				for (final GraphObject obj : finalResults) {
 
-				if (obj instanceof AbstractRelationship) {
+					if (obj instanceof AbstractRelationship) {
 
-					deleteRel.execute((AbstractRelationship)obj);
+						deleteRel.execute((AbstractRelationship)obj);
 
-				} else if (obj instanceof AbstractNode) {
+					} else if (obj instanceof AbstractNode) {
 
-					if (!securityContext.isAllowed((AbstractNode)obj, Permission.delete)) {
+						if (!securityContext.isAllowed((AbstractNode)obj, Permission.delete)) {
 
-						logger.log(Level.WARNING, "Could not delete {0} because {1} has no delete permission", new Object[]{obj, securityContext.getUser(true)});
-						throw new NotAllowedException();
+							logger.log(Level.WARNING, "Could not delete {0} because {1} has no delete permission", new Object[]{obj, securityContext.getUser(true)});
+							throw new NotAllowedException();
 
+						}
+
+						// delete cascading
+						deleteNode.execute((AbstractNode)obj);
 					}
 
-					// delete cascading
-					deleteNode.execute((AbstractNode)obj);
 				}
+				app.commitTx();
 
+			} finally {
+				app.finishTx();
 			}
-			app.commitTx();
 
 		}
 
@@ -155,20 +160,25 @@ public abstract class Resource {
 
 			final Class type = results.get(0).getClass();
 			
-			app.beginTx();
+			try {
+				app.beginTx();
 
-			PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, type, propertySet);
+				PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, type, propertySet);
 
-			for (final GraphObject obj : results) {
+				for (final GraphObject obj : results) {
 
-				for (final Entry<PropertyKey, Object> attr : properties.entrySet()) {
+					for (final Entry<PropertyKey, Object> attr : properties.entrySet()) {
 
-					obj.setProperty(attr.getKey(), attr.getValue());
+						obj.setProperty(attr.getKey(), attr.getValue());
+
+					}
 
 				}
+				app.commitTx();
 
+			} finally {
+				app.finishTx();
 			}
-			app.commitTx();
 
 			return new RestMethodResult(HttpServletResponse.SC_OK);
 

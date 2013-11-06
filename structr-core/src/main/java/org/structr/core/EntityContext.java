@@ -184,7 +184,7 @@ public class EntityContext {
 		Set<PropertyKey> properties                   = propertyViewMap.get(propertyView);
 		
 		if (properties == null) {
-			properties = new LinkedHashSet<PropertyKey>();
+			properties = new LinkedHashSet<>();
 			propertyViewMap.put(propertyView, properties);
 		}
 
@@ -315,8 +315,21 @@ public class EntityContext {
 	//~--- get methods ----------------------------------------------------
 
 	public static Class getEntityClassForRawType(final String rawType) {
+		
+		// first try: raw name
+		Class type = getEntityClassForRawType(rawType, false);
+		if (type == null) {
+			
+			// second try: normalized name
+			type = getEntityClassForRawType(rawType, true);
+		}
+		
+		return type;
+	}
+	
+	private static Class getEntityClassForRawType(final String rawType, boolean normalize) {
 
-		final String normalizedEntityName = normalizeEntityName(rawType);
+		final String normalizedEntityName = normalize ? normalizeEntityName(rawType) : rawType;
 		final ModuleService moduleService = getModuleService();
 
 		// first try: node entity

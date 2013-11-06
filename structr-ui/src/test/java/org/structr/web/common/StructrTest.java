@@ -162,22 +162,27 @@ public class StructrTest extends TestCase {
 
 	protected List<NodeInterface> createTestNodes(final Class type, final int number, final long delay) throws FrameworkException {
 
-		app.beginTx();
-		
-		List<NodeInterface> nodes = new LinkedList<>();
+		try {
+			app.beginTx();
 
-		for (int i = 0; i < number; i++) {
+			List<NodeInterface> nodes = new LinkedList<>();
 
-			nodes.add(app.create(type));
-			
-			try {
-				Thread.sleep(delay);
-			} catch (InterruptedException ex) {}
+			for (int i = 0; i < number; i++) {
+
+				nodes.add(app.create(type));
+
+				try {
+					Thread.sleep(delay);
+				} catch (InterruptedException ex) {}
+			}
+
+			app.commitTx();
+
+			return nodes;
+
+		} finally {
+			app.finishTx();
 		}
-		
-		app.commitTx();
-
-		return nodes;
 	}
 
 	protected List<NodeInterface> createTestNodes(final Class type, final int number) throws FrameworkException {
@@ -194,13 +199,18 @@ public class StructrTest extends TestCase {
 
 		props.put(AbstractNode.type, type.getSimpleName());
 
-		app.beginTx();
-		
-		final T newNode = app.create(type, props);
-		
-		app.commitTx();
-		
-		return newNode;
+		try {
+			app.beginTx();
+
+			final T newNode = app.create(type, props);
+
+			app.commitTx();
+
+			return newNode;
+
+		} finally {
+			app.finishTx();
+		}
 
 	}
 
@@ -210,30 +220,40 @@ public class StructrTest extends TestCase {
 		final NodeInterface startNode = nodes.get(0);
 		final NodeInterface endNode   = nodes.get(1);
 
-		app.beginTx();
+		try {
+			app.beginTx();
 
-		List<T> rels = new LinkedList<>();
+			List<T> rels = new LinkedList<>();
 
-		for (int i = 0; i < number; i++) {
+			for (int i = 0; i < number; i++) {
 
-			rels.add(app.create(startNode, endNode, relType));
+				rels.add(app.create(startNode, endNode, relType));
+			}
+
+			app.commitTx();
+
+			return rels;
+
+		} finally {
+			app.finishTx();
 		}
-		
-		app.commitTx();
-		
-		return rels;
 
 	}
 
 	protected <T extends Relation> T createTestRelationship(final AbstractNode startNode, final AbstractNode endNode, final Class<T> relType) throws FrameworkException {
 
-		app.beginTx();
+		try {
+			app.beginTx();
 
-		final T rel = app.create(startNode, endNode, relType);
+			final T rel = app.create(startNode, endNode, relType);
 
-		app.commitTx();
-		
-		return rel;
+			app.commitTx();
+
+			return rel;
+	
+		} finally {
+			app.finishTx();
+		}
 	}
 
 	protected void assertNodeExists(final String nodeId) throws FrameworkException {

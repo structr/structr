@@ -44,8 +44,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -165,12 +163,12 @@ public class SaveImageFromUrl extends NodeServiceCommand {
 	private void refreshImageFromUrl(final Image imageNode) throws FrameworkException {
 
 		final App app = StructrApp.getInstance(securityContext);
-		
-		try {
-			if (imageNode != null) {
 
+		if (imageNode != null) {
+
+			try {
 				app.beginTx();
-			
+
 				String url              = imageNode.getUrl();
 				String relativeFilePath = imageNode.getRelativeFilePath();
 				String imageName        = url.substring(url.lastIndexOf("/") + 1);
@@ -202,15 +200,15 @@ public class SaveImageFromUrl extends NodeServiceCommand {
 						t.printStackTrace(System.err);
 
 					}
-
 				}
-				
+
+
 				app.commitTx();
+
+			} finally {
+
+				app.finishTx();
 			}
-			
-		} finally {
-			
-			app.finishTx();
 		}
 	}
 }

@@ -158,6 +158,9 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> implements De
 				
 				logger.log(Level.WARNING, "Unable to create node of type {0} for property {1}", new Object[] { type.getSimpleName(), propertyKey.dbName() });
 				
+			} finally {
+				
+				app.finishTx();
 			}
 
 		}

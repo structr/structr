@@ -25,11 +25,8 @@ import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 
 /**
  *
@@ -68,10 +65,10 @@ public class TestFive extends AbstractNode {
 	@Override
 	public void afterCreation(SecurityContext securityContext) {
 		
+		final App app = StructrApp.getInstance(securityContext);
 		try {
 			final int value = getIncreasedValue(modifiedInAfterCreation);
 			
-			App app = StructrApp.getInstance(securityContext);
 			app.beginTx();
 			setProperty(modifiedInAfterCreation, value);
 			app.commitTx();
@@ -79,16 +76,20 @@ public class TestFive extends AbstractNode {
 		} catch (Throwable t) {
 			
 			t.printStackTrace();
+
+		} finally {
+
+			app.finishTx();
 		}
 	}
 
 	@Override
 	public void afterModification(SecurityContext securityContext) {
 		
+		final App app = StructrApp.getInstance(securityContext);
 		try {
 			final int value = getIncreasedValue(modifiedInAfterModification);
 			
-			App app = StructrApp.getInstance(securityContext);
 			app.beginTx();
 			setProperty(modifiedInAfterModification, value);
 			app.commitTx();
@@ -96,6 +97,10 @@ public class TestFive extends AbstractNode {
 		} catch (Throwable t) {
 			
 			t.printStackTrace();
+
+		} finally {
+
+			app.finishTx();
 		}
 	}
 	

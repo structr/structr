@@ -67,13 +67,21 @@ public class ModifyGraphObjectsTest extends StructrTest {
 			final PropertyMap props = new PropertyMap();
 			final String type       = "UnknownTestType";
 			final String name       = "GenericNode-name";
+			
+			NodeInterface node      = null;
 
 			props.put(AbstractNode.type, type);
 			props.put(AbstractNode.name, name);
 
-			app.beginTx();
-			final NodeInterface node = app.create(GenericNode.class, props);
-			app.commitTx();
+			try {
+				app.beginTx();
+				node = app.create(GenericNode.class, props);
+				app.commitTx();
+
+			} finally {
+
+				app.finishTx();
+			}
 
 			// Check defaults
 			assertEquals(GenericNode.class.getSimpleName(), node.getProperty(AbstractNode.type));
@@ -85,16 +93,22 @@ public class ModifyGraphObjectsTest extends StructrTest {
 
 			final String name2 = "GenericNode-name-äöüß";
 
-			app.beginTx();
-			
-			// Modify values
-			node.setProperty(AbstractNode.name, name2);
-			node.setProperty(AbstractNode.hidden, true);
-			node.setProperty(AbstractNode.deleted, true);
-			node.setProperty(AbstractNode.visibleToAuthenticatedUsers, true);
-			node.setProperty(AbstractNode.visibleToPublicUsers, true);
-			
-			app.commitTx();
+			try {
+				app.beginTx();
+
+				// Modify values
+				node.setProperty(AbstractNode.name, name2);
+				node.setProperty(AbstractNode.hidden, true);
+				node.setProperty(AbstractNode.deleted, true);
+				node.setProperty(AbstractNode.visibleToAuthenticatedUsers, true);
+				node.setProperty(AbstractNode.visibleToPublicUsers, true);
+
+				app.commitTx();
+
+			} finally {
+
+				app.finishTx();
+			}
 
 			assertTrue(node.getProperty(AbstractNode.name).equals(name2));
 			assertTrue(node.getProperty(AbstractNode.hidden));
@@ -122,9 +136,15 @@ public class ModifyGraphObjectsTest extends StructrTest {
 			final PropertyKey key1         = new StringProperty("jghsdkhgshdhgsdjkfgh");
 			final String val1              = "54354354546806849870";
 
-			app.beginTx();
-			rel.setProperty(key1, val1);
-			app.commitTx();
+			try {
+				app.beginTx();
+				rel.setProperty(key1, val1);
+				app.commitTx();
+
+			} finally {
+
+				app.finishTx();
+			}
 			
 			assertTrue("Expected relationship to have a value for key '" + key1.dbName() + "'", rel.getRelationship().hasProperty(key1.dbName()));
 			
@@ -135,10 +155,16 @@ public class ModifyGraphObjectsTest extends StructrTest {
 			
 			final String val2 = "öljkhöohü8osdfhoödhi";
 
-			app.beginTx();
-			rel.setProperty(key1, val2);
-			app.commitTx();
+			try {
+				app.beginTx();
+				rel.setProperty(key1, val2);
+				app.commitTx();
 			
+			} finally {
+
+				app.finishTx();
+			}
+
 			Object vrfy2 = rel.getProperty(key1);
 			assertEquals(val2, vrfy2);
 			

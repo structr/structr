@@ -49,6 +49,7 @@ public class CreateComponentCommand extends AbstractCommand {
 	public void processMessage(WebSocketMessage webSocketData) {
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
+		final App app                         = StructrApp.getInstance(securityContext);
 		String id                             = webSocketData.getId();
 
 		if (id != null) {
@@ -57,7 +58,6 @@ public class CreateComponentCommand extends AbstractCommand {
 
 			try {
 
-				final App app = StructrApp.getInstance(securityContext);
 				app.beginTx();
 
 				DOMNode clonedNode = (DOMNode) node.cloneNode(false);
@@ -80,6 +80,10 @@ public class CreateComponentCommand extends AbstractCommand {
 
 				// send DOM exception
 				getWebSocket().send(MessageBuilder.status().code(422).message(ex.getMessage()).build(), true);
+
+			} finally {
+
+				app.finishTx();
 			}
 
 		} else {

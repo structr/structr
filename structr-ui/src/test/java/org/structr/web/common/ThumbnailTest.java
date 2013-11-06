@@ -54,11 +54,18 @@ public class ThumbnailTest extends StructrTest {
 	public void test01CreateThumbnail() {
 
 		try {
-			app.beginTx();
-
-			TestImage img = (TestImage) ImageHelper.createFileBase64(securityContext, base64Image, TestImage.class);
+			TestImage img = null;
 			
-			app.commitTx();
+			try {
+				app.beginTx();
+
+				img = (TestImage) ImageHelper.createFileBase64(securityContext, base64Image, TestImage.class);
+
+				app.commitTx();
+
+			} finally {
+				app.finishTx();
+			}
 
 			assertNotNull(img);
 			assertTrue(img instanceof TestImage);
@@ -74,12 +81,6 @@ public class ThumbnailTest extends StructrTest {
 
 			logger.log(Level.SEVERE, ex.toString());
 			fail("Unexpected exception");
-
-		} finally {
-			
-			app.finishTx();
 		}
-
 	}
-
 }

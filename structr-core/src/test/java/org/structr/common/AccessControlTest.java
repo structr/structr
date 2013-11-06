@@ -274,10 +274,16 @@ public class AccessControlTest extends StructrTest {
 			Class type = TestOne.class;
 			final TestOne t1 = createTestNode(TestOne.class, user1);
 
-			app.beginTx();
-			// Grant read permission to user 2
-			user2.grant(Permission.read, t1);
-			app.commitTx();
+			try {
+				app.beginTx();
+				// Grant read permission to user 2
+				user2.grant(Permission.read, t1);
+				app.commitTx();
+
+			} finally {
+
+				app.finishTx();
+			}
 			
 			// Let user 2 search
 			SecurityContext user2Context = SecurityContext.getInstance(user2, AccessMode.Backend);
@@ -289,10 +295,16 @@ public class AccessControlTest extends StructrTest {
 			assertEquals(1, result.size());
 			assertEquals(t1.getUuid(), result.get(0).getUuid());
 
-			app.beginTx();
-			// Revoke permission again
-			user2.revoke(Permission.read, t1);
-			app.commitTx();
+			try {
+				app.beginTx();
+				// Revoke permission again
+				user2.revoke(Permission.read, t1);
+				app.commitTx();
+
+			} finally {
+
+				app.finishTx();
+			}
 			
 			result = Services.command(user2Context, SearchNodeCommand.class).execute(searchAttributes);
 			
@@ -311,18 +323,21 @@ public class AccessControlTest extends StructrTest {
 
 		try {
 
-			List<NodeInterface> persons = createTestNodes(Person.class, 1);
-			Person user = (Person) persons.get(0);
-			
-			Class type = TestOne.class;
-			
+			final List<NodeInterface> persons = createTestNodes(Person.class, 1);
+			final Class type = TestOne.class;
 			final List<NodeInterface> nodes = createTestNodes(type, 10);
 
-			app.beginTx();
-			nodes.get(3).setProperty(AbstractNode.visibleToPublicUsers, true);
-			nodes.get(5).setProperty(AbstractNode.visibleToPublicUsers, true);
-			nodes.get(7).setProperty(AbstractNode.visibleToPublicUsers, true);
-			app.commitTx();
+			try {
+				app.beginTx();
+				nodes.get(3).setProperty(AbstractNode.visibleToPublicUsers, true);
+				nodes.get(5).setProperty(AbstractNode.visibleToPublicUsers, true);
+				nodes.get(7).setProperty(AbstractNode.visibleToPublicUsers, true);
+				app.commitTx();
+
+			} finally {
+
+				app.finishTx();
+			}
 
 			SecurityContext publicContext = SecurityContext.getInstance(null, AccessMode.Frontend);
 			List<SearchAttribute> searchAttributes = new LinkedList<>();
@@ -350,19 +365,22 @@ public class AccessControlTest extends StructrTest {
 
 		try {
 
-			List<NodeInterface> persons = createTestNodes(Person.class, 1);
-			Person user = (Person) persons.get(0);
-			
-			Class type = TestOne.class;
-			
+			final List<NodeInterface> persons = createTestNodes(Person.class, 1);
+			final Class type = TestOne.class;
 			final List<NodeInterface> nodes = createTestNodes(type, 10);
 
-			app.beginTx();
-			nodes.get(3).setProperty(AbstractNode.visibleToPublicUsers, true);
-			nodes.get(5).setProperty(AbstractNode.visibleToPublicUsers, true);
-			nodes.get(7).setProperty(AbstractNode.visibleToPublicUsers, true);
-			nodes.get(9).setProperty(AbstractNode.visibleToPublicUsers, true);
-			app.commitTx();
+			try {
+				app.beginTx();
+				nodes.get(3).setProperty(AbstractNode.visibleToPublicUsers, true);
+				nodes.get(5).setProperty(AbstractNode.visibleToPublicUsers, true);
+				nodes.get(7).setProperty(AbstractNode.visibleToPublicUsers, true);
+				nodes.get(9).setProperty(AbstractNode.visibleToPublicUsers, true);
+				app.commitTx();
+
+			} finally {
+
+				app.finishTx();
+			}
 
 			SecurityContext publicContext = SecurityContext.getInstance(null, AccessMode.Frontend);
 			App publicApp                 = StructrApp.getInstance(publicContext);
@@ -397,11 +415,17 @@ public class AccessControlTest extends StructrTest {
 
 		final App backendApp = StructrApp.getInstance(SecurityContext.getInstance(user, AccessMode.Backend));
 		
-		backendApp.beginTx();
-		final T result = backendApp.create(type, props);
-		backendApp.commitTx();
-		
-		return result;
+		try {
+			backendApp.beginTx();
+			final T result = backendApp.create(type, props);
+			backendApp.commitTx();
+
+			return result;
+
+		} finally {
+
+			app.finishTx();
+		}
 	}
 	
 	

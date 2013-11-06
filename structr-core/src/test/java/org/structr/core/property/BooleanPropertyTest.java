@@ -50,9 +50,15 @@ public class BooleanPropertyTest extends StructrTest {
 			// store boolean in the test entitiy
 			final Boolean value = Boolean.TRUE;
 
-			app.beginTx();
-			testEntity.setProperty(key, value);
-			app.commitTx();
+			try {
+				app.beginTx();
+				testEntity.setProperty(key, value);
+				app.commitTx();
+
+			} finally {
+
+				app.finishTx();
+			}
 
 			// check value from database
 			assertEquals(value, testEntity.getProperty(key));
@@ -108,9 +114,15 @@ public class BooleanPropertyTest extends StructrTest {
 			
 			assertNotNull(testEntity);
 
-			app.beginTx();
-			testEntity.setProperty(key, true);
-			app.commitTx();
+			try {
+				app.beginTx();
+				testEntity.setProperty(key, true);
+				app.commitTx();
+
+			} finally {
+
+				app.finishTx();
+			}
 			
 			// check value from database
 			assertEquals((Boolean)true, (Boolean)testEntity.getProperty(key));

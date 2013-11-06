@@ -206,6 +206,11 @@ public class GraphComparatorTest extends StructrTest {
 			obj.setProperty(key, value);
 			app.commitTx();
 			
-		} catch (FrameworkException ex) {}
+		} catch (FrameworkException ex) {
+
+		} finally {
+
+			app.finishTx();
+		}
 	}
 }

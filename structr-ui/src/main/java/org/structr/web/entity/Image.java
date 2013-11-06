@@ -28,10 +28,6 @@ import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
-import org.structr.core.Services;
-import org.structr.core.graph.CreateRelationshipCommand;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -260,9 +256,7 @@ public class Image extends File {
 
 			}
 
-			CreateRelationshipCommand createRel = Services.command(securityContext, CreateRelationshipCommand.class);
-			Thumbnail thumbnailData             = ImageHelper.createThumbnail(originalImage, maxWidth, maxHeight, cropToFit);
-
+			Thumbnail thumbnailData = ImageHelper.createThumbnail(originalImage, maxWidth, maxHeight, cropToFit);
 			if (thumbnailData != null) {
 
 				Integer tnWidth  = thumbnailData.getWidth();

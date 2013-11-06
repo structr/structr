@@ -2000,7 +2000,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			
 			try {
 				app.beginTx();
-				DOMNode node = app.create(DOMNode.class, properties);
+				DOMNode node = app.create(getClass(), properties);
 				app.commitTx();
 				
 				return node;

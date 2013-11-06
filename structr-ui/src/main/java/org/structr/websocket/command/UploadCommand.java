@@ -20,21 +20,15 @@
 
 package org.structr.websocket.command;
 
-import java.io.IOException;
 
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.web.common.FileHelper;
 import org.structr.websocket.StructrWebSocket;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;

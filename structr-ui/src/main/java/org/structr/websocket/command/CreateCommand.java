@@ -95,6 +95,10 @@ public class CreateCommand extends AbstractCommand {
 
 			logger.log(Level.WARNING, "Could not create node.", fex);
 			getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
+
+		} finally {
+
+			app.finishTx();
 		}
 	}
 

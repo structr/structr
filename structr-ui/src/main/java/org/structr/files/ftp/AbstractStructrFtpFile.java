@@ -143,14 +143,18 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 	@Override
 	public boolean setLastModified(final long l) {
 
+		final App app = StructrApp.getInstance();
+
 		try {
-			final App app = StructrApp.getInstance();
 			app.beginTx();
 			structrFile.setProperty(AbstractFile.lastModifiedDate, new Date(l));
 			app.commitTx();
 
 		} catch (FrameworkException ex) {
 			logger.log(Level.SEVERE, null, ex);
+
+		} finally {
+			app.finishTx();
 		}
 
 		return true;
@@ -159,14 +163,18 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 	@Override
 	public boolean delete() {
 
+		final App app = StructrApp.getInstance();
+
 		try {
-			final App app = StructrApp.getInstance();
 			app.beginTx();
 			app.delete(structrFile);
 			app.commitTx();
 
 		} catch (FrameworkException ex) {
 			logger.log(Level.SEVERE, null, ex);
+
+		} finally {
+			app.finishTx();
 		}
 
 		return true;
@@ -179,12 +187,11 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 	
 		logger.log(Level.INFO, "move()");
 		
-		AbstractStructrFtpFile targetFile = (AbstractStructrFtpFile) target;
-
-		final String path = targetFile instanceof StructrFtpFile ? "/" : targetFile.getAbsolutePath();
+		final AbstractStructrFtpFile targetFile = (AbstractStructrFtpFile) target;
+		final String path                       = targetFile instanceof StructrFtpFile ? "/" : targetFile.getAbsolutePath();
+		final App app                           = StructrApp.getInstance();
 
 		try {
-			final App app = StructrApp.getInstance();
 			app.beginTx();
 
 			if (path.contains("/")) {
@@ -216,6 +223,9 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 		} catch (FrameworkException ex) {
 			logger.log(Level.SEVERE, "Could not move ftp file", ex);
 			return false;
+
+		} finally {
+			app.finishTx();
 		}
 
 		return true;

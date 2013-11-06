@@ -48,6 +48,7 @@ public class CloneNodeCommand extends AbstractCommand {
 	public void processMessage(WebSocketMessage webSocketData) {
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
+		final App app                         = StructrApp.getInstance(securityContext);
 		String id                             = webSocketData.getId();
 		Map<String, Object> nodeData          = webSocketData.getNodeData();
 		String parentId                       = (String) nodeData.get("parentId");
@@ -76,7 +77,6 @@ public class CloneNodeCommand extends AbstractCommand {
 			}
 
 			try {
-				final App app = StructrApp.getInstance();
 				app.beginTx();
 
 				DOMNode clonedNode = (DOMNode) node.cloneNode(false);
@@ -89,6 +89,10 @@ public class CloneNodeCommand extends AbstractCommand {
 
 				// send DOM exception
 				getWebSocket().send(MessageBuilder.status().code(422).message(ex.getMessage()).build(), true);
+
+			} finally {
+
+				app.finishTx();
 			}
 
 		} else {

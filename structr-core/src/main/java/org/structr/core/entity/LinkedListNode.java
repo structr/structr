@@ -96,23 +96,35 @@ public abstract class LinkedListNode<R extends AbstractListSiblings<T, T>, T ext
 		final T previousElement = listGetPrevious(currentElement);
 		if (previousElement == null) {
 
-			app.beginTx();
+			try {
+				app.beginTx();
 
-			linkNodes(getSiblingLinkType(), newElement, currentElement);
+				linkNodes(getSiblingLinkType(), newElement, currentElement);
 
-			app.commitTx();
+				app.commitTx();
+
+			} finally {
+
+				app.finishTx();
+			}
 
 		} else {
 
-			app.beginTx();
+			try {
+				app.beginTx();
 
-			// delete old relationship
-			unlinkNodes(getSiblingLinkType(), previousElement, currentElement);
-					
-			linkNodes(getSiblingLinkType(), previousElement, newElement);
-			linkNodes(getSiblingLinkType(), newElement, currentElement);
+				// delete old relationship
+				unlinkNodes(getSiblingLinkType(), previousElement, currentElement);
 
-			app.commitTx();
+				linkNodes(getSiblingLinkType(), previousElement, newElement);
+				linkNodes(getSiblingLinkType(), newElement, currentElement);
+
+				app.commitTx();
+
+			} finally {
+
+				app.finishTx();
+			}
 		}
 	}
 
@@ -134,22 +146,34 @@ public abstract class LinkedListNode<R extends AbstractListSiblings<T, T>, T ext
 		final T next = listGetNext(currentElement);
 		if (next == null) {
 
-			app.beginTx();
+			try {
+				app.beginTx();
 
-			linkNodes(getSiblingLinkType(), currentElement, newElement);
+				linkNodes(getSiblingLinkType(), currentElement, newElement);
 
-			app.commitTx();
+				app.commitTx();
+
+			} finally {
+
+				app.finishTx();
+			}
 
 		} else {
 
-			app.beginTx();
-			
-			unlinkNodes(getSiblingLinkType(), currentElement, next);
+			try {
+				app.beginTx();
 
-			linkNodes(getSiblingLinkType(), currentElement, newElement);
-			linkNodes(getSiblingLinkType(), newElement, next);
-			
-			app.commitTx();
+				unlinkNodes(getSiblingLinkType(), currentElement, next);
+
+				linkNodes(getSiblingLinkType(), currentElement, newElement);
+				linkNodes(getSiblingLinkType(), newElement, next);
+
+				app.commitTx();
+
+			} finally {
+
+				app.finishTx();
+			}
 		}
 	}
 
@@ -167,17 +191,23 @@ public abstract class LinkedListNode<R extends AbstractListSiblings<T, T>, T ext
 
 		if (currentElement != null) {
 			
-			app.beginTx();
-			
-			if (previousElement != null) {
-				unlinkNodes(getSiblingLinkType(), previousElement, currentElement);
-			}
+			try {
+				app.beginTx();
 
-			if (nextElement != null) {
-				unlinkNodes(getSiblingLinkType(), currentElement, nextElement);
+				if (previousElement != null) {
+					unlinkNodes(getSiblingLinkType(), previousElement, currentElement);
+				}
+
+				if (nextElement != null) {
+					unlinkNodes(getSiblingLinkType(), currentElement, nextElement);
+				}
+
+				app.commitTx();
+
+			} finally {
+
+				app.finishTx();
 			}
-			
-			app.commitTx();
 		}
 
 		if (previousElement != null && nextElement != null) {
@@ -187,9 +217,15 @@ public abstract class LinkedListNode<R extends AbstractListSiblings<T, T>, T ext
 
 			if (previousNode != null && nextNode != null) {
 
-				app.beginTx();
-				linkNodes(getSiblingLinkType(), previousElement, nextElement);
-				app.commitTx();
+				try {
+					app.beginTx();
+					linkNodes(getSiblingLinkType(), previousElement, nextElement);
+					app.commitTx();
+
+				} finally {
+
+					app.finishTx();
+				}
 			}
 
 		}
@@ -211,15 +247,21 @@ public abstract class LinkedListNode<R extends AbstractListSiblings<T, T>, T ext
 		
 		final App app = StructrApp.getInstance(securityContext);
 		
-		app.beginTx();
-		
-		for (RelationshipInterface rel : startNode.getRelationships(linkType)) {
+		try {
+			app.beginTx();
 
-			if (rel != null && rel.getTargetNode().equals(endNode)) {
-				app.delete(rel);
+			for (RelationshipInterface rel : startNode.getRelationships(linkType)) {
+
+				if (rel != null && rel.getTargetNode().equals(endNode)) {
+					app.delete(rel);
+				}
 			}
+
+			app.commitTx();
+
+		} finally {
+
+			app.finishTx();
 		}
-		
-		app.commitTx();
 	}
 }

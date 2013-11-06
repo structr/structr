@@ -86,9 +86,15 @@ public class EnumPropertyTest extends StructrTest {
 			
 			assertNotNull(testEntity);
 
-			app.beginTx();
-			testEntity.setProperty(key, TestEnum.Status1);
-			app.commitTx();
+			try {
+				app.beginTx();
+				testEntity.setProperty(key, TestEnum.Status1);
+				app.commitTx();
+
+			} finally {
+
+				app.finishTx();
+			}
 			
 			// check value from database
 			assertEquals(TestEnum.Status1, testEntity.getProperty(key));

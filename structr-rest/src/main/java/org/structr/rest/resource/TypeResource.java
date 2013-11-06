@@ -186,11 +186,17 @@ public class TypeResource extends SortableResource {
 	@Override
 	public RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException {
 
-		final App app = StructrApp.getInstance(securityContext);
+		final App app         = StructrApp.getInstance(securityContext);
+		NodeInterface newNode = null;
 
-		app.beginTx();
-		final NodeInterface newNode = createNode(propertySet);
-		app.commitTx();
+		try {
+			app.beginTx();
+			newNode = createNode(propertySet);
+			app.commitTx();
+			
+		} finally {
+			app.finishTx();
+		}
 		
 		RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_CREATED);
 		if (newNode != null) {

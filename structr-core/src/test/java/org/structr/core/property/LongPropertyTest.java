@@ -49,9 +49,15 @@ public class LongPropertyTest extends StructrTest {
 			// store long in the test entitiy
 			final Long value = 2857312362L;
 
-			app.beginTx();
-			instance.setProperty(securityContext, testEntity, value);
-			app.commitTx();
+			try {
+				app.beginTx();
+				instance.setProperty(securityContext, testEntity, value);
+				app.commitTx();
+
+			} finally {
+
+				app.finishTx();
+			}
 
 			// check value from database
 			assertEquals(value, instance.getProperty(securityContext, testEntity, true));
@@ -107,10 +113,16 @@ public class LongPropertyTest extends StructrTest {
 			
 			assertNotNull(testEntity);
 
-			app.beginTx();
-			testEntity.setProperty(key, 2857312362L);
-			app.commitTx();
+			try {
+				app.beginTx();
+				testEntity.setProperty(key, 2857312362L);
+				app.commitTx();
 			
+			} finally {
+
+				app.finishTx();
+			}
+
 			// check value from database
 			assertEquals((Long)2857312362L, (Long)testEntity.getProperty(key));
 			
