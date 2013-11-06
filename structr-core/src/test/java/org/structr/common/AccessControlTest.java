@@ -390,7 +390,7 @@ public class AccessControlTest extends StructrTest {
 			int pageSize        = 2;
 			int page            = 1;
 			
-			Result result = publicApp.nodeQuery(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getResult();
+			Result result = publicapp.nodeQuery(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getResult();
 			
 			assertEquals(2, result.size());
 			assertEquals(4, (int) result.getRawResultCount());

@@ -25,12 +25,11 @@ import java.util.List;
 import org.structr.common.Permission;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import static org.structr.core.entity.Principal.password;
 import org.structr.core.entity.relationship.Parentship;
-import org.structr.core.graph.CreateRelationshipCommand;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 
@@ -85,7 +84,19 @@ public abstract class AbstractUser extends Person implements Principal {
 	}
 
 	private Security createSecurityRelationshipTo(final AbstractNode obj) throws FrameworkException {
-		return Services.command(SecurityContext.getSuperUserInstance(), CreateRelationshipCommand.class).execute(this, obj, Security.class);
+		
+		final App app = StructrApp.getInstance();
+		
+		try {
+			app.beginTx();
+			final Security rel = app.create(this, obj, Security.class);
+			app.commitTx();
+			
+			return rel;
+			
+		} finally {
+			app.finishTx();
+		}
 	}
 
 	//~--- get methods ----------------------------------------------------

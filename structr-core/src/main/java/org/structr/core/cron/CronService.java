@@ -18,7 +18,6 @@
  */
 package org.structr.core.cron;
 
-import java.text.SimpleDateFormat;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -30,6 +29,7 @@ import org.structr.core.RunnableService;
 import org.structr.core.Services;
 import org.structr.core.agent.ProcessTaskCommand;
 import org.structr.core.agent.Task;
+import org.structr.core.app.StructrApp;
 
 /**
  * A service that keeps track of registered tasks and runs
@@ -48,7 +48,7 @@ public class CronService extends Thread implements RunnableService {
 	public static final int      NUM_FIELDS        = 6;
 
 	private SecurityContext securityContext   = SecurityContext.getSuperUserInstance();
-	private LinkedList<CronEntry> cronEntries = new LinkedList<CronEntry>();
+	private LinkedList<CronEntry> cronEntries = new LinkedList<>();
 	private boolean doRun = false;
 
 	public CronService() {
@@ -82,7 +82,7 @@ public class CronService extends Thread implements RunnableService {
 						Task task = (Task)taskClass.newInstance();
 
 						logger.log(Level.FINE, "Starting task {0}", taskClassName);
-						Services.command(securityContext, ProcessTaskCommand.class).execute(task);
+						StructrApp.getInstance().processTasks(task);
 
 					} catch(Throwable t) {
 						logger.log(Level.WARNING, "Could not start task {0}: {1}", new Object[] { taskClassName, t.getMessage() } );

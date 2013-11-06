@@ -237,10 +237,17 @@ public abstract class LinkedListNode<R extends AbstractListSiblings<T, T>, T ext
 	
 	public <R extends Relation<T, T, ?, ?>> void linkNodes(final Class<R> linkType, final T startNode, final T endNode, final PropertyMap properties) throws FrameworkException {
 		
-		CreateRelationshipCommand cmd = Services.command(securityContext, CreateRelationshipCommand.class);
+		final App app = StructrApp.getInstance(securityContext);
 		
-		// do not check for duplicates here
-		cmd.execute(startNode, endNode, linkType, properties);
+		try {
+			app.beginTx();
+			app.create(startNode, endNode, linkType, properties);
+			app.commitTx();
+
+		} finally {
+
+			app.finishTx();
+		}
 	}
 	
 	private void unlinkNodes(final Class<R> linkType, final T startNode, final T endNode) throws FrameworkException {

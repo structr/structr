@@ -41,6 +41,8 @@ import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
 import org.structr.core.Result;
 import org.structr.core.Services;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.experimental.NodeExtender;
 import org.structr.core.graph.NodeService;
@@ -463,13 +465,9 @@ public class PropertyDefinition<T> extends AbstractNode implements PropertyKey<T
 		if (dynamicTypes.isEmpty()) {
 			
 			try {
-				SecurityContext securityContext = SecurityContext.getSuperUserInstance();
-
-				Result<PropertyDefinition> propertyDefinitions = Services.command(securityContext, SearchNodeCommand.class).execute(
-					Search.andExactType(PropertyDefinition.class)
-				);
-
-				for (PropertyDefinition def : propertyDefinitions.getResults()) {
+				final List<PropertyDefinition> propertyDefinitions = StructrApp.getInstance().nodeQuery(PropertyDefinition.class).getAsList();
+				for (PropertyDefinition def : propertyDefinitions) {
+					
 					getPropertyDefinitionsForKind(def.getProperty(PropertyDefinition.kind)).put(def.dbName(), def);
 				}
 
@@ -485,7 +483,7 @@ public class PropertyDefinition<T> extends AbstractNode implements PropertyKey<T
 		Map<String, PropertyDefinition> definitionsForKind = dynamicTypes.get(kind);
 		if (definitionsForKind == null) {
 			
-			definitionsForKind = new ConcurrentHashMap<String, PropertyDefinition>();
+			definitionsForKind = new ConcurrentHashMap<>();
 			dynamicTypes.put(kind, definitionsForKind);
 		}
 		

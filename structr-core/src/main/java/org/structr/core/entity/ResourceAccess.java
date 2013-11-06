@@ -37,8 +37,6 @@ import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.relationship.Access;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchNodeCommand;
@@ -224,40 +222,10 @@ public class ResourceAccess extends AbstractNode {
 		ResourceAccess grant = grantCache.get(signature);
 		if (grant == null) {
 
-			SecurityContext securityContext        = SecurityContext.getSuperUserInstance();
-			SearchNodeCommand search               = Services.command(securityContext, SearchNodeCommand.class);
-			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
-
-			searchAttributes.add(Search.andExactType(ResourceAccess.class));
-			searchAttributes.add(Search.andExactProperty(securityContext, ResourceAccess.signature, signature));
-
-			Result result = search.execute(searchAttributes);
-
-			if (result.isEmpty()) {
+			grant = StructrApp.getInstance().nodeQuery(ResourceAccess.class).and(ResourceAccess.signature, signature).getFirst();
+			if (grant == null) {
 
 				logger.log(Level.WARNING, "No resource access object found for {0}", signature);
-
-			} else {
-
-				final AbstractNode node = (AbstractNode) result.get(0);
-
-				if (node instanceof ResourceAccess) {
-
-					grant = (ResourceAccess) node;
-					
-					grantCache.put(signature, grant);
-
-				} else {
-
-					logger.log(Level.SEVERE, "Grant for URI {0} has wrong type!", new Object[] { signature, node.getClass().getName() });
-
-				}
-
-				if (result.size() > 1) {
-
-					logger.log(Level.SEVERE, "Found {0} grants for URI {1}!", new Object[] { result.size(), signature });
-
-				}
 			}
 		}
 		

@@ -73,7 +73,7 @@ public class CypherQueryConverter extends PropertyConverter {
 		
 		if (currentObject != null) {
 
-			Map<String, Object> parameters = new LinkedHashMap<String, Object>();
+			Map<String, Object> parameters = new LinkedHashMap<>();
 			String query                   = handler.getQuery();
 			String name                    = currentObject.getProperty(AbstractNode.name);
 			String uuid                    = currentObject.getProperty(AbstractNode.uuid);

@@ -56,10 +56,10 @@ public class AgentService extends Thread implements RunnableService {
 	//~--- fields ---------------------------------------------------------
 
 	private int maxAgents                               = 4;    // TODO: make configurable
-	private final Map<Class, List<Agent>> runningAgents = new ConcurrentHashMap<Class, List<Agent>>(10, 0.9f, 8);
-	private final Map<Class, Class> agentClassCache     = new ConcurrentHashMap<Class, Class>(10, 0.9f, 8);
+	private final Map<Class, List<Agent>> runningAgents = new ConcurrentHashMap<>(10, 0.9f, 8);
+	private final Map<Class, Class> agentClassCache     = new ConcurrentHashMap<>(10, 0.9f, 8);
+	private final Queue<Task> taskQueue                 = new ConcurrentLinkedQueue<>();
 	private Set<Class> supportedCommands                = null;
-	private final Queue<Task> taskQueue                 = new ConcurrentLinkedQueue<Task>();
 	private boolean run                                 = false;
 
 	//~--- constructors ---------------------------------------------------
@@ -67,7 +67,7 @@ public class AgentService extends Thread implements RunnableService {
 	public AgentService() {
 
 		super("AgentService");
-		supportedCommands = new LinkedHashSet<Class>();
+		supportedCommands = new LinkedHashSet<>();
 		supportedCommands.add(ProcessTaskCommand.class);
 	}
 

@@ -20,8 +20,11 @@
 package org.structr.core.app;
 
 import java.util.List;
+import java.util.Map;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.Command;
 import org.structr.core.GraphObject;
+import org.structr.core.agent.Task;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
@@ -57,4 +60,9 @@ public interface App {
 	public <T extends RelationshipInterface> Query<T> relationshipQuery(final Class<T> type);
 	
 	public void shutdown();
+	
+	public <T extends Command> T command(final Class<T> commandType);
+	
+	public void processTasks(final Task... tasks);
+	public List<GraphObject> cypher(final String cypherQuery, final Map<String, Object> parameters) throws FrameworkException;
 }

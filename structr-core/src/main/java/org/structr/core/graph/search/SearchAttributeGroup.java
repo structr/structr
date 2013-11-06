@@ -35,12 +35,23 @@ import org.structr.core.GraphObject;
  */
 public class SearchAttributeGroup extends SearchAttribute {
 
-	private List<SearchAttribute> searchItems = new LinkedList<SearchAttribute>();
+	private List<SearchAttribute> searchItems = new LinkedList<>();
+	private SearchAttributeGroup parent       = null;
 
 	public SearchAttributeGroup(final Occur occur) {
-		super(occur);
+		this(null, occur);
 	}
 
+	public SearchAttributeGroup(final SearchAttributeGroup parent, final Occur occur) {
+		
+		super(occur);
+		this.parent = parent;
+	}
+
+	public final SearchAttributeGroup getParent() {
+		return parent;
+	}
+	
 	public final void setSearchAttributes(final List<SearchAttribute> searchItems) {
 		this.searchItems = searchItems;
 	}

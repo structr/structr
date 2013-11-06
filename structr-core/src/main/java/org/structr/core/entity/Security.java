@@ -31,13 +31,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang.ArrayUtils;
 import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.Permission;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.common.PropertyView;
-import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
@@ -45,6 +43,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.property.StringProperty;
 import org.structr.core.EntityContext;
 import org.structr.core.Services;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.graph.DeleteRelationshipCommand;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.ArrayProperty;
@@ -222,14 +222,22 @@ public class Security extends ManyToMany<Principal, NodeInterface> {
 			setAllowed(newPermissions);
 			
 		} else {
+			
+			final App app = StructrApp.getInstance(securityContext);
 			try {
 				
-				// No permissions anymore, remove security relationship
-				Services.command(securityContext, DeleteRelationshipCommand.class).execute(this);
+				app.beginTx();
+				app.delete(this);
+				app.commitTx();
 				
 				
 			} catch (FrameworkException ex) {
+				
 				logger.log(Level.SEVERE, "Could not remove security relationship!", ex);
+				
+			} finally {
+				
+				app.finishTx();
 			}
 			
 		}

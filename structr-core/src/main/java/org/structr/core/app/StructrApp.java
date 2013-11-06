@@ -12,10 +12,13 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
+import org.structr.core.agent.ProcessTaskCommand;
+import org.structr.core.agent.Task;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.CreateRelationshipCommand;
+import org.structr.core.graph.CypherQueryCommand;
 import org.structr.core.graph.DeleteNodeCommand;
 import org.structr.core.graph.DeleteRelationshipCommand;
 import org.structr.core.graph.NodeAttribute;
@@ -136,7 +139,7 @@ public class StructrApp implements App {
 
 		final Class<? extends SearchCommand> searchType = SearchNodeCommand.class;
 
-		final Query<NodeInterface> query = new Query<>(securityContext, searchType);
+		final Query<NodeInterface> query = new StructrQuery<>(securityContext, searchType);
 		return query.uuid(uuid).getFirst();
 	}
 
@@ -145,7 +148,7 @@ public class StructrApp implements App {
 
 		final Class<? extends SearchCommand> searchType = SearchNodeCommand.class;
 
-		final Query<T> query = new Query<>(securityContext, searchType);
+		final Query<T> query = new StructrQuery<>(securityContext, searchType);
 		return query.type(type).getFirst();
 	}
 	
@@ -154,15 +157,15 @@ public class StructrApp implements App {
 
 		final Class<? extends SearchCommand> searchType = SearchNodeCommand.class;
 		
-		final Query<T> query = new Query<>(securityContext, searchType);
+		final Query<T> query = new StructrQuery<>(securityContext, searchType);
 		return query.type(type).getAsList();
 	}
 	
 	@Override
 	public <T extends NodeInterface> Query<T> nodeQuery(final Class<T> type) {
 
-		Query<T> query = new Query<>(securityContext, SearchNodeCommand.class);
-		query.type(type);
+		Query<T> query = new StructrQuery<>(securityContext, SearchNodeCommand.class);
+		query.types(type);
 		
 		return query;
 	}
@@ -170,8 +173,8 @@ public class StructrApp implements App {
 	@Override
 	public <T extends RelationshipInterface> Query<T> relationshipQuery(final Class<T> type) {
 
-		Query<T> query = new Query<>(securityContext, SearchRelationshipCommand.class);
-		query.type(type);
+		Query<T> query = new StructrQuery<>(securityContext, SearchRelationshipCommand.class);
+		query.types(type);
 		
 		return query;
 	}
@@ -195,6 +198,30 @@ public class StructrApp implements App {
 	public void shutdown() {
 		Services.shutdown();
 	}
+
+	@Override
+	public <T extends Command> T command(Class<T> commandType) {
+		
+		Command command = commandCache.get(commandType);
+		if (command == null) {
+			
+			command = Services.command(securityContext, commandType);
+			commandCache.put(commandType, command);
+		}
+		
+		return (T)command;
+	}
+
+	@Override
+	public void processTasks(Task... tasks) {
+		Services.command(securityContext, ProcessTaskCommand.class).execute(tasks);
+	}
+	
+	@Override
+	public List<GraphObject> cypher(final String cypherQuery, final Map<String, Object> parameters) throws FrameworkException {
+		return Services.command(securityContext, CypherQueryCommand.class).execute(cypherQuery, parameters);
+	}
+	
 	
 	// ----- public static methods ----
 	/**
@@ -209,7 +236,6 @@ public class StructrApp implements App {
 		return new StructrApp(SecurityContext.getSuperUserInstance());
 	}
 	
-	// ----- public static methods ----
 	/**
 	 * Constructs a new stateful App instance, initialized with the given
 	 * security context.
@@ -220,18 +246,5 @@ public class StructrApp implements App {
 	 */
 	public static App getInstance(final SecurityContext securityContext) {
 		return new StructrApp(securityContext);
-	}
-	
-	// ----- private methods -----
-	private <T extends Command> T command(Class<T> commandType) {
-		
-		Command command = commandCache.get(commandType);
-		if (command == null) {
-			
-			command = Services.command(securityContext, commandType);
-			commandCache.put(commandType, command);
-		}
-		
-		return (T)command;
 	}
 }

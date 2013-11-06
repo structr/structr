@@ -22,7 +22,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.FindNodeCommand;
 
@@ -51,7 +51,7 @@ public class PathHelper {
 
 	public AbstractNode find(String path) {
 
-		FindNodeCommand findNodeCommand = Services.command(securityContext, FindNodeCommand.class);
+		FindNodeCommand findNodeCommand = StructrApp.getInstance(securityContext).command(FindNodeCommand.class);
 		AbstractNode node               = null;
 
 		try {
