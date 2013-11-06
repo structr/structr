@@ -402,14 +402,14 @@ public abstract class AbstractRelationProperty<T> extends Property<T> {
 			Class otherClass = otherNode.getClass();
 			boolean removeRel = targetType.isAssignableFrom(otherClass) || (!isGeneric && newRelationshipClass.isAssignableFrom(relationshipClass));
 			
-			if (!removeRel) {
-				
-				// Check interfaces
-				for (Class iface : EntityContext.getInterfacesForType(targetType)) {
-
-					removeRel |= iface.isAssignableFrom(otherClass);
-				}
-			}
+//			if (!removeRel) {
+//				
+//				// Check interfaces
+//				for (Class iface : EntityContext.getInterfacesForType(targetType)) {
+//
+//					removeRel |= iface.isAssignableFrom(otherClass);
+//				}
+//			}
 			
 			if (removeRel) {
 
@@ -439,14 +439,14 @@ public abstract class AbstractRelationProperty<T> extends Property<T> {
 			Class otherClass = otherNode.getClass();
 			boolean removeRel = sourceType.isAssignableFrom(otherClass) || (!isGeneric && newRelationshipClass.isAssignableFrom(relationshipClass));
 			
-			if (!removeRel) {
-				
-				// Check interfaces
-				for (Class iface : EntityContext.getInterfacesForType(sourceType)) {
-
-					removeRel |= iface.isAssignableFrom(otherClass);
-				}
-			}
+//			if (!removeRel) {
+//				
+//				// Check interfaces
+//				for (Class iface : EntityContext.getInterfacesForType(sourceType)) {
+//
+//					removeRel |= iface.isAssignableFrom(otherClass);
+//				}
+//			}
 			
 			if (removeRel) {
 
