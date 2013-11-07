@@ -21,7 +21,6 @@
 package org.structr.core.graph;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Relation;
@@ -35,14 +34,13 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.error.ErrorBuffer;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 
 //~--- classes ----------------------------------------------------------------
 
 /**
  * Deletes a node.
- *
- * @param node the node, a Long nodeId or a String nodeId
- * @return null
  *
  * @author Axel Morgner
  */
@@ -74,8 +72,8 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 		deletedNodes.add(node);
 		
-		final DeleteRelationshipCommand deleteRel     = Services.command(securityContext, DeleteRelationshipCommand.class);
-
+		App app = StructrApp.getInstance(securityContext);
+		
 		try {
 
 			List<NodeInterface> nodesToCheckAfterDeletion = new LinkedList<>();
@@ -128,7 +126,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 			// Delete any relationship (this is PASSIVE DELETION)
 			for (AbstractRelationship r : node.getRelationships()) {
 
-				deleteRel.execute(r, true);
+				app.delete(r);
 			}
 
 			// remove node from index

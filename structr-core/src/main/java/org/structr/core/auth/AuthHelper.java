@@ -22,30 +22,17 @@ package org.structr.core.auth;
 
 import org.apache.commons.codec.digest.DigestUtils;
 
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
-import org.structr.core.graph.search.Search;
-import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.SearchNodeCommand;
-
-//~--- JDK imports ------------------------------------------------------------
-
-import java.util.LinkedList;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang.StringUtils;
-import org.apache.lucene.search.BooleanClause.Occur;
-import org.structr.core.Result;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.search.SearchAttributeGroup;
 import org.structr.core.property.PropertyKey;
 
 //~--- classes ----------------------------------------------------------------
@@ -109,7 +96,7 @@ public class AuthHelper {
 
 			try {
 				
-				principal = StructrApp.getInstance().nodeQuery(Principal.class).and().orName(value).or(key, value).getFirst();
+				principal = StructrApp.getInstance().nodeQuery(Principal.class).and(key, value).getFirst();
 				
 				if (principal == null) {
 

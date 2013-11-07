@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.Services;
+import org.structr.core.app.StructrApp;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -51,8 +52,6 @@ public class BulkDeleteSoftDeletedNodesCommand extends NodeServiceCommand implem
 		final GraphDatabaseService graphDb     = (GraphDatabaseService) arguments.get("graphDb");
 		final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
 		final NodeFactory nodeFactory          = new NodeFactory(superUserContext, true, false);
-		
-		final DeleteNodeCommand deleteNode     = Services.command(SecurityContext.getSuperUserInstance(), DeleteNodeCommand.class);
 		
 		if (graphDb != null) {
 
@@ -77,7 +76,7 @@ public class BulkDeleteSoftDeletedNodesCommand extends NodeServiceCommand implem
 						if (erase) {
 						
 							try {
-								deleteNode.execute(node);
+								StructrApp.getInstance(securityContext).delete(node);
 								
 							} catch (FrameworkException ex) {
 								logger.log(Level.WARNING, "Could not delete node " + node, ex);

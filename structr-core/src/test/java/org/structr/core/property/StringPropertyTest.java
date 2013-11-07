@@ -83,11 +83,7 @@ public class StringPropertyTest extends StructrTest {
 			// check value from database
 			assertEquals("test", testEntity.getProperty(key));
 			
-			
-			Result<TestFour> result = Services.command(securityContext, SearchNodeCommand.class).execute(
-				Search.andExactType(TestFour.class),
-				Search.andExactProperty(securityContext, key, "test")
-			);
+			Result<TestFour> result = app.nodeQuery(TestFour.class).and(key, "test").getResult();
 			
 			assertEquals(result.size(), 1);
 			assertEquals(result.get(0), testEntity);
@@ -126,10 +122,7 @@ public class StringPropertyTest extends StructrTest {
 			// check value from database
 			assertEquals("test", testEntity.getProperty(key));
 			
-			Result<TestFour> result = Services.command(securityContext, SearchRelationshipCommand.class).execute(
-				Search.andExactRelType(OneFourOneToOne.class),
-				Search.andExactProperty(securityContext, key, "test")
-			);
+			Result<OneFourOneToOne> result = app.relationshipQuery(OneFourOneToOne.class).and(key, "test").getResult();
 			
 			assertEquals(result.size(), 1);
 			assertEquals(result.get(0), testEntity);

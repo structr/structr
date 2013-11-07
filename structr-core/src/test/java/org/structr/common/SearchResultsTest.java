@@ -97,7 +97,7 @@ public class SearchResultsTest extends StructrTest {
 
 			final AbstractNode node = createTestNode(TestOne.class, props);
 
-			Result result = app.nodeQuery(TestOne.class).name(name).includeDeletedAndHidden().getResult();
+			Result result = app.nodeQuery(TestOne.class).andName(name).includeDeletedAndHidden().getResult();
 
 			assertTrue(result.size() == 1);
 			assertTrue(result.get(0).equals(node));
@@ -115,7 +115,7 @@ public class SearchResultsTest extends StructrTest {
 				app.finishTx();
 			}
 
-			result = app.nodeQuery(TestOne.class).name(name2).includeDeletedAndHidden().getResult();
+			result = app.nodeQuery(TestOne.class).andName(name2).includeDeletedAndHidden().getResult();
 
 			assertTrue(result.size() == 1);
 			assertTrue(result.get(0).equals(node));
@@ -314,7 +314,7 @@ public class SearchResultsTest extends StructrTest {
 
 			final AbstractNode node = createTestNode(TestOne.class, props);
 
-			Result result = app.nodeQuery(TestOne.class).name(name).includeDeletedAndHidden().getResult();
+			Result result = app.nodeQuery(TestOne.class).andName(name).includeDeletedAndHidden().getResult();
 
 			assertTrue(result.size() == 1);
 			assertTrue(result.get(0).equals(node));
@@ -340,7 +340,7 @@ public class SearchResultsTest extends StructrTest {
 
 			final AbstractNode node = createTestNode(TestOne.class, props);
 
-			Result result = app.nodeQuery(TestOne.class).name(name).includeDeletedAndHidden().getResult();
+			Result result = app.nodeQuery(TestOne.class).andName(name).includeDeletedAndHidden().getResult();
 
 			assertTrue(result.size() == 1);
 			assertTrue(result.get(0).equals(node));
@@ -365,7 +365,7 @@ public class SearchResultsTest extends StructrTest {
 
 			createTestNode(TestOne.class, props);
 
-			Result result = app.nodeQuery(TestOne.class).name(null).includeDeletedAndHidden().getResult();
+			Result result = app.nodeQuery(TestOne.class).andName(null).includeDeletedAndHidden().getResult();
 
 			assertTrue(result.isEmpty());
 

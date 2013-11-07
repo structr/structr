@@ -24,10 +24,8 @@ import javax.servlet.http.HttpServletRequest;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Command;
-import org.structr.core.Services;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.GetNodeByIdCommand;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;
 
@@ -54,17 +52,16 @@ public class EntityResolverResource extends SortableResource {
 		// TODO: fetch nodes with superuser security context, collect forbidden nodes and return 
 		//       in error response
 		
-		GetNodeByIdCommand searchCommand = Services.command(securityContext, GetNodeByIdCommand.class);
 		RestMethodResult result = new RestMethodResult(200);
 
-		for(Object o : propertySet.values()) {
+		for (Object o : propertySet.values()) {
 			
-			if(o instanceof String) {
+			if (o instanceof String) {
 				
 				String id = (String)o;
 				
-				AbstractNode node = (AbstractNode)searchCommand.execute(id);
-				if(node != null) {
+				AbstractNode node = (AbstractNode) StructrApp.getInstance().get(id);
+				if (node != null) {
 					result.addContent(node);
 				}
 			}

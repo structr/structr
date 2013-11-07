@@ -5,10 +5,12 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
 
 /**
  *
  * @author Christian Morgner
+ * @param <T>
  */
 public interface Query<T extends GraphObject> {
 
@@ -30,6 +32,7 @@ public interface Query<T extends GraphObject> {
 	public Query<T> uuid(final String uuid);
 	public Query<T> type(final Class<T> type);
 	public Query<T> types(final Class<T> type);
+	public Query<T> types(final Class<T> type, final boolean inexact);
 	
 	public Query<T> andName(final String name);
 	public Query<T> orName(final String name);
@@ -37,9 +40,12 @@ public interface Query<T extends GraphObject> {
 	public Query<T> location(final String street, final String postalCode, final String city, final String country, final double distance);
 	public Query<T> location(final String street, final String postalCode, final String city, final String state, final String country, final double distance);
 	public Query<T> location(final String street, final String house, final String postalCode, final String city, final String state, final String country, final double distance);
-	public <P> Query<T> and(final PropertyKey<P> key, P value);
+	public <P> Query<T> and(final PropertyKey<P> key, final P value);
+	public <P> Query<T> and(final PropertyKey<P> key, final P value, final boolean inexact);
+	public <P> Query<T> and(final PropertyMap attributes);
 	public Query<T> and();
 	public <P> Query<T> or(final PropertyKey<P> key, P value);
+	public <P> Query<T> or(final PropertyMap attributes);
 	public Query<T> or();
 	public Query<T> not();
 	

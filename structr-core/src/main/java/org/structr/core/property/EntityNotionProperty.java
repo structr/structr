@@ -20,7 +20,6 @@ package org.structr.core.property;
 
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -29,16 +28,15 @@ import org.apache.lucene.search.BooleanClause.Occur;
 import static org.apache.lucene.search.BooleanClause.Occur.MUST;
 import static org.apache.lucene.search.BooleanClause.Occur.MUST_NOT;
 import static org.apache.lucene.search.BooleanClause.Occur.SHOULD;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
 import org.structr.core.Services;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeService;
 import org.structr.core.graph.search.EmptySearchAttribute;
@@ -187,13 +185,11 @@ public class EntityNotionProperty<S extends NodeInterface, T> extends Property<T
 
 			if (searchValue != null && !StringUtils.isBlank(searchValue.toString())) {
 
+				final App app = StructrApp.getInstance(securityContext);
+				
 				if (exactMatch) {
 					
-					Result<AbstractNode> result = Services.command(securityContext, SearchNodeCommand.class).execute(
-
-						Search.andExactTypeAndSubtypes(entityProperty.relatedType(), exactMatch),
-						Search.andExactProperty(securityContext, notion.getPrimaryPropertyKey(), searchValue)
-					);
+					Result<AbstractNode> result = app.nodeQuery(entityProperty.relatedType()).and(notion.getPrimaryPropertyKey(), searchValue).getResult();
 
 					for (AbstractNode node : result.getResults()) {
 
@@ -226,12 +222,8 @@ public class EntityNotionProperty<S extends NodeInterface, T> extends Property<T
 					}
 					
 				} else {
-					
-					Result<AbstractNode> result = Services.command(securityContext, SearchNodeCommand.class).execute(
 
-						Search.andExactTypeAndSubtypes(entityProperty.relatedType(), exactMatch),
-						Search.andProperty(securityContext, notion.getPrimaryPropertyKey(), searchValue)
-					);
+					Result<AbstractNode> result = app.nodeQuery(entityProperty.relatedType(), true).and(notion.getPrimaryPropertyKey(), searchValue, true).getResult();
 					
 					// loose search behaves differently, all results must be combined
 					for (AbstractNode node : result.getResults()) {

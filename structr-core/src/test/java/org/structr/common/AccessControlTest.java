@@ -98,10 +98,8 @@ public class AccessControlTest extends StructrTest {
 			TestOne t1 = createTestNode(TestOne.class, user);
 			
 			SecurityContext publicContext = SecurityContext.getInstance(null, AccessMode.Frontend);
-			List<SearchAttribute> searchAttributes = new LinkedList<>();
-			searchAttributes.add(Search.andExactTypeAndSubtypes(type));
 
-			Result result = Services.command(publicContext, SearchNodeCommand.class).execute(searchAttributes);
+			Result result = StructrApp.getInstance(publicContext).nodeQuery(type).getResult();
 
 			// Node should not be visible in public context (no user logged in)
 			assertTrue(result.isEmpty());
@@ -132,10 +130,8 @@ public class AccessControlTest extends StructrTest {
 			TestOne t2 = createTestNode(TestOne.class, user);
 			
 			SecurityContext publicContext = SecurityContext.getInstance(null, AccessMode.Frontend);
-			List<SearchAttribute> searchAttributes = new LinkedList<>();
-			searchAttributes.add(Search.andExactTypeAndSubtypes(type));
 
-			Result result = Services.command(publicContext, SearchNodeCommand.class).execute(searchAttributes);
+			Result result = StructrApp.getInstance(publicContext).nodeQuery(type).getResult();
 			
 			assertEquals(1, result.size());
 			assertEquals(t1.getUuid(), result.get(0).getUuid());
@@ -169,10 +165,8 @@ public class AccessControlTest extends StructrTest {
 			TestOne t2 = createTestNode(TestOne.class, props, user);
 			
 			SecurityContext publicContext = SecurityContext.getInstance(null, AccessMode.Frontend);
-			List<SearchAttribute> searchAttributes = new LinkedList<>();
-			searchAttributes.add(Search.andExactTypeAndSubtypes(type));
 
-			Result result = Services.command(publicContext, SearchNodeCommand.class).execute(searchAttributes);
+			Result result = StructrApp.getInstance(publicContext).nodeQuery(type).getResult();
 			
 			assertEquals(1, result.size());
 			assertEquals(t1.getUuid(), result.get(0).getUuid());
@@ -208,10 +202,8 @@ public class AccessControlTest extends StructrTest {
 			
 			// Let another user search
 			SecurityContext user2Context = SecurityContext.getInstance(user2, AccessMode.Backend);
-			List<SearchAttribute> searchAttributes = new LinkedList<>();
-			searchAttributes.add(Search.andExactTypeAndSubtypes(type));
 
-			Result result = Services.command(user2Context, SearchNodeCommand.class).execute(searchAttributes);
+			Result result = StructrApp.getInstance(user2Context).nodeQuery(type).getResult();
 			
 			assertEquals(2, result.size());
 
@@ -246,10 +238,8 @@ public class AccessControlTest extends StructrTest {
 			
 			// Let another user search
 			SecurityContext user2Context = SecurityContext.getInstance(user2, AccessMode.Frontend);
-			List<SearchAttribute> searchAttributes = new LinkedList<>();
-			searchAttributes.add(Search.andExactTypeAndSubtypes(type));
 
-			Result result = Services.command(user2Context, SearchNodeCommand.class).execute(searchAttributes);
+			Result result = StructrApp.getInstance(user2Context).nodeQuery(type).getResult();
 			
 			assertEquals(2, result.size());
 
@@ -287,10 +277,8 @@ public class AccessControlTest extends StructrTest {
 			
 			// Let user 2 search
 			SecurityContext user2Context = SecurityContext.getInstance(user2, AccessMode.Backend);
-			List<SearchAttribute> searchAttributes = new LinkedList<>();
-			searchAttributes.add(Search.andExactTypeAndSubtypes(type));
 
-			Result result = Services.command(user2Context, SearchNodeCommand.class).execute(searchAttributes);
+			Result result = StructrApp.getInstance(user2Context).nodeQuery(type).getResult();
 			
 			assertEquals(1, result.size());
 			assertEquals(t1.getUuid(), result.get(0).getUuid());
@@ -306,7 +294,7 @@ public class AccessControlTest extends StructrTest {
 				app.finishTx();
 			}
 			
-			result = Services.command(user2Context, SearchNodeCommand.class).execute(searchAttributes);
+			result = StructrApp.getInstance(user2Context).nodeQuery(type).getResult();
 			
 			assertTrue(result.isEmpty());
 
@@ -340,10 +328,8 @@ public class AccessControlTest extends StructrTest {
 			}
 
 			SecurityContext publicContext = SecurityContext.getInstance(null, AccessMode.Frontend);
-			List<SearchAttribute> searchAttributes = new LinkedList<>();
-			searchAttributes.add(Search.andExactTypeAndSubtypes(type));
 
-			Result result = Services.command(publicContext, SearchNodeCommand.class).execute(searchAttributes);
+			Result result = StructrApp.getInstance(publicContext).nodeQuery(type).getResult();
 			
 			assertEquals(3, result.size());
 			assertEquals(3, (int) result.getRawResultCount());
@@ -383,14 +369,13 @@ public class AccessControlTest extends StructrTest {
 			}
 
 			SecurityContext publicContext = SecurityContext.getInstance(null, AccessMode.Frontend);
-			App publicApp                 = StructrApp.getInstance(publicContext);
 
 			PropertyKey sortKey = AbstractNode.name;
 			boolean sortDesc    = false;
 			int pageSize        = 2;
 			int page            = 1;
 			
-			Result result = publicapp.nodeQuery(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getResult();
+			Result result = StructrApp.getInstance(publicContext).nodeQuery(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getResult();
 			
 			assertEquals(2, result.size());
 			assertEquals(4, (int) result.getRawResultCount());

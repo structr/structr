@@ -69,10 +69,7 @@ import org.structr.core.Value;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.CypherQueryCommand;
-import org.structr.core.graph.GetNodeByIdCommand;
 import org.structr.core.graph.NodeFactory;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.core.notion.PropertyNotion;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.EndNodes;
@@ -1265,7 +1262,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 				String nodeId = securityContext.getRequest().getParameter(parameterName);
 				if (nodeId != null) {
 					
-					AbstractNode node = Services.command(securityContext, GetNodeByIdCommand.class).execute(nodeId);
+					AbstractNode node = (AbstractNode) StructrApp.getInstance(securityContext).get(nodeId);
 					
 					if (node != null) {
 	

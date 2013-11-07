@@ -77,10 +77,12 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> implements De
 	@Override
 	public T deserialize(final SecurityContext securityContext, final Class<T> type, final S source) throws FrameworkException {
 
+		final App app = StructrApp.getInstance(securityContext);
+
 		if (source != null) {
 
-			List<SearchAttribute> attrs = new LinkedList<>();
-
+			Result<T> results = Result.EMPTY_RESULT;
+			
 			if (source instanceof JsonInput) {
 
 				JsonInput properties = (JsonInput) source;
@@ -89,18 +91,13 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> implements De
 				// If property map contains the uuid, search only for uuid
 				if (map.containsKey(GraphObject.uuid)) {
 				
-					attrs.add(Search.andExactUuid(map.get(GraphObject.uuid)));
+					return (T) app.get(map.get(GraphObject.uuid));
 
 					
-				} else { // FIXME: Better throw an exception here instead of searching for all properties
-
-				
-					for (Entry<PropertyKey, Object> entry : map.entrySet()) {
-
-						attrs.add(Search.andExactProperty(securityContext, entry.getKey(), entry.getValue().toString()));
-
-					}
-				
+				} else {
+					
+					throw new FrameworkException(type.getSimpleName(), new IdNotFoundToken(source));
+					
 				}
 
 			} else if (source instanceof GraphObject) {
@@ -108,24 +105,25 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> implements De
 				GraphObject obj = (GraphObject)source;
 				if (propertyKey != null) {
 					
-					attrs.add(Search.andExactProperty(securityContext, propertyKey, obj.getProperty(propertyKey)));
+					results = (Result<T>) app.nodeQuery(NodeInterface.class).and(propertyKey, obj.getProperty(propertyKey)).getResult();
+					
 					
 				} else {
 					
 					// fetch property key for "uuid", may be different for AbstractNode and AbstractRelationship!
 					PropertyKey<String> idProperty = EntityContext.getPropertyKeyForDatabaseName(obj.getClass(), AbstractNode.uuid.dbName());
-					attrs.add(Search.andExactUuid(obj.getProperty(idProperty)));
+					
+					return (T) app.get(obj.getProperty(idProperty));
 					
 				}
 				
 				
 			} else {
 
-				attrs.add(Search.andExactUuid(source.toString()));
+				return (T) app.get(source.toString());
 
 			}
 
-			Result<T> results = Services.command(securityContext, SearchNodeCommand.class).execute(attrs);
 			int size       = results.size();
 
 			switch (size) {
@@ -142,8 +140,6 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> implements De
 			}
 
 		} else if (createIfNotExisting) {
-
-			final App app = StructrApp.getInstance(securityContext);
 
 			try {
 				

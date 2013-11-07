@@ -35,6 +35,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
 import org.structr.core.Services;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
@@ -228,13 +230,12 @@ public class CollectionNotionProperty<S extends NodeInterface, T> extends Proper
 						allBlank = false;
 					}
 					
+					final App app = StructrApp.getInstance(securityContext);
+
+					
 					if (exactMatch) {
 					
-						Result<AbstractNode> result = Services.command(securityContext, SearchNodeCommand.class).execute(
-
-							Search.andExactTypeAndSubtypes(collectionProperty.relatedType(), exactMatch),
-							Search.andExactProperty(securityContext, notion.getPrimaryPropertyKey(), searchValue)
-						);
+						Result<AbstractNode> result = app.nodeQuery(collectionProperty.relatedType()).and(notion.getPrimaryPropertyKey(), searchValue).getResult();
 
 						for (AbstractNode node : result.getResults()) {
 
@@ -268,11 +269,7 @@ public class CollectionNotionProperty<S extends NodeInterface, T> extends Proper
 						
 					} else {
 
-						Result<AbstractNode> result = Services.command(securityContext, SearchNodeCommand.class).execute(
-
-							Search.andExactTypeAndSubtypes(collectionProperty.relatedType(), exactMatch),
-							Search.andProperty(securityContext, notion.getPrimaryPropertyKey(), searchValue)
-						);
+						Result<AbstractNode> result = app.nodeQuery(collectionProperty.relatedType(), true).and(notion.getPrimaryPropertyKey(), searchValue, true).getResult();
 
 						// loose search behaves differently, all results must be combined
 						for (AbstractNode node : result.getResults()) {

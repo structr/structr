@@ -28,7 +28,8 @@ import org.structr.core.graph.NodeInterface;
  * object.
  *
  * @author Christian Morgner
+ * @param <T>
  */
 public interface DeserializationStrategy<S, T extends NodeInterface> {
-	public T deserialize(SecurityContext securityContext, Class<T> type, S source) throws FrameworkException;
+	public T deserialize(final SecurityContext securityContext, Class<T> type, S source) throws FrameworkException;
 }

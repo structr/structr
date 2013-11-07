@@ -33,7 +33,6 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.CreateRelationshipCommand;
 import org.structr.core.graph.DeleteNodeCommand;
-import org.structr.core.graph.FindNodeCommand;
 import org.structr.core.graph.GraphDatabaseCommand;
 import org.structr.core.graph.TransactionCommand;
 
@@ -89,7 +88,6 @@ public class StructrRestTest extends TestCase {
 	protected CreateNodeCommand createNodeCommand;
 	protected CreateRelationshipCommand createRelationshipCommand;
 	protected DeleteNodeCommand deleteNodeCommand;
-	protected FindNodeCommand findNodeCommand;
 	protected GraphDatabaseCommand graphDbCommand;
 	protected SecurityContext securityContext;
 	protected TransactionCommand transactionCommand;
@@ -448,7 +446,6 @@ public class StructrRestTest extends TestCase {
 		deleteNodeCommand         = Services.command(securityContext, DeleteNodeCommand.class);
 		transactionCommand        = Services.command(securityContext, TransactionCommand.class);
 		graphDbCommand            = Services.command(securityContext, GraphDatabaseCommand.class);
-		findNodeCommand           = Services.command(securityContext, FindNodeCommand.class);
 
 	}
 

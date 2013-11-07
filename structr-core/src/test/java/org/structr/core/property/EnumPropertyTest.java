@@ -56,14 +56,10 @@ public class EnumPropertyTest extends StructrTest {
 			// check value from database
 			assertEquals(TestEnum.Status1, testEntity.getProperty(key));
 			
+			Result<TestFour> result = app.nodeQuery(TestFour.class).and(key, TestEnum.Status1).getResult();
 			
-			Result<TestFour> result = Services.command(securityContext, SearchNodeCommand.class).execute(
-				Search.andExactType(TestFour.class),
-				Search.andExactProperty(securityContext, key, TestEnum.Status1)
-			);
-			
-			assertEquals(result.size(), 1);
-			assertEquals(result.get(0), testEntity);
+			assertEquals(1, result.size());
+			assertEquals(testEntity, result.get(0));
 		
 		} catch (FrameworkException fex) {
 			
@@ -99,13 +95,10 @@ public class EnumPropertyTest extends StructrTest {
 			// check value from database
 			assertEquals(TestEnum.Status1, testEntity.getProperty(key));
 			
-			Result<TestFour> result = Services.command(securityContext, SearchRelationshipCommand.class).execute(
-				Search.andExactRelType(OneFourOneToOne.class),
-				Search.andExactProperty(securityContext, key, TestEnum.Status1)
-			);
+			Result<OneFourOneToOne> result = app.relationshipQuery(OneFourOneToOne.class).and(key, TestEnum.Status1).getResult();
 			
-			assertEquals(result.size(), 1);
-			assertEquals(result.get(0), testEntity);
+			assertEquals(1, result.size());
+			assertEquals(testEntity, result.get(0));
 		
 		} catch (FrameworkException fex) {
 			

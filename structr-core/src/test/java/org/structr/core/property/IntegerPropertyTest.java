@@ -83,14 +83,10 @@ public class IntegerPropertyTest extends StructrTest {
 			// check value from database
 			assertEquals((Integer)2345, (Integer)testEntity.getProperty(key));
 			
+			Result<TestFour> result = app.nodeQuery(TestFour.class).and(key, 2345).getResult();
 			
-			Result<TestFour> result = Services.command(securityContext, SearchNodeCommand.class).execute(
-				Search.andExactType(TestFour.class),
-				Search.andExactProperty(securityContext, key, 2345)
-			);
-			
-			assertEquals(result.size(), 1);
-			assertEquals(result.get(0), testEntity);
+			assertEquals(1, result.size());
+			assertEquals(testEntity, result.get(0));
 		
 		} catch (FrameworkException fex) {
 			
@@ -126,13 +122,10 @@ public class IntegerPropertyTest extends StructrTest {
 			// check value from database
 			assertEquals((Integer)2345, (Integer)testEntity.getProperty(key));
 			
-			Result<TestFour> result = Services.command(securityContext, SearchRelationshipCommand.class).execute(
-				Search.andExactRelType(OneFourOneToOne.class),
-				Search.andExactProperty(securityContext, key, 2345)
-			);
+			Result<OneFourOneToOne> result = app.relationshipQuery(OneFourOneToOne.class).and(key, 2345).getResult();
 			
-			assertEquals(result.size(), 1);
-			assertEquals(result.get(0), testEntity);
+			assertEquals(1, result.size());
+			assertEquals(testEntity, result.get(0));
 		
 		} catch (FrameworkException fex) {
 			

@@ -37,6 +37,8 @@ import java.util.Date;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
 import org.structr.common.Permission;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Security;
 import org.structr.core.entity.relationship.Ownership;
 import org.structr.core.property.PropertyKey;
@@ -84,7 +86,6 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 
 		if (graphDb != null) {
 
-			CreateRelationshipCommand createRel = Services.command(securityContext, CreateRelationshipCommand.class);
 			Date now                            = new Date();
 
 			// Determine node type
@@ -104,9 +105,12 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 
 					// Create new relationship to user and grant permissions to user or group
 					AbstractNode owner = (AbstractNode)user;
-					createRel.execute(owner, node, Ownership.class);
+
+					App app = StructrApp.getInstance(securityContext);
 					
-					Security securityRel = createRel.execute(owner, node, Security.class);
+					app.create(owner, node, Ownership.class);
+					
+					Security securityRel = app.create(owner, node, Security.class);
 					securityRel.setAllowed(Permission.values());
 
 					node.unlockReadOnlyPropertiesOnce();

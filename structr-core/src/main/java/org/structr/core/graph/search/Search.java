@@ -44,7 +44,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.structr.core.Result;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Relation;
+import org.structr.core.graph.NodeInterface;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -99,7 +101,7 @@ public abstract class Search {
 
 	//~--- methods --------------------------------------------------------
 
-	private static List<SearchAttribute> getExactTypeAndSubtypesInternal(final Class type, final boolean isExactMatch) {
+	private static List<SearchAttribute> getTypeAndSubtypesInternal(final Class type, final boolean isExactMatch) {
 
 		List<SearchAttribute> attrs = new LinkedList<>();
 
@@ -116,7 +118,7 @@ public abstract class Search {
 
 				for (Class clazz : classesForInterface) {
 
-					attrs.addAll(getExactTypeAndSubtypesInternal(clazz, isExactMatch));
+					attrs.addAll(getTypeAndSubtypesInternal(clazz, isExactMatch));
 				}
 
 			}
@@ -130,7 +132,7 @@ public abstract class Search {
 
 			if (type.isAssignableFrom(entityClass)) {
 
-				attrs.add(Search.orExactType(entityClass, isExactMatch));
+				attrs.add(Search.orType(entityClass, isExactMatch));
 			}
 		}
 
@@ -139,13 +141,13 @@ public abstract class Search {
 	}
 
 	public static SearchAttributeGroup andExactTypeAndSubtypes(final Class type) {
-		return andExactTypeAndSubtypes(type, true);
+		return andTypeAndSubtypes(type, true);
 	}
 	
-	public static SearchAttributeGroup andExactTypeAndSubtypes(final Class type, final boolean isExactMatch) {
+	public static SearchAttributeGroup andTypeAndSubtypes(final Class type, final boolean isExactMatch) {
 
 		SearchAttributeGroup attrs          = new SearchAttributeGroup(Occur.MUST);
-		List<SearchAttribute> attrsInternal = getExactTypeAndSubtypesInternal(type, isExactMatch);
+		List<SearchAttribute> attrsInternal = getTypeAndSubtypesInternal(type, isExactMatch);
 
 		for (SearchAttribute attr : attrsInternal) {
 
@@ -159,7 +161,7 @@ public abstract class Search {
 	public static SearchAttributeGroup orExactTypeAndSubtypes(final Class type) {
 
 		SearchAttributeGroup attrs          = new SearchAttributeGroup(Occur.SHOULD);
-		List<SearchAttribute> attrsInternal = getExactTypeAndSubtypesInternal(type, true);
+		List<SearchAttribute> attrsInternal = getTypeAndSubtypesInternal(type, true);
 
 		for (SearchAttribute attr : attrsInternal) {
 
@@ -183,18 +185,18 @@ public abstract class Search {
 	}
 
 	public static SearchAttribute<String> orExactType(final Class type) {
-		return orExactType(type, true);
+		return orType(type, false);
 	}
 	
-	public static SearchAttribute<String> orExactType(final Class type, boolean isExactMatch) {
+	public static SearchAttribute<String> orType(final Class type, boolean isExactMatch) {
 		return new TypeSearchAttribute(type, Occur.SHOULD, isExactMatch);
 	}
 
 	public static SearchAttribute<String> andExactType(final Class type) {
-		return andExactType(type, true);
+		return andType(type, false);
 	}
 
-	public static SearchAttribute<String> andExactType(final Class type, boolean isExactMatch) {
+	public static SearchAttribute<String> andType(final Class type, boolean isExactMatch) {
 		return new TypeSearchAttribute(type, Occur.MUST, isExactMatch);
 	}
 
@@ -366,24 +368,21 @@ public abstract class Search {
 	 *
 	 * Internally, the wildcard character '*' will be appended to the string.
 	 *
+	 * @param securityContext
 	 * @param string
 	 * @return
 	 */
 	public static List<String> getNodeNamesLike(SecurityContext securityContext, final String string) {
 
-		List<String> names                = new LinkedList<String>();
-		List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
-
-		// always add wildcard character '*' for auto completion
-		searchAttrs.add(Search.andName(string + SearchAttribute.WILDCARD));
+		List<String> names                = new LinkedList<>();
 
 		try {
 
-			Result<AbstractNode> result = Services.command(securityContext, SearchNodeCommand.class).execute(searchAttrs);
+			Result<NodeInterface> result = StructrApp.getInstance(securityContext).nodeQuery(NodeInterface.class).andName(string + SearchAttribute.WILDCARD).getResult();
 
 			if (result != null) {
 
-				for (AbstractNode node : result.getResults()) {
+				for (NodeInterface node : result.getResults()) {
 
 					names.add(node.getName());
 				}
@@ -400,105 +399,4 @@ public abstract class Search {
 
 	}
 	
-	/**
-	 * Expand a search string by splitting at ',' and add the parts to an exact
-	 * 'OR' search attribute group, combined by the given occur
-	 * 
-	 * @param searchValue 
-	 */
-	private static SearchAttributeGroup orMatchExactValues(final PropertyKey key, final String searchValue, final Occur occur) {
-		
-		SearchAttributeGroup group = new SearchAttributeGroup(Occur.SHOULD);
-		
-		if (searchValue == null || StringUtils.isBlank(searchValue)) {
-			return null;
-		}
-		
-		String[] parts = StringUtils.split(searchValue, ",");
-		
-		for (String part : parts) {
-			
-			SearchAttribute attr = new PropertySearchAttribute(key, part, occur, true);
-			
-			group.add(attr);
-			
-		}
-		
-		return group;
-	}
-	
-	/**
-	 * Expand a search string by splitting at ',' and add the parts to a loose
-	 * 'OR' search attribute group, combined by the given occur
-	 * 
-	 * @param searchValue 
-	 */
-	private static SearchAttributeGroup orMatchValues(final PropertyKey key, final String searchValue, final Occur occur) {
-		
-		SearchAttributeGroup group = new SearchAttributeGroup(Occur.SHOULD);
-		
-		if (searchValue == null || StringUtils.isBlank(searchValue)) {
-			return null;
-		}
-		
-		String[] parts = StringUtils.split(searchValue, ",");
-		
-		for (String part : parts) {
-			
-			SearchAttribute attr = new PropertySearchAttribute(key, part, occur, false);
-			
-			group.add(attr);
-			
-		}
-		
-		return group;
-	}
-	
-	/**
-	 * Expand a search string by splitting at ',' and add the parts to an exact
-	 * 'AND' search attribute group, combined by the given occur
-	 * 
-	 * @param searchValue 
-	 */
-	private static SearchAttributeGroup andMatchExactValues(final SecurityContext securityContext, final PropertyKey key, final String searchValue, final Occur occur) {
-		
-		SearchAttributeGroup group = new SearchAttributeGroup(Occur.MUST);
-		
-		if (searchValue == null || StringUtils.isBlank(searchValue)) {
-			return null;
-		}
-		
-		String[] parts = StringUtils.split(searchValue, ",");
-		
-		for (String part : parts) {
-	
-			group.add(key.getSearchAttribute(securityContext, occur, part, true));
-		}
-		
-		return group;
-	}
-	
-	/**
-	 * Expand a search string by splitting at ',' and add the parts to a loose
-	 * 'AND' search attribute group, combined by the given occur
-	 * 
-	 * @param searchValue 
-	 */
-	private static SearchAttributeGroup andMatchValues(final SecurityContext securityContext, final PropertyKey key, final String searchValue, final Occur occur) {
-		
-		SearchAttributeGroup group = new SearchAttributeGroup(Occur.MUST);
-		
-		if (searchValue == null || StringUtils.isBlank(searchValue)) {
-			return null;
-		}
-		
-		String[] parts = StringUtils.split(searchValue, ",");
-		
-		for (String part : parts) {
-			
-			group.add(key.getSearchAttribute(securityContext, occur, part, false));
-		}
-		
-		return group;
-	}	
 }

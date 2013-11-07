@@ -43,6 +43,7 @@ import java.util.logging.Logger;
 import org.apache.commons.lang.StringUtils;
 import org.neo4j.graphdb.Node;
 import org.structr.core.EntityContext;
+import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.module.ModuleService;
 import org.structr.core.property.PropertyKey;
@@ -71,8 +72,6 @@ public class BulkChangeNodePropertyKeyCommand extends NodeServiceCommand impleme
 		final GraphDatabaseService graphDb     = (GraphDatabaseService) arguments.get("graphDb");
 		final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
 		final NodeFactory nodeFactory          = new NodeFactory(superUserContext);
-		final SearchNodeCommand searchNode     = Services.command(superUserContext, SearchNodeCommand.class);
-		
 		
 		String type		= null;
 		final String oldKey	= (String) properties.get("oldKey");
@@ -85,11 +84,8 @@ public class BulkChangeNodePropertyKeyCommand extends NodeServiceCommand impleme
 			if (properties.containsKey(AbstractNode.type.dbName())) {
 
 				type = (String) properties.get(AbstractNode.type.dbName());
-				List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
 
-				attrs.add(Search.andExactType(EntityContext.getEntityClassForRawType(type)));
-
-				nodes = searchNode.execute(attrs);
+				nodes = StructrApp.getInstance(securityContext).nodeQuery(EntityContext.getEntityClassForRawType(type)).getResult();
 
 				properties.remove(AbstractNode.type.dbName());
 
@@ -111,27 +107,7 @@ public class BulkChangeNodePropertyKeyCommand extends NodeServiceCommand impleme
 						for (Entry entry : properties.entrySet()) {
 
 							String key = (String) entry.getKey();
-							Object val = null;
 							
-							// allow to set new type
-							if (key.equals("newType")) {
-								key = "type";
-							}
-
-							PropertyConverter inputConverter = EntityContext.getPropertyKeyForJSONName(cls, key).inputConverter(securityContext);
-
-							
-							if (inputConverter != null) {
-								try {
-									val = inputConverter.convert(entry.getValue());
-								} catch (FrameworkException ex) {
-									logger.log(Level.SEVERE, null, ex);
-								}
-								
-							} else {
-								val = entry.getValue();
-							}
-
 							PropertyKey propertyKey = EntityContext.getPropertyKeyForDatabaseName(node.getClass(), key);
 							if (propertyKey != null) {
 									

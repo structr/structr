@@ -317,6 +317,7 @@ public class StructrTest extends TestCase {
 	protected void setUp() throws Exception {
 
 
+
 		Date now       = new Date();
 		long timestamp = now.getTime();
 
@@ -335,19 +336,12 @@ public class StructrTest extends TestCase {
 		
 		Services.initialize(context);
 
-		securityContext           = SecurityContext.getSuperUserInstance();
+		securityContext		= SecurityContext.getSuperUserInstance();
+		app			= StructrApp.getInstance(securityContext);
 		
-//		createNodeCommand         = Services.command(securityContext, CreateNodeCommand.class);
-//		createRelationshipCommand = Services.command(securityContext, CreateRelationshipCommand.class);
-//		deleteNodeCommand         = Services.command(securityContext, DeleteNodeCommand.class);
-//		deleteRelationshipCommand = Services.command(securityContext, DeleteRelationshipCommand.class);
-//		transactionCommand        = Services.command(securityContext, TransactionCommand.class);
-		graphDbCommand            = Services.command(securityContext, GraphDatabaseCommand.class);
-//		findNodeCommand           = Services.command(securityContext, FindNodeCommand.class);
-//		searchNodeCommand         = Services.command(securityContext, SearchNodeCommand.class);
-//		searchRelationshipCommand = Services.command(securityContext, SearchRelationshipCommand.class);
-		writeLogCommand           = Services.command(securityContext, WriteLogCommand.class);
-		readLogCommand            = Services.command(securityContext, ReadLogCommand.class);
+		graphDbCommand            = app.command(GraphDatabaseCommand.class);
+		writeLogCommand           = app.command(WriteLogCommand.class);
+		readLogCommand            = app.command(ReadLogCommand.class);
 
 		// wait for service layer to be initialized
 		do {
@@ -355,7 +349,6 @@ public class StructrTest extends TestCase {
 			
 		} while(!Services.isInitialized());
 
-		app = StructrApp.getInstance(securityContext);
 		
 	}
 

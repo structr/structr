@@ -130,7 +130,8 @@ public class TypeResource extends SortableResource {
 			}
 
 			// add type to return
-			searchAttributes.add(Search.andExactTypeAndSubtypes(entityClass, !inexactSearch));
+			
+			searchAttributes.add(Search.andTypeAndSubtypes(entityClass, !inexactSearch));
 			
 			// searchable attributes from EntityContext
 			searchAttributes.addAll(validAttributes);

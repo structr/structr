@@ -15,6 +15,7 @@ import org.structr.core.Services;
 import org.structr.core.agent.ProcessTaskCommand;
 import org.structr.core.agent.Task;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.CreateRelationshipCommand;
@@ -171,10 +172,19 @@ public class StructrApp implements App {
 	}
 	
 	@Override
+	public <T extends NodeInterface> Query<T> nodeQuery(final Class<T> type, final boolean inexact) {
+
+		Query<T> query = new StructrQuery<>(securityContext, SearchNodeCommand.class);
+		query.types(type, inexact);
+		
+		return query;
+	}
+
+	@Override
 	public <T extends RelationshipInterface> Query<T> relationshipQuery(final Class<T> type) {
 
 		Query<T> query = new StructrQuery<>(securityContext, SearchRelationshipCommand.class);
-		query.types(type);
+		query.and(AbstractRelationship.type, type.getSimpleName());
 		
 		return query;
 	}

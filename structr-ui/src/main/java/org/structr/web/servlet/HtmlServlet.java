@@ -66,7 +66,6 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.AuthenticatorCommand;
 import org.structr.core.entity.Principal;
-import org.structr.core.graph.GetNodeByIdCommand;
 import org.structr.rest.ResourceProvider;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
@@ -240,7 +239,7 @@ public class HtmlServlet extends HttpServlet {
 
 				} else {
 
-					AbstractNode n = (AbstractNode) Services.command(securityContext, GetNodeByIdCommand.class).execute(PathHelper.getName(path));
+					AbstractNode n = (AbstractNode) StructrApp.getInstance(securityContext).get(PathHelper.getName(path));
 					if (n != null) {
 						dataNode = n;
 					}

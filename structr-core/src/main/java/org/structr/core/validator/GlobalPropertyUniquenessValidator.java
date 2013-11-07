@@ -35,10 +35,11 @@ import org.structr.core.graph.search.SearchNodeCommand;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Logger;
+import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.Result;
-import org.structr.core.graph.NodeAttribute;
+import org.structr.core.app.StructrApp;
 import org.structr.core.graph.search.PropertySearchAttribute;
 
 //~--- classes ----------------------------------------------------------------
@@ -58,7 +59,7 @@ public class GlobalPropertyUniquenessValidator implements PropertyValidator<Stri
 	@Override
 	public boolean isValid(SecurityContext securityContext, GraphObject object, PropertyKey key, String value, ErrorBuffer errorBuffer) {
 
-		if (value == null || (value != null && value.toString().length() == 0)) {
+		if (StringUtils.isEmpty(value)) {
 
 			errorBuffer.add(object.getType(), new EmptyPropertyToken(key));
 
@@ -79,7 +80,7 @@ public class GlobalPropertyUniquenessValidator implements PropertyValidator<Stri
 
 			try {
 
-				resultList = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(attributes);
+				resultList = StructrApp.getInstance().nodeQuery(AbstractNode.class).and(key, value).getResult();
 				nodeExists = !resultList.isEmpty();
 
 			} catch (FrameworkException fex) {

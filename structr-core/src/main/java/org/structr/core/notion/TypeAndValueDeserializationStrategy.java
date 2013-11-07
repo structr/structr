@@ -26,11 +26,8 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.PropertiesNotFoundToken;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.CreateNodeCommand;
-import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.SearchNodeCommand;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -38,6 +35,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.error.TypeToken;
 import org.structr.core.*;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
 
@@ -48,7 +47,7 @@ import org.structr.core.property.PropertyMap;
  *
  * @author Christian Morgner
  */
-public class TypeAndValueDeserializationStrategy implements DeserializationStrategy {
+public class TypeAndValueDeserializationStrategy<S, T extends NodeInterface> implements DeserializationStrategy<S, T> {
 
 	private static final Logger logger = Logger.getLogger(TypeAndValueDeserializationStrategy.class.getName());
 
@@ -68,13 +67,17 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 	//~--- methods --------------------------------------------------------
 
 	@Override
-	public NodeInterface deserialize(SecurityContext securityContext, Class type, Object source) throws FrameworkException {
+	public T deserialize(final SecurityContext securityContext, Class<T> type, S source) throws FrameworkException {
 
 		List<SearchAttribute> attrs = new LinkedList();
 
 		attrs.add(Search.andExactTypeAndSubtypes(type));
 
 		// TODO: check why this doesn't work for setProperty with plain uuid..
+
+		final App app = StructrApp.getInstance(securityContext);
+		
+		Result<T> result = Result.EMPTY_RESULT;
 		
 		
 		// create and fill input map with source object
@@ -102,7 +105,7 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 				GraphObject obj = (GraphObject)convertedSource;
 				if (propertyKey != null) {
 					
-					attrs.add(Search.andExactProperty(securityContext, propertyKey, obj.getProperty(propertyKey)));
+					result = app.nodeQuery(type).and(propertyKey, obj.getProperty(propertyKey)).getResult();
 					
 				} else {
 					
@@ -110,19 +113,20 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 					PropertyKey<String> idProperty = EntityContext.getPropertyKeyForDatabaseName(obj.getClass(), AbstractNode.uuid.dbName());
 					attrs.add(Search.andExactUuid(obj.getProperty(idProperty)));
 					
+					result = new Result(app.get(obj.getProperty(idProperty)), false);
+					
 				}
 				
 				
 			} else {
 
-				attrs.add(Search.andExactProperty(securityContext, propertyKey, convertedSource));
+				result = app.nodeQuery(type).and(propertyKey, convertedSource).getResult();
 
 			}
 		}
 
 
 		// just check for existance
-		Result<NodeInterface> result = Services.command(securityContext, SearchNodeCommand.class).execute(attrs);
 		int resultCount = result.size();
 
 		switch (resultCount) {
@@ -131,13 +135,10 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 				if ((convertedSource != null) && createIfNotExisting) {
 
 					// create node and return it
-					NodeInterface newNode = Services.command(securityContext, CreateNodeCommand.class).execute(
-								   new NodeAttribute(AbstractNode.type, type.getSimpleName()),
-								   new NodeAttribute(propertyKey, convertedSource)
-							       );
+					T newNode = app.create(type);
 
 					if (newNode != null) {
-
+						newNode.setProperty(propertyKey, convertedSource);
 						return newNode;
 					}
 					
@@ -153,7 +154,7 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 
 			case 1 :
 				
-				NodeInterface obj = result.get(0);
+				T obj = result.get(0);
 				//if(!type.getSimpleName().equals(node.getType())) {
 				if (!type.isAssignableFrom(obj.getClass())) {
 					throw new FrameworkException("base", new TypeToken(propertyKey, type.getSimpleName()));
@@ -173,4 +174,5 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 		
 		return null;
 	}
+
 }

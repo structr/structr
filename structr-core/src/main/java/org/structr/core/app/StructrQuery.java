@@ -1,6 +1,7 @@
 package org.structr.core.app;
 
 import java.util.List;
+import java.util.Map;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.structr.common.SecurityContext;
@@ -14,6 +15,7 @@ import org.structr.core.graph.search.SearchAttributeGroup;
 import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
 
 /**
  *
@@ -158,6 +160,12 @@ public class StructrQuery<T extends GraphObject> implements Query<T> {
 	}
 	
 	@Override
+	public Query<T> types(final Class<T> type, final boolean inexact) {
+		currentGroup.getSearchAttributes().add(Search.andTypeAndSubtypes(type, false));
+		return this;
+	}
+
+	@Override
 	public Query<T> andName(final String name) {
 		currentGroup.getSearchAttributes().add(Search.andExactName(name));
 		return this;
@@ -186,11 +194,34 @@ public class StructrQuery<T extends GraphObject> implements Query<T> {
 	}
 	
 	@Override
-	public <P> Query<T> and(final PropertyKey<P> key, P value) {
+	public <P> Query<T> and(final PropertyKey<P> key, final P value) {
 		currentGroup.getSearchAttributes().add(Search.andExactProperty(securityContext, key, value));
 		return this;
 	}
 	
+	@Override
+	public <P> Query<T> and(final PropertyKey<P> key, final P value, final boolean inexact) {
+		if (inexact) {
+			currentGroup.getSearchAttributes().add(Search.andProperty(securityContext, key, value));
+		} else {
+			currentGroup.getSearchAttributes().add(Search.andExactProperty(securityContext, key, value));
+		}
+		return this;
+	}
+
+	@Override
+	public <P> Query<T> and(final PropertyMap attributes) {
+		
+		for (Map.Entry<PropertyKey, Object> entry : attributes.entrySet()) {
+			PropertyKey key = entry.getKey();
+			Object value = entry.getValue();
+			currentGroup.getSearchAttributes().add(Search.andExactProperty(securityContext, key, value));
+		}
+		
+		
+		return this;
+	}
+
 	@Override
 	public Query<T> and() {
 		
@@ -204,6 +235,19 @@ public class StructrQuery<T extends GraphObject> implements Query<T> {
 	@Override
 	public <P> Query<T> or(final PropertyKey<P> key, P value) {
 		currentGroup.getSearchAttributes().add(Search.orExactProperty(securityContext, key, value));
+		return this;
+	}
+
+	@Override
+	public <P> Query<T> or(final PropertyMap attributes) {
+		
+		for (Map.Entry<PropertyKey, Object> entry : attributes.entrySet()) {
+			PropertyKey key = entry.getKey();
+			Object value = entry.getValue();
+			currentGroup.getSearchAttributes().add(Search.orExactProperty(securityContext, key, value));
+		}
+		
+		
 		return this;
 	}
 	
