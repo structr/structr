@@ -155,7 +155,7 @@ public class Services {
 	 * @return the command
 	 * @throws NoSuchCommandException
 	 */
-	private static <T extends Command> T command(SecurityContext securityContext, Class<T> commandType) {
+	public static <T extends Command> T command(SecurityContext securityContext, Class<T> commandType) {
 
 		Class serviceClass = null;
 		T command          = null;

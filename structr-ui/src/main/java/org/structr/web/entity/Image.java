@@ -122,7 +122,7 @@ public class Image extends File {
 
 	public List<Image> getThumbnails() {
 
-		List<Image> thumbnails = new LinkedList<Image>();
+		List<Image> thumbnails = new LinkedList<>();
 
 		for (AbstractRelationship s : getThumbnailRelationships()) {
 
@@ -246,15 +246,7 @@ public class Image extends File {
 		try {
 			app.beginTx();
 
-			try {
-
-				originalImage.setChecksum(newChecksum);
-
-			} catch (Exception ex) {
-
-				logger.log(Level.SEVERE, "Could not store checksum for original image", ex);
-
-			}
+			originalImage.setChecksum(newChecksum);
 
 			Thumbnail thumbnailData = ImageHelper.createThumbnail(originalImage, maxWidth, maxHeight, cropToFit);
 			if (thumbnailData != null) {
@@ -309,15 +301,13 @@ public class Image extends File {
 						tn.setProperty(deleted, true);
 					}
 				}
-
-				app.commitTx();
 				
 			} else {
 
 				logger.log(Level.WARNING, "Could not create thumbnail for image {0} ({1})", new Object[] { getName(), getId() });
-
-				return null;
 			}
+
+			app.commitTx();
 			
 		} catch (FrameworkException fex) {
 

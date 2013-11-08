@@ -304,19 +304,51 @@ public class TransactionCommand extends NodeServiceCommand {
 			
 			if (tx.isToplevel()) {
 
-				tx.finish();
-
 				// cleanup
 				currentCommand.remove();
 				transactions.remove();
 
-				modificationQueue.doOuterCallbacks(securityContext);
-				modificationQueue.clear();
+				tx.finish();
+
+				if (modificationQueue != null) {
+					
+					modificationQueue.doOuterCallbacks(securityContext);
+					modificationQueue.clear();
+				}
 				
 			} else {
 				
 				tx.end();
 			}
+			
+/*
+ *			FIXME:
+ *			The problem here is that the call to finish causes the SynchronizationController
+ *			to be activated, this triggers a JSON rendering which calls getThumbnail() which
+ *			triggers thumbnail generation, all while the current transaction finishes.
+ *			
+ *			This causes the current (finishing) transaction to be "forgotten" because a new
+ *			nested transaction is started IN THE SAME THREAD. This leads to the inner TX to
+ *			be executed and finished, and the finish() call to the outer TX never happens
+ *			because the inner has overwritten the ThreadLocal.
+ * 
+ *			We can either prevent any modifications from happening in the SynchronizationController
+ *			context or we need to move all code from the synchronization controller into the outer
+ *			callback methods.
+ * 
+ * 
+ */
+			
+			
+			
+			
+			
+			
+			
+		} else {
+
+			System.out.println("###################################################################################################################: transaction without reference");
+			Thread.dumpStack();
 		}
 	}
 	
