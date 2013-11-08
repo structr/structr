@@ -228,6 +228,7 @@ public class StructrQuery<T extends GraphObject> implements Query<T> {
 		// create nested group that the user can add to
 		final SearchAttributeGroup group = new SearchAttributeGroup(currentGroup, Occur.MUST);
 		currentGroup.getSearchAttributes().add(group);
+		currentGroup = group;
 		
 		return this;
 	}
@@ -257,6 +258,7 @@ public class StructrQuery<T extends GraphObject> implements Query<T> {
 		// create nested group that the user can add to
 		final SearchAttributeGroup group = new SearchAttributeGroup(currentGroup, Occur.SHOULD);
 		currentGroup.getSearchAttributes().add(group);
+		currentGroup = group;
 		
 		return this;
 	}
@@ -267,6 +269,7 @@ public class StructrQuery<T extends GraphObject> implements Query<T> {
 		// create nested group that the user can add to
 		final SearchAttributeGroup group = new SearchAttributeGroup(currentGroup, Occur.MUST_NOT);
 		currentGroup.getSearchAttributes().add(group);
+		currentGroup = group;
 		
 		return this;
 	}

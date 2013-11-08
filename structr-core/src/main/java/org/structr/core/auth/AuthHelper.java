@@ -33,6 +33,7 @@ import org.apache.commons.lang.StringUtils;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractUser;
 import org.structr.core.property.PropertyKey;
 
 //~--- classes ----------------------------------------------------------------
@@ -96,7 +97,7 @@ public class AuthHelper {
 
 			try {
 				
-				principal = StructrApp.getInstance().nodeQuery(Principal.class).and(key, value).getFirst();
+				principal = StructrApp.getInstance().nodeQuery(Principal.class).and().or(key, value).or(AbstractUser.name, value).getFirst();
 				
 				if (principal == null) {
 
