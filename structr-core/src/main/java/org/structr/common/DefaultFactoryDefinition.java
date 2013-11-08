@@ -18,6 +18,8 @@
  */
 package org.structr.common;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.commons.lang.StringUtils;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
@@ -39,6 +41,8 @@ import org.structr.core.module.ModuleService;
  * @author Christian Morgner
  */
 public class DefaultFactoryDefinition implements FactoryDefinition {
+	
+	private static final Logger logger = Logger.getLogger(DefaultFactoryDefinition.class.getName());
 
 	private static final String COMBINED_RELATIONSHIP_KEY_SEP = " ";
 	
@@ -177,7 +181,11 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 
 	private Class getClassForCombinedType(final String sourceType, final String relType, final String targetType) {
 		
+		logger.log(Level.INFO, "Need class for relationship {0}-[:{1}]->{2}", new Object[]{ sourceType, relType, targetType });
+		
 		for (final Class candidate : getModuleService().getCachedRelationshipEntities().values()) {
+
+			logger.log(Level.FINE, "Relation class candidate: {0}", candidate.getName());
 			
 			final Relation rel = instantiate(candidate);
 			if (rel != null) {
@@ -185,9 +193,16 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 				final String sourceTypeName = rel.getSourceType().getSimpleName();
 				final String relTypeName    = rel.name();
 				final String targetTypeName = rel.getTargetType().getSimpleName();
+
+				logger.log(Level.INFO, "Checking relationship {0}-[:{1}]->{2}", new Object[]{ sourceTypeName, relTypeName, targetTypeName });
+
 				
-				if (sourceType.equals(sourceTypeName) && relType.equals(relTypeName) && targetType.equals(targetTypeName)) {
+				// Check both directions. If domain is properly modeled, the assumption that the
+				// actual relationship direction doesn't matter here, is safe.
+				if ((sourceType.equals(sourceTypeName) && relType.equals(relTypeName) && targetType.equals(targetTypeName))
+				   || (targetType.equals(sourceTypeName) && relType.equals(relTypeName) && sourceType.equals(targetTypeName))) {
 					
+					logger.log(Level.INFO, "--> Found matching relation class: {0}", candidate.getName());
 					return candidate;
 				}
 			}

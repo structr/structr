@@ -214,6 +214,7 @@ public class Importer {
 			// AbstractNode page = findOrCreateNode(attrs, "/");
 			Page page = Page.createNewPage(securityContext, name);
 
+			String pageId = null;
 			if (page != null) {
 
 				page.setProperty(AbstractNode.visibleToAuthenticatedUsers, authVisible);
@@ -221,9 +222,14 @@ public class Importer {
 				createChildNodes(parsedDocument, page, page, baseUrl);
 				logger.log(Level.INFO, "##### Finished fetching {0} for page {1} #####", new Object[] { address, name });
 
-				return page.getProperty(AbstractNode.uuid);
+				pageId = page.getProperty(AbstractNode.uuid);
 			}
 
+			app.commitTx();
+
+			return pageId;
+
+			
 		} catch (MalformedURLException ex) {
 
 			logger.log(Level.SEVERE, "Could not resolve address " + address, ex);
