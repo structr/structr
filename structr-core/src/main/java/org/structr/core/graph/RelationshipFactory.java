@@ -20,7 +20,6 @@
 
 package org.structr.core.graph;
 
-import java.lang.reflect.Constructor;
 import org.neo4j.graphdb.Relationship;
 
 import org.structr.common.SecurityContext;
@@ -35,6 +34,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.GenericRelationship;
 import org.structr.core.module.ModuleService;
 
 //~--- classes ----------------------------------------------------------------
@@ -85,16 +87,26 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 		newRel.onRelationshipInstantiation();
 
 		String newRelType = newRel.getProperty(GraphObject.type);
-		if (newRelType == null) { //  || (newNodeType != null && !newNodeType.equals(nodeType))) {
+		if (newRelType == null && !(relClass.equals(GenericRelationship.class))) { //  || (newNodeType != null && !newNodeType.equals(nodeType))) {
 
+			final App app = StructrApp.getInstance();
+			
 			try {
-
+				
+				app.beginTx();
+				
 				newRel.unlockReadOnlyPropertiesOnce();
 				newRel.setProperty(GraphObject.type, relClass.getSimpleName());
-
+				
+				app.commitTx();
+				
 			} catch (Throwable t) {
 
 				logger.log(Level.SEVERE, "Unable to set type property {0} on relationship {1}: {2}", new Object[] { relClass, newRel, t.getMessage() } );
+			} finally {
+				
+				app.finishTx();
+				
 			}
 		}
 			
