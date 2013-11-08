@@ -185,7 +185,7 @@ public abstract class Search {
 	}
 
 	public static SearchAttribute<String> orExactType(final Class type) {
-		return orType(type, false);
+		return orType(type, true);
 	}
 	
 	public static SearchAttribute<String> orType(final Class type, boolean isExactMatch) {
@@ -193,7 +193,7 @@ public abstract class Search {
 	}
 
 	public static SearchAttribute<String> andExactType(final Class type) {
-		return andType(type, false);
+		return andType(type, true);
 	}
 
 	public static SearchAttribute<String> andType(final Class type, boolean isExactMatch) {
