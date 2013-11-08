@@ -101,8 +101,6 @@ public abstract class Resource {
 
 	public RestMethodResult doDelete() throws FrameworkException {
 
-		final DeleteNodeCommand deleteNode = Services.command(securityContext, DeleteNodeCommand.class);
-		final DeleteRelationshipCommand deleteRel = Services.command(securityContext, DeleteRelationshipCommand.class);
 		Iterable<? extends GraphObject> results = null;
 
 		// catch 204, DELETE must return 200 if resource is empty
@@ -123,7 +121,7 @@ public abstract class Resource {
 
 					if (obj instanceof AbstractRelationship) {
 
-						deleteRel.execute((AbstractRelationship)obj);
+						app.delete((AbstractRelationship)obj);
 
 					} else if (obj instanceof AbstractNode) {
 
@@ -135,7 +133,7 @@ public abstract class Resource {
 						}
 
 						// delete cascading
-						deleteNode.execute((AbstractNode)obj);
+						app.delete((AbstractNode)obj);
 					}
 
 				}

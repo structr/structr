@@ -11,6 +11,7 @@ import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.graph.search.DistanceSearchAttribute;
 import org.structr.core.graph.search.Search;
+import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchAttributeGroup;
 import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.graph.search.SearchNodeCommand;
@@ -130,8 +131,20 @@ public class StructrQuery<T extends GraphObject> implements Query<T> {
 	}
 	
 	@Override
+	public Query<T> publicOnly(final boolean publicOnly) {
+		this.publicOnly = publicOnly;
+		return this;
+	}
+	
+	@Override
 	public Query<T> includeDeletedAndHidden() {
 		this.includeDeletedAndHidden = true;
+		return this;
+	}
+	
+	@Override
+	public Query<T> includeDeletedAndHidden(final boolean includeDeletedAndHidden) {
+		this.includeDeletedAndHidden = includeDeletedAndHidden;
 		return this;
 	}
 	
@@ -281,6 +294,13 @@ public class StructrQuery<T extends GraphObject> implements Query<T> {
 			currentGroup = parent;
 		}
 
+		return this;
+	}
+
+	@Override
+	public Query<T> attributes(final List<SearchAttribute> attributes) {
+
+		currentGroup.getSearchAttributes().addAll(attributes);
 		return this;
 	}
 }

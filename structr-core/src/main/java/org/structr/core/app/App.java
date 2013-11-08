@@ -24,11 +24,13 @@ import java.util.Map;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 import org.structr.core.GraphObject;
+import org.structr.core.Service;
 import org.structr.core.agent.Task;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.property.PropertyMap;
 
 /**
@@ -66,4 +68,6 @@ public interface App {
 	
 	public void processTasks(final Task... tasks);
 	public List<GraphObject> cypher(final String cypherQuery, final Map<String, Object> parameters) throws FrameworkException;
+	
+	public <T extends Service> T getService(final Class<T> serviceClass);
 }

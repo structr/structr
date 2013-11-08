@@ -28,14 +28,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.search.Search;
-import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.SearchNodeCommand;
-
-//~--- JDK imports ------------------------------------------------------------
-
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
@@ -44,7 +36,6 @@ import org.apache.commons.lang.StringUtils;
 import org.neo4j.graphdb.Node;
 import org.structr.core.EntityContext;
 import org.structr.core.app.StructrApp;
-import org.structr.core.converter.PropertyConverter;
 import org.structr.core.module.ModuleService;
 import org.structr.core.property.PropertyKey;
 

@@ -4,6 +4,7 @@ import java.util.List;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
+import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 
@@ -28,6 +29,8 @@ public interface Query<T extends GraphObject> {
 	public Query<T> page(final int page);
 	public Query<T> publicOnly();
 	public Query<T> includeDeletedAndHidden();
+	public Query<T> publicOnly(final boolean publicOnly);
+	public Query<T> includeDeletedAndHidden(final boolean publicOnly);
 	public Query<T> offsetId(final String offsetId);
 	public Query<T> uuid(final String uuid);
 	public Query<T> type(final Class<T> type);
@@ -50,4 +53,5 @@ public interface Query<T extends GraphObject> {
 	public Query<T> not();
 	
 	public Query<T> parent();
+	public Query<T> attributes(final List<SearchAttribute> attributes);
 }

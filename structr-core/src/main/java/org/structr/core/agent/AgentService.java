@@ -23,7 +23,6 @@ package org.structr.core.agent;
 import org.structr.core.Command;
 import org.structr.core.RunnableService;
 import org.structr.core.Services;
-import org.structr.core.module.GetAgentsCommand;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -41,6 +40,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
+import org.structr.core.module.ModuleService;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -135,6 +135,17 @@ public class AgentService extends Thread implements RunnableService {
 		}
 	}
 
+	public Map<String, Class<? extends Agent>> getAgents() {
+
+		final ModuleService moduleService = Services.getService(ModuleService.class);
+		if (moduleService != null) {
+			
+			return moduleService.getCachedAgents();
+		}
+		
+		return Collections.emptyMap();
+	}
+	
 	// <editor-fold defaultstate="collapsed" desc="interface RunnableService">
 	@Override
 	public void injectArguments(Command command) {
@@ -248,7 +259,6 @@ public class AgentService extends Thread implements RunnableService {
 	private Agent lookupAgent(Task task) {
 
 		// FIXME: superuser security context
-		final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
 		Class taskClass  = task.getClass();
 		Agent agent      = null;
 		Class agentClass = agentClassCache.get(taskClass);
@@ -256,25 +266,27 @@ public class AgentService extends Thread implements RunnableService {
 		// cache miss
 		if (agentClass == null) {
 
-			Map<String, Class<? extends Agent>> agentClassesMap = Services.command(securityContext, GetAgentsCommand.class).execute();
+			Map<String, Class<? extends Agent>> agentClassesMap = getAgents();
+			
+			if (agentClassesMap != null) {
 
-			for (Entry<String, Class<? extends Agent>> classEntry : agentClassesMap.entrySet()) {
+				for (Entry<String, Class<? extends Agent>> classEntry : agentClassesMap.entrySet()) {
 
-				Class<? extends Agent> supportedAgentClass = agentClassesMap.get(classEntry.getKey());
+					Class<? extends Agent> supportedAgentClass = agentClassesMap.get(classEntry.getKey());
 
-				try {
+					try {
 
-					Agent supportedAgent     = supportedAgentClass.newInstance();
-					Class supportedTaskClass = supportedAgent.getSupportedTaskType();
+						Agent supportedAgent     = supportedAgentClass.newInstance();
+						Class supportedTaskClass = supportedAgent.getSupportedTaskType();
 
-					if (supportedTaskClass.equals(taskClass)) {
-						agentClass = supportedAgentClass;
-					}
+						if (supportedTaskClass.equals(taskClass)) {
+							agentClass = supportedAgentClass;
+						}
 
-					agentClassCache.put(supportedTaskClass, supportedAgentClass);
+						agentClassCache.put(supportedTaskClass, supportedAgentClass);
 
-				} catch (IllegalAccessException iaex) {}
-				catch (InstantiationException itex) {}
+					} catch (Throwable ignore) {}
+				}
 			}
 		}
 
@@ -282,8 +294,8 @@ public class AgentService extends Thread implements RunnableService {
 
 			try {
 				agent = (Agent) agentClass.newInstance();
-			} catch (IllegalAccessException iaex) {}
-			catch (InstantiationException itex) {}
+				
+			} catch (Throwable ignore) {}
 		}
 
 		return (agent);

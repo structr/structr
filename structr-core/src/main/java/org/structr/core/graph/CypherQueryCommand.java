@@ -72,7 +72,7 @@ public class CypherQueryCommand extends NodeServiceCommand {
 		RelationshipFactory relFactory  = new RelationshipFactory(securityContext);
 		NodeFactory nodeFactory         = new NodeFactory(securityContext);
 
-		List<GraphObject> resultList = new LinkedList<GraphObject>();
+		List<GraphObject> resultList = new LinkedList<>();
 		ExecutionResult result       = null;
 
 		if (parameters != null) {

@@ -56,6 +56,7 @@ import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.index.Index;
 import org.structr.core.IterableAdapter;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.relationship.Ownership;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeService;
@@ -718,20 +719,8 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	 *
 	 * @return number of relationships
 	 */
-	public Map<RelationshipType, Long> getRelationshipInfo(Direction dir) {
-
-		try {
-
-			return (Map<RelationshipType, Long>) Services.command(securityContext, NodeRelationshipStatisticsCommand.class).execute(this, dir);
-
-		} catch (FrameworkException fex) {
-
-			logger.log(Level.WARNING, "Unable to get relationship info", fex);
-
-		}
-
-		return null;
-
+	public Map<RelationshipType, Long> getRelationshipInfo(Direction dir) throws FrameworkException {
+		return StructrApp.getInstance(securityContext).command(NodeRelationshipStatisticsCommand.class).execute(this, dir);
 	}
 
 	/**

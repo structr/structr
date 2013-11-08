@@ -11,8 +11,9 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 import org.structr.core.GraphObject;
+import org.structr.core.Service;
 import org.structr.core.Services;
-import org.structr.core.agent.ProcessTaskCommand;
+import org.structr.core.agent.AgentService;
 import org.structr.core.agent.Task;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
@@ -224,12 +225,25 @@ public class StructrApp implements App {
 
 	@Override
 	public void processTasks(Task... tasks) {
-		Services.command(securityContext, ProcessTaskCommand.class).execute(tasks);
+		
+		final AgentService agentService = getService(AgentService.class);
+		if(agentService != null) {
+			
+			for(final Task task : tasks) {
+				
+				agentService.processTask(task);
+			}
+		}
 	}
 	
 	@Override
 	public List<GraphObject> cypher(final String cypherQuery, final Map<String, Object> parameters) throws FrameworkException {
 		return Services.command(securityContext, CypherQueryCommand.class).execute(cypherQuery, parameters);
+	}
+
+	@Override
+	public <T extends Service> T getService(Class<T> serviceClass) {
+		return Services.getService(serviceClass);
 	}
 	
 	

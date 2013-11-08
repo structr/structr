@@ -23,11 +23,9 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.SecurityContext;
 import org.structr.core.Command;
 import org.structr.core.RunnableService;
 import org.structr.core.Services;
-import org.structr.core.agent.ProcessTaskCommand;
 import org.structr.core.agent.Task;
 import org.structr.core.app.StructrApp;
 
@@ -47,7 +45,6 @@ public class CronService extends Thread implements RunnableService {
 	public static final long     GRANULARITY       = 1;
 	public static final int      NUM_FIELDS        = 6;
 
-	private SecurityContext securityContext   = SecurityContext.getSuperUserInstance();
 	private LinkedList<CronEntry> cronEntries = new LinkedList<>();
 	private boolean doRun = false;
 

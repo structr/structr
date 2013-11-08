@@ -161,6 +161,20 @@ public class TypeResource extends SortableResource {
 				}
 			}
 			
+//			
+//			// do search 
+//			return query
+//				.includeDeletedAndHidden(includeDeletedAndHidden)
+//				.publicOnly(publicOnly)
+//				.sort(actualSortKey)
+//				.order(actualSortDescending)
+//				.pageSize(pageSize)
+//				.page(page)
+//				.offsetId(offsetId)
+//				.attributes(searchAttributes)
+//				.getResult();
+			
+			
 			// do search
 			Result results = Services.command(securityContext, searchCommandType).execute(
 				includeDeletedAndHidden,
