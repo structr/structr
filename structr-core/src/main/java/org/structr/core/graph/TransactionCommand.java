@@ -304,11 +304,11 @@ public class TransactionCommand extends NodeServiceCommand {
 			
 			if (tx.isToplevel()) {
 
+				tx.finish();
+
 				// cleanup
 				currentCommand.remove();
 				transactions.remove();
-
-				tx.finish();
 
 				if (modificationQueue != null) {
 					

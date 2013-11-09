@@ -41,12 +41,12 @@ public abstract class ManyToOne<S extends NodeInterface, T extends NodeInterface
 		
 		final App app                          = StructrApp.getInstance(securityContext);
 		final Class<? extends ManyToOne> clazz = this.getClass();
-		final Class<S> sourceType              = getSourceType();
+		final Class<T> targetType              = getTargetType();
 
 
 		// check existing relationships
 		final Relation<?, T, ?, ?> outgoingRel = sourceNode.getOutgoingRelationship(clazz);
-		if (outgoingRel != null && outgoingRel.getTargetNode().getClass().equals(sourceType)) {
+		if (outgoingRel != null && outgoingRel.getTargetNode().getClass().equals(targetType)) {
 
 			try {
 
