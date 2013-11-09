@@ -21,9 +21,6 @@
 package org.structr.web.entity.html;
 
 import org.structr.web.entity.dom.DOMElement;
-import org.structr.core.property.Property;
-import org.structr.core.property.StartNode;
-import org.structr.web.entity.html.relation.HtmlHead;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -32,7 +29,7 @@ import org.structr.web.entity.html.relation.HtmlHead;
  */
 public class Head extends DOMElement {
 
-	public static final Property<Html>   html   = new StartNode<>("html", HtmlHead.class);
+//	public static final Property<Html>   html   = new StartNode<>("html", DOMChildren.class);
 
 //	public static final EndNodes<Title>  titles  = new EndNodes<Title>("titles", Title.class, RelType.CONTAINS, Direction.OUTGOING, false);
 //	public static final EndNodes<Style>  styles  = new EndNodes<Style>("styles", Style.class, RelType.CONTAINS, Direction.OUTGOING, false);

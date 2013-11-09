@@ -87,7 +87,7 @@ import org.structr.web.entity.PageData;
 import org.structr.web.entity.Renderable;
 import org.structr.web.entity.dom.relationship.DOMChildren;
 import org.structr.web.entity.dom.relationship.DOMSiblings;
-import org.structr.web.entity.relation.LinkRelationship;
+import org.structr.web.entity.html.relation.ResourceLink;
 import org.structr.web.entity.relation.PageLink;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
@@ -147,7 +147,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 	public static final Property<String> parentId                           = new EntityIdProperty("parentId", parent);
 
-	public static final Property<Page> ownerDocument                        = new StartNode<>("ownerDocument", PageLink.class);
+	public static final Property<Page> ownerDocument                        = new EndNode<>("ownerDocument", PageLink.class);
 	public static final Property<String> pageId                             = new EntityIdProperty("pageId", ownerDocument);
 
 
@@ -1019,7 +1019,14 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 				// special keyword "link", works on deeper levels, too
 				if ("link".equals(lowerCasePart) && _data instanceof AbstractNode) {
 
-					_data = ((AbstractNode)_data).getOutgoingRelationship(LinkRelationship.class);
+					ResourceLink rel = ((AbstractNode) _data).getOutgoingRelationship(ResourceLink.class);
+					if (rel != null) {
+						
+						_data = rel.getTargetNode();
+						
+						break;
+						
+					}
 
 					/*
 					for (AbstractRelationship rel : ((AbstractNode) _data).getRelationships(org.structr.web.common.RelType.LINK, Direction.OUTGOING)) {
@@ -1123,7 +1130,12 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 				// special keyword "link", works only on root level
 				if ("link".equals(lowerCasePart)) {
 
-					_data = ((AbstractNode)_data).getOutgoingRelationship(LinkRelationship.class);
+					ResourceLink rel = getOutgoingRelationship(ResourceLink.class);
+					
+					if (rel != null) {
+						_data = rel.getTargetNode();
+						break;
+					}
 
 					/*
 					for (AbstractRelationship rel : getRelationships(org.structr.web.common.RelType.LINK, Direction.OUTGOING)) {
@@ -1133,9 +1145,9 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 						break;
 
 					}
-					*/
 					
 					continue;
+					*/
 
 				}
 

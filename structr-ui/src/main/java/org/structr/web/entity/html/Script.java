@@ -38,7 +38,7 @@ import org.structr.core.property.EndNode;
 import org.structr.core.property.EntityIdProperty;
 import org.structr.web.common.HtmlProperty;
 import org.structr.web.entity.dom.Content;
-import org.structr.web.entity.html.relation.ScriptLink;
+import org.structr.web.entity.html.relation.ResourceLink;
 import org.w3c.dom.Node;
 
 //~--- classes ----------------------------------------------------------------
@@ -60,7 +60,7 @@ public class Script extends DOMElement {
 //	public static final EndNodes<Head>    heads    = new EndNodes<Head>("heads", Head.class, RelType.CONTAINS, Direction.INCOMING, false);
 //	public static final EndNodes<Div>     divs     = new EndNodes<Div>("divs", Div.class, RelType.CONTAINS, Direction.INCOMING, false);
  
-	public static final Property<Linkable> linkable   = new EndNode<>("linkable", ScriptLink.class, new PropertyNotion(AbstractNode.name));
+	public static final Property<Linkable> linkable   = new EndNode<>("linkable", ResourceLink.class, new PropertyNotion(AbstractNode.name));
 	public static final Property<String>   linkableId = new EntityIdProperty("linkableId", linkable);
 
 	public static final View uiView = new View(Script.class, PropertyView.Ui,

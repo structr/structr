@@ -23,10 +23,10 @@ package org.structr.web.entity.html.relation;
 import org.structr.core.property.Property;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
+import org.structr.core.entity.ManyToOne;
 import org.structr.core.property.StringProperty;
 import org.structr.web.entity.Linkable;
 import org.structr.web.entity.html.Link;
-import org.structr.web.entity.relation.LinkRelationship;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -34,7 +34,7 @@ import org.structr.web.entity.relation.LinkRelationship;
  *
  * @author Christian Morgner
  */
-public class ResourceLink extends LinkRelationship<Link, Linkable> {
+public class ResourceLink extends ManyToOne<Link, Linkable> {
 
 	public static final Property<String> sourceId = new StringProperty("sourceId");
 	public static final Property<String> targetId = new StringProperty("targetId");

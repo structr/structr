@@ -128,9 +128,14 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 	public Class determineRelationshipType(Relationship relationship) {
 
 		final String type = GraphObject.type.dbName();
+		
+		
 		if (relationship.hasProperty(type)) {
 			
 			Object obj =  relationship.getProperty(type);
+			
+			logger.log(Level.FINEST, "Type property: {0}", obj);
+			
 			if (obj != null) {
 				
 				return getModuleService().getRelationshipEntityClass(obj.toString());
@@ -142,6 +147,9 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 		if (relationship.hasProperty(combinedTypeName)) {
 			
 			Object obj =  relationship.getProperty(combinedTypeName);
+			
+			logger.log(Level.FINE, "Combined type property: {0}", obj);
+			
 			if (obj != null) {
 				
 				final String combinedType = obj.toString();
@@ -161,10 +169,13 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 		final String relType    = relationship.getType().name();
 		final Class entityType  = getClassForCombinedType(sourceType, relType, targetType);
 
+		
 		if (entityType != null) {
+			logger.log(Level.FINE, "Class for assembled combined {0}", entityType.getName());
 			return entityType;
 		}
 		
+		logger.log(Level.WARNING, "No instantiable class for relationship found, returning generic relationship class");
 		
 		return getGenericRelationshipType();
 	}
@@ -181,11 +192,15 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 
 	private Class getClassForCombinedType(final String sourceType, final String relType, final String targetType) {
 		
-		logger.log(Level.INFO, "Need class for relationship {0}-[:{1}]->{2}", new Object[]{ sourceType, relType, targetType });
+		if (sourceType == null || relType == null || targetType == null) {
+			return null;
+		}
+		
+		logger.log(Level.FINE, "Need class for relationship {0}-[:{1}]->{2}", new Object[]{ sourceType, relType, targetType });
 		
 		for (final Class candidate : getModuleService().getCachedRelationshipEntities().values()) {
 
-			logger.log(Level.FINE, "Relation class candidate: {0}", candidate.getName());
+			logger.log(Level.FINEST, "Relation class candidate: {0}", candidate.getName());
 			
 			final Relation rel = instantiate(candidate);
 			if (rel != null) {
@@ -194,7 +209,7 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 				final String relTypeName    = rel.name();
 				final String targetTypeName = rel.getTargetType().getSimpleName();
 
-				logger.log(Level.INFO, "Checking relationship {0}-[:{1}]->{2}", new Object[]{ sourceTypeName, relTypeName, targetTypeName });
+				logger.log(Level.FINE, "Checking relationship {0}-[:{1}]->{2}", new Object[]{ sourceTypeName, relTypeName, targetTypeName });
 
 				
 				// Check both directions. If domain is properly modeled, the assumption that the

@@ -20,10 +20,7 @@
 
 package org.structr.web.entity.html;
 
-import org.structr.core.property.Property;
-import org.structr.core.property.StartNode;
 import org.structr.web.entity.dom.DOMElement;
-import org.structr.web.entity.html.relation.HtmlBody;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -32,7 +29,7 @@ import org.structr.web.entity.html.relation.HtmlBody;
  */
 public class Body extends DOMElement {
 
-	public static final Property<Html> html = new StartNode<>("html", HtmlBody.class);
+	//public static final Property<Html> html = new StartNode<>("html", HtmlBody.class);
 
 //	public static final EndNodes<Header>     headers     = new EndNodes<Header>("headers", Header.class, RelType.CONTAINS, Direction.OUTGOING, false);
 //	public static final EndNodes<Footer>     footers     = new EndNodes<Footer>("footers", Footer.class, RelType.CONTAINS, Direction.OUTGOING, false);

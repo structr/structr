@@ -1,5 +1,6 @@
 package org.structr.core.graph;
 
+import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.SecurityContext;

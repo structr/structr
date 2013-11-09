@@ -62,11 +62,9 @@ import org.structr.core.entity.AbstractNode;
 import static org.structr.core.entity.AbstractNode.owner;
 import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.NodeAttribute;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
-import org.structr.core.property.EndNodes;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.RelationProperty;
+import org.structr.core.property.StartNodes;
 import static org.structr.web.entity.Linkable.linkingElements;
 import static org.structr.web.entity.dom.DOMNode.children;
 import org.structr.web.entity.relation.PageLink;
@@ -87,7 +85,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	public static final Property<Integer>       position        = new IntProperty("position").indexed();
 	public static final Property<String>        contentType     = new StringProperty("contentType").indexed();
 	public static final Property<Integer>       cacheForSeconds = new IntProperty("cacheForSeconds");
-	public static final Property<List<DOMNode>> elements        = new EndNodes<>("elements", PageLink.class);
+	public static final Property<List<DOMNode>> elements        = new StartNodes<>("elements", PageLink.class);
 	
 	public static final org.structr.common.View publicView = new org.structr.common.View(Page.class, PropertyView.Public,
 		children, linkingElements, contentType, owner, cacheForSeconds, version

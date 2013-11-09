@@ -29,12 +29,9 @@ import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.property.EndNode;
 import org.structr.core.property.StringProperty;
 import org.structr.web.common.HtmlProperty;
 import org.structr.web.common.RenderContext;
-import org.structr.web.entity.html.relation.HtmlBody;
-import org.structr.web.entity.html.relation.HtmlHead;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -55,8 +52,8 @@ public class Html extends DOMElement {
 	*/
 	public static final Property<String> _customOpeningTag = new StringProperty("customOpeningTag");
 	
-	public static final Property<Head> head = new EndNode<>("head", HtmlHead.class);
-	public static final Property<Body> body = new EndNode<>("body", HtmlBody.class);
+	//public static final Property<Head> head = new EndNode<>("head", HtmlHead.class);
+	//public static final Property<Body> body = new EndNode<>("body", HtmlBody.class);
 
 	public static final View htmlView = new View(Html.class, PropertyView.Html,
 		_manifest

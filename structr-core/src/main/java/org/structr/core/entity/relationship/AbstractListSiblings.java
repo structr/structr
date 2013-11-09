@@ -11,6 +11,6 @@ public abstract class AbstractListSiblings<S extends LinkedListNode, T extends L
 
 	@Override
 	public String name() {
-		return "CONTAINS_NEXT_CHILD";
+		return "CONTAINS_NEXT_SIBLING";
 	}
 }

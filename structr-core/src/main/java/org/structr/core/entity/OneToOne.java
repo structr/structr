@@ -57,4 +57,5 @@ public abstract class OneToOne<S extends NodeInterface, T extends NodeInterface>
 			app.delete(incomingRel);
 		}
 	}
+
 }
