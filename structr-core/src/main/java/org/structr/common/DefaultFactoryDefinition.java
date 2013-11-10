@@ -211,11 +211,7 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 
 				logger.log(Level.FINE, "Checking relationship {0}-[:{1}]->{2}", new Object[]{ sourceTypeName, relTypeName, targetTypeName });
 
-				
-				// Check both directions. If domain is properly modeled, the assumption that the
-				// actual relationship direction doesn't matter here, is safe.
-				if ((sourceType.equals(sourceTypeName) && relType.equals(relTypeName) && targetType.equals(targetTypeName))
-				   || (targetType.equals(sourceTypeName) && relType.equals(relTypeName) && sourceType.equals(targetTypeName))) {
+				if (sourceType.equals(sourceTypeName) && relType.equals(relTypeName) && targetType.equals(targetTypeName)) {
 					
 					logger.log(Level.INFO, "--> Found matching relation class: {0}", candidate.getName());
 					return candidate;
