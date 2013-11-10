@@ -484,33 +484,20 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 		return dbRelationship;
 	}
 
-	public String getStartNodeId() {
-
-		return getSourceNode().getUuid();
-
+	@Override
+	public String getSourceNodeId() {
+		return cachedStartNodeId;
 	}
 
-	public String getEndNodeId() {
-
-		return getTargetNode().getUuid();
+	@Override
+	public String getTargetNodeId() {
+		return cachedEndNodeId;
 
 	}
 
 	public String getOtherNodeId(final AbstractNode node) {
 
 		return getOtherNode(node).getProperty(AbstractRelationship.uuid);
-
-	}
-
-	public String getCachedStartNodeId() {
-
-		return cachedStartNodeId;
-
-	}
-
-	public String getCachedEndNodeId() {
-
-		return cachedEndNodeId;
 
 	}
 

@@ -175,8 +175,8 @@ public class CreateGraphObjectsTest extends StructrTest {
 				app.finishTx();
 			}
 
-			assertEquals(startNode.getUuid(), rel.getStartNodeId());
-			assertEquals(endNode.getUuid(), rel.getEndNodeId());
+			assertEquals(startNode.getUuid(), rel.getSourceNodeId());
+			assertEquals(endNode.getUuid(), rel.getTargetNodeId());
 			assertEquals(RelType.IS_AT.name(), rel.getType());
 			assertEquals(LocationRelationship.class, rel.getClass());
 

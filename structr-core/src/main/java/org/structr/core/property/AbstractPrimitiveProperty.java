@@ -149,7 +149,8 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 					TransactionCommand.nodeModified(
 						(AbstractNode)obj,
 						AbstractPrimitiveProperty.this,
-						propertyContainer.hasProperty(dbName()) ? propertyContainer.getProperty(dbName()) : null
+						propertyContainer.hasProperty(dbName()) ? propertyContainer.getProperty(dbName()) : null,
+						value
 					);
 
 				} else if (obj instanceof AbstractRelationship) {
@@ -157,7 +158,8 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 					TransactionCommand.relationshipModified(
 						(AbstractRelationship)obj,
 						AbstractPrimitiveProperty.this,
-						propertyContainer.hasProperty(dbName()) ? propertyContainer.getProperty(dbName()) : null
+						propertyContainer.hasProperty(dbName()) ? propertyContainer.getProperty(dbName()) : null,
+						value
 					);
 				}
 			}

@@ -19,6 +19,8 @@
 package org.structr.core.graph;
 
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
@@ -162,16 +164,16 @@ public class ModificationQueue {
 		getState(node).modifyLocation();
 	}
 	
-	public void modify(NodeInterface node, PropertyKey key, Object previousValue) {
-		getState(node).modify(key, previousValue);
+	public void modify(NodeInterface node, PropertyKey key, Object previousValue, Object newValue) {
+		getState(node).modify(key, previousValue, newValue);
 		
 		if (key != null&& key.requiresSynchronization()) {
 			synchronizationKeys.add(node.getClass().getSimpleName().concat(".").concat(key.getSynchronizationKey()));
 		}
 	}
 
-	public void modify(RelationshipInterface relationship, PropertyKey key, Object previousValue) {
-		getState(relationship).modify(key, previousValue);
+	public void modify(RelationshipInterface relationship, PropertyKey key, Object previousValue, Object newValue) {
+		getState(relationship).modify(key, previousValue, newValue);
 		
 		if (key != null && key.requiresSynchronization()) {
 			synchronizationKeys.add(relationship.getClass().getSimpleName().concat(".").concat(key.getSynchronizationKey()));
@@ -203,7 +205,19 @@ public class ModificationQueue {
 
 		modifyEndNodes(relationship.getSourceNode(), relationship.getTargetNode(), relationship.getRelType());
 	}
+	
+	public List<ModificationEvent> getModificationEvents() {
+		
+		final List<ModificationEvent> modificationEvents = new LinkedList<>();
+		for (final GraphObjectModificationState state : modifications.values()) {
+			
+			modificationEvents.add(state);
+		}
+		
+		return modificationEvents;
+	}
 
+	// ----- private methods -----
 	private void modifyEndNodes(NodeInterface startNode, NodeInterface endNode, RelationshipType relType) {
 		
 //		synchronizationKeys.add(relType.name());
@@ -229,8 +243,8 @@ public class ModificationQueue {
 			return;
 		}
 
-		modify(startNode, null, null);
-		modify(endNode, null, null);
+		modify(startNode, null, null, null);
+		modify(endNode, null, null, null);
 	}
 
 	private GraphObjectModificationState getState(NodeInterface node) {

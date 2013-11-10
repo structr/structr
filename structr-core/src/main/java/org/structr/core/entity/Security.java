@@ -42,10 +42,8 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.property.StringProperty;
 import org.structr.core.EntityContext;
-import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.graph.DeleteRelationshipCommand;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.ArrayProperty;
 

@@ -21,6 +21,8 @@
 package org.structr.core.graph;
 
 
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -30,6 +32,7 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import java.util.logging.Logger;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.StructrTransactionListener;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.PropertyKey;
 
@@ -54,6 +57,7 @@ import org.structr.core.property.PropertyKey;
 public class TransactionCommand extends NodeServiceCommand {
 
 	private static final Logger logger                                  = Logger.getLogger(TransactionCommand.class.getName());
+	private static final Set<StructrTransactionListener> listeners      = new LinkedHashSet<>();
 	private static final ThreadLocal<TransactionCommand> currentCommand = new ThreadLocal<>();
 	private static final ThreadLocal<TransactionReference> transactions = new ThreadLocal<>();
 	private static final MultiSemaphore                    semaphore    = new MultiSemaphore();
@@ -299,20 +303,26 @@ public class TransactionCommand extends NodeServiceCommand {
 	public void finishTx() {
 		
 		final TransactionReference tx = transactions.get();
-		
 		if (tx != null) {
 			
 			if (tx.isToplevel()) {
-
-				tx.finish();
 
 				// cleanup
 				currentCommand.remove();
 				transactions.remove();
 
+				tx.finish();
+
 				if (modificationQueue != null) {
 					
 					modificationQueue.doOuterCallbacks(securityContext);
+
+					// notify listeners
+					final List<ModificationEvent> modificationEvents = modificationQueue.getModificationEvents();
+					for (StructrTransactionListener listener : listeners) {
+						listener.transactionCommited(securityContext, modificationEvents);
+					}
+					
 					modificationQueue.clear();
 				}
 				
@@ -320,35 +330,6 @@ public class TransactionCommand extends NodeServiceCommand {
 				
 				tx.end();
 			}
-			
-/*
- *			FIXME:
- *			The problem here is that the call to finish causes the SynchronizationController
- *			to be activated, this triggers a JSON rendering which calls getThumbnail() which
- *			triggers thumbnail generation, all while the current transaction finishes.
- *			
- *			This causes the current (finishing) transaction to be "forgotten" because a new
- *			nested transaction is started IN THE SAME THREAD. This leads to the inner TX to
- *			be executed and finished, and the finish() call to the outer TX never happens
- *			because the inner has overwritten the ThreadLocal.
- * 
- *			We can either prevent any modifications from happening in the SynchronizationController
- *			context or we need to move all code from the synchronization controller into the outer
- *			callback methods.
- * 
- * 
- */
-			
-			
-			
-			
-			
-			
-			
-		} else {
-
-			System.out.println("###################################################################################################################: transaction without reference");
-			Thread.dumpStack();
 		}
 	}
 	
@@ -373,7 +354,7 @@ public class TransactionCommand extends NodeServiceCommand {
 		}
 	}
 	
-	public static void nodeModified(AbstractNode node, PropertyKey key, Object previousValue) {
+	public static void nodeModified(AbstractNode node, PropertyKey key, Object previousValue, Object newValue) {
 		
 		TransactionCommand command = currentCommand.get();
 		if (command != null) {
@@ -381,7 +362,7 @@ public class TransactionCommand extends NodeServiceCommand {
 			ModificationQueue modificationQueue = command.getModificationQueue();
 			if (modificationQueue != null) {
 				
-				modificationQueue.modify(node, key, previousValue);
+				modificationQueue.modify(node, key, previousValue, newValue);
 				
 			} else {
 				
@@ -436,7 +417,7 @@ public class TransactionCommand extends NodeServiceCommand {
 		}
 	}
 	
-	public static void relationshipModified(RelationshipInterface relationship, PropertyKey key, Object value) {
+	public static void relationshipModified(RelationshipInterface relationship, PropertyKey key, Object previousValue, Object newValue) {
 		
 		TransactionCommand command = currentCommand.get();
 		if (command != null) {
@@ -444,7 +425,7 @@ public class TransactionCommand extends NodeServiceCommand {
 			ModificationQueue modificationQueue = command.getModificationQueue();
 			if (modificationQueue != null) {
 				
-				modificationQueue.modify(relationship, null, null);
+				modificationQueue.modify(relationship, key, previousValue, newValue);
 				
 			} else {
 				
@@ -476,6 +457,14 @@ public class TransactionCommand extends NodeServiceCommand {
 			
 			logger.log(Level.SEVERE, "Relationship deleted while outside of transaction!");
 		}
+	}
+	
+	public static void registerTransactionListener(final StructrTransactionListener listener) {
+		listeners.add(listener);
+	}
+	
+	public static void removeTransactionListener(final StructrTransactionListener listener) {
+		listeners.remove(listener);
 	}
 	
 	public static boolean inTransaction() {

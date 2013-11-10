@@ -175,7 +175,7 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 			return entityType;
 		}
 		
-		logger.log(Level.WARNING, "No instantiable class for relationship found, returning generic relationship class");
+		logger.log(Level.WARNING, "No instantiable class for relationship found for {0} {1} {2}, returning generic relationship class.", new Object[] { sourceType, relType, targetType });
 		
 		return getGenericRelationshipType();
 	}

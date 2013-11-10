@@ -132,11 +132,11 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 			// remove node from index
 			node.removeFromIndex();
 
-			// delete node in database
-			node.getNode().delete();
-
 			// mark node as deleted in transaction
 			TransactionCommand.nodeDeleted(node);
+
+			// delete node in database
+			node.getNode().delete();
 
 			// now check again the deletion cascade for violated constraints
 			// Check all end nodes of outgoing relationships which are connected if they are
