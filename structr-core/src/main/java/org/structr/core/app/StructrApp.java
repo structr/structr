@@ -51,7 +51,7 @@ public class StructrApp implements App {
 		if (!Services.isInitialized()) {
 
 			final Map<String, String> context = new LinkedHashMap<>();
-			final String basePath             = System.getProperty("structr.home", "~/.structr");
+			final String basePath             = ".";
 
 			logger.log(Level.INFO, "Initializing Structr with base path {0}..", basePath);
 
@@ -252,8 +252,6 @@ public class StructrApp implements App {
 	 * Constructs a new stateful App instance, initialized with the given
 	 * security context.
 	 * 
-	 * @param basePath
-	 * @param securityContext
 	 * @return 
 	 */
 	public static App getInstance() {
@@ -264,7 +262,6 @@ public class StructrApp implements App {
 	 * Constructs a new stateful App instance, initialized with the given
 	 * security context.
 	 * 
-	 * @param basePath
 	 * @param securityContext
 	 * @return 
 	 */
