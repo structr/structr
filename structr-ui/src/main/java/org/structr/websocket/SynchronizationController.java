@@ -44,7 +44,6 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
-import org.structr.web.common.RelType;
 import org.structr.web.entity.User;
 import org.structr.web.entity.dom.DOMNode;
 
@@ -140,7 +139,7 @@ public class SynchronizationController implements StructrTransactionListener {
 						message = gson.toJson(webSocketData, WebSocketMessage.class);
 					}
 
-					logger.log(Level.FINE, "############################################################ SENDING \n{0}", message);
+					// logger.log(Level.INFO, "############################################################ SENDING \n{0}", message);
 
 					try {
 
@@ -205,7 +204,7 @@ public class SynchronizationController implements StructrTransactionListener {
 				
 				final WebSocketMessage message = createMessage("DELETE");
 
-				message.setId(node.getUuid());
+				message.setId(modificationEvent.getRemovedProperties().get(GraphObject.uuid));
 				
 				return message;
 			}
@@ -227,8 +226,8 @@ public class SynchronizationController implements StructrTransactionListener {
 				message.setGraphObject(node);
 				message.setResult(Arrays.asList(new GraphObject[] { node } ));
 				message.setId(node.getUuid());
-				message.getModifiedProperties().addAll(modificationEvent.getModifiedProperties());
-				message.getRemovedProperties().addAll(modificationEvent.getRemovedProperties());
+				message.getModifiedProperties().addAll(modificationEvent.getModifiedProperties().keySet());
+				message.getRemovedProperties().addAll(modificationEvent.getRemovedProperties().keySet());
 				message.setNodeData(modificationEvent.getData(securityContext));
 
 				return message;
@@ -241,71 +240,69 @@ public class SynchronizationController implements StructrTransactionListener {
 			final RelationshipType relType           = modificationEvent.getRelationshipType();
 			
 			// only interested in CONTAINS relationships
-			if (RelType.CONTAINS.equals(relType)) {
+			if (modificationEvent.isDeleted()) {
 
-				if (modificationEvent.isDeleted()) {
-				
-					final WebSocketMessage message = createMessage("REMOVE_CHILD");
+				final WebSocketMessage message = createMessage("REMOVE_CHILD");
 
-					message.setNodeData("parentId", relationship.getSourceNodeId());
-					message.setId(relationship.getTargetNodeId());
+				message.setNodeData("parentId", relationship.getSourceNodeId());
+				message.setId(relationship.getTargetNodeId());
 
-					return message;
-				}
+				return message;
+			}
 
-				if (modificationEvent.isCreated()) {
+			if (modificationEvent.isCreated() && "CONTAINS".equals(relType.name())) {
 
-					final WebSocketMessage message = new WebSocketMessage();
-					final NodeInterface startNode  = relationship.getSourceNode();
-					final NodeInterface endNode    = relationship.getTargetNode();
 
-					message.setResult(Arrays.asList(new GraphObject[] { endNode }));
-					message.setId(endNode.getUuid());
-					message.setNodeData("parentId", startNode.getUuid());
+				final WebSocketMessage message = new WebSocketMessage();
+				final NodeInterface startNode  = relationship.getSourceNode();
+				final NodeInterface endNode    = relationship.getTargetNode();
 
-					message.setCommand("APPEND_CHILD");
+				message.setResult(Arrays.asList(new GraphObject[] { endNode }));
+				message.setId(endNode.getUuid());
+				message.setNodeData("parentId", startNode.getUuid());
 
-					if (endNode instanceof DOMNode) {
+				message.setCommand("APPEND_CHILD");
 
-						org.w3c.dom.Node refNode = ((DOMNode) endNode).getNextSibling();
-						if (refNode != null) {
-							
-							message.setCommand("INSERT_BEFORE");
-							message.setNodeData("refId", ((AbstractNode) refNode).getUuid());
-						}
+				if (endNode instanceof DOMNode) {
 
-					} else if (endNode instanceof User) {
+					org.w3c.dom.Node refNode = ((DOMNode) endNode).getNextSibling();
+					if (refNode != null) {
 
-						message.setCommand("APPEND_USER");
-						message.setNodeData("refId", startNode.getUuid());
+						message.setCommand("INSERT_BEFORE");
+						message.setNodeData("refId", ((AbstractNode) refNode).getUuid());
 					}
 
-					return message;
+				} else if (endNode instanceof User) {
+
+					message.setCommand("APPEND_USER");
+					message.setNodeData("refId", startNode.getUuid());
 				}
 
-				if (modificationEvent.isModified()) {
+				return message;
+			}
 
-					final WebSocketMessage message = createMessage("UPDATE");
+			if (modificationEvent.isModified()) {
 
-					message.setGraphObject(relationship);
-					message.setId(relationship.getUuid());
-					message.getModifiedProperties().addAll(modificationEvent.getModifiedProperties());
-					message.getRemovedProperties().addAll(modificationEvent.getRemovedProperties());
-					message.setNodeData(modificationEvent.getData(securityContext));
-					
-					final PropertyMap relProperties = relationship.getProperties();
-					final NodeInterface startNode   = relationship.getSourceNode();
-					final NodeInterface endNode     = relationship.getTargetNode();
+				final WebSocketMessage message = createMessage("UPDATE");
 
-					relProperties.put(new StringProperty("startNodeId"), startNode.getUuid());
-					relProperties.put(new StringProperty("endNodeId"), endNode.getUuid());
+				message.setGraphObject(relationship);
+				message.setId(relationship.getUuid());
+				message.getModifiedProperties().addAll(modificationEvent.getModifiedProperties().keySet());
+				message.getRemovedProperties().addAll(modificationEvent.getRemovedProperties().keySet());
+				message.setNodeData(modificationEvent.getData(securityContext));
 
-					final Map<String, Object> properties = PropertyMap.javaTypeToInputType(securityContext, relationship.getClass(), relProperties);
+				final PropertyMap relProperties = relationship.getProperties();
+				final NodeInterface startNode   = relationship.getSourceNode();
+				final NodeInterface endNode     = relationship.getTargetNode();
 
-					message.setRelData(properties);
+				relProperties.put(new StringProperty("startNodeId"), startNode.getUuid());
+				relProperties.put(new StringProperty("endNodeId"), endNode.getUuid());
 
-					return message;
-				}
+				final Map<String, Object> properties = PropertyMap.javaTypeToInputType(securityContext, relationship.getClass(), relProperties);
+
+				message.setRelData(properties);
+
+				return message;
 			}
 		}
 		

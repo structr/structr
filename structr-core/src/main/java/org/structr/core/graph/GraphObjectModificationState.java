@@ -56,6 +56,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 	private boolean isNode                 = false;
 	private boolean modified               = false;
 	private GraphObject object             = null;
+	private String uuid                    = null;
 	private int status                     = 0;
 
 	public GraphObjectModificationState(GraphObject object) {
@@ -66,6 +67,9 @@ public class GraphObjectModificationState implements ModificationEvent {
 		if (!isNode) {
 			this.relType = ((RelationshipInterface)object).getRelType();
 		}
+		
+		// store uuid for later use
+		this.uuid = object.getUuid();
 	}
 
 	@Override
@@ -370,6 +374,11 @@ public class GraphObjectModificationState implements ModificationEvent {
 	}
 	
 	// ----- interface ModificationEvent -----
+	
+	@Override
+	public int getStatus() {
+		return status;
+	}
 
 	@Override
 	public boolean isCreated() {
@@ -393,17 +402,17 @@ public class GraphObjectModificationState implements ModificationEvent {
 
 	@Override
 	public String getUuid() {
-		return object.getUuid();
+		return uuid;
 	}
 
 	@Override
-	public Set<PropertyKey> getModifiedProperties() {
-		return modifiedProperties.keySet();
+	public PropertyMap getModifiedProperties() {
+		return modifiedProperties;
 	}
 
 	@Override
-	public Set<PropertyKey> getRemovedProperties() {
-		return removedProperties.keySet();
+	public PropertyMap getRemovedProperties() {
+		return removedProperties;
 	}
 	
 	@Override
