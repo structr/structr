@@ -25,14 +25,14 @@ public class TransactionReference implements Transaction {
 	public void begin() {
 		
 		for (int i=0; i<referenceCount; i++) { System.out.print("    "); }
-		System.out.println("BEGIN(" + Thread.currentThread().getId() + ")");
+		//System.out.println("BEGIN(" + Thread.currentThread().getId() + ")");
 		referenceCount++;
 	}
 	
 	public void end() {
 		referenceCount--;
 		for (int i=0; i<referenceCount; i++) { System.out.print("    "); }
-		System.out.println("END(" + Thread.currentThread().getId() + ")");
+		//System.out.println("END(" + Thread.currentThread().getId() + ")");
 	}
 	
 	public int getReferenceCount() {
@@ -43,14 +43,14 @@ public class TransactionReference implements Transaction {
 	@Override
 	public void failure() {
 		for (int i=0; i<referenceCount; i++) { System.out.print("    "); }
-		System.out.println("FAILURE(" + Thread.currentThread().getId() + ")");
+		//System.out.println("FAILURE(" + Thread.currentThread().getId() + ")");
 		tx.failure();
 	}
 
 	@Override
 	public void success() {
 		for (int i=0; i<referenceCount; i++) { System.out.print("    "); }
-		System.out.println("SUCCESS(" + Thread.currentThread().getId() + ")");
+		//System.out.println("SUCCESS(" + Thread.currentThread().getId() + ")");
 		tx.success();
 		successful = true;
 	}
@@ -69,7 +69,7 @@ public class TransactionReference implements Transaction {
 			tx.finish();
 			
 			for (int i=0; i<referenceCount; i++) { System.out.print("    "); }
-			System.out.println("FINISH(" + Thread.currentThread().getId() + ")");
+			//System.out.println("FINISH(" + Thread.currentThread().getId() + ")");
 		}
 	}
 
