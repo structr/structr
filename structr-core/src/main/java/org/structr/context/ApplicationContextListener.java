@@ -187,7 +187,7 @@ public class ApplicationContextListener implements ServletContextListener, HttpS
 
 		Services.initialize(configMap);
 
-		// Services.setContext(context);
+		// Services.setConfig(context);
 
 		// Initialize cloud service
 		// not needed any more: Services.command(securityContext, StartCloudService.class);
