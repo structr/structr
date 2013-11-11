@@ -74,7 +74,6 @@ public class Ui implements org.structr.server.StructrServer {
 			wsInitParams.put("IdProperty", "uuid");
 			wsServletHolder.setInitParameters(wsInitParams);
 			wsServletHolder.setInitOrder(3);
-
 			
 			// Upload Servlet
 			UploadServlet uploadServlet     = new UploadServlet();
