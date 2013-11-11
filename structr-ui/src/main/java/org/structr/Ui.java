@@ -32,6 +32,7 @@ import org.structr.server.Structr;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.common.UiResourceProvider;
 import org.structr.web.servlet.HtmlServlet;
+import org.structr.web.servlet.UploadServlet;
 import org.structr.websocket.servlet.WebSocketServlet;
 
 /**
@@ -74,11 +75,19 @@ public class Ui implements org.structr.server.StructrServer {
 			wsServletHolder.setInitParameters(wsInitParams);
 			wsServletHolder.setInitOrder(3);
 
+			
+			// Upload Servlet
+			UploadServlet uploadServlet     = new UploadServlet();
+			ServletHolder uploadServletHolder    = new ServletHolder(uploadServlet);
+			uploadServletHolder.setInitParameters(servletParams);
+			uploadServletHolder.setInitOrder(4);
+			
 			Structr.createServer(Ui.class, "structr UI", 8082)
 				
 				.addServlet("/structr/html/*", htmlServletHolder)
 				.addServlet("/structr/ws/*", wsServletHolder)
 				.addServlet("/structr/csv/*", csvServletHolder)
+				.addServlet("/structr/upload", uploadServletHolder)
 			    
 				.addResourceHandler("/structr", "src/main/resources/structr", true, new String[] { "index.html"})
 				
