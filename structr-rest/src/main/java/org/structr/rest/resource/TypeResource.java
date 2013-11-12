@@ -237,14 +237,24 @@ public class TypeResource extends SortableResource {
 
 	}
 
-	public AbstractNode createNode(final Map<String, Object> propertySet) throws FrameworkException {
+	public NodeInterface createNode(final Map<String, Object> propertySet) throws FrameworkException {
 
 		if (entityClass != null) {
 
-			PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, entityClass, propertySet);
-			properties.put(AbstractNode.type, entityClass.getSimpleName());
+			final App app                = StructrApp.getInstance(securityContext);
+			final PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, entityClass, propertySet);
 
-			return (AbstractNode) Services.command(securityContext, CreateNodeCommand.class).execute(properties);
+			try {
+				app.beginTx();
+				final NodeInterface newNode = app.create(entityClass, properties);
+				app.commitTx();
+				
+				return newNode;
+				
+			} finally {
+				
+				app.finishTx();
+			}
 			
 		}
 		

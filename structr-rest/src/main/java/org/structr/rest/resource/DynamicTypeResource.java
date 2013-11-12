@@ -33,8 +33,6 @@ import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchNodeCommand;
@@ -82,7 +80,7 @@ public class DynamicTypeResource extends TypeResource {
 	@Override
 	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
 
-		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+		List<SearchAttribute> searchAttributes = new LinkedList<>();
 		boolean includeDeletedAndHidden        = true;
 		boolean publicOnly                     = false;
 
@@ -162,12 +160,30 @@ public class DynamicTypeResource extends TypeResource {
 	}
 
 	@Override
-	public AbstractNode createNode(final Map<String, Object> propertySet) throws FrameworkException {
+	public NodeInterface createNode(final Map<String, Object> propertySet) throws FrameworkException {
 
-		PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, entityClass, propertySet);
-		properties.put(AbstractNode.type, normalizedTypeName);
+		final App app    = StructrApp.getInstance(securityContext);
+		final Class type = EntityContext.getEntityClassForRawType(normalizedTypeName);
 		
-		return (AbstractNode) Services.command(securityContext, CreateNodeCommand.class).execute(properties);
+		if (type != null) {
+			
+			final PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, entityClass, propertySet);
+			
+			try {
+				
+				app.beginTx();
+				NodeInterface node = app.create(type, properties);
+				app.commitTx();
+				
+				return node;
+				
+			} finally {
+				
+				app.finishTx();
+			}
+		}
+		
+		throw new FrameworkException(500, "Cannot create node with unknow type " + normalizedTypeName);
 	}
 
 	@Override

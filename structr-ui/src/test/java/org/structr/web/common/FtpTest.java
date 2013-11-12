@@ -120,7 +120,7 @@ public class FtpTest extends StructrUiTest {
 		
 		try {
 
-			ftp.connect("localhost", 8876);
+			ftp.connect("localhost", 8821);
 			logger.log(Level.INFO, "Reply from FTP server:", ftp.getReplyString());
 			
 			int reply = ftp.getReplyCode();

@@ -156,7 +156,7 @@ public class StructrUiTest extends TestCase {
 				.addResourceHandler("/structr", "src/main/resources/structr", true, new String[] { "index.html"})
 				
 				.addConfiguredServices(FtpService.class)
-				.ftpPort(8876)
+				.ftpPort(8821)
 			    
 				.enableRewriteFilter()
 				//.logRequests(true)

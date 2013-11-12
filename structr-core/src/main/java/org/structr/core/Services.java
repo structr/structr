@@ -156,7 +156,7 @@ public class Services {
 	 * @param commandType the runtime type of the desired command
 	 * @return the command
 	 */
-	public static <T extends Command> T command(SecurityContext securityContext, Class<T> commandType) {
+	private static <T extends Command> T command(SecurityContext securityContext, Class<T> commandType) {
 
 		Class serviceClass = null;
 		T command          = null;

@@ -27,6 +27,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.Service;
 import org.structr.core.agent.Task;
 import org.structr.core.entity.Relation;
+import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
@@ -66,6 +67,8 @@ public interface App {
 	public <T extends Command> T command(final Class<T> commandType);
 	
 	public void processTasks(final Task... tasks);
+	public <T extends Command & MaintenanceCommand> void maintenance(final Class<T> commandClass, final Map<String, Object> propertySet) throws FrameworkException;
+	
 	public List<GraphObject> cypher(final String cypherQuery, final Map<String, Object> parameters) throws FrameworkException;
 	
 	public <T extends Service> T getService(final Class<T> serviceClass);

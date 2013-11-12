@@ -23,6 +23,7 @@ import org.structr.core.graph.CreateRelationshipCommand;
 import org.structr.core.graph.CypherQueryCommand;
 import org.structr.core.graph.DeleteNodeCommand;
 import org.structr.core.graph.DeleteRelationshipCommand;
+import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
@@ -234,6 +235,11 @@ public class StructrApp implements App {
 				agentService.processTask(task);
 			}
 		}
+	}
+	
+	@Override
+	public <T extends Command & MaintenanceCommand> void maintenance(final Class<T> commandClass, final Map<String, Object> propertySet) throws FrameworkException {
+		((MaintenanceCommand)Services.command(securityContext, commandClass)).execute(propertySet);
 	}
 	
 	@Override

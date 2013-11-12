@@ -39,13 +39,10 @@ import org.structr.core.EntityContext;
 import org.structr.core.Export;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
-import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeFactory;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.Notion;
 import org.structr.core.property.RelationProperty;
 import org.structr.rest.RestMethodResult;
@@ -185,7 +182,7 @@ public class StaticRelationshipResource extends SortableResource {
 
 			final RelationProperty relationProperty = (RelationProperty)propertyKey;
 			final Class sourceNodeType              = sourceNode.getClass();
-			AbstractNode newNode                    = null;
+			NodeInterface newNode                   = null;
 
 			if (propertyKey.isReadOnly()) {
 
@@ -206,9 +203,7 @@ public class StaticRelationshipResource extends SortableResource {
 
 					/*
 					 * FIXME: is this needed at all??
-
-	* 
-	* 
+					 * 
 					// the notion that is defined for this relationship can deserialize
 					// objects with a single key (uuid for example), and the POSTed
 					// property set contains value(s) for this key, so we only need
@@ -400,8 +395,8 @@ public class StaticRelationshipResource extends SortableResource {
 	// ----- private methods -----
 	private Object[] extractParameters(Map<String, Object> properties, Class[] parameterTypes) {
 		
-		List<Object> values     = new ArrayList<Object>(properties.values());
-		List<Object> parameters = new ArrayList<Object>();
+		List<Object> values     = new ArrayList<>(properties.values());
+		List<Object> parameters = new ArrayList<>();
 		int index               = 0;
 		
 		// only try to convert when both lists have equal size
