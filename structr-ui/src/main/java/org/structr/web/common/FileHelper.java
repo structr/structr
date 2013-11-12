@@ -53,7 +53,6 @@ import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.property.PropertyMap;
 import org.structr.util.Base64;
 import org.structr.web.entity.AbstractFile;
-import org.structr.web.entity.Image;
 import static org.structr.web.servlet.HtmlServlet.searchNodesAsSuperuser;
 
 //~--- classes ----------------------------------------------------------------
@@ -73,7 +72,34 @@ public class FileHelper {
 	//~--- methods --------------------------------------------------------
 
 	/**
-	 * Create a new image node from image data encoded in base64 format
+	 * Transform an existing file into the target class.
+	 *
+	 * @param securityContext
+	 * @param uuid
+	 * @param fileType
+	 * @return
+	 * @throws FrameworkException
+	 * @throws IOException
+	 */
+	public static org.structr.web.entity.File transformFile(final SecurityContext securityContext, final String uuid, final Class<? extends org.structr.web.entity.File> fileType) throws FrameworkException, IOException {
+		
+		AbstractFile existingFile = getFileByUuid(uuid);
+		
+		if (existingFile != null) {
+			
+			existingFile.unlockReadOnlyPropertiesOnce();
+			existingFile.setProperty(AbstractNode.type, fileType == null ? org.structr.web.entity.File.class.getSimpleName() : fileType.getSimpleName());
+			
+			return fileType != null ? fileType.cast(existingFile) : (org.structr.web.entity.File) existingFile;
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * Create a new image node from image data encoded in base64 format.
+	 * 
+	 * If the given string is an uuid of an existing file, transform it into the target class.
 	 *
 	 * @param securityContext
 	 * @param rawData
@@ -104,10 +130,10 @@ public class FileHelper {
 	public static org.structr.web.entity.File createFile(final SecurityContext securityContext, final byte[] fileData, final String contentType, final Class<? extends org.structr.web.entity.File> fileType)
 		throws FrameworkException, IOException {
 
-		CreateNodeCommand<Image> createNodeCommand = Services.command(securityContext, CreateNodeCommand.class);
+		CreateNodeCommand<org.structr.web.entity.File> createNodeCommand = Services.command(securityContext, CreateNodeCommand.class);
 		PropertyMap props                          = new PropertyMap();
 		
-		props.put(AbstractNode.type, fileType == null ? File.class.getSimpleName() : fileType.getSimpleName());
+		props.put(AbstractNode.type, fileType == null ? org.structr.web.entity.File.class.getSimpleName() : fileType.getSimpleName());
 
 		org.structr.web.entity.File newFile = createNodeCommand.execute(props);
 
@@ -471,6 +497,30 @@ public class FileHelper {
 		
 	}
 	
+	public static AbstractFile getFileByUuid(final String uuid) {
+
+		logger.log(Level.FINE, "Search for file with uuid: {0}", uuid);
+
+		List<SearchAttribute> searchAttrs = new LinkedList<>();
+
+		searchAttrs.add(Search.andExactUuid(uuid));
+		searchAttrs.add(Search.orExactTypeAndSubtypes(org.structr.web.entity.AbstractFile.class));
+
+		
+		try {
+			Result<AbstractFile> results = searchNodesAsSuperuser.execute(false, false, searchAttrs);
+			logger.log(Level.FINE, "{0} files found", results.size());
+			if (results.isEmpty()) return null;
+		
+			return (AbstractFile) results.get(0);
+			
+		} catch (FrameworkException ex) {
+			logger.log(Level.SEVERE, null, ex);
+		}
+
+		return null;
+	}
+		
 	public static AbstractFile getFileByName(final String name) {
 
 		logger.log(Level.FINE, "Search for file with name: {0}", name);

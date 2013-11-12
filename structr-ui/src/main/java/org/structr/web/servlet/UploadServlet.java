@@ -136,7 +136,6 @@ public class UploadServlet extends HttpServlet {
 						try {
 
 							org.structr.web.entity.File newFile = FileHelper.createFile(securityContext, IOUtils.toByteArray(fileItem.getInputStream()), fileItem.getContentType(), org.structr.web.entity.File.class);
-							newFile.setProperty(AbstractNode.name, fileItem.getName());
 							newFile.setProperty(AbstractNode.name, PathHelper.getName(fileItem.getName()));
 							newFile.setProperty(AbstractNode.visibleToPublicUsers, true);
 							newFile.setProperty(AbstractNode.visibleToAuthenticatedUsers, true);
