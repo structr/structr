@@ -90,6 +90,8 @@ public class FileHelper {
 			existingFile.unlockReadOnlyPropertiesOnce();
 			existingFile.setProperty(AbstractNode.type, fileType == null ? org.structr.web.entity.File.class.getSimpleName() : fileType.getSimpleName());
 			
+			existingFile = getFileByUuid(uuid);
+			
 			return fileType != null ? fileType.cast(existingFile) : (org.structr.web.entity.File) existingFile;
 		}
 		
