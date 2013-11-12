@@ -47,6 +47,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.web.common.FileHelper;
+import org.structr.web.entity.Image;
 
 //~--- classes ----------------------------------------------------------------
 /**
@@ -135,8 +136,15 @@ public class UploadServlet extends HttpServlet {
 
 						try {
 
-							org.structr.web.entity.File newFile = FileHelper.createFile(securityContext, IOUtils.toByteArray(fileItem.getInputStream()), fileItem.getContentType(), org.structr.web.entity.File.class);
-							newFile.setProperty(AbstractNode.name, PathHelper.getName(fileItem.getName()));
+							String contentType = fileItem.getContentType();
+							boolean isImage = (contentType != null && contentType.startsWith("image"));
+							
+							Class type = isImage ? Image.class : org.structr.web.entity.File.class;
+							
+							String name = fileItem.getName().replaceAll("\\\\", "/");
+							
+							org.structr.web.entity.File newFile = FileHelper.createFile(securityContext, IOUtils.toByteArray(fileItem.getInputStream()), contentType, type);
+							newFile.setProperty(AbstractNode.name, PathHelper.getName(name));
 							newFile.setProperty(AbstractNode.visibleToPublicUsers, true);
 							newFile.setProperty(AbstractNode.visibleToAuthenticatedUsers, true);
 
