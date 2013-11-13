@@ -46,7 +46,7 @@ public abstract class ManyToOne<S extends NodeInterface, T extends NodeInterface
 
 		// check existing relationships
 		final Relation<?, T, ?, ?> outgoingRel = sourceNode.getOutgoingRelationship(clazz);
-		if (outgoingRel != null && outgoingRel.getTargetNode().getClass().equals(targetType)) {
+		if (outgoingRel != null && outgoingRel.getTargetType().isAssignableFrom(targetType)) {
 
 			try {
 

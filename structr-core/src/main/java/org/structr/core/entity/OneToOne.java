@@ -49,11 +49,11 @@ public abstract class OneToOne<S extends NodeInterface, T extends NodeInterface>
 		final Relation<?, T, ?, ?> incomingRel = targetNode.getIncomingRelationship(clazz);
 
 		// remove relationship if exists
-		if (outgoingRel != null && outgoingRel.getTargetNode().getClass().equals(targetType)) {
+		if (outgoingRel != null && outgoingRel.getTargetType().isAssignableFrom(targetType)) {
 			app.delete(outgoingRel);
 		}
 		
-		if (incomingRel != null && incomingRel.getSourceNode().getClass().equals(sourceType)) {
+		if (incomingRel != null && incomingRel.getSourceType().isAssignableFrom(sourceType)) {
 			app.delete(incomingRel);
 		}
 	}

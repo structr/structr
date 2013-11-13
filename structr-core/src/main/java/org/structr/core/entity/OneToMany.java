@@ -47,7 +47,7 @@ public abstract class OneToMany<S extends NodeInterface, T extends NodeInterface
 
 		// check existing relationships
 		final Relation<?, T, ?, ?> incomingRel = targetNode.getIncomingRelationship(clazz);
-		if (incomingRel != null && incomingRel.getSourceNode().getClass().equals(sourceType)) {
+		if (incomingRel != null && incomingRel.getSourceType().isAssignableFrom(sourceType)) {
 
 			try {
 
