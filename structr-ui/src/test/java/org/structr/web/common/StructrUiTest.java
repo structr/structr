@@ -89,6 +89,7 @@ public class StructrUiTest extends TestCase {
 	protected static final String wsUrl = "/structr/ws";
 	protected static final String host = "localhost";
 	protected static final int httpPort = 8875;
+	protected static final int ftpPort = 8876;
 	
 	protected static String baseUri;
 	
@@ -156,7 +157,7 @@ public class StructrUiTest extends TestCase {
 				.addResourceHandler("/structr", "src/main/resources/structr", true, new String[] { "index.html"})
 				
 				.addConfiguredServices(FtpService.class)
-				.ftpPort(8821)
+				.ftpPort(ftpPort)
 			    
 				.enableRewriteFilter()
 				//.logRequests(true)
