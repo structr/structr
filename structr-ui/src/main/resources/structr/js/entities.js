@@ -179,7 +179,7 @@ var _Entities = {
         $(activeId).show();
     },
     editSource: function(entity) {
-        
+
         Structr.dialog('Edit source of "' + (entity.name ? entity.name : entity.id) + '"', function() {
             log('Element source saved')
         }, function() {
@@ -188,7 +188,7 @@ var _Entities = {
 
         // Get content in widget mode
         var url = viewRootUrl + entity.id + '?edit=3', contentType = 'text/html';
-        
+
         $.ajax({
             url: url,
             //async: false,
@@ -204,13 +204,13 @@ var _Entities = {
                 });
 
                 editor.id = entity.id;
-                
+
                 dialogBtn.append('<button id="saveFile" disabled="disabled" class="disabled"> Save </button>');
                 dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="disabled"> Save and close</button>');
-                
+
                 dialogSaveButton = $('#saveFile', dialogBtn);
                 var saveAndClose = $('#saveAndClose', dialogBtn);
-                
+
                 editor.on('change', function(cm, change) {
 
                     //text1 = $(contentNode).children('.content_').text();
@@ -224,11 +224,11 @@ var _Entities = {
                         saveAndClose.prop("disabled", false).removeClass('disabled');
                     }
                 });
-                
+
                 dialogSaveButton.on('click', function(e) {
                     e.stopPropagation();
                     var text2 = editor.getValue();
-    
+
                     if (text === text2) {
                         dialogSaveButton.prop("disabled", true).addClass('disabled');
                         saveAndClose.prop("disabled", true).addClass('disabled');
@@ -236,8 +236,8 @@ var _Entities = {
                         dialogSaveButton.prop("disabled", false).removeClass('disabled');
                         saveAndClose.prop("disabled", false).removeClass('disabled');
                     }
-                    
-                    
+
+
                     var parent = entity.parent;
                     if (parent) {
                         Command.removeChild(entity.id);
@@ -268,11 +268,11 @@ var _Entities = {
                 });
 
             },
-            error : function(xhr, statusText, error) {
+            error: function(xhr, statusText, error) {
                 console.log(xhr, statusText, error);
             }
-        });                
-        
+        });
+
     },
     showProperties: function(entity) {
 
@@ -411,7 +411,8 @@ var _Entities = {
                                                 Command.setProperty(id, key, checked);
                                             });
                                             Command.getProperty(id, key, function(val) {
-                                                if (val) checkbox.prop('checked', true);
+                                                if (val)
+                                                    checkbox.prop('checked', true);
                                             });
                                         } else if (isIn(key, _Entities.dateAttrs)) {
                                             if (!res[key] || res[key] === 'null') {
@@ -453,7 +454,7 @@ var _Entities = {
 
             });
         });
-        
+
         $('#tab-' + activeView).click();
 
     },
@@ -539,8 +540,6 @@ var _Entities = {
                 Structr.dialog('Access Control and Visibility', function() {
                 }, function() {
                 });
-
-
 
                 _Entities.appendSimpleSelection(dialogText, entity, 'users', 'Owner', 'owner.id');
 
@@ -974,7 +973,7 @@ var _Entities = {
 };
 
 function addPrincipal(entity, principal, permissions) {
-    
+
     $('#newPrincipal option[value="' + principal.id + '"]').remove();
     $('#new').before('<tr id="_' + principal.id + '"><td><img class="typeIcon" src="' + (principal.type === 'Group' ? 'icon/group.png' : 'icon/user.png') + '"> <span class="name">' + principal.name + '</span></td><tr>');
 

@@ -107,32 +107,31 @@ var _Elements = {
         widgets = $('#widgets', widgetsSlideout);
 
         widgets.droppable({
-            
-            drop : function(e, ui) {
+            drop: function(e, ui) {
                 var sourceEl = $(ui.draggable);
                 if (sourceEl.parent().attr('id') === 'widgets') {
                     log('widget dropped on widget area, aborting');
                     return false;
                 }
                 var sourceId = getId(sourceEl);
-                
+
                 $.ajax({
                     url: viewRootUrl + sourceId + '?edit=3',
                     contentType: 'text/html',
                     statusCode: {
                         200: function(data) {
                             Command.createLocalWidget(sourceId, 'New Widget (' + sourceId + ')', data, function(entity) {
-                                
+
                                 //_Widgets.appendWidgetElement(entity, false, localWidgetsArea);
-                                
+
                             });
                         }
                     }
                 });
-                
-                
+
+
             }
-            
+
         });
 
 
@@ -192,33 +191,34 @@ var _Elements = {
         componentsSlideout.find(':not(.compTab)').remove();
         componentsSlideout.append('<div class="ver-scrollable" id="componentsArea"></div>')
         components = $('#componentsArea', componentsSlideout);
-        
+
         Command.getByType('ShadowDocument', 1, 1, null, null, function(entity) {
             shadowPage = entity;
         });
         components.droppable({
-            
-            drop : function(e, ui) {
+            drop: function(e, ui) {
                 e.preventDefault();
                 e.stopPropagation();
                 var sourceEl = $(ui.draggable);
-                if (sourceEl.parent().attr('id') === 'components') {
+                var sourceId = getId(sourceEl);
+                var obj = StructrModel.obj(sourceId);
+                if (obj.syncedNodes && obj.syncedNodes.length || sourceEl.parent().attr('id') === 'componentsArea') {
                     log('component dropped on components area, aborting');
                     return false;
                 }
-                var sourceId = getId(sourceEl);
                 Command.createComponent(sourceId);
             }
-            
+
         });
         _Dragndrop.makeSortable(components);
 
         Command.listComponents(1000, 1, 'name', 'asc', function(entity) {
-            
-            if (!entity) return false;
 
-            StructrModel.create(entity, null, false);
-            var el = _Pages.appendElementElement(entity, components, true);
+            if (!entity)
+                return false;
+
+            var obj = StructrModel.create(entity, null, false);
+            var el = _Pages.appendElementElement(obj, components, true);
 
             if (isExpanded(entity.id)) {
                 _Entities.ensureExpanded(el);
@@ -257,9 +257,8 @@ var _Elements = {
                 return;
             }
 
-            StructrModel.create(entity, null, false);
-
-            var el = _Pages.appendElementElement(entity, elements, true);
+            var obj = StructrModel.create(entity, null, false);
+            var el = _Pages.appendElementElement(obj, elements, true);
 
             if (isExpanded(entity.id)) {
                 _Entities.ensureExpanded(el);
@@ -277,7 +276,8 @@ var _Elements = {
     appendElementElement: function(entity, refNode, refNodeIsParent) {
         log('_Elements.appendElementElement', entity);
 
-        if (!entity) return false;
+        if (!entity)
+            return false;
 
         var hasChildren = entity.childrenIds && entity.childrenIds.length;
         var isComponent = entity.syncedNodes && entity.syncedNodes.length;
@@ -354,13 +354,16 @@ var _Elements = {
         $('.delete_icon', div).on('click', function(e) {
             e.stopPropagation();
             _Entities.deleteNode(this, entity, function() {
-                entity.syncedNodes.forEach(function(id) {
-                    var el = Structr.node(id);
-                    if (el && el.children && el.children.length) {
-                        el.children('img.typeIcon').attr('src', _Elements.icon);
-                    }
-                        
-                });
+                var synced = entity.syncedNodes;
+                if (synced && synced.length) {
+                    synced.forEach(function(id) {
+                        var el = Structr.node(id);
+                        if (el && el.children && el.children.length) {
+                            el.children('img.typeIcon').attr('src', _Elements.icon);
+                        }
+
+                    });
+                }
             });
         });
 

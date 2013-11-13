@@ -358,14 +358,20 @@ function connect() {
                                 _Entities.ensureExpanded(el);
                             }
                             
-                            // Change icon
-                            $.each(entity.syncedNodes, function(i, id) {
-                                var el = Structr.node(id);
-                                if (el && el.length) {
-                                    el.children('img.typeIcon').attr('src', _Elements.icon_comp);
-                                    _Entities.removeExpandIcon(el);
-                                }
-                            });
+                            var synced = entity.syncedNodes;
+                            
+                            if (synced && synced.length) {
+                            
+                                // Change icon
+                                $.each(entity.syncedNodes, function(i, id) {
+                                    var el = Structr.node(id);
+                                    if (el && el.length) {
+                                        el.children('img.typeIcon').attr('src', _Elements.icon_comp);
+                                        _Entities.removeExpandIcon(el);
+                                    }
+                                });
+                                
+                            }
                         }
                     }
 

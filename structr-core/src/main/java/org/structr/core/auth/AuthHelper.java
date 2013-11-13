@@ -178,6 +178,12 @@ public class AuthHelper {
 
 	public static String getHash(final String password, final String salt) {
 		
+		if (StringUtils.isEmpty(salt)) {
+			
+			return getSimpleHash(password);
+			
+		}
+		
 		return DigestUtils.sha512Hex(DigestUtils.sha512Hex(password).concat(salt));
 		
 	}

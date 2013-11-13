@@ -28,12 +28,8 @@ import org.apache.commons.lang.StringUtils;
 import org.structr.web.common.ImageHelper;
 import org.structr.common.KeyAndClass;
 import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.Services;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.web.entity.Image;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -82,42 +78,60 @@ public class ImageConverter extends PropertyConverter {
 		final App app = StructrApp.getInstance(securityContext);
 		
 		try {
-			
+
 			app.beginTx();
-
+			
+					
 			Image img = null;
-			if (source instanceof byte[]) {
 
-				byte[] data      = (byte[]) source;
-				MagicMatch match = Magic.getMagicMatch(data);
-				String mimeType  = match.getMimeType();
+			try {
+				if (source instanceof byte[]) {
 
-				if (keyAndClass != null) {
-
-					img = (Image) ImageHelper.createFile(securityContext, data, mimeType, keyAndClass.getCls());
-
-				} else {
-
-					ImageHelper.setImageData((Image) currentObject, data, mimeType);
-
-				}
-
-			} else if (source instanceof String) {
-
-				if (StringUtils.isNotBlank((String) source)) {
-
+					byte[] data      = (byte[]) source;
+					MagicMatch match = Magic.getMagicMatch(data);
+					String mimeType  = match.getMimeType();
 
 					if (keyAndClass != null) {
 
-						img = (Image) ImageHelper.createFileBase64(securityContext, (String) source, keyAndClass != null ? keyAndClass.getCls() : null);
+						img = (Image) ImageHelper.createFile(securityContext, data, mimeType, keyAndClass.getCls());
 
 					} else {
 
-						ImageHelper.decodeAndSetFileData((Image) currentObject, (String) source);
+						ImageHelper.setImageData((Image) currentObject, data, mimeType);
 
 					}
+
+				} else if (source instanceof String) {
+
+					String sourceString = (String) source;
+
+					if (StringUtils.isNotBlank(sourceString)) {
+
+						if (keyAndClass != null) {
+
+							// UUID?
+							if (sourceString.length() == 32) {
+
+								img = (Image) ImageHelper.transformFile(securityContext, sourceString, keyAndClass != null ? keyAndClass.getCls() : null);
+							}
+
+							if (img == null) {
+
+								img = (Image) ImageHelper.createFileBase64(securityContext, sourceString, keyAndClass != null ? keyAndClass.getCls() : null);
+
+							}
+
+						} else {
+
+							ImageHelper.decodeAndSetFileData((Image) currentObject, sourceString);
+
+						}
+					}
+
 				}
 
+			} catch (Throwable t) {
+				logger.log(Level.WARNING, "Cannot create image node from given data", t);
 			}
 
 			if (img != null) {
@@ -126,14 +140,11 @@ public class ImageConverter extends PropertyConverter {
 				img.updateInIndex();
 				currentObject.setProperty(keyAndClass.getPropertyKey(), img);
 			}
+					
 
 		} catch (Throwable t) {
 
 			logger.log(Level.WARNING, "Cannot create image node from given data", t);
-			
-		} finally {
-			
-			app.finishTx();
 		}
 			
 		return null;
