@@ -21,6 +21,7 @@ package org.structr.core.app;
 
 import java.util.List;
 import java.util.Map;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 import org.structr.core.GraphObject;
@@ -72,4 +73,5 @@ public interface App {
 	public List<GraphObject> cypher(final String cypherQuery, final Map<String, Object> parameters) throws FrameworkException;
 	
 	public <T extends Service> T getService(final Class<T> serviceClass);
+	public GraphDatabaseService getGraphDatabaseService();
 }

@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
@@ -23,6 +24,7 @@ import org.structr.core.graph.CreateRelationshipCommand;
 import org.structr.core.graph.CypherQueryCommand;
 import org.structr.core.graph.DeleteNodeCommand;
 import org.structr.core.graph.DeleteRelationshipCommand;
+import org.structr.core.graph.GraphDatabaseCommand;
 import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
@@ -251,7 +253,11 @@ public class StructrApp implements App {
 	public <T extends Service> T getService(Class<T> serviceClass) {
 		return Services.getService(serviceClass);
 	}
-	
+
+	@Override
+	public GraphDatabaseService getGraphDatabaseService() {
+		return Services.command(securityContext, GraphDatabaseCommand.class).execute();
+	}
 	
 	// ----- public static methods ----
 	/**

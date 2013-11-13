@@ -331,7 +331,7 @@ public abstract class Resource {
 
 	protected List<SearchAttribute> extractSearchableAttributes(final SecurityContext securityContext, final Class type, final HttpServletRequest request) throws FrameworkException {
 
-		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+		List<SearchAttribute> searchAttributes = new LinkedList<>();
 		
 		if (type != null && request != null && !request.getParameterMap().isEmpty()) {
 

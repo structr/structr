@@ -28,13 +28,7 @@ import org.apache.commons.io.FileUtils;
 import org.neo4j.graphdb.GraphDatabaseService;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.CreateNodeCommand;
-import org.structr.core.graph.CreateRelationshipCommand;
-import org.structr.core.graph.DeleteNodeCommand;
-import org.structr.core.graph.GraphDatabaseCommand;
-import org.structr.core.graph.TransactionCommand;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -84,13 +78,9 @@ public class StructrRestTest extends TestCase {
 
 	//~--- fields ---------------------------------------------------------
 
-	protected Map<String, String> context = new ConcurrentHashMap<>(20, 0.9f, 8);
-	protected CreateNodeCommand createNodeCommand;
-	protected CreateRelationshipCommand createRelationshipCommand;
-	protected DeleteNodeCommand deleteNodeCommand;
-	protected GraphDatabaseCommand graphDbCommand;
-	protected SecurityContext securityContext;
-	protected TransactionCommand transactionCommand;
+	protected Map<String, String> context     = new ConcurrentHashMap<>(20, 0.9f, 8);
+	protected SecurityContext securityContext = null;
+	protected App app                         = null;
 
 	// the jetty server
 	private boolean running = false;
@@ -150,7 +140,7 @@ public class StructrRestTest extends TestCase {
 			
 			String sourceJarName                 = getClass().getProtectionDomain().getCodeSource().getLocation().toString();
 			File confFile                        = checkStructrConf(basePath, sourceJarName);
-			List<Connector> connectors           = new LinkedList<Connector>();
+			List<Connector> connectors           = new LinkedList<>();
 			HandlerCollection handlerCollection  = new HandlerCollection();
 
 			server = new Server(httpPort);
@@ -165,14 +155,14 @@ public class StructrRestTest extends TestCase {
 			JsonRestServlet structrRestServlet     = new JsonRestServlet(new TestResourceProvider(), PropertyView.Public, AbstractNode.uuid);
 			ServletHolder structrRestServletHolder = new ServletHolder(structrRestServlet);
 
-			Map<String, String> servletParams = new LinkedHashMap<String, String>();
+			Map<String, String> servletParams = new LinkedHashMap<>();
 			servletParams.put("Authenticator", SuperUserAuthenticator.class.getName());
 
 			structrRestServletHolder.setInitParameters(servletParams);
 			structrRestServletHolder.setInitOrder(0);
 
 			// add to servlets
-			Map<String, ServletHolder> servlets = new LinkedHashMap<String, ServletHolder>();
+			Map<String, ServletHolder> servlets = new LinkedHashMap<>();
 			servlets.put(restUrl + "/*", structrRestServletHolder);
 
 			// add servlet elements
@@ -238,7 +228,7 @@ public class StructrRestTest extends TestCase {
 
 	public void test00DbAvailable() {
 
-		GraphDatabaseService graphDb = (GraphDatabaseService) graphDbCommand.execute();
+		GraphDatabaseService graphDb = app.getGraphDatabaseService();
 
 		assertTrue(graphDb != null);
 	}
@@ -297,7 +287,7 @@ public class StructrRestTest extends TestCase {
 	 */
 	private static List<Class> findClasses(File directory, String packageName) throws ClassNotFoundException {
 
-		List<Class> classes = new ArrayList<Class>();
+		List<Class> classes = new ArrayList<>();
 
 		if (!directory.exists()) {
 
@@ -358,7 +348,7 @@ public class StructrRestTest extends TestCase {
 
 			for (int i = 0; i < number; i++) {
 
-				rels.add(createRelationshipCommand.execute(startNode, endNode, relType));
+				rels.add(app.create(startNode, endNode, relType));
 			}
 			app.commitTx();
 
@@ -412,7 +402,7 @@ public class StructrRestTest extends TestCase {
 
 		String path                = packageName.replace('.', '/');
 		Enumeration<URL> resources = classLoader.getResources(path);
-		List<File> dirs            = new ArrayList<File>();
+		List<File> dirs            = new ArrayList<>();
 
 		while (resources.hasMoreElements()) {
 
@@ -422,7 +412,7 @@ public class StructrRestTest extends TestCase {
 
 		}
 
-		List<Class> classList = new ArrayList<Class>();
+		List<Class> classList = new ArrayList<>();
 
 		for (File directory : dirs) {
 
@@ -440,13 +430,8 @@ public class StructrRestTest extends TestCase {
 
 		init();
 
-		securityContext           = SecurityContext.getSuperUserInstance();
-		createNodeCommand         = Services.command(securityContext, CreateNodeCommand.class);
-		createRelationshipCommand = Services.command(securityContext, CreateRelationshipCommand.class);
-		deleteNodeCommand         = Services.command(securityContext, DeleteNodeCommand.class);
-		transactionCommand        = Services.command(securityContext, TransactionCommand.class);
-		graphDbCommand            = Services.command(securityContext, GraphDatabaseCommand.class);
-
+		securityContext = SecurityContext.getSuperUserInstance();
+		app             = StructrApp.getInstance(securityContext);
 	}
 
 
@@ -460,7 +445,7 @@ public class StructrRestTest extends TestCase {
 		if (!confFile.exists()) {
 
 			// synthesize a config file
-			List<String> config = new LinkedList<String>();
+			List<String> config = new LinkedList<>();
 
 			config.add("##################################");
 			config.add("# structr global config file     #");

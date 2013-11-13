@@ -22,7 +22,6 @@ import org.structr.core.Result;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.search.DistanceSearchAttribute;
 import org.structr.core.graph.search.Search;
@@ -42,10 +41,11 @@ import javax.servlet.http.HttpServletResponse;
 import org.structr.common.GraphObjectComparator;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.GraphObject;
+import org.structr.core.Services;
 import org.structr.core.app.App;
+import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.graph.search.SearchRelationshipCommand;
@@ -72,9 +72,10 @@ public class TypeResource extends SortableResource {
 	//~--- fields ---------------------------------------------------------
 
 	protected Class<? extends SearchCommand> searchCommandType = null;
-	protected Class entityClass                            = null;
-	protected String rawType                               = null;
-	protected HttpServletRequest request                   = null;
+	protected Class entityClass                                = null;
+	protected String rawType                                   = null;
+	protected HttpServletRequest request                       = null;
+	protected Query query                                      = null;
 
 	//~--- methods --------------------------------------------------------
 
@@ -87,17 +88,22 @@ public class TypeResource extends SortableResource {
 
 		if (rawType != null) {
 
+			final App app = StructrApp.getInstance(securityContext);
+			
+
 			// test if resource class exists
 			entityClass = EntityContext.getEntityClassForRawType(rawType);
 			if (entityClass != null) {
 				
 				if (AbstractNode.class.isAssignableFrom(entityClass)) {
 					searchCommandType = SearchNodeCommand.class;
+					query = app.nodeQuery(entityClass);
 					return true;
 				}
 				
 				if (AbstractRelationship.class.isAssignableFrom(entityClass)) {
 					searchCommandType = SearchRelationshipCommand.class;
+					query = app.relationshipQuery(entityClass);
 					return true;
 				}
 			}
@@ -108,12 +114,14 @@ public class TypeResource extends SortableResource {
 	}
 
 	@Override
-	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
+	public Result doGet(final PropertyKey sortKey, final boolean sortDescending, final int pageSize, final int page, final String offsetId) throws FrameworkException {
 
 		boolean inexactSearch                  = parseInteger(request.getParameter(JsonRestServlet.REQUEST_PARAMETER_LOOSE_SEARCH)) == 1;
 		List<SearchAttribute> searchAttributes = new LinkedList<>();
 		boolean includeDeletedAndHidden        = false;
 		boolean publicOnly                     = false;
+		PropertyKey actualSortKey              = sortKey;
+		boolean actualSortOrder                = sortDescending;
 
 		if (rawType != null) {
 
@@ -137,37 +145,37 @@ public class TypeResource extends SortableResource {
 			searchAttributes.addAll(validAttributes);
 			
 			// default sort key & order
-			if (sortKey == null) {
+			if (actualSortKey == null) {
 				
 				try {
 					
 					GraphObject templateEntity  = ((GraphObject)entityClass.newInstance());
 					PropertyKey sortKeyProperty = templateEntity.getDefaultSortKey();
-					sortDescending              = GraphObjectComparator.DESCENDING.equals(templateEntity.getDefaultSortOrder());
+					actualSortOrder             = GraphObjectComparator.DESCENDING.equals(templateEntity.getDefaultSortOrder());
 					
 					if (sortKeyProperty != null) {
 						
-						sortKey = sortKeyProperty;
+						actualSortKey = sortKeyProperty;
 						
 					} else {
 						
-						sortKey = AbstractNode.name;
+						actualSortKey = AbstractNode.name;
 					}
 					
 				} catch(Throwable t) {
 					
 					// fallback to name
-					sortKey = AbstractNode.name;
+					actualSortKey = AbstractNode.name;
 				}
 			}
-			
-//			
-//			// do search 
+	
+			// do search: FIXME: this doesn't work for inexact search because
+			// the type search attribute has to be lowercase in the fulltext indices..
 //			return query
 //				.includeDeletedAndHidden(includeDeletedAndHidden)
 //				.publicOnly(publicOnly)
 //				.sort(actualSortKey)
-//				.order(actualSortDescending)
+//				.order(actualSortOrder)
 //				.pageSize(pageSize)
 //				.page(page)
 //				.offsetId(offsetId)
@@ -180,8 +188,8 @@ public class TypeResource extends SortableResource {
 				includeDeletedAndHidden,
 				publicOnly,
 				searchAttributes,
-				sortKey,
-				sortDescending,
+				actualSortKey,
+				actualSortOrder,
 				pageSize,
 				page,
 				offsetId

@@ -320,32 +320,35 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	@Override
 	public <T> Comparable getComparableProperty(final PropertyKey<T> key) {
 
-		T propertyValue = getProperty(key, false);	// get "raw" property without converter
-		
-		// check property converter
-		PropertyConverter converter = key.databaseConverter(securityContext, this);
-		if (converter != null) {
-			
-			try {
-				return converter.convertForSorting(propertyValue);
+		if (key != null) {
 
-			} catch(FrameworkException fex) {
-				logger.log(Level.WARNING, "Unable to convert property {0} of type {1}: {2}", new Object[] {
-					key.dbName(),
-					getClass().getSimpleName(),
-					fex.getMessage()
-				});
+			final T propertyValue = getProperty(key, false);	// get "raw" property without converter
+
+			// check property converter
+			PropertyConverter converter = key.databaseConverter(securityContext, this);
+			if (converter != null) {
+
+				try {
+					return converter.convertForSorting(propertyValue);
+
+				} catch(FrameworkException fex) {
+					logger.log(Level.WARNING, "Unable to convert property {0} of type {1}: {2}", new Object[] {
+						key.dbName(),
+						getClass().getSimpleName(),
+						fex.getMessage()
+					});
+				}
 			}
-		}
-		
-		// conversion failed, may the property value itself is comparable
-		if(propertyValue instanceof Comparable) {
-			return (Comparable)propertyValue;
-		}
-		
-		// last try: convertFromInput to String to make comparable
-		if(propertyValue != null) {
-			return propertyValue.toString();
+
+			// conversion failed, may the property value itself is comparable
+			if(propertyValue instanceof Comparable) {
+				return (Comparable)propertyValue;
+			}
+
+			// last try: convertFromInput to String to make comparable
+			if(propertyValue != null) {
+				return propertyValue.toString();
+			}
 		}
 		
 		return null;

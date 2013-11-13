@@ -548,35 +548,38 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	@Override
 	public <T> Comparable getComparableProperty(final PropertyKey<T> key) {
 
-		T propertyValue = getProperty(key);
-		
-		// check property converter
-		PropertyConverter<T, ?> converter = key.databaseConverter(securityContext, this);
-		if (converter != null) {
+		if (key != null) {
+			
+			final T propertyValue = getProperty(key);
 
-			try {
-				return converter.convertForSorting(propertyValue);
+			// check property converter
+			PropertyConverter<T, ?> converter = key.databaseConverter(securityContext, this);
+			if (converter != null) {
 
-			} catch(Throwable t) {
-				
-				t.printStackTrace();
-				
-				logger.log(Level.WARNING, "Unable to convert property {0} of type {1}: {2}", new Object[] {
-					key.dbName(),
-					getClass().getSimpleName(),
-					t.getMessage()
-				});
+				try {
+					return converter.convertForSorting(propertyValue);
+
+				} catch(Throwable t) {
+
+					t.printStackTrace();
+
+					logger.log(Level.WARNING, "Unable to convert property {0} of type {1}: {2}", new Object[] {
+						key.dbName(),
+						getClass().getSimpleName(),
+						t.getMessage()
+					});
+				}
 			}
-		}
-		
-		// conversion failed, may the property value itself is comparable
-		if(propertyValue instanceof Comparable) {
-			return (Comparable)propertyValue;
-		}
-		
-		// last try: convertFromInput to String to make comparable
-		if(propertyValue != null) {
-			return propertyValue.toString();
+
+			// conversion failed, may the property value itself is comparable
+			if(propertyValue instanceof Comparable) {
+				return (Comparable)propertyValue;
+			}
+
+			// last try: convertFromInput to String to make comparable
+			if(propertyValue != null) {
+				return propertyValue.toString();
+			}
 		}
 		
 		return null;
