@@ -68,7 +68,7 @@ public class SearchCommand extends AbstractCommand {
 			type = EntityContext.getEntityClassForRawType(typeString);
 		}
 
-		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+		List<SearchAttribute> searchAttributes = new LinkedList();
 		
 		if (searchString == null) {
 			getWebSocket().send(MessageBuilder.status().code(204).message("Empty search string").build(), true);

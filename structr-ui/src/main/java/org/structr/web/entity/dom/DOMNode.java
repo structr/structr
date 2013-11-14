@@ -18,7 +18,9 @@
  */
 package org.structr.web.entity.dom;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.URL;
 import java.net.URLEncoder;
 import java.text.NumberFormat;
 import java.text.DecimalFormat;
@@ -40,9 +42,12 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.collections.IteratorUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.lucene.search.BooleanClause.Occur;
+import org.jsoup.Jsoup;
 import org.neo4j.graphdb.Direction;
 import org.structr.common.Permission;
 import org.structr.web.common.RelType;
@@ -76,6 +81,7 @@ import org.structr.core.property.EntityIdProperty;
 import org.structr.core.property.ISO8601DateProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.property.StringProperty;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.common.ThreadLocalMatcher;
@@ -88,6 +94,10 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 import org.w3c.dom.UserDataHandler;
+//import jodd.http.HttpRequest;
+//import jodd.http.HttpResponse;
+//import jodd.jerry.Jerry;
+//import static jodd.jerry.Jerry.jerry;
 
 /**
  * Combines AbstractNode and org.w3c.dom.Node.
@@ -119,19 +129,24 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 	public static final Property<Boolean> hideOnIndex			= new BooleanProperty("hideOnIndex");
 	public static final Property<Boolean> hideOnDetail			= new BooleanProperty("hideOnDetail");
+	public static final Property<String> showForLocales			= new StringProperty("showForLocales");
+	public static final Property<String> hideForLocales			= new StringProperty("hideForLocales");
 	
-	protected static final Map<String, Function<String, String>> functions  = new LinkedHashMap<String, Function<String, String>>();
+	public static final Property<String> showConditions			= new StringProperty("showConditions");
+	public static final Property<String> hideConditions			= new StringProperty("hideConditions");
+
+	protected static final Map<String, Function<String, String>> functions  = new LinkedHashMap<>();
 	
-	public static final CollectionProperty<DOMNode> children                = new CollectionProperty<DOMNode>("children", DOMNode.class, RelType.CONTAINS,              Direction.OUTGOING, true);
+	public static final CollectionProperty<DOMNode> children                = new CollectionProperty<>("children", DOMNode.class, RelType.CONTAINS,              Direction.OUTGOING, true);
 	public static final CollectionIdProperty childrenIds                    = new CollectionIdProperty("childrenIds", children);
 
-	public static final CollectionProperty<DOMNode> siblings                = new CollectionProperty<DOMNode>("siblings", DOMNode.class, RelType.CONTAINS_NEXT_SIBLING, Direction.OUTGOING, true);
+	public static final CollectionProperty<DOMNode> siblings                = new CollectionProperty<>("siblings", DOMNode.class, RelType.CONTAINS_NEXT_SIBLING, Direction.OUTGOING, true);
 	public static final CollectionIdProperty siblingsIds                    = new CollectionIdProperty("siblingIds", siblings);
 
-	public static final EntityProperty<DOMNode> parent                      = new EntityProperty<DOMNode>("parent", DOMNode.class, RelType.CONTAINS, Direction.INCOMING, false);
+	public static final EntityProperty<DOMNode> parent                      = new EntityProperty<>("parent", DOMNode.class, RelType.CONTAINS, Direction.INCOMING, false);
 	public static final EntityIdProperty parentId                           = new EntityIdProperty("parentId", parent);
 
-	public static final EntityProperty<Page> ownerDocument                  = new EntityProperty<Page>("ownerDocument", Page.class, RelType.PAGE, Direction.OUTGOING, true);
+	public static final EntityProperty<Page> ownerDocument                  = new EntityProperty<>("ownerDocument", Page.class, RelType.PAGE, Direction.OUTGOING, true);
 	public static final EntityIdProperty pageId                             = new EntityIdProperty("pageId", ownerDocument);
 
 	private static Set<Page> resultPages                                    = new HashSet<Page>();
@@ -319,19 +334,18 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 				Double result = 0.0d;
 
 				if (s != null) {
-
-					for (int i = 0; i < s.length; i++) {
+					
+					for (String i : s) {
 
 						try {
-
-							result += Double.parseDouble(s[i]);
-
-						} catch (Throwable t) {
 						
+							result += Double.parseDouble(i);
+						
+						} catch (Throwable t) {
+							
 							return t.getMessage();
 
 						}
-
 					}
 
 				}
@@ -382,19 +396,18 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 				Double result = 1.0d;
 
 				if (s != null) {
-
-					for (int i = 0; i < s.length; i++) {
-
-						try {
-
-							result *= Double.parseDouble(s[i]);
-
-						} catch (Throwable t) {
+					
+					for (String i : s) {
 						
+						try {
+							
+							result *= Double.parseDouble(i);
+							
+						} catch (Throwable t) {
+							
 							return t.getMessage();
 
 						}
-
 					}
 
 				}
@@ -458,6 +471,56 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 				}
 
 				return new Double(result).toString();
+
+			}
+
+		});
+		functions.put("max", new Function<String, String>() {
+
+			@Override
+			public String apply(String[] s) {
+
+				String result = "";
+				String errorMsg = "ERROR! Usage: ${max(val1, val2)}. Example: ${max(5,10)}";
+				
+				if (s != null && s.length == 2) {
+				
+					try {
+						result = Double.toString(Math.max(Double.parseDouble(s[0]), Double.parseDouble(s[1])));
+						
+					} catch (Throwable t) {
+						logger.log(Level.WARNING, "Could not determine max() of {0} and {1}", new Object[]{s[0], s[1]});
+						result = errorMsg;
+					}
+				
+				}
+				
+				return result;
+
+			}
+
+		});
+		functions.put("min", new Function<String, String>() {
+
+			@Override
+			public String apply(String[] s) {
+
+				String result = "";
+				String errorMsg = "ERROR! Usage: ${min(val1, val2)}. Example: ${min(5,10)}";
+				
+				if (s != null && s.length == 2) {
+				
+					try {
+						result = Double.toString(Math.min(Double.parseDouble(s[0]), Double.parseDouble(s[1])));
+						
+					} catch (Throwable t) {
+						logger.log(Level.WARNING, "Could not determine min() of {0} and {1}", new Object[]{s[0], s[1]});
+						result = errorMsg;
+					}
+				
+				}
+				
+				return result;
 
 			}
 
@@ -545,9 +608,125 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 			@Override
 			public String apply(String[] b) {
 				
-				return b[0].equals("true") && b[1].equals("true") ? "true" : "false";
+				boolean result = true;
+				
+				if (b != null) {
+					
+					for (String i : b) {
+						
+						try {
+							
+							result &= "true".equals(i);
+							
+						} catch (Throwable t) {
+							
+							return t.getMessage();
+
+						}
+					}
+
+				}
+				
+				return Boolean.toString(result);
 			}
 
+		});
+		functions.put("or", new Function<String, String>() {
+
+			@Override
+			public String apply(String[] b) {
+				
+				boolean result = false;
+				
+				if (b != null) {
+					
+					for (String i : b) {
+						
+						try {
+							
+							result |= "true".equals(i);
+							
+						} catch (Throwable t) {
+							
+							return t.getMessage();
+
+						}
+					}
+
+				}
+				
+				return Boolean.toString(result);
+			}
+
+		});
+		functions.put("GET", new Function<String, String>() {
+		
+			@Override
+			public String apply(String[] s) {
+				
+				String result = "";
+				String errorMsg = "ERROR! Usage: ${GET(URL[, contentType[, selector]])}. Example: ${GET('http://structr.org', 'text/html')}";
+				
+				if (s != null && s.length > 0) {
+
+					try {
+
+						String address = s[0];
+						String contentType = null;
+						
+						if (s.length > 1) {
+							contentType = s[1];
+						}
+						
+						//long t0 = System.currentTimeMillis();
+						
+						if ("text/html".equals(contentType)) {
+
+							String selector = null;
+							
+							if (s.length > 2) {
+								
+								selector = s[2];
+								
+//								String raw = getFromUrl2(address);
+//								long t1 = System.currentTimeMillis();
+//								Jerry doc = jerry(raw);
+//								String html = doc.$(selector).html();
+//								logger.log(Level.INFO, "Jerry took {0} ms to get and {1} ms to parse page.", new Object[]{t1 - t0, System.currentTimeMillis() - t1});
+
+								String html = Jsoup.parse(new URL(address), 5000).select(selector).html();
+								return html;
+								
+								
+							} else {
+							
+								String html = Jsoup.parse(new URL(address), 5000).html();
+								//logger.log(Level.INFO, "Jsoup took {0} ms to get and parse page.", (System.currentTimeMillis() - t0));
+								
+								return html;
+								
+							}
+							
+						} else  {
+							
+							return getFromUrl(address);
+						}
+
+
+					} catch (Throwable t) {
+						
+						result = errorMsg + "\n" + t.getMessage();
+						
+					}
+
+				} else {
+					result = errorMsg;
+				}
+
+				return result;
+				
+			}
+			
 		});
 	}
 	
@@ -977,10 +1156,55 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 				}
 
 				// special keyword "result_size"
-				if ("result_size".equals(lowerCasePart)) {
+				if ("result_count".equals(lowerCasePart) || "result_size".equals(lowerCasePart)) {
 					
-					return IteratorUtils.toArray(renderContext.getListSource().iterator()).length;
+					Result result = renderContext.getResult();
+					
+					if (result != null) {
+						
+						return result.getRawResultCount();
+						
+					}
+					
+				}
 
+				// special keyword "page_size"
+				if ("page_size".equals(lowerCasePart)) {
+					
+					Result result = renderContext.getResult();
+					
+					if (result != null) {
+						
+						return result.getPageSize();
+						
+					}
+					
+				}
+
+				// special keyword "page_count"
+				if ("page_count".equals(lowerCasePart)) {
+					
+					Result result = renderContext.getResult();
+					
+					if (result != null) {
+						
+						return result.getPageCount();
+						
+					}
+					
+				}
+
+				// special keyword "page_no"
+				if ("page_no".equals(lowerCasePart)) {
+					
+					Result result = renderContext.getResult();
+					
+					if (result != null) {
+						
+						return result.getPage();
+						
+					}
+					
 				}
 
 				//				// special keyword "rest_result"
@@ -1230,6 +1454,88 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 		return resultPages;
 
+	}
+
+
+	/**
+	 * Decide whether this node should be displayed for the given conditions string.
+	 * 
+	 * @param securityContext
+	 * @param renderContext
+	 * @return 
+	 */
+	protected boolean displayForConditions(final SecurityContext securityContext, final RenderContext renderContext) {
+
+		// In raw mode, render everything
+		if (EditMode.RAW.equals(renderContext.getEditMode(securityContext.getUser(false)))) {
+			return true;
+		}
+		
+		String _showConditions = getProperty(DOMNode.showConditions);
+		String _hideConditions = getProperty(DOMNode.hideConditions);
+
+		// If both fields are empty, render node
+		if (StringUtils.isBlank(_hideConditions) && StringUtils.isBlank(_showConditions)) {
+			return true;
+		}
+		try {
+			// If hide conditions evaluate to "true", don't render
+			if (StringUtils.isNotBlank(_hideConditions) && "true".equals(extractFunctions(securityContext, renderContext, _hideConditions))) {
+				return false;
+			}
+
+		} catch (FrameworkException ex) {
+			logger.log(Level.SEVERE, "Hide conditions " + _hideConditions + " could not be evaluated.", ex);
+		}
+		try {
+			// If show conditions don't evaluate to "true", don't render
+			if (StringUtils.isNotBlank(_showConditions) && !("true".equals(extractFunctions(securityContext, renderContext, _showConditions)))) {
+				return false;
+			}
+
+		} catch (FrameworkException ex) {
+			logger.log(Level.SEVERE, "Show conditions " + _showConditions + " could not be evaluated.", ex);
+		}
+		
+		return true;
+		
+	}
+
+	/**
+	 * Decide whether this node should be displayed for the given locale settings.
+	 * 
+	 * @param renderContext
+	 * @return 
+	 */
+	protected boolean displayForLocale(final RenderContext renderContext) {
+		
+		// In raw mode, render everything
+		if (EditMode.RAW.equals(renderContext.getEditMode(securityContext.getUser(false)))) {
+			return true;
+		}
+		
+		String localeString = renderContext.getLocale().toString();
+		
+		String show = getProperty(DOMNode.showForLocales);
+		String hide = getProperty(DOMNode.hideForLocales);
+
+		// If both fields are empty, render node
+		if (StringUtils.isBlank(hide) && StringUtils.isBlank(show)) {
+			return true;
+		}
+		
+		// If locale string is found in hide, don't render
+		if (StringUtils.contains(hide, localeString)) {
+			return false;
+		}
+		
+		// If locale string is found in hide, don't render
+		if (StringUtils.isNotBlank(show) && !StringUtils.contains(show, localeString)) {
+			return false;
+		}
+		
+		return true;
+		
 	}
 
 	protected String convertValueForHtml(java.lang.Object value) {
@@ -1912,5 +2218,43 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 			return false;
 		}
 	}
+	
+	private static String getFromUrl(final String requestUrl) throws IOException {
+		
+		DefaultHttpClient client = new DefaultHttpClient();
+		HttpGet get              = new HttpGet(requestUrl);
+
+		get.setHeader("Connection", "close");
+
+		return IOUtils.toString(client.execute(get).getEntity().getContent(), "UTF-8");
+			
+	}
+
+//	private static String getFromUrl2(final String requestUrl) throws IOException {
+//		
+//		HttpRequest httpRequest = HttpRequest.get(requestUrl);
+//		HttpResponse response = httpRequest.send();
+//		return response.body();
+//		
+//	}
+
+	public static Set<DOMNode> getAllChildNodes(final DOMNode node) {
+		
+		Set<DOMNode> allChildNodes = new HashSet();
+		
+		DOMNode n = (DOMNode) node.getFirstChild();
+		
+		while (n != null) {
+		
+			allChildNodes.add(n);
+			allChildNodes.addAll(getAllChildNodes(n));
+			n = (DOMNode) n.getNextSibling();
+			
+		}
+		
+		return allChildNodes;
+	}
+
+	
 	
 }

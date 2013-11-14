@@ -29,8 +29,9 @@ import org.structr.core.SingletonService;
  */
 public class AuthenticationService implements SingletonService {
 
-	public static final String SERVLET_PARAMETER_AUTHENTICATOR = "Authenticator";
-	public static final String SERVLET_PARAMETER_USER_AUTO_CREATE = "userAutoCreate";
+	public static final String SERVLET_PARAMETER_AUTHENTICATOR	= "Authenticator";
+	public static final String SERVLET_PARAMETER_USER_AUTO_CREATE	= "userAutoCreate";
+	public static final String SERVLET_PARAMETER_USER_CLASS		= "userClass";
 
 	@Override
 	public void injectArguments(Command command) {

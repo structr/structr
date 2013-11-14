@@ -29,15 +29,15 @@ import org.structr.core.property.CollectionProperty;
 import org.structr.core.property.EntityProperty;
 
 /**
- * Abstract base class for filesystem objects in structr.
+ * Base class for filesystem objects in structr.
  *
  * @author Christian Morgner
  */
 public class AbstractFile extends LinkedTreeNode {
 
-	public static final EntityProperty<AbstractFile> previousSibling = new EntityProperty("previousSibling", AbstractFile.class, RelType.CONTAINS_NEXT_SIBLING, Direction.INCOMING, false);
-	public static final EntityProperty<AbstractFile> nextSibling     = new EntityProperty("nextSibling", AbstractFile.class, RelType.CONTAINS_NEXT_SIBLING, Direction.OUTGOING, false);
-	public static final CollectionProperty<AbstractFile> children    = new CollectionProperty("children", AbstractFile.class, RelType.CONTAINS, Direction.OUTGOING, true);
-	public static final EntityProperty<Folder> parent                = new EntityProperty<Folder>("parent", Folder.class, RelType.CONTAINS, Direction.INCOMING, true);
+	public static final EntityProperty<AbstractFile> previousSibling = new EntityProperty<>("previousSibling", AbstractFile.class, RelType.CONTAINS_NEXT_SIBLING, Direction.INCOMING, false);
+	public static final EntityProperty<AbstractFile> nextSibling     = new EntityProperty<>("nextSibling", AbstractFile.class, RelType.CONTAINS_NEXT_SIBLING, Direction.OUTGOING, false);
+	public static final CollectionProperty<AbstractFile> children    = new CollectionProperty<>("children", AbstractFile.class, RelType.CONTAINS, Direction.OUTGOING, true);
+	public static final EntityProperty<Folder> parent                = new EntityProperty<>("parent", Folder.class, RelType.CONTAINS, Direction.INCOMING, true);
 
 }

@@ -67,6 +67,7 @@ public class DoublePropertyRestTest extends StructrRestTest {
 		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'doubleProperty' : 1.2 } ").expect().statusCode(201).when().post("/test_threes");
 		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'doubleProperty' : 2.3 } ").expect().statusCode(201).when().post("/test_threes");
 		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'doubleProperty' : 3.4 } ").expect().statusCode(201).when().post("/test_threes");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'name'        : 'test' } ").expect().statusCode(201).when().post("/test_threes");
 		
 		// test for three elements
 		RestAssured.given()
@@ -78,7 +79,7 @@ public class DoublePropertyRestTest extends StructrRestTest {
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 		.expect()
 			.statusCode(200)
-			.body("result_count", equalTo(3))
+			.body("result_count", equalTo(4))
 		.when()
 			.get("/test_threes");
 		
@@ -111,5 +112,20 @@ public class DoublePropertyRestTest extends StructrRestTest {
 		.when()
 			.get("/test_threes?doubleProperty=[1.1 TO 2.4]");
 	
+		// test empty value
+		RestAssured.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+		.expect()
+			.statusCode(200)
+			.body("result_count", equalTo(1))
+			.body("result[0].name", equalTo("test"))
+		.when()
+			.get("/test_threes?doubleProperty=");
 	}
+
 }

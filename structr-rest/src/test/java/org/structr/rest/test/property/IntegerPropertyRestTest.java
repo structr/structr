@@ -59,6 +59,7 @@ public class IntegerPropertyRestTest extends StructrRestTest {
 		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'integerProperty' : 1 } ").expect().statusCode(201).when().post("/test_threes");
 		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'integerProperty' : 2 } ").expect().statusCode(201).when().post("/test_threes");
 		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'integerProperty' : 3 } ").expect().statusCode(201).when().post("/test_threes");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'name'       : 'test' } ").expect().statusCode(201).when().post("/test_threes");
 		
 		// test for three elements
 		RestAssured.given()
@@ -70,7 +71,7 @@ public class IntegerPropertyRestTest extends StructrRestTest {
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 		.expect()
 			.statusCode(200)
-			.body("result_count", equalTo(3))
+			.body("result_count", equalTo(4))
 		.when()
 			.get("/test_threes");
 		
@@ -88,6 +89,20 @@ public class IntegerPropertyRestTest extends StructrRestTest {
 		.when()
 			.get("/test_threes?integerProperty=2");
 	
+		// test empty value
+		RestAssured.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+		.expect()
+			.statusCode(200)
+			.body("result_count", equalTo(1))
+			.body("result[0].name", equalTo("test"))
+		.when()
+			.get("/test_threes?integerProperty=");
 	}
 	
 	public void testRangeSearch() {

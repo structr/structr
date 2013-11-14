@@ -16,9 +16,8 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.rest;
+package org.structr.rest.serialization;
 
-import com.google.gson.stream.JsonWriter;
 import java.io.IOException;
 import java.util.List;
 import java.io.Writer;
@@ -48,9 +47,9 @@ import org.structr.core.property.StringProperty;
  *
  * @author Christian Morgner
  */
-public class StreamingJsonWriter {
+public abstract class StreamingWriter {
 
-	private static final Logger logger                   = Logger.getLogger(StreamingJsonWriter.class.getName());
+	private static final Logger logger                   = Logger.getLogger(StreamingWriter.class.getName());
 	private static final long MAX_SERIALIZATION_TIME     = TimeUnit.SECONDS.toMillis(30);
 
 	private final Map<Class, Serializer> serializerCache = new LinkedHashMap<Class, Serializer>();
@@ -64,9 +63,10 @@ public class StreamingJsonWriter {
 	private SecurityContext securityContext              = null;
 	private Value<String> propertyView                   = null;
 	private boolean indent                               = true;
-	//private JsonWriter writer                            = null;
+
+	public abstract RestWriter getRestWriter(final Writer writer);
 	
-	public StreamingJsonWriter(Value<String> propertyView, boolean indent) {
+	public StreamingWriter(Value<String> propertyView, boolean indent) {
 
 		this.securityContext = SecurityContext.getSuperUserInstance();
 		this.propertyView    = propertyView;
@@ -88,34 +88,37 @@ public class StreamingJsonWriter {
 		nonSerializerClasses.add(StringBuffer.class);
 		nonSerializerClasses.add(Boolean.class);
 		
-		//this.writer = new JsonWriter(writer);
+		//this.writer = new StructrWriter(writer);
 		//this.writer.setIndent("   ");
 	}
 	
-	public void stream(Writer w, Result src) throws IOException {
+	public void stream(final Writer output, final Result result, final String baseUrl) throws IOException {
 		
 		long t0 = System.nanoTime();
 		
-		JsonWriter writer = new JsonWriter(w);
-		
+		RestWriter writer = getRestWriter(output);
+
 		if (indent) {
 			writer.setIndent("   ");
 		}
 		
 		// result fields in alphabetical order
-		List<? extends GraphObject> results = src.getResults();
-		Integer page = src.getPage();
-		Integer pageCount = src.getPageCount();
-		Integer pageSize = src.getPageSize();
-		String queryTime = src.getQueryTime();
-		Integer resultCount = src.getRawResultCount();
-		String searchString = src.getSearchString();
-		String sortKey = src.getSortKey();
-		String sortOrder = src.getSortOrder();
+		List<? extends GraphObject> results = result.getResults();
+		Integer page = result.getPage();
+		Integer pageCount = result.getPageCount();
+		Integer pageSize = result.getPageSize();
+		String queryTime = result.getQueryTime();
+		Integer resultCount = result.getRawResultCount();
+		String searchString = result.getSearchString();
+		String sortKey = result.getSortKey();
+		String sortOrder = result.getSortOrder();
+		GraphObject metaData = result.getMetaData();
 		
 		// flush after 20 elements by default
 		int flushSize = pageSize != null ? pageSize.intValue() : 20;
 
+		writer.beginDocument(baseUrl, propertyView.get(securityContext));
+		
 		// open result set
 		writer.beginObject();
 		
@@ -145,7 +148,7 @@ public class StreamingJsonWriter {
 
 				writer.name("result").beginArray().endArray();
 
-			} else if(src.isPrimitiveArray()) {
+			} else if(result.isPrimitiveArray()) {
 
 				writer.name("result").beginArray();
 				
@@ -163,8 +166,8 @@ public class StreamingJsonWriter {
 
 			} else {
 
-				if (results.size() > 1 && !src.isCollection()){
-					throw new IllegalStateException(src.getClass().getSimpleName() + " is not a collection resource, but result set has size " + results.size());
+				if (results.size() > 1 && !result.isCollection()){
+					throw new IllegalStateException(result.getClass().getSimpleName() + " is not a collection resource, but result set has size " + results.size());
 				}
 
 				// keep track of serialization time
@@ -172,7 +175,7 @@ public class StreamingJsonWriter {
 				String localPropertyView  = propertyView.get(null);
 				int flushCounter          = 0;
 
-				if(src.isCollection()) {
+				if(result.isCollection()) {
 
 					writer.name("result").beginArray();
 
@@ -219,10 +222,21 @@ public class StreamingJsonWriter {
 			writer.name("sort_order").value(sortOrder);
 		}
 		
+		if (metaData != null) {
+
+			String localPropertyView  = propertyView.get(null);
+			
+			writer.name("meta_data");
+			root.serialize(writer, metaData, localPropertyView, 0);
+		}
+		
 		writer.name("serialization_time").value(decimalFormat.format((System.nanoTime() - t0) / 1000000000.0));
 
 		// finished
 		writer.endObject();
+		writer.endDocument();
+
+		// flush
 		writer.flush();
 	}
 
@@ -278,7 +292,7 @@ public class StreamingJsonWriter {
 		}
 	}
 
-	private void serializePrimitive(JsonWriter writer, final Object value) throws IOException {
+	private void serializePrimitive(RestWriter writer, final Object value) throws IOException {
 
 		if (value != null) {
 
@@ -303,9 +317,9 @@ public class StreamingJsonWriter {
 	
 	public abstract class Serializer<T> {
 		
-		public abstract void serialize(JsonWriter writer, T value, String localPropertyView, int depth) throws IOException;
+		public abstract void serialize(RestWriter writer, T value, String localPropertyView, int depth) throws IOException;
 		
-		public void serializeRoot(JsonWriter writer, Object value, String localPropertyView, int depth) throws IOException {
+		public void serializeRoot(RestWriter writer, Object value, String localPropertyView, int depth) throws IOException {
 			
 			if (value != null) {
 				
@@ -321,7 +335,7 @@ public class StreamingJsonWriter {
 			serializePrimitive(writer, value);
 		}
 		
-		public void serializeProperty(JsonWriter writer, PropertyKey key, Object value, String localPropertyView, int depth) {
+		public void serializeProperty(RestWriter writer, PropertyKey key, Object value, String localPropertyView, int depth) {
 
 			try {
 				PropertyConverter converter = key.inputConverter(securityContext);
@@ -360,9 +374,9 @@ public class StreamingJsonWriter {
 	public class RootSerializer extends Serializer<GraphObject> {
 
 		@Override
-		public void serialize(JsonWriter writer, GraphObject source, String localPropertyView, int depth) throws IOException {
+		public void serialize(RestWriter writer, GraphObject source, String localPropertyView, int depth) throws IOException {
 			
-			writer.beginObject();
+			writer.beginObject(source);
 
 			// prevent endless recursion by pruning at depth n
 			if (depth <= outputNestingDepth) {
@@ -411,14 +425,14 @@ public class StreamingJsonWriter {
 				}
 			}
 			
-			writer.endObject();
+			writer.endObject(source);
 		}
 	}
 	
 	public class IterableSerializer extends Serializer<Iterable> {
 
 		@Override
-		public void serialize(JsonWriter writer, Iterable value, String localPropertyView, int depth) throws IOException {
+		public void serialize(RestWriter writer, Iterable value, String localPropertyView, int depth) throws IOException {
 
 			writer.beginArray();
 
@@ -438,7 +452,7 @@ public class StreamingJsonWriter {
 	public class MapSerializer extends Serializer {
 
 		@Override
-		public void serialize(JsonWriter writer, Object source, String localPropertyView, int depth) throws IOException {
+		public void serialize(RestWriter writer, Object source, String localPropertyView, int depth) throws IOException {
 
 			writer.beginObject();
 
@@ -469,7 +483,7 @@ public class StreamingJsonWriter {
 		public PropertyMapSerializer() {}
 
 		@Override
-		public void serialize(JsonWriter writer, PropertyMap source, String localPropertyView, int depth) throws IOException {
+		public void serialize(RestWriter writer, PropertyMap source, String localPropertyView, int depth) throws IOException {
 
 			writer.beginObject();
 

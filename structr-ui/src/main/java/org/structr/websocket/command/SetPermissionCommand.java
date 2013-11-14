@@ -31,7 +31,6 @@ import org.structr.websocket.message.WebSocketMessage;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.Permission;
-import org.structr.common.SecurityContext;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
@@ -61,11 +60,11 @@ public class SetPermissionCommand extends AbstractCommand {
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
-		AbstractNode obj   = getNode(webSocketData.getId());
-		String recString   = (String) webSocketData.getNodeData().get("recursive");
-		String principalId = (String) webSocketData.getNodeData().get("principalId");
-		String permission  = (String) webSocketData.getNodeData().get("permission");
-		String action      = (String) webSocketData.getNodeData().get("action");
+		AbstractNode obj	= getNode(webSocketData.getId());
+		boolean rec		= (Boolean) webSocketData.getNodeData().get("recursive");
+		String principalId	= (String) webSocketData.getNodeData().get("principalId");
+		String permission	= (String) webSocketData.getNodeData().get("permission");
+		String action		= (String) webSocketData.getNodeData().get("action");
 		
 		if (principalId == null) {
 
@@ -84,10 +83,6 @@ public class SetPermissionCommand extends AbstractCommand {
 		}
 
 		webSocketData.getNodeData().remove("recursive");
-
-		boolean rec = StringUtils.isNotBlank(recString)
-			      ? Boolean.parseBoolean(recString)
-			      : false;
 
 		if (obj != null) {
 
@@ -136,15 +131,14 @@ public class SetPermissionCommand extends AbstractCommand {
 		
 			@Override
 			public Object execute() throws FrameworkException {
-				
-				if ("grant".equals(action)) {
 
-					principal.grant(Permission.valueOf(permission), obj);
-
-				} else if ("revoke".equals(action)) {
-
-					principal.revoke(Permission.valueOf(permission), obj);
-
+				switch (action) {
+					case "grant":
+						principal.grant(Permission.valueOf(permission), obj);
+						break;
+					case "revoke":
+						principal.revoke(Permission.valueOf(permission), obj);
+						break;
 				}
 				
 				return null;

@@ -77,6 +77,8 @@ public class PropertyDefinition<T> extends AbstractNode implements PropertyKey<T
 	public static final Property<String>               validationErrorMessage   = new StringProperty("validationErrorMessage");
 	public static final Property<String>               kind                     = new StringProperty("kind").indexed();
 	public static final Property<String>               dataType                 = new StringProperty("dataType").indexed();
+	public static final Property<String>               defaultValue             = new StringProperty("defaultValue");
+
 	public static final Property<String>               relKind                  = new StringProperty("relKind").indexed();
 	public static final Property<String>               relType                  = new StringProperty("relType").indexed();
 	public static final Property<Boolean>              incoming                 = new BooleanProperty("incoming");
@@ -90,11 +92,12 @@ public class PropertyDefinition<T> extends AbstractNode implements PropertyKey<T
 	public static final Property<Boolean>              indexedWhenEmptyProperty = new BooleanProperty("indexedWhenEmptyProperty");
 	
 	public static final org.structr.common.View publicView = new org.structr.common.View(PropertyDefinition.class, PropertyView.Public,
-	    name, dataType, kind, relKind, relType, incoming, validationExpression, validationErrorMessage, systemProperty, readOnlyProperty, writeOnceProperty, indexedProperty, passivelyIndexedProperty, searchableProperty, indexedWhenEmptyProperty
+		name, dataType, defaultValue, kind, relKind, relType, incoming, validationExpression, validationErrorMessage,
+		systemProperty, readOnlyProperty, writeOnceProperty, indexedProperty, passivelyIndexedProperty, searchableProperty, indexedWhenEmptyProperty
 	);
 	
 	public static final org.structr.common.View uiView = new org.structr.common.View(PropertyDefinition.class, PropertyView.Ui,
-	    name, dataType, kind, relKind, relType, incoming, validationExpression, validationErrorMessage, systemProperty, readOnlyProperty, writeOnceProperty, indexedProperty, passivelyIndexedProperty, searchableProperty, indexedWhenEmptyProperty
+	    name, dataType, defaultValue, kind, relKind, relType, incoming, validationExpression, validationErrorMessage, systemProperty, readOnlyProperty, writeOnceProperty, indexedProperty, passivelyIndexedProperty, searchableProperty, indexedWhenEmptyProperty
 	);
 	
 	// ----- private members -----

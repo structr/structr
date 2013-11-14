@@ -116,7 +116,7 @@ public class SortingTest extends StructrTest {
 
 						i++;
 
-						node.setName(name);
+						node.setProperty(AbstractNode.name, name);
 
 					}
 					
@@ -190,7 +190,7 @@ public class SortingTest extends StructrTest {
 
 						i++;
 
-						node.setName(name);
+						node.setProperty(AbstractNode.name, name);
 
 					}
 					
@@ -269,7 +269,7 @@ public class SortingTest extends StructrTest {
 
 						i++;
 
-						node.setName("TestOne-" + name);
+						node.setProperty(AbstractNode.name, "TestOne-" + name);
 
 						node.setProperty(TestOne.aDate, new Date());
 						
@@ -352,7 +352,7 @@ public class SortingTest extends StructrTest {
 
 						i++;
 
-						node.setName(name);
+						node.setProperty(AbstractNode.name, name);
 
 						// slow down execution speed to make sure distinct changes fall in different milliseconds
 						try { Thread.sleep(2); } catch (Throwable t) {}
@@ -424,7 +424,7 @@ public class SortingTest extends StructrTest {
 					
 					for (AbstractNode node : nodes) {
 
-						node.setName(Integer.toString(i));
+						node.setProperty(AbstractNode.name, Integer.toString(i));
 						node.setProperty(key, i);
 
 						i++;
@@ -477,4 +477,94 @@ public class SortingTest extends StructrTest {
 		}
 
 	}
+
+	public void test06SortByDateWitNullValues() {
+
+		try {
+
+			boolean includeDeletedAndHidden = false;
+			boolean publicOnly              = false;
+			Class type                      = TestOne.class;
+			int number                      = 20;
+			final List<AbstractNode> nodes  = this.createTestNodes(type, number);
+			final int offset                = 10;
+
+			Collections.shuffle(nodes, new Random(System.nanoTime()));
+
+			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+				@Override
+				public Object execute() throws FrameworkException {
+
+					int i = offset;
+					String name;
+					
+					for (AbstractNode node : nodes) {
+
+						name = Integer.toString(i);
+
+						i++;
+
+						node.setProperty(AbstractNode.name, "TestOne-" + name);
+
+						if ((i % 2) != 0) {
+							node.setProperty(TestOne.aDate, new Date());
+							System.out.println("TestOne-" + name + ": indexed with date");
+						} else {
+							node.setProperty(TestOne.aDate, null);
+							System.out.println("TestOne-" + name + ": null date");
+						}
+						
+						// slow down execution speed to make sure distinct changes fall in different milliseconds
+						try { Thread.sleep(2); } catch (Throwable t) {}
+
+					}
+					
+					return null;
+				}
+			});
+
+			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+
+			searchAttributes.add(Search.andExactType(type));
+
+			Result result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes);
+
+			assertEquals(number, result.size());
+
+			PropertyKey sortKey = TestOne.aDate;
+			boolean sortDesc    = true;
+			int pageSize        = 10;
+			int page            = 1;
+
+			result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page, null);
+
+//                      for (GraphObject obj : result.getResults()) {
+//
+//                              System.out.println(obj.getProperty(AbstractNode.name) + ", " + obj.getProperty(TestOne.Key.aDate.name()));
+//                      }
+			logger.log(Level.INFO, "Raw result size: {0}, expected: {1}", new Object[] { result.getRawResultCount(), number });
+			assertTrue(result.getRawResultCount() == number);
+			logger.log(Level.INFO, "Result size: {0}, expected: {1}", new Object[] { result.size(), pageSize });
+			assertTrue(result.size() == Math.min(number, pageSize));
+
+			for (int j = 0; j < Math.min(result.size(), pageSize); j++) {
+
+				String expectedName = "TestOne-" + (30 - (j+1)*2);
+				String gotName     = result.get(j).getProperty(AbstractNode.name);
+
+				System.out.println(j + ": " +  expectedName + ", got: " + gotName);
+				assertEquals(expectedName, gotName);
+
+			}
+
+		} catch (FrameworkException ex) {
+
+			logger.log(Level.SEVERE, ex.toString());
+			fail("Unexpected exception");
+
+		}
+
+	}
+
 }

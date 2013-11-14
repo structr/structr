@@ -56,4 +56,9 @@ public class SourceSearchAttribute<T> extends SearchAttribute<T> {
 	public boolean includeInResult(GraphObject entity) {
 		return true;
 	}
+
+	@Override
+	public String getValueForEmptyField() {
+		return null;
+	}
 }

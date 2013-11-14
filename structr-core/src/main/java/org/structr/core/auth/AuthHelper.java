@@ -62,7 +62,7 @@ public class AuthHelper {
 	/**
 	 * Find a {@link Principal} for the given credential
 	 * 
-	 * @param securityContext
+	 * @param key
 	 * @param value
 	 * @return 
 	 */
@@ -96,7 +96,6 @@ public class AuthHelper {
 	/**
 	 * Find a {@link Principal} with matching password and given key or name
 	 * 
-	 * @param securityContext
 	 * @param key
 	 * @param value
 	 * @param password
@@ -242,6 +241,12 @@ public class AuthHelper {
 	}
 
 	public static String getHash(final String password, final String salt) {
+		
+		if (StringUtils.isEmpty(salt)) {
+			
+			return getSimpleHash(password);
+			
+		}
 		
 		return DigestUtils.sha512Hex(DigestUtils.sha512Hex(password).concat(salt));
 		

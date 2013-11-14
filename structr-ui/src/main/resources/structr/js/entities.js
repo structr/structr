@@ -20,7 +20,7 @@
 var buttonClicked;
 
 var _Entities = {
-    booleanAttrs: ['visibleToPublicUsers', 'visibleToAuthenticatedUsers', 'hidden', 'deleted', 'blocked', 'frontendUser', 'backendUser', 'hideOnIndex', 'hideOnEdit', 'hideOnNonEdit', 'hideOnDetail', 'renderDetails'],
+    booleanAttrs: ['visibleToPublicUsers', 'visibleToAuthenticatedUsers', 'isAdmin', 'hidden', 'deleted', 'blocked', 'frontendUser', 'backendUser', 'hideOnIndex', 'hideOnEdit', 'hideOnNonEdit', 'hideOnDetail', 'renderDetails'],
     numberAttrs: ['position', 'size'],
     dateAttrs: ['createdDate', 'lastModifiedDate', 'visibilityStartDate', 'visibilityEndDate'],
     hiddenAttrs: ['base', 'deleted', 'ownerId', 'owner', 'group', 'categories', 'tag', 'createdBy', 'visibilityStartDate', 'visibilityEndDate', 'parentFolder', 'url', 'path', 'elements', 'components', 'paths', 'parents'],
@@ -30,9 +30,9 @@ var _Entities = {
         log('Change boolean attribute ', attrElement, ' to ', value);
 
         if (value === true) {
-            attrElement.removeClass('disabled').addClass('enabled').prop('checked', true).html('<img src="icon/tick.png">' + (activeLabel ? ' ' + activeLabel : ''));
+            attrElement.removeClass('inactive').addClass('active').prop('checked', true).html('<img src="icon/tick.png">' + (activeLabel ? ' ' + activeLabel : ''));
         } else {
-            attrElement.removeClass('enabled').addClass('disabled').prop('checked', false).text((inactiveLabel ? inactiveLabel : '-'));
+            attrElement.removeClass('active').addClass('inactive').prop('checked', false).text((inactiveLabel ? inactiveLabel : '-'));
         }
 
     },
@@ -178,6 +178,102 @@ var _Entities = {
         });
         $(activeId).show();
     },
+    editSource: function(entity) {
+
+        Structr.dialog('Edit source of "' + (entity.name ? entity.name : entity.id) + '"', function() {
+            log('Element source saved')
+        }, function() {
+            log('cancelled')
+        });
+
+        // Get content in widget mode
+        var url = viewRootUrl + entity.id + '?edit=3', contentType = 'text/html';
+
+        $.ajax({
+            url: url,
+            //async: false,
+            contentType: contentType,
+            success: function(data) {
+                text = data;
+                var div = dialog.append('<div class="editor"></div>');
+                var contentBox = $('.editor', dialog);
+                editor = CodeMirror(contentBox.get(0), {
+                    value: unescapeTags(text),
+                    mode: contentType,
+                    lineNumbers: true
+                });
+
+                editor.id = entity.id;
+
+                dialogBtn.append('<button id="saveFile" disabled="disabled" class="disabled"> Save </button>');
+                dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="disabled"> Save and close</button>');
+
+                dialogSaveButton = $('#saveFile', dialogBtn);
+                var saveAndClose = $('#saveAndClose', dialogBtn);
+
+                editor.on('change', function(cm, change) {
+
+                    //text1 = $(contentNode).children('.content_').text();
+                    text2 = editor.getValue();
+
+                    if (text === text2) {
+                        dialogSaveButton.prop("disabled", true).addClass('disabled');
+                        saveAndClose.prop("disabled", true).addClass('disabled');
+                    } else {
+                        dialogSaveButton.prop("disabled", false).removeClass('disabled');
+                        saveAndClose.prop("disabled", false).removeClass('disabled');
+                    }
+                });
+
+                dialogSaveButton.on('click', function(e) {
+                    e.stopPropagation();
+                    var text2 = editor.getValue();
+
+                    if (text === text2) {
+                        dialogSaveButton.prop("disabled", true).addClass('disabled');
+                        saveAndClose.prop("disabled", true).addClass('disabled');
+                    } else {
+                        dialogSaveButton.prop("disabled", false).removeClass('disabled');
+                        saveAndClose.prop("disabled", false).removeClass('disabled');
+                    }
+
+
+                    var parent = entity.parent;
+                    if (parent) {
+                        Command.removeChild(entity.id);
+                        Command.appendWidget(text2, entity.parent.id, entity.pageId, null, null, function() {
+                            dialogSaveButton.prop("disabled", true).addClass('disabled');
+                            saveAndClose.prop("disabled", true).addClass('disabled');
+                            dialogMsg.html('<div class="infoBox success">New nodes created from source.</div>');
+                            $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
+                        });
+                    } else {
+                        Command.replaceWidget(text2, entity.id, entity.parent ? entity.parent.id : undefined, entity.pageId, function() {
+                            dialogSaveButton.prop("disabled", true).addClass('disabled');
+                            saveAndClose.prop("disabled", true).addClass('disabled');
+                            dialogMsg.html('<div class="infoBox success">New nodes created from source.</div>');
+                            $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
+                        });
+                    }
+                });
+
+                saveAndClose.on('click', function(e) {
+                    e.stopPropagation();
+                    dialogSaveButton.click();
+                    setTimeout(function() {
+                        dialogSaveButton.remove();
+                        saveAndClose.remove();
+                        dialogCancelButton.click();
+                    }, 500);
+                });
+
+            },
+            error: function(xhr, statusText, error) {
+                console.log(xhr, statusText, error);
+            }
+        });
+
+    },
     showProperties: function(entity) {
 
         var views, activeView = 'ui';
@@ -314,7 +410,10 @@ var _Entities = {
                                                 log('set property', id, key, checked);
                                                 Command.setProperty(id, key, checked);
                                             });
-                                            Command.getProperty(id, key, '#dialogBox');
+                                            Command.getProperty(id, key, function(val) {
+                                                if (val)
+                                                    checkbox.prop('checked', true);
+                                            });
                                         } else if (isIn(key, _Entities.dateAttrs)) {
                                             if (!res[key] || res[key] === 'null') {
                                                 res[key] = '';
@@ -355,7 +454,7 @@ var _Entities = {
 
             });
         });
-        
+
         $('#tab-' + activeView).click();
 
     },
@@ -442,8 +541,6 @@ var _Entities = {
                 }, function() {
                 });
 
-
-
                 _Entities.appendSimpleSelection(dialogText, entity, 'users', 'Owner', 'owner.id');
 
                 dialogText.append('<h3>Visibility</h3>');
@@ -501,7 +598,6 @@ var _Entities = {
 
                             var principalId = result.principalId;
                             if (principalId) {
-
                                 Command.get(principalId, function(p) {
                                     addPrincipal(entity, p, permissions);
                                 });
@@ -537,12 +633,12 @@ var _Entities = {
         });
     },
     appendBooleanSwitch: function(el, entity, key, label, desc, recElementId) {
-        el.append('<div class="' + entity.id + '_"><button class="switch disabled ' + key + '_"></button>' + desc + '</div>');
+        el.append('<div class="' + entity.id + '_"><button class="switch inactive ' + key + '_"></button>' + desc + '</div>');
         var sw = $('.' + key + '_', el);
         _Entities.changeBooleanAttribute(sw, entity[key], label[0], label[1]);
         sw.on('click', function(e) {
             e.stopPropagation();
-            entity.setProperty(key, sw.hasClass('disabled'), $(recElementId, el).is(':checked'), function() {
+            entity.setProperty(key, sw.hasClass('inactive'), $(recElementId, el).is(':checked'), function() {
                 _Entities.changeBooleanAttribute(sw, entity[key], label[0], label[1]);
                 blinkGreen(sw);
             });
@@ -590,6 +686,20 @@ var _Entities = {
             entity.setProperty(key, value, false, function() {
                 blinkGreen(select);
             });
+        });
+    },
+    appendEditSourceIcon: function(parent, entity) {
+
+        var editIcon = $('.edit_icon', parent);
+
+        if (!(editIcon && editIcon.length)) {
+            parent.append('<img title="Edit source code" alt="Edit source code" class="edit_icon button" src="' + '/structr/icon/pencil.png' + '">');
+            editIcon = $('.edit_icon', parent);
+        }
+        editIcon.on('click', function(e) {
+            e.stopPropagation();
+            log('editSource', entity);
+            _Entities.editSource(entity);
         });
     },
     appendEditPropertiesIcon: function(parent, entity) {

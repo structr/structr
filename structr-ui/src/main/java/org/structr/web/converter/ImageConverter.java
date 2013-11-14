@@ -105,16 +105,27 @@ public class ImageConverter extends PropertyConverter {
 
 						} else if (source instanceof String) {
 
-							if (StringUtils.isNotBlank((String) source)) {
+							String sourceString = (String) source;
+							
+							if (StringUtils.isNotBlank(sourceString)) {
 
-								
 								if (keyAndClass != null) {
-								
-									img = (Image) ImageHelper.createFileBase64(securityContext, (String) source, keyAndClass != null ? keyAndClass.getCls() : null);
+
+									// UUID?
+									if (sourceString.length() == 32) {
+										
+										img = (Image) ImageHelper.transformFile(securityContext, sourceString, keyAndClass != null ? keyAndClass.getCls() : null);
+									}
+
+									if (img == null) {
+
+										img = (Image) ImageHelper.createFileBase64(securityContext, sourceString, keyAndClass != null ? keyAndClass.getCls() : null);
+
+									}
 									
 								} else {
 									
-									ImageHelper.decodeAndSetFileData((Image) currentObject, (String) source);
+									ImageHelper.decodeAndSetFileData((Image) currentObject, sourceString);
 									
 								}
 							}
@@ -147,7 +158,11 @@ public class ImageConverter extends PropertyConverter {
 	@Override
 	public Object revert(Object source) {
 
-		return ImageHelper.getBase64String((Image) currentObject);
+		if (currentObject instanceof Image) {
+			return ImageHelper.getBase64String((Image) currentObject);
+		} else {
+			return source;
+		}
 	}
 
 }

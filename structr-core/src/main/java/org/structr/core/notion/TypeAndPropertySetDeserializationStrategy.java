@@ -100,10 +100,25 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends GraphObject>
 				attrs.add(Search.andExactUuid(attributes.get(GraphObject.uuid)));
 				
 			} else {
-			
-				for (Entry<PropertyKey, Object> entry : attributes.entrySet()) {
-					attrs.add(Search.andExactProperty(securityContext, entry.getKey(), entry.getValue() != null ? entry.getValue().toString() : null));
+
+				
+				boolean attributesComplete = true;
+				
+				// Check if all property keys of the PropertySetNotion are present
+				for (PropertyKey key : propertyKeys) {
+					attributesComplete &= attributes.containsKey(key);
 				}
+				
+				if (attributesComplete) {
+
+					attrs.add(Search.andExactTypeAndSubtypes(type));
+
+					for (Entry<PropertyKey, Object> entry : attributes.entrySet()) {
+						attrs.add(Search.andExactProperty(securityContext, entry.getKey(), entry.getValue() != null ? entry.getValue().toString() : null));
+					}
+					
+				}
+				
 			
 			}
 
@@ -134,7 +149,8 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends GraphObject>
 						
 				default:
 					
-					logger.log(Level.WARNING, "Found {0} nodes for given type and property set, property set is ambiguous", size);
+					logger.log(Level.SEVERE, "Found {0} nodes for given type and properties, property set is ambiguous!\n"
+						+ "This is often due to wrong modeling, or you should consider creating a uniquness constraint for " + type.getName(), size);
 					
 					break;
 			}

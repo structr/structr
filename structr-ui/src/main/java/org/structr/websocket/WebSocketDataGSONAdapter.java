@@ -39,6 +39,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.JsonInputGSONAdapter;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -404,7 +405,9 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 				for (Entry<String, JsonElement> entry : nodeData.entrySet()) {
 
 					JsonElement obj = entry.getValue();
-					webSocketData.setNodeData(entry.getKey(), obj instanceof JsonNull ? null : obj.getAsString());
+					webSocketData.setNodeData(entry.getKey(),
+						(obj instanceof JsonNull ? null : 
+						(obj instanceof JsonPrimitive ? JsonInputGSONAdapter.fromPrimitive(obj.getAsJsonPrimitive()) : obj.getAsString())));
 				}
 
 			}

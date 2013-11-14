@@ -36,7 +36,7 @@ import org.structr.web.property.UiNotion;
  */
 public class Tag extends ValidatedNode {
 
-	public static final CollectionProperty<Taggable> taggables = new CollectionProperty<Taggable>("taggables", Taggable.class, RelType.TAG, new UiNotion(), false);
+	public static final CollectionProperty<Taggable> taggables = new CollectionProperty<>("taggables", Taggable.class, RelType.TAG, new UiNotion(), false);
 	
 	public static final View defaultView = new View(Tag.class, PropertyView.Public, name, taggables);
 	public static final View uiView      = new View(Tag.class, PropertyView.Ui, name, taggables);

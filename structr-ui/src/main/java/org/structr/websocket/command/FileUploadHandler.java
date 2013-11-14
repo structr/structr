@@ -61,17 +61,17 @@ public class FileUploadHandler {
 
 		if (this.size == null) {
 
-			this.size = file.getSize();
-
+			FileChannel channel;
 			try {
-
-				file.setSize(this.size);
-
-			} catch (FrameworkException ex) {
-
-				logger.log(Level.WARNING, "Could not set size", ex);
-
+				
+				channel = getChannel();
+				this.size = channel.size();
+				updateSize(this.size);
+				
+			} catch (IOException ex) {
+				logger.log(Level.SEVERE, "Could not access file", ex);
 			}
+			
 
 		}
 
@@ -88,6 +88,13 @@ public class FileUploadHandler {
 			channel.position(sequenceNumber * chunkSize);
 			channel.write(ByteBuffer.wrap(data));
 
+			if (this.size == null) {
+				
+				this.size = channel.size();
+				updateSize(this.size);
+				
+			}
+			
 			// file size reached? upload finished
 			if (channel.position() == this.size) {
 
@@ -98,6 +105,24 @@ public class FileUploadHandler {
 
 	}
 
+	private void updateSize(final Long size) {
+		
+		if (size == null) {
+			return;
+		}
+
+		try {
+
+			file.setSize(size);
+
+		} catch (FrameworkException ex) {
+
+			logger.log(Level.WARNING, "Could not set size to " + size, ex);
+
+		}
+		
+	}
+	
 	/**
 	 * Called when the WebSocket connection is closed
 	 */

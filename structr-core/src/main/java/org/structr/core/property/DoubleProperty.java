@@ -18,6 +18,7 @@
  */
 package org.structr.core.property;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.SortField;
 import org.neo4j.index.lucene.ValueContext;
@@ -88,20 +89,18 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> {
 
 		@Override
 		public Double convert(Object source) {
-			
-			// FIXME: be more strict when dealing with "wrong" input types
-			if (source != null) {
-				
-				if (source instanceof Number) {
 
-					return ((Number)source).doubleValue();
-					
-				}
-				
-				if (source instanceof String) {
-					
-					return Double.parseDouble(source.toString());
-				}
+			if (source == null) return null;
+			
+			if (source instanceof Number) {
+
+				return ((Number)source).doubleValue();
+
+			}
+
+			if (source instanceof String && StringUtils.isNotBlank((String) source)) {
+
+				return Double.parseDouble(source.toString());
 			}
 			
 			return null;

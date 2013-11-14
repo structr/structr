@@ -17,7 +17,7 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-var widgets, remoteWidgets, remoteHost = 'widgets.structr.org', remotePort = 8084;
+var widgets, remoteWidgets, widgetsUrl = 'http://widgets.structr.org/structr/rest/widgets';
 var win = $(window);
 
 $(document).ready(function() {
@@ -31,9 +31,9 @@ $(document).ready(function() {
 
 var _Widgets = {
 
-    icon : 'icon/brick.png',
-    add_widget_icon : 'icon/brick_add.png',
-    delete_widget_icon : 'icon/brick_delete.png',
+    icon : 'icon/layout.png',
+    add_widget_icon : 'icon/layout_add.png',
+    delete_widget_icon : 'icon/layout_delete.png',
 	
     init : function() {
 
@@ -90,15 +90,14 @@ var _Widgets = {
         remoteWidgets.empty();
         remoteWidgets.append('<h2>Remote Widgets</h2>');
         
-        if (document.location.hostname === remoteHost && document.location.port === remotePort) {
+        if (widgetsUrl.startsWith(document.location.hostname)) {
             return;
         }
         
-        var baseUrl = 'http://' + remoteHost + ':' + remotePort + '/structr/rest/widgets';
-        _Widgets.getRemoteWidgets(baseUrl, function(entity) {
+        _Widgets.getRemoteWidgets(widgetsUrl, function(entity) {
             
             var obj = StructrModel.create(entity, undefined, false);
-            obj.srcUrl = baseUrl + '/' + entity.id;
+            obj.srcUrl = widgetsUrl + '/' + entity.id;
             _Widgets.appendWidgetElement(obj, true);
             
         });
@@ -256,55 +255,95 @@ var _Widgets = {
         editor.focus();
         Structr.resize();
 
-        dialogBtn.append('<button id="editorSave">Save Widget</button>');
+        dialogBtn.append('<button id="editorSave" disabled="disabled" class="disabled">Save Widget</button>');
+        dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="disabled"> Save and close</button>');
 
-        $('#editorSave', dialogBtn).on('click', function() {
+        dialogSaveButton = $('#editorSave', dialogBtn);
+        var saveAndClose = $('#saveAndClose', dialogBtn);
+        
+        text1 = text;
+        
+        editor.on('change', function(cm, change) {
+            
+            text2 = editor.getValue();
+
+            if (text1 === text2) {
+                dialogSaveButton.prop("disabled", true).addClass('disabled');
+                saveAndClose.prop("disabled", true).addClass('disabled');
+            } else {
+                dialogSaveButton.prop("disabled", false).removeClass('disabled');
+                saveAndClose.prop("disabled", false).removeClass('disabled');
+            }
+        });
+
+        saveAndClose.on('click', function(e) {
+            e.stopPropagation();
+            dialogSaveButton.click();
+            setTimeout(function() {
+                dialogSaveButton.remove();
+                saveAndClose.remove();
+                dialogCancelButton.click();
+            }, 500);
+        });
+
+        dialogSaveButton.on('click', function() {
 
             var newText = editor.getValue();
+
+            if (text1 === newText) {
+                return;
+            }
             
             if (entity.srcUrl) {
                 var data = JSON.stringify({'source':newText});
                 log('update remote widget', entity.srcUrl, data);
-            $.ajax({
-                //url: $('#widgetServerUrl').val(),
-                url: entity.srcUrl,
-                type: 'PUT',
-                dataType: 'json',
-                data: data,
-                contentType: 'application/json; charset=utf-8',
-                //async: false,
-                statusCode : {
-                    200 : function(data) {
-                        dialogMsg.html('<div class="infoBox success">Widget source saved.</div>');
-                        $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
-                    },
-                    400 : function(data, status, xhr) {
-                        console.log(data, status, xhr);
-                    },
-                    401 : function(data, status, xhr) {
-                        console.log(data, status, xhr);
-                    },
-                    403 : function(data, status, xhr) {
-                        console.log(data, status, xhr);
-                    },
-                    404 : function(data, status, xhr) {
-                        console.log(data, status, xhr);
-                    },
-                    422 : function(data, status, xhr) {
-                        console.log(data, status, xhr);
-                    },
-                    500 : function(data, status, xhr) {
-                        console.log(data, status, xhr);
+                $.ajax({
+                    //url: $('#widgetServerUrl').val(),
+                    url: entity.srcUrl,
+                    type: 'PUT',
+                    dataType: 'json',
+                    data: data,
+                    contentType: 'application/json; charset=utf-8',
+                    //async: false,
+                    statusCode : {
+                        200 : function(data) {
+                            dialogMsg.html('<div class="infoBox success">Widget source saved.</div>');
+                            $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
+                            text1 = newText;
+                            dialogSaveButton.prop("disabled", true).addClass('disabled');
+                            saveAndClose.prop("disabled", true).addClass('disabled');
+                            
+                        },
+                        400 : function(data, status, xhr) {
+                            console.log(data, status, xhr);
+                        },
+                        401 : function(data, status, xhr) {
+                            console.log(data, status, xhr);
+                        },
+                        403 : function(data, status, xhr) {
+                            console.log(data, status, xhr);
+                        },
+                        404 : function(data, status, xhr) {
+                            console.log(data, status, xhr);
+                        },
+                        422 : function(data, status, xhr) {
+                            console.log(data, status, xhr);
+                        },
+                        500 : function(data, status, xhr) {
+                            console.log(data, status, xhr);
+                        }
                     }
-                }
-                
-            });
+
+                });
                 
             } else {
                 
                 Command.setProperty(entity.id, 'source', newText, false, function() {
                     dialogMsg.html('<div class="infoBox success">Widget saved.</div>');
                     $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
+                    text1 = newText;
+                    dialogSaveButton.prop("disabled", true).addClass('disabled');
+                    saveAndClose.prop("disabled", true).addClass('disabled');
                 });
 
             }

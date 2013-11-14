@@ -20,10 +20,27 @@
 
 package org.structr.web.entity.html;
 
+import org.structr.common.PropertyView;
+import org.structr.core.property.Property;
+import org.structr.web.common.HtmlProperty;
 import org.structr.web.entity.dom.DOMElement;
 
 /**
  * @author Axel Morgner
  */
 public class Audio extends DOMElement {
+
+	public static final Property<String> _src		= new HtmlProperty("src");
+	public static final Property<String> _crossorigin	= new HtmlProperty("crossorigin");
+	public static final Property<String> _preload		= new HtmlProperty("preload");
+	public static final Property<String> _autoplay		= new HtmlProperty("autoplay");
+	public static final Property<String> _mediagroup		= new HtmlProperty("mediagroup");
+	public static final Property<String> _loop		= new HtmlProperty("loop");
+	public static final Property<String> _muted		= new HtmlProperty("muted");
+	public static final Property<String> _controls		= new HtmlProperty("controls");
+
+	public static final org.structr.common.View htmlView	= new org.structr.common.View(Audio.class, PropertyView.Html,
+		_src, _crossorigin, _preload, _autoplay, _mediagroup, _loop, _muted, _controls
+	);
+
 }

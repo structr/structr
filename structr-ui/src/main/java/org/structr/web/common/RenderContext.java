@@ -28,6 +28,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang.StringUtils;
 import org.structr.core.GraphObject;
+import org.structr.core.Result;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.property.PropertyKey;
@@ -66,6 +67,7 @@ public class RenderContext {
 	private HttpServletRequest request           = null;
 	private HttpServletResponse response         = null;
 	private ResourceProvider resourceProvider    = null;
+	private Result result                        = null;
 	
 	public enum EditMode {
 	
@@ -145,6 +147,10 @@ public class RenderContext {
 
 	public void setListSource(Iterable<GraphObject> listSource) {
 		this.listSource = listSource;
+	}
+	
+	public void setResult(Result result) {
+		this.result = result;
 	}
 	
 	public Iterable<GraphObject> getListSource() {
@@ -281,5 +287,8 @@ public class RenderContext {
 	
 	public String getComponentId() {
 		return (component != null ? component.getUuid() : null);
+	}
+	public Result getResult() {
+		return result;
 	}
 }

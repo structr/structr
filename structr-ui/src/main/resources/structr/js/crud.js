@@ -21,9 +21,8 @@ var defaultType, defaultView, defaultSort, defaultOrder, defaultPage, defaultPag
 var searchField;
 
 var browser = (typeof document === 'object');
-var headers;
-var crudPagerDataCookieName = 'structrCrudPagerData_' + port + '_';
-var crudTypeCookieName = 'structrCrudType_' + port;
+var crudPagerDataKey = 'structrCrudPagerData_' + port + '_';
+var crudTypeKey = 'structrCrudType_' + port;
 
 if (browser) {
     
@@ -45,7 +44,7 @@ if (browser) {
         //        console.log(_Crud.type);
         
         if (!_Crud.type) {
-            _Crud.restoreTypeFromCookie();
+            _Crud.restoreType();
         //            console.log(_Crud.type);
         }
 
@@ -151,13 +150,6 @@ var _Crud = {
         Structr.registerModule('crud', _Crud);
         Structr.classes.push('crud');
 
-        if (token) {
-
-            headers = {
-                'X-StructrSessionToken' : token
-            };
-        }
-
         // check for single edit mode
         var id = urlParam('id');
         if (id) {
@@ -220,8 +212,8 @@ var _Crud = {
         //console.log('updateUrl', type, _Crud.pageSize[type], _Crud.page[type]);
         
         if (type) {
-            _Crud.storeTypeInCookie();
-            _Crud.storePagerDataInCookie();
+            _Crud.storeType();
+            _Crud.storePagerData();
             //window.history.pushState('', '', _Crud.sortAndPagingParameters(_Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type]) + '&view=' + _Crud.view[type] + '&type=' + type + '#crud');
             window.location.hash = '#crud';
         }
@@ -244,6 +236,9 @@ var _Crud = {
         _Crud.loadAccessibleResources(function() {
             $.each(_Crud.types, function(t, type) {
                 //console.log('Loading type definition for ' + type + '...');
+                if (!type || type.startsWith('_')) {
+                    return;
+                }
                 _Crud.loadTypeDefinition(type, callback);
             });
         });
@@ -254,17 +249,19 @@ var _Crud = {
         var url = rootUrl + 'resource_access/ui';
         $.ajax({
             url: url,
-            headers: headers,
             dataType: 'json',
             contentType: 'application/json; charset=utf-8',
             //async: false,
             success: function(data) {
                 //console.log(data);
                 var types = [];
+                _Crud.types.length = 0;
                 $.each(data.result, function(i, res) {
                     var type = getTypeFromResourceSignature(res.signature);
                     //console.log(res);
-                    if (!isIn(type, _Crud.types)) {
+                    if (type && !(type.startsWith('_')) && !isIn(type, _Crud.types)) {
+                        _Crud.types.push(type);
+                        //console.log(type, res.position);
                         types.push({'type': type, 'position': res.position});
                     }
                 });
@@ -272,7 +269,7 @@ var _Crud = {
                 types.sort(function(a, b) {
                     return a.position - b.position;
                 });
-
+                _Crud.types.length = 0;
                 $.each(types, function(i, typeObj) {
                     _Crud.types.push(typeObj.type);
                 });
@@ -280,7 +277,7 @@ var _Crud = {
                 if (callback) {
                     callback();
                 }
-                
+
             }
         });
     },
@@ -292,7 +289,6 @@ var _Crud = {
         var url = rootUrl + '_schema/' + type.toUnderscore();
         $.ajax({
             url: url,
-            headers: headers,
             dataType: 'json',
             contentType: 'application/json; charset=utf-8',
             //async: false,
@@ -329,7 +325,7 @@ var _Crud = {
     
     determinePagerData : function(type) {
         
-        // Priority: JS vars -> Cookie -> URL -> Default
+        // Priority: JS vars -> Local Storage -> URL -> Default
 
         if (!_Crud.view[type]) {
             _Crud.view[type]        = urlParam('view');
@@ -340,7 +336,7 @@ var _Crud = {
         }
         
         if (!_Crud.view[type]) {
-            _Crud.restorePagerDataFromCookie();
+            _Crud.restorePagerData();
         }
 
         if (!_Crud.view[type]) {
@@ -450,32 +446,29 @@ var _Crud = {
         
     },
     
-    storeTypeInCookie : function() {
-        $.cookie(crudTypeCookieName, _Crud.type);
+    storeType : function() {
+        localStorage.setItem(crudTypeKey, _Crud.type);
     },
     
-    restoreTypeFromCookie : function() {
-        var cookie = $.cookie(crudTypeCookieName);
-        if (cookie) {
-            _Crud.type = cookie;
-        //console.log('Current type from Cookie', cookie);
+    restoreType : function() {
+        var val = localStorage.getItem(crudTypeKey);
+        if (val) {
+            _Crud.type = val;
         }
     },
     
-    storePagerDataInCookie : function() {
+    storePagerData : function() {
         var type = _Crud.type;
         var pagerData = _Crud.view[type] + ',' + _Crud.sort[type] + ',' + _Crud.order[type] + ',' + _Crud.page[type] + ',' + _Crud.pageSize[type];
-        //console.log('pager data to store in cookie: ', pagerData);
-        $.cookie(crudPagerDataCookieName + type, pagerData);
+        localStorage.setItem(crudPagerDataKey + type, pagerData);
     },
     
-    restorePagerDataFromCookie : function() {
+    restorePagerData : function() {
         var type = _Crud.type;
-        var cookie = $.cookie(crudPagerDataCookieName + type);
+        var val = localStorage.getItem(crudPagerDataKey + type);
         
-        if (cookie) {
-            var pagerData = cookie.split(',');
-            //console.log('Pager Data from Cookie', pagerData);
+        if (val) {
+            var pagerData = val.split(',');
             _Crud.view[type]      = pagerData[0];
             _Crud.sort[type]      = pagerData[1];
             _Crud.order[type]     = pagerData[2];
@@ -551,7 +544,6 @@ var _Crud = {
         _Crud.clearList(type);
         $.ajax({
             url: url,
-            headers: headers,
             dataType: 'json',
             contentType: 'application/json; charset=utf-8',
             //async: false,
@@ -598,7 +590,6 @@ var _Crud = {
         }
         $.ajax({
             url: url,
-            headers: headers,
             dataType: 'json',
             contentType: 'application/json; charset=utf-8',
             //async: false,
@@ -696,7 +687,6 @@ var _Crud = {
         var url = rootUrl + id + '/' + view;
         $.ajax({
             url: url,
-            headers: headers,
             dataType: 'json',
             contentType: 'application/json; charset=utf-8',
             //async: false,
@@ -721,7 +711,6 @@ var _Crud = {
         var type = _Crud.type;
         $.ajax({
             url: rootUrl + id + '/' + _Crud.view[type],
-            headers: headers,
             type: 'GET',
             dataType: 'json',
             contentType: 'application/json; charset=utf-8',
@@ -743,7 +732,6 @@ var _Crud = {
         //console.log('crudCreate', type, url, json);
         $.ajax({
             url: rootUrl + url,
-            headers: headers,
             type: 'POST',
             dataType: 'json',
             data: json,
@@ -865,11 +853,10 @@ var _Crud = {
 
     crudRefresh : function(id, key) {
         var url = rootUrl + id + '/' + _Crud.view[_Crud.type];
-        //console.log('crudRefresh', id, key, headers, url);
+        //console.log('crudRefresh', id, key, url);
         
         $.ajax({
             url: url,
-            headers: headers,
             type: 'GET',
             dataType: 'json',
             contentType: 'application/json; charset=utf-8',
@@ -888,7 +875,6 @@ var _Crud = {
     crudReset : function(id, key) {
         $.ajax({
             url: rootUrl + id + '/' + _Crud.view[_Crud.type],
-            headers: headers,
             type: 'GET',
             dataType: 'json',
             contentType: 'application/json; charset=utf-8',
@@ -901,11 +887,10 @@ var _Crud = {
     },
 
     crudUpdateObj : function(id, json, onSuccess, onError) {
-        //console.log('crudUpdateObj URL:', rootUrl + id, headers);
+        //console.log('crudUpdateObj URL:', rootUrl + id);
         //console.log('crudUpdateObj JSON:', json);
         $.ajax({
             url: rootUrl + id,
-            headers: headers,
             data: json,
             type: 'PUT',
             dataType: 'json',
@@ -980,10 +965,9 @@ var _Crud = {
         } else {
             json = '{"' + key + '":"' + newValue.escapeForJSON() + '"}';
         }
-        //console.log('crudUpdate', headers, url, json);
+        //console.log('crudUpdate', url, json);
         $.ajax({
             url: url,
-            headers: headers,
             data: json,
             type: 'PUT',
             contentType: 'application/json; charset=utf-8',
@@ -1053,7 +1037,6 @@ var _Crud = {
         var json = '{"' + key + '":null}';
         $.ajax({
             url: url,
-            headers: headers,
             data: json,
             type: 'PUT',
             dataType: 'json',
@@ -1129,7 +1112,6 @@ var _Crud = {
     crudDelete : function(id) {
         $.ajax({
             url: rootUrl + '/' + id,
-            headers: headers,
             type: 'DELETE',
             dataType: 'json',
             contentType: 'application/json; charset=utf-8',
@@ -1297,7 +1279,7 @@ var _Crud = {
             var propertyType = _Crud.getPropertyType(type, key);
 
             if (propertyType === 'Boolean') {
-                cell.append('<input ' + (readOnly ? 'class="readonly" readonly ' : '') + 'type="checkbox" ' + (value?'checked="checked"':'') + '>');
+                cell.append('<input ' + (readOnly ? 'class="readonly" readonly disabled ' : '') + 'type="checkbox" ' + (value?'checked="checked"':'') + '>');
                 if (!readOnly) {
                     $('input', cell).on('change', function() {
                        //console.log('change value for ' + key + ' to ' + $(this).prop('checked'));
@@ -1395,7 +1377,6 @@ var _Crud = {
         
         $.ajax({
             url: rootUrl + id + '/' + _Crud.view[parentType],
-            headers: headers,
             type: 'GET',
             dataType: 'json',
             contentType: 'application/json; charset=utf-8',
@@ -1490,6 +1471,8 @@ var _Crud = {
         el.append('<h2 class="searchResultsTitle">Search Results</h2>');
         el.append('<div class="searchResults"></div>');
         var searchResults = $('.searchResults', el);
+
+        _Crud.resize();
         
         //$('.search').select();
         
@@ -1511,18 +1494,29 @@ var _Crud = {
         }
         
         $.each(types, function(t, type) {
-            var url = rootUrl + _Crud.restType(type) + '/' + view + _Crud.sortAndPagingParameters(type, 'name', 'asc', 1000, 1) + '&name=' + searchString + '&loose=1';
+            
+            var url = rootUrl + _Crud.restType(type) + '/' + view + _Crud.sortAndPagingParameters(type, 'name', 'asc', 1000, 1) + '&name=' + encodeURIComponent(searchString) + '&loose=1';
+            searchResults.append('<div id="placeholderFor' + type + '" class="searchResultGroup resourceBox"><img class="loader" src="img/ajax-loader.gif">Searching for "' + searchString + '" in ' + type + '</div>');
+            
             $.ajax({
                 url: url,
-                headers: headers,
                 type: 'GET',
                 dataType: 'json',
                 contentType: 'application/json; charset=utf-8',
                 //async: false,
                 success: function(data) {
 
+                    $('#placeholderFor' + type + '').remove();
                     if (data.result.length) {
+                        
                         searchResults.append('<div id="resultsFor' + type + '" class="searchResultGroup resourceBox"><h3>' + type.capitalize() + '</h3></div>');
+
+                    } else {
+ 
+                        searchResults.append('<div id="resultsFor' + type + '" class="searchResultGroup resourceBox">No results for ' + type.capitalize() + '</div>');
+                        window.setTimeout(function() { $('#resultsFor' + type).fadeOut('fast') }, 1000);
+                        
+                       
                     }
                 
                     $.each(data.result, function(i, node) {
@@ -1625,7 +1619,6 @@ var _Crud = {
             var objects = [];
             $.ajax({
                 url: url,
-                headers: headers,
                 type: 'GET',
                 dataType: 'json',
                 contentType: 'application/json; charset=utf-8',
@@ -1646,7 +1639,6 @@ var _Crud = {
                     
                     $.ajax({
                         url: url,
-                        headers: headers,
                         type: 'PUT',
                         dataType: 'json',
                         data: json,
@@ -1656,11 +1648,10 @@ var _Crud = {
                             200 : function(data) {
                             
                                 var json = '{"' + key + '":' + JSON.stringify(objects) + '}';
-                                //console.log('removeRelatedObject, setting new id array', headers, url, objects, json);
+                                //console.log('removeRelatedObject, setting new id array', url, objects, json);
                             
                                 $.ajax({
                                     url: url,
-                                    headers: headers,
                                     type: 'PUT',
                                     dataType: 'json',
                                     data: json,
@@ -1690,7 +1681,6 @@ var _Crud = {
         
             $.ajax({
                 url: url,
-                headers: headers,
                 type: 'GET',
                 dataType: 'json',
                 contentType: 'application/json; charset=utf-8',
@@ -1707,12 +1697,10 @@ var _Crud = {
         var view = _Crud.view[_Crud.type];
         var urlType  = _Crud.restType(type); //$('#' + type).attr('data-url').substring(1);
         var url = rootUrl + urlType + '/' + id + '/' + view;
-        //console.log('headers', headers);
         if (_Crud.isCollection(key, type)) {
             var objects = [];
             $.ajax({
                 url: url,
-                headers: headers,
                 type: 'GET',
                 dataType: 'json',
                 contentType: 'application/json; charset=utf-8',
@@ -1727,7 +1715,7 @@ var _Crud = {
                         objects.push({'id':relatedObj.id});
                     }
                     var json = '{"' + key + '":' + JSON.stringify(objects) + '}';
-                    //console.log(headers, url, json);
+                    //console.log(url, json);
                     _Crud.crudUpdateObj(id, json, function() {
                         _Crud.crudRefresh(id, key);
                         //dialogCancelButton.click();
@@ -1742,7 +1730,6 @@ var _Crud = {
             
             $.ajax({
                 url: url,
-                headers: headers,
                 type: 'GET',
                 dataType: 'json',
                 contentType: 'application/json; charset=utf-8',
@@ -1879,8 +1866,12 @@ var _Crud = {
             height: bh
         });
 
-        $('.resourceBox').css({
+        $('#resourceTabs .resourceBox').css({
            height: h - 137 + 'px'     
+        });
+
+        $('.searchResults').css({
+           height: h - 103 + 'px'     
         });
     },
 

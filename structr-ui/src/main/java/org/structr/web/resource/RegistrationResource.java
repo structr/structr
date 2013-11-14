@@ -21,6 +21,7 @@
 
 package org.structr.web.resource;
 
+import java.util.Collections;
 import org.structr.common.MailHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -28,12 +29,10 @@ import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.CreateNodeCommand;
-import org.structr.core.graph.NodeAttribute;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.NotAllowedException;
 import org.structr.rest.resource.Resource;
-import org.structr.web.entity.User;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -41,6 +40,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -49,6 +49,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang.StringUtils;
 import org.structr.core.auth.AuthHelper;
+import org.structr.core.auth.Authenticator;
 import org.structr.core.entity.Person;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.StructrTransaction;
@@ -56,6 +57,8 @@ import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchNodeCommand;
+import org.structr.core.property.PropertyMap;
+import org.structr.web.entity.User;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.mail.MailTemplate;
 import org.structr.web.servlet.HtmlServlet;
@@ -78,7 +81,12 @@ public class RegistrationResource extends Resource {
 		TEXT_BODY,
 		HTML_BODY,
 		BASE_URL,
-		TARGET_PAGE
+		TARGET_PAGE,
+		ERROR_PAGE,
+		CONFIRM_REGISTRATION_PAGE,
+		CONFIRM_KEY_KEY,
+		TARGET_PAGE_KEY,
+		ERROR_PAGE_KEY
 	}
 
 	private static String localeString;
@@ -111,8 +119,10 @@ public class RegistrationResource extends Resource {
 
 	@Override
 	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
-
-		if (propertySet.containsKey(User.eMail.jsonName()) && propertySet.size() == 1) {
+		
+		boolean existingUser = false;
+		
+		if (propertySet.containsKey(User.eMail.jsonName())) {
 			
 			SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
 			final Principal user;
@@ -127,12 +137,14 @@ public class RegistrationResource extends Resource {
 			confKey = UUID.randomUUID().toString();
 			
 			Result result = Services.command(superUserContext, SearchNodeCommand.class).execute(
-				Search.andExactType(User.class),
+				Search.andExactTypeAndSubtypes(User.class),
 				Search.andExactProperty(superUserContext, User.eMail, emailString));
 				
 			if (!result.isEmpty()) {
 				
 				user = (Principal) result.get(0);
+				
+				// For existing users, update confirmation key
 				
 				Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
@@ -144,24 +156,52 @@ public class RegistrationResource extends Resource {
 					}
 				});
 				
+				existingUser = true;
+
+				
 			} else {
 
-				user = createUser(securityContext, User.eMail, emailString, securityContext.getAuthenticator().getUserAutoCreate());
+				Authenticator auth = securityContext.getAuthenticator();
+				user = createUser(securityContext, User.eMail, emailString, propertySet, auth.getUserAutoCreate(), auth.getUserClass());
 			}
 			
 			if (user != null) {
 
-				if (!sendInvitationLink(user)) {
+				if (!sendInvitationLink(user, propertySet)) {
 					
+					// return 400 Bad request
 					return new RestMethodResult(HttpServletResponse.SC_BAD_REQUEST);
 					
 				}
+				
+				// If we have just updated the confirmation key for an existing user,
+				// return 200 to distinguish from new users
+				if (existingUser) {
+					
+					// return 200 OK
+					return new RestMethodResult(HttpServletResponse.SC_OK);
+					
+				} else {
+				
+					// return 201 Created
+					return new RestMethodResult(HttpServletResponse.SC_CREATED);
+					
+				}
+
+			} else {
+				
+				// return 400 Bad request
+				return new RestMethodResult(HttpServletResponse.SC_BAD_REQUEST);
+				
 			}
+			
 
+		} else {
+
+			// return 400 Bad request
+			return new RestMethodResult(HttpServletResponse.SC_BAD_REQUEST);
+		
 		}
-
-		// return 200 OK
-		return new RestMethodResult(HttpServletResponse.SC_OK);
 
 	}
 
@@ -186,18 +226,27 @@ public class RegistrationResource extends Resource {
 
 	}
 
-	private boolean sendInvitationLink(final Principal user) {
+	private boolean sendInvitationLink(final Principal user, final Map<String, Object> propertySetFromUserPOST) {
 
 		Map<String, String> replacementMap = new HashMap();
+		
+		// Populate the replacement map with all POSTed values
+		// WARNING! This is unchecked user input!!
+		populateReplacementMap(replacementMap, propertySetFromUserPOST);
 
 		String userEmail = user.getProperty(User.eMail);
 		
 		replacementMap.put(toPlaceholder(User.eMail.jsonName()), userEmail);
 		replacementMap.put(toPlaceholder("link"),
 			getTemplateText(TemplateKey.BASE_URL, "http://" + Services.getApplicationHost() + ":" + Services.getHttpPort())
-			+ "/" + HtmlServlet.CONFIRM_REGISTRATION_PAGE
-			+ "?" + HtmlServlet.CONFIRM_KEY_KEY + "=" + confKey
-			+ "&" + HtmlServlet.TARGET_PAGE_KEY + "=" + getTemplateText(TemplateKey.TARGET_PAGE, "register_thanks"));
+			+ getTemplateText(TemplateKey.CONFIRM_REGISTRATION_PAGE, HtmlServlet.CONFIRM_REGISTRATION_PAGE)
+			//+ "/" + HtmlServlet.CONFIRM_REGISTRATION_PAGE
+			+ getTemplateText(TemplateKey.CONFIRM_KEY_KEY, HtmlServlet.CONFIRM_KEY_KEY)
+			+ "=" + confKey
+			+ "&" + getTemplateText(TemplateKey.TARGET_PAGE_KEY, HtmlServlet.TARGET_PAGE_KEY)
+			+ "=" + getTemplateText(TemplateKey.TARGET_PAGE, "register_thanks")
+			+ "&" + getTemplateText(TemplateKey.ERROR_PAGE_KEY, HtmlServlet.ERROR_PAGE_KEY)
+			+ "=" + getTemplateText(TemplateKey.ERROR_PAGE, "register_error"));
 
 		String textMailTemplate = getTemplateText(TemplateKey.TEXT_BODY, "Go to ${link} to finalize registration.");
 		String htmlMailTemplate = getTemplateText(TemplateKey.HTML_BODY, "<div>Click <a href='${link}'>here</a> to finalize registration.</div>");
@@ -238,7 +287,8 @@ public class RegistrationResource extends Resource {
 			
 			if (!templates.isEmpty()) {
 				
-				return templates.get(0).getProperty(MailTemplate.text).getProperty(Content.content);
+				Content content = templates.get(0).getProperty(MailTemplate.text);
+				return content != null ? content.getProperty(Content.content) : defaultValue;
 				
 			} else {
 				
@@ -256,12 +306,21 @@ public class RegistrationResource extends Resource {
 		
 	}
 	
+	private static void populateReplacementMap(final Map<String, String> replacementMap, final Map<String, Object> props) {
+		
+		for (Entry<String, Object> entry : props.entrySet()) {
+			
+			replacementMap.put(toPlaceholder(entry.getKey()), entry.getValue().toString());
+			
+		}
+		
+	}
+	
 	private static String toPlaceholder(final String key) {
 
 		return "${".concat(key).concat("}");
 
 	}
-	
 	
 	/**
 	 * Create a new user.
@@ -276,10 +335,65 @@ public class RegistrationResource extends Resource {
 	 */
 	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue) {
 		
-		return createUser(securityContext, credentialKey, credentialValue, false);
+		return createUser(securityContext, credentialKey, credentialValue, Collections.EMPTY_MAP);
 		
 	}	
 	
+	/**
+	 * Create a new user.
+	 * 
+	 * If a {@link Person} is found, convert that object to a {@link User} object.
+	 * Do not auto-create a new user.
+	 * 
+	 * @param securityContext
+	 * @param credentialKey
+	 * @param credentialValue
+	 * @param propertySet
+	 * @return 
+	 */
+	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final Map<String, Object> propertySet) {
+		
+		return createUser(securityContext, credentialKey, credentialValue, propertySet, false);
+		
+	}	
+
+	/**
+	 * Create a new user.
+	 * 
+	 * If a {@link Person} is found, convert that object to a {@link User} object.
+	 * Do not auto-create a new user.
+	 * 
+	 * @param securityContext
+	 * @param credentialKey
+	 * @param credentialValue
+	 * @param autoCreate
+	 * @return 
+	 */
+	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final boolean autoCreate) {
+		
+		return createUser(securityContext, credentialKey, credentialValue, Collections.EMPTY_MAP, autoCreate);
+		
+	}	
+
+	/**
+	 * Create a new user.
+	 * 
+	 * If a {@link Person} is found, convert that object to a {@link User} object.
+	 * Do not auto-create a new user.
+	 * 
+	 * @param securityContext
+	 * @param credentialKey
+	 * @param credentialValue
+	 * @param autoCreate
+	 * @param userClass
+	 * @return 
+	 */
+	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final boolean autoCreate, final Class userClass) {
+		
+		return createUser(securityContext, credentialKey, credentialValue, Collections.EMPTY_MAP, autoCreate, userClass);
+		
+	}	
+
 	/**
 	 * Create a new user.
 	 * 
@@ -289,10 +403,31 @@ public class RegistrationResource extends Resource {
 	 * @param securityContext
 	 * @param credentialKey
 	 * @param credentialValue
+	 * @param propertySet
 	 * @param autoCreate
 	 * @return 
 	 */
-	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final boolean autoCreate) {
+	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final Map<String, Object> propertySet, final boolean autoCreate) {
+		
+		return createUser(securityContext, credentialKey, credentialValue, propertySet, autoCreate, User.class);
+		
+	}	
+		
+	/**
+	 * Create a new user.
+	 * 
+	 * If a {@link Person} is found, convert that object to a {@link User} object.
+	 * If autoCreate is true, auto-create a new user, even if no matching person is found.
+	 * 
+	 * @param securityContext
+	 * @param credentialKey
+	 * @param credentialValue
+	 * @param propertySet
+	 * @param autoCreate
+	 * @param userClass
+	 * @return 
+	 */
+	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final Map<String, Object> propertySet, final boolean autoCreate, final Class userClass) {
 
 		try {
 			return Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<Principal>() {
@@ -320,13 +455,15 @@ public class RegistrationResource extends Resource {
 						return user;
 
 					} else if (autoCreate) {
-
-						return (Principal) Services.command(securityContext, CreateNodeCommand.class).execute(
-							new NodeAttribute(AbstractNode.type, User.class.getSimpleName()),
-							new NodeAttribute(credentialKey, credentialValue),
-							new NodeAttribute(User.name, credentialValue),
-							new NodeAttribute(User.confirmationKey, confKey));
 						
+						propertySet.put(AbstractNode.type.jsonName(), userClass != null ? userClass.getSimpleName() : User.class.getSimpleName());
+
+						PropertyMap props = PropertyMap.inputTypeToJavaType(securityContext, propertySet);
+						props.put(credentialKey, credentialValue);
+						props.put(User.name, credentialValue);
+						props.put(User.confirmationKey, confKey);
+						
+						return (Principal) Services.command(securityContext, CreateNodeCommand.class).execute(props);
 
 					}
 					

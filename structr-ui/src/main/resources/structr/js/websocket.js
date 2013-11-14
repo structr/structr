@@ -31,8 +31,8 @@ var pageSize = 25;
 var sort = 'name';
 var order = 'asc';
 
-var tokenCookieName = 'structrSessionToken_' + port;
-var userCookieName = 'structrUser_' + port;
+var tokenKey = 'structrSessionToken_' + port;
+var userKey = 'structrUser_' + port;
 
 var footer = $('#footer');
 
@@ -130,8 +130,8 @@ function connect() {
                 log('token', token);
 
                 if (sessionValid) {
-                    $.cookie(tokenCookieName, token);
-                    $.cookie(userCookieName, user);
+                    localStorage.setItem(tokenKey, token);
+                    localStorage.setItem(userKey, user);
                     $.unblockUI({
                         fadeOut: 25
                     });
@@ -140,8 +140,8 @@ function connect() {
                     Structr.loadInitialModule();
 
                 } else {
-                    $.cookie(tokenCookieName, '');
-                    $.cookie(userCookieName, '');
+                    localStorage.removeItem(tokenKey);
+                    localStorage.removeItem(userKey);
                     clearMain();
 
                     Structr.login();
@@ -149,8 +149,8 @@ function connect() {
 
             } else if (command === 'LOGOUT') { /*********************** LOGOUT ************************/
 
-                $.cookie(tokenCookieName, '');
-                $.cookie(userCookieName, '');
+                localStorage.removeItem(tokenKey);
+                localStorage.removeItem(userKey);
                 clearMain();
                 Structr.login();
 
@@ -223,22 +223,23 @@ function connect() {
 
             } else if (command === 'GET_PROPERTY') { /*********************** GET_PROPERTY ************************/
 
-                log('GET_PROPERTY', data.data['key']);
-                StructrModel.updateKey(id, key, val);
+                log('GET_PROPERTY', data.id, data.data['key'], data.data[data.data['key']]);
+                StructrModel.updateKey(data.id, data.data['key'], data.data[data.data['key']]);
+                StructrModel.callCallback(data.callback, data.data[data.data['key']]);
+                StructrModel.clearCallback(data.callback);
 
             } else if (command === 'GET' || command === 'UPDATE') { /*********************** GET / UPDATE ************************/
 
-                log(command, data);
-                var id = data.id;
-                var key = data.data['key'];
-                var val = data.data[key];
-
-                var obj = StructrModel.update(data);
+                var obj = StructrModel.obj(data.id);
+                if (!obj) {
+                    data.data.id = data.id;
+                    obj = StructrModel.create(data.data, null, false);
+                }
+                
+                obj = StructrModel.update(data);
 
                 StructrModel.callCallback(data.callback, obj);
-
                 StructrModel.clearCallback(data.callback);
-                
 
             } else if (command.endsWith('GET_BY_TYPE')) { /*********************** GET_BY_TYPE ************************/
 
@@ -247,7 +248,7 @@ function connect() {
                 $(result).each(function(i, entity) {
 
                     // Don't append a DOM node
-                    var obj = StructrModel.create(entity, undefined, false);
+                    //var obj = StructrModel.create(entity, undefined, false);
 
                     StructrModel.callCallback(data.callback, entity);
 
@@ -357,12 +358,20 @@ function connect() {
                                 _Entities.ensureExpanded(el);
                             }
                             
-                            // Change icon
-                            $.each(entity.syncedNodes, function(i, id) {
-                                var el = Structr.node(id);
-                                el.children('img.typeIcon').attr('src', _Elements.icon_comp);
-                                _Entities.removeExpandIcon(el);
-                            });
+                            var synced = entity.syncedNodes;
+                            
+                            if (synced && synced.length) {
+                            
+                                // Change icon
+                                $.each(entity.syncedNodes, function(i, id) {
+                                    var el = Structr.node(id);
+                                    if (el && el.length) {
+                                        el.children('img.typeIcon').attr('src', _Elements.icon_comp);
+                                        _Entities.removeExpandIcon(el);
+                                    }
+                                });
+                                
+                            }
                         }
                     }
 
@@ -376,16 +385,18 @@ function connect() {
                     }
 
                 });
-
-                _Pages.reloadPreviews();
+//                console.log(localStorage.getItem(autoRefreshKey + activeTab));
+                if (!localStorage.getItem(autoRefreshDisabledKey + activeTab)) {
+                    _Pages.reloadPreviews();
+                }
 
             } else {
                 log('Received unknown command: ' + command);
 
                 if (sessionValid === false) {
                     log('invalid session');
-                    $.cookie(tokenCookieName, '');
-                    $.cookie(userCookieName, '');
+                    localStorage.removeItem(tokenKey);
+                    localStorage.removeItem(userKey);
                     clearMain();
 
                     Structr.login();

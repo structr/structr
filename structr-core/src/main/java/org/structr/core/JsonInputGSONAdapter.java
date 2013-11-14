@@ -125,7 +125,7 @@ public class JsonInputGSONAdapter implements InstanceCreator<JsonInput>, JsonSer
 				} else if (elem.isJsonPrimitive()) {
 
 					// wrapper.add(key, elem.getAsString());
-					wrapper.add(key, fromPrimitive((JsonPrimitive) elem));
+					wrapper.add(key, fromPrimitive(elem.getAsJsonPrimitive()));
 				}
 
 			}
@@ -135,8 +135,8 @@ public class JsonInputGSONAdapter implements InstanceCreator<JsonInput>, JsonSer
 			JsonArray array = json.getAsJsonArray();
 			for(JsonElement elem : array) {
 
-				if(elem.isJsonPrimitive()) {
-					wrapper.add(elem.toString(), ((JsonPrimitive)elem).getAsString());
+				if (elem.isJsonPrimitive()) {
+					wrapper.add(elem.toString(), fromPrimitive(elem.getAsJsonPrimitive()));
 				} else if(elem.isJsonObject()) {
 					wrapper.add(elem.toString(), deserialize(elem, typeOfT, context));
 				} else if(elem.isJsonArray()) {
@@ -148,17 +148,27 @@ public class JsonInputGSONAdapter implements InstanceCreator<JsonInput>, JsonSer
 		return wrapper;
 	}
 
-	private static Object fromPrimitive(final JsonPrimitive p) {
+	public static Object fromPrimitive(final JsonPrimitive p) {
 
 		if (p.isNumber()) {
-
+			
 			Number number = p.getAsNumber();
-			if (number instanceof Integer) {
-				return number.intValue();
-			} else {
+			
+			// Detect if value is floating point
+			if (p.getAsString().contains(".")) {
+				
 				return number.doubleValue();
+				
+			} else {
+				
+				return number.longValue();
+				
 			}
 
+		} else if (p.isBoolean()) {
+			
+			return p.getAsBoolean();
+			
 		}
 
 		return p.getAsString();

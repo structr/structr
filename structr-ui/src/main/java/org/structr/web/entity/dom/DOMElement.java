@@ -61,6 +61,7 @@ import org.apache.commons.collections.iterators.IteratorEnumeration;
 
 import org.apache.commons.collections.map.LRUMap;
 import org.neo4j.graphdb.Direction;
+import org.structr.common.CaseHelper;
 import org.structr.web.common.RelType;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.core.GraphObject;
@@ -218,7 +219,8 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	);
 	
 	public static final org.structr.common.View uiView            = new org.structr.common.View(DOMElement.class, PropertyView.Ui, name, tag, pageId, path, parent, childrenIds, owner,
-										restQuery, cypherQuery, xpathQuery, partialUpdateKey, dataKey, syncedNodes, renderDetails, hideOnIndex, hideOnDetail,
+										restQuery, cypherQuery, xpathQuery, partialUpdateKey, dataKey, syncedNodes,
+										renderDetails, hideOnIndex, hideOnDetail, showForLocales, hideForLocales, showConditions, hideConditions,
 										_accesskey, _class, _contenteditable, _contextmenu, _dir, _draggable, _dropzone, _hidden, _id, _lang, _spellcheck, _style,
 										_tabindex, _title, _onabort, _onblur, _oncanplay, _oncanplaythrough, _onchange, _onclick, _oncontextmenu, _ondblclick,
 										_ondrag, _ondragend, _ondragenter, _ondragleave, _ondragover, _ondragstart, _ondrop, _ondurationchange, _onemptied,
@@ -262,16 +264,73 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 	}
 
+	public void openingTag(final SecurityContext securityContext, final StringBuilder buffer, final String tag, final EditMode editMode, final RenderContext renderContext, final int depth) throws FrameworkException {
+		
+		buffer.append("<").append(tag);
+
+		if (EditMode.CONTENT.equals(editMode)) {
+
+			if (depth == 0) {
+
+				String pageId = renderContext.getPageId();
+
+				if (pageId != null) {
+
+					buffer.append(" data-structr-page=\"").append(pageId).append("\"");
+
+				}
+
+			}
+
+			buffer.append(" data-structr-el=\"").append(getUuid()).append("\"");
+
+		}
+
+		// include arbitrary data-* attributes
+		renderCustomAttributes(buffer, securityContext, renderContext);
+
+		for (PropertyKey attribute : EntityContext.getPropertySet(getClass(), PropertyView.Html)) {
+
+			String value = getPropertyWithVariableReplacement(securityContext, renderContext, attribute);
+
+			if (!(EditMode.RAW.equals(editMode))) {
+
+				value = escapeForHtmlAttributes(value);
+
+			}
+
+			if (value != null) {
+
+				String key = attribute.jsonName().substring(PropertyView.Html.length());
+
+				buffer.append(" ").append(key).append("=\"").append(value).append("\"");
+
+			}
+
+		}
+
+		buffer.append(">");		
+	}
+	
+	/**
+	 * Main render method.
+	 * 
+	 * TODO: This method is still way to long!
+	 * 
+	 * @param securityContext
+	 * @param renderContext
+	 * @param depth
+	 * @throws FrameworkException 
+	 */
 	@Override
 	public void render(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException {
 		
 		StringBuilder buffer	= renderContext.getBuffer();
 		double start = System.nanoTime();
 
-		if (isDeleted() || isHidden()) {
+		if (isDeleted() || isHidden() || !displayForLocale(renderContext) || !displayForConditions(securityContext, renderContext)) {
 			return;
 		}
-
 
 		EditMode editMode	= renderContext.getEditMode(securityContext.getUser(false));
 		boolean isVoid		= isVoidElement();
@@ -289,83 +348,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 		if (StringUtils.isNotBlank(_tag)) {
 
-			buffer.append("<").append(_tag);
-
-			if (EditMode.CONTENT.equals(editMode)) {
-
-				if (depth == 0) {
-
-					String pageId = renderContext.getPageId();
-
-					if (pageId != null) {
-
-						buffer.append(" data-structr-page=\"").append(pageId).append("\"");
-
-					}
-
-				}
-
-				buffer.append(" data-structr-el=\"").append(getUuid()).append("\"");
-
-			}
-
-//			if (EditMode.DATA.equals(edit)) {
-//
-////				if (depth == 1) {
-////
-////					buffer.append(" data-structr_page_id='").append(pageId).append("'");
-////				}
-//
-//				buffer.append(" data-structr-id=\"").append(id).append("\"");
-//				
-//				if (renderContext.getDataObject() != null) {
-//					buffer.append(" data-structr-data-type=\"").append(renderContext.getDataObject().getType()).append("\"");
-//				}
-//
-//				PropertyKey r = renderContext.getRelatedProperty();
-//				
-//				if (r != null) {
-//					buffer.append(" data-structr-related-property=\"").append(r.jsonName()).append("\"");
-//					buffer.append(" data-structr-source-type=\"").append(r.getDeclaringClass().getSimpleName()).append("\"");
-//					buffer.append(" data-structr-source-id=\"").append(renderContext.getSourceDataObject().getUuid()).append("\"");
-//					buffer.append(" data-structr-data-id=\"").append(renderContext.getDataObject().getUuid()).append("\"");
-//				}
-//				//buffer.append(" data-structr-name=\"").append(getName()).append("\"");
-//
-//			}
-
-			// include arbitrary data-* attributes
-			renderCustomAttributes(buffer, securityContext, renderContext);
-
-			for (PropertyKey attribute : EntityContext.getPropertySet(getClass(), PropertyView.Html)) {
-
-				try {
-
-					String value = getPropertyWithVariableReplacement(securityContext, renderContext, attribute);
-
-					if (!(EditMode.RAW.equals(editMode))) {
-
-						value = escapeForHtmlAttributes(value);
-
-					}
-
-					if (value != null) {
-
-						String key = attribute.jsonName().substring(PropertyView.Html.length());
-
-						buffer.append(" ").append(key).append("=\"").append(value).append("\"");
-
-					}
-
-				} catch (Throwable t) {
-
-					t.printStackTrace();
-
-				}
-
-			}
-
-			buffer.append(">");
+			openingTag(securityContext, buffer, _tag, editMode, renderContext, depth);
 			
 			try {
 
@@ -1190,6 +1173,8 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 				
 				List<GraphObject> res = result.getResults();
 				
+				renderContext.setResult(result);
+				
 				return res != null ? res : Collections.EMPTY_LIST;
 				
 			}
@@ -1349,27 +1334,48 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		
 		if (EditMode.RAW.equals(editMode)) {
 			
-			// In raw mode, add query-related data
-			String _dataKey		= getProperty(dataKey);
-			String _restQuery	= getProperty(restQuery);
-			String _cypherQuery	= getProperty(cypherQuery);
-			String _xpathQuery	= getProperty(xpathQuery);
+			Property[] rawProps = new Property[] {
+				dataKey, restQuery, cypherQuery, xpathQuery, hideOnIndex, hideOnDetail, showForLocales, hideForLocales, showConditions, hideConditions
+			};
+			
+//			// In raw mode, add query-related data
+//			String _dataKey		= getProperty(dataKey);
+//			String _restQuery	= getProperty(restQuery);
+//			String _cypherQuery	= getProperty(cypherQuery);
+//			String _xpathQuery	= getProperty(xpathQuery);
+//			
+//			// Add filter to raw output
+//			boolean _hideOnIndex = getProperty(hideOnIndex);
+//			boolean _hideOnDetail = getProperty(hideOnDetail);
+//			String _showForLocales = getProperty(showForLocales);
+//			String _hideForLocales = getProperty(hideForLocales);
+//			String _showConditions = getProperty(showConditions);
+//			String _hideConditions = getProperty(hideConditions);
 
-			if (StringUtils.isNotBlank(_dataKey)) {
-				buffer.append(" ").append("data-structr-meta-data-key").append("=\"").append(_dataKey).append("\"");
+			for (Property p : rawProps) {
+			
+				if (p instanceof BooleanProperty) {
+					
+				}
+				
+				String htmlName = "data-structr-meta-" + CaseHelper.toUnderscore(p.jsonName(), false).replaceAll("_", "-");
+				Object value = getProperty(p);
+				if ((p instanceof BooleanProperty && (boolean)value) || (!(p instanceof BooleanProperty) && value != null && StringUtils.isNotBlank(value.toString()))) {
+					buffer.append(" ").append(htmlName).append("=\"").append(value).append("\"");
+				}
 			}
 
-			if (StringUtils.isNotBlank(_restQuery)) {
-				buffer.append(" ").append("data-structr-meta-rest-query").append("=\"").append(_restQuery).append("\"");
-			}
-
-			if (StringUtils.isNotBlank(_cypherQuery)) {
-				buffer.append(" ").append("data-structr-meta-cypher-query").append("=\"").append(_cypherQuery).append("\"");
-			}
-
-			if (StringUtils.isNotBlank(_xpathQuery)) {
-				buffer.append(" ").append("data-structr-meta-xpath-query").append("=\"").append(_xpathQuery).append("\"");
-			}
+//			if (StringUtils.isNotBlank(_restQuery)) {
+//				buffer.append(" ").append("data-structr-meta-rest-query").append("=\"").append(_restQuery).append("\"");
+//			}
+//
+//			if (StringUtils.isNotBlank(_cypherQuery)) {
+//				buffer.append(" ").append("data-structr-meta-cypher-query").append("=\"").append(_cypherQuery).append("\"");
+//			}
+//
+//			if (StringUtils.isNotBlank(_xpathQuery)) {
+//				buffer.append(" ").append("data-structr-meta-xpath-query").append("=\"").append(_xpathQuery).append("\"");
+//			}
 
 		}
 	}

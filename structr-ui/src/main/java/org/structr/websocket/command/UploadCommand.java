@@ -36,6 +36,7 @@ import org.structr.websocket.StructrWebSocket;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.entity.AbstractNode;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -75,7 +76,7 @@ public class UploadCommand extends AbstractCommand {
 					
 					try {
 						org.structr.web.entity.File newFile = FileHelper.createFileBase64(securityContext, rawData, null);
-						newFile.setName(name);
+						newFile.setProperty(AbstractNode.name, name);
 						
 						return newFile;
 						

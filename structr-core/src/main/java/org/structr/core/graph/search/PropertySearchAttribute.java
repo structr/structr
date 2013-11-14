@@ -23,10 +23,12 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.PhraseQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.WildcardQuery;
 import org.structr.core.GraphObject;
+import org.structr.core.property.AbstractPrimitiveProperty;
 import org.structr.core.property.PropertyKey;
 
 /**
@@ -56,7 +58,7 @@ public class PropertySearchAttribute<T> extends SearchAttribute<T> {
 
 			if (StringUtils.isEmpty(value)) {
 
-				value = SearchNodeCommand.EMPTY_FIELD_VALUE;
+				value = getValueForEmptyField();
 			}
 
 			if (value.matches("[\\s]+")) {
@@ -67,11 +69,35 @@ public class PropertySearchAttribute<T> extends SearchAttribute<T> {
 			return new TermQuery(new Term(getKey().dbName(), value));
 			
 		} else {
-		
-			BooleanQuery query = new BooleanQuery();
 			
+			String value = getInexactValue();
+
+			// If there are double quotes around the search value treat as phrase
+			if (value.startsWith("\"") && value.endsWith("\"")) {
+				
+				value = StringUtils.stripStart(StringUtils.stripEnd(value, "\""), "\"");
+		
+				// Split string into words
+				String[] words = StringUtils.split(value, " ");
+			
+				
+				PhraseQuery query = new PhraseQuery();
+
+				for (String word : words) {
+
+					query.add(new Term(getKey().dbName(), word));
+
+				}
+				
+				return query;
+				
+			}
+			
+			BooleanQuery query = new BooleanQuery();
+
 			// Split string into words
-			String[] words = StringUtils.split(getInexactValue(), " ");
+			String[] words = StringUtils.split(value, " ");
+			
 			for (String word : words) {
 
 				query.add(new WildcardQuery(new Term(getKey().dbName(), word)), Occur.SHOULD);
@@ -158,5 +184,10 @@ public class PropertySearchAttribute<T> extends SearchAttribute<T> {
 		}
 		
 		return 0;
+	}
+
+	@Override
+	public String getValueForEmptyField() {
+		return AbstractPrimitiveProperty.STRING_EMPTY_FIELD_VALUE;
 	}
 }

@@ -19,7 +19,6 @@
 package org.structr.core.graph.search;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -64,7 +63,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	protected static final boolean PUBLIC_ONLY		  = false;
 
 	// the value that will be indexed for "empty" fields
-	public static final String EMPTY_FIELD_VALUE              = new String(new byte[] { 0 } );
+	//public static final String EMPTY_FIELD_VALUE		= new String(new byte[] { 0 } );
 	
 	public abstract Factory<S, T> getFactory(final SecurityContext securityContext, final boolean includeDeletedAndHidden, final boolean publicOnly, final int pageSize, final int page, final String offsetId);
 	public abstract Index<S> getFulltextIndex();
@@ -330,7 +329,18 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 				synchronized (index) {
 
-					hits = index.query(queryContext);
+					try {
+						hits = index.query(queryContext);
+
+					} catch (NumberFormatException nfe) {
+
+						logger.log(Level.SEVERE, "Could not sort results", nfe);
+
+						// retry without sorting
+						queryContext.sort(null);
+						hits = index.query(queryContext);
+
+					}
 				}
 
 				// all luecene query, do not filter results

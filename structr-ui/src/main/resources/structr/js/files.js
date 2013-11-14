@@ -46,6 +46,8 @@ var _Files = {
 	
     init : function() {
 
+        log('_Files.init');
+
         Structr.initPager('Folder', 1, 25);
         Structr.initPager('File', 1, 25);
         
@@ -79,7 +81,7 @@ var _Files = {
         
         _Files.init();
         
-        log('onload');
+        log('_Files.onload');
 
         //main.append('<table id="dropArea"><tr><td id="folders"></td><td id="files"></td><td id="images"></td></tr></table>');
         main.append('<div id="dropArea"><div class="fit-to-height" id="folders"></div><div class="fit-to-height" id="files"></div>');
@@ -98,10 +100,15 @@ var _Files = {
 
     refreshFiles : function() {
         files.empty();
+        files.append('<button class="add_file_icon button"><img title="Add File" alt="Add File" src="' + _Files.add_file_icon + '"> Add File</button>');
+        $('.add_file_icon', main).on('click', function(e) {
+            e.stopPropagation();
+            Command.create({'type':'File', 'size': 0});
+        });
         
         if (window.File && window.FileReader && window.FileList && window.Blob) {
 
-            files.append('<h2>Files</h2>');
+            //files.append('<h2>Files</h2>');
             
             drop = $('#dropArea');
 
@@ -167,6 +174,7 @@ var _Files = {
 	
     refreshFolders : function() {
         folders.empty();
+        //folders.append('<h2>Folders</h2>');
         folders.append('<button class="add_folder_icon button"><img title="Add Folder" alt="Add Folder" src="' + _Files.add_folder_icon + '"> Add Folder</button>');
         $('.add_folder_icon', main).on('click', function(e) {
             e.stopPropagation();
@@ -201,13 +209,14 @@ var _Files = {
         var parent = Structr.findParent(folderId, null, null, files);
         log(parent, folderId, isExpanded(folderId));
         
-        if (parent !== files && !isExpanded(folderId)) {
+        if (!parent || (parent !== files && !isExpanded(folderId))) {
             return false;
         }
         //if (add) _Entities.ensureExpanded(parent);
         
         var delIcon, newDelIcon;
         var div = Structr.node(file.id);
+        
         if (div && div.length) {
             
             var formerParent = div.parent();
@@ -227,6 +236,8 @@ var _Files = {
             div = Structr.node(file.id);
             
         }
+
+        if (!div || !div.length) return;
 
         _Entities.appendAccessControlIcon(div, file);
 
@@ -312,6 +323,8 @@ var _Files = {
         
         var div = Structr.node(folder.id);
 
+        if (!div || !div.length) return;
+
         _Entities.appendAccessControlIcon(div, folder);
         
         var delIcon = div.children('.delete_icon');
@@ -353,8 +366,8 @@ var _Files = {
         div.draggable({
             revert: 'invalid',
             //helper: 'clone',
-            containment: '#main',
-            stack: 'div'
+            //containment: '#main',
+            stack: '.node'
         });
         
         div.droppable({
@@ -519,52 +532,57 @@ var _Files = {
             success: function(data) {
                 text = data;
                 if (isDisabled(button)) return;
-                var div = element.append('<div class="editor"></div>');
+                element.append('<div class="editor"></div>');
                 var contentBox = $('.editor', element);
                 editor = CodeMirror(contentBox.get(0), {
                     value: unescapeTags(text),
                     mode: contentType,
                     lineNumbers: true
-                //            ,
-                //            onChange: function(cm, changes) {
-                //                
-                //                var element = $( '.' + entity.id + '_')[0];
-                //                
-                //                text1 = $(element).children('.content_').text();
-                //                text2 = editor.getValue();
-                //                
-                //                if (!text1) text1 = '';
-                //                if (!text2) text2 = '';
-                //		
-                //                log('Element', element);
-                //                log(text1);
-                //                log(text2);
-                //                
-                //                if (text1 == text2) return;
-                //                editorCursor = cm.getCursor();
-                //                log(editorCursor);
-                //
-                //                Command.patch(entity.id, text1, text2);
-                //				
-                //            }
                 });
 
                 editor.id = file.id;
                 
-                dialogBtn.append('<button id="saveFile"> Save </button>');
-                dialogBtn.append('<button id="saveAndClose"> Save and close</button>');
+                dialogBtn.append('<button id="saveFile" disabled="disabled" class="disabled"> Save </button>');
+                dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="disabled"> Save and close</button>');
+
+                dialogSaveButton = $('#saveFile', dialogBtn);
+                var saveAndClose = $('#saveAndClose', dialogBtn);
+
+                text1 = text;
                 
+                editor.on('change', function(cm, change) {
+
+                    text2 = editor.getValue();
+
+                    if (text1 === text2) {
+                        dialogSaveButton.prop("disabled", true).addClass('disabled');
+                        saveAndClose.prop("disabled", true).addClass('disabled');
+                    } else {
+                        dialogSaveButton.prop("disabled", false).removeClass('disabled');
+                        saveAndClose.prop("disabled", false).removeClass('disabled');
+                    }
+                });
                 
                 $('button#saveFile', dialogBtn).on('click', function(e) {
                     e.stopPropagation();
-                    _Files.updateTextFile(file, editor.getValue());
+                    var newText = editor.getValue();
+                    if (text1 === newText) {
+                        return;
+                    }
+                    _Files.updateTextFile(file, newText);
+                    text1 = newText;
+                    dialogSaveButton.prop("disabled", true).addClass('disabled');
+                    saveAndClose.prop("disabled", true).addClass('disabled');
                 });
-                $('button#saveAndClose', dialogBtn).on('click', function(e) {
+
+                saveAndClose.on('click', function(e) {
                     e.stopPropagation();
-                    _Files.updateTextFile(file, editor.getValue());
+                    dialogSaveButton.click();
                     setTimeout(function() {
+                        dialogSaveButton.remove();
+                        saveAndClose.remove();
                         dialogCancelButton.click();
-                    }, 100);
+                    }, 500);
                 });
 
             },

@@ -61,6 +61,7 @@ public class Services {
 	public static final String APPLICATION_HTTPS_PORT    = "application.https.port";
 	public static final String APPLICATION_HTTPS_ENABLED = "application.https.enabled";
 	public static final String REST_PATH                 = "application.rest.path";
+	public static final String APPLICATION_FTP_PORT      = "application.ftp.port";
 
 	// Keystore
 	public static final String APPLICATION_KEYSTORE_PATH     = "application.keystore.path";
@@ -120,6 +121,7 @@ public class Services {
 	private static String appHost;
 	private static String appHttpPort;
 	private static String appHttpsPort;
+	private static String appFtpPort;
 	private static String keystorePath;
 	private static String keystorePassword;
 	private static String basePath;
@@ -228,6 +230,7 @@ public class Services {
 		appHost           = getConfigValue(context, Services.APPLICATION_HOST, "localhost");
 		appHttpPort       = getConfigValue(context, Services.APPLICATION_HTTP_PORT, "8082");
 		appHttpsPort      = getConfigValue(context, Services.APPLICATION_HTTPS_PORT, "8083");
+		appFtpPort        = getConfigValue(context, Services.APPLICATION_FTP_PORT, "8022");
 		httpsEnabled      = getConfigValue(context, Services.APPLICATION_HTTPS_ENABLED, "false");
 		keystorePath      = getConfigValue(context, Services.APPLICATION_KEYSTORE_PATH, "");
 		keystorePassword  = getConfigValue(context, Services.APPLICATION_KEYSTORE_PASSWORD, "");
@@ -448,6 +451,13 @@ public class Services {
 		return appHttpPort;
 	}
 	
+	/**
+	 * Return the application FTP port
+	 */
+	public static String getFtpPort() {
+		return appFtpPort;
+	}
+
 	/**
 	 * Return HTTPS enabled
 	 */

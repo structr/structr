@@ -52,6 +52,8 @@ var StructrModel = {
 
         var type = data.type;
         
+        var obj;
+        
         if (type === 'Page') {
 
             obj = new StructrPage(data);
@@ -105,8 +107,13 @@ var StructrModel = {
         if (obj) {
 
             if (obj.exists && obj.exists()) {
-                log('obj exists');
-                return obj;
+                var el = Structr.node(obj.id);
+                if (el.parent().prop('id') === 'elementsArea') {
+                    el.remove();
+                } else {
+                    log('obj exists');
+                    return obj;
+                }
             }
 
         }
@@ -882,7 +889,7 @@ StructrPropertyDefinition.prototype.remove = function() {
 }
 
 StructrPropertyDefinition.prototype.append = function(refNode) {
-    _PropertyDefinitions.appendPropertyDefinitionElement(this);
+    //_Types.registerPropertyDefinitionElement(this);
 }
 
 

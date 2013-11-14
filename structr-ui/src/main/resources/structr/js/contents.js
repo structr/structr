@@ -109,23 +109,39 @@ var _Contents = {
         editor.focus();
         Structr.resize();
         
-        dialogBtn.append('<button id="editorSave">Save</button>');
-        dialogBtn.append('<button id="saveAndClose"> Save and close</button>');
+        dialogBtn.append('<button id="editorSave" disabled="disabled" class="disabled">Save</button>');
+        dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="disabled"> Save and close</button>');
         
-        var saveBtn = $('#editorSave', dialogBtn);
+        dialogSaveButton = $('#editorSave', dialogBtn);
         var saveAndClose = $('#saveAndClose', dialogBtn);
         
         saveAndClose.on('click', function(e) {
             e.stopPropagation();
-            saveBtn.click();
+            dialogSaveButton.click();
             setTimeout(function() {
-                saveBtn.remove();
+                dialogSaveButton.remove();
                 saveAndClose.remove();
                 dialogCancelButton.click();
             }, 500);
         });
 
-        saveBtn.on('click', function(e) {
+        editor.on('change', function(cm, change) {
+            
+            var contentNode = Structr.node(entity.id)[0];
+            
+            text1 = $(contentNode).children('.content_').text();
+            text2 = editor.getValue();
+
+            if (text1 === text2) {
+                dialogSaveButton.prop("disabled", true).addClass('disabled');
+                saveAndClose.prop("disabled", true).addClass('disabled');
+            } else {
+                dialogSaveButton.prop("disabled", false).removeClass('disabled');
+                saveAndClose.prop("disabled", false).removeClass('disabled');
+            }
+        });
+
+        dialogSaveButton.on('click', function(e) {
             e.stopPropagation();
      
             var contentNode = Structr.node(entity.id)[0];
@@ -147,6 +163,8 @@ var _Contents = {
                 dialogMsg.html('<div class="infoBox success">Content saved.</div>');
                 $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
                 _Pages.reloadPreviews();
+                dialogSaveButton.prop("disabled", true).addClass('disabled');
+                saveAndClose.prop("disabled", true).addClass('disabled');
             });
             
         });

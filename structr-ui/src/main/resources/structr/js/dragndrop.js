@@ -31,7 +31,7 @@ var _Dragndrop = {
     makeDroppable: function(element, previewId) {
         var el = $(element);
         var tag, iframe = previewId ? $('#preview_' + previewId) : undefined;
-        
+
         el.droppable({
             iframeFix: true,
             iframe: iframe,
@@ -41,6 +41,8 @@ var _Dragndrop = {
             //appendTo: 'body',
             //tolerance: 'pointer',
             drop: function(e, ui) {
+                
+                log('drop event', e, ui);
                 
                 e.preventDefault();
                 e.stopPropagation();
@@ -63,7 +65,7 @@ var _Dragndrop = {
 
                 log('dropped onto', self, targetId, getId(sortParent));
                 if (targetId === getId(sortParent)) {
-                    console.log('target id == sortParent id', targetId, getId(sortParent));
+                    log('target id == sortParent id', targetId, getId(sortParent));
                     return false;
                 }
 
@@ -138,7 +140,7 @@ var _Dragndrop = {
                 Command.insertBefore(parentId, id, refId);
                 sorting = false;
                 sortParent = undefined;
-                _Pages.reloadPreviews();
+                //_Pages.reloadPreviews();
             },
             stop: function(event, ui) {
                 //$(ui.sortable).remove();
@@ -225,7 +227,7 @@ var _Dragndrop = {
                 return true;
                 
             } else {
-                console.log('unknown drag\'n drop  situation', source, target);
+                log('unknown drag\'n drop  situation', source, target);
             }
         }
 
@@ -259,8 +261,6 @@ var _Dragndrop = {
         return false;
     },
     widgetDropped: function(source, target, pageId) {
-
-        var baseUrl = 'http://' + remoteHost + ':' + remotePort;
 
         Structr.modules['widgets'].unload();
         _Pages.makeMenuDroppable();
@@ -308,7 +308,7 @@ var _Dragndrop = {
 
                         //console.log(source.source, elementId, pageId, attrs);
                         e.stopPropagation();
-                        Command.appendWidget(text, target.id, pageId, baseUrl, attrs);
+                        Command.appendWidget(text, target.id, pageId, widgetsUrl, attrs);
 
                         dialogCancelButton.click();
                         return false;
@@ -319,7 +319,7 @@ var _Dragndrop = {
             } else {
 
                 // If no matches, directly append widget
-                Command.appendWidget(source.source, target.id, pageId, baseUrl);
+                Command.appendWidget(source.source, target.id, pageId, widgetsUrl);
 
             }
 

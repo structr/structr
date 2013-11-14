@@ -33,6 +33,8 @@ import org.structr.core.entity.AbstractNode;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
 
 import java.util.UUID;
 import java.util.logging.Level;
@@ -40,14 +42,18 @@ import java.util.logging.Logger;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.Path;
+import org.structr.common.PathHelper;
 import org.structr.common.SecurityContext;
+import org.structr.core.Result;
 import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
+import org.structr.core.graph.search.Search;
+import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.property.PropertyMap;
 import org.structr.util.Base64;
-import static org.structr.web.common.ImageHelper.setImageData;
-import org.structr.web.entity.Image;
+import org.structr.web.entity.AbstractFile;
+import static org.structr.web.servlet.HtmlServlet.searchNodesAsSuperuser;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -66,7 +72,36 @@ public class FileHelper {
 	//~--- methods --------------------------------------------------------
 
 	/**
-	 * Create a new image node from image data encoded in base64 format
+	 * Transform an existing file into the target class.
+	 *
+	 * @param securityContext
+	 * @param uuid
+	 * @param fileType
+	 * @return
+	 * @throws FrameworkException
+	 * @throws IOException
+	 */
+	public static org.structr.web.entity.File transformFile(final SecurityContext securityContext, final String uuid, final Class<? extends org.structr.web.entity.File> fileType) throws FrameworkException, IOException {
+		
+		AbstractFile existingFile = getFileByUuid(uuid);
+		
+		if (existingFile != null) {
+			
+			existingFile.unlockReadOnlyPropertiesOnce();
+			existingFile.setProperty(AbstractNode.type, fileType == null ? org.structr.web.entity.File.class.getSimpleName() : fileType.getSimpleName());
+			
+			existingFile = getFileByUuid(uuid);
+			
+			return fileType != null ? fileType.cast(existingFile) : (org.structr.web.entity.File) existingFile;
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * Create a new image node from image data encoded in base64 format.
+	 * 
+	 * If the given string is an uuid of an existing file, transform it into the target class.
 	 *
 	 * @param securityContext
 	 * @param rawData
@@ -97,10 +132,10 @@ public class FileHelper {
 	public static org.structr.web.entity.File createFile(final SecurityContext securityContext, final byte[] fileData, final String contentType, final Class<? extends org.structr.web.entity.File> fileType)
 		throws FrameworkException, IOException {
 
-		CreateNodeCommand<Image> createNodeCommand = Services.command(securityContext, CreateNodeCommand.class);
+		CreateNodeCommand<org.structr.web.entity.File> createNodeCommand = Services.command(securityContext, CreateNodeCommand.class);
 		PropertyMap props                          = new PropertyMap();
 		
-		props.put(AbstractNode.type, fileType == null ? File.class.getSimpleName() : fileType.getSimpleName());
+		props.put(AbstractNode.type, fileType == null ? org.structr.web.entity.File.class.getSimpleName() : fileType.getSimpleName());
 
 		org.structr.web.entity.File newFile = createNodeCommand.execute(props);
 
@@ -245,7 +280,6 @@ public class FileHelper {
 	 * Return mime type of given file
 	 *
 	 * @param file
-	 * @param ext
 	 * @return
 	 */
 	public static String getContentMimeType(final File file) {
@@ -300,7 +334,6 @@ public class FileHelper {
 	 * Return mime type of given file
 	 *
 	 * @param file
-	 * @param ext
 	 * @return
 	 */
 	public static String[] getContentMimeTypeAndExtension(final File file) {
@@ -420,6 +453,119 @@ public class FileHelper {
 
 		return -1;
 		
+	}
+
+	/**
+	 * Find a file by its absolute ancestor path.
+	 * 
+	 * File may not be hidden or deleted.
+	 * @param absolutePath
+	 * @return 
+	 */
+	public static AbstractFile getFileByAbsolutePath(final String absolutePath) {
+		
+		String[] parts = PathHelper.getParts(absolutePath);
+		
+		if (parts == null || parts.length == 0) return null;
+		
+		// Find root folder
+		if (parts[0].length() == 0) return null;
+
+		AbstractFile currentFile = getFileByName(parts[0]); 
+		if (currentFile == null) return null;
+		
+		for (int i=1; i<parts.length; i++) {
+
+			List<AbstractFile> children = currentFile.getProperty(AbstractFile.children);
+			
+			currentFile = null;
+			
+			for (AbstractFile child : children) {
+				
+				if (child.getProperty(AbstractFile.name).equals(parts[i])) {
+					
+					// Child with matching name found
+					currentFile = child;
+					break;
+				}
+				
+			}
+			
+			if (currentFile == null) return null;
+			
+		}
+		
+		return currentFile;
+		
+	}
+	
+	public static AbstractFile getFileByUuid(final String uuid) {
+
+		logger.log(Level.FINE, "Search for file with uuid: {0}", uuid);
+
+		List<SearchAttribute> searchAttrs = new LinkedList<>();
+
+		searchAttrs.add(Search.andExactUuid(uuid));
+		searchAttrs.add(Search.orExactTypeAndSubtypes(org.structr.web.entity.AbstractFile.class));
+
+		
+		try {
+			Result<AbstractFile> results = searchNodesAsSuperuser.execute(false, false, searchAttrs);
+			logger.log(Level.FINE, "{0} files found", results.size());
+			if (results.isEmpty()) return null;
+		
+			return (AbstractFile) results.get(0);
+			
+		} catch (FrameworkException ex) {
+			logger.log(Level.SEVERE, null, ex);
+		}
+
+		return null;
+	}
+		
+	public static AbstractFile getFileByName(final String name) {
+
+		logger.log(Level.FINE, "Search for file with name: {0}", name);
+
+		List<SearchAttribute> searchAttrs = new LinkedList<>();
+
+		searchAttrs.add(Search.andExactName(name));
+		searchAttrs.add(Search.orExactTypeAndSubtypes(org.structr.web.entity.AbstractFile.class));
+
+		
+		try {
+			Result<AbstractFile> results = searchNodesAsSuperuser.execute(false, false, searchAttrs);
+			logger.log(Level.FINE, "{0} files found", results.size());
+			if (results.isEmpty()) return null;
+		
+			return (AbstractFile) results.get(0);
+			
+		} catch (FrameworkException ex) {
+			logger.log(Level.SEVERE, null, ex);
+		}
+
+		return null;
+	}
+	
+	/**
+	 * Return the virtual folder path of any {@link org.structr.web.entity.File} or {@link org.structr.web.entity.Folder}
+	 * @param file
+	 * @return 
+	 */
+	public static String getFolderPath(final AbstractFile file) {
+		
+		AbstractFile parentFolder = file.getProperty(AbstractFile.parent);
+		
+		String folderPath = file.getProperty(AbstractFile.name);
+		
+		if (folderPath == null) folderPath = file.getProperty(AbstractNode.uuid);
+		
+		while (parentFolder != null) {
+			folderPath = parentFolder.getName().concat("/").concat(folderPath);
+			parentFolder = parentFolder.getProperty(AbstractFile.parent);
+		}
+
+		return "/".concat(folderPath);
 	}
 	
 }

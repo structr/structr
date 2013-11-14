@@ -54,7 +54,6 @@ public class AppendFileCommand extends AbstractCommand {
 		String id                    = webSocketData.getId();
 		Map<String, Object> nodeData = webSocketData.getNodeData();
 		String parentId              = (String) nodeData.get("parentId");
-		String key                   = (String) nodeData.get("key");
 
 		// check node to append
 		if (id == null) {

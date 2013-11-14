@@ -134,7 +134,7 @@ public class NodeFactory<T extends AbstractNode> extends Factory<Node, T> {
 				try {
 
 					newNode.unlockReadOnlyPropertiesOnce();
-					newNode.setType(nodeType);
+					newNode.setProperty(AbstractNode.type, nodeType);
 
 				} catch (Throwable t) {
 

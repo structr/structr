@@ -20,11 +20,11 @@
 
 package org.structr.web.entity;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import org.apache.commons.io.FileUtils;
 
-import org.structr.web.common.FileHelper;
 import org.structr.common.PropertyView;
-import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.property.IntProperty;
@@ -36,15 +36,19 @@ import org.structr.core.Services;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.Path;
+import org.structr.common.SecurityContext;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.StringProperty;
+import org.structr.web.common.FileHelper;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -66,7 +70,7 @@ public class File extends AbstractFile implements Linkable {
 
 	public static final View publicView = new View(File.class, PropertyView.Public, type, name, contentType, size, url, owner);
 	public static final View uiView     = new View(File.class, PropertyView.Ui, type, contentType, relativeFilePath, size, url, parent, checksum, cacheForSeconds, owner);
-
+	
 	@Override
 	public void onNodeDeletion() {
 
@@ -87,30 +91,48 @@ public class File extends AbstractFile implements Linkable {
 
 	}
 	
-//	@Override
-//	public void afterCreation(SecurityContext securityContext) {
-//
-//		try {
-//
-//			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-//
-//				@Override
-//				public Object execute() throws FrameworkException {
-//
-//					setProperty(checksum,	FileHelper.getChecksum(File.this));
-//					setProperty(size,	FileHelper.getSize(File.this));
-//					
-//					return null;
-//				}
-//			});
-//
-//		} catch (FrameworkException ex) {
-//
-//			logger.log(Level.SEVERE, "Could not set checksum and size", ex);
-//
-//		}
-//
-//	}
+	@Override
+	public void afterCreation(SecurityContext securityContext) {
+
+		try {
+
+			java.io.File fileOnDisk = new java.io.File(Services.getFilesPath() + "/" + getRelativeFilePath());
+
+			if (fileOnDisk.exists()) {
+				return;
+			}
+			
+			fileOnDisk.getParentFile().mkdirs();
+
+			try {
+				
+				fileOnDisk.createNewFile();
+
+			} catch (IOException ex) {
+				
+				logger.log(Level.SEVERE, "Could not create file", ex);
+				return;
+			}
+			
+			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+
+				@Override
+				public Object execute() throws FrameworkException {
+
+					setProperty(checksum,	FileHelper.getChecksum(File.this));
+					setProperty(size,	FileHelper.getSize(File.this));
+					
+					return null;
+				}
+			});
+
+		} catch (FrameworkException ex) {
+
+			logger.log(Level.SEVERE, "Could not create file", ex);
+
+		}
+
+	}
 //
 //	@Override
 //	public void afterModification(SecurityContext securityContext) {
@@ -151,7 +173,7 @@ public class File extends AbstractFile implements Linkable {
 
 	}
 
-	public long getSize() {
+	public Long getSize() {
 
 		return getProperty(size);
 
@@ -224,6 +246,55 @@ public class File extends AbstractFile implements Linkable {
 
 	}
 
+	public OutputStream getOutputStream() {
+		
+		String path = getRelativeFilePath();
+
+		if (path != null) {
+
+			String filePath         = Services.getFilePath(Path.Files, path);
+
+			try {
+
+				java.io.File fileOnDisk = new java.io.File(filePath);
+				
+				// Return file output stream and save checksum and size after closing
+				FileOutputStream fos = new FileOutputStream(fileOnDisk) {
+					
+					@Override
+					public void close() throws IOException {
+						super.close();
+						try {
+							Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+								
+								@Override
+								public Object execute() throws FrameworkException {
+									
+									setProperty(checksum,	FileHelper.getChecksum(File.this));
+									setProperty(size,	FileHelper.getSize(File.this));
+									
+									return null;
+								}
+							});
+						} catch (FrameworkException ex) {
+							logger.log(Level.SEVERE, "Could not determine or save checksum and size after closing file output stream", ex);
+						}
+					}
+					
+				};
+				
+				return fos;
+
+			} catch (FileNotFoundException e) {
+				logger.log(Level.SEVERE, "File not found: {0}", new Object[] { path });
+			}
+			
+		}
+
+		return null;
+		
+	}
+	
 	public static String getDirectoryPath(final String uuid) {
 
 		return (uuid != null)

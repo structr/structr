@@ -298,7 +298,7 @@ public class Image extends File {
 							long size = data.length;
 
 							thumbnail.setSize(size);
-							thumbnail.setName(originalImage.getName() + "_thumb_" + tnWidth + "x" + tnHeight);
+							thumbnail.setProperty(name, originalImage.getName() + "_thumb_" + tnWidth + "x" + tnHeight);
 							thumbnail.setProperty(Image.width, tnWidth);
 							thumbnail.setProperty(Image.height, tnHeight);
 							
@@ -315,7 +315,7 @@ public class Image extends File {
 							// Soft-delete outdated thumbnails
 							for (Image tn : oldThumbnails) {
 
-								tn.setDeleted(true);
+								tn.setProperty(deleted, true);
 							}
 						}
 

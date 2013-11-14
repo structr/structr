@@ -142,4 +142,9 @@ public class DistanceSearchAttribute extends SearchAttribute {
 	public boolean includeInResult(GraphObject entity) {
 		return true;
 	}
+
+	@Override
+	public String getValueForEmptyField() {
+		return null;
+	}
 }

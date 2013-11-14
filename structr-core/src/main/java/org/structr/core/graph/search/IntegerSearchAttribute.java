@@ -20,6 +20,7 @@ package org.structr.core.graph.search;
 
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.util.NumericUtils;
+import org.structr.core.property.IntProperty;
 import org.structr.core.property.PropertyKey;
 
 /**
@@ -36,12 +37,19 @@ public class IntegerSearchAttribute extends PropertySearchAttribute<Integer> {
 	public String getStringValue() {
 		
 		Integer value = getValue();
-		if (value != null) {
-			
-			return NumericUtils.intToPrefixCoded(value);
-		}
 		
-		return null;
+		if (value == null) {
+		
+			return getValueForEmptyField();
+		
+		}
+
+		return NumericUtils.intToPrefixCoded(value);
+	}
+
+	@Override
+	public String getValueForEmptyField() {
+		return IntProperty.INT_EMPTY_FIELD_VALUE;
 	}
 
 }

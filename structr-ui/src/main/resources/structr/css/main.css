@@ -308,7 +308,7 @@ img.disabled {
 }
 
 #palette h3, #widgetsSlideout h3 {
-    font-size: 9pt;
+    font-size: 11pt;
     color: #333;
     padding: 3px 0 2px 0;
     margin: 0 0 0 2px;
@@ -391,7 +391,7 @@ img.disabled {
 
 .props tr td.value input {
     margin: -3px;
-    height: 1.7em;
+    /*height: 1.7em;*/
     font-size: 8pt;
     background: #fff;
     border: 1px solid #c0c0c0;
@@ -616,14 +616,28 @@ span.id {
     color: #333;
     line-height: 1.7em;
     border-radius: 5px;
-    border: 1px solid #a5a5a5;
-    padding: 2px 6px;
-    margin: 4px 0 4px 0;
-    background-color: #eee;
-    background: -webkit-gradient(linear, left bottom, left top, from(#ddd), to(#eee)) no-repeat;
+    border: 1px solid transparent;
+    padding: 2px 2px 2px 4px;
+    margin: 0 0 0 11px;
+    /*background-color: #eee;*/
+/*    background: -webkit-gradient(linear, left bottom, left top, from(#ddd), to(#eee)) no-repeat;
     background: -moz-linear-gradient(90deg, #ddd, #eee) no-repeat;
-    filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#eeeeee', EndColorStr='#dddddd', GradientType=0);
+    filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#eeeeee', EndColorStr='#dddddd', GradientType=0);*/
     position: relative;
+}
+
+.page, .widget, .user, .group, .folder, .file, .image,
+.ver-scrollable > .node {
+    margin: 4px 0;
+    padding-right: 4px;
+}
+
+.group .user, .folder .file, .folder .folder {
+    margin: 4px 0 4px 11px;    
+}
+
+.image {
+    padding: 4px 8px;
 }
 
 #images {
@@ -703,16 +717,40 @@ span.id {
     position: relative;
 }
 
+.key_icon {
+    filter: alpha(opacity=30);
+    -khtml-opacity: 0.3;
+    -moz-opacity: 0.3;
+    opacity: 0.3;
+}
+
+.nodeHover > .key_icon {
+    filter: alpha(opacity=100);
+    -khtml-opacity: 1;
+    -moz-opacity: 1;
+    opacity: 1;
+}
+
+#add_type {
+    position: absolute;
+    right: 12px;
+    top: 68px;
+    margin: 0;
+}
+
 img.button {
     cursor: pointer;
 }
 
-.nodeHover, .nodeActive {
+.nodeHover, .nodeActive, #graph .node {
     color: #333 ! important;
-    background-color: #81ce25 ! important;
-    background: -webkit-gradient(linear, left bottom, left top, from(#73b821), to(#90e629)) no-repeat ! important;
-    background: -moz-linear-gradient(90deg, #73b821, #90e629) no-repeat ! important;
-    filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#90e629', EndColorStr='#73b821', GradientType=0) ! important;
+    background-color: #e7e7e7 ! important;
+    border: 1px solid #aaa;
+}
+
+#graph .node {
+    padding: 2px 6px;
+    margin: 4px 0 4px 0;
 }
 
 button {
@@ -730,9 +768,8 @@ button {
     filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#e7e7e7', EndColorStr='#cccccc', GradientType=0);
 }
 
-button:hover {
+button:hover:not(.disabled) {
     color: #333;
-    font-weight: bold;
     border-radius: 5px;
     padding: 2px 8px 2px 4px;
     margin-bottom: 6px;
@@ -767,6 +804,26 @@ button img {
     background: -webkit-gradient(linear, left bottom, left top, from(#e5e5e5), to(#f3f3f3)) no-repeat;
     background: -moz-linear-gradient(90deg, #e5e5e5, #f3f3f3) no-repeat;
     filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#f3f3f3', EndColorStr='#e5e5e5', GradientType=0);
+}
+
+#dialogBox #minimizeDialog {
+    display: none;
+}
+
+#dialogBox .minmax {
+    position: absolute;
+    right: 1em;
+    top: 1em;
+    width: 16px;
+    height: 16px;
+}
+
+#dialogBox .minmax:hover {
+    cursor: pointer;
+    filter: alpha(opacity=60);
+    -khtml-opacity: 0.6;
+    -moz-opacity: 0.6;
+    opacity: 0.6;
 }
 
 #confirmation, #infoBox, #tempInfoBox, #errorBox {
@@ -812,7 +869,7 @@ button img {
 }
 
 .dialogTextWrapper {
-    overflow: auto;
+    overflow-y: auto;
 }
 
 .dialogText textarea {
@@ -842,6 +899,11 @@ button img {
     background-color: #e5e5e5;
     margin: -6px -6px 4px -6px;
     padding: 5px 5px 0px 5px;
+}
+
+.dialogText label {
+    display: inline-block;
+    min-width: 200px;
 }
 
 #confirmationText, #infoText, #dialogBox .dialogText {
@@ -1004,7 +1066,7 @@ button.switch:hover {
     filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#eeeeee', EndColorStr='#dddddd', GradientType=0);
 }
 
-button.enabled {
+button.enabled, button.active {
     color: #222;
     font-weight: bold;
     border: 1px solid #bbb;
@@ -1085,7 +1147,7 @@ button.enabled {
     filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#e7e7e7', EndColorStr='#cccccc', GradientType=0);
 }
 
-.pager button.disabled {
+button.disabled {
     filter: alpha(opacity=60);
     -khtml-opacity: 0.6;
     -moz-opacity: 0.6;
@@ -1147,4 +1209,14 @@ button.enabled {
     right: 30px;
     bottom: 8px;
     width: 76px;
+}
+
+input.auto-refresh {
+    vertical-align: middle;
+    float: right;
+    margin-right: 0;
+}
+
+button.add_property {
+    font-size: 2em;
 }

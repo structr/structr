@@ -71,8 +71,14 @@ public class CreateComponentCommand extends AbstractCommand {
 						
 						moveChildNodes(node, clonedNode);
 						
+						
 						ShadowDocument hiddenDoc = getOrCreateHiddenDocument();
 						clonedNode.setProperty(DOMNode.ownerDocument, hiddenDoc);
+
+						// Change page (owner document) of all children recursively
+						for (DOMNode child : DOMNode.getAllChildNodes(clonedNode)) {
+							child.setProperty((DOMNode.ownerDocument), hiddenDoc);
+						}
 
 						createRel.execute(node, clonedNode, RelType.SYNC, true);
 						createRel.execute(clonedNode, node, RelType.SYNC, true);

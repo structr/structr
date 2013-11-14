@@ -122,7 +122,7 @@ public class ISO8601DateProperty extends DateProperty {
 		@Override
 		public Date convert(String source) throws FrameworkException {
 
-			if (source != null) {
+			if (StringUtils.isNotBlank(source)) {
 
 				try {
 

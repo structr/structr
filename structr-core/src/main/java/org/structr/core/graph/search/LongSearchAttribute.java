@@ -20,6 +20,7 @@ package org.structr.core.graph.search;
 
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.util.NumericUtils;
+import org.structr.core.property.LongProperty;
 import org.structr.core.property.PropertyKey;
 
 /**
@@ -36,11 +37,20 @@ public class LongSearchAttribute extends PropertySearchAttribute<Long> {
 	public String getStringValue() {
 		
 		Long value = getValue();
-		if (value != null) {
+
+		if (value == null) {
 			
-			return NumericUtils.longToPrefixCoded(value);
+			return getValueForEmptyField();
+			
 		}
 		
-		return null;
+		return NumericUtils.longToPrefixCoded(value);
 	}
-}
+
+	@Override
+	public String getValueForEmptyField() {
+		return LongProperty.LONG_EMPTY_FIELD_VALUE;
+	}
+
+}	
+

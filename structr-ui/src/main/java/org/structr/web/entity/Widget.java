@@ -49,7 +49,7 @@ public class Widget extends AbstractNode implements Taggable {
 	private static final ThreadLocalMatcher		threadLocalTemplateMatcher	= new ThreadLocalMatcher("\\[[a-zA-Z]+\\]");
 	public static final Property<String>		source				= new StringProperty("source");
 	public static final Property<String>		description			= new StringProperty("description");
-	public static final CollectionProperty<Image>	pictures				= new CollectionProperty("pictures", Image.class, RelType.PICTURE_OF, Direction.INCOMING, new UiNotion(), true);
+	public static final CollectionProperty<Image>	pictures				= new CollectionProperty<>("pictures", Image.class, RelType.PICTURE_OF, Direction.INCOMING, new UiNotion(), true);
 	
 	public static final org.structr.common.View uiView = new org.structr.common.View(User.class, PropertyView.Ui,
 		type, name, source, description, pictures, tags

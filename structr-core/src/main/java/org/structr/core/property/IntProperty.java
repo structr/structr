@@ -29,7 +29,6 @@ import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.search.IntegerSearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.PropertySearchAttribute;
 
 /**
 * A property that stores and retrieves a simple Integer value.
@@ -38,6 +37,8 @@ import org.structr.core.graph.search.PropertySearchAttribute;
  */
 public class IntProperty extends AbstractPrimitiveProperty<Integer> {
 
+	public static final String INT_EMPTY_FIELD_VALUE = NumericUtils.intToPrefixCoded(Integer.MIN_VALUE);
+	
 	public IntProperty(String name) {
 		this(name, name, null);
 	}
@@ -88,27 +89,22 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> {
 
 		@Override
 		public Integer convert(Object source) {
-			
-			// FIXME: be more strict when dealing with "wrong" input types
-			if (source != null) {
-				
-				if (source instanceof Number) {
 
-					return ((Number)source).intValue();
-					
-				}
-				
-				if (source instanceof String) {
-					
-					if (StringUtils.isBlank((String) source)) {
-						return null;
-					}
-					
-					return Integer.parseInt(source.toString());
-				}
+			if (source == null) return null;
+			
+			if (source instanceof Number) {
+
+				return ((Number)source).intValue();
+
+			}
+
+			if (source instanceof String && StringUtils.isNotBlank((String) source)) {
+
+				return Integer.parseInt(source.toString());
 			}
 			
 			return null;
+			
 		}
 	}
 
@@ -147,4 +143,10 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> {
 	public void index(GraphObject entity, Object value) {
 		super.index(entity, value != null ? ValueContext.numeric((Number)value) : value);
 	}
+
+	@Override
+	public String getValueForEmptyFields() {
+		return INT_EMPTY_FIELD_VALUE;
+	}
+
 }

@@ -21,6 +21,7 @@ package org.structr.core.auth;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.ServletConfig;
+import org.apache.commons.lang.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 
@@ -48,6 +49,16 @@ public class AuthenticatorCommand extends Command {
 
 				String authenticatorClassName	= servletConfig.getInitParameter(AuthenticationService.SERVLET_PARAMETER_AUTHENTICATOR);
 				boolean userAutoCreate		= Boolean.parseBoolean(servletConfig.getInitParameter(AuthenticationService.SERVLET_PARAMETER_USER_AUTO_CREATE));
+				Class userClass = null;
+				String userClassString = null;
+				try {
+					userClassString = servletConfig.getInitParameter(AuthenticationService.SERVLET_PARAMETER_USER_CLASS);
+					if (StringUtils.isNotBlank(userClassString)) {
+						userClass = Class.forName(userClassString);
+					}
+				} catch (ClassNotFoundException ex) {
+					logger.log(Level.WARNING, "Could not create user class for name: " + userClassString, ex);
+				}
 				if (authenticatorClassName != null) {
 
 					try {
@@ -58,7 +69,7 @@ public class AuthenticatorCommand extends Command {
 						servletConfig.getServletContext().setAttribute(AuthenticationService.SERVLET_PARAMETER_AUTHENTICATOR, authenticator);
 						
 						// set the flag for auto-creation of users after authentication
-						authenticator.setUserAutoCreate(userAutoCreate);
+						authenticator.setUserAutoCreate(userAutoCreate, userClass);
 
 					} catch (Throwable t) {
 

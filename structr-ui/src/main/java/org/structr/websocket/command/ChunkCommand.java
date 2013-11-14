@@ -64,8 +64,8 @@ public class ChunkCommand extends AbstractCommand {
 		
 		try {
 
-			int sequenceNumber = Integer.parseInt((String) webSocketData.getNodeData().get("chunkId"));
-			int chunkSize      = Integer.parseInt((String) webSocketData.getNodeData().get("chunkSize"));
+			int sequenceNumber = ((Long) webSocketData.getNodeData().get("chunkId")).intValue();
+			int chunkSize      = ((Long) webSocketData.getNodeData().get("chunkSize")).intValue();
 			Object rawData     = webSocketData.getNodeData().get("chunk");
 			String uuid        = webSocketData.getId();
 			byte[] data        = null;
@@ -100,10 +100,10 @@ public class ChunkCommand extends AbstractCommand {
 			
 			final long size = (long)(sequenceNumber * chunkSize) + data.length;
 			
-			long overallSize = file.getProperty(File.size);
-			logger.log(Level.FINE, "Overall size: {0}, part: {1}", new Object[]{overallSize, size});
+			long oldSize = file.getProperty(File.size);
+			logger.log(Level.FINE, "Overall size: {0}, part: {1}", new Object[]{oldSize, size});
 			
-			if (size >= overallSize) {
+			if (size != oldSize) {
 
 				// Set proper size
 				Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {

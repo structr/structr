@@ -20,21 +20,26 @@
 
 package org.structr.web.entity.html;
 
+import org.structr.common.PropertyView;
+import org.structr.core.property.Property;
+import org.structr.web.common.HtmlProperty;
 import org.structr.web.entity.dom.DOMElement;
 
 /**
  * @author Axel Morgner
  */
 public class Track extends DOMElement {
-//
-//	static {
-//
-//		EntityContext.registerPropertySet(Track.class, PropertyView.All, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Track.class, PropertyView.Public, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Track.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-//
-//	}
 
+	public static final Property<String> _kind		= new HtmlProperty("kind");
+	public static final Property<String> _src		= new HtmlProperty("src");
+	public static final Property<String> _srclang		= new HtmlProperty("srclang");
+	public static final Property<String> _label		= new HtmlProperty("label");
+	public static final Property<String> _default		= new HtmlProperty("default");
+	
+	public static final org.structr.common.View htmlView	= new org.structr.common.View(Track.class, PropertyView.Html,
+		_kind, _src, _srclang, _label, _default
+	);
+	
 	//~--- get methods ----------------------------------------------------
 
 	@Override

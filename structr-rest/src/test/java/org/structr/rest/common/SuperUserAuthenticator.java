@@ -65,11 +65,16 @@ public class SuperUserAuthenticator implements Authenticator {
 	}
 
 	@Override
-	public void setUserAutoCreate(boolean userAutoCreate) {}
+	public void setUserAutoCreate(final boolean userAutoCreate, final Class userClass) {}
 	
 	@Override
 	public boolean getUserAutoCreate() {
 		return false;
+	}
+
+	@Override
+	public Class getUserClass() {
+		return null;
 	}
 	
 }

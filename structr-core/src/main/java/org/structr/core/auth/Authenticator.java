@@ -44,16 +44,20 @@ public interface Authenticator {
 	 * automatically on registration and after successful authentification.
 	 * 
 	 * @param userAutoCreate 
+	 * @param userClass
 	 */
-	public void setUserAutoCreate(final boolean userAutoCreate);
+	public void setUserAutoCreate(final boolean userAutoCreate, final Class userClass);
 
 	/**
 	 * Return boolean flag that indicates that a user should be created
 	 * automatically on registration and after successful authentification.
-	 * 
-	 * @param userAutoCreate 
 	 */
 	public boolean getUserAutoCreate();
+
+	/**
+	 * Return user class
+	 */
+	public Class getUserClass();
 
 	/**
 	 * Initializes the authenticator with data from the given request.
