@@ -22,13 +22,10 @@ package org.structr.web.entity.html;
 
 import org.structr.web.entity.dom.DOMElement;
 import org.apache.commons.lang.ArrayUtils;
-import org.neo4j.graphdb.Direction;
 import org.structr.core.property.Property;
 
 import org.structr.common.PropertyView;
-import org.structr.web.common.RelType;
 import org.structr.common.View;
-import org.structr.core.property.CollectionProperty;
 import org.structr.web.common.HtmlProperty;
 
 //~--- classes ----------------------------------------------------------------
@@ -70,7 +67,7 @@ public class Input extends DOMElement {
 	public static final Property<String> _value          = new HtmlProperty("value");
 	public static final Property<String> _width          = new HtmlProperty("width");
 
-	public static final CollectionProperty<Form> forms   = new CollectionProperty<Form>("forms", Form.class, RelType.CONTAINS, Direction.INCOMING, false);
+	//public static final Property<List<Form>> forms       = new StartNodes<>("forms", FormInput.class);
 	
 	public static final View htmlView = new View(Input.class, PropertyView.Html,
 	    

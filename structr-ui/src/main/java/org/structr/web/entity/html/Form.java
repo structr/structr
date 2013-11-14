@@ -22,15 +22,11 @@ package org.structr.web.entity.html;
 
 import org.structr.web.entity.dom.DOMElement;
 import org.apache.commons.lang.ArrayUtils;
-import org.neo4j.graphdb.Direction;
 import org.structr.core.property.Property;
 
 import org.structr.common.PropertyView;
-import org.structr.web.common.RelType;
 import org.structr.common.View;
-import org.structr.core.property.CollectionProperty;
 import org.structr.web.common.HtmlProperty;
-import org.structr.web.entity.dom.Content;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -48,15 +44,15 @@ public class Form extends DOMElement {
 	public static final Property<String> _novalidate    = new HtmlProperty("novalidate");
 	public static final Property<String> _target        = new HtmlProperty("target");
 	
-	public static final CollectionProperty<Div>      divParents = new CollectionProperty<Div>("divParents", Div.class, RelType.CONTAINS, Direction.INCOMING, false);
-	public static final CollectionProperty<P>        pParents   = new CollectionProperty<P>("pParents", P.class, RelType.CONTAINS, Direction.INCOMING, false);
-	public static final CollectionProperty<Content>  contents   = new CollectionProperty<Content>("contents", Content.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<Div>      divs       = new CollectionProperty<Div>("divs", Div.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<Input>    inputs     = new CollectionProperty<Input>("inputs", Input.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<Button>   buttons    = new CollectionProperty<Button>("buttons", Button.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<Select>   selects    = new CollectionProperty<Select>("selects", Select.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<Label>    labels     = new CollectionProperty<Label>("labels", Label.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<Textarea> textareas  = new CollectionProperty<Textarea>("textareas", Textarea.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final EndNodes<Div>      divParents = new EndNodes<Div>("divParents", Div.class, RelType.CONTAINS, Direction.INCOMING, false);
+//	public static final EndNodes<P>        pParents   = new EndNodes<P>("pParents", P.class, RelType.CONTAINS, Direction.INCOMING, false);
+//	public static final EndNodes<Content>  contents   = new EndNodes<Content>("contents", Content.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final EndNodes<Div>      divs       = new EndNodes<Div>("divs", Div.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final EndNodes<Input>    inputs     = new EndNodes<Input>("inputs", Input.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final EndNodes<Button>   buttons    = new EndNodes<Button>("buttons", Button.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final EndNodes<Select>   selects    = new EndNodes<Select>("selects", Select.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final EndNodes<Label>    labels     = new EndNodes<Label>("labels", Label.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final EndNodes<Textarea> textareas  = new EndNodes<Textarea>("textareas", Textarea.class, RelType.CONTAINS, Direction.OUTGOING, false);
 
 	public static final View htmlView = new View(Form.class, PropertyView.Html,
 	    _acceptCharset, _action, _autocomplete, _enctype, _method, _name, _novalidate, _target

@@ -19,6 +19,7 @@
 package org.structr.core;
 
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -28,43 +29,46 @@ import java.util.List;
  * @author Axel Morgner
  */
 public class Result<T extends GraphObject> {
+	
+	public static final Result EMPTY_RESULT = new Result(Collections.EMPTY_LIST, 0, false, false);
 
-	private List<T> results = null;
-	private boolean isCollection = false;
-	private boolean isPrimitiveArray = false;
+	private boolean isCollection      = false;
+	private boolean isPrimitiveArray  = false;
 	private boolean hasPartialContent = false;
-	private String propertyView = null;
-
-	private String searchString = null;
-	private String queryTime = null;
-	private String sortOrder = null;
-	private String sortKey = null;
-
-	private Integer resultCount = null;
-	private Integer pageCount = null;
-	private Integer pageSize = null;
-	private Integer page = null;
+	private String propertyView       = null;
+	private List<T> results           = null;
+      
+	private String searchString       = null;
+	private String queryTime          = null;
+	private String sortOrder          = null;
+	private String sortKey            = null;
+      
+	private Integer resultCount       = null;
+	private Integer pageCount         = null;
+	private Integer pageSize          = null;
+	private Integer page              = null;
+	     
+	private GraphObject metaData      = null;
 	
-	private GraphObject metaData = null;
-	
-	public static Result EMPTY_RESULT = new Result(Collections.EMPTY_LIST, 0, false, false);
-	
-	public Result(List<T> listResult, Integer rawResultCount, boolean isCollection, boolean isPrimitiveArray) {
-		this.isCollection = isCollection;
+	public Result(final List<T> listResult, final Integer rawResultCount, final boolean isCollection, final boolean isPrimitiveArray) {
+		
+		this.isCollection     = isCollection;
 		this.isPrimitiveArray = isPrimitiveArray;
-		this.results = listResult;
-		this.resultCount = (rawResultCount != null ? rawResultCount : (results != null ? results.size() : 0));
+		this.results          = listResult;
+		this.resultCount      = (rawResultCount != null ? rawResultCount : (results != null ? results.size() : 0));
+	}
+	
+	public Result(T singleResult, final boolean isPrimitiveArray) {
+		
+		this.isCollection     = false;
+		this.isPrimitiveArray = isPrimitiveArray;
+		this.results          = new LinkedList<>();
+		this.resultCount      = 1;
+		
+		// add result
+		results.add(singleResult);
 	}
 
-	/*
-	public Result(List<T> listResult, Integer rawResultCount, boolean isCollection, boolean isPrimitiveArray) {
-		this.isCollection = isCollection;
-		this.isPrimitiveArray = isPrimitiveArray;
-		this.results = listResult;
-		this.resultCount = (rawResultCount != null ? rawResultCount : (results != null ? results.size() : 0));
-	}
-	*/
-	
 	public T get(final int i) {
 		return results.get(i);
 	}

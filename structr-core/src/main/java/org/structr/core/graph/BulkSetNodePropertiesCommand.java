@@ -41,6 +41,7 @@ import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.EntityContext;
+import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.module.ModuleService;
 import org.structr.core.property.PropertyKey;
@@ -65,8 +66,6 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 		final GraphDatabaseService graphDb     = (GraphDatabaseService) arguments.get("graphDb");
 		final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
 		final NodeFactory nodeFactory          = new NodeFactory(superUserContext);
-		final SearchNodeCommand searchNode     = Services.command(superUserContext, SearchNodeCommand.class);
-		
 		
 		String type                      = null;
 		
@@ -77,11 +76,8 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 			if (properties.containsKey(AbstractNode.type.dbName())) {
 
 				type = (String) properties.get(AbstractNode.type.dbName());
-				List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
 
-				attrs.add(Search.andExactType(EntityContext.getEntityClassForRawType(type)));
-
-				nodes = searchNode.execute(attrs);
+				nodes = StructrApp.getInstance(securityContext).nodeQuery(EntityContext.getEntityClassForRawType(type)).getResult();
 
 				properties.remove(AbstractNode.type.dbName());
 

@@ -18,6 +18,7 @@
  */
 package org.structr.core.property;
 
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -40,6 +41,7 @@ import org.structr.core.Services;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeService;
 import org.structr.core.graph.NodeService.NodeIndex;
 import org.structr.core.graph.NodeService.RelationshipIndex;
@@ -58,7 +60,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	private static final Logger logger             = Logger.getLogger(Property.class.getName());
 	private static final Pattern rangeQueryPattern = Pattern.compile("\\[(.+) TO (.+)\\]");
 	
-	protected List<PropertyValidator<T>> validators        = new LinkedList<PropertyValidator<T>>();
+	protected List<PropertyValidator<T>> validators        = new LinkedList<>();
 	protected Class<? extends GraphObject> declaringClass  = null;
 	protected T defaultValue                               = null;
 	protected boolean readOnly                             = false;
@@ -73,8 +75,8 @@ public abstract class Property<T> implements PropertyKey<T> {
 
 	private boolean requiresSynchronization                = false;
 	
-	protected Set<RelationshipIndex> relationshipIndices   = new LinkedHashSet<RelationshipIndex>();
-	protected Set<NodeIndex> nodeIndices                   = new LinkedHashSet<NodeIndex>();
+	protected Set<RelationshipIndex> relationshipIndices   = new LinkedHashSet<>();
+	protected Set<NodeIndex> nodeIndices                   = new LinkedHashSet<>();
 
 	protected Property(String name) {
 		this(name, name);
@@ -241,7 +243,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	}
 	
 	@Override
-	public void setDeclaringClass(Class<? extends GraphObject> declaringClass) {
+	public void setDeclaringClass(Class declaringClass) {
 		this.declaringClass = declaringClass;
 	}
 	
@@ -250,7 +252,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	}
 	
 	@Override
-	public Class<? extends GraphObject> getDeclaringClass() {
+	public Class getDeclaringClass() {
 		return declaringClass;
 	}
 
@@ -427,7 +429,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	@Override
 	public List<SearchAttribute> extractSearchableAttribute(SecurityContext securityContext, HttpServletRequest request, boolean looseSearch) throws FrameworkException {
 					
-		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+		List<SearchAttribute> searchAttributes = new LinkedList<>();
 		String searchValue                     = request.getParameter(jsonName());
 		if (searchValue != null) {
 
@@ -531,4 +533,10 @@ public abstract class Property<T> implements PropertyKey<T> {
 			return Search.andExactProperty(securityContext, key, extractSearchableAttribute(securityContext, requestParameter));
 		}
 	}
+	
+	protected <T extends NodeInterface> List<T> getRelatedNodesReverse(final SecurityContext securityContext, final NodeInterface obj, final Class destinationType) {
+		// this is the default implementation
+		return Collections.emptyList();
+	}
+	
 }

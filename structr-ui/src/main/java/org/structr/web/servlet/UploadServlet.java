@@ -24,7 +24,6 @@ import org.structr.common.*;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
-import org.structr.web.auth.HttpAuthenticator;
 
 //~--- JDK imports ------------------------------------------------------------
 import java.text.*;
@@ -41,11 +40,12 @@ import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.IOUtils;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.AuthenticatorCommand;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
+import org.structr.web.auth.HttpAuthenticator;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.Image;
 
@@ -62,9 +62,9 @@ public class UploadServlet extends HttpServlet {
 	private ServletFileUpload uploader = null;
 	private File filesDir = null;
 
-	private static final int MEMORY_THRESHOLD = 1024 * 1024 * 10;  // above 10 MB, files are stored on disk
-	private static final int MAX_FILE_SIZE = 1024 * 1024 * 100; // 100 MB
-	private static final int MAX_REQUEST_SIZE = 1024 * 1024 * 120; // 120 MB
+	private static final int MEMORY_THRESHOLD	= 1024 * 1024 * 10;  // above 10 MB, files are stored on disk
+	private static final int MAX_FILE_SIZE		= 1024 * 1024 * 100; // 100 MB
+	private static final int MAX_REQUEST_SIZE	= 1024 * 1024 * 120; // 120 MB
 
 	//~--- fields ---------------------------------------------------------
 	private DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
@@ -125,43 +125,39 @@ public class UploadServlet extends HttpServlet {
 			List<FileItem> fileItemsList = uploader.parseRequest(request);
 			Iterator<FileItem> fileItemsIterator = fileItemsList.iterator();
 
+			final App app = StructrApp.getInstance(securityContext);
 			while (fileItemsIterator.hasNext()) {
 
 				final FileItem fileItem = fileItemsIterator.next();
 
-				Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+				app.beginTx();
 
-					@Override
-					public Object execute() throws FrameworkException {
+				try {
 
-						try {
+					String contentType = fileItem.getContentType();
+					boolean isImage = (contentType != null && contentType.startsWith("image"));
 
-							String contentType = fileItem.getContentType();
-							boolean isImage = (contentType != null && contentType.startsWith("image"));
-							
-							Class type = isImage ? Image.class : org.structr.web.entity.File.class;
-							
-							String name = fileItem.getName().replaceAll("\\\\", "/");
-							
-							org.structr.web.entity.File newFile = FileHelper.createFile(securityContext, IOUtils.toByteArray(fileItem.getInputStream()), contentType, type);
-							newFile.setProperty(AbstractNode.name, PathHelper.getName(name));
-							newFile.setProperty(AbstractNode.visibleToPublicUsers, true);
-							newFile.setProperty(AbstractNode.visibleToAuthenticatedUsers, true);
+					Class type = isImage ? Image.class : org.structr.web.entity.File.class;
 
-							// Just write out the uuids of the new files
-							out.write(newFile.getUuid());
+					String name = fileItem.getName().replaceAll("\\\\", "/");
 
-							return newFile;
+					org.structr.web.entity.File newFile = FileHelper.createFile(securityContext, IOUtils.toByteArray(fileItem.getInputStream()), contentType, type);
+					newFile.setProperty(AbstractNode.name, PathHelper.getName(name));
+					newFile.setProperty(AbstractNode.visibleToPublicUsers, true);
+					newFile.setProperty(AbstractNode.visibleToAuthenticatedUsers, true);
 
-						} catch (IOException ex) {
-							logger.log(Level.WARNING, "Could not upload file", ex);
-						}
+					// Just write out the uuids of the new files
+					out.write(newFile.getUuid());
 
-						return null;
+					app.commitTx();
 
-					}
+				} catch (IOException ex) {
+					logger.log(Level.WARNING, "Could not upload file", ex);
+				} finally {
 
-				});
+					app.finishTx();
+
+				}
 
 			}
 

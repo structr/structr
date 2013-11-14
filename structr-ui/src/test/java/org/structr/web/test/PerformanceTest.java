@@ -21,7 +21,6 @@ package org.structr.web.test;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Predicate;
-import org.structr.web.entity.Folder;
 import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.web.common.DOMTest;

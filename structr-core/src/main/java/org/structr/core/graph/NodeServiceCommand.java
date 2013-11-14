@@ -27,7 +27,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 import org.structr.core.GraphObject;
 import org.structr.core.Predicate;
-import org.structr.core.Services;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 
 /**
  * Abstract base class for all graph service commands.
@@ -68,6 +69,7 @@ public abstract class NodeServiceCommand extends Command {
 	 */
 	public static <T extends GraphObject> long bulkGraphOperation(final SecurityContext securityContext, final Iterable<T> nodes, final long commitCount, String description, final BulkGraphOperation<T> operation, boolean validation) throws FrameworkException {
 
+		final App app              = StructrApp.getInstance(securityContext);
 		final Iterator<T> iterator = nodes.iterator();
 		long objectCount           = 0L;
 		
@@ -75,40 +77,37 @@ public abstract class NodeServiceCommand extends Command {
 
 			try {
 
-				objectCount += Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<Integer>(validation) {
+				app.beginTx();
+				
+				while (iterator.hasNext()) {
 
-					@Override
-					public Integer execute() throws FrameworkException {
+					T node = iterator.next();
 
-						int count = 0;
+					try {
 
-						while (iterator.hasNext()) {
+						operation.handleGraphObject(securityContext, node);
 
-							T node = iterator.next();
+					} catch (Throwable t) {
 
-							try {
-
-								operation.handleGraphObject(securityContext, node);
-
-							} catch (Throwable t) {
-
-								operation.handleThrowable(securityContext, t, node);
-							}
-
-							// commit transaction after commitCount
-							if (++count >= commitCount) {
-								break;
-							}
-						}
-
-						return count;
+						operation.handleThrowable(securityContext, t, node);
 					}
-				});
+
+					// commit transaction after commitCount
+					if ((++objectCount % commitCount) == 0) {
+						break;
+					}
+				}
+				
+				app.commitTx();
 
 			} catch (Throwable t) {
 				
 				// bulk transaction failed, what to do?
 				operation.handleTransactionFailure(securityContext, t);
+				
+			} finally {
+				
+				app.finishTx();
 			}
 			
 			if (description != null) {
@@ -132,26 +131,28 @@ public abstract class NodeServiceCommand extends Command {
 	 */
 	public static void bulkTransaction(final SecurityContext securityContext, final long commitCount, final StructrTransaction transaction, final Predicate<Long> stopCondition) throws FrameworkException {
 
+		final App app                = StructrApp.getInstance(securityContext);
 		final AtomicLong objectCount = new AtomicLong(0L);
 		
 		while (!stopCondition.evaluate(securityContext, objectCount.get())) {
 
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+			try {
+				app.beginTx();
 
-				@Override
-				public Object execute() throws FrameworkException {
+				long loopCount = 0;
 
-					long loopCount = 0;
-					
-					while (loopCount++ < commitCount && !stopCondition.evaluate(securityContext, objectCount.get())) {
-						
-						transaction.execute();
-						objectCount.incrementAndGet();
-					}
+				while (loopCount++ < commitCount && !stopCondition.evaluate(securityContext, objectCount.get())) {
 
-					return null;
+					transaction.execute();
+					objectCount.incrementAndGet();
 				}
-			});
+
+				app.commitTx();
+				
+			} finally {
+				
+				app.finishTx();
+			}
 		}
 	}
 }

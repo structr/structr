@@ -30,6 +30,7 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.property.StringProperty;
 import org.structr.core.property.UuidProperty;
 
@@ -74,6 +75,13 @@ public interface GraphObject {
 	public String getType();
 
 	/**
+	 * Sets the security context to be used by this entity.
+	 * 
+	 * @param securityContext 
+	 */
+	public void setSecurityContext(final SecurityContext securityContext);
+	
+	/**
 	 * Returns the underlying property container for this graph object.
 	 * 
 	 * @return 
@@ -104,7 +112,7 @@ public interface GraphObject {
 	 * @param propertyKey the property key to retrieve the value for
 	 * @return the converted, validated, transformed property value
 	 */
-	public <T> T getProperty(final PropertyKey<T> propertyKey);
+	public <T>  T getProperty(final PropertyKey<T> propertyKey);
 	
 	/**
 	 * Returns the property value for the given key as a Comparable

@@ -60,7 +60,6 @@ import org.structr.core.Value;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.AuthenticatorCommand;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.RelationshipMapping;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.property.Property;
 import org.structr.rest.serialization.StreamingWriter;
@@ -115,11 +114,6 @@ public class JsonRestServlet extends HttpServlet {
 	@Override
 	public void init() {
 		
-		// initialize internal resources with exact matching from EntityContext
-		for (RelationshipMapping relMapping : EntityContext.getNamedRelations()) {
-			resourceMap.put(Pattern.compile(relMapping.getName()), NamedRelationResource.class);
-		}
-
 		boolean indentJson = true;
 		
 		try {
@@ -807,7 +801,7 @@ public class JsonRestServlet extends HttpServlet {
 			return propertySet.getAttributes();
 		}
 		
-		return new LinkedHashMap<String, Object>();
+		return new LinkedHashMap<>();
 	}
 
 	private Authenticator getAuthenticator() throws FrameworkException {

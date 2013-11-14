@@ -19,15 +19,15 @@
 package org.structr.rest.entity;
 
 import java.util.Date;
+import java.util.List;
 import org.structr.common.PropertyView;
-import org.structr.common.RelType;
 import org.structr.common.View;
 import org.structr.core.property.ISO8601DateProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.Property;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.property.CollectionProperty;
+import org.structr.core.property.EndNodes;
 
 /**
  * Another simple entity for the most basic tests.
@@ -36,11 +36,11 @@ import org.structr.core.property.CollectionProperty;
  */
 public class TestTwo extends AbstractNode {
 	
-	public static final Property<Integer> anInt = new IntProperty("anInt").indexed();
-	public static final Property<Long> aLong    = new LongProperty("aLong").indexed();
-	public static final Property<Date> aDate    = new ISO8601DateProperty("aDate").indexed();
+	public static final Property<Integer>       anInt    = new IntProperty("anInt").indexed();
+	public static final Property<Long>          aLong    = new LongProperty("aLong").indexed();
+	public static final Property<Date>          aDate    = new ISO8601DateProperty("aDate").indexed();
 	
-	public static final CollectionProperty<TestOne> testOnes = new CollectionProperty<TestOne>("test_ones", TestOne.class, RelType.OWNS, true);
+	public static final Property<List<TestOne>> testOnes = new EndNodes<>("test_ones", TwoOneOneToMany.class);
 
 	public static final View publicView = new View(TestTwo.class, PropertyView.Public,
 		name, anInt, aLong, aDate

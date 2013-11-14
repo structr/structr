@@ -19,18 +19,13 @@
 package org.structr.rest.resource;
 
 import org.structr.core.Result;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
-import org.structr.core.entity.AbstractNode;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;
 import org.structr.rest.exception.NotFoundException;
@@ -42,8 +37,6 @@ import org.structr.rest.exception.NotFoundException;
  * @author Christian Morgner
  */
 public class TypedIdResource extends FilterableResource {
-
-	private static final Logger logger = Logger.getLogger(TypedIdResource.class.getName());
 
 	protected TypeResource typeResource = null;
 	protected UuidResource idResource = null;
@@ -66,17 +59,7 @@ public class TypedIdResource extends FilterableResource {
 
 	@Override
 	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
-
-		List<GraphObject> results = new LinkedList<GraphObject>();
-		AbstractNode node = getTypesafeNode();
-		
-		if (node != null) {
-
-			results.add(node);
-			return new Result(results, null, isCollectionResource(), isPrimitiveArray());
-		}
-
-		throw new NotFoundException();
+		return new Result(getEntity(), isPrimitiveArray());
 	}
 
 	@Override
@@ -87,21 +70,6 @@ public class TypedIdResource extends FilterableResource {
 	@Override
 	public RestMethodResult doHead() throws FrameworkException {
 		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
-	public AbstractNode getTypesafeNode() throws FrameworkException {
-
-		AbstractNode node = idResource.getNode();
-
-		String type       = EntityContext.normalizeEntityName(typeResource.getRawType());
-		Class parentClass = EntityContext.getEntityClassForRawType(type);
-		Class entityClass = node.getClass();
-
-		if (parentClass.isAssignableFrom(entityClass)) {
-			return node;
-		}
-		
-		throw new NotFoundException();
 	}
 	
 	@Override
@@ -129,23 +97,10 @@ public class TypedIdResource extends FilterableResource {
 			resource.configureIdProperty(idProperty);
 			return resource;
 
-		} else if(next instanceof TypedIdResource) {
-
-			RelationshipFollowingResource resource = new RelationshipFollowingResource(securityContext, this);
-			resource.configureIdProperty(idProperty);
-			resource.addTypedIdResource((TypedIdResource)next);
-
-			return resource;
-
 		} else if(next instanceof RelationshipResource) {
 
 			// make rel constraint wrap this
 			((RelationshipResource)next).wrapResource(this);
-			return next;
-
-		} else if(next instanceof RelationshipIdResource) {
-
-			((RelationshipIdResource)next).getRelationshipResource().wrapResource(this);
 			return next;
 		}
 
@@ -165,5 +120,21 @@ public class TypedIdResource extends FilterableResource {
 	@Override
 	public boolean isCollectionResource() {
 		return false;
+	}
+	
+	// ----- public methods -----
+	public GraphObject getEntity() throws FrameworkException {
+		
+		GraphObject entity = idResource.getEntity(typeResource.searchCommandType);
+		String type        = EntityContext.normalizeEntityName(typeResource.getRawType());
+		Class parentClass  = EntityContext.getEntityClassForRawType(type);
+		Class entityClass  = entity.getClass();
+
+		if (parentClass.isAssignableFrom(entityClass)) {
+			return entity;
+		}
+
+		throw new NotFoundException();
+		
 	}
 }

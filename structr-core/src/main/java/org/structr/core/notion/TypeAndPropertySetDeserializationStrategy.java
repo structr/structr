@@ -41,7 +41,10 @@ import org.structr.common.error.PropertiesNotFoundToken;
 import org.structr.common.error.TypeToken;
 import org.structr.core.JsonInput;
 import org.structr.core.Result;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.graph.CreateNodeCommand;
+import org.structr.core.graph.NodeInterface;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -50,7 +53,7 @@ import org.structr.core.graph.CreateNodeCommand;
  *
  * @author Christian Morgner
  */
-public class TypeAndPropertySetDeserializationStrategy<S, T extends GraphObject> implements DeserializationStrategy<S, T> {
+public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterface> implements DeserializationStrategy<S, T> {
 
 	private static final Logger logger = Logger.getLogger(TypeAndPropertySetDeserializationStrategy.class.getName());
 	
@@ -90,9 +93,13 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends GraphObject>
 
 	private T deserialize(SecurityContext securityContext, Class<T> type, PropertyMap attributes) throws FrameworkException {
 
+		final App app = StructrApp.getInstance(securityContext);
+		
 		if (attributes != null) {
 			
-			List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
+			Result<T> result = Result.EMPTY_RESULT;
+			
+			List<SearchAttribute> attrs = new LinkedList<>();
 
 			// Check if properties contain the UUID attribute
 			if (attributes.containsKey(GraphObject.uuid)) {
@@ -111,11 +118,7 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends GraphObject>
 				
 				if (attributesComplete) {
 
-					attrs.add(Search.andExactTypeAndSubtypes(type));
-
-					for (Entry<PropertyKey, Object> entry : attributes.entrySet()) {
-						attrs.add(Search.andExactProperty(securityContext, entry.getKey(), entry.getValue() != null ? entry.getValue().toString() : null));
-					}
+					result = app.nodeQuery(type).and(attributes).getResult();
 					
 				}
 				
@@ -123,7 +126,6 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends GraphObject>
 			}
 
 			// just check for existance
-			Result<T> result = Services.command(securityContext, SearchNodeCommand.class).execute(attrs);
 			int size         = result.size();
 			
 			switch (size) {
@@ -132,10 +134,8 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends GraphObject>
 					
 					if (createIfNotExisting) {
 
-						attributes.put(AbstractNode.type, type.getSimpleName());
-						
 						// create node and return it
-						T newNode = (T)Services.command(securityContext, CreateNodeCommand.class).execute(attributes);
+						T newNode = app.create(type);
 						if (newNode != null) {
 
 							return newNode;

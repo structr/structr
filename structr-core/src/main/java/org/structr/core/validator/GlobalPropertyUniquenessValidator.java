@@ -21,24 +21,16 @@ package org.structr.core.validator;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;
-import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UniqueToken;
 import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.SearchNodeCommand;
-
-//~--- JDK imports ------------------------------------------------------------
-
-import java.util.LinkedList;
-import java.util.List;
 import java.util.logging.Logger;
-import org.apache.lucene.search.BooleanClause.Occur;
+import org.apache.commons.lang.StringUtils;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.Result;
-import org.structr.core.graph.search.PropertySearchAttribute;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -57,7 +49,7 @@ public class GlobalPropertyUniquenessValidator implements PropertyValidator<Stri
 	@Override
 	public boolean isValid(SecurityContext securityContext, GraphObject object, PropertyKey key, String value, ErrorBuffer errorBuffer) {
 
-		if (value == null || (value != null && value.toString().length() == 0)) {
+		if (StringUtils.isEmpty(value)) {
 
 			errorBuffer.add(object.getType(), new EmptyPropertyToken(key));
 
@@ -67,28 +59,32 @@ public class GlobalPropertyUniquenessValidator implements PropertyValidator<Stri
 
 		if (key != null && value != null) {
 
-			// String type = EntityContext.GLOBAL_UNIQUENESS;
-			List<SearchAttribute> attributes = new LinkedList<SearchAttribute>();
-			boolean nodeExists               = false;
-			String id                        = null;
-
-			attributes.add(new PropertySearchAttribute(key, value, Occur.MUST, true));
-
-			Result<AbstractNode> resultList = null;
+			String id			= null;
+			GraphObject existingNode	= null;
 
 			try {
 
-				resultList = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(attributes);
-				nodeExists = !resultList.isEmpty();
+				// UUID is globally unique
+				if (key.equals(GraphObject.uuid)) {
+					
+					
+					//return true; // trust uniqueness
+					existingNode = StructrApp.getInstance().get(value);
+					//existingNode = StructrApp.getInstance().nodeQuery(AbstractNode.class).and(key, value).getFirst();
+					
+				} else {
+					
+					existingNode = StructrApp.getInstance().nodeQuery(AbstractNode.class).and(key, value).getFirst();
+				}
 
 			} catch (FrameworkException fex) {
 
 				// handle error
 			}
 
-			if (nodeExists) {
+			if (existingNode != null) {
 
-				AbstractNode foundNode = resultList.get(0);
+				GraphObject foundNode = existingNode;
 				if (foundNode.getId() != object.getId()) {
 
 					id = foundNode.getUuid();

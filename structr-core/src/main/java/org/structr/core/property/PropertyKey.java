@@ -159,13 +159,13 @@ public interface PropertyKey<T> {
 	public boolean requiresSynchronization();
 	public String getSynchronizationKey();
 	
-	public void setDeclaringClass(Class<? extends GraphObject> declaringClass);
-	public Class<? extends GraphObject> getDeclaringClass();
+	public void setDeclaringClass(Class declaringClass);
+	public Class getDeclaringClass();
 
 	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter);
 	public void setProperty(SecurityContext securityContext, GraphObject obj, T value) throws FrameworkException;
 
-	public void registrationCallback(Class entityType);
+	public void registrationCallback(Class<GraphObject> entityType);
 	
 	/**
 	 * Indicates whether this property is an unvalidated property or not.

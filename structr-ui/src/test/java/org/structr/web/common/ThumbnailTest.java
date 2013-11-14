@@ -20,14 +20,6 @@
 
 package org.structr.web.common;
 
-import org.structr.common.error.FrameworkException;
-import org.structr.core.property.PropertyMap;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.StructrTransaction;
-
-//~--- JDK imports ------------------------------------------------------------
-
-import java.io.IOException;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -62,27 +54,18 @@ public class ThumbnailTest extends StructrTest {
 	public void test01CreateThumbnail() {
 
 		try {
+			TestImage img = null;
+			
+			try {
+				app.beginTx();
 
-			TestImage img = transactionCommand.execute(new StructrTransaction<TestImage>() {
+				img = (TestImage) ImageHelper.createFileBase64(securityContext, base64Image, TestImage.class);
 
-				@Override
-				public TestImage execute() throws FrameworkException {
+				app.commitTx();
 
-					try {
-
-						return (TestImage) ImageHelper.createFileBase64(securityContext, base64Image, TestImage.class);
-
-					} catch (IOException ex) {
-
-						logger.log(Level.SEVERE, null, ex);
-
-					}
-
-					return null;
-
-				}
-
-			});
+			} finally {
+				app.finishTx();
+			}
 
 			assertNotNull(img);
 			assertTrue(img instanceof TestImage);
@@ -94,13 +77,10 @@ public class ThumbnailTest extends StructrTest {
 			assertEquals(new Integer(48), tn.getHeight());  // cropToFit = false
 			assertEquals("image/" + Thumbnail.FORMAT, tn.getContentType());
 
-		} catch (FrameworkException ex) {
+		} catch (Exception ex) {
 
 			logger.log(Level.SEVERE, ex.toString());
 			fail("Unexpected exception");
-
 		}
-
 	}
-
 }

@@ -33,10 +33,10 @@ import org.structr.core.property.Property;
 import org.structr.common.PropertyView;
 import org.structr.core.property.StringProperty;
 import org.structr.core.GraphObject;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.NodeFactory;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipFactory;
+import org.structr.core.graph.RelationshipInterface;
 
 /**
  *
@@ -86,7 +86,7 @@ public class RemoteView extends View {
 
 					if (o instanceof Node) {
 
-						AbstractNode node = nodeFactory.instantiate((Node) o);
+						NodeInterface node = nodeFactory.instantiate((Node) o);
 
 						if (node != null) {
 
@@ -95,7 +95,7 @@ public class RemoteView extends View {
 						
 					} else if (o instanceof Relationship) {
 
-						AbstractRelationship rel = relFactory.instantiate((Relationship) o);
+						RelationshipInterface rel = relFactory.instantiate((Relationship) o);
 
 						if (rel != null) {
 

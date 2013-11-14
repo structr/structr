@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.index.IndexHits;
+import org.neo4j.helpers.Function;
 import org.structr.common.FactoryDefinition;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -37,7 +38,7 @@ import org.structr.core.Result;
  * @author Christian Morgner
  */
 
-public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T> {
+public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>, Function<S, T> {
 
 	private static final Logger logger = Logger.getLogger(Factory.class.getName());
 	
@@ -79,10 +80,11 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 	
 	public abstract T instantiate(final S obj) throws FrameworkException;
 	
-	public abstract T instantiateWithType(final S obj, final String nodeType, boolean isCreation) throws FrameworkException;
+	public abstract T instantiateWithType(final S obj, final Class<T> type, boolean isCreation) throws FrameworkException;
 	
 	public abstract T instantiate(final S obj, final boolean includeDeletedAndHidden, final boolean publicOnly) throws FrameworkException;
-	
+
+	public abstract T instantiateDummy(final S entity, final String entityType) throws FrameworkException;
 
 	/**
 	 * Create structr nodes from all given underlying database nodes
@@ -138,7 +140,7 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 	 */
 	public List<T> bulkInstantiate(final Iterable<S> input) throws FrameworkException {
 
-		List<T> nodes = new LinkedList<T>();
+		List<T> nodes = new LinkedList<>();
 
 		if ((input != null) && input.iterator().hasNext()) {
 
@@ -169,6 +171,14 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 		return null;
 	}
 
+	@Override
+	public T apply(final S from) {
+		return adapt(from);
+	}
+
+	protected Class<T> getClassForName(final String rawType) {
+		return EntityContext.getEntityClassForRawType(rawType);
+	}
 
 	// <editor-fold defaultstate="collapsed" desc="private methods">
 	protected List<S> read(final Iterable<S> it) {
@@ -190,7 +200,7 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 		final int pageSize       = Math.min(size, factoryProfile.getPageSize());
 		final int page           = factoryProfile.getPage();
 		final String offsetId    = factoryProfile.getOffsetId();
-		List<T> elements         = new LinkedList<T>();
+		List<T> elements         = new LinkedList<>();
 		int position             = 0;
 		int count                = 0;
 		int offset               = 0;
@@ -234,7 +244,7 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 
 		}
 
-		if (!gotOffset) {
+		if (!nodesUpToOffset.isEmpty() && !gotOffset) {
 
 			throw new FrameworkException("offsetId", new IdNotFoundToken(offsetId));
 		}
@@ -547,5 +557,4 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 	}
 
 	// </editor-fold>
-
 }

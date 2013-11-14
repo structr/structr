@@ -44,18 +44,15 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.TestOne;
-import org.structr.core.graph.search.Search;
-import org.structr.core.graph.search.SearchAttribute;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.core.graph.StructrTransaction;
+import org.structr.core.graph.NodeInterface;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -84,18 +81,13 @@ public class PagingTest extends StructrTest {
 
               try {
 
-                      boolean includeDeletedAndHidden        = true;
-                      boolean publicOnly                     = false;
                       Class type                             = TestOne.class;
                       int number                             = 43;
-                      List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 
 		      // create nodes
 		      this.createTestNodes(type, number);
 		      
-                      searchAttributes.add(Search.andExactType(type));
-
-                      Result result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes);
+                      Result result = app.nodeQuery(type).getResult();
 
                       assertTrue(result.size() == number);
 
@@ -104,7 +96,7 @@ public class PagingTest extends StructrTest {
                       int pageSize        = 10;
                       int page            = 1;
 
-                      result = (Result) searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page);
+                      result = app.nodeQuery(type).includeDeletedAndHidden().sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getResult();
 
                       logger.log(Level.INFO, "Raw result size: {0}, expected: {1}", new Object[] { result.getRawResultCount(), number });
                       assertTrue(result.getRawResultCount() == number);
@@ -132,39 +124,33 @@ public class PagingTest extends StructrTest {
 			Class type                      = TestOne.class;
 			int number                      = 89;    // no more than 89 to avoid sort order TestOne-10, TestOne-100 ...
 			final int offset                = 10;
-			final List<AbstractNode> nodes  = this.createTestNodes(type, number);
+			final List<NodeInterface> nodes = this.createTestNodes(type, number);
 
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
-			
-			transactionCommand.execute(new StructrTransaction<AbstractNode>() {
 
-				@Override
-				public AbstractNode execute() throws FrameworkException {
+			try {
+				app.beginTx();
 
-					int i                           = offset;
-					for (AbstractNode node : nodes) {
+				int i                           = offset;
+				for (NodeInterface node : nodes) {
 
-						// System.out.println("Node ID: " + node.getNodeId());
-						String _name = "TestOne-" + i;
+					// System.out.println("Node ID: " + node.getNodeId());
+					String _name = "TestOne-" + i;
 
-						i++;
+					i++;
 
-						node.setProperty(AbstractNode.name, _name);
-					}
-					
-					return null;
+					node.setProperty(AbstractNode.name, _name);
 				}
+				app.commitTx();
 
-			});
+			} finally {
 
+				app.finishTx();
+			}
 
-			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+			Result result = app.nodeQuery(type).getResult();
 
-			searchAttributes.add(Search.andExactTypeAndSubtypes(type));
-
-			Result result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes);
-
-			assertTrue(result.size() == number);
+			assertEquals(number, result.size());
 
 			PropertyKey sortKey = AbstractNode.name;
 			boolean sortDesc    = false;
@@ -176,7 +162,7 @@ public class PagingTest extends StructrTest {
 				// test all pages
 				for (int p=0; p<(number/Math.max(1,ps))+1; p++) {
 			
-					testPaging(ps, p, number, offset, includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc);
+					testPaging(type, ps, p, number, offset, includeDeletedAndHidden, publicOnly, sortKey, sortDesc);
 				
 				}
 			}
@@ -192,11 +178,9 @@ public class PagingTest extends StructrTest {
 
 	}
 
-	protected void testPaging(final int pageSize, final int page, final int number, final int offset, final boolean includeDeletedAndHidden, final boolean publicOnly,
-				final List<SearchAttribute> searchAttributes, final PropertyKey sortKey, final boolean sortDesc)
-		throws FrameworkException {
+	protected void testPaging(final Class type, final int pageSize, final int page, final int number, final int offset, final boolean includeDeletedAndHidden, final boolean publicOnly, final PropertyKey sortKey, final boolean sortDesc) throws FrameworkException {
 
-		Result result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page);
+		Result result = app.nodeQuery(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getResult();
 
 //              for (GraphObject obj : result.getResults()) {
 //                      

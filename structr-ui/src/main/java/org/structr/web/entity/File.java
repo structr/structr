@@ -45,6 +45,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.Path;
 import org.structr.common.SecurityContext;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.StringProperty;
@@ -94,6 +96,7 @@ public class File extends AbstractFile implements Linkable {
 	@Override
 	public void afterCreation(SecurityContext securityContext) {
 
+		final App app = StructrApp.getInstance(securityContext);
 		try {
 
 			java.io.File fileOnDisk = new java.io.File(Services.getFilesPath() + "/" + getRelativeFilePath());
@@ -113,53 +116,22 @@ public class File extends AbstractFile implements Linkable {
 				logger.log(Level.SEVERE, "Could not create file", ex);
 				return;
 			}
-			
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
-				@Override
-				public Object execute() throws FrameworkException {
-
-					setProperty(checksum,	FileHelper.getChecksum(File.this));
-					setProperty(size,	FileHelper.getSize(File.this));
-					
-					return null;
-				}
-			});
+			app.beginTx();
+			setProperty(checksum,	FileHelper.getChecksum(File.this));
+			setProperty(size,	FileHelper.getSize(File.this));
+			app.commitTx();
 
 		} catch (FrameworkException ex) {
 
 			logger.log(Level.SEVERE, "Could not create file", ex);
 
+		} finally {
+			
+			app.finishTx();
 		}
 
 	}
-//
-//	@Override
-//	public void afterModification(SecurityContext securityContext) {
-//
-//		try {
-//
-//			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-//
-//				@Override
-//				public Object execute() throws FrameworkException {
-//
-//					setProperty(checksum,	FileHelper.getChecksum(File.this));
-//					setProperty(size,	FileHelper.getSize(File.this));
-//					
-//					return null;
-//				}
-//			});
-//
-//		} catch (FrameworkException ex) {
-//
-//			logger.log(Level.SEVERE, "Could not set checksum and size", ex);
-//
-//		}
-//
-//	}
-
-	//~--- get methods ----------------------------------------------------
 
 	public String getUrl() {
 
@@ -248,11 +220,12 @@ public class File extends AbstractFile implements Linkable {
 
 	public OutputStream getOutputStream() {
 		
-		String path = getRelativeFilePath();
+		final String path = getRelativeFilePath();
 
 		if (path != null) {
 
-			String filePath         = Services.getFilePath(Path.Files, path);
+			final String filePath = Services.getFilePath(Path.Files, path);
+			final App app         = StructrApp.getInstance(securityContext);
 
 			try {
 
@@ -263,24 +236,25 @@ public class File extends AbstractFile implements Linkable {
 					
 					@Override
 					public void close() throws IOException {
+						
 						super.close();
+						
 						try {
-							Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-								
-								@Override
-								public Object execute() throws FrameworkException {
-									
-									setProperty(checksum,	FileHelper.getChecksum(File.this));
-									setProperty(size,	FileHelper.getSize(File.this));
-									
-									return null;
-								}
-							});
+							
+							app.beginTx();
+							setProperty(checksum,	FileHelper.getChecksum(File.this));
+							setProperty(size,	FileHelper.getSize(File.this));
+							app.commitTx();
+							
 						} catch (FrameworkException ex) {
+							
 							logger.log(Level.SEVERE, "Could not determine or save checksum and size after closing file output stream", ex);
+							
+						} finally {
+							
+							app.finishTx();
 						}
 					}
-					
 				};
 				
 				return fos;
@@ -307,75 +281,76 @@ public class File extends AbstractFile implements Linkable {
 
 	public void setRelativeFilePath(final String filePath) throws FrameworkException {
 
-		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-			@Override
-			public Object execute() throws FrameworkException {
-
-				setProperty(File.relativeFilePath, filePath);
-
-				return null;
-			}
-		});
-
+		final App app = StructrApp.getInstance(securityContext);
+		try {
+			
+			app.beginTx();
+			setProperty(File.relativeFilePath, filePath);
+			app.commitTx();
+			
+		} finally {
+			
+			app.finishTx();
+		}
 	}
 
 	public void setUrl(final String url) throws FrameworkException {
 
-		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-			@Override
-			public Object execute() throws FrameworkException {
-				
-				setProperty(File.url, url);
-
-				return null;
-			}
-		});
-
+		final App app = StructrApp.getInstance(securityContext);
+		try {
+			
+			app.beginTx();
+			setProperty(File.url, url);
+			app.commitTx();
+			
+		} finally {
+			
+			app.finishTx();
+		}
 	}
 
 	public void setContentType(final String contentType) throws FrameworkException {
-
-		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-			@Override
-			public Object execute() throws FrameworkException {
-				
-				setProperty(File.contentType, contentType);
-
-				return null;
-			}
-		});
-
+		
+		final App app = StructrApp.getInstance(securityContext);
+		try {
+			
+			app.beginTx();
+			setProperty(File.contentType, contentType);
+			app.commitTx();
+			
+		} finally {
+			
+			app.finishTx();
+		}
 	}
 
 	public void setSize(final Long size) throws FrameworkException {
-
-		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-			@Override
-			public Object execute() throws FrameworkException {
-				
-				setProperty(File.size, size);
-
-				return null;
-			}
-		});
-
+		
+		final App app = StructrApp.getInstance(securityContext);
+		try {
+			
+			app.beginTx();
+			setProperty(File.size, size);
+			app.commitTx();
+			
+		} finally {
+			
+			app.finishTx();
+		}
 	}
 
 	public void setChecksum(final Long checksum) throws FrameworkException {
-
-		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-			@Override
-			public Object execute() throws FrameworkException {
-				
-				setProperty(File.checksum, checksum);
-
-				return null;
-			}
-		});
+		
+		final App app = StructrApp.getInstance(securityContext);
+		try {
+			
+			app.beginTx();
+			setProperty(File.checksum, checksum);
+			app.commitTx();
+			
+		} finally {
+			
+			app.finishTx();
+		}
 	}
 }

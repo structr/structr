@@ -25,9 +25,8 @@ import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 
 /**
  *
@@ -66,46 +65,42 @@ public class TestFive extends AbstractNode {
 	@Override
 	public void afterCreation(SecurityContext securityContext) {
 		
+		final App app = StructrApp.getInstance(securityContext);
 		try {
 			final int value = getIncreasedValue(modifiedInAfterCreation);
 			
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-				@Override
-				public Object execute() throws FrameworkException {
-
-					setProperty(modifiedInAfterCreation, value);
-					return null;
-				}
-				
-			});
+			app.beginTx();
+			setProperty(modifiedInAfterCreation, value);
+			app.commitTx();
 			
 		} catch (Throwable t) {
 			
 			t.printStackTrace();
+
+		} finally {
+
+			app.finishTx();
 		}
 	}
 
 	@Override
 	public void afterModification(SecurityContext securityContext) {
 		
+		final App app = StructrApp.getInstance(securityContext);
 		try {
 			final int value = getIncreasedValue(modifiedInAfterModification);
 			
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-				@Override
-				public Object execute() throws FrameworkException {
-
-					setProperty(modifiedInAfterModification, value);
-					return null;
-				}
-				
-			});
+			app.beginTx();
+			setProperty(modifiedInAfterModification, value);
+			app.commitTx();
 			
 		} catch (Throwable t) {
 			
 			t.printStackTrace();
+
+		} finally {
+
+			app.finishTx();
 		}
 	}
 	

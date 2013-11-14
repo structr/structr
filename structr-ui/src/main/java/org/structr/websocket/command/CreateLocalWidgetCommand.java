@@ -23,12 +23,9 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.CreateNodeCommand;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.Widget;
 import org.structr.web.entity.dom.DOMNode;
@@ -52,10 +49,11 @@ public class CreateLocalWidgetCommand extends AbstractCommand {
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
-		String id			= webSocketData.getId();
-		Map<String, Object> nodeData	= webSocketData.getNodeData();
-		final String source		= (String) nodeData.get("source");
-		final String name		= (String) nodeData.get("name");
+		final App app                      = StructrApp.getInstance(getWebSocket().getSecurityContext());
+		final String id	                   = webSocketData.getId();
+		final Map<String, Object> nodeData = webSocketData.getNodeData();
+		final String source                = (String) nodeData.get("source");
+		final String name                  = (String) nodeData.get("name");
 
 		// check for ID
 		if (id == null) {
@@ -79,24 +77,16 @@ public class CreateLocalWidgetCommand extends AbstractCommand {
 		
 		try {
 			
-				
-			final SecurityContext securityContext = getWebSocket().getSecurityContext();
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+			// convertFromInput
+			PropertyMap properties = new PropertyMap();
 
-				@Override
-				public Object execute() throws FrameworkException {
+			properties.put(AbstractNode.type, Widget.class.getSimpleName());
+			properties.put(AbstractNode.name, name);
+			properties.put(Widget.source, source);
 
-					// convertFromInput
-					PropertyMap properties = new PropertyMap();
-					
-					properties.put(AbstractNode.type, Widget.class.getSimpleName());
-					properties.put(AbstractNode.name, name);
-					properties.put(Widget.source, source);
-
-					return Services.command(securityContext, CreateNodeCommand.class).execute(properties);
-				}
-			});
-
+			app.beginTx();
+			app.create(Widget.class, properties);
+			app.commitTx();
 
 		} catch (Throwable t) {
 
@@ -104,6 +94,10 @@ public class CreateLocalWidgetCommand extends AbstractCommand {
 
 			// send exception
 			getWebSocket().send(MessageBuilder.status().code(422).message(t.toString()).build(), true);
+
+		} finally {
+
+			app.finishTx();
 		}
 
 	}

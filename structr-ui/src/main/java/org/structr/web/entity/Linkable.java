@@ -20,13 +20,15 @@
 
 package org.structr.web.entity;
 
-import org.neo4j.graphdb.Direction;
+import java.util.List;
 import org.structr.common.PropertyView;
-import org.structr.web.common.RelType;
-import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.PropertyNotion;
-import org.structr.core.property.CollectionProperty;
+import org.structr.core.property.Property;
+import org.structr.core.property.StartNodes;
+import org.structr.web.entity.html.Link;
+import org.structr.web.entity.html.relation.ResourceLink;
 
 //~--- interfaces -------------------------------------------------------------
 
@@ -34,9 +36,9 @@ import org.structr.core.property.CollectionProperty;
  *
  * @author Axel Morgner
  */
-public interface Linkable extends GraphObject {
+public interface Linkable extends NodeInterface {
 
-	public static final CollectionProperty<AbstractNode> linkingElements = new CollectionProperty<>("linkingElements", AbstractNode.class, RelType.LINK, Direction.INCOMING, new PropertyNotion(AbstractNode.uuid), true);
+	public static final Property<List<Link>> linkingElements = new StartNodes<>("linkingElements", ResourceLink.class, new PropertyNotion(AbstractNode.uuid));
 
 	public static final org.structr.common.View uiView = new org.structr.common.View(Linkable.class, PropertyView.Ui, linkingElements);
 }

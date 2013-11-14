@@ -18,10 +18,10 @@
  */
 package org.structr.core.entity;
 
-import org.neo4j.graphdb.Direction;
-import org.structr.common.RelType;
+import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;
-import org.structr.core.property.EntityProperty;
+import org.structr.core.property.StartNode;
+import org.structr.core.property.Property;
 
 /**
  * A simple entity for the most basic tests.
@@ -33,16 +33,22 @@ import org.structr.core.property.EntityProperty;
  */
 public class TestTwo extends AbstractNode {
 	
-	public static final EntityProperty<TestOne> testOne = new EntityProperty<TestOne>("testOne", TestOne.class, RelType.IS_AT, Direction.INCOMING, false, Relation.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED);
+	public static final Property<TestOne> testOne = new StartNode<>("testOne", OneTwoOneToOne.class);
 	
 	@Override
 	public boolean isValid(ErrorBuffer errorBuffer) {
-		return getTestOne() != null;
+		
+		if (getTestOne() == null) {
+			
+			errorBuffer.add(TestTwo.class.getSimpleName(), new EmptyPropertyToken(testOne));
+			
+			return false;
+		}
+		
+		return true;
 	}
 	
 	private TestOne getTestOne() {
 		return getProperty(testOne);
 	}
-	
-	
 }

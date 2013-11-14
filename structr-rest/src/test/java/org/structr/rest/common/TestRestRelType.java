@@ -29,7 +29,6 @@ public enum TestRestRelType implements RelationshipType {
 	MANY_TO_MANY,
 	ONE_TO_MANY,
 	ONE_TO_ONE,
-	MANY_TO_ONE,
 	
 	HAS
 }

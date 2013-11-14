@@ -21,19 +21,16 @@
 package org.structr.websocket.command;
 
 import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.web.entity.Linkable;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.Map;
-import org.structr.web.entity.html.Link;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
+import org.structr.web.entity.html.relation.ResourceLink;
 import org.structr.websocket.StructrWebSocket;
 
 //~--- classes ----------------------------------------------------------------
@@ -53,6 +50,7 @@ public class LinkCommand extends AbstractCommand {
 	public void processMessage(WebSocketMessage webSocketData) {
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
+		final App app                         = StructrApp.getInstance(securityContext);
 		String sourceId                       = webSocketData.getId();
 		Map<String, Object> properties        = webSocketData.getNodeData();
 		String targetId                       = (String) properties.get("targetId");
@@ -62,25 +60,17 @@ public class LinkCommand extends AbstractCommand {
 		if ((sourceNode != null) && (targetNode != null)) {
 
 			try {
-
-				StructrTransaction transaction = new StructrTransaction() {
-
-					@Override
-					public Object execute() throws FrameworkException {
-
-						Link.linkable.createRelationship(securityContext, sourceNode, targetNode);
-
-						return null;
-					}
-
-				};
-
-				Services.command(securityContext, TransactionCommand.class).execute(transaction);
+				app.beginTx();
+				app.create(sourceNode, targetNode, ResourceLink.class);
+				app.commitTx();
 
 			} catch (Throwable t) {
 
 				getWebSocket().send(MessageBuilder.status().code(400).message(t.getMessage()).build(), true);
 
+			} finally {
+				
+				app.finishTx();
 			}
 
 		} else {

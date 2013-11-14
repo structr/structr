@@ -22,19 +22,18 @@ package org.structr.websocket.command;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.graphdb.Direction;
-import org.structr.web.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
 import org.structr.core.Services;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.graph.CreateRelationshipCommand;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
+import org.structr.web.entity.relation.Sync;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -58,29 +57,21 @@ public class FixComponentsCommand extends AbstractCommand {
 	public void processMessage(WebSocketMessage webSocketData) {
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
+		final App app                         = StructrApp.getInstance(securityContext);
 
 		try {
-
-
-			StructrTransaction transaction               = new StructrTransaction() {
-
-				@Override
-				public Object execute() throws FrameworkException {
-
-					fixLostComponents();
-
-					return null;
-
-				}
-
-			};
-
-			Services.command(securityContext, TransactionCommand.class).execute(transaction);
+			app.beginTx();
+			fixLostComponents();
+			app.commitTx();
 
 		} catch (Exception ex) {
 
 			// send DOM exception
 			getWebSocket().send(MessageBuilder.status().code(422).message(ex.getMessage()).build(), true);
+			
+		} finally {
+			
+			app.finishTx();
 		}
 
 	}
@@ -112,12 +103,12 @@ public class FixComponentsCommand extends AbstractCommand {
 			Search.andExactTypeAndSubtypes(DOMNode.class)
 		);
 
-		final CreateRelationshipCommand<?> createRel = Services.command(securityContext, CreateRelationshipCommand.class);
+		final CreateRelationshipCommand createRel = Services.command(securityContext, CreateRelationshipCommand.class);
 		
 		for (DOMNode node : result.getResults()) {
 			
 			if (node.hasChildNodes()
-				&& (node.hasRelationship(RelType.SYNC, Direction.INCOMING) || node.hasRelationship(RelType.SYNC, Direction.OUTGOING))
+				&& (node.hasIncomingRelationships(Sync.class) || node.hasRelationship(Sync.class))
 				&& (!hiddenDoc.equals(node.getOwnerDocument()))
 				) {
 				
@@ -128,8 +119,8 @@ public class FixComponentsCommand extends AbstractCommand {
 					moveChildNodes(node, clonedNode);
 					clonedNode.setProperty(DOMNode.ownerDocument, hiddenDoc);
 
-					createRel.execute(node, clonedNode, RelType.SYNC, true);
-					createRel.execute(clonedNode, node, RelType.SYNC, true);
+					createRel.execute(node, clonedNode, Sync.class);
+					createRel.execute(clonedNode, node, Sync.class);
 					
 				} catch (Exception ex) {
 					

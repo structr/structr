@@ -21,13 +21,15 @@ package org.structr.core.notion;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.graph.NodeInterface;
 
 /**
  * Defines a strategy for deserializing a {@link GraphObject} from an input
  * object.
  *
  * @author Christian Morgner
+ * @param <T>
  */
-public interface DeserializationStrategy<S, T extends GraphObject> {
-	public T deserialize(SecurityContext securityContext, Class<T> type, S source) throws FrameworkException;
+public interface DeserializationStrategy<S, T extends NodeInterface> {
+	public T deserialize(final SecurityContext securityContext, Class<T> type, S source) throws FrameworkException;
 }

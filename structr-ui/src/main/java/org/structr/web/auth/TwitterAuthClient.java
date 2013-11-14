@@ -68,7 +68,7 @@ public class TwitterAuthClient extends StructrOAuthClient {
 	/**
 	 * Create an end-user authorization request
 	 * 
-	 * Use with {@code response.setRedirect(request.getLocationUri());}
+	 * Use with {@literal response.setRedirect(request.getLocationUri());}
 	 * 
 	 * @param request
 	 * @return

@@ -41,6 +41,8 @@ import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
 import org.structr.core.Result;
 import org.structr.core.Services;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.experimental.NodeExtender;
 import org.structr.core.graph.NodeService;
@@ -49,11 +51,9 @@ import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.notion.Notion;
 import org.structr.core.notion.PropertySetNotion;
-import org.structr.core.property.AbstractRelationProperty;
 import org.structr.core.property.BooleanProperty;
-import org.structr.core.property.CollectionProperty;
+import org.structr.core.property.EndNodes;
 import org.structr.core.property.DoubleProperty;
-import org.structr.core.property.EntityProperty;
 import org.structr.core.property.ISO8601DateProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.LongProperty;
@@ -61,6 +61,7 @@ import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
+import scala.collection.script.End;
 
 /**
  *
@@ -101,9 +102,9 @@ public class PropertyDefinition<T> extends AbstractNode implements PropertyKey<T
 	);
 	
 	// ----- private members -----
-	private static final Map<String, Map<String, PropertyDefinition>> dynamicTypes = new ConcurrentHashMap<String, Map<String, PropertyDefinition>>();
-	private static final Map<String, Class<? extends PropertyKey>> delegateMap     = new LinkedHashMap<String, Class<? extends PropertyKey>>();
-	private List<PropertyValidator> validators                                     = new LinkedList<PropertyValidator>();
+	private static final Map<String, Map<String, PropertyDefinition>> dynamicTypes = new ConcurrentHashMap<>();
+	private static final Map<String, Class<? extends PropertyKey>> delegateMap     = new LinkedHashMap<>();
+	private List<PropertyValidator> validators                                     = new LinkedList<>();
 	private Class declaringClass                                                   = null;
 	private PropertyKey<T> delegate                                                = null;
 
@@ -116,8 +117,8 @@ public class PropertyDefinition<T> extends AbstractNode implements PropertyKey<T
 		delegateMap.put("Double",     DoubleProperty.class);
 		delegateMap.put("Boolean",    BooleanProperty.class);
 		delegateMap.put("Date",       ISO8601DateProperty.class);
-		delegateMap.put("Collection", CollectionProperty.class);
-		delegateMap.put("Entity",     EntityProperty.class);
+//		delegateMap.put("Collection", EndNodes.class);
+//		delegateMap.put("Entity",     End.class);
 	}
 	
 	public static void clearPropertyDefinitions() {
@@ -409,7 +410,7 @@ public class PropertyDefinition<T> extends AbstractNode implements PropertyKey<T
 				
 				if (keyClass != null) {
 
-					if (AbstractRelationProperty.class.isAssignableFrom(keyClass)) {
+					if (EndNodes.class.isAssignableFrom(keyClass) || End.class.isAssignableFrom(keyClass)) {
 					
 						try {
 
@@ -464,13 +465,9 @@ public class PropertyDefinition<T> extends AbstractNode implements PropertyKey<T
 		if (dynamicTypes.isEmpty()) {
 			
 			try {
-				SecurityContext securityContext = SecurityContext.getSuperUserInstance();
-
-				Result<PropertyDefinition> propertyDefinitions = Services.command(securityContext, SearchNodeCommand.class).execute(
-					Search.andExactType(PropertyDefinition.class)
-				);
-
-				for (PropertyDefinition def : propertyDefinitions.getResults()) {
+				final List<PropertyDefinition> propertyDefinitions = StructrApp.getInstance().nodeQuery(PropertyDefinition.class).getAsList();
+				for (PropertyDefinition def : propertyDefinitions) {
+					
 					getPropertyDefinitionsForKind(def.getProperty(PropertyDefinition.kind)).put(def.dbName(), def);
 				}
 
@@ -486,7 +483,7 @@ public class PropertyDefinition<T> extends AbstractNode implements PropertyKey<T
 		Map<String, PropertyDefinition> definitionsForKind = dynamicTypes.get(kind);
 		if (definitionsForKind == null) {
 			
-			definitionsForKind = new ConcurrentHashMap<String, PropertyDefinition>();
+			definitionsForKind = new ConcurrentHashMap<>();
 			dynamicTypes.put(kind, definitionsForKind);
 		}
 		

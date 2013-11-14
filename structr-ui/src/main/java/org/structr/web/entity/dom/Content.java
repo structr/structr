@@ -39,9 +39,6 @@ import org.structr.core.graph.search.Search;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.web.common.RenderContext;
-import org.structr.core.Services;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.StringProperty;
 
@@ -52,6 +49,8 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.Permission;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.web.common.RenderContext.EditMode;
 import static org.structr.web.entity.dom.DOMNode.hideOnDetail;
 import static org.structr.web.entity.dom.DOMNode.hideOnIndex;
@@ -338,30 +337,31 @@ public class Content extends DOMNode implements Text {
 				
 				if (document != null && parent != null) {
 					
+					final App app = StructrApp.getInstance(securityContext);
 					try {
+						app.beginTx();
 
-						return Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<Text>() {
+						// first part goes into existing text element
+						setProperty(content, firstPart);
 
-							@Override
-							public Text execute() throws FrameworkException {
+						// second part goes into new text element
+						Text newNode = document.createTextNode(secondPart);
 
-								// first part goes into existing text element
-								setProperty(content, firstPart);
-								
-								// second part goes into new text element
-								Text newNode = document.createTextNode(secondPart);
-								
-								// make new node a child of old parent
-								parent.appendChild(newNode);
-								
-								return newNode;
-							}
-						});
+						// make new node a child of old parent
+						parent.appendChild(newNode);
+
+						app.commitTx();
+						
+						return newNode;
 
 					} catch (FrameworkException fex) {
 			
 						throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());			
-					}					
+						
+					} finally {
+						
+						app.finishTx();
+					}
 					
 				} else {
 						
@@ -411,22 +411,19 @@ public class Content extends DOMNode implements Text {
 		
 		checkWriteAccess();
 		
+		final App app = StructrApp.getInstance(securityContext);
 		try {
-
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-				@Override
-				public Object execute() throws FrameworkException {
-			
-					setProperty(content, data);
-					
-					return null;
-				}
-			});
+			app.beginTx();
+			setProperty(content, data);
+			app.commitTx();
 			
 		} catch (FrameworkException fex) {
 			
 			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());
+			
+		} finally {
+			
+			app.finishTx();
 		}
 	}
 
@@ -469,25 +466,21 @@ public class Content extends DOMNode implements Text {
 	public void appendData(final String data) throws DOMException {
 		
 		checkWriteAccess();
-		
-		// set content to concatenated text and data
-		try {
-			
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
-				@Override
-				public Object execute() throws FrameworkException {
-			
-					String text = getProperty(content);
-					setProperty(content, text.concat(data));
-					
-					return null;
-				}
-			});
+		final App app = StructrApp.getInstance(securityContext);
+		try {
+			app.beginTx();
+			String text = getProperty(content);
+			setProperty(content, text.concat(data));
+			app.commitTx();
 			
 		} catch (FrameworkException fex) {
 			
 			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());
+			
+		} finally {
+			
+			app.finishTx();
 		}
 	}
 
@@ -495,35 +488,34 @@ public class Content extends DOMNode implements Text {
 	public void insertData(final int offset, final String data) throws DOMException {
 		
 		checkWriteAccess();
-		
+
+		final App app = StructrApp.getInstance(securityContext);
 		try {
-						
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+			app.beginTx();
 
-				@Override
-				public Object execute() throws FrameworkException {
+			String text = getProperty(content);
 
-					String text = getProperty(content);
+			String leftPart  = text.substring(0, offset);
+			String rightPart = text.substring(offset);
 
-					String leftPart  = text.substring(0, offset);
-					String rightPart = text.substring(offset);
+			StringBuilder buf = new StringBuilder(text.length() + data.length() + 1);
+			buf.append(leftPart);
+			buf.append(data);
+			buf.append(rightPart);
 
-					StringBuilder buf = new StringBuilder(text.length() + data.length() + 1);
-					buf.append(leftPart);
-					buf.append(data);
-					buf.append(rightPart);
+			// finally, set content to concatenated left, data and right parts
+			setProperty(content, buf.toString());
 
-					// finally, set content to concatenated left, data and right parts
-					setProperty(content, buf.toString());
-					
-					return null;
-				}
-			});
+			app.commitTx();
 			
 		} catch (FrameworkException fex) {
 			
 			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());
-		}		
+			
+		} finally {
+			
+			app.finishTx();
+		}
 	}
 
 	@Override
@@ -532,27 +524,26 @@ public class Content extends DOMNode implements Text {
 		checkWriteAccess();
 		
 		// finally, set content to concatenated left and right parts
+		final App app = StructrApp.getInstance(securityContext);
 		try {
-						
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+			app.beginTx();
 
-				@Override
-				public Object execute() throws FrameworkException {
+			String text = getProperty(content);
 
-					String text = getProperty(content);
+			String leftPart  = text.substring(0, offset);
+			String rightPart = text.substring(offset + count);
 
-					String leftPart  = text.substring(0, offset);
-					String rightPart = text.substring(offset + count);
+			setProperty(content, leftPart.concat(rightPart));
 			
-					setProperty(content, leftPart.concat(rightPart));
-					
-					return null;
-				}
-			});
+			app.commitTx();
 			
 		} catch (FrameworkException fex) {
 			
 			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());
+			
+		} finally {
+			
+			app.finishTx();
 		}
 	}
 
@@ -562,32 +553,31 @@ public class Content extends DOMNode implements Text {
 		checkWriteAccess();
 
 		// finally, set content to concatenated left and right parts
+		final App app = StructrApp.getInstance(securityContext);
 		try {
-						
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+			app.beginTx();
 
-				@Override
-				public Object execute() throws FrameworkException {
+			String text = getProperty(content);
 
-					String text = getProperty(content);
+			String leftPart  = text.substring(0, offset);
+			String rightPart = text.substring(offset + count);
 
-					String leftPart  = text.substring(0, offset);
-					String rightPart = text.substring(offset + count);
+			StringBuilder buf = new StringBuilder(leftPart.length() + data.length() + rightPart.length());
+			buf.append(leftPart);
+			buf.append(data);
+			buf.append(rightPart);
 
-					StringBuilder buf = new StringBuilder(leftPart.length() + data.length() + rightPart.length());
-					buf.append(leftPart);
-					buf.append(data);
-					buf.append(rightPart);
-					
-					setProperty(content, buf.toString());
-					
-					return null;
-				}
-			});
+			setProperty(content, buf.toString());
+			
+			app.commitTx();
 			
 		} catch (FrameworkException fex) {
 			
 			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());
+			
+		} finally {
+			
+			app.finishTx();
 		}
 	}
 	

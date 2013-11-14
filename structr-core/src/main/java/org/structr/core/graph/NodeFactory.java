@@ -21,25 +21,23 @@
 package org.structr.core.graph;
 
 import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.index.IndexHits;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Result;
-import org.structr.core.Services;
-import org.structr.core.entity.AbstractNode;
 
 import java.lang.reflect.Constructor;
 
 import java.util.*;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.core.module.ModuleService;
 import org.neo4j.gis.spatial.indexprovider.SpatialRecordHits;
-import org.neo4j.graphdb.Direction;
-import org.structr.common.RelType;
-import org.structr.core.entity.AbstractRelationship;
+import org.neo4j.graphdb.index.IndexHits;
+import org.structr.common.AccessControllable;
+import org.structr.core.GraphObject;
+import org.structr.core.Result;
+import org.structr.core.Services;
+import org.structr.core.entity.relationship.LocationRelationship;
+import org.structr.core.module.ModuleService;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -49,13 +47,13 @@ import org.structr.core.entity.AbstractRelationship;
  * @author Christian Morgner
  * @author Axel Morgner
  */
-public class NodeFactory<T extends AbstractNode> extends Factory<Node, T> {
+public class NodeFactory<T extends NodeInterface & AccessControllable> extends Factory<Node, T> {
 
 	private static final Logger logger        = Logger.getLogger(NodeFactory.class.getName());
 
 	//~--- fields ---------------------------------------------------------
 
-	private Map<Class, Constructor<T>> constructors = new LinkedHashMap<Class, Constructor<T>>();
+	private Map<Class, Constructor<T>> constructors = new LinkedHashMap<>();
 
 	//~--- constructors ---------------------------------------------------
 
@@ -79,66 +77,56 @@ public class NodeFactory<T extends AbstractNode> extends Factory<Node, T> {
 
 	@Override
 	public T instantiate(final Node node) throws FrameworkException {
-
-		String nodeType = factoryDefinition.determineNodeType(node);
-
-		return instantiateWithType(node, nodeType, false);
-
+		return (T) instantiateWithType(node, factoryDefinition.determineNodeType(node), false);
 	}
 
 	@Override
-	public T instantiateWithType(final Node node, final String nodeType, boolean isCreation) throws FrameworkException {
+	public T instantiateWithType(final Node node, final Class<T> nodeClass, boolean isCreation) throws FrameworkException {
 
 		SecurityContext securityContext = factoryProfile.getSecurityContext();
 		T newNode = (T)securityContext.lookup(node);
 		
 		if (newNode == null) {
 
-			Class<T> nodeClass = Services.getService(ModuleService.class).getNodeEntityClass(nodeType);
-			if (nodeClass != null) {
+			try {
 
-				try {
+				Constructor<T> constructor = constructors.get(nodeClass);
+				if (constructor == null) {
 
-					Constructor<T> constructor = constructors.get(nodeClass);
-					if (constructor == null) {
+					constructor = nodeClass.getConstructor();
 
-						constructor = nodeClass.getConstructor();
-
-						constructors.put(nodeClass, constructor);
-
-					}
-
-					// newNode = (AbstractNode) nodeClass.newInstance();
-					newNode = constructor.newInstance();
-
-				} catch (Throwable t) {
-
-					newNode = null;
+					constructors.put(nodeClass, constructor);
 
 				}
+
+				// newNode = (AbstractNode) nodeClass.newInstance();
+				newNode = constructor.newInstance();
+
+			} catch (Throwable t) {
+
+				newNode = null;
 
 			}
 
 			if (newNode == null) {
-				// FIXME
 				newNode = (T)factoryDefinition.createGenericNode();
 			}
-
 
 			newNode.init(factoryProfile.getSecurityContext(), node);
 			newNode.onNodeInstantiation();
 
-			String newNodeType = newNode.getProperty(AbstractNode.type);
-			if (newNodeType == null) { //  || (newNodeType != null && !newNodeType.equals(nodeType))) {
+			String newNodeType = newNode.getProperty(GraphObject.type);
+			if (newNodeType == null && nodeClass != null) {
 				
 				try {
 
 					newNode.unlockReadOnlyPropertiesOnce();
-					newNode.setProperty(AbstractNode.type, nodeType);
+					newNode.setProperty(GraphObject.type, nodeClass.getSimpleName());
 
 				} catch (Throwable t) {
 
-					logger.log(Level.SEVERE, "Unable to set type property {0} on node {1}: {2}", new Object[] { nodeType, newNode, t.getMessage() } );
+					t.printStackTrace();
+					logger.log(Level.SEVERE, "Unable to set type property {0} on node {1}: {2}", new Object[] { nodeClass, newNode, t.getMessage() } );
 				}
 			}
 			
@@ -174,9 +162,10 @@ public class NodeFactory<T extends AbstractNode> extends Factory<Node, T> {
 		return super.instantiate(input);
 	}
 
-	public T instantiateDummy(final String nodeType) throws FrameworkException {
+	@Override
+	public T instantiateDummy(final Node entity, final String entityType) throws FrameworkException {
 
-		Class<T> nodeClass = Services.getService(ModuleService.class).getNodeEntityClass(nodeType);
+		Class<T> nodeClass = Services.getService(ModuleService.class).getNodeEntityClass(entityType);
 		T newNode          = null;
 
 		if (nodeClass != null) {
@@ -193,8 +182,8 @@ public class NodeFactory<T extends AbstractNode> extends Factory<Node, T> {
 
 				}
 
-				// newNode = (AbstractNode) nodeClass.newInstance();
 				newNode = constructor.newInstance();
+				newNode.init(factoryProfile.getSecurityContext(), entity);
 
 			} catch (Throwable t) {
 
@@ -214,7 +203,7 @@ public class NodeFactory<T extends AbstractNode> extends Factory<Node, T> {
 		final SecurityContext securityContext = factoryProfile.getSecurityContext();
 		final boolean includeDeletedAndHidden = factoryProfile.includeDeletedAndHidden();
 		final boolean publicOnly              = factoryProfile.publicOnly();
-		List<T> nodes                         = new LinkedList<T>();
+		List<T> nodes                         = new LinkedList<>();
 		int size                              = spatialRecordHits.size();
 		int position                          = 0;
 		int count                             = 0;
@@ -233,11 +222,11 @@ public class NodeFactory<T extends AbstractNode> extends Factory<Node, T> {
 				// Check is done in createNodeWithType already, so we don't have to do it again
 				if (n != null) {    // && isReadable(securityContext, n, includeDeletedAndHidden, publicOnly)) {
 
-					List<AbstractNode> nodesAt = getNodesAt(n);
+					List<T> nodesAt = (List<T>)getNodesAt(n);
 
 					size += nodesAt.size();
 
-					for (AbstractNode nodeAt : nodesAt) {
+					for (T nodeAt : nodesAt) {
 
 						if (nodeAt != null && securityContext.isReadable(nodeAt, includeDeletedAndHidden, publicOnly)) {
 
@@ -272,18 +261,22 @@ public class NodeFactory<T extends AbstractNode> extends Factory<Node, T> {
 	 * @param locationNode
 	 * @return
 	 */
-	protected List<AbstractNode> getNodesAt(final AbstractNode locationNode) {
+	protected List<NodeInterface> getNodesAt(final NodeInterface locationNode) {
 
-		List<AbstractNode> nodes = new LinkedList<AbstractNode>();
+		final List<NodeInterface> nodes           = new LinkedList<>();
+		final Iterable<LocationRelationship> rels = locationNode.getRelationships(LocationRelationship.class);
 
-		for (AbstractRelationship rel : locationNode.getRelationships(RelType.IS_AT, Direction.INCOMING)) {
-
-			AbstractNode startNode = rel.getStartNode();
+		if (rels != null) {
 			
-			nodes.add(startNode);
-			
-			// add more nodes which are "at" this one
-			nodes.addAll(getNodesAt(startNode));
+			for (LocationRelationship rel : rels) {
+
+				NodeInterface startNode = rel.getSourceNode();
+
+				nodes.add(startNode);
+
+				// add more nodes which are "at" this one
+				nodes.addAll(getNodesAt(startNode));
+			}
 		}
 
 		return nodes;

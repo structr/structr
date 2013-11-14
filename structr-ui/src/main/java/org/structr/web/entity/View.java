@@ -26,11 +26,9 @@ import org.apache.commons.lang.StringUtils;
 
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.graph.CypherQueryCommand;
-import org.structr.core.graph.NodeService.NodeIndex;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
 import org.structr.web.common.RenderContext;
@@ -48,8 +46,8 @@ import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.entity.dom.relationship.DOMChildren;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -154,11 +152,9 @@ public class View extends DOMElement {
 			if (result instanceof DOMNode) {
 
 				// recursively render children
-				List<AbstractRelationship> rels = ((DOMNode)result).getChildRelationships();
+				for (DOMChildren rel : ((DOMNode)result).getChildRelationships()) {
 
-				for (AbstractRelationship rel : rels) {
-
-					DOMElement subNode = (DOMElement) rel.getEndNode();
+					DOMElement subNode = (DOMElement) rel.getTargetNode();
 
 					if (subNode.isNotDeleted() && subNode.isNotDeleted()) {
 

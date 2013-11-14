@@ -23,20 +23,17 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Location;
-import org.structr.core.graph.CreateNodeCommand;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyMap;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.logging.Logger;
 import org.apache.commons.collections.map.LRUMap;
+import org.structr.core.app.StructrApp;
 import org.structr.core.graph.search.DistanceSearchAttribute;
 
 //~--- classes ----------------------------------------------------------------
@@ -74,15 +71,7 @@ public class GeoHelper {
 		props.put(Location.latitude,  latitude);
 		props.put(Location.longitude, longitude);
 
-		StructrTransaction transaction = new StructrTransaction<AbstractNode>() {
-
-			@Override
-			public AbstractNode execute() throws FrameworkException {
-				return Services.command(SecurityContext.getSuperUserInstance(), CreateNodeCommand.class).execute(props);
-			}
-		};
-
-		return (Location) Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(transaction);
+		return StructrApp.getInstance().create(Location.class, props);
 	}
 
 	public static GeoCodingResult geocode(DistanceSearchAttribute distanceSearch) throws FrameworkException {

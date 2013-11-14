@@ -26,6 +26,7 @@ import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.Aggregation;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.Notion;
 
 /**
@@ -48,17 +49,17 @@ public class AggregatorProperty<T> extends AbstractReadOnlyCollectionProperty<T>
 		
 		if(currentObject != null && currentObject instanceof AbstractNode) {
 			
-			AbstractNode sourceNode  = (AbstractNode)currentObject;
-			List<AbstractNode> nodes = new LinkedList<AbstractNode>();
+			NodeInterface sourceNode  = (NodeInterface)currentObject;
+			List<NodeInterface> nodes = new LinkedList<NodeInterface>();
 
 			// 1. step: add all nodes
-			for(CollectionProperty<? extends AbstractNode> property : aggregation.getAggregationProperties()) {
+			for(EndNodes<?, ?> property : aggregation.getAggregationProperties()) {
 				
 				nodes.addAll(sourceNode.getProperty(property));
 			}
 
 			// 2. step: sort nodes according to comparator
-			Comparator<AbstractNode> comparator = aggregation.getComparator();
+			Comparator<NodeInterface> comparator = aggregation.getComparator();
 			if(nodes.isEmpty() && comparator != null) {
 				Collections.sort(nodes, comparator);
 			}
@@ -67,7 +68,7 @@ public class AggregatorProperty<T> extends AbstractReadOnlyCollectionProperty<T>
 			List results = new LinkedList();
 
 			try {
-				for(AbstractNode node : nodes) {
+				for(NodeInterface node : nodes) {
 
 					Notion notion = aggregation.getNotionForType(node.getClass());
 					if(notion != null) {
