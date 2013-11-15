@@ -6,13 +6,13 @@
     <parent>
         <groupId>org.structr</groupId>
         <artifactId>structr</artifactId>
-        <version>0.8.1</version>
+        <version>0.8.2</version>
     </parent>
 
     <groupId>org.structr</groupId>
     <artifactId>structr-ui</artifactId>
     <packaging>jar</packaging>
-    <version>0.8.1</version>
+    <version>0.8.2</version>
     <name>structr-ui</name>
     <description>Structr is an open source framework based on the popular Neo4j graph database.</description>
     <developers>
@@ -111,11 +111,11 @@
             <artifactId>jersey-client</artifactId>
             <version>1.9-ea04</version>
         </dependency>
-        <dependency>
+<!--        <dependency>
             <groupId>org.neo4j</groupId>
             <artifactId>neo4j-rest-graphdb</artifactId>
-            <version>1.9.3-SNAPSHOT</version>
-        </dependency>
+            <version>1.9.5</version>
+        </dependency>-->
         <dependency>
             <groupId>com.flagstone</groupId>
             <artifactId>transform</artifactId>
