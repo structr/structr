@@ -19,9 +19,14 @@
 package org.structr.core.property;
 
 import java.util.Collection;
+import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.SortField;
+import org.neo4j.index.lucene.ValueContext;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
+import org.structr.core.graph.search.IntegerSearchAttribute;
+import org.structr.core.graph.search.SearchAttribute;
+import static org.structr.core.property.IntProperty.INT_EMPTY_FIELD_VALUE;
 
 /**
  * A read-only property that returns the number of elements in a collection returned from a given property.
@@ -83,4 +88,20 @@ public class ElementCounter extends AbstractReadOnlyProperty<Integer> {
 	public Integer getSortType() {
 		return SortField.INT;
 	}
+
+	@Override
+	public SearchAttribute getSearchAttribute(SecurityContext securityContext, BooleanClause.Occur occur, Integer searchValue, boolean exactMatch) {
+		return new IntegerSearchAttribute(this, searchValue, occur, exactMatch);
+	}
+
+	@Override
+	public void index(GraphObject entity, Object value) {
+		super.index(entity, value != null ? ValueContext.numeric((Number)value) : value);
+	}
+
+	@Override
+	public String getValueForEmptyFields() {
+		return INT_EMPTY_FIELD_VALUE;
+	}
+
 }
