@@ -26,6 +26,12 @@
         </developer>
     </developers>
     <url>http://structr.org</url>
+    
+    <properties>
+        <netbeans.hint.license>structr-gpl30</netbeans.hint.license>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+    
     <build>
         <plugins>
             <plugin>
