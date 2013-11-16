@@ -38,10 +38,50 @@
                     <debug>true</debug>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>2.2.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.9.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>1.4</version>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
     <repositories>
-         <repository>
+        <repository>
             <id>snapshots.maven.structr.org</id>
             <url>http://maven.structr.org/artifactory/snapshot</url>
         </repository>
@@ -89,7 +129,7 @@
             <comments>
                 Copyright (C) 2010-2013 Axel Morgner, structr &lt;structr@structr.org&gt;
 
-				This file is part of structr &lt;http://structr.org&gt;.
+                This file is part of structr &lt;http://structr.org&gt;.
 
                 structr is free software: you can redistribute it and/or modify
                 it under the terms of the GNU General Public License as published by
@@ -113,7 +153,7 @@
     </scm>
 
     <distributionManagement>
-<!--        <repository>
+        <!--        <repository>
             <id>releases.maven.structr.org</id>
             <name>maven.structr.org-releases</name>
             <url>http://maven.structr.org/artifactory/release</url>
