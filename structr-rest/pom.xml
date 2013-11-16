@@ -26,6 +26,12 @@
         </developer>
     </developers>
     <url>http://structr.org</url>
+    
+    <properties>
+        <netbeans.hint.license>structr-gpl30</netbeans.hint.license>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+    
     <build>
         <plugins>
             <plugin>
@@ -132,7 +138,7 @@
             <url>http://maven.structr.org/artifactory/snapshot</url>
         </snapshotRepository>-->
         <repository>
-            <id>rsonatype-nexus-staging</id>
+            <id>sonatype-nexus-staging</id>
             <name>Maven Central Staging</name>
             <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
         </repository>
