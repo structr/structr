@@ -14,6 +14,8 @@ import org.structr.core.notion.Notion;
 public interface RelationProperty<T> {
 
 	public Notion getNotion();
+
+	public Class<? extends T> getTargetType();
 	
 	public void addSingleElement(final SecurityContext securityContext, final GraphObject obj, final T t) throws FrameworkException;
 }

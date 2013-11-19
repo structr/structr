@@ -64,4 +64,14 @@ public class ResourceLink extends ManyToOne<Link, Linkable> {
 	public Class<Linkable> getTargetType() {
 		return Linkable.class;
 	}
+
+	@Override
+	public Property<String> getSourceIdProperty() {
+		return sourceId;
+	}
+
+	@Override
+	public Property<String> getTargetIdProperty() {
+		return targetId;
+	}
 }

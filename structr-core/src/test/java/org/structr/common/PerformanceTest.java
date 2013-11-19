@@ -34,7 +34,7 @@ import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.entity.GenericNode;
-import org.structr.core.entity.relationship.LocationRelationship;
+import org.structr.core.entity.relationship.NodeHasLocation;
 import org.structr.core.graph.NodeInterface;
 
 //~--- classes ----------------------------------------------------------------
@@ -112,7 +112,7 @@ public class PerformanceTest extends StructrTest {
 
 			int number                      = 1000;
 			long t0                         = System.nanoTime();
-			List<LocationRelationship> rels = createTestRelationships(LocationRelationship.class, number);
+			List<NodeHasLocation> rels = createTestRelationships(NodeHasLocation.class, number);
 			long t1                         = System.nanoTime();
 
 			assertTrue(rels.size() == number);

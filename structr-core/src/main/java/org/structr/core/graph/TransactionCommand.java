@@ -313,7 +313,7 @@ public class TransactionCommand extends NodeServiceCommand {
 
 				tx.finish();
 
-				if (modificationQueue != null) {
+				if (modificationQueue != null && tx.isSuccessful()) {
 					
 					modificationQueue.doOuterCallbacks(securityContext);
 

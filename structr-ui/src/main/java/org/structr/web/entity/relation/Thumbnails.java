@@ -1,6 +1,7 @@
 package org.structr.web.entity.relation;
 
 import org.structr.core.entity.OneToMany;
+import org.structr.core.property.Property;
 import org.structr.web.entity.Image;
 
 /**
@@ -22,5 +23,15 @@ public class Thumbnails extends OneToMany<Image, Image> {
 	@Override
 	public String name() {
 		return "THUMBNAIL";
+	}
+
+	@Override
+	public Property<String> getSourceIdProperty() {
+		return null;
+	}
+
+	@Override
+	public Property<String> getTargetIdProperty() {
+		return null;
 	}
 }

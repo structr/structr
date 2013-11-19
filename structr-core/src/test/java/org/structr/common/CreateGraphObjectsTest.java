@@ -49,7 +49,7 @@ import org.structr.core.entity.TestNine;
 import org.structr.core.entity.TestOne;
 import org.structr.core.entity.TestSeven;
 import org.structr.core.entity.TestTwo;
-import org.structr.core.entity.relationship.LocationRelationship;
+import org.structr.core.entity.relationship.NodeHasLocation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
 
@@ -159,7 +159,7 @@ public class CreateGraphObjectsTest extends StructrTest {
 			final List<NodeInterface> nodes = createTestNodes(GenericNode.class, 2);
 			final NodeInterface startNode   = nodes.get(0);
 			final NodeInterface endNode     = nodes.get(1);
-			LocationRelationship rel        = null;
+			NodeHasLocation rel        = null;
 			
 
 			assertTrue(startNode != null);
@@ -167,7 +167,7 @@ public class CreateGraphObjectsTest extends StructrTest {
 
 			try {
 				app.beginTx();
-				rel = app.create(startNode, endNode, LocationRelationship.class);
+				rel = app.create(startNode, endNode, NodeHasLocation.class);
 				app.commitTx();
 
 			} finally {
@@ -178,7 +178,7 @@ public class CreateGraphObjectsTest extends StructrTest {
 			assertEquals(startNode.getUuid(), rel.getSourceNodeId());
 			assertEquals(endNode.getUuid(), rel.getTargetNodeId());
 			assertEquals(RelType.IS_AT.name(), rel.getType());
-			assertEquals(LocationRelationship.class, rel.getClass());
+			assertEquals(NodeHasLocation.class, rel.getClass());
 
 		} catch (FrameworkException ex) {
 
@@ -330,7 +330,7 @@ public class CreateGraphObjectsTest extends StructrTest {
 					final NodeInterface startNode  = nodes.get(0);
 					final NodeInterface endNode    = nodes.get(1);
 					final RelationshipType relType = RelType.IS_AT;
-					LocationRelationship rel       = app.create(startNode, endNode, LocationRelationship.class);
+					NodeHasLocation rel       = app.create(startNode, endNode, NodeHasLocation.class);
 
 					assertTrue(rel != null);
 					assertTrue(rel.getType().equals(relType.name()));

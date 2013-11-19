@@ -48,4 +48,13 @@ public class TwoOneOneToMany extends OneToMany<TestTwo, TestOne> {
 		return "OWNS";
 	}
 
+	@Override
+	public Property<String> getSourceIdProperty() {
+		return startNodeId;
+	}
+
+	@Override
+	public Property<String> getTargetIdProperty() {
+		return endNodeId;
+	}
 }

@@ -35,10 +35,10 @@ import org.structr.core.converter.RelatedNodePropertyMapper;
  */
 public class RelatedNodeProperty<T> extends AbstractPrimitiveProperty<T> {
 	
-	private PropertyKey<T> sourceKey  = null;
+	private PropertyKey sourceKey  = null;
 	private PropertyKey<T> targetKey = null;
 	
-	public RelatedNodeProperty(String name, PropertyKey<T> sourceKey, PropertyKey<T> targetKey) {
+	public RelatedNodeProperty(String name, PropertyKey sourceKey, PropertyKey<T> targetKey) {
 		super(name);
 		
 		this.sourceKey  = sourceKey;

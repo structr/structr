@@ -94,4 +94,14 @@ public class BlogComments extends OneToMany<DOMElement, BlogComment> {
 		return "COMMENT";
 	}
 
+	@Override
+	public Property<String> getSourceIdProperty() {
+		return parentId;
+	}
+
+	@Override
+	public Property<String> getTargetIdProperty() {
+		return contentId;
+	}
+
 }

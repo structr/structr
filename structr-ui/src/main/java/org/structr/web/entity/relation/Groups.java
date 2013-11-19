@@ -2,6 +2,7 @@ package org.structr.web.entity.relation;
 
 import org.structr.core.entity.ManyToMany;
 import org.structr.core.entity.Principal;
+import org.structr.core.property.Property;
 import org.structr.web.entity.Group;
 
 /**
@@ -23,5 +24,15 @@ public class Groups extends ManyToMany<Group, Principal> {
 	@Override
 	public String name() {
 		return "CONTAINS";
+	}
+
+	@Override
+	public Property<String> getSourceIdProperty() {
+		return null;
+	}
+
+	@Override
+	public Property<String> getTargetIdProperty() {
+		return null;
 	}
 }

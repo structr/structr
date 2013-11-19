@@ -56,8 +56,9 @@ import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.index.Index;
 import org.structr.core.IterableAdapter;
+import org.structr.core.Ownership;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.relationship.Ownership;
+import org.structr.core.entity.relationship.PrincipalOwnsAbstractNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeService;
 import org.structr.core.graph.RelationshipFactory;
@@ -82,7 +83,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	public static final Property<Boolean>         deleted          = new BooleanProperty("deleted").indexed();
 	public static final Property<Boolean>         hidden           = new BooleanProperty("hidden").indexed();
       
-	public static final Property<Principal>       owner            = new StartNode<>("owner", Ownership.class);
+	public static final Property<Principal>       owner            = new StartNode<>("owner", PrincipalOwnsAbstractNode.class);
 	public static final Property<String>          ownerId          = new EntityIdProperty("ownerId", owner);
 
 	public static final View defaultView = new View(AbstractNode.class, PropertyView.Public, uuid, type);
@@ -736,7 +737,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 		if (cachedOwnerNode == null) {
 
-			final Ownership ownership = getIncomingRelationship(Ownership.class);
+			final Ownership ownership = getIncomingRelationship(PrincipalOwnsAbstractNode.class);
 			if (ownership != null) {
 				
 				Principal principal = ownership.getSourceNode();

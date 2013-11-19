@@ -1,6 +1,7 @@
 package org.structr.rest.entity;
 
 import org.structr.core.entity.OneToMany;
+import org.structr.core.property.Property;
 
 /**
  *
@@ -23,4 +24,13 @@ public class FourOneOneToMany extends OneToMany<TestFour, TestOne> {
 		return "ONE_TO_MANY";
 	}
 
+	@Override
+	public Property<String> getSourceIdProperty() {
+		return null;
+	}
+
+	@Override
+	public Property<String> getTargetIdProperty() {
+		return null;
+	}
 }

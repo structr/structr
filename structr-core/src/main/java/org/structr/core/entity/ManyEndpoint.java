@@ -9,15 +9,10 @@ import org.neo4j.helpers.Function;
 import org.neo4j.helpers.collection.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.graph.CreateRelationshipCommand;
-import org.structr.core.graph.DeleteRelationshipCommand;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 
 /**
  *
@@ -87,7 +82,7 @@ public class ManyEndpoint<T extends NodeInterface> extends AbstractEndpoint impl
 		// create new relationships
 		for (T targetNode : toBeCreated) {
 
-			relation.ensureCardinality(sourceNode, targetNode);
+			relation.ensureCardinality(securityContext, sourceNode, targetNode);
 
 			app.create(sourceNode, targetNode, relation.getClass());
 		}

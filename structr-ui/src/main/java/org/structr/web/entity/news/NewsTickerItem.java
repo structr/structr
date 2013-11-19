@@ -20,6 +20,7 @@
 
 package org.structr.web.entity.news;
 
+import org.structr.web.entity.news.relation.NewsText;
 import java.util.Date;
 import org.structr.core.property.Property;
 

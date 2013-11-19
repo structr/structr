@@ -54,6 +54,7 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
+import org.structr.core.Ownership;
 import org.structr.core.Predicate;
 import org.structr.core.Result;
 import org.structr.core.Services;
@@ -68,7 +69,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.web.common.Function;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.entity.Principal;
-import org.structr.core.entity.relationship.Ownership;
+import org.structr.core.entity.relationship.PrincipalOwnsAbstractNode;
 import org.structr.core.graph.search.PropertySearchAttribute;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.CollectionIdProperty;
@@ -1163,7 +1164,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 				// special keyword "owner"
 				if ("owner".equals(lowerCasePart)) {
 
-					Ownership rel = getIncomingRelationship(Ownership.class);
+					Ownership rel = getIncomingRelationship(PrincipalOwnsAbstractNode.class);
 					if (rel != null) {
 					
 						_data = rel.getSourceNode();

@@ -18,6 +18,7 @@
  */
 package org.structr.core.property;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedList;
@@ -50,12 +51,16 @@ public class AggregatorProperty<T> extends AbstractReadOnlyCollectionProperty<T>
 		if(currentObject != null && currentObject instanceof AbstractNode) {
 			
 			NodeInterface sourceNode  = (NodeInterface)currentObject;
-			List<NodeInterface> nodes = new LinkedList<NodeInterface>();
+			List<NodeInterface> nodes = new LinkedList<>();
 
 			// 1. step: add all nodes
-			for(EndNodes<?, ?> property : aggregation.getAggregationProperties()) {
+			for(Property property : aggregation.getAggregationProperties()) {
 				
-				nodes.addAll(sourceNode.getProperty(property));
+				Object obj = sourceNode.getProperty(property);
+				if (obj != null && obj instanceof Collection) {
+				
+					nodes.addAll((Collection)obj);
+				}
 			}
 
 			// 2. step: sort nodes according to comparator

@@ -97,6 +97,8 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 					value = converter.revert(value);
 
 				} catch (Throwable t) {
+					
+					t.printStackTrace();
 
 					logger.log(Level.WARNING, "Unable to convert property {0} of type {1}: {2}", new Object[] {
 						dbName(),

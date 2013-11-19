@@ -1,6 +1,7 @@
 package org.structr.rest.entity;
 
 import org.structr.core.entity.OneToOne;
+import org.structr.core.property.Property;
 
 /**
  *
@@ -21,5 +22,15 @@ public class FiveThreeOneToOne extends OneToOne<TestFive, TestThree> {
 	@Override
 	public String name() {
 		return "ONE_TO_ONE";
+	}
+
+	@Override
+	public Property<String> getSourceIdProperty() {
+		return null;
+	}
+
+	@Override
+	public Property<String> getTargetIdProperty() {
+		return null;
 	}
 }

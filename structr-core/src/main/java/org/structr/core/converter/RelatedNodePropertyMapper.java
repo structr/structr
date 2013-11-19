@@ -27,7 +27,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.RelationProperty;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -88,23 +92,37 @@ public class RelatedNodePropertyMapper<T extends NodeInterface> extends Property
 
 	private NodeInterface getRelatedNode(boolean add) {
 
-		NodeInterface relatedNode = null;
+		T relatedNode = null;
 
 		if ((currentObject != null) && (currentObject instanceof NodeInterface)) {
 
 			NodeInterface localNode = (NodeInterface) currentObject;
 			relatedNode = localNode.getProperty(sourceKey);
 			
-			if (relatedNode == null && add) {
+			if (relatedNode == null && add && sourceKey instanceof RelationProperty) {
+
+				final RelationProperty relationProperty = (RelationProperty)sourceKey;
+				final App app                           = StructrApp.getInstance();
+				final Class<T> relatedType              = relationProperty.getTargetType();
 				
-				// FIXME!
-//				try {
-//					relatedNode = sourceKey.createRelatedNode(securityContext, localNode);
-//					
-//				} catch (FrameworkException fex) {
-//					
-//					logger.log(Level.WARNING, "Unable to create related node from property {0}", sourceKey);
-//				}
+				try {
+					app.beginTx();
+					
+					relatedNode = app.create(relatedType);
+					
+					//FIXME: this may be the wrong direction..
+					relationProperty.addSingleElement(securityContext, localNode, relatedNode);
+					
+					app.commitTx();
+
+				} catch (FrameworkException fex) {
+					
+					fex.printStackTrace();
+					
+				} finally {
+					
+					app.finishTx();
+				}
 			}
 		}
 

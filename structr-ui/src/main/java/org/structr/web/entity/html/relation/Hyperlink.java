@@ -64,4 +64,14 @@ public class Hyperlink extends OneToOne<A, Linkable> {
 	public Class<A> getSourceType() {
 		return A.class;
 	}
+
+	@Override
+	public Property<String> getSourceIdProperty() {
+		return sourceId;
+	}
+
+	@Override
+	public Property<String> getTargetIdProperty() {
+		return targetId;
+	}
 }

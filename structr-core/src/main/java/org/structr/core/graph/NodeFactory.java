@@ -36,7 +36,7 @@ import org.structr.common.AccessControllable;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
 import org.structr.core.Services;
-import org.structr.core.entity.relationship.LocationRelationship;
+import org.structr.core.entity.relationship.NodeHasLocation;
 import org.structr.core.module.ModuleService;
 
 //~--- classes ----------------------------------------------------------------
@@ -263,20 +263,18 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 	 */
 	protected List<NodeInterface> getNodesAt(final NodeInterface locationNode) {
 
-		final List<NodeInterface> nodes           = new LinkedList<>();
-		final Iterable<LocationRelationship> rels = locationNode.getRelationships(LocationRelationship.class);
+		final List<NodeInterface> nodes = new LinkedList<>();
 
-		if (rels != null) {
-			
-			for (LocationRelationship rel : rels) {
+		// FIXME this was getRelationships before..
+//		for(RelationshipInterface rel : locationNode.getRelationships(NodeHasLocation.class)) {
+		for(RelationshipInterface rel : locationNode.getIncomingRelationships(NodeHasLocation.class)) {
 
-				NodeInterface startNode = rel.getSourceNode();
+			NodeInterface startNode = rel.getSourceNode();
 
-				nodes.add(startNode);
+			nodes.add(startNode);
 
-				// add more nodes which are "at" this one
-				nodes.addAll(getNodesAt(startNode));
-			}
+			// add more nodes which are "at" this one
+			nodes.addAll(getNodesAt(startNode));
 		}
 
 		return nodes;

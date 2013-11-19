@@ -60,7 +60,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
-import org.structr.core.entity.relationship.LocationRelationship;
+import org.structr.core.entity.relationship.NodeHasLocation;
 import org.structr.core.graph.RelationshipInterface;
 
 //~--- classes ----------------------------------------------------------------
@@ -160,9 +160,9 @@ public class SearchResultsTest extends StructrTest {
 
 		try {
 
-			final LocationRelationship rel = createTestRelationships(LocationRelationship.class, 1).get(0);
+			final NodeHasLocation rel = createTestRelationships(NodeHasLocation.class, 1).get(0);
 			final PropertyKey key1         = new StringProperty("jghsdkhgshdhgsdjkfgh").indexed();
-			final Class type               = LocationRelationship.class;
+			final Class type               = NodeHasLocation.class;
 			final String val1              = "54354354546806849870";
 
 			try {

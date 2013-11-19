@@ -65,4 +65,13 @@ public class PageLink extends ManyToOne<DOMNode, Page> {
 		return "PAGE";
 	}
 
+	@Override
+	public Property<String> getSourceIdProperty() {
+		return sourceId;
+	}
+
+	@Override
+	public Property<String> getTargetIdProperty() {
+		return targetId;
+	}
 }

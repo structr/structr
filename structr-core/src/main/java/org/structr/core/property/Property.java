@@ -57,7 +57,6 @@ import org.structr.core.graph.search.PropertySearchAttribute;
  */
 public abstract class Property<T> implements PropertyKey<T> {
 
-	private static final Logger logger             = Logger.getLogger(Property.class.getName());
 	private static final Pattern rangeQueryPattern = Pattern.compile("\\[(.+) TO (.+)\\]");
 	
 	protected List<PropertyValidator<T>> validators        = new LinkedList<>();
@@ -255,7 +254,6 @@ public abstract class Property<T> implements PropertyKey<T> {
 	public Class getDeclaringClass() {
 		return declaringClass;
 	}
-
 	
 	@Override
 	public String toString() {

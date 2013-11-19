@@ -21,18 +21,13 @@
 package org.structr.core.notion;
 
 import java.util.*;
-import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.search.Search;
-import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.SearchNodeCommand;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -43,7 +38,6 @@ import org.structr.core.JsonInput;
 import org.structr.core.Result;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.NodeInterface;
 
 //~--- classes ----------------------------------------------------------------
@@ -99,12 +93,10 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterfac
 			
 			Result<T> result = Result.EMPTY_RESULT;
 			
-			List<SearchAttribute> attrs = new LinkedList<>();
-
 			// Check if properties contain the UUID attribute
 			if (attributes.containsKey(GraphObject.uuid)) {
-				
-				attrs.add(Search.andExactUuid(attributes.get(GraphObject.uuid)));
+
+				result = new Result(app.get(attributes.get(GraphObject.uuid)), false);
 				
 			} else {
 
@@ -117,44 +109,41 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterfac
 				}
 				
 				if (attributesComplete) {
-
+					
 					result = app.nodeQuery(type).and(attributes).getResult();
 					
 				}
-				
-			
 			}
 
 			// just check for existance
-			int size         = result.size();
-			
+			final int size = result.size();
 			switch (size) {
-				
+
 				case 0:
-					
+
 					if (createIfNotExisting) {
 
 						// create node and return it
-						T newNode = app.create(type);
+						T newNode = app.create(type, attributes);
 						if (newNode != null) {
 
 							return newNode;
 						}						
 					}
-						
+
 					break;
-					
+
 				case 1:
 					return getTypedResult(result, type);
-						
+
 				default:
-					
+
 					logger.log(Level.SEVERE, "Found {0} nodes for given type and properties, property set is ambiguous!\n"
 						+ "This is often due to wrong modeling, or you should consider creating a uniquness constraint for " + type.getName(), size);
-					
+
 					break;
 			}
-			
+
 			throw new FrameworkException(type.getSimpleName(), new PropertiesNotFoundToken(AbstractNode.base, attributes));
 		}
 		

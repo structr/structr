@@ -41,7 +41,7 @@ import static junit.framework.Assert.fail;
 import org.structr.core.Result;
 import org.structr.core.entity.GenericNode;
 import org.structr.core.entity.SixOneOneToOne;
-import org.structr.core.entity.relationship.LocationRelationship;
+import org.structr.core.entity.relationship.NodeHasLocation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 
@@ -443,7 +443,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 
 			AbstractNode start       = createTestNode(type1);
 			AbstractNode end         = createTestNode(type2);
-			AbstractRelationship rel = createTestRelationship(start, end, LocationRelationship.class);
+			AbstractRelationship rel = createTestRelationship(start, end, NodeHasLocation.class);
 
 			rel.setProperty(AbstractRelationship.cascadeDelete, cascadeDeleteFlag);
 

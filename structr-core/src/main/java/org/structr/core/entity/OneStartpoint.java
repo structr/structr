@@ -5,10 +5,7 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
-import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.graph.CreateRelationshipCommand;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
 
@@ -41,7 +38,7 @@ public class OneStartpoint<S extends NodeInterface> extends AbstractEndpoint imp
 	public void set(final SecurityContext securityContext, final NodeInterface targetNode, final S sourceNode) throws FrameworkException {
 
 		// let relation check multiplicity
-		relation.ensureCardinality(sourceNode, targetNode);
+		relation.ensureCardinality(securityContext, sourceNode, targetNode);
 
 		if (sourceNode != null) {
 

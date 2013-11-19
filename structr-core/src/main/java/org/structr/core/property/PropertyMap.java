@@ -46,7 +46,7 @@ public class PropertyMap {
 	
 	private static final Logger logger = Logger.getLogger(PropertyMap.class.getName());
 	
-	protected Map<PropertyKey, Object> properties = new LinkedHashMap<PropertyKey, Object>();
+	protected Map<PropertyKey, Object> properties = new LinkedHashMap<>();
 
 	public PropertyMap() {
 	}
@@ -115,7 +115,7 @@ public class PropertyMap {
 	 */
 	public int contentHashCode(Set<PropertyKey> comparableKeys, boolean includeSystemProperties) {
 		
-		Map<PropertyKey, Object> sortedMap = new TreeMap<PropertyKey, Object>(new PropertyKeyComparator());
+		Map<PropertyKey, Object> sortedMap = new TreeMap<>(new PropertyKeyComparator());
 		int hashCode                       = 42;
 		
 		sortedMap.putAll(properties);
@@ -302,7 +302,7 @@ public class PropertyMap {
 	
 	public static Map<String, Object> javaTypeToInputType(SecurityContext securityContext, Class<? extends GraphObject> entity, PropertyMap properties) throws FrameworkException {
 		
-		Map<String, Object> inputTypedProperties = new LinkedHashMap<String, Object>();
+		Map<String, Object> inputTypedProperties = new LinkedHashMap<>();
 		
 		for(Entry<PropertyKey, Object> entry : properties.entrySet()) {
 			

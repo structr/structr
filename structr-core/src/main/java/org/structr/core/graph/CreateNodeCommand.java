@@ -40,7 +40,7 @@ import org.structr.common.Permission;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Security;
-import org.structr.core.entity.relationship.Ownership;
+import org.structr.core.entity.relationship.PrincipalOwnsAbstractNode;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 
@@ -108,7 +108,7 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 
 					App app = StructrApp.getInstance(securityContext);
 					
-					app.create(owner, node, Ownership.class);
+					app.create(owner, node, PrincipalOwnsAbstractNode.class);
 					
 					Security securityRel = app.create(owner, node, Security.class);
 					securityRel.setAllowed(Permission.values());

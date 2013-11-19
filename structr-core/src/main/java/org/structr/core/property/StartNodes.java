@@ -26,6 +26,7 @@ import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.helpers.collection.Iterables;
+import org.structr.common.NotNullPredicate;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
@@ -122,7 +123,7 @@ public class StartNodes<S extends NodeInterface, T extends NodeInterface> extend
 		
 		ManyStartpoint<S> startpoint = relation.getSource();
 
-		return Iterables.toList(startpoint.get(securityContext, (NodeInterface)obj));
+		return Iterables.toList(Iterables.filter(new NotNullPredicate(), startpoint.get(securityContext, (NodeInterface)obj)));
 	}
 
 	@Override
@@ -134,7 +135,7 @@ public class StartNodes<S extends NodeInterface, T extends NodeInterface> extend
 	}
 	
 	@Override
-	public Class<? extends GraphObject> relatedType() {
+	public Class relatedType() {
 		return destType;
 	}
 
@@ -206,6 +207,11 @@ public class StartNodes<S extends NodeInterface, T extends NodeInterface> extend
 		list.add(s);
 		
 		setProperty(securityContext, obj, list);
+	}
+
+	@Override
+	public Class<S> getTargetType() {
+		return destType;
 	}
 	
 	// ----- overridden methods from super class -----

@@ -1,8 +1,12 @@
 package org.structr.core.entity;
 
+import org.structr.common.SecurityContext;
 import org.structr.common.error.DuplicateRelationshipToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.notion.Notion;
+import org.structr.core.notion.RelationshipNotion;
 
 /**
  *
@@ -36,20 +40,32 @@ public abstract class ManyToMany<S extends NodeInterface, T extends NodeInterfac
 	}
 
 	@Override
-	public void ensureCardinality(final NodeInterface sourceNode, final NodeInterface targetNode) throws FrameworkException {
-		
-		// prevent duplicates from being created
-		final Class<? extends ManyToMany> clazz = this.getClass();
+	public void ensureCardinality(final SecurityContext securityContext, final NodeInterface sourceNode, final NodeInterface targetNode) throws FrameworkException {
+
+		final Class<? extends ManyToMany> clazz = getClass();
 
 		// check existing relationships
-		for (final AbstractRelationship rel : sourceNode.getOutgoingRelationships()) {
+		final Iterable<Relation<S, ?, ?, ?>> outgoingRels = sourceNode.getOutgoingRelationships(clazz);
+
+		// check existing relationships
+		for (final RelationshipInterface rel : outgoingRels) {
 		
 			if (rel.getTargetNode().equals(targetNode)) {
 				
-				throw new FrameworkException(clazz.getSimpleName(), new DuplicateRelationshipToken("This relationship already exists"));
+				throw new FrameworkException(getClass().getSimpleName(), new DuplicateRelationshipToken("This relationship already exists"));
 			}
 		}
 		
 	}
 	
+	@Override
+	public Notion getEndNodeNotion() {
+		return new RelationshipNotion(getTargetIdProperty());
+
+	}
+
+	@Override
+	public Notion getStartNodeNotion() {
+		return new RelationshipNotion(getSourceIdProperty());
+	}
 }

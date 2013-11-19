@@ -32,7 +32,7 @@ import java.util.logging.Logger;
 import static junit.framework.Assert.assertTrue;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.GenericNode;
-import org.structr.core.entity.relationship.LocationRelationship;
+import org.structr.core.entity.relationship.NodeHasLocation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
@@ -132,7 +132,7 @@ public class ModifyGraphObjectsTest extends StructrTest {
 
 		try {
 
-			final LocationRelationship rel = (createTestRelationships(LocationRelationship.class, 1)).get(0);
+			final NodeHasLocation rel = (createTestRelationships(NodeHasLocation.class, 1)).get(0);
 			final PropertyKey key1         = new StringProperty("jghsdkhgshdhgsdjkfgh");
 			final String val1              = "54354354546806849870";
 

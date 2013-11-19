@@ -50,11 +50,12 @@ import static junit.framework.Assert.fail;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.helpers.collection.Iterables;
+import org.structr.core.Ownership;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.User;
-import org.structr.core.entity.relationship.Ownership;
+import org.structr.core.entity.relationship.PrincipalOwnsAbstractNode;
 import org.structr.core.graph.NodeInterface;
 
 //~--- classes ----------------------------------------------------------------
@@ -175,11 +176,11 @@ public class OwnerTest extends StructrTest {
 			t1.setProperty(AbstractNode.owner, group1);
 			assertEquals(group1, t1.getProperty(AbstractNode.owner));
 			
-			Ownership ownerRel = t1.getIncomingRelationship(Ownership.class);
+			Ownership ownerRel = t1.getIncomingRelationship(PrincipalOwnsAbstractNode.class);
 			assertNotNull(ownerRel);
 
 			// Do additional low-level check here to ensure cardinality!
-			List<Relationship> incomingRels = Iterables.toList(t1.getNode().getRelationships(Direction.INCOMING, new Ownership()));
+			List<Relationship> incomingRels = Iterables.toList(t1.getNode().getRelationships(Direction.INCOMING, new PrincipalOwnsAbstractNode()));
 			assertEquals(1, incomingRels.size());
 
 			superUserApp.commitTx();

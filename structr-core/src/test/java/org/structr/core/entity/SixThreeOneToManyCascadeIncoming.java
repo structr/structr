@@ -1,5 +1,8 @@
 package org.structr.core.entity;
 
+import org.structr.core.property.SourceId;
+import org.structr.core.property.TargetId;
+
 /**
  *
  * @author Christian Morgner
@@ -24,5 +27,15 @@ public class SixThreeOneToManyCascadeIncoming extends OneToMany<TestSix, TestThr
 	@Override
 	public int getCascadingDeleteFlag() {
 		return Relation.TARGET_TO_SOURCE;
+	}
+
+	@Override
+	public SourceId getSourceIdProperty() {
+		return null;
+	}
+
+	@Override
+	public TargetId getTargetIdProperty() {
+		return null;
 	}
 }

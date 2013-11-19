@@ -105,8 +105,9 @@ public abstract class Search {
 
 		List<SearchAttribute> attrs = new LinkedList<>();
 
-		ModuleService moduleService = Services.getService(ModuleService.class);
-		Map<String, Class> entities = moduleService.getCachedNodeEntities();
+		ModuleService moduleService     = Services.getService(ModuleService.class);
+		Map<String, Class> nodeEntities = moduleService.getCachedNodeEntities();
+		Map<String, Class> relEntities  = moduleService.getCachedRelationshipEntities();
 
 		if (type == null) {
 
@@ -126,7 +127,17 @@ public abstract class Search {
 			return attrs;
 		}
 
-		for (Map.Entry<String, Class> entity : entities.entrySet()) {
+		for (Map.Entry<String, Class> entity : nodeEntities.entrySet()) {
+
+			Class entityClass = entity.getValue();
+
+			if (type.isAssignableFrom(entityClass)) {
+
+				attrs.add(Search.orType(entityClass, isExactMatch));
+			}
+		}
+
+		for (Map.Entry<String, Class> entity : relEntities.entrySet()) {
 
 			Class entityClass = entity.getValue();
 

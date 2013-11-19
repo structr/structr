@@ -18,6 +18,7 @@
  */
 package org.structr.core.converter;
 
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -28,7 +29,7 @@ import org.structr.core.Value;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.Notion;
 import org.structr.core.property.AggregatorProperty;
-import org.structr.core.property.EndNodes;
+import org.structr.core.property.Property;
 
 /**
  * Encapsulates a sorted collection of related nodes of different types, to be
@@ -38,16 +39,13 @@ import org.structr.core.property.EndNodes;
  */
 public class Aggregation implements Value<Aggregation> {
 
-	private Set<EndNodes<?, ?>> aggregationProperties = new LinkedHashSet<EndNodes<?, ?>>();
-	private Map<Class, Notion> notions                 = new LinkedHashMap<Class, Notion>();
-	private Comparator<NodeInterface> comparator       = null;
+	private Set<Property> aggregationProperties  = new LinkedHashSet<>();
+	private Map<Class, Notion> notions           = new LinkedHashMap<>();
+	private Comparator<NodeInterface> comparator = null;
 
-	public Aggregation(Comparator<NodeInterface> comparator, EndNodes<?, ?>... properties) {
+	public Aggregation(Comparator<NodeInterface> comparator, Property... properties) {
 		
-		for(EndNodes<?, ?> property : properties) {
-			this.aggregationProperties.add(property);
-		}
-		
+		this.aggregationProperties.addAll(Arrays.asList(properties));
 		this.comparator = comparator;
 	}
 
@@ -63,7 +61,7 @@ public class Aggregation implements Value<Aggregation> {
 		return comparator;
 	}
 
-	public Set<EndNodes<?, ?>> getAggregationProperties() {
+	public Set<Property> getAggregationProperties() {
 		return aggregationProperties;
 	}
 

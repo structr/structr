@@ -140,7 +140,7 @@ public class EndNode<S extends NodeInterface, T extends NodeInterface> extends P
 	}
 	
 	@Override
-	public Class<? extends GraphObject> relatedType() {
+	public Class relatedType() {
 		return destType;
 	}
 
@@ -208,6 +208,11 @@ public class EndNode<S extends NodeInterface, T extends NodeInterface> extends P
 	@Override
 	public void addSingleElement(final SecurityContext securityContext, final GraphObject obj, final T t) throws FrameworkException {
 		setProperty(securityContext, obj, t);
+	}
+
+	@Override
+	public Class<T> getTargetType() {
+		return destType;
 	}
 	
 	// ----- overridden methods from super class -----

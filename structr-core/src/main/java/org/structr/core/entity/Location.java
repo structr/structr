@@ -23,7 +23,9 @@ import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
-import org.structr.core.entity.relationship.LocationRelationship;
+import org.structr.core.entity.relationship.NodeHasLocation;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.DoubleProperty;
 
 //~--- classes ----------------------------------------------------------------
@@ -83,9 +85,9 @@ public class Location extends AbstractNode {
 		
 		boolean allLocatablesAreValid = false;
 		
-		for(LocationRelationship rel : this.getRelationships(LocationRelationship.class)) {
+		for(RelationshipInterface rel : this.getRelationships(NodeHasLocation.class)) {
 			
-			AbstractNode otherNode = rel.getOtherNode(this);
+			NodeInterface otherNode = rel.getOtherNode(this);
 			if(otherNode != null && otherNode instanceof Locatable) {
 				
 				// notify other node of location change

@@ -1,8 +1,9 @@
 package org.structr.core.entity.relationship;
 
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.OneToMany;
+import org.structr.core.property.SourceId;
+import org.structr.core.property.TargetId;
 
 /**
  *
@@ -26,8 +27,13 @@ public class Parentship extends OneToMany<AbstractNode, AbstractNode> {
 	}
 
 	@Override
-	public Class<? extends AbstractRelationship<AbstractNode, AbstractNode>> reverse() {
-		return Parentship.class;
+	public SourceId getSourceIdProperty() {
+		return null;
+	}
+
+	@Override
+	public TargetId getTargetIdProperty() {
+		return null;
 	}
 
 }

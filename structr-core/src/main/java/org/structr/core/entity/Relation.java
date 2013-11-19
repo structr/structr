@@ -19,9 +19,12 @@
 package org.structr.core.entity;
 
 import org.neo4j.graphdb.RelationshipType;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.notion.Notion;
+import org.structr.core.property.Property;
 
 /**
  * Defines constants for structr's relationship entities.
@@ -75,8 +78,13 @@ public interface Relation<A extends NodeInterface, B extends NodeInterface, S ex
 	
 	public S getSource();
 	public T getTarget();
+	
+	public abstract Property<String> getSourceIdProperty();
+	public abstract Property<String> getTargetIdProperty();
+	public abstract Notion getEndNodeNotion();
+	public abstract Notion getStartNodeNotion();
 
 	public int getCascadingDeleteFlag();
 	
-	public void ensureCardinality(final NodeInterface sourceNode, final NodeInterface targetNode) throws FrameworkException;
+	public void ensureCardinality(final SecurityContext securityContext, final NodeInterface sourceNode, final NodeInterface targetNode) throws FrameworkException;
 }

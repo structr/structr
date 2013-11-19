@@ -129,7 +129,18 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 
 		final String type = GraphObject.type.dbName();
 		
+		// first try: duck-typing
+		final String sourceType = relationship.getStartNode().hasProperty(type) ? relationship.getStartNode().getProperty(type).toString() : null;
+		final String targetType = relationship.getEndNode().hasProperty(type) ? relationship.getEndNode().getProperty(type).toString() : null;
+		final String relType    = relationship.getType().name();
+		final Class entityType  = getClassForCombinedType(sourceType, relType, targetType);
 		
+		if (entityType != null) {
+			logger.log(Level.FINE, "Class for assembled combined {0}", entityType.getName());
+			return entityType;
+		}
+
+		// second try: type property
 		if (relationship.hasProperty(type)) {
 			
 			Object obj =  relationship.getProperty(type);
@@ -152,27 +163,8 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 			
 			if (obj != null) {
 				
-				final String combinedType = obj.toString();
-				final Class entityType = getClassForCombinedType(combinedType);
-				
-				if (entityType != null) {
-					
-					return entityType;
-				}
-				
+				return getClassForCombinedType(obj.toString());
 			}
-		}
-		
-		// last chance: source type, target type and relationship type
-		final String sourceType = relationship.getStartNode().hasProperty(type) ? relationship.getStartNode().getProperty(type).toString() : null;
-		final String targetType = relationship.getEndNode().hasProperty(type) ? relationship.getEndNode().getProperty(type).toString() : null;
-		final String relType    = relationship.getType().name();
-		final Class entityType  = getClassForCombinedType(sourceType, relType, targetType);
-
-		
-		if (entityType != null) {
-			logger.log(Level.FINE, "Class for assembled combined {0}", entityType.getName());
-			return entityType;
 		}
 		
 		logger.log(Level.WARNING, "No instantiable class for relationship found for {0} {1} {2}, returning generic relationship class.", new Object[] { sourceType, relType, targetType });
@@ -213,7 +205,7 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 
 				if (sourceType.equals(sourceTypeName) && relType.equals(relTypeName) && targetType.equals(targetTypeName)) {
 					
-					logger.log(Level.INFO, "--> Found matching relation class: {0}", candidate.getName());
+					//logger.log(Level.INFO, "--> Found matching relation class: {0}", candidate.getName());
 					return candidate;
 				}
 			}

@@ -52,8 +52,8 @@ public class StartNode<S extends NodeInterface, T extends NodeInterface> extends
 	
 	// relationship members
 	private Relation<S, T, OneStartpoint<S>, ? extends Target> relation = null;
-	private Notion notion                                               = null;
 	private Class<S> destType                                           = null;
+	private Notion notion                                               = null;
 	
 	/**
 	 * Constructs an entity property with the given name, the given destination type,
@@ -126,7 +126,7 @@ public class StartNode<S extends NodeInterface, T extends NodeInterface> extends
 	@Override
 	public S getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
 		
-		final OneStartpoint<S> startpoint = relation.getSource();
+		final OneStartpoint<? extends S> startpoint = relation.getSource();
 		
 		return startpoint.get(securityContext, (NodeInterface)obj);
 	}
@@ -140,7 +140,7 @@ public class StartNode<S extends NodeInterface, T extends NodeInterface> extends
 	}
 	
 	@Override
-	public Class<? extends GraphObject> relatedType() {
+	public Class relatedType() {
 		return destType;
 	}
 
@@ -208,6 +208,11 @@ public class StartNode<S extends NodeInterface, T extends NodeInterface> extends
 	@Override
 	public void addSingleElement(final SecurityContext securityContext, final GraphObject obj, final S s) throws FrameworkException {
 		setProperty(securityContext, obj, s);
+	}
+
+	@Override
+	public Class<? extends S> getTargetType() {
+		return destType;
 	}
 	
 	// ----- overridden methods from super class -----

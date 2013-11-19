@@ -40,12 +40,13 @@ import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.property.StringProperty;
 import org.structr.core.EntityContext;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.ArrayProperty;
+import org.structr.core.property.SourceId;
+import org.structr.core.property.TargetId;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -60,9 +61,9 @@ public class Security extends ManyToMany<Principal, NodeInterface> {
 
 	private static final Logger logger = Logger.getLogger(Security.class.getName());
 	
-	public static final Property<String> principalId          = new StringProperty("principalId");
-	public static final Property<String> accessControllableId = new StringProperty("accessControllableId");
-	public static final Property<String[]> allowed            = new ArrayProperty("allowed", String.class);
+	public static final SourceId           principalId          = new SourceId("principalId");
+	public static final TargetId           accessControllableId = new TargetId("accessControllableId");
+	public static final Property<String[]> allowed              = new ArrayProperty("allowed", String.class);
 
 	public static final View uiView = new View(Security.class, PropertyView.Ui,
 		allowed
@@ -147,7 +148,7 @@ public class Security extends ManyToMany<Principal, NodeInterface> {
 
 	public void setAllowed(final Permission[] allowed) {
 
-		List<String> allowedActions = new ArrayList<String>();
+		List<String> allowedActions = new ArrayList<>();
 
 		for (Permission permission : allowed) {
 
@@ -242,7 +243,7 @@ public class Security extends ManyToMany<Principal, NodeInterface> {
 
 	}
 		
-	// ----- class AbstractRelationship -----
+	// ----- class Relation -----
 	@Override
 	public Class<Principal> getSourceType() {
 		return Principal.class;
@@ -256,5 +257,15 @@ public class Security extends ManyToMany<Principal, NodeInterface> {
 	@Override
 	public Class<NodeInterface> getTargetType() {
 		return NodeInterface.class;
+	}
+
+	@Override
+	public Property<String> getSourceIdProperty() {
+		return null;
+	}
+
+	@Override
+	public Property<String> getTargetIdProperty() {
+		return null;
 	}
 }

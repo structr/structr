@@ -128,7 +128,7 @@ public class EntityContext {
 		
 		Set<Method> typeMethods = exportedMethodMap.get(type);
 		if (typeMethods == null) {
-			typeMethods = new LinkedHashSet<Method>();
+			typeMethods = new LinkedHashSet<>();
 			exportedMethodMap.put(type, typeMethods);
 		}
 		
@@ -230,7 +230,7 @@ public class EntityContext {
 				if (normalizedType == null) {
 
 					normalizedType = StringUtils.capitalize(CaseHelper.toUpperCamelCase(possibleEntityName));
-
+					
 					if (normalizedType.endsWith("ies")) {
 
 						normalizedType = normalizedType.substring(0, normalizedType.length() - 3).concat("y");
@@ -240,12 +240,7 @@ public class EntityContext {
 						logger.log(Level.FINEST, "Removing trailing plural 's' from type {0}", normalizedType);
 
 						normalizedType = normalizedType.substring(0, normalizedType.length() - 1);
-
 					}
-
-					// logger.log(Level.INFO, "String {0} normalized to {1}", new Object[] { possibleEntityName, normalizedType });
-					normalizedEntityNameCache.put(possibleEntityName, normalizedType);
-
 				}
 
 				result.append(normalizedType).append("/");
@@ -274,12 +269,7 @@ public class EntityContext {
 					logger.log(Level.FINEST, "Removing trailing plural 's' from type {0}", normalizedType);
 
 					normalizedType = normalizedType.substring(0, normalizedType.length() - 1);
-
 				}
-
-				// logger.log(Level.INFO, "String {0} normalized to {1}", new Object[] { possibleEntityName, normalizedType });
-				normalizedEntityNameCache.put(possibleEntityString, normalizedType);
-
 			}
 
 			return normalizedType;
@@ -327,7 +317,7 @@ public class EntityContext {
 		return type;
 	}
 	
-	private static Class getEntityClassForRawType(final String rawType, boolean normalize) {
+	private static Class getEntityClassForRawType(final String rawType, final boolean normalize) {
 
 		final String normalizedEntityName = normalize ? normalizeEntityName(rawType) : rawType;
 		final ModuleService moduleService = getModuleService();
@@ -344,6 +334,11 @@ public class EntityContext {
 		if (type == null) {
 			type = reverseInterfaceMap.get(normalizedEntityName);
 
+		}
+
+		// store type but only if it exists!
+		if (type != null) {
+			normalizedEntityNameCache.put(rawType, type.getSimpleName());
 		}
 
 		return type;
@@ -416,7 +411,7 @@ public class EntityContext {
 		
 		Map<String, ViewTransformation> viewTransformationMap = viewTransformations.get(type);
 		if(viewTransformationMap == null) {
-			viewTransformationMap = new LinkedHashMap<String, ViewTransformation>();
+			viewTransformationMap = new LinkedHashMap<>();
 			viewTransformations.put(type, viewTransformationMap);
 		}
 		
@@ -427,7 +422,7 @@ public class EntityContext {
 	// ----- property set methods -----
 	public static Set<String> getPropertyViews() {
 
-		Set<String> views = new LinkedHashSet<String>();
+		Set<String> views = new LinkedHashSet<>();
 		
 		// add all existing views
 		for (Map<String, Set<PropertyKey>> view : globalPropertyViewMap.values()) {
@@ -443,7 +438,7 @@ public class EntityContext {
 		Set<PropertyKey> properties                   = propertyViewMap.get(propertyView);
 
 		if (properties == null) {
-			properties = new LinkedHashSet<PropertyKey>();
+			properties = new LinkedHashSet<>();
 		}
 		
 		// read-only
@@ -506,7 +501,7 @@ public class EntityContext {
 
 	public static Set<PropertyValidator> getPropertyValidators(final SecurityContext securityContext, Class type, PropertyKey propertyKey) {
 
-		Set<PropertyValidator> validators                     = new LinkedHashSet<PropertyValidator>();
+		Set<PropertyValidator> validators                     = new LinkedHashSet<>();
 		Map<PropertyKey, Set<PropertyValidator>> validatorMap = null;
 		Class localType                                       = type;
 
@@ -543,7 +538,7 @@ public class EntityContext {
 
 		if (propertyViewMap == null) {
 
-			propertyViewMap = new LinkedHashMap<String, Set<PropertyKey>>();
+			propertyViewMap = new LinkedHashMap<>();
 
 			globalPropertyViewMap.put(type, propertyViewMap);
 
@@ -558,7 +553,7 @@ public class EntityContext {
 
 		if (classDBNamePropertyMap == null) {
 
-			classDBNamePropertyMap = new LinkedHashMap<String, PropertyKey>();
+			classDBNamePropertyMap = new LinkedHashMap<>();
 
 			globalClassDBNamePropertyMap.put(type, classDBNamePropertyMap);
 
@@ -573,7 +568,7 @@ public class EntityContext {
 
 		if (classJSNamePropertyMap == null) {
 
-			classJSNamePropertyMap = new LinkedHashMap<String, PropertyKey>();
+			classJSNamePropertyMap = new LinkedHashMap<>();
 
 			globalClassJSNamePropertyMap.put(type, classJSNamePropertyMap);
 
@@ -588,7 +583,7 @@ public class EntityContext {
 
 		if (validatorMap == null) {
 
-			validatorMap = new LinkedHashMap<PropertyKey, Set<PropertyValidator>>();
+			validatorMap = new LinkedHashMap<>();
 
 			globalValidatorMap.put(type, validatorMap);
 
@@ -603,7 +598,7 @@ public class EntityContext {
 
 		if (groupMap == null) {
 
-			groupMap = new LinkedHashMap<String, PropertyGroup>();
+			groupMap = new LinkedHashMap<>();
 
 			globalAggregatedPropertyGroupMap.put(type, groupMap);
 
@@ -618,7 +613,7 @@ public class EntityContext {
 
 		if (groupMap == null) {
 
-			groupMap = new LinkedHashMap<String, PropertyGroup>();
+			groupMap = new LinkedHashMap<>();
 
 			globalPropertyGroupMap.put(type, groupMap);
 
@@ -633,7 +628,7 @@ public class EntityContext {
 
 		if (transformations == null) {
 
-			transformations = new LinkedHashSet<Transformation<GraphObject>>();
+			transformations = new LinkedHashSet<>();
 
 			globalTransformationMap.put(type, transformations);
 
@@ -647,7 +642,7 @@ public class EntityContext {
 		Set<Class> interfaces = interfaceMap.get(type);
 		if(interfaces == null) {
 			
-			interfaces = new LinkedHashSet<Class>();
+			interfaces = new LinkedHashSet<>();
 			interfaceMap.put(type, interfaces);
 			
 			for(Class iface : type.getInterfaces()) {
@@ -697,7 +692,7 @@ public class EntityContext {
 	
 	private static <T> Map<Field, T> getFieldValuesOfType(Class<T> entityType, Object entity) {
 		
-		Map<Field, T> fields   = new LinkedHashMap<Field, T>();
+		Map<Field, T> fields   = new LinkedHashMap<>();
 		Set<Class<?>> allTypes = getAllTypes(entity.getClass());
 		
 		for (Class<?> type : allTypes) {

@@ -1,10 +1,12 @@
 package org.structr.core.entity;
 
-import org.neo4j.graphdb.Direction;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.notion.Notion;
+import org.structr.core.notion.RelationshipNotion;
 
 /**
  *
@@ -38,16 +40,16 @@ public abstract class OneToMany<S extends NodeInterface, T extends NodeInterface
 	}
 
 	@Override
-	public void ensureCardinality(final NodeInterface sourceNode, final NodeInterface targetNode) throws FrameworkException {
+	public void ensureCardinality(final SecurityContext securityContext, final NodeInterface sourceNode, final NodeInterface targetNode) throws FrameworkException {
 		
-		final App app                          = StructrApp.getInstance(securityContext);
+		final App app                          = StructrApp.getInstance();
 		final Class<? extends OneToMany> clazz = this.getClass();
 		final Class<S> sourceType              = getSourceType();
 
 
 		// check existing relationships
 		final Relation<?, T, ?, ?> incomingRel = targetNode.getIncomingRelationship(clazz);
-		if (incomingRel != null && incomingRel.getSourceType().isAssignableFrom(sourceType)) {
+		if (incomingRel != null && sourceType.isAssignableFrom(incomingRel.getSourceType())) {
 
 			try {
 
@@ -62,4 +64,14 @@ public abstract class OneToMany<S extends NodeInterface, T extends NodeInterface
 		}
 	}
 	
+	@Override
+	public Notion getEndNodeNotion() {
+		return new RelationshipNotion(getTargetIdProperty());
+
+	}
+
+	@Override
+	public Notion getStartNodeNotion() {
+		return new RelationshipNotion(getSourceIdProperty());
+	}	
 }

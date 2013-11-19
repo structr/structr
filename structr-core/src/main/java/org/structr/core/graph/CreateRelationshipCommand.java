@@ -80,8 +80,8 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 
 		if (newRel != null) {
 
-			newRel.unlockReadOnlyPropertiesOnce();
-			newRel.setProperty(GraphObject.type, relType.getSimpleName());
+//			newRel.unlockReadOnlyPropertiesOnce();
+//			newRel.setProperty(GraphObject.type, relType.getSimpleName());
 
 			newRel.unlockReadOnlyPropertiesOnce();
 			newRel.setProperty(AbstractRelationship.createdDate, now);
@@ -89,8 +89,9 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 			newRel.unlockReadOnlyPropertiesOnce();
 			newRel.setProperty(AbstractRelationship.lastModifiedDate, now);
 
+			// Try to get the cascading delete flag from the domain specific relationship type
 			newRel.unlockReadOnlyPropertiesOnce();
-			newRel.setProperty(AbstractRelationship.cascadeDelete, template.getCascadingDeleteFlag());
+			newRel.setProperty(AbstractRelationship.cascadeDelete, factory.instantiate(rel).getCascadingDeleteFlag());
 
 			// notify transaction handler
 			TransactionCommand.relationshipCreated(newRel);

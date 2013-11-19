@@ -42,14 +42,22 @@ import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.IdNotFoundToken;
+import org.structr.common.error.NullPropertyToken;
 import org.structr.common.error.ReadOnlyPropertyToken;
 import org.structr.core.EntityContext;
 import org.structr.core.Services;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.graph.CreateRelationshipCommand;
+import org.structr.core.graph.DeleteRelationshipCommand;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeService;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.graph.StructrTransaction;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
@@ -116,10 +124,6 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 		init(securityContext, dbRel);
 
-	}
-
-	public Class<? extends AbstractRelationship<T, S>> reverse() {
-		return null;
 	}
 	
 	/**
@@ -374,6 +378,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 			return nodeFactory.instantiate(dbRelationship.getEndNode());
 			
 		} catch (Throwable t) {
+			t.printStackTrace();
 			// ignore
 		}
 		
@@ -389,25 +394,27 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 			return nodeFactory.instantiate(dbRelationship.getStartNode());
 			
 		} catch (Throwable t) {
+			t.printStackTrace();
 			// ignore
 		}
 		
 		return null;
 	}
 
-	public AbstractNode getOtherNode(final AbstractNode node) {
+	@Override
+	public NodeInterface getOtherNode(final NodeInterface node) {
 
 		try {
 
 			NodeFactory nodeFactory = new NodeFactory(SecurityContext.getSuperUserInstance());
-			return (AbstractNode) nodeFactory.instantiate(dbRelationship.getOtherNode(node.getNode()));
+			return (NodeInterface) nodeFactory.instantiate(dbRelationship.getOtherNode(node.getNode()));
 			
 		} catch (Throwable t) {
 			// ignore
+			t.printStackTrace();
 		}
 		
 		return null;
-
 	}
 
 	@Override
@@ -640,5 +647,79 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 			}
 		}
 		
+	}
+
+	public void setSourceNodeId(final String startNodeId) throws FrameworkException {
+
+		final String type        = this.getClass().getSimpleName();
+		final App app            = StructrApp.getInstance(securityContext);
+		final PropertyMap _props = getProperties();
+		
+		// Do nothing if new id equals old
+		if (getSourceNodeId().equals(startNodeId)) {
+			return;
+		}
+
+		try {
+			
+			app.beginTx();
+			
+			final NodeInterface newStartNode = (NodeInterface)app.get(startNodeId);
+			final NodeInterface endNode      = getTargetNode();
+			final Class relationType         = getClass();
+
+			if (newStartNode == null) {
+				throw new FrameworkException(type, new IdNotFoundToken(startNodeId));
+			}
+			
+			// delete low-level relationship
+			dbRelationship.delete();
+			
+			// create new relationship
+			app.create(newStartNode, endNode, relationType, _props);
+			
+			app.commitTx();
+			 
+		} finally {
+			
+			app.finishTx();
+		}
+	}
+
+	public void setTargetNodeId(final String targetIdNode) throws FrameworkException {
+
+		final String type        = this.getClass().getSimpleName();
+		final App app            = StructrApp.getInstance(securityContext);
+		final PropertyMap _props = getProperties();
+		
+		// Do nothing if new id equals old
+		if (getTargetNodeId().equals(targetIdNode)) {
+			return;
+		}
+
+		try {
+			
+			app.beginTx();
+			
+			final NodeInterface newTargetNode = (NodeInterface)app.get(targetIdNode);
+			final NodeInterface startNode     = getTargetNode();
+			final Class relationType          = getClass();
+
+			if (newTargetNode == null) {
+				throw new FrameworkException(type, new IdNotFoundToken(targetIdNode));
+			}
+			
+			// delete low-level relationship
+			dbRelationship.delete();
+			
+			// create new relationship
+			app.create(startNode, newTargetNode, relationType, _props);
+			
+			app.commitTx();
+			 
+		} finally {
+			
+			app.finishTx();
+		}
 	}
 }

@@ -21,6 +21,10 @@ public class TransactionReference implements Transaction {
 	public boolean isToplevel() {
 		return referenceCount == 1;
 	}
+	
+	public boolean isSuccessful() {
+		return successful;
+	}
 
 	public void begin() {
 		referenceCount++;
@@ -38,6 +42,7 @@ public class TransactionReference implements Transaction {
 	@Override
 	public void failure() {
 		tx.failure();
+		successful = false;
 	}
 
 	@Override

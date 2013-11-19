@@ -95,4 +95,13 @@ public class PostContents extends OneToMany<Post, Content> {
 		return "CONTAINS";
 	}
 
+	@Override
+	public Property<String> getSourceIdProperty() {
+		return parentId;
+	}
+
+	@Override
+	public Property<String> getTargetIdProperty() {
+		return contentId;
+	}
 }

@@ -2,12 +2,14 @@ package org.structr.core.entity.relationship;
 
 import org.structr.core.entity.ManyToMany;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.SourceId;
+import org.structr.core.property.TargetId;
 
 /**
  *
  * @author Christian Morgner
  */
-public class LocationRelationship extends ManyToMany<NodeInterface, NodeInterface> {
+public class NodeHasLocation extends ManyToMany<NodeInterface, NodeInterface> {
 
 	@Override
 	public Class<NodeInterface> getSourceType() {
@@ -22,5 +24,15 @@ public class LocationRelationship extends ManyToMany<NodeInterface, NodeInterfac
 	@Override
 	public Class<NodeInterface> getTargetType() {
 		return NodeInterface.class;
+	}
+
+	@Override
+	public SourceId getSourceIdProperty() {
+		return null;
+	}
+
+	@Override
+	public TargetId getTargetIdProperty() {
+		return null;
 	}
 }

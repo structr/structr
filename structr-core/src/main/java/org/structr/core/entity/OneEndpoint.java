@@ -38,7 +38,7 @@ public class OneEndpoint<T extends NodeInterface> extends AbstractEndpoint imple
 	public void set(final SecurityContext securityContext, final NodeInterface sourceNode, final T targetNode) throws FrameworkException {
 		
 		// let relation check multiplicity
-		relation.ensureCardinality(sourceNode, targetNode);
+		relation.ensureCardinality(securityContext, sourceNode, targetNode);
 
 		if (targetNode != null) {
 

@@ -1,9 +1,12 @@
 package org.structr.core.entity;
 
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.notion.Notion;
+import org.structr.core.notion.RelationshipNotion;
 
 /**
  *
@@ -37,9 +40,9 @@ public abstract class OneToOne<S extends NodeInterface, T extends NodeInterface>
 	}
 
 	@Override
-	public void ensureCardinality(final NodeInterface sourceNode, final NodeInterface targetNode) throws FrameworkException {
+	public void ensureCardinality(final SecurityContext securityContext, final NodeInterface sourceNode, final NodeInterface targetNode) throws FrameworkException {
 
-		final App app                         = StructrApp.getInstance(securityContext);
+		final App app                         = StructrApp.getInstance();
 		final Class<? extends OneToOne> clazz = getClass();
 		final Class<S> sourceType             = getSourceType();
 		final Class<T> targetType             = getTargetType();
@@ -49,13 +52,23 @@ public abstract class OneToOne<S extends NodeInterface, T extends NodeInterface>
 		final Relation<?, T, ?, ?> incomingRel = targetNode.getIncomingRelationship(clazz);
 
 		// remove relationship if exists
-		if (outgoingRel != null && outgoingRel.getTargetType().isAssignableFrom(targetType)) {
+		if (outgoingRel != null && targetType.isAssignableFrom(outgoingRel.getTargetType())) {
 			app.delete(outgoingRel);
 		}
 		
-		if (incomingRel != null && incomingRel.getSourceType().isAssignableFrom(sourceType)) {
+		if (incomingRel != null && sourceType.isAssignableFrom(incomingRel.getSourceType())) {
 			app.delete(incomingRel);
 		}
 	}
+	
+	@Override
+	public Notion getEndNodeNotion() {
+		return new RelationshipNotion(getTargetIdProperty());
 
+	}
+
+	@Override
+	public Notion getStartNodeNotion() {
+		return new RelationshipNotion(getSourceIdProperty());
+	}
 }

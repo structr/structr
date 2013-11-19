@@ -31,6 +31,7 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.neo4j.helpers.collection.Iterables;
 
 import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;
@@ -82,6 +83,18 @@ public class StaticRelationshipResource extends SortableResource {
 		final GraphObject sourceEntity = typedIdResource.getEntity();
 		if (sourceEntity != null) {
 
+			// first try: look through existing relations
+			if (!typeResource.isNode && sourceEntity instanceof NodeInterface) {
+				
+				FIXME: this is not correct, use getIncoming/getOutgoingRelationships and/or startpoints and endpoints.
+				
+				final List<GraphObject> list = Iterables.toList(((NodeInterface)sourceEntity).getRelationships(typeResource.entityClass));
+				applyDefaultSorting(list, sortKey, sortDescending);
+
+				return new Result(PagingHelper.subList(list, pageSize, page, offsetId), list.size(), isCollectionResource(), isPrimitiveArray());
+			}
+			
+			// second try: property key
 			final PropertyKey key = findPropertyKey(typedIdResource, typeResource);
 			if (key != null) {
 
@@ -93,7 +106,6 @@ public class StaticRelationshipResource extends SortableResource {
 						final List<GraphObject> list = (List<GraphObject>)value;
 						applyDefaultSorting(list, sortKey, sortDescending);
 
-						//return new Result(list, null, isCollectionResource(), isPrimitiveArray());
 						return new Result(PagingHelper.subList(list, pageSize, page, offsetId), list.size(), isCollectionResource(), isPrimitiveArray());
 
 					} else if (value instanceof Iterable) {

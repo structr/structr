@@ -19,6 +19,7 @@ public interface RelationshipInterface extends GraphObject {
 
 	public NodeInterface getSourceNode();
 	public NodeInterface getTargetNode();
+	public NodeInterface getOtherNode(final NodeInterface thisNode);
 	public RelationshipType getRelType();
 	
 	public Relationship getRelationship();
@@ -26,7 +27,11 @@ public interface RelationshipInterface extends GraphObject {
 	public PropertyMap getProperties() throws FrameworkException;
 
 	public String getSourceNodeId();
+	public void setSourceNodeId(final String startNodeId) throws FrameworkException;
+
 	public String getTargetNodeId();
+	public void setTargetNodeId(final String targetIdNode) throws FrameworkException;
+
 	
 	public int cascadeDelete();
 }

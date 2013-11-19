@@ -2,6 +2,7 @@ package org.structr.web.entity.blog.relation;
 
 import org.structr.core.entity.OneToMany;
 import org.structr.core.entity.Principal;
+import org.structr.core.property.Property;
 
 /**
  *
@@ -22,5 +23,15 @@ public class BlogAuthor extends OneToMany<Principal, BlogComment> {
 	@Override
 	public String name() {
 		return "AUTHOR";
+	}
+
+	@Override
+	public Property<String> getSourceIdProperty() {
+		return null;
+	}
+
+	@Override
+	public Property<String> getTargetIdProperty() {
+		return null;
 	}
 }

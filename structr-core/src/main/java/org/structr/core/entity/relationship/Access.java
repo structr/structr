@@ -3,6 +3,8 @@ package org.structr.core.entity.relationship;
 import org.structr.core.entity.OneToMany;
 import org.structr.core.entity.PropertyAccess;
 import org.structr.core.entity.ResourceAccess;
+import org.structr.core.property.SourceId;
+import org.structr.core.property.TargetId;
 
 /**
  *
@@ -25,4 +27,13 @@ public class Access extends OneToMany<ResourceAccess, PropertyAccess> {
 		return PropertyAccess.class;
 	}
 
+	@Override
+	public SourceId getSourceIdProperty() {
+		return null;
+	}
+
+	@Override
+	public TargetId getTargetIdProperty() {
+		return null;
+	}
 }

@@ -39,4 +39,14 @@ public class OneFourOneToOne extends OneToOne<TestOne, TestFour> {
 	public Class<TestFour> getTargetType() {
 		return TestFour.class;
 	}
+
+	@Override
+	public Property<String> getSourceIdProperty() {
+		return startNodeId;
+	}
+
+	@Override
+	public Property<String> getTargetIdProperty() {
+		return endNodeId;
+	}
 }
