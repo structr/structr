@@ -189,6 +189,8 @@ public class CsvServlet extends HttpServlet {
 
 				Writer writer = response.getWriter();
 
+				writeUtf8Bom(writer);
+				
 				// gson.toJson(result, writer);
 				writeCsv(result, writer);
 				response.setStatus(HttpServletResponse.SC_OK);
@@ -280,8 +282,16 @@ public class CsvServlet extends HttpServlet {
 
 	private static String escapeForCsv(final Object value) {
 		
-		return StringUtils.replace(value.toString(), "\"", "\\\"");
+		return StringUtils.replace(value.toString(), "\"", "\\\"").replace("\n", "\r");
 		
+	}
+	
+	private void writeUtf8Bom(Writer out) {
+		try {
+			out.write("\ufeff");
+		} catch (IOException ex) {
+			logger.log(Level.WARNING, "Unable to write UTF-8 BOM", ex);
+		}
 	}
 	
 	/**
