@@ -278,6 +278,12 @@ public class CsvServlet extends HttpServlet {
 
 	}
 
+	private static String escapeForCsv(final Object value) {
+		
+		return StringUtils.replace(value.toString(), "\"", "\\\"");
+		
+	}
+	
 	/**
 	 * Write list of objects to output
 	 *
@@ -324,7 +330,8 @@ public class CsvServlet extends HttpServlet {
 					row.deleteCharAt(pos);
 				}
 				
-				out.append(row).append("\n");
+				// append DOS-style line feed as defined in RFC 4180
+				out.append(row).append("\r\n");
 
 				// flush each line
 				out.flush();
@@ -340,14 +347,14 @@ public class CsvServlet extends HttpServlet {
 				Object value = obj.getProperty(key);
 
 				row.append("\"").append((value != null
-							 ? StringUtils.replace(value.toString(), "\"", "\\\"")    // escaping for CSV
+							 ? escapeForCsv(value)
 							 : "")).append("\",");
 
 			}
 
 			// remove last ,
 			row.deleteCharAt(row.lastIndexOf(","));
-			out.append(row).append("\n");
+			out.append(row).append("\r\n");
 
 			// flush each line
 			out.flush();

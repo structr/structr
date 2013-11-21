@@ -59,8 +59,7 @@ public class Ui implements org.structr.server.StructrServer {
 			ServletHolder csvServletHolder    = new ServletHolder(csvServlet);
 			Map<String, String> servletParams = new HashMap<String, String>();
 
-			servletParams.put(AuthenticationService.SERVLET_PARAMETER_AUTHENTICATOR, org.structr.web.auth.HttpAuthenticator.class.getName());
-			servletParams.put(AuthenticationService.SERVLET_PARAMETER_USER_AUTO_CREATE, Boolean.toString(true));
+			servletParams.put(AuthenticationService.SERVLET_PARAMETER_AUTHENTICATOR, org.structr.web.auth.UiAuthenticator.class.getName());
 			
 			csvServletHolder.setInitParameters(servletParams);
 			csvServletHolder.setInitOrder(2);
