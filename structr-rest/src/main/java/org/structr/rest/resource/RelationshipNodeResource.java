@@ -70,11 +70,11 @@ public class RelationshipNodeResource extends WrappingResource {
 						AbstractRelationship rel = (AbstractRelationship)obj;
 						if(startNode) {
 
-							resultList.add(rel.getStartNode());
+							resultList.add(rel.getSourceNode());
 
 						} else {
 
-							resultList.add(rel.getEndNode());
+							resultList.add(rel.getTargetNode());
 						}
 					}
 				}

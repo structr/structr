@@ -26,26 +26,15 @@ import java.io.ByteArrayOutputStream;
 import org.apache.commons.io.FileUtils;
 
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.RelationshipType;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.graph.CreateNodeCommand;
-import org.structr.core.graph.CreateRelationshipCommand;
-import org.structr.core.graph.DeleteNodeCommand;
-import org.structr.core.graph.FindNodeCommand;
-import org.structr.core.graph.GraphDatabaseCommand;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-
 import java.net.URL;
 import java.nio.charset.Charset;
 
@@ -64,10 +53,14 @@ import org.eclipse.jetty.util.resource.JarResource;
 import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.util.resource.ResourceCollection;
 import org.hamcrest.Matcher;
-import org.structr.core.property.PropertyMap;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.context.ApplicationContextListener;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.Relation;
+import org.structr.core.graph.NodeInterface;
+import org.structr.rest.entity.TestOne;
 import org.structr.rest.servlet.JsonRestServlet;
 
 //~--- classes ----------------------------------------------------------------
@@ -85,14 +78,9 @@ public class StructrRestTest extends TestCase {
 
 	//~--- fields ---------------------------------------------------------
 
-	protected Map<String, String> context = new ConcurrentHashMap<String, String>(20, 0.9f, 8);
-	protected CreateNodeCommand createNodeCommand;
-	protected CreateRelationshipCommand createRelationshipCommand;
-	protected DeleteNodeCommand deleteNodeCommand;
-	protected FindNodeCommand findNodeCommand;
-	protected GraphDatabaseCommand graphDbCommand;
-	protected SecurityContext securityContext;
-	protected TransactionCommand transactionCommand;
+	protected Map<String, String> context     = new ConcurrentHashMap<>(20, 0.9f, 8);
+	protected SecurityContext securityContext = null;
+	protected App app                         = null;
 
 	// the jetty server
 	private boolean running = false;
@@ -152,7 +140,7 @@ public class StructrRestTest extends TestCase {
 			
 			String sourceJarName                 = getClass().getProtectionDomain().getCodeSource().getLocation().toString();
 			File confFile                        = checkStructrConf(basePath, sourceJarName);
-			List<Connector> connectors           = new LinkedList<Connector>();
+			List<Connector> connectors           = new LinkedList<>();
 			HandlerCollection handlerCollection  = new HandlerCollection();
 
 			server = new Server(httpPort);
@@ -167,14 +155,14 @@ public class StructrRestTest extends TestCase {
 			JsonRestServlet structrRestServlet     = new JsonRestServlet(new TestResourceProvider(), PropertyView.Public, AbstractNode.uuid);
 			ServletHolder structrRestServletHolder = new ServletHolder(structrRestServlet);
 
-			Map<String, String> servletParams = new LinkedHashMap<String, String>();
+			Map<String, String> servletParams = new LinkedHashMap<>();
 			servletParams.put("Authenticator", SuperUserAuthenticator.class.getName());
 
 			structrRestServletHolder.setInitParameters(servletParams);
 			structrRestServletHolder.setInitOrder(0);
 
 			// add to servlets
-			Map<String, ServletHolder> servlets = new LinkedHashMap<String, ServletHolder>();
+			Map<String, ServletHolder> servlets = new LinkedHashMap<>();
 			servlets.put(restUrl + "/*", structrRestServletHolder);
 
 			// add servlet elements
@@ -240,7 +228,7 @@ public class StructrRestTest extends TestCase {
 
 	public void test00DbAvailable() {
 
-		GraphDatabaseService graphDb = (GraphDatabaseService) graphDbCommand.execute();
+		GraphDatabaseService graphDb = app.getGraphDatabaseService();
 
 		assertTrue(graphDb != null);
 	}
@@ -299,7 +287,7 @@ public class StructrRestTest extends TestCase {
 	 */
 	private static List<Class> findClasses(File directory, String packageName) throws ClassNotFoundException {
 
-		List<Class> classes = new ArrayList<Class>();
+		List<Class> classes = new ArrayList<>();
 
 		if (!directory.exists()) {
 
@@ -327,55 +315,49 @@ public class StructrRestTest extends TestCase {
 
 	}
 
-	protected List<AbstractNode> createTestNodes(final String type, final int number) throws FrameworkException {
+	protected <T extends NodeInterface> List<T> createTestNodes(final Class<T> type, final int number) throws FrameworkException {
 
-		final PropertyMap props = new PropertyMap();
-		props.put(AbstractNode.type, type);
+		final App app       = StructrApp.getInstance(securityContext);
+		final List<T> nodes = new LinkedList<>();
 
-		return (List<AbstractNode>) transactionCommand.execute(new StructrTransaction() {
-
-			@Override
-			public Object execute() throws FrameworkException {
-
-				List<AbstractNode> nodes = new LinkedList<AbstractNode>();
-
-				for (int i = 0; i < number; i++) {
-
-					nodes.add((AbstractNode) createNodeCommand.execute(props));
-				}
-
-				return nodes;
-
+		try {
+			app.beginTx();
+			for (int i = 0; i < number; i++) {
+				nodes.add(app.create(type));
 			}
+			app.commitTx();
 
-		});
+		} finally {
 
+			app.finishTx();
+		}
+		
+		return nodes;
 	}
 
-	protected List<AbstractRelationship> createTestRelationships(final RelationshipType relType, final int number) throws FrameworkException {
+	protected <T extends Relation> List<T> createTestRelationships(final Class<T> relType, final int number) throws FrameworkException {
 
-		List<AbstractNode> nodes     = createTestNodes("UnknownTestType", 2);
-		final AbstractNode startNode = nodes.get(0);
-		final AbstractNode endNode   = nodes.get(1);
+		final App app             = StructrApp.getInstance(securityContext);
+		final List<TestOne> nodes = createTestNodes(TestOne.class, 2);
+		final TestOne startNode   = nodes.get(0);
+		final TestOne endNode     = nodes.get(1);
+		final List<T> rels        = new LinkedList<>();
 
-		return (List<AbstractRelationship>) transactionCommand.execute(new StructrTransaction() {
+		try {
+			app.beginTx();
 
-			@Override
-			public Object execute() throws FrameworkException {
+			for (int i = 0; i < number; i++) {
 
-				List<AbstractRelationship> rels = new LinkedList<AbstractRelationship>();
-
-				for (int i = 0; i < number; i++) {
-
-					rels.add((AbstractRelationship) createRelationshipCommand.execute(startNode, endNode, relType));
-				}
-
-				return rels;
-
+				rels.add(app.create(startNode, endNode, relType));
 			}
+			app.commitTx();
 
-		});
+		} finally {
+			
+			app.finishTx();
+		}
 
+		return rels;
 	}
 	
 	protected String concat(String... parts) {
@@ -420,7 +402,7 @@ public class StructrRestTest extends TestCase {
 
 		String path                = packageName.replace('.', '/');
 		Enumeration<URL> resources = classLoader.getResources(path);
-		List<File> dirs            = new ArrayList<File>();
+		List<File> dirs            = new ArrayList<>();
 
 		while (resources.hasMoreElements()) {
 
@@ -430,7 +412,7 @@ public class StructrRestTest extends TestCase {
 
 		}
 
-		List<Class> classList = new ArrayList<Class>();
+		List<Class> classList = new ArrayList<>();
 
 		for (File directory : dirs) {
 
@@ -448,14 +430,8 @@ public class StructrRestTest extends TestCase {
 
 		init();
 
-		securityContext           = SecurityContext.getSuperUserInstance();
-		createNodeCommand         = Services.command(securityContext, CreateNodeCommand.class);
-		createRelationshipCommand = Services.command(securityContext, CreateRelationshipCommand.class);
-		deleteNodeCommand         = Services.command(securityContext, DeleteNodeCommand.class);
-		transactionCommand        = Services.command(securityContext, TransactionCommand.class);
-		graphDbCommand            = Services.command(securityContext, GraphDatabaseCommand.class);
-		findNodeCommand           = Services.command(securityContext, FindNodeCommand.class);
-
+		securityContext = SecurityContext.getSuperUserInstance();
+		app             = StructrApp.getInstance(securityContext);
 	}
 
 
@@ -469,7 +445,7 @@ public class StructrRestTest extends TestCase {
 		if (!confFile.exists()) {
 
 			// synthesize a config file
-			List<String> config = new LinkedList<String>();
+			List<String> config = new LinkedList<>();
 
 			config.add("##################################");
 			config.add("# structr global config file     #");

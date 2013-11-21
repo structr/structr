@@ -20,19 +20,20 @@
 
 package org.structr.web.entity.blog;
 
+import org.structr.web.entity.blog.relation.BlogComment;
+import org.structr.web.entity.blog.relation.BlogComments;
+import org.structr.web.entity.blog.relation.PostContents;
 import java.util.Date;
 import java.util.List;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
-import org.neo4j.graphdb.Direction;
 
 import org.structr.common.PropertyView;
-import org.structr.web.common.RelType;
 import org.structr.core.entity.AbstractNode;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import org.structr.core.property.CollectionProperty;
+import org.structr.core.property.EndNodes;
 import org.structr.core.property.ISO8601DateProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.web.entity.dom.Content;
@@ -47,10 +48,10 @@ import org.structr.web.entity.dom.Content;
  */
 public class Post extends AbstractNode {
 
-	public static final Property<String>             title       = new StringProperty("title").indexed().indexedWhenEmpty();
-	public static final CollectionProperty<Content>  sections    = new CollectionProperty<>("sections", Content.class, RelType.CONTAINS, Direction.OUTGOING, true);
-	public static final CollectionProperty<Comment>  comments    = new CollectionProperty<>("comments", Comment.class, org.structr.web.common.RelType.COMMENT, Direction.OUTGOING, true);
-	public static final Property<Date>               publishDate = new ISO8601DateProperty("publishDate").indexed().indexedWhenEmpty();
+	public static final Property<String>            title       = new StringProperty("title").indexed();
+	public static final Property<List<Content>>     sections    = new EndNodes<>("sections", PostContents.class);
+	public static final Property<List<BlogComment>> comments    = new EndNodes<>("comments", BlogComments.class);
+	public static final Property<Date>              publishDate = new ISO8601DateProperty("publishDate").indexed();
 	
 	public static final org.structr.common.View uiView = new org.structr.common.View(Post.class, PropertyView.Ui,
 		type, name, title, sections, publishDate, owner, comments

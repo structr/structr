@@ -29,7 +29,6 @@ import org.structr.core.property.PropertyKey;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NoResultsException;
 import org.structr.rest.exception.NotFoundException;
-import org.structr.rest.resource.RelationshipFollowingResource;
 import org.structr.rest.resource.Resource;
 import org.structr.rest.resource.ViewFilterResource;
 
@@ -214,11 +213,6 @@ public class ResourceHelper {
 
 						// signal success
 						found = true;
-
-						if (combinedConstraint instanceof RelationshipFollowingResource) {
-
-							break;
-						}
 
 					}
 

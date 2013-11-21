@@ -24,29 +24,18 @@ import org.eclipse.jetty.websocket.WebSocket.Connection;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.graph.FindNodeCommand;
-import org.structr.core.graph.FindRelationshipCommand;
-import org.structr.core.graph.search.Search;
-import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.SearchNodeCommand;
-import org.structr.core.graph.search.SearchRelationshipCommand;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.WebSocketMessage;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.LinkedList;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.Result;
-import org.structr.core.graph.CreateNodeCommand;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.Widget;
 import org.structr.web.entity.dom.DOMNode;
@@ -137,34 +126,11 @@ public abstract class AbstractCommand {
 	public AbstractNode getNode(final String id) {
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
+		final App app = StructrApp.getInstance(securityContext);
 
 		try {
 
-			if (idProperty != null) {
-
-				List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
-
-				attrs.add(Search.andExactProperty(securityContext, idProperty, id));
-
-				Result results = Services.command(securityContext, SearchNodeCommand.class).execute(true, false, attrs);
-
-				if (!results.isEmpty()) {
-
-					return (AbstractNode) results.get(0);
-
-				}
-
-			} else {
-
-				List<AbstractNode> results = (List<AbstractNode>) Services.command(securityContext, FindNodeCommand.class).execute(id);
-
-				if (!results.isEmpty()) {
-
-					return results.get(0);
-
-				}
-
-			}
+			return (AbstractNode)app.get(id);
 
 		} catch (FrameworkException fex) {
 			logger.log(Level.WARNING, "Unable to get node", fex);
@@ -186,36 +152,11 @@ public abstract class AbstractCommand {
 		}
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
+		final App app = StructrApp.getInstance(securityContext);
 
 		try {
 
-			if (idProperty != null) {
-
-				List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
-
-				attrs.add(Search.andExactProperty(securityContext, idProperty, id));
-
-				List<AbstractRelationship> results = Services.command(securityContext, SearchRelationshipCommand.class).execute(attrs).getResults();
-
-				if (!results.isEmpty()) {
-
-					return results.get(0);
-
-				}
-
-			} else {
-
-				// FIXME: does this ever get called?
-				List<AbstractRelationship> results = (List<AbstractRelationship>)Services.command(securityContext,
-									     FindRelationshipCommand.class).execute(id);
-
-				if (!results.isEmpty()) {
-
-					return results.get(0);
-
-				}
-
-			}
+			return (AbstractRelationship)app.get(id);
 
 		} catch (FrameworkException fex) {
 			logger.log(Level.WARNING, "Unable to get relationship", fex);
@@ -271,36 +212,29 @@ public abstract class AbstractCommand {
 	 */
 	protected ShadowDocument getOrCreateHiddenDocument() throws FrameworkException {
 		
-		SecurityContext securityContext = SecurityContext.getSuperUserInstance();
+		final App app = StructrApp.getInstance();
+		
+		ShadowDocument doc = app.nodeQuery(ShadowDocument.class).getFirst();
+		if (doc == null) {
 
-		Result result = (Result) Services.command(securityContext, SearchNodeCommand.class).execute(
-			Search.andExactType(ShadowDocument.class)
-		);
-
-		if (result.isEmpty()) {
-
-			final CreateNodeCommand cmd  = Services.command(securityContext, CreateNodeCommand.class);
 			final PropertyMap properties = new PropertyMap();
 			properties.put(AbstractNode.type, ShadowDocument.class.getSimpleName());
 			properties.put(AbstractNode.name, "__ShadowDocument__");
 			properties.put(AbstractNode.hidden, true);
 			properties.put(AbstractNode.visibleToAuthenticatedUsers, true);
-		
-			ShadowDocument doc = Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<ShadowDocument>() {
 
-				@Override
-				public ShadowDocument execute() throws FrameworkException {
+			try {
+				app.beginTx();
+				doc = app.create(ShadowDocument.class, properties);
+				app.commitTx();
 
-					return (ShadowDocument) cmd.execute(properties);
-				}		
-			});
-	
-			return doc;
+			} finally {
 
+				app.finishTx();
+			}
 		}
 		
-		return (ShadowDocument) result.get(0);
-		
+		return doc;
 		
 	}
 	

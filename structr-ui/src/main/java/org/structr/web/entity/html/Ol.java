@@ -22,13 +22,10 @@ package org.structr.web.entity.html;
 
 import org.structr.web.entity.dom.DOMElement;
 import org.apache.commons.lang.ArrayUtils;
-import org.neo4j.graphdb.Direction;
 import org.structr.core.property.Property;
 
 import org.structr.common.PropertyView;
-import org.structr.web.common.RelType;
 import org.structr.common.View;
-import org.structr.core.property.CollectionProperty;
 import org.structr.web.common.HtmlProperty;
 
 //~--- classes ----------------------------------------------------------------
@@ -41,7 +38,7 @@ public class Ol extends DOMElement {
 	public static final Property<String> _reversed = new HtmlProperty("reversed");
 	public static final Property<String> _start    = new HtmlProperty("start");
 
-	public static final CollectionProperty<Li> lis = new CollectionProperty<Li>("lis", Li.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final EndNodes<Li> lis = new EndNodes<Li>("lis", Li.class, RelType.CONTAINS, Direction.OUTGOING, false);
 	
 	public static final View htmlView = new View(Ol.class, PropertyView.Html,
 	    _reversed, _start

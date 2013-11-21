@@ -18,11 +18,9 @@
  */
 package org.structr.core;
 
-import org.structr.core.property.PropertyKey;
-import org.structr.core.property.PropertyMap;
-import org.structr.common.error.ErrorBuffer;
+import java.util.List;
 import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.ModificationEvent;
 
 /**
  * An interface that allows you to be notified when a {@link  GraphObject} is
@@ -33,102 +31,5 @@ import org.structr.common.error.FrameworkException;
  */
 public interface StructrTransactionListener {
 
-	/**
-	 * Called when the transaction has started. When this method is called,
-	 * the transaction is already in the process of being finished.
-	 * 
-	 * @param securityContext the security context
-	 * @param transactionKey the transaction key
-	 */
-	public void commitStarts(SecurityContext securityContext, long transactionKey);
-	
-	/**
-	 * Called when the transaction is about to be committed.
-	 * 
-	 * @param securityContext the security context
-	 * @param transactionKey the transaction key
-	 */
-	public void commitFinishes(SecurityContext securityContext, long transactionKey);
-	
-	/**
-	 * Called when the commit has been successful.
-	 * 
-	 * @param securityContext the security context
-	 * @param transactionKey the transaction key
-	 */
-	public void afterCommit(SecurityContext securityContext, long transactionKey);
-
-	/**
-	 * Called when the commit has not been successful and was rolled back.
-	 * 
-	 * @param securityContext the security context
-	 * @param transactionKey the transaction key
-	 */
-	public void afterRollback(SecurityContext securityContext, long transactionKey);
-	
-	/**
-	 * Called for every property that is modified on a given node in the
-	 * transaction.
-	 * 
-	 * @param securityContext
-	 * @param transactionKey
-	 * @param errorBuffer
-	 * @param graphObject
-	 * @param key
-	 * @param oldValue
-	 * @param newValue
-	 * @return 
-	 */
-	public void propertyModified(SecurityContext securityContext, long transactionKey, GraphObject graphObject, PropertyKey key, Object oldValue, Object newValue);
-	
-	/**
-	 * Called for every property that is removed from a given node in the
-	 * transaction.
-	 * 
-	 * @param securityContext
-	 * @param transactionKey
-	 * @param errorBuffer
-	 * @param graphObject
-	 * @param key
-	 * @param oldValue
-	 * @return 
-	 */
-	public void propertyRemoved(SecurityContext securityContext, long transactionKey, GraphObject graphObject, PropertyKey key, Object oldValue);
-
-	/**
-	 * Called for every entity that is created in the transaction.
-	 * 
-	 * @param securityContext
-	 * @param transactionKey
-	 * @param errorBuffer
-	 * @param graphObject
-	 * @return
-	 * @throws FrameworkException 
-	 */
-	public void graphObjectCreated(SecurityContext securityContext, long transactionKey, GraphObject graphObject) throws FrameworkException;
-	
-	/**
-	 * Called for every entity that is modified in the transaction.
-	 * 
-	 * @param securityContext
-	 * @param transactionKey
-	 * @param errorBuffer
-	 * @param graphObject
-	 * @return
-	 * @throws FrameworkException 
-	 */
-	public void graphObjectModified(SecurityContext securityContext, long transactionKey, GraphObject graphObject) throws FrameworkException;
-	
-	/**
-	 * Called for every entity that is deleted in the transaction.
-	 * 
-	 * @param securityContext
-	 * @param transactionKey
-	 * @param errorBuffer
-	 * @param graphObject
-	 * @param properties
-	 * @return
-	 * @throws FrameworkException 
-	 */
-	public void graphObjectDeleted(SecurityContext securityContext, long transactionKey, GraphObject graphObject, PropertyMap properties) throws FrameworkException;
+	public void transactionCommited(final SecurityContext securityContext, final List<ModificationEvent> modificationEvents);
 }

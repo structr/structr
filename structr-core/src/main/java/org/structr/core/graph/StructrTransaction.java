@@ -33,7 +33,7 @@ public abstract class StructrTransaction<T> {
 		this.doValidation = true;
 	}
 	
-	public StructrTransaction(boolean doValidation) {
+	private StructrTransaction(boolean doValidation) {
 		this.doValidation = doValidation;
 	}
 	

@@ -38,6 +38,7 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import org.neo4j.graphdb.Node;
+import org.structr.core.graph.NodeInterface;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -55,12 +56,12 @@ public class SecurityContext {
 
 	//~--- fields ---------------------------------------------------------
 
-	private Map<Long, AbstractNode> cache = null;
-	private AccessMode accessMode         = AccessMode.Frontend;
-	private Map<String, Object> attrs     = Collections.synchronizedMap(new LinkedHashMap<String, Object>());
-	private Authenticator authenticator   = null;
-	private Principal cachedUser          = null;
-	private HttpServletRequest request    = null;
+	private Map<Long, NodeInterface> cache = null;
+	private AccessMode accessMode          = AccessMode.Frontend;
+	private Map<String, Object> attrs      = Collections.synchronizedMap(new LinkedHashMap<String, Object>());
+	private Authenticator authenticator    = null;
+	private Principal cachedUser           = null;
+	private HttpServletRequest request     = null;
 
 	//~--- constructors ---------------------------------------------------
 
@@ -74,7 +75,7 @@ public class SecurityContext {
 		this.cachedUser = user;
 		this.accessMode = accessMode;
 
-		cache = new ConcurrentHashMap<Long, AbstractNode>();
+		cache = new ConcurrentHashMap<Long, NodeInterface>();
 	}
 
 	/*
@@ -102,12 +103,12 @@ public class SecurityContext {
 
 		// request-based caching
 		if (request != null && request.getServletContext() != null) {
-			cache = (Map<Long, AbstractNode>)request.getServletContext().getAttribute("NODE_CACHE");
+			cache = (Map<Long, NodeInterface>)request.getServletContext().getAttribute("NODE_CACHE");
 		}
 		
 		if (cache == null) {
 
-			cache = new ConcurrentHashMap<Long, AbstractNode>();
+			cache = new ConcurrentHashMap<Long, NodeInterface>();
 			
 			if (request != null && request.getServletContext() != null) {
 				request.getServletContext().setAttribute("NODE_CACHE", cache);
@@ -127,11 +128,11 @@ public class SecurityContext {
 		}
 	}
 	
-	public AbstractNode lookup(Node node) {
+	public NodeInterface lookup(Node node) {
 		return cache.get(node.getId());
 	}
 	
-	public void store(AbstractNode node) {
+	public void store(NodeInterface node) {
 		
 		Node dbNode = node.getNode();
 		if (dbNode != null) {
@@ -382,7 +383,7 @@ public class SecurityContext {
 
 	}
 
-	public boolean isReadable(final AbstractNode node, final boolean includeDeletedAndHidden, final boolean publicOnly) {
+	public boolean isReadable(final NodeInterface node, final boolean includeDeletedAndHidden, final boolean publicOnly) {
 
 		/**
 		 * The if-clauses in the following lines have been split
@@ -621,7 +622,7 @@ public class SecurityContext {
 		}
 
 		@Override
-		public boolean isReadable(final AbstractNode node, final boolean includeDeletedAndHidden, final boolean publicOnly) {
+		public boolean isReadable(final NodeInterface node, final boolean includeDeletedAndHidden, final boolean publicOnly) {
 		
 			return true;
 		}
@@ -648,12 +649,12 @@ public class SecurityContext {
 		}
 	
 		@Override
-		public AbstractNode lookup(Node node) {
+		public NodeInterface lookup(Node node) {
 			return null;
 		}
 		
 		@Override
-		public void store(AbstractNode node) {
+		public void store(NodeInterface node) {
 		}
 
 		

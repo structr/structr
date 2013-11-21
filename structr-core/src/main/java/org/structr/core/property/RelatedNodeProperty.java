@@ -23,7 +23,6 @@ import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.converter.RelatedNodePropertyMapper;
-import org.structr.core.entity.AbstractNode;
 
 /**
  * A property that can be used to make the property of a related node
@@ -36,10 +35,10 @@ import org.structr.core.entity.AbstractNode;
  */
 public class RelatedNodeProperty<T> extends AbstractPrimitiveProperty<T> {
 	
-	private EntityProperty<? extends AbstractNode> sourceKey = null;
-	private PropertyKey targetKey                            = null;
+	private PropertyKey sourceKey  = null;
+	private PropertyKey<T> targetKey = null;
 	
-	public RelatedNodeProperty(String name, EntityProperty<? extends AbstractNode> sourceKey, PropertyKey<T> targetKey) {
+	public RelatedNodeProperty(String name, PropertyKey sourceKey, PropertyKey<T> targetKey) {
 		super(name);
 		
 		this.sourceKey  = sourceKey;

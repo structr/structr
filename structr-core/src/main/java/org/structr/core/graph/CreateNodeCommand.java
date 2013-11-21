@@ -22,7 +22,6 @@ package org.structr.core.graph;
 
 import org.neo4j.graphdb.GraphDatabaseService;
 
-import org.structr.common.RelType;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
@@ -38,7 +37,10 @@ import java.util.Date;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
 import org.structr.common.Permission;
-import org.structr.core.entity.SecurityRelationship;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.Security;
+import org.structr.core.entity.relationship.PrincipalOwnsAbstractNode;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 
@@ -49,11 +51,11 @@ import org.structr.core.property.PropertyMap;
  *
  * @author Christian Morgner
  */
-public class CreateNodeCommand<T extends AbstractNode> extends NodeServiceCommand {
+public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceCommand {
 
 	private static final Logger logger = Logger.getLogger(CreateNodeCommand.class.getName());
 
-	public T execute(Collection<NodeAttribute> attributes) throws FrameworkException {
+	public T execute(Collection<NodeAttribute<?>> attributes) throws FrameworkException {
 		
 		PropertyMap properties = new PropertyMap();
 		for (NodeAttribute attribute : attributes) {
@@ -65,7 +67,7 @@ public class CreateNodeCommand<T extends AbstractNode> extends NodeServiceComman
 		
 	}
 	
-	public T execute(NodeAttribute... attributes) throws FrameworkException {
+	public T execute(NodeAttribute<?>... attributes) throws FrameworkException {
 		
 		PropertyMap properties = new PropertyMap();
 		for (NodeAttribute attribute : attributes) {
@@ -84,18 +86,17 @@ public class CreateNodeCommand<T extends AbstractNode> extends NodeServiceComman
 
 		if (graphDb != null) {
 
-			CreateRelationshipCommand createRel = Services.command(securityContext, CreateRelationshipCommand.class);
 			Date now                            = new Date();
 
 			// Determine node type
 			PropertyMap properties     = new PropertyMap(attributes);
 			Object typeObject          = properties.get(AbstractNode.type);
-			String nodeType            = (typeObject != null) ? typeObject.toString() : EntityContext.getFactoryDefinition().getGenericNodeType();
-			NodeFactory<T> nodeFactory = new NodeFactory<T>(securityContext);
+			Class nodeType             = typeObject != null ? EntityContext.getEntityClassForRawType(typeObject.toString()) : EntityContext.getFactoryDefinition().getGenericNodeType();
+			NodeFactory<T> nodeFactory = new NodeFactory<>(securityContext);
 			boolean isCreation         = true;
 
 			// Create node with type
-			node = nodeFactory.instantiateWithType(graphDb.createNode(), nodeType, isCreation);
+			node = (T) nodeFactory.instantiateWithType(graphDb.createNode(), nodeType, isCreation);
 			if(node != null) {
 				
 				TransactionCommand.nodeCreated(node);
@@ -104,13 +105,23 @@ public class CreateNodeCommand<T extends AbstractNode> extends NodeServiceComman
 
 					// Create new relationship to user and grant permissions to user or group
 					AbstractNode owner = (AbstractNode)user;
-					createRel.execute(owner, node, RelType.OWNS, false);
+
+					App app = StructrApp.getInstance(securityContext);
 					
-					SecurityRelationship securityRel = (SecurityRelationship) createRel.execute(owner, node, RelType.SECURITY, false);
+					app.create(owner, node, PrincipalOwnsAbstractNode.class);
+					
+					Security securityRel = app.create(owner, node, Security.class);
 					securityRel.setAllowed(Permission.values());
 
 					node.unlockReadOnlyPropertiesOnce();
 					node.setProperty(AbstractNode.createdBy, user.getProperty(AbstractNode.uuid));
+				}
+
+				// set type
+				if (nodeType != null) {
+					
+					node.unlockReadOnlyPropertiesOnce();
+					node.setProperty(GraphObject.type, nodeType.getSimpleName());
 				}
 				
 				node.unlockReadOnlyPropertiesOnce();

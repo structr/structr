@@ -19,7 +19,6 @@
 package org.structr.core.property;
 
 import java.lang.reflect.Constructor;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;

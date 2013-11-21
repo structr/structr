@@ -21,17 +21,13 @@ package org.structr.core.property;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.fail;
-import org.structr.common.RelType;
 import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
 import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.entity.TestFour;
 import org.structr.core.entity.TestOne;
-import org.structr.core.entity.TestRelationship;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
+import org.structr.core.entity.OneFourOneToOne;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.graph.search.SearchRelationshipCommand;
@@ -53,15 +49,15 @@ public class IntegerPropertyTest extends StructrTest {
 			// store integer in the test entitiy
 			final Integer value = 2345;
 
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+			try {
+				app.beginTx();
+				instance.setProperty(securityContext, testEntity, value);
+				app.commitTx();
 
-				@Override
-				public Object execute() throws FrameworkException {
-					
-					instance.setProperty(securityContext, testEntity, value);
-					return null;
-				}
-			});
+			} finally {
+
+				app.finishTx();
+			}
 
 			// check value from database
 			assertEquals(value, instance.getProperty(securityContext, testEntity, true));
@@ -87,14 +83,10 @@ public class IntegerPropertyTest extends StructrTest {
 			// check value from database
 			assertEquals((Integer)2345, (Integer)testEntity.getProperty(key));
 			
+			Result<TestFour> result = app.nodeQuery(TestFour.class).and(key, 2345).getResult();
 			
-			Result<TestFour> result = Services.command(securityContext, SearchNodeCommand.class).execute(
-				Search.andExactType(TestFour.class),
-				Search.andExactProperty(securityContext, key, 2345)
-			);
-			
-			assertEquals(result.size(), 1);
-			assertEquals(result.get(0), testEntity);
+			assertEquals(1, result.size());
+			assertEquals(testEntity, result.get(0));
 		
 		} catch (FrameworkException fex) {
 			
@@ -108,38 +100,32 @@ public class IntegerPropertyTest extends StructrTest {
 		try {
 			final TestOne testOne        = createTestNode(TestOne.class);
 			final TestFour testFour      = createTestNode(TestFour.class);
-			final Property<Integer> key = TestRelationship.integerProperty;
+			final Property<Integer> key = OneFourOneToOne.integerProperty;
 			
 			assertNotNull(testOne);
 			assertNotNull(testFour);
 			
-			final TestRelationship testEntity = (TestRelationship)createTestRelationship(testOne, testFour, RelType.IS_AT);
+			final OneFourOneToOne testEntity = createTestRelationship(testOne, testFour, OneFourOneToOne.class);
 			
 			assertNotNull(testEntity);
 
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+			try {
+				app.beginTx();
+				testEntity.setProperty(key, 2345);
+				app.commitTx();
 
-				@Override
-				public Object execute() throws FrameworkException {
-					
-					// set property
-					testEntity.setProperty(key, 2345);
-					
-					return null;
-				}
-				
-			});
-			
+			} finally {
+
+				app.finishTx();
+			}
+
 			// check value from database
 			assertEquals((Integer)2345, (Integer)testEntity.getProperty(key));
 			
-			Result<TestFour> result = Services.command(securityContext, SearchRelationshipCommand.class).execute(
-				Search.andExactRelType(EntityContext.getNamedRelation(TestRelationship.Relation.test_relationships.name())),
-				Search.andExactProperty(securityContext, key, 2345)
-			);
+			Result<OneFourOneToOne> result = app.relationshipQuery(OneFourOneToOne.class).and(key, 2345).getResult();
 			
-			assertEquals(result.size(), 1);
-			assertEquals(result.get(0), testEntity);
+			assertEquals(1, result.size());
+			assertEquals(testEntity, result.get(0));
 		
 		} catch (FrameworkException fex) {
 			

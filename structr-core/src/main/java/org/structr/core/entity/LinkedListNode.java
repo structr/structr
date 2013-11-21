@@ -18,16 +18,14 @@
  */
 package org.structr.core.entity;
 
-import java.util.List;
 import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.RelationshipType;
-import org.neo4j.helpers.collection.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.relationship.AbstractListSiblings;
 import org.structr.core.graph.CreateRelationshipCommand;
-import org.structr.core.graph.DeleteRelationshipCommand;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
@@ -37,11 +35,13 @@ import org.structr.core.property.StringProperty;
  * 
  * @author Christian Morgner
  */
-public abstract class LinkedListNode extends ValidatedNode {
+public abstract class LinkedListNode<R extends AbstractListSiblings<T, T>, T extends LinkedListNode> extends ValidatedNode {
 	
 	// this is not used for the node itself but for the relationship(s) this node maintains
-	public static final PropertyKey<String> keyProperty = new StringProperty("key");
+	public static final PropertyKey<String>      keyProperty     = new StringProperty("key");
 
+	public abstract Class<R> getSiblingLinkType();
+	
 	/**
 	 * Returns the predecessor of the given element in the list structure
 	 * defined by this LinkedListManager.
@@ -49,23 +49,12 @@ public abstract class LinkedListNode extends ValidatedNode {
 	 * @param currentElement
 	 * @return
 	 */
-	public LinkedListNode listGetPrevious(final RelationshipType relType, final LinkedListNode currentElement) {
+	public  T listGetPrevious(final T currentElement) {
 
-		final List<AbstractRelationship> incomingRelationships = Iterables.toList(currentElement.getIncomingRelationships(relType));
-		
-		if (incomingRelationships != null && !incomingRelationships.isEmpty()) {
-
-			int size = incomingRelationships.size();
-			if (size == 1) {
-
-				AbstractRelationship incomingRel = incomingRelationships.get(0);
-				if (incomingRel != null) {
-
-					return (LinkedListNode)incomingRel.getStartNode();
-				}
-			}
-
-			throw new IllegalStateException("Given node is not a valid list node for the given relationship type.");
+		R prevRel = currentElement.getIncomingRelationship(getSiblingLinkType());
+		if (prevRel != null) {
+			
+			return prevRel.getSourceNode();
 		}
 
 		return null;
@@ -78,23 +67,12 @@ public abstract class LinkedListNode extends ValidatedNode {
 	 * @param currentElement
 	 * @return
 	 */
-	public LinkedListNode listGetNext(final RelationshipType relType, final LinkedListNode currentElement) {
-		
-		List<AbstractRelationship> outgoingRelationships = Iterables.toList(currentElement.getOutgoingRelationships(relType));
-		
-		if (outgoingRelationships != null && !outgoingRelationships.isEmpty()) {
+	public T listGetNext(final T currentElement) {
 
-			int size = outgoingRelationships.size();
-			if (size == 1) {
-
-				AbstractRelationship outgoingRel = outgoingRelationships.get(0);
-				if (outgoingRel != null) {
-
-					return (LinkedListNode)outgoingRel.getEndNode();
-				}
-			}
-
-			throw new IllegalStateException("Given node is not a valid list node for the given relationship type: found " + size + " outgoing relationships of type " + relType);
+		R nextRel = currentElement.getOutgoingRelationship(getSiblingLinkType());
+		if (nextRel != null) {
+			
+			return nextRel.getTargetNode();
 		}
 
 		return null;
@@ -107,42 +85,46 @@ public abstract class LinkedListNode extends ValidatedNode {
 	 * @param currentElement the reference element
 	 * @param newElement the new element
 	 */
-	public void listInsertBefore(final RelationshipType relType, final LinkedListNode currentElement, final LinkedListNode newElement) throws FrameworkException {
+	public void listInsertBefore(final T currentElement, final T newElement) throws FrameworkException {
 
+		final App app = StructrApp.getInstance(securityContext);
+		
 		if (currentElement.getId() == newElement.getId()) {
 			throw new IllegalStateException("Cannot link a node to itself!");
 		}
 
-		final LinkedListNode previousElement = listGetPrevious(relType, currentElement);
+		final T previousElement = listGetPrevious(currentElement);
 		if (previousElement == null) {
 
-			// trivial: new node will become new head of existing list
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-				@Override
-				public Object execute() throws FrameworkException {
+			try {
+				app.beginTx();
 
-					linkNodes(relType, newElement, currentElement);
+				linkNodes(getSiblingLinkType(), newElement, currentElement);
 
-					return null;
-				}
-			});
+				app.commitTx();
+
+			} finally {
+
+				app.finishTx();
+			}
 
 		} else {
 
-			// not-so-trivial: insert new element between predecessor and current node
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-				@Override
-				public Object execute() throws FrameworkException {
+			try {
+				app.beginTx();
 
-					// delete old relationship
-					unlinkNodes(relType, previousElement, currentElement);
-					
-					linkNodes(relType, previousElement, newElement);
-					linkNodes(relType, newElement, currentElement);
+				// delete old relationship
+				unlinkNodes(getSiblingLinkType(), previousElement, currentElement);
 
-					return null;
-				}
-			});
+				linkNodes(getSiblingLinkType(), previousElement, newElement);
+				linkNodes(getSiblingLinkType(), newElement, currentElement);
+
+				app.commitTx();
+
+			} finally {
+
+				app.finishTx();
+			}
 		}
 	}
 
@@ -153,41 +135,45 @@ public abstract class LinkedListNode extends ValidatedNode {
 	 * @param currentElement the reference element
 	 * @param newElement the new element
 	 */
-	public void listInsertAfter(final RelationshipType relType, final LinkedListNode currentElement, final LinkedListNode newElement) throws FrameworkException {
+	public void listInsertAfter(final T currentElement, final T newElement) throws FrameworkException {
+
+		final App app = StructrApp.getInstance(securityContext);
 
 		if (currentElement.getId() == newElement.getId()) {
 			throw new IllegalStateException("Cannot link a node to itself!");
 		}
 
-		final LinkedListNode next = listGetNext(relType, currentElement);
+		final T next = listGetNext(currentElement);
 		if (next == null) {
 
-			// trivial: new node will become new tail of existing list
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-				@Override
-				public Object execute() throws FrameworkException {
+			try {
+				app.beginTx();
 
-					linkNodes(relType, currentElement, newElement);
+				linkNodes(getSiblingLinkType(), currentElement, newElement);
 
-					return null;
-				}
-			});
+				app.commitTx();
+
+			} finally {
+
+				app.finishTx();
+			}
 
 		} else {
 
-			// not-so-trivial: insert new element between current node and successor
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-				@Override
-				public Object execute() throws FrameworkException {
+			try {
+				app.beginTx();
 
-					unlinkNodes(relType, currentElement, next);
+				unlinkNodes(getSiblingLinkType(), currentElement, next);
 
-					linkNodes(relType, currentElement, newElement);
-					linkNodes(relType, newElement, next);
+				linkNodes(getSiblingLinkType(), currentElement, newElement);
+				linkNodes(getSiblingLinkType(), newElement, next);
 
-					return null;
-				}
-			});
+				app.commitTx();
+
+			} finally {
+
+				app.finishTx();
+			}
 		}
 	}
 
@@ -197,21 +183,30 @@ public abstract class LinkedListNode extends ValidatedNode {
 	 *
 	 * @param currentElement the element to be removed
 	 */
-	public void listRemove(final RelationshipType relType, final LinkedListNode currentElement) throws FrameworkException {
+	public void listRemove(final T currentElement) throws FrameworkException {
 		
-		final LinkedListNode previousElement = listGetPrevious(relType, currentElement);
-		final LinkedListNode nextElement     = listGetNext(relType, currentElement);
+		final App app           = StructrApp.getInstance(securityContext);
+		final T previousElement = listGetPrevious(currentElement);
+		final T nextElement     = listGetNext(currentElement);
 
 		if (currentElement != null) {
 			
-			if (previousElement != null) {
+			try {
+				app.beginTx();
 
-				unlinkNodes(relType, previousElement, currentElement);
-			}
+				if (previousElement != null) {
+					unlinkNodes(getSiblingLinkType(), previousElement, currentElement);
+				}
 
-			if (nextElement != null) {
+				if (nextElement != null) {
+					unlinkNodes(getSiblingLinkType(), currentElement, nextElement);
+				}
 
-				unlinkNodes(relType, currentElement, nextElement);
+				app.commitTx();
+
+			} finally {
+
+				app.finishTx();
 			}
 		}
 
@@ -222,43 +217,58 @@ public abstract class LinkedListNode extends ValidatedNode {
 
 			if (previousNode != null && nextNode != null) {
 
-				linkNodes(relType, previousElement, nextElement);
+				try {
+					app.beginTx();
+					linkNodes(getSiblingLinkType(), previousElement, nextElement);
+					app.commitTx();
+
+				} finally {
+
+					app.finishTx();
+				}
 			}
 
 		}
 	}
 	
-	public void linkNodes(final RelationshipType relType, LinkedListNode startNode, LinkedListNode endNode) throws FrameworkException {
-		linkNodes(relType, startNode, endNode, null);
+	public <R extends Relation<T, T, ?, ?>> void linkNodes(final Class<R> linkType, final T startNode, final T endNode) throws FrameworkException {
+		linkNodes(linkType, startNode, endNode, null);
 	}
 	
-	public void linkNodes(final RelationshipType relType, LinkedListNode startNode, LinkedListNode endNode, PropertyMap properties) throws FrameworkException {
+	public <R extends Relation<T, T, ?, ?>> void linkNodes(final Class<R> linkType, final T startNode, final T endNode, final PropertyMap properties) throws FrameworkException {
 		
-		CreateRelationshipCommand cmd = Services.command(securityContext, CreateRelationshipCommand.class);
+		final App app = StructrApp.getInstance(securityContext);
+		
+		try {
+			app.beginTx();
+			app.create(startNode, endNode, linkType, properties);
+			app.commitTx();
 
-		// do not check for duplicates here
-		cmd.execute(startNode, endNode, relType, properties, false);
+		} finally {
+
+			app.finishTx();
+		}
 	}
 	
-	public void unlinkNodes(final RelationshipType relType, final LinkedListNode startNode, final LinkedListNode endNode) throws FrameworkException {
+	private void unlinkNodes(final Class<R> linkType, final T startNode, final T endNode) throws FrameworkException {
 		
-		final DeleteRelationshipCommand cmd = Services.command(securityContext, DeleteRelationshipCommand.class);
+		final App app = StructrApp.getInstance(securityContext);
 		
-		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+		try {
+			app.beginTx();
 
-			@Override
-			public Object execute() throws FrameworkException {
-				
-				for (AbstractRelationship rel : startNode.getOutgoingRelationships(relType)) {
-					
-					if (rel.getEndNode().equals(endNode)) {
-						cmd.execute(rel);
-					}
+			for (RelationshipInterface rel : startNode.getRelationships(linkType)) {
+
+				if (rel != null && rel.getTargetNode().equals(endNode)) {
+					app.delete(rel);
 				}
-				
-				return null;
 			}
-			
-		});
+
+			app.commitTx();
+
+		} finally {
+
+			app.finishTx();
+		}
 	}
 }

@@ -24,17 +24,17 @@ import org.neo4j.gis.spatial.indexprovider.LayerNodeIndex;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.index.Index;
 import org.structr.common.SecurityContext;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.Factory;
 import org.structr.core.graph.NodeService;
 import org.structr.core.graph.RelationshipFactory;
+import org.structr.core.graph.RelationshipInterface;
 
 /**
  * Search for relationships by their attributes.
  *
  * @author Axel Morgner
  */
-public class SearchRelationshipCommand<T extends AbstractRelationship> extends SearchCommand<Relationship, T> {
+public class SearchRelationshipCommand<T extends RelationshipInterface> extends SearchCommand<Relationship, T> {
 
 	@Override
 	public Factory<Relationship, T> getFactory(SecurityContext securityContext, boolean includeDeletedAndHidden, boolean publicOnly, int pageSize, int page, String offsetId) {

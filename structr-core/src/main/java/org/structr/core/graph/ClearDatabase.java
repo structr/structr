@@ -33,6 +33,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
 import org.structr.core.Result;
+import org.structr.core.app.StructrApp;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -56,7 +57,6 @@ public class ClearDatabase extends NodeServiceCommand {
 
 		if (graphDb != null) {
 
-			final DeleteNodeCommand delNode   = Services.command(securityContext, DeleteNodeCommand.class);
 			final Result<AbstractNode> result = nodeFactory.instantiateAll(GlobalGraphOperations.at(graphDb).getAllNodes());
 			
 			long deletedNodes = bulkGraphOperation(securityContext, result.getResults(), 1000, "ClearDatabase", new BulkGraphOperation<AbstractNode>() {
@@ -68,7 +68,7 @@ public class ClearDatabase extends NodeServiceCommand {
 					if (node.getProperty(AbstractNode.uuid) != null) {
 
 						try {
-							delNode.execute(node);
+							StructrApp.getInstance(securityContext).delete(node);
 							
 						} catch (FrameworkException fex) {
 							logger.log(Level.WARNING, "Unable to delete node {0}: {1}", new Object[] { node.getUuid(), fex.getMessage() } );

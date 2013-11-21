@@ -24,12 +24,11 @@ import java.util.List;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
-import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.entity.relationship.AbstractChildren;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.web.common.DOMTest;
-import org.structr.web.common.RelType;
-import org.structr.web.entity.relation.ChildrenRelationship;
+import org.structr.web.entity.dom.relationship.DOMChildren;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -63,19 +62,19 @@ public class DOMNodeTest extends DOMTest {
 		div.appendChild(content1);
 		
 		// check for correct relationship management
-		List<AbstractRelationship> divRels = toList(div.getOutgoingRelationships(RelType.CONTAINS));
+		List<DOMChildren> divRels = toList(div.getOutgoingRelationships(DOMChildren.class));
 		assertEquals(1, divRels.size());
-		assertEquals(Integer.valueOf(0), divRels.get(0).getProperty(ChildrenRelationship.position));
+		assertEquals(Integer.valueOf(0), divRels.get(0).getProperty(AbstractChildren.position));
 		
 		
 		// second step
 		div.appendChild(content2);
 		
 		// check for correct relationship management
-		divRels = toList(div.getOutgoingRelationships(RelType.CONTAINS));
+		divRels = toList(div.getOutgoingRelationships(DOMChildren.class));
 		assertEquals(2, divRels.size());
-		assertEquals(Integer.valueOf(0), divRels.get(0).getProperty(ChildrenRelationship.position));
-		assertEquals(Integer.valueOf(1), divRels.get(1).getProperty(ChildrenRelationship.position));
+		assertEquals(Integer.valueOf(0), divRels.get(0).getProperty(AbstractChildren.position));
+		assertEquals(Integer.valueOf(1), divRels.get(1).getProperty(AbstractChildren.position));
 		
 		
 		// third step: test removal of old parent when appending an existing node
@@ -685,34 +684,32 @@ public class DOMNodeTest extends DOMTest {
 		assertNotNull(p3);
 
 		try {
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+			app.beginTx();
 
-				@Override
-				public Object execute() throws FrameworkException {
-
-					div.appendChild(test0);
-					div.appendChild(p0);
-					div.appendChild(test1);
-					div.appendChild(test2);
-					div.appendChild(p1);
-					div.appendChild(test3);
-					div.appendChild(test4);
-					div.appendChild(test5);
-					div.appendChild(p2);
-					div.appendChild(test6);
-					div.appendChild(test7);
-					div.appendChild(test8);
-					div.appendChild(test9);
-					div.appendChild(p3);
-
-					return null;
-				}
-
-			});
+			div.appendChild(test0);
+			div.appendChild(p0);
+			div.appendChild(test1);
+			div.appendChild(test2);
+			div.appendChild(p1);
+			div.appendChild(test3);
+			div.appendChild(test4);
+			div.appendChild(test5);
+			div.appendChild(p2);
+			div.appendChild(test6);
+			div.appendChild(test7);
+			div.appendChild(test8);
+			div.appendChild(test9);
+			div.appendChild(p3);
+			
+			app.commitTx();
 			
 		} catch (FrameworkException fex) {
 			
 			fail("unexpected exception");
+			
+		} finally {
+			
+			app.finishTx();
 		}
 		
 		// normalize 

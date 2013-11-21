@@ -18,9 +18,8 @@
  */
 package org.structr.core.entity;
 
-import org.neo4j.graphdb.Direction;
-import org.structr.common.RelType;
-import org.structr.core.property.EntityProperty;
+import org.structr.core.property.Property;
+import org.structr.core.property.StartNode;
 
 /**
  * A simple entity for the most basic tests.
@@ -34,5 +33,7 @@ import org.structr.core.property.EntityProperty;
  */
 public class TestThree extends AbstractNode {
 	
-	public static final EntityProperty<TestOne> testOne = new EntityProperty<TestOne>("testOne", TestOne.class, RelType.IS_AT, Direction.INCOMING, false, Relation.DELETE_IF_CONSTRAINT_WOULD_BE_VIOLATED);
+	public static final Property<TestOne> testOne          = new StartNode<>("testOne",         OneThreeOneToOne.class);
+	public static final Property<TestSix> oneToOneTestSix  = new StartNode<>("oneToOneTestSix", SixThreeOneToOne.class);
+	public static final Property<TestSix> oneToManyTestSix = new StartNode<>("oneToManyTestSix", SixThreeOneToMany.class);
 }

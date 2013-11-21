@@ -45,20 +45,15 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.TestOne;
-import org.structr.core.graph.search.Search;
-import org.structr.core.graph.search.SearchAttribute;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.core.graph.StructrTransaction;
+import org.structr.core.graph.NodeInterface;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -93,36 +88,33 @@ public class AdvancedPagingTest extends PagingTest {
 			boolean publicOnly              = false;
 			Class type                      = TestOne.class;
 			int number                      = 20;    // no more than 89 to avoid sort order TestOne-10, TestOne-100 ...
-			final List<AbstractNode> nodes  = this.createTestNodes(type, number);
+			final List<NodeInterface> nodes = this.createTestNodes(type, number);
 			final int offset                = 10;
+			
+			
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
 			
-			transactionCommand.execute(new StructrTransaction<AbstractNode>() {
+			try {
+				app.beginTx();
 
-				@Override
-				public AbstractNode execute() throws FrameworkException {
+				int i                           = offset;
+				for (NodeInterface node : nodes) {
 
-					int i                           = offset;
-					for (AbstractNode node : nodes) {
+					// System.out.println("Node ID: " + node.getNodeId());
+					String _name = "TestOne-" + i;
 
-						// System.out.println("Node ID: " + node.getNodeId());
-						String _name = "TestOne-" + i;
+					i++;
 
-						i++;
-
-						node.setProperty(AbstractNode.name, _name);
-					}
-					
-					return null;
+					node.setProperty(AbstractNode.name, _name);
 				}
+				app.commitTx();
 
-			});
+			} finally {
 
-			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+				app.finishTx();
+			}
 
-			searchAttributes.add(Search.andExactTypeAndSubtypes(type));
-
-			Result result = searchNodeCommand.execute(searchAttributes);
+			List<NodeInterface> result = app.get(type);
 
 			assertTrue(result.size() == number);
 
@@ -131,13 +123,13 @@ public class AdvancedPagingTest extends PagingTest {
 			int pageSize        = 2;
 			int page            = 1;
 
-			testPaging(pageSize, page, number, offset, includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc);
+			testPaging(type, pageSize, page, number, offset, includeDeletedAndHidden, publicOnly, sortKey, sortDesc);
 
 			PropertyMap props = new PropertyMap();
 
 			props.put(sortKey, "TestOne-09");
 			this.createTestNode(type, props);
-			testPaging(pageSize, page + 1, number + 1, offset - 1, includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc);
+			testPaging(type, pageSize, page + 1, number + 1, offset - 1, includeDeletedAndHidden, publicOnly, sortKey, sortDesc);
 			System.out.println("paging test finished");
 
 		} catch (FrameworkException ex) {
@@ -153,41 +145,33 @@ public class AdvancedPagingTest extends PagingTest {
 
 		try {
 
-			boolean includeDeletedAndHidden = false;
-			boolean publicOnly              = false;
 			Class type                      = TestOne.class;
 			int number                      = 8;
-			final List<AbstractNode> nodes  = this.createTestNodes(type, number);
+			final List<NodeInterface> nodes = this.createTestNodes(type, number);
 			final int offset                = 0;
 
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
 
-			transactionCommand.execute(new StructrTransaction<AbstractNode>() {
+			try {
+				app.beginTx();
+				int i                           = offset;
+				for (NodeInterface node : nodes) {
 
-				@Override
-				public AbstractNode execute() throws FrameworkException {
+					// System.out.println("Node ID: " + node.getNodeId());
+					String _name = "TestOne-" + i;
 
-					int i                           = offset;
-					for (AbstractNode node : nodes) {
+					i++;
 
-						// System.out.println("Node ID: " + node.getNodeId());
-						String _name = "TestOne-" + i;
-
-						i++;
-
-						node.setProperty(AbstractNode.name, _name);
-					}
-					
-					return null;
+					node.setProperty(AbstractNode.name, _name);
 				}
+				app.commitTx();
 
-			});
+			} finally {
 
-			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+				app.finishTx();
+			}
 
-			searchAttributes.add(Search.andExactTypeAndSubtypes(type));
-
-			Result result = searchNodeCommand.execute(searchAttributes);
+			List<NodeInterface> result = app.get(type);
 
 			assertEquals(number, result.size());
 
@@ -196,7 +180,7 @@ public class AdvancedPagingTest extends PagingTest {
 			int pageSize        = 2;
 			int page            = 1;
 
-			result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page);
+			result = app.nodeQuery(type).sort(sortKey).order(sortDesc).pageSize(pageSize).page(page).getAsList();
 
 			assertEquals(2, result.size());
 			assertEquals("TestOne-0", result.get(0).getProperty(AbstractNode.name));
@@ -204,7 +188,7 @@ public class AdvancedPagingTest extends PagingTest {
 			
 			page = -1;
 			
-			result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page);
+			result = app.nodeQuery(type).sort(AbstractNode.name).pageSize(pageSize).page(page).getAsList();
 
 			assertEquals(2, result.size());
 			assertEquals("TestOne-6", result.get(0).getProperty(AbstractNode.name));
@@ -212,7 +196,7 @@ public class AdvancedPagingTest extends PagingTest {
 			
 			page = -2;
 			
-			result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page);
+			result = app.nodeQuery(type).sort(sortKey).order(sortDesc).pageSize(pageSize).page(page).getAsList();
 
 			assertEquals(2, result.size());
 			assertEquals("TestOne-4", result.get(0).getProperty(AbstractNode.name));
@@ -220,7 +204,7 @@ public class AdvancedPagingTest extends PagingTest {
 
 			page = -3;
 			
-			result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page);
+			result = app.nodeQuery(type).sort(sortKey).order(sortDesc).pageSize(pageSize).page(page).getAsList();
 
 			assertEquals(2, result.size());
 			assertEquals("TestOne-2", result.get(0).getProperty(AbstractNode.name));
@@ -228,7 +212,7 @@ public class AdvancedPagingTest extends PagingTest {
 
 			page = -4;
 			
-			result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page);
+			result = app.nodeQuery(type).sort(sortKey).order(sortDesc).pageSize(pageSize).page(page).getAsList();
 
 			assertEquals(2, result.size());
 			assertEquals("TestOne-0", result.get(0).getProperty(AbstractNode.name));
@@ -238,7 +222,8 @@ public class AdvancedPagingTest extends PagingTest {
 			
 			page = 1;
 			
-			result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page, nodes.get(3).getUuid());
+			
+			result = app.nodeQuery(type).sort(sortKey).order(sortDesc).pageSize(pageSize).page(page).offsetId(nodes.get(3).getUuid()).getAsList();
 
 			assertEquals(2, result.size());
 			assertEquals("TestOne-3", result.get(0).getProperty(AbstractNode.name));
@@ -246,7 +231,7 @@ public class AdvancedPagingTest extends PagingTest {
 
 			page = -1;
 			
-			result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page, nodes.get(5).getUuid());
+			result = app.nodeQuery(type).sort(sortKey).order(sortDesc).pageSize(pageSize).page(page).offsetId(nodes.get(5).getUuid()).getAsList();
 
 			assertEquals(2, result.size());
 			assertEquals("TestOne-3", result.get(0).getProperty(AbstractNode.name));
@@ -265,43 +250,35 @@ public class AdvancedPagingTest extends PagingTest {
 
 		try {
 
-			boolean includeDeletedAndHidden = false;
-			boolean publicOnly              = false;
 			Class type                      = TestOne.class;
 			int number                      = 10;
-			final List<AbstractNode> nodes  = this.createTestNodes(type, number);
+			final List<NodeInterface> nodes = this.createTestNodes(type, number);
 			final int offset                = 0;
 
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
 
-			transactionCommand.execute(new StructrTransaction<AbstractNode>() {
+			try {
+				app.beginTx();
+				int i = offset;
+				for (NodeInterface node : nodes) {
 
-				@Override
-				public AbstractNode execute() throws FrameworkException {
+					// System.out.println("Node ID: " + node.getNodeId());
+					String _name = "TestOne-" + i;
 
-					int i                           = offset;
-					for (AbstractNode node : nodes) {
+					i++;
 
-						// System.out.println("Node ID: " + node.getNodeId());
-						String _name = "TestOne-" + i;
-
-						i++;
-
-						node.setProperty(AbstractNode.name, _name);
-					}
-					
-					return null;
+					node.setProperty(AbstractNode.name, _name);
 				}
+				app.commitTx();
 
-			});
+			} finally {
 
-			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+				app.finishTx();
+			}
 
-			searchAttributes.add(Search.andExactTypeAndSubtypes(type));
+			Result result = app.nodeQuery(type).getResult();
 
-			Result result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes);
-
-			assertTrue(result.size() == number);
+			assertEquals(number, result.size());
 
 			PropertyKey sortKey = AbstractNode.name;
 			boolean sortDesc    = false;
@@ -310,7 +287,7 @@ public class AdvancedPagingTest extends PagingTest {
 
 			// now with offsetId
 			
-			result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page, nodes.get(3).getUuid());
+			result = app.nodeQuery(type).sort(sortKey).order(sortDesc).pageSize(pageSize).page(page).offsetId(nodes.get(3).getUuid()).getResult();
 
 			assertEquals(7, result.size());
 			assertEquals("TestOne-3", result.get(0).getProperty(AbstractNode.name));
@@ -323,6 +300,8 @@ public class AdvancedPagingTest extends PagingTest {
 			
 		} catch (FrameworkException ex) {
 
+			ex.printStackTrace();
+			
 			logger.log(Level.SEVERE, ex.toString());
 			fail("Unexpected exception");
 
@@ -334,41 +313,34 @@ public class AdvancedPagingTest extends PagingTest {
 
 		try {
 
-			boolean includeDeletedAndHidden = false;
-			boolean publicOnly              = false;
 			Class type                      = TestOne.class;
 			int number                      = 8;
-			final List<AbstractNode> nodes  = this.createTestNodes(type, number);
+			final List<NodeInterface> nodes = this.createTestNodes(type, number);
 			final int offset                = 0;
 
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
 
-			transactionCommand.execute(new StructrTransaction<AbstractNode>() {
+			try {
+				app.beginTx();
 
-				@Override
-				public AbstractNode execute() throws FrameworkException {
+				int i                           = offset;
+				for (NodeInterface node : nodes) {
 
-					int i                           = offset;
-					for (AbstractNode node : nodes) {
+					// System.out.println("Node ID: " + node.getNodeId());
+					String _name = "TestOne-" + i;
 
-						// System.out.println("Node ID: " + node.getNodeId());
-						String _name = "TestOne-" + i;
+					i++;
 
-						i++;
-
-						node.setProperty(AbstractNode.name, _name);
-					}
-					
-					return null;
+					node.setProperty(AbstractNode.name, _name);
 				}
+				app.commitTx();
 
-			});
+			} finally {
 
-			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+				app.finishTx();
+			}
 
-			searchAttributes.add(Search.andExactTypeAndSubtypes(type));
-
-			Result result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes);
+			Result result = app.nodeQuery(type).getResult();
 
 			assertEquals(number, result.size());
 
@@ -377,7 +349,7 @@ public class AdvancedPagingTest extends PagingTest {
 			int pageSize        = 2;
 			int page            = -5;
 			
-			result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page);
+			result = app.nodeQuery(type).sort(sortKey).order(sortDesc).pageSize(pageSize).page(page).getResult();
 
 			assertEquals(2, result.size());
 			assertEquals("TestOne-0", result.get(0).getProperty(AbstractNode.name));
@@ -388,7 +360,7 @@ public class AdvancedPagingTest extends PagingTest {
 			page = 1;
 			
 			try {
-				searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page, "00000000000000000000");
+				app.nodeQuery(type).sort(sortKey).order(sortDesc).pageSize(pageSize).page(page).offsetId("000000000000000000000").getResult();
 				
 				fail("Should have failed with a FrameworkException with 'id not found' token");
 				

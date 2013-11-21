@@ -202,21 +202,15 @@ public class GraphComparatorTest extends StructrTest {
 		
 		try {
 		
-			Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(new StructrTransaction<Object>() {
-				
-				@Override
-				public Object execute() throws FrameworkException {
-					
-					obj.setProperty(key, value);
-					return null;
-				}
-				
-			});
+			app.beginTx();
+			obj.setProperty(key, value);
+			app.commitTx();
 			
-			
-			
-		} catch (FrameworkException ex) {}
-		
+		} catch (FrameworkException ex) {
+
+		} finally {
+
+			app.finishTx();
+		}
 	}
-	
 }

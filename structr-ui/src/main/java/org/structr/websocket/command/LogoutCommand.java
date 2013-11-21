@@ -19,10 +19,9 @@
 package org.structr.websocket.command;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.WebSocketMessage;
 
@@ -41,22 +40,24 @@ public class LogoutCommand extends AbstractCommand {
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
+		final App app        = StructrApp.getInstance(getWebSocket().getSecurityContext());
 		final Principal user = getWebSocket().getCurrentUser();
+		
 		if (user != null) {
 
 			try {
-				Services.command(getWebSocket().getSecurityContext(), TransactionCommand.class).execute(new StructrTransaction() {
-
-					@Override
-					public Object execute() throws FrameworkException {
-						
-						user.setProperty(Principal.sessionId, null);
-						return null;
-					}
-				});
+				
+				app.beginTx();
+				user.setProperty(Principal.sessionId, null);
+				app.commitTx();
 
 			} catch(FrameworkException fex) {
+				
 				fex.printStackTrace();
+				
+			} finally {
+				
+				app.finishTx();
 			}
 
 			getWebSocket().setAuthenticated(null, null);

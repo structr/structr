@@ -35,7 +35,7 @@ import org.structr.core.graph.CypherQueryCommand;
  */
 public class CypherQuery {
 
-	private Map<String, Object> parameters        = new LinkedHashMap<String, Object>();
+	private Map<String, Object> parameters        = new LinkedHashMap<>();
 	private boolean includeHiddenAndDeleted       = false;
 	private CypherQueryCommand cypherQueryCommand = null;
 	private boolean descending                    = false;

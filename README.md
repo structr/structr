@@ -1,22 +1,27 @@
-# The structr project
+# The Structr Project
 
 [![Build Status](https://secure.travis-ci.org/structr/structr.png)](http://travis-ci.org/structr/structr)
 
-structr (pronounce it like 'structure') is a Java framework for mobile and web applications based on the graph database Neo4j. It was designed to simplify the creation of complex graph database applications by providing a comprehensive Java API and a set of features common to most use cases. This enables developers to build a sophisticated web or mobile app based on Neo4j within hours.
+Structr (pronounce it like 'structure') is a Java framework for mobile and web applications based on the graph database Neo4j. It was designed to simplify the creation of complex graph database applications by providing a comprehensive Java API and a set of features common to most use cases. This enables developers to build a sophisticated web or mobile app based on Neo4j within hours.
 
-### Main features
-- highly configurable RESTful API using Java beans
-- data integrity and validation constraints
-- Cypher Query Language support
-- access control
-- search/spatial search
-- CRON-jobs for background agents
+### Main components
+- Object-to-Graph mapper (OGM)
+- REST server
+- CMS frontend
+
+For detailed feature lists of these components see
+
+[OGM](Structr OGM.md)
+
+[Backend Features](Backend.md)
+
+[Frontend Features](Frontend.md)
 
 ### Awards
-structr was awarded with the Graphie Award for the Most Innovative Open Source Graph Application in 2012.
+Structr was awarded with the Graphie Award for the Most Innovative Open Source Graph Application in 2012.
 
 ## Getting started
-structr uses [Apache Maven](http://maven.apache.org/), so you can use Maven to get a demo project up and running in 5 minutes with our simple example archetype.
+Structr uses [Apache Maven](http://maven.apache.org/), so you can use Maven to get a demo project up and running in 5 minutes with our simple example archetype.
 
 - See the [screencast](http://vimeo.com/53235075) for a short introduction to the maven archetype and a small feature demo.
 - See the [structr quick start guide](http://structr.org/quick-start-guide) for more information on the CMS module.
@@ -78,24 +83,24 @@ structr uses [Apache Maven](http://maven.apache.org/), so you can use Maven to g
 
 ## Components
 
-There are these two main components: structr Server and structr UI.
+There are these two main components: Structr Server and Structr UI.
 
-structr Server provides libraries and modules building the backend.
+Structr Server provides libraries and modules building the backend.
 
-structr UI is a frontend for CRUD operations and basic CMS functionalitiy, e.g. for handling pages, files, images, users/groups.
+Structr UI is a frontend for CRUD operations and basic CMS functionalitiy, e.g. for handling pages, files, images, users/groups.
 
 ## Learn more
 
-- structr.org [http://structr.org]
-- Neo4j [http://neo4j.org]
+- [structr.org](http://structr.org)
+- [Neo4j](http://neo4j.org)
 
-For updates and news around structr, follow @structr on Twitter.
+For updates and news around Structr, follow @structr on Twitter.
 
 ## Contribute
 
 For submitting feature requests or bug report, please use Github's issue tracking system.
 
-In order to contribute to structr, you must sign the structr Contributor’s License Agreement, which can be found [here](http://structr.org/cla).
+In order to contribute to structr, you must sign the Structr Contributor’s License Agreement, which can be found [here](http://structr.org/cla).
 
 ## Authors
 
@@ -105,4 +110,5 @@ In order to contribute to structr, you must sign the structr Contributor’s Lic
 ## Copyright and License
 
 Copyright 2010-2013 Axel Morgner
-structr is licensed under the GPLv3 and AGPLv3 (structr UI).
+
+Structr is licensed under the GPLv3 and AGPLv3 (structr UI).

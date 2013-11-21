@@ -23,15 +23,11 @@ package org.structr.core.notion;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchNodeCommand;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.IdNotFoundToken;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.CreateNodeCommand;
-import org.structr.core.graph.NodeAttribute;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -40,8 +36,15 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.EntityContext;
+import org.structr.core.GraphObject;
+import org.structr.core.JsonInput;
+import org.structr.core.Result;
+import org.structr.core.Services;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.*;
+import org.structr.core.graph.NodeInterface;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -50,7 +53,7 @@ import org.structr.core.*;
  *
  * @author Christian Morgner
  */
-public class IdDeserializationStrategy<S, T extends GraphObject> implements DeserializationStrategy<S, T> {
+public class IdDeserializationStrategy<S, T extends NodeInterface> implements DeserializationStrategy<S, T> {
 
 	private static final Logger logger = Logger.getLogger(IdDeserializationStrategy.class.getName());
 
@@ -74,10 +77,12 @@ public class IdDeserializationStrategy<S, T extends GraphObject> implements Dese
 	@Override
 	public T deserialize(final SecurityContext securityContext, final Class<T> type, final S source) throws FrameworkException {
 
+		final App app = StructrApp.getInstance(securityContext);
+
 		if (source != null) {
 
-			List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
-
+			Result<T> results = Result.EMPTY_RESULT;
+			
 			if (source instanceof JsonInput) {
 
 				JsonInput properties = (JsonInput) source;
@@ -86,18 +91,13 @@ public class IdDeserializationStrategy<S, T extends GraphObject> implements Dese
 				// If property map contains the uuid, search only for uuid
 				if (map.containsKey(GraphObject.uuid)) {
 				
-					attrs.add(Search.andExactUuid(map.get(GraphObject.uuid)));
+					return (T) app.get(map.get(GraphObject.uuid));
 
 					
-				} else { // FIXME: Better throw an exception here instead of searching for all properties
-
-				
-					for (Entry<PropertyKey, Object> entry : map.entrySet()) {
-
-						attrs.add(Search.andExactProperty(securityContext, entry.getKey(), entry.getValue().toString()));
-
-					}
-				
+				} else {
+					
+					throw new FrameworkException(type.getSimpleName(), new IdNotFoundToken(source));
+					
 				}
 
 			} else if (source instanceof GraphObject) {
@@ -105,24 +105,25 @@ public class IdDeserializationStrategy<S, T extends GraphObject> implements Dese
 				GraphObject obj = (GraphObject)source;
 				if (propertyKey != null) {
 					
-					attrs.add(Search.andExactProperty(securityContext, propertyKey, obj.getProperty(propertyKey)));
+					results = (Result<T>) app.nodeQuery(NodeInterface.class).and(propertyKey, obj.getProperty(propertyKey)).getResult();
+					
 					
 				} else {
 					
 					// fetch property key for "uuid", may be different for AbstractNode and AbstractRelationship!
 					PropertyKey<String> idProperty = EntityContext.getPropertyKeyForDatabaseName(obj.getClass(), AbstractNode.uuid.dbName());
-					attrs.add(Search.andExactUuid(obj.getProperty(idProperty)));
+					
+					return (T) app.get(obj.getProperty(idProperty));
 					
 				}
 				
 				
 			} else {
 
-				attrs.add(Search.andExactUuid(source.toString()));
+				return (T) app.get(source.toString());
 
 			}
 
-			Result<T> results = Services.command(securityContext, SearchNodeCommand.class).execute(attrs);
 			int size       = results.size();
 
 			switch (size) {
@@ -140,23 +141,23 @@ public class IdDeserializationStrategy<S, T extends GraphObject> implements Dese
 
 		} else if (createIfNotExisting) {
 
-			return (T)Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<AbstractNode>() {
-
-				@Override
-				public AbstractNode execute() throws FrameworkException {
-
-					// create node and return it
-					AbstractNode newNode = Services.command(securityContext, CreateNodeCommand.class).execute(new NodeAttribute(AbstractNode.type, type.getSimpleName()));
-					if (newNode == null) {
-
-						logger.log(Level.WARNING, "Unable to create node of type {0} for property {1}", new Object[] { type.getSimpleName(), propertyKey.dbName() });
-
-					}
-
-					return newNode;
-				}
-
-			});
+			try {
+				
+				app.beginTx();
+				
+				final T newNode = app.create(type);
+				app.commitTx();
+				
+				return newNode;
+				
+			} catch (FrameworkException fex) {
+				
+				logger.log(Level.WARNING, "Unable to create node of type {0} for property {1}", new Object[] { type.getSimpleName(), propertyKey.dbName() });
+				
+			} finally {
+				
+				app.finishTx();
+			}
 
 		}
 

@@ -21,9 +21,6 @@
 package org.structr.web.entity.html;
 
 import org.structr.web.entity.dom.DOMElement;
-import org.neo4j.graphdb.Direction;
-import org.structr.web.common.RelType;
-import org.structr.core.property.CollectionProperty;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -32,12 +29,12 @@ import org.structr.core.property.CollectionProperty;
  */
 public class Head extends DOMElement {
 
-	public static final CollectionProperty<Html>   htmls   = new CollectionProperty<Html>("htmls", Html.class, RelType.CONTAINS, Direction.INCOMING, false);
-	public static final CollectionProperty<Title>  titles  = new CollectionProperty<Title>("titles", Title.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<Style>  styles  = new CollectionProperty<Style>("styles", Style.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<Script> scripts = new CollectionProperty<Script>("scripts", Script.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<Link>   links   = new CollectionProperty<Link>("links", Link.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<Meta>   metas   = new CollectionProperty<Meta>("metas", Meta.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<Base>   bases   = new CollectionProperty<Base>("bases", Base.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	
+//	public static final Property<Html>   html   = new StartNode<>("html", DOMChildren.class);
+
+//	public static final EndNodes<Title>  titles  = new EndNodes<Title>("titles", Title.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final EndNodes<Style>  styles  = new EndNodes<Style>("styles", Style.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final EndNodes<Script> scripts = new EndNodes<Script>("scripts", Script.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final EndNodes<Link>   links   = new EndNodes<Link>("links", Link.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final EndNodes<Meta>   metas   = new EndNodes<Meta>("metas", Meta.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final EndNodes<Base>   bases   = new EndNodes<Base>("bases", Base.class, RelType.CONTAINS, Direction.OUTGOING, false);
 }

@@ -60,9 +60,7 @@ import javax.xml.xpath.XPathFactory;
 import org.apache.commons.collections.iterators.IteratorEnumeration;
 
 import org.apache.commons.collections.map.LRUMap;
-import org.neo4j.graphdb.Direction;
 import org.structr.common.CaseHelper;
-import org.structr.web.common.RelType;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
@@ -70,20 +68,18 @@ import org.structr.core.Services;
 import org.structr.core.Value;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.RelationshipMapping;
 import org.structr.core.graph.CypherQueryCommand;
-import org.structr.core.graph.GetNodeByIdCommand;
 import org.structr.core.graph.NodeFactory;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.core.notion.PropertyNotion;
 import org.structr.core.property.BooleanProperty;
-import org.structr.core.property.CollectionProperty;
+import org.structr.core.property.EndNodes;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.rest.ResourceProvider;
-import org.structr.rest.resource.NamedRelationResource;
 import org.structr.common.PagingHelper;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeInterface;
 import org.structr.rest.resource.Resource;
 import org.structr.rest.servlet.JsonRestServlet;
 import org.structr.rest.servlet.ResourceHelper;
@@ -91,6 +87,9 @@ import org.structr.web.entity.html.Body;
 import org.structr.web.common.GraphDataSource;
 import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.common.UiResourceProvider;
+import org.structr.web.entity.dom.relationship.DOMChildren;
+import org.structr.web.entity.relation.RenderNode;
+import org.structr.web.entity.relation.Sync;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -109,10 +108,10 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	private static final int HtmlPrefixLength			= PropertyView.Html.length();
 	private final static String STRUCTR_ACTION_PROPERTY		= "data-structr-action";
 	
-	public static final  Property<List<DOMElement>> syncedNodes   = new CollectionProperty("syncedNodes", DOMElement.class, RelType.SYNC, Direction.OUTGOING, new PropertyNotion(uuid), false);
+	public static final  Property<List<DOMElement>> syncedNodes     = new EndNodes("syncedNodes", Sync.class, new PropertyNotion(uuid));
 	
 	private static final Map<String, HtmlProperty> htmlProperties              = new LRUMap(200);	// use LURMap here to avoid infinite growing
-	private static final List<GraphDataSource<List<GraphObject>>> listSources  = new LinkedList<GraphDataSource<List<GraphObject>>>();
+	private static final List<GraphDataSource<List<GraphObject>>> listSources  = new LinkedList<>();
 	
 	private DecimalFormat decimalFormat                           = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));	
 	
@@ -215,10 +214,10 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	public static final Property<String> _accesskey               = new HtmlProperty("accesskey").indexed();
 	
 	public static final org.structr.common.View publicView        = new org.structr.common.View(DOMElement.class, PropertyView.Public,
-										name, tag, pageId, path, parent, restQuery, cypherQuery, xpathQuery, partialUpdateKey, dataKey, syncedNodes
+										name, tag, pageId, path, parent, children, restQuery, cypherQuery, xpathQuery, partialUpdateKey, dataKey, syncedNodes
 	);
 	
-	public static final org.structr.common.View uiView            = new org.structr.common.View(DOMElement.class, PropertyView.Ui, name, tag, pageId, path, parent, childrenIds, owner,
+	public static final org.structr.common.View uiView            = new org.structr.common.View(DOMElement.class, PropertyView.Ui, name, tag, pageId, path, parent, children, childrenIds, owner,
 										restQuery, cypherQuery, xpathQuery, partialUpdateKey, dataKey, syncedNodes,
 										renderDetails, hideOnIndex, hideOnDetail, showForLocales, hideForLocales, showConditions, hideConditions,
 										_accesskey, _class, _contenteditable, _contextmenu, _dir, _draggable, _dropzone, _hidden, _id, _lang, _spellcheck, _style,
@@ -358,20 +357,20 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 				}
 
 				// fetch children
-				List<AbstractRelationship> rels = getChildRelationships();
+				List<DOMChildren> rels = getChildRelationships();
 				if (rels.isEmpty()) {
 
 					// No child relationships, maybe this node is in sync with another node
-					for (AbstractRelationship syncRel : getRelationships(RelType.SYNC, Direction.INCOMING)) {
+					for (Sync syncRel : getIncomingRelationships(Sync.class)) {
 
-						DOMElement syncedNode = (DOMElement)syncRel.getStartNode();
+						DOMElement syncedNode = (DOMElement)syncRel.getSourceNode();
 						rels.addAll(syncedNode.getChildRelationships());
 					}
 				}
 
 				for (AbstractRelationship rel : rels) {
 
-					DOMNode subNode = (DOMNode) rel.getEndNode();
+					DOMNode subNode = (DOMNode) rel.getTargetNode();
 
 					if (!securityContext.isVisible(subNode)) {
 						continue;
@@ -433,13 +432,9 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 										if (elements instanceof Iterable) {
 
-											int i=0;
-
 											for (Object o : (Iterable)elements) {
 
 												if (o instanceof GraphObject) {
-
-													i++;
 
 													GraphObject graphObject = (GraphObject)o;
 													renderContext.putDataObject(subKey, graphObject);
@@ -456,17 +451,25 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 										propertyKey = EntityContext.getPropertyKeyForJSONName(currentDataNode.getClass(), subKey, false);
 										renderContext.setRelatedProperty(propertyKey);
 
-										if (propertyKey != null && propertyKey instanceof CollectionProperty) {
+										if (propertyKey != null) {
 
-											CollectionProperty<AbstractNode> collectionProperty = (CollectionProperty)propertyKey;
-											for (AbstractNode node : currentDataNode.getProperty(collectionProperty)) {
-
-												//renderContext.setStartNode(node);
-												renderContext.putDataObject(subKey, node);
-												subNode.render(securityContext, renderContext, depth + 1);
-
+											final Object value = currentDataNode.getProperty(propertyKey);
+											if (value != null) {
+												
+												if (value instanceof Iterable) {
+													
+													for (Object o : ((Iterable)value)) {
+														
+														if (o instanceof GraphObject) {
+															
+															//renderContext.setStartNode(node);
+															renderContext.putDataObject(subKey, (GraphObject)o);
+															subNode.render(securityContext, renderContext, depth + 1);
+															
+														}
+													}
+												}
 											}
-
 										}
 
 									}
@@ -524,9 +527,9 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 	private void setDataRoot(final RenderContext renderContext, final AbstractNode node, final String dataKey) {
 		// an outgoing RENDER_NODE relationship points to the data node where rendering starts
-		for (AbstractRelationship rel : node.getOutgoingRelationships(RelType.RENDER_NODE)) {
+		for (RenderNode rel : node.getOutgoingRelationships(RenderNode.class)) {
 
-			AbstractNode dataRoot = rel.getEndNode();			
+			NodeInterface dataRoot = rel.getTargetNode();			
 
 			// set start node of this rendering to the data root node
 			renderContext.putDataObject(dataKey, dataRoot);
@@ -685,52 +688,52 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	@Override
 	public void setAttribute(final String name, final String value) throws DOMException {
 
+		final App app = StructrApp.getInstance(securityContext);
+
 		try {
+			app.beginTx();
 
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+			HtmlProperty htmlProperty = findOrCreateAttributeKey(name);
+			if (htmlProperty != null) {
 
-				@Override
-				public Object execute() throws FrameworkException {
-
-					HtmlProperty htmlProperty = findOrCreateAttributeKey(name);
-					if (htmlProperty != null) {
-
-						htmlProperty.setProperty(securityContext, DOMElement.this, value);
-					}
-					
-					return null;
-				}
-			});
+				htmlProperty.setProperty(securityContext, DOMElement.this, value);
+			}
+			
+			app.commitTx();
 
 		} catch (FrameworkException fex) {
 
 			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.getMessage());
+			
+		} finally {
+			
+			app.finishTx();
 		}
 	}
 
 	@Override
 	public void removeAttribute(final String name) throws DOMException {
 
+		final App app = StructrApp.getInstance(securityContext);
+		
 		try {
+			app.beginTx();
 
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+			HtmlProperty htmlProperty = findOrCreateAttributeKey(name);
+			if (htmlProperty != null) {
 
-				@Override
-				public Object execute() throws FrameworkException {
-
-					HtmlProperty htmlProperty = findOrCreateAttributeKey(name);
-					if (htmlProperty != null) {
-
-						htmlProperty.setProperty(securityContext, DOMElement.this, null);
-					}
-					
-					return null;
-				}
-			});
+				htmlProperty.setProperty(securityContext, DOMElement.this, null);
+			}
+			
+			app.commitTx();
 
 		} catch (FrameworkException fex) {
 
 			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.getMessage());
+			
+		} finally {
+			
+			app.finishTx();
 		}
 	}
 
@@ -842,22 +845,22 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 		checkWriteAccess();
 
+		final App app = StructrApp.getInstance(securityContext);
+
 		try {
+			app.beginTx();
 
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-				@Override
-				public Object execute() throws FrameworkException {
-
-					setProperty(DOMElement._id, idString);
+			setProperty(DOMElement._id, idString);
 			
-					return null;
-				}
-			});
-			
+			app.commitTx();
+
 		} catch (FrameworkException fex) {
 
 			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());			
+			
+		} finally {
+			
+			app.finishTx();
 		}
 	}
 
@@ -994,11 +997,11 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		@Override
 		public List<GraphObject> getData(SecurityContext securityContext, RenderContext renderContext, AbstractNode referenceNode) throws FrameworkException {
 			
-			List<GraphObject> data = new LinkedList<GraphObject>();
+			List<GraphObject> data = new LinkedList<>();
 			
-			for (AbstractRelationship rel : referenceNode.getOutgoingRelationships(RelType.RENDER_NODE)) {
+			for (RenderNode rel : referenceNode.getOutgoingRelationships(RenderNode.class)) {
 				
-				data.add(rel.getEndNode());
+				data.add(rel.getTargetNode());
 			}
 			
 			if (!data.isEmpty()) {
@@ -1065,13 +1068,8 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 			final String restQuery = ((DOMElement) referenceNode).getPropertyWithVariableReplacement(securityContext, renderContext, DOMElement.restQuery);
 			if (restQuery != null && !restQuery.isEmpty()) {
 				
-				Map<Pattern, Class<? extends Resource>> resourceMap = new LinkedHashMap<Pattern, Class<? extends Resource>>();
+				Map<Pattern, Class<? extends Resource>> resourceMap = new LinkedHashMap<>();
 				
-				// initialize internal resources with exact matching from EntityContext
-				for (RelationshipMapping relMapping : EntityContext.getNamedRelations()) {
-					resourceMap.put(Pattern.compile(relMapping.getName()), NamedRelationResource.class);
-				}
-
 				ResourceProvider resourceProvider = renderContext.getResourceProvider();
 				if (resourceProvider == null) {
 					try {
@@ -1264,7 +1262,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 				String nodeId = securityContext.getRequest().getParameter(parameterName);
 				if (nodeId != null) {
 					
-					AbstractNode node = Services.command(securityContext, GetNodeByIdCommand.class).execute(nodeId);
+					AbstractNode node = (AbstractNode) StructrApp.getInstance(securityContext).get(nodeId);
 					
 					if (node != null) {
 	
@@ -1283,9 +1281,9 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	@Override
 	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 		
-		for (AbstractRelationship rel : getRelationships(RelType.SYNC, Direction.OUTGOING)) {
+		for (Sync rel : getOutgoingRelationships(Sync.class)) {
 			
-			DOMElement syncedNode = (DOMElement) rel.getEndNode();
+			DOMElement syncedNode = rel.getTargetNode();
 			
 			// sync HTML properties only
 			for (Property htmlProp : syncedNode.getHtmlAttributes()) {

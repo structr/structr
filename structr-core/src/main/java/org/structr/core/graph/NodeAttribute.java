@@ -29,7 +29,7 @@ import org.structr.core.property.PropertyKey;
 public class NodeAttribute<T> {
 
 	private PropertyKey<T> key = null;
-	private T value = null;
+	private T value            = null;
 
 	public NodeAttribute() {
 	}
@@ -73,7 +73,7 @@ public class NodeAttribute<T> {
 		StringBuilder buf = new StringBuilder();
 
 		buf.append("NodeAttribute('");
-		buf.append(key.dbName());
+		buf.append(key != null ? key.dbName() : "[null]");
 		buf.append("', '");
 		buf.append(value);
 		buf.append("')");
@@ -83,7 +83,12 @@ public class NodeAttribute<T> {
 
 	@Override
 	public int hashCode() {
-		return key.hashCode();
+		
+		if (key != null) {
+			return key.hashCode();
+		}
+		
+		return super.hashCode();
 	}
 
 	@Override

@@ -22,16 +22,12 @@ import org.structr.core.Result;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.CreateNodeCommand;
-import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.search.DistanceSearchAttribute;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.rest.RestMethodResult;
-import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -43,10 +39,24 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.structr.common.GraphObjectComparator;
+import org.structr.common.error.EmptyPropertyToken;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.property.PropertyMap;
 import org.structr.core.GraphObject;
-import org.structr.core.graph.TransactionCommand;
+import org.structr.core.Services;
+import org.structr.core.app.App;
+import org.structr.core.app.Query;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.entity.Relation;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.graph.search.SearchCommand;
+import org.structr.core.graph.search.SearchRelationshipCommand;
+import org.structr.core.notion.Notion;
+import org.structr.core.property.Property;
+import org.structr.core.property.PropertyMap;
+import org.structr.rest.exception.IllegalPathException;
 import static org.structr.rest.resource.Resource.parseInteger;
 import org.structr.rest.servlet.JsonRestServlet;
 
@@ -67,9 +77,12 @@ public class TypeResource extends SortableResource {
 
 	//~--- fields ---------------------------------------------------------
 
-	protected Class entityClass          = null;
-	protected String rawType             = null;
-	protected HttpServletRequest request = null;
+	protected Class<? extends SearchCommand> searchCommandType = null;
+	protected Class entityClass                                = null;
+	protected String rawType                                   = null;
+	protected HttpServletRequest request                       = null;
+	protected Query query                                      = null;
+	protected boolean isNode                                   = true;
 
 	//~--- methods --------------------------------------------------------
 
@@ -82,8 +95,27 @@ public class TypeResource extends SortableResource {
 
 		if (rawType != null) {
 
+			final App app = StructrApp.getInstance(securityContext);
+			
+
 			// test if resource class exists
 			entityClass = EntityContext.getEntityClassForRawType(rawType);
+			if (entityClass != null) {
+				
+				if (AbstractNode.class.isAssignableFrom(entityClass)) {
+					searchCommandType = SearchNodeCommand.class;
+					query             = app.nodeQuery(entityClass);
+					isNode            = true;
+					return true;
+				}
+				
+				if (AbstractRelationship.class.isAssignableFrom(entityClass)) {
+					searchCommandType = SearchRelationshipCommand.class;
+					query             = app.relationshipQuery(entityClass);
+					isNode            = false;
+					return true;
+				}
+			}
 		}
 		
 		return true;
@@ -91,68 +123,82 @@ public class TypeResource extends SortableResource {
 	}
 
 	@Override
-	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
+	public Result doGet(final PropertyKey sortKey, final boolean sortDescending, final int pageSize, final int page, final String offsetId) throws FrameworkException {
 
 		boolean inexactSearch                  = parseInteger(request.getParameter(JsonRestServlet.REQUEST_PARAMETER_LOOSE_SEARCH)) == 1;
-		List<SearchAttribute> searchAttributes = new LinkedList();
-		List<SearchAttribute> validAttributes  = null;
+		List<SearchAttribute> searchAttributes = new LinkedList<>();
 		boolean includeDeletedAndHidden        = false;
 		boolean publicOnly                     = false;
+		PropertyKey actualSortKey              = sortKey;
+		boolean actualSortOrder                = sortDescending;
 
 		if (rawType != null) {
 
 			if (entityClass == null) {
-
 				throw new NotFoundException();
 			}
 
-			validAttributes = extractSearchableAttributes(securityContext, entityClass, request);
+			final List<SearchAttribute> validAttributes = extractSearchableAttributes(securityContext, entityClass, request);
+			final DistanceSearchAttribute distanceSearch = getDistanceSearch(request, keys(validAttributes));
 			
 			// distance search?
-			DistanceSearchAttribute distanceSearch = getDistanceSearch(request, keys(validAttributes));
 			if (distanceSearch != null) {
-				
 				searchAttributes.add(distanceSearch);
 			}
 
 			// add type to return
-			searchAttributes.add(Search.andExactTypeAndSubtypes(entityClass, !inexactSearch));
+			
+			searchAttributes.add(Search.andTypeAndSubtypes(entityClass, !inexactSearch));
 			
 			// searchable attributes from EntityContext
 			searchAttributes.addAll(validAttributes);
 			
 			// default sort key & order
-			if (sortKey == null) {
+			if (actualSortKey == null) {
 				
 				try {
 					
 					GraphObject templateEntity  = ((GraphObject)entityClass.newInstance());
 					PropertyKey sortKeyProperty = templateEntity.getDefaultSortKey();
-					sortDescending              = GraphObjectComparator.DESCENDING.equals(templateEntity.getDefaultSortOrder());
+					actualSortOrder             = GraphObjectComparator.DESCENDING.equals(templateEntity.getDefaultSortOrder());
 					
 					if (sortKeyProperty != null) {
 						
-						sortKey = sortKeyProperty;
+						actualSortKey = sortKeyProperty;
 						
 					} else {
 						
-						sortKey = AbstractNode.name;
+						actualSortKey = AbstractNode.name;
 					}
 					
 				} catch(Throwable t) {
 					
 					// fallback to name
-					sortKey = AbstractNode.name;
+					actualSortKey = AbstractNode.name;
 				}
 			}
+	
+			// do search: FIXME: this doesn't work for inexact search because
+			// the type search attribute has to be lowercase in the fulltext indices..
+//			return query
+//				.includeDeletedAndHidden(includeDeletedAndHidden)
+//				.publicOnly(publicOnly)
+//				.sort(actualSortKey)
+//				.order(actualSortOrder)
+//				.pageSize(pageSize)
+//				.page(page)
+//				.offsetId(offsetId)
+//				.attributes(searchAttributes)
+//				.getResult();
+			
 			
 			// do search
-			Result results = Services.command(securityContext, SearchNodeCommand.class).execute(
+			Result results = Services.command(securityContext, searchCommandType).execute(
 				includeDeletedAndHidden,
 				publicOnly,
 				searchAttributes,
-				sortKey,
-				sortDescending,
+				actualSortKey,
+				actualSortOrder,
 				pageSize,
 				page,
 				offsetId
@@ -172,23 +218,76 @@ public class TypeResource extends SortableResource {
 	@Override
 	public RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException {
 
-		AbstractNode newNode = (AbstractNode) Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+		if (isNode) {
 
-			@Override
-			public Object execute() throws FrameworkException {
+			final App app         = StructrApp.getInstance(securityContext);
+			NodeInterface newNode = null;
 
-				return createNode(propertySet);
+			try {
+				app.beginTx();
+				newNode = createNode(propertySet);
+				app.commitTx();
+
+			} finally {
+				app.finishTx();
 			}
-		});
-		
-		RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_CREATED);
-		if (newNode != null) {
 
-			result.addHeader("Location", buildLocationHeader(newNode));
+			RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_CREATED);
+			if (newNode != null) {
+
+				result.addHeader("Location", buildLocationHeader(newNode));
+			}
+
+			// finally: return 201 Created
+			return result;
+			
+		} else {
+
+			final App app                         = StructrApp.getInstance(securityContext);
+			final Relation template               = getRelationshipTemplate();
+			final ErrorBuffer errorBuffer         = new ErrorBuffer();
+			
+			if (template != null) {
+				
+				final NodeInterface sourceNode        = identifyStartNode(template, propertySet);
+				final NodeInterface targetNode        = identifyEndNode(template, propertySet);
+				final PropertyMap properties          = PropertyMap.inputTypeToJavaType(securityContext, entityClass, propertySet);
+				RelationshipInterface newRelationship = null;
+
+				if(sourceNode == null) {
+					errorBuffer.add(entityClass.getSimpleName(), new EmptyPropertyToken(template.getSourceIdProperty()));
+				}
+
+				if(targetNode == null) {
+					errorBuffer.add(entityClass.getSimpleName(), new EmptyPropertyToken(template.getTargetIdProperty()));
+				}
+			
+				if(errorBuffer.hasError()) {
+					throw new FrameworkException(422, errorBuffer);
+				}
+
+				try {
+					app.beginTx();
+					newRelationship = app.create(sourceNode, targetNode, entityClass, properties);
+					app.commitTx();
+
+				} finally {
+					app.finishTx();
+				}
+
+				RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_CREATED);
+				if (newRelationship != null) {
+
+					result.addHeader("Location", buildLocationHeader(newRelationship));
+				}
+
+				// finally: return 201 Created
+				return result;
+			}
+			
+			// shouldn't happen
+			throw new NotFoundException();
 		}
-		
-		// finally: return 201 Created
-		return result;
 	}
 
 	@Override
@@ -205,14 +304,24 @@ public class TypeResource extends SortableResource {
 
 	}
 
-	public AbstractNode createNode(final Map<String, Object> propertySet) throws FrameworkException {
+	public NodeInterface createNode(final Map<String, Object> propertySet) throws FrameworkException {
 
 		if (entityClass != null) {
 
-			PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, entityClass, propertySet);
-			properties.put(AbstractNode.type, entityClass.getSimpleName());
+			final App app                = StructrApp.getInstance(securityContext);
+			final PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, entityClass, propertySet);
 
-			return (AbstractNode) Services.command(securityContext, CreateNodeCommand.class).execute(properties);
+			try {
+				app.beginTx();
+				final NodeInterface newNode = app.create(entityClass, properties);
+				app.commitTx();
+				
+				return newNode;
+				
+			} finally {
+				
+				app.finishTx();
+			}
 			
 		}
 		
@@ -275,6 +384,7 @@ public class TypeResource extends SortableResource {
 
 	}
 
+	// ----- private methods -----
 	private Set<String> keys(final List<SearchAttribute> attrs) {
 
 		Set<String> keys = new HashSet();
@@ -291,6 +401,131 @@ public class TypeResource extends SortableResource {
 		}
 		
 		return keys;
-		
 	}
+	
+	private Relation getRelationshipTemplate() {
+		
+		try {
+			
+			return (Relation)entityClass.newInstance();
+			
+		} catch (Throwable t) {
+			
+		}
+		
+		return null;
+	}
+
+	/*
+              Notion startNodeNotion = getStartNodeNotion();    // new RelationshipNotion(getStartNodeIdKey());
+
+                startNodeNotion.setType(namedRelation.getSourceType());
+
+                PropertyKey startNodeIdentifier = startNodeNotion.getPrimaryPropertyKey();
+
+                if (startNodeIdentifier != null) {
+
+                        Object identifierValue = propertySet.get(startNodeIdentifier.jsonName());
+
+                        propertySet.remove(startNodeIdentifier.jsonName());
+
+                        return (AbstractNode) startNodeNotion.getAdapterForSetter(securityContext).adapt(identifierValue);
+
+                }
+
+	 */
+	
+	private NodeInterface identifyStartNode(final Relation template, final Map<String, Object> properties) throws FrameworkException {
+		
+		final Property<String> sourceIdProperty = template.getSourceIdProperty();
+		final Class sourceType                  = template.getSourceType();
+		final Notion notion                     = template.getStartNodeNotion();
+
+		notion.setType(sourceType);
+
+                PropertyKey startNodeIdentifier = notion.getPrimaryPropertyKey();
+
+                if (startNodeIdentifier != null) {
+
+                        Object identifierValue = properties.get(startNodeIdentifier.dbName());
+
+                        properties.remove(sourceIdProperty.dbName());
+
+                        return (NodeInterface)notion.getAdapterForSetter(securityContext).adapt(identifierValue);
+
+                }
+	
+		return null;
+	}
+	
+	private NodeInterface identifyEndNode(final Relation template, final Map<String, Object> properties) throws FrameworkException {
+		
+		final Property<String> targetIdProperty = template.getTargetIdProperty();
+		final Class targetType                  = template.getTargetType();
+		final Notion notion                     = template.getEndNodeNotion();
+
+		notion.setType(targetType);
+
+                final PropertyKey endNodeIdentifier = notion.getPrimaryPropertyKey();
+                if (endNodeIdentifier != null) {
+
+                        Object identifierValue = properties.get(endNodeIdentifier.dbName());
+
+                        properties.remove(targetIdProperty.dbName());
+
+                        return (NodeInterface)notion.getAdapterForSetter(securityContext).adapt(identifierValue);
+
+                }
+	
+		return null;
+	}		
+		
+		
+		
+		
+		/*
+		if (StringUtils.isBlank(sourceId)) {
+
+			errorBuffer.add(entityClass.getSimpleName(), new EmptyPropertyToken(sourceIdProperty));
+			return null;
+		}
+
+		final GraphObject sourceNode = app.get(sourceId);
+		if (sourceNode == null) {
+
+			throw new NotFoundException();
+		}
+
+		final Class sourceClass = sourceNode.getClass();
+		if (!sourceClass.isAssignableFrom(sourceType) && !sourceType.isAssignableFrom(sourceClass)) {
+
+			throw new FrameworkException(entityClass.getSimpleName(), new TypeToken(sourceIdProperty, sourceType.getSimpleName()));
+		}
+		
+		return (NodeInterface)sourceNode;
+		*/
+//	
+//	private NodeInterface identifyEndNode(final App app, final ErrorBuffer errorBuffer, final PropertyMap properties, final Property<String> targetIdProperty, final Class targetType) throws FrameworkException {
+//		
+//		final String targetId = properties.get(targetIdProperty);
+//		if (StringUtils.isBlank(targetId)) {
+//
+//			errorBuffer.add(entityClass.getSimpleName(), new EmptyPropertyToken(targetIdProperty));
+//			return null;
+//		}
+//
+//		final GraphObject targetNode = app.get(targetId);
+//		if (targetNode == null) {
+//
+//			throw new NotFoundException();
+//		}
+//
+//		final Class targetClass = targetNode.getClass();
+//		if (targetClass.isAssignableFrom(targetType) || targetType.isAssignableFrom(targetClass)) {
+//
+//			throw new FrameworkException(entityClass.getSimpleName(), new TypeToken(targetIdProperty, targetType.getSimpleName()));
+//		}
+//		
+//		return (NodeInterface)targetNode;
+//	}
 }

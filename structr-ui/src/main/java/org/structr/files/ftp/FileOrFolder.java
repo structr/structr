@@ -30,11 +30,11 @@ import org.apache.ftpserver.ftplet.FtpFile;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.NodeAttribute;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
@@ -85,32 +85,31 @@ public class FileOrFolder extends AbstractStructrFtpFile {
 		}
 		
 		final Folder parentFolder = (Folder) FileHelper.getFileByAbsolutePath(StringUtils.substringBeforeLast(newPath, "/"));
+		final App app             = StructrApp.getInstance();
 
 		try {
-			structrFile = Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(new StructrTransaction<Folder>() {
+			app.beginTx();
+			
+			Folder newFolder = (Folder) Services.command(SecurityContext.getSuperUserInstance(), CreateNodeCommand.class).execute(
+				new NodeAttribute(AbstractNode.type, Folder.class.getSimpleName()),
+				new NodeAttribute(AbstractNode.owner, owner.getStructrUser()),
+				new NodeAttribute(AbstractNode.name, getName())
+			);
 
-				@Override
-				public Folder execute() throws FrameworkException {
-
-					Folder newFolder = (Folder) Services.command(SecurityContext.getSuperUserInstance(), CreateNodeCommand.class).execute(
-						new NodeAttribute(AbstractNode.type, Folder.class.getSimpleName()),
-						new NodeAttribute(AbstractNode.owner, owner.getStructrUser()),
-						new NodeAttribute(AbstractNode.name, getName())
-					);
-
-					if (parentFolder != null) {
-						newFolder.setProperty(AbstractFile.parent, parentFolder);
-					}
-
-					return newFolder;
-				}
-
-			});
+			if (parentFolder != null) {
+				newFolder.setProperty(AbstractFile.parent, parentFolder);
+			}
+			
+			app.commitTx();
 			
 		} catch (FrameworkException ex) {
 			logger.log(Level.SEVERE, null, ex);
 			return false;
-		}
+
+			} finally {
+
+				app.finishTx();
+			}
 		
 		return true;
 	}
@@ -127,44 +126,30 @@ public class FileOrFolder extends AbstractStructrFtpFile {
 		if (structrFile == null) {
 
 			final Folder parentFolder = (Folder) FileHelper.getFileByAbsolutePath(StringUtils.substringBeforeLast(newPath, "/"));
-
+			final App app             = StructrApp.getInstance();
 
 			try {
-				structrFile = Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(new StructrTransaction<File>() {
+				app.beginTx();
+				
+				structrFile = FileHelper.createFile(SecurityContext.getSuperUserInstance(), new byte[0], null, File.class);
+				structrFile.setProperty(AbstractNode.type, File.class.getSimpleName());
+				structrFile.setProperty(AbstractNode.owner, owner.getStructrUser());
+				structrFile.setProperty(AbstractNode.name, getName());
 
-					@Override
-					public File execute() throws FrameworkException {
-						
-						File newFile;
-
-						try {
-							newFile = FileHelper.createFile(SecurityContext.getSuperUserInstance(), new byte[0], null, File.class);
-							newFile.setProperty(AbstractNode.type, File.class.getSimpleName());
-							newFile.setProperty(AbstractNode.owner, owner.getStructrUser());
-							newFile.setProperty(AbstractNode.name, getName());
-
-							if (parentFolder != null) {
-								newFile.setProperty(AbstractFile.parent, parentFolder);
-							}
-
-							return newFile;
-						
-						} catch (IOException ex) {
-							Logger.getLogger(FileOrFolder.class.getName()).log(Level.SEVERE, null, ex);
-						}
-						
-						return null;
-
-					}
-
-				});
+				if (parentFolder != null) {
+					structrFile.setProperty(AbstractFile.parent, parentFolder);
+				}
+				
+				app.commitTx();
 
 			} catch (FrameworkException ex) {
 				logger.log(Level.SEVERE, null, ex);
 				return null;
-			}
 
-			
+			} finally {
+
+				app.finishTx();
+			}
 		}
 		
 		return ((File) structrFile).getOutputStream();

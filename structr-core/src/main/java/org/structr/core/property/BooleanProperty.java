@@ -37,7 +37,7 @@ import org.structr.core.converter.PropertyConverter;
 public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 	
 	private static final Logger logger = Logger.getLogger(BooleanProperty.class.getName());
-	private static final Set<String> TRUE_VALUES = new LinkedHashSet<String>(Arrays.asList(new String[] { "true", "1", "on" }));
+	private static final Set<String> TRUE_VALUES = new LinkedHashSet<>(Arrays.asList(new String[] { "true", "1", "on" }));
 
 	public BooleanProperty(String name, PropertyValidator<Boolean>... validators) {
 		super(name);
@@ -161,7 +161,8 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 				
 				if (source instanceof String) {
 
-					logger.log(Level.WARNING, "Wrong input type for {0}. Expected: {1}, found: {2}", new Object[]{jsonName, Boolean.class.getName(), source.getClass().getName()});
+					// don't log this
+					// logger.log(Level.WARNING, "Wrong input type for {0}. Expected: {1}, found: {2}", new Object[]{jsonName, Boolean.class.getName(), source.getClass().getName()});
 					
 					returnValue = TRUE_VALUES.contains(source.toString().toLowerCase());
 

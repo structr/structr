@@ -22,6 +22,7 @@ import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.graph.NodeInterface;
 
 /**
  * Returns the "type" property of the end node when evaluated.
@@ -42,7 +43,7 @@ public class RelationshipEndNodeTypeConverter extends PropertyConverter<Object, 
 			AbstractRelationship rel = (AbstractRelationship) currentObject;
 			if (rel != null) {
 				
-				AbstractNode endNode = rel.getEndNode();
+				NodeInterface endNode = rel.getTargetNode();
 				if (endNode != null) {
 					
 					return endNode.getType();

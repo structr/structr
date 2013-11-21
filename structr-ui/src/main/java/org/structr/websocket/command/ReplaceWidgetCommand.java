@@ -28,13 +28,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.DeleteNodeCommand;
-import org.structr.core.graph.NodeAttribute;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.web.entity.Widget;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
@@ -59,66 +57,63 @@ public class ReplaceWidgetCommand extends AbstractCommand {
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
-		final String id				= webSocketData.getId();
-		String pageId				= webSocketData.getPageId();
-		final Map<String, Object> nodeData	= webSocketData.getNodeData();
-		final String parentId			= (String) nodeData.get("parentId");
-		final String baseUrl			= (String) nodeData.get("widgetHostBaseUrl");
+		final String id	                   = webSocketData.getId();
+		String pageId                      = webSocketData.getPageId();
+		final Map<String, Object> nodeData = webSocketData.getNodeData();
+		final String parentId              = (String) nodeData.get("parentId");
+		final String baseUrl               = (String) nodeData.get("widgetHostBaseUrl");
+		final App app                      = StructrApp.getInstance(getWebSocket().getSecurityContext());
 		
 		final Page page			= getPage(pageId);
 		final AbstractNode origNode	= getNode(id);
 		
-		final CreateNodeCommand createNode = Services.command(getWebSocket().getSecurityContext(), CreateNodeCommand.class);
-		final DeleteNodeCommand deleteNode = Services.command(getWebSocket().getSecurityContext(), DeleteNodeCommand.class);
-		
 		try {
-			Services.command(getWebSocket().getSecurityContext(), TransactionCommand.class).execute(new StructrTransaction<Object>() {
-				
-				@Override
-				public Object execute() throws FrameworkException {
+			
+			app.beginTx();
 
-					DOMNode existingParent = null;
-					if (parentId != null) {
-						// Remove original node from existing parent to ensure correct position
-						existingParent = (DOMNode) getNode(parentId);
-					}
-					
-					// Create temporary parent node
-					DOMNode parent = (Div) createNode.execute(new NodeAttribute(AbstractNode.type, Div.class.getSimpleName()));
-					
-					// Expand source code to widget
-					Widget.expandWidget(getWebSocket().getSecurityContext(), page, parent, baseUrl, nodeData);
+			DOMNode existingParent = null;
+			if (parentId != null) {
+				// Remove original node from existing parent to ensure correct position
+				existingParent = (DOMNode) getNode(parentId);
+			}
 
-					DOMNode newWidget = (DOMNode) parent.getChildNodes().item(0);
-					moveSyncRels((DOMElement) origNode, (DOMElement) newWidget);
-					
-					if (existingParent != null) {
-						existingParent.removeChild((DOMNode) origNode);
+			// Create temporary parent node
+			DOMNode parent = app.create(Div.class);
 
-					}
+			// Expand source code to widget
+			Widget.expandWidget(getWebSocket().getSecurityContext(), page, parent, baseUrl, nodeData);
 
-					deleteRecursively((DOMNode) origNode);
-						
-					// Set uuid of original node to new widget node
-					newWidget.setProperty(AbstractNode.uuid, id);
-					
-					if (existingParent != null) {
-					
-						// Append new widget to existing parent
-						existingParent.appendChild(newWidget);
-					}						
-					
-					// Delete temporary parent node
-					deleteNode.execute(parent);
-					
-					return null;
-					
-				}
-				
-			});
+			DOMNode newWidget = (DOMNode) parent.getChildNodes().item(0);
+			moveSyncRels((DOMElement) origNode, (DOMElement) newWidget);
+
+			if (existingParent != null) {
+				existingParent.removeChild((DOMNode) origNode);
+
+			}
+
+			deleteRecursively((DOMNode) origNode);
+
+			// Set uuid of original node to new widget node
+			newWidget.setProperty(AbstractNode.uuid, id);
+
+			if (existingParent != null) {
+
+				// Append new widget to existing parent
+				existingParent.appendChild(newWidget);
+			}						
+
+			// Delete temporary parent node
+			app.delete(parent);
+
+			app.commitTx();
 			
 		} catch (FrameworkException ex) {
+			
 			logger.log(Level.SEVERE, null, ex);
+			
+		} finally {
+			
+			app.finishTx();
 		}
 
 	}

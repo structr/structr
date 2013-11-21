@@ -69,12 +69,12 @@ public class RelationshipResource extends WrappingResource {
 		if(results != null && !results.isEmpty()) {
 
 			try {
-				List<GraphObject> resultList = new LinkedList<GraphObject>();
+				List<GraphObject> resultList = new LinkedList<>();
 				for(GraphObject obj : results) {
 
 					if(obj instanceof AbstractNode) {
 
-						List relationships = Iterables.toList(((AbstractNode) obj).getRelationships(null, direction));
+						List relationships = Iterables.toList(((AbstractNode) obj).getRelationships());
 						if(relationships != null) {
 
 							resultList.addAll(relationships);
@@ -102,7 +102,7 @@ public class RelationshipResource extends WrappingResource {
 	public Resource tryCombineWith(Resource next) throws FrameworkException {
 
 		if(next instanceof UuidResource) {
-			return new RelationshipIdResource(securityContext, this, (UuidResource)next);
+			return next;
 		}
 
 		return super.tryCombineWith(next);

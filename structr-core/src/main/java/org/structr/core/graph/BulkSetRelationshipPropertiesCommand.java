@@ -36,6 +36,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
 import org.structr.core.EntityContext;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
@@ -61,19 +62,17 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand imp
 
 		final GraphDatabaseService graphDb            = (GraphDatabaseService) arguments.get("graphDb");
 		final RelationshipFactory relationshipFactory = new RelationshipFactory(securityContext);
-                final SearchRelationshipCommand searchRel     = Services.command(SecurityContext.getSuperUserInstance(), SearchRelationshipCommand.class);
                 
 		if (graphDb != null) {
 
 			List<AbstractRelationship> rels = null;
+			final String typeName   = "type";
 
-			if (properties.containsKey(AbstractRelationship.combinedType.dbName())) {
+			if (properties.containsKey(typeName)) {
 
-				List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
-				attrs.add(Search.andExactProperty(securityContext, AbstractRelationship.type, (String)properties.get(AbstractRelationship.combinedType.dbName())));
-
-				rels = searchRel.execute(attrs).getResults();
-				properties.remove(AbstractRelationship.combinedType.dbName());
+				rels = StructrApp.getInstance(securityContext).relationshipQuery(EntityContext.getEntityClassForRawType(typeName)).getAsList();
+				
+				properties.remove(typeName);
 
 			} else {
 

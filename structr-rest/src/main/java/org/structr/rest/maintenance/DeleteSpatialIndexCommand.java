@@ -23,19 +23,17 @@ import java.util.List;
 import java.util.LinkedList;
 import java.util.logging.Logger;
 import java.util.logging.Level;
-import org.neo4j.collections.rtree.RTreeRelationshipTypes;
-import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.tooling.GlobalGraphOperations;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.NodeService;
 import org.structr.core.graph.NodeServiceCommand;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.rest.resource.MaintenanceParameterResource;
 
 
@@ -57,10 +55,8 @@ public class DeleteSpatialIndexCommand extends NodeServiceCommand implements Mai
 		
 		
 		final GraphDatabaseService graphDb = Services.getService(NodeService.class).getGraphDb();
-		final List<Node> toDelete          = new LinkedList<Node>();
+		final List<Node> toDelete          = new LinkedList<>();
 
-		
-		
 		for (final Node node: GlobalGraphOperations.at(graphDb).getAllNodes()) {
 
 			try {
@@ -72,34 +68,37 @@ public class DeleteSpatialIndexCommand extends NodeServiceCommand implements Mai
 			} catch (Throwable t) {}
 	
 		}
+
+		final App app = StructrApp.getInstance(securityContext);
 		
-		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+		try {
+			app.beginTx();
 
-			@Override
-			public Object execute() throws FrameworkException {
+			for (Node node : toDelete) {
 
-				for (Node node : toDelete) {
-					
-					logger.log(Level.INFO, "Deleting node {0}", node);
+				logger.log(Level.INFO, "Deleting node {0}", node);
 
-					try {
+				try {
 
-						for (Relationship rel : node.getRelationships()) {
+					for (Relationship rel : node.getRelationships()) {
 
-							rel.delete();
-						}
-
-						node.delete();
-
-					} catch (Throwable t) {
-
-						t.printStackTrace();
+						rel.delete();
 					}
 
+					node.delete();
+
+				} catch (Throwable t) {
+
+					t.printStackTrace();
 				}
-				return null;
+
 			}
-		});
+
+			app.commitTx();
+
+		} finally {
+			app.finishTx();
+		}
 	}
 
 }

@@ -48,12 +48,12 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang.StringUtils;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.auth.AuthHelper;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.entity.Person;
 import org.structr.core.entity.Principal;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchNodeCommand;
@@ -142,19 +142,21 @@ public class RegistrationResource extends Resource {
 				
 			if (!result.isEmpty()) {
 				
+				final App app = StructrApp.getInstance(securityContext);
 				user = (Principal) result.get(0);
 				
 				// For existing users, update confirmation key
-				
-				Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
 
-					@Override
-					public Object execute() throws FrameworkException {
+				try {
 				
-						user.setProperty(User.confirmationKey, confKey);
-						return null;
-					}
-				});
+					app.beginTx();
+					user.setProperty(User.confirmationKey, confKey);
+					app.commitTx();
+					
+				} finally {
+					
+					app.finishTx();
+				}
 				
 				existingUser = true;
 
@@ -429,54 +431,53 @@ public class RegistrationResource extends Resource {
 	 */
 	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final Map<String, Object> propertySet, final boolean autoCreate, final Class userClass) {
 
+		final App app = StructrApp.getInstance(securityContext);
+		
 		try {
-			return Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<Principal>() {
+			
+			app.beginTx();
 
-				@Override
-				public Principal execute() throws FrameworkException {
+			// First, search for a person with that e-mail address
+			Person person = (Person) AuthHelper.getPrincipalForCredential(credentialKey, credentialValue);
 
-					// First, search for a person with that e-mail address
-					Person person = (Person) AuthHelper.getPrincipalForCredential(credentialKey, credentialValue);
+			if (person != null) {
 
-					if (person != null) {
-						
-						// convert to user
-						person.unlockReadOnlyPropertiesOnce();
-						person.setProperty(AbstractNode.type, User.class.getSimpleName());
+				// convert to user
+				person.unlockReadOnlyPropertiesOnce();
+				person.setProperty(AbstractNode.type, User.class.getSimpleName());
 
-						User user = new User();
-						user.init(securityContext, person.getNode());
+				User user = new User();
+				user.init(securityContext, person.getNode());
 
-						// index manually, because type is a system property!
-						person.updateInIndex();
+				// index manually, because type is a system property!
+				person.updateInIndex();
 
-						user.setProperty(User.confirmationKey, confKey);
-						
-						return user;
+				user.setProperty(User.confirmationKey, confKey);
 
-					} else if (autoCreate) {
-						
-						propertySet.put(AbstractNode.type.jsonName(), userClass != null ? userClass.getSimpleName() : User.class.getSimpleName());
+				return user;
 
-						PropertyMap props = PropertyMap.inputTypeToJavaType(securityContext, propertySet);
-						props.put(credentialKey, credentialValue);
-						props.put(User.name, credentialValue);
-						props.put(User.confirmationKey, confKey);
-						
-						return (Principal) Services.command(securityContext, CreateNodeCommand.class).execute(props);
+			} else if (autoCreate) {
 
-					}
-					
-					logger.log(Level.WARNING, "No user created: No matching person found, and auto-creation is off");
-					
-					return null;
+				propertySet.put(AbstractNode.type.jsonName(), userClass != null ? userClass.getSimpleName() : User.class.getSimpleName());
 
-				}
-				
-			});
+				PropertyMap props = PropertyMap.inputTypeToJavaType(securityContext, propertySet);
+				props.put(credentialKey, credentialValue);
+				props.put(User.name, credentialValue);
+				props.put(User.confirmationKey, confKey);
+
+				return (Principal) Services.command(securityContext, CreateNodeCommand.class).execute(props);
+
+			}
+			
+			app.commitTx();
 			
 		} catch (FrameworkException ex) {
+			
 			logger.log(Level.SEVERE, null, ex);
+			
+		} finally {
+			
+			app.finishTx();
 		}
 		
 		return null;

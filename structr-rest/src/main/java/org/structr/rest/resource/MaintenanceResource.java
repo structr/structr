@@ -39,6 +39,8 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.MaintenanceCommand;
@@ -88,11 +90,13 @@ public class MaintenanceResource extends Resource {
 
 				try {
 
+					final App app = StructrApp.getInstance(securityContext);
+					
 					if (Task.class.isAssignableFrom(taskOrCommand)) {
 
 						Task task = (Task) taskOrCommand.newInstance();
 
-						Services.command(securityContext, ProcessTaskCommand.class).execute(task);
+						app.processTasks(task);
 
 					} else if (MaintenanceCommand.class.isAssignableFrom(taskOrCommand)) {
 

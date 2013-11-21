@@ -96,7 +96,7 @@ public class LogCommandsTest extends StructrTest {
 
 			}
 
-			assertTrue(result.size() == number);
+			assertEquals(number, result.size());
 
 			for (int i = 0; i < number; i++) {
 

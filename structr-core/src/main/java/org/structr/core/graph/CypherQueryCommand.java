@@ -27,8 +27,6 @@ import org.neo4j.graphdb.Relationship;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -74,7 +72,7 @@ public class CypherQueryCommand extends NodeServiceCommand {
 		RelationshipFactory relFactory  = new RelationshipFactory(securityContext);
 		NodeFactory nodeFactory         = new NodeFactory(securityContext);
 
-		List<GraphObject> resultList = new LinkedList<GraphObject>();
+		List<GraphObject> resultList = new LinkedList<>();
 		ExecutionResult result       = null;
 
 		if (parameters != null) {
@@ -97,7 +95,7 @@ public class CypherQueryCommand extends NodeServiceCommand {
 			
 				if (value instanceof Node) {
 
-					AbstractNode node = nodeFactory.instantiate((Node) value, includeHiddenAndDeleted, publicOnly);
+					NodeInterface node = nodeFactory.instantiate((Node) value, includeHiddenAndDeleted, publicOnly);
 
 					if (node != null) {
 
@@ -106,7 +104,7 @@ public class CypherQueryCommand extends NodeServiceCommand {
 
 				} else if (value instanceof Relationship) {
 
-					AbstractRelationship rel = relFactory.instantiate((Relationship) value);
+					RelationshipInterface rel = relFactory.instantiate((Relationship) value);
 
 					if (rel != null) {
 
