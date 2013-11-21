@@ -42,6 +42,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.Result;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.Notion;
@@ -85,8 +86,6 @@ public class StaticRelationshipResource extends SortableResource {
 
 			// first try: look through existing relations
 			if (!typeResource.isNode && sourceEntity instanceof NodeInterface) {
-				
-				FIXME: this is not correct, use getIncoming/getOutgoingRelationships and/or startpoints and endpoints.
 				
 				final List<GraphObject> list = Iterables.toList(((NodeInterface)sourceEntity).getRelationships(typeResource.entityClass));
 				applyDefaultSorting(list, sortKey, sortDescending);
@@ -405,6 +404,24 @@ public class StaticRelationshipResource extends SortableResource {
         }
 	
 	// ----- private methods -----
+	private <A extends NodeInterface, B extends NodeInterface, R extends Relation<A, B, ?, ?>> R getRelationshipForType(final Class<R> type) {
+		
+		try {
+			
+			return type.newInstance();
+			
+		} catch (Throwable t) {
+
+			// TODO: throw meaningful exception here,
+			// should be a RuntimeException that indicates
+			// wrong use of Relationships etc.
+			
+			t.printStackTrace();
+		}
+		
+		return null;
+	}
+
 	private Object[] extractParameters(Map<String, Object> properties, Class[] parameterTypes) {
 		
 		List<Object> values     = new ArrayList<>(properties.values());

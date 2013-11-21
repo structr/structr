@@ -1,5 +1,6 @@
 package org.structr.core.entity;
 
+import org.neo4j.graphdb.Direction;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
@@ -70,5 +71,10 @@ public abstract class OneToOne<S extends NodeInterface, T extends NodeInterface>
 	@Override
 	public Notion getStartNodeNotion() {
 		return new RelationshipNotion(getSourceIdProperty());
+	}
+	
+	@Override
+	public Direction getDirectionForType(final Class<? extends NodeInterface> type) {
+		return super.getDirectionForType(getSourceType(), getTargetType(), type);
 	}
 }

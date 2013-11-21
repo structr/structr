@@ -18,6 +18,7 @@
  */
 package org.structr.core.entity;
 
+import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -70,8 +71,8 @@ public interface Relation<A extends NodeInterface, B extends NodeInterface, S ex
 	
 	public Class<A> getSourceType();
 	public Class<B> getTargetType();
-	
-	//public RelationshipType getRelationshipType();
+
+	public Direction getDirectionForType(final Class<? extends NodeInterface> type);
 	
 	public Multiplicity getSourceMultiplicity();
 	public Multiplicity getTargetMultiplicity();

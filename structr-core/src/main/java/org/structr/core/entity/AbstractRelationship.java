@@ -43,21 +43,16 @@ import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.IdNotFoundToken;
-import org.structr.common.error.NullPropertyToken;
 import org.structr.common.error.ReadOnlyPropertyToken;
 import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.graph.CreateRelationshipCommand;
-import org.structr.core.graph.DeleteRelationshipCommand;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeService;
 import org.structr.core.graph.RelationshipInterface;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
@@ -649,6 +644,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 		
 	}
 
+	@Override
 	public void setSourceNodeId(final String startNodeId) throws FrameworkException {
 
 		final String type        = this.getClass().getSimpleName();
@@ -686,6 +682,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 		}
 	}
 
+	@Override
 	public void setTargetNodeId(final String targetIdNode) throws FrameworkException {
 
 		final String type        = this.getClass().getSimpleName();
@@ -721,5 +718,31 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 			
 			app.finishTx();
 		}
+	}
+	
+	// ----- protected methods -----
+	protected Direction getDirectionForType(final Class<S> sourceType, final Class<T> targetType, final Class<? extends NodeInterface> type) {
+
+		if (sourceType.equals(type) && targetType.equals(type)) {
+			return Direction.BOTH;
+		}
+		
+		if (sourceType.equals(type)) {
+			return Direction.OUTGOING;
+		}
+		
+		if (targetType.equals(type)) {
+			return Direction.INCOMING;
+		}
+		
+		if (sourceType.isAssignableFrom(type)) {
+			return Direction.OUTGOING;
+		}
+		
+		if (targetType.isAssignableFrom(type)) {
+			return Direction.INCOMING;
+		}
+		
+		return Direction.BOTH;
 	}
 }
