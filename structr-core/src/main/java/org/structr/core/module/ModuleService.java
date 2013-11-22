@@ -434,13 +434,7 @@ public class ModuleService implements SingletonService {
 			return null;
 		}
 		
-		String combinedType =
-			
-			sourceType
-			.concat(DefaultFactoryDefinition.COMBINED_RELATIONSHIP_KEY_SEP)
-			.concat(relType)
-			.concat(DefaultFactoryDefinition.COMBINED_RELATIONSHIP_KEY_SEP)
-			.concat(targetType);
+		String combinedType = getCombinedType(sourceType, relType, targetType);
 		
 		Class cachedRelationClass = getRelationClassForCombinedType(combinedType);
 		
