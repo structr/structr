@@ -18,14 +18,20 @@
  */
 package org.structr.common;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.apache.commons.lang.StringUtils;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.GenericNode;
 import org.structr.core.entity.GenericRelationship;
+import org.structr.core.entity.Relation;
 import org.structr.core.experimental.NodeExtender;
+import org.structr.core.module.ModuleService;
 
 /**
  * The default factory for unknown types in structr. When structr needs to
@@ -35,12 +41,16 @@ import org.structr.core.experimental.NodeExtender;
  * @author Christian Morgner
  */
 public class DefaultFactoryDefinition implements FactoryDefinition {
+	
+	private static final Logger logger = Logger.getLogger(DefaultFactoryDefinition.class.getName());
 
-	public static final String GENERIC_NODE_TYPE = GenericNode.class.getSimpleName();
-	public static final String GENERIC_REL_TYPE  = GenericRelationship.class.getSimpleName();
+	public static final String COMBINED_RELATIONSHIP_KEY_SEP = " ";
 	
 	public static final NodeExtender genericNodeExtender = new NodeExtender(GenericNode.class, "org.structr.core.entity.dynamic");
+	public static final Class GENERIC_NODE_TYPE          = GenericNode.class;
+	public static final Class GENERIC_REL_TYPE           = GenericRelationship.class;
 	
+	private ModuleService moduleService = null;
 	private String externalNodeTypeName = null;
 
 	@Override
@@ -49,7 +59,7 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 	}
 
 	@Override
-	public String getGenericRelationshiType() {
+	public Class getGenericRelationshipType() {
 		return GENERIC_REL_TYPE;
 	}
 
@@ -59,7 +69,7 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 	}
 
 	@Override
-	public String getGenericNodeType() {
+	public Class getGenericNodeType() {
 		return GENERIC_NODE_TYPE;
 	}
 
@@ -73,14 +83,15 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 	}
 
 	@Override
-	public String determineNodeType(Node node) {
+	public Class determineNodeType(Node node) {
 		
-		String type = GraphObject.type.dbName();
+		final String type = GraphObject.type.dbName();
 		if (node.hasProperty(type)) {
 			
-			Object obj =  node.getProperty(type);
+			final Object obj =  node.getProperty(type);
 			if (obj != null) {
-				return obj.toString();
+				
+				return getModuleService().getNodeEntityClass(obj.toString());
 			}
 			
 		} else {
@@ -103,7 +114,7 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 					genericNodeExtender.getType(externalNodeType);
 					
 					// return dynamic type
-					return typeObj.toString();
+					return moduleService.getNodeEntityClass(typeObj.toString());
 				}
 			}
 			
@@ -111,5 +122,76 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 		}
 		
 		return getGenericNodeType();
+	}
+
+	@Override
+	public Class determineRelationshipType(Relationship relationship) {
+
+		final String type = GraphObject.type.dbName();
+		
+		final ModuleService moduleService = getModuleService();
+		
+		// first try: duck-typing
+		final String sourceType = relationship.getStartNode().hasProperty(type) ? relationship.getStartNode().getProperty(type).toString() : null;
+		final String targetType = relationship.getEndNode().hasProperty(type) ? relationship.getEndNode().getProperty(type).toString() : null;
+		final String relType    = relationship.getType().name();
+		final Class entityType  = getClassForCombinedType(sourceType, relType, targetType);
+		
+		if (entityType != null) {
+			logger.log(Level.FINE, "Class for assembled combined {0}", entityType.getName());
+			return entityType;
+		}
+
+		// second try: type property
+		if (relationship.hasProperty(type)) {
+			
+			Object obj =  relationship.getProperty(type);
+			
+			logger.log(Level.FINEST, "Type property: {0}", obj);
+			
+			if (obj != null) {
+				
+				Class relationClass = moduleService.getRelationshipEntityClass(obj.toString());
+				moduleService.setRelationClassForCombinedType(sourceType, relType, targetType, relationClass);
+				return relationClass;
+			}
+		}
+
+		// fallback to old type
+		final String combinedTypeName = "combinedType";
+		if (relationship.hasProperty(combinedTypeName)) {
+			
+			Object obj =  relationship.getProperty(combinedTypeName);
+			
+			logger.log(Level.FINE, "Combined type property: {0}", obj);
+			
+			if (obj != null) {
+				
+				return getClassForCombinedType(obj.toString());
+			}
+		}
+		
+		logger.log(Level.WARNING, "No instantiable class for relationship found for {0} {1} {2}, returning generic relationship class.", new Object[] { sourceType, relType, targetType });
+		
+		return getGenericRelationshipType();
+	}
+
+	private Class getClassForCombinedType(final String combinedType) {
+		
+		final String[] parts = StringUtils.split(combinedType, COMBINED_RELATIONSHIP_KEY_SEP);
+		final String sourceType = parts[0];
+		final String relType    = parts[1];
+		final String targetType = parts[2];
+
+		return getClassForCombinedType(sourceType, relType, targetType);
+	}
+
+	private Class getClassForCombinedType(final String sourceType, final String relType, final String targetType) {
+		
+		return getModuleService().getRelationClassForCombinedType(sourceType, relType, targetType);
+	}
+
+	private ModuleService getModuleService() {
+		return Services.getService(ModuleService.class);
 	}
 }

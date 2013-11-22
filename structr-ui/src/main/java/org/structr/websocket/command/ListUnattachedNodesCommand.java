@@ -20,7 +20,6 @@
 
 package org.structr.websocket.command;
 
-import org.neo4j.graphdb.Direction;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
@@ -33,7 +32,6 @@ import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.websocket.message.WebSocketMessage;
-import org.structr.web.common.RelType;
 import org.structr.common.PagingHelper;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
@@ -46,6 +44,7 @@ import java.util.logging.Logger;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.entity.dom.relationship.DOMChildren;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -94,7 +93,7 @@ public class ListUnattachedNodesCommand extends AbstractCommand {
 
 					AbstractNode node = (AbstractNode) obj;
 
-					if (!node.hasRelationship(RelType.CONTAINS, Direction.INCOMING) && node.getProperty(DOMNode.ownerDocument) == null) {
+					if (!node.hasIncomingRelationships(DOMChildren.class) && node.getProperty(DOMNode.ownerDocument) == null) {
 
 						filteredResults.add(node);
 					}

@@ -23,6 +23,7 @@ import java.util.List;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.Query;
 import org.structr.core.GraphObject;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.property.PropertyKey;
 
 /**
@@ -31,14 +32,12 @@ import org.structr.core.property.PropertyKey;
  * @author Axel Morgner
  * @param <T>
  */
-public abstract class SearchAttribute<T> {
+public abstract class SearchAttribute<T> extends NodeAttribute<T> {
 
 	public static final String WILDCARD = "*";
 
-	private List<GraphObject> result = new LinkedList<GraphObject>();
-	private PropertyKey<T> key       = null;
+	private List<GraphObject> result = new LinkedList<>();
 	private Occur occur              = null;
-	private T value                  = null;
 
 	public abstract Query getQuery();
 	public abstract boolean isExactMatch();
@@ -60,9 +59,9 @@ public abstract class SearchAttribute<T> {
 	}
 	
 	public SearchAttribute(Occur occur, PropertyKey<T> key, T value) {
+		
+		super(key, value);
 		this.occur = occur;
-		this.key   = key;
-		this.value = value;
 	}
 	
 	public Occur getOccur() {
@@ -83,13 +82,5 @@ public abstract class SearchAttribute<T> {
 
 	public void addToResult(final List<GraphObject> list) {
 		result.addAll(list);
-	}
-
-	public PropertyKey<T> getKey() {
-		return key;
-	}
-
-	public T getValue() {
-		return value;
 	}
 }

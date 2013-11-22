@@ -31,7 +31,7 @@
         <netbeans.hint.license>structr-gpl30</netbeans.hint.license>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <structr.version>0.9-SNAPSHOT</structr.version>
-        <neo4j.version>1.9.3</neo4j.version>
+        <neo4j.version>1.9.5</neo4j.version>
     </properties>
 
     <repositories>
@@ -51,12 +51,32 @@
             <id>neo4j-snapshots</id>
             <url>http://m2.neo4j.org/content/repositories/snapshots</url>
         </repository>
+        <repository>
+            <id>neo4j-contrib-releases</id>
+            <url>https://raw.github.com/neo4j-contrib/m2/master/releases</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>neo4j-contrib-snapshots</id>
+            <url>https://raw.github.com/neo4j-contrib/m2/master/snapshots</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
     </repositories>	
     <dependencies>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>3.8.2</version>
+            <version>4.11</version>
             <type>jar</type>
             <scope>test</scope>
             <optional>false</optional>
@@ -89,7 +109,7 @@
         <dependency>
             <groupId>org.neo4j</groupId>
             <artifactId>neo4j-spatial</artifactId>
-            <version>0.11-neo4j-1.9</version>
+            <version>0.11-neo4j-${neo4j.version}</version>
             <exclusions>
             </exclusions>
         </dependency>
@@ -201,10 +221,11 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>2.3.2</version>
                 <configuration>
-                    <source>1.6</source>
-                    <target>1.6</target>
+                    <source>1.7</source>
+                    <target>1.7</target>
                     <encoding>${project.build.sourceEncoding}</encoding>
                     <debug>true</debug>
+                    <showDeprecation>true</showDeprecation>
                 </configuration>
             </plugin>
             <plugin>

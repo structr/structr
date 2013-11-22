@@ -96,7 +96,7 @@ public class SaveImagesFromFlashUrl extends NodeServiceCommand {
 		Principal user          = null;
 		String urlString        = null;
 		AbstractNode parentNode = null;
-		List<Image> result      = new LinkedList<Image>();
+		List<Image> result      = new LinkedList<>();
 
 		switch (parameters.length) {
 
@@ -155,7 +155,7 @@ public class SaveImagesFromFlashUrl extends NodeServiceCommand {
 
 		}
 
-		List<Image> result = new LinkedList<Image>();
+		List<Image> result = new LinkedList<>();
 
 		if (flashUrl != null) {
 
@@ -264,7 +264,7 @@ public class SaveImagesFromFlashUrl extends NodeServiceCommand {
 										     new NodeAttribute(AbstractNode.visibleToAuthenticatedUsers, true));
 
 							// Establish HAS_CHILD relationship from parent node
-							Services.command(securityContext, CreateRelationshipCommand.class).execute(parentNode, newImageNode, RelType.CONTAINS);
+							// Services.command(securityContext, CreateRelationshipCommand.class).execute(parentNode, newImageNode, RelType.CONTAINS);
 
 							String relativeFilePath = newImageNode.getId() + "_" + System.currentTimeMillis();
 							String path             = Services.getFilePath(Path.Files, relativeFilePath);

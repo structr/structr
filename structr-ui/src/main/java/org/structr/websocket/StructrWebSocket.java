@@ -27,7 +27,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 
 import org.structr.core.property.PropertyKey;
-import org.structr.core.graph.GetNodeByIdCommand;
 import org.structr.core.Services;
 import org.structr.core.auth.AuthHelper;
 import org.structr.core.entity.AbstractNode;
@@ -54,6 +53,7 @@ import java.util.logging.Logger;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.http.HttpServletRequest;
+import org.structr.core.app.StructrApp;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -260,13 +260,11 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 
 	private FileUploadHandler handleExistingFile(final String uuid) {
 
-		GetNodeByIdCommand getNode = Services.command(getSecurityContext(), GetNodeByIdCommand.class);
-
 		FileUploadHandler newHandler = null;
 		
 		try {
 
-			File file = (File) getNode.execute(uuid);
+			File file = (File) StructrApp.getInstance(securityContext).get(uuid);
 
 			if (file != null) {
 

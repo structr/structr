@@ -31,7 +31,6 @@ import org.neo4j.graphdb.factory.GraphDatabaseFactory;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.helpers.collection.MapUtil;
 import org.neo4j.index.impl.lucene.LuceneIndexImplementation;
-import org.neo4j.kernel.EmbeddedGraphDatabase;
 
 import org.structr.core.Command;
 import org.structr.core.RunnableService;
@@ -48,7 +47,6 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.cypher.javacompat.ExecutionEngine;
-import org.neo4j.graphdb.factory.GraphDatabaseBuilder;
 import org.neo4j.shell.ShellSettings;
 
 //~--- classes ----------------------------------------------------------------
@@ -82,11 +80,11 @@ public class NodeService implements SingletonService {
 	private ExecutionEngine cypherExecutionEngine   = null;
 	
 	// indices
-	private Map<RelationshipIndex, Index<Relationship>> relIndices = new EnumMap<RelationshipIndex, Index<Relationship>>(RelationshipIndex.class);
-	private Map<NodeIndex, Index<Node>> nodeIndices                = new EnumMap<NodeIndex, Index<Node>>(NodeIndex.class);
+	private Map<RelationshipIndex, Index<Relationship>> relIndices = new EnumMap<>(RelationshipIndex.class);
+	private Map<NodeIndex, Index<Node>> nodeIndices                = new EnumMap<>(NodeIndex.class);
 
 	/** Dependent services */
-	private Set<RunnableService> registeredServices = new HashSet<RunnableService>();
+	private Set<RunnableService> registeredServices = new HashSet<>();
 	private boolean isInitialized                   = false;
 
 	//~--- constant enums -------------------------------------------------
@@ -132,10 +130,10 @@ public class NodeService implements SingletonService {
 	}
 
 	@Override
-	public void initialize(Map<String, String> context) {
+	public void initialize(final Map<String, String> context) {
 
-//              String dbPath = (String) context.get(Services.DATABASE_PATH);
-		String dbPath = Services.getDatabasePath();
+		final Map<String, String> neo4jConfiguration = new LinkedHashMap<>();
+		final String dbPath                          = Services.getDatabasePath();
 
 		logger.log(Level.INFO, "Initializing database ({0}) ...", dbPath);
 
@@ -147,16 +145,23 @@ public class NodeService implements SingletonService {
 
 		}
 
+		// neo4j remote shell configuration
+		if ("true".equals(Services.getConfigurationValue(Services.NEO4J_SHELL_ENABLED, "false"))) {
+			
+			// enable neo4j remote shell, thanks Michael :)
+			neo4jConfiguration.put(ShellSettings.remote_shell_enabled.name(), "true");
+		}
+		
+		
 		try {
 
-			graphDb = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(dbPath).loadPropertiesFromFile(dbPath + "/neo4j.conf").newGraphDatabase();
+			graphDb = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(dbPath).setConfig(neo4jConfiguration).loadPropertiesFromFile(dbPath + "/neo4j.conf").newGraphDatabase();
 
 		} catch (Throwable t) {
 
 			logger.log(Level.INFO, "Database config {0}/neo4j.conf not found", dbPath);
 
-			// thanks Michael :)
-			graphDb = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(dbPath).setConfig(ShellSettings.remote_shell_enabled, "true").newGraphDatabase();
+			graphDb = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(dbPath).setConfig(neo4jConfiguration).newGraphDatabase();
 
 		}
 
@@ -211,7 +216,7 @@ public class NodeService implements SingletonService {
 		logger.log(Level.FINE, "Keyword node index ready.");
 		logger.log(Level.FINE, "Initializing layer index...");
 
-		final Map<String, String> config = new HashMap<String, String>();
+		final Map<String, String> config = new HashMap<>();
 
 		config.put(LayerNodeIndex.LAT_PROPERTY_KEY, Location.latitude.dbName());
 		config.put(LayerNodeIndex.LON_PROPERTY_KEY, Location.longitude.dbName());

@@ -30,10 +30,10 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Value;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.NodeFactory;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipFactory;
+import org.structr.core.graph.RelationshipInterface;
 
 /**
  * Abstract base class for Cypher queries. Extend this class and implement the
@@ -105,11 +105,11 @@ public abstract class CypherQueryHandler implements Value<CypherQueryHandler> {
 		return (Relationship)row.get(columnName);
 	}
 	
-	protected AbstractNode getAsAbstractNode(Map<String, Object> row, String columnName) throws FrameworkException {
+	protected NodeInterface getAsAbstractNode(Map<String, Object> row, String columnName) throws FrameworkException {
 		return nodeFactory.instantiate((Node)row.get(columnName));
 	}
 	
-	protected AbstractRelationship getAsAbstractRelationship(Map<String, Object> row, String columnName) throws FrameworkException {
+	protected RelationshipInterface getAsAbstractRelationship(Map<String, Object> row, String columnName) throws FrameworkException {
 		return relFactory.instantiate((Relationship)row.get(columnName));
 	}
 	

@@ -20,8 +20,9 @@ package org.structr.core.property;
 
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
 
 /**
  * A property group that returns grouped properties from the start node of a relationship.
@@ -39,8 +40,8 @@ public class StartNodeGroup extends GroupProperty {
 
 		if(source instanceof AbstractRelationship) {
 
-			AbstractRelationship rel  = (AbstractRelationship)source;
-			AbstractNode startNode    = rel.getStartNode();
+			RelationshipInterface rel = (RelationshipInterface)source;
+			NodeInterface startNode   = rel.getSourceNode();
 
 			return super.getGroupedProperties(securityContext, startNode);
 		}

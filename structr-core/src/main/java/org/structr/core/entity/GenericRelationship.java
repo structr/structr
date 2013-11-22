@@ -26,7 +26,6 @@ package org.structr.core.entity;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import org.neo4j.graphdb.Relationship;
-import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.common.PropertyView;
@@ -34,8 +33,10 @@ import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.property.StringProperty;
 import org.structr.core.EntityContext;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.SourceId;
+import org.structr.core.property.TargetId;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -46,10 +47,10 @@ import org.structr.core.EntityContext;
  * @author Axel Morgner
  *
  */
-public class GenericRelationship extends AbstractRelationship {
+public class GenericRelationship extends ManyToMany<NodeInterface, NodeInterface> {
 
-	public static final Property<String> startNodeId = new StringProperty("startNodeId");
-	public static final Property<String> endNodeId   = new StringProperty("endNodeId");
+	public static final SourceId startNodeId = new SourceId("startNodeId");
+	public static final TargetId endNodeId   = new TargetId("endNodeId");
 
 	public static final View uiView = new View(GenericRelationship.class, PropertyView.Ui,
 		startNodeId, endNodeId
@@ -60,21 +61,11 @@ public class GenericRelationship extends AbstractRelationship {
 	public GenericRelationship(SecurityContext securityContext, Relationship dbRelationship) {
 		init(securityContext, dbRelationship);
 	}
-
-	@Override
-	public PropertyKey getStartNodeIdKey() {
-		return startNodeId;
-	}
-
-	@Override
-	public PropertyKey getEndNodeIdKey() {
-		return endNodeId;
-	}
 		
 	@Override
 	public Iterable<PropertyKey> getPropertyKeys(String propertyView) {
 		
-		Set<PropertyKey> keys = new LinkedHashSet<PropertyKey>();
+		Set<PropertyKey> keys = new LinkedHashSet<>();
 		
 		keys.add(startNodeId);
 		keys.add(endNodeId);
@@ -107,5 +98,30 @@ public class GenericRelationship extends AbstractRelationship {
 	@Override
 	public boolean isValid(ErrorBuffer errorBuffer) {
 		return true;
+	}
+
+	@Override
+	public Class<NodeInterface> getSourceType() {
+		return NodeInterface.class;
+	}
+
+	@Override
+	public Class<NodeInterface> getTargetType() {
+		return NodeInterface.class;
+	}
+
+	@Override
+	public String name() {
+		return "GENERIC";
+	}
+
+	@Override
+	public SourceId getSourceIdProperty() {
+		return startNodeId;
+	}
+
+	@Override
+	public TargetId getTargetIdProperty() {
+		return endNodeId;
 	}
 }

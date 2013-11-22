@@ -20,29 +20,24 @@
 
 package org.structr.web.entity;
 
-import org.neo4j.graphdb.Direction;
-
-import org.structr.web.common.RelType;
+import java.util.LinkedList;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Principal;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.Permission;
 import org.structr.common.PropertyView;
-import org.structr.common.SecurityContext;
 import org.structr.core.Services;
-import org.structr.core.entity.SecurityRelationship;
-import org.structr.core.graph.CreateRelationshipCommand;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractUser;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
-import org.structr.core.property.CollectionProperty;
+import org.structr.core.property.EndNodes;
+import org.structr.core.property.Property;
+import org.structr.web.entity.relation.Groups;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -51,11 +46,11 @@ import org.structr.core.property.CollectionProperty;
  * @author amorgner
  *
  */
-public class Group extends AbstractNode implements Principal {
+public class Group extends AbstractUser implements Principal {
 	
 	private static final Logger logger = Logger.getLogger(Group.class.getName());
 
-	public static final CollectionProperty<Principal> members = new CollectionProperty<>("members", Principal.class, RelType.CONTAINS, Direction.OUTGOING, false);
+	public static final Property<List<Principal>> members = new EndNodes<>("members", Groups.class);
 	
 	public static final org.structr.common.View uiView = new org.structr.common.View(User.class, PropertyView.Ui,
 		type, name, members, blocked
@@ -65,52 +60,6 @@ public class Group extends AbstractNode implements Principal {
 		type, name, members, blocked
 	);
 
-	//~--- methods --------------------------------------------------------
-	@Override
-	public void grant(Permission permission, AbstractNode obj) {
-
-		SecurityRelationship secRel = obj.getSecurityRelationship(this);
-
-		if (secRel == null) {
-
-			try {
-
-				secRel = createSecurityRelationshipTo(obj);
-
-			} catch (FrameworkException ex) {
-
-				logger.log(Level.SEVERE, "Could not create security relationship!", ex);
-
-			}
-
-		}
-
-		secRel.addPermission(permission);
-
-	}
-
-	@Override
-	public void revoke(Permission permission, AbstractNode obj) {
-
-		SecurityRelationship secRel = obj.getSecurityRelationship(this);
-
-		if (secRel == null) {
-
-			logger.log(Level.SEVERE, "Could not create revoke permission, no security relationship exists!");
-
-		} else {
-
-			secRel.removePermission(permission);
-		}
-
-	}
-
-	private SecurityRelationship createSecurityRelationshipTo(final AbstractNode obj) throws FrameworkException {
-
-		return (SecurityRelationship) Services.command(SecurityContext.getSuperUserInstance(), CreateRelationshipCommand.class).execute(this, obj, org.structr.common.RelType.SECURITY);
-
-	}
-
 	@Override
 	public String getEncryptedPassword() {
 
@@ -118,59 +67,57 @@ public class Group extends AbstractNode implements Principal {
 		return null;
 	}
 
-	@Override
-	public List<Principal> getParents() {
-
-		List<Principal> parents                   = new LinkedList();
-		Iterable<AbstractRelationship> parentRels = getIncomingRelationships(RelType.CONTAINS);
-
-		for (AbstractRelationship rel : parentRels) {
-
-			AbstractNode node = rel.getEndNode();
-
-			if (node instanceof Principal) {
-
-				parents.add((Principal) node);
-			}
-
-		}
-
-		return parents;
-
-	}
-
 	public void addMember(final Principal user) throws FrameworkException {
 
-		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+		final App app = StructrApp.getInstance(securityContext);
+		try {
+			
+			app.beginTx();
 
-			@Override
-			public Object execute() throws FrameworkException {
+			List<Principal> _users = getProperty(members);
+			_users.add(user);
 
-				List<Principal> _users = getProperty(members);
-				_users.add(user);
-
-				setProperty(members, _users);
-				return null;
-			}
-		});
+			setProperty(members, _users);
+			
+			app.commitTx();
+			
+		} finally {
+			
+			app.finishTx();
+		}
 		
 	}
 	
 	public void removeMember(final Principal user) throws FrameworkException {
 
-		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+		final App app = StructrApp.getInstance(securityContext);
+		try {
+			
+			app.beginTx();
 
-			@Override
-			public Object execute() throws FrameworkException {
+			List<Principal> _users = getProperty(members);
+			_users.remove(user);
 
-				List<Principal> _users = getProperty(members);
-				_users.remove(user);
-
-				setProperty(members, _users);
-				return null;
-			}
-		});
-		
+			setProperty(members, _users);
+			
+			app.commitTx();
+			
+		} finally {
+			
+			app.finishTx();
+		}
 	}
-
+	
+	@Override
+	public List<Principal> getParents() {
+		
+		final List<Principal> principals = new LinkedList<>();
+		for (final Groups groups : getIncomingRelationships(Groups.class)) {
+			
+			principals.add(groups.getSourceNode());
+			
+		}
+		
+		return principals;
+	}
 }

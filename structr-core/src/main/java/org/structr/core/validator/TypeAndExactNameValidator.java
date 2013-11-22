@@ -18,8 +18,6 @@
  */
 package org.structr.core.validator;
 
-import java.util.LinkedList;
-import java.util.List;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.core.property.PropertyKey;
@@ -30,10 +28,7 @@ import org.structr.common.error.PropertyNotFoundToken;
 import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
 import org.structr.core.Result;
-import org.structr.core.Services;
-import org.structr.core.graph.search.Search;
-import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.SearchNodeCommand;
+import org.structr.core.app.StructrApp;
 
 /**
  * A validator that normalizes the given value and ensures it is an
@@ -69,13 +64,9 @@ public class TypeAndExactNameValidator implements PropertyValidator<String> {
 
 		// FIXME: search should be case-sensitive!
 
-		List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
-		attrs.add(Search.andExactName(value));
-		attrs.add(Search.andExactType(type));
-
 		// just check for existance
 		try {
-			Result nodes = Services.command(securityContext, SearchNodeCommand.class).execute(attrs);
+			Result nodes = StructrApp.getInstance(securityContext).nodeQuery(type).andName(value).getResult();
 			if(nodes != null && !nodes.isEmpty()) {
 
 				return true;

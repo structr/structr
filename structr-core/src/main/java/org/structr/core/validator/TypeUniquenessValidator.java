@@ -26,19 +26,11 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UniqueToken;
 import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.search.Search;
-import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.SearchNodeCommand;
-
-//~--- JDK imports ------------------------------------------------------------
-
-import java.util.LinkedList;
-import java.util.List;
 import java.util.logging.Logger;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.Result;
+import org.structr.core.app.StructrApp;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -84,20 +76,15 @@ public class TypeUniquenessValidator<T> implements PropertyValidator<T> {
 		
 		if (key != null) {
 
-			SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
-			List<SearchAttribute> attributes = new LinkedList<SearchAttribute>();
 			boolean nodeExists               = false;
 			String id                        = null;
 
-			attributes.add(Search.andExactType(type));
-			attributes.add(Search.andExactProperty(superUserContext, key, value));
-
-			Result<AbstractNode> resultList = null;
+			Result<AbstractNode> result = null;
 
 			try {
 
-				resultList = Services.command(superUserContext, SearchNodeCommand.class).execute(attributes);
-				nodeExists = !resultList.isEmpty();
+				result = StructrApp.getInstance().nodeQuery(type).and(key, value).getResult();
+				nodeExists = !result.isEmpty();
 
 			} catch (FrameworkException fex) {
 
@@ -107,10 +94,10 @@ public class TypeUniquenessValidator<T> implements PropertyValidator<T> {
 
 			if (nodeExists) {
 
-				AbstractNode foundNode = resultList.get(0);
+				AbstractNode foundNode = result.get(0);
 				if (foundNode.getId() != object.getId()) {
 
-					id = ((AbstractNode) resultList.get(0)).getUuid();
+					id = ((AbstractNode) result.get(0)).getUuid();
 
 					errorBuffer.add(object.getType(), new UniqueToken(id, key, value));
 

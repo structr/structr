@@ -56,7 +56,7 @@ public class RelationshipStartNodeConverter extends PropertyConverter {
 
 			if (rel != null) {
 
-				return rel.getStartNode();
+				return rel.getSourceNode();
 			}
 
 		}

@@ -32,6 +32,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.PropertyGroup;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.search.PropertySearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchAttributeGroup;
@@ -46,7 +47,7 @@ public class ReferenceGroup extends Property<PropertyMap> implements PropertyGro
 	private static final Logger logger = Logger.getLogger(ReferenceGroup.class.getName());
 
 	// indicates whether this group property is 
-	protected Map<String, PropertyKey> propertyKeys    = new LinkedHashMap<String, PropertyKey>();
+	protected Map<String, PropertyKey> propertyKeys    = new LinkedHashMap<>();
 	protected Class<? extends GraphObject> entityClass = null;
 	protected Property<Boolean> nullValuesOnlyProperty = null;
 	

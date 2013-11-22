@@ -35,9 +35,9 @@ import org.structr.websocket.message.WebSocketMessage;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -59,10 +59,11 @@ public class LoginCommand extends AbstractCommand {
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
-		SecurityContext securityContext = SecurityContext.getSuperUserInstance();
-		String username                 = (String) webSocketData.getNodeData().get("username");
-		String password                 = (String) webSocketData.getNodeData().get("password");
-		Principal user                       = null;
+		final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
+		final String username                 = (String) webSocketData.getNodeData().get("username");
+		final String password                 = (String) webSocketData.getNodeData().get("password");
+		final App app                         = StructrApp.getInstance(securityContext);
+		Principal user                        = null;
 
 		if ((username != null) && (password != null)) {
 
@@ -85,16 +86,16 @@ public class LoginCommand extends AbstractCommand {
 
 					final Principal principal = user;
 					
-					Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+					try {
+						
+						app.beginTx();
+						principal.setProperty(Principal.sessionId, sessionId);
+						app.commitTx();
 
-						@Override
-						public Object execute() throws FrameworkException {
-							
-							// store token in user
-							principal.setProperty(Principal.sessionId, sessionId);
-							return null;
-						}
-					});
+					} finally {
+
+						app.finishTx();
+					}
 
 					// store token in response data
 					webSocketData.getNodeData().clear();
@@ -115,9 +116,9 @@ public class LoginCommand extends AbstractCommand {
 				getWebSocket().send(MessageBuilder.status().code(403).build(), true);
 
 			} catch (FrameworkException fex) {
+				
 				logger.log(Level.WARNING, "Unable to execute command", fex);
 			}
-
 		}
 	}
 

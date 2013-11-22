@@ -20,7 +20,6 @@
 
 package org.structr.websocket.command;
 
-import org.apache.commons.lang.StringUtils;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.websocket.message.MessageBuilder;
@@ -31,11 +30,10 @@ import org.structr.websocket.message.WebSocketMessage;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.Permission;
-import org.structr.core.Services;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.websocket.StructrWebSocket;
 
 //~--- classes ----------------------------------------------------------------
@@ -127,27 +125,26 @@ public class SetPermissionCommand extends AbstractCommand {
 
 	private void setPermission(final AbstractNode obj, final Principal principal, final String action, final String permission, final boolean rec) throws FrameworkException {
 
-		Services.command(getWebSocket().getSecurityContext(), TransactionCommand.class).execute(new StructrTransaction() {
+		final App app = StructrApp.getInstance(getWebSocket().getSecurityContext());
 		
-			@Override
-			public Object execute() throws FrameworkException {
+		try {
+			app.beginTx();
 
-				switch (action) {
-					case "grant":
-						principal.grant(Permission.valueOf(permission), obj);
-						break;
-					case "revoke":
-						principal.revoke(Permission.valueOf(permission), obj);
-						break;
-				}
-				
-				return null;
+			switch (action) {
+				case "grant":
+					principal.grant(Permission.valueOf(permission), obj);
+					break;
+				case "revoke":
+					principal.revoke(Permission.valueOf(permission), obj);
+					break;
+			}
 
-			};
-		
-		});
-		
-		
+			app.commitTx();
+
+		} finally {
+
+			app.finishTx();
+		}
 	}
 
 }

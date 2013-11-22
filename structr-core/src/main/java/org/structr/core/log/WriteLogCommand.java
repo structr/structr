@@ -61,15 +61,17 @@ public class WriteLogCommand extends LogServiceCommand {
 
 					Transaction tx                            = logDb.tx();
 					MultiIndexFactory multiIndexFactory       = new MultiIndexFactory(tx);
-					IndexFactory<String, Object> indexFactory = new BTreeIndexFactory<String, Object>();
+					IndexFactory<String, Object> indexFactory = new BTreeIndexFactory<>();
 					SortedIndex<String, Object> index         = null;
 
 					try {
 
 						index = (SortedIndex<String, Object>) multiIndexFactory.openOrCreate(key, indexFactory);
 
-					} catch (org.fusesource.hawtdb.api.IndexException e) {
+					} catch (Throwable t) {
 
+						t.printStackTrace();
+						
 						logger.log(Level.WARNING, "Could not open or create log db page for key {0}", key);
 
 						index = (SortedIndex<String, Object>) multiIndexFactory.create(key, indexFactory);

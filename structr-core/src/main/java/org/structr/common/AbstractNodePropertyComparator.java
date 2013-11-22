@@ -21,6 +21,7 @@ package org.structr.common;
 import org.structr.core.property.PropertyKey;
 import java.util.Comparator;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeInterface;
 
 /**
  * A wrapper around {@link GraphObjectComparator} to be able to use it for
@@ -28,7 +29,7 @@ import org.structr.core.entity.AbstractNode;
  * 
  * @author Christian Morgner
  */
-public class AbstractNodePropertyComparator implements Comparator<AbstractNode> {
+public class AbstractNodePropertyComparator implements Comparator<NodeInterface> {
 
 	private GraphObjectComparator comparator = null;
 	
@@ -37,7 +38,7 @@ public class AbstractNodePropertyComparator implements Comparator<AbstractNode> 
 	}
 	
 	@Override
-	public int compare(AbstractNode o1, AbstractNode o2) {
+	public int compare(NodeInterface o1, NodeInterface o2) {
 		return comparator.compare(o1, o2);
 	}
 }

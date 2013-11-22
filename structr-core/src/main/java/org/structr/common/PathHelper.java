@@ -21,11 +21,6 @@ package org.structr.common;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 
-import org.structr.common.error.FrameworkException;
-import org.structr.core.Command;
-import org.structr.core.Services;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.FindNodeCommand;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -49,29 +44,6 @@ public class PathHelper {
 	}
 
 	//~--- methods --------------------------------------------------------
-
-	public AbstractNode find(String path) {
-
-		FindNodeCommand findNodeCommand = Services.command(securityContext, FindNodeCommand.class);
-		AbstractNode node               = null;
-
-		try {
-
-			node = (AbstractNode) findNodeCommand.execute(path);
-
-			// check security context
-			if (securityContext.isVisible(node)) {
-
-				return (node);
-
-			}
-
-		} catch (FrameworkException fex) {
-			fex.printStackTrace();
-		}
-
-		return (null);
-	}
 
 	public static void main(String[] args) {
 

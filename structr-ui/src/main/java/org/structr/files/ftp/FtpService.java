@@ -35,16 +35,16 @@ import org.structr.core.Services;
  *
  * @author axel
  */
-public class FtpService extends Thread implements RunnableService {
+public class FtpService implements RunnableService {
 
 	private static final Logger logger = Logger.getLogger(FtpService.class.getName());
-	private boolean doRun = false;
+	private boolean isRunning          = false;
 	
 	private static int port;
 	private FtpServer server;
 
 	@Override
-	public void run() {
+	public void startService() {
 		
 		String configuredPort = Services.getFtpPort();
 		if (StringUtils.isBlank(configuredPort)) {
@@ -70,24 +70,19 @@ public class FtpService extends Thread implements RunnableService {
 			server = serverFactory.createServer();         
 			server.start();
 			
-			this.doRun = true;
+			this.isRunning = true;
 			
 		} catch (FtpException ex) {
 			
 			logger.log(Level.SEVERE, null, ex);
 		}
-	}
-		
-	@Override
-	public void startService() {
-
-		this.start();
 		
 	}
 
 	@Override
 	public void stopService() {
-		if (doRun) {
+		
+		if (isRunning) {
 			this.shutdown();
 		}
 	}
@@ -114,8 +109,12 @@ public class FtpService extends Thread implements RunnableService {
 	public void shutdown() {
 		if (!server.isStopped()) {
 			server.stop();
-			this.doRun = false;
+			this.isRunning = false;
 		}
 	}
 
+	@Override
+	public String getName() {
+		return FtpServer.class.getSimpleName();
+	}
 }

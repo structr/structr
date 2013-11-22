@@ -122,7 +122,7 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 
 		for (AbstractRelationship rel : unfilteredRels) {
 
-			if (relType == null || !rel.getType().equals(relType)) {
+			if (relType == null || rel.getType().equals(relType)) {
 
 				rels.add(rel);
 			}

@@ -44,6 +44,8 @@ import javax.servlet.http.HttpSession;
 import org.structr.common.AccessMode;
 import org.structr.common.PathHelper;
 import org.structr.core.Services;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Person;
 import org.structr.core.graph.StructrTransaction;
@@ -148,25 +150,22 @@ public class HttpAuthenticator implements Authenticator {
 		if (user != null) {
 
 			final String sessionIdFromRequest = request.getRequestedSessionId();
+			final App app                     = StructrApp.getInstance();
 			final Principal principal         = user;
 
 			try {
 
-				Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(new StructrTransaction() {
-
-					@Override
-					public Object execute() throws FrameworkException {
-
-						// store session id in user object
-						principal.setProperty(Principal.sessionId, sessionIdFromRequest);
-						return null;
-					}
-				});
+				app.beginTx();
+				principal.setProperty(Principal.sessionId, sessionIdFromRequest);
+				app.commitTx();
 
 			} catch (Exception ex) {
 
 				logger.log(Level.SEVERE, null, ex);
 
+			} finally {
+				
+				app.finishTx();
 			}
 
 		}
@@ -177,23 +176,17 @@ public class HttpAuthenticator implements Authenticator {
 
 	@Override
 	public void doLogout(HttpServletRequest request) {
+
+		final App app = StructrApp.getInstance();
 	
 		try {
 
+			app.beginTx();
+			
 			Principal user = getUser(request, false);
 			if (user != null) {
 
-				final Principal principal = user;
-				
-				Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(new StructrTransaction() {
-
-					@Override
-					public Object execute() throws FrameworkException {
-
-						principal.setProperty(Principal.sessionId, null);
-						return null;
-					}
-				});
+				user.setProperty(Principal.sessionId, null);
 			}
 
 			HttpSession session = request.getSession(false);
@@ -203,14 +196,17 @@ public class HttpAuthenticator implements Authenticator {
 			}
 			
 			request.logout();
+			
+			app.finishTx();
 
 		} catch (Exception ex) {
 
 			logger.log(Level.WARNING, "Error while logging out user", ex);
 
+		} finally {
+			
+			app.finishTx();
 		}
-
-	
 	}
 
 	/**
@@ -286,18 +282,12 @@ public class HttpAuthenticator implements Authenticator {
 
 					if (user != null) {
 
-						final Principal principal = user;
-						
+						final App app  = StructrApp.getInstance();
+
 						try {
-
-							Services.command(superUserContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-								@Override
-								public Object execute() throws FrameworkException {
-									principal.setProperty(Principal.sessionId, HttpAuthenticator.getSessionId(request));
-									return null;
-								}
-							});
+							app.beginTx();
+							user.setProperty(Principal.sessionId, HttpAuthenticator.getSessionId(request));
+							app.commitTx();
 									
 							HtmlServlet.setNoCacheHeaders(response);
 							
@@ -319,14 +309,13 @@ public class HttpAuthenticator implements Authenticator {
 
 							logger.log(Level.SEVERE, "Could not set session id for user {0}", user.toString());
 
+						} finally {
+							
+							app.finishTx();
 						}
-
 					}
-
 				}
-					
 			}
-			
 		}
 
 		try {

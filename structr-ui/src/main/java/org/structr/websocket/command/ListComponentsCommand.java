@@ -38,11 +38,10 @@ import org.structr.websocket.message.MessageBuilder;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.graphdb.Direction;
-import org.structr.web.common.RelType;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.dom.ShadowDocument;
+import org.structr.web.entity.dom.relationship.DOMChildren;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -95,7 +94,7 @@ public class ListComponentsCommand extends AbstractCommand {
 
 					DOMNode node = (DOMNode) obj;
 
-					if (!doc.equals(node) && !node.hasRelationship(RelType.CONTAINS, Direction.INCOMING)) {
+					if (!doc.equals(node) && !node.hasIncomingRelationships(DOMChildren.class)) {
 						
 						filteredResults.add(node);
 

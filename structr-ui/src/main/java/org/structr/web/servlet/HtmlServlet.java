@@ -61,12 +61,11 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.LocaleUtils;
 import org.apache.commons.lang.time.DateUtils;
 import org.apache.lucene.search.BooleanClause.Occur;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.AuthenticatorCommand;
 import org.structr.core.entity.Principal;
-import org.structr.core.graph.GetNodeByIdCommand;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.rest.ResourceProvider;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
@@ -240,7 +239,7 @@ public class HtmlServlet extends HttpServlet {
 
 				} else {
 
-					AbstractNode n = (AbstractNode) Services.command(securityContext, GetNodeByIdCommand.class).execute(PathHelper.getName(path));
+					AbstractNode n = (AbstractNode) StructrApp.getInstance(securityContext).get(PathHelper.getName(path));
 					if (n != null) {
 						dataNode = n;
 					}
@@ -532,8 +531,8 @@ public class HtmlServlet extends HttpServlet {
 			
 		}
 		
-		String targetPage	= request.getParameter(TARGET_PAGE_KEY);
-		String errorPage	= request.getParameter(ERROR_PAGE_KEY);
+		String targetPage = request.getParameter(TARGET_PAGE_KEY);
+		String errorPage  = request.getParameter(ERROR_PAGE_KEY);
 
 		if (CONFIRM_REGISTRATION_PAGE.equals(path)) {
 		
@@ -546,20 +545,22 @@ public class HtmlServlet extends HttpServlet {
 			if (!results.isEmpty()) {
 				
 				final Principal user = (Principal) results.get(0);
+				final App app        = StructrApp.getInstance(securityContext);
 				
-				Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-					@Override
-					public Object execute() throws FrameworkException {
-						
-						// Clear confirmation key and set session id
-						user.setProperty(User.confirmationKey, null);
-						user.setProperty(Principal.sessionId, request.getSession().getId());
-						
-						return null;
-					}
+				try {
 					
-				});
+					app.beginTx();
+					
+					// Clear confirmation key and set session id
+					user.setProperty(User.confirmationKey, null);
+					user.setProperty(Principal.sessionId, request.getSession().getId());
+					
+					app.commitTx();
+					
+				} finally {
+					
+					app.finishTx();
+				}
 				
 				// Redirect to target page
 				if (StringUtils.isNotBlank(targetPage)) {
@@ -601,7 +602,7 @@ public class HtmlServlet extends HttpServlet {
 
 			logger.log(Level.FINE, "Requested id: {0}", uuid);
 
-			List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
+			List<SearchAttribute> searchAttrs = new LinkedList<>();
 
 			searchAttrs.add(Search.andExactUuid(uuid));
 
@@ -636,7 +637,7 @@ public class HtmlServlet extends HttpServlet {
 
 			logger.log(Level.FINE, "Requested name: {0}", name);
 
-			List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
+			List<SearchAttribute> searchAttrs = new LinkedList<>();
 
 			searchAttrs.add(Search.andExactName(name));
 

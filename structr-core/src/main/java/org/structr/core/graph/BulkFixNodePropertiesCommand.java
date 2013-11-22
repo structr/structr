@@ -31,6 +31,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.EntityContext;
 import org.structr.core.Result;
 import org.structr.core.Services;
+import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.search.Search;
@@ -58,8 +59,7 @@ public class BulkFixNodePropertiesCommand extends NodeServiceCommand implements 
 			final Class type = EntityContext.getEntityClassForRawType(entityTypeName);
 			if (type != null) {
 				
-				final Result<AbstractNode> result = Services.command(superUserContext, SearchNodeCommand.class).execute(true, false, Search.andExactType(type));
-				final List<AbstractNode> nodes    = result.getResults();
+				final List<AbstractNode> nodes    = StructrApp.getInstance(securityContext).nodeQuery(type).getAsList();
 
 				if (type != null) {
 

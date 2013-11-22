@@ -21,10 +21,6 @@
 package org.structr.web.entity.html;
 
 import org.structr.web.entity.dom.DOMElement;
-import org.neo4j.graphdb.Direction;
-
-import org.structr.web.common.RelType;
-import org.structr.core.property.CollectionProperty;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -33,12 +29,12 @@ import org.structr.core.property.CollectionProperty;
  */
 public class Article extends DOMElement {
 
-	public static final CollectionProperty<H1>  h1s  = new CollectionProperty<H1>("h1s", H1.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<H2>  h2s  = new CollectionProperty<H2>("h2s", H2.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<H3>  h3s  = new CollectionProperty<H3>("h3s", H3.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<H4>  h4s  = new CollectionProperty<H4>("h4s", H4.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<H5>  h5s  = new CollectionProperty<H5>("h5s", H5.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<H6>  h6s  = new CollectionProperty<H6>("h6s", H6.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<P>   ps   = new CollectionProperty<P>("ps", P.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<Div> divs = new CollectionProperty<Div>("divs", Div.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final EndNodes<H1>  h1s  = new EndNodes<H1>("h1s", H1.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final EndNodes<H2>  h2s  = new EndNodes<H2>("h2s", H2.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final EndNodes<H3>  h3s  = new EndNodes<H3>("h3s", H3.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final EndNodes<H4>  h4s  = new EndNodes<H4>("h4s", H4.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final EndNodes<H5>  h5s  = new EndNodes<H5>("h5s", H5.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final EndNodes<H6>  h6s  = new EndNodes<H6>("h6s", H6.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final EndNodes<P>   ps   = new EndNodes<P>("ps", P.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final EndNodes<Div> divs = new EndNodes<Div>("divs", Div.class, RelType.CONTAINS, Direction.OUTGOING, false);
 }

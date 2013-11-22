@@ -22,27 +22,18 @@ package org.structr.core.auth;
 
 import org.apache.commons.codec.digest.DigestUtils;
 
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
-import org.structr.core.graph.search.Search;
-import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.SearchNodeCommand;
-
-//~--- JDK imports ------------------------------------------------------------
-
-import java.util.LinkedList;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang.StringUtils;
-import org.apache.lucene.search.BooleanClause.Occur;
-import org.structr.core.Result;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.search.SearchAttributeGroup;
+import org.structr.core.app.App;
+import org.structr.core.app.Query;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractUser;
 import org.structr.core.property.PropertyKey;
 
 //~--- classes ----------------------------------------------------------------
@@ -68,29 +59,18 @@ public class AuthHelper {
 	 */
 	public static Principal getPrincipalForCredential(final PropertyKey key, final String value) {
 		
-		SecurityContext securityContext = SecurityContext.getSuperUserInstance();
-		Principal principal             = null;
-		
-		Result result = Result.EMPTY_RESULT;
+		final App app = StructrApp.getInstance();
+		final Query<Principal> query = app.nodeQuery(Principal.class).and(key, value);
+
 		try {
+			return query.getFirst();
 			
-			result = Services.command(securityContext, SearchNodeCommand.class).execute(
-				Search.andExactTypeAndSubtypes(Principal.class),
-				Search.andExactProperty(securityContext, key, value));
-
-		} catch (FrameworkException ex) {
+		} catch (FrameworkException fex) {
 			
-			logger.log(Level.WARNING, "Error while searching for principal", ex);
-
+			logger.log(Level.WARNING, "Error while searching for principal", fex);
 		}
-
-		if (!result.isEmpty()) {
-
-			principal = (Principal) result.get(0);
-
-		}
-
-		return principal;
+		
+		return null;
 	}
 	
 	/**
@@ -102,7 +82,7 @@ public class AuthHelper {
 	 * @return
 	 * @throws AuthenticationException 
 	 */
-	public static Principal getPrincipalForPassword(final PropertyKey key, final String value, final String password) throws AuthenticationException {
+	public static Principal getPrincipalForPassword(final PropertyKey<String> key, final String value, final String password) throws AuthenticationException {
 
 		String errorMsg = null;
 		Principal principal  = null;
@@ -116,23 +96,9 @@ public class AuthHelper {
 		} else {
 
 			try {
-
-				SecurityContext securityContext = SecurityContext.getSuperUserInstance();
-				SearchNodeCommand searchNode    = Services.command(securityContext, SearchNodeCommand.class);
-				List<SearchAttribute> attrs     = new LinkedList<SearchAttribute>();
-
-				attrs.add(Search.andExactTypeAndSubtypes(Principal.class));
-				SearchAttributeGroup group = new SearchAttributeGroup(Occur.MUST);
-				group.add(Search.orExactProperty(securityContext, key, value));
-				group.add(Search.orExactProperty(securityContext, AbstractNode.name, value));
-				attrs.add(group);
-
-				Result principals = searchNode.execute(attrs);
 				
-				if (!principals.isEmpty()) {
-					principal = (Principal) principals.get(0);
-				}
-
+				principal = StructrApp.getInstance().nodeQuery(Principal.class).and().or(key, value).or(AbstractUser.name, value).getFirst();
+				
 				if (principal == null) {
 
 					logger.log(Level.INFO, "No principal found for {0} {1}", new Object[]{ key.dbName(), value });
@@ -207,37 +173,7 @@ public class AuthHelper {
 	 * @return 
 	 */
 	public static Principal getPrincipalForSessionId(final String sessionId) {
-
-		Principal user                  = null;
-		List<SearchAttribute> attrs     = new LinkedList<SearchAttribute>();
-		SecurityContext securityContext = SecurityContext.getSuperUserInstance();
-
-		attrs.add(Search.andExactProperty(securityContext, Principal.sessionId, sessionId));
-		attrs.add(Search.andExactTypeAndSubtypes(Principal.class));
-
-		try {
-
-			// we need to search with a super user security context here..
-			Result results = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(attrs);
-
-			if (!results.isEmpty()) {
-
-				user = (Principal) results.get(0);
-
-				if ((user != null) && sessionId.equals(user.getProperty(Principal.sessionId))) {
-
-					return user;
-				}
-
-			}
-		} catch (FrameworkException fex) {
-
-			logger.log(Level.WARNING, "Error while executing SearchNodeCommand", fex);
-
-		}
-
-		return user;
-
+		return getPrincipalForCredential(Principal.sessionId, sessionId);
 	}
 
 	public static String getHash(final String password, final String salt) {

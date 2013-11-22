@@ -40,7 +40,7 @@ public class FtpAccessTest extends FtpTest {
 		try {
 			FTPClient ftp = new FTPClient();
 
-			ftp.connect("localhost", 8876);
+			ftp.connect("127.0.0.1", ftpPort);
 			logger.log(Level.INFO, "Reply from FTP server:", ftp.getReplyString());
 			
 			int reply = ftp.getReplyCode();

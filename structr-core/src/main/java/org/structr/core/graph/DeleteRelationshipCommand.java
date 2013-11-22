@@ -21,19 +21,15 @@
 package org.structr.core.graph;
 
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.graphdb.Relationship;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
-import org.structr.core.UnsupportedArgumentError;
 import org.structr.core.entity.AbstractRelationship;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.SecurityContext;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -56,13 +52,13 @@ public class DeleteRelationshipCommand extends NodeServiceCommand {
 		return execute(relFactory.instantiate(rel), false);
 	}
 	
-	public Object execute(final AbstractRelationship rel) throws FrameworkException {
+	public Object execute(final RelationshipInterface rel) throws FrameworkException {
 		
 		// default is active deletion!
 		return execute(rel, false);
 	}
 	
-	public Object execute(final AbstractRelationship rel, final boolean passiveDeletion) throws FrameworkException {
+	public Object execute(final RelationshipInterface rel, final boolean passiveDeletion) throws FrameworkException {
 
 		GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
 
@@ -70,39 +66,22 @@ public class DeleteRelationshipCommand extends NodeServiceCommand {
 
 			if (rel.getProperty(AbstractRelationship.uuid) == null) {
 
-				logger.log(Level.WARNING, "Will not delete relationship which has no UUID: {0} --[:{1}]-->{2}", new Object[] { rel.getStartNode(), rel.getType(), rel.getEndNode() });
+				logger.log(Level.WARNING, "Will not delete relationship which has no UUID: {0} --[:{1}]-->{2}", new Object[] { rel.getSourceNode(), rel.getType(), rel.getTargetNode() });
 
 				return null;
 
 			}
 
-			final Relationship relToDelete              = rel.getRelationship();
-			final AbstractRelationship finalRel         = rel;
+			final Relationship relToDelete       = rel.getRelationship();
+			final RelationshipInterface finalRel = rel;
 
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+			TransactionCommand.relationshipDeleted(finalRel, passiveDeletion);
 
-				@Override
-				public Object execute() throws FrameworkException {
+			// remove object from index
+			finalRel.removeFromIndex();
 
-					TransactionCommand.relationshipDeleted(finalRel, passiveDeletion);
-
-					try {
-
-						// remove object from index
-						finalRel.removeFromIndex();
-
-						// delete node in database
-						relToDelete.delete();
-						
-					} catch (IllegalStateException ise) {
-						logger.log(Level.WARNING, ise.getMessage());
-					}
-
-					return null;
-				}
-
-			});
-
+			// delete node in database
+			relToDelete.delete();
 		}
 
 		return null;

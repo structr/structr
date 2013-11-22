@@ -20,15 +20,11 @@
 
 package org.structr.websocket.command;
 
-import org.apache.commons.lang.StringUtils;
-
-import org.structr.web.common.RelType;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
@@ -38,9 +34,10 @@ import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.Permission;
-import org.structr.core.Services;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeInterface;
+import org.structr.web.entity.dom.relationship.DOMChildren;
 import org.structr.websocket.StructrWebSocket;
 
 //~--- classes ----------------------------------------------------------------
@@ -91,16 +88,23 @@ public class UpdateCommand extends AbstractCommand {
 		}
 
 		if (obj != null) {
+
+			final App app = StructrApp.getInstance(getWebSocket().getSecurityContext());
 			
 			try {
 
+				app.beginTx();
 				setProperties(obj, PropertyMap.inputTypeToJavaType(this.getWebSocket().getSecurityContext(), obj.getClass(), webSocketData.getNodeData()), rec);
+				app.commitTx();
 
 			} catch (FrameworkException ex) {
 
 				logger.log(Level.SEVERE, "Unable to set properties: {0}", ((FrameworkException) ex).toString());
 				getWebSocket().send(MessageBuilder.status().code(400).build(), true);
 
+			} finally {
+				
+				app.finishTx();
 			}
 
 		} else {
@@ -125,35 +129,26 @@ public class UpdateCommand extends AbstractCommand {
 
 	private void setProperties(final GraphObject obj, final PropertyMap properties, final boolean rec) throws FrameworkException {
 
-		Services.command(getWebSocket().getSecurityContext(), TransactionCommand.class).execute(new StructrTransaction() {
+		for (Entry<PropertyKey, Object> entry : properties.entrySet()) {
 
-			@Override
-			public Object execute() throws FrameworkException {
+			PropertyKey key = entry.getKey();
+			Object value    = entry.getValue();
 
-				for (Entry<PropertyKey, Object> entry : properties.entrySet()) {
+			obj.setProperty(key, value);
 
-					PropertyKey key = entry.getKey();
-					Object value    = entry.getValue();
+			if (rec && obj instanceof AbstractNode) {
 
-					obj.setProperty(key, value);
+				AbstractNode node = (AbstractNode) obj;
 
-					if (rec && obj instanceof AbstractNode) {
+				for (DOMChildren rel : node.getOutgoingRelationships(DOMChildren.class)) {
 
-						AbstractNode node = (AbstractNode) obj;
+					NodeInterface endNode = rel.getTargetNode();
+					if (endNode != null) {
 
-						for (AbstractRelationship rel : node.getOutgoingRelationships(RelType.CONTAINS)) {
-
-							AbstractNode endNode = rel.getEndNode();
-							if (endNode != null) {
-
-								setProperties(endNode, properties, rec);
-							}
-						}
+						setProperties(endNode, properties, rec);
 					}
 				}
-				
-				return null;
 			}
-		});
+		}
 	}
 }

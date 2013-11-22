@@ -22,8 +22,8 @@ import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.notion.PropertySetNotion;
-import org.structr.core.property.EntityProperty;
-import org.structr.rest.common.TestRestRelType;
+import org.structr.core.property.EndNode;
+import org.structr.core.property.Property;
 
 /**
  *
@@ -31,7 +31,7 @@ import org.structr.rest.common.TestRestRelType;
  */
 public class TestTen extends AbstractNode {
 
-	public static final EntityProperty<TestSeven>     testSeven        = new EntityProperty<TestSeven>("testSeven", TestSeven.class, TestRestRelType.HAS, new PropertySetNotion(true, TestSeven.uuid, TestSeven.aString), true);
+	public static final Property<TestSeven> testSeven = new EndNode<>("testSeven", TenSevenOneToOne.class, new PropertySetNotion(true, TestSeven.uuid, TestSeven.aString));
 	
 	public static final View defaultView = new View(TestTen.class, PropertyView.Public,
 		name, testSeven

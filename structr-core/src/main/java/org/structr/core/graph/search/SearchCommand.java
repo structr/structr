@@ -72,9 +72,9 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	
 
 	// ----- public command methods -----
-	public Result<T> execute(final boolean includeDeletedAndHidden, final boolean publicOnly, final SearchAttribute... attributes) throws FrameworkException {
+	public Result<T> execute(final boolean includeDeletedAndHidden, final boolean publicOnly, final SearchAttribute<?>... attributes) throws FrameworkException {
 		
-		List<SearchAttribute> attrs = new ArrayList();
+		List<SearchAttribute<?>> attrs = new ArrayList();
 		
 		// DON'T use Arrays.asList here! The result would be a list without add() methods, {@see Arrays#AbstractList}
 		for (SearchAttribute attr : attributes) {
@@ -84,53 +84,53 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		return execute(includeDeletedAndHidden, publicOnly, attrs);
 	}
 
-	public Result<T> execute(final SearchAttribute... attributes) throws FrameworkException {
+	public Result<T> execute(final SearchAttribute<?>... attributes) throws FrameworkException {
 
 		return execute(INCLUDE_DELETED_AND_HIDDEN, PUBLIC_ONLY, attributes);
 	}
 
-	public Result<T> execute(final List<SearchAttribute> searchAttrs) throws FrameworkException {
+	public Result<T> execute(final List<SearchAttribute<?>> searchAttrs) throws FrameworkException {
 		
 		return execute(INCLUDE_DELETED_AND_HIDDEN, PUBLIC_ONLY, searchAttrs);
 	}
 
-	public Result<T> execute(final boolean includeDeletedAndHidden, final List<SearchAttribute> searchAttrs) throws FrameworkException {
+	public Result<T> execute(final boolean includeDeletedAndHidden, final List<SearchAttribute<?>> searchAttrs) throws FrameworkException {
 		
 		return execute(includeDeletedAndHidden, false, searchAttrs);
 	}
 
 	public Result<T> execute(final boolean includeDeletedAndHidden, final boolean publicOnly,
-			      final List<SearchAttribute> searchAttrs) throws FrameworkException {
+			      final List<SearchAttribute<?>> searchAttrs) throws FrameworkException {
 		
 		return execute(includeDeletedAndHidden, publicOnly, searchAttrs, null);
 	}
 
 	public Result<T> execute(final boolean includeDeletedAndHidden, final boolean publicOnly,
-			      final List<SearchAttribute> searchAttrs, final PropertyKey sortKey) throws FrameworkException {
+			      final List<SearchAttribute<?>> searchAttrs, final PropertyKey sortKey) throws FrameworkException {
 		
 		return execute(includeDeletedAndHidden, publicOnly, searchAttrs, sortKey, false);
 	}
 
 	public Result<T> execute(final boolean includeDeletedAndHidden, final boolean publicOnly,
-			      final List<SearchAttribute> searchAttrs, final PropertyKey sortKey, final boolean sortDescending) throws FrameworkException {
+			      final List<SearchAttribute<?>> searchAttrs, final PropertyKey sortKey, final boolean sortDescending) throws FrameworkException {
 		
 		return execute(includeDeletedAndHidden, publicOnly, searchAttrs, sortKey, sortDescending, NodeFactory.DEFAULT_PAGE_SIZE);
 	}
 
 	public Result<T> execute(final boolean includeDeletedAndHidden, final boolean publicOnly,
-			      final List<SearchAttribute> searchAttrs, final PropertyKey sortKey, final boolean sortDescending, final int pageSize) throws FrameworkException {
+			      final List<SearchAttribute<?>> searchAttrs, final PropertyKey sortKey, final boolean sortDescending, final int pageSize) throws FrameworkException {
 		
 		return execute(includeDeletedAndHidden, publicOnly, searchAttrs, sortKey, sortDescending, pageSize, NodeFactory.DEFAULT_PAGE);
 	}
 
 	public Result<T> execute(final boolean includeDeletedAndHidden, final boolean publicOnly,
-			      final List<SearchAttribute> searchAttrs, final PropertyKey sortKey, final boolean sortDescending, final int pageSize, final int page) throws FrameworkException {
+			      final List<SearchAttribute<?>> searchAttrs, final PropertyKey sortKey, final boolean sortDescending, final int pageSize, final int page) throws FrameworkException {
 		
 		return execute(includeDeletedAndHidden, publicOnly, searchAttrs, sortKey, sortDescending, pageSize, page, null);
 	}
 
 	public Result<T> execute(final boolean includeDeletedAndHidden, final boolean publicOnly,
-			      final List<SearchAttribute> searchAttrs, final PropertyKey sortKey, final boolean sortDescending, final int pageSize, final int page, final String offsetId) throws FrameworkException {
+			      final List<SearchAttribute<?>> searchAttrs, final PropertyKey sortKey, final boolean sortDescending, final int pageSize, final int page, final String offsetId) throws FrameworkException {
 
 		return search(includeDeletedAndHidden, publicOnly, searchAttrs, sortKey, sortDescending, pageSize, page, offsetId);
 	}
@@ -151,7 +151,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	 * @param sortType                      The entity type to sort the results (needed for lucene)
 	 * @return
 	 */
-	protected Result<T> search(final boolean includeDeletedAndHidden, final boolean publicOnly, final List<SearchAttribute> searchAttrs, final PropertyKey sortKey, final boolean sortDescending, final int pageSize, final int page, final String offsetId) throws FrameworkException {
+	protected Result<T> search(final boolean includeDeletedAndHidden, final boolean publicOnly, final List<SearchAttribute<?>> searchAttrs, final PropertyKey sortKey, final boolean sortDescending, final int pageSize, final int page, final String offsetId) throws FrameworkException {
 
 		if (page == 0 || pageSize <= 0) {
 
@@ -169,7 +169,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		}
 
 		// At this point, all search attributes are ready
-		List<SourceSearchAttribute> sources    = new ArrayList<SourceSearchAttribute>();
+		List<SourceSearchAttribute> sources    = new ArrayList<>();
 		boolean hasEmptySearchFields           = false;
 		DistanceSearchAttribute distanceSearch = null;
 		GeoCodingResult coords                 = null;
@@ -204,7 +204,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 		// check for optional-only queries
 		// (some query types seem to allow no MUST occurs)
-		for (Iterator<SearchAttribute> it = searchAttrs.iterator(); it.hasNext();) {
+		for (Iterator<SearchAttribute<?>> it = searchAttrs.iterator(); it.hasNext();) {
 
 			SearchAttribute attr = it.next();
 
@@ -279,7 +279,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 				if (coords != null) {
 
-					Map<String, Object> params = new HashMap<String, Object>();
+					Map<String, Object> params = new HashMap<>();
 
 					params.put(LayerNodeIndex.POINT_PARAMETER, coords.toArray());
 					params.put(LayerNodeIndex.DISTANCE_IN_KM_PARAMETER, dist);
@@ -356,7 +356,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		if (filterResults) {
 
 			// sorted result set
-			List<GraphObject> finalResult            = new LinkedList<GraphObject>();
+			List<GraphObject> finalResult            = new LinkedList<>();
 			List<GraphObject> intermediateResultList = intermediateResult.getResults();
 			int resultCount                          = 0;
 
@@ -405,7 +405,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	
 	private List<GraphObject> mergeSources(List<SourceSearchAttribute> sources) {
 		
-		LinkedList<GraphObject> mergedResult = new LinkedList<GraphObject>();
+		LinkedList<GraphObject> mergedResult = new LinkedList<>();
 		boolean alreadyAdded                 = false;
 		
 		for (Iterator<SourceSearchAttribute> it = sources.iterator(); it.hasNext();) {

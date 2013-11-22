@@ -22,18 +22,11 @@ package org.structr.web.entity.html;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.structr.web.entity.dom.DOMElement;
-import org.neo4j.graphdb.Direction;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 
-import org.structr.web.common.RelType;
-import org.structr.core.property.CollectionProperty;
 import org.structr.core.property.Property;
 import org.structr.web.common.HtmlProperty;
-import org.structr.web.entity.dom.Content;
-import static org.structr.web.entity.html.Img.htmlView;
-import static org.structr.web.entity.html.Th._colspan;
-import static org.structr.web.entity.html.Th._rowspan;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -45,31 +38,31 @@ public class Td extends DOMElement {
 	public static final Property<String>             _colspan  = new HtmlProperty("colspan");
 	public static final Property<String>             _rowspan  = new HtmlProperty("rowspan");
 	
-	public static final CollectionProperty<Content>  contents  = new CollectionProperty<Content>("contents", Content.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<Div>      divs      = new CollectionProperty<Div>("divs", Div.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<Span>     spans     = new CollectionProperty<Span>("spans", Span.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<B>        bs        = new CollectionProperty<B>("bs", B.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<P>        ps        = new CollectionProperty<P>("ps", P.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<Label>    labels    = new CollectionProperty<Label>("labels", Label.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<Textarea> textareas = new CollectionProperty<Textarea>("textareas", Textarea.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<Input>    inputs    = new CollectionProperty<Input>("inputs", Input.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<Address>  addresss  = new CollectionProperty<Address>("addresss", Address.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<Footer>   footers   = new CollectionProperty<Footer>("footers", Footer.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<Br>       brs       = new CollectionProperty<Br>("brs", Br.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<Hr>       hrs       = new CollectionProperty<Hr>("hrs", Hr.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<A>        as        = new CollectionProperty<A>("as", A.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<H1>       h1s       = new CollectionProperty<H1>("h1s", H1.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<H2>       h2s       = new CollectionProperty<H2>("h2s", H2.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<H3>       h3s       = new CollectionProperty<H3>("h3s", H3.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<H4>       h4s       = new CollectionProperty<H4>("h4s", H4.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<H5>       h5s       = new CollectionProperty<H5>("h5s", H5.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<H6>       h6s       = new CollectionProperty<H6>("h6s", H6.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<Img>      imgs      = new CollectionProperty<Img>("imgs", Img.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<Ul>       uls       = new CollectionProperty<Ul>("uls", Ul.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<Ol>       ols       = new CollectionProperty<Ol>("ols", Ol.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<Form>     forms     = new CollectionProperty<Form>("forms", Form.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<Script>   scripts   = new CollectionProperty<Script>("scripts", Script.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<Pre>      pres      = new CollectionProperty<Pre>("pres", Pre.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final EndNodes<Content>  contents  = new EndNodes<Content>("contents", Content.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final EndNodes<Div>      divs      = new EndNodes<Div>("divs", Div.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final EndNodes<Span>     spans     = new EndNodes<Span>("spans", Span.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final EndNodes<B>        bs        = new EndNodes<B>("bs", B.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final EndNodes<P>        ps        = new EndNodes<P>("ps", P.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final EndNodes<Label>    labels    = new EndNodes<Label>("labels", Label.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final EndNodes<Textarea> textareas = new EndNodes<Textarea>("textareas", Textarea.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final EndNodes<Input>    inputs    = new EndNodes<Input>("inputs", Input.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final EndNodes<Address>  addresss  = new EndNodes<Address>("addresss", Address.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final EndNodes<Footer>   footers   = new EndNodes<Footer>("footers", Footer.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final EndNodes<Br>       brs       = new EndNodes<Br>("brs", Br.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final EndNodes<Hr>       hrs       = new EndNodes<Hr>("hrs", Hr.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final EndNodes<A>        as        = new EndNodes<A>("as", A.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final EndNodes<H1>       h1s       = new EndNodes<H1>("h1s", H1.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final EndNodes<H2>       h2s       = new EndNodes<H2>("h2s", H2.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final EndNodes<H3>       h3s       = new EndNodes<H3>("h3s", H3.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final EndNodes<H4>       h4s       = new EndNodes<H4>("h4s", H4.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final EndNodes<H5>       h5s       = new EndNodes<H5>("h5s", H5.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final EndNodes<H6>       h6s       = new EndNodes<H6>("h6s", H6.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final EndNodes<Img>      imgs      = new EndNodes<Img>("imgs", Img.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final EndNodes<Ul>       uls       = new EndNodes<Ul>("uls", Ul.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final EndNodes<Ol>       ols       = new EndNodes<Ol>("ols", Ol.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final EndNodes<Form>     forms     = new EndNodes<Form>("forms", Form.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final EndNodes<Script>   scripts   = new EndNodes<Script>("scripts", Script.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final EndNodes<Pre>      pres      = new EndNodes<Pre>("pres", Pre.class, RelType.CONTAINS, Direction.OUTGOING, false);
 
 	public static final View htmlView = new View(Img.class, PropertyView.Html,
 	    _colspan, _rowspan

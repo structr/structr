@@ -33,8 +33,11 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
 import org.structr.core.Services;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeService;
 import org.structr.core.graph.search.EmptySearchAttribute;
 import org.structr.core.graph.search.Search;
@@ -52,19 +55,19 @@ import org.structr.core.notion.Notion;
  *
  * @author Christian Morgner
  */
-public class EntityNotionProperty<S extends GraphObject, T> extends Property<T> {
+public class EntityNotionProperty<S extends NodeInterface, T> extends Property<T> {
 	
 	private static final Logger logger = Logger.getLogger(EntityNotionProperty.class.getName());
 	
-	private Property<S> base    = null;
-	private Notion<S, T> notion = null;
+	private Property<S> entityProperty = null;
+	private Notion<S, T> notion        = null;
 	
-	public EntityNotionProperty(String name, Property<S> base, Notion<S, T> notion) {
+	public EntityNotionProperty(final String name, final Property<S> base, final Notion<S, T> notion) {
 		
 		super(name);
 		
 		this.notion = notion;
-		this.base   = base;
+		this.entityProperty   = base;
 		
 		notion.setType(base.relatedType());
 	}
@@ -138,7 +141,7 @@ public class EntityNotionProperty<S extends GraphObject, T> extends Property<T> 
 	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
 		
 		try {
-			return notion.getAdapterForGetter(securityContext).adapt(base.getProperty(securityContext, obj, applyConverter));
+			return notion.getAdapterForGetter(securityContext).adapt(entityProperty.getProperty(securityContext, obj, applyConverter));
 			
 		} catch (FrameworkException fex) {
 			
@@ -153,17 +156,17 @@ public class EntityNotionProperty<S extends GraphObject, T> extends Property<T> 
 		
 		if (value != null) {
 	
-			base.setProperty(securityContext, obj, notion.getAdapterForSetter(securityContext).adapt(value));
+			entityProperty.setProperty(securityContext, obj, notion.getAdapterForSetter(securityContext).adapt(value));
 			
 		} else {
 			
-			base.setProperty(securityContext, obj, null);
+			entityProperty.setProperty(securityContext, obj, null);
 		}
 	}
 
 	@Override
 	public Class relatedType() {
-		return base.relatedType();
+		return entityProperty.relatedType();
 	}
 
 	@Override
@@ -175,21 +178,18 @@ public class EntityNotionProperty<S extends GraphObject, T> extends Property<T> 
 	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occur occur, T searchValue, boolean exactMatch) {
 		
 		SourceSearchAttribute attr            = new SourceSearchAttribute(occur);
-		Set<GraphObject> intersectionResult   = new LinkedHashSet<GraphObject>();
-		EntityProperty entityProperty         = (EntityProperty)base;
+		Set<GraphObject> intersectionResult   = new LinkedHashSet<>();
 		boolean alreadyAdded                  = false;
-		
+
 		try {
 
 			if (searchValue != null && !StringUtils.isBlank(searchValue.toString())) {
 
+				final App app = StructrApp.getInstance(securityContext);
+				
 				if (exactMatch) {
 					
-					Result<AbstractNode> result = Services.command(securityContext, SearchNodeCommand.class).execute(
-
-						Search.andExactTypeAndSubtypes(base.relatedType(), exactMatch),
-						Search.andExactProperty(securityContext, notion.getPrimaryPropertyKey(), searchValue)
-					);
+					Result<AbstractNode> result = app.nodeQuery(entityProperty.relatedType()).and(notion.getPrimaryPropertyKey(), searchValue).getResult();
 
 					for (AbstractNode node : result.getResults()) {
 
@@ -222,12 +222,8 @@ public class EntityNotionProperty<S extends GraphObject, T> extends Property<T> 
 					}
 					
 				} else {
-					
-					Result<AbstractNode> result = Services.command(securityContext, SearchNodeCommand.class).execute(
 
-						Search.andExactTypeAndSubtypes(base.relatedType(), exactMatch),
-						Search.andProperty(securityContext, notion.getPrimaryPropertyKey(), searchValue)
-					);
+					Result<AbstractNode> result = app.nodeQuery(entityProperty.relatedType(), true).and(notion.getPrimaryPropertyKey(), searchValue, true).getResult();
 					
 					// loose search behaves differently, all results must be combined
 					for (AbstractNode node : result.getResults()) {
@@ -236,7 +232,7 @@ public class EntityNotionProperty<S extends GraphObject, T> extends Property<T> 
 					}
 				}
 
-				attr.setResult(new LinkedList<GraphObject>(intersectionResult));
+				attr.setResult(new LinkedList<>(intersectionResult));
 				
 			} else {
 				

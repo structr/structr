@@ -234,6 +234,9 @@ public class PageTest extends StructrUiTest {
 			Page dstPage = Page.createNewPage(securityContext, "dstPage");
 			assertNotNull(dstPage);
 
+			// test
+			assertEquals(srcPage, html.getOwnerDocument());
+			
 			// test import method
 			dstPage.importNode(html, true);
 			

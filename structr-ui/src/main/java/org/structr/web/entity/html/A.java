@@ -22,20 +22,17 @@ package org.structr.web.entity.html;
 
 import org.structr.web.entity.dom.DOMElement;
 import org.apache.commons.lang.ArrayUtils;
-import org.neo4j.graphdb.Direction;
 import org.structr.core.property.Property;
 
 import org.structr.common.PropertyView;
-import org.structr.web.common.RelType;
 import org.structr.common.View;
 import org.structr.core.entity.AbstractNode;
 import org.structr.web.entity.Linkable;
 import org.structr.core.notion.PropertyNotion;
-import org.structr.core.property.CollectionProperty;
+import org.structr.core.property.EndNode;
 import org.structr.core.property.EntityIdProperty;
-import org.structr.core.property.EntityProperty;
 import org.structr.web.common.HtmlProperty;
-import org.structr.web.entity.dom.Content;
+import org.structr.web.entity.html.relation.Hyperlink;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -52,25 +49,26 @@ public class A extends DOMElement {
 	public static final Property<String>            _hreflang   = new HtmlProperty("hreflang");
 	public static final Property<String>            _type       = new HtmlProperty("type");
   
-	public static final CollectionProperty<Content> contents    = new CollectionProperty<Content>("contents", Content.class, RelType.CONTAINS, false);
-	public static final CollectionProperty<Span>    spans       = new CollectionProperty<Span>("spans", Span.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<Img>     imgs        = new CollectionProperty<Img>("imgs", Img.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<Div>     div         = new CollectionProperty<Div>("div", Div.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<Section> sections    = new CollectionProperty<Section>("sections", Section.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<P>       ps          = new CollectionProperty<P>("ps", P.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<H1>      h1s         = new CollectionProperty<H1>("h1s", H1.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<H2>      h2s         = new CollectionProperty<H2>("h2s", H2.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<H3>      h3s         = new CollectionProperty<H3>("h3s", H3.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<H4>      h4s         = new CollectionProperty<H4>("h4s", H4.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<H5>      h5s         = new CollectionProperty<H5>("h5s", H5.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<H6>      h6s         = new CollectionProperty<H6>("h6s", H6.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<Li>      lis         = new CollectionProperty<Li>("lis", Li.class, RelType.CONTAINS, Direction.INCOMING, false);
- 
-	public static final CollectionProperty<Div>     divParents  = new CollectionProperty<Div>("divParents", Div.class, RelType.CONTAINS, Direction.INCOMING, false);
-	public static final CollectionProperty<P>       pParents    = new CollectionProperty<P>("pParents", P.class, RelType.CONTAINS, Direction.INCOMING, false);
- 
-	public static final EntityProperty<Linkable>    linkable    = new EntityProperty<Linkable>("linkable", Linkable.class, RelType.LINK, Direction.OUTGOING, new PropertyNotion(AbstractNode.name), true);
-	public static final Property<String>            linkableId  = new EntityIdProperty("linkableId", linkable);
+//	public static final Property<List<Content>> contents    = new EndNodes<>("contents", Content.class, RelType.CONTAINS, false);
+//	public static final Property<List<Span>>    spans       = new EndNodes<>("spans", Span.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final Property<List<Img>>     imgs        = new EndNodes<>("imgs", Img.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final Property<List<Div>>     div         = new EndNodes<>("div", Div.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final Property<List<Section>> sections    = new EndNodes<>("sections", Section.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final Property<List<P> >     ps          = new EndNodes<>("ps", P.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final Property<List<H1>>     h1s         = new EndNodes<>("h1s", H1.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final Property<List<H2>>     h2s         = new EndNodes<>("h2s", H2.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final Property<List<H3>>     h3s         = new EndNodes<>("h3s", H3.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final Property<List<H4>>     h4s         = new EndNodes<>("h4s", H4.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final Property<List<H5>>     h5s         = new EndNodes<>("h5s", H5.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final Property<List<H6>>     h6s         = new EndNodes<>("h6s", H6.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final Property<List<Li>>      lis         = new EndNodes<>("lis", Li.class, RelType.CONTAINS, Direction.INCOMING, false);
+// 
+//	public static final EndNodes<Div>     divParents  = new EndNodes<Div>("divParents", Div.class, RelType.CONTAINS, Direction.INCOMING, false);
+//	public static final EndNodes<P>       pParents    = new EndNodes<P>("pParents", P.class, RelType.CONTAINS, Direction.INCOMING, false);
+// 
+
+	public static final Property<Linkable> linkable    = new EndNode<>("linkable", Hyperlink.class, new PropertyNotion(AbstractNode.name));
+	public static final Property<String>   linkableId  = new EntityIdProperty("linkableId", linkable);
 
 	public static final View uiView = new View(A.class, PropertyView.Ui,
 		linkableId, linkable

@@ -18,14 +18,16 @@
  */
 package org.structr.rest.entity;
 
-import org.neo4j.graphdb.Direction;
+import java.util.List;
 import org.structr.common.PropertyView;
 import org.structr.core.EntityContext;
+import static org.structr.core.GraphObject.uuid;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.notion.PropertyNotion;
-import org.structr.core.property.CollectionProperty;
-import org.structr.core.property.EntityProperty;
-import org.structr.rest.common.TestRestRelType;
+import org.structr.core.property.EndNode;
+import org.structr.core.property.EndNodes;
+import org.structr.core.property.Property;
+import org.structr.core.property.StartNode;
 
 /**
  *
@@ -33,11 +35,11 @@ import org.structr.rest.common.TestRestRelType;
  */
 public class TestFive extends AbstractNode {
 	
-	public static final CollectionProperty<TestOne> manyToManyTestOnes = new CollectionProperty<TestOne>("manyToManyTestOnes", TestOne.class, TestRestRelType.MANY_TO_MANY, Direction.OUTGOING, new PropertyNotion(uuid), false);
-	public static final CollectionProperty<TestOne> oneToManyTestOnes  = new CollectionProperty<TestOne>("oneToManyTestOnes",  TestOne.class, TestRestRelType.ONE_TO_MANY, Direction.OUTGOING, new PropertyNotion(uuid),  true);
+	public static final Property<List<TestOne>> manyToManyTestOnes = new EndNodes<>("manyToManyTestOnes", FiveOneManyToMany.class, new PropertyNotion(uuid));
+	public static final Property<List<TestOne>> oneToManyTestOnes  = new EndNodes<>("oneToManyTestOnes",  FiveOneOneToMany.class, new PropertyNotion(uuid));
 	
-	public static final EntityProperty<TestThree>   oneToOneTestThree  = new EntityProperty<TestThree>("oneToOneTestThree",  TestThree.class, TestRestRelType.ONE_TO_ONE,  false);
-	public static final EntityProperty<TestThree>   manyToOneTestThree = new EntityProperty<TestThree>("manyToOneTestThree", TestThree.class, TestRestRelType.MANY_TO_ONE, true);
+	public static final Property<TestThree>     oneToOneTestThree  = new EndNode<>("oneToOneTestThree",  FiveThreeOneToOne.class);
+	public static final Property<TestThree>     manyToOneTestThree = new StartNode<>("manyToOneTestThree", ThreeFiveOneToMany.class);
 	
 	static {
 		

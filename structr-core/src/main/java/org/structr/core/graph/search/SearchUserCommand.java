@@ -32,6 +32,7 @@ import org.structr.core.graph.NodeServiceCommand;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeFactory;
+import org.structr.core.graph.NodeInterface;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -58,7 +59,7 @@ public class SearchUserCommand extends NodeServiceCommand {
 
 					for (final Node n : index.get(AbstractNode.name.dbName(), userName)) {
 
-						final AbstractNode s = nodeFactory.instantiate(n);
+						final NodeInterface s = nodeFactory.instantiate(n);
 
 						if (s.getType().equals(Principal.class.getSimpleName())) {
 

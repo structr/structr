@@ -25,12 +25,12 @@ import java.util.List;
 import org.structr.common.Permission;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.RelType;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import static org.structr.core.entity.Principal.password;
-import org.structr.core.graph.CreateRelationshipCommand;
+import org.structr.core.entity.relationship.Parentship;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 
 //~--- interfaces -------------------------------------------------------------
@@ -47,7 +47,7 @@ public abstract class AbstractUser extends Person implements Principal {
 	@Override
 	public void grant(Permission permission, AbstractNode obj) {
 
-		SecurityRelationship secRel = obj.getSecurityRelationship(this);
+		Security secRel = obj.getSecurityRelationship(this);
 
 		if (secRel == null) {
 
@@ -70,7 +70,7 @@ public abstract class AbstractUser extends Person implements Principal {
 	@Override
 	public void revoke(Permission permission, AbstractNode obj) {
 
-		SecurityRelationship secRel = obj.getSecurityRelationship(this);
+		Security secRel = obj.getSecurityRelationship(this);
 
 		if (secRel == null) {
 
@@ -83,10 +83,20 @@ public abstract class AbstractUser extends Person implements Principal {
 
 	}
 
-	private SecurityRelationship createSecurityRelationshipTo(final AbstractNode obj) throws FrameworkException {
-
-		return (SecurityRelationship) Services.command(SecurityContext.getSuperUserInstance(), CreateRelationshipCommand.class).execute(this, obj, org.structr.common.RelType.SECURITY);
-
+	private Security createSecurityRelationshipTo(final AbstractNode obj) throws FrameworkException {
+		
+		final App app = StructrApp.getInstance();
+		
+		try {
+			app.beginTx();
+			final Security rel = app.create(this, obj, Security.class);
+			app.commitTx();
+			
+			return rel;
+			
+		} finally {
+			app.finishTx();
+		}
 	}
 
 	//~--- get methods ----------------------------------------------------
@@ -94,12 +104,11 @@ public abstract class AbstractUser extends Person implements Principal {
 	@Override
 	public List<Principal> getParents() {
 
-		List<Principal> parents                   = new LinkedList<Principal>();
-		Iterable<AbstractRelationship> parentRels = getIncomingRelationships(RelType.CONTAINS);
+		List<Principal> parents         = new LinkedList<>();
 
-		for (AbstractRelationship rel : parentRels) {
+		for (Parentship rel : getRelationships(Parentship.class)) {
 
-			AbstractNode node = rel.getStartNode();
+			NodeInterface node = rel.getSourceNode();
 
 			if (node instanceof Principal) {
 

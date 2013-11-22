@@ -48,45 +48,48 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.jsoup.Jsoup;
-import org.neo4j.graphdb.Direction;
 import org.structr.common.Permission;
-import org.structr.web.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
+import org.structr.core.Ownership;
 import org.structr.core.Predicate;
 import org.structr.core.Result;
 import org.structr.core.Services;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchNodeCommand;
-import org.structr.core.property.CollectionProperty;
-import org.structr.core.property.EntityProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.web.common.Function;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.entity.Principal;
-import org.structr.core.graph.CreateNodeCommand;
+import org.structr.core.entity.relationship.PrincipalOwnsAbstractNode;
 import org.structr.core.graph.search.PropertySearchAttribute;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.CollectionIdProperty;
+import org.structr.core.property.EndNode;
+import org.structr.core.property.EndNodes;
 import org.structr.core.property.EntityIdProperty;
 import org.structr.core.property.ISO8601DateProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.common.ThreadLocalMatcher;
 import org.structr.web.entity.PageData;
 import org.structr.web.entity.Renderable;
+import org.structr.web.entity.dom.relationship.DOMChildren;
+import org.structr.web.entity.dom.relationship.DOMSiblings;
+import org.structr.web.entity.html.relation.ResourceLink;
+import org.structr.web.entity.relation.PageLink;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.DocumentFragment;
@@ -105,7 +108,7 @@ import org.w3c.dom.UserDataHandler;
  * @author Christian Morgner
  */
 
-public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable, DOMAdoptable, DOMImportable, PageData {
+public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, DOMNode> implements Node, Renderable, DOMAdoptable, DOMImportable, PageData {
 
 	private static final Logger logger                                      = Logger.getLogger(DOMNode.class.getName());
 	private static final ThreadLocalMatcher threadLocalTemplateMatcher      = new ThreadLocalMatcher("\\$\\{[^}]*\\}");
@@ -134,22 +137,24 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 	
 	public static final Property<String> showConditions			= new StringProperty("showConditions");
 	public static final Property<String> hideConditions			= new StringProperty("hideConditions");
-
-	protected static final Map<String, Function<String, String>> functions  = new LinkedHashMap<>();
 	
-	public static final CollectionProperty<DOMNode> children                = new CollectionProperty<>("children", DOMNode.class, RelType.CONTAINS,              Direction.OUTGOING, true);
-	public static final CollectionIdProperty childrenIds                    = new CollectionIdProperty("childrenIds", children);
+	public static final Property<List<DOMNode>> children                    = new EndNodes<>("children", DOMChildren.class);
+	public static final Property<DOMNode> parent                            = new StartNode<>("parent", DOMChildren.class);
+	public static final Property<DOMNode> previousSibling                   = new StartNode<>("previousSibling", DOMSiblings.class);
+	public static final Property<DOMNode> nextSibling                       = new EndNode<>("nextSibling", DOMSiblings.class);
+	
+	public static final Property<List<String>> childrenIds                  = new CollectionIdProperty("childrenIds", children);
+	public static final Property<String> nextSiblingId                      = new EntityIdProperty("nextSiblingId", nextSibling);
 
-	public static final CollectionProperty<DOMNode> siblings                = new CollectionProperty<>("siblings", DOMNode.class, RelType.CONTAINS_NEXT_SIBLING, Direction.OUTGOING, true);
-	public static final CollectionIdProperty siblingsIds                    = new CollectionIdProperty("siblingIds", siblings);
+	public static final Property<String> parentId                           = new EntityIdProperty("parentId", parent);
 
-	public static final EntityProperty<DOMNode> parent                      = new EntityProperty<>("parent", DOMNode.class, RelType.CONTAINS, Direction.INCOMING, false);
-	public static final EntityIdProperty parentId                           = new EntityIdProperty("parentId", parent);
+	public static final Property<Page> ownerDocument                        = new EndNode<>("ownerDocument", PageLink.class);
+	public static final Property<String> pageId                             = new EntityIdProperty("pageId", ownerDocument);
 
-	public static final EntityProperty<Page> ownerDocument                  = new EntityProperty<>("ownerDocument", Page.class, RelType.PAGE, Direction.OUTGOING, true);
-	public static final EntityIdProperty pageId                             = new EntityIdProperty("pageId", ownerDocument);
 
-	private static Set<Page> resultPages                                    = new HashSet<Page>();
+	
+	protected static final Map<String, Function<String, String>> functions  = new LinkedHashMap<>();
+	private static Set<Page> resultPages                                    = new HashSet<>();
 		
 	
 	static {
@@ -742,15 +747,25 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 		// override me
 	}
 	
+	@Override
+	public Class<DOMChildren> getChildLinkType() {
+		return DOMChildren.class;
+	}
+	
+	@Override
+	public Class<DOMSiblings> getSiblingLinkType() {
+		return DOMSiblings.class;
+	}
+	
 	// ----- public methods -----
 	@Override
 	public String toString() {
 		
-		return getClass().getSimpleName() + " [" + getUuid() + "] (" + getTextContent() + ", " + treeGetChildPosition(RelType.CONTAINS, this) + ")";
+		return getClass().getSimpleName() + " [" + getUuid() + "] (" + getTextContent() + ", " + treeGetChildPosition(this) + ")";
 	}
 
-	public List<AbstractRelationship> getChildRelationships() {
-		return treeGetChildRelationships(RelType.CONTAINS);
+	public List<DOMChildren> getChildRelationships() {
+		return treeGetChildRelationships();
 	}
 
 	
@@ -763,7 +778,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 			
 			DOMNode parentNode = (DOMNode) currentNode.getParentNode();
 			
-			path = "/" + parentNode.treeGetChildPosition(RelType.CONTAINS, currentNode) + path;
+			path = "/" + parentNode.treeGetChildPosition(currentNode) + path;
 			
 			currentNode = parentNode;
 			
@@ -1005,14 +1020,25 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 				// special keyword "link", works on deeper levels, too
 				if ("link".equals(lowerCasePart) && _data instanceof AbstractNode) {
 
+					ResourceLink rel = ((AbstractNode) _data).getOutgoingRelationship(ResourceLink.class);
+					if (rel != null) {
+						
+						_data = rel.getTargetNode();
+						
+						break;
+						
+					}
+
+					/*
 					for (AbstractRelationship rel : ((AbstractNode) _data).getRelationships(org.structr.web.common.RelType.LINK, Direction.OUTGOING)) {
 
-						_data = rel.getEndNode();
+						_data = rel.getTargetNode();
 
 						break;
 
 					}
-
+					*/
+					
 					continue;
 
 				}
@@ -1105,15 +1131,24 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 				// special keyword "link", works only on root level
 				if ("link".equals(lowerCasePart)) {
 
+					ResourceLink rel = getOutgoingRelationship(ResourceLink.class);
+					
+					if (rel != null) {
+						_data = rel.getTargetNode();
+						break;
+					}
+
+					/*
 					for (AbstractRelationship rel : getRelationships(org.structr.web.common.RelType.LINK, Direction.OUTGOING)) {
 
-						_data = rel.getEndNode();
+						_data = rel.getTargetNode();
 
 						break;
 
 					}
-
+					
 					continue;
+					*/
 
 				}
 
@@ -1129,12 +1164,10 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 				// special keyword "owner"
 				if ("owner".equals(lowerCasePart)) {
 
-					for (AbstractRelationship rel : getRelationships(org.structr.common.RelType.OWNS, Direction.INCOMING)) {
-
-						_data = rel.getStartNode();
-
-						break;
-
+					Ownership rel = getIncomingRelationship(PrincipalOwnsAbstractNode.class);
+					if (rel != null) {
+					
+						_data = rel.getSourceNode();
 					}
 
 					continue;
@@ -1425,12 +1458,12 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 		if (resultPages == null) {
 
-			resultPages = new HashSet<Page>();
+			resultPages = new HashSet<>();
 		}
 
 		// fetch search results
 		// List<GraphObject> results              = ((SearchResultView) startNode).getGraphObjects(request);
-		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+		List<SearchAttribute> searchAttributes = new LinkedList<>();
 
 		searchAttributes.add(new PropertySearchAttribute(Content.content, search, Occur.MUST, false));
 		searchAttributes.add(Search.andExactType(Content.class));
@@ -1564,7 +1597,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 
 	protected String[] split(String source) {
 
-		ArrayList<String> tokens   = new ArrayList<String>(20);
+		ArrayList<String> tokens   = new ArrayList<>(20);
 		boolean inDoubleQuotes     = false;
 		boolean inSingleQuotes     = false;
 		int len                    = source.length();
@@ -1694,7 +1727,8 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 	
 	@Override
 	public Node getParentNode() {
-		return getProperty(parent);
+		// FIXME: type cast correct here?
+		return (Node)getProperty(parent);
 	}
 
 	@Override
@@ -1702,27 +1736,27 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 		
 		checkReadAccess();
 		
-		return new DOMNodeList(treeGetChildren(RelType.CONTAINS));
+		return new DOMNodeList(treeGetChildren());
 	}
 
 	@Override
 	public Node getFirstChild() {
-		return (DOMNode)treeGetFirstChild(RelType.CONTAINS);
+		return treeGetFirstChild();
 	}
 
 	@Override
 	public Node getLastChild() {
-		return (DOMNode)treeGetLastChild(RelType.CONTAINS);
+		return treeGetLastChild();
 	}
 
 	@Override
 	public Node getPreviousSibling() {
-		return (DOMNode)listGetPrevious(RelType.CONTAINS_NEXT_SIBLING, this);
+		return listGetPrevious(this);
 	}
 
 	@Override
 	public Node getNextSibling() {
-		return (DOMNode)listGetNext(RelType.CONTAINS_NEXT_SIBLING, this);
+		return listGetNext(this);
 	}
 
 	@Override
@@ -1784,7 +1818,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 					_parent.removeChild(newChild);
 				}
 
-				treeInsertBefore(RelType.CONTAINS, (DOMNode)newChild, (DOMNode)refChild);
+				treeInsertBefore((DOMNode)newChild, (DOMNode)refChild);
 				
 				// allow parent to set properties in new child
 				handleNewChild(newChild);
@@ -1851,7 +1885,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 				}
 
 				// replace directly
-				treeReplaceChild(RelType.CONTAINS, (DOMNode)newChild, (DOMNode)oldChild);
+				treeReplaceChild((DOMNode)newChild, (DOMNode)oldChild);
 				
 				// allow parent to set properties in new child
 				handleNewChild(newChild);
@@ -1874,7 +1908,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 		
 		try {
 			
-			treeRemoveChild(RelType.CONTAINS, (DOMNode)node);
+			treeRemoveChild((DOMNode)node);
 
 		} catch (FrameworkException fex) {
 
@@ -1930,7 +1964,7 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 					_parent.removeChild(newChild);
 				}
 			
-				treeAppendChild(RelType.CONTAINS, (DOMNode)newChild);
+				treeAppendChild((DOMNode)newChild);
 				
 				// allow parent to set properties in new child
 				handleNewChild(newChild);
@@ -1974,23 +2008,23 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 					properties.put(key, getProperty(key));
 				}
 			}
+
+			final App app = StructrApp.getInstance(securityContext);
 			
 			try {
+				app.beginTx();
+				DOMNode node = app.create(getClass(), properties);
+				app.commitTx();
 				
-				return (DOMNode) Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<DOMNode>() {
-
-					@Override
-					public DOMNode execute() throws FrameworkException {
-
-						return (DOMNode) Services.command(securityContext, CreateNodeCommand.class).execute(properties);
-					}
-
-				});
+				return node;
 				
 			} catch (FrameworkException ex) {
 				
 				throw new DOMException(DOMException.INVALID_STATE_ERR, ex.toString());
 				
+			} finally {
+				
+				app.finishTx();
 			}
 			
 		}
@@ -2078,72 +2112,70 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 	
 	@Override
 	public final void normalize() {
+
+		final App app = StructrApp.getInstance(securityContext);
 		
 		try {
 
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+			Document document = getOwnerDocument();
+			if (document != null) {
 
-				@Override
-				public Object execute() throws FrameworkException {
+				// merge adjacent text nodes until there is only one left
+				Node child = getFirstChild();
+				while (child != null) {
 
-					Document document = getOwnerDocument();
-					if (document != null) {
+					if (child instanceof Text) {
 
-						// merge adjacent text nodes until there is only one left
-						Node child = getFirstChild();
-						while (child != null) {
+						Node next = child.getNextSibling();
+						if (next != null && next instanceof Text) {
 
-							if (child instanceof Text) {
+							String text1 = child.getNodeValue();
+							String text2 = next.getNodeValue();
 
-								Node next = child.getNextSibling();
-								if (next != null && next instanceof Text) {
+							// create new text node
+							Text newText = document.createTextNode(text1.concat(text2));
 
-									String text1 = child.getNodeValue();
-									String text2 = next.getNodeValue();
+							removeChild(child);
+							insertBefore(newText, next);
+							removeChild(next);
 
-									// create new text node
-									Text newText = document.createTextNode(text1.concat(text2));
+							child = newText;
 
-									removeChild(child);
-									insertBefore(newText, next);
-									removeChild(next);
+						} else {
 
-									child = newText;
-
-								} else {
-
-									// advance to next node
-									child = next;
-								}
-
-							} else {
-
-								// advance to next node
-								child = child.getNextSibling();
-
-							}
+							// advance to next node
+							child = next;
 						}
 
-						// recursively normalize child nodes
-						if (hasChildNodes()) {
+					} else {
 
-							Node currentChild = getFirstChild();
-							while (currentChild != null) {
+						// advance to next node
+						child = child.getNextSibling();
 
-								currentChild.normalize();
-								currentChild = currentChild.getNextSibling();
-							}
-						}
 					}
-					
-					return null;
 				}
-				
-			});
+
+				// recursively normalize child nodes
+				if (hasChildNodes()) {
+
+					Node currentChild = getFirstChild();
+					while (currentChild != null) {
+
+						currentChild.normalize();
+						currentChild = currentChild.getNextSibling();
+					}
+				}
+			}
+			
+			app.commitTx();
 			
 		} catch (FrameworkException fex) {
 			
 			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.getMessage());
+			
+		} finally {
+			
+			app.finishTx();
 		}
 	}
 
@@ -2153,22 +2185,21 @@ public abstract class DOMNode extends LinkedTreeNode implements Node, Renderable
 		
 		if (_page != null) {
 
+			final App app = StructrApp.getInstance(securityContext);
+
 			try {
-
-				Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-					@Override
-					public Object execute() throws FrameworkException {
-
-						setProperty(ownerDocument, _page);
-
-						return null;
-					}
-				});
+				
+				app.beginTx();
+				setProperty(ownerDocument, _page);
+				app.commitTx();
 				
 			} catch (FrameworkException fex) {
 				
 				throw new DOMException(DOMException.INVALID_STATE_ERR, fex.getMessage());
+				
+			} finally {
+				
+				app.finishTx();
 			}
 		}
 		

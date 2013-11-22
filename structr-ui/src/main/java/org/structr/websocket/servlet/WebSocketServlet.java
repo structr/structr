@@ -46,6 +46,7 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.Services;
 import org.structr.core.graph.NodeService;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.rest.ResourceProvider;
 import org.structr.websocket.SynchronizationController;
 
@@ -57,26 +58,25 @@ import org.structr.websocket.SynchronizationController;
  */
 public class WebSocketServlet extends HttpServlet {
 
-	private static final String STRUCTR_PROTOCOL              = "structr";
-	private static ServletConfig config                       = null;
-	private static WebSocketFactory factory                   = null;
-	private static final Logger logger                        = Logger.getLogger(WebSocketServlet.class.getName());
+	private static final String STRUCTR_PROTOCOL = "structr";
+	private static ServletConfig config          = null;
+	private static WebSocketFactory factory      = null;
+	private static final Logger logger           = Logger.getLogger(WebSocketServlet.class.getName());
 
-	private SynchronizationController syncController          = null;
-	private PropertyKey idProperty                            = null;
-	private ResourceProvider resourceProvider                 = null;
+	private PropertyKey idProperty               = null;
+	private ResourceProvider resourceProvider    = null;
 	
 	public WebSocketServlet(final PropertyKey idProperty) {
 		this.idProperty = idProperty;
 	}
 
 	public WebSocketServlet(final ResourceProvider resourceProvider) {
-		this.resourceProvider    = resourceProvider;
+		this.resourceProvider = resourceProvider;
 	}
 
 	public WebSocketServlet(final ResourceProvider resourceProvider, final PropertyKey idProperty) {
 		this.idProperty = idProperty;
-		this.resourceProvider    = resourceProvider;
+		this.resourceProvider = resourceProvider;
 	}
 
 	//~--- methods --------------------------------------------------------
@@ -89,12 +89,10 @@ public class WebSocketServlet extends HttpServlet {
 
 		// create GSON serializer
 		final Gson gson = new GsonBuilder().setPrettyPrinting().registerTypeAdapter(WebSocketMessage.class, new WebSocketDataGSONAdapter(idProperty)).create();
-
-		syncController = new SynchronizationController(gson);
-		syncController.setResourceProvider(resourceProvider);
-
-		GraphDatabaseService graphDb = Services.getService(NodeService.class).getGraphDb();
-		graphDb.registerTransactionEventHandler(syncController);
+		final SynchronizationController syncController = new SynchronizationController(gson);
+		
+		// register (Structr) transaction listener
+		TransactionCommand.registerTransactionListener(syncController);
 
 		// create web socket factory
 		factory = new WebSocketFactory(new Acceptor() {
@@ -114,6 +112,7 @@ public class WebSocketServlet extends HttpServlet {
 
 				return null;
 			}
+			
 			@Override
 			public boolean checkOrigin(final HttpServletRequest request, final String origin) {
 
@@ -122,13 +121,6 @@ public class WebSocketServlet extends HttpServlet {
 			}
 
 		});
-	}
-
-	@Override
-	public void destroy() {
-		
-		GraphDatabaseService graphDb = Services.getService(NodeService.class).getGraphDb();
-		graphDb.unregisterTransactionEventHandler(syncController);
 	}
 
 	@Override

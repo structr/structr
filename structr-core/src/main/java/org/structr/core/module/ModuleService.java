@@ -44,7 +44,9 @@ import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import org.apache.commons.lang.StringUtils;
+import org.structr.common.DefaultFactoryDefinition;
 import org.structr.core.*;
+import org.structr.core.entity.Relation;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -55,19 +57,20 @@ import org.structr.core.*;
  */
 public class ModuleService implements SingletonService {
 
-	private static final Logger logger                                       = Logger.getLogger(ModuleService.class.getName());
-	private static final Map<String, Class<? extends Agent>> agentClassCache = new ConcurrentHashMap<String, Class<? extends Agent>>(10, 0.9f, 8);
-	private static final Set<String> nodeEntityPackages                      = new LinkedHashSet<String>();
-	private static final Set<String> relationshipPackages                    = new LinkedHashSet<String>();
-	private static final Map<String, Class> relationshipClassCache           = new ConcurrentHashMap<String, Class>(10, 0.9f, 8);
-	private static final Map<String, Class> nodeEntityClassCache             = new ConcurrentHashMap<String, Class>(100, 0.9f, 8);
-	private static final Map<String, Set<Class>> interfaceCache              = new ConcurrentHashMap<String, Set<Class>>(10, 0.9f, 8);
-	private static final Set<String> agentPackages                           = new LinkedHashSet<String>();
-	private static final String fileSep                                      = System.getProperty("file.separator");
-	private static final String fileSepEscaped                               = fileSep.replaceAll("\\\\", "\\\\\\\\");	// ....
-	private static final String pathSep                                      = System.getProperty("path.separator");
-	private static final String testClassesDir                               = fileSep.concat("test-classes");
-	private static final String classesDir                                   = fileSep.concat("classes");
+	private static final Logger logger						= Logger.getLogger(ModuleService.class.getName());
+	private static final Map<String, Class<? extends Agent>> agentClassCache	= new ConcurrentHashMap<>(10, 0.9f, 8);
+	private static final Set<String> nodeEntityPackages				= new LinkedHashSet<>();
+	private static final Set<String> relationshipPackages				= new LinkedHashSet<>();
+	private static final Map<String, Class> combinedTypeRelationClassCache		= new ConcurrentHashMap<>(10, 0.9f, 8);
+	private static final Map<String, Class> relationshipEntityClassCache		= new ConcurrentHashMap<>(10, 0.9f, 8);
+	private static final Map<String, Class> nodeEntityClassCache			= new ConcurrentHashMap(100, 0.9f, 8);
+	private static final Map<String, Set<Class>> interfaceCache			= new ConcurrentHashMap<>(10, 0.9f, 8);
+	private static final Set<String> agentPackages					= new LinkedHashSet<>();
+	private static final String fileSep						= System.getProperty("file.separator");
+	private static final String fileSepEscaped					= fileSep.replaceAll("\\\\", "\\\\\\\\");	// ....
+	private static final String pathSep						= System.getProperty("path.separator");
+	private static final String testClassesDir					= fileSep.concat("test-classes");
+	private static final String classesDir						= fileSep.concat("classes");
 
 	//~--- methods --------------------------------------------------------
 
@@ -121,7 +124,8 @@ public class ModuleService implements SingletonService {
 	public void shutdown() {
 
 		nodeEntityClassCache.clear();
-		relationshipClassCache.clear();
+		combinedTypeRelationClassCache.clear();
+		relationshipEntityClassCache.clear();
 		agentClassCache.clear();
 
 	}
@@ -183,7 +187,7 @@ public class ModuleService implements SingletonService {
 
 							if (classesForInterface == null) {
 
-								classesForInterface = new LinkedHashSet<Class>();
+								classesForInterface = new LinkedHashSet<>();
 
 								interfaceCache.put(interfaceName, classesForInterface);
 
@@ -203,7 +207,7 @@ public class ModuleService implements SingletonService {
 						String simpleName = clazz.getSimpleName();
 						String fullName   = clazz.getName();
 
-						relationshipClassCache.put(simpleName, clazz);
+						relationshipEntityClassCache.put(simpleName, clazz);
 						relationshipPackages.add(fullName.substring(0, fullName.lastIndexOf(".")));
 
 						for (Class interfaceClass : clazz.getInterfaces()) {
@@ -213,7 +217,7 @@ public class ModuleService implements SingletonService {
 
 							if (classesForInterface == null) {
 
-								classesForInterface = new LinkedHashSet<Class>();
+								classesForInterface = new LinkedHashSet<>();
 
 								interfaceCache.put(interfaceName, classesForInterface);
 
@@ -395,25 +399,116 @@ public class ModuleService implements SingletonService {
 
 	public Set<String> getCachedRelationshipTypes() {
 
-		return relationshipClassCache.keySet();
+		return relationshipEntityClassCache.keySet();
 
 	}
 
-	public Map<String, Class> getCachedRelationships() {
+	public Map<String, Class> getCachedRelationshipEntities() {
 
-		return relationshipClassCache;
+		return relationshipEntityClassCache;
 
 	}
 
+	public void setRelationClassForCombinedType(final String combinedType, final Class clazz) {
+		combinedTypeRelationClassCache.put(combinedType, clazz);
+	}
+	
+	public void setRelationClassForCombinedType(final String sourceType, final String relType, final String targetType, final Class clazz) {
+		combinedTypeRelationClassCache.put(getCombinedType(sourceType, relType, targetType), clazz);
+	}
+
+	public Class getRelationClassForCombinedType(final String combinedType) {
+		
+		Class cachedRelationClass = combinedTypeRelationClassCache.get(combinedType);
+		
+		if (cachedRelationClass != null) {
+			return cachedRelationClass;
+		}
+		
+		return null;
+	}
+		
+	public Class getRelationClassForCombinedType(final String sourceType, final String relType, final String targetType) {
+		
+		if (sourceType == null || relType == null || targetType == null) {
+			return null;
+		}
+		
+		String combinedType =
+			
+			sourceType
+			.concat(DefaultFactoryDefinition.COMBINED_RELATIONSHIP_KEY_SEP)
+			.concat(relType)
+			.concat(DefaultFactoryDefinition.COMBINED_RELATIONSHIP_KEY_SEP)
+			.concat(targetType);
+		
+		Class cachedRelationClass = getRelationClassForCombinedType(combinedType);
+		
+		if (cachedRelationClass != null) {
+			return cachedRelationClass;
+		}
+		
+		//logger.log(Level.FINE, "Need class for relationship {0}-[:{1}]->{2}", new Object[]{ sourceType, relType, targetType });
+		
+		for (final Class candidate : getCachedRelationshipEntities().values()) {
+
+			//logger.log(Level.FINEST, "Relation class candidate: {0}", candidate.getName());
+			
+			final Relation rel = instantiate(candidate);
+			if (rel != null) {
+				
+				final String sourceTypeName = rel.getSourceType().getSimpleName();
+				final String relTypeName    = rel.name();
+				final String targetTypeName = rel.getTargetType().getSimpleName();
+
+				//logger.log(Level.FINE, "Checking relationship {0}-[:{1}]->{2}", new Object[]{ sourceTypeName, relTypeName, targetTypeName });
+
+				if (sourceType.equals(sourceTypeName) && relType.equals(relTypeName) && targetType.equals(targetTypeName)) {
+					
+					//logger.log(Level.INFO, "--> Found matching relation class: {0}", candidate.getName());
+					combinedType = getCombinedType(sourceType, relType, targetType);
+					combinedTypeRelationClassCache.put(combinedType, candidate);
+					
+					return candidate;
+				}
+			}
+		}
+		
+		return null;
+	}
+
+	private Relation instantiate(final Class clazz) {
+		
+		try {
+			
+			return (Relation) clazz.newInstance();
+			
+		} catch (Throwable t) {
+			
+		}
+		
+		return null;
+	}
+
+	private String getCombinedType(final String sourceType, final String relType, final String targetType) {
+		
+		return
+			sourceType
+			.concat(DefaultFactoryDefinition.COMBINED_RELATIONSHIP_KEY_SEP)
+			.concat(relType)
+			.concat(DefaultFactoryDefinition.COMBINED_RELATIONSHIP_KEY_SEP)
+			.concat(targetType);
+	}
+	
 	public Class getNodeEntityClass(final String name) {
 
-		Class ret = GenericNode.class;
+		Class nodeEntityClass = GenericNode.class;
 
 		if ((name != null) && (!name.isEmpty())) {
 
-			ret = nodeEntityClassCache.get(name);
+			nodeEntityClass = nodeEntityClassCache.get(name);
 
-			if (ret == null) {
+			if (nodeEntityClass == null) {
 
 				for (String possiblePath : nodeEntityPackages) {
 
@@ -445,19 +540,19 @@ public class ModuleService implements SingletonService {
 
 		}
 
-		return (ret);
+		return nodeEntityClass;
 
 	}
 
-	public Class getRelationshipClass(final String name) {
+	public Class getRelationshipEntityClass(final String name) {
 
-		Class ret = AbstractNode.class;
+		Class relationClass = AbstractNode.class;
 
 		if ((name != null) && (name.length() > 0)) {
 
-			ret = relationshipClassCache.get(name);
+			relationClass = relationshipEntityClassCache.get(name);
 
-			if (ret == null) {
+			if (relationClass == null) {
 
 				for (String possiblePath : relationshipPackages) {
 
@@ -469,10 +564,10 @@ public class ModuleService implements SingletonService {
 
 							if (!Modifier.isAbstract(nodeClass.getModifiers())) {
 
-								relationshipClassCache.put(name, nodeClass);
+								relationshipEntityClassCache.put(name, nodeClass);
 
 								// first match wins
-								break;
+								return nodeClass;
 
 							}
 
@@ -489,19 +584,19 @@ public class ModuleService implements SingletonService {
 
 		}
 
-		return (ret);
+		return relationClass;
 
 	}
 
 	public Class<? extends Agent> getAgentClass(final String name) {
 
-		Class ret = null;
+		Class agentClass = null;
 
 		if ((name != null) && (name.length() > 0)) {
 
-			ret = agentClassCache.get(name);
+			agentClass = agentClassCache.get(name);
 
-			if (ret == null) {
+			if (agentClass == null) {
 
 				for (String possiblePath : agentPackages) {
 
@@ -514,7 +609,7 @@ public class ModuleService implements SingletonService {
 							agentClassCache.put(name, nodeClass);
 
 							// first match wins
-							break;
+							return nodeClass;
 
 						} catch (ClassNotFoundException ex) {
 
@@ -529,7 +624,7 @@ public class ModuleService implements SingletonService {
 
 		}
 
-		return (ret);
+		return agentClass;
 
 	}
 
@@ -540,10 +635,10 @@ public class ModuleService implements SingletonService {
 	 */
 	public Set<String> getResourcesToScan() {
 
-		String classPath = System.getProperty("java.class.path");
-		Set<String> ret  = new LinkedHashSet<String>();
-		Pattern pattern  = Pattern.compile(".*(structr).*(war|jar)");
-		Matcher matcher  = pattern.matcher("");
+		String classPath	= System.getProperty("java.class.path");
+		Set<String> modules	= new LinkedHashSet<>();
+		Pattern pattern		= Pattern.compile(".*(structr).*(war|jar)");
+		Matcher matcher		= pattern.matcher("");
 
 		for (String jarPath : classPath.split("[".concat(pathSep).concat("]+"))) {
 
@@ -551,7 +646,7 @@ public class ModuleService implements SingletonService {
 
 			if (lowerPath.endsWith(classesDir) || lowerPath.endsWith(testClassesDir)) {
 
-				ret.add(jarPath);
+				modules.add(jarPath);
 				
 			} else {
 
@@ -561,7 +656,7 @@ public class ModuleService implements SingletonService {
 
 				if (matcher.matches()) {
 
-					ret.add(jarPath);
+					modules.add(jarPath);
 				}
 
 			}
@@ -578,7 +673,7 @@ public class ModuleService implements SingletonService {
 
 				if (lowerResource.endsWith(".jar") || lowerResource.endsWith(".war")) {
 
-					ret.add(resource);
+					modules.add(resource);
 				}
 
 			}
@@ -587,14 +682,14 @@ public class ModuleService implements SingletonService {
 		
 		// logger.log(Level.INFO, "resources: {0}", ret);
 
-		return (ret);
+		return modules;
 
 	}
 
 	@Override
 	public String getName() {
 
-		return (ModuleService.class.getSimpleName());
+		return ModuleService.class.getSimpleName();
 
 	}
 	
@@ -602,6 +697,6 @@ public class ModuleService implements SingletonService {
 	public boolean isRunning() {
 
 		// we're always running :)
-		return (true);
+		return true;
 	}
 }

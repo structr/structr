@@ -21,10 +21,6 @@
 package org.structr.web.entity.html;
 
 import org.structr.web.entity.dom.DOMElement;
-import org.neo4j.graphdb.Direction;
-
-import org.structr.web.common.RelType;
-import org.structr.core.property.CollectionProperty;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -33,7 +29,7 @@ import org.structr.core.property.CollectionProperty;
  */
 public class Table extends DOMElement {
 
-	public static final CollectionProperty<Tr>    trs    = new CollectionProperty<Tr>("trs", Tr.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<Thead> theads = new CollectionProperty<Thead>("theads", Thead.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	public static final CollectionProperty<Tbody> tbodys = new CollectionProperty<Tbody>("tbodys", Tbody.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final EndNodes<Tr>    trs    = new EndNodes<Tr>("trs", Tr.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final EndNodes<Thead> theads = new EndNodes<Thead>("theads", Thead.class, RelType.CONTAINS, Direction.OUTGOING, false);
+//	public static final EndNodes<Tbody> tbodys = new EndNodes<Tbody>("tbodys", Tbody.class, RelType.CONTAINS, Direction.OUTGOING, false);
 }

@@ -21,14 +21,12 @@ package org.structr.websocket.command;
 
 
 import java.util.Map;
-import org.structr.web.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
-import org.structr.core.graph.CreateRelationshipCommand;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.entity.relation.Sync;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -52,6 +50,7 @@ public class CloneComponentCommand extends AbstractCommand {
 	public void processMessage(WebSocketMessage webSocketData) {
 
 		final SecurityContext securityContext	= getWebSocket().getSecurityContext();
+		final App app                           = StructrApp.getInstance(securityContext);
 		String id				= webSocketData.getId();
 		Map<String, Object> nodeData		= webSocketData.getNodeData();
 		String parentId				= (String) nodeData.get("parentId");
@@ -90,32 +89,24 @@ public class CloneComponentCommand extends AbstractCommand {
 
 		try {
 
-			final CreateRelationshipCommand<?> createRel = Services.command(securityContext, CreateRelationshipCommand.class);
-			StructrTransaction transaction               = new StructrTransaction() {
+			app.beginTx();
 
-				@Override
-				public Object execute() throws FrameworkException {
+			DOMNode clonedNode = (DOMNode) node.cloneNode(false);
+			parentNode.appendChild(clonedNode);
 
-					DOMNode clonedNode = (DOMNode) node.cloneNode(false);
+			app.create(node, clonedNode, Sync.class);
+			app.create(clonedNode, node, Sync.class);
 
-					parentNode.appendChild(clonedNode);
-					//clonedNode.setProperty(DOMNode.parent, parentNode);
-
-					createRel.execute(node, clonedNode, RelType.SYNC, true);
-					createRel.execute(clonedNode, node, RelType.SYNC, true);
-
-					return null;
-
-				}
-
-			};
-
-			Services.command(securityContext, TransactionCommand.class).execute(transaction);
-
-		} catch (Exception ex) {
+			app.commitTx();
+			
+		} catch (FrameworkException ex) {
 
 			// send DOM exception
 			getWebSocket().send(MessageBuilder.status().code(422).message(ex.getMessage()).build(), true);
+			
+		} finally {
+			
+			app.finishTx();
 		}
 
 

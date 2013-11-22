@@ -20,17 +20,12 @@
 
 package org.structr.core.auth;
 
-import java.util.LinkedList;
-import java.util.List;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
 
 //import org.structr.context.SessionMonitor;
 import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.entity.Principal;
-import org.structr.core.graph.search.Search;
-import org.structr.core.graph.search.SearchNodeCommand;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -40,9 +35,9 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import org.structr.core.Result;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.search.SearchAttribute;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -121,21 +116,10 @@ public class StructrAuthenticator implements Authenticator {
 	@Override
 	public Principal getUser(HttpServletRequest request, final boolean tryLogin) throws FrameworkException {
 
-		String userName  = (String) request.getSession().getAttribute(USERNAME_KEY);
+		final String userName = (String) request.getSession().getAttribute(USERNAME_KEY);
+		final App app         = StructrApp.getInstance();
 		
-		List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
-		attrs.add(Search.andExactTypeAndSubtypes(Principal.class));
-		attrs.add(Search.andExactName(userName));
-		
-		Result userList = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(attrs);
-		Principal user  = null;
-		
-		if (!userList.isEmpty()) {
-			user = (Principal) userList.get(0);
-		}
-
-		return user;
-
+		return app.nodeQuery(Principal.class).andName(userName).getFirst();
 	}
 
 	@Override
