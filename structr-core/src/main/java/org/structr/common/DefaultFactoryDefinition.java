@@ -44,7 +44,7 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 	
 	private static final Logger logger = Logger.getLogger(DefaultFactoryDefinition.class.getName());
 
-	private static final String COMBINED_RELATIONSHIP_KEY_SEP = " ";
+	public static final String COMBINED_RELATIONSHIP_KEY_SEP = " ";
 	
 	public static final NodeExtender genericNodeExtender = new NodeExtender(GenericNode.class, "org.structr.core.entity.dynamic");
 	public static final Class GENERIC_NODE_TYPE          = GenericNode.class;
@@ -129,6 +129,8 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 
 		final String type = GraphObject.type.dbName();
 		
+		final ModuleService moduleService = getModuleService();
+		
 		// first try: duck-typing
 		final String sourceType = relationship.getStartNode().hasProperty(type) ? relationship.getStartNode().getProperty(type).toString() : null;
 		final String targetType = relationship.getEndNode().hasProperty(type) ? relationship.getEndNode().getProperty(type).toString() : null;
@@ -149,7 +151,9 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 			
 			if (obj != null) {
 				
-				return getModuleService().getRelationshipEntityClass(obj.toString());
+				Class relationClass = moduleService.getRelationshipEntityClass(obj.toString());
+				moduleService.setRelationClassForCombinedType(sourceType, relType, targetType, relationClass);
+				return relationClass;
 			}
 		}
 
@@ -184,49 +188,9 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 
 	private Class getClassForCombinedType(final String sourceType, final String relType, final String targetType) {
 		
-		if (sourceType == null || relType == null || targetType == null) {
-			return null;
-		}
-		
-		logger.log(Level.FINE, "Need class for relationship {0}-[:{1}]->{2}", new Object[]{ sourceType, relType, targetType });
-		
-		for (final Class candidate : getModuleService().getCachedRelationshipEntities().values()) {
-
-			logger.log(Level.FINEST, "Relation class candidate: {0}", candidate.getName());
-			
-			final Relation rel = instantiate(candidate);
-			if (rel != null) {
-				
-				final String sourceTypeName = rel.getSourceType().getSimpleName();
-				final String relTypeName    = rel.name();
-				final String targetTypeName = rel.getTargetType().getSimpleName();
-
-				logger.log(Level.FINE, "Checking relationship {0}-[:{1}]->{2}", new Object[]{ sourceTypeName, relTypeName, targetTypeName });
-
-				if (sourceType.equals(sourceTypeName) && relType.equals(relTypeName) && targetType.equals(targetTypeName)) {
-					
-					//logger.log(Level.INFO, "--> Found matching relation class: {0}", candidate.getName());
-					return candidate;
-				}
-			}
-		}
-		
-		return null;
+		return getModuleService().getRelationClassForCombinedType(sourceType, relType, targetType);
 	}
-	
-	private Relation instantiate(final Class clazz) {
-		
-		try {
-			
-			return (Relation)clazz.newInstance();
-			
-		} catch (Throwable t) {
-			
-		}
-		
-		return null;
-	}
-	
+
 	private ModuleService getModuleService() {
 		return Services.getService(ModuleService.class);
 	}
