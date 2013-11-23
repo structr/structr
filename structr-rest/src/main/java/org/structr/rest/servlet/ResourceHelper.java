@@ -44,8 +44,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
-import org.structr.core.EntityContext;
 import org.structr.core.ViewTransformation;
+import org.structr.core.app.StructrApp;
 import org.structr.rest.resource.TransformationResource;
 
 //~--- classes ----------------------------------------------------------------
@@ -268,7 +268,7 @@ public class ResourceHelper {
 		Class type = finalResource.getEntityClass();
 		if (type != null) {
 			
-			ViewTransformation transformation = EntityContext.getViewTransformation(type, propertyView.get(securityContext));
+			ViewTransformation transformation = StructrApp.getConfiguration().getViewTransformation(type, propertyView.get(securityContext));
 			if (transformation != null) {
 				
 				transformedResource = transformedResource.tryCombineWith(new TransformationResource(securityContext, transformation));

@@ -102,7 +102,7 @@ public class StructrTest extends TestCase {
 	@Override
 	protected void tearDown() throws Exception {
 
-		Services.shutdown();
+		Services.getInstance().shutdown();
 
 		try {
 			File testDir = new File(context.get(Services.BASE_PATH));
@@ -330,27 +330,27 @@ public class StructrTest extends TestCase {
 		context.put(Services.SUPERUSER_USERNAME, "superadmin");
 		context.put(Services.SUPERUSER_PASSWORD, "sehrgeheim");
 		
-		Services.initialize(context);
+		final Services services = Services.getInstance(context);
 
 		securityContext           = SecurityContext.getSuperUserInstance();
 		
-//		createNodeCommand         = Services.command(securityContext, CreateNodeCommand.class);
-//		createRelationshipCommand = Services.command(securityContext, CreateRelationshipCommand.class);
-//		deleteNodeCommand         = Services.command(securityContext, DeleteNodeCommand.class);
-//		deleteRelationshipCommand = Services.command(securityContext, DeleteRelationshipCommand.class);
-//		transactionCommand        = Services.command(securityContext, TransactionCommand.class);
-		graphDbCommand            = Services.command(securityContext, GraphDatabaseCommand.class);
-//		findNodeCommand           = Services.command(securityContext, FindNodeCommand.class);
-//		searchNodeCommand         = Services.command(securityContext, SearchNodeCommand.class);
-//		searchRelationshipCommand = Services.command(securityContext, SearchRelationshipCommand.class);
-		writeLogCommand           = Services.command(securityContext, WriteLogCommand.class);
-		readLogCommand            = Services.command(securityContext, ReadLogCommand.class);
+//		createNodeCommand         = StructrApp.getInstance(securityContext).command(CreateNodeCommand.class);
+//		createRelationshipCommand = StructrApp.getInstance(securityContext).command(CreateRelationshipCommand.class);
+//		deleteNodeCommand         = StructrApp.getInstance(securityContext).command(DeleteNodeCommand.class);
+//		deleteRelationshipCommand = StructrApp.getInstance(securityContext).command(DeleteRelationshipCommand.class);
+//		transactionCommand        = StructrApp.getInstance(securityContext).command(TransactionCommand.class);
+		graphDbCommand            = StructrApp.getInstance(securityContext).command(GraphDatabaseCommand.class);
+//		findNodeCommand           = StructrApp.getInstance(securityContext).command(FindNodeCommand.class);
+//		searchNodeCommand         = StructrApp.getInstance(securityContext).command(SearchNodeCommand.class);
+//		searchRelationshipCommand = StructrApp.getInstance(securityContext).command(SearchRelationshipCommand.class);
+		writeLogCommand           = StructrApp.getInstance(securityContext).command(WriteLogCommand.class);
+		readLogCommand            = StructrApp.getInstance(securityContext).command(ReadLogCommand.class);
 
 		// wait for service layer to be initialized
 		do {
 			try { Thread.sleep(100); } catch(Throwable t) {}
 			
-		} while(!Services.isInitialized());
+		} while(!services.isInitialized());
 
 		app = StructrApp.getInstance(securityContext);
 		

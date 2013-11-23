@@ -20,12 +20,10 @@
 
 package org.structr.core.graph;
 
-import java.util.LinkedList;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.tooling.GlobalGraphOperations;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -35,13 +33,10 @@ import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
-import org.structr.core.EntityContext;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.graph.search.Search;
-import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.SearchRelationshipCommand;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.schema.SchemaHelper;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -70,7 +65,7 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand imp
 
 			if (properties.containsKey(typeName)) {
 
-				rels = StructrApp.getInstance(securityContext).relationshipQuery(EntityContext.getEntityClassForRawType(typeName)).getAsList();
+				rels = StructrApp.getInstance(securityContext).relationshipQuery(SchemaHelper.getEntityClassForRawType(typeName)).getAsList();
 				
 				properties.remove(typeName);
 
@@ -92,7 +87,7 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand imp
 							String key = (String) entry.getKey();
 							Object val = entry.getValue();
 
-							PropertyKey propertyKey = EntityContext.getPropertyKeyForDatabaseName(rel.getClass(), key);
+							PropertyKey propertyKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(rel.getClass(), key);
 							if (propertyKey != null) {
 
 								try {

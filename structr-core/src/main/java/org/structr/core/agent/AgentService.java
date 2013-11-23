@@ -39,8 +39,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.SecurityContext;
-import org.structr.core.module.ModuleService;
+import org.structr.core.schema.Configuration;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -137,10 +136,10 @@ public class AgentService extends Thread implements RunnableService {
 
 	public Map<String, Class<? extends Agent>> getAgents() {
 
-		final ModuleService moduleService = Services.getService(ModuleService.class);
-		if (moduleService != null) {
+		final Configuration configuration = Services.getInstance().getConfiguration();
+		if (configuration != null) {
 			
-			return moduleService.getCachedAgents();
+			return configuration.getAgents();
 		}
 		
 		return Collections.emptyMap();

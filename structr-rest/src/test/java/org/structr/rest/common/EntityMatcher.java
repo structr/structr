@@ -28,8 +28,8 @@ import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.PropertyView;
+import org.structr.core.app.StructrApp;
 import org.structr.core.property.StringProperty;
-import org.structr.core.EntityContext;
 
 /**
  *
@@ -37,7 +37,7 @@ import org.structr.core.EntityContext;
  */
 public class EntityMatcher extends BaseMatcher {
 
-	private Map<String, Object> entityValues = new LinkedHashMap<String, Object>();
+	private Map<String, Object> entityValues = new LinkedHashMap<>();
 
 	public EntityMatcher(Class type) {
 		this(type, PropertyView.Public);
@@ -49,7 +49,7 @@ public class EntityMatcher extends BaseMatcher {
 	
 	public EntityMatcher(Class type, String view, Map<String, Object> values) {
 
-		Set<PropertyKey> propertyView = new LinkedHashSet<PropertyKey>(EntityContext.getPropertySet(type, view));
+		Set<PropertyKey> propertyView = new LinkedHashSet<>(StructrApp.getConfiguration().getPropertySet(type, view));
 		
 		// FIXME: this is due to the uuid/id mess in core!
 		propertyView.add(new StringProperty("id"));

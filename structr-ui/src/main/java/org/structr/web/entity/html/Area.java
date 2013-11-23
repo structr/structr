@@ -29,9 +29,9 @@ public class Area extends DOMElement {
 
 //	static {
 //
-//		EntityContext.registerPropertySet(Area.class, PropertyView.All, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Area.class, PropertyView.Public, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Area.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//		StructrApp.getConfiguration().registerPropertySet(Area.class, PropertyView.All, HtmlElement.UiKey.values());
+//		StructrApp.getConfiguration().registerPropertySet(Area.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		StructrApp.getConfiguration().registerPropertySet(Area.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 //
 //	}
 //

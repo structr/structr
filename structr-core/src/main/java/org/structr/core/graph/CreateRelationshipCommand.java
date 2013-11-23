@@ -23,9 +23,7 @@ package org.structr.core.graph;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
-import org.structr.core.Services;
 import org.structr.core.Transformation;
 import org.structr.core.entity.AbstractRelationship;
 
@@ -34,6 +32,7 @@ import org.structr.core.entity.AbstractRelationship;
 import java.util.Date;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Relation;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -116,7 +115,7 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 			newRel.onRelationshipInstantiation();
 
 			// iterate post creation transformations
-			for (Transformation<GraphObject> transformation : EntityContext.getEntityCreationTransformations(newRel.getClass())) {
+			for (Transformation<GraphObject> transformation : StructrApp.getConfiguration().getEntityCreationTransformations(newRel.getClass())) {
 
 				transformation.apply(securityContext, newRel);
 

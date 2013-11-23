@@ -35,7 +35,6 @@ import org.apache.commons.io.FileUtils;
 
 import org.structr.web.common.ImageHelper;
 import org.structr.common.Path;
-import org.structr.web.common.RelType;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.UnsupportedArgumentError;
@@ -43,7 +42,6 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.web.entity.Image;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.CreateNodeCommand;
-import org.structr.core.graph.CreateRelationshipCommand;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeServiceCommand;
 
@@ -64,6 +62,7 @@ import java.util.logging.Logger;
 import java.util.zip.DataFormatException;
 
 import javax.imageio.ImageIO;
+import org.structr.core.app.StructrApp;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -141,7 +140,7 @@ public class SaveImagesFromFlashUrl extends NodeServiceCommand {
 	private List<Image> saveFlashImagesFromUrl(final Principal user, final String urlString, final AbstractNode parentNode) throws FrameworkException {
 
 		String flashObjectName = urlString.substring(urlString.lastIndexOf("/") + 1);
-		String tmpFilePath     = Services.getFilePath(Path.Temp, "_ " + flashObjectName + "_" + System.nanoTime());
+		String tmpFilePath     = Services.getInstance().getFilePath(Path.Temp, "_ " + flashObjectName + "_" + System.nanoTime());
 		File flashFile         = new File(tmpFilePath);
 		URL flashUrl           = null;
 
@@ -256,7 +255,7 @@ public class SaveImagesFromFlashUrl extends NodeServiceCommand {
 							String name = flashObjectName + "_" + id + "_" + width + "x" + height + fileExtension;
 
 							// Create new image node
-							Image newImageNode = (Image) Services.command(securityContext, CreateNodeCommand.class).execute(
+							Image newImageNode = (Image) StructrApp.getInstance(securityContext).command(CreateNodeCommand.class).execute(
 										     new NodeAttribute(AbstractNode.type, Image.class.getSimpleName()),
 										     new NodeAttribute(AbstractNode.name, name), new NodeAttribute(Image.width, width),
 										     new NodeAttribute(Image.height, height),
@@ -264,10 +263,10 @@ public class SaveImagesFromFlashUrl extends NodeServiceCommand {
 										     new NodeAttribute(AbstractNode.visibleToAuthenticatedUsers, true));
 
 							// Establish HAS_CHILD relationship from parent node
-							// Services.command(securityContext, CreateRelationshipCommand.class).execute(parentNode, newImageNode, RelType.CONTAINS);
+							// StructrApp.getInstance(securityContext).command(CreateRelationshipCommand.class).execute(parentNode, newImageNode, RelType.CONTAINS);
 
 							String relativeFilePath = newImageNode.getId() + "_" + System.currentTimeMillis();
-							String path             = Services.getFilePath(Path.Files, relativeFilePath);
+							String path             = Services.getInstance().getFilePath(Path.Files, relativeFilePath);
 							File imageFile          = new File(path);
 
 							if (imageAsByteArray != null) {

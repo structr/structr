@@ -24,8 +24,9 @@ import javax.servlet.http.HttpServletRequest;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
+import org.structr.core.app.StructrApp;
+import org.structr.core.schema.SchemaHelper;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;
 import org.structr.rest.exception.NotFoundException;
@@ -126,8 +127,8 @@ public class TypedIdResource extends FilterableResource {
 	public GraphObject getEntity() throws FrameworkException {
 		
 		GraphObject entity = idResource.getEntity(typeResource.searchCommandType);
-		String type        = EntityContext.normalizeEntityName(typeResource.getRawType());
-		Class parentClass  = EntityContext.getEntityClassForRawType(type);
+		String type        = SchemaHelper.normalizeEntityName(typeResource.getRawType());
+		Class parentClass  = SchemaHelper.getEntityClassForRawType(type);
 		Class entityClass  = entity.getClass();
 
 		if (parentClass.isAssignableFrom(entityClass)) {

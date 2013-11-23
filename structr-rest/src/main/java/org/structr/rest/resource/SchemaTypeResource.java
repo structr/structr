@@ -41,7 +41,9 @@ import java.util.Set;
 import java.util.TreeMap;
 
 import javax.servlet.http.HttpServletRequest;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.PropertyDefinition;
+import org.structr.core.schema.SchemaHelper;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -98,14 +100,14 @@ public class SchemaTypeResource extends Resource {
 			schema.setProperty(new LongProperty("flags"), SecurityContext.getResourceFlags(rawType));
 
 			// list property sets for all views
-			Set<String> propertyViews              = new LinkedHashSet<String>(EntityContext.getPropertyViews());
+			Set<String> propertyViews              = new LinkedHashSet<String>(StructrApp.getConfiguration().getPropertyViews());
 			Map<String, Map<String, Object>> views = new TreeMap();
 
 			schema.setProperty(new StringProperty("views"), views);
 
 			for (String view : propertyViews) {
 
-				Set<PropertyKey> properties              = new LinkedHashSet<PropertyKey>(EntityContext.getPropertySet(type, view));
+				Set<PropertyKey> properties              = new LinkedHashSet<PropertyKey>(StructrApp.getConfiguration().getPropertySet(type, view));
 				Map<String, Object> propertyConverterMap = new TreeMap<String, Object>();
 
 				// augment property set with properties from PropertyDefinition
@@ -220,7 +222,7 @@ public class SchemaTypeResource extends Resource {
 	@Override
 	public String getResourceSignature() {
 
-		return SchemaResource.UriPart._schema.name().concat("/").concat(EntityContext.normalizeEntityName(getUriPart()));
+		return SchemaResource.UriPart._schema.name().concat("/").concat(SchemaHelper.normalizeEntityName(getUriPart()));
 
 	}
 

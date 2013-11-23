@@ -20,7 +20,7 @@ package org.structr.rest.entity;
 
 import java.util.List;
 import org.structr.common.PropertyView;
-import org.structr.core.EntityContext;
+import org.structr.common.View;
 import static org.structr.core.GraphObject.uuid;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.notion.PropertyNotion;
@@ -41,8 +41,5 @@ public class TestFive extends AbstractNode {
 	public static final Property<TestThree>     oneToOneTestThree  = new EndNode<>("oneToOneTestThree",  FiveThreeOneToOne.class);
 	public static final Property<TestThree>     manyToOneTestThree = new StartNode<>("manyToOneTestThree", ThreeFiveOneToMany.class);
 	
-	static {
-		
-		EntityContext.registerPropertySet(TestFive.class, PropertyView.Public, AbstractNode.name, manyToManyTestOnes, oneToManyTestOnes, oneToOneTestThree, manyToOneTestThree);
-	}
+	public static final View defaultView = new View(TestFive.class, PropertyView.Public, AbstractNode.name, manyToManyTestOnes, oneToManyTestOnes, oneToOneTestThree, manyToOneTestThree);
 }

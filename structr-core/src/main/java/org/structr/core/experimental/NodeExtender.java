@@ -26,20 +26,18 @@ import javax.tools.JavaCompiler;
 import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 import javax.tools.ToolProvider;
-import org.structr.core.EntityContext;
-import org.structr.core.Services;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.module.ModuleService;
+import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeInterface;
 
 /**
  *
  * @author Christian Morgner (christian@morgner.de)
  */
-public class NodeExtender<T extends AbstractNode> {
+public class NodeExtender<T extends NodeInterface> {
 
 	private static final JavaCompiler compiler             = ToolProvider.getSystemJavaCompiler();
 	private static final JavaFileManager fileManager       = new ClassFileManager(compiler.getStandardFileManager(null, null, null));
-	private static final Map<String, Class> dynamicClasses = new LinkedHashMap<String, Class>();
+	private static final Map<String, Class> dynamicClasses = new LinkedHashMap<>();
 
 	private String packageName = null;
 	private Class baseType     = null;
@@ -77,9 +75,9 @@ public class NodeExtender<T extends AbstractNode> {
 				dynamicClass = compile(simpleName);
 				dynamicClasses.put(simpleName, dynamicClass);
 				
-				// very experimental: store newly created dynamic class in EntityContext
-				EntityContext.init(dynamicClass);
-				Services.getService(ModuleService.class).getCachedNodeEntities().put(simpleName, dynamicClass);
+				// very experimental: store newly created dynamic class in SchemaHelper
+				StructrApp.getConfiguration().registerEntityType(dynamicClass);
+				StructrApp.getConfiguration().getNodeEntities().put(simpleName, dynamicClass);
 				
 			} catch (Throwable ignore) {
 				
@@ -92,7 +90,6 @@ public class NodeExtender<T extends AbstractNode> {
 	
 	private synchronized Class compile(String className) throws ClassNotFoundException {
 
-		// Here we specify the source code of the class to be compiled
 		StringBuilder src = new StringBuilder();
 
 		src.append("package ").append(packageName).append(";\n\n");
@@ -100,7 +97,7 @@ public class NodeExtender<T extends AbstractNode> {
 		src.append("public class ").append(className).append(" extends ").append(baseType.getSimpleName()).append(" {\n");
 		src.append("}\n");
 
-		List<JavaFileObject> jfiles = new ArrayList<JavaFileObject>();
+		List<JavaFileObject> jfiles = new ArrayList<>();
 
 		jfiles.add(new CharSequenceJavaFileObject(className, src));
 		compiler.getTask(null, fileManager, null, null, null, jfiles).call();

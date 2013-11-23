@@ -134,7 +134,7 @@ public class ReplaceWidgetCommand extends AbstractCommand {
 	 */
 	private void deleteRecursively(final DOMNode node) throws FrameworkException {
 		
-		final DeleteNodeCommand deleteNode = Services.command(getWebSocket().getSecurityContext(), DeleteNodeCommand.class);
+		final DeleteNodeCommand deleteNode = StructrApp.getInstance(getWebSocket().getSecurityContext()).command(DeleteNodeCommand.class);
 		
 		// Delete original node recursively
 		Set<DOMNode> allChildren = DOMNode.getAllChildNodes(node);

@@ -54,19 +54,18 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.tooling.GlobalGraphOperations;
 import org.structr.common.PropertyView;
-import org.structr.common.SecurityContext;
 import org.structr.context.ApplicationContextListener;
 import org.structr.core.GraphObject;
 import org.structr.core.Service;
 import org.structr.core.Services;
 import org.structr.core.agent.AgentService;
+import org.structr.core.app.StructrApp;
 import org.structr.core.auth.AuthenticationService;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.cron.CronService;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.log.LogService;
-import org.structr.core.module.ModuleService;
 import org.structr.core.graph.NodeService;
 import org.structr.core.graph.SyncCommand;
 import org.structr.rest.ResourceProvider;
@@ -81,7 +80,7 @@ import org.tuckey.web.filters.urlrewrite.UrlRewriteFilter;
 public class Structr {
 	
 	private static final Logger logger                         = Logger.getLogger(Structr.class.getName());
-	private static final String INITIAL_SEED_FILE             = "seed.zip";
+	private static final String INITIAL_SEED_FILE              = "seed.zip";
 	
 	private String applicationName                             = "structr server";
 	private String restUrl                                     = "/structr/rest";
@@ -92,9 +91,9 @@ public class Structr {
 	private String contextPath                                 = System.getProperty("contextPath", "/");
 	private String basePath                                    = "";
 
-	private static int httpPort				= 8082;
-	private static int httpsPort				= 8083;
-	public static int ftpPort				= 8022;
+	private static int httpPort				   = 8082;
+	private static int httpsPort				   = 8083;
+	public static int ftpPort				   = 8022;
 	
 	private int jsonDepth                                      = 4;
 	private boolean logRequests                                = false;
@@ -580,7 +579,6 @@ public class Structr {
 			baseDir.mkdirs();
 		}
 		
-		configuredServices.add(ModuleService.class);
 		configuredServices.add(NodeService.class);
 		configuredServices.add(AgentService.class);
 		configuredServices.add(CronService.class);
@@ -830,7 +828,7 @@ public class Structr {
 			
 			logger.log(Level.INFO, "Found initial seed file, checking database status..");
 			
-			GraphDatabaseService graphDb = Services.getService(NodeService.class).getGraphDb();
+			GraphDatabaseService graphDb = Services.getInstance().getService(NodeService.class).getGraphDb();
 			boolean hasApplicationNodes  = false;
 			
 			// check for application nodes (which have UUIDs)
@@ -853,7 +851,7 @@ public class Structr {
 				attributes.put("validate", "false");
 				attributes.put("file", seedFile.getAbsoluteFile().getAbsolutePath());
 				
-				Services.command(SecurityContext.getSuperUserInstance(), SyncCommand.class).execute(attributes);
+				StructrApp.getInstance().command(SyncCommand.class).execute(attributes);
 				
 			} else {
 				

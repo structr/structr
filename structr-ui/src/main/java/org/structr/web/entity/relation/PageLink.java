@@ -46,8 +46,8 @@ public class PageLink extends ManyToOne<DOMNode, Page> {
 	
 	static {
 
-		// EntityContext.registerNamedRelation("resource_link", ResourceLink.class, Link.class, Linkable.class, RelType.LINK);
-		// EntityContext.registerNamedRelation("hyperlink", ResourceLink.class, A.class, Linkable.class, RelType.LINK);
+		// StructrApp.getConfiguration().registerNamedRelation("resource_link", ResourceLink.class, Link.class, Linkable.class, RelType.LINK);
+		// StructrApp.getConfiguration().registerNamedRelation("hyperlink", ResourceLink.class, A.class, Linkable.class, RelType.LINK);
 	}
 
 	@Override

@@ -3,11 +3,10 @@ package org.structr.rest.serialization;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Writer;
-import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.module.ModuleService;
 import org.structr.rest.serialization.html.Document;
 import org.structr.rest.serialization.html.Tag;
 import org.structr.rest.serialization.html.attr.Css;
@@ -52,7 +51,7 @@ public class StructrJsonHtmlWriter implements RestWriter {
 	@Override
 	public RestWriter beginDocument(final String baseUrl, final String propertyView) throws IOException {
 		
-		String restPath    = Services.getConfigurationValue(Services.REST_PATH);
+		String restPath    = StructrApp.getConfigurationValue(Services.REST_PATH);
 		String currentType = baseUrl.replace(restPath + "/", "").replace("/" + propertyView, "");
 
 		Tag head = doc.block("head");
@@ -64,15 +63,14 @@ public class StructrJsonHtmlWriter implements RestWriter {
 		Tag top  = body.block("div").id("top");
 		Tag ul1  = top.block("ul");
 
-		for (String view : EntityContext.getPropertyViews()) {
+		for (String view : StructrApp.getConfiguration().getPropertyViews()) {
 			
 			ul1.block("li").inline("a").attr(new Href(restPath + "/" + currentType + "/" + view), new If(view.equals(propertyView), new Css("active"))).text(view);
 		}
 		
 		Tag left = body.block("div").id("left");
 
-		ModuleService moduleService = (ModuleService)Services.getService(ModuleService.class);
-		for (String rawType : moduleService.getCachedNodeEntityTypes()) {
+		for (String rawType : StructrApp.getConfiguration().getNodeEntities().keySet()) {
 			
 			left.block("p").inline("a").attr(new Href(restPath + "/" + rawType), new If(rawType.equals(currentType), new Css("active"))).text(rawType);
 		}

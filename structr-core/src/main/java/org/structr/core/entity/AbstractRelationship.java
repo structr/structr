@@ -44,7 +44,6 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.IdNotFoundToken;
 import org.structr.common.error.ReadOnlyPropertyToken;
-import org.structr.core.EntityContext;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -76,7 +75,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	
 	static {
 
-		EntityContext.registerEntityCreationTransformation(AbstractRelationship.class, new UuidCreationTransformation());
+		StructrApp.getConfiguration().registerEntityCreationTransformation(AbstractRelationship.class, new UuidCreationTransformation());
 	}
 
 	private boolean readOnlyPropertiesUnlocked = false;
@@ -457,7 +456,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	@Override
 	public Iterable<PropertyKey> getPropertyKeys(final String propertyView) {
 
-		return EntityContext.getPropertySet(this.getClass(), propertyView);
+		return StructrApp.getConfiguration().getPropertySet(this.getClass(), propertyView);
 
 	}
 
@@ -570,7 +569,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	public <T> void setProperty(final PropertyKey<T> key, final T value) throws FrameworkException {
 
 		// check for read-only properties
-		//if (EntityContext.isReadOnlyProperty(type, key) || (EntityContext.isWriteOnceProperty(type, key) && (dbRelationship != null) && dbRelationship.hasProperty(key.name()))) {
+		//if (StructrApp.getConfiguration().isReadOnlyProperty(type, key) || (StructrApp.getConfiguration().isWriteOnceProperty(type, key) && (dbRelationship != null) && dbRelationship.hasProperty(key.name()))) {
 		if (key.isReadOnly() || (key.isWriteOnce() && (dbRelationship != null) && dbRelationship.hasProperty(key.dbName()))) {
 
 			if (readOnlyPropertiesUnlocked || securityContext.isSuperUser()) {
@@ -592,7 +591,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	@Override
 	public void addToIndex() {
 
-		for (PropertyKey key : EntityContext.getPropertySet(entityType, PropertyView.All)) {
+		for (PropertyKey key : StructrApp.getConfiguration().getPropertySet(entityType, PropertyView.All)) {
 			
 			if (key.isIndexed()) {
 				
@@ -611,7 +610,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	@Override
 	public void removeFromIndex() {
 		
-		for (Index<Relationship> index : Services.getService(NodeService.class).getRelationshipIndices()) {
+		for (Index<Relationship> index : Services.getInstance().getService(NodeService.class).getRelationshipIndices()) {
 			
 			synchronized (index) {
 				
@@ -622,7 +621,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	
 	public void removeFromIndex(PropertyKey key) {
 		
-		for (Index<Relationship> index : Services.getService(NodeService.class).getRelationshipIndices()) {
+		for (Index<Relationship> index : Services.getInstance().getService(NodeService.class).getRelationshipIndices()) {
 			
 			synchronized (index) {
 				
@@ -634,7 +633,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	@Override
 	public void indexPassiveProperties() {
 
-		for (PropertyKey key : EntityContext.getPropertySet(entityType, PropertyView.All)) {
+		for (PropertyKey key : StructrApp.getConfiguration().getPropertySet(entityType, PropertyView.All)) {
 			
 			if (key.isPassivelyIndexed()) {
 				

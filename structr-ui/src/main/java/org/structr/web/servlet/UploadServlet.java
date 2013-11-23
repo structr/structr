@@ -79,7 +79,7 @@ public class UploadServlet extends HttpServlet {
 		DiskFileItemFactory fileFactory = new DiskFileItemFactory();
 		fileFactory.setSizeThreshold(MEMORY_THRESHOLD);
 
-		filesDir = new File(Services.getTmpPath());
+		filesDir = new File(Services.getInstance().getTmpPath());
 		if (!filesDir.exists()) {
 			filesDir.mkdir();
 		}
@@ -171,7 +171,7 @@ public class UploadServlet extends HttpServlet {
 
 	private Authenticator getAuthenticator() throws FrameworkException {
 
-		return (Authenticator) Services.command(null, AuthenticatorCommand.class).execute(getServletConfig());
+		return (Authenticator) StructrApp.getInstance().command(AuthenticatorCommand.class).execute(getServletConfig());
 
 	}
 

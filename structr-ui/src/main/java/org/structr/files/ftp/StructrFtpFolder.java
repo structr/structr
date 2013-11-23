@@ -28,10 +28,9 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.ftpserver.ftplet.FtpFile;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
-import org.structr.core.Services;
+import org.structr.core.app.StructrApp;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchNodeCommand;
@@ -101,7 +100,7 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 			searchAttrs.add(Search.orExactTypeAndSubtypes(org.structr.web.entity.Folder.class));
 
 			try {
-				Result<Folder> results = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(false, false, searchAttrs);
+				Result<Folder> results = StructrApp.getInstance().command(SearchNodeCommand.class).execute(false, false, searchAttrs);
 				logger.log(Level.INFO, "{0} folders found", results.size());
 
 				for (Folder f : results.getResults()) {
@@ -125,7 +124,7 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 			searchAttrs.add(Search.orExactTypeAndSubtypes(org.structr.web.entity.File.class));
 
 			try {
-				Result<File> results = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(false, false, searchAttrs);
+				Result<File> results = StructrApp.getInstance().command(SearchNodeCommand.class).execute(false, false, searchAttrs);
 				logger.log(Level.INFO, "{0} files found", results.size());
 
 				for (File f : results.getResults()) {

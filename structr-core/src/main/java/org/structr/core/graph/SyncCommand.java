@@ -112,7 +112,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 	@Override
 	public void execute(Map<String, Object> attributes) throws FrameworkException {
 		
-		GraphDatabaseService graphDb = Services.getService(NodeService.class).getGraphDb();
+		GraphDatabaseService graphDb = Services.getInstance().getService(NodeService.class).getGraphDb();
 		String mode                  = (String)attributes.get("mode");
 		String fileName              = (String)attributes.get("file");
 		String validate              = (String)attributes.get("validate");

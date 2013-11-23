@@ -26,7 +26,7 @@ import java.util.logging.Logger;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
+import org.structr.core.app.StructrApp;
 import org.structr.core.graph.DeleteRelationshipCommand;
 import org.structr.core.graph.NodeInterface;
 import org.structr.web.entity.dom.DOMNode;
@@ -83,7 +83,7 @@ public class RemoveCommand extends AbstractCommand {
 				} else {
 
 					// Old style: Delete all incoming CONTAINS rels
-					DeleteRelationshipCommand deleteRel = Services.command(securityContext, DeleteRelationshipCommand.class);
+					DeleteRelationshipCommand deleteRel = StructrApp.getInstance(securityContext).command(DeleteRelationshipCommand.class);
 					DOMChildren rel                     = node.getIncomingRelationship(DOMChildren.class);
 
 					if (rel != null) {

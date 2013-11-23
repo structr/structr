@@ -44,7 +44,7 @@ import org.structr.core.property.PropertyKey;
  * in a transaction, which can be achieved using the following code:
  * 
  * <pre>
- * Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+ * StructrApp.getInstance(securityContext).command(TransactionCommand.class).execute(new StructrTransaction() {
  * 
  *	public Object execute() throws FrameworkException {
  *		// do stuff here

@@ -19,7 +19,7 @@
 package org.structr.rest.entity;
 
 import org.structr.common.PropertyView;
-import org.structr.core.EntityContext;
+import org.structr.common.View;
 import org.structr.core.entity.AbstractNode;
 
 /**
@@ -30,8 +30,5 @@ import org.structr.core.entity.AbstractNode;
  */
 public class TestObject extends AbstractNode {
 	
-	static {
-		
-		EntityContext.registerPropertySet(TestObject.class, PropertyView.Public, AbstractNode.name);
-	}
+	public static final View defaultView = new View(TestObject.class, PropertyView.Public, AbstractNode.name);
 }

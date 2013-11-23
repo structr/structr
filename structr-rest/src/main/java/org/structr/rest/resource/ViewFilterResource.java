@@ -39,7 +39,7 @@ import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.EntityContext;
+import org.structr.core.schema.SchemaHelper;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -156,7 +156,7 @@ public class ViewFilterResource extends WrappingResource {
 			
 			// append view / scope part
 			signature.append("/_");
-			signature.append(EntityContext.normalizeEntityName(propertyView));
+			signature.append(SchemaHelper.normalizeEntityName(propertyView));
 		}
 
 		return StringUtils.stripEnd(signature.toString(), "/");

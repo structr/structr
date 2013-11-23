@@ -48,6 +48,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.cypher.javacompat.ExecutionEngine;
 import org.neo4j.shell.ShellSettings;
+import org.structr.core.app.StructrApp;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -120,7 +121,7 @@ public class NodeService implements SingletonService {
 			command.setArgument(RelationshipIndex.rel_fulltext.name(), relFulltextIndex);
 			command.setArgument(RelationshipIndex.rel_keyword.name(), relKeywordIndex);
 
-			command.setArgument("filesPath", Services.getFilesPath());
+			command.setArgument("filesPath", Services.getInstance().getFilesPath());
 			
 			command.setArgument("indices", NodeIndex.values());
 			command.setArgument("relationshipIndices", RelationshipIndex.values());
@@ -133,7 +134,7 @@ public class NodeService implements SingletonService {
 	public void initialize(final Map<String, String> context) {
 
 		final Map<String, String> neo4jConfiguration = new LinkedHashMap<>();
-		final String dbPath                          = Services.getDatabasePath();
+		final String dbPath                          = Services.getInstance().getDatabasePath();
 
 		logger.log(Level.INFO, "Initializing database ({0}) ...", dbPath);
 
@@ -146,7 +147,7 @@ public class NodeService implements SingletonService {
 		}
 
 		// neo4j remote shell configuration
-		if ("true".equals(Services.getConfigurationValue(Services.NEO4J_SHELL_ENABLED, "false"))) {
+		if ("true".equals(StructrApp.getConfigurationValue(Services.NEO4J_SHELL_ENABLED, "false"))) {
 			
 			// enable neo4j remote shell, thanks Michael :)
 			neo4jConfiguration.put(ShellSettings.remote_shell_enabled.name(), "true");
@@ -173,7 +174,7 @@ public class NodeService implements SingletonService {
 
 		}
 
-		String filesPath = Services.getFilesPath();
+		String filesPath = Services.getInstance().getFilesPath();
 
 		// check existence of files path
 		File files = new File(filesPath);

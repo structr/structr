@@ -40,7 +40,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
@@ -86,7 +85,7 @@ public class Security extends ManyToMany<Principal, NodeInterface> {
 		if (dbRelationship != null) {
 			
 			for (String key : dbRelationship.getPropertyKeys()) {
-				keys.add(EntityContext.getPropertyKeyForDatabaseName(entityType, key));
+				keys.add(StructrApp.getConfiguration().getPropertyKeyForDatabaseName(entityType, key));
 			}
 		}
 		

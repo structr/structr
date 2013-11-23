@@ -35,7 +35,6 @@ import org.structr.common.*;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.*;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
@@ -122,7 +121,7 @@ public class HtmlServlet extends HttpServlet {
 	@Override
 	public void init() {
 		
-		 searchNodesAsSuperuser = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class);
+		 searchNodesAsSuperuser = StructrApp.getInstance().command(SearchNodeCommand.class);
 	}
 
 	@Override
@@ -818,7 +817,7 @@ public class HtmlServlet extends HttpServlet {
 
 	private Authenticator getAuthenticator() throws FrameworkException {
 		
-		return (Authenticator) Services.command(null, AuthenticatorCommand.class).execute(getServletConfig());
+		return (Authenticator) StructrApp.getInstance().command(AuthenticatorCommand.class).execute(getServletConfig());
 		
 	}
 	

@@ -20,19 +20,18 @@
 
 package org.structr.context;
 
+import java.io.FileInputStream;
+import java.util.Map;
+import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
 import org.structr.core.*;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.io.FileInputStream;
-
-import java.util.Map;
-import java.util.Properties;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import javax.servlet.ServletContext;
+
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.http.HttpSession;
@@ -62,7 +61,6 @@ public class ApplicationContextListener implements ServletContextListener, HttpS
 		String configFilePath         = servletContext.getInitParameter(Services.CONFIG_FILE_PATH);
 
 		configMap.put(Services.CONFIG_FILE_PATH, configFilePath);
-		configMap.put(Services.SERVLET_REAL_ROOT_PATH, servletContext.getRealPath("/"));
 
 		try {
 
@@ -185,12 +183,12 @@ public class ApplicationContextListener implements ServletContextListener, HttpS
 			logger.log(Level.WARNING, "Could not inititialize all values");
 		}
 
-		Services.initialize(configMap);
+		Services.getInstance(configMap);
 
 		// Services.setConfig(context);
 
 		// Initialize cloud service
-		// not needed any more: Services.command(securityContext, StartCloudService.class);
+		// not needed any more: StructrApp.getInstance(securityContext).command(StartCloudService.class);
 		logger.log(Level.INFO, "structr application context initialized (structr started successfully)");
 
 	}
@@ -201,7 +199,7 @@ public class ApplicationContextListener implements ServletContextListener, HttpS
 		logger.log(Level.INFO, "Servlet context destroyed");
 
 		// TODO: remove servlet context attributes? Is it necessary?
-		Services.shutdown();
+		Services.getInstance().shutdown();
 
 	}
 

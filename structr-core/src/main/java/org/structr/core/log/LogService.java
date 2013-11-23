@@ -52,7 +52,7 @@ public class LogService implements SingletonService {
 	private TxPageFile logDb		= null;
 
 	/** Dependent services */
-	private Set<RunnableService> registeredServices = new HashSet<RunnableService>();
+	private Set<RunnableService> registeredServices = new HashSet<>();
 	private boolean isInitialized                   = false;
 
 	//~--- methods --------------------------------------------------------
@@ -72,7 +72,7 @@ public class LogService implements SingletonService {
 	public void initialize(Map<String, String> context) {
 
 //              String dbPath = (String) context.get(Services.DATABASE_PATH);
-		String logDbPath = Services.getLogDatabasePath();
+		String logDbPath = Services.getInstance().getLogDatabasePath();
 
 		try {
 
@@ -177,8 +177,8 @@ public class LogService implements SingletonService {
 		return LogService.class.getSimpleName();
 
 	}
-
 	// </editor-fold>
+	
 	@Override
 	public boolean isRunning() {
 

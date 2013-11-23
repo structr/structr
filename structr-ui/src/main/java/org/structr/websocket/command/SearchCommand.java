@@ -22,7 +22,6 @@ package org.structr.websocket.command;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
 import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
@@ -37,6 +36,8 @@ import org.structr.websocket.message.WebSocketMessage;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.app.StructrApp;
+import org.structr.core.schema.SchemaHelper;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 
@@ -65,7 +66,7 @@ public class SearchCommand extends AbstractCommand {
 		
 		Class type = null;
 		if (typeString != null) {
-			type = EntityContext.getEntityClassForRawType(typeString);
+			type = SchemaHelper.getEntityClassForRawType(typeString);
 		}
 
 		List<SearchAttribute> searchAttributes = new LinkedList();
@@ -87,12 +88,12 @@ public class SearchCommand extends AbstractCommand {
 		final String sortKey     = webSocketData.getSortKey();
 //		final int pageSize       = webSocketData.getPageSize();
 //		final int page           = webSocketData.getPage();
-		PropertyKey sortProperty = EntityContext.getPropertyKeyForJSONName(AbstractNode.class, sortKey);
+		PropertyKey sortProperty = StructrApp.getConfiguration().getPropertyKeyForJSONName(AbstractNode.class, sortKey);
 
 		try {
 
 			// do search
-			Result result = (Result) Services.command(securityContext, SearchNodeCommand.class).execute(true, false, searchAttributes, sortProperty, "desc".equals(sortOrder));
+			Result result = (Result) StructrApp.getInstance(securityContext).command(SearchNodeCommand.class).execute(true, false, searchAttributes, sortProperty, "desc".equals(sortOrder));
 //			List<AbstractNode> filteredResults     = new LinkedList<AbstractNode>();
 //			List<? extends GraphObject> resultList = result.getResults();
 //

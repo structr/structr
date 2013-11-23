@@ -21,9 +21,7 @@
 package org.structr.web.entity;
 
 import org.structr.common.PropertyView;
-import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.graph.NodeService;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
 import org.structr.web.entity.dom.DOMElement;

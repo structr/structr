@@ -26,10 +26,8 @@ import org.apache.commons.lang.StringUtils;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.module.ModuleService;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -47,6 +45,8 @@ import org.structr.core.Result;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.schema.Configuration;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -103,17 +103,15 @@ public abstract class Search {
 
 	private static List<SearchAttribute> getTypeAndSubtypesInternal(final Class type, final boolean isExactMatch) {
 
-		List<SearchAttribute> attrs = new LinkedList<>();
-
-		ModuleService moduleService     = Services.getService(ModuleService.class);
-		Map<String, Class> nodeEntities = moduleService.getCachedNodeEntities();
-		Map<String, Class> relEntities  = moduleService.getCachedRelationshipEntities();
+		final Configuration configuration                                     = StructrApp.getConfiguration();
+		final Map<String, Class<? extends NodeInterface>> nodeEntities        = configuration.getNodeEntities();
+		final Map<String, Class<? extends RelationshipInterface>> relEntities = configuration.getRelationshipEntities();
+		final List<SearchAttribute> attrs                                     = new LinkedList<>();
 
 		if (type == null) {
 
-			// no entity class for the given type found,
-			// examine interface types and subclasses
-			Set<Class> classesForInterface = moduleService.getClassesForInterface(type.getSimpleName());
+			// no entity class for the given type found, examine interface types and subclasses
+			Set<Class> classesForInterface = configuration.getClassesForInterface(type.getSimpleName());
 
 			if (classesForInterface != null) {
 
@@ -127,9 +125,9 @@ public abstract class Search {
 			return attrs;
 		}
 
-		for (Map.Entry<String, Class> entity : nodeEntities.entrySet()) {
+		for (Map.Entry<String, Class<? extends NodeInterface>> entity : nodeEntities.entrySet()) {
 
-			Class entityClass = entity.getValue();
+			Class<? extends NodeInterface> entityClass = entity.getValue();
 
 			if (type.isAssignableFrom(entityClass)) {
 
@@ -137,9 +135,9 @@ public abstract class Search {
 			}
 		}
 
-		for (Map.Entry<String, Class> entity : relEntities.entrySet()) {
+		for (Map.Entry<String, Class<? extends RelationshipInterface>> entity : relEntities.entrySet()) {
 
-			Class entityClass = entity.getValue();
+			Class<? extends RelationshipInterface> entityClass = entity.getValue();
 
 			if (type.isAssignableFrom(entityClass)) {
 

@@ -29,7 +29,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.ftpserver.ftplet.FtpFile;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
@@ -90,7 +89,7 @@ public class FileOrFolder extends AbstractStructrFtpFile {
 		try {
 			app.beginTx();
 			
-			Folder newFolder = (Folder) Services.command(SecurityContext.getSuperUserInstance(), CreateNodeCommand.class).execute(
+			Folder newFolder = (Folder) StructrApp.getInstance().command(CreateNodeCommand.class).execute(
 				new NodeAttribute(AbstractNode.type, Folder.class.getSimpleName()),
 				new NodeAttribute(AbstractNode.owner, owner.getStructrUser()),
 				new NodeAttribute(AbstractNode.name, getName())

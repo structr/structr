@@ -52,12 +52,12 @@ public abstract class StreamingWriter {
 	private static final Logger logger                   = Logger.getLogger(StreamingWriter.class.getName());
 	private static final long MAX_SERIALIZATION_TIME     = TimeUnit.SECONDS.toMillis(30);
 
-	private final Map<Class, Serializer> serializerCache = new LinkedHashMap<Class, Serializer>();
-	private final Map<Class, Serializer> serializers     = new LinkedHashMap<Class, Serializer>();
+	private final Map<Class, Serializer> serializerCache = new LinkedHashMap<>();
+	private final Map<Class, Serializer> serializers     = new LinkedHashMap<>();
 	private final Serializer<GraphObject> root           = new RootSerializer();
-	private final Set<Class> nonSerializerClasses        = new LinkedHashSet<Class>();
+	private final Set<Class> nonSerializerClasses        = new LinkedHashSet<>();
 	private final Property<String> id                    = new StringProperty("id");
-	private final int outputNestingDepth                 = Services.getOutputNestingDepth();
+	private final int outputNestingDepth                 = Services.getInstance().getOutputNestingDepth();
 	private DecimalFormat decimalFormat                  = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 	private PropertyKey idProperty                       = GraphObject.uuid;
 	private SecurityContext securityContext              = null;

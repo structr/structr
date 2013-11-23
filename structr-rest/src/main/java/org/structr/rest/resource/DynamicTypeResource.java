@@ -28,9 +28,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
 import org.structr.core.Result;
-import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.search.Search;
@@ -43,6 +41,7 @@ import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
 import org.structr.core.entity.PropertyDefinition;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.schema.SchemaHelper;
 
 /**
  *
@@ -63,7 +62,7 @@ public class DynamicTypeResource extends TypeResource {
 
 		if (part != null) {
 
-			this.normalizedTypeName = EntityContext.normalizeEntityName(part);
+			this.normalizedTypeName = SchemaHelper.normalizeEntityName(part);
 			
 			if (PropertyDefinition.exists(this.normalizedTypeName)) {
 				
@@ -95,7 +94,7 @@ public class DynamicTypeResource extends TypeResource {
 			searchAttributes.addAll(extractSearchableAttributes(securityContext, entityClass, request));
 			
 			// do search
-			Result results = Services.command(securityContext, SearchNodeCommand.class).execute(
+			Result results = StructrApp.getInstance(securityContext).command(SearchNodeCommand.class).execute(
 				includeDeletedAndHidden,
 				publicOnly,
 				searchAttributes,
@@ -163,7 +162,7 @@ public class DynamicTypeResource extends TypeResource {
 	public NodeInterface createNode(final Map<String, Object> propertySet) throws FrameworkException {
 
 		final App app    = StructrApp.getInstance(securityContext);
-		final Class type = EntityContext.getEntityClassForRawType(normalizedTypeName);
+		final Class type = SchemaHelper.getEntityClassForRawType(normalizedTypeName);
 		
 		if (type != null) {
 			
@@ -223,7 +222,7 @@ public class DynamicTypeResource extends TypeResource {
 	@Override
 	public String getResourceSignature() {
 
-		return EntityContext.normalizeEntityName(rawType);
+		return SchemaHelper.normalizeEntityName(rawType);
 
 	}
 

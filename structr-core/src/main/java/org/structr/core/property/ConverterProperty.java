@@ -22,8 +22,8 @@ import java.lang.reflect.Constructor;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
-import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
+import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 
 /**
@@ -55,7 +55,7 @@ public class ConverterProperty<T> extends AbstractPrimitiveProperty<T> {
 		}
 		
 		// make us known to the entity context
-		EntityContext.registerConvertedProperty(this);
+		StructrApp.getConfiguration().registerConvertedProperty(this);
 	}
 	
 	@Override

@@ -54,11 +54,11 @@ public class GraphObjectGSONAdapter {
 	private static final Logger logger                   = Logger.getLogger(GraphObjectGSONAdapter.class.getName());
 	private static final long MAX_SERIALIZATION_TIME     = TimeUnit.SECONDS.toMillis(30);
 	
-	private final Map<Class, Serializer> serializerCache = new LinkedHashMap<Class, Serializer>();
-	private final Map<Class, Serializer> serializers     = new LinkedHashMap<Class, Serializer>();
-	private final Set<Class> nonSerializerClasses        = new LinkedHashSet<Class>();
+	private final Map<Class, Serializer> serializerCache = new LinkedHashMap<>();
+	private final Map<Class, Serializer> serializers     = new LinkedHashMap<>();
+	private final Set<Class> nonSerializerClasses        = new LinkedHashSet<>();
 	private final Property<String> id                    = new StringProperty("id");
-	private final int outputNestingDepth                 = Services.getOutputNestingDepth();
+	private final int outputNestingDepth                 = Services.getInstance().getOutputNestingDepth();
 	private final Serializer<GraphObject> root           = new RootSerializer();
 	private PropertyKey idProperty                       = null;
 	private SecurityContext securityContext              = null;

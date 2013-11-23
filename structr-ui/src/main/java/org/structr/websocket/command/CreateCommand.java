@@ -31,11 +31,11 @@ import org.structr.websocket.message.WebSocketMessage;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.core.EntityContext;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.schema.SchemaHelper;
 import org.structr.web.entity.File;
 import org.structr.websocket.StructrWebSocket;
 
@@ -70,7 +70,7 @@ public class CreateCommand extends AbstractCommand {
 			app.beginTx();
 			
 			final PropertyMap properties	= PropertyMap.inputTypeToJavaType(securityContext, nodeData);
-			Class type			= EntityContext.getEntityClassForRawType(properties.get(AbstractNode.type));
+			Class type			= SchemaHelper.getEntityClassForRawType(properties.get(AbstractNode.type));
 			final NodeInterface newNode	= app.create(type, properties);
 
 			// check for File node and store in WebSocket to receive chunks

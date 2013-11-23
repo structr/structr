@@ -151,9 +151,9 @@ public class Importer {
 
 	public void init() {
 
-		searchNode = Services.command(securityContext, SearchNodeCommand.class);
-		createNode = Services.command(securityContext, CreateNodeCommand.class);
-		createRel  = Services.command(securityContext, CreateRelationshipCommand.class);
+		searchNode = StructrApp.getInstance(securityContext).command(SearchNodeCommand.class);
+		createNode = StructrApp.getInstance(securityContext).command(CreateNodeCommand.class);
+		createRel  = StructrApp.getInstance(securityContext).command(CreateRelationshipCommand.class);
 	}
 
 	public boolean parse() throws FrameworkException {
@@ -474,7 +474,7 @@ public class Importer {
 		// Create temporary file with new uuid
 		// FIXME: This is much too dangerous!
 		String relativeFilePath = org.structr.web.entity.File.getDirectoryPath(uuid) + "/" + uuid;
-		String filePath         = Services.getFilePath(Path.Files, relativeFilePath);
+		String filePath         = Services.getInstance().getFilePath(Path.Files, relativeFilePath);
 		java.io.File fileOnDisk = new java.io.File(filePath);
 
 		fileOnDisk.getParentFile().mkdirs();

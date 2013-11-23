@@ -27,13 +27,13 @@ import org.structr.core.Module;
  *
  * @author Christian Morgner
  */
-public class DefaultModule implements Module
-{
-	private Set<String> rawClasses = new LinkedHashSet<String>();
-	private Set<String> properties = new LinkedHashSet<String>();
-	private Set<String> resources = new LinkedHashSet<String>();
-	private Set<String> libraries = new LinkedHashSet<String>();
-	private String modulePath = null;
+public class DefaultModule implements Module {
+	
+	private Set<String> rawClasses = new LinkedHashSet<>();
+	private Set<String> properties = new LinkedHashSet<>();
+	private Set<String> resources  = new LinkedHashSet<>();
+	private Set<String> libraries  = new LinkedHashSet<>();
+	private String modulePath      = null;
 
 	public DefaultModule(String modulePath)
 	{

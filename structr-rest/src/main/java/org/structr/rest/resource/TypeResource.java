@@ -21,7 +21,6 @@ package org.structr.rest.resource;
 import org.structr.core.Result;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.search.DistanceSearchAttribute;
 import org.structr.core.graph.search.Search;
@@ -43,7 +42,6 @@ import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.GraphObject;
-import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
@@ -56,6 +54,7 @@ import org.structr.core.graph.search.SearchRelationshipCommand;
 import org.structr.core.notion.Notion;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.schema.SchemaHelper;
 import org.structr.rest.exception.IllegalPathException;
 import static org.structr.rest.resource.Resource.parseInteger;
 import org.structr.rest.servlet.JsonRestServlet;
@@ -99,7 +98,7 @@ public class TypeResource extends SortableResource {
 			
 
 			// test if resource class exists
-			entityClass = EntityContext.getEntityClassForRawType(rawType);
+			entityClass = SchemaHelper.getEntityClassForRawType(rawType);
 			if (entityClass != null) {
 				
 				if (AbstractNode.class.isAssignableFrom(entityClass)) {
@@ -150,7 +149,7 @@ public class TypeResource extends SortableResource {
 			
 			searchAttributes.add(Search.andTypeAndSubtypes(entityClass, !inexactSearch));
 			
-			// searchable attributes from EntityContext
+			// searchable attributes from SchemaHelper
 			searchAttributes.addAll(validAttributes);
 			
 			// default sort key & order
@@ -193,7 +192,7 @@ public class TypeResource extends SortableResource {
 			
 			
 			// do search
-			Result results = Services.command(securityContext, searchCommandType).execute(
+			Result results = StructrApp.getInstance(securityContext).command(searchCommandType).execute(
 				includeDeletedAndHidden,
 				publicOnly,
 				searchAttributes,
@@ -373,7 +372,7 @@ public class TypeResource extends SortableResource {
 	@Override
 	public String getResourceSignature() {
 
-		return EntityContext.normalizeEntityName(getUriPart());
+		return SchemaHelper.normalizeEntityName(getUriPart());
 
 	}
 

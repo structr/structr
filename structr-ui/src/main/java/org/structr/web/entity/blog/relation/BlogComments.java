@@ -21,12 +21,12 @@
 package org.structr.web.entity.blog.relation;
 
 import org.structr.core.property.PropertyKey;
-import org.structr.core.EntityContext;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.LinkedHashSet;
 import java.util.Set;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.OneToMany;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
@@ -48,11 +48,11 @@ public class BlogComments extends OneToMany<DOMElement, BlogComment> {
 
 	static {
 
-		// EntityContext.registerNamedRelation("data", ContentRelationship.class, DOMElement.class, Content.class, RelType.CONTAINS);
+		// StructrApp.getConfiguration().registerNamedRelation("data", ContentRelationship.class, DOMElement.class, Content.class, RelType.CONTAINS);
 
 		// not needed, overridden below
-		// EntityContext.registerPropertySet(ContentRelationship.class, PropertyView.All,    ContentRelationship.Key.values());
-		// EntityContext.registerPropertySet(ContentRelationship.class, PropertyView.Public, ContentRelationship.Key.values());
+		// StructrApp.getConfiguration().registerPropertySet(ContentRelationship.class, PropertyView.All,    ContentRelationship.Key.values());
+		// StructrApp.getConfiguration().registerPropertySet(ContentRelationship.class, PropertyView.Public, ContentRelationship.Key.values());
 
 	}
 
@@ -70,7 +70,7 @@ public class BlogComments extends OneToMany<DOMElement, BlogComment> {
 
 			for (String key : dbRelationship.getPropertyKeys()) {
 
-				keys.add(EntityContext.getPropertyKeyForDatabaseName(entityType, key));
+				keys.add(StructrApp.getConfiguration().getPropertyKeyForDatabaseName(entityType, key));
 			}
 
 		}

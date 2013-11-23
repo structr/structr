@@ -28,7 +28,6 @@ import org.apache.commons.lang.StringUtils;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
 import org.structr.core.Value;
@@ -59,7 +58,7 @@ import java.util.regex.Pattern;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.structr.core.Services;
+import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.AuthenticatorCommand;
 
@@ -149,7 +148,7 @@ public class CsvServlet extends HttpServlet {
 
 				Class<? extends GraphObject> type = resource.getEntityClass();
 
-				sortKey = EntityContext.getPropertyKeyForDatabaseName(type, sortKeyName);
+				sortKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, sortKeyName);
 
 			}
 
@@ -358,7 +357,7 @@ public class CsvServlet extends HttpServlet {
 	
 	private Authenticator getAuthenticator() throws FrameworkException {
 		
-		return (Authenticator) Services.command(null, AuthenticatorCommand.class).execute(getServletConfig());
+		return (Authenticator) StructrApp.getInstance().command(AuthenticatorCommand.class).execute(getServletConfig());
 		
 	}
 

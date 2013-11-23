@@ -29,8 +29,8 @@ import org.neo4j.helpers.collection.Iterables;
 import org.structr.common.NotNullPredicate;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
+import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.ManyStartpoint;
@@ -90,7 +90,7 @@ public class StartNodes<S extends NodeInterface, T extends NodeInterface> extend
 
 		this.notion.setType(destType);
 		
-		EntityContext.registerConvertedProperty(this);
+		StructrApp.getConfiguration().registerConvertedProperty(this);
 	}
 	
 	@Override

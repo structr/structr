@@ -20,11 +20,10 @@
 
 package org.structr.core;
 
-import java.util.Collections;
+import java.io.FileInputStream;
 import org.apache.commons.lang.StringUtils;
 
 import org.structr.common.Path;
-import org.structr.core.module.InitializeModuleServiceCommand;
 import org.structr.core.module.ModuleService;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -34,12 +33,15 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.lang.RandomStringUtils;
 import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
+import org.structr.core.app.StructrApp;
+import org.structr.core.schema.Configuration;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -53,6 +55,8 @@ import org.structr.common.error.FrameworkException;
  * @author Christian Morgner
  */
 public class Services {
+
+	private static final Logger logger            = Logger.getLogger(StructrApp.class.getName());
 
 	// Application constants
 	public static final String APPLICATION_TITLE         = "application.title";
@@ -85,7 +89,6 @@ public class Services {
 
 	// Network-related constants
 	public static final String SERVER_IP              = "server.ip";
-	public static final String SERVLET_REAL_ROOT_PATH = "servlet.context";
 	public static final String SMTP_HOST              = "smtp.host";
 	public static final String SMTP_PORT              = "smtp.port";
 	public static final String SMTP_USER              = "smtp.user";
@@ -109,44 +112,68 @@ public class Services {
 	public static final String GEOCODING_LANGUAGE = "geocoding.language";
 	public static final String GEOCODING_APIKEY   = "geocoding.apikey";
 	
-	private static Map<String, String> config    = null;
-	private static final Logger logger            = Logger.getLogger(Services.class.getName());
+	// schema
+	public static final String CONFIGURATION      = "configuration";
+	
+	// singleton instance
+	private static Services singletonInstance = null;
+	
+	// non-static members
+	private final Map<String, Object> attributes      = new ConcurrentHashMap<>(10, 0.9f, 8);
+	private final Map<Class, Service> serviceCache    = new ConcurrentHashMap<>(10, 0.9f, 8);
+	private final Set<Class> registeredServiceClasses = new LinkedHashSet<>();
+	private final Set<Class> configuredServiceClasses = new LinkedHashSet<>();
+	private Map<String, String> config                = null;
+	private Configuration configuration               = null;
+	private boolean initializationDone                = false;
+	private String configurationClass                 = null;
+	private String httpsEnabled                       = null;
+	private String appTitle                           = null;
+	private String appHost                            = null;
+	private String appHttpPort                        = null;
+	private String appHttpsPort                       = null;
+	private String appFtpPort                         = null;
+	private String keystorePath                       = null;
+	private String keystorePassword                   = null;
+	private String basePath                           = null;
+	private String restPath                           = null;
+	private String configFilePath                     = null;
+	private String configuredServices                 = null;
+	private String databasePath                       = null;
+	private String logDatabasePath                    = null;
+	private String filesPath                          = null;
+	private String resources                          = null;
+	private String serverIp                           = null;
+	private String smtpHost                           = null;
+	private String smtpPort                           = null;
+	private String smtpUser                           = null;
+	private String smtpPassword                       = null;
+	private String superuserPassword                  = null;
+	private String superuserUsername                  = null;
+	private String tcpPort                            = null;
+	private String tmpPath                            = null;
+	private String udpPort                            = null;
+	private String jsonDepth                          = null;
 
-	private static final Map<String, Object> attributes      = new ConcurrentHashMap<>(10, 0.9f, 8);
-	private static final Map<Class, Service> serviceCache    = new ConcurrentHashMap<>(10, 0.9f, 8);
-	private static final Set<Class> registeredServiceClasses = new LinkedHashSet<>();
-	private static final Set<Class> configuredServiceClasses = new LinkedHashSet<>();
-	private static boolean initializationDone = false;
-	private static String httpsEnabled;
-	private static String appTitle;
-	private static String appHost;
-	private static String appHttpPort;
-	private static String appHttpsPort;
-	private static String appFtpPort;
-	private static String keystorePath;
-	private static String keystorePassword;
-	private static String basePath;
-	private static String restPath;
-	private static String configFilePath;
-	private static String configuredServices;
-	private static String databasePath;
-	private static String logDatabasePath;
-	private static String filesPath;
-	private static String resources;
-	private static String serverIp;
-	private static String smtpHost;
-	private static String smtpPort;
-	private static String smtpUser;
-	private static String smtpPassword;
-	private static String superuserPassword;
-	private static String superuserUsername;
-	private static String tcpPort;
-	private static String tmpPath;
-	private static String udpPort;
-	private static String jsonDepth;
+	private Services() { }
+	
+	public static Services getInstance(final Map<String, String> configuration) {
+		
+		if (singletonInstance == null) {
+			singletonInstance = new Services();
+		}
 
-	//~--- methods --------------------------------------------------------
-
+		if (configuration != null) {
+			singletonInstance.initialize(configuration);
+		}
+		
+		return singletonInstance;
+	}
+	
+	public static Services getInstance() {
+		return getInstance(null);
+	}
+	
 	/**
 	 * Creates and returns a command of the given <code>type</code>. If a command is
 	 * found, the corresponding service will be discovered and activated.
@@ -156,7 +183,7 @@ public class Services {
 	 * @param commandType the runtime type of the desired command
 	 * @return the command
 	 */
-	public static <T extends Command> T command(SecurityContext securityContext, Class<T> commandType) {
+	public <T extends Command> T command(SecurityContext securityContext, Class<T> commandType) {
 
 		Class serviceClass = null;
 		T command          = null;
@@ -208,13 +235,13 @@ public class Services {
 		return (command);
 	}
 
-	public static void initialize(final Map<String, String> initConfig) {
+	private void initialize(final Map<String, String> initConfig) {
 
 		config = initConfig;
 		initialize();
 	}
 
-	public static void initialize() {
+	private void initialize() {
 
 		logger.log(Level.INFO, "Initializing service layer");
 
@@ -224,48 +251,40 @@ public class Services {
 
 			return;
 		}
-
-		configFilePath     = getConfigValue(config, Services.CONFIG_FILE_PATH, "./structr.conf");
-		configuredServices = getConfigValue(config, Services.CONFIGURED_SERVICES,
-			"ModuleService NodeService AgentService CloudService CacheService LogService NotificationService");
-		appTitle          = getConfigValue(config, Services.APPLICATION_TITLE, "structr");
-		appHost           = getConfigValue(config, Services.APPLICATION_HOST, "localhost");
-		appHttpPort       = getConfigValue(config, Services.APPLICATION_HTTP_PORT, "8082");
-		appHttpsPort      = getConfigValue(config, Services.APPLICATION_HTTPS_PORT, "8083");
-		appFtpPort        = getConfigValue(config, Services.APPLICATION_FTP_PORT, "8022");
-		httpsEnabled      = getConfigValue(config, Services.APPLICATION_HTTPS_ENABLED, "false");
-		keystorePath      = getConfigValue(config, Services.APPLICATION_KEYSTORE_PATH, "");
-		keystorePassword  = getConfigValue(config, Services.APPLICATION_KEYSTORE_PASSWORD, "");
-		tmpPath           = getConfigValue(config, Services.TMP_PATH, "/tmp");
-		basePath          = getConfigValue(config, Services.BASE_PATH, ".");
-		restPath          = getConfigValue(config, Services.REST_PATH, "/structr/rest");
-		databasePath      = getConfigValue(config, Services.DATABASE_PATH, "./db");
-		logDatabasePath   = getConfigValue(config, Services.LOG_DATABASE_PATH, "./logdb.dat");
-		filesPath         = getConfigValue(config, Services.FILES_PATH, "./files");
-		resources         = getConfigValue(config, Services.RESOURCES, "");
-		serverIp          = getConfigValue(config, Services.SERVER_IP, "127.0.0.1");
-		tcpPort           = getConfigValue(config, Services.TCP_PORT, "54555");
-		udpPort           = getConfigValue(config, Services.UDP_PORT, "57555");
-		smtpHost          = getConfigValue(config, Services.SMTP_HOST, "localhost");
-		smtpPort          = getConfigValue(config, Services.SMTP_PORT, "25");
-		smtpUser          = getConfigValue(config, Services.SMTP_USER, "");
-		smtpPassword      = getConfigValue(config, Services.SMTP_PASSWORD, "");
-		superuserUsername = getConfigValue(config, Services.SUPERUSER_USERNAME, "superadmin");
-		superuserPassword = getConfigValue(config, Services.SUPERUSER_PASSWORD, "");    // intentionally no default password!
-		jsonDepth         = getConfigValue(config, Services.JSON_OUTPUT_DEPTH, "3");
+		
+		configFilePath      = getConfigValue(config, Services.CONFIG_FILE_PATH, "./structr.conf");
+		configuredServices  = getConfigValue(config, Services.CONFIGURED_SERVICES, "NodeService AgentService CloudService CacheService LogService NotificationService");
+		configurationClass  = getConfigValue(config, Services.CONFIGURATION, ModuleService.class.getName());
+		appTitle            = getConfigValue(config, Services.APPLICATION_TITLE, "structr");
+		appHost             = getConfigValue(config, Services.APPLICATION_HOST, "localhost");
+		appHttpPort         = getConfigValue(config, Services.APPLICATION_HTTP_PORT, "8082");
+		appHttpsPort        = getConfigValue(config, Services.APPLICATION_HTTPS_PORT, "8083");
+		appFtpPort          = getConfigValue(config, Services.APPLICATION_FTP_PORT, "8022");
+		httpsEnabled        = getConfigValue(config, Services.APPLICATION_HTTPS_ENABLED, "false");
+		keystorePath        = getConfigValue(config, Services.APPLICATION_KEYSTORE_PATH, "");
+		keystorePassword    = getConfigValue(config, Services.APPLICATION_KEYSTORE_PASSWORD, "");
+		tmpPath             = getConfigValue(config, Services.TMP_PATH, "/tmp");
+		basePath            = getConfigValue(config, Services.BASE_PATH, ".");
+		restPath            = getConfigValue(config, Services.REST_PATH, "/structr/rest");
+		databasePath        = getConfigValue(config, Services.DATABASE_PATH, "./db");
+		logDatabasePath     = getConfigValue(config, Services.LOG_DATABASE_PATH, "./logdb.dat");
+		filesPath           = getConfigValue(config, Services.FILES_PATH, "./files");
+		resources           = getConfigValue(config, Services.RESOURCES, "");
+		serverIp            = getConfigValue(config, Services.SERVER_IP, "127.0.0.1");
+		tcpPort             = getConfigValue(config, Services.TCP_PORT, "54555");
+		udpPort             = getConfigValue(config, Services.UDP_PORT, "57555");
+		smtpHost            = getConfigValue(config, Services.SMTP_HOST, "localhost");
+		smtpPort            = getConfigValue(config, Services.SMTP_PORT, "25");
+		smtpUser            = getConfigValue(config, Services.SMTP_USER, "");
+		smtpPassword        = getConfigValue(config, Services.SMTP_PASSWORD, "");
+		superuserUsername   = getConfigValue(config, Services.SUPERUSER_USERNAME, "superadmin");
+		superuserPassword   = getConfigValue(config, Services.SUPERUSER_PASSWORD, RandomStringUtils.randomAlphanumeric(12));
+		jsonDepth           = getConfigValue(config, Services.JSON_OUTPUT_DEPTH, "3");
 		
 		logger.log(Level.INFO, "Starting services");
-
-		try {
-			// initialize module service (which can be thought of as the root service)
-			// securityContext can be null here, as the command is a null command
-			Services.command(null, InitializeModuleServiceCommand.class).execute();
-
-		} catch(FrameworkException fex) {
-			
-			// initialization failed!
-			fex.printStackTrace();
-		}
+		
+		// if configuration is not yet established, instantiate it
+		getConfiguration();
 
 		// initialize other services
 		for (Class serviceClass : registeredServiceClasses) {
@@ -293,11 +312,11 @@ public class Services {
 		initializationDone = true;
 	}
 	
-	public static boolean isInitialized() {
+	public boolean isInitialized() {
 		return initializationDone;
 	}
 
-	public static void shutdown() {
+	public void shutdown() {
 
 		logger.log(Level.INFO, "Shutting down service layer");
 		for (Service service : serviceCache.values()) {
@@ -324,7 +343,9 @@ public class Services {
 
 		serviceCache.clear();
 
-//              serviceClassCache.clear();
+		// shut down configuration provider
+		configuration.shutdown();
+		
 		logger.log(Level.INFO, "Finished shutdown of service layer");
 	}
 
@@ -334,7 +355,7 @@ public class Services {
 	 *
 	 * @param serviceClass the service class to register
 	 */
-	public static void registerServiceClass(Class serviceClass) {
+	public void registerServiceClass(Class serviceClass) {
 
 		// register service classes except module service (which is initialized manually)
 		if (!serviceClass.equals(ModuleService.class)) {
@@ -342,7 +363,7 @@ public class Services {
 		}
 	}
 
-	public static String getConfigurationValue(String key) {
+	public String getConfigurationValue(String key) {
 		
 		if(config != null) {
 			return config.get(key);
@@ -350,7 +371,7 @@ public class Services {
 		return null;
 	}
 	
-	public static String getConfigurationValue(String key, String defaultValue) {
+	public String getConfigurationValue(String key, String defaultValue) {
 		
 		String value = getConfigurationValue(key);
 		if(value == null) {
@@ -360,13 +381,36 @@ public class Services {
 		return value;
 	}
 	
+	public Configuration getConfiguration() {
+
+		// instantiate configuration provider
+		if (configuration == null) {
+
+			// when executing tests, the configuration class may already exist,
+			// so we don't instantiate it again since all the entities are already
+			// known to the ClassLoader and we would miss the code in all the static
+			// initializers.
+			try {
+
+				configuration = (Configuration)Class.forName(configurationClass).newInstance();
+				configuration.initialize();
+
+			} catch (Throwable t) {
+
+				logger.log(Level.SEVERE, "Unable to instantiate schema provider of type {0}: {1}", new Object[] { configurationClass, t.getMessage() });
+			}
+		}
+
+		return configuration;
+	}
+	
 	/**
 	 * Store an attribute value in the service config
 	 * 
 	 * @param name
 	 * @param value 
 	 */
-	public static void setAttribute(final String name, final Object value) {
+	public void setAttribute(final String name, final Object value) {
 		synchronized (attributes) {
 			attributes.put(name, value);
 		}
@@ -378,7 +422,7 @@ public class Services {
 	 * @param name
 	 * @return 
 	 */
-	public static Object getAttribute(final String name) {
+	public Object getAttribute(final String name) {
 		return attributes.get(name);
 	}
 	
@@ -387,11 +431,11 @@ public class Services {
 	 * 
 	 * @param name 
 	 */
-	public static void removeAttribute(final String name) {
+	public void removeAttribute(final String name) {
 		attributes.remove(name);
 	}
 	
-	private static Service createService(Class serviceClass) throws InstantiationException, IllegalAccessException {
+	private Service createService(Class serviceClass) throws InstantiationException, IllegalAccessException {
 
 		logger.log(Level.FINE, "Creating service ", serviceClass.getName());
 
@@ -429,7 +473,7 @@ public class Services {
 	 * Return the application title
 	 * @return 
 	 */
-	public static String getApplicationTitle() {
+	public String getApplicationTitle() {
 		return appTitle;
 	}
 
@@ -437,7 +481,7 @@ public class Services {
 	 * Return the application host name
 	 * @return 
 	 */
-	public static String getApplicationHost() {
+	public String getApplicationHost() {
 		return appHost;
 	}
 	
@@ -445,7 +489,7 @@ public class Services {
 	 * Return the application HTTP port
 	 * @return 
 	 */
-	public static String getHttpPort() {
+	public String getHttpPort() {
 		return appHttpPort;
 	}
 	
@@ -453,7 +497,7 @@ public class Services {
 	 * Return the application FTP port
 	 * @return 
 	 */
-	public static String getFtpPort() {
+	public String getFtpPort() {
 		return appFtpPort;
 	}
 
@@ -461,7 +505,7 @@ public class Services {
 	 * Return HTTPS enabled
 	 * @return 
 	 */
-	public static boolean getHttpsEnabled() {
+	public boolean getHttpsEnabled() {
 		return "true".equals(httpsEnabled);
 	}
 
@@ -469,7 +513,7 @@ public class Services {
 	 * Return the application HTTPS port
 	 * @return 
 	 */
-	public static String getHttpsPort() {
+	public String getHttpsPort() {
 		return appHttpsPort;
 	}
 
@@ -478,16 +522,16 @@ public class Services {
 	 *
 	 * @return
 	 */
-	public static String getKeystorePath() {
+	public String getKeystorePath() {
 		return keystorePath;
 	}
 
 	/**
-	 * Return the static rest path
+	 * Return the rest path
 	 *
 	 * @return
 	 */
-	public static String getRestPath() {
+	public String getRestPath() {
 		return restPath;
 	}
 	
@@ -496,16 +540,16 @@ public class Services {
 	 *
 	 * @return
 	 */
-	public static String getKeystorePassword() {
+	public String getKeystorePassword() {
 		return keystorePassword;
 	}
 
 	/**
-	 * Return the static base path
+	 * Return the base path
 	 *
 	 * @return
 	 */
-	public static String getBasePath() {
+	public String getBasePath() {
 		return getPath(Path.Base);
 	}
 
@@ -514,16 +558,16 @@ public class Services {
 	 *
 	 * @return
 	 */
-	public static String getConfiguredServices() {
+	public String getConfiguredServices() {
 		return configuredServices;
 	}
 
 	/**
-	 * Return the static tmp path. This is the directory where the
+	 * Return the tmp path. This is the directory where the
 	 * temporary files are stored
 	 * @return 
 	 */
-	public static String getTmpPath() {
+	public String getTmpPath() {
 		return getPath(Path.Temp);
 	}
 
@@ -531,7 +575,7 @@ public class Services {
 	 * Return the configuration file path.
 	 * @return 
 	 */
-	public static String getConfigFilePath() {
+	public String getConfigFilePath() {
 		return getPath(Path.ConfigFile);
 	}
 
@@ -540,7 +584,7 @@ public class Services {
 	 * database files are stored.
 	 * @return 
 	 */
-	public static String getDatabasePath() {
+	public String getDatabasePath() {
 		return getPath(Path.Database);
 	}
 
@@ -549,7 +593,7 @@ public class Services {
 	 * log database.
 	 * @return 
 	 */
-	public static String getLogDatabasePath() {
+	public String getLogDatabasePath() {
 		return getPath(Path.LogDatabase);
 	}
 
@@ -558,7 +602,7 @@ public class Services {
 	 * binary files of file and image nodes are stored.
 	 * @return 
 	 */
-	public static String getFilesPath() {
+	public String getFilesPath() {
 		return getPath(Path.Files);
 	}
 
@@ -567,14 +611,14 @@ public class Services {
 	 * need to be scanned for entities, agents, services etc.
 	 * @return 
 	 */
-	public static String getResources() {
+	public String getResources() {
 		return resources;
 	}
 
 	/**
 	 * Return the local host address for the outside world
 	 */
-	public static String getServerIP() {
+	public String getServerIP() {
 		return serverIp;
 	}
 
@@ -582,7 +626,7 @@ public class Services {
 	 * Return the TCP port remote clients can connect to
 	 * @return 
 	 */
-	public static String getTcpPort() {
+	public String getTcpPort() {
 		return tcpPort;
 	}
 
@@ -590,7 +634,7 @@ public class Services {
 	 * Return the UDP port remote clients can connect to
 	 * @return 
 	 */
-	public static String getUdpPort() {
+	public String getUdpPort() {
 		return udpPort;
 	}
 
@@ -598,7 +642,7 @@ public class Services {
 	 * Return the SMTP host for sending out e-mails
 	 * @return 
 	 */
-	public static String getSmtpHost() {
+	public String getSmtpHost() {
 		return smtpHost;
 	}
 
@@ -606,7 +650,7 @@ public class Services {
 	 * Return the SMTP port for sending out e-mails
 	 * @return 
 	 */
-	public static String getSmtpPort() {
+	public String getSmtpPort() {
 		return smtpPort;
 	}
 
@@ -614,7 +658,7 @@ public class Services {
 	 * Return the SMTP user for sending out e-mails
 	 * @return 
 	 */
-	public static String getSmtpUser() {
+	public String getSmtpUser() {
 		return smtpUser;
 	}
 
@@ -622,7 +666,7 @@ public class Services {
 	 * Return the SMTP user for sending out e-mails
 	 * @return 
 	 */
-	public static String getSmtpPassword() {
+	public String getSmtpPassword() {
 		return smtpPassword;
 	}
 
@@ -630,7 +674,7 @@ public class Services {
 	 * Return the superuser username
 	 * @return 
 	 */
-	public static String getSuperuserUsername() {
+	public String getSuperuserUsername() {
 		return superuserUsername;
 	}
 
@@ -638,7 +682,7 @@ public class Services {
 	 * Return the superuser username
 	 * @return 
 	 */
-	public static String getSuperuserPassword() {
+	public String getSuperuserPassword() {
 		return superuserPassword;
 	}
 
@@ -647,7 +691,7 @@ public class Services {
 	 *
 	 * @return
 	 */
-	public static List<Service> getServices() {
+	public List<Service> getServices() {
 
 		List<Service> services = new LinkedList<>();
 		for (Service service : serviceCache.values()) {
@@ -657,15 +701,15 @@ public class Services {
 		return services;
 	}
 	
-	public static <T extends Service> T getService(final Class<T> type) {
+	public <T extends Service> T getService(final Class<T> type) {
 		return (T) serviceCache.get(type);
 	}
 
-	public static Map<String, String> getContext() {
+	public Map<String, String> getContext() {
 		return config;
 	}
 
-	public static String getConfigValue(final Map<String, String> config, final String key, final String defaultValue) {
+	public String getConfigValue(final Map<String, String> config, final String key, final String defaultValue) {
 
 		String value = StringUtils.strip(config.get(key));
 
@@ -673,10 +717,10 @@ public class Services {
 			return value;
 		}
 
-		return value;
+		return defaultValue;
 	}
 
-	public static String getPath(final Path path) {
+	public String getPath(final Path path) {
 
 		String returnPath = null;
 
@@ -721,7 +765,7 @@ public class Services {
 		return returnPath;
 	}
 
-	public static String getFilePath(final Path path, final String... pathParts) {
+	public String getFilePath(final Path path, final String... pathParts) {
 
 		StringBuilder returnPath = new StringBuilder();
 		String filePath   = getPath(path);
@@ -738,14 +782,14 @@ public class Services {
 		return returnPath.toString();
 	}
 
-	public static int getOutputNestingDepth() {
+	public int getOutputNestingDepth() {
 		
 		try { return Integer.parseInt(jsonDepth); } catch(Throwable t) {}
 		
 		return 3;
 	}
 	
-	private static String getAbsolutePath(final String path) {
+	private String getAbsolutePath(final String path) {
 
 		if (path == null) {
 			return null;
@@ -772,7 +816,7 @@ public class Services {
 	 * @param serviceClass
 	 * @return
 	 */
-	private static boolean isConfigured(final Class serviceClass) {
+	private boolean isConfigured(final Class serviceClass) {
 
 		if(!configuredServiceClasses.contains(serviceClass)) {
 
@@ -802,7 +846,7 @@ public class Services {
 	 * @param serviceClass
 	 * @return 
 	 */
-	public static boolean isAvailable(final Class serviceClass) {
+	public boolean isAvailable(final Class serviceClass) {
 		return configuredServiceClasses.contains(serviceClass);
 	}
         
@@ -813,10 +857,142 @@ public class Services {
 	 * @param serviceClass
 	 * @return 
 	 */
-	public static boolean isReady(final Class serviceClass) {
+	public boolean isReady(final Class serviceClass) {
                 Service service = serviceCache.get(serviceClass);
                 return (service != null && service.isRunning());
                 
 	}
 	
+	private void readConfiguration() {
+		
+		logger.log(Level.INFO, "Servlet context created");
+
+		Map<String, String> configMap = new ConcurrentHashMap<>(20, 0.9f, 8);
+		String configFilePath         = "structr.conf"; // servletContext.getInitParameter(Services.CONFIG_FILE_PATH);
+
+		configMap.put(Services.CONFIG_FILE_PATH, configFilePath);
+
+		try {
+
+			// load config file
+			Properties properties = new Properties();
+
+			properties.load(new FileInputStream(configFilePath));
+
+			String configuredServices = properties.getProperty(Services.CONFIGURED_SERVICES);
+
+			logger.log(Level.INFO, "Config file configured services: {0}", configuredServices);
+
+			String appTitle = properties.getProperty(Services.APPLICATION_TITLE);
+
+			logger.log(Level.INFO, "Config file application title: {0}", appTitle);
+
+			String tmpPath = properties.getProperty(Services.TMP_PATH);
+
+			logger.log(Level.INFO, "Config file temp path: {0}", tmpPath);
+
+			String basePath = properties.getProperty(Services.BASE_PATH);
+
+			logger.log(Level.INFO, "Config file base path: {0}", basePath);
+
+			String databasePath = properties.getProperty(Services.DATABASE_PATH);
+
+			logger.log(Level.INFO, "Config file database path: {0}", databasePath);
+
+			String filesPath = properties.getProperty(Services.FILES_PATH);
+
+			logger.log(Level.INFO, "Config file files path: {0}", filesPath);
+
+			String serverIp = properties.getProperty(Services.SERVER_IP);
+
+			logger.log(Level.INFO, "Config file server IP: {0}", serverIp);
+
+			String tcpPort = properties.getProperty(Services.TCP_PORT);
+
+			logger.log(Level.INFO, "Config file TCP port: {0}", tcpPort);
+
+			String udpPort = properties.getProperty(Services.UDP_PORT);
+
+			logger.log(Level.INFO, "Config file UDP port: {0}", udpPort);
+
+			String superuserUsername = properties.getProperty(Services.SUPERUSER_USERNAME);
+
+			logger.log(Level.INFO, "Config file superuser username: {0}", superuserUsername);
+
+			String superuserPassword = properties.getProperty(Services.SUPERUSER_PASSWORD);
+
+			logger.log(Level.INFO, "Config file superuser password: {0}", superuserPassword);
+
+			if (configuredServices != null) {
+
+				configMap.put(Services.CONFIGURED_SERVICES, configuredServices);
+			}
+
+			if (appTitle != null) {
+
+				configMap.put(Services.APPLICATION_TITLE, appTitle);
+			}
+
+			if (tmpPath != null) {
+
+				configMap.put(Services.TMP_PATH, tmpPath);
+			}
+
+			if (basePath != null) {
+
+				configMap.put(Services.BASE_PATH, basePath);
+			}
+
+			if (databasePath != null) {
+
+				configMap.put(Services.DATABASE_PATH, databasePath);
+			}
+
+			if (filesPath != null) {
+
+				configMap.put(Services.FILES_PATH, filesPath);
+			}
+
+			if (tcpPort != null) {
+
+				configMap.put(Services.TCP_PORT, tcpPort);
+			}
+
+			if (serverIp != null) {
+
+				configMap.put(Services.SERVER_IP, serverIp);
+			}
+
+			if (udpPort != null) {
+
+				configMap.put(Services.UDP_PORT, udpPort);
+			}
+
+			if (superuserUsername != null) {
+
+				configMap.put(Services.SUPERUSER_USERNAME, superuserUsername);
+			}
+
+			if (superuserPassword != null) {
+
+				configMap.put(Services.SUPERUSER_PASSWORD, superuserPassword);
+			}
+
+			// load all properties into context
+			for (String name : properties.stringPropertyNames()) {
+
+				if (!configMap.containsKey(name)) {
+
+					configMap.put(name, properties.getProperty(name));
+				}
+
+			}
+			
+		} catch (Throwable t) {
+
+			// handle error
+			logger.log(Level.WARNING, "Could not inititialize all values");
+		}
+
+	}
 }

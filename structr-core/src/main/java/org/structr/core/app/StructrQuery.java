@@ -8,7 +8,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
-import org.structr.core.Services;
 import org.structr.core.graph.search.DistanceSearchAttribute;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
@@ -46,7 +45,7 @@ public class StructrQuery<T extends GraphObject> implements Query<T> {
 	@Override
 	public Result<T> getResult() throws FrameworkException {
 		
-		result = Services.command(securityContext, cmd).execute(includeDeletedAndHidden, publicOnly, rootGroup.getSearchAttributes(), sortKey, sortDescending, pageSize, page, offsetId);
+		result = StructrApp.getInstance(securityContext).command(cmd).execute(includeDeletedAndHidden, publicOnly, rootGroup.getSearchAttributes(), sortKey, sortDescending, pageSize, page, offsetId);
 
 		return result;
 	}

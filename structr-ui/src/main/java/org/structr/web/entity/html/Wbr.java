@@ -29,9 +29,9 @@ public class Wbr extends DOMElement {
 //
 //	static {
 //
-//		EntityContext.registerPropertySet(Wbr.class, PropertyView.All, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Wbr.class, PropertyView.Public, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Wbr.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//		StructrApp.getConfiguration().registerPropertySet(Wbr.class, PropertyView.All, HtmlElement.UiKey.values());
+//		StructrApp.getConfiguration().registerPropertySet(Wbr.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		StructrApp.getConfiguration().registerPropertySet(Wbr.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 //
 //	}
 

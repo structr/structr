@@ -31,10 +31,11 @@ import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.TypeToken;
-import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
+import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.schema.SchemaHelper;
 
 /**
  * A container for properties and their values that is used for input/output and database
@@ -166,7 +167,7 @@ public class PropertyMap {
 
 				if (key != null) {
 
-					PropertyKey propertyKey     = EntityContext.getPropertyKeyForDatabaseName(entity.getClass(), key);
+					PropertyKey propertyKey     = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(entity.getClass(), key);
 					PropertyConverter converter = propertyKey.databaseConverter(securityContext, entity);
 
 					if (converter != null) {
@@ -207,7 +208,7 @@ public class PropertyMap {
 
 				if (key != null) {
 
-					PropertyKey propertyKey     = EntityContext.getPropertyKeyForDatabaseName(entityType, key);
+					PropertyKey propertyKey     = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(entityType, key);
 					PropertyConverter converter = propertyKey.databaseConverter(securityContext, entity);
 
 					if (converter != null) {
@@ -241,7 +242,7 @@ public class PropertyMap {
 			Object typeName = source.get(AbstractNode.type.jsonName());
 			if (typeName != null) {
 
-				Class<? extends GraphObject> type = EntityContext.getEntityClassForRawType(typeName.toString());
+				Class<? extends GraphObject> type = SchemaHelper.getEntityClassForRawType(typeName.toString());
 				if (type != null) {
 
 					return inputTypeToJavaType(securityContext, type, source);
@@ -273,7 +274,7 @@ public class PropertyMap {
 
 				if (key != null) {
 
-					PropertyKey propertyKey     = EntityContext.getPropertyKeyForJSONName(entity, key);
+					PropertyKey propertyKey     = StructrApp.getConfiguration().getPropertyKeyForJSONName(entity, key);
 					PropertyConverter converter = propertyKey.inputConverter(securityContext);
 
 					if (converter != null) {

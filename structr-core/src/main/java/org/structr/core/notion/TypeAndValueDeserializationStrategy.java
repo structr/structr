@@ -110,7 +110,7 @@ public class TypeAndValueDeserializationStrategy<S, T extends NodeInterface> imp
 				} else {
 					
 					// fetch property key for "uuid", may be different for AbstractNode and AbstractRelationship!
-					PropertyKey<String> idProperty = EntityContext.getPropertyKeyForDatabaseName(obj.getClass(), AbstractNode.uuid.dbName());
+					PropertyKey<String> idProperty = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(obj.getClass(), AbstractNode.uuid.dbName());
 					attrs.add(Search.andExactUuid(obj.getProperty(idProperty)));
 					
 					result = new Result(app.get(obj.getProperty(idProperty)), false);

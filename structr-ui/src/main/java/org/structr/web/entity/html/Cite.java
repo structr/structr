@@ -29,9 +29,9 @@ public class Cite extends DOMElement {
 //
 //	static {
 //
-//		EntityContext.registerPropertySet(Cite.class, PropertyView.All, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Cite.class, PropertyView.Public, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Cite.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//		StructrApp.getConfiguration().registerPropertySet(Cite.class, PropertyView.All, HtmlElement.UiKey.values());
+//		StructrApp.getConfiguration().registerPropertySet(Cite.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		StructrApp.getConfiguration().registerPropertySet(Cite.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 //
 //	}
 

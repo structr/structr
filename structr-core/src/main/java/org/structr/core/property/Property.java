@@ -356,7 +356,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 
 		if (entity instanceof AbstractNode) {
 
-			NodeService nodeService = Services.getService(NodeService.class);
+			NodeService nodeService = Services.getInstance().getService(NodeService.class);
 			AbstractNode node       = (AbstractNode)entity;
 			Node dbNode             = node.getNode();
 
@@ -387,7 +387,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 			
 		} else {
 			
-			NodeService nodeService  = Services.getService(NodeService.class);
+			NodeService nodeService  = Services.getInstance().getService(NodeService.class);
 			AbstractRelationship rel = (AbstractRelationship)entity;
 			Relationship dbRel       = rel.getRelationship();
 

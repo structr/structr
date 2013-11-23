@@ -24,7 +24,6 @@ import javax.servlet.http.HttpServletRequest;
 import static junit.framework.TestCase.assertEquals;
 import org.jsoup.Jsoup;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 import org.structr.core.graph.CreateRelationshipCommand;
@@ -33,6 +32,7 @@ import org.structr.web.common.DOMTest;
 import org.structr.web.common.RenderContext;
 import org.w3c.dom.Element;
 import static org.mockito.Mockito.*;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.entity.User;
@@ -118,7 +118,7 @@ public class RenderDataTest extends DOMTest {
 				// create RENDER_NODE relationship between first ul and rootNode
 				PropertyMap properties = new PropertyMap();
 				//properties.put(LinkedListNode.keyProperty, key);
-				Services.command(securityContext, CreateRelationshipCommand.class).execute((DOMElement)div, rootNode, RenderNode.class, properties);
+				StructrApp.getInstance(securityContext).command(CreateRelationshipCommand.class).execute((DOMElement)div, rootNode, RenderNode.class, properties);
 
 				((DOMElement) div).setProperty(DOMElement.dataKey, "root");
 

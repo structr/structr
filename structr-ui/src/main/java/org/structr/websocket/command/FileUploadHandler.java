@@ -163,7 +163,7 @@ public class FileUploadHandler {
 					throw new IOException("Security violation: File path contains ..");
 				}
 
-				String filePath         = Services.getFilePath(Path.Files, relativeFilePath);
+				String filePath         = Services.getInstance().getFilePath(Path.Files, relativeFilePath);
 				java.io.File fileOnDisk = new java.io.File(filePath);
 
 				fileOnDisk.getParentFile().mkdirs();

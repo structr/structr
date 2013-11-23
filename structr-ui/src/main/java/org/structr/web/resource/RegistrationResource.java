@@ -136,7 +136,7 @@ public class RegistrationResource extends Resource {
 			localeString = (String) propertySet.get(MailTemplate.locale.jsonName());
 			confKey = UUID.randomUUID().toString();
 			
-			Result result = Services.command(superUserContext, SearchNodeCommand.class).execute(
+			Result result = StructrApp.getInstance().command(SearchNodeCommand.class).execute(
 				Search.andExactTypeAndSubtypes(User.class),
 				Search.andExactProperty(superUserContext, User.eMail, emailString));
 				
@@ -240,7 +240,7 @@ public class RegistrationResource extends Resource {
 		
 		replacementMap.put(toPlaceholder(User.eMail.jsonName()), userEmail);
 		replacementMap.put(toPlaceholder("link"),
-			getTemplateText(TemplateKey.BASE_URL, "http://" + Services.getApplicationHost() + ":" + Services.getHttpPort())
+			getTemplateText(TemplateKey.BASE_URL, "http://" + Services.getInstance().getApplicationHost() + ":" + Services.getInstance().getHttpPort())
 			+ getTemplateText(TemplateKey.CONFIRM_REGISTRATION_PAGE, HtmlServlet.CONFIRM_REGISTRATION_PAGE)
 			//+ "/" + HtmlServlet.CONFIRM_REGISTRATION_PAGE
 			+ getTemplateText(TemplateKey.CONFIRM_KEY_KEY, HtmlServlet.CONFIRM_KEY_KEY)
@@ -285,7 +285,7 @@ public class RegistrationResource extends Resource {
 				attrs.add(Search.andExactProperty(securityContext, MailTemplate.locale, localeString));
 			}
 			
-			List<MailTemplate> templates = (List<MailTemplate>) Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(attrs).getResults();
+			List<MailTemplate> templates = (List<MailTemplate>) StructrApp.getInstance().command(SearchNodeCommand.class).execute(attrs).getResults();
 			
 			if (!templates.isEmpty()) {
 				
@@ -465,7 +465,7 @@ public class RegistrationResource extends Resource {
 				props.put(User.name, credentialValue);
 				props.put(User.confirmationKey, confKey);
 
-				return (Principal) Services.command(securityContext, CreateNodeCommand.class).execute(props);
+				return (Principal) StructrApp.getInstance(securityContext).command(CreateNodeCommand.class).execute(props);
 
 			}
 			

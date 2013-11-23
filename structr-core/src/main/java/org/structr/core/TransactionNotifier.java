@@ -24,7 +24,7 @@ import org.structr.common.SecurityContext;
 /**
  * An interface that allows you to be notified when a {@link GraphObject} is
  * modified, after the transaction is comitted. In order to use this
- * interface, you must register your implementation in {@link EntityContext}.
+ * interface, you must register your implementation in {@link SchemaHelper}.
  *
  * @author Axel Morgner
  */

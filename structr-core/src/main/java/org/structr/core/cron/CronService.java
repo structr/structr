@@ -55,8 +55,10 @@ public class CronService extends Thread implements RunnableService {
 	@Override
 	public void run() {
 
+		final Services servicesInstance = Services.getInstance();
+		
 		// wait for service layer to be initialized
-		while(!Services.isInitialized()) {
+		while(!servicesInstance.isInitialized()) {
 			try { Thread.sleep(1000); } catch(InterruptedException iex) { }
 		}
 
@@ -118,7 +120,7 @@ public class CronService extends Thread implements RunnableService {
 	@Override
 	public void initialize(Map<String, String> context) {
 
-		String taskList = Services.getConfigValue(context, TASKS, "");
+		String taskList = Services.getInstance().getConfigValue(context, TASKS, "");
 		if (taskList != null) {
 			
 			for(String task : taskList.split("[ \\t]+")) {

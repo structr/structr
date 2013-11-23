@@ -57,6 +57,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.*;
 import org.structr.core.Value;
+import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.AuthenticatorCommand;
 import org.structr.core.entity.AbstractNode;
@@ -65,7 +66,6 @@ import org.structr.core.property.Property;
 import org.structr.rest.serialization.StreamingWriter;
 import org.structr.rest.adapter.FrameworkExceptionGSONAdapter;
 import org.structr.rest.adapter.ResultGSONAdapter;
-import org.structr.rest.resource.*;
 import org.structr.rest.serialization.StreamingHtmlWriter;
 import org.structr.rest.serialization.StreamingJsonWriter;
 
@@ -117,7 +117,7 @@ public class JsonRestServlet extends HttpServlet {
 		boolean indentJson = true;
 		
 		try {
-			indentJson = Boolean.parseBoolean(Services.getConfigurationValue(Services.JSON_INDENTATION, "true"));
+			indentJson = Boolean.parseBoolean(StructrApp.getConfigurationValue(Services.JSON_INDENTATION, "true"));
 		
 		} catch (Throwable t) {
 			
@@ -274,7 +274,7 @@ public class JsonRestServlet extends HttpServlet {
 			if (sortKeyName != null) {
 				
 				Class<? extends GraphObject> type = resource.getEntityClass();
-				sortKey = EntityContext.getPropertyKeyForDatabaseName(type, sortKeyName);
+				sortKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, sortKeyName);
 			}
 			
 			// do action
@@ -806,7 +806,7 @@ public class JsonRestServlet extends HttpServlet {
 
 	private Authenticator getAuthenticator() throws FrameworkException {
 		
-		return (Authenticator) Services.command(null, AuthenticatorCommand.class).execute(getServletConfig());
+		return (Authenticator) StructrApp.getInstance().command(AuthenticatorCommand.class).execute(getServletConfig());
 		
 	}
 	// </editor-fold>

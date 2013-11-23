@@ -25,7 +25,7 @@ import org.structr.core.graph.ModificationEvent;
 /**
  * An interface that allows you to be notified when a {@link  GraphObject} is
  * modified, with the option to veto the modification. In order to use this
- * interface, you must register your implementation in {@link EntityContext}.
+ * interface, you must register your implementation in {@link SchemaHelper}.
  *
  * @author Christian Morgner
  */

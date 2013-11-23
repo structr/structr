@@ -104,7 +104,7 @@ public class ExtractAndSetImageDimensionsAndFormat extends NodeServiceCommand {
 
 				if (relativeFilePath != null) {
 
-					String filePath = Services.getFilePath(Path.Files, relativeFilePath);
+					String filePath = Services.getInstance().getFilePath(Path.Files, relativeFilePath);
 					int width       = 0;
 					int height      = 0;
 					String format   = null;

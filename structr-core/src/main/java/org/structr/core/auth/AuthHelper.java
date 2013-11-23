@@ -87,7 +87,7 @@ public class AuthHelper {
 		String errorMsg = null;
 		Principal principal  = null;
 
-		if (Services.getSuperuserUsername().equals(value) && Services.getSuperuserPassword().equals(password)) {
+		if (Services.getInstance().getSuperuserUsername().equals(value) && Services.getInstance().getSuperuserPassword().equals(password)) {
 
 			logger.log(Level.INFO, "############# Authenticated as superadmin! ############");
 

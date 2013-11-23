@@ -29,9 +29,9 @@ public class Time extends DOMElement {
 //
 //	static {
 //
-//		EntityContext.registerPropertySet(Time.class, PropertyView.All, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Time.class, PropertyView.Public, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Time.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//		StructrApp.getConfiguration().registerPropertySet(Time.class, PropertyView.All, HtmlElement.UiKey.values());
+//		StructrApp.getConfiguration().registerPropertySet(Time.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		StructrApp.getConfiguration().registerPropertySet(Time.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 //
 //	}
 

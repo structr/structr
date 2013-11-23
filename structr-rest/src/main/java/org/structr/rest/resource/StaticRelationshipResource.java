@@ -36,7 +36,6 @@ import org.neo4j.helpers.collection.Iterables;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
 import org.structr.core.Export;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
@@ -313,7 +312,7 @@ public class StaticRelationshipResource extends SortableResource {
 
 			if (entityType != null && methodName != null) {
 
-				for (Method method : EntityContext.getExportedMethodsForType(entityType)) {
+				for (Method method : StructrApp.getConfiguration().getExportedMethodsForType(entityType)) {
 
 					if (methodName.equals(method.getName())) {
 

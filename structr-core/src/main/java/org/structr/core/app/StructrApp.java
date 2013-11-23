@@ -5,7 +5,6 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.structr.common.SecurityContext;
@@ -34,6 +33,7 @@ import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.graph.search.SearchRelationshipCommand;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.schema.Configuration;
 
 /**
  * Stateful facade for accessing the Structr core layer.
@@ -51,7 +51,8 @@ public class StructrApp implements App {
 		
 		this.securityContext = securityContext;
 
-		if (!Services.isInitialized()) {
+		/*
+		if (services == null) {
 
 			final Map<String, String> context = new LinkedHashMap<>();
 			final String basePath             = ".";
@@ -65,13 +66,7 @@ public class StructrApp implements App {
 			context.put(Services.FILES_PATH,        basePath + "/files");
 			context.put(Services.LOG_DATABASE_PATH, basePath + "/logDb.dat");
 
-			Services.initialize(context);
-			
-			// wait for initialization
-			while (!Services.isInitialized()) {
-				
-				try { Thread.sleep(100); } catch (Throwable t) {}
-			}
+			services = Services.getInstance(context);
 			
 			// register shutdown hook
 			Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
@@ -79,14 +74,14 @@ public class StructrApp implements App {
 				@Override
 				public void run() {
 					
-					Services.shutdown();
+					services.shutdown();
 				}
 				
 			}));
 			
 			logger.log(Level.INFO, "Initialization done.");
 		}
-	
+		*/
 	}
 	
 	// ----- public methods -----
@@ -210,7 +205,7 @@ public class StructrApp implements App {
 	
 	@Override
 	public void shutdown() {
-		Services.shutdown();
+		Services.getInstance().shutdown();
 	}
 
 	@Override
@@ -219,7 +214,7 @@ public class StructrApp implements App {
 		Command command = commandCache.get(commandType);
 		if (command == null) {
 			
-			command = Services.command(securityContext, commandType);
+			command = Services.getInstance().command(securityContext, commandType);
 			commandCache.put(commandType, command);
 		}
 		
@@ -241,22 +236,22 @@ public class StructrApp implements App {
 	
 	@Override
 	public <T extends Command & MaintenanceCommand> void maintenance(final Class<T> commandClass, final Map<String, Object> propertySet) throws FrameworkException {
-		((MaintenanceCommand)Services.command(securityContext, commandClass)).execute(propertySet);
+		((MaintenanceCommand)Services.getInstance().command(securityContext, commandClass)).execute(propertySet);
 	}
 	
 	@Override
 	public List<GraphObject> cypher(final String cypherQuery, final Map<String, Object> parameters) throws FrameworkException {
-		return Services.command(securityContext, CypherQueryCommand.class).execute(cypherQuery, parameters);
+		return Services.getInstance().command(securityContext, CypherQueryCommand.class).execute(cypherQuery, parameters);
 	}
 
 	@Override
 	public <T extends Service> T getService(Class<T> serviceClass) {
-		return Services.getService(serviceClass);
+		return Services.getInstance().getService(serviceClass);
 	}
 
 	@Override
 	public GraphDatabaseService getGraphDatabaseService() {
-		return Services.command(securityContext, GraphDatabaseCommand.class).execute();
+		return Services.getInstance().command(securityContext, GraphDatabaseCommand.class).execute();
 	}
 	
 	// ----- public static methods ----
@@ -279,5 +274,17 @@ public class StructrApp implements App {
 	 */
 	public static App getInstance(final SecurityContext securityContext) {
 		return new StructrApp(securityContext);
+	}
+	
+	public static Configuration getConfiguration() {
+		return Services.getInstance().getConfiguration();
+	}
+	
+	public static String getConfigurationValue(final String key) {
+		return Services.getInstance().getConfigurationValue(key, null);
+	}
+	
+	public static String getConfigurationValue(final String key, final String defaultValue) {
+		return Services.getInstance().getConfigurationValue(key, defaultValue);
 	}
 }

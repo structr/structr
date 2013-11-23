@@ -46,8 +46,8 @@ public class Hyperlink extends OneToOne<A, Linkable> {
 	
 	static {
 
-		// EntityContext.registerNamedRelation("resource_link", Hyperlink.class, Link.class, Linkable.class, RelType.LINK);
-		// EntityContext.registerNamedRelation("hyperlink", Hyperlink.class, A.class, Linkable.class, RelType.LINK);
+		// StructrApp.getConfiguration().registerNamedRelation("resource_link", Hyperlink.class, Link.class, Linkable.class, RelType.LINK);
+		// StructrApp.getConfiguration().registerNamedRelation("hyperlink", Hyperlink.class, A.class, Linkable.class, RelType.LINK);
 	}
 
 	@Override

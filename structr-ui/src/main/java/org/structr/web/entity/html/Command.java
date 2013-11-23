@@ -29,9 +29,9 @@ public class Command extends DOMElement {
 //
 //	static {
 //
-//		EntityContext.registerPropertySet(Command.class, PropertyView.All, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Command.class, PropertyView.Public, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Command.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//		StructrApp.getConfiguration().registerPropertySet(Command.class, PropertyView.All, HtmlElement.UiKey.values());
+//		StructrApp.getConfiguration().registerPropertySet(Command.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		StructrApp.getConfiguration().registerPropertySet(Command.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 //
 //	}
 

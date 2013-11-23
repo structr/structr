@@ -70,7 +70,7 @@ public class LoginCommand extends AbstractCommand {
 			try {
 
 				StructrWebSocket socket = this.getWebSocket();
-				Authenticator auth      = (Authenticator) Services.command(securityContext, AuthenticatorCommand.class).execute(socket.getConfig());
+				Authenticator auth      = (Authenticator) StructrApp.getInstance(securityContext).command(AuthenticatorCommand.class).execute(socket.getConfig());
 
 				user = auth.doLogin(socket.getRequest(), username, password);
 

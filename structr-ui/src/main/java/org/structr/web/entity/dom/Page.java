@@ -236,7 +236,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 			app.beginTx();
 
 			// create new content element
-			DOMElement element = (DOMElement)Services.command(securityContext, CreateNodeCommand.class).execute(
+			DOMElement element = (DOMElement)StructrApp.getInstance(securityContext).command(CreateNodeCommand.class).execute(
 				new NodeAttribute(AbstractNode.type, elementType),
 				new NodeAttribute(DOMElement.tag, tag)
 			);
@@ -270,7 +270,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 			app.beginTx();
 			
 			// create new content element
-			org.structr.web.entity.dom.DocumentFragment fragment = (org.structr.web.entity.dom.DocumentFragment)Services.command(securityContext, CreateNodeCommand.class).execute(
+			org.structr.web.entity.dom.DocumentFragment fragment = (org.structr.web.entity.dom.DocumentFragment)StructrApp.getInstance(securityContext).command(CreateNodeCommand.class).execute(
 				new NodeAttribute(AbstractNode.type,
 				org.structr.web.entity.dom.DocumentFragment.class.getSimpleName())
 			);
@@ -307,7 +307,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 			
 
 			// create new content element
-			Content content = (Content)Services.command(securityContext, CreateNodeCommand.class).execute(
+			Content content = (Content)StructrApp.getInstance(securityContext).command(CreateNodeCommand.class).execute(
 				new NodeAttribute(AbstractNode.type, Content.class.getSimpleName()),
 				new NodeAttribute(Content.content,   text)
 			);
@@ -343,7 +343,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 
 			// create new content element
-			org.structr.web.entity.dom.Comment content = (org.structr.web.entity.dom.Comment)Services.command(securityContext, CreateNodeCommand.class).execute(
+			org.structr.web.entity.dom.Comment content = (org.structr.web.entity.dom.Comment)StructrApp.getInstance(securityContext).command(CreateNodeCommand.class).execute(
 				new NodeAttribute(AbstractNode.type, org.structr.web.entity.dom.Comment.class.getSimpleName())
 			);
 
@@ -377,7 +377,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 			app.beginTx();
 			
 			// create new content element
-			Cdata content = (Cdata)Services.command(securityContext, CreateNodeCommand.class).execute(
+			Cdata content = (Cdata)StructrApp.getInstance(securityContext).command(CreateNodeCommand.class).execute(
 				new NodeAttribute(AbstractNode.type, Cdata.class.getSimpleName())
 			);
 

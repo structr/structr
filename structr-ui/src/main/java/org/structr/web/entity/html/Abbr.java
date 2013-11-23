@@ -29,9 +29,9 @@ public class Abbr extends DOMElement {
 
 //	static {
 //
-//		EntityContext.registerPropertySet(Abbr.class, PropertyView.All, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Abbr.class, PropertyView.Public, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Abbr.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//		StructrApp.getConfiguration().registerPropertySet(Abbr.class, PropertyView.All, HtmlElement.UiKey.values());
+//		StructrApp.getConfiguration().registerPropertySet(Abbr.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		StructrApp.getConfiguration().registerPropertySet(Abbr.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 //
 //	}
 

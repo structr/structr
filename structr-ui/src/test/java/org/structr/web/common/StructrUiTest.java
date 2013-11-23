@@ -378,7 +378,7 @@ public class StructrUiTest extends TestCase {
 		init();
 
 		securityContext           = SecurityContext.getSuperUserInstance();
-		graphDbCommand            = Services.command(securityContext, GraphDatabaseCommand.class);
+		graphDbCommand            = StructrApp.getInstance(securityContext).command(GraphDatabaseCommand.class);
 
 		app = StructrApp.getInstance(securityContext);
 	}

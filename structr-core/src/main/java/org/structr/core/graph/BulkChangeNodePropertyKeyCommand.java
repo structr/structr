@@ -34,10 +34,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang.StringUtils;
 import org.neo4j.graphdb.Node;
-import org.structr.core.EntityContext;
 import org.structr.core.app.StructrApp;
 import org.structr.core.module.ModuleService;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.schema.SchemaHelper;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -76,7 +76,7 @@ public class BulkChangeNodePropertyKeyCommand extends NodeServiceCommand impleme
 
 				type = (String) properties.get(AbstractNode.type.dbName());
 
-				nodes = StructrApp.getInstance(securityContext).nodeQuery(EntityContext.getEntityClassForRawType(type)).getResult();
+				nodes = StructrApp.getInstance(securityContext).nodeQuery(SchemaHelper.getEntityClassForRawType(type)).getResult();
 
 				properties.remove(AbstractNode.type.dbName());
 
@@ -85,8 +85,6 @@ public class BulkChangeNodePropertyKeyCommand extends NodeServiceCommand impleme
 				nodes = nodeFactory.instantiateAll(GlobalGraphOperations.at(graphDb).getAllNodes());
 			}
 
-			final Class cls = Services.getService(ModuleService.class).getNodeEntityClass(type);
-			
 			long nodeCount = bulkGraphOperation(securityContext, nodes.getResults(), 1000, "ChangeNodePropertyKey", new BulkGraphOperation<AbstractNode>() {
 
 				@Override
@@ -99,7 +97,7 @@ public class BulkChangeNodePropertyKeyCommand extends NodeServiceCommand impleme
 
 							String key = (String) entry.getKey();
 							
-							PropertyKey propertyKey = EntityContext.getPropertyKeyForDatabaseName(node.getClass(), key);
+							PropertyKey propertyKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(node.getClass(), key);
 							if (propertyKey != null) {
 									
 								Node dbNode = node.getNode();

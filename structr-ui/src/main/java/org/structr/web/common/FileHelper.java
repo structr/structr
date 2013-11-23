@@ -133,7 +133,7 @@ public class FileHelper {
 	public static org.structr.web.entity.File createFile(final SecurityContext securityContext, final byte[] fileData, final String contentType, final Class<? extends org.structr.web.entity.File> fileType)
 		throws FrameworkException, IOException {
 
-		CreateNodeCommand<org.structr.web.entity.File> createNodeCommand = Services.command(securityContext, CreateNodeCommand.class);
+		CreateNodeCommand<org.structr.web.entity.File> createNodeCommand = StructrApp.getInstance(securityContext).command(CreateNodeCommand.class);
 		PropertyMap props                                                = new PropertyMap();
 		
 		props.put(AbstractNode.type, fileType == null ? org.structr.web.entity.File.class.getSimpleName() : fileType.getSimpleName());
@@ -270,7 +270,7 @@ public class FileHelper {
 
 		fileNode.setRelativeFilePath(org.structr.web.entity.File.getDirectoryPath(uuid) + "/" + uuid);
 
-		java.io.File fileOnDisk = new java.io.File(Services.getFilesPath() + "/" + fileNode.getRelativeFilePath());
+		java.io.File fileOnDisk = new java.io.File(Services.getInstance().getFilesPath() + "/" + fileNode.getRelativeFilePath());
 
 		fileOnDisk.getParentFile().mkdirs();
 		FileUtils.writeByteArrayToFile(fileOnDisk, data);
@@ -399,7 +399,7 @@ public class FileHelper {
 
 		if (relativeFilePath != null) {
 
-			String filePath         = Services.getFilePath(Path.Files, relativeFilePath);
+			String filePath         = Services.getInstance().getFilePath(Path.Files, relativeFilePath);
 
 			try {
 			
@@ -434,7 +434,7 @@ public class FileHelper {
 
 		if (path != null) {
 
-			String filePath         = Services.getFilePath(Path.Files, path);
+			String filePath         = Services.getInstance().getFilePath(Path.Files, path);
 
 			try {
 

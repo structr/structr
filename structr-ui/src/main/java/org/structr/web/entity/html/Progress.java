@@ -29,9 +29,9 @@ public class Progress extends DOMElement {
 //
 //	static {
 //
-//		EntityContext.registerPropertySet(Progress.class, PropertyView.All, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Progress.class, PropertyView.Public, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Progress.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//		StructrApp.getConfiguration().registerPropertySet(Progress.class, PropertyView.All, HtmlElement.UiKey.values());
+//		StructrApp.getConfiguration().registerPropertySet(Progress.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		StructrApp.getConfiguration().registerPropertySet(Progress.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 //
 //	}
 //

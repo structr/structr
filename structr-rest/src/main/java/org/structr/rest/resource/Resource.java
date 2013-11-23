@@ -44,17 +44,13 @@ import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
-import org.structr.core.Services;
 import org.structr.core.Value;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.graph.DeleteNodeCommand;
-import org.structr.core.graph.DeleteRelationshipCommand;
 import org.structr.core.graph.NodeFactory;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
@@ -204,12 +200,12 @@ public abstract class Resource {
 
 		Class sourceNodeType = typedIdResource.getTypeResource().getEntityClass();
 		String rawName = typeResource.getRawType();
-		PropertyKey key = EntityContext.getPropertyKeyForJSONName(sourceNodeType, rawName, false);
+		PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(sourceNodeType, rawName, false);
 
 		if (key == null) {
 
 			// try to convert raw name into lower-case variable name
-			key = EntityContext.getPropertyKeyForJSONName(sourceNodeType, CaseHelper.toLowerCamelCase(rawName));
+			key = StructrApp.getConfiguration().getPropertyKeyForJSONName(sourceNodeType, CaseHelper.toLowerCamelCase(rawName));
 		}
 
 		return key;
@@ -337,7 +333,7 @@ public abstract class Resource {
 
 			boolean looseSearch = parseInteger(request.getParameter(JsonRestServlet.REQUEST_PARAMETER_LOOSE_SEARCH)) == 1;
 
-			for (final PropertyKey key : EntityContext.getPropertySet(type, PropertyView.All)) {
+			for (final PropertyKey key : StructrApp.getConfiguration().getPropertySet(type, PropertyView.All)) {
 
 				if (key.isSearchable()) {
 					

@@ -21,8 +21,6 @@
 package org.structr.web.entity.html;
 
 import org.structr.web.entity.dom.DOMElement;
-import org.structr.common.PropertyView;
-import org.structr.core.EntityContext;
 
 //~--- classes ----------------------------------------------------------------
 

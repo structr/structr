@@ -29,9 +29,9 @@ public class Kbd extends DOMElement {
 //
 //	static {
 //
-//		EntityContext.registerPropertySet(Kbd.class, PropertyView.All, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Kbd.class, PropertyView.Public, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Kbd.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//		StructrApp.getConfiguration().registerPropertySet(Kbd.class, PropertyView.All, HtmlElement.UiKey.values());
+//		StructrApp.getConfiguration().registerPropertySet(Kbd.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		StructrApp.getConfiguration().registerPropertySet(Kbd.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 //
 //	}
 

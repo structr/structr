@@ -36,7 +36,7 @@ import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
 import org.apache.oltu.oauth2.common.message.types.GrantType;
 import org.apache.oltu.oauth2.common.utils.JSONUtils;
 import org.codehaus.jettison.json.JSONException;
-import org.structr.core.Services;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Person;
 import org.structr.core.property.PropertyKey;
 
@@ -142,18 +142,18 @@ public class StructrOAuthClient {
 	 */
 	public static StructrOAuthClient getServer(final String name) {
 
-		String configuredOauthServers  = Services.getConfigurationValue(CONFIGURED_OAUTH_SERVERS, "twitter facebook google github stackoverflow");
+		String configuredOauthServers  = StructrApp.getConfigurationValue(CONFIGURED_OAUTH_SERVERS, "twitter facebook google github stackoverflow");
 		String[] authServers = configuredOauthServers.split(" ");
 
 		for (String authServer : authServers) {
 			
 			if (authServer.equals(name)) {
 			
-				String authLocation  = Services.getConfigurationValue("oauth." + authServer + ".authorization_location", null);
-				String tokenLocation = Services.getConfigurationValue("oauth." + authServer + ".token_location", null);
-				String clientId      = Services.getConfigurationValue("oauth." + authServer + ".client_id", null);
-				String clientSecret  = Services.getConfigurationValue("oauth." + authServer + ".client_secret", null);
-				String redirectUri   = Services.getConfigurationValue("oauth." + authServer + ".redirect_uri", null);
+				String authLocation  = StructrApp.getConfigurationValue("oauth." + authServer + ".authorization_location", null);
+				String tokenLocation = StructrApp.getConfigurationValue("oauth." + authServer + ".token_location", null);
+				String clientId      = StructrApp.getConfigurationValue("oauth." + authServer + ".client_id", null);
+				String clientSecret  = StructrApp.getConfigurationValue("oauth." + authServer + ".client_secret", null);
+				String redirectUri   = StructrApp.getConfigurationValue("oauth." + authServer + ".redirect_uri", null);
 
 				// Minumum required fields
 				if (clientId != null && clientSecret != null && redirectUri != null) {

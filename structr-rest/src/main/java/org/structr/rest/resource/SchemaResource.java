@@ -32,9 +32,11 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.StringProperty;
 import org.structr.core.*;
+import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.PropertyDefinition;
 import org.structr.core.module.ModuleService;
+import org.structr.core.schema.SchemaHelper;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;
 import org.structr.rest.exception.IllegalPathException;
@@ -65,14 +67,13 @@ public class SchemaResource extends Resource {
 	@Override
 	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
 		
-		List<GraphObjectMap> resultList = new LinkedList<GraphObjectMap>();
+		List<GraphObjectMap> resultList = new LinkedList<>();
 		
 		// extract types from ModuleService
-		ModuleService moduleService = (ModuleService)Services.getService(ModuleService.class);
-		for (String rawType : moduleService.getCachedNodeEntityTypes()) {
+		for (String rawType : StructrApp.getConfiguration().getNodeEntities().keySet()) {
 			
 			// create & add schema information
-			Class type               = EntityContext.getEntityClassForRawType(rawType);
+			Class type            = SchemaHelper.getEntityClassForRawType(rawType);
 			GraphObjectMap schema = new GraphObjectMap();
 			resultList.add(schema);
 			
@@ -92,14 +93,14 @@ public class SchemaResource extends Resource {
 				schema.setProperty(new LongProperty("flags"), SecurityContext.getResourceFlags(rawType));
 
 				// list property sets for all views
-				Set<String> propertyViews              = new LinkedHashSet<String>(EntityContext.getPropertyViews());
+				Set<String> propertyViews              = new LinkedHashSet<>(StructrApp.getConfiguration().getPropertyViews());
 				Map<String, Map<String, Object>> views = new TreeMap();
 				schema.setProperty(new StringProperty("views"), views);
 
 				for (String view : propertyViews) {
 
-					Set<PropertyKey> properties              = new LinkedHashSet<PropertyKey>(EntityContext.getPropertySet(type, view));
-					Map<String, Object> propertyConverterMap = new TreeMap<String, Object>();
+					Set<PropertyKey> properties              = new LinkedHashSet<>(StructrApp.getConfiguration().getPropertySet(type, view));
+					Map<String, Object> propertyConverterMap = new TreeMap<>();
 
 					// augment property set with properties from PropertyDefinition
 					if (PropertyDefinition.exists(type.getSimpleName())) {

@@ -36,19 +36,13 @@ import org.structr.common.SecurityContext;
 import org.structr.common.ValidationHelper;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
-import org.structr.core.Result;
-import org.structr.core.Services;
-import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.experimental.NodeExtender;
 import org.structr.core.graph.NodeService;
-import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.notion.Notion;
 import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.BooleanProperty;
@@ -430,7 +424,7 @@ public class PropertyDefinition<T> extends AbstractNode implements PropertyKey<T
 							           );
 
 							// register property
-							EntityContext.registerProperty(dataClass, delegate);
+							StructrApp.getConfiguration().registerProperty(dataClass, delegate);
 
 						} catch (Throwable t) {
 
@@ -445,7 +439,7 @@ public class PropertyDefinition<T> extends AbstractNode implements PropertyKey<T
 							delegate = keyClass.getConstructor(String.class).newInstance(_name);
 
 							// register property
-							EntityContext.registerProperty(dataClass, delegate);
+							StructrApp.getConfiguration().registerProperty(dataClass, delegate);
 
 						} catch (Throwable t) {
 

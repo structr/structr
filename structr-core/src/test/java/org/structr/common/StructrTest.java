@@ -101,7 +101,7 @@ public class StructrTest extends TestCase {
 	@Override
 	protected void tearDown() throws Exception {
 
-		Services.shutdown();
+		Services.getInstance().shutdown();
 
 		try {
 			File testDir = new File(context.get(Services.BASE_PATH));
@@ -316,12 +316,10 @@ public class StructrTest extends TestCase {
 	@Override
 	protected void setUp() throws Exception {
 
-
-
 		Date now       = new Date();
 		long timestamp = now.getTime();
 
-		context.put(Services.CONFIGURED_SERVICES, "ModuleService NodeService LogService");
+		context.put(Services.CONFIGURED_SERVICES, "NodeService LogService");
 		context.put(Services.APPLICATION_TITLE, "structr unit test app" + timestamp);
 		context.put(Services.TMP_PATH, "/tmp/");
 		context.put(Services.BASE_PATH, "/tmp/structr-test-" + timestamp);
@@ -334,7 +332,7 @@ public class StructrTest extends TestCase {
 		context.put(Services.SUPERUSER_USERNAME, "superadmin");
 		context.put(Services.SUPERUSER_PASSWORD, "sehrgeheim");
 		
-		Services.initialize(context);
+		final Services services = Services.getInstance(context);
 
 		securityContext		= SecurityContext.getSuperUserInstance();
 		app			= StructrApp.getInstance(securityContext);
@@ -347,7 +345,7 @@ public class StructrTest extends TestCase {
 		do {
 			try { Thread.sleep(100); } catch(Throwable t) {}
 			
-		} while(!Services.isInitialized());
+		} while(!services.isInitialized());
 
 		
 	}

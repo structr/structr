@@ -46,7 +46,7 @@ public class FtpService implements RunnableService {
 	@Override
 	public void startService() {
 		
-		String configuredPort = Services.getFtpPort();
+		String configuredPort = Services.getInstance().getFtpPort();
 		if (StringUtils.isBlank(configuredPort)) {
 			logger.log(Level.SEVERE, "Unable to start FTP service. Reason: No FTP port configured.");
 			return;

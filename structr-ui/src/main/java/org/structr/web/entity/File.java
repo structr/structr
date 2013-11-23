@@ -47,8 +47,6 @@ import org.structr.common.Path;
 import org.structr.common.SecurityContext;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.StringProperty;
 import org.structr.web.common.FileHelper;
 
@@ -99,7 +97,7 @@ public class File extends AbstractFile implements Linkable {
 		final App app = StructrApp.getInstance(securityContext);
 		try {
 
-			java.io.File fileOnDisk = new java.io.File(Services.getFilesPath() + "/" + getRelativeFilePath());
+			java.io.File fileOnDisk = new java.io.File(Services.getInstance().getFilesPath() + "/" + getRelativeFilePath());
 
 			if (fileOnDisk.exists()) {
 				return;
@@ -171,7 +169,7 @@ public class File extends AbstractFile implements Linkable {
 
 	public URL getFileLocation() {
 
-		String urlString = "file://" + Services.getFilesPath() + "/" + getRelativeFilePath();
+		String urlString = "file://" + Services.getInstance().getFilesPath() + "/" + getRelativeFilePath();
 
 		try {
 
@@ -224,7 +222,7 @@ public class File extends AbstractFile implements Linkable {
 
 		if (path != null) {
 
-			final String filePath = Services.getFilePath(Path.Files, path);
+			final String filePath = Services.getInstance().getFilePath(Path.Files, path);
 			final App app         = StructrApp.getInstance(securityContext);
 
 			try {

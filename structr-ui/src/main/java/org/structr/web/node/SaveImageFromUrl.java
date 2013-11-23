@@ -130,13 +130,13 @@ public class SaveImageFromUrl extends NodeServiceCommand {
 				app.beginTx();
 				
 				// Create new image node first
-				Image newImageNode = (Image) Services.command(securityContext, CreateNodeCommand.class).execute(
+				Image newImageNode = (Image) StructrApp.getInstance(securityContext).command(CreateNodeCommand.class).execute(
 							     new NodeAttribute(AbstractNode.type, Image.class.getSimpleName()),
 							     new NodeAttribute(org.structr.web.entity.File.url, finalUrlString),
 							     new NodeAttribute(AbstractNode.visibleToAuthenticatedUsers, true),
 							     new NodeAttribute(AbstractNode.visibleToPublicUsers, true));
 
-				// Services.command(securityContext, CreateRelationshipCommand.class).execute(finalParentNode, newImageNode, RelType.CONTAINS);
+				// StructrApp.getInstance(securityContext).command(CreateRelationshipCommand.class).execute(finalParentNode, newImageNode, RelType.CONTAINS);
 
 				// Then save image from URL
 				refreshImageFromUrl(newImageNode);
@@ -180,7 +180,7 @@ public class SaveImageFromUrl extends NodeServiceCommand {
 					relativeFilePath = imageNode.getId() + "_" + System.currentTimeMillis();
 				}
 
-				String path = Services.getFilePath(Path.Files, relativeFilePath);
+				String path = Services.getInstance().getFilePath(Path.Files, relativeFilePath);
 
 				if (StringUtils.isNotBlank(url)) {
 

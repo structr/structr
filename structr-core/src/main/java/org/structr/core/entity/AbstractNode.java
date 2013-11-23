@@ -41,7 +41,6 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.NullArgumentToken;
 import org.structr.common.error.ReadOnlyPropertyToken;
-import org.structr.core.EntityContext;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.Services;
 import org.structr.core.graph.NodeRelationshipStatisticsCommand;
@@ -97,7 +96,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	static {
 
 		// register transformation for automatic uuid creation
-		EntityContext.registerEntityCreationTransformation(AbstractNode.class, new UuidCreationTransformation());
+		StructrApp.getConfiguration().registerEntityCreationTransformation(AbstractNode.class, new UuidCreationTransformation());
 	}
 
 	//~--- fields ---------------------------------------------------------
@@ -409,7 +408,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	 */
 	@Override
 	public Iterable<PropertyKey> getPropertyKeys(final String propertyView) {
-		return EntityContext.getPropertySet(this.getClass(), propertyView);
+		return StructrApp.getConfiguration().getPropertySet(this.getClass(), propertyView);
 	}
 
 	/**
@@ -1082,7 +1081,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	@Override
 	public void addToIndex() {
 
-		for (PropertyKey key : EntityContext.getPropertySet(entityType, PropertyView.All)) {
+		for (PropertyKey key : StructrApp.getConfiguration().getPropertySet(entityType, PropertyView.All)) {
 			
 			if (key.isIndexed()) {
 				
@@ -1101,7 +1100,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	@Override
 	public void removeFromIndex() {
 		
-		for (Index<Node> index : Services.getService(NodeService.class).getNodeIndices()) {
+		for (Index<Node> index : Services.getInstance().getService(NodeService.class).getNodeIndices()) {
 			
 			synchronized (index) {
 				
@@ -1112,7 +1111,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	
 	public void removeFromIndex(PropertyKey key) {
 		
-		for (Index<Node> index : Services.getService(NodeService.class).getNodeIndices()) {
+		for (Index<Node> index : Services.getInstance().getService(NodeService.class).getNodeIndices()) {
 			
 			synchronized (index) {
 				
@@ -1124,7 +1123,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	@Override
 	public void indexPassiveProperties() {
 		
-		for (PropertyKey key : EntityContext.getPropertySet(entityType, PropertyView.All)) {
+		for (PropertyKey key : StructrApp.getConfiguration().getPropertySet(entityType, PropertyView.All)) {
 			
 			if (key.isPassivelyIndexed()) {
 				

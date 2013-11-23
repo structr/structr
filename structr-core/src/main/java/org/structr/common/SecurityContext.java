@@ -21,7 +21,6 @@
 package org.structr.common;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.entity.*;
@@ -39,6 +38,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import org.neo4j.graphdb.Node;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.schema.SchemaHelper;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -52,11 +52,11 @@ import org.structr.core.graph.NodeInterface;
 public class SecurityContext {
 
 	private static final Logger logger                   = Logger.getLogger(SecurityContext.class.getName());
-	private static final Map<String, Long> resourceFlags = new LinkedHashMap<String, Long>();
+	private static final Map<String, Long> resourceFlags = new LinkedHashMap<>();
 
 	//~--- fields ---------------------------------------------------------
 
-	private Map<Long, NodeInterface> cache = null;
+	private Map<Long, NodeInterface> cache = new ConcurrentHashMap<>();
 	private AccessMode accessMode          = AccessMode.Frontend;
 	private Map<String, Object> attrs      = Collections.synchronizedMap(new LinkedHashMap<String, Object>());
 	private Authenticator authenticator    = null;
@@ -74,8 +74,6 @@ public class SecurityContext {
 
 		this.cachedUser = user;
 		this.accessMode = accessMode;
-
-		cache = new ConcurrentHashMap<Long, NodeInterface>();
 	}
 
 	/*
@@ -108,7 +106,7 @@ public class SecurityContext {
 		
 		if (cache == null) {
 
-			cache = new ConcurrentHashMap<Long, NodeInterface>();
+			cache = new ConcurrentHashMap<>();
 			
 			if (request != null && request.getServletContext() != null) {
 				request.getServletContext().setAttribute("NODE_CACHE", cache);
@@ -143,7 +141,7 @@ public class SecurityContext {
 	
 	public static void clearResourceFlag(final String resource, long flag) {
 
-		String name     = EntityContext.normalizeEntityName(resource);
+		String name     = SchemaHelper.normalizeEntityName(resource);
 		Long flagObject = resourceFlags.get(name);
 		long flags      = 0;
 
@@ -286,7 +284,7 @@ public class SecurityContext {
 
 	public static long getResourceFlags(String resource) {
 
-		String name     = EntityContext.normalizeEntityName(resource);
+		String name     = SchemaHelper.normalizeEntityName(resource);
 		Long flagObject = resourceFlags.get(name);
 		long flags      = 0;
 
@@ -551,7 +549,7 @@ public class SecurityContext {
 
 	public static void setResourceFlag(final String resource, long flag) {
 
-		String name     = EntityContext.normalizeEntityName(resource);
+		String name     = SchemaHelper.normalizeEntityName(resource);
 		Long flagObject = resourceFlags.get(name);
 		long flags      = 0;
 
