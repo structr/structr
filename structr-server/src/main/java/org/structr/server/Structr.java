@@ -54,15 +54,13 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.tooling.GlobalGraphOperations;
 import org.structr.common.PropertyView;
-import org.structr.context.ApplicationContextListener;
 import org.structr.core.GraphObject;
 import org.structr.core.Service;
 import org.structr.core.Services;
-import org.structr.core.agent.AgentService;
+import org.structr.agent.AgentService;
 import org.structr.core.app.StructrApp;
-import org.structr.core.auth.AuthenticationService;
 import org.structr.core.auth.Authenticator;
-import org.structr.core.cron.CronService;
+import org.structr.cron.CronService;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.log.LogService;
@@ -702,7 +700,7 @@ public class Structr {
 
 		ResourceProvider resourceProviderInstance = resourceProvider.newInstance();
 		
-		
+		/*
 		// configure JSON REST servlet
 		JsonRestServlet structrRestServlet     = new JsonRestServlet(resourceProviderInstance, defaultPropertyView, AbstractNode.uuid);
 		ServletHolder structrRestServletHolder = new ServletHolder(structrRestServlet);
@@ -713,13 +711,15 @@ public class Structr {
 		if (userClass != null) {
 			servletParams.put(AuthenticationService.SERVLET_PARAMETER_USER_CLASS,		userClass.getName());
 		}
-
+		
 		structrRestServletHolder.setInitParameters(servletParams);
 		structrRestServletHolder.setInitOrder(0);
 
 		// add to servlets
 		servlets.put(restUrl + "/*", structrRestServletHolder);
+		*/
 
+		
 		// add servlet elements
 		int position = 1;
 		for (Entry<String, ServletHolder> servlet : servlets.entrySet()) {
@@ -735,7 +735,7 @@ public class Structr {
 		}
 		
 		// register structr application context listener
-		servletContext.addEventListener(new ApplicationContextListener());
+		// servletContext.addEventListener(new ApplicationContextListener());
 
 		contexts.addHandler(servletContext);
 		

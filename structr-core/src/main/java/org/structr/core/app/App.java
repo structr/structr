@@ -26,7 +26,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 import org.structr.core.GraphObject;
 import org.structr.core.Service;
-import org.structr.core.agent.Task;
+import org.structr.agent.Task;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.NodeAttribute;

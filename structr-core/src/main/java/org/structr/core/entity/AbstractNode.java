@@ -36,7 +36,6 @@ import org.structr.common.GraphObjectComparator;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.common.UuidCreationTransformation;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.NullArgumentToken;
@@ -91,16 +90,6 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		uuid, name, owner, type, createdBy, deleted, hidden, createdDate, lastModifiedDate, visibleToPublicUsers, visibleToAuthenticatedUsers, visibilityStartDate, visibilityEndDate
 	);
 	
-	//~--- static initializers --------------------------------------------
-
-	static {
-
-		// register transformation for automatic uuid creation
-		StructrApp.getConfiguration().registerEntityCreationTransformation(AbstractNode.class, new UuidCreationTransformation());
-	}
-
-	//~--- fields ---------------------------------------------------------
-
 	protected PropertyMap cachedConvertedProperties  = new PropertyMap();
 	protected PropertyMap cachedRawProperties        = new PropertyMap();
 	protected Principal cachedOwnerNode              = null;

@@ -41,7 +41,7 @@ import org.structr.core.entity.Security;
 import org.structr.core.entity.relationship.PrincipalOwnsAbstractNode;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.schema.SchemaHelper;
+import org.structr.schema.SchemaHelper;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -122,10 +122,16 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 					node.unlockReadOnlyPropertiesOnce();
 					node.setProperty(GraphObject.type, nodeType.getSimpleName());
 				}
-				
+
+				// set UUID
+				node.unlockReadOnlyPropertiesOnce();
+				node.setProperty(AbstractNode.uuid, getNextUuid());
+
+				// set created date
 				node.unlockReadOnlyPropertiesOnce();
 				node.setProperty(AbstractNode.createdDate, now);
 
+				// set last modified date
 				node.unlockReadOnlyPropertiesOnce();
 				node.setProperty(AbstractNode.lastModifiedDate, now);
 

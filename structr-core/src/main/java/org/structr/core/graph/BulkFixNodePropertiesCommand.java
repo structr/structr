@@ -31,7 +31,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.schema.SchemaHelper;
+import org.structr.schema.SchemaHelper;
 
 /**
  * Tries to fix properties in the database that have been stored there with the

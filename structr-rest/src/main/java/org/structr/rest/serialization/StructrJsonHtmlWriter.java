@@ -51,7 +51,7 @@ public class StructrJsonHtmlWriter implements RestWriter {
 	@Override
 	public RestWriter beginDocument(final String baseUrl, final String propertyView) throws IOException {
 		
-		String restPath    = StructrApp.getConfigurationValue(Services.REST_PATH);
+		String restPath    = "/structr/rest"; // FIXME;
 		String currentType = baseUrl.replace(restPath + "/", "").replace("/" + propertyView, "");
 
 		Tag head = doc.block("head");

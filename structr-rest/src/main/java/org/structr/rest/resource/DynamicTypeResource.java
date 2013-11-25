@@ -41,7 +41,7 @@ import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
 import org.structr.core.entity.PropertyDefinition;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.schema.SchemaHelper;
+import org.structr.schema.SchemaHelper;
 
 /**
  *

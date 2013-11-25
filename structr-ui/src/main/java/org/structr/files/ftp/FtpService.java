@@ -19,7 +19,7 @@
 
 package org.structr.files.ftp;
 
-import java.util.Map;
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang.StringUtils;
@@ -46,14 +46,6 @@ public class FtpService implements RunnableService {
 	@Override
 	public void startService() {
 		
-		String configuredPort = Services.getInstance().getFtpPort();
-		if (StringUtils.isBlank(configuredPort)) {
-			logger.log(Level.SEVERE, "Unable to start FTP service. Reason: No FTP port configured.");
-			return;
-		}
-		
-		port = Integer.parseInt(configuredPort);
-
 		try {
 			
 			FtpServerFactory serverFactory = new FtpServerFactory();
@@ -102,7 +94,23 @@ public class FtpService implements RunnableService {
 	}
 
 	@Override
-	public void initialize(Map<String, String> context) {
+	public void initialize(final Properties configurationFile) {
+		
+		final String configuredPort = configurationFile.getProperty(Services.APPLICATION_FTP_PORT);
+		
+		try {
+			port = Integer.parseInt(configuredPort);
+			
+		} catch (Throwable t) {
+			
+			logger.log(Level.SEVERE, "Unable to parse FTP port {0}", configuredPort);
+			
+			port = -1;
+		}
+
+		if (port == -1) {
+			logger.log(Level.SEVERE, "Unable to start FTP service.");
+		}
 	}
 
 	@Override

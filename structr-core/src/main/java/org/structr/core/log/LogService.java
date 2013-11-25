@@ -69,10 +69,10 @@ public class LogService implements SingletonService {
 	}
 
 	@Override
-	public void initialize(Map<String, String> context) {
+	public void initialize(final Properties configurationFile) {
 
 //              String dbPath = (String) context.get(Services.DATABASE_PATH);
-		String logDbPath = Services.getInstance().getLogDatabasePath();
+		String logDbPath = configurationFile.getProperty(Services.LOG_DATABASE_PATH);
 
 		try {
 

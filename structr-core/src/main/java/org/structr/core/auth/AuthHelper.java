@@ -87,7 +87,11 @@ public class AuthHelper {
 		String errorMsg = null;
 		Principal principal  = null;
 
-		if (Services.getInstance().getSuperuserUsername().equals(value) && Services.getInstance().getSuperuserPassword().equals(password)) {
+		// FIXME: this might be slow, because the the property file needs to be read each time
+		final String superuserName = StructrApp.getConfigurationValue(Services.SUPERUSER_USERNAME);
+		final String superUserPwd  = StructrApp.getConfigurationValue(Services.SUPERUSER_PASSWORD);
+		
+		if (superuserName.equals(value) && superUserPwd.equals(password)) {
 
 			logger.log(Level.INFO, "############# Authenticated as superadmin! ############");
 

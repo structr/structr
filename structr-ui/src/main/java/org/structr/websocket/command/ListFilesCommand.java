@@ -39,7 +39,7 @@ import org.structr.websocket.StructrWebSocket;
 
 import java.util.*;
 import org.structr.core.app.StructrApp;
-import org.structr.core.schema.SchemaHelper;
+import org.structr.schema.SchemaHelper;
 import org.structr.web.entity.relation.FileChildren;
 
 //~--- classes ----------------------------------------------------------------

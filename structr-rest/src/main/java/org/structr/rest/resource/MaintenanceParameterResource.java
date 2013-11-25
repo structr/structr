@@ -39,7 +39,7 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.Command;
-import org.structr.core.agent.Task;
+import org.structr.agent.Task;
 import org.structr.core.graph.BulkChangeNodePropertyKeyCommand;
 import org.structr.core.graph.BulkDeleteSoftDeletedNodesCommand;
 import org.structr.core.graph.BulkRebuildIndexCommand;

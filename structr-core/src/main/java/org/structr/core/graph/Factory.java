@@ -32,7 +32,7 @@ import org.structr.core.Adapter;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
 import org.structr.core.app.StructrApp;
-import org.structr.core.schema.SchemaHelper;
+import org.structr.schema.SchemaHelper;
 
 /**
  *

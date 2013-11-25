@@ -37,7 +37,6 @@ import org.neo4j.graphdb.index.Index;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.common.UuidCreationTransformation;
 import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
@@ -72,11 +71,6 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	public static final View defauflView = new View(AbstractRelationship.class, PropertyView.Public,
 		uuid, type
 	);
-	
-	static {
-
-		StructrApp.getConfiguration().registerEntityCreationTransformation(AbstractRelationship.class, new UuidCreationTransformation());
-	}
 
 	private boolean readOnlyPropertiesUnlocked = false;
 	private String cachedEndNodeId             = null;

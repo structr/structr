@@ -57,7 +57,7 @@ public abstract class StreamingWriter {
 	private final Serializer<GraphObject> root           = new RootSerializer();
 	private final Set<Class> nonSerializerClasses        = new LinkedHashSet<>();
 	private final Property<String> id                    = new StringProperty("id");
-	private final int outputNestingDepth                 = Services.getInstance().getOutputNestingDepth();
+	private int outputNestingDepth                       = 3;
 	private DecimalFormat decimalFormat                  = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 	private PropertyKey idProperty                       = GraphObject.uuid;
 	private SecurityContext securityContext              = null;
@@ -66,11 +66,12 @@ public abstract class StreamingWriter {
 
 	public abstract RestWriter getRestWriter(final Writer writer);
 	
-	public StreamingWriter(Value<String> propertyView, boolean indent) {
+	public StreamingWriter(Value<String> propertyView, boolean indent, final int outputNestingDepth) {
 
-		this.securityContext = SecurityContext.getSuperUserInstance();
-		this.propertyView    = propertyView;
-		this.indent          = indent;
+		this.securityContext    = SecurityContext.getSuperUserInstance();
+		this.outputNestingDepth = outputNestingDepth;
+		this.propertyView       = propertyView;
+		this.indent             = indent;
 
 		serializers.put(GraphObject.class, root);
 		serializers.put(PropertyMap.class, new PropertyMapSerializer());

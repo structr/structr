@@ -24,7 +24,7 @@ import com.google.gson.*;
 
 import org.structr.common.PropertyView;
 import org.structr.core.GraphObject;
-import org.structr.core.GraphObjectGSONAdapter;
+import org.structr.rest.GraphObjectGSONAdapter;
 import org.structr.core.Value;
 import org.structr.core.StaticValue;
 import org.structr.websocket.message.WebSocketMessage;
@@ -39,7 +39,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.JsonInputGSONAdapter;
+import org.structr.rest.JsonInputGSONAdapter;
 
 //~--- classes ----------------------------------------------------------------
 

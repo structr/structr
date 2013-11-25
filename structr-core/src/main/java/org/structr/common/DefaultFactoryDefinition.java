@@ -30,7 +30,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.GenericNode;
 import org.structr.core.entity.GenericRelationship;
-import org.structr.core.experimental.NodeExtender;
+import org.structr.experimental.NodeExtender;
 
 /**
  * The default factory for unknown types in structr. When structr needs to

@@ -20,7 +20,7 @@
 
 package org.structr.core;
 
-import java.util.Map;
+import java.util.Properties;
 
 //~--- interfaces -------------------------------------------------------------
 
@@ -46,7 +46,7 @@ public interface Service {
 	 *
 	 * @param context the context
 	 */
-	public void initialize(Map<String, String> context);
+	public void initialize(final Properties configurationFile);
 
 	/**
 	 * Called before the service is discarded. Note that this method will not be called

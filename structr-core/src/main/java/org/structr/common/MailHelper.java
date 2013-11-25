@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Properties;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.mail.Email;
 import org.apache.commons.mail.EmailException;
@@ -80,11 +81,12 @@ public abstract class MailHelper {
 	private static void setup(final Email mail, final String to, final String toName, final String from, final String fromName, final String cc, final String bcc, final String bounce, final String subject)
 		throws EmailException {
 
-		final Services services   = Services.getInstance();
-		final String smtpHost     = services.getSmtpHost();
-		final String smtpPort     = services.getSmtpPort();
-		final String smtpUser     = services.getSmtpUser();
-		final String smtpPassword = services.getSmtpPassword();
+		// FIXME: this might be slow if the config file is read each time
+		final Properties config   = Services.getInstance().getStructrConf();
+		final String smtpHost     = config.getProperty(Services.SMTP_HOST);
+		final String smtpPort     = config.getProperty(Services.SMTP_PORT);
+		final String smtpUser     = config.getProperty(Services.SMTP_USER);
+		final String smtpPassword = config.getProperty(Services.SMTP_PASSWORD);
 		
 		mail.setCharset(charset);
 		mail.setHostName(smtpHost);

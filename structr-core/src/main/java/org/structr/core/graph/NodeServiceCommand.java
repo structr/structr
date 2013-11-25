@@ -19,9 +19,12 @@
 package org.structr.core.graph;
 
 import java.util.Iterator;
+import java.util.UUID;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.lang.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
@@ -37,7 +40,8 @@ import org.structr.core.app.StructrApp;
  */
 public abstract class NodeServiceCommand extends Command {
 	
-	private static final Logger logger = Logger.getLogger(NodeServiceCommand.class.getName());
+	private static final Logger logger                        = Logger.getLogger(NodeServiceCommand.class.getName());
+	private static final ArrayBlockingQueue<String> uuidQueue = new ArrayBlockingQueue<>(1000);
 	
 	@Override
 	public Class getServiceClass()	{
@@ -154,5 +158,40 @@ public abstract class NodeServiceCommand extends Command {
 				app.finishTx();
 			}
 		}
+	}
+	
+	protected String getNextUuid() {
+		
+		String uuid = null;
+		
+		do {
+			
+			uuid = uuidQueue.poll();
+			
+		} while (uuid == null);
+		
+		return uuid;
+	}
+
+	// create uuid producer that fills the queue
+	static {
+		
+		new Thread(new Runnable() {
+
+			@Override
+			public void run() {
+				
+				try {
+					while (true) {
+
+							uuidQueue.put(StringUtils.replace(UUID.randomUUID().toString(), "-", ""));
+					}
+					
+				} catch (Throwable t) {
+
+				}
+			}
+			
+		}, "UuidProducerThread").start();
 	}
 }

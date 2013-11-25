@@ -9,8 +9,8 @@ import org.structr.core.Value;
  */
 public class StreamingHtmlWriter extends StreamingWriter {
 
-	public StreamingHtmlWriter(final Value<String> propertyView, final boolean indent) {
-		super(propertyView, indent);
+	public StreamingHtmlWriter(final Value<String> propertyView, final boolean indent, final int outputNestingDepth) {
+		super(propertyView, indent, outputNestingDepth);
 	}
 	
 	@Override

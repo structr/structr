@@ -13,8 +13,8 @@ import org.structr.core.Command;
 import org.structr.core.GraphObject;
 import org.structr.core.Service;
 import org.structr.core.Services;
-import org.structr.core.agent.AgentService;
-import org.structr.core.agent.Task;
+import org.structr.agent.AgentService;
+import org.structr.agent.Task;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Relation;
@@ -33,7 +33,7 @@ import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.graph.search.SearchRelationshipCommand;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.schema.Configuration;
+import org.structr.schema.Configuration;
 
 /**
  * Stateful facade for accessing the Structr core layer.

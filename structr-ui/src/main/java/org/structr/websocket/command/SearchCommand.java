@@ -37,7 +37,7 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.app.StructrApp;
-import org.structr.core.schema.SchemaHelper;
+import org.structr.schema.SchemaHelper;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 

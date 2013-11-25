@@ -46,7 +46,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
-import org.structr.core.schema.Configuration;
+import org.structr.schema.Configuration;
 
 //~--- classes ----------------------------------------------------------------
 

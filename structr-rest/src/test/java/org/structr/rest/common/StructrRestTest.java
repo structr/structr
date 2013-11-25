@@ -39,28 +39,19 @@ import java.net.URL;
 import java.nio.charset.Charset;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import junit.framework.TestCase;
-import org.eclipse.jetty.server.Connector;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.handler.HandlerCollection;
-import org.eclipse.jetty.server.nio.SelectChannelConnector;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
-import org.eclipse.jetty.util.resource.JarResource;
-import org.eclipse.jetty.util.resource.Resource;
-import org.eclipse.jetty.util.resource.ResourceCollection;
 import org.hamcrest.Matcher;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.context.ApplicationContextListener;
+import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
+import org.structr.module.ModuleService;
 import org.structr.rest.entity.TestOne;
+import org.structr.rest.service.RestService;
 import org.structr.rest.servlet.JsonRestServlet;
 
 //~--- classes ----------------------------------------------------------------
@@ -78,14 +69,9 @@ public class StructrRestTest extends TestCase {
 
 	//~--- fields ---------------------------------------------------------
 
-	protected Map<String, String> context     = new ConcurrentHashMap<>(20, 0.9f, 8);
 	protected SecurityContext securityContext = null;
 	protected App app                         = null;
-
-	// the jetty server
-	private boolean running = false;
-	private Server server;
-	private String basePath;
+	protected String basePath                 = null;
 	
 	protected static final String contextPath = "/";
 	protected static final String restUrl = "/structr/rest";
@@ -103,128 +89,6 @@ public class StructrRestTest extends TestCase {
 		RestAssured.port = httpPort;
 	}
 	
-	//~--- methods --------------------------------------------------------
-
-	protected void init() {
-
-		/*
-		Date now       = new Date();
-		long timestamp = now.getTime();
-		
-		context.put(Services.CONFIGURED_SERVICES, "ModuleService NodeService");
-		context.put(Services.APPLICATION_TITLE, "structr unit test app" + timestamp);
-		context.put(Services.TMP_PATH, "/tmp/");
-		context.put(Services.BASE_PATH, "/tmp/structr-test-" + timestamp);
-		context.put(Services.DATABASE_PATH, "/tmp/structr-test-" + timestamp + "/db");
-		context.put(Services.FILES_PATH, "/tmp/structr-test-" + timestamp + "/files");
-		context.put(Services.TCP_PORT, "13465");
-		context.put(Services.SERVER_IP, "127.0.0.1");
-		context.put(Services.UDP_PORT, "13466");
-		context.put(Services.SUPERUSER_USERNAME, "superadmin");
-		context.put(Services.SUPERUSER_PASSWORD, "sehrgeheim");
-		
-		Services.initialize(context);
-		*/
-		
-		String name = "structr-rest-test-" + System.nanoTime();
-		
-		// set up base path
-		basePath = "/tmp/" + name;
-		
-		try {
-			// create test directory
-			File basePathFile                    = new File(basePath);
-			
-			basePathFile.mkdirs();
-			
-			
-			String sourceJarName                 = getClass().getProtectionDomain().getCodeSource().getLocation().toString();
-			File confFile                        = checkStructrConf(basePath, sourceJarName);
-			List<Connector> connectors           = new LinkedList<>();
-			HandlerCollection handlerCollection  = new HandlerCollection();
-
-			server = new Server(httpPort);
-			
-			ServletContextHandler servletContext = new ServletContextHandler(server, contextPath, ServletContextHandler.SESSIONS);
-
-			// create resource collection from base path & source JAR
-			servletContext.setBaseResource(new ResourceCollection(Resource.newResource(basePath), JarResource.newJarResource(Resource.newResource(sourceJarName))));
-			servletContext.setInitParameter("configfile.path", basePath + "/structr.conf");
-
-			// configure JSON REST servlet
-			JsonRestServlet structrRestServlet     = new JsonRestServlet(new TestResourceProvider(), PropertyView.Public, AbstractNode.uuid);
-			ServletHolder structrRestServletHolder = new ServletHolder(structrRestServlet);
-
-			Map<String, String> servletParams = new LinkedHashMap<>();
-			servletParams.put("Authenticator", SuperUserAuthenticator.class.getName());
-
-			structrRestServletHolder.setInitParameters(servletParams);
-			structrRestServletHolder.setInitOrder(0);
-
-			// add to servlets
-			Map<String, ServletHolder> servlets = new LinkedHashMap<>();
-			servlets.put(restUrl + "/*", structrRestServletHolder);
-
-			// add servlet elements
-			int position = 1;
-			for (Map.Entry<String, ServletHolder> servlet : servlets.entrySet()) {
-
-				String path                 = servlet.getKey();
-				ServletHolder servletHolder = servlet.getValue();
-
-				servletHolder.setInitOrder(position++);
-
-				logger.log(Level.INFO, "Adding servlet {0} for {1}", new Object[] { servletHolder, path } );
-
-				servletContext.addServlet(servletHolder, path);
-			}
-
-			// register structr application context listener
-			servletContext.addEventListener(new ApplicationContextListener());
-			handlerCollection.addHandler(servletContext);
-
-			server.setHandler(handlerCollection);
-
-			if (host != null && !host.isEmpty() && httpPort > -1) {
-
-				SelectChannelConnector httpConnector = new SelectChannelConnector();
-
-				httpConnector.setHost(host);
-				httpConnector.setPort(httpPort);
-				httpConnector.setMaxIdleTime(30000);
-				httpConnector.setRequestHeaderSize(8192);
-
-				connectors.add(httpConnector);
-
-			} else {
-
-				logger.log(Level.WARNING, "Unable to configure REST port, please make sure that application.host, application.http.port and application.rest.path are set correctly in structr.conf.");
-			}
-
-			if (!connectors.isEmpty()) {
-
-				server.setConnectors(connectors.toArray(new Connector[0]));
-
-			} else {
-
-				logger.log(Level.SEVERE, "No connectors configured, aborting.");
-				System.exit(0);
-			}
-
-			server.setGracefulShutdown(1000);
-			server.setStopAtShutdown(true);
-
-			server.start();
-			
-			running = server.isRunning();
-
-		} catch(Throwable t) {
-			
-			t.printStackTrace();
-		}
-		
-
-	}
 
 	public void test00DbAvailable() {
 
@@ -236,41 +100,28 @@ public class StructrRestTest extends TestCase {
 	@Override
 	protected void tearDown() throws Exception {
 
-		if (running) {
+		Services.getInstance().shutdown();
+		
+		File testDir = new File(basePath);
+		int count = 0;
 
-			// stop structr
-			server.stop();
+		// try up to 10 times to delete the directory
+		while (testDir.exists() && count++ < 10) {
 
-			// do we need to wait here? answer: yes!
-			
-			do {
-				try { Thread.sleep(100); } catch(Throwable t) {}
-				
-			} while(!server.isStopped());
+			try {
 
-			server.destroy();
+				if (testDir.isDirectory()) {
 
-			File testDir = new File(basePath);
-			int count = 0;
+					FileUtils.deleteDirectory(testDir);
 
-			// try up to 10 times to delete the directory
-			while (testDir.exists() && count++ < 10) {
-				
-				try {
+				} else {
 
-					if (testDir.isDirectory()) {
+					testDir.delete();
+				}
 
-						FileUtils.deleteDirectory(testDir);
+			} catch(Throwable t) {}
 
-					} else {
-
-						testDir.delete();
-					}
-
-				} catch(Throwable t) {}
-
-				try { Thread.sleep(500); } catch(Throwable t) {}
-			}
+			try { Thread.sleep(500); } catch(Throwable t) {}
 		}
 
 		super.tearDown();
@@ -428,81 +279,53 @@ public class StructrRestTest extends TestCase {
 	@Override
 	protected void setUp() throws Exception {
 
-		init();
-
-		securityContext = SecurityContext.getSuperUserInstance();
-		app             = StructrApp.getInstance(securityContext);
-	}
-
-
-	private File checkStructrConf(String basePath, String sourceJarName) throws IOException {
-
-		// create and register config file
-		String confPath = basePath + "/structr.conf";
-		File confFile   = new File(confPath);
-
-		// Create structr.conf if not existing
-		if (!confFile.exists()) {
-
-			// synthesize a config file
-			List<String> config = new LinkedList<>();
-
-			config.add("##################################");
-			config.add("# structr global config file     #");
-			config.add("##################################");
-			config.add("");
-			
-			if (sourceJarName.endsWith(".jar") || sourceJarName.endsWith(".war")) {
-				
-				config.add("# resources");
-				config.add("resources = " + sourceJarName);
-				config.add("");
-			}
-			
-			config.add("# JSON output nesting depth");
-			config.add("json.depth = 4");
-			config.add("");
-			config.add("# base directory");
-			config.add("base.path = " + basePath);
-			config.add("");
-			config.add("# temp files directory");
-			config.add("tmp.path = /tmp");
-			config.add("");
-			config.add("# database files directory");
-			config.add("database.path = " + basePath + "/db");
-			config.add("");
-			config.add("# binary files directory");
-			config.add("files.path = " + basePath + "/files");
-			config.add("");
-			config.add("# REST server settings");
-			config.add("application.host = " + host);
-			config.add("application.http.port = " + httpPort);
-			config.add("application.rest.path = " + restUrl);
-			config.add("");
-			config.add("application.https.enabled = false");
-			config.add("application.https.port = ");
-			config.add("application.keystore.path = ");
-			config.add("application.keystore.password = ");
-			config.add("");
-			config.add("# SMPT settings");
-			config.add("smtp.host = localhost");
-			config.add("smtp.port = 25");
-			config.add("");
-			config.add("superuser.username = superadmin");
-			config.add("superuser.password = sehrgeheim");
-			config.add("");
-			config.add("# services");
-			config.add("configured.services = ModuleService NodeService");
-			config.add("");
-			config.add("log.requests = false");
-			config.add("log.name = structr-yyyy_mm_dd.request.log");
-
-			confFile.createNewFile();
-			FileUtils.writeLines(confFile, "UTF-8", config);
-		}
+		final Properties context = Services.getDefaultConfiguration();
+		final Date now           = new Date();
+		final long timestamp     = now.getTime();
 		
-		return confFile;
+		basePath = "/tmp/structr-test-" + timestamp;
+
+		// enable "just testing" flag to avoid JAR resource scanning
+		context.setProperty(Services.TESTING, "true");
+		
+		context.setProperty(Services.CONFIGURED_SERVICES, "NodeService LogService RestService");
+		context.setProperty(Services.CONFIGURATION, ModuleService.class.getName());
+		context.setProperty(Services.APPLICATION_TITLE, "structr unit test app" + timestamp);
+		context.setProperty(Services.APPLICATION_HOST, host);
+		context.setProperty(Services.APPLICATION_HTTP_PORT, Integer.toString(httpPort));
+		context.setProperty(Services.TMP_PATH, "/tmp/");
+		context.setProperty(Services.BASE_PATH, basePath);
+		context.setProperty(Services.DATABASE_PATH, basePath + "/db");
+		context.setProperty(Services.FILES_PATH, basePath + "/files");
+		context.setProperty(Services.LOG_DATABASE_PATH, basePath + "/logDb.dat");
+		context.setProperty(Services.TCP_PORT, "13465");
+		context.setProperty(Services.UDP_PORT, "13466");
+		context.setProperty(Services.SUPERUSER_USERNAME, "superadmin");
+		context.setProperty(Services.SUPERUSER_PASSWORD, "sehrgeheim");
+		
+		// configure JsonRestServlet
+		context.setProperty(RestService.SERVLETS, "JsonRestServlet");
+		context.setProperty("JsonRestServlet.class", JsonRestServlet.class.getName());
+		context.setProperty("JsonRestServlet.path", restUrl);
+		context.setProperty("JsonRestServlet.resourceprovider", TestResourceProvider.class.getName());
+		context.setProperty("JsonRestServlet.authenticator", SuperUserAuthenticator.class.getName());
+		context.setProperty("JsonRestServlet.user.class", "");
+		context.setProperty("JsonRestServlet.user.autocreate", "false");
+		context.setProperty("JsonRestServlet.defaultview", PropertyView.Public);
+		context.setProperty("JsonRestServlet.outputdepth", "3");
+		
+		final Services services = Services.getInstance(context);
+
+		securityContext		= SecurityContext.getSuperUserInstance();
+		app			= StructrApp.getInstance(securityContext);
+
+		// wait for service layer to be initialized
+		do {
+			try { Thread.sleep(100); } catch(Throwable t) {}
+			
+		} while(!services.isInitialized());
 	}
+
 	
 	protected String getUuidFromLocation(String location) {
 		return location.substring(location.lastIndexOf("/") + 1);

@@ -35,9 +35,9 @@ import java.util.logging.Logger;
 import org.apache.commons.lang.StringUtils;
 import org.neo4j.graphdb.Node;
 import org.structr.core.app.StructrApp;
-import org.structr.core.module.ModuleService;
+import org.structr.module.ModuleService;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.schema.SchemaHelper;
+import org.structr.schema.SchemaHelper;
 
 //~--- classes ----------------------------------------------------------------
 

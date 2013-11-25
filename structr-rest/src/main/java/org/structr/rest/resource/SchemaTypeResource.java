@@ -43,7 +43,7 @@ import java.util.TreeMap;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.PropertyDefinition;
-import org.structr.core.schema.SchemaHelper;
+import org.structr.schema.SchemaHelper;
 
 //~--- classes ----------------------------------------------------------------
 

@@ -43,7 +43,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.structr.common.SecurityContext;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.IntProperty;
-import org.structr.core.schema.SchemaHelper;
+import org.structr.schema.SchemaHelper;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;

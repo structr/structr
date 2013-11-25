@@ -54,7 +54,7 @@ import org.structr.core.graph.search.SearchRelationshipCommand;
 import org.structr.core.notion.Notion;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.schema.SchemaHelper;
+import org.structr.schema.SchemaHelper;
 import org.structr.rest.exception.IllegalPathException;
 import static org.structr.rest.resource.Resource.parseInteger;
 import org.structr.rest.servlet.JsonRestServlet;

@@ -25,7 +25,6 @@ package org.structr.common;
  */
 public enum Path {
 
-    ConfigFile,
     Base,
     Rest,
     Database,

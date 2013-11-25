@@ -34,7 +34,7 @@ import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.common.PagingHelper;
 import org.structr.core.app.StructrApp;
-import org.structr.core.schema.SchemaHelper;
+import org.structr.schema.SchemaHelper;
 import org.structr.web.entity.Image;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
