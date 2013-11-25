@@ -72,7 +72,7 @@ public class RestService implements RunnableService {
 
 		logger.log(Level.INFO, "Starting {0} (host={1}:{2}, maxIdleTime={3}, requestHeaderSize={4})", new Object[] { applicationName, host, httpPort, maxIdleTime, requestHeaderSize} );
 		logger.log(Level.INFO, "Base path {0}", basePath);
-		logger.log(Level.INFO, "{0} started:        http://{1}:{2}{3}", new Object[] { applicationName, host, httpPort, restUrl} );
+		logger.log(Level.INFO, "{0} started at http://{1}:{2}{3}", new Object[] { applicationName, host, httpPort, restUrl} );
 		
 		try {
 			server.start();

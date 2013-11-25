@@ -236,11 +236,13 @@ public class RegistrationResource extends Resource {
 		// WARNING! This is unchecked user input!!
 		populateReplacementMap(replacementMap, propertySetFromUserPOST);
 
-		String userEmail = user.getProperty(User.eMail);
+		final String userEmail = user.getProperty(User.eMail);
+		final String appHost   = Services.getInstance().getConfigurationValue(Services.APPLICATION_HOST);
+		final String httpPort  = Services.getInstance().getConfigurationValue(Services.APPLICATION_HTTP_PORT);
 		
 		replacementMap.put(toPlaceholder(User.eMail.jsonName()), userEmail);
 		replacementMap.put(toPlaceholder("link"),
-			getTemplateText(TemplateKey.BASE_URL, "http://" + Services.getInstance().getApplicationHost() + ":" + Services.getInstance().getHttpPort())
+			getTemplateText(TemplateKey.BASE_URL, "http://" + appHost + ":" + httpPort)
 			+ getTemplateText(TemplateKey.CONFIRM_REGISTRATION_PAGE, HtmlServlet.CONFIRM_REGISTRATION_PAGE)
 			//+ "/" + HtmlServlet.CONFIRM_REGISTRATION_PAGE
 			+ getTemplateText(TemplateKey.CONFIRM_KEY_KEY, HtmlServlet.CONFIRM_KEY_KEY)

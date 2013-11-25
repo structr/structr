@@ -53,7 +53,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.collections.CollectionUtils;
@@ -62,10 +61,9 @@ import org.apache.commons.lang.time.DateUtils;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.auth.Authenticator;
-import org.structr.core.auth.AuthenticatorCommand;
 import org.structr.core.entity.Principal;
 import org.structr.rest.ResourceProvider;
+import org.structr.rest.service.RestServiceServlet;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.common.ThreadLocalMatcher;
@@ -80,43 +78,33 @@ import org.structr.web.entity.dom.DOMNode;
  * @author Christian Morgner
  * @author Axel Morgner
  */
-public class HtmlServlet extends HttpServlet {
+public class HtmlServlet extends RestServiceServlet {
 
-	private static final Logger logger                                          = Logger.getLogger(HtmlServlet.class.getName());
+	private static final Logger logger                          = Logger.getLogger(HtmlServlet.class.getName());
+	
+	public static final String REST_RESPONSE	                    = "restResponse";
+	public static final String REDIRECT                         = "redirect";
+	public static final String POSSIBLE_ENTRY_POINTS            = "possibleEntryPoints";
+	public static final String REQUEST_CONTAINS_UUID_IDENTIFIER = "request_contains_uuids";
+	
+	public static final String CONFIRM_REGISTRATION_PAGE        = "confirm_registration";
+	public static final String GET_SESSION_ID_PAGE              = "get_session_id";
+	public static final String CONFIRM_KEY_KEY                  = "key";
+	public static final String TARGET_PAGE_KEY                  = "target";
+	public static final String ERROR_PAGE_KEY                   = "onerror";
+	public static final String LOCALE_KEY                       = "locale";
+	
+	private static final ThreadLocalMatcher threadLocalUUIDMatcher = new ThreadLocalMatcher("[a-zA-Z0-9]{32}");
+
+	
 	private static Date lastModified;
-	public static final String REST_RESPONSE			= "restResponse";
-	public static final String REDIRECT				= "redirect";
-	public static final String POSSIBLE_ENTRY_POINTS		= "possibleEntryPoints";
-	public static final String REQUEST_CONTAINS_UUID_IDENTIFIER	= "request_contains_uuids";
-	
-	public static final String CONFIRM_REGISTRATION_PAGE	= "confirm_registration";
-	public static final String GET_SESSION_ID_PAGE		= "get_session_id";
-	public static final String CONFIRM_KEY_KEY		= "key";
-	public static final String TARGET_PAGE_KEY		= "target";
-	public static final String ERROR_PAGE_KEY		= "onerror";
-	public static final String LOCALE_KEY			= "locale";
-	
-	private ResourceProvider resourceProvider                   = null;
 
-	private static final ThreadLocalMatcher threadLocalUUIDMatcher              = new ThreadLocalMatcher("[a-zA-Z0-9]{32}");
-	
-	public static SearchNodeCommand searchNodesAsSuperuser;
-	//~--- fields ---------------------------------------------------------
-
-
-	private DecimalFormat decimalFormat                                         = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
-	private EditMode edit;
-//	private Gson gson;
+	// non-static fields
+	private DecimalFormat decimalFormat              = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
+	private SearchNodeCommand searchNodesAsSuperuser = null;
+	private EditMode edit                            = null;
 
 	public HtmlServlet() {}
-	
-	public HtmlServlet(final ResourceProvider resourceProvider) {
-
-		this.resourceProvider    = resourceProvider;
-
-	}
-
-	//~--- methods --------------------------------------------------------
 	
 	@Override
 	public void init() {
@@ -449,7 +437,7 @@ public class HtmlServlet extends HttpServlet {
 
 		logger.log(Level.FINE, "Looking for an index page ...");
 
-		List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
+		List<SearchAttribute> searchAttrs = new LinkedList<>();
 		searchAttrs.add(Search.orExactType(Page.class));
 		
 		Result results = (Result) searchNodesAsSuperuser.execute(searchAttrs);
@@ -813,12 +801,6 @@ public class HtmlServlet extends HttpServlet {
 				response.setStatus(HttpServletResponse.SC_OK);
 			}
 		}
-	}
-
-	private Authenticator getAuthenticator() throws FrameworkException {
-		
-		return (Authenticator) StructrApp.getInstance().command(AuthenticatorCommand.class).execute(getServletConfig());
-		
 	}
 	
 	/**

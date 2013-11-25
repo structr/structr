@@ -473,9 +473,9 @@ public class Importer {
 
 		// Create temporary file with new uuid
 		// FIXME: This is much too dangerous!
-		String relativeFilePath = org.structr.web.entity.File.getDirectoryPath(uuid) + "/" + uuid;
-		String filePath         = Services.getInstance().getFilePath(Path.Files, relativeFilePath);
-		java.io.File fileOnDisk = new java.io.File(filePath);
+		final String relativeFilePath = org.structr.web.entity.File.getDirectoryPath(uuid) + "/" + uuid;
+		final String filePath         = FileHelper.getFilePath(relativeFilePath);
+		final java.io.File fileOnDisk = new java.io.File(filePath);
 
 		fileOnDisk.getParentFile().mkdirs();
 

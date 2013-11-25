@@ -20,9 +20,7 @@
 
 package org.structr.websocket.command;
 
-import org.structr.common.Path;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
 import org.structr.web.entity.File;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -35,6 +33,7 @@ import java.nio.channels.FileChannel;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.web.common.FileHelper;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -163,7 +162,7 @@ public class FileUploadHandler {
 					throw new IOException("Security violation: File path contains ..");
 				}
 
-				String filePath         = Services.getInstance().getFilePath(Path.Files, relativeFilePath);
+				String filePath         = FileHelper.getFilePath(relativeFilePath);
 				java.io.File fileOnDisk = new java.io.File(filePath);
 
 				fileOnDisk.getParentFile().mkdirs();

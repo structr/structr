@@ -51,14 +51,12 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 
 	private static final Logger logger                   = Logger.getLogger(WebSocketDataGSONAdapter.class.getName());
 	private GraphObjectGSONAdapter graphObjectSerializer = null;
-	private Value<String> propertyView                   = new StaticValue<String>(PropertyView.Public);
+	private Value<String> propertyView                   = new StaticValue<>(PropertyView.Public);
 
 	//~--- constructors ---------------------------------------------------
 
-	public WebSocketDataGSONAdapter(PropertyKey idProperty) {
-
-		graphObjectSerializer = new GraphObjectGSONAdapter(propertyView, idProperty);
-
+	public WebSocketDataGSONAdapter(final PropertyKey idProperty, final int outputNestingDepth) {
+		graphObjectSerializer = new GraphObjectGSONAdapter(propertyView, idProperty, outputNestingDepth);
 	}
 
 	//~--- methods --------------------------------------------------------

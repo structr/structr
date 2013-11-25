@@ -70,18 +70,12 @@ public class RestServiceServlet extends HttpServlet {
 
 			} catch (Throwable t) {
 
-				t.printStackTrace();
-				
 				logger.log(Level.SEVERE, "Unable to instantiate authenticator {0}: {1}", new Object[] { authenticatorValue, t.getMessage() } );
 			}
 			
 		}
 		
-		if (userClassValue == null) {
-			
-			logger.log(Level.WARNING, "Missing user class key {0}.user.class in configuration file.", servletName);
-			
-		} else {
+		if (userClassValue != null) {
 
 			try {
 				userClass = Class.forName(userClassValue);
@@ -90,15 +84,9 @@ public class RestServiceServlet extends HttpServlet {
 
 				logger.log(Level.SEVERE, "Unable to instantiate user class for authenticator {0}: {1}", new Object[] { userClassValue, t.getMessage() } );
 			}
-			
 		}
 		
-		if (userAutoCreateValue == null) {
-			
-			logger.log(Level.WARNING, "Missing user class autocreate key {0}.user.autocreate in configuration file.", servletName);
-			
-		} else {
-			
+		if (userAutoCreateValue != null) {
 			userAutoCreate = parseBoolean(userAutoCreateValue, false);
 		}
 		

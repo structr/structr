@@ -22,9 +22,7 @@ package org.structr.websocket.command;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
 import org.structr.core.auth.Authenticator;
-import org.structr.core.auth.AuthenticatorCommand;
 import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.entity.Principal;
 import org.structr.websocket.StructrWebSocket;
@@ -50,6 +48,7 @@ public class LoginCommand extends AbstractCommand {
 	private static final Logger logger = Logger.getLogger(LoginCommand.class.getName());
 	
 	static {
+		
 		StructrWebSocket.addCommand(LoginCommand.class);
 
 	}

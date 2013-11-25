@@ -21,9 +21,7 @@
 package org.structr.core;
 
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import org.apache.commons.lang.StringUtils;
 
@@ -63,60 +61,39 @@ public class Services {
 	private static Properties DEFAULT_CONFIG      = null;
 
 	// Application constants
-	public static final String APPLICATION_TITLE         = "application.title";
-	public static final String APPLICATION_HOST          = "application.host";
-	public static final String APPLICATION_HTTP_PORT     = "application.http.port";
-	public static final String APPLICATION_HTTPS_PORT    = "application.https.port";
-	public static final String APPLICATION_HTTPS_ENABLED = "application.https.enabled";
-	public static final String APPLICATION_FTP_PORT      = "application.ftp.port";
-
-	// Keystore
+	public static final String APPLICATION_TITLE             = "application.title";
+	public static final String APPLICATION_HOST              = "application.host";
+	public static final String APPLICATION_HTTP_PORT         = "application.http.port";
+	public static final String APPLICATION_HTTPS_PORT        = "application.https.port";
+	public static final String APPLICATION_HTTPS_ENABLED     = "application.https.enabled";
+	public static final String APPLICATION_FTP_PORT          = "application.ftp.port";
 	public static final String APPLICATION_KEYSTORE_PATH     = "application.keystore.path";
 	public static final String APPLICATION_KEYSTORE_PASSWORD = "application.keystore.password";
-	
-	// Base constants
-	public static final String BASE_PATH              = "base.path";
-	public static final String CONFIGURED_SERVICES    = "configured.services";
-	public static final String CONFIG_FILE_PATH       = "configfile.path";
- 
-	// Database-related constants 
-	public static final String DATABASE_PATH          = "database.path";
-	public static final String FILES_PATH             = "files.path";
-	public static final String LOG_DATABASE_PATH      = "log.database.path";
-	public static final String FOREIGN_TYPE           = "foreign.type.key";
-	public static final String NEO4J_SHELL_ENABLED    = "neo4j.shell.enabled";
-	
-	// LogService-related constants
-	public static final String LOG_SERVICE_INTERVAL   = "structr.logging.interval";
-	public static final String LOG_SERVICE_THRESHOLD  = "structr.logging.threshold";
-
-	// Network-related constants
-	public static final String SMTP_HOST              = "smtp.host";
-	public static final String SMTP_PORT              = "smtp.port";
-	public static final String SMTP_USER              = "smtp.user";
-	public static final String SMTP_PASSWORD          = "smtp.password";
-
-	// Security-related constants
-	public static final String SUPERUSER_USERNAME     = "superuser.username";
-	public static final String SUPERUSER_PASSWORD     = "superuser.password";
-    
-	public static final String TCP_PORT               = "tcp.port";
-	public static final String TMP_PATH               = "tmp.path";
-	public static final String UDP_PORT               = "udp.port";
-	    
-	public static final String JSON_OUTPUT_DEPTH      = "json.depth";
-	public static final String JSON_INDENTATION       = "json.indentation";
-	    
-	// geocoding    
-	public static final String GEOCODING_PROVIDER     = "geocoding.provider";
-	public static final String GEOCODING_LANGUAGE     = "geocoding.language";
-	public static final String GEOCODING_APIKEY       = "geocoding.apikey";
-	    
-	// schema    
-	public static final String CONFIGURATION          = "configuration";
-	    
-	// misc.    
-	public static final String TESTING                = "testing";
+	public static final String BASE_PATH                     = "base.path";
+	public static final String CONFIGURED_SERVICES           = "configured.services";
+	public static final String CONFIG_FILE_PATH              = "configfile.path";
+	public static final String DATABASE_PATH                 = "database.path";
+	public static final String FILES_PATH                    = "files.path";
+	public static final String LOG_DATABASE_PATH             = "log.database.path";
+	public static final String FOREIGN_TYPE                  = "foreign.type.key";
+	public static final String NEO4J_SHELL_ENABLED           = "neo4j.shell.enabled";
+	public static final String LOG_SERVICE_INTERVAL          = "structr.logging.interval";
+	public static final String LOG_SERVICE_THRESHOLD         = "structr.logging.threshold";
+	public static final String SMTP_HOST                     = "smtp.host";
+	public static final String SMTP_PORT                     = "smtp.port";
+	public static final String SMTP_USER                     = "smtp.user";
+	public static final String SMTP_PASSWORD                 = "smtp.password";
+	public static final String SUPERUSER_USERNAME            = "superuser.username";
+	public static final String SUPERUSER_PASSWORD            = "superuser.password";
+	public static final String TCP_PORT                      = "tcp.port";
+	public static final String TMP_PATH                      = "tmp.path";
+	public static final String UDP_PORT                      = "udp.port";
+	public static final String JSON_INDENTATION              = "json.indentation";
+	public static final String GEOCODING_PROVIDER            = "geocoding.provider";
+	public static final String GEOCODING_LANGUAGE            = "geocoding.language";
+	public static final String GEOCODING_APIKEY              = "geocoding.apikey";
+	public static final String CONFIGURATION                 = "configuration";
+	public static final String TESTING                       = "testing";
 	
 	// singleton instance
 	private static Services singletonInstance = null;
@@ -135,17 +112,21 @@ public class Services {
 
 	private Services() { }
 	
-	public static Services getInstance(final Class mainClass) {
+	public static Services getInstance() {
 		
 		if (singletonInstance == null) {
 			
 			singletonInstance = new Services();
-			
-			// we need this to obtain a pointer to the JAR file we were started from
-			if (mainClass != null) {
-				singletonInstance.resources = mainClass.getProtectionDomain().getCodeSource().getLocation().toString();
-			}
-			
+
+			try {
+				final StackTraceElement[] trace = Thread.currentThread().getStackTrace();
+				if (trace != null && trace.length > 0) {
+					final Class mainClass = Class.forName(trace[trace.length-1].getClassName());
+					singletonInstance.resources = mainClass.getProtectionDomain().getCodeSource().getLocation().toString();
+				}
+				
+			} catch (Throwable t) { t.printStackTrace(); }
+
 			singletonInstance.initialize();
 			
 			
@@ -154,18 +135,20 @@ public class Services {
 		return singletonInstance;
 	}
 	
-	public static Services getInstance(final Class mainClass, final Properties properties) {
+	public static Services getInstance(final Properties properties) {
 		
 		if (singletonInstance == null) {
 			
 			singletonInstance = new Services();
 
-			FIXME: this does not work!
-			
-			// we need this to obtain a pointer to the JAR file we were started from
-			if (mainClass != null) {
-				singletonInstance.resources = mainClass.getProtectionDomain().getCodeSource().getLocation().toString();
-			}
+			try {
+				final StackTraceElement[] trace = Thread.currentThread().getStackTrace();
+				if (trace != null && trace.length > 0) {
+					final Class mainClass = Class.forName(trace[trace.length-1].getClassName());
+					singletonInstance.resources = mainClass.getProtectionDomain().getCodeSource().getLocation().toString();
+				}
+				
+			} catch (Throwable t) { t.printStackTrace(); }
 
 			singletonInstance.initialize(properties);
 		}
@@ -244,12 +227,15 @@ public class Services {
 			final FileInputStream fis = new FileInputStream(configFileName);
 			properties.load(fis);
 			fis.close();
+
+			// do not write merged config, causes file to lose comments, format and order
 			
-			// write merged config file to disk
-			final FileOutputStream fos = new FileOutputStream(configFileName);
-			properties.store(fos, "Updated " + new SimpleDateFormat("yyyy/MM/dd - HH:mm").format(System.currentTimeMillis()));
-			fos.flush();
-			fos.close();
+			
+//			// write merged config file to disk
+//			final FileOutputStream fos = new FileOutputStream(configFileName);
+//			properties.store(fos, "Updated " + new SimpleDateFormat("yyyy/MM/dd - HH:mm").format(System.currentTimeMillis()));
+//			fos.flush();
+//			fos.close();
 
 		} catch (IOException ioex) {
 			
@@ -583,10 +569,9 @@ public class Services {
 			
 			DEFAULT_CONFIG = new Properties();
 			
-			DEFAULT_CONFIG.setProperty(CONFIGURATION,                  ModuleService.class.getName());
-			DEFAULT_CONFIG.setProperty(CONFIGURED_SERVICES,           "NodeService AgentService CacheService LogService NotificationService RestService");
+			DEFAULT_CONFIG.setProperty(CONFIGURATION,                 ModuleService.class.getName());
+			DEFAULT_CONFIG.setProperty(CONFIGURED_SERVICES,           "NodeService AgentService CronService");
 			DEFAULT_CONFIG.setProperty(NEO4J_SHELL_ENABLED,           "true");
-			DEFAULT_CONFIG.setProperty(JSON_OUTPUT_DEPTH,             "3");
 			DEFAULT_CONFIG.setProperty(JSON_INDENTATION,              "true");
 			
 			DEFAULT_CONFIG.setProperty(SUPERUSER_USERNAME,            "superadmin");
@@ -598,10 +583,7 @@ public class Services {
 			
 			DEFAULT_CONFIG.setProperty(APPLICATION_HTTPS_ENABLED,     "false");
 			DEFAULT_CONFIG.setProperty(APPLICATION_HTTPS_PORT,        "8083");
-			
 			DEFAULT_CONFIG.setProperty(APPLICATION_FTP_PORT,          "8022");
-//			DEFAULT_CONFIG.setProperty(APPLICATION_KEYSTORE_PATH,     "");
-//			DEFAULT_CONFIG.setProperty(APPLICATION_KEYSTORE_PASSWORD, "");
 
 			DEFAULT_CONFIG.setProperty(BASE_PATH,                     "");
 			DEFAULT_CONFIG.setProperty(TMP_PATH,                      "/tmp");
@@ -609,20 +591,16 @@ public class Services {
 			DEFAULT_CONFIG.setProperty(FILES_PATH,                    "./files");
 			DEFAULT_CONFIG.setProperty(LOG_DATABASE_PATH,             "./logDb.dat");
 
-//			DEFAULT_CONFIG.setProperty(FOREIGN_TYPE,                  "");
-//			DEFAULT_CONFIG.setProperty(LOG_SERVICE_INTERVAL,          "");
-//			DEFAULT_CONFIG.setProperty(LOG_SERVICE_THRESHOLD,         "");
-
 			DEFAULT_CONFIG.setProperty(SMTP_HOST,                     "localhost");
 			DEFAULT_CONFIG.setProperty(SMTP_PORT,                     "25");
-//			DEFAULT_CONFIG.setProperty(SMTP_USER,                     "");
-//			DEFAULT_CONFIG.setProperty(SMTP_PASSWORD,                 "");
 			DEFAULT_CONFIG.setProperty(TCP_PORT,                      "54555");
 			DEFAULT_CONFIG.setProperty(UDP_PORT,                      "57555");
 			
-//			DEFAULT_CONFIG.setProperty(GEOCODING_PROVIDER,            "");
-//			DEFAULT_CONFIG.setProperty(GEOCODING_LANGUAGE,            "");
-//			DEFAULT_CONFIG.setProperty(GEOCODING_APIKEY,              "");
+			// FIXME: should we really include default values for the
+			// RestService here since it is not located in this module.
+			DEFAULT_CONFIG.setProperty("RestService.servlets", "JsonRestServlet");
+			DEFAULT_CONFIG.setProperty("JsonRestServlet.class", "org.structr.rest.servlet.JsonRestServlet");
+			DEFAULT_CONFIG.setProperty("JsonRestServlet.outputdepth", "3");
 		}
 		
 		return DEFAULT_CONFIG;

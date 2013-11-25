@@ -50,6 +50,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.module.ModuleService;
+import static org.structr.rest.common.StructrRestTest.restUrl;
 import org.structr.rest.entity.TestOne;
 import org.structr.rest.service.RestService;
 import org.structr.rest.servlet.JsonRestServlet;
