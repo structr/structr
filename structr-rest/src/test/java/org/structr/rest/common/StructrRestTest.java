@@ -281,7 +281,7 @@ public class StructrRestTest extends TestCase {
 	@Override
 	protected void setUp() throws Exception {
 
-		final StructrConf config = Services.getDefaultConfiguration();
+		final StructrConf config = Services.getBaseConfiguration();
 		final Date now           = new Date();
 		final long timestamp     = now.getTime();
 		
@@ -292,9 +292,6 @@ public class StructrRestTest extends TestCase {
 		
 		config.setProperty(Services.CONFIGURED_SERVICES, "NodeService LogService HttpService");
 		config.setProperty(Services.CONFIGURATION, JarConfigurationProvider.class.getName());
-		config.setProperty(Services.APPLICATION_TITLE, "structr unit test app" + timestamp);
-		config.setProperty(Services.APPLICATION_HOST, host);
-		config.setProperty(Services.APPLICATION_HTTP_PORT, Integer.toString(httpPort));
 		config.setProperty(Services.TMP_PATH, "/tmp/");
 		config.setProperty(Services.BASE_PATH, basePath);
 		config.setProperty(Services.DATABASE_PATH, basePath + "/db");
@@ -305,6 +302,10 @@ public class StructrRestTest extends TestCase {
 		config.setProperty(Services.SUPERUSER_USERNAME, "superadmin");
 		config.setProperty(Services.SUPERUSER_PASSWORD, "sehrgeheim");
 		
+		config.setProperty(HttpService.APPLICATION_TITLE, "structr unit test app" + timestamp);
+		config.setProperty(HttpService.APPLICATION_HOST, host);
+		config.setProperty(HttpService.APPLICATION_HTTP_PORT, Integer.toString(httpPort));
+
 		// configure JsonRestServlet
 		config.setProperty(HttpService.SERVLETS, "JsonRestServlet");
 		config.setProperty("JsonRestServlet.class", JsonRestServlet.class.getName());

@@ -14,6 +14,7 @@ import java.util.logging.Logger;
 import javax.servlet.DispatcherType;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
+import org.eclipse.jetty.server.Authentication.User;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
@@ -36,6 +37,7 @@ import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.tooling.GlobalGraphOperations;
+import org.structr.common.PropertyView;
 import org.structr.common.StructrConf;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
@@ -45,6 +47,8 @@ import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeService;
 import org.structr.core.graph.SyncCommand;
+import org.structr.rest.DefaultResourceProvider;
+import org.structr.rest.auth.RestAuthenticator;
 import org.structr.rest.servlet.JsonRestServlet;
 import org.tuckey.web.filters.urlrewrite.UrlRewriteFilter;
 
@@ -60,6 +64,14 @@ public class HttpService implements RunnableService {
 	public static final String RESOURCE_HANDLERS   = "HttpService.resourceHandlers";
 	public static final String LIFECYCLE_LISTENERS = "HttpService.lifecycle.listeners";
 
+	public static final String APPLICATION_TITLE             = "application.title";
+	public static final String APPLICATION_HOST              = "application.host";
+	public static final String APPLICATION_HTTP_PORT         = "application.http.port";
+	public static final String APPLICATION_HTTPS_PORT        = "application.https.port";
+	public static final String APPLICATION_HTTPS_ENABLED     = "application.https.enabled";
+	public static final String APPLICATION_KEYSTORE_PATH     = "application.keystore.path";
+	public static final String APPLICATION_KEYSTORE_PASSWORD = "application.keystore.password";
+	
 	private enum LifecycleEvent {
 		Started, Stopped
 	}
@@ -158,10 +170,32 @@ public class HttpService implements RunnableService {
 	}
 
 	@Override
-	public void initialize(final StructrConf configurationFile) {
+	public void initialize(final StructrConf additionalConfig) {
+
+		final StructrConf finalConfig = new StructrConf();
+		
+		// Default configuration
+
+		finalConfig.setProperty(APPLICATION_TITLE,         "structr server");
+		finalConfig.setProperty(APPLICATION_HOST,          "0.0.0.0");
+		finalConfig.setProperty(APPLICATION_HTTP_PORT,     "8082");
+		finalConfig.setProperty(APPLICATION_HTTPS_ENABLED, "false");
+		finalConfig.setProperty(APPLICATION_HTTPS_PORT,    "8083");
+		finalConfig.setProperty(SERVLETS, "JsonRestServlet");
+
+		finalConfig.setProperty("JsonRestServlet.class", JsonRestServlet.class.getName());
+		finalConfig.setProperty("JsonRestServlet.path", "/structr/rest/*");
+		finalConfig.setProperty("JsonRestServlet.resourceprovider", DefaultResourceProvider.class.getName());
+		finalConfig.setProperty("JsonRestServlet.authenticator", RestAuthenticator.class.getName());
+		finalConfig.setProperty("JsonRestServlet.user.class", User.class.getName());
+		finalConfig.setProperty("JsonRestServlet.user.autocreate", "false");
+		finalConfig.setProperty("JsonRestServlet.defaultview", PropertyView.Public);
+		finalConfig.setProperty("JsonRestServlet.outputdepth", "3");
+
+		Services.mergeConfiguration(finalConfig, additionalConfig);
 		
 		String sourceJarName = getClass().getProtectionDomain().getCodeSource().getLocation().toString();
-		final boolean isTest = Boolean.parseBoolean(configurationFile.getProperty(Services.TESTING, "false"));
+		final boolean isTest = Boolean.parseBoolean(finalConfig.getProperty(Services.TESTING, "false"));
 		
 		if (!isTest && StringUtils.stripEnd(sourceJarName, System.getProperty("file.separator")).endsWith("classes")) {
 			
@@ -175,23 +209,23 @@ public class HttpService implements RunnableService {
 		}
 
 		// load configuration from properties file
-		applicationName                = configurationFile.getProperty(Services.APPLICATION_TITLE);
-		host                           = configurationFile.getProperty(Services.APPLICATION_HOST);
-		basePath                       = configurationFile.getProperty(Services.BASE_PATH);
-		httpPort                       = HttpServiceServlet.parseInt(configurationFile.getProperty(Services.APPLICATION_HTTP_PORT), 8082);
+		applicationName                = finalConfig.getProperty(APPLICATION_TITLE);
+		host                           = finalConfig.getProperty(APPLICATION_HOST);
+		basePath                       = finalConfig.getProperty(Services.BASE_PATH);
+		httpPort                       = HttpServiceServlet.parseInt(finalConfig.getProperty(APPLICATION_HTTP_PORT), 8082);
 		maxIdleTime                    = HttpServiceServlet.parseInt(System.getProperty("maxIdleTime"), 30000);
 		requestHeaderSize              = HttpServiceServlet.parseInt(System.getProperty("requestHeaderSize"), 8192);
 
 		// other properties
-		String keyStorePath            = configurationFile.getProperty(Services.APPLICATION_KEYSTORE_PATH);
-		String keyStorePassword        = configurationFile.getProperty(Services.APPLICATION_KEYSTORE_PASSWORD);
+		String keyStorePath            = finalConfig.getProperty(APPLICATION_KEYSTORE_PATH);
+		String keyStorePassword        = finalConfig.getProperty(APPLICATION_KEYSTORE_PASSWORD);
 		String contextPath             = System.getProperty("contextPath", "/");
 		String logPrefix               = "structr";
 		boolean enableRewriteFilter    = true; // configurationFile.getProperty(Services.
-		boolean enableHttps            = HttpServiceServlet.parseBoolean(configurationFile.getProperty(Services.APPLICATION_HTTPS_ENABLED), false);
+		boolean enableHttps            = HttpServiceServlet.parseBoolean(finalConfig.getProperty(APPLICATION_HTTPS_ENABLED), false);
 		boolean enableGzipCompression  = true; //
 		boolean logRequests            = false; //
-		int httpsPort                  = HttpServiceServlet.parseInt(configurationFile.getProperty(Services.APPLICATION_HTTP_PORT), 8083);
+		int httpsPort                  = HttpServiceServlet.parseInt(finalConfig.getProperty(APPLICATION_HTTP_PORT), 8083);
 		
 		
 		// get current base path
@@ -249,7 +283,7 @@ public class HttpService implements RunnableService {
 		
 		
 		// enable request logging
-		if (logRequests || "true".equals(configurationFile.getProperty("log.requests", "false"))) {
+		if (logRequests || "true".equals(finalConfig.getProperty("log.requests", "false"))) {
 
 			String etcPath = basePath + "/etc";
 			File etcDir    = new File(etcPath);
@@ -320,12 +354,12 @@ public class HttpService implements RunnableService {
 			
 		}
 
-		final List<ContextHandler> resourceHandler = collectResourceHandlers(configurationFile);
+		final List<ContextHandler> resourceHandler = collectResourceHandlers(finalConfig);
 		for (ContextHandler contextHandler : resourceHandler) {
 			contexts.addHandler(contextHandler);
 		}
 		
-		final Map<String, ServletHolder> servlets = collectServlets(configurationFile);
+		final Map<String, ServletHolder> servlets = collectServlets(finalConfig);
 
 		// add servlet elements
 		int position = 1;
@@ -367,9 +401,9 @@ public class HttpService implements RunnableService {
 			} else {
 
 				logger.log(Level.WARNING, "Unable to configure SSL, please make sure that {0}, {1} and {2} are set correctly in structr.conf.", new Object[] {
-					Services.APPLICATION_HTTPS_PORT,
-					Services.APPLICATION_KEYSTORE_PATH,
-					Services.APPLICATION_KEYSTORE_PASSWORD
+					APPLICATION_HTTPS_PORT,
+					APPLICATION_KEYSTORE_PATH,
+					APPLICATION_KEYSTORE_PASSWORD
 				});
 			}
 		}
@@ -387,7 +421,7 @@ public class HttpService implements RunnableService {
 
 		} else {
 
-			logger.log(Level.WARNING, "Unable to configure HTTP server port, please make sure that {0} and {1} are set correctly in structr.conf.", new Object[] { Services.APPLICATION_HOST, Services.APPLICATION_HTTP_PORT } );
+			logger.log(Level.WARNING, "Unable to configure HTTP server port, please make sure that {0} and {1} are set correctly in structr.conf.", new Object[] { APPLICATION_HOST, APPLICATION_HTTP_PORT } );
 		}
 		
 		if (!connectors.isEmpty()) {
@@ -596,19 +630,11 @@ public class HttpService implements RunnableService {
 		}
 	}
 
-	@Override
-	public void visitConfiguration(final StructrConf configuration) {
-			
-		configuration.setProperty("HttpService.servlets", "JsonRestServlet");
-		configuration.setProperty("JsonRestServlet.class", JsonRestServlet.class.getName());
-		configuration.setProperty("JsonRestServlet.outputdepth", "3");
-	}
-	
 	// ----- private methods -----
 	private void sendLifecycleEvent(final LifecycleEvent event) {
 		
 		// instantiate and call lifecycle callbacks from configuration file
-		final String listeners = Services.getInstance().getStructrConf().getProperty(LIFECYCLE_LISTENERS);
+		final String listeners = Services.getInstance().getCurrentConfig().getProperty(LIFECYCLE_LISTENERS);
 		if (listeners != null) {
 			
 			final String[] listenerClasses = listeners.split("[\\s ,;]+");

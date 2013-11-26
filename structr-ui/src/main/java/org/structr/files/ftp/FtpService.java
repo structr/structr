@@ -41,6 +41,8 @@ public class FtpService implements RunnableService {
 	
 	private static int port;
 	private FtpServer server;
+	
+	public static final String APPLICATION_FTP_PORT          = "application.ftp.port";
 
 	@Override
 	public void startService() {
@@ -93,9 +95,16 @@ public class FtpService implements RunnableService {
 	}
 
 	@Override
-	public void initialize(final StructrConf configurationFile) {
+	public void initialize(final StructrConf config) {
 		
-		final String configuredPort = configurationFile.getProperty(Services.APPLICATION_FTP_PORT);
+		final StructrConf finalConfig = new StructrConf();
+		
+		// Default config
+		finalConfig.setProperty(APPLICATION_FTP_PORT,      "8022");
+		
+		Services.mergeConfiguration(finalConfig, config);
+		
+		final String configuredPort = finalConfig.getProperty(APPLICATION_FTP_PORT);
 		
 		try {
 			port = Integer.parseInt(configuredPort);
@@ -125,7 +134,4 @@ public class FtpService implements RunnableService {
 		return FtpServer.class.getSimpleName();
 	}
 
-	@Override
-	public void visitConfiguration(final StructrConf configuration) {
-	}
 }

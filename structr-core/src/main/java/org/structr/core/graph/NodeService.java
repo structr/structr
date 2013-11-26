@@ -132,10 +132,10 @@ public class NodeService implements SingletonService {
 	}
 
 	@Override
-	public void initialize(final StructrConf configurationFile) {
+	public void initialize(final StructrConf config) {
 
 		final Map<String, String> neo4jConfiguration = new LinkedHashMap<>();
-		final String dbPath                          = configurationFile.getProperty(Services.DATABASE_PATH);
+		final String dbPath                          = config.getProperty(Services.DATABASE_PATH);
 
 		logger.log(Level.INFO, "Initializing database ({0}) ...", dbPath);
 
@@ -148,7 +148,7 @@ public class NodeService implements SingletonService {
 		}
 
 		// neo4j remote shell configuration
-		if ("true".equals(configurationFile.getProperty(Services.NEO4J_SHELL_ENABLED, "false"))) {
+		if ("true".equals(config.getProperty(Services.NEO4J_SHELL_ENABLED, "false"))) {
 			
 			// enable neo4j remote shell, thanks Michael :)
 			neo4jConfiguration.put(ShellSettings.remote_shell_enabled.name(), "true");
@@ -175,7 +175,7 @@ public class NodeService implements SingletonService {
 
 		}
 
-		filesPath = configurationFile.getProperty(Services.FILES_PATH);
+		filesPath = config.getProperty(Services.FILES_PATH);
 
 		// check existence of files path
 		File files = new File(filesPath);
@@ -218,13 +218,13 @@ public class NodeService implements SingletonService {
 		logger.log(Level.FINE, "Keyword node index ready.");
 		logger.log(Level.FINE, "Initializing layer index...");
 
-		final Map<String, String> config = new HashMap<>();
+		final Map<String, String> spatialConfig = new HashMap<>();
 
-		config.put(LayerNodeIndex.LAT_PROPERTY_KEY, Location.latitude.dbName());
-		config.put(LayerNodeIndex.LON_PROPERTY_KEY, Location.longitude.dbName());
-		config.put(SpatialIndexProvider.GEOMETRY_TYPE, LayerNodeIndex.POINT_PARAMETER);
+		spatialConfig.put(LayerNodeIndex.LAT_PROPERTY_KEY, Location.latitude.dbName());
+		spatialConfig.put(LayerNodeIndex.LON_PROPERTY_KEY, Location.longitude.dbName());
+		spatialConfig.put(SpatialIndexProvider.GEOMETRY_TYPE, LayerNodeIndex.POINT_PARAMETER);
 
-		layerIndex = new LayerNodeIndex("layerIndex", graphDb, config);
+		layerIndex = new LayerNodeIndex("layerIndex", graphDb, spatialConfig);
 		nodeIndices.put(NodeIndex.layer, layerIndex);
 
 		logger.log(Level.FINE, "Layer index ready.");
@@ -358,7 +358,4 @@ public class NodeService implements SingletonService {
 		return relIndices.get(name);
 	}
 
-	@Override
-	public void visitConfiguration(final StructrConf configuration) {
-	}
 }

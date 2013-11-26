@@ -48,6 +48,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Person;
 import org.structr.core.property.PropertyKey;
+import org.structr.web.auth.StructrOAuthClient;
 import org.structr.web.resource.RegistrationResource;
 import org.structr.web.servlet.HtmlServlet;
 

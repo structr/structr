@@ -188,7 +188,7 @@ public class LogService implements SingletonService {
 	}
 
 
-	@Override
-	public void visitConfiguration(final StructrConf configuration) {
-	}
+//	@Override
+//	public void visitConfiguration(final StructrConf configuration) {
+//	}
 }

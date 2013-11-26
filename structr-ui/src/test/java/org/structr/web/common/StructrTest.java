@@ -55,6 +55,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.log.ReadLogCommand;
 import org.structr.core.log.WriteLogCommand;
 import org.structr.module.JarConfigurationProvider;
+import org.structr.rest.service.HttpService;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -96,7 +97,6 @@ public class StructrTest extends TestCase {
 
 		config.setProperty(Services.CONFIGURATION, JarConfigurationProvider.class.getName());
 		config.setProperty(Services.CONFIGURED_SERVICES, "ModuleService NodeService LogService");
-		config.setProperty(Services.APPLICATION_TITLE, "structr unit test app" + timestamp);
 		config.setProperty(Services.TMP_PATH, "/tmp/");
 		config.setProperty(Services.BASE_PATH, "/tmp/structr-test-" + timestamp);
 		config.setProperty(Services.DATABASE_PATH, "/tmp/structr-test-" + timestamp + "/db");
@@ -107,6 +107,7 @@ public class StructrTest extends TestCase {
 		config.setProperty(Services.UDP_PORT, "13466");
 		config.setProperty(Services.SUPERUSER_USERNAME, "superadmin");
 		config.setProperty(Services.SUPERUSER_PASSWORD, "sehrgeheim");
+		config.setProperty(HttpService.APPLICATION_TITLE, "structr unit test app" + timestamp);
 		
 		final Services services = Services.getInstance(config);
 

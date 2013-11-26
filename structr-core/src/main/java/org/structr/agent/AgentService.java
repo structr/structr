@@ -153,7 +153,7 @@ public class AgentService extends Thread implements RunnableService {
 	}
 
 	@Override
-	public void initialize(final StructrConf configurationFile) {}
+	public void initialize(final StructrConf config) {}
 
 	@Override
 	public void shutdown() {}
@@ -341,7 +341,4 @@ public class AgentService extends Thread implements RunnableService {
 		return (this.run);
 	}
 
-	@Override
-	public void visitConfiguration(final StructrConf configuration) {
-	}
 }

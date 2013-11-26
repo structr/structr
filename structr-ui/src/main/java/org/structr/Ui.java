@@ -36,38 +36,19 @@ import org.structr.websocket.servlet.WebSocketServlet;
 /**
  *
  * @author Christian Morgner
+ * @author Axel Morgner
  */
-public class Ui implements org.structr.server.StructrServer {
+public class Ui {
 
 	public static void main(String[] args) {
 
 		try {
-//			Structr.createServer(Ui.class, "structr UI", 8082)
-//				
-//				.addServlet("/structr/html/*", htmlServletHolder)
-//				.addServlet("/structr/ws/*", wsServletHolder)
-//				.addServlet("/structr/csv/*", csvServletHolder)
-//				.addServlet("/structr/upload", uploadServletHolder)
-//			    
-//				.addResourceHandler("/structr", "src/main/resources/structr", true, new String[] { "index.html"})
-//				
-//				.addConfiguredServices(FtpService.class)
-//				.ftpPort(8022)
-//			    
-//				.enableRewriteFilter()
-//				//.logRequests(true)
-//				
-//				.resourceProvider(UiResourceProvider.class)
-//				.authenticator(UiAuthenticator.class)
-//				.userAutoCreate(true)
-//			    
-//				.start(true);
 
-			final StructrConf config = Services.getDefaultConfiguration();
+			final StructrConf config = Services.getBaseConfiguration();
 			
 			config.setProperty(Services.CONFIGURED_SERVICES, "NodeService LogService FtpService HttpService");
 			config.setProperty(Services.CONFIGURATION, JarConfigurationProvider.class.getName());
-			config.setProperty(Services.APPLICATION_TITLE, "Structr UI");
+			config.setProperty(HttpService.APPLICATION_TITLE, "Structr UI");
 
 			// Configure servlets
 			config.setProperty(HttpService.SERVLETS, "JsonRestServlet WebSocketServlet CsvServlet HtmlServlet");

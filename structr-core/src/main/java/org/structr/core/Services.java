@@ -58,17 +58,9 @@ import org.structr.schema.ConfigurationProvider;
 public class Services {
 
 	private static final Logger logger        = Logger.getLogger(StructrApp.class.getName());
-	private static StructrConf DEFAULT_CONFIG = null;
+	private static StructrConf baseConf = null;
 
-	// Application constants
-	public static final String APPLICATION_TITLE             = "application.title";
-	public static final String APPLICATION_HOST              = "application.host";
-	public static final String APPLICATION_HTTP_PORT         = "application.http.port";
-	public static final String APPLICATION_HTTPS_PORT        = "application.https.port";
-	public static final String APPLICATION_HTTPS_ENABLED     = "application.https.enabled";
-	public static final String APPLICATION_FTP_PORT          = "application.ftp.port";
-	public static final String APPLICATION_KEYSTORE_PATH     = "application.keystore.path";
-	public static final String APPLICATION_KEYSTORE_PASSWORD = "application.keystore.password";
+	// Configuration constants
 	public static final String BASE_PATH                     = "base.path";
 	public static final String CONFIGURED_SERVICES           = "configured.services";
 	public static final String CONFIG_FILE_PATH              = "configfile.path";
@@ -104,7 +96,7 @@ public class Services {
 	private final Map<Class, Service> serviceCache     = new ConcurrentHashMap<>(10, 0.9f, 8);
 	private final Set<Class> registeredServiceClasses  = new LinkedHashSet<>();
 	private final Set<String> configuredServiceClasses = new LinkedHashSet<>();
-	private StructrConf structrConf                    = null;
+	private StructrConf structrConf                    = new StructrConf();
 	private ConfigurationProvider configuration        = null;
 	private boolean initializationDone                 = false;
 	private String configuredServiceNames              = null;
@@ -197,26 +189,42 @@ public class Services {
 
 	private void initialize() {
 		
-		// initialize structr with this configuration
-		initialize(getDefaultConfiguration());
+		final StructrConf config = getBaseConfiguration();
+		
+		// read structr.conf
+		final String configFileName = "structr.conf";	// TODO: make configurable
+		
+		logger.log(Level.INFO, "Reading {0}..", configFileName);
+		
+		try {
+			final FileInputStream fis = new FileInputStream(configFileName);
+			structrConf.load(fis);
+			fis.close();
+
+		} catch (IOException ioex) {
+			
+			logger.log(Level.WARNING, "Unable to read configuration file {0}: {1}", new Object[] { configFileName, ioex.getMessage() } );
+		}
+		
+		mergeConfiguration(config, structrConf);
+		
+		initialize(config);
+		
 	}
 	
 	private void initialize(final StructrConf properties) {
 
-		logger.log(Level.INFO, "Initializing service layer");
+		this.structrConf = properties;
 
 		configurationClass     = properties.getProperty(Services.CONFIGURATION);
 		configuredServiceNames = properties.getProperty(Services.CONFIGURED_SERVICES);
 		
 		// create set of configured services
 		configuredServiceClasses.addAll(Arrays.asList(configuredServiceNames.split("[ ,]+")));
-		
-		// store structr configuration for later use
-		this.structrConf = properties;
 
 		// if configuration is not yet established, instantiate it
 		// this is the place where the service classes get the
-		// opportunity to modify the default configuration
+		// opportunity to modifyConfiguration the default configuration
 		getConfigurationProvider();
 		
 		logger.log(Level.INFO, "Starting services");
@@ -241,21 +249,6 @@ public class Services {
 
 		logger.log(Level.INFO, "{0} service(s) processed", serviceCache.size());
 		registeredServiceClasses.clear();
-
-		// read structr.conf
-		final String configFileName = "structr.conf";	// TODO: make configurable
-
-		logger.log(Level.INFO, "Reading {0}..", configFileName);
-		
-		try {
-			final FileInputStream fis = new FileInputStream(configFileName);
-			properties.load(fis);
-			fis.close();
-
-		} catch (IOException ioex) {
-			
-			logger.log(Level.WARNING, "Unable to read configuration file {0}: {1}", new Object[] { configFileName, ioex.getMessage() } );
-		}
 		
 		logger.log(Level.INFO, "Initialization complete");
 		
@@ -316,7 +309,7 @@ public class Services {
 		try {
 			
 			Service service = (Service)serviceClass.newInstance();
-			service.visitConfiguration(getDefaultConfiguration());
+			//service.modifyConfiguration(getBaseConfiguration());
 			
 		} catch (Throwable t) {
 			t.printStackTrace();
@@ -328,7 +321,7 @@ public class Services {
 	}
 	
 	public String getConfigurationValue(String key, String defaultValue) {
-		return getStructrConf().getProperty(key, defaultValue);
+		return getCurrentConfig().getProperty(key, defaultValue);
 	}
 	
 	public Class getServiceClassForName(final String serviceClassName) {
@@ -405,7 +398,7 @@ public class Services {
 		logger.log(Level.FINE, "Creating service ", serviceClass.getName());
 
 		Service service = (Service) serviceClass.newInstance();
-		service.initialize(getStructrConf());
+		service.initialize(getCurrentConfig());
 
 		if (service instanceof RunnableService) {
 
@@ -471,7 +464,7 @@ public class Services {
                 return (service != null && service.isRunning());
 	}
 	
-	public StructrConf getStructrConf() {
+	public StructrConf getCurrentConfig() {
 		return structrConf;
 	}
 
@@ -506,40 +499,37 @@ public class Services {
 		return resources;
 	}
 	
-	public static StructrConf getDefaultConfiguration() {
+	public static StructrConf getBaseConfiguration() {
 
-		if (DEFAULT_CONFIG == null) {
+		if (baseConf == null) {
 			
-			DEFAULT_CONFIG = new StructrConf();
+			baseConf = new StructrConf();
 			
-			DEFAULT_CONFIG.setProperty(CONFIGURATION,             JarConfigurationProvider.class.getName());
-			DEFAULT_CONFIG.setProperty(CONFIGURED_SERVICES,       "NodeService AgentService CronService");
-			DEFAULT_CONFIG.setProperty(NEO4J_SHELL_ENABLED,       "true");
-			DEFAULT_CONFIG.setProperty(JSON_INDENTATION,          "true");
+			baseConf.setProperty(CONFIGURATION,             JarConfigurationProvider.class.getName());
+			baseConf.setProperty(CONFIGURED_SERVICES,       "NodeService AgentService CronService");
+			baseConf.setProperty(NEO4J_SHELL_ENABLED,       "true");
+			baseConf.setProperty(JSON_INDENTATION,          "true");
 
-			DEFAULT_CONFIG.setProperty(SUPERUSER_USERNAME,        "superadmin");
-			DEFAULT_CONFIG.setProperty(SUPERUSER_PASSWORD,        RandomStringUtils.random(12));
+			baseConf.setProperty(SUPERUSER_USERNAME,        "superadmin");
+			baseConf.setProperty(SUPERUSER_PASSWORD,        RandomStringUtils.random(12));
 
-			DEFAULT_CONFIG.setProperty(APPLICATION_TITLE,         "structr server");
-			DEFAULT_CONFIG.setProperty(APPLICATION_HOST,          "0.0.0.0");
-			DEFAULT_CONFIG.setProperty(APPLICATION_HTTP_PORT,     "8082");
+			baseConf.setProperty(BASE_PATH,                 "");
+			baseConf.setProperty(TMP_PATH,                  "/tmp");
+			baseConf.setProperty(DATABASE_PATH,             System.getProperty("user.dir").concat("/db"));
+			baseConf.setProperty(FILES_PATH,                System.getProperty("user.dir").concat("/files"));
+			baseConf.setProperty(LOG_DATABASE_PATH,         System.getProperty("user.dir").concat("/logDb.dat"));
 
-			DEFAULT_CONFIG.setProperty(APPLICATION_HTTPS_ENABLED, "false");
-			DEFAULT_CONFIG.setProperty(APPLICATION_HTTPS_PORT,    "8083");
-			DEFAULT_CONFIG.setProperty(APPLICATION_FTP_PORT,      "8022");
-
-			DEFAULT_CONFIG.setProperty(BASE_PATH,                 "");
-			DEFAULT_CONFIG.setProperty(TMP_PATH,                  "/tmp");
-			DEFAULT_CONFIG.setProperty(DATABASE_PATH,             "./db");
-			DEFAULT_CONFIG.setProperty(FILES_PATH,                "./files");
-			DEFAULT_CONFIG.setProperty(LOG_DATABASE_PATH,         "./logDb.dat");
-
-			DEFAULT_CONFIG.setProperty(SMTP_HOST,                 "localhost");
-			DEFAULT_CONFIG.setProperty(SMTP_PORT,                 "25");
-			DEFAULT_CONFIG.setProperty(TCP_PORT,                  "54555");
-			DEFAULT_CONFIG.setProperty(UDP_PORT,                  "57555");
+			baseConf.setProperty(SMTP_HOST,                 "localhost");
+			baseConf.setProperty(SMTP_PORT,                 "25");
+			baseConf.setProperty(TCP_PORT,                  "54555");
+			baseConf.setProperty(UDP_PORT,                  "57555");
 		}
 		
-		return DEFAULT_CONFIG;
+		return baseConf;
 	}
+	
+	public static void mergeConfiguration(final StructrConf baseConfig, final StructrConf additionalConfig) {
+		baseConfig.putAll(additionalConfig);
+	}
+	
 }

@@ -17,7 +17,6 @@
  * along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 package org.structr.core;
 
 /**
@@ -41,8 +40,7 @@ public interface RunnableService extends Service {
 	 */
 	public boolean runOnStartup();
 
-	//~--- get methods ----------------------------------------------------
-
 	@Override
 	public boolean isRunning();
+	
 }

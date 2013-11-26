@@ -58,6 +58,7 @@ import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.property.PropertyMap;
+import org.structr.rest.service.HttpService;
 import org.structr.web.entity.User;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.mail.MailTemplate;
@@ -237,8 +238,8 @@ public class RegistrationResource extends Resource {
 		populateReplacementMap(replacementMap, propertySetFromUserPOST);
 
 		final String userEmail = user.getProperty(User.eMail);
-		final String appHost   = Services.getInstance().getConfigurationValue(Services.APPLICATION_HOST);
-		final String httpPort  = Services.getInstance().getConfigurationValue(Services.APPLICATION_HTTP_PORT);
+		final String appHost   = Services.getInstance().getConfigurationValue(HttpService.APPLICATION_HOST);
+		final String httpPort  = Services.getInstance().getConfigurationValue(HttpService.APPLICATION_HTTP_PORT);
 		
 		replacementMap.put(toPlaceholder(User.eMail.jsonName()), userEmail);
 		replacementMap.put(toPlaceholder("link"),

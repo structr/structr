@@ -32,7 +32,7 @@ import org.structr.common.StructrConf;
 public interface Service {
 
 	/**
-	 * Called by <code>Services.createCommand()</code> before the command is returned to
+	 * Called by {@link Services#createCommand()} before the command is returned to
 	 * the user. Use this method to inject service-specific resources into your command
 	 * objects so you can access them later in the <code>execute()</code> method.
 	 *
@@ -41,16 +41,16 @@ public interface Service {
 	public void injectArguments(Command command);
 
 	/**
-	 * Called by <code>Serivces</code> after the service is instantiated to initialize
+	 * Called {@link Services} after the service is instantiated to initialize
 	 * service-specific resources etc.
 	 *
-	 * @param context the context
+	 * @param config
 	 */
-	public void initialize(final StructrConf configurationFile);
+	public void initialize(final StructrConf config);
 
 	/**
 	 * Called before the service is discarded. Note that this method will not be called
-	 * for instances of <code>PrototypeService</code>.
+	 * for instances of {@link PrototypeService}.
 	 */
 	public void shutdown();
 
@@ -68,10 +68,4 @@ public interface Service {
 	 */
 	public boolean isRunning();
 
-	/**
-	 * Allow this service to augment the default configuration.
-	 * 
-	 * @param defaultConfiguration 
-	 */
-	public void visitConfiguration(final StructrConf defaultConfiguration);
 }

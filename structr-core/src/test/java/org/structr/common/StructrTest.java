@@ -45,7 +45,6 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Properties;
 import java.util.logging.Logger;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -303,7 +302,7 @@ public class StructrTest extends TestCase {
 	@Override
 	protected void setUp() throws Exception {
 
-		final StructrConf config = Services.getDefaultConfiguration();
+		final StructrConf config = Services.getBaseConfiguration();
 		final Date now           = new Date();
 		final long timestamp     = now.getTime();
 		
@@ -311,7 +310,6 @@ public class StructrTest extends TestCase {
 
 		config.setProperty(Services.CONFIGURED_SERVICES, "NodeService LogService");
 		config.setProperty(Services.CONFIGURATION, JarConfigurationProvider.class.getName());
-		config.setProperty(Services.APPLICATION_TITLE, "structr unit test app" + timestamp);
 		config.setProperty(Services.TMP_PATH, "/tmp/");
 		config.setProperty(Services.BASE_PATH, basePath);
 		config.setProperty(Services.DATABASE_PATH, basePath + "/db");

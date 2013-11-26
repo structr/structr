@@ -52,6 +52,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.log.ReadLogCommand;
 import org.structr.core.log.WriteLogCommand;
+import org.structr.files.ftp.FtpService;
 import org.structr.module.JarConfigurationProvider;
 import org.structr.rest.service.HttpService;
 import org.structr.rest.servlet.JsonRestServlet;
@@ -115,7 +116,8 @@ public class StructrUiTest extends TestCase {
 	@Override
 	protected void setUp() throws Exception {
 
-		final StructrConf config = Services.getDefaultConfiguration();
+		config = Services.getBaseConfiguration();
+		
 		final Date now           = new Date();
 		final long timestamp     = now.getTime();
 		
@@ -126,9 +128,6 @@ public class StructrUiTest extends TestCase {
 		
 		config.setProperty(Services.CONFIGURATION, JarConfigurationProvider.class.getName());
 		config.setProperty(Services.CONFIGURED_SERVICES, "NodeService LogService FtpService HttpService");
-		config.setProperty(Services.APPLICATION_TITLE, "structr unit test app" + timestamp);
-		config.setProperty(Services.APPLICATION_HOST, host);
-		config.setProperty(Services.APPLICATION_HTTP_PORT, Integer.toString(httpPort));
 		config.setProperty(Services.TMP_PATH, "/tmp/");
 		config.setProperty(Services.BASE_PATH, basePath);
 		config.setProperty(Services.DATABASE_PATH, basePath + "/db");
@@ -139,9 +138,12 @@ public class StructrUiTest extends TestCase {
 		config.setProperty(Services.SUPERUSER_USERNAME, "superadmin");
 		config.setProperty(Services.SUPERUSER_PASSWORD, "sehrgeheim");
 
-		config.setProperty(Services.APPLICATION_FTP_PORT, Integer.toString(ftpPort));
+		config.setProperty(FtpService.APPLICATION_FTP_PORT, Integer.toString(ftpPort));
 		
 		// configure servlets
+		config.setProperty(HttpService.APPLICATION_TITLE, "structr unit test app" + timestamp);
+		config.setProperty(HttpService.APPLICATION_HOST, host);
+		config.setProperty(HttpService.APPLICATION_HTTP_PORT, Integer.toString(httpPort));
 		config.setProperty(HttpService.SERVLETS, "JsonRestServlet WebSocketServlet CsvServlet HtmlServlet");
 
 		config.setProperty("JsonRestServlet.class", JsonRestServlet.class.getName());

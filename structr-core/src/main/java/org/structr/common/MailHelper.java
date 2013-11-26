@@ -82,7 +82,7 @@ public abstract class MailHelper {
 		throws EmailException {
 
 		// FIXME: this might be slow if the config file is read each time
-		final Properties config   = Services.getInstance().getStructrConf();
+		final Properties config   = Services.getInstance().getCurrentConfig();
 		final String smtpHost     = config.getProperty(Services.SMTP_HOST);
 		final String smtpPort     = config.getProperty(Services.SMTP_PORT);
 		final String smtpUser     = config.getProperty(Services.SMTP_USER);

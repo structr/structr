@@ -119,14 +119,14 @@ public class CronService extends Thread implements RunnableService {
 	}
 
 	@Override
-	public void initialize(final StructrConf configurationFile) {
+	public void initialize(final StructrConf config) {
 
-		final String taskList = configurationFile.getProperty(TASKS, "");
+		final String taskList = config.getProperty(TASKS, "");
 		if (taskList != null) {
 			
 			for(String task : taskList.split("[ \\t]+")) {
 
-				String expression = configurationFile.getProperty(task.concat(EXPRESSION_SUFFIX));
+				String expression = config.getProperty(task.concat(EXPRESSION_SUFFIX));
 				if(expression != null) {
 
 					CronEntry entry = CronEntry.parse(task, expression);
@@ -154,7 +154,4 @@ public class CronService extends Thread implements RunnableService {
 		this.doRun = false;
 	}
 
-	@Override
-	public void visitConfiguration(final StructrConf configuration) {
-	}
 }
