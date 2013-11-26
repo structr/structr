@@ -22,7 +22,7 @@ package org.structr;
 import org.structr.common.PropertyView;
 import org.structr.common.StructrConf;
 import org.structr.core.Services;
-import org.structr.module.ModuleService;
+import org.structr.module.JarConfigurationProvider;
 import org.structr.rest.service.HttpService;
 import org.structr.rest.servlet.CsvServlet;
 import org.structr.rest.servlet.JsonRestServlet;
@@ -66,7 +66,7 @@ public class Ui implements org.structr.server.StructrServer {
 			final StructrConf config = Services.getDefaultConfiguration();
 			
 			config.setProperty(Services.CONFIGURED_SERVICES, "NodeService LogService FtpService HttpService");
-			config.setProperty(Services.CONFIGURATION, ModuleService.class.getName());
+			config.setProperty(Services.CONFIGURATION, JarConfigurationProvider.class.getName());
 			config.setProperty(Services.APPLICATION_TITLE, "Structr UI");
 
 			// Configure servlets

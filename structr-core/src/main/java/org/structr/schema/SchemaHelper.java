@@ -109,7 +109,7 @@ public class SchemaHelper {
 	private static Class getEntityClassForRawType(final String rawType, final boolean normalize) {
 
 		final String normalizedEntityName = normalize ? normalizeEntityName(rawType) : rawType;
-		final Configuration configuration = StructrApp.getConfiguration();
+		final ConfigurationProvider configuration = StructrApp.getConfiguration();
 
 		// first try: node entity
 		Class type = configuration.getNodeEntities().get(normalizedEntityName);

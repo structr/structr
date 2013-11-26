@@ -25,8 +25,8 @@ package org.structr.module;
  */
 public class GetModuleServiceCommand extends ModuleServiceCommand {
 
-	public ModuleService execute() {
+	public JarConfigurationProvider execute() {
 		
-		return (ModuleService)getArgument("moduleService");
+		return (JarConfigurationProvider)getArgument("moduleService");
 	}
 }

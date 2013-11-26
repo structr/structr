@@ -33,7 +33,7 @@ import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.graph.search.SearchRelationshipCommand;
 import org.structr.core.property.PropertyMap;
-import org.structr.schema.Configuration;
+import org.structr.schema.ConfigurationProvider;
 
 /**
  * Stateful facade for accessing the Structr core layer.
@@ -48,40 +48,7 @@ public class StructrApp implements App {
 	private SecurityContext securityContext                     = null;
 	
 	private StructrApp(final SecurityContext securityContext) {
-		
 		this.securityContext = securityContext;
-
-		/*
-		if (services == null) {
-
-			final Map<String, String> context = new LinkedHashMap<>();
-			final String basePath             = ".";
-
-			logger.log(Level.INFO, "Initializing Structr with base path {0}..", basePath);
-
-			context.put(Services.CONFIGURED_SERVICES, "ModuleService NodeService");
-			context.put(Services.TMP_PATH,          "/tmp/");
-			context.put(Services.BASE_PATH,         basePath);
-			context.put(Services.DATABASE_PATH,     basePath + "/db");
-			context.put(Services.FILES_PATH,        basePath + "/files");
-			context.put(Services.LOG_DATABASE_PATH, basePath + "/logDb.dat");
-
-			services = Services.getInstance(context);
-			
-			// register shutdown hook
-			Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-
-				@Override
-				public void run() {
-					
-					services.shutdown();
-				}
-				
-			}));
-			
-			logger.log(Level.INFO, "Initialization done.");
-		}
-		*/
 	}
 	
 	// ----- public methods -----
@@ -276,8 +243,8 @@ public class StructrApp implements App {
 		return new StructrApp(securityContext);
 	}
 	
-	public static Configuration getConfiguration() {
-		return Services.getInstance().getConfiguration();
+	public static ConfigurationProvider getConfiguration() {
+		return Services.getInstance().getConfigurationProvider();
 	}
 	
 	public static String getConfigurationValue(final String key) {

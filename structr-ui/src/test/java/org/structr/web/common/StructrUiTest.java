@@ -40,7 +40,6 @@ import java.nio.charset.Charset;
 import java.util.*;
 import java.util.logging.Logger;
 import junit.framework.TestCase;
-import org.eclipse.jetty.server.Server;
 import org.structr.common.PropertyView;
 import org.structr.core.property.PropertyMap;
 import org.structr.common.SecurityContext;
@@ -53,7 +52,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.log.ReadLogCommand;
 import org.structr.core.log.WriteLogCommand;
-import org.structr.module.ModuleService;
+import org.structr.module.JarConfigurationProvider;
 import org.structr.rest.service.HttpService;
 import org.structr.rest.servlet.JsonRestServlet;
 import org.structr.web.auth.UiAuthenticator;
@@ -125,7 +124,7 @@ public class StructrUiTest extends TestCase {
 		// enable "just testing" flag to avoid JAR resource scanning
 		config.setProperty(Services.TESTING, "true");
 		
-		config.setProperty(Services.CONFIGURATION, ModuleService.class.getName());
+		config.setProperty(Services.CONFIGURATION, JarConfigurationProvider.class.getName());
 		config.setProperty(Services.CONFIGURED_SERVICES, "NodeService LogService FtpService HttpService");
 		config.setProperty(Services.APPLICATION_TITLE, "structr unit test app" + timestamp);
 		config.setProperty(Services.APPLICATION_HOST, host);

@@ -50,7 +50,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
-import org.structr.module.ModuleService;
+import org.structr.module.JarConfigurationProvider;
 import static org.structr.rest.common.StructrRestTest.restUrl;
 import org.structr.rest.entity.TestOne;
 import org.structr.rest.service.HttpService;
@@ -291,7 +291,7 @@ public class StructrRestTest extends TestCase {
 		config.setProperty(Services.TESTING, "true");
 		
 		config.setProperty(Services.CONFIGURED_SERVICES, "NodeService LogService HttpService");
-		config.setProperty(Services.CONFIGURATION, ModuleService.class.getName());
+		config.setProperty(Services.CONFIGURATION, JarConfigurationProvider.class.getName());
 		config.setProperty(Services.APPLICATION_TITLE, "structr unit test app" + timestamp);
 		config.setProperty(Services.APPLICATION_HOST, host);
 		config.setProperty(Services.APPLICATION_HTTP_PORT, Integer.toString(httpPort));

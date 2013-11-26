@@ -25,7 +25,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import org.apache.commons.lang.StringUtils;
 
-import org.structr.module.ModuleService;
+import org.structr.module.JarConfigurationProvider;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -42,7 +42,7 @@ import org.apache.commons.lang.RandomStringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.StructrConf;
 import org.structr.core.app.StructrApp;
-import org.structr.schema.Configuration;
+import org.structr.schema.ConfigurationProvider;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -93,7 +93,7 @@ public class Services {
 	public static final String GEOCODING_PROVIDER            = "geocoding.provider";
 	public static final String GEOCODING_LANGUAGE            = "geocoding.language";
 	public static final String GEOCODING_APIKEY              = "geocoding.apikey";
-	public static final String CONFIGURATION                 = "configuration";
+	public static final String CONFIGURATION                 = "configuration.provider";
 	public static final String TESTING                       = "testing";
 	
 	// singleton instance
@@ -105,11 +105,10 @@ public class Services {
 	private final Set<Class> registeredServiceClasses  = new LinkedHashSet<>();
 	private final Set<String> configuredServiceClasses = new LinkedHashSet<>();
 	private StructrConf structrConf                    = null;
-	private Configuration configuration                = null;
+	private ConfigurationProvider configuration        = null;
 	private boolean initializationDone                 = false;
 	private String configuredServiceNames              = null;
 	private String configurationClass                  = null;
-	private String resources                           = null;
 
 	private Services() { }
 	
@@ -118,19 +117,7 @@ public class Services {
 		if (singletonInstance == null) {
 			
 			singletonInstance = new Services();
-
-			try {
-				final StackTraceElement[] trace = Thread.currentThread().getStackTrace();
-				if (trace != null && trace.length > 0) {
-					final Class mainClass = Class.forName(trace[trace.length-1].getClassName());
-					singletonInstance.resources = mainClass.getProtectionDomain().getCodeSource().getLocation().toString();
-				}
-				
-			} catch (Throwable t) { t.printStackTrace(); }
-
 			singletonInstance.initialize();
-			
-			
 		}
 		
 		return singletonInstance;
@@ -141,16 +128,6 @@ public class Services {
 		if (singletonInstance == null) {
 			
 			singletonInstance = new Services();
-
-			try {
-				final StackTraceElement[] trace = Thread.currentThread().getStackTrace();
-				if (trace != null && trace.length > 0) {
-					final Class mainClass = Class.forName(trace[trace.length-1].getClassName());
-					singletonInstance.resources = mainClass.getProtectionDomain().getCodeSource().getLocation().toString();
-				}
-				
-			} catch (Throwable t) { t.printStackTrace(); }
-
 			singletonInstance.initialize(properties);
 		}
 		
@@ -230,8 +207,6 @@ public class Services {
 			fis.close();
 
 			// do not write merged config, causes file to lose comments, format and order
-			
-			
 //			// write merged config file to disk
 //			final FileOutputStream fos = new FileOutputStream(configFileName);
 //			properties.store(fos, "Updated " + new SimpleDateFormat("yyyy/MM/dd - HH:mm").format(System.currentTimeMillis()));
@@ -256,30 +231,32 @@ public class Services {
 		
 		// create set of configured services
 		configuredServiceClasses.addAll(Arrays.asList(configuredServiceNames.split("[ ,]+")));
+		
+		// store structr configuration for later use
+		this.structrConf = properties;
 
 		// if configuration is not yet established, instantiate it
 		// this is the place where the service classes get the
 		// opportunity to modify the default configuration
-		getConfiguration();
-		
-		// store configuration for later use
-		this.structrConf = properties;
+		getConfigurationProvider();
 		
 		logger.log(Level.INFO, "Starting services");
 
 		// initialize other services
-		for (Class serviceClass : registeredServiceClasses) {
+		for (final String serviceClassName : configuredServiceClasses) {
 
-			if (Service.class.isAssignableFrom(serviceClass) && configuredServiceClasses.contains(serviceClass.getSimpleName())) {
+			try {
 
-				try {
+				Class serviceClass = getServiceClassForName(serviceClassName);
+				
+				if (serviceClass != null) {
 					createService(serviceClass);
-					
-				} catch (Throwable t) {
-
-					logger.log(Level.WARNING, "Exception while registering service {0}: {1}", new Object[] { serviceClass.getName(), t });
-					t.printStackTrace();
 				}
+
+			} catch (Throwable t) {
+
+				logger.log(Level.WARNING, "Exception while registering service {0}: {1}", new Object[] { serviceClassName, t });
+				t.printStackTrace();
 			}
 		}
 
@@ -360,7 +337,20 @@ public class Services {
 		return getStructrConf().getProperty(key, defaultValue);
 	}
 	
-	public Configuration getConfiguration() {
+	public Class getServiceClassForName(final String serviceClassName) {
+		
+		for (Class serviceClass : registeredServiceClasses) {
+			
+			if (serviceClass.getSimpleName().equals(serviceClassName)) {
+				return serviceClass;
+			}
+			
+		}
+		
+		return null;
+	}
+	
+	public ConfigurationProvider getConfigurationProvider() {
 
 		// instantiate configuration provider
 		if (configuration == null) {
@@ -371,11 +361,13 @@ public class Services {
 			// initializers.
 			try {
 
-				configuration = (Configuration)Class.forName(configurationClass).newInstance();
+				configuration = (ConfigurationProvider)Class.forName(configurationClass).newInstance();
 				configuration.initialize();
 
 			} catch (Throwable t) {
 
+				t.printStackTrace();
+				
 				logger.log(Level.SEVERE, "Unable to instantiate schema provider of type {0}: {1}", new Object[] { configurationClass, t.getMessage() });
 			}
 		}
@@ -461,10 +453,6 @@ public class Services {
 	public <T extends Service> T getService(final Class<T> type) {
 		return (T) serviceCache.get(type);
 	}
-
-	public String getResources() {
-		return resources;
-	}
 	
 	public String getConfigValue(final Map<String, String> config, final String key, final String defaultValue) {
 
@@ -492,20 +480,45 @@ public class Services {
 	public StructrConf getStructrConf() {
 		return structrConf;
 	}
+
+	public Set<String> getResources() {
+		
+		final Set<String> resources = new LinkedHashSet<>();
+
+		// scan through structr.conf and try to identify module-specific classes
+		for (final Object configurationValue : structrConf.values()) {
+			
+			for (final String value : configurationValue.toString().split("[\\s ,;]+")) {
+	
+				try {
+
+					// try to load class and find source code origin
+					final Class candidate = Class.forName(value.toString());
+					if (!candidate.getName().startsWith("org.structr")) {
+
+						final String codeLocation = candidate.getProtectionDomain().getCodeSource().getLocation().toString();
+						if (codeLocation.startsWith("file:") && codeLocation.endsWith(".jar") || codeLocation.endsWith(".war")) {
+
+							resources.add(codeLocation.substring(5));
+						}
+					}
+
+				} catch (Throwable ignore) { }
+			}
+		}
+
+		logger.log(Level.INFO, "Found {0} possible resources: {1}", new Object[] { resources.size(), resources } );
+		
+		return resources;
+	}
 	
 	public static StructrConf getDefaultConfiguration() {
 
-		/*
-		- StructrProperties, addValue, removeValue
-		- HttpService, mandatory config for ui
-		- unified (core) main class to start Structr
-		*/
-			
 		if (DEFAULT_CONFIG == null) {
 			
 			DEFAULT_CONFIG = new StructrConf();
 			
-			DEFAULT_CONFIG.setProperty(CONFIGURATION,             ModuleService.class.getName());
+			DEFAULT_CONFIG.setProperty(CONFIGURATION,             JarConfigurationProvider.class.getName());
 			DEFAULT_CONFIG.setProperty(CONFIGURED_SERVICES,       "NodeService AgentService CronService");
 			DEFAULT_CONFIG.setProperty(NEO4J_SHELL_ENABLED,       "true");
 			DEFAULT_CONFIG.setProperty(JSON_INDENTATION,          "true");

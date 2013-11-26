@@ -29,6 +29,6 @@ public abstract class ModuleServiceCommand extends Command {
 
 	@Override
 	public Class getServiceClass() {
-		return (ModuleService.class);
+		return (JarConfigurationProvider.class);
 	}
 }

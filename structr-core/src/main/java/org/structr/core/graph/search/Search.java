@@ -46,7 +46,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
-import org.structr.schema.Configuration;
+import org.structr.schema.ConfigurationProvider;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -103,7 +103,7 @@ public abstract class Search {
 
 	private static List<SearchAttribute> getTypeAndSubtypesInternal(final Class type, final boolean isExactMatch) {
 
-		final Configuration configuration                                     = StructrApp.getConfiguration();
+		final ConfigurationProvider configuration                                     = StructrApp.getConfiguration();
 		final Map<String, Class<? extends NodeInterface>> nodeEntities        = configuration.getNodeEntities();
 		final Map<String, Class<? extends RelationshipInterface>> relEntities = configuration.getRelationshipEntities();
 		final List<SearchAttribute> attrs                                     = new LinkedList<>();

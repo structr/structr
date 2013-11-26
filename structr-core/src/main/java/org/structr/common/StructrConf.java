@@ -17,5 +17,4 @@ public class StructrConf extends Properties {
 	}
 	
 	// TODO: implement addValue() and removeValue() methods
-	
 }

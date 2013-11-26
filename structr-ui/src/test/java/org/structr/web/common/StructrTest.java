@@ -45,7 +45,6 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
 import org.structr.common.StructrConf;
 import org.structr.core.app.App;
@@ -55,7 +54,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.log.ReadLogCommand;
 import org.structr.core.log.WriteLogCommand;
-import org.structr.module.ModuleService;
+import org.structr.module.JarConfigurationProvider;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -95,7 +94,7 @@ public class StructrTest extends TestCase {
 		Date now       = new Date();
 		long timestamp = now.getTime();
 
-		config.setProperty(Services.CONFIGURATION, ModuleService.class.getName());
+		config.setProperty(Services.CONFIGURATION, JarConfigurationProvider.class.getName());
 		config.setProperty(Services.CONFIGURED_SERVICES, "ModuleService NodeService LogService");
 		config.setProperty(Services.APPLICATION_TITLE, "structr unit test app" + timestamp);
 		config.setProperty(Services.TMP_PATH, "/tmp/");
@@ -130,10 +129,11 @@ public class StructrTest extends TestCase {
 	@Override
 	protected void tearDown() throws Exception {
 
+		// shutdown
 		Services.getInstance().shutdown();
 
 		try {
-			File testDir = new File(config.getProperty(Services.BASE_PATH));
+			final File testDir = new File(config.getProperty(Services.BASE_PATH));
 
 			if (testDir.isDirectory()) {
 
