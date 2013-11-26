@@ -21,6 +21,7 @@
 package org.structr.core;
 
 import java.util.Properties;
+import org.structr.common.StructrConf;
 
 //~--- interfaces -------------------------------------------------------------
 
@@ -68,4 +69,10 @@ public interface Service {
 	 */
 	public boolean isRunning();
 
+	/**
+	 * Allow this service to augment the default configuration.
+	 * 
+	 * @param defaultConfiguration 
+	 */
+	public void visitConfiguration(final StructrConf defaultConfiguration);
 }

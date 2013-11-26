@@ -303,26 +303,26 @@ public class StructrTest extends TestCase {
 	@Override
 	protected void setUp() throws Exception {
 
-		final Properties context = Services.getDefaultConfiguration();
+		final StructrConf config = Services.getDefaultConfiguration();
 		final Date now           = new Date();
 		final long timestamp     = now.getTime();
 		
 		basePath = "/tmp/structr-test-" + timestamp;
 
-		context.setProperty(Services.CONFIGURED_SERVICES, "NodeService LogService");
-		context.setProperty(Services.CONFIGURATION, ModuleService.class.getName());
-		context.setProperty(Services.APPLICATION_TITLE, "structr unit test app" + timestamp);
-		context.setProperty(Services.TMP_PATH, "/tmp/");
-		context.setProperty(Services.BASE_PATH, basePath);
-		context.setProperty(Services.DATABASE_PATH, basePath + "/db");
-		context.setProperty(Services.FILES_PATH, basePath + "/files");
-		context.setProperty(Services.LOG_DATABASE_PATH, basePath + "/logDb.dat");
-		context.setProperty(Services.TCP_PORT, "13465");
-		context.setProperty(Services.UDP_PORT, "13466");
-		context.setProperty(Services.SUPERUSER_USERNAME, "superadmin");
-		context.setProperty(Services.SUPERUSER_PASSWORD, "sehrgeheim");
+		config.setProperty(Services.CONFIGURED_SERVICES, "NodeService LogService");
+		config.setProperty(Services.CONFIGURATION, ModuleService.class.getName());
+		config.setProperty(Services.APPLICATION_TITLE, "structr unit test app" + timestamp);
+		config.setProperty(Services.TMP_PATH, "/tmp/");
+		config.setProperty(Services.BASE_PATH, basePath);
+		config.setProperty(Services.DATABASE_PATH, basePath + "/db");
+		config.setProperty(Services.FILES_PATH, basePath + "/files");
+		config.setProperty(Services.LOG_DATABASE_PATH, basePath + "/logDb.dat");
+		config.setProperty(Services.TCP_PORT, "13465");
+		config.setProperty(Services.UDP_PORT, "13466");
+		config.setProperty(Services.SUPERUSER_USERNAME, "superadmin");
+		config.setProperty(Services.SUPERUSER_PASSWORD, "sehrgeheim");
 		
-		final Services services = Services.getInstance(context);
+		final Services services = Services.getInstance(config);
 
 		securityContext		= SecurityContext.getSuperUserInstance();
 		app			= StructrApp.getInstance(securityContext);

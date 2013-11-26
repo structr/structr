@@ -40,6 +40,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.StructrConf;
 import org.structr.schema.Configuration;
 
 //~--- classes ----------------------------------------------------------------
@@ -339,5 +340,9 @@ public class AgentService extends Thread implements RunnableService {
 	@Override
 	public boolean isRunning() {
 		return (this.run);
+	}
+
+	@Override
+	public void visitConfiguration(final StructrConf configuration) {
 	}
 }

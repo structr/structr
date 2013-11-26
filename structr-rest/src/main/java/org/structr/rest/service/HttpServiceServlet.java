@@ -15,9 +15,9 @@ import org.structr.rest.ResourceProvider;
  *
  * @author Christian Morgner
  */
-public class RestServiceServlet extends HttpServlet {
+public class HttpServiceServlet extends HttpServlet {
 
-	private static final Logger logger            = Logger.getLogger(RestServiceServlet.class.getName());
+	private static final Logger logger            = Logger.getLogger(HttpServiceServlet.class.getName());
 
 	protected Property<String> defaultIdProperty  = AbstractNode.uuid;
 	protected String defaultPropertyView          = PropertyView.Public;
@@ -99,7 +99,7 @@ public class RestServiceServlet extends HttpServlet {
 		}
 	}
 
-	protected Authenticator getAuthenticator() throws FrameworkException {
+	protected Authenticator getAuthenticator() {
 
 		Authenticator authenticator = null;
 

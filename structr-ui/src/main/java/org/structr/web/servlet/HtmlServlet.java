@@ -63,7 +63,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
 import org.structr.rest.ResourceProvider;
-import org.structr.rest.service.RestServiceServlet;
+import org.structr.rest.service.HttpServiceServlet;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.common.ThreadLocalMatcher;
@@ -78,7 +78,7 @@ import org.structr.web.entity.dom.DOMNode;
  * @author Christian Morgner
  * @author Axel Morgner
  */
-public class HtmlServlet extends RestServiceServlet {
+public class HtmlServlet extends HttpServiceServlet {
 
 	private static final Logger logger                          = Logger.getLogger(HtmlServlet.class.getName());
 	

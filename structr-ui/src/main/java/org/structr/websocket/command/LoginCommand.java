@@ -58,10 +58,8 @@ public class LoginCommand extends AbstractCommand {
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
-		final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
 		final String username                 = (String) webSocketData.getNodeData().get("username");
 		final String password                 = (String) webSocketData.getNodeData().get("password");
-		final App app                         = StructrApp.getInstance(securityContext);
 		Principal user                        = null;
 
 		if ((username != null) && (password != null)) {
@@ -69,7 +67,7 @@ public class LoginCommand extends AbstractCommand {
 			try {
 
 				StructrWebSocket socket = this.getWebSocket();
-				Authenticator auth      = (Authenticator) StructrApp.getInstance(securityContext).command(AuthenticatorCommand.class).execute(socket.getConfig());
+				Authenticator auth      = socket.getAuthenticator();
 
 				user = auth.doLogin(socket.getRequest(), username, password);
 
@@ -84,6 +82,7 @@ public class LoginCommand extends AbstractCommand {
 					}
 
 					final Principal principal = user;
+					final App app             = StructrApp.getInstance();
 					
 					try {
 						

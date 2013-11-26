@@ -56,7 +56,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
-import org.structr.rest.service.RestServiceServlet;
+import org.structr.rest.service.HttpServiceServlet;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -65,7 +65,7 @@ import org.structr.rest.service.RestServiceServlet;
  *
  * @author Axel Morgner
  */
-public class CsvServlet extends RestServiceServlet {
+public class CsvServlet extends HttpServiceServlet {
 
 	private static final Logger logger = Logger.getLogger(CsvServlet.class.getName());
 

@@ -27,6 +27,7 @@ import org.structr.core.Command;
 import org.structr.core.RunnableService;
 import org.structr.core.Services;
 import org.structr.agent.Task;
+import org.structr.common.StructrConf;
 import org.structr.core.app.StructrApp;
 
 /**
@@ -151,5 +152,9 @@ public class CronService extends Thread implements RunnableService {
 	@Override
 	public void shutdown() {
 		this.doRun = false;
+	}
+
+	@Override
+	public void visitConfiguration(final StructrConf configuration) {
 	}
 }

@@ -44,6 +44,7 @@ import junit.framework.TestCase;
 import org.hamcrest.Matcher;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.common.StructrConf;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -52,7 +53,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.module.ModuleService;
 import static org.structr.rest.common.StructrRestTest.restUrl;
 import org.structr.rest.entity.TestOne;
-import org.structr.rest.service.RestService;
+import org.structr.rest.service.HttpService;
 import org.structr.rest.servlet.JsonRestServlet;
 
 //~--- classes ----------------------------------------------------------------
@@ -280,42 +281,42 @@ public class StructrRestTest extends TestCase {
 	@Override
 	protected void setUp() throws Exception {
 
-		final Properties context = Services.getDefaultConfiguration();
+		final StructrConf config = Services.getDefaultConfiguration();
 		final Date now           = new Date();
 		final long timestamp     = now.getTime();
 		
 		basePath = "/tmp/structr-test-" + timestamp;
 
 		// enable "just testing" flag to avoid JAR resource scanning
-		context.setProperty(Services.TESTING, "true");
+		config.setProperty(Services.TESTING, "true");
 		
-		context.setProperty(Services.CONFIGURED_SERVICES, "NodeService LogService RestService");
-		context.setProperty(Services.CONFIGURATION, ModuleService.class.getName());
-		context.setProperty(Services.APPLICATION_TITLE, "structr unit test app" + timestamp);
-		context.setProperty(Services.APPLICATION_HOST, host);
-		context.setProperty(Services.APPLICATION_HTTP_PORT, Integer.toString(httpPort));
-		context.setProperty(Services.TMP_PATH, "/tmp/");
-		context.setProperty(Services.BASE_PATH, basePath);
-		context.setProperty(Services.DATABASE_PATH, basePath + "/db");
-		context.setProperty(Services.FILES_PATH, basePath + "/files");
-		context.setProperty(Services.LOG_DATABASE_PATH, basePath + "/logDb.dat");
-		context.setProperty(Services.TCP_PORT, "13465");
-		context.setProperty(Services.UDP_PORT, "13466");
-		context.setProperty(Services.SUPERUSER_USERNAME, "superadmin");
-		context.setProperty(Services.SUPERUSER_PASSWORD, "sehrgeheim");
+		config.setProperty(Services.CONFIGURED_SERVICES, "NodeService LogService RestService");
+		config.setProperty(Services.CONFIGURATION, ModuleService.class.getName());
+		config.setProperty(Services.APPLICATION_TITLE, "structr unit test app" + timestamp);
+		config.setProperty(Services.APPLICATION_HOST, host);
+		config.setProperty(Services.APPLICATION_HTTP_PORT, Integer.toString(httpPort));
+		config.setProperty(Services.TMP_PATH, "/tmp/");
+		config.setProperty(Services.BASE_PATH, basePath);
+		config.setProperty(Services.DATABASE_PATH, basePath + "/db");
+		config.setProperty(Services.FILES_PATH, basePath + "/files");
+		config.setProperty(Services.LOG_DATABASE_PATH, basePath + "/logDb.dat");
+		config.setProperty(Services.TCP_PORT, "13465");
+		config.setProperty(Services.UDP_PORT, "13466");
+		config.setProperty(Services.SUPERUSER_USERNAME, "superadmin");
+		config.setProperty(Services.SUPERUSER_PASSWORD, "sehrgeheim");
 		
 		// configure JsonRestServlet
-		context.setProperty(RestService.SERVLETS, "JsonRestServlet");
-		context.setProperty("JsonRestServlet.class", JsonRestServlet.class.getName());
-		context.setProperty("JsonRestServlet.path", restUrl);
-		context.setProperty("JsonRestServlet.resourceprovider", TestResourceProvider.class.getName());
-		context.setProperty("JsonRestServlet.authenticator", SuperUserAuthenticator.class.getName());
-		context.setProperty("JsonRestServlet.user.class", "");
-		context.setProperty("JsonRestServlet.user.autocreate", "false");
-		context.setProperty("JsonRestServlet.defaultview", PropertyView.Public);
-		context.setProperty("JsonRestServlet.outputdepth", "3");
+		config.setProperty(HttpService.SERVLETS, "JsonRestServlet");
+		config.setProperty("JsonRestServlet.class", JsonRestServlet.class.getName());
+		config.setProperty("JsonRestServlet.path", restUrl);
+		config.setProperty("JsonRestServlet.resourceprovider", TestResourceProvider.class.getName());
+		config.setProperty("JsonRestServlet.authenticator", SuperUserAuthenticator.class.getName());
+		config.setProperty("JsonRestServlet.user.class", "");
+		config.setProperty("JsonRestServlet.user.autocreate", "false");
+		config.setProperty("JsonRestServlet.defaultview", PropertyView.Public);
+		config.setProperty("JsonRestServlet.outputdepth", "3");
 		
-		final Services services = Services.getInstance(context);
+		final Services services = Services.getInstance(config);
 
 		securityContext		= SecurityContext.getSuperUserInstance();
 		app			= StructrApp.getInstance(securityContext);

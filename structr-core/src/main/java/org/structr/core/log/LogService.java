@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.StructrConf;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -186,4 +187,8 @@ public class LogService implements SingletonService {
 
 	}
 
+
+	@Override
+	public void visitConfiguration(final StructrConf configuration) {
+	}
 }

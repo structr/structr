@@ -27,7 +27,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 
 import org.structr.core.property.PropertyKey;
-import org.structr.core.Services;
 import org.structr.core.auth.AuthHelper;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
@@ -51,9 +50,9 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.servlet.ServletConfig;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.core.app.StructrApp;
+import org.structr.core.auth.Authenticator;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -64,13 +63,12 @@ import org.structr.core.app.StructrApp;
 public class StructrWebSocket implements WebSocket.OnTextMessage {
 
 	private static final Logger logger                 = Logger.getLogger(StructrWebSocket.class.getName());
-	private static final Map<String, Class> commandSet = new LinkedHashMap<String, Class>();
+	private static final Map<String, Class> commandSet = new LinkedHashMap<>();
 
 
 	//~--- fields ---------------------------------------------------------
 
 	private String callback                          = null;
-	private ServletConfig config                     = null;
 	private Connection connection                    = null;
 	private Gson gson                                = null;
 	private PropertyKey idProperty                   = null;
@@ -79,18 +77,19 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 	private SynchronizationController syncController = null;
 	private String token                             = null;
 	private Map<String, FileUploadHandler> uploads   = null;
-	private String pagePath                           = null;
+	private Authenticator authenticator              = null;
+	private String pagePath                          = null;
 
 	//~--- constructors ---------------------------------------------------
 
-	public StructrWebSocket(final SynchronizationController syncController, final ServletConfig config, final HttpServletRequest request, final Gson gson, final PropertyKey idProperty) {
+	public StructrWebSocket(final SynchronizationController syncController, final HttpServletRequest request, final Gson gson, final PropertyKey idProperty, final Authenticator authenticator) {
 
-		this.uploads        = new LinkedHashMap<String, FileUploadHandler>();
+		this.uploads        = new LinkedHashMap<>();
 		this.syncController = syncController;
-		this.config         = config;
 		this.request        = request;
 		this.gson           = gson;
 		this.idProperty     = idProperty;
+		this.authenticator  = authenticator;
 
 	}
 
@@ -346,14 +345,6 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 
 	}
 
-	//~--- get methods ----------------------------------------------------
-
-	public ServletConfig getConfig() {
-
-		return config;
-
-	}
-
 	public Connection getConnection() {
 
 		return connection;
@@ -394,6 +385,10 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 
 		return token != null;
 
+	}
+	
+	public Authenticator getAuthenticator() {
+		return authenticator;
 	}
 
 	//~--- set methods ----------------------------------------------------

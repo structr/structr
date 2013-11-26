@@ -63,7 +63,7 @@ import org.structr.rest.adapter.FrameworkExceptionGSONAdapter;
 import org.structr.rest.adapter.ResultGSONAdapter;
 import org.structr.rest.serialization.StreamingHtmlWriter;
 import org.structr.rest.serialization.StreamingJsonWriter;
-import org.structr.rest.service.RestServiceServlet;
+import org.structr.rest.service.HttpServiceServlet;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -74,7 +74,7 @@ import org.structr.rest.service.RestServiceServlet;
  *
  * @author Christian Morgner
  */
-public class JsonRestServlet extends RestServiceServlet {
+public class JsonRestServlet extends HttpServiceServlet {
 
 	public static final int DEFAULT_VALUE_PAGE_SIZE                     = 20;
 	public static final String DEFAULT_VALUE_SORT_ORDER                 = "asc";

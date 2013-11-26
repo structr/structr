@@ -41,6 +41,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang.RandomStringUtils;
 import org.structr.common.SecurityContext;
+import org.structr.common.StructrConf;
 import org.structr.core.app.StructrApp;
 import org.structr.schema.Configuration;
 
@@ -57,8 +58,8 @@ import org.structr.schema.Configuration;
  */
 public class Services {
 
-	private static final Logger logger            = Logger.getLogger(StructrApp.class.getName());
-	private static Properties DEFAULT_CONFIG      = null;
+	private static final Logger logger        = Logger.getLogger(StructrApp.class.getName());
+	private static StructrConf DEFAULT_CONFIG = null;
 
 	// Application constants
 	public static final String APPLICATION_TITLE             = "application.title";
@@ -135,7 +136,7 @@ public class Services {
 		return singletonInstance;
 	}
 	
-	public static Services getInstance(final Properties properties) {
+	public static Services getInstance(final StructrConf properties) {
 		
 		if (singletonInstance == null) {
 			
@@ -257,6 +258,8 @@ public class Services {
 		configuredServiceClasses.addAll(Arrays.asList(configuredServiceNames.split("[ ,]+")));
 
 		// if configuration is not yet established, instantiate it
+		// this is the place where the service classes get the
+		// opportunity to modify the default configuration
 		getConfiguration();
 		
 		// store configuration for later use
@@ -334,7 +337,18 @@ public class Services {
 	 * @param serviceClass the service class to register
 	 */
 	public void registerServiceClass(Class serviceClass) {
+		
 		registeredServiceClasses.add(serviceClass);
+		
+		// let service instance visit default configuration
+		try {
+			
+			Service service = (Service)serviceClass.newInstance();
+			service.visitConfiguration(getDefaultConfiguration());
+			
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
 	}
 
 	public String getConfigurationValue(String key) {
@@ -461,91 +475,6 @@ public class Services {
 
 		return defaultValue;
 	}
-//
-//	public String getPath(final Path path) {
-//
-//		String returnPath = null;
-//
-//		switch (path) {
-//
-//			case Base :
-//				returnPath = basePath;
-//
-//				break;
-//
-//			case Rest :
-//				returnPath = restPath;
-//
-//				break;
-//
-//			case Database :
-//				returnPath = getAbsolutePath(databasePath);
-//
-//				break;
-//
-//			case LogDatabase :
-//				returnPath = getAbsolutePath(logDatabasePath);
-//
-//				break;
-//
-//			case Files :
-//				returnPath = getAbsolutePath(filesPath);
-//
-//				break;
-//
-//			case Temp :
-//				returnPath = getAbsolutePath(tmpPath);
-//
-//				break;
-//		}
-//
-//		return returnPath;
-//	}
-//
-//	public String getFilePath(final Path path, final String... pathParts) {
-//
-//		StringBuilder returnPath = new StringBuilder();
-//		String filePath   = getPath(path);
-//
-//		returnPath.append(filePath);
-//		returnPath.append(filePath.endsWith("/")
-//			   ? ""
-//			   : "/");
-//
-//		for (String pathPart : pathParts) {
-//			returnPath.append(pathPart);
-//		}
-//
-//		return returnPath.toString();
-//	}
-//
-//	public int getOutputNestingDepth() {
-//		
-//		try { return Integer.parseInt(jsonDepth); } catch(Throwable t) {}
-//		
-//		return 3;
-//	}
-//	
-//	private String getAbsolutePath(final String path) {
-//
-//		if (path == null) {
-//			return null;
-//		}
-//		
-//		if (path.startsWith("/")) {
-//			return path;
-//		}
-//
-//		StringBuilder absolutePath = new StringBuilder();
-//
-//		absolutePath.append(basePath);
-//		absolutePath.append(basePath.endsWith("/")
-//			   ? ""
-//			   : "/");
-//		absolutePath.append(path);
-//
-//		return (absolutePath.toString());
-//	}
 
 	/**
 	 * Return true if the given service is ready to be used,
@@ -563,44 +492,44 @@ public class Services {
 		return structrConf;
 	}
 	
-	public static Properties getDefaultConfiguration() {
-		
+	public static StructrConf getDefaultConfiguration() {
+
+		/*
+		- StructrProperties, addValue, removeValue
+		- HttpService, mandatory config for ui
+		- unified (core) main class to start Structr
+		*/
+			
 		if (DEFAULT_CONFIG == null) {
 			
-			DEFAULT_CONFIG = new Properties();
+			DEFAULT_CONFIG = new StructrConf();
 			
-			DEFAULT_CONFIG.setProperty(CONFIGURATION,                 ModuleService.class.getName());
-			DEFAULT_CONFIG.setProperty(CONFIGURED_SERVICES,           "NodeService AgentService CronService");
-			DEFAULT_CONFIG.setProperty(NEO4J_SHELL_ENABLED,           "true");
-			DEFAULT_CONFIG.setProperty(JSON_INDENTATION,              "true");
-			
-			DEFAULT_CONFIG.setProperty(SUPERUSER_USERNAME,            "superadmin");
-			DEFAULT_CONFIG.setProperty(SUPERUSER_PASSWORD,            RandomStringUtils.random(12));
-			
-			DEFAULT_CONFIG.setProperty(APPLICATION_TITLE,             "structr server");
-			DEFAULT_CONFIG.setProperty(APPLICATION_HOST,              "0.0.0.0");
-			DEFAULT_CONFIG.setProperty(APPLICATION_HTTP_PORT,         "8082");
-			
-			DEFAULT_CONFIG.setProperty(APPLICATION_HTTPS_ENABLED,     "false");
-			DEFAULT_CONFIG.setProperty(APPLICATION_HTTPS_PORT,        "8083");
-			DEFAULT_CONFIG.setProperty(APPLICATION_FTP_PORT,          "8022");
+			DEFAULT_CONFIG.setProperty(CONFIGURATION,             ModuleService.class.getName());
+			DEFAULT_CONFIG.setProperty(CONFIGURED_SERVICES,       "NodeService AgentService CronService");
+			DEFAULT_CONFIG.setProperty(NEO4J_SHELL_ENABLED,       "true");
+			DEFAULT_CONFIG.setProperty(JSON_INDENTATION,          "true");
 
-			DEFAULT_CONFIG.setProperty(BASE_PATH,                     "");
-			DEFAULT_CONFIG.setProperty(TMP_PATH,                      "/tmp");
-			DEFAULT_CONFIG.setProperty(DATABASE_PATH,                 "./db");
-			DEFAULT_CONFIG.setProperty(FILES_PATH,                    "./files");
-			DEFAULT_CONFIG.setProperty(LOG_DATABASE_PATH,             "./logDb.dat");
+			DEFAULT_CONFIG.setProperty(SUPERUSER_USERNAME,        "superadmin");
+			DEFAULT_CONFIG.setProperty(SUPERUSER_PASSWORD,        RandomStringUtils.random(12));
 
-			DEFAULT_CONFIG.setProperty(SMTP_HOST,                     "localhost");
-			DEFAULT_CONFIG.setProperty(SMTP_PORT,                     "25");
-			DEFAULT_CONFIG.setProperty(TCP_PORT,                      "54555");
-			DEFAULT_CONFIG.setProperty(UDP_PORT,                      "57555");
-			
-			// FIXME: should we really include default values for the
-			// RestService here since it is not located in this module.
-			DEFAULT_CONFIG.setProperty("RestService.servlets", "JsonRestServlet");
-			DEFAULT_CONFIG.setProperty("JsonRestServlet.class", "org.structr.rest.servlet.JsonRestServlet");
-			DEFAULT_CONFIG.setProperty("JsonRestServlet.outputdepth", "3");
+			DEFAULT_CONFIG.setProperty(APPLICATION_TITLE,         "structr server");
+			DEFAULT_CONFIG.setProperty(APPLICATION_HOST,          "0.0.0.0");
+			DEFAULT_CONFIG.setProperty(APPLICATION_HTTP_PORT,     "8082");
+
+			DEFAULT_CONFIG.setProperty(APPLICATION_HTTPS_ENABLED, "false");
+			DEFAULT_CONFIG.setProperty(APPLICATION_HTTPS_PORT,    "8083");
+			DEFAULT_CONFIG.setProperty(APPLICATION_FTP_PORT,      "8022");
+
+			DEFAULT_CONFIG.setProperty(BASE_PATH,                 "");
+			DEFAULT_CONFIG.setProperty(TMP_PATH,                  "/tmp");
+			DEFAULT_CONFIG.setProperty(DATABASE_PATH,             "./db");
+			DEFAULT_CONFIG.setProperty(FILES_PATH,                "./files");
+			DEFAULT_CONFIG.setProperty(LOG_DATABASE_PATH,         "./logDb.dat");
+
+			DEFAULT_CONFIG.setProperty(SMTP_HOST,                 "localhost");
+			DEFAULT_CONFIG.setProperty(SMTP_PORT,                 "25");
+			DEFAULT_CONFIG.setProperty(TCP_PORT,                  "54555");
+			DEFAULT_CONFIG.setProperty(UDP_PORT,                  "57555");
 		}
 		
 		return DEFAULT_CONFIG;

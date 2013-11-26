@@ -36,7 +36,7 @@ import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.tooling.GlobalGraphOperations;
-import org.structr.common.PropertyView;
+import org.structr.common.StructrConf;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 import org.structr.core.GraphObject;
@@ -45,17 +45,18 @@ import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeService;
 import org.structr.core.graph.SyncCommand;
+import org.structr.rest.servlet.JsonRestServlet;
 import org.tuckey.web.filters.urlrewrite.UrlRewriteFilter;
 
 /**
  *
  * @author Christian Morgner
  */
-public class RestService implements RunnableService {
+public class HttpService implements RunnableService {
 	
-	private static final Logger logger            = Logger.getLogger(RestService.class.getName());
+	private static final Logger logger            = Logger.getLogger(HttpService.class.getName());
 	private static final String INITIAL_SEED_FILE = "seed.zip";
-	public static final String SERVLETS           = "RestService.servlets";
+	public static final String SERVLETS           = "HttpService.servlets";
 
 	private Server server                         = null;
 	private String basePath                       = null;
@@ -179,9 +180,9 @@ public class RestService implements RunnableService {
 		applicationName                = configurationFile.getProperty(Services.APPLICATION_TITLE);
 		host                           = configurationFile.getProperty(Services.APPLICATION_HOST);
 		basePath                       = configurationFile.getProperty(Services.BASE_PATH);
-		httpPort                       = RestServiceServlet.parseInt(configurationFile.getProperty(Services.APPLICATION_HTTP_PORT), 8082);
-		maxIdleTime                    = RestServiceServlet.parseInt(System.getProperty("maxIdleTime"), 30000);
-		requestHeaderSize              = RestServiceServlet.parseInt(System.getProperty("requestHeaderSize"), 8192);
+		httpPort                       = HttpServiceServlet.parseInt(configurationFile.getProperty(Services.APPLICATION_HTTP_PORT), 8082);
+		maxIdleTime                    = HttpServiceServlet.parseInt(System.getProperty("maxIdleTime"), 30000);
+		requestHeaderSize              = HttpServiceServlet.parseInt(System.getProperty("requestHeaderSize"), 8192);
 
 		// other properties
 		String keyStorePath            = configurationFile.getProperty(Services.APPLICATION_KEYSTORE_PATH);
@@ -189,10 +190,10 @@ public class RestService implements RunnableService {
 		String contextPath             = System.getProperty("contextPath", "/");
 		String logPrefix               = "structr";
 		boolean enableRewriteFilter    = true; // configurationFile.getProperty(Services.
-		boolean enableHttps            = RestServiceServlet.parseBoolean(configurationFile.getProperty(Services.APPLICATION_HTTPS_ENABLED), false);
+		boolean enableHttps            = HttpServiceServlet.parseBoolean(configurationFile.getProperty(Services.APPLICATION_HTTPS_ENABLED), false);
 		boolean enableGzipCompression  = true; //
 		boolean logRequests            = false; //
-		int httpsPort                  = RestServiceServlet.parseInt(configurationFile.getProperty(Services.APPLICATION_HTTP_PORT), 8083);
+		int httpsPort                  = HttpServiceServlet.parseInt(configurationFile.getProperty(Services.APPLICATION_HTTP_PORT), 8083);
 		
 		
 		// get current base path
@@ -418,7 +419,7 @@ public class RestService implements RunnableService {
 
 	@Override
 	public String getName() {
-		return RestService.class.getName();
+		return HttpService.class.getName();
 	}
 
 	// ----- private methods -----
@@ -460,7 +461,7 @@ public class RestService implements RunnableService {
 						final String servletPath = properties.getProperty(servletName.concat(".path"));
 						if (servletPath != null) {
 
-							final RestServiceServlet servlet = (RestServiceServlet)Class.forName(servletClassName).newInstance();
+							final HttpServiceServlet servlet = (HttpServiceServlet)Class.forName(servletClassName).newInstance();
 							servlet.initializeFromProperties(properties, servletName);
 							
 							if (servletPath.endsWith("*")) {
@@ -520,5 +521,13 @@ public class RestService implements RunnableService {
 
 			file.delete();
 		}
+	}
+
+	@Override
+	public void visitConfiguration(final StructrConf configuration) {
+			
+		configuration.setProperty("HttpService.servlets", "JsonRestServlet");
+		configuration.setProperty("JsonRestServlet.class", JsonRestServlet.class.getName());
+		configuration.setProperty("JsonRestServlet.outputdepth", "3");
 	}
 }

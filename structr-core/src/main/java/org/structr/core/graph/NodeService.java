@@ -48,6 +48,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.cypher.javacompat.ExecutionEngine;
 import org.neo4j.shell.ShellSettings;
+import org.structr.common.StructrConf;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -355,5 +356,9 @@ public class NodeService implements SingletonService {
 	
 	public Index<Relationship> getRelationshipIndex(RelationshipIndex name) {
 		return relIndices.get(name);
+	}
+
+	@Override
+	public void visitConfiguration(final StructrConf configuration) {
 	}
 }

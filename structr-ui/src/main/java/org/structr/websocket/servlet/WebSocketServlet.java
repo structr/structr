@@ -38,12 +38,11 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.servlet.ServletConfig;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.TransactionCommand;
-import org.structr.rest.service.RestServiceServlet;
+import org.structr.rest.service.HttpServiceServlet;
 import org.structr.websocket.SynchronizationController;
 
 //~--- classes ----------------------------------------------------------------
@@ -52,18 +51,14 @@ import org.structr.websocket.SynchronizationController;
  *
  * @author Christian Morgner
  */
-public class WebSocketServlet extends RestServiceServlet {
+public class WebSocketServlet extends HttpServiceServlet {
 
-	private static final String STRUCTR_PROTOCOL = "structr";
-	private static ServletConfig config          = null;
-	private static WebSocketFactory factory      = null;
 	private static final Logger logger           = Logger.getLogger(WebSocketServlet.class.getName());
+	private static final String STRUCTR_PROTOCOL = "structr";
+	private static WebSocketFactory factory      = null;
 
 	@Override
 	public void init() {
-
-		// servlet config
-		config = this.getServletConfig();
 
 		// create GSON serializer
 		final Gson gson = new GsonBuilder()
@@ -84,7 +79,7 @@ public class WebSocketServlet extends RestServiceServlet {
 
 				if (STRUCTR_PROTOCOL.equals(protocol)) {
 
-					return new StructrWebSocket(syncController, config, request, gson, AbstractNode.uuid);
+					return new StructrWebSocket(syncController, request, gson, AbstractNode.uuid, getAuthenticator());
 
 				} else {
 

@@ -40,7 +40,7 @@ import org.apache.commons.io.IOUtils;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.rest.service.RestServiceServlet;
+import org.structr.rest.service.HttpServiceServlet;
 import org.structr.web.auth.HttpAuthenticator;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.Image;
@@ -51,7 +51,7 @@ import org.structr.web.entity.Image;
  *
  * @author Axel Morgner
  */
-public class UploadServlet extends RestServiceServlet {
+public class UploadServlet extends HttpServiceServlet {
 
 	private static final Logger logger = Logger.getLogger(UploadServlet.class.getName());
 

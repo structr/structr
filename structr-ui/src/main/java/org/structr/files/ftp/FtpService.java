@@ -22,11 +22,11 @@ package org.structr.files.ftp;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.commons.lang.StringUtils;
 import org.apache.ftpserver.FtpServer;
 import org.apache.ftpserver.FtpServerFactory;
 import org.apache.ftpserver.ftplet.FtpException;
 import org.apache.ftpserver.listener.ListenerFactory;
+import org.structr.common.StructrConf;
 import org.structr.core.Command;
 import org.structr.core.RunnableService;
 import org.structr.core.Services;
@@ -124,5 +124,9 @@ public class FtpService implements RunnableService {
 	@Override
 	public String getName() {
 		return FtpServer.class.getSimpleName();
+	}
+
+	@Override
+	public void visitConfiguration(final StructrConf configuration) {
 	}
 }
