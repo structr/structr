@@ -222,17 +222,20 @@ public class Services {
 		logger.log(Level.INFO, "Starting services");
 
 		// initialize other services
-		for (Class serviceClass : registeredServiceClasses) {
+		for (final String serviceClassName : configuredServiceClasses) {
 
-			if (Service.class.isAssignableFrom(serviceClass) && configuredServiceClasses.contains(serviceClass.getSimpleName())) {
+			try {
 
-				try {
+				Class serviceClass = getServiceClassForName(serviceClassName);
+				
+				if (serviceClass != null) {
 					createService(serviceClass);
-					
-				} catch (Throwable t) {
-
-					logger.log(Level.WARNING, "Exception while registering service {0}: {1}", new Object[] { serviceClass.getName(), t.getMessage() });
 				}
+
+			} catch (Throwable t) {
+
+				logger.log(Level.WARNING, "Exception while registering service {0}: {1}", new Object[] { serviceClassName, t });
+				t.printStackTrace();
 			}
 		}
 
@@ -326,6 +329,19 @@ public class Services {
 	
 	public String getConfigurationValue(String key, String defaultValue) {
 		return getStructrConf().getProperty(key, defaultValue);
+	}
+	
+	public Class getServiceClassForName(final String serviceClassName) {
+		
+		for (Class serviceClass : registeredServiceClasses) {
+			
+			if (serviceClass.getSimpleName().equals(serviceClassName)) {
+				return serviceClass;
+			}
+			
+		}
+		
+		return null;
 	}
 	
 	public ConfigurationProvider getConfigurationProvider() {

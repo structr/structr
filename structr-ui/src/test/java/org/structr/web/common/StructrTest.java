@@ -43,10 +43,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Enumeration;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
 import org.structr.common.StructrConf;
 import org.structr.core.app.App;
@@ -56,37 +54,29 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.log.ReadLogCommand;
 import org.structr.core.log.WriteLogCommand;
+import org.structr.module.JarConfigurationProvider;
 
 //~--- classes ----------------------------------------------------------------
 
 /**
  * Base class for all structr tests
- *
- * All tests are executed in superuser context
+
+ All tests are executed in superuser config
  *
  * @author Axel Morgner
  */
 public class StructrTest extends TestCase {
 
-	private static final Logger logger = Logger.getLogger(StructrTest.class.getName());
+	//private static final Logger logger = Logger.getLogger(StructrTest.class.getName());
 
 	//~--- fields ---------------------------------------------------------
 
+	protected StructrConf config                 = new StructrConf();
 	protected GraphDatabaseCommand graphDbCommand = null;
 	protected SecurityContext securityContext     = null;
 	protected ReadLogCommand readLogCommand;
 	protected WriteLogCommand writeLogCommand;
 
-	
-	//	protected CreateNodeCommand createNodeCommand;
-//	protected CreateRelationshipCommand createRelationshipCommand;
-//	protected DeleteNodeCommand deleteNodeCommand;
-//	protected DeleteRelationshipCommand deleteRelationshipCommand;
-//	protected FindNodeCommand findNodeCommand;
-//	protected SearchNodeCommand searchNodeCommand;
-//	protected SearchRelationshipCommand searchRelationshipCommand;
-//	protected TransactionCommand transactionCommand;
-	
 	protected App app = null;
 
 	//~--- methods --------------------------------------------------------
@@ -99,14 +89,51 @@ public class StructrTest extends TestCase {
 	}
 
 	@Override
+	protected void setUp() throws Exception {
+
+		Date now       = new Date();
+		long timestamp = now.getTime();
+
+		config.setProperty(Services.CONFIGURATION, JarConfigurationProvider.class.getName());
+		config.setProperty(Services.CONFIGURED_SERVICES, "ModuleService NodeService LogService");
+		config.setProperty(Services.APPLICATION_TITLE, "structr unit test app" + timestamp);
+		config.setProperty(Services.TMP_PATH, "/tmp/");
+		config.setProperty(Services.BASE_PATH, "/tmp/structr-test-" + timestamp);
+		config.setProperty(Services.DATABASE_PATH, "/tmp/structr-test-" + timestamp + "/db");
+		config.setProperty(Services.FILES_PATH, "/tmp/structr-test-" + timestamp + "/files");
+		config.setProperty(Services.LOG_DATABASE_PATH, "/tmp/structr-test-" + timestamp + "/logDb.dat");
+		config.setProperty(Services.TCP_PORT, "13465");
+		config.setProperty(Services.SERVER_IP, "127.0.0.1");
+		config.setProperty(Services.UDP_PORT, "13466");
+		config.setProperty(Services.SUPERUSER_USERNAME, "superadmin");
+		config.setProperty(Services.SUPERUSER_PASSWORD, "sehrgeheim");
+		
+		final Services services = Services.getInstance(config);
+
+		// wait for service layer to be initialized
+		do {
+			try { Thread.sleep(100); } catch(Throwable t) {}
+			
+		} while(!services.isInitialized());
+
+		securityContext           = SecurityContext.getSuperUserInstance();
+		
+		app = StructrApp.getInstance(securityContext);
+		
+		graphDbCommand            = app.command(GraphDatabaseCommand.class);
+		writeLogCommand           = app.command(WriteLogCommand.class);
+		readLogCommand            = app.command(ReadLogCommand.class);
+		
+	}
+
+	@Override
 	protected void tearDown() throws Exception {
 
-		final File testDir = new File(Services.getInstance().getConfigurationValue(Services.BASE_PATH));
-		
 		// shutdown
 		Services.getInstance().shutdown();
 
 		try {
+			final File testDir = new File(config.getProperty(Services.BASE_PATH));
 
 			if (testDir.isDirectory()) {
 
@@ -273,7 +300,7 @@ public class StructrTest extends TestCase {
 	//~--- get methods ----------------------------------------------------
 
 	/**
-	 * Get classes in given package and subpackages, accessible from the context class loader
+	 * Get classes in given package and subpackages, accessible from the config class loader
 	 *
 	 * @param packageName The base package
 	 * @return The classes
@@ -307,45 +334,6 @@ public class StructrTest extends TestCase {
 
 		return classList;
 
-	}
-
-	//~--- set methods ----------------------------------------------------
-
-	@Override
-	protected void setUp() throws Exception {
-
-		final StructrConf config = new StructrConf(Services.getDefaultConfiguration());
-		final Date now            = new Date();
-		final long timestamp      = now.getTime();
-
-		config.put(Services.CONFIGURED_SERVICES, "NodeService LogService");
-		config.put(Services.APPLICATION_TITLE, "structr unit test app" + timestamp);
-		config.put(Services.TMP_PATH, "/tmp/");
-		config.put(Services.BASE_PATH, "/tmp/structr-test-" + timestamp);
-		config.put(Services.DATABASE_PATH, "/tmp/structr-test-" + timestamp + "/db");
-		config.put(Services.FILES_PATH, "/tmp/structr-test-" + timestamp + "/files");
-		config.put(Services.LOG_DATABASE_PATH, "/tmp/structr-test-" + timestamp + "/logDb.dat");
-		config.put(Services.TCP_PORT, "13465");
-		config.put(Services.SERVER_IP, "127.0.0.1");
-		config.put(Services.UDP_PORT, "13466");
-		config.put(Services.SUPERUSER_USERNAME, "superadmin");
-		config.put(Services.SUPERUSER_PASSWORD, "sehrgeheim");
-		
-		final Services services = Services.getInstance(config);
-
-		securityContext           = SecurityContext.getSuperUserInstance();
-		graphDbCommand            = StructrApp.getInstance(securityContext).command(GraphDatabaseCommand.class);
-		writeLogCommand           = StructrApp.getInstance(securityContext).command(WriteLogCommand.class);
-		readLogCommand            = StructrApp.getInstance(securityContext).command(ReadLogCommand.class);
-
-		// wait for service layer to be initialized
-		do {
-			try { Thread.sleep(100); } catch(Throwable t) {}
-			
-		} while(!services.isInitialized());
-
-		app = StructrApp.getInstance(securityContext);
-		
 	}
 
 }
