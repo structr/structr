@@ -197,29 +197,8 @@ public class Services {
 
 	private void initialize() {
 		
-		final StructrConf properties = new StructrConf(getDefaultConfiguration());
-		final String configFileName  = "structr.conf";	// TODO: make configurable
-
-		try {
-			// load config file and merge with defaults
-			final FileInputStream fis = new FileInputStream(configFileName);
-			properties.load(fis);
-			fis.close();
-
-			// do not write merged config, causes file to lose comments, format and order
-//			// write merged config file to disk
-//			final FileOutputStream fos = new FileOutputStream(configFileName);
-//			properties.store(fos, "Updated " + new SimpleDateFormat("yyyy/MM/dd - HH:mm").format(System.currentTimeMillis()));
-//			fos.flush();
-//			fos.close();
-
-		} catch (IOException ioex) {
-			
-			logger.log(Level.WARNING, "Unable to read configuration file {0}: {1}", new Object[] { configFileName, ioex.getMessage() } );
-		}
-
 		// initialize structr with this configuration
-		initialize(properties);
+		initialize(getDefaultConfiguration());
 	}
 	
 	private void initialize(final StructrConf properties) {
@@ -260,6 +239,21 @@ public class Services {
 		logger.log(Level.INFO, "{0} service(s) processed", serviceCache.size());
 		registeredServiceClasses.clear();
 
+		// read structr.conf
+		final String configFileName = "structr.conf";	// TODO: make configurable
+
+		logger.log(Level.INFO, "Reading {0}..", configFileName);
+		
+		try {
+			final FileInputStream fis = new FileInputStream(configFileName);
+			properties.load(fis);
+			fis.close();
+
+		} catch (IOException ioex) {
+			
+			logger.log(Level.WARNING, "Unable to read configuration file {0}: {1}", new Object[] { configFileName, ioex.getMessage() } );
+		}
+		
 		logger.log(Level.INFO, "Initialization complete");
 		
 		initializationDone = true;
