@@ -54,18 +54,23 @@ import org.tuckey.web.filters.urlrewrite.UrlRewriteFilter;
  */
 public class HttpService implements RunnableService {
 	
-	private static final Logger logger            = Logger.getLogger(HttpService.class.getName());
-	private static final String INITIAL_SEED_FILE = "seed.zip";
-	public static final String SERVLETS           = "HttpService.servlets";
+	private static final Logger logger             = Logger.getLogger(HttpService.class.getName());
+	private static final String INITIAL_SEED_FILE  = "seed.zip";
+	public static final String SERVLETS            = "HttpService.servlets";
+	public static final String LIFECYCLE_LISTENERS = "HttpService.lifecycle.listeners";
 
-	private Server server                         = null;
-	private String basePath                       = null;
-	private String applicationName                = null;
-	private String host                           = null;
-	private String restUrl                        = null;
-	private int httpPort                          = 8082;
-	private int maxIdleTime                       = 30000;
-	private int requestHeaderSize                 = 8192;
+	private enum LifecycleEvent {
+		Started, Stopped
+	}
+	
+	private Server server                          = null;
+	private String basePath                        = null;
+	private String applicationName                 = null;
+	private String host                            = null;
+	private String restUrl                         = null;
+	private int httpPort                           = 8082;
+	private int maxIdleTime                        = 30000;
+	private int requestHeaderSize                  = 8192;
 	
 
 	@Override
@@ -85,16 +90,6 @@ public class HttpService implements RunnableService {
 
 		// The jsp directory is created by the container, but we don't need it
 		removeDir(basePath, "jsp");
-
-		// TODO: instantiate callbacks from configuration file
-//		if (!callbacks.isEmpty()) {
-//			
-//			for (Callback callback : callbacks) {
-//				
-//				callback.execute();
-//			}
-//			
-//		}
 		
 		// check for empty database and seed file
 		File seedFile = new File(basePath + "/" + INITIAL_SEED_FILE);
@@ -139,6 +134,9 @@ public class HttpService implements RunnableService {
 			
 			}
 		}
+		
+		// send lifecycle event that the server has been started
+		sendLifecycleEvent(LifecycleEvent.Started);
 	}
 
 	@Override
@@ -368,7 +366,11 @@ public class HttpService implements RunnableService {
 
 			} else {
 
-				logger.log(Level.WARNING, "Unable to configure SSL, please make sure that application.https.port, application.keystore.path and application.keystore.password are set correctly in structr.conf.");
+				logger.log(Level.WARNING, "Unable to configure SSL, please make sure that {0}, {1} and {2} are set correctly in structr.conf.", new Object[] {
+					Services.APPLICATION_HTTPS_PORT,
+					Services.APPLICATION_KEYSTORE_PATH,
+					Services.APPLICATION_KEYSTORE_PASSWORD
+				});
 			}
 		}
 		
@@ -385,7 +387,7 @@ public class HttpService implements RunnableService {
 
 		} else {
 
-			logger.log(Level.WARNING, "Unable to configure REST port, please make sure that application.host, application.rest.port and application.rest.path are set correctly in structr.conf.");
+			logger.log(Level.WARNING, "Unable to configure HTTP server port, please make sure that {0} and {1} are set correctly in structr.conf.", new Object[] { Services.APPLICATION_HOST, Services.APPLICATION_HTTP_PORT } );
 		}
 		
 		if (!connectors.isEmpty()) {
@@ -415,6 +417,9 @@ public class HttpService implements RunnableService {
 				logger.log(Level.WARNING, "Error while stopping Jetty server: {0}", ex.getMessage());
 			}
 		}
+		
+		// send lifecycle event that the server has been stopped
+		sendLifecycleEvent(LifecycleEvent.Stopped);
 	}
 
 	@Override
@@ -529,5 +534,36 @@ public class HttpService implements RunnableService {
 		configuration.setProperty("HttpService.servlets", "JsonRestServlet");
 		configuration.setProperty("JsonRestServlet.class", JsonRestServlet.class.getName());
 		configuration.setProperty("JsonRestServlet.outputdepth", "3");
+	}
+	
+	// ----- private methods -----
+	private void sendLifecycleEvent(final LifecycleEvent event) {
+		
+		// instantiate and call lifecycle callbacks from configuration file
+		final String listeners = Services.getInstance().getStructrConf().getProperty(LIFECYCLE_LISTENERS);
+		if (listeners != null) {
+			
+			final String[] listenerClasses = listeners.split("[\\s ,;]+");
+			for (String listenerClass : listenerClasses) {
+				
+				try {
+					
+					final HttpServiceLifecycleListener listener = (HttpServiceLifecycleListener)Class.forName(listenerClass).newInstance();
+					switch (event) {
+						
+						case Started:
+							listener.serverStarted();
+							break;
+							
+						case Stopped:
+							listener.serverStopped();
+							break;
+					}
+					
+				} catch (Throwable t) {
+					logger.log(Level.WARNING, "Unable to call HttpServiceLifecycleListener {0}: {1}", new Object[] { listenerClass, t.getMessage() });
+				}
+			}
+		}
 	}
 }

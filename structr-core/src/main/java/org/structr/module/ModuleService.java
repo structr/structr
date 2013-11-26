@@ -996,18 +996,13 @@ public class ModuleService implements Configuration {
 
 		}
 
-		String resources = Services.getInstance().getResources();
-		if (resources != null) {
+		for (String resource : Services.getInstance().getResources()) {
 
-			for (String resource : resources.split("[".concat(pathSep).concat("]+"))) {
+			String lowerResource = resource.toLowerCase();
 
-				String lowerResource = resource.toLowerCase();
+			if (lowerResource.endsWith(".jar") || lowerResource.endsWith(".war")) {
 
-				if (lowerResource.endsWith(".jar") || lowerResource.endsWith(".war")) {
-
-					modules.add(resource);
-				}
-
+				modules.add(resource);
 			}
 
 		}

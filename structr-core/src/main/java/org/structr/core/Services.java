@@ -108,7 +108,6 @@ public class Services {
 	private boolean initializationDone                 = false;
 	private String configuredServiceNames              = null;
 	private String configurationClass                  = null;
-	private String resources                           = null;
 
 	private Services() { }
 	
@@ -117,19 +116,7 @@ public class Services {
 		if (singletonInstance == null) {
 			
 			singletonInstance = new Services();
-
-			try {
-				final StackTraceElement[] trace = Thread.currentThread().getStackTrace();
-				if (trace != null && trace.length > 0) {
-					final Class mainClass = Class.forName(trace[trace.length-1].getClassName());
-					singletonInstance.resources = mainClass.getProtectionDomain().getCodeSource().getLocation().toString();
-				}
-				
-			} catch (Throwable t) { t.printStackTrace(); }
-
 			singletonInstance.initialize();
-			
-			
 		}
 		
 		return singletonInstance;
@@ -140,16 +127,6 @@ public class Services {
 		if (singletonInstance == null) {
 			
 			singletonInstance = new Services();
-
-			try {
-				final StackTraceElement[] trace = Thread.currentThread().getStackTrace();
-				if (trace != null && trace.length > 0) {
-					final Class mainClass = Class.forName(trace[trace.length-1].getClassName());
-					singletonInstance.resources = mainClass.getProtectionDomain().getCodeSource().getLocation().toString();
-				}
-				
-			} catch (Throwable t) { t.printStackTrace(); }
-
 			singletonInstance.initialize(properties);
 		}
 		
@@ -229,8 +206,6 @@ public class Services {
 			fis.close();
 
 			// do not write merged config, causes file to lose comments, format and order
-			
-			
 //			// write merged config file to disk
 //			final FileOutputStream fos = new FileOutputStream(configFileName);
 //			properties.store(fos, "Updated " + new SimpleDateFormat("yyyy/MM/dd - HH:mm").format(System.currentTimeMillis()));
@@ -255,14 +230,14 @@ public class Services {
 		
 		// create set of configured services
 		configuredServiceClasses.addAll(Arrays.asList(configuredServiceNames.split("[ ,]+")));
+		
+		// store structr configuration for later use
+		this.structrConf = properties;
 
 		// if configuration is not yet established, instantiate it
 		// this is the place where the service classes get the
 		// opportunity to modify the default configuration
 		getConfiguration();
-		
-		// store configuration for later use
-		this.structrConf = properties;
 		
 		logger.log(Level.INFO, "Starting services");
 
@@ -374,6 +349,8 @@ public class Services {
 
 			} catch (Throwable t) {
 
+				t.printStackTrace();
+				
 				logger.log(Level.SEVERE, "Unable to instantiate schema provider of type {0}: {1}", new Object[] { configurationClass, t.getMessage() });
 			}
 		}
@@ -459,10 +436,6 @@ public class Services {
 	public <T extends Service> T getService(final Class<T> type) {
 		return (T) serviceCache.get(type);
 	}
-
-	public String getResources() {
-		return resources;
-	}
 	
 	public String getConfigValue(final Map<String, String> config, final String key, final String defaultValue) {
 
@@ -489,6 +462,37 @@ public class Services {
 	
 	public StructrConf getStructrConf() {
 		return structrConf;
+	}
+
+	public Set<String> getResources() {
+		
+		final Set<String> resources = new LinkedHashSet<>();
+
+		// scan through structr.conf and try to identify module-specific classes
+		for (final Object configurationValue : structrConf.values()) {
+			
+			for (final String value : configurationValue.toString().split("[\\s ,;]+")) {
+	
+				try {
+
+					// try to load class and find source code origin
+					final Class candidate = Class.forName(value.toString());
+					if (!candidate.getName().startsWith("org.structr")) {
+
+						final String codeLocation = candidate.getProtectionDomain().getCodeSource().getLocation().toString();
+						if (codeLocation.startsWith("file:") && codeLocation.endsWith(".jar") || codeLocation.endsWith(".war")) {
+
+							resources.add(codeLocation.substring(5));
+						}
+					}
+
+				} catch (Throwable ignore) { }
+			}
+		}
+
+		logger.log(Level.INFO, "Found {0} possible resources: {1}", new Object[] { resources.size(), resources } );
+		
+		return resources;
 	}
 	
 	public static StructrConf getDefaultConfiguration() {
