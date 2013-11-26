@@ -25,7 +25,6 @@ import org.apache.commons.io.FileUtils;
 
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.GraphDatabaseCommand;
 
@@ -42,17 +41,21 @@ import java.util.*;
 import java.util.logging.Logger;
 import junit.framework.TestCase;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.servlet.ServletHolder;
-import org.structr.Ui;
+import org.structr.common.PropertyView;
 import org.structr.core.property.PropertyMap;
 import org.structr.common.SecurityContext;
+import org.structr.common.StructrConf;
+import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.GenericNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
-import org.structr.files.ftp.FtpService;
-import org.structr.server.Structr;
+import org.structr.core.log.ReadLogCommand;
+import org.structr.core.log.WriteLogCommand;
+import org.structr.module.ModuleService;
+import org.structr.rest.service.HttpService;
+import org.structr.rest.servlet.JsonRestServlet;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.servlet.HtmlServlet;
 import org.structr.websocket.servlet.WebSocketServlet;
@@ -72,14 +75,16 @@ public class StructrUiTest extends TestCase {
 
 	//~--- fields ---------------------------------------------------------
 
-	protected Map<String, String> context = new LinkedHashMap<>();
-	protected GraphDatabaseCommand graphDbCommand;
-	protected SecurityContext securityContext;
-	protected App app;
+	protected StructrConf config                 = new StructrConf();
+	protected GraphDatabaseCommand graphDbCommand = null;
+	protected SecurityContext securityContext     = null;
+	protected ReadLogCommand readLogCommand;
+	protected WriteLogCommand writeLogCommand;
+
+	protected App app = null;
 
 	// the jetty server
 	private boolean running = false;
-	private Server server;
 	private String basePath;
 	
 	protected static final String prot = "http://";
@@ -108,74 +113,160 @@ public class StructrUiTest extends TestCase {
 	
 	//~--- methods --------------------------------------------------------
 
-	protected void init() {
+	@Override
+	protected void setUp() throws Exception {
 
-		String name = "structr-ui-test-" + System.nanoTime();
+		final StructrConf config = Services.getDefaultConfiguration();
+		final Date now           = new Date();
+		final long timestamp     = now.getTime();
 		
-		// set up base path
-		basePath = "/tmp/" + name;
+		basePath = "/tmp/structr-test-" + timestamp;
+
+		// enable "just testing" flag to avoid JAR resource scanning
+		config.setProperty(Services.TESTING, "true");
 		
-		try {
+		config.setProperty(Services.CONFIGURATION, ModuleService.class.getName());
+		config.setProperty(Services.CONFIGURED_SERVICES, "NodeService LogService FtpService HttpService");
+		config.setProperty(Services.APPLICATION_TITLE, "structr unit test app" + timestamp);
+		config.setProperty(Services.APPLICATION_HOST, host);
+		config.setProperty(Services.APPLICATION_HTTP_PORT, Integer.toString(httpPort));
+		config.setProperty(Services.TMP_PATH, "/tmp/");
+		config.setProperty(Services.BASE_PATH, basePath);
+		config.setProperty(Services.DATABASE_PATH, basePath + "/db");
+		config.setProperty(Services.FILES_PATH, basePath + "/files");
+		config.setProperty(Services.LOG_DATABASE_PATH, basePath + "/logDb.dat");
+		config.setProperty(Services.TCP_PORT, "13465");
+		config.setProperty(Services.UDP_PORT, "13466");
+		config.setProperty(Services.SUPERUSER_USERNAME, "superadmin");
+		config.setProperty(Services.SUPERUSER_PASSWORD, "sehrgeheim");
 
-			// HTML Servlet
-			HtmlServlet htmlServlet = new HtmlServlet();
-			ServletHolder htmlServletHolder = new ServletHolder(htmlServlet);
-			Map<String, String> htmlInitParams = new HashMap<>();
+		config.setProperty(Services.APPLICATION_FTP_PORT, Integer.toString(ftpPort));
+		
+		// configure servlets
+		config.setProperty(HttpService.SERVLETS, "JsonRestServlet WebSocketServlet CsvServlet HtmlServlet");
 
-			htmlInitParams.put("Authenticator", "org.structr.web.auth.HttpAuthenticator");
-			htmlServletHolder.setInitParameters(htmlInitParams);
-			htmlServletHolder.setInitOrder(1);
+		config.setProperty("JsonRestServlet.class", JsonRestServlet.class.getName());
+		config.setProperty("JsonRestServlet.path", restUrl);
+		config.setProperty("JsonRestServlet.resourceprovider", UiResourceProvider.class.getName());
+		config.setProperty("JsonRestServlet.authenticator", UiAuthenticator.class.getName());
+		config.setProperty("JsonRestServlet.user.class", "");
+		config.setProperty("JsonRestServlet.user.autocreate", "false");
+		config.setProperty("JsonRestServlet.defaultview", PropertyView.Public);
+		config.setProperty("JsonRestServlet.outputdepth", "3");
+		
+		config.setProperty("WebSocketServlet.class", WebSocketServlet.class.getName());
+		config.setProperty("WebSocketServlet.path", wsUrl);
+		config.setProperty("WebSocketServlet.resourceprovider", UiResourceProvider.class.getName());
+		config.setProperty("WebSocketServlet.authenticator", UiAuthenticator.class.getName());
+		config.setProperty("WebSocketServlet.user.class", "");
+		config.setProperty("WebSocketServlet.user.autocreate", "false");
+		config.setProperty("WebSocketServlet.defaultview", PropertyView.Public);
+		config.setProperty("WebSocketServlet.outputdepth", "3");
+
+//		config.setProperty("CsvServlet.class", CsvServlet.class.getName());
+//		config.setProperty("CsvServlet.path", csvUrl);
+//		config.setProperty("CsvServlet.resourceprovider", UiResourceProvider.class.getName());
+//		config.setProperty("CsvServlet.authenticator", UiAuthenticator.class.getName());
+//		config.setProperty("CsvServlet.user.class", "");
+//		config.setProperty("CsvServlet.user.autocreate", "false");
+//		config.setProperty("CsvServlet.defaultview", PropertyView.Public);
+//		config.setProperty("CsvServlet.outputdepth", "3");
+
+		config.setProperty("HtmlServlet.class", HtmlServlet.class.getName());
+		config.setProperty("HtmlServlet.path", htmlUrl);
+		config.setProperty("HtmlServlet.resourceprovider", UiResourceProvider.class.getName());
+		config.setProperty("HtmlServlet.authenticator", UiAuthenticator.class.getName());
+		config.setProperty("HtmlServlet.user.class", "");
+		config.setProperty("HtmlServlet.user.autocreate", "false");
+		config.setProperty("HtmlServlet.defaultview", PropertyView.Public);
+		config.setProperty("HtmlServlet.outputdepth", "3");
+
+		final Services services = Services.getInstance(config);
+
+		// wait for service layer to be initialized
+		do {
+			try { Thread.sleep(100); } catch(Throwable t) {}
 			
-			// CSV Servlet
-//			CsvServlet csvServlet     = new CsvServlet(DefaultResourceProvider.class.newInstance(), PropertyView.All, AbstractNode.uuid);
-//			ServletHolder csvServletHolder    = new ServletHolder(csvServlet);
-//			Map<String, String> servletParams = new HashMap<String, String>();
-//
-//			servletParams.put("Authenticator", "org.structr.web.auth.HttpAuthenticator");
-//			csvServletHolder.setInitParameters(servletParams);
-//			csvServletHolder.setInitOrder(2);
+		} while (!services.isInitialized());
 
-			// WebSocket Servlet
-			WebSocketServlet wsServlet = new WebSocketServlet(AbstractNode.uuid);
-			ServletHolder wsServletHolder = new ServletHolder(wsServlet);
-			Map<String, String> wsInitParams = new HashMap<>();
-
-			wsInitParams.put("Authenticator", "org.structr.web.auth.UiAuthenticator");
-			wsInitParams.put("IdProperty", "uuid");
-			wsServletHolder.setInitParameters(wsInitParams);
-			wsServletHolder.setInitOrder(3);
-
-			server = Structr.createServer(Ui.class, "structr UI", httpPort)
-
-				.host(host)
-				.basePath(basePath)
-				
-				.addServlet(htmlUrl + "/*", htmlServletHolder)
-				.addServlet(wsUrl + "/*", wsServletHolder)
-				//.addServlet("/structr/csv/*", csvServletHolder)
-			    
-				.addResourceHandler("/structr", "src/main/resources/structr", true, new String[] { "index.html"})
-				
-				.addConfiguredServices(FtpService.class)
-				.ftpPort(ftpPort)
-			    
-				.enableRewriteFilter()
-				//.logRequests(true)
-				
-				.resourceProvider(UiResourceProvider.class)
-				.authenticator(UiAuthenticator.class)
-				
-			    
-				.start(false, true);
-			
-			running = server.isRunning();
-
-		} catch(Throwable t) {
-			
-			t.printStackTrace();
-		}
-
+		securityContext           = SecurityContext.getSuperUserInstance();
+		
+		app = StructrApp.getInstance(securityContext);
+		
+		graphDbCommand            = app.command(GraphDatabaseCommand.class);
+		writeLogCommand           = app.command(WriteLogCommand.class);
+		readLogCommand            = app.command(ReadLogCommand.class);
+		
 	}
+
+//	protected void init() {
+//
+//		String name = "structr-ui-test-" + System.nanoTime();
+//		
+//		// set up base path
+//		basePath = "/tmp/" + name;
+//		
+//		try {
+//
+//			// HTML Servlet
+//			HtmlServlet htmlServlet = new HtmlServlet();
+//			ServletHolder htmlServletHolder = new ServletHolder(htmlServlet);
+//			Map<String, String> htmlInitParams = new HashMap<>();
+//
+//			htmlInitParams.put("Authenticator", "org.structr.web.auth.HttpAuthenticator");
+//			htmlServletHolder.setInitParameters(htmlInitParams);
+//			htmlServletHolder.setInitOrder(1);
+//			
+//			// CSV Servlet
+////			CsvServlet csvServlet     = new CsvServlet(DefaultResourceProvider.class.newInstance(), PropertyView.All, AbstractNode.uuid);
+////			ServletHolder csvServletHolder    = new ServletHolder(csvServlet);
+////			Map<String, String> servletParams = new HashMap<String, String>();
+////
+////			servletParams.put("Authenticator", "org.structr.web.auth.HttpAuthenticator");
+////			csvServletHolder.setInitParameters(servletParams);
+////			csvServletHolder.setInitOrder(2);
+//
+//			// WebSocket Servlet
+//			WebSocketServlet wsServlet = new WebSocketServlet(AbstractNode.uuid);
+//			ServletHolder wsServletHolder = new ServletHolder(wsServlet);
+//			Map<String, String> wsInitParams = new HashMap<>();
+//
+//			wsInitParams.put("Authenticator", "org.structr.web.auth.UiAuthenticator");
+//			wsInitParams.put("IdProperty", "uuid");
+//			wsServletHolder.setInitParameters(wsInitParams);
+//			wsServletHolder.setInitOrder(3);
+//
+//			server = Structr.createServer(Ui.class, "structr UI", httpPort)
+//
+//				.host(host)
+//				.basePath(basePath)
+//				
+//				.addServlet(htmlUrl + "/*", htmlServletHolder)
+//				.addServlet(wsUrl + "/*", wsServletHolder)
+//				//.addServlet("/structr/csv/*", csvServletHolder)
+//			    
+//				.addResourceHandler("/structr", "src/main/resources/structr", true, new String[] { "index.html"})
+//				
+//				.addConfiguredServices(FtpService.class)
+//				.ftpPort(ftpPort)
+//			    
+//				.enableRewriteFilter()
+//				//.logRequests(true)
+//				
+//				.resourceProvider(UiResourceProvider.class)
+//				.authenticator(UiAuthenticator.class)
+//				
+//			    
+//				.start(false, true);
+//			
+//			running = server.isRunning();
+//
+//		} catch(Throwable t) {
+//			
+//			t.printStackTrace();
+//		}
+//
+//	}
 
 	public void test00() {
 	}
@@ -183,41 +274,28 @@ public class StructrUiTest extends TestCase {
 	@Override
 	protected void tearDown() throws Exception {
 		
-		if (running) {
+		Services.getInstance().shutdown();
+		
+		File testDir = new File(basePath);
+		int count = 0;
 
-			// stop structr
-			server.stop();
+		// try up to 10 times to delete the directory
+		while (testDir.exists() && count++ < 10) {
 
-			// do we need to wait here? answer: yes!
-			
-			do {
-				try { Thread.sleep(100); } catch(Throwable t) {}
-				
-			} while(!server.isStopped());
+			try {
 
-			server.destroy();
+				if (testDir.isDirectory()) {
 
-			File testDir = new File(basePath);
-			int count = 0;
+					FileUtils.deleteDirectory(testDir);
 
-			// try up to 10 times to delete the directory
-			while (testDir.exists() && count++ < 10) {
-				
-				try {
+				} else {
 
-					if (testDir.isDirectory()) {
+					testDir.delete();
+				}
 
-						FileUtils.deleteDirectory(testDir);
+			} catch(Throwable t) {}
 
-					} else {
-
-						testDir.delete();
-					}
-
-				} catch(Throwable t) {}
-
-				try { Thread.sleep(500); } catch(Throwable t) {}
-			}
+			try { Thread.sleep(500); } catch(Throwable t) {}
 		}
 
 		super.tearDown();
@@ -370,19 +448,6 @@ public class StructrUiTest extends TestCase {
 
 	}
 
-	//~--- set methods ----------------------------------------------------
-
-	@Override
-	protected void setUp() throws Exception {
-
-		init();
-
-		securityContext           = SecurityContext.getSuperUserInstance();
-		graphDbCommand            = StructrApp.getInstance(securityContext).command(GraphDatabaseCommand.class);
-
-		app = StructrApp.getInstance(securityContext);
-	}
-	
 	protected String getUuidFromLocation(String location) {
 		return location.substring(location.lastIndexOf("/") + 1);
 	}

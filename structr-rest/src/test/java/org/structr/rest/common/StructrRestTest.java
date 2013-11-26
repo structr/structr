@@ -323,9 +323,9 @@ public class StructrRestTest extends TestCase {
 
 		// wait for service layer to be initialized
 		do {
-			try { Thread.sleep(100); } catch(Throwable t) {}
+			try { Thread.sleep(100); } catch (Throwable t) {}
 			
-		} while(!services.isInitialized());
+		} while (!services.isInitialized());
 	}
 
 	

@@ -9,7 +9,6 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.DispatcherType;
@@ -23,6 +22,7 @@ import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.handler.DefaultHandler;
 import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.server.handler.RequestLogHandler;
+import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.server.nio.SelectChannelConnector;
 import org.eclipse.jetty.server.ssl.SslSelectChannelConnector;
 import org.eclipse.jetty.servlet.FilterHolder;
@@ -57,6 +57,7 @@ public class HttpService implements RunnableService {
 	private static final Logger logger            = Logger.getLogger(HttpService.class.getName());
 	private static final String INITIAL_SEED_FILE = "seed.zip";
 	public static final String SERVLETS           = "HttpService.servlets";
+	public static final String RESOURCE_HANDLERS  = "HttpService.resourceHandlers";
 
 	private Server server                         = null;
 	private String basePath                       = null;
@@ -71,16 +72,16 @@ public class HttpService implements RunnableService {
 	@Override
 	public void startService() {
 
-		logger.log(Level.INFO, "Starting {0} (host={1}:{2}, maxIdleTime={3}, requestHeaderSize={4})", new Object[] { applicationName, host, httpPort, maxIdleTime, requestHeaderSize} );
+		logger.log(Level.INFO, "Starting {0} (host={1}:{2}, maxIdleTime={3}, requestHeaderSize={4})", new Object[] { applicationName, host, String.valueOf(httpPort), String.valueOf(maxIdleTime), String.valueOf(requestHeaderSize) } );
 		logger.log(Level.INFO, "Base path {0}", basePath);
-		logger.log(Level.INFO, "{0} started at http://{1}:{2}{3}", new Object[] { applicationName, host, httpPort, restUrl} );
+		logger.log(Level.INFO, "{0} started at http://{1}:{2}{3}", new Object[] { applicationName, String.valueOf(host), String.valueOf(httpPort), restUrl } );
 		
 		try {
 			server.start();
 			
 		} catch (Exception ex) {
 			
-			logger.log(Level.SEVERE, "Unable to start REST server: {0}", ex.getMessage());
+			logger.log(Level.SEVERE, "Unable to start HTTP service: {0}", ex);
 		}
 
 		// The jsp directory is created by the container, but we don't need it
@@ -426,6 +427,74 @@ public class HttpService implements RunnableService {
 	private List<ContextHandler> collectResourceHandlers(final StructrConf properties) {
 		
 		final List<ContextHandler> resourceHandlers = new LinkedList<>();
+
+		final String resourceHandlerList = properties.getProperty(RESOURCE_HANDLERS, "");
+		
+		if (resourceHandlerList != null) {
+			
+			for (String resourceHandlerName : resourceHandlerList.split("[ \\t]+")) {
+		
+				try {
+					
+					final String contextPath = properties.getProperty(resourceHandlerName.concat(".contextPath"));
+					if (contextPath != null) {
+						
+						final String resourceBase = properties.getProperty(resourceHandlerName.concat(".resourceBase"));
+						if (resourceBase != null) {
+
+							final String directoriesListed = properties.getProperty(resourceHandlerName.concat(".directoriesListed"));
+							if (directoriesListed != null) {
+								
+								final String welcomeFiles = properties.getProperty(resourceHandlerName.concat(".welcomeFiles"));
+								if (welcomeFiles != null) {
+								
+									ResourceHandler resourceHandler = new ResourceHandler();
+									resourceHandler.setDirectoriesListed(Boolean.parseBoolean(directoriesListed));
+									resourceHandler.setWelcomeFiles(StringUtils.split(welcomeFiles));
+									resourceHandler.setResourceBase(resourceBase);		
+									ContextHandler staticResourceHandler = new ContextHandler();
+									staticResourceHandler.setContextPath(contextPath);
+									staticResourceHandler.setHandler(resourceHandler);
+									
+									resourceHandlers.add(staticResourceHandler);
+									
+									
+								} else {
+									
+									logger.log(Level.WARNING, "Unable to register resource handler {0}, missing {0}.welcomeFiles", resourceHandlerName);
+									
+								}
+								
+								
+							} else {
+								
+								logger.log(Level.WARNING, "Unable to register resource handler {0}, missing {0}.resourceBase", resourceHandlerName);
+								
+							}
+							
+
+						} else {
+
+							logger.log(Level.WARNING, "Unable to register resource handler {0}, missing {0}.resourceBase", resourceHandlerName);
+						}
+
+					} else {
+
+						logger.log(Level.WARNING, "Unable to register resource handler {0}, missing {0}.contextPath", resourceHandlerName);
+					}
+					
+					
+				} catch (Throwable t) {
+					
+					logger.log(Level.WARNING, "Unable to initialize resource handler {0}: {1}", new Object[] { resourceHandlerName, t.getMessage() });
+				}
+			}
+			
+		} else {
+			
+			logger.log(Level.WARNING, "No resource handlers configured for HttpService.");
+		}
+
 		
 		// TODO: read context handlers from configuration file
 //		public Structr addResourceHandler(String contextPath, String resourceBase, boolean directoriesListed, String[] welcomeFiles) {
@@ -444,14 +513,14 @@ public class HttpService implements RunnableService {
 		return resourceHandlers;
 	}
 	
-	private Map<String, ServletHolder> collectServlets(final Properties properties) {
+	private Map<String, ServletHolder> collectServlets(final StructrConf properties) {
 
 		final Map<String, ServletHolder> servlets = new LinkedHashMap<>();
 		final String servletNameList              = properties.getProperty(SERVLETS, "");
 		
 		if (servletNameList != null) {
 			
-			for(String servletName : servletNameList.split("[ \\t]+")) {
+			for (String servletName : servletNameList.split("[ \\t]+")) {
 		
 				try {
 					
@@ -494,7 +563,7 @@ public class HttpService implements RunnableService {
 			
 		} else {
 			
-			logger.log(Level.WARNING, "No servlets configured for RestService.");
+			logger.log(Level.WARNING, "No servlets configured for HttpService.");
 		}
 
 		return servlets;

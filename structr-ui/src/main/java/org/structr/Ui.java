@@ -19,18 +19,16 @@
 
 package org.structr;
 
-import java.util.HashMap;
-import java.util.Map;
-import org.eclipse.jetty.servlet.ServletHolder;
 import org.structr.common.PropertyView;
-import org.structr.core.auth.AuthenticationService;
-import org.structr.core.entity.AbstractNode;
-import org.structr.files.ftp.FtpService;
+import org.structr.common.StructrConf;
+import org.structr.core.Services;
+import org.structr.module.ModuleService;
+import org.structr.rest.service.HttpService;
 import org.structr.rest.servlet.CsvServlet;
-import org.structr.server.DefaultResourceProvider;
-import org.structr.server.Structr;
+import org.structr.rest.servlet.JsonRestServlet;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.common.UiResourceProvider;
+import org.structr.web.entity.User;
 import org.structr.web.servlet.HtmlServlet;
 import org.structr.web.servlet.UploadServlet;
 import org.structr.websocket.servlet.WebSocketServlet;
@@ -44,62 +42,95 @@ public class Ui implements org.structr.server.StructrServer {
 	public static void main(String[] args) {
 
 		try {
+//			Structr.createServer(Ui.class, "structr UI", 8082)
+//				
+//				.addServlet("/structr/html/*", htmlServletHolder)
+//				.addServlet("/structr/ws/*", wsServletHolder)
+//				.addServlet("/structr/csv/*", csvServletHolder)
+//				.addServlet("/structr/upload", uploadServletHolder)
+//			    
+//				.addResourceHandler("/structr", "src/main/resources/structr", true, new String[] { "index.html"})
+//				
+//				.addConfiguredServices(FtpService.class)
+//				.ftpPort(8022)
+//			    
+//				.enableRewriteFilter()
+//				//.logRequests(true)
+//				
+//				.resourceProvider(UiResourceProvider.class)
+//				.authenticator(UiAuthenticator.class)
+//				.userAutoCreate(true)
+//			    
+//				.start(true);
 
-			// HTML Servlet
-			HtmlServlet htmlServlet = new HtmlServlet();
-			ServletHolder htmlServletHolder = new ServletHolder(htmlServlet);
-			Map<String, String> htmlInitParams = new HashMap<String, String>();
-
-			htmlInitParams.put(AuthenticationService.SERVLET_PARAMETER_AUTHENTICATOR, org.structr.web.auth.HttpAuthenticator.class.getName());
-			htmlServletHolder.setInitParameters(htmlInitParams);
-			htmlServletHolder.setInitOrder(1);
+			final StructrConf config = Services.getDefaultConfiguration();
 			
-			// CSV Servlet
-			CsvServlet csvServlet     = new CsvServlet(DefaultResourceProvider.class.newInstance(), PropertyView.All, AbstractNode.uuid);
-			ServletHolder csvServletHolder    = new ServletHolder(csvServlet);
-			Map<String, String> servletParams = new HashMap<String, String>();
+			config.setProperty(Services.CONFIGURED_SERVICES, "NodeService LogService FtpService HttpService");
+			config.setProperty(Services.CONFIGURATION, ModuleService.class.getName());
+			config.setProperty(Services.APPLICATION_TITLE, "Structr UI");
 
-			servletParams.put(AuthenticationService.SERVLET_PARAMETER_AUTHENTICATOR, org.structr.web.auth.UiAuthenticator.class.getName());
+			// Configure servlets
+			config.setProperty(HttpService.SERVLETS, "JsonRestServlet WebSocketServlet CsvServlet HtmlServlet");
 			
-			csvServletHolder.setInitParameters(servletParams);
-			csvServletHolder.setInitOrder(2);
+			config.setProperty("JsonRestServlet.class", JsonRestServlet.class.getName());
+			config.setProperty("JsonRestServlet.path", "/structr/rest/*");
+			config.setProperty("JsonRestServlet.resourceprovider", UiResourceProvider.class.getName());
+			config.setProperty("JsonRestServlet.authenticator", UiAuthenticator.class.getName());
+			config.setProperty("JsonRestServlet.user.class", User.class.getName());
+			config.setProperty("JsonRestServlet.user.autocreate", "false");
+			config.setProperty("JsonRestServlet.defaultview", PropertyView.Public);
+			config.setProperty("JsonRestServlet.outputdepth", "3");
+			
+			config.setProperty("WebSocketServlet.class", WebSocketServlet.class.getName());
+			config.setProperty("WebSocketServlet.path", "/structr/ws/*");
+			config.setProperty("WebSocketServlet.resourceprovider", UiResourceProvider.class.getName());
+			config.setProperty("WebSocketServlet.authenticator", UiAuthenticator.class.getName());
+			config.setProperty("WebSocketServlet.user.class", User.class.getName());
+			config.setProperty("WebSocketServlet.user.autocreate", "false");
+			config.setProperty("WebSocketServlet.defaultview", PropertyView.Public);
 
-			// WebSocket Servlet
-			WebSocketServlet wsServlet = new WebSocketServlet(AbstractNode.uuid);
-			ServletHolder wsServletHolder = new ServletHolder(wsServlet);
-			Map<String, String> wsInitParams = new HashMap<String, String>();
+			config.setProperty("CsvServlet.class", CsvServlet.class.getName());
+			config.setProperty("CsvServlet.path", "/structr/csv/*");
+			config.setProperty("CsvServlet.resourceprovider", UiResourceProvider.class.getName());
+			config.setProperty("CsvServlet.authenticator", UiAuthenticator.class.getName());
+			config.setProperty("CsvServlet.user.class", User.class.getName());
+			config.setProperty("CsvServlet.user.autocreate", "false");
+			config.setProperty("CsvServlet.defaultview", PropertyView.Public);
+			config.setProperty("CsvServlet.outputdepth", "3");
 
-			wsInitParams.put(AuthenticationService.SERVLET_PARAMETER_AUTHENTICATOR, org.structr.web.auth.UiAuthenticator.class.getName());
-			wsInitParams.put("IdProperty", "uuid");
-			wsServletHolder.setInitParameters(wsInitParams);
-			wsServletHolder.setInitOrder(3);
+			config.setProperty("UploadServlet.class", UploadServlet.class.getName());
+			config.setProperty("UploadServlet.path", "/structr/upload");
+			config.setProperty("UploadServlet.resourceprovider", UiResourceProvider.class.getName());
+			config.setProperty("UploadServlet.authenticator", UiAuthenticator.class.getName());
+			config.setProperty("UploadServlet.user.class", User.class.getName());
+			config.setProperty("UploadServlet.user.autocreate", "false");
+			config.setProperty("UploadServlet.defaultview", PropertyView.Public);
+			config.setProperty("UploadServlet.outputdepth", "3");
+
+			config.setProperty("HtmlServlet.class", HtmlServlet.class.getName());
+			config.setProperty("HtmlServlet.path", "/structr/html/*");
+			config.setProperty("HtmlServlet.resourceprovider", UiResourceProvider.class.getName());
+			config.setProperty("HtmlServlet.authenticator", UiAuthenticator.class.getName());
+			config.setProperty("HtmlServlet.user.class", User.class.getName());
+			config.setProperty("HtmlServlet.user.autocreate", "false");
+			config.setProperty("HtmlServlet.defaultview", PropertyView.Public);
+			config.setProperty("HtmlServlet.outputdepth", "3");
+
+			// Configure resource handlers
+			config.setProperty(HttpService.RESOURCE_HANDLERS, "StructrUiHandler");
 			
-			// Upload Servlet
-			UploadServlet uploadServlet     = new UploadServlet();
-			ServletHolder uploadServletHolder    = new ServletHolder(uploadServlet);
-			uploadServletHolder.setInitParameters(servletParams);
-			uploadServletHolder.setInitOrder(4);
+			config.setProperty("StructrUiHandler.contextPath", "/structr");
+			config.setProperty("StructrUiHandler.resourceBase", "src/main/resources/structr");
+			config.setProperty("StructrUiHandler.directoriesListed", Boolean.toString(false));
+			config.setProperty("StructrUiHandler.welcomeFiles", "index.html");
 			
-			Structr.createServer(Ui.class, "structr UI", 8082)
-				
-				.addServlet("/structr/html/*", htmlServletHolder)
-				.addServlet("/structr/ws/*", wsServletHolder)
-				.addServlet("/structr/csv/*", csvServletHolder)
-				.addServlet("/structr/upload", uploadServletHolder)
-			    
-				.addResourceHandler("/structr", "src/main/resources/structr", true, new String[] { "index.html"})
-				
-				.addConfiguredServices(FtpService.class)
-				.ftpPort(8022)
-			    
-				.enableRewriteFilter()
-				//.logRequests(true)
-				
-				.resourceProvider(UiResourceProvider.class)
-				.authenticator(UiAuthenticator.class)
-				.userAutoCreate(true)
-			    
-				.start(true);
+			final Services services = Services.getInstance(config);
+
+			// wait for service layer to be initialized
+			do {
+				try { Thread.sleep(100); } catch (Throwable t) {}
+
+			} while (!services.isInitialized());
 
 		} catch(Throwable t) {
 
