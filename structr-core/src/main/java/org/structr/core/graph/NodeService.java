@@ -132,7 +132,7 @@ public class NodeService implements SingletonService {
 	}
 
 	@Override
-	public void initialize(final Properties configurationFile) {
+	public void initialize(final StructrConf configurationFile) {
 
 		final Map<String, String> neo4jConfiguration = new LinkedHashMap<>();
 		final String dbPath                          = configurationFile.getProperty(Services.DATABASE_PATH);

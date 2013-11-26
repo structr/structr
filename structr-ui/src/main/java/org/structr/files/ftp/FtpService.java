@@ -19,7 +19,6 @@
 
 package org.structr.files.ftp;
 
-import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.ftpserver.FtpServer;
@@ -94,7 +93,7 @@ public class FtpService implements RunnableService {
 	}
 
 	@Override
-	public void initialize(final Properties configurationFile) {
+	public void initialize(final StructrConf configurationFile) {
 		
 		final String configuredPort = configurationFile.getProperty(Services.APPLICATION_FTP_PORT);
 		

@@ -20,7 +20,6 @@
 
 package org.structr.core;
 
-import java.util.Properties;
 import org.structr.common.StructrConf;
 
 //~--- interfaces -------------------------------------------------------------
@@ -47,7 +46,7 @@ public interface Service {
 	 *
 	 * @param context the context
 	 */
-	public void initialize(final Properties configurationFile);
+	public void initialize(final StructrConf configurationFile);
 
 	/**
 	 * Called before the service is discarded. Note that this method will not be called

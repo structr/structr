@@ -34,7 +34,6 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
@@ -104,7 +103,7 @@ public class Services {
 	private final Map<Class, Service> serviceCache     = new ConcurrentHashMap<>(10, 0.9f, 8);
 	private final Set<Class> registeredServiceClasses  = new LinkedHashSet<>();
 	private final Set<String> configuredServiceClasses = new LinkedHashSet<>();
-	private Properties structrConf                     = null;
+	private StructrConf structrConf                    = null;
 	private Configuration configuration                = null;
 	private boolean initializationDone                 = false;
 	private String configuredServiceNames              = null;
@@ -220,8 +219,8 @@ public class Services {
 
 	private void initialize() {
 		
-		final Properties properties = new Properties(getDefaultConfiguration());
-		final String configFileName = "structr.conf";	// TODO: make configurable
+		final StructrConf properties = new StructrConf(getDefaultConfiguration());
+		final String configFileName  = "structr.conf";	// TODO: make configurable
 
 		try {
 			// load config file and merge with defaults
@@ -247,7 +246,7 @@ public class Services {
 		initialize(properties);
 	}
 	
-	private void initialize(final Properties properties) {
+	private void initialize(final StructrConf properties) {
 
 		logger.log(Level.INFO, "Initializing service layer");
 
@@ -488,7 +487,7 @@ public class Services {
                 return (service != null && service.isRunning());
 	}
 	
-	public Properties getStructrConf() {
+	public StructrConf getStructrConf() {
 		return structrConf;
 	}
 	

@@ -70,7 +70,7 @@ public class LogService implements SingletonService {
 	}
 
 	@Override
-	public void initialize(final Properties configurationFile) {
+	public void initialize(final StructrConf configurationFile) {
 
 //              String dbPath = (String) context.get(Services.DATABASE_PATH);
 		String logDbPath = configurationFile.getProperty(Services.LOG_DATABASE_PATH);

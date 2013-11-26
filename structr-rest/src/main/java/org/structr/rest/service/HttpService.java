@@ -160,7 +160,7 @@ public class HttpService implements RunnableService {
 	}
 
 	@Override
-	public void initialize(final Properties configurationFile) {
+	public void initialize(final StructrConf configurationFile) {
 		
 		String sourceJarName = getClass().getProtectionDomain().getCodeSource().getLocation().toString();
 		final boolean isTest = Boolean.parseBoolean(configurationFile.getProperty(Services.TESTING, "false"));
@@ -423,7 +423,7 @@ public class HttpService implements RunnableService {
 	}
 
 	// ----- private methods -----
-	private List<ContextHandler> collectResourceHandlers(final Properties properties) {
+	private List<ContextHandler> collectResourceHandlers(final StructrConf properties) {
 		
 		final List<ContextHandler> resourceHandlers = new LinkedList<>();
 		

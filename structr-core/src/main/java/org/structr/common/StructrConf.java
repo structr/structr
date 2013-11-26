@@ -8,6 +8,14 @@ import java.util.Properties;
  */
 public class StructrConf extends Properties {
 
+	public StructrConf(final Properties defaults) {
+		super(defaults);
+	}
+	
+	public StructrConf() {
+		super();
+	}
+	
 	// TODO: implement addValue() and removeValue() methods
 	
 }

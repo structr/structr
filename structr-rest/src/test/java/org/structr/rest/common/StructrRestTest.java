@@ -290,7 +290,7 @@ public class StructrRestTest extends TestCase {
 		// enable "just testing" flag to avoid JAR resource scanning
 		config.setProperty(Services.TESTING, "true");
 		
-		config.setProperty(Services.CONFIGURED_SERVICES, "NodeService LogService RestService");
+		config.setProperty(Services.CONFIGURED_SERVICES, "NodeService LogService HttpService");
 		config.setProperty(Services.CONFIGURATION, ModuleService.class.getName());
 		config.setProperty(Services.APPLICATION_TITLE, "structr unit test app" + timestamp);
 		config.setProperty(Services.APPLICATION_HOST, host);

@@ -119,7 +119,7 @@ public class CronService extends Thread implements RunnableService {
 	}
 
 	@Override
-	public void initialize(final Properties configurationFile) {
+	public void initialize(final StructrConf configurationFile) {
 
 		final String taskList = configurationFile.getProperty(TASKS, "");
 		if (taskList != null) {

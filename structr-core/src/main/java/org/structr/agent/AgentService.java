@@ -154,7 +154,7 @@ public class AgentService extends Thread implements RunnableService {
 	}
 
 	@Override
-	public void initialize(final Properties configurationFile) {}
+	public void initialize(final StructrConf configurationFile) {}
 
 	@Override
 	public void shutdown() {}
