@@ -79,6 +79,7 @@ public class Services {
 	public static final String NEO4J_SHELL_ENABLED           = "neo4j.shell.enabled";
 	public static final String LOG_SERVICE_INTERVAL          = "structr.logging.interval";
 	public static final String LOG_SERVICE_THRESHOLD         = "structr.logging.threshold";
+	public static final String SERVER_IP                     = "server.ip";
 	public static final String SMTP_HOST                     = "smtp.host";
 	public static final String SMTP_PORT                     = "smtp.port";
 	public static final String SMTP_USER                     = "smtp.user";
