@@ -35,7 +35,7 @@ import org.structr.core.*;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.PropertyDefinition;
-import org.structr.module.ModuleService;
+import org.structr.module.JarConfigurationProvider;
 import org.structr.schema.SchemaHelper;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;

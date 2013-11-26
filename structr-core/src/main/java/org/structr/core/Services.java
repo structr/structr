@@ -25,7 +25,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import org.apache.commons.lang.StringUtils;
 
-import org.structr.module.ModuleService;
+import org.structr.module.JarConfigurationProvider;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -42,7 +42,7 @@ import org.apache.commons.lang.RandomStringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.StructrConf;
 import org.structr.core.app.StructrApp;
-import org.structr.schema.Configuration;
+import org.structr.schema.ConfigurationProvider;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -79,6 +79,7 @@ public class Services {
 	public static final String NEO4J_SHELL_ENABLED           = "neo4j.shell.enabled";
 	public static final String LOG_SERVICE_INTERVAL          = "structr.logging.interval";
 	public static final String LOG_SERVICE_THRESHOLD         = "structr.logging.threshold";
+	public static final String SERVER_IP                     = "server.ip";
 	public static final String SMTP_HOST                     = "smtp.host";
 	public static final String SMTP_PORT                     = "smtp.port";
 	public static final String SMTP_USER                     = "smtp.user";
@@ -92,7 +93,7 @@ public class Services {
 	public static final String GEOCODING_PROVIDER            = "geocoding.provider";
 	public static final String GEOCODING_LANGUAGE            = "geocoding.language";
 	public static final String GEOCODING_APIKEY              = "geocoding.apikey";
-	public static final String CONFIGURATION                 = "configuration";
+	public static final String CONFIGURATION                 = "configuration.provider";
 	public static final String TESTING                       = "testing";
 	
 	// singleton instance
@@ -104,7 +105,7 @@ public class Services {
 	private final Set<Class> registeredServiceClasses  = new LinkedHashSet<>();
 	private final Set<String> configuredServiceClasses = new LinkedHashSet<>();
 	private StructrConf structrConf                    = null;
-	private Configuration configuration                = null;
+	private ConfigurationProvider configuration        = null;
 	private boolean initializationDone                 = false;
 	private String configuredServiceNames              = null;
 	private String configurationClass                  = null;
@@ -237,7 +238,7 @@ public class Services {
 		// if configuration is not yet established, instantiate it
 		// this is the place where the service classes get the
 		// opportunity to modify the default configuration
-		getConfiguration();
+		getConfigurationProvider();
 		
 		logger.log(Level.INFO, "Starting services");
 
@@ -333,7 +334,7 @@ public class Services {
 		return getStructrConf().getProperty(key, defaultValue);
 	}
 	
-	public Configuration getConfiguration() {
+	public ConfigurationProvider getConfigurationProvider() {
 
 		// instantiate configuration provider
 		if (configuration == null) {
@@ -344,7 +345,7 @@ public class Services {
 			// initializers.
 			try {
 
-				configuration = (Configuration)Class.forName(configurationClass).newInstance();
+				configuration = (ConfigurationProvider)Class.forName(configurationClass).newInstance();
 				configuration.initialize();
 
 			} catch (Throwable t) {
@@ -497,17 +498,11 @@ public class Services {
 	
 	public static StructrConf getDefaultConfiguration() {
 
-		/*
-		- StructrProperties, addValue, removeValue
-		- HttpService, mandatory config for ui
-		- unified (core) main class to start Structr
-		*/
-			
 		if (DEFAULT_CONFIG == null) {
 			
 			DEFAULT_CONFIG = new StructrConf();
 			
-			DEFAULT_CONFIG.setProperty(CONFIGURATION,             ModuleService.class.getName());
+			DEFAULT_CONFIG.setProperty(CONFIGURATION,             JarConfigurationProvider.class.getName());
 			DEFAULT_CONFIG.setProperty(CONFIGURED_SERVICES,       "NodeService AgentService CronService");
 			DEFAULT_CONFIG.setProperty(NEO4J_SHELL_ENABLED,       "true");
 			DEFAULT_CONFIG.setProperty(JSON_INDENTATION,          "true");

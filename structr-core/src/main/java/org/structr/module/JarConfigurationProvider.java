@@ -62,7 +62,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
-import org.structr.schema.Configuration;
+import org.structr.schema.ConfigurationProvider;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -71,9 +71,9 @@ import org.structr.schema.Configuration;
  * 
  * @author Christian Morgner
  */
-public class ModuleService implements Configuration {
+public class JarConfigurationProvider implements ConfigurationProvider {
 
-	private static final Logger logger                                                             = Logger.getLogger(ModuleService.class.getName());
+	private static final Logger logger                                                             = Logger.getLogger(JarConfigurationProvider.class.getName());
 	
 	private final Map<String, Class<? extends RelationshipInterface>> relationshipEntityClassCache = new ConcurrentHashMap<>(10, 0.9f, 8);
 	private final Map<String, Class<? extends NodeInterface>> nodeEntityClassCache                 = new ConcurrentHashMap(100, 0.9f, 8);
@@ -742,7 +742,7 @@ public class ModuleService implements Configuration {
 
 	private void importResource(Module module) throws IOException {
 
-		final Configuration configuration = StructrApp.getConfiguration();
+		final ConfigurationProvider configuration = StructrApp.getConfiguration();
 		final Set<String> classes         = module.getClasses();
 
 		for (final String name : classes) {

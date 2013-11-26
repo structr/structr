@@ -46,9 +46,9 @@ import java.util.Enumeration;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
+import org.structr.common.StructrConf;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.GenericNode;
@@ -72,7 +72,6 @@ public class StructrTest extends TestCase {
 
 	//~--- fields ---------------------------------------------------------
 
-	protected Map<String, String> context         = new LinkedHashMap<>();
 	protected GraphDatabaseCommand graphDbCommand = null;
 	protected SecurityContext securityContext     = null;
 	protected ReadLogCommand readLogCommand;
@@ -102,10 +101,12 @@ public class StructrTest extends TestCase {
 	@Override
 	protected void tearDown() throws Exception {
 
+		final File testDir = new File(Services.getInstance().getConfigurationValue(Services.BASE_PATH));
+		
+		// shutdown
 		Services.getInstance().shutdown();
 
 		try {
-			File testDir = new File(context.get(Services.BASE_PATH));
 
 			if (testDir.isDirectory()) {
 
@@ -313,36 +314,27 @@ public class StructrTest extends TestCase {
 	@Override
 	protected void setUp() throws Exception {
 
+		final StructrConf config = new StructrConf(Services.getDefaultConfiguration());
+		final Date now            = new Date();
+		final long timestamp      = now.getTime();
 
-		Date now       = new Date();
-		long timestamp = now.getTime();
-
-		context.put(Services.CONFIGURED_SERVICES, "ModuleService NodeService LogService");
-		context.put(Services.APPLICATION_TITLE, "structr unit test app" + timestamp);
-		context.put(Services.TMP_PATH, "/tmp/");
-		context.put(Services.BASE_PATH, "/tmp/structr-test-" + timestamp);
-		context.put(Services.DATABASE_PATH, "/tmp/structr-test-" + timestamp + "/db");
-		context.put(Services.FILES_PATH, "/tmp/structr-test-" + timestamp + "/files");
-		context.put(Services.LOG_DATABASE_PATH, "/tmp/structr-test-" + timestamp + "/logDb.dat");
-		context.put(Services.TCP_PORT, "13465");
-		context.put(Services.SERVER_IP, "127.0.0.1");
-		context.put(Services.UDP_PORT, "13466");
-		context.put(Services.SUPERUSER_USERNAME, "superadmin");
-		context.put(Services.SUPERUSER_PASSWORD, "sehrgeheim");
+		config.put(Services.CONFIGURED_SERVICES, "NodeService LogService");
+		config.put(Services.APPLICATION_TITLE, "structr unit test app" + timestamp);
+		config.put(Services.TMP_PATH, "/tmp/");
+		config.put(Services.BASE_PATH, "/tmp/structr-test-" + timestamp);
+		config.put(Services.DATABASE_PATH, "/tmp/structr-test-" + timestamp + "/db");
+		config.put(Services.FILES_PATH, "/tmp/structr-test-" + timestamp + "/files");
+		config.put(Services.LOG_DATABASE_PATH, "/tmp/structr-test-" + timestamp + "/logDb.dat");
+		config.put(Services.TCP_PORT, "13465");
+		config.put(Services.SERVER_IP, "127.0.0.1");
+		config.put(Services.UDP_PORT, "13466");
+		config.put(Services.SUPERUSER_USERNAME, "superadmin");
+		config.put(Services.SUPERUSER_PASSWORD, "sehrgeheim");
 		
-		final Services services = Services.getInstance(context);
+		final Services services = Services.getInstance(config);
 
 		securityContext           = SecurityContext.getSuperUserInstance();
-		
-//		createNodeCommand         = StructrApp.getInstance(securityContext).command(CreateNodeCommand.class);
-//		createRelationshipCommand = StructrApp.getInstance(securityContext).command(CreateRelationshipCommand.class);
-//		deleteNodeCommand         = StructrApp.getInstance(securityContext).command(DeleteNodeCommand.class);
-//		deleteRelationshipCommand = StructrApp.getInstance(securityContext).command(DeleteRelationshipCommand.class);
-//		transactionCommand        = StructrApp.getInstance(securityContext).command(TransactionCommand.class);
 		graphDbCommand            = StructrApp.getInstance(securityContext).command(GraphDatabaseCommand.class);
-//		findNodeCommand           = StructrApp.getInstance(securityContext).command(FindNodeCommand.class);
-//		searchNodeCommand         = StructrApp.getInstance(securityContext).command(SearchNodeCommand.class);
-//		searchRelationshipCommand = StructrApp.getInstance(securityContext).command(SearchRelationshipCommand.class);
 		writeLogCommand           = StructrApp.getInstance(securityContext).command(WriteLogCommand.class);
 		readLogCommand            = StructrApp.getInstance(securityContext).command(ReadLogCommand.class);
 

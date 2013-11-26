@@ -19,7 +19,7 @@ import org.structr.core.property.PropertyKey;
  *
  * @author Christian Morgner
  */
-public interface Configuration {
+public interface ConfigurationProvider {
 
 	public void initialize();
 	public void shutdown();

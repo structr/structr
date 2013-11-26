@@ -40,7 +40,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.StructrConf;
-import org.structr.schema.Configuration;
+import org.structr.schema.ConfigurationProvider;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -137,7 +137,7 @@ public class AgentService extends Thread implements RunnableService {
 
 	public Map<String, Class<? extends Agent>> getAgents() {
 
-		final Configuration configuration = Services.getInstance().getConfiguration();
+		final ConfigurationProvider configuration = Services.getInstance().getConfigurationProvider();
 		if (configuration != null) {
 			
 			return configuration.getAgents();

@@ -54,7 +54,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.log.ReadLogCommand;
 import org.structr.core.log.WriteLogCommand;
-import org.structr.module.ModuleService;
+import org.structr.module.JarConfigurationProvider;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -310,7 +310,7 @@ public class StructrTest extends TestCase {
 		basePath = "/tmp/structr-test-" + timestamp;
 
 		config.setProperty(Services.CONFIGURED_SERVICES, "NodeService LogService");
-		config.setProperty(Services.CONFIGURATION, ModuleService.class.getName());
+		config.setProperty(Services.CONFIGURATION, JarConfigurationProvider.class.getName());
 		config.setProperty(Services.APPLICATION_TITLE, "structr unit test app" + timestamp);
 		config.setProperty(Services.TMP_PATH, "/tmp/");
 		config.setProperty(Services.BASE_PATH, basePath);
