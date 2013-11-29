@@ -62,7 +62,7 @@ public class ReferenceGroup extends Property<PropertyMap> implements PropertyGro
 		this.entityClass            = entityClass;
 
 		// register in entity context
-		StructrApp.getConfiguration().registerProperty(entityClass, nullValuesOnlyProperty);
+		// FIXME StructrApp.getConfiguration().registerProperty(entityClass, nullValuesOnlyProperty);
 		StructrApp.getConfiguration().registerPropertyGroup(entityClass, this, this);	
 	}
 	

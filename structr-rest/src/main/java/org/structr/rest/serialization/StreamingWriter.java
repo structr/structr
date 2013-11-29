@@ -34,7 +34,6 @@ import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
-import org.structr.core.Services;
 import org.structr.core.Value;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
@@ -59,7 +58,7 @@ public abstract class StreamingWriter {
 	private final Property<String> id                    = new StringProperty("id");
 	private int outputNestingDepth                       = 3;
 	private DecimalFormat decimalFormat                  = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
-	private PropertyKey idProperty                       = GraphObject.uuid;
+	private PropertyKey idProperty                       = GraphObject.id;
 	private SecurityContext securityContext              = null;
 	private Value<String> propertyView                   = null;
 	private boolean indent                               = true;
@@ -155,7 +154,7 @@ public abstract class StreamingWriter {
 				
 				for(GraphObject graphObject : results) {
 					
-					Object value = graphObject.getProperty(AbstractNode.uuid);	// FIXME: UUID key hard-coded, use variable in Result here!
+					Object value = graphObject.getProperty(AbstractNode.id);	// FIXME: UUID key hard-coded, use variable in Result here!
 					if(value != null) {
 						
 						writer.value(value.toString());

@@ -78,9 +78,9 @@ public class SchemaResource extends Resource {
 			
 			if (type == null) {
 				
-				if (PropertyDefinition.exists(rawType)) {
-					type = PropertyDefinition.nodeExtender.getType(rawType);
-				}
+//				if (PropertyDefinition.exists(rawType)) {
+//					type = PropertyDefinition.nodeExtender.getType(rawType);
+//				}
 			}
 			
 			if (type != null) {

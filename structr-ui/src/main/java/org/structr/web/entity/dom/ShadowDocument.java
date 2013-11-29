@@ -30,7 +30,7 @@ import org.structr.common.PropertyView;
  */
 public class ShadowDocument extends Page {
 	
-	public static final org.structr.common.View publicView = new org.structr.common.View(ShadowDocument.class, PropertyView.Public, type, name, uuid);
+	public static final org.structr.common.View publicView = new org.structr.common.View(ShadowDocument.class, PropertyView.Public, type, name, id);
 
 	public ShadowDocument() {
 		

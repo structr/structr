@@ -24,9 +24,6 @@ import org.structr.core.property.StringProperty;
 import org.structr.core.property.ISO8601DateProperty;
 import org.structr.core.property.BooleanProperty;
 import org.structr.common.PropertyView;
-
-//~--- JDK imports ------------------------------------------------------------
-
 import java.util.Date;
 import org.structr.core.property.Property;
 import org.structr.common.View;

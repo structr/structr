@@ -29,7 +29,6 @@ import java.util.logging.Logger;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 
 //~--- classes ----------------------------------------------------------------
@@ -65,7 +64,7 @@ public class GlobalPropertyUniquenessValidator implements PropertyValidator<Stri
 			try {
 
 				// UUID is globally unique
-				if (key.equals(GraphObject.uuid)) {
+				if (key.equals(GraphObject.id)) {
 					
 					
 					//return true; // trust uniqueness

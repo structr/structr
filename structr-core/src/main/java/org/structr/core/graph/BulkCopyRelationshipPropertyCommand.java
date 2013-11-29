@@ -71,7 +71,7 @@ public class BulkCopyRelationshipPropertyCommand extends NodeServiceCommand impl
 				public void handleGraphObject(SecurityContext securityContext, AbstractRelationship rel) {
 
 					// Treat only "our" rels
-					if(rel.getProperty(AbstractNode.uuid) != null) {
+					if(rel.getProperty(AbstractNode.id) != null) {
 
 						Class type                    = rel.getClass();
 						PropertyKey destPropertyKey   = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, destKey);

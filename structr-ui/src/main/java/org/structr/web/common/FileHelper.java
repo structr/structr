@@ -245,7 +245,7 @@ public class FileHelper {
 	 */
 	public static void writeToFile(final org.structr.web.entity.File fileNode, final byte[] data) throws FrameworkException, IOException {
 
-		String uuid = fileNode.getProperty(AbstractNode.uuid);
+		String uuid = fileNode.getProperty(AbstractNode.id);
 		if (uuid == null) {
 
 			final String newUuid = UUID.randomUUID().toString().replaceAll("[\\-]+", "");
@@ -256,7 +256,7 @@ public class FileHelper {
 
 				app.beginTx();
 				fileNode.unlockReadOnlyPropertiesOnce();
-				fileNode.setProperty(AbstractNode.uuid, newUuid);
+				fileNode.setProperty(AbstractNode.id, newUuid);
 				app.commitTx();
 				
 			} finally {
@@ -543,7 +543,7 @@ public class FileHelper {
 		
 		String folderPath = file.getProperty(AbstractFile.name);
 		
-		if (folderPath == null) folderPath = file.getProperty(AbstractNode.uuid);
+		if (folderPath == null) folderPath = file.getProperty(AbstractNode.id);
 		
 		while (parentFolder != null) {
 			folderPath = parentFolder.getName().concat("/").concat(folderPath);

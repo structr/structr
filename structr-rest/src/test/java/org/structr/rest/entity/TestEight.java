@@ -37,10 +37,10 @@ import org.structr.core.property.StringProperty;
 public class TestEight extends AbstractNode {
 
 	public static final Property<List<TestSix>>  testSixs            = new StartNodes<>("testSixs", SixEightManyToMany.class);
-	public static final Property<List<String>>   testSixIds          = new CollectionNotionProperty("testSixIds", testSixs, new PropertyNotion(GraphObject.uuid));
+	public static final Property<List<String>>   testSixIds          = new CollectionNotionProperty("testSixIds", testSixs, new PropertyNotion(GraphObject.id));
 	        
 	public static final Property<List<TestNine>> testNines           = new StartNodes<>("testNines", NineEightManyToMany.class);
-	public static final Property<List<String>>   testNineIds         = new CollectionNotionProperty("testNineIds", testNines, new PropertyNotion(GraphObject.uuid));
+	public static final Property<List<String>>   testNineIds         = new CollectionNotionProperty("testNineIds", testNines, new PropertyNotion(GraphObject.id));
 	public static final Property<List<String>>   testNinePostalCodes = new CollectionNotionProperty("testNinePostalCodes", testNines, new PropertyNotion(TestNine.postalCode));
 	
 	public static final Property<String>         aString             = new StringProperty("aString").indexed().indexedWhenEmpty();

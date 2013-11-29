@@ -65,173 +65,6 @@ public class TransactionCommand extends NodeServiceCommand {
 	private ModificationQueue modificationQueue = null;
 	private ErrorBuffer errorBuffer             = null;
 
-	/*
-	public <T> T execute(StructrTransaction<T> transaction) throws FrameworkException {
-		
-		boolean topLevel = (transactions.get() == null);
-		boolean retry    = true;
-		int retryCount   = 0;
-		
-		if (topLevel) {
-			
-			T result = null;
-			
-			while (retry && retryCount++ < 100) {
-
-				// assume success
-				retry = false;
-
-				try {
-					result = executeInternal(transaction);
-
-				} catch (RetryException rex) {
-
-					logger.log(Level.INFO, "Deadlock encountered, retrying transaction, count {0}", retryCount);
-
-					retry = true;
-				}
-			}
-			
-			return result;
-			 
-		} else {
-			
-			return executeInternal(transaction);
-		}
-	}
-
-	private <T> T executeInternal(StructrTransaction<T> transaction) throws FrameworkException {
-		
-		GraphDatabaseService graphDb    = (GraphDatabaseService) arguments.get("graphDb");
-		TransactionReference tx         = transactions.get();
-		boolean topLevel                = (tx == null);
-		boolean error                   = false;
-		boolean deadlock                = false;
-		Set<String> synchronizationKeys = null;
-		FrameworkException exception    = null;
-		T result                        = null;
-		
-		if (topLevel) {
-		
-			// start new transaction
-			this.modificationQueue = new ModificationQueue();
-			this.errorBuffer       = new ErrorBuffer();
-			tx                     = new TransactionReference(graphDb.beginTx());
-			
-			transactions.set(tx);
-			currentCommand.set(this);
-		}
-	
-		// execute structr transaction
-		try {
-		
-			result = transaction.execute();
-			
-			if (topLevel) {
-
-				// 1. do inner callbacks (may cause transaction to fail)
-				if (!modificationQueue.doInnerCallbacks(securityContext, errorBuffer)) {
-
-					// create error
-					if (transaction.doValidation) {
-						throw new FrameworkException(422, errorBuffer);
-					}
-				}
-				
-				// 2. fetch all types of entities modified in this tx
-				synchronizationKeys = modificationQueue.getSynchronizationKeys();
-
-				// we need to protect the validation and indexing part of every transaction
-				// from being entered multiple times in the presence of validators
-				// 3. acquire semaphores for each modified type
-				try { semaphore.acquire(synchronizationKeys); } catch (InterruptedException iex) { return null; }
-
-				// finally, do validation under the protection of the semaphores for each type
-				if (!modificationQueue.doValidation(securityContext, errorBuffer, transaction.doValidation)) {
-
-					// create error
-					throw new FrameworkException(422, errorBuffer);
-				}
-			}
-			
-		} catch (DeadlockDetectedException ddex) {
-			
-			tx.failure();
-			
-			// this block is entered when we first
-			// encounter a DeadlockDetectedException
-			// => pass on to parent transaction
-			deadlock = true;
-			error = true;
-			
-		} catch (RetryException rex) {
-			
-			tx.failure();
-
-			// this block is entered when we catch the
-			// RetryException from a nested transaction
-			// => pass on to parent transaction
-			deadlock = true;
-			error = true;
-
-		} catch (FrameworkException fex) {
-			
-			tx.failure();
-			
-			exception = fex;
-			error = true;
-			
-		} catch (Throwable t) {
-			
-			tx.failure();
-
-			// TODO: add debugging switch!
-			t.printStackTrace();
-
-			exception = new FrameworkException(500, t);
-			error = true;
-
-			
-		} finally {
-
-			// finish toplevel transaction
-			if (topLevel) {
-
-				try {
-					tx.success();
-					tx.finish();
-					
-				} finally {
-
-					// release semaphores as the transaction is now finished
-					semaphore.release(synchronizationKeys);	// careful: this can be null
-
-					// cleanup
-					currentCommand.remove();
-					transactions.remove();
-				}
-
-				// no error, notify entities
-				if (!error) {
-					modificationQueue.doOuterCallbacks(securityContext);
-					modificationQueue.clear();
-				}
-			}
-		}
-		
-		if (deadlock) {
-			throw new RetryException();
-		}
-		
-		// throw actual exception
-		if (exception != null && error) {
-			throw exception;
-		}
-		
-		return result;
-	}
-	*/
-	
 	public void beginTx() {
 		
 		final GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
@@ -293,7 +126,12 @@ public class TransactionCommand extends NodeServiceCommand {
 				throw new FrameworkException(422, errorBuffer);
 			}
 
-			tx.success();
+			try {
+				tx.success();
+
+			} catch (Throwable t) {
+				t.printStackTrace();
+			}
 
 			// release semaphores as the transaction is now finished
 			semaphore.release(synchronizationKeys);	// careful: this can be null
@@ -311,7 +149,12 @@ public class TransactionCommand extends NodeServiceCommand {
 				currentCommand.remove();
 				transactions.remove();
 
-				tx.finish();
+				try {
+					tx.finish();
+					
+				} catch (Throwable t) {
+					t.printStackTrace();
+				}
 
 				if (modificationQueue != null && tx.isSuccessful()) {
 					

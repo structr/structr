@@ -66,9 +66,9 @@ public class DynamicTypeResource extends TypeResource {
 			
 			if (PropertyDefinition.exists(this.normalizedTypeName)) {
 				
-				entityClass = PropertyDefinition.nodeExtender.getType(normalizedTypeName);
+				// entityClass = PropertyDefinition.nodeExtender.getType(normalizedTypeName);
 				
-				return true;
+				return false;
 			}
 		}
 

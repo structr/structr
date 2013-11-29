@@ -222,7 +222,7 @@ public class Importer {
 				createChildNodes(parsedDocument, page, page, baseUrl);
 				logger.log(Level.INFO, "##### Finished fetching {0} for page {1} #####", new Object[] { address, name });
 
-				pageId = page.getProperty(AbstractNode.uuid);
+				pageId = page.getProperty(AbstractNode.id);
 			}
 
 			app.commitTx();
@@ -605,7 +605,7 @@ public class Importer {
 	private File createFileNode(final String uuid, final String name, final String contentType, final long size, final long checksum) throws FrameworkException {
 
 		String relativeFilePath = File.getDirectoryPath(uuid) + "/" + uuid;
-		File fileNode           = (File) createNode.execute(new NodeAttribute(AbstractNode.uuid, uuid), new NodeAttribute(AbstractNode.type, File.class.getSimpleName()),
+		File fileNode           = (File) createNode.execute(new NodeAttribute(AbstractNode.id, uuid), new NodeAttribute(AbstractNode.type, File.class.getSimpleName()),
 						  new NodeAttribute(AbstractNode.name, name), new NodeAttribute(File.relativeFilePath, relativeFilePath),
 						  new NodeAttribute(File.contentType, contentType), new NodeAttribute(AbstractNode.visibleToPublicUsers, publicVisible),
 						  new NodeAttribute(File.size, size), new NodeAttribute(File.checksum, checksum),
@@ -618,7 +618,7 @@ public class Importer {
 	private Image createImageNode(final String uuid, final String name, final String contentType, final long size, final long checksum) throws FrameworkException {
 
 		String relativeFilePath = Image.getDirectoryPath(uuid) + "/" + uuid;
-		Image imageNode         = (Image) createNode.execute(new NodeAttribute(AbstractNode.uuid, uuid), new NodeAttribute(AbstractNode.type, Image.class.getSimpleName()),
+		Image imageNode         = (Image) createNode.execute(new NodeAttribute(AbstractNode.id, uuid), new NodeAttribute(AbstractNode.type, Image.class.getSimpleName()),
 						  new NodeAttribute(AbstractNode.name, name), new NodeAttribute(File.relativeFilePath, relativeFilePath),
 						  new NodeAttribute(File.contentType, contentType), new NodeAttribute(AbstractNode.visibleToPublicUsers, publicVisible),
 						  new NodeAttribute(File.size, size), new NodeAttribute(File.checksum, checksum),

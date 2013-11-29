@@ -75,7 +75,7 @@ public class BulkMigrateRelationships extends NodeServiceCommand implements Main
 				public void handleGraphObject(SecurityContext securityContext, AbstractRelationship rel) {
 
 					// Treat only relationships with UUID and which are instantiated as generic relationships
-					if (rel.getProperty(AbstractNode.uuid) != null) {
+					if (rel.getProperty(AbstractNode.id) != null) {
 
 						Class type = rel.getClass();
 						

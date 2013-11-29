@@ -226,7 +226,7 @@ public abstract class Search {
 	}
 
 	public static SearchAttribute andExactUuid(final String searchString) {
-		return new PropertySearchAttribute(AbstractNode.uuid, searchString, Occur.MUST, true);
+		return new PropertySearchAttribute(AbstractNode.id, searchString, Occur.MUST, true);
 	}
 
 	public static <T> SearchAttribute<T> andExactProperty(final SecurityContext securityContext, final PropertyKey<T> propertyKey, final T searchValue) {

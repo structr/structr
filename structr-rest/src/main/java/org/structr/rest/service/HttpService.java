@@ -115,7 +115,7 @@ public class HttpService implements RunnableService {
 			// check for application nodes (which have UUIDs)
 			for (Node node : GlobalGraphOperations.at(graphDb).getAllNodes()) {
 				
-				if (node.hasProperty(GraphObject.uuid.dbName())) {
+				if (node.hasProperty(GraphObject.id.dbName())) {
 					
 					hasApplicationNodes = true;
 					break;

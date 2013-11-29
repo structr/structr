@@ -30,6 +30,6 @@ import org.structr.core.notion.PropertySetNotion;
 public class UiNotion extends PropertySetNotion {
 
 	public UiNotion() {
-		super(AbstractNode.uuid, AbstractNode.name);
+		super(AbstractNode.id, AbstractNode.name);
 	}
 }

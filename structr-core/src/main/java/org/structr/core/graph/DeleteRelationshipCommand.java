@@ -64,7 +64,7 @@ public class DeleteRelationshipCommand extends NodeServiceCommand {
 
 		if (graphDb != null && rel != null) {
 
-			if (rel.getProperty(AbstractRelationship.uuid) == null) {
+			if (rel.getProperty(AbstractRelationship.id) == null) {
 
 				logger.log(Level.WARNING, "Will not delete relationship which has no UUID: {0} --[:{1}]-->{2}", new Object[] { rel.getSourceNode(), rel.getType(), rel.getTargetNode() });
 
@@ -76,6 +76,9 @@ public class DeleteRelationshipCommand extends NodeServiceCommand {
 			final RelationshipInterface finalRel = rel;
 
 			TransactionCommand.relationshipDeleted(finalRel, passiveDeletion);
+			
+			// callback
+			finalRel.onRelationshipDeletion();
 
 			// remove object from index
 			finalRel.removeFromIndex();

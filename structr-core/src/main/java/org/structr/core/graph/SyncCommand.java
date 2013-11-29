@@ -67,6 +67,7 @@ import org.structr.core.StaticValue;
 import org.structr.core.Value;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 
 /**
  *
@@ -484,16 +485,17 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 	private static void exportDatabase(ZipOutputStream zos, PrintWriter writer, Iterable<Node> nodes, Iterable<Relationship> relationships) throws IOException, FrameworkException {
 		
 		// start database zip entry
-		ZipEntry dbEntry           = new ZipEntry(STRUCTR_ZIP_DB_NAME);
-		int nodeCount              = 0;
-		int relCount               = 0;
+		final ZipEntry dbEntry        = new ZipEntry(STRUCTR_ZIP_DB_NAME);
+		final String uuidPropertyName = AbstractNode.id.dbName();
+		int nodeCount                 = 0;
+		int relCount                  = 0;
 		
 		zos.putNextEntry(dbEntry);
 
 		for (Node node : nodes) {
 
 			// ignore non-structr nodes
-			if (node.hasProperty(GraphObject.uuid.dbName())) {
+			if (node.hasProperty(GraphObject.id.dbName())) {
 
 				writer.print("N");
 
@@ -515,15 +517,15 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 		for (Relationship rel : relationships) {
 
 			// ignore non-structr nodes
-			if (rel.hasProperty(GraphObject.uuid.dbName())) {
+			if (rel.hasProperty(GraphObject.id.dbName())) {
 
-				Node startNode = rel.getStartNode();
-				Node endNode   = rel.getEndNode();
+				final Node startNode = rel.getStartNode();
+				final Node endNode   = rel.getEndNode();
 
-				if (startNode.hasProperty("uuid") && endNode.hasProperty("uuid")) {
+				if (startNode.hasProperty(uuidPropertyName) && endNode.hasProperty(uuidPropertyName)) {
 
-					String startId = (String)startNode.getProperty("uuid");
-					String endId   = (String)endNode.getProperty("uuid");
+					String startId = (String)startNode.getProperty(uuidPropertyName);
+					String endId   = (String)endNode.getProperty(uuidPropertyName);
 
 					writer.print("R");
 					serialize(writer, startId);
@@ -598,6 +600,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 		final App app                    = StructrApp.getInstance();
 		final Value<Long> nodeCountValue = new StaticValue<>(0L);
 		final Value<Long> relCountValue  = new StaticValue<>(0L);
+		final String uuidPropertyName    = AbstractNode.id.dbName();
 		double t0                        = System.nanoTime();
 		
 		try {
@@ -675,7 +678,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 									Object obj = deserialize(reader);
 
-									if ("uuid".equals(currentKey) && currentObject instanceof Node) {
+									if (uuidPropertyName.equals(currentKey) && currentObject instanceof Node) {
 
 										String uuid = (String)obj;
 										uuidMap.put(uuid, (Node)currentObject);

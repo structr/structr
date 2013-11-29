@@ -23,6 +23,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -365,22 +366,28 @@ public abstract class Property<T> implements PropertyKey<T> {
 				Index<Node> index = nodeService.getNodeIndex(indexName);
 				if (index != null) {
 
-					synchronized (index) {
+					try {
 
-						index.remove(dbNode, dbName);
-						
-						if (value != null && !StringUtils.isBlank(value.toString())) {
-							
-							index.add(dbNode, dbName, value);
-							
-						} else if (isIndexedWhenEmpty()) {
-							
-							value = getValueForEmptyFields();
-							if (value != null) {
-								
-								index.add(dbNode, dbName, value);
+						synchronized (index) {
+
+							index.remove(dbNode, dbName);
+
+							if (value != null && !StringUtils.isBlank(value.toString())) {
+									index.add(dbNode, dbName, value);
+
+							} else if (isIndexedWhenEmpty()) {
+
+								value = getValueForEmptyFields();
+								if (value != null) {
+
+									index.add(dbNode, dbName, value);
+								}
 							}
 						}
+
+					} catch (Throwable t) {
+
+						Logger.getLogger(Property.class.getName()).log(Level.INFO, "Unable to index property {0} of type {1} on {2}", new Object[] { value, this.getClass().getSimpleName(), entity } );
 					}
 				}
 			}
@@ -396,22 +403,29 @@ public abstract class Property<T> implements PropertyKey<T> {
 				Index<Relationship> index = nodeService.getRelationshipIndex(indexName);
 				if (index != null) {
 
-					synchronized (index) {
+					try {
 
-						index.remove(dbRel, dbName);
-							
-						if (value != null && !StringUtils.isBlank(value.toString())) {
+						synchronized (index) {
 
-							index.add(dbRel, dbName, value);
-							
-						} else if (isIndexedWhenEmpty()) {
-							
-							value = getValueForEmptyFields();
-							if (value != null) {
-								
+							index.remove(dbRel, dbName);
+
+							if (value != null && !StringUtils.isBlank(value.toString())) {
+
 								index.add(dbRel, dbName, value);
+
+							} else if (isIndexedWhenEmpty()) {
+
+								value = getValueForEmptyFields();
+								if (value != null) {
+
+									index.add(dbRel, dbName, value);
+								}
 							}
 						}
+
+					} catch (Throwable t) {
+
+						Logger.getLogger(Property.class.getName()).log(Level.INFO, "Unable to index property {0} of type {1} on {2}", new Object[] { value, this.getClass().getSimpleName(), entity } );
 					}
 				}
 			}

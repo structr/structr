@@ -30,7 +30,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.GenericNode;
 import org.structr.core.entity.GenericRelationship;
-import org.structr.experimental.NodeExtender;
+import org.structr.schema.compiler.NodeExtender;
 
 /**
  * The default factory for unknown types in structr. When structr needs to
@@ -45,7 +45,6 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 
 	public static final String COMBINED_RELATIONSHIP_KEY_SEP = " ";
 	
-	public static final NodeExtender genericNodeExtender = new NodeExtender(GenericNode.class, "org.structr.core.entity.dynamic");
 	public static final Class GENERIC_NODE_TYPE          = GenericNode.class;
 	public static final Class GENERIC_REL_TYPE           = GenericRelationship.class;
 	
@@ -109,7 +108,7 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 					String externalNodeType = typeObj.toString();
 					
 					// initialize dynamic type
-					genericNodeExtender.getType(externalNodeType);
+					// genericNodeExtender.getType(externalNodeType);
 					
 					// return dynamic type
 					return StructrApp.getConfiguration().getNodeEntityClass(typeObj.toString());
