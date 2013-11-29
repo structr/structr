@@ -20,11 +20,9 @@ package org.structr.core.entity;
 
 import org.neo4j.graphdb.Node;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.relationship.AbstractListSiblings;
-import org.structr.core.graph.CreateRelationshipCommand;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
