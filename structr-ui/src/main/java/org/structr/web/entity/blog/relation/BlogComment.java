@@ -34,7 +34,7 @@ import org.structr.core.property.ISO8601DateProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StartNode;
 import org.structr.web.entity.dom.Content;
-import org.structr.web.entity.relation.Data;
+import org.structr.web.entity.relation.BlogCommentContents;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -46,7 +46,7 @@ import org.structr.web.entity.relation.Data;
  */
 public class BlogComment extends AbstractNode {
 
-	public static final Property<Content>    text        = new EndNode<>("contents", Data.class);
+	public static final Property<Content>    text        = new EndNode<>("contents", BlogCommentContents.class);
 	public static final Property<Date>       publishDate = new ISO8601DateProperty("publishDate").indexed();
 	public static final Property<Principal>  author      = new StartNode<>("author", BlogAuthor.class);
 	
