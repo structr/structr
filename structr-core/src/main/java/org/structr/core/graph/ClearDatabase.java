@@ -65,7 +65,7 @@ public class ClearDatabase extends NodeServiceCommand {
 				public void handleGraphObject(SecurityContext securityContext, AbstractNode node) {
 
 					// Delete only "our" nodes
-					if (node.getProperty(AbstractNode.uuid) != null) {
+					if (node.getProperty(AbstractNode.id) != null) {
 
 						try {
 							StructrApp.getInstance(securityContext).delete(node);

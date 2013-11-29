@@ -31,7 +31,7 @@ import org.structr.core.property.Property;
  */
 public class TestTen extends AbstractNode {
 
-	public static final Property<TestSeven> testSeven = new EndNode<>("testSeven", TenSevenOneToOne.class, new PropertySetNotion(true, TestSeven.uuid, TestSeven.aString));
+	public static final Property<TestSeven> testSeven = new EndNode<>("testSeven", TenSevenOneToOne.class, new PropertySetNotion(true, TestSeven.id, TestSeven.aString));
 	
 	public static final View defaultView = new View(TestTen.class, PropertyView.Public,
 		name, testSeven

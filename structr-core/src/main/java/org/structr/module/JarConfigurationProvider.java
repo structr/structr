@@ -58,7 +58,6 @@ import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.core.*;
-import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
@@ -633,6 +632,38 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		int modifiers = type.getModifiers();
 		if (!Modifier.isAbstract(modifiers) && !Modifier.isInterface(modifiers)) {
 			
+			String simpleName = type.getSimpleName();
+			String fullName   = type.getName();
+
+			if (AbstractNode.class.isAssignableFrom(type)) {
+				nodeEntityClassCache.put(simpleName, type);
+				nodeEntityPackages.add(fullName.substring(0, fullName.lastIndexOf(".")));
+			}
+			
+			if (AbstractRelationship.class.isAssignableFrom(type)) {
+
+				relationshipEntityClassCache.put(simpleName, type);
+				relationshipPackages.add(fullName.substring(0, fullName.lastIndexOf(".")));
+				
+			}
+
+			for (Class interfaceClass : type.getInterfaces()) {
+
+				String interfaceName           = interfaceClass.getSimpleName();
+				Set<Class> classesForInterface = interfaceCache.get(interfaceName);
+
+				if (classesForInterface == null) {
+
+					classesForInterface = new LinkedHashSet<>();
+
+					interfaceCache.put(interfaceName, classesForInterface);
+
+				}
+
+				classesForInterface.add(type);
+
+			}
+
 			try {
 				
 				Object entity                         = type.newInstance();
@@ -681,42 +712,6 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		}
 		
 		typeMethods.addAll(getAnnotatedMethods(type, Export.class));
-	}
-	
-	@Override
-	public void registerProperty(Class type, PropertyKey propertyKey) {
-		
-		getClassDBNamePropertyMapForType(type).put(propertyKey.dbName(),   propertyKey);
-		getClassJSNamePropertyMapForType(type).put(propertyKey.jsonName(), propertyKey);
-		
-		registerPropertySet(type, PropertyView.All, propertyKey);
-		
-		// inform property key of its registration
-		propertyKey.registrationCallback(type);
-	}
-
-	/**
-	 * Registers the given set of property keys for the view with name <code>propertyView</code>
-	 * and the given prefix of entities with the given type.
-	 * 
-	 * @param type the type of the entities for which the view will be registered
-	 * @param propertyView the name of the property view for which the property set will be registered
-	 * @param viewPrefix a string that will be prepended to all property keys in this view
-	 * @param propertySet the set of property keys to register for the given view
-	 */
-	@Override
-	public void registerPropertySet(Class type, String propertyView, PropertyKey... propertySet) {
-
-		Map<String, Set<PropertyKey>> propertyViewMap = getPropertyViewMapForType(type);
-		Set<PropertyKey> properties                   = propertyViewMap.get(propertyView);
-		
-		if (properties == null) {
-			properties = new LinkedHashSet<>();
-			propertyViewMap.put(propertyView, properties);
-		}
-
-		// add all properties from set
-		properties.addAll(Arrays.asList(propertySet));
 	}
 	
 	/**
@@ -894,8 +889,8 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		if (key == null) {
 			
 			// first try: uuid
-			if (GraphObject.uuid.dbName().equals(dbName)) {
-				return GraphObject.uuid;
+			if (GraphObject.id.dbName().equals(dbName)) {
+				return GraphObject.id;
 			}
 
 			if (createGeneric) {
@@ -924,9 +919,9 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		if (key == null) {
 			
 			// first try: uuid
-			if (GraphObject.uuid.dbName().equals(jsonName)) {
+			if (GraphObject.id.dbName().equals(jsonName)) {
 				
-				return GraphObject.uuid;
+				return GraphObject.id;
 			}
 
 			if (createIfNotFound) {
@@ -1012,8 +1007,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 	private void importResource(Module module) throws IOException {
 
-		final ConfigurationProvider configuration = StructrApp.getConfiguration();
-		final Set<String> classes         = module.getClasses();
+		final Set<String> classes                 = module.getClasses();
 
 		for (final String name : classes) {
 			
@@ -1033,60 +1027,13 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 					// register node entity classes
 					if (AbstractNode.class.isAssignableFrom(clazz)) {
 
-						configuration.registerEntityType(clazz);
-						
-						String simpleName = clazz.getSimpleName();
-						String fullName   = clazz.getName();
-
-						nodeEntityClassCache.put(simpleName, clazz);
-						nodeEntityPackages.add(fullName.substring(0, fullName.lastIndexOf(".")));
-
-						for (Class interfaceClass : clazz.getInterfaces()) {
-
-							String interfaceName           = interfaceClass.getSimpleName();
-							Set<Class> classesForInterface = interfaceCache.get(interfaceName);
-
-							if (classesForInterface == null) {
-
-								classesForInterface = new LinkedHashSet<>();
-
-								interfaceCache.put(interfaceName, classesForInterface);
-
-							}
-
-							classesForInterface.add(clazz);
-
-						}
-
+						registerEntityType(clazz);
 					}
 
 					// register entity classes
 					if (AbstractRelationship.class.isAssignableFrom(clazz)) {
 
-						configuration.registerEntityType(clazz);
-
-						String simpleName = clazz.getSimpleName();
-						String fullName   = clazz.getName();
-
-						relationshipEntityClassCache.put(simpleName, clazz);
-						relationshipPackages.add(fullName.substring(0, fullName.lastIndexOf(".")));
-
-						for (Class interfaceClass : clazz.getInterfaces()) {
-
-							String interfaceName           = interfaceClass.getSimpleName();
-							Set<Class> classesForInterface = interfaceCache.get(interfaceName);
-
-							if (classesForInterface == null) {
-
-								classesForInterface = new LinkedHashSet<>();
-
-								interfaceCache.put(interfaceName, classesForInterface);
-
-							}
-
-							classesForInterface.add(clazz);
-
-						}
+						registerEntityType(clazz);
 					}
 
 					// register services
@@ -1446,6 +1393,40 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		}
 		
 		return viewTransformationMap;
+	}
+	
+	private void registerProperty(Class type, PropertyKey propertyKey) {
+		
+		getClassDBNamePropertyMapForType(type).put(propertyKey.dbName(),   propertyKey);
+		getClassJSNamePropertyMapForType(type).put(propertyKey.jsonName(), propertyKey);
+		
+		registerPropertySet(type, PropertyView.All, propertyKey);
+		
+		// inform property key of its registration
+		propertyKey.registrationCallback(type);
+	}
+
+	/**
+	 * Registers the given set of property keys for the view with name <code>propertyView</code>
+	 * and the given prefix of entities with the given type.
+	 * 
+	 * @param type the type of the entities for which the view will be registered
+	 * @param propertyView the name of the property view for which the property set will be registered
+	 * @param viewPrefix a string that will be prepended to all property keys in this view
+	 * @param propertySet the set of property keys to register for the given view
+	 */
+	private void registerPropertySet(Class type, String propertyView, PropertyKey... propertySet) {
+
+		Map<String, Set<PropertyKey>> propertyViewMap = getPropertyViewMapForType(type);
+		Set<PropertyKey> properties                   = propertyViewMap.get(propertyView);
+		
+		if (properties == null) {
+			properties = new LinkedHashSet<>();
+			propertyViewMap.put(propertyView, properties);
+		}
+
+		// add all properties from set
+		properties.addAll(Arrays.asList(propertySet));
 	}
 	
 	private String denormalizeEntityName(String normalizedEntityName) {

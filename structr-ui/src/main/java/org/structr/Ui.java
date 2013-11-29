@@ -19,6 +19,11 @@
 
 package org.structr;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.structr.common.PropertyView;
 import org.structr.common.StructrConf;
 import org.structr.core.Services;
@@ -104,6 +109,23 @@ public class Ui {
 			config.setProperty("StructrUiHandler.resourceBase", "src/main/resources/structr");
 			config.setProperty("StructrUiHandler.directoriesListed", Boolean.toString(false));
 			config.setProperty("StructrUiHandler.welcomeFiles", "index.html");
+
+			// let structr.conf override defaults
+			// read structr.conf
+			final String configFileName = "structr.conf";
+
+			try {
+				final FileInputStream fis    = new FileInputStream(configFileName);
+				final Properties structrConf = new Properties();
+				structrConf.load(fis);
+				fis.close();
+				
+				Logger.getLogger(Ui.class.getName()).log(Level.INFO, "Read {0} entries from {1}", new Object[] { structrConf.size(), configFileName });
+				
+				config.putAll(structrConf);
+
+			} catch (IOException ignore) { }
+			
 			
 			final Services services = Services.getInstance(config);
 

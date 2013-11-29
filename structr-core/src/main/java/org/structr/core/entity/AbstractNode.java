@@ -53,6 +53,7 @@ import java.util.logging.Logger;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.index.Index;
+import org.structr.core.GraphObject;
 import org.structr.core.IterableAdapter;
 import org.structr.core.Ownership;
 import org.structr.core.app.StructrApp;
@@ -84,10 +85,10 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	public static final Property<Principal>       owner            = new StartNode<>("owner", PrincipalOwnsAbstractNode.class);
 	public static final Property<String>          ownerId          = new EntityIdProperty("ownerId", owner);
 
-	public static final View defaultView = new View(AbstractNode.class, PropertyView.Public, uuid, type);
+	public static final View defaultView = new View(AbstractNode.class, PropertyView.Public, id, type);
 	
 	public static final View uiView = new View(AbstractNode.class, PropertyView.Ui,
-		uuid, name, owner, type, createdBy, deleted, hidden, createdDate, lastModifiedDate, visibleToPublicUsers, visibleToAuthenticatedUsers, visibilityStartDate, visibilityEndDate
+		id, name, owner, type, createdBy, deleted, hidden, createdDate, lastModifiedDate, visibleToPublicUsers, visibleToAuthenticatedUsers, visibilityStartDate, visibilityEndDate
 	);
 	
 	protected PropertyMap cachedConvertedProperties  = new PropertyMap();
@@ -215,8 +216,8 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			String type = dbNode.hasProperty(AbstractNode.type.dbName())
 				      ? (String) dbNode.getProperty(AbstractNode.type.dbName())
 				      : "<AbstractNode>";
-			String id   = dbNode.hasProperty(AbstractNode.uuid.dbName())
-				      ? (String) dbNode.getProperty(AbstractNode.uuid.dbName())
+			String id   = dbNode.hasProperty(GraphObject.id.dbName())
+				      ? (String) dbNode.getProperty(GraphObject.id.dbName())
 				      : Long.toString(dbNode.getId());
 
 			return name + " (" + type + "," + id + ")";
@@ -337,7 +338,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	@Override
 	public String getUuid() {
 
-		return getProperty(AbstractNode.uuid);
+		return getProperty(AbstractNode.id);
 
 	}
 
@@ -470,7 +471,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	public List<String> getStringListProperty(final PropertyKey<List<String>> key) {
 
 		Object propertyValue = getProperty(key);
-		List<String> result  = new LinkedList<String>();
+		List<String> result  = new LinkedList<>();
 
 		if (propertyValue == null) {
 
@@ -880,7 +881,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 		boolean error = false;
 
-		error |= ValidationHelper.checkStringNotBlank(this, uuid, errorBuffer);
+		error |= ValidationHelper.checkStringNotBlank(this, id, errorBuffer);
 		error |= ValidationHelper.checkStringNotBlank(this, type, errorBuffer);
 
 		return !error;

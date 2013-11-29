@@ -107,7 +107,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	private static final int HtmlPrefixLength			= PropertyView.Html.length();
 	private final static String STRUCTR_ACTION_PROPERTY		= "data-structr-action";
 	
-	public static final  Property<List<DOMElement>> syncedNodes     = new EndNodes("syncedNodes", Sync.class, new PropertyNotion(uuid));
+	public static final  Property<List<DOMElement>> syncedNodes     = new EndNodes("syncedNodes", Sync.class, new PropertyNotion(id));
 	
 	private static final Map<String, HtmlProperty> htmlProperties              = new LRUMap(200);	// use LURMap here to avoid infinite growing
 	private static final List<GraphDataSource<List<GraphObject>>> listSources  = new LinkedList<>();
@@ -1136,7 +1136,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 				//HttpServletResponse response = renderContext.getResponse();
 				
 				
-				Resource resource     = ResourceHelper.applyViewTransformation(request, securityContext, ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, AbstractNode.uuid), AbstractNode.uuid), propertyView);
+				Resource resource     = ResourceHelper.applyViewTransformation(request, securityContext, ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, AbstractNode.id), AbstractNode.id), propertyView);
 
 				// TODO: decide if we need to rest the REST request here
 				//securityContext.checkResourceAccess(request, resource.getResourceSignature(), resource.getGrant(request, response), PropertyView.Ui);

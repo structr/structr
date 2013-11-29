@@ -19,7 +19,7 @@ public class HttpServiceServlet extends HttpServlet {
 
 	private static final Logger logger            = Logger.getLogger(HttpServiceServlet.class.getName());
 
-	protected Property<String> defaultIdProperty  = AbstractNode.uuid;
+	protected Property<String> defaultIdProperty  = AbstractNode.id;
 	protected String defaultPropertyView          = PropertyView.Public;
 	protected ResourceProvider resourceProvider   = null;
 	protected Class authenticatorClass            = null;

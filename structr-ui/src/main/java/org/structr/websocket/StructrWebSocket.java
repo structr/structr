@@ -251,7 +251,7 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 	// ----- file handling -----
 	public void createFileUploadHandler(File file) {
 
-		String uuid = file.getProperty(AbstractNode.uuid);
+		String uuid = file.getProperty(AbstractNode.id);
 
 		uploads.put(uuid, new FileUploadHandler(file));
 

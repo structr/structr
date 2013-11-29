@@ -28,9 +28,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.lucene.search.BooleanClause.Occur;
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.DynamicRelationshipType;
-import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.ValidationHelper;
@@ -40,13 +37,9 @@ import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.experimental.NodeExtender;
 import org.structr.core.graph.NodeService;
 import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.notion.Notion;
-import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.BooleanProperty;
-import org.structr.core.property.EndNodes;
 import org.structr.core.property.DoubleProperty;
 import org.structr.core.property.ISO8601DateProperty;
 import org.structr.core.property.IntProperty;
@@ -55,7 +48,6 @@ import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
-import scala.collection.script.End;
 
 /**
  *
@@ -66,7 +58,7 @@ public class PropertyDefinition<T> extends AbstractNode implements PropertyKey<T
 	
 	private static final Logger logger = Logger.getLogger(PropertyDefinition.class.getName());
 
-	public static final NodeExtender nodeExtender = new NodeExtender(GenericNode.class, "org.structr.core.entity.dynamic");
+	// public static final NodeExtender nodeExtender = new NodeExtender(GenericNode.class, "org.structr.core.entity.dynamic");
 	
 	public static final Property<String>               validationExpression     = new StringProperty("validationExpression");
 	public static final Property<String>               validationErrorMessage   = new StringProperty("validationErrorMessage");
@@ -383,7 +375,8 @@ public class PropertyDefinition<T> extends AbstractNode implements PropertyKey<T
 	
 	// ----- private methods -----
 	private void initialize() {
-		
+	
+		/*
 		if (delegate == null) {
 			
 			String _kind        = super.getProperty(PropertyDefinition.kind);
@@ -424,7 +417,7 @@ public class PropertyDefinition<T> extends AbstractNode implements PropertyKey<T
 							           );
 
 							// register property
-							StructrApp.getConfiguration().registerProperty(dataClass, delegate);
+							// StructrApp.getConfiguration().registerProperty(dataClass, delegate);
 
 						} catch (Throwable t) {
 
@@ -439,7 +432,7 @@ public class PropertyDefinition<T> extends AbstractNode implements PropertyKey<T
 							delegate = keyClass.getConstructor(String.class).newInstance(_name);
 
 							// register property
-							StructrApp.getConfiguration().registerProperty(dataClass, delegate);
+							// StructrApp.getConfiguration().registerProperty(dataClass, delegate);
 
 						} catch (Throwable t) {
 
@@ -451,6 +444,7 @@ public class PropertyDefinition<T> extends AbstractNode implements PropertyKey<T
 				delegate.setDeclaringClass(dataClass);
 			}
 		}
+		*/
 	}
 
 	// ----- static methods -----

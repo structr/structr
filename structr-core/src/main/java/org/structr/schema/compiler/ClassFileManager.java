@@ -16,10 +16,12 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.experimental;
+package org.structr.schema.compiler;
 
 import java.io.IOException;
 import java.security.SecureClassLoader;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import javax.tools.FileObject;
 import javax.tools.ForwardingJavaFileManager;
 import javax.tools.JavaFileObject;
@@ -36,7 +38,7 @@ public class ClassFileManager extends ForwardingJavaFileManager {
 	 * Instance of JavaClassObject that will store the compiled bytecode of
 	 * our class
 	 */
-	private JavaClassObject jclassObject;
+	private Map<String, JavaClassObject> objects = new LinkedHashMap<>();
 
 	/**
 	 * Will initialize the manager with the specified standard java file
@@ -44,7 +46,7 @@ public class ClassFileManager extends ForwardingJavaFileManager {
 	 *
 	 * @param standardManger
 	 */
-	public ClassFileManager(StandardJavaFileManager standardManager) {
+	public ClassFileManager(final StandardJavaFileManager standardManager) {
 		super(standardManager);
 	}
 
@@ -55,14 +57,21 @@ public class ClassFileManager extends ForwardingJavaFileManager {
 	 * JavaClassObject, and returns the Class for it
 	 */
 	@Override
-	public ClassLoader getClassLoader(Location location) {
+	public ClassLoader getClassLoader(final Location location) {
+		
 		return new SecureClassLoader() {
+			
 			@Override
-			protected Class<?> findClass(String name)
-				throws ClassNotFoundException {
-				byte[] b = jclassObject.getBytes();
-				return super.defineClass(name, jclassObject
-					.getBytes(), 0, b.length);
+			protected Class<?> findClass(String name) throws ClassNotFoundException {
+				
+				final JavaClassObject obj = objects.get(name);
+				if (obj != null) {
+					
+					byte[] b = obj.getBytes();
+					return super.defineClass(name, obj.getBytes(), 0, b.length);
+				}
+				
+				throw new ClassNotFoundException(name);
 			}
 		};
 	}
@@ -72,10 +81,12 @@ public class ClassFileManager extends ForwardingJavaFileManager {
 	 * compiler can write the byte code into it.
 	 */
 	@Override
-	public JavaFileObject getJavaFileForOutput(Location location,
-		String className, Kind kind, FileObject sibling)
-		throws IOException {
-		jclassObject = new JavaClassObject(className, kind);
-		return jclassObject;
+	public JavaFileObject getJavaFileForOutput(final Location location, final String className, final Kind kind, final FileObject sibling) throws IOException {
+		
+		JavaClassObject obj = new JavaClassObject(className, kind);
+		
+		objects.put(className, obj);
+		
+		return obj;
 	}
 }

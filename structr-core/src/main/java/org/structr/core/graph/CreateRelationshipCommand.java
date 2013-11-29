@@ -85,7 +85,7 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 
 			// set UUID
 			newRel.unlockReadOnlyPropertiesOnce();
-			newRel.setProperty(AbstractNode.uuid, getNextUuid());
+			newRel.setProperty(AbstractNode.id, getNextUuid());
 
 			// set created date
 			newRel.unlockReadOnlyPropertiesOnce();
@@ -119,7 +119,7 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 			}
 
 			// notify relationship of its creation
-			newRel.onRelationshipInstantiation();
+			newRel.onRelationshipCreation();
 
 			// iterate post creation transformations
 			for (Transformation<GraphObject> transformation : StructrApp.getConfiguration().getEntityCreationTransformations(newRel.getClass())) {

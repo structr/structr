@@ -37,7 +37,7 @@ import org.structr.core.property.StringProperty;
 public class TestSeven extends AbstractNode {
 
 	public static final Property<List<TestSix>> testSixs   = new EndNodes<>("testSixs", SevenSixOneToMany.class);
-	public static final Property<List<String>>  testSixIds = new CollectionNotionProperty("testSixIds", testSixs, new PropertyNotion(GraphObject.uuid));
+	public static final Property<List<String>>  testSixIds = new CollectionNotionProperty("testSixIds", testSixs, new PropertyNotion(GraphObject.id));
 	
 	public static final Property<String>       aString    = new StringProperty("aString").indexed().indexedWhenEmpty();
 	public static final Property<Integer>      anInt      = new IntProperty("anInt").indexed();

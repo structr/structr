@@ -1999,7 +1999,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 				
 				// omit system properties (except type), parent/children and page relationships
 				if (key.equals(GraphObject.type) || (!key.isUnvalidated()
-					&& !key.equals(GraphObject.uuid)
+					&& !key.equals(GraphObject.id)
 					&& !key.equals(DOMNode.ownerDocument) && !key.equals(DOMNode.pageId)
 					&& !key.equals(DOMNode.parent) && !key.equals(DOMNode.parentId)
 					&& !key.equals(DOMNode.children) && !key.equals(DOMNode.childrenIds))) {
@@ -2063,8 +2063,8 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 		if (node != null && node instanceof DOMNode) {
 
-			String otherId = ((DOMNode)node).getProperty(GraphObject.uuid);
-			String ourId   = getProperty(GraphObject.uuid);
+			String otherId = ((DOMNode)node).getProperty(GraphObject.id);
+			String ourId   = getProperty(GraphObject.id);
 			
 			if (ourId != null && otherId != null && ourId.equals(otherId)) {
 				return true;

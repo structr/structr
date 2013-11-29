@@ -76,15 +76,15 @@ public class SchemaTypeResource extends Resource {
 	@Override
 	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
 
-		List<GraphObjectMap> resultList = new LinkedList<GraphObjectMap>();
+		List<GraphObjectMap> resultList = new LinkedList<>();
 
 		// create & add schema information
 		Class type = typeResource.getEntityClass();
 		if (type == null) {
 
-			if (PropertyDefinition.exists(rawType)) {
-				type = PropertyDefinition.nodeExtender.getType(rawType);
-			}
+//			if (PropertyDefinition.exists(rawType)) {
+//				type = PropertyDefinition.nodeExtender.getType(rawType);
+//			}
 		}
 
 		if (type != null) {
@@ -100,15 +100,15 @@ public class SchemaTypeResource extends Resource {
 			schema.setProperty(new LongProperty("flags"), SecurityContext.getResourceFlags(rawType));
 
 			// list property sets for all views
-			Set<String> propertyViews              = new LinkedHashSet<String>(StructrApp.getConfiguration().getPropertyViews());
+			Set<String> propertyViews              = new LinkedHashSet<>(StructrApp.getConfiguration().getPropertyViews());
 			Map<String, Map<String, Object>> views = new TreeMap();
 
 			schema.setProperty(new StringProperty("views"), views);
 
 			for (String view : propertyViews) {
 
-				Set<PropertyKey> properties              = new LinkedHashSet<PropertyKey>(StructrApp.getConfiguration().getPropertySet(type, view));
-				Map<String, Object> propertyConverterMap = new TreeMap<String, Object>();
+				Set<PropertyKey> properties              = new LinkedHashSet<>(StructrApp.getConfiguration().getPropertySet(type, view));
+				Map<String, Object> propertyConverterMap = new TreeMap<>();
 
 				// augment property set with properties from PropertyDefinition
 				if (PropertyDefinition.exists(type.getSimpleName())) {

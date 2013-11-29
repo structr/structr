@@ -4,7 +4,12 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.CaseHelper;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import static org.structr.core.entity.AbstractSchemaNode.className;
+import org.structr.core.entity.ResourceAccess;
+import org.structr.core.graph.NodeAttribute;
 
 /**
  *
@@ -133,5 +138,82 @@ public class SchemaHelper {
 
 		return type;
 	}
+
+	public static boolean reloadSchema(final ErrorBuffer errorBuffer) {
+		return SchemaService.reloadSchema(errorBuffer);
+	}
 	
+	public static void createGrant(final String signature, final Long flags) {
+
+		final App app = StructrApp.getInstance();
+		try {
+
+			app.beginTx();
+			ResourceAccess grant = app.nodeQuery(ResourceAccess.class).and(ResourceAccess.signature, signature).getFirst();
+			long flagsValue      = 255;
+			
+			
+			// set value from grant flags
+			if (flags != null) {
+				flagsValue = flags.longValue();
+			}
+			
+			if (grant == null) {
+				
+				// create new grant
+				app.create(ResourceAccess.class,
+					new NodeAttribute(ResourceAccess.signature, signature),
+					new NodeAttribute(ResourceAccess.flags, flagsValue)
+				);
+				
+			} else {
+				
+				// modify flags of grant
+				
+				// Caution: this means that the SchemaNode is the 
+				// primary source for resource access flag values
+				// of dynamic nodes
+				grant.setProperty(ResourceAccess.flags, flagsValue);
+			}
+			
+			app.commitTx();
+
+		} catch (Throwable t) {
+
+			t.printStackTrace();
+
+		} finally {
+
+			app.finishTx();
+		}
+		
+	}
+	
+	public static void removeGrant(final String signature) {
+
+		
+		final App app = StructrApp.getInstance();
+		try {
+
+			app.beginTx();
+			
+			// delete grant
+			ResourceAccess grant = app.nodeQuery(ResourceAccess.class).and(ResourceAccess.signature, signature).getFirst();
+			if (grant != null) {
+				
+				app.delete(grant);
+			}
+			
+			app.commitTx();
+
+		} catch (Throwable t) {
+
+			t.printStackTrace();
+
+		} finally {
+
+			app.finishTx();
+		}
+		
+	}
 }

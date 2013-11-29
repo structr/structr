@@ -63,7 +63,7 @@ public class WebSocketServlet extends HttpServiceServlet {
 		// create GSON serializer
 		final Gson gson = new GsonBuilder()
 			.setPrettyPrinting()
-			.registerTypeAdapter(WebSocketMessage.class, new WebSocketDataGSONAdapter(AbstractNode.uuid, outputNestingDepth))
+			.registerTypeAdapter(WebSocketMessage.class, new WebSocketDataGSONAdapter(AbstractNode.id, outputNestingDepth))
 			.create();
 		
 		final SynchronizationController syncController = new SynchronizationController(gson);
@@ -79,7 +79,7 @@ public class WebSocketServlet extends HttpServiceServlet {
 
 				if (STRUCTR_PROTOCOL.equals(protocol)) {
 
-					return new StructrWebSocket(syncController, request, gson, AbstractNode.uuid, getAuthenticator());
+					return new StructrWebSocket(syncController, request, gson, AbstractNode.id, getAuthenticator());
 
 				} else {
 

@@ -41,12 +41,12 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 
 	@Override
 	public String getUuid() {
-		return getProperty(AbstractNode.uuid);
+		return getProperty(AbstractNode.id);
 	}
 
 	@Override
 	public String getType() {
-		return getProperty(AbstractNode.uuid);
+		return getProperty(AbstractNode.id);
 	}
 
 	@Override

@@ -44,13 +44,13 @@ import org.structr.web.entity.relation.Images;
  */
 public class Folder extends AbstractFile {
 
-	public static final Property<List<Folder>> folders = new EndNodes<>("folders", Folders.class, new PropertySetNotion(uuid, name));
-	public static final Property<List<File>>   files   = new EndNodes<>("files", Files.class, new PropertySetNotion(uuid, name));
-	public static final Property<List<Image>>  images  = new EndNodes<>("images", Images.class, new PropertySetNotion(uuid, name));
+	public static final Property<List<Folder>> folders = new EndNodes<>("folders", Folders.class, new PropertySetNotion(id, name));
+	public static final Property<List<File>>   files   = new EndNodes<>("files", Files.class, new PropertySetNotion(id, name));
+	public static final Property<List<Image>>  images  = new EndNodes<>("images", Images.class, new PropertySetNotion(id, name));
 	
 	public static final Property<Integer>		position     = new IntProperty("position").indexed();
 
-	public static final View defaultView = new View(Folder.class, PropertyView.Public, uuid, type, name);
+	public static final View defaultView = new View(Folder.class, PropertyView.Public, id, type, name);
 	
 	public static final View uiView = new View(Folder.class, PropertyView.Ui,
 		parent, folders, files, images

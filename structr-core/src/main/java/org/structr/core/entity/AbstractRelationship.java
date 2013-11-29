@@ -69,7 +69,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	public static final Property<Integer> cascadeDelete = new IntProperty("cascadeDelete").writeOnce();
 	
 	public static final View defauflView = new View(AbstractRelationship.class, PropertyView.Public,
-		uuid, type
+		id, type
 	);
 
 	private boolean readOnlyPropertiesUnlocked = false;
@@ -113,34 +113,6 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 		init(securityContext, dbRel);
 
 	}
-	
-	/**
-	 * Called when a relationship of this combinedType is instatiated. Please note that
-	 * a relationship can (and will) be instantiated several times during a
-	 * normal rendering turn.
-	 */
-	@Override
-	public void onRelationshipInstantiation() {
-
-		try {
-
-			if (dbRelationship != null) {
-
-				Node startNode = dbRelationship.getStartNode();
-				Node endNode   = dbRelationship.getEndNode();
-
-				if ((startNode != null) && (endNode != null) && startNode.hasProperty(AbstractNode.uuid.dbName()) && endNode.hasProperty(AbstractNode.uuid.dbName())) {
-
-					cachedStartNodeId = (String) startNode.getProperty(AbstractNode.uuid.dbName());
-					cachedEndNodeId   = (String) endNode.getProperty(AbstractNode.uuid.dbName());
-
-				}
-
-			}
-
-		} catch (Throwable t) {
-		}
-	}
 
 	@Override
 	public void init(final SecurityContext securityContext, final Relationship dbRel) {
@@ -162,6 +134,42 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 		this.dbRelationship  = rel.dbRelationship;
 		this.isDirty         = false;
 		this.securityContext = securityContext;
+	}
+
+	@Override
+	public void onRelationshipCreation() {
+	}
+	
+	/**
+	 * Called when a relationship of this combinedType is instatiated. Please note that
+	 * a relationship can (and will) be instantiated several times during a
+	 * normal rendering turn.
+	 */
+	@Override
+	public void onRelationshipInstantiation() {
+
+		try {
+
+			if (dbRelationship != null) {
+
+				Node startNode = dbRelationship.getStartNode();
+				Node endNode   = dbRelationship.getEndNode();
+
+				if ((startNode != null) && (endNode != null) && startNode.hasProperty(AbstractNode.id.dbName()) && endNode.hasProperty(AbstractNode.id.dbName())) {
+
+					cachedStartNodeId = (String) startNode.getProperty(AbstractNode.id.dbName());
+					cachedEndNodeId   = (String) endNode.getProperty(AbstractNode.id.dbName());
+
+				}
+
+			}
+
+		} catch (Throwable t) {
+		}
+	}
+
+	@Override
+	public void onRelationshipDeletion() {
 	}
 
 	@Override
@@ -263,7 +271,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	@Override
 	public String getUuid() {
 
-		return getProperty(AbstractRelationship.uuid);
+		return getProperty(AbstractRelationship.id);
 
 	}
 	
@@ -495,7 +503,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 	public String getOtherNodeId(final AbstractNode node) {
 
-		return getOtherNode(node).getProperty(AbstractRelationship.uuid);
+		return getOtherNode(node).getProperty(AbstractRelationship.id);
 
 	}
 
@@ -542,7 +550,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 		boolean error = false;
 
-		error |= ValidationHelper.checkStringNotBlank(this, AbstractRelationship.uuid, errorBuffer);
+		error |= ValidationHelper.checkStringNotBlank(this, AbstractRelationship.id, errorBuffer);
 
 		return !error;
 

@@ -204,7 +204,7 @@ public class SynchronizationController implements StructrTransactionListener {
 				
 				final WebSocketMessage message = createMessage("DELETE");
 
-				message.setId(modificationEvent.getRemovedProperties().get(GraphObject.uuid));
+				message.setId(modificationEvent.getRemovedProperties().get(GraphObject.id));
 				
 				return message;
 			}

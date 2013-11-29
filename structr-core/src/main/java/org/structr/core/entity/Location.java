@@ -81,21 +81,28 @@ public class Location extends AbstractNode {
 	
 	private boolean notifyLocatables() {
 		
-		// FIXME: LocationRelationship has a direction. but it is ignored here
-		
-		boolean allLocatablesAreValid = false;
-		
-		for(RelationshipInterface rel : this.getRelationships(NodeHasLocation.class)) {
-			
-			NodeInterface otherNode = rel.getOtherNode(this);
-			if(otherNode != null && otherNode instanceof Locatable) {
-				
-				// notify other node of location change
-				allLocatablesAreValid |= !((Locatable)otherNode).locationChanged();
+		try {
+			// FIXME: LocationRelationship has a direction. but it is ignored here
+
+			boolean allLocatablesAreValid = false;
+
+			for(RelationshipInterface rel : this.getRelationships(NodeHasLocation.class)) {
+
+				NodeInterface otherNode = rel.getOtherNode(this);
+				if(otherNode != null && otherNode instanceof Locatable) {
+
+					// notify other node of location change
+					allLocatablesAreValid |= !((Locatable)otherNode).locationChanged();
+				}
 			}
+
+			return allLocatablesAreValid;
+			
+		} catch (Throwable t) {
+			t.printStackTrace();
 		}
 		
-		return allLocatablesAreValid;
+		return false;
 	}
 
 }

@@ -36,6 +36,6 @@ public class CollectionIdProperty<T extends AbstractNode> extends CollectionNoti
 	
 	public CollectionIdProperty(String name, Property<List<T>> base, boolean createIfNotExisting) {
 		
-		super(name, base, new PropertyNotion(GraphObject.uuid, createIfNotExisting));
+		super(name, base, new PropertyNotion(GraphObject.id, createIfNotExisting));
 	}
 }

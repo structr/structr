@@ -127,7 +127,6 @@ public class StructrRestTest extends TestCase {
 		}
 
 		super.tearDown();
-
 	}
 
 	/**

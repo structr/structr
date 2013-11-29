@@ -80,7 +80,7 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand imp
 				public void handleGraphObject(SecurityContext securityContext, AbstractRelationship rel) {
 
 					// Treat only "our" nodes
-					if (rel.getProperty(AbstractRelationship.uuid) != null) {
+					if (rel.getProperty(AbstractRelationship.id) != null) {
 
 						for (Entry entry : properties.entrySet()) {
 

@@ -86,7 +86,7 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 
 						try {
 
-							node.setProperty(AbstractNode.uuid, UUID.randomUUID().toString().replaceAll("[\\-]+", ""));
+							node.setProperty(AbstractNode.id, UUID.randomUUID().toString().replaceAll("[\\-]+", ""));
 
 						} catch (FrameworkException fex) {
 
@@ -134,7 +134,7 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 
 					try {
 
-						rel.setProperty(AbstractRelationship.uuid, UUID.randomUUID().toString().replaceAll("[\\-]+", ""));
+						rel.setProperty(AbstractRelationship.id, UUID.randomUUID().toString().replaceAll("[\\-]+", ""));
 
 					} catch (FrameworkException fex) {
 

@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.experimental;
+package org.structr.schema.compiler;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

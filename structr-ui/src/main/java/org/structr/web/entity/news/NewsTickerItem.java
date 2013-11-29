@@ -48,7 +48,7 @@ import org.structr.web.entity.news.relation.NewsAuthor;
  */
 public class NewsTickerItem extends AbstractNode {
 
-	public static final Property<Content>   text        = new EndNode<>("text", NewsText.class, new PropertySetNotion(true, uuid, Content.content));
+	public static final Property<Content>   text        = new EndNode<>("text", NewsText.class, new PropertySetNotion(true, id, Content.content));
 	public static final Property<Date>      publishDate = new ISO8601DateProperty("publishDate").indexed();
 	public static final Property<Principal> author      = new StartNode<>("author", NewsAuthor.class);
 	

@@ -81,9 +81,9 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> implements De
 				PropertyMap map      = PropertyMap.inputTypeToJavaType(securityContext, type, properties.getAttributes());
 				
 				// If property map contains the uuid, search only for uuid
-				if (map.containsKey(GraphObject.uuid)) {
+				if (map.containsKey(GraphObject.id)) {
 				
-					return (T) app.get(map.get(GraphObject.uuid));
+					return (T) app.get(map.get(GraphObject.id));
 
 					
 				} else {
@@ -102,8 +102,8 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> implements De
 					
 				} else {
 					
-					// fetch property key for "uuid", may be different for AbstractNode and AbstractRelationship!
-					PropertyKey<String> idProperty = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(obj.getClass(), AbstractNode.uuid.dbName());
+					// fetch property key for "id", may be different for AbstractNode and AbstractRelationship!
+					PropertyKey<String> idProperty = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(obj.getClass(), AbstractNode.id.dbName());
 					
 					return (T) app.get(obj.getProperty(idProperty));
 					

@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.experimental;
+package org.structr.schema.compiler;
 
 import java.net.URI;
 import javax.tools.JavaFileObject.Kind;
@@ -28,10 +28,8 @@ import javax.tools.SimpleJavaFileObject;
  */
 public class CharSequenceJavaFileObject extends SimpleJavaFileObject {
 
-	/**
-	 * CharSequence representing the source code to be compiled
-	 */
-	private CharSequence content;
+	private String className     = null;
+	private CharSequence content = null;
 
 	/**
 	 * This constructor will store the source code in the internal "content"
@@ -41,11 +39,12 @@ public class CharSequenceJavaFileObject extends SimpleJavaFileObject {
 	 * @param className name of the public class in the source code
 	 * @param content source code to compile
 	 */
-	public CharSequenceJavaFileObject(String className,
-		CharSequence content) {
-		super(URI.create("string:///" + className.replace('.', '/')
-			+ Kind.SOURCE.extension), Kind.SOURCE);
-		this.content = content;
+	public CharSequenceJavaFileObject(final String className, final CharSequence content) {
+		
+		super(URI.create("string:///" + className.replace('.', '/') + Kind.SOURCE.extension), Kind.SOURCE);
+		
+		this.content   = content;
+		this.className = className;
 	}
 
 	/**
@@ -53,8 +52,11 @@ public class CharSequenceJavaFileObject extends SimpleJavaFileObject {
 	 * stored in variable "content"
 	 */
 	@Override
-	public CharSequence getCharContent(
-		boolean ignoreEncodingErrors) {
+	public CharSequence getCharContent(boolean ignoreEncodingErrors) {
 		return content;
+	}
+	
+	public String getClassName() {
+		return className;
 	}
 }

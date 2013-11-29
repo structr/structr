@@ -15,8 +15,10 @@ public interface RelationshipInterface extends GraphObject {
 	
 	public void init(final SecurityContext securityContext, final Relationship dbRel);
 	
+	public void onRelationshipCreation();
 	public void onRelationshipInstantiation();
-
+	public void onRelationshipDeletion();
+	
 	public NodeInterface getSourceNode();
 	public NodeInterface getTargetNode();
 	public NodeInterface getOtherNode(final NodeInterface thisNode);

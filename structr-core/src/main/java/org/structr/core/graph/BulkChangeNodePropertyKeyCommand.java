@@ -91,7 +91,7 @@ public class BulkChangeNodePropertyKeyCommand extends NodeServiceCommand impleme
 				public void handleGraphObject(SecurityContext securityContext, AbstractNode node) {
 
 					// Treat only "our" nodes
-					if (node.getProperty(AbstractNode.uuid) != null) {
+					if (node.getProperty(AbstractNode.id) != null) {
 
 						for (Entry entry : properties.entrySet()) {
 

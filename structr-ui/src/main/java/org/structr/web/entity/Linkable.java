@@ -38,7 +38,7 @@ import org.structr.web.entity.html.relation.ResourceLink;
  */
 public interface Linkable extends NodeInterface {
 
-	public static final Property<List<Link>> linkingElements = new StartNodes<>("linkingElements", ResourceLink.class, new PropertyNotion(AbstractNode.uuid));
+	public static final Property<List<Link>> linkingElements = new StartNodes<>("linkingElements", ResourceLink.class, new PropertyNotion(AbstractNode.id));
 
 	public static final org.structr.common.View uiView = new org.structr.common.View(Linkable.class, PropertyView.Ui, linkingElements);
 }

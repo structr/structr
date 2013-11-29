@@ -41,9 +41,6 @@ public interface ConfigurationProvider {
 	public void registerPropertyGroup(final Class entityClass, final PropertyKey propertyKey, final PropertyGroup propertyGroup);
 	public void registerConvertedProperty(final PropertyKey property);
 	
-	public void registerProperty(final Class type, final PropertyKey property);
-	public void registerPropertySet(final Class type, final String propertyView, final PropertyKey... propertySet);
-	
 	public Class getNodeEntityClass(final String name);
 	public Class getRelationshipEntityClass(final String name);
 	

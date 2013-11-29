@@ -220,7 +220,7 @@ public class Component extends DOMElement {
 
 			}
 
-			String componentId = node.getProperty(AbstractNode.uuid);
+			String componentId = node.getProperty(AbstractNode.id);
 
 			// new default behaviour: make all components visible
 			// only filter if uuids are present in the request URI

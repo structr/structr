@@ -44,6 +44,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.notion.Notion;
 import org.structr.core.property.RelationProperty;
 import org.structr.rest.RestMethodResult;
@@ -305,7 +306,7 @@ public class StaticRelationshipResource extends SortableResource {
 		} else {
 
 			// look for methods that have an @Export annotation
-			GraphObject entity = typedIdResource.getEntity();
+			GraphObject entity = typedIdResource.getIdResource().getEntity(SearchNodeCommand.class);
 			Class entityType   = typedIdResource.getEntityClass();
 			String methodName  = typeResource.getRawType();
 			boolean success    = false;
@@ -455,7 +456,7 @@ public class StaticRelationshipResource extends SortableResource {
 		if (type.equals(String.class)) {
 
 			// strings can be returned immediately
-			convertedObject = value.toString();
+			return value.toString();
 
 		} else if (value instanceof Number) {
 
