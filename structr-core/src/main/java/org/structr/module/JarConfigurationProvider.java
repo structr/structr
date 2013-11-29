@@ -41,6 +41,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
@@ -292,19 +293,19 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	}
 		
 	@Override
-	public Class getRelationClassForCombinedType(final String sourceType, final String relType, final String targetType) {
+	public Class getRelationClassForCombinedType(final String sourceTypeName, final String relType, final String targetTypeName) {
 		
-		if (sourceType == null || relType == null || targetType == null) {
+		if (sourceTypeName == null || relType == null || targetTypeName == null) {
 			return null;
 		}
 		
 		String combinedType =
 			
-			sourceType
+			sourceTypeName
 			.concat(DefaultFactoryDefinition.COMBINED_RELATIONSHIP_KEY_SEP)
 			.concat(relType)
 			.concat(DefaultFactoryDefinition.COMBINED_RELATIONSHIP_KEY_SEP)
-			.concat(targetType);
+			.concat(targetTypeName);
 		
 		Class cachedRelationClass = getRelationClassForCombinedType(combinedType);
 		
@@ -312,27 +313,163 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 			return cachedRelationClass;
 		}
 		
+		return findNearestMatchingRelationClass(sourceTypeName, relType, targetTypeName);
+	}
+	
+	/**
+	 * Find the most specialized relation class matching the given parameters.
+	 * 
+	 * If no direct match is found (source and target type are equal),
+	 * we count the levels of inheritance 
+	 * 
+	 * @param sourceTypeName
+	 * @param relType
+	 * @param targetTypeName
+	 * @param rel
+	 * @param candidate
+	 * @return 
+	 */
+	private Class findNearestMatchingRelationClass(final String sourceTypeName, final String relType, final String targetTypeName) {
+
+		System.out.println("###### Find nearest matching relation class for " + sourceTypeName + " " + relType + " " + targetTypeName);
+		
+		Map<Integer, Class> candidates = new TreeMap<>();
+		Class sourceType = getNodeEntityClass(sourceTypeName);
+		Class targetType = getNodeEntityClass(targetTypeName);
+		
 		for (final Class candidate : getRelationshipEntities().values()) {
 
 			final Relation rel = instantiate(candidate);
 			if (rel != null) {
-				
-				final String sourceTypeName = rel.getSourceType().getSimpleName();
-				final String relTypeName    = rel.name();
-				final String targetTypeName = rel.getTargetType().getSimpleName();
 
-				if (sourceType.equals(sourceTypeName) && relType.equals(relTypeName) && targetType.equals(targetTypeName)) {
+				// First check: If relationship type doesn't fit, try next candidate
+				final String relTypeName    = rel.name();
+				if (!relTypeName.equals(relType)) {
+					continue;
+				}
+
+				final String candidateSourceTypeName = rel.getSourceType().getSimpleName();
+				final String candidateTargetTypeName = rel.getTargetType().getSimpleName();
+
+				// Second check: If source and target types are equal, rel candidate is an exact fit
+				if (sourceTypeName.equals(candidateSourceTypeName) && relType.equals(relTypeName) && targetTypeName.equals(candidateTargetTypeName)) {
 					
-					combinedType = getCombinedType(sourceType, relType, targetType);
-					combinedTypeRelationClassCache.put(combinedType, candidate);
-					
+					combinedTypeRelationClassCache.put(getCombinedType(sourceTypeName, relType, targetTypeName), candidate);
 					return candidate;
 				}
+
+				int distance = 0;
+
+				while (!(sourceType.equals(Object.class))) {
+
+					while (!(targetType.equals(Object.class))) {
+
+						if (rel.getSourceType().equals(sourceType) && rel.getTargetType().equals(targetType)) {
+
+							candidates.put(distance, candidate);
+							System.out.println(sourceType + " --> " + targetType + ":  matching candidate " + candidate.getName() + " at distance " + distance);
+							break;
+						}
+						
+						for (Class i : sourceType.getInterfaces()) {
+
+							if (i.isAssignableFrom(rel.getSourceType()) && rel.getTargetType().equals(targetType)) {
+
+								System.out.println(i + " --> " + targetType + ": Matching candidate " + candidate.getName() + " where source interface matches at distance " + distance);
+								candidates.put(distance+1000, candidate);
+								break;
+
+							}
+
+							distance++;
+						}
+						
+						for (Class i : targetType.getInterfaces()) {
+
+							if (rel.getSourceType().equals(sourceType) && i.isAssignableFrom(rel.getTargetType())) {
+
+								System.out.println(sourceType + " --> " + i + ": Matching candidate " + candidate.getName() + " where target interface matches at distance " + distance);
+								candidates.put(distance+1000, candidate);
+								break;
+							}
+
+							distance++;
+
+						}
+
+						targetType = targetType.getSuperclass();
+						distance++;
+
+					}
+					
+					targetType = getNodeEntityClass(targetTypeName);
+					
+					sourceType = sourceType.getSuperclass();
+					distance++;
+				}
+				
+				
+				distance = 0;
+				
+				// Reset types
+				sourceType = getNodeEntityClass(sourceTypeName);
+				targetType = getNodeEntityClass(targetTypeName);
+				
+				// Now try interfaces
+				if (candidates.isEmpty()) {
+					
+					for (Class i : sourceType.getInterfaces()) {
+
+						if (i.isAssignableFrom(rel.getSourceType()) && rel.getTargetType().equals(targetType)) {
+
+							System.out.println("Put matching candidate " + candidate.getName() + " where source interface matches at distance " + distance);
+							candidates.put(distance, candidate);
+							break;
+
+						}
+
+						distance++;
+					}
+
+					distance = 0;
+					
+					for (Class i : targetType.getInterfaces()) {
+
+						if (rel.getSourceType().equals(sourceType) && i.isAssignableFrom(rel.getTargetType())) {
+
+							System.out.println("Put matching candidate " + candidate.getName() + " where target interface matches at distance " + distance);
+							candidates.put(distance, candidate);
+							break;
+						}
+
+						distance++;
+
+					}
+					
+					
+				}
+				
+
 			}
 		}
 		
-		return null;
+		if (candidates.isEmpty()) {
+
+			return null;
+
+		} else {
+
+			Class c = candidates.entrySet().iterator().next().getValue();
+			
+			System.out.println("returning candidate " + c.getCanonicalName());
+			
+			combinedTypeRelationClassCache.put(getCombinedType(sourceTypeName, relType, targetTypeName), c);
+			
+			return c;
+		}
+		
 	}
+	
 	
 	@Override
 	public Set<Method> getAnnotatedMethods(Class entityType, Class annotationType) {
