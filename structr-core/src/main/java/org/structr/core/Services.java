@@ -511,7 +511,7 @@ public class Services {
 			baseConf.setProperty(JSON_INDENTATION,          "true");
 
 			baseConf.setProperty(SUPERUSER_USERNAME,        "superadmin");
-			baseConf.setProperty(SUPERUSER_PASSWORD,        RandomStringUtils.random(12));
+			baseConf.setProperty(SUPERUSER_PASSWORD,        RandomStringUtils.randomAlphanumeric(12));
 
 			baseConf.setProperty(BASE_PATH,                 "");
 			baseConf.setProperty(TMP_PATH,                  "/tmp");
