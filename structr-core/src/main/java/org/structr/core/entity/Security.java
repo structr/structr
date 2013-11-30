@@ -56,7 +56,7 @@ import org.structr.core.property.TargetId;
  * @author Axel Morgner
  *
  */
-public class Security extends ManyToMany<Principal, NodeInterface> {
+public class Security extends ManyToMany<Principal, AbstractNode> {
 
 	private static final Logger logger = Logger.getLogger(Security.class.getName());
 	
@@ -254,8 +254,8 @@ public class Security extends ManyToMany<Principal, NodeInterface> {
 	}
 
 	@Override
-	public Class<NodeInterface> getTargetType() {
-		return NodeInterface.class;
+	public Class<AbstractNode> getTargetType() {
+		return AbstractNode.class;
 	}
 
 	@Override
