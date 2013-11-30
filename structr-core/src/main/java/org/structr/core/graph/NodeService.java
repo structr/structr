@@ -50,6 +50,7 @@ import org.neo4j.cypher.javacompat.ExecutionEngine;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.shell.ShellSettings;
 import org.neo4j.tooling.GlobalGraphOperations;
+import org.structr.common.SecurityContext;
 import org.structr.common.StructrConf;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -335,14 +336,8 @@ public class NodeService implements SingletonService {
 				
 				logger.log(Level.INFO, "Found initial seed file and no application nodes, applying initial seed..");
 
-				Map<String, Object> attributes = new LinkedHashMap<>();
-
-				attributes.put("mode", "import");
-				attributes.put("validate", "false");
-				attributes.put("file", seedFile.getAbsoluteFile().getAbsolutePath());
-
 				try {
-					StructrApp.getInstance().command(SyncCommand.class).execute(attributes);
+					SyncCommand.importFromFile(graphDb, SecurityContext.getSuperUserInstance(), seedFile.getAbsoluteFile().getAbsolutePath(), false);
 
 				} catch (FrameworkException fex) {
 
