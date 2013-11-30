@@ -85,30 +85,6 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 
 		newRel.init(securityContext, relationship);
 		newRel.onRelationshipInstantiation();
-
-		String newRelType = newRel.getProperty(GraphObject.type);
-		if (newRelType == null && !(relClass.equals(GenericRelationship.class))) { //  || (newNodeType != null && !newNodeType.equals(nodeType))) {
-
-			final App app = StructrApp.getInstance();
-			
-			try {
-				
-				app.beginTx();
-				
-				newRel.unlockReadOnlyPropertiesOnce();
-				newRel.setProperty(GraphObject.type, relClass.getSimpleName());
-				
-				app.commitTx();
-				
-			} catch (Throwable t) {
-
-				logger.log(Level.SEVERE, "Unable to set type property {0} on relationship {1}: {2}", new Object[] { relClass, newRel, t.getMessage() } );
-			} finally {
-				
-				app.finishTx();
-				
-			}
-		}
 			
 		return newRel;
 	}
