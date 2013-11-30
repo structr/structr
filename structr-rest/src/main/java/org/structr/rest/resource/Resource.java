@@ -223,7 +223,7 @@ public abstract class Resource {
 			// use configured id property
 			if (idProperty == null) {
 
-				uriBuilder.append(newObject.getId());
+				uriBuilder.append(newObject.getUuid());
 
 			} else {
 

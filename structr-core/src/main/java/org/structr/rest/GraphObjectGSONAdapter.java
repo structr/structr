@@ -40,8 +40,8 @@ import org.structr.core.Value;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.property.StringProperty;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.property.UuidProperty;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -59,7 +59,7 @@ public class GraphObjectGSONAdapter {
 	private final Map<Class, Serializer> serializerCache = new LinkedHashMap<>();
 	private final Map<Class, Serializer> serializers     = new LinkedHashMap<>();
 	private final Set<Class> nonSerializerClasses        = new LinkedHashSet<>();
-	private final Property<String> id                    = new StringProperty("id");
+	private final Property<String> id                    = new UuidProperty(); //StringProperty("id");
 	private int outputNestingDepth                       = 3;
 	private final Serializer<GraphObject> root           = new RootSerializer();
 	private PropertyKey idProperty                       = null;

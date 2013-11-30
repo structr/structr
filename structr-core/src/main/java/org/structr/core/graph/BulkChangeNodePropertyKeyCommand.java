@@ -90,39 +90,35 @@ public class BulkChangeNodePropertyKeyCommand extends NodeServiceCommand impleme
 				@Override
 				public void handleGraphObject(SecurityContext securityContext, AbstractNode node) {
 
-					// Treat only "our" nodes
-					if (node.getProperty(AbstractNode.id) != null) {
+					for (Entry entry : properties.entrySet()) {
 
-						for (Entry entry : properties.entrySet()) {
+						String key = (String) entry.getKey();
 
-							String key = (String) entry.getKey();
-							
-							PropertyKey propertyKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(node.getClass(), key);
-							if (propertyKey != null) {
-									
-								Node dbNode = node.getNode();
+						PropertyKey propertyKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(node.getClass(), key);
+						if (propertyKey != null) {
 
-								if (dbNode.hasProperty(newKey)) {
+							Node dbNode = node.getNode();
 
-									logger.log(Level.SEVERE, "Node {0} has already a property with key {1}", new Object[] { node, newKey });
-									throw new IllegalStateException("Node has already a property of the new key");
+							if (dbNode.hasProperty(newKey)) {
 
-								}
+								logger.log(Level.SEVERE, "Node {0} has already a property with key {1}", new Object[] { node, newKey });
+								throw new IllegalStateException("Node has already a property of the new key");
 
-								if (dbNode.hasProperty(oldKey)) {
-
-									dbNode.setProperty(newKey, dbNode.getProperty(oldKey));
-									dbNode.removeProperty(oldKey);
-
-								}
-								
-								node.updateInIndex();
-									
 							}
+
+							if (dbNode.hasProperty(oldKey)) {
+
+								dbNode.setProperty(newKey, dbNode.getProperty(oldKey));
+								dbNode.removeProperty(oldKey);
+
+							}
+
+							node.updateInIndex();
 
 						}
 
 					}
+
 				}
 
 				@Override
