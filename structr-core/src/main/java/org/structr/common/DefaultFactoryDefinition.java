@@ -30,7 +30,6 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.GenericNode;
 import org.structr.core.entity.GenericRelationship;
-import org.structr.schema.compiler.NodeExtender;
 
 /**
  * The default factory for unknown types in structr. When structr needs to
@@ -80,7 +79,7 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 	}
 
 	@Override
-	public Class determineNodeType(Node node) {
+	public Class determineNodeType(final Node node) {
 		
 		final String type = GraphObject.type.dbName();
 		if (node.hasProperty(type)) {
@@ -88,7 +87,11 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 			final Object obj =  node.getProperty(type);
 			if (obj != null) {
 				
-				return StructrApp.getConfiguration().getNodeEntities().get(obj.toString());
+				Class nodeType = StructrApp.getConfiguration().getNodeEntities().get(obj.toString());
+				if (nodeType != null) {
+					
+					return nodeType;
+				}
 			}
 			
 		} else {
@@ -105,13 +108,17 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 				Object typeObj = node.getProperty(externalNodeTypeName);
 				if (typeObj != null) {
 					
-					String externalNodeType = typeObj.toString();
+					// String externalNodeType = typeObj.toString();
 					
 					// initialize dynamic type
 					// genericNodeExtender.getType(externalNodeType);
 					
 					// return dynamic type
-					return StructrApp.getConfiguration().getNodeEntityClass(typeObj.toString());
+					Class dynamicType = StructrApp.getConfiguration().getNodeEntityClass(typeObj.toString());
+					if (dynamicType != null) {
+						
+						return dynamicType;
+					}
 				}
 			}
 			
@@ -147,8 +154,10 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 			if (obj != null) {
 				
 				Class relationClass = StructrApp.getConfiguration().getRelationshipEntityClass(obj.toString());
-				StructrApp.getConfiguration().setRelationClassForCombinedType(sourceType, relType, targetType, relationClass);
-				return relationClass;
+				if (relationClass != null) {
+					StructrApp.getConfiguration().setRelationClassForCombinedType(sourceType, relType, targetType, relationClass);
+					return relationClass;
+				}
 			}
 		}
 
@@ -162,7 +171,10 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 			
 			if (obj != null) {
 				
-				return getClassForCombinedType(obj.toString());
+				Class classForCombinedType = getClassForCombinedType(obj.toString());
+				if (classForCombinedType != null) {
+					return classForCombinedType;
+				}
 			}
 		}
 		

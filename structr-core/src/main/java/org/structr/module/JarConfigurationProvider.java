@@ -374,7 +374,6 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 			
 			return c;
 		}
-		
 	}
 	
 	private int matchRelationClass(final Relation rel, final Class sourceType, final String relType, final Class targetType, int distance) {
