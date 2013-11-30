@@ -34,19 +34,11 @@ import org.eclipse.jetty.util.resource.JarResource;
 import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.util.resource.ResourceCollection;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
-import org.neo4j.tooling.GlobalGraphOperations;
 import org.structr.common.PropertyView;
 import org.structr.common.StructrConf;
-import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
-import org.structr.core.GraphObject;
 import org.structr.core.RunnableService;
 import org.structr.core.Services;
-import org.structr.core.app.StructrApp;
-import org.structr.core.graph.NodeService;
-import org.structr.core.graph.SyncCommand;
 import org.structr.rest.DefaultResourceProvider;
 import org.structr.rest.auth.RestAuthenticator;
 import org.structr.rest.servlet.JsonRestServlet;
@@ -59,7 +51,6 @@ import org.tuckey.web.filters.urlrewrite.UrlRewriteFilter;
 public class HttpService implements RunnableService {
 	
 	private static final Logger logger             = Logger.getLogger(HttpService.class.getName());
-	private static final String INITIAL_SEED_FILE  = "seed.zip";
 	public static final String SERVLETS            = "HttpService.servlets";
 	public static final String RESOURCE_HANDLERS   = "HttpService.resourceHandlers";
 	public static final String LIFECYCLE_LISTENERS = "HttpService.lifecycle.listeners";
@@ -102,50 +93,6 @@ public class HttpService implements RunnableService {
 
 		// The jsp directory is created by the container, but we don't need it
 		removeDir(basePath, "jsp");
-		
-		// check for empty database and seed file
-		File seedFile = new File(basePath + "/" + INITIAL_SEED_FILE);
-		if (seedFile.exists()) {
-			
-			logger.log(Level.INFO, "Found initial seed file, checking database status..");
-			
-			GraphDatabaseService graphDb = Services.getInstance().getService(NodeService.class).getGraphDb();
-			boolean hasApplicationNodes  = false;
-			
-			// check for application nodes (which have UUIDs)
-			for (Node node : GlobalGraphOperations.at(graphDb).getAllNodes()) {
-				
-				if (node.hasProperty(GraphObject.id.dbName())) {
-					
-					hasApplicationNodes = true;
-					break;
-				}
-			}
-			
-			if (!hasApplicationNodes) {
-				
-				logger.log(Level.INFO, "No application nodes found, applying initial seed..");
-				
-				Map<String, Object> attributes = new LinkedHashMap<>();
-				
-				attributes.put("mode", "import");
-				attributes.put("validate", "false");
-				attributes.put("file", seedFile.getAbsoluteFile().getAbsolutePath());
-				
-				try {
-					StructrApp.getInstance().command(SyncCommand.class).execute(attributes);
-					
-				} catch (FrameworkException fex) {
-					
-					logger.log(Level.WARNING, "Unable to import initial seed file.", fex);
-				}
-				
-			} else {
-				
-				logger.log(Level.INFO, "Applications nodes found, not applying initial seed.");
-			
-			}
-		}
 		
 		// send lifecycle event that the server has been started
 		sendLifecycleEvent(LifecycleEvent.Started);
