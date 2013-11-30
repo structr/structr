@@ -20,9 +20,11 @@
 
 package org.structr.core;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Iterator;
 import org.apache.commons.lang.StringUtils;
 
 import org.structr.module.JarConfigurationProvider;
@@ -39,9 +41,23 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang.RandomStringUtils;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.Transaction;
+import org.neo4j.tooling.GlobalGraphOperations;
 import org.structr.common.SecurityContext;
 import org.structr.common.StructrConf;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeFactory;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.NodeService;
+import org.structr.core.graph.RelationshipFactory;
+import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.graph.SyncCommand;
+import org.structr.core.property.StringProperty;
 import org.structr.schema.ConfigurationProvider;
 
 //~--- classes ----------------------------------------------------------------
@@ -57,8 +73,9 @@ import org.structr.schema.ConfigurationProvider;
  */
 public class Services {
 
-	private static final Logger logger        = Logger.getLogger(StructrApp.class.getName());
-	private static StructrConf baseConf = null;
+	private static final Logger logger                       = Logger.getLogger(StructrApp.class.getName());
+	private static StructrConf baseConf                      = null;
+	private static final String INITIAL_SEED_FILE            = "seed.zip";
 
 	// Configuration constants
 	public static final String BASE_PATH                     = "base.path";
@@ -87,6 +104,7 @@ public class Services {
 	public static final String GEOCODING_APIKEY              = "geocoding.apikey";
 	public static final String CONFIGURATION                 = "configuration.provider";
 	public static final String TESTING                       = "testing";
+	public static final String MIGRATION_KEY                 = "NodeService.migration";
 	
 	// singleton instance
 	private static Services singletonInstance = null;
@@ -249,6 +267,17 @@ public class Services {
 
 		logger.log(Level.INFO, "{0} service(s) processed", serviceCache.size());
 		registeredServiceClasses.clear();
+
+		// do migration of an existing database
+		if (getService(NodeService.class) != null) {
+			
+			if ("true".equals(properties.getProperty(Services.MIGRATION_KEY))) {
+				migrateDatabase();
+			}
+
+			// check for empty database and seed file
+			importSeedFile(properties.getProperty(Services.BASE_PATH));
+		}
 		
 		logger.log(Level.INFO, "Initialization complete");
 		
@@ -532,4 +561,147 @@ public class Services {
 		baseConfig.putAll(additionalConfig);
 	}
 	
+	
+	private void migrateDatabase() {
+
+		final GraphDatabaseService graphDb     = getService(NodeService.class).getGraphDb();
+		final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
+		final NodeFactory nodeFactory          = new NodeFactory(superUserContext);
+		final RelationshipFactory relFactory   = new RelationshipFactory(superUserContext);
+		final Iterator<Node> allNodes          = GlobalGraphOperations.at(graphDb).getAllNodes().iterator();
+		final Iterator<Relationship> allRels   = GlobalGraphOperations.at(graphDb).getAllRelationships().iterator();
+		final App app                          = StructrApp.getInstance();
+		final StringProperty uuidProperty      = new StringProperty("uuid");
+		final int txLimit                      = 100;
+		
+		int actualNodeCount                    = 0;
+		int actualRelCount                     = 0;
+		int count                              = 0;
+
+		logger.log(Level.INFO, "Migration of ID properties from uuid to id requested.");
+
+		// iterate over all nodes
+		while (allNodes.hasNext()) {
+
+			app.beginTx();
+
+			try {
+				while (allNodes.hasNext() && (++count % txLimit) != 0) {
+
+					final Node node = allNodes.next();
+
+					// do migration of ID properties
+					if (node.hasProperty("uuid")) {
+
+						try {
+							final NodeInterface nodeInterface = nodeFactory.instantiate(node);
+							final String uuid = nodeInterface.getProperty(uuidProperty);
+							
+							if (uuid != null) {
+
+								nodeInterface.setProperty(GraphObject.id, uuid);
+								nodeInterface.removeProperty(uuidProperty);
+								actualNodeCount++;
+							}
+
+						} catch (Throwable t) {
+							t.printStackTrace();
+						}
+					}
+				}
+				
+				// no validation but indexing etc.
+				app.commitTx(false);
+
+			} catch (Throwable t) {
+
+				t.printStackTrace();
+
+			} finally {
+
+				app.finishTx();
+			}
+		}
+
+		logger.log(Level.INFO, "Migrated {0} nodes to new ID property.", actualNodeCount);
+
+		count = 0;
+
+		// iterate over all relationships
+		while (allRels.hasNext()) {
+
+			app.beginTx();
+
+			try {
+				while (allRels.hasNext() && (++count % txLimit) != 0) {
+
+					final Relationship rel = allRels.next();
+
+					// do migration of ID properties
+					if (rel.hasProperty("uuid")) {
+
+						try {
+							final RelationshipInterface relInterface = relFactory.instantiate(rel);
+							final String uuid = relInterface.getProperty(uuidProperty);
+							
+							if (uuid != null) {
+								relInterface.setProperty(GraphObject.id, uuid);
+								relInterface.removeProperty(uuidProperty);
+								actualRelCount++;
+							}
+
+						} catch (Throwable t) {
+							t.printStackTrace();
+						}
+					}
+				}
+
+				// no validation but indexing etc.
+				app.commitTx(false);
+
+			} catch (Throwable t) {
+
+				t.printStackTrace();
+
+			} finally {
+
+				app.finishTx();
+			}
+		}
+
+		logger.log(Level.INFO, "Migrated {0} relationships to new ID property.", actualRelCount);
+	}
+	
+	private void importSeedFile(final String basePath) {
+		
+		final GraphDatabaseService graphDb = getService(NodeService.class).getGraphDb();
+		final File seedFile                = new File(basePath + "/" + INITIAL_SEED_FILE);
+		
+		if (seedFile.exists()) {
+
+			final Iterator<Node> allNodes = GlobalGraphOperations.at(graphDb).getAllNodes().iterator();
+			final String idName           = GraphObject.id.dbName();
+			boolean hasApplicationNodes   = false;
+
+			while (allNodes.hasNext()) {
+
+				if (allNodes.next().hasProperty(idName)) {
+					hasApplicationNodes = true;
+				}
+			}
+
+			if (!hasApplicationNodes) {
+
+				logger.log(Level.INFO, "Found initial seed file and no application nodes, applying initial seed..");
+
+				try {
+					SyncCommand.importFromFile(graphDb, SecurityContext.getSuperUserInstance(), seedFile.getAbsoluteFile().getAbsolutePath(), false);
+
+				} catch (FrameworkException fex) {
+
+					logger.log(Level.WARNING, "Unable to import initial seed file.", fex);
+				}
+			}
+		}
+	}
 }

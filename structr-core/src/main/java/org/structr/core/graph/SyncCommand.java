@@ -58,7 +58,6 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
-import org.neo4j.graphdb.Transaction;
 import org.neo4j.tooling.GlobalGraphOperations;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -66,6 +65,8 @@ import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.StaticValue;
 import org.structr.core.Value;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 
 /**
@@ -596,7 +597,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 	
 	private static void importDatabase(final GraphDatabaseService graphDb, final SecurityContext securityContext, final ZipInputStream zis, boolean doValidation) throws FrameworkException {
 	
-		final Transaction tx             = graphDb.beginTx();
+		final App app                    = StructrApp.getInstance();
 		final Value<Long> nodeCountValue = new StaticValue<>(0L);
 		final Value<Long> relCountValue  = new StaticValue<>(0L);
 		final String uuidPropertyName    = AbstractNode.id.dbName();
@@ -605,6 +606,8 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 		try {
 			
 			Map<String, Node> uuidMap       = new LinkedHashMap<>();
+			List<Relationship> rels         = new LinkedList<>();
+			List<Node> nodes                = new LinkedList<>();
 			PropertyContainer currentObject = null;
 			BufferedReader reader           = null;
 			String currentKey               = null;
@@ -614,6 +617,8 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 			try {
 			
+				app.beginTx();
+				
 				reader = new BufferedReader(new InputStreamReader(zis));
 
 				do {
@@ -636,6 +641,9 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 							currentObject = graphDb.createNode();
 							nodeCount++;
 
+							// store for later use
+							nodes.add((Node)currentObject);
+
 						} else if ("R".equals(objectType)) {
 
 							String startId     = (String)deserialize(reader);
@@ -649,6 +657,9 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 								RelationshipType relType = DynamicRelationshipType.withName(relTypeName);
 								currentObject = startNode.createRelationshipTo(endNode, relType);
+
+								// store for later use
+								rels.add((Relationship)currentObject);
 							}
 
 							relCount++;
@@ -700,18 +711,34 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 			nodeCountValue.set(securityContext, nodeCount);
 			relCountValue.set(securityContext, relCount);
+
+			// make nodes visible in transaction context
+			RelationshipFactory relFactory     = new RelationshipFactory(securityContext);
+			NodeFactory nodeFactory            = new NodeFactory(securityContext);
+
+			for (Node node : nodes) {
+
+				NodeInterface entity = nodeFactory.instantiate(node);
+				TransactionCommand.nodeCreated(entity);
+				entity.addToIndex();
+			}
+
+			for (Relationship rel : rels) {
+
+				RelationshipInterface entity = relFactory.instantiate(rel);
+				TransactionCommand.relationshipCreated(entity);
+				entity.addToIndex();
+			}
 			
-			tx.success();
+			app.commitTx();
 			
 		} catch (FrameworkException fex) {
 			
 			fex.printStackTrace();
 			
-			tx.failure();
-			
 		} finally {
 			
-			tx.finish();
+			app.finishTx();
 		}
 		
 		double t1   = System.nanoTime();

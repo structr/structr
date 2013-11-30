@@ -47,14 +47,8 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.cypher.javacompat.ExecutionEngine;
-import org.neo4j.graphdb.Transaction;
 import org.neo4j.shell.ShellSettings;
-import org.neo4j.tooling.GlobalGraphOperations;
-import org.structr.common.SecurityContext;
 import org.structr.common.StructrConf;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
-import org.structr.core.app.StructrApp;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -68,8 +62,6 @@ public class NodeService implements SingletonService {
 
 	private static final Logger logger                       = Logger.getLogger(NodeService.class.getName());
 	private static final Map<String, AbstractNode> nodeCache = (Map<String, AbstractNode>) Collections.synchronizedMap(new LRUMap(100000));
-	private static final String INITIAL_SEED_FILE            = "seed.zip";
-	private static final String MIGRATION_KEY                = "NodeService.migration";
 
 	//~--- fields ---------------------------------------------------------
 
@@ -145,7 +137,6 @@ public class NodeService implements SingletonService {
 		final Map<String, String> neo4jConfiguration = new LinkedHashMap<>();
 		final String basePath                        = config.getProperty(Services.BASE_PATH);
 		final String dbPath                          = config.getProperty(Services.DATABASE_PATH);
-		final String idName                          = GraphObject.id.dbName();
 
 		logger.log(Level.INFO, "Initializing database ({0}) ...", dbPath);
 
@@ -262,89 +253,6 @@ public class NodeService implements SingletonService {
 		cypherExecutionEngine = new ExecutionEngine(graphDb);
 		
 		logger.log(Level.FINE, "Cypher execution engine ready.");
-		
-		if ("true".equals(config.getProperty(MIGRATION_KEY))) {
-			
-			final Iterator<Node> allNodes = GlobalGraphOperations.at(graphDb).getAllNodes().iterator();
-			final int txLimit             = 1000;
-			int count                     = 1;
-
-			logger.log(Level.INFO, "Migration of ID properties from uuid to id requested.");
-			
-			// iterate over all nodes
-			while (allNodes.hasNext()) {
-
-				final Transaction tx = graphDb.beginTx();
-
-				try {
-					while (allNodes.hasNext()) {
-
-						final Node node = allNodes.next();
-
-						// do migration of ID properties
-						if (node.hasProperty("uuid")) {
-
-							try {
-								node.setProperty(idName, node.getProperty("uuid"));
-								node.removeProperty("uuid");
-
-								count++;
-
-							} catch (Throwable t) {
-								t.printStackTrace();
-							}
-						}
-
-						// break out of the transaction every 1000 nodes
-						if ((count % txLimit) == 0) {
-							break;
-						}
-					}
-
-					tx.success();
-
-				} catch (Throwable t) {
-
-					tx.failure();
-
-				} finally {
-
-					tx.finish();
-				}
-			}
-
-			if (count > 1) {
-				logger.log(Level.INFO, "Migrated {0} nodes to new ID property.", count-1);
-			}
-		}
-			
-		// check for empty database and seed file
-		File seedFile = new File(basePath + "/" + INITIAL_SEED_FILE);
-		if (seedFile.exists()) {
-			
-			final Iterator<Node> allNodes = GlobalGraphOperations.at(graphDb).getAllNodes().iterator();
-			boolean hasApplicationNodes   = false;
-
-			while (allNodes.hasNext()) {
-				
-				if (allNodes.next().hasProperty(idName)) {
-					hasApplicationNodes = true;
-				}
-			}
-				
-			if (!hasApplicationNodes) {
-				
-				logger.log(Level.INFO, "Found initial seed file and no application nodes, applying initial seed..");
-
-				try {
-					SyncCommand.importFromFile(graphDb, SecurityContext.getSuperUserInstance(), seedFile.getAbsoluteFile().getAbsolutePath(), false);
-
-				} catch (FrameworkException fex) {
-
-					logger.log(Level.WARNING, "Unable to import initial seed file.", fex);
-				}
-			}
-		}
 		
 		isInitialized = true;
 	}

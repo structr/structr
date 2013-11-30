@@ -166,6 +166,11 @@ public class StructrApp implements App {
 	}
 	
 	@Override
+	public void commitTx(final boolean doValidation) throws FrameworkException {
+		command(TransactionCommand.class).commitTx(doValidation);
+	}
+	
+	@Override
 	public void finishTx() {
 		command(TransactionCommand.class).finishTx();
 	}
