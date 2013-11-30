@@ -438,7 +438,7 @@ var _Files = {
 
                 reader.onload = function(f) {
                     
-                    log('File was read into memory.');
+                    log('File was read into memory.', f);
                     var binaryContent = f.target.result;
                     log('uploadFile: binaryContent', binaryContent);
 
