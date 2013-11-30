@@ -332,7 +332,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	 */
 	private Class findNearestMatchingRelationClass(final String sourceTypeName, final String relType, final String targetTypeName) {
 
-		System.out.println("###### Find nearest matching relation class for " + sourceTypeName + " " + relType + " " + targetTypeName);
+		//System.out.println("###### Find nearest matching relation class for " + sourceTypeName + " " + relType + " " + targetTypeName);
 		
 		Map<Integer, Class> candidates = new TreeMap<>();
 		Class sourceType = getNodeEntityClass(sourceTypeName);
@@ -342,17 +342,17 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 			
 			Relation rel = instantiate(candidate);
 			
-			System.out.println("? " + candidate.getSimpleName() + " for [" + sourceTypeName + " " + relType + " " + targetTypeName + "]");
+			//System.out.println("? " + candidate.getSimpleName() + " for [" + sourceTypeName + " " + relType + " " + targetTypeName + "]");
 			
 			int distance = matchRelationClass(rel, sourceType, relType, targetType, -1);
 			
 			if (distance >= 1000) {
 				
 				candidates.put(distance-1000, candidate);
-				System.out.println("\n=========================== Found " + candidate.getSimpleName() + " for " + sourceTypeName + " " + relType + " " + targetTypeName + " at distance " + (distance-1000));
+				//System.out.println("\n=========================== Found " + candidate.getSimpleName() + " for " + sourceTypeName + " " + relType + " " + targetTypeName + " at distance " + (distance-1000));
 				
 			} else {
-				System.out.println(" no match.");	
+				//System.out.println(" no match.");	
 			}
 			
 			
@@ -360,7 +360,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 		if (candidates.isEmpty()) {
 
-			System.out.println("!!!!!!! No matching relation class found for " + sourceTypeName + " " + relType + " " + targetTypeName);
+			//System.out.println("!!!!!!! No matching relation class found for " + sourceTypeName + " " + relType + " " + targetTypeName);
 			return null;
 
 		} else {
@@ -368,127 +368,12 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 			Entry<Integer, Class> candidateEntry = candidates.entrySet().iterator().next();
 			Class c = candidateEntry.getValue();
 			
-			System.out.println("########### Final nearest relation class : " + c.getSimpleName() + " <" + candidateEntry.getKey() + ">############################################\n\n");
+			//System.out.println("########### Final nearest relation class : " + c.getSimpleName() + " <" + candidateEntry.getKey() + ">############################################\n\n");
 			
 			combinedTypeRelationClassCache.put(getCombinedType(sourceTypeName, relType, targetTypeName), c);
 			
 			return c;
 		}
-
-//			final Relation rel = instantiate(candidate);
-//			if (rel != null) {
-//
-//				// First check: If relationship type doesn't fit, try next candidate
-//				final String relTypeName    = rel.name();
-//				if (!relTypeName.equals(relType)) {
-//					continue;
-//				}
-//
-//				final String candidateSourceTypeName = rel.getSourceType().getSimpleName();
-//				final String candidateTargetTypeName = rel.getTargetType().getSimpleName();
-//
-//				// Second check: If source and target types are equal, rel candidate is an exact fit
-//				if (sourceTypeName.equals(candidateSourceTypeName) && relType.equals(relTypeName) && targetTypeName.equals(candidateTargetTypeName)) {
-//					
-//					combinedTypeRelationClassCache.put(getCombinedType(sourceTypeName, relType, targetTypeName), candidate);
-//					return candidate;
-//				}
-//
-//				int distance = 0;
-//
-//				while (!(sourceType.equals(Object.class))) {
-//
-//					while (!(targetType.equals(Object.class))) {
-//
-//						if (rel.getSourceType().equals(sourceType) && rel.getTargetType().equals(targetType)) {
-//
-//							candidates.put(distance, candidate);
-//							System.out.println(sourceType + " --> " + targetType + ":  matching candidate " + candidate.getName() + " at distance " + distance);
-//							break;
-//						}
-//						
-//						for (Class i : sourceType.getInterfaces()) {
-//
-//							if (i.isAssignableFrom(rel.getSourceType()) && rel.getTargetType().equals(targetType)) {
-//
-//								System.out.println(i + " --> " + targetType + ": Matching candidate " + candidate.getName() + " where source interface matches at distance " + distance);
-//								candidates.put(distance+1000, candidate);
-//								break;
-//
-//							}
-//
-//							distance++;
-//						}
-//						
-//						for (Class i : targetType.getInterfaces()) {
-//
-//							if (rel.getSourceType().equals(sourceType) && i.isAssignableFrom(rel.getTargetType())) {
-//
-//								System.out.println(sourceType + " --> " + i + ": Matching candidate " + candidate.getName() + " where target interface matches at distance " + distance);
-//								candidates.put(distance+1000, candidate);
-//								break;
-//							}
-//
-//							distance++;
-//
-//						}
-//
-//						targetType = targetType.getSuperclass();
-//						distance++;
-//
-//					}
-//					
-//					targetType = getNodeEntityClass(targetTypeName);
-//					
-//					sourceType = sourceType.getSuperclass();
-//					distance++;
-//				}
-//				
-//				
-//				distance = 0;
-//				
-//				// Reset types
-//				sourceType = getNodeEntityClass(sourceTypeName);
-//				targetType = getNodeEntityClass(targetTypeName);
-//				
-//				// Now try interfaces
-//				if (candidates.isEmpty()) {
-//					
-//					for (Class i : sourceType.getInterfaces()) {
-//
-//						if (i.isAssignableFrom(rel.getSourceType()) && rel.getTargetType().equals(targetType)) {
-//
-//							System.out.println("Put matching candidate " + candidate.getName() + " where source interface matches at distance " + distance);
-//							candidates.put(distance, candidate);
-//							break;
-//
-//						}
-//
-//						distance++;
-//					}
-//
-//					distance = 0;
-//					
-//					for (Class i : targetType.getInterfaces()) {
-//
-//						if (rel.getSourceType().equals(sourceType) && i.isAssignableFrom(rel.getTargetType())) {
-//
-//							System.out.println("Put matching candidate " + candidate.getName() + " where target interface matches at distance " + distance);
-//							candidates.put(distance, candidate);
-//							break;
-//						}
-//
-//						distance++;
-//
-//					}
-//					
-//					
-//				}
-//				
-//
-//			}
-//		}
-//		
 		
 	}
 	
@@ -505,16 +390,16 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 			return Integer.MIN_VALUE;
 		}
 
-		System.out.print(".");
+		//System.out.print(".");
 
 		// Abort if both types are Object.class here
 		if (sourceType.equals(Object.class) || targetType.equals(Object.class)) {
 			return Integer.MIN_VALUE;
 		}
 
-		System.out.print(".");
+		//System.out.print(".");
 		
-		System.out.print(rel.getClass().getSimpleName() + "<" + distance + ">");
+		//System.out.print(rel.getClass().getSimpleName() + "<" + distance + ">");
 		
 		// Relationship type
 		final String relTypeName    = rel.name();
@@ -522,11 +407,11 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 			return Integer.MIN_VALUE;
 		}
 		
-		System.out.print(".");
+		//System.out.print(".");
 		
 		// Check equality of source and target type
 		if (sourceType.equals(rel.getSourceType()) && targetType.equals(rel.getTargetType())) {
-			System.out.print("MATCH<" + distance + ">!");
+			//System.out.print("MATCH<" + distance + ">!");
 			return distance+1000;
 		}
 		
@@ -536,7 +421,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 			return Integer.MIN_VALUE;
 		}
 
-		System.out.print(".");
+		//System.out.print(".");
 		
 		// Relation candidate's source and target types must be superclasses or interfaces of the given relationship
 		if (!(rel.getSourceType().isAssignableFrom(sourceType))) {
@@ -549,18 +434,16 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 			return Integer.MIN_VALUE;
 		}
 		
-		System.out.print(".");
+		//System.out.print(".");
 
-		//System.out.println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Basic tests passed. ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
-		
 		distance++;
 		
 		// Test source's interfaces against target class
 		Class[] sourceInterfaces = sourceType.getInterfaces();
 		for (Class sourceInterface : sourceInterfaces) {
-			System.out.print("." + sourceInterface.getSimpleName() + "<" + distance + ">" + "(SI).");
+			//System.out.print("." + sourceInterface.getSimpleName() + "<" + distance + ">" + "(SI).");
 			if (sourceInterface.equals(rel.getSourceType()) && targetType.equals(rel.getTargetType())) {
-				System.out.print("MATCH<" + distance + ">!");
+				//System.out.print("MATCH<" + distance + ">!");
 				return distance+1000;
 			}
 		}
@@ -570,9 +453,9 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		// Test source against target's interfaces
 		Class[] targetInterfaces = targetType.getInterfaces();
 		for (Class targetInterface : targetInterfaces) {
-			System.out.println("." + targetInterface.getSimpleName() + "<" + distance + ">" + "(TI).");
+			//System.out.println("." + targetInterface.getSimpleName() + "<" + distance + ">" + "(TI).");
 			if (sourceType.equals(rel.getSourceType()) && targetInterface.equals(rel.getTargetType())) {
-				System.out.print("MATCH<" + distance + ">!");
+				//System.out.print("MATCH<" + distance + ">!");
 				return distance+1000;
 			}
 		}
@@ -581,7 +464,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		
 		Class sourceSuperclass = sourceType.getSuperclass();
 		if (sourceSuperclass != null) {
-			System.out.println("." + sourceSuperclass.getSimpleName() + "<" + distance + ">");
+			//System.out.println("." + sourceSuperclass.getSimpleName() + "<" + distance + ">");
 			int d = matchRelationClass(rel, sourceSuperclass, relType, targetType, distance);
 			if (d >= 1000) {
 				return d;
@@ -592,7 +475,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		
 		Class targetSuperclass = targetType.getSuperclass();
 		if (targetSuperclass != null) {
-			System.out.println("." + targetSuperclass.getSimpleName() + "<" + distance + ">");
+			//System.out.println("." + targetSuperclass.getSimpleName() + "<" + distance + ">");
 			int d = matchRelationClass(rel, sourceType, relType, targetSuperclass, distance);
 			if (d >= 1000) {
 				return d;
