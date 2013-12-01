@@ -26,6 +26,7 @@ import org.neo4j.index.lucene.ValueContext;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.PropertyValidator;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.search.LongSearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
@@ -39,8 +40,13 @@ public class LongProperty extends AbstractPrimitiveProperty<Long> {
 	
 	public static final String LONG_EMPTY_FIELD_VALUE = NumericUtils.longToPrefixCoded(Long.MIN_VALUE);
 	
-	public LongProperty(String name) {
+	public LongProperty(String name, final PropertyValidator<Long>... validators) {
+
 		super(name);
+		
+		for (PropertyValidator<Long> validator : validators) {
+			addValidator(validator);
+		}
 	}
 	
 	@Override

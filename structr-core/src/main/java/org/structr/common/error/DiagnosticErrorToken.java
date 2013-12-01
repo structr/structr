@@ -6,8 +6,6 @@ import com.google.gson.JsonPrimitive;
 import java.util.Locale;
 import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
-import org.structr.core.property.Property;
-import org.structr.core.property.StringProperty;
 
 /**
  *
@@ -15,7 +13,6 @@ import org.structr.core.property.StringProperty;
  */
 public class DiagnosticErrorToken extends SemanticErrorToken {
 
-	private static final Property<String> base              = new StringProperty("base");
 	private Diagnostic<? extends JavaFileObject> diagnostic = null;
 	
 	public DiagnosticErrorToken(final Diagnostic<? extends JavaFileObject> diagnostic) {

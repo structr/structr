@@ -44,7 +44,6 @@ import org.apache.commons.lang.RandomStringUtils;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.Transaction;
 import org.neo4j.tooling.GlobalGraphOperations;
 import org.structr.common.SecurityContext;
 import org.structr.common.StructrConf;
@@ -535,7 +534,7 @@ public class Services {
 			baseConf = new StructrConf();
 			
 			baseConf.setProperty(CONFIGURATION,             JarConfigurationProvider.class.getName());
-			baseConf.setProperty(CONFIGURED_SERVICES,       "NodeService AgentService CronService");
+			baseConf.setProperty(CONFIGURED_SERVICES,       "NodeService AgentService CronService SchemaService");
 			baseConf.setProperty(NEO4J_SHELL_ENABLED,       "true");
 			baseConf.setProperty(JSON_INDENTATION,          "true");
 

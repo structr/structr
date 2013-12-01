@@ -39,8 +39,8 @@ import org.structr.common.StructrConf;
 import org.structr.core.Command;
 import org.structr.core.RunnableService;
 import org.structr.core.Services;
+import org.structr.core.auth.SuperUserAuthenticator;
 import org.structr.rest.DefaultResourceProvider;
-import org.structr.rest.auth.RestAuthenticator;
 import org.structr.rest.servlet.JsonRestServlet;
 import org.tuckey.web.filters.urlrewrite.UrlRewriteFilter;
 
@@ -133,7 +133,7 @@ public class HttpService implements RunnableService {
 		finalConfig.setProperty("JsonRestServlet.class", JsonRestServlet.class.getName());
 		finalConfig.setProperty("JsonRestServlet.path", "/structr/rest/*");
 		finalConfig.setProperty("JsonRestServlet.resourceprovider", DefaultResourceProvider.class.getName());
-		finalConfig.setProperty("JsonRestServlet.authenticator", RestAuthenticator.class.getName());
+		finalConfig.setProperty("JsonRestServlet.authenticator", SuperUserAuthenticator.class.getName());
 		finalConfig.setProperty("JsonRestServlet.user.class", User.class.getName());
 		finalConfig.setProperty("JsonRestServlet.user.autocreate", "false");
 		finalConfig.setProperty("JsonRestServlet.defaultview", PropertyView.Public);

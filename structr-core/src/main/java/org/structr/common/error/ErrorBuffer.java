@@ -31,7 +31,7 @@ import java.util.Map;
  */
 public class ErrorBuffer {
 
-	private Map<String, Map<String, Set<ErrorToken>>> tokens = new LinkedHashMap<String, Map<String, Set<ErrorToken>>>();
+	private Map<String, Map<String, Set<ErrorToken>>> tokens = new LinkedHashMap<>();
 
 	public void add(String type, ErrorToken msg) {
 		getTokenSet(type, msg.getKey()).add(msg);

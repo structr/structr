@@ -1,7 +1,7 @@
 package org.structr.core.entity;
 
+import java.util.EnumMap;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -12,6 +12,8 @@ import org.structr.common.PropertyView;
 import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
+import org.structr.common.error.InvalidPropertySchemaToken;
 import org.structr.core.Services;
 import org.structr.core.entity.relationship.NodeIsRelatedToNode;
 import org.structr.core.property.EndNodes;
@@ -20,15 +22,18 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StartNodes;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.NodeSchema;
-import org.structr.schema.SchemaHelper;
 
 /**
  *
  * @author Christian Morgner
  */
 public class SchemaNode extends AbstractSchemaNode implements NodeSchema {
+	
+	private enum Type {
+		String, Integer, Long, Double, Boolean, Enum, Date
+	}
 
-	private static final Map<String, String> typeMap               = new LinkedHashMap<>();
+	private static final Map<Type, String> typeMap                 = new EnumMap<>(Type.class);
 
 	public static final Property<List<SchemaNode>>     outNodes    = new EndNodes<>("outNodes", NodeIsRelatedToNode.class);
 	public static final Property<List<SchemaNode>>     inNodes     = new StartNodes<>("inNodes", NodeIsRelatedToNode.class);
@@ -39,13 +44,13 @@ public class SchemaNode extends AbstractSchemaNode implements NodeSchema {
 	
 	static {
 
-		typeMap.put("String",  "StringProperty");
-		typeMap.put("Integer", "IntProperty");
-		typeMap.put("Long",    "LongProperty");
-		typeMap.put("Double",  "DoubleProperty");
-		typeMap.put("Boolean", "BooleanProperty");
-		typeMap.put("Date",    "ISO8601DateProperty");
-
+		typeMap.put(Type.String,  "StringProperty");
+		typeMap.put(Type.Integer, "IntProperty");
+		typeMap.put(Type.Long,    "LongProperty");
+		typeMap.put(Type.Double,  "DoubleProperty");
+		typeMap.put(Type.Boolean, "BooleanProperty");
+		typeMap.put(Type.Enum,    "EnumProperty");
+		typeMap.put(Type.Date,    "ISO8601DateProperty");
 	}
 	
 	@Override
@@ -76,9 +81,10 @@ public class SchemaNode extends AbstractSchemaNode implements NodeSchema {
 	}
 	
 	@Override
-	public String getNodeSource() {
+	public String getNodeSource() throws FrameworkException {
 		
 		final Set<String> viewProperties = new LinkedHashSet<>();
+		final Set<String> validators     = new LinkedHashSet<>();
 		final StringBuilder src          = new StringBuilder();
 		final Class baseType             = AbstractNode.class;
 		final String _className          = getProperty(className);
@@ -89,6 +95,9 @@ public class SchemaNode extends AbstractSchemaNode implements NodeSchema {
 		src.append("import ").append(baseType.getName()).append(";\n");
 		src.append("import ").append(PropertyView.class.getName()).append(";\n");
 		src.append("import ").append(View.class.getName()).append(";\n");
+		src.append("import ").append(ValidationHelper.class.getName()).append(";\n");
+		src.append("import ").append(ErrorBuffer.class.getName()).append(";\n");
+		src.append("import org.structr.core.validator.*;\n");
 		src.append("import org.structr.core.property.*;\n");
 		src.append("import org.structr.core.notion.*;\n");
 		src.append("import java.util.List;\n\n");
@@ -101,9 +110,8 @@ public class SchemaNode extends AbstractSchemaNode implements NodeSchema {
 			if (rawNode.hasProperty(rawPropertyName)) {
 				
 				final String valueType    = rawNode.getProperty(rawPropertyName).toString();
-				final String propertyType = typeMap.get(valueType);
 
-				src.append(getPropertySource(rawPropertyName, propertyType, valueType));
+				src.append(getPropertySource(_className, rawPropertyName, valueType, validators));
 				viewProperties.add(rawPropertyName);
 			}
 		}
@@ -138,6 +146,20 @@ public class SchemaNode extends AbstractSchemaNode implements NodeSchema {
 			src.append("\n\t);\n");
 		}
 		
+		if (!validators.isEmpty()) {
+			
+			src.append("\n\t@Override\n");
+			src.append("\tpublic boolean isValid(final ErrorBuffer errorBuffer) {\n\n");
+			src.append("\t\tboolean error = false;\n\n");
+			
+			for (final String validator : validators) {
+				src.append("\t\terror |= ").append(validator).append(";\n");
+			}
+			
+			src.append("\n\t\treturn !error;\n");
+			src.append("\t}\n");
+		}
+		
 		src.append("}\n");
 		
 		return src.toString();
@@ -155,16 +177,18 @@ public class SchemaNode extends AbstractSchemaNode implements NodeSchema {
 	}
 	
 	// ----- private methods -----
-	private String getPropertySource(final String propertyName, final String propertyType, final String valueType) {
+	private String getPropertySource(final String className, final String propertyName, final String rawValueType, final Set<String> globalValidators) throws FrameworkException {
 		
-		final StringBuilder buf    = new StringBuilder();
+		final StringBuilder buf            = new StringBuilder();
+		final ValidationInfo info          = new ValidationInfo(className, propertyName, rawValueType);
 		
-		buf.append("\tpublic static final Property<").append(valueType).append("> ").append(propertyName).append("Property");
-		buf.append(" = new ").append(propertyType).append("(\"").append(propertyName).append("\");");
+		// collect global validators from property (can be more than one)
+		globalValidators.addAll(info.getGlobalValidators());
 		
-		// TODO: add notions
-		
-		buf.append("\n");
+		buf.append("\tpublic static final Property<").append(info.getValueType()).append("> ").append(propertyName).append("Property");
+		buf.append(" = new ").append(info.getPropertyType()).append("(\"").append(propertyName).append("\"");
+		buf.append(info.getLocalValidator());
+		buf.append(").indexed();\n");
 		
 		return buf.toString();
 	}
@@ -172,17 +196,187 @@ public class SchemaNode extends AbstractSchemaNode implements NodeSchema {
 	private Iterable<String> getProperties() {
 		
 		final List<String> keys = new LinkedList<>();
-		final Set<String> types = typeMap.keySet();
+		final Set<Type> types   = typeMap.keySet();
 		final Node node         = getNode();
 
 		for (final String key : node.getPropertyKeys()) {
-			
-			if (node.hasProperty(key) && types.contains(node.getProperty(key).toString())) {
+
+			if (node.hasProperty(key)) {
 				
-				keys.add(key);
+				try {
+					final String propertyType = node.getProperty(key).toString();
+					final ValidationInfo info = new ValidationInfo(propertyType);
+					
+					if (types.contains(info.getValueType())) {
+						keys.add(key);
+					}
+					
+				} catch (Throwable t) {}
 			}
 		}
 		
 		return keys;
+	}
+	
+	// ----- nested classes -----
+	private static class ValidationInfo {
+		
+		private Set<String> globalValidators = new LinkedHashSet<>();
+		private Type valueType               = null;
+		private String uniquenessValidator   = null;
+		private String enumTypeDefinition    = null;
+		private String propertyName          = null;
+		private String className             = null;
+		private String localValidator        = "";
+		
+		public ValidationInfo(final String rawValueType) throws FrameworkException {
+			this(null, null, rawValueType);
+		}
+		
+		public ValidationInfo(final String className, final String propertyName, final String rawValueType) throws FrameworkException {
+		
+			int length         = rawValueType.length();
+			int previousLength = 0;
+			
+			this.propertyName = propertyName;
+			this.className    = className;
+			
+			// first: value type
+			String parserSource = extractValueType(rawValueType);
+
+			// second: uniqueness and/or non-null, check until the two methods to not
+			//         change the length of the string any more
+			while (previousLength != length) {
+				
+				parserSource = extractUniqueness(parserSource);
+				parserSource = extractNonNull(parserSource);
+				
+				previousLength = length;
+				length = parserSource.length();
+			}
+			
+			// third: more complex type-dependent validation expressions
+			extractComplexValidation(parserSource);
+		}
+		
+		public Type getValueType() {
+			return valueType;
+		}
+		
+		public String getPropertyType() {	
+			return typeMap.get(valueType);
+		}
+		
+		public String getLocalValidator() {
+			return localValidator;
+		}
+		
+		public Set<String> getGlobalValidators() {
+			return globalValidators;
+		}
+		
+		public boolean hasUniquenessValidator() {
+			return uniquenessValidator != null;
+		}
+		
+		private String extractValueType(final String source) throws FrameworkException {
+			
+			for (final Type type : typeMap.keySet()) {
+				
+				if (source.startsWith(type.name())) {
+					
+					valueType = type;
+					
+					return source.substring(type.name().length());
+				}
+			}
+			
+			// invalid type!
+			throw new FrameworkException(SchemaNode.class.getName(), new InvalidPropertySchemaToken(source));
+		}
+		
+		private String extractUniqueness(final String source) {
+			
+			if (source.startsWith("!")) {
+
+				localValidator = ", new GlobalPropertyUniquenessValidator()";
+
+				return source.substring(1);
+			}
+			
+			return source;
+		}
+		
+		private String extractNonNull(final String source) {
+			
+			if (source.startsWith("+")) {
+
+				StringBuilder buf = new StringBuilder();
+				buf.append("ValidationHelper.checkPropertyNotNull(this, ");
+				buf.append(className).append(".").append(propertyName).append("Property");
+				buf.append(", errorBuffer)");
+
+				globalValidators.add(buf.toString());
+
+				return source.substring(1);
+			}
+			
+			return source;
+		}
+		
+		private void extractComplexValidation(final String source) throws FrameworkException {
+
+			if (source.startsWith("(") && source.endsWith(")")) {
+
+				final String expression = source.substring(1, source.length() - 1);
+				
+				switch (valueType) {
+
+					case Boolean:
+					case Date:
+						return;
+
+					case Double:
+					case Long:
+					case Integer:
+						extractNumericValidation(expression);
+						return;
+
+					case String:
+						localValidator = ", new SimpleRegexValidator(\""  + expression + "\")";
+						return;
+
+					case Enum:
+						extractEnumValidation(expression);
+						return;
+				}
+			}
+			
+			throw new FrameworkException(SchemaNode.class.getName(), new InvalidPropertySchemaToken(source));
+
+		}
+		
+		private void extractNumericValidation(final String expression) throws FrameworkException {
+			
+			if (expression.contains(",") && (expression.startsWith("[") || expression.startsWith("]")) && (expression.endsWith("[") || expression.endsWith("]"))) {
+
+				final StringBuilder buf = new StringBuilder();
+				
+				buf.append("ValidationHelper.check").append(valueType.name()).append("InRangeError(this, ");
+				buf.append(className).append(".").append(propertyName).append("Property");
+				buf.append(", \"").append(expression);
+				buf.append("\", errorBuffer)");
+
+				globalValidators.add(buf.toString());
+				
+			} else {
+				
+				throw new FrameworkException(SchemaNode.class.getName(), new InvalidPropertySchemaToken(expression));
+			}
+		}
+		
+		private void extractEnumValidation(final String expression) throws FrameworkException {
+			
+		}
 	}
 }

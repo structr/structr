@@ -6,6 +6,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
+import org.structr.core.validator.GlobalPropertyUniquenessValidator;
 import org.structr.schema.SchemaHelper;
 
 /**
@@ -14,8 +15,8 @@ import org.structr.schema.SchemaHelper;
  */
 public abstract class AbstractSchemaNode extends AbstractNode {
 	
+	public static final Property<String> className   = new StringProperty("className", new GlobalPropertyUniquenessValidator()).indexed();
 	public static final Property<String> packageName = new StringProperty("packageName").indexed();
-	public static final Property<String> className   = new StringProperty("className").indexed();
 	public static final Property<Long>   accessFlags = new LongProperty("accessFlags").indexed();
 
 	@Override

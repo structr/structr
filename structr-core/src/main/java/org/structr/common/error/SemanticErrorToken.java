@@ -18,7 +18,9 @@
  */
 package org.structr.common.error;
 
+import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.StringProperty;
 
 /**
  * Abstract base class for semantic error tokens.
@@ -26,7 +28,9 @@ import org.structr.core.property.PropertyKey;
  * @author Christian Morgner
  */
 public abstract class SemanticErrorToken extends ErrorToken {
-
+	
+	protected static final Property<String> base = new StringProperty("base");
+	
 	public SemanticErrorToken(PropertyKey propertyKey) {
 		super(422, propertyKey);
 	}
