@@ -7,7 +7,6 @@ import org.structr.common.CaseHelper;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import static org.structr.core.entity.AbstractSchemaNode.className;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.core.graph.NodeAttribute;
 

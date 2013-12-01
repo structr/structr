@@ -38,12 +38,12 @@ public class SchemaService implements Service {
 		try {
 			// collect node classes
 			for (final SchemaNode schemaNode : StructrApp.getInstance().nodeQuery(SchemaNode.class).getAsList()) {
-				nodeExtender.addClass(schemaNode.getPackageName(), schemaNode.getClassName(), schemaNode.getNodeSource());
+				nodeExtender.addClass(schemaNode.getClassName(), schemaNode.getNodeSource(errorBuffer));
 			}
 
 			// collect relationship classes
 			for (final NodeIsRelatedToNode schemaRelationships : StructrApp.getInstance().relationshipQuery(NodeIsRelatedToNode.class).getAsList()) {
-				nodeExtender.addClass(schemaRelationships.getPackageName(), schemaRelationships.getClassName(), schemaRelationships.getRelationshipSource());
+				nodeExtender.addClass(schemaRelationships.getClassName(), schemaRelationships.getRelationshipSource());
 			}
 
 			// compile all classes at once
@@ -55,8 +55,6 @@ public class SchemaService implements Service {
 			
 		} catch (Throwable t) {
 			
-			t.printStackTrace();
-
 			success = false;
 		}
 		

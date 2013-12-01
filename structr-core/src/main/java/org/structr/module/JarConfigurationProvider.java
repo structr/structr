@@ -76,6 +76,8 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 	private static final Logger logger                                                             = Logger.getLogger(JarConfigurationProvider.class.getName());
 	
+	public static final String DYNAMIC_TYPES_PACKAGE                                               = "org.structr.dynamic";
+	
 	private final Map<String, Class<? extends RelationshipInterface>> relationshipEntityClassCache = new ConcurrentHashMap<>(10, 0.9f, 8);
 	private final Map<String, Class<? extends NodeInterface>> nodeEntityClassCache                 = new ConcurrentHashMap(100, 0.9f, 8);
 	private final Map<String, Class<? extends Agent>> agentClassCache	                       = new ConcurrentHashMap<>(10, 0.9f, 8);
@@ -504,6 +506,16 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		}
 		
 		return methods;
+	}
+	
+	@Override
+	public void unregisterEntityType(final String typeName) {
+
+		nodeEntityClassCache.remove(typeName);
+		nodeEntityPackages.remove(JarConfigurationProvider.DYNAMIC_TYPES_PACKAGE + typeName);
+
+		relationshipEntityClassCache.remove(typeName);
+		relationshipPackages.remove(JarConfigurationProvider.DYNAMIC_TYPES_PACKAGE + typeName);
 	}
 
 	@Override

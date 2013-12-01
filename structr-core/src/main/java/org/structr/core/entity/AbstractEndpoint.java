@@ -1,7 +1,7 @@
 package org.structr.core.entity;
 
 import java.util.Iterator;
-import java.util.logging.Level;
+import java.util.Set;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
@@ -9,10 +9,14 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.helpers.Predicate;
 import org.neo4j.helpers.collection.Iterables;
+import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.Services;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
 
 /**
  *
@@ -38,7 +42,28 @@ public abstract class AbstractEndpoint {
 	public Iterable<Relationship> getMultiple(final SecurityContext securityContext, final Node dbNode, final RelationshipType relationshipType, final Direction direction, final Class otherNodeType) {
 		return Iterables.filter(new OtherNodeTypeFilter(securityContext, dbNode, otherNodeType), dbNode.getRelationships(direction, relationshipType));
 	}
+	
+	// ----- protected methods -----
+	protected PropertyMap getNotionProperties(final SecurityContext securityContext, final Class type) {
+		
+		PropertyMap notionProperties = (PropertyMap)securityContext.getAttribute("notionProperties");
+		if (notionProperties != null) {
+			
+			final Set<PropertyKey> keySet = Services.getInstance().getConfigurationProvider().getPropertySet(type, PropertyView.Public);
+			for (final Iterator<PropertyKey> it = notionProperties.keySet().iterator(); it.hasNext();) {
+				
+				final PropertyKey key = it.next();
+				if (!keySet.contains(key)) {
+					
+					it.remove();
+				}
+			}
+		}		
+		
+		return notionProperties;
+	}
 
+	// ----- nested classes -----
 	private static final class OtherNodeTypeFilter implements Predicate<Relationship> {
 
 		private NodeFactory nodeFactory = null;

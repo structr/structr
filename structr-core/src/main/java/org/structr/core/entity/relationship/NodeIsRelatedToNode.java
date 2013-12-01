@@ -17,6 +17,7 @@ import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.Services;
 import org.structr.core.entity.AbstractRelationship;
 import static org.structr.core.entity.AbstractSchemaNode.accessFlags;
 import org.structr.core.entity.ManyToMany;
@@ -34,22 +35,20 @@ import org.structr.schema.SchemaHelper;
  */
 public class NodeIsRelatedToNode extends ManyToMany<SchemaNode, SchemaNode> implements RelationshipSchema {
 
-	private static final Logger logger                       = Logger.getLogger(NodeIsRelatedToNode.class.getName());
-	private static final Pattern ValidKeyPattern             = Pattern.compile("[a-zA-Z_]+");
+	private static final Logger logger                      = Logger.getLogger(NodeIsRelatedToNode.class.getName());
+	private static final Pattern ValidKeyPattern            = Pattern.compile("[a-zA-Z_]+");
 	
-	public static final Property<String>  sourceId           = new SourceId("sourceId");
-	public static final Property<String>  targetId           = new TargetId("targetId");
-	public static final Property<String>  packageName        = new StringProperty("packageName").indexed();
-	public static final Property<String>  className          = new StringProperty("className").indexed();
-	public static final Property<String>  relationshipType   = new StringProperty("relationshipType");
-	public static final Property<String> sourceMultiplicity  = new StringProperty("sourceMultiplicity");
-	public static final Property<String> targetMultiplicity  = new StringProperty("targetMultiplicity");
-	public static final Property<String>  sourceNotion       = new StringProperty("sourceNotion");
-	public static final Property<String>  targetNotion       = new StringProperty("targetNotion");
+	public static final Property<String> sourceId           = new SourceId("sourceId");
+	public static final Property<String> targetId           = new TargetId("targetId");
+	public static final Property<String> relationshipType   = new StringProperty("relationshipType");
+	public static final Property<String> sourceMultiplicity = new StringProperty("sourceMultiplicity");
+	public static final Property<String> targetMultiplicity = new StringProperty("targetMultiplicity");
+	public static final Property<String> sourceNotion       = new StringProperty("sourceNotion");
+	public static final Property<String> targetNotion       = new StringProperty("targetNotion");
 	
 	
 	public static final View defaultView = new View(NodeIsRelatedToNode.class, PropertyView.Public,
-		sourceId, targetId, packageName, className, sourceMultiplicity, targetMultiplicity, sourceNotion, targetNotion
+		sourceId, targetId, sourceMultiplicity, targetMultiplicity, sourceNotion, targetNotion
 	);
 
 	@Override
@@ -82,8 +81,6 @@ public class NodeIsRelatedToNode extends ManyToMany<SchemaNode, SchemaNode> impl
 		
 		boolean error = false;
 		
-		error |= ValidationHelper.checkStringNotBlank(this, packageName,      errorBuffer);
-		error |= ValidationHelper.checkStringNotBlank(this, className,        errorBuffer);
 		error |= ValidationHelper.checkStringNotBlank(this, relationshipType, errorBuffer);
 		
 		return !error && super.isValid(errorBuffer);
@@ -93,10 +90,10 @@ public class NodeIsRelatedToNode extends ManyToMany<SchemaNode, SchemaNode> impl
 	public boolean onCreation(SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 		
 		if (SchemaHelper.reloadSchema(errorBuffer)) {
-		
+
 			final String signature = getResourceSignature();
 			final Long flags       = getProperty(accessFlags);
-			
+
 			SchemaHelper.createGrant(signature, flags);
 			return true;
 		}
@@ -108,10 +105,10 @@ public class NodeIsRelatedToNode extends ManyToMany<SchemaNode, SchemaNode> impl
 	public boolean onModification(SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 		
 		if (SchemaHelper.reloadSchema(errorBuffer)) {
-		
+
 			final String signature = getResourceSignature();
 			final Long flags       = getProperty(accessFlags);
-			
+
 			SchemaHelper.createGrant(signature, flags);
 			return true;
 		}
@@ -121,9 +118,19 @@ public class NodeIsRelatedToNode extends ManyToMany<SchemaNode, SchemaNode> impl
 
 	@Override
 	public void onRelationshipDeletion() {
+		Services.getInstance().getConfigurationProvider().unregisterEntityType(getClassName());
 		SchemaHelper.removeGrant(getResourceSignature());
 	}
 
+	@Override
+	public String getClassName() {
+		
+		final String _sourceType = getSchemaNodeSourceType();
+		final String _targetType = getSchemaNodeTargetType();
+
+		return _sourceType + _targetType;
+	}
+	
 	// ----- interface PropertySchema -----
 	public String getPropertySource(final String relatedClassName) {
 		
@@ -134,7 +141,7 @@ public class NodeIsRelatedToNode extends ManyToMany<SchemaNode, SchemaNode> impl
 		final String _targetNotion       = getProperty(targetNotion);
 		final String _sourceType         = getSchemaNodeSourceType();
 		final String _targetType         = getSchemaNodeTargetType();
-		final String _className          = getProperty(className);
+		final String _className          = getClassName();
 
 		if (_sourceType.equals(relatedClassName)) {
 
@@ -220,11 +227,11 @@ public class NodeIsRelatedToNode extends ManyToMany<SchemaNode, SchemaNode> impl
 
 		final StringBuilder src      = new StringBuilder();
 		final Class baseType         = AbstractRelationship.class;
-		final String _className      = getProperty(className);
+		final String _className      = getClassName();
 		final String _sourceNodeType = getSchemaNodeSourceType();
 		final String _targetNodeType = getSchemaNodeTargetType();
 		
-		src.append("package ").append(getProperty(packageName)).append(";\n\n");
+		src.append("package org.structr.dynamic;\n\n");
 		
 		src.append("import ").append(baseType.getName()).append(";\n");
 		src.append("import ").append(PropertyView.class.getName()).append(";\n");
@@ -268,16 +275,6 @@ public class NodeIsRelatedToNode extends ManyToMany<SchemaNode, SchemaNode> impl
 		src.append("}\n");
 		
 		return src.toString();
-	}
-
-	@Override
-	public String getPackageName() {
-		return getProperty(packageName);
-	}
-
-	@Override
-	public String getClassName() {
-		return getProperty(className);
 	}
 	
 	// ----- private methods -----
@@ -393,6 +390,21 @@ public class NodeIsRelatedToNode extends ManyToMany<SchemaNode, SchemaNode> impl
 		return _sourceType + "/" + _targetType;
 	}
 	
+	private String getRelationshipType() {
+		
+		String relType = getProperty(relationshipType);
+		if (relType == null) {
+			
+			final String _sourceType = getSchemaNodeSourceType().toUpperCase();
+			final String _targetType = getSchemaNodeTargetType().toUpperCase();
+			
+			relType = _sourceType + "_" + _targetType;
+		}
+		
+		return relType;
+	}
+	
+	// ----- nested classes -----
 	private static class KeyMatcher implements Predicate<String> {
 
 		@Override

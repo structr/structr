@@ -4,6 +4,7 @@
  */
 package org.structr.schema;
 
+import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 
 /**
@@ -12,7 +13,6 @@ import org.structr.common.error.FrameworkException;
  */
 public interface NodeSchema {
 
-	public String getNodeSource() throws FrameworkException;
-	public String getPackageName();
+	public String getNodeSource(final ErrorBuffer errorBuffer) throws FrameworkException;
 	public String getClassName();
 }

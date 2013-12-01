@@ -38,6 +38,7 @@ import javax.tools.ToolProvider;
 import org.structr.common.error.DiagnosticErrorToken;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.core.Services;
+import org.structr.module.JarConfigurationProvider;
 
 /**
  *
@@ -60,10 +61,12 @@ public class NodeExtender {
 		fqcns       = new LinkedHashSet<>();
 	}
 	
-	public void addClass(final String packageName, final String className, final String content) throws ClassNotFoundException {
+	public void addClass(final String className, final String content) throws ClassNotFoundException {
 		
-		if (packageName != null && className != null && content != null) {
+		if (className != null && content != null) {
 
+			final String packageName = JarConfigurationProvider.DYNAMIC_TYPES_PACKAGE;
+			
 			jfiles.add(new CharSequenceJavaFileObject(className, content));
 			fqcns.add(packageName.concat(".".concat(className)));
 
@@ -108,7 +111,7 @@ public class NodeExtender {
 		
 		public Listener(final ErrorBuffer errorBuffer) {
 			this.errorBuffer = errorBuffer;
-		}
+}
 		
 		@Override
 		public void report(Diagnostic<? extends JavaFileObject> diagnostic) {

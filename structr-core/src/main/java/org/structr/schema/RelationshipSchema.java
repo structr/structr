@@ -11,6 +11,5 @@ package org.structr.schema;
 public interface RelationshipSchema {
 
 	public String getRelationshipSource();
-	public String getPackageName();
 	public String getClassName();
 }

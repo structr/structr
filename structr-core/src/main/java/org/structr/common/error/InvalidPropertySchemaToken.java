@@ -1,6 +1,7 @@
 package org.structr.common.error;
 
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
 /**
@@ -9,22 +10,32 @@ import com.google.gson.JsonPrimitive;
  */
 public class InvalidPropertySchemaToken extends SemanticErrorToken {
 
-	private String source = null;
+	private String source     = null;
+	private String reason     = null;
+	private String errorToken = null;
 	
-	public InvalidPropertySchemaToken(final String source) {
+	public InvalidPropertySchemaToken(final String source, final String errorToken, final String reason) {
 		
 		super(base);
 		
-		this.source = source;
+		this.source     = source;
+		this.reason     = reason;
+		this.errorToken = errorToken;
 	}
 
 	@Override
 	public JsonElement getContent() {
-		return new JsonPrimitive(getErrorToken());
+
+		JsonObject obj = new JsonObject();
+
+                obj.add(getErrorToken(), new JsonPrimitive(source));
+                obj.add("reason", new JsonPrimitive(reason));
+
+		return obj;
 	}
 
 	@Override
 	public String getErrorToken() {
-		return "invalid_property_schema";
+		return errorToken;
 	}
 }

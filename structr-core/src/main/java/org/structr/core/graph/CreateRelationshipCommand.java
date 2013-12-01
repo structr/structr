@@ -80,8 +80,8 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 
 		if (newRel != null) {
 
-//			newRel.unlockReadOnlyPropertiesOnce();
-//			newRel.setProperty(GraphObject.type, relType.getSimpleName());
+			newRel.unlockReadOnlyPropertiesOnce();
+			newRel.setProperty(GraphObject.type, relType.getSimpleName());
 
 			// set UUID
 			newRel.unlockReadOnlyPropertiesOnce();

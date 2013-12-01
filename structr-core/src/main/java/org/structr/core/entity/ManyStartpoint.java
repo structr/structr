@@ -13,6 +13,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.PropertyMap;
 
 /**
  *
@@ -78,13 +79,16 @@ public class ManyStartpoint<S extends NodeInterface> extends AbstractEndpoint im
 
 			}
 		}
-
+		
+		// test: obtain properties from notion
+		final PropertyMap notionProperties = getNotionProperties(securityContext, relation.getClass());
+		
 		// create new relationships
 		for (S sourceNode : toBeCreated) {
 
 			relation.ensureCardinality(securityContext, sourceNode, targetNode);
-
-			app.create(sourceNode, targetNode, relation.getClass());
+			
+			app.create(sourceNode, targetNode, relation.getClass(), notionProperties);
 		}
 	}
 
