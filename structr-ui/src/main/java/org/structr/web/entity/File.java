@@ -117,7 +117,12 @@ public class File extends AbstractFile implements Linkable {
 
 			app.beginTx();
 			setProperty(checksum,	FileHelper.getChecksum(File.this));
-			setProperty(size,	FileHelper.getSize(File.this));
+			
+			long fileSize = FileHelper.getSize(File.this);
+			if (fileSize > 0) {
+				setProperty(size, fileSize);
+			}
+			
 			app.commitTx();
 
 		} catch (FrameworkException ex) {
