@@ -8,7 +8,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.PropertyMap;
 
 /**
  *
@@ -43,11 +42,8 @@ public class OneEndpoint<T extends NodeInterface> extends AbstractEndpoint imple
 
 		if (targetNode != null) {
 
-			// test: obtain properties from notion
-			final PropertyMap notionProperties = getNotionProperties(securityContext, relation.getClass());
-
 			// create new relationship
-			StructrApp.getInstance(securityContext).create(sourceNode, targetNode, relation.getClass(), notionProperties);
+			StructrApp.getInstance(securityContext).create(sourceNode, targetNode, relation.getClass(), getNotionProperties(securityContext, relation.getClass(), targetNode.getUuid()));
 		}
 	}
 

@@ -1,6 +1,7 @@
 package org.structr.core.entity;
 
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.Direction;
@@ -44,12 +45,25 @@ public abstract class AbstractEndpoint {
 	}
 	
 	// ----- protected methods -----
-	protected PropertyMap getNotionProperties(final SecurityContext securityContext, final Class type) {
+	/**
+	 * Loads a PropertyMap from the current security context that was previously stored
+	 * there by one of the Notions that was executed before this relationship creation.
+
+	 * @param securityContext the security context
+	 * @param type the entity type
+	 * @param entityKey the key for which the PropertyMap was stored
+	 * 
+	 * @return a PropertyMap or null
+	 */
+	protected PropertyMap getNotionProperties(final SecurityContext securityContext, final Class type, final String entityKey) {
 		
-		PropertyMap notionProperties = (PropertyMap)securityContext.getAttribute("notionProperties");
-		if (notionProperties != null) {
+		
+		final Map<String, PropertyMap> notionPropertyMap = (Map<String, PropertyMap>)securityContext.getAttribute("notionProperties");
+		if (notionPropertyMap != null) {
 			
-			final Set<PropertyKey> keySet = Services.getInstance().getConfigurationProvider().getPropertySet(type, PropertyView.Public);
+			final Set<PropertyKey> keySet      = Services.getInstance().getConfigurationProvider().getPropertySet(type, PropertyView.Public);
+			final PropertyMap notionProperties = notionPropertyMap.get(entityKey);
+			
 			for (final Iterator<PropertyKey> it = notionProperties.keySet().iterator(); it.hasNext();) {
 				
 				final PropertyKey key = it.next();
@@ -58,9 +72,11 @@ public abstract class AbstractEndpoint {
 					it.remove();
 				}
 			}
+		
+			return notionProperties;
 		}		
 		
-		return notionProperties;
+		return null;
 	}
 
 	// ----- nested classes -----

@@ -59,10 +59,6 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> implement
 
 	//~--- constructors ---------------------------------------------------
 
-	public SchemaDeserializationStrategy(Set<PropertyKey> identifyingPropertyKeys, Set<PropertyKey> foreignPropertyKeys) {
-		this(false, null, identifyingPropertyKeys, foreignPropertyKeys);
-	}
-	
 	public SchemaDeserializationStrategy(final boolean createIfNotExisting, final Class targetType, final Set<PropertyKey> identifyingPropertyKeys, final Set<PropertyKey> foreignPropertyKeys) {
 		this.createIfNotExisting     = createIfNotExisting;
 		this.identifyingPropertyKeys = identifyingPropertyKeys;
@@ -90,7 +86,7 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> implement
 		return null;
 	}
 
-	private T deserialize(SecurityContext securityContext, Class<T> type, PropertyMap attributes) throws FrameworkException {
+	private T deserialize(final SecurityContext securityContext, final Class<T> type, final PropertyMap attributes) throws FrameworkException {
 
 		final App app = StructrApp.getInstance(securityContext);
 		
@@ -128,29 +124,33 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> implement
 
 					if (createIfNotExisting) {
 
-						if (targetType != null) {
-							
-							// remove attributes that do not belong to the target node
-							final PropertyMap foreignProperties = new PropertyMap();
+						// remove attributes that do not belong to the target node
+						final PropertyMap foreignProperties = new PropertyMap();
 
-							for (final Iterator<PropertyKey> it = attributes.keySet().iterator(); it.hasNext();) {
-								
-								final PropertyKey key = it.next();
-								if (foreignPropertyKeys.contains(key)) {
+						for (final Iterator<PropertyKey> it = attributes.keySet().iterator(); it.hasNext();) {
 
-									// move entry to foreign map and remove from attributes
-									foreignProperties.put(key, attributes.get(key));
-									it.remove();
-								}
+							final PropertyKey key = it.next();
+							if (foreignPropertyKeys.contains(key)) {
+
+								// move entry to foreign map and remove from attributes
+								foreignProperties.put(key, attributes.get(key));
+								it.remove();
 							}
-							
-							// test set notion attributes for relationship creation
-							securityContext.setAttribute("notionProperties", foreignProperties);
 						}
 						
 						// create node and return it
 						T newNode = app.create(type, attributes);
 						if (newNode != null) {
+
+							// test set notion attributes for relationship creation
+							Map<String, PropertyMap> notionPropertyMap = (Map<String, PropertyMap>)securityContext.getAttribute("notionProperties");
+							if (notionPropertyMap == null) {
+
+								notionPropertyMap = new LinkedHashMap<>();
+								securityContext.setAttribute("notionProperties", notionPropertyMap);
+							}
+
+							notionPropertyMap.put(newNode.getUuid(), foreignProperties);
 							
 							return newNode;
 						}						

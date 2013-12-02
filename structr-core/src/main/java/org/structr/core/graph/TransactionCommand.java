@@ -105,6 +105,14 @@ public class TransactionCommand extends NodeServiceCommand {
 					throw new FrameworkException(422, errorBuffer);
 				}
 			}
+			
+			// 1.5: execute validatable post-transaction action
+			if (!modificationQueue.doPostProcessing(securityContext, errorBuffer)) {
+
+				tx.failure();
+
+				throw new FrameworkException(422, errorBuffer);
+			}
 
 			// 2. fetch all types of entities modified in this tx
 			Set<String> synchronizationKeys = modificationQueue.getSynchronizationKeys();
@@ -174,6 +182,28 @@ public class TransactionCommand extends NodeServiceCommand {
 				tx.end();
 			}
 		}
+	}
+	
+	public static void postProcess(final String key, final TransactionPostProcess process) {
+		
+		TransactionCommand command = currentCommand.get();
+		if (command != null) {
+			
+			ModificationQueue modificationQueue = command.getModificationQueue();
+			if (modificationQueue != null) {
+				
+				modificationQueue.postProcess(key, process);
+				
+			} else {
+				
+				logger.log(Level.SEVERE, "Got empty changeSet from command!");
+			}
+			
+		} else {
+			
+			logger.log(Level.SEVERE, "Trying to register transaction post processing while outside of transaction!");
+		}
+		
 	}
 	
 	public static void nodeCreated(NodeInterface node) {

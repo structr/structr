@@ -5,8 +5,8 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidPropertySchemaToken;
 import org.structr.core.entity.SchemaNode;
-import org.structr.core.entity.SchemaNode.Type;
 import org.structr.core.property.EnumProperty;
+import org.structr.schema.SchemaHelper.Type;
 
 /**
  *

@@ -5,10 +5,11 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.Property;
-import org.structr.core.property.StringProperty;
-import org.structr.core.validator.GlobalPropertyUniquenessValidator;
+import org.structr.core.validator.TypeUniquenessValidator;
+import org.structr.schema.ReloadSchema;
 import org.structr.schema.SchemaHelper;
 
 /**
@@ -17,11 +18,15 @@ import org.structr.schema.SchemaHelper;
  */
 public abstract class AbstractSchemaNode extends AbstractNode {
 	
-	public static final Property<String> className   = new StringProperty("className", new GlobalPropertyUniquenessValidator()).indexed();
-	public static final Property<Long>   accessFlags = new LongProperty("accessFlags").indexed();
+	public static final Property<Long> accessFlags = new LongProperty("accessFlags").indexed();
 
+	static {
+		
+		AbstractNode.name.addValidator(new TypeUniquenessValidator<String>(AbstractSchemaNode.class));
+	}
+	
 	public String getClassName() {
-		return getProperty(className);
+		return getProperty(name);
 	}
 
 	@Override
@@ -29,16 +34,17 @@ public abstract class AbstractSchemaNode extends AbstractNode {
 		
 		if (super.onCreation(securityContext, errorBuffer)) {
 			
-			if (SchemaHelper.reloadSchema(errorBuffer)) {
+			final String signature = getResourceSignature();
+			final Long flags       = getProperty(accessFlags);
 
-				final String signature = getResourceSignature();
-				final Long flags       = getProperty(accessFlags);
+			if (StringUtils.isNotBlank(signature)) {
 
-				if (StringUtils.isNotBlank(signature)) {
-
-					SchemaHelper.createGrant(signature, flags);
-					return true;
-				}
+				SchemaHelper.createGrant(signature, flags);
+				
+				// register transaction post processing that recreates the schema information
+				TransactionCommand.postProcess("reloadSchema", new ReloadSchema());
+				
+				return true;
 			}
 		}
 		
@@ -50,16 +56,17 @@ public abstract class AbstractSchemaNode extends AbstractNode {
 		
 		if (super.onModification(securityContext, errorBuffer)) {
 			
-			if (SchemaHelper.reloadSchema(errorBuffer)) {
+			final String signature = getResourceSignature();
+			final Long flags       = getProperty(accessFlags);
 
-				final String signature = getResourceSignature();
-				final Long flags       = getProperty(accessFlags);
+			if (StringUtils.isNotBlank(signature)) {
 
-				if (StringUtils.isNotBlank(signature)) {
+				SchemaHelper.createGrant(signature, flags);
+				
+				// register transaction post processing that recreates the schema information
+				TransactionCommand.postProcess("reloadSchema", new ReloadSchema());
 
-					SchemaHelper.createGrant(signature, flags);
-					return true;
-				}
+				return true;
 			}
 		}
 		
@@ -79,6 +86,6 @@ public abstract class AbstractSchemaNode extends AbstractNode {
 	}
 	
 	private String getResourceSignature() {
-		return SchemaHelper.normalizeEntityName(getProperty(className));	
+		return SchemaHelper.normalizeEntityName(getProperty(name));
 	}
 }

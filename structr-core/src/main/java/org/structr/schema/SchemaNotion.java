@@ -22,7 +22,7 @@ public class SchemaNotion extends Notion {
 			// output serialization
 			new PropertySetSerializationStrategy(
 				GraphObject.id,
-				SchemaNode.className
+				SchemaNode.name
 			),
 			
 			// input deserialization
@@ -33,7 +33,7 @@ public class SchemaNotion extends Notion {
 				// identifying properties
 				toSet(
 					GraphObject.id,
-					SchemaNode.className
+					SchemaNode.name
 				),
 			
 				// "foreign" properties that should be routed to the relationship

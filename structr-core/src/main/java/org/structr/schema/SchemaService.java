@@ -38,12 +38,12 @@ public class SchemaService implements Service {
 		try {
 			// collect node classes
 			for (final SchemaNode schemaNode : StructrApp.getInstance().nodeQuery(SchemaNode.class).getAsList()) {
-				nodeExtender.addClass(schemaNode.getClassName(), schemaNode.getNodeSource(errorBuffer));
+				nodeExtender.addClass(schemaNode.getClassName(), schemaNode.getSource(errorBuffer));
 			}
 
 			// collect relationship classes
 			for (final SchemaRelationship schemaRelationships : StructrApp.getInstance().relationshipQuery(SchemaRelationship.class).getAsList()) {
-				nodeExtender.addClass(schemaRelationships.getClassName(), schemaRelationships.getRelationshipSource());
+				nodeExtender.addClass(schemaRelationships.getClassName(), schemaRelationships.getSource(errorBuffer));
 			}
 
 			// compile all classes at once

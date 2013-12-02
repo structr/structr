@@ -18,22 +18,25 @@ import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import static org.structr.core.entity.AbstractSchemaNode.accessFlags;
 import org.structr.core.entity.ManyToMany;
 import org.structr.core.entity.SchemaNode;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.Property;
 import org.structr.core.property.SourceId;
 import org.structr.core.property.StringProperty;
 import org.structr.core.property.TargetId;
-import org.structr.schema.RelationshipSchema;
+import org.structr.schema.ReloadSchema;
+import org.structr.schema.Schema;
 import org.structr.schema.SchemaHelper;
 
 /**
  *
  * @author Christian Morgner
  */
-public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> implements RelationshipSchema {
+public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> implements Schema {
 
 	private static final Logger logger                      = Logger.getLogger(SchemaRelationship.class.getName());
 	private static final Pattern ValidKeyPattern            = Pattern.compile("[a-zA-Z_]+");
@@ -48,7 +51,7 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 	
 	
 	public static final View defaultView = new View(SchemaRelationship.class, PropertyView.Public,
-		sourceId, targetId, sourceMultiplicity, targetMultiplicity, sourceNotion, targetNotion, relationshipType
+		AbstractNode.name, sourceId, targetId, sourceMultiplicity, targetMultiplicity, sourceNotion, targetNotion, relationshipType
 	);
 
 	@Override
@@ -91,16 +94,17 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 		
 		if (super.onCreation(securityContext, errorBuffer)) {
 			
-			if (SchemaHelper.reloadSchema(errorBuffer)) {
+			final String signature = getResourceSignature();
+			final Long flags       = getProperty(accessFlags);
 
-				final String signature = getResourceSignature();
-				final Long flags       = getProperty(accessFlags);
+			if (StringUtils.isNotBlank(signature)) {
 
-				if (StringUtils.isNotBlank(signature)) {
+				SchemaHelper.createGrant(signature, flags);
 
-					SchemaHelper.createGrant(signature, flags);
-					return true;
-				}
+				// register transaction post processing that recreates the schema information
+				TransactionCommand.postProcess("reloadSchema", new ReloadSchema());
+
+				return true;
 			}
 		}
 		
@@ -112,16 +116,17 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 
 		if (super.onModification(securityContext, errorBuffer)) {
 
-			if (SchemaHelper.reloadSchema(errorBuffer)) {
+			final String signature = getResourceSignature();
+			final Long flags       = getProperty(accessFlags);
 
-				final String signature = getResourceSignature();
-				final Long flags       = getProperty(accessFlags);
+			if (StringUtils.isNotBlank(signature)) {
 
-				if (StringUtils.isNotBlank(signature)) {
+				SchemaHelper.createGrant(signature, flags);
 
-					SchemaHelper.createGrant(signature, flags);
-					return true;
-				}
+				// register transaction post processing that recreates the schema information
+				TransactionCommand.postProcess("reloadSchema", new ReloadSchema());
+
+				return true;
 			}
 		}
 		
@@ -142,11 +147,17 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 
 	@Override
 	public String getClassName() {
-		
-		final String _sourceType = getSchemaNodeSourceType();
-		final String _targetType = getSchemaNodeTargetType();
+	
+		String name = getProperty(AbstractNode.name);
+		if (name == null) {
 
-		return _sourceType + _targetType;
+			final String _sourceType = getSchemaNodeSourceType();
+			final String _targetType = getSchemaNodeTargetType();
+
+			name = _sourceType + _targetType;
+		}
+		
+		return name;
 	}
 	
 	// ----- interface PropertySchema -----
@@ -241,13 +252,16 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 	}
 
 	@Override
-	public String getRelationshipSource() {
+	public String getSource(final ErrorBuffer errorBuffer) throws FrameworkException {
 
-		final StringBuilder src      = new StringBuilder();
-		final Class baseType         = AbstractRelationship.class;
-		final String _className      = getClassName();
-		final String _sourceNodeType = getSchemaNodeSourceType();
-		final String _targetNodeType = getSchemaNodeTargetType();
+		final StringBuilder src          = new StringBuilder();
+		final Class baseType             = AbstractRelationship.class;
+		final String _className          = getClassName();
+		final String _sourceNodeType     = getSchemaNodeSourceType();
+		final String _targetNodeType     = getSchemaNodeTargetType();
+		final Set<String> viewProperties = new LinkedHashSet<>();
+		final Set<String> validators     = new LinkedHashSet<>();
+		final Set<String> enums          = new LinkedHashSet<>();
 		
 		src.append("package org.structr.dynamic;\n\n");
 		
@@ -259,15 +273,40 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 		
 		src.append("public class ").append(_className).append(" extends ").append(getBaseType()).append(" {\n\n");
 		
+		src.append(SchemaHelper.extractProperties(this, null, null, null, errorBuffer));
+		
 		// source and target id properties
 		src.append("\tpublic static final Property<String> sourceId = new SourceId(\"sourceId\");\n");
 		src.append("\tpublic static final Property<String> targetId = new SourceId(\"targetId\");\n\n");
 
-		// default view
-		src.append("\tpublic static final View defaultView = new View(");
-		src.append(_className).append(".class, PropertyView.Public,\n");
-		src.append("\t\tsourceId, targetId\n\t);\n\n");
+		// add sourceId and targetId to view properties
+		viewProperties.add("sourceId");
+		viewProperties.add("targetId");
+		
+		// output possible enum definitions
+		for (final String enumDefition : enums) {
+			src.append(enumDefition);
+		}
 
+		if (!viewProperties.isEmpty()) {
+			SchemaHelper.formatView(src, _className, "default", "PropertyView.Public", viewProperties);
+			SchemaHelper.formatView(src, _className, "ui", "PropertyView.Ui", viewProperties);
+		}
+		
+		if (!validators.isEmpty()) {
+			
+			src.append("\n\t@Override\n");
+			src.append("\tpublic boolean isValid(final ErrorBuffer errorBuffer) {\n\n");
+			src.append("\t\tboolean error = false;\n\n");
+			
+			for (final String validator : validators) {
+				src.append("\t\terror |= ").append(validator).append(";\n");
+			}
+			
+			src.append("\n\t\treturn !error;\n");
+			src.append("\t}\n");
+		}
+		
 		// abstract method implementations
 		src.append("\t@Override\n");
 		src.append("\tpublic Class<").append(_sourceNodeType).append("> getSourceType() {\n");
@@ -297,11 +336,11 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 	
 	// ----- private methods -----
 	private String getSchemaNodeSourceType() {
-		return getSourceNode().getProperty(SchemaNode.className);
+		return getSourceNode().getProperty(SchemaNode.name);
 	}
 
 	private String getSchemaNodeTargetType() {
-		return getTargetNode().getProperty(SchemaNode.className);
+		return getTargetNode().getProperty(SchemaNode.name);
 	}
 
 	private String getNotion(final String _className, final String notionSource) {
@@ -421,7 +460,7 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 		
 		return relType;
 	}
-	
+
 	// ----- nested classes -----
 	private static class KeyMatcher implements Predicate<String> {
 

@@ -3,8 +3,8 @@ package org.structr.schema.parser;
 import java.util.Date;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.SchemaNode.Type;
 import org.structr.core.property.ISO8601DateProperty;
+import org.structr.schema.SchemaHelper.Type;
 
 /**
  *
