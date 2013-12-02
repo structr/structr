@@ -5,9 +5,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServlet;
 import org.structr.common.PropertyView;
-import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.auth.Authenticator;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.Property;
 import org.structr.rest.ResourceProvider;
 
@@ -19,7 +18,7 @@ public class HttpServiceServlet extends HttpServlet {
 
 	private static final Logger logger            = Logger.getLogger(HttpServiceServlet.class.getName());
 
-	protected Property<String> defaultIdProperty  = AbstractNode.id;
+	protected Property<String> defaultIdProperty  = GraphObject.id;
 	protected String defaultPropertyView          = PropertyView.Public;
 	protected ResourceProvider resourceProvider   = null;
 	protected Class authenticatorClass            = null;

@@ -486,7 +486,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 		
 		// start database zip entry
 		final ZipEntry dbEntry        = new ZipEntry(STRUCTR_ZIP_DB_NAME);
-		final String uuidPropertyName = AbstractNode.id.dbName();
+		final String uuidPropertyName = GraphObject.id.dbName();
 		int nodeCount                 = 0;
 		int relCount                  = 0;
 		
@@ -600,7 +600,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 		final App app                    = StructrApp.getInstance();
 		final Value<Long> nodeCountValue = new StaticValue<>(0L);
 		final Value<Long> relCountValue  = new StaticValue<>(0L);
-		final String uuidPropertyName    = AbstractNode.id.dbName();
+		final String uuidPropertyName    = GraphObject.id.dbName();
 		double t0                        = System.nanoTime();
 		
 		try {

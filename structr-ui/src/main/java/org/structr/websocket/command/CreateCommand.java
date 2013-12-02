@@ -31,6 +31,7 @@ import org.structr.websocket.message.WebSocketMessage;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
@@ -81,7 +82,7 @@ public class CreateCommand extends AbstractCommand {
 				String name		= (String) webSocketData.getNodeData().get("name");
 
 				File fileNode = (File) newNode;
-				String uuid   = newNode.getProperty(AbstractNode.id);
+				String uuid   = newNode.getProperty(GraphObject.id);
 
 				fileNode.setRelativeFilePath(File.getDirectoryPath(uuid) + "/" + uuid);
 				fileNode.setSize(size);

@@ -43,6 +43,7 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.IdNotFoundToken;
 import org.structr.common.error.ReadOnlyPropertyToken;
+import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -155,10 +156,10 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 				Node startNode = dbRelationship.getStartNode();
 				Node endNode   = dbRelationship.getEndNode();
 
-				if ((startNode != null) && (endNode != null) && startNode.hasProperty(AbstractNode.id.dbName()) && endNode.hasProperty(AbstractNode.id.dbName())) {
+				if ((startNode != null) && (endNode != null) && startNode.hasProperty(GraphObject.id.dbName()) && endNode.hasProperty(GraphObject.id.dbName())) {
 
-					cachedStartNodeId = (String) startNode.getProperty(AbstractNode.id.dbName());
-					cachedEndNodeId   = (String) endNode.getProperty(AbstractNode.id.dbName());
+					cachedStartNodeId = (String) startNode.getProperty(GraphObject.id.dbName());
+					cachedEndNodeId   = (String) endNode.getProperty(GraphObject.id.dbName());
 
 				}
 

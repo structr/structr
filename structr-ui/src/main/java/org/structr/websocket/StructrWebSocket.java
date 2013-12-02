@@ -28,7 +28,6 @@ import org.structr.common.error.FrameworkException;
 
 import org.structr.core.property.PropertyKey;
 import org.structr.core.auth.AuthHelper;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 
 import org.structr.web.entity.File;
@@ -51,6 +50,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
+import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
 
@@ -251,7 +251,7 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 	// ----- file handling -----
 	public void createFileUploadHandler(File file) {
 
-		String uuid = file.getProperty(AbstractNode.id);
+		String uuid = file.getProperty(GraphObject.id);
 
 		uploads.put(uuid, new FileUploadHandler(file));
 

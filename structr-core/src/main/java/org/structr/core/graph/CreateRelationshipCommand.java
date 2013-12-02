@@ -85,7 +85,7 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 
 			// set UUID
 			newRel.unlockReadOnlyPropertiesOnce();
-			newRel.setProperty(AbstractNode.id, getNextUuid());
+			newRel.setProperty(GraphObject.id, getNextUuid());
 
 			// set created date
 			newRel.unlockReadOnlyPropertiesOnce();

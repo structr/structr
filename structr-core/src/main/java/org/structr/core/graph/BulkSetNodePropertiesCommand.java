@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.property.PropertyKey;
@@ -82,7 +83,7 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 				public void handleGraphObject(SecurityContext securityContext, AbstractNode node) {
 
 					// Treat only "our" nodes
-					if (node.getProperty(AbstractNode.id) != null) {
+					if (node.getProperty(GraphObject.id) != null) {
 
 						for (Entry entry : properties.entrySet()) {
 

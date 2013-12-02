@@ -76,7 +76,7 @@ public class CypherQueryConverter extends PropertyConverter {
 			Map<String, Object> parameters = new LinkedHashMap<>();
 			String query                   = handler.getQuery();
 			String name                    = currentObject.getProperty(AbstractNode.name);
-			String uuid                    = currentObject.getProperty(AbstractNode.id);
+			String uuid                    = currentObject.getProperty(GraphObject.id);
 
 			// initialize parameters
 			parameters.put("id",   uuid);

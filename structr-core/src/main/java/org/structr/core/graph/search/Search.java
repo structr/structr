@@ -41,6 +41,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.lucene.search.BooleanClause.Occur;
+import org.structr.core.GraphObject;
 import org.structr.core.Result;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Relation;
@@ -226,7 +227,7 @@ public abstract class Search {
 	}
 
 	public static SearchAttribute andExactUuid(final String searchString) {
-		return new PropertySearchAttribute(AbstractNode.id, searchString, Occur.MUST, true);
+		return new PropertySearchAttribute(GraphObject.id, searchString, Occur.MUST, true);
 	}
 
 	public static <T> SearchAttribute<T> andExactProperty(final SecurityContext securityContext, final PropertyKey<T> propertyKey, final T searchValue) {

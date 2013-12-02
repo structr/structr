@@ -56,6 +56,6 @@ public class ObjectNotion extends Notion {
 
 	@Override
 	public PropertyKey getPrimaryPropertyKey() {
-		return AbstractNode.id;
+		return GraphObject.id;
 	}
 }

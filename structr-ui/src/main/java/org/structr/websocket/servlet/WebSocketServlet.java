@@ -40,7 +40,7 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.structr.core.entity.AbstractNode;
+import org.structr.core.GraphObject;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.websocket.SynchronizationController;
@@ -63,7 +63,7 @@ public class WebSocketServlet extends HttpServiceServlet {
 		// create GSON serializer
 		final Gson gson = new GsonBuilder()
 			.setPrettyPrinting()
-			.registerTypeAdapter(WebSocketMessage.class, new WebSocketDataGSONAdapter(AbstractNode.id, outputNestingDepth))
+			.registerTypeAdapter(WebSocketMessage.class, new WebSocketDataGSONAdapter(GraphObject.id, outputNestingDepth))
 			.create();
 		
 		final SynchronizationController syncController = new SynchronizationController(gson);
@@ -79,7 +79,7 @@ public class WebSocketServlet extends HttpServiceServlet {
 
 				if (STRUCTR_PROTOCOL.equals(protocol)) {
 
-					return new StructrWebSocket(syncController, request, gson, AbstractNode.id, getAuthenticator());
+					return new StructrWebSocket(syncController, request, gson, GraphObject.id, getAuthenticator());
 
 				} else {
 

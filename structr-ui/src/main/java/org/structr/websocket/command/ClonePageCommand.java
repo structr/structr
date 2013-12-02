@@ -35,6 +35,7 @@ import org.structr.websocket.message.WebSocketMessage;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.CreateRelationshipCommand;
@@ -96,7 +97,7 @@ public class ClonePageCommand extends AbstractCommand {
 
 				if (newPage != null) {
 
-					String pageId                     = newPage.getProperty(AbstractNode.id);
+					String pageId                     = newPage.getProperty(GraphObject.id);
 					Iterable<DOMChildren> relsOut = nodeToClone.getOutgoingRelationships(DOMChildren.class);
 					Html htmlNode                     = null;
 

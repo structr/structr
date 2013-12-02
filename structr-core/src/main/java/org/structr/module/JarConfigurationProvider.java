@@ -768,7 +768,31 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		// read-only
 		return Collections.unmodifiableSet(properties);
 	}
-	
+
+	/**
+	 * Registers the given set of property keys for the view with name <code>propertyView</code>
+	 * and the given prefix of entities with the given type.
+	 * 
+	 * @param type the type of the entities for which the view will be registered
+	 * @param propertyView the name of the property view for which the property set will be registered
+	 * @param viewPrefix a string that will be prepended to all property keys in this view
+	 * @param propertySet the set of property keys to register for the given view
+	 */
+	@Override
+	public void registerPropertySet(Class type, String propertyView, PropertyKey... propertySet) {
+
+		Map<String, Set<PropertyKey>> propertyViewMap = getPropertyViewMapForType(type);
+		Set<PropertyKey> properties                   = propertyViewMap.get(propertyView);
+		
+		if (properties == null) {
+			properties = new LinkedHashSet<>();
+			propertyViewMap.put(propertyView, properties);
+		}
+
+		// add all properties from set
+		properties.addAll(Arrays.asList(propertySet));
+	}
+
 	@Override
 	public PropertyKey getPropertyKeyForDatabaseName(Class type, String dbName) {
 		return getPropertyKeyForDatabaseName(type, dbName, true);
@@ -1298,29 +1322,6 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		
 		// inform property key of its registration
 		propertyKey.registrationCallback(type);
-	}
-
-	/**
-	 * Registers the given set of property keys for the view with name <code>propertyView</code>
-	 * and the given prefix of entities with the given type.
-	 * 
-	 * @param type the type of the entities for which the view will be registered
-	 * @param propertyView the name of the property view for which the property set will be registered
-	 * @param viewPrefix a string that will be prepended to all property keys in this view
-	 * @param propertySet the set of property keys to register for the given view
-	 */
-	private void registerPropertySet(Class type, String propertyView, PropertyKey... propertySet) {
-
-		Map<String, Set<PropertyKey>> propertyViewMap = getPropertyViewMapForType(type);
-		Set<PropertyKey> properties                   = propertyViewMap.get(propertyView);
-		
-		if (properties == null) {
-			properties = new LinkedHashSet<>();
-			propertyViewMap.put(propertyView, properties);
-		}
-
-		// add all properties from set
-		properties.addAll(Arrays.asList(propertySet));
 	}
 	
 	private String denormalizeEntityName(String normalizedEntityName) {

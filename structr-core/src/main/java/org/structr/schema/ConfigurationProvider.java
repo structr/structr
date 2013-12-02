@@ -61,6 +61,7 @@ public interface ConfigurationProvider {
 	
 	public Set<String> getPropertyViews();
 	
+	public void registerPropertySet(final Class type, final String propertyView, final PropertyKey... propertyKey);
 	public Set<PropertyKey> getPropertySet(final Class type, final String propertyView);
 	
 	public PropertyKey getPropertyKeyForDatabaseName(final Class type, final String dbName);

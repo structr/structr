@@ -154,7 +154,7 @@ public abstract class StreamingWriter {
 				
 				for(GraphObject graphObject : results) {
 					
-					Object value = graphObject.getProperty(AbstractNode.id);	// FIXME: UUID key hard-coded, use variable in Result here!
+					Object value = graphObject.getProperty(GraphObject.id);	// FIXME: UUID key hard-coded, use variable in Result here!
 					if(value != null) {
 						
 						writer.value(value.toString());

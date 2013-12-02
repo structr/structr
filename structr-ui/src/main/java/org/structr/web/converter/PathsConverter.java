@@ -72,7 +72,7 @@ public class PathsConverter extends PropertyConverter {
 
 		final AbstractNode startNode         = (AbstractNode) currentObject;
 		final TraversalDescription localDesc = Traversal.description().depthFirst().uniqueness(Uniqueness.NODE_PATH).relationships(RelType.CONTAINS, Direction.INCOMING);
-		final String uuidPropertyName        = AbstractNode.id.dbName();
+		final String uuidPropertyName        = GraphObject.id.dbName();
 
 		Set<String> treeAddresses = new HashSet<>();
 

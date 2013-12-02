@@ -24,7 +24,6 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.tooling.GlobalGraphOperations;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -32,6 +31,7 @@ import org.structr.core.entity.AbstractNode;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
+import org.structr.core.GraphObject;
 import org.structr.core.Result;
 import org.structr.core.app.StructrApp;
 
@@ -65,7 +65,7 @@ public class ClearDatabase extends NodeServiceCommand {
 				public void handleGraphObject(SecurityContext securityContext, AbstractNode node) {
 
 					// Delete only "our" nodes
-					if (node.getProperty(AbstractNode.id) != null) {
+					if (node.getProperty(GraphObject.id) != null) {
 
 						try {
 							StructrApp.getInstance(securityContext).delete(node);

@@ -102,7 +102,7 @@ public class ResultGSONAdapter implements JsonSerializer<Result>, JsonDeserializ
 
 				JsonArray resultArray = new JsonArray();
 				for(GraphObject graphObject : results) {
-					Object value = graphObject.getProperty(AbstractNode.id);	// FIXME: UUID key hard-coded, use variable in Result here!
+					Object value = graphObject.getProperty(GraphObject.id);	// FIXME: UUID key hard-coded, use variable in Result here!
 					if(value != null) {
 						resultArray.add(new JsonPrimitive(value.toString()));
 					}

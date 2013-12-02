@@ -16,6 +16,7 @@ import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidPropertySchemaToken;
+import org.structr.common.error.InvalidSchemaToken;
 import org.structr.core.Services;
 import static org.structr.core.entity.AbstractSchemaNode.className;
 import org.structr.core.entity.relationship.SchemaRelationship;
@@ -176,6 +177,12 @@ public class SchemaNode extends AbstractSchemaNode implements NodeSchema {
 		boolean error = false;
 		
 		error |= ValidationHelper.checkStringNotBlank(this, className, errorBuffer);
+
+		if (!error && Services.getInstance().getConfigurationProvider().getNodeEntityClass(getProperty(className)) != null) {
+			
+			errorBuffer.add(SchemaNode.class.getSimpleName(), new InvalidSchemaToken(getProperty(className), "type_already_exists"));
+		}
+		
 		
 		return !error && super.isValid(errorBuffer);
 	}

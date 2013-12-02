@@ -28,7 +28,6 @@ import org.structr.core.property.StringProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.DeleteNodeCommand;
@@ -41,6 +40,7 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import org.structr.common.SecurityContext;
+import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.IntProperty;
 import org.structr.schema.SchemaHelper;
@@ -220,7 +220,7 @@ public class Component extends DOMElement {
 
 			}
 
-			String componentId = node.getProperty(AbstractNode.id);
+			String componentId = node.getProperty(GraphObject.id);
 
 			// new default behaviour: make all components visible
 			// only filter if uuids are present in the request URI

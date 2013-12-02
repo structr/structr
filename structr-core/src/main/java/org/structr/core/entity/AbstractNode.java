@@ -338,7 +338,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	@Override
 	public String getUuid() {
 
-		return getProperty(AbstractNode.id);
+		return getProperty(GraphObject.id);
 
 	}
 

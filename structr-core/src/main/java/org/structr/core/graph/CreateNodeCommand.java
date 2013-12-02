@@ -113,7 +113,7 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 					securityRel.setAllowed(Permission.values());
 
 					node.unlockReadOnlyPropertiesOnce();
-					node.setProperty(AbstractNode.createdBy, user.getProperty(AbstractNode.id));
+					node.setProperty(AbstractNode.createdBy, user.getProperty(GraphObject.id));
 				}
 
 				// set type
@@ -125,7 +125,7 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 
 				// set UUID
 				node.unlockReadOnlyPropertiesOnce();
-				node.setProperty(AbstractNode.id, getNextUuid());
+				node.setProperty(GraphObject.id, getNextUuid());
 
 				// set created date
 				node.unlockReadOnlyPropertiesOnce();

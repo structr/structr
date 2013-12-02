@@ -36,6 +36,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.GraphObject;
 import org.structr.schema.SchemaHelper;
 
 //~--- classes ----------------------------------------------------------------
@@ -86,7 +87,7 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 
 						try {
 
-							node.setProperty(AbstractNode.id, UUID.randomUUID().toString().replaceAll("[\\-]+", ""));
+							node.setProperty(GraphObject.id, UUID.randomUUID().toString().replaceAll("[\\-]+", ""));
 
 						} catch (FrameworkException fex) {
 

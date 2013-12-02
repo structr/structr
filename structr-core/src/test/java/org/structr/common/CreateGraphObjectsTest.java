@@ -37,8 +37,8 @@ import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import static junit.framework.Assert.fail;
 import org.apache.commons.lang.StringUtils;
+import org.structr.core.GraphObject;
 import org.structr.core.entity.Cache;
 import org.structr.core.entity.Location;
 import org.structr.core.entity.Person;
@@ -128,7 +128,7 @@ public class CreateGraphObjectsTest extends StructrTest {
 			
 			final String uuid = StringUtils.replace(UUID.randomUUID().toString(), "-", "");
 
-			props.put(AbstractNode.id, uuid);
+			props.put(GraphObject.id, uuid);
 
 			try {
 				app.beginTx();

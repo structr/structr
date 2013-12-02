@@ -33,7 +33,6 @@ import org.structr.core.entity.AbstractNode;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.LinkedList;
 import java.util.List;
 
 import java.util.UUID;
@@ -43,13 +42,11 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.PathHelper;
 import org.structr.common.SecurityContext;
-import org.structr.core.Result;
+import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.graph.CreateNodeCommand;
-import org.structr.core.graph.search.Search;
-import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.property.PropertyMap;
 import org.structr.util.Base64;
 import org.structr.web.entity.AbstractFile;
@@ -245,7 +242,7 @@ public class FileHelper {
 	 */
 	public static void writeToFile(final org.structr.web.entity.File fileNode, final byte[] data) throws FrameworkException, IOException {
 
-		String uuid = fileNode.getProperty(AbstractNode.id);
+		String uuid = fileNode.getProperty(GraphObject.id);
 		if (uuid == null) {
 
 			final String newUuid = UUID.randomUUID().toString().replaceAll("[\\-]+", "");
@@ -256,7 +253,7 @@ public class FileHelper {
 
 				app.beginTx();
 				fileNode.unlockReadOnlyPropertiesOnce();
-				fileNode.setProperty(AbstractNode.id, newUuid);
+				fileNode.setProperty(GraphObject.id, newUuid);
 				app.commitTx();
 				
 			} finally {
@@ -543,7 +540,7 @@ public class FileHelper {
 		
 		String folderPath = file.getProperty(AbstractFile.name);
 		
-		if (folderPath == null) folderPath = file.getProperty(AbstractNode.id);
+		if (folderPath == null) folderPath = file.getProperty(GraphObject.id);
 		
 		while (parentFolder != null) {
 			folderPath = parentFolder.getName().concat("/").concat(folderPath);

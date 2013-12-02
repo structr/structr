@@ -19,6 +19,7 @@
 
 package org.structr.web.property;
 
+import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.notion.PropertySetNotion;
 
@@ -30,6 +31,6 @@ import org.structr.core.notion.PropertySetNotion;
 public class UiNotion extends PropertySetNotion {
 
 	public UiNotion() {
-		super(AbstractNode.id, AbstractNode.name);
+		super(GraphObject.id, AbstractNode.name);
 	}
 }
