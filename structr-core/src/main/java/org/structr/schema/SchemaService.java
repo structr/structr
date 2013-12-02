@@ -11,8 +11,8 @@ import org.structr.core.Command;
 import org.structr.core.Service;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.Schema;
-import org.structr.core.entity.relationship.NodeIsRelatedToNode;
+import org.structr.core.entity.SchemaNode;
+import org.structr.core.entity.relationship.SchemaRelationship;
 import org.structr.schema.compiler.NodeExtender;
 
 /**
@@ -37,12 +37,12 @@ public class SchemaService implements Service {
 
 		try {
 			// collect node classes
-			for (final Schema schemaNode : StructrApp.getInstance().nodeQuery(Schema.class).getAsList()) {
+			for (final SchemaNode schemaNode : StructrApp.getInstance().nodeQuery(SchemaNode.class).getAsList()) {
 				nodeExtender.addClass(schemaNode.getClassName(), schemaNode.getNodeSource(errorBuffer));
 			}
 
 			// collect relationship classes
-			for (final NodeIsRelatedToNode schemaRelationships : StructrApp.getInstance().relationshipQuery(NodeIsRelatedToNode.class).getAsList()) {
+			for (final SchemaRelationship schemaRelationships : StructrApp.getInstance().relationshipQuery(SchemaRelationship.class).getAsList()) {
 				nodeExtender.addClass(schemaRelationships.getClassName(), schemaRelationships.getRelationshipSource());
 			}
 

@@ -3,8 +3,8 @@ package org.structr.schema.parser;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidPropertySchemaToken;
-import org.structr.core.entity.Schema;
-import org.structr.core.entity.Schema.Type;
+import org.structr.core.entity.SchemaNode;
+import org.structr.core.entity.SchemaNode.Type;
 import org.structr.core.property.StringProperty;
 
 /**
@@ -41,7 +41,7 @@ public class StringPropertyParser extends PropertyParser {
 	public void extractTypeValidation(final String expression) throws FrameworkException {
 		
 		if ("[]".equals(expression)) {
-			errorBuffer.add(Schema.class.getSimpleName(), new InvalidPropertySchemaToken(expression, "invalid_validation_expression", "Empty validation expression."));
+			errorBuffer.add(SchemaNode.class.getSimpleName(), new InvalidPropertySchemaToken(expression, "invalid_validation_expression", "Empty validation expression."));
 			return;
 		}
 		

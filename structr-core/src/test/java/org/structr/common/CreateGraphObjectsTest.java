@@ -45,7 +45,7 @@ import org.structr.core.entity.Person;
 import org.structr.core.entity.PropertyAccess;
 import org.structr.core.entity.PropertyDefinition;
 import org.structr.core.entity.ResourceAccess;
-import org.structr.core.entity.Schema;
+import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.TestNine;
 import org.structr.core.entity.TestOne;
 import org.structr.core.entity.TestSeven;
@@ -224,7 +224,7 @@ public class CreateGraphObjectsTest extends StructrTest {
 			entityList.remove(TestTwo.class);
 			entityList.remove(TestNine.class);
 			entityList.remove(PropertyDefinition.class);
-			entityList.remove(Schema.class);
+			entityList.remove(SchemaNode.class);
 
 			for (Class type : entityList) {
 

@@ -344,43 +344,38 @@ public class TypeResource extends SortableResource {
 		}
 
 		return super.tryCombineWith(next);
-
 	}
-
-	//~--- get methods ----------------------------------------------------
 
 	@Override
 	public String getUriPart() {
-
 		return rawType;
-
 	}
 
 	public String getRawType() {
-
 		return rawType;
-
 	}
 
 	@Override
 	public Class getEntityClass() {
-
 		return entityClass;
-
+	}
+	
+	public void setEntityClass(final Class<? extends GraphObject> type) {
+		this.entityClass = type;
+	}
+	
+	public void setSearchCommandType(final Class<? extends SearchCommand> searchCommand) {
+		this.searchCommandType = searchCommand;
 	}
 
 	@Override
 	public String getResourceSignature() {
-
 		return SchemaHelper.normalizeEntityName(getUriPart());
-
 	}
 
 	@Override
 	public boolean isCollectionResource() {
-
 		return true;
-
 	}
 
 	// ----- private methods -----

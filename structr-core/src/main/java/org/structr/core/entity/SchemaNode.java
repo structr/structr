@@ -16,21 +16,9 @@ import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidPropertySchemaToken;
-import static org.structr.core.GraphObject.createdDate;
-import static org.structr.core.GraphObject.id;
-import static org.structr.core.GraphObject.lastModifiedDate;
-import static org.structr.core.GraphObject.type;
-import static org.structr.core.GraphObject.visibilityEndDate;
-import static org.structr.core.GraphObject.visibilityStartDate;
-import static org.structr.core.GraphObject.visibleToAuthenticatedUsers;
-import static org.structr.core.GraphObject.visibleToPublicUsers;
 import org.structr.core.Services;
-import static org.structr.core.entity.AbstractNode.createdBy;
-import static org.structr.core.entity.AbstractNode.deleted;
-import static org.structr.core.entity.AbstractNode.hidden;
-import static org.structr.core.entity.AbstractNode.owner;
 import static org.structr.core.entity.AbstractSchemaNode.className;
-import org.structr.core.entity.relationship.NodeIsRelatedToNode;
+import org.structr.core.entity.relationship.SchemaRelationship;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
@@ -51,7 +39,7 @@ import org.structr.schema.parser.StringPropertyParser;
  *
  * @author Christian Morgner
  */
-public class Schema extends AbstractSchemaNode implements NodeSchema {
+public class SchemaNode extends AbstractSchemaNode implements NodeSchema {
 	
 	public enum Type {
 		String, Integer, Long, Double, Boolean, Enum, Date
@@ -59,15 +47,11 @@ public class Schema extends AbstractSchemaNode implements NodeSchema {
 
 	private static final Map<Type, Class<? extends PropertyParser>> parserMap = new EnumMap<>(Type.class);
 
-	public static final Property<List<Schema>>     outNodes    = new EndNodes<>("outNodes", NodeIsRelatedToNode.class, new SchemaNotion(Schema.class));
-	public static final Property<List<Schema>>     inNodes     = new StartNodes<>("inNodes", NodeIsRelatedToNode.class, new SchemaNotion(Schema.class));
+	public static final Property<List<SchemaNode>>  relatedTo   = new EndNodes<>("relatedTo", SchemaRelationship.class, new SchemaNotion(SchemaNode.class));
+	public static final Property<List<SchemaNode>>  relatedFrom = new StartNodes<>("relatedFrom", SchemaRelationship.class, new SchemaNotion(SchemaNode.class));
 	
-	public static final View defaultView = new View(Schema.class, PropertyView.Public,
-		className, outNodes, inNodes
-	);
-	
-	public static final View hiddenView = new View(Schema.class, "hidden",
-		className, outNodes, inNodes, id, owner, type, createdBy, deleted, hidden, createdDate, lastModifiedDate, visibleToPublicUsers, visibleToAuthenticatedUsers, visibilityStartDate, visibilityEndDate		
+	public static final View defaultView = new View(SchemaNode.class, PropertyView.Public,
+		className, relatedTo, relatedFrom
 	);
 	
 	static {
@@ -140,19 +124,19 @@ public class Schema extends AbstractSchemaNode implements NodeSchema {
 					enums.addAll(parser.getEnumDefinitions());
 
 					// register property in default view
-					viewProperties.add(propertyName);
+					viewProperties.add(propertyName.substring(1));
 				}
 			}
 		}
 		
 		// output related node definitions, collect property views
-		for (final NodeIsRelatedToNode outRel : getOutgoingRelationships(NodeIsRelatedToNode.class)) {
+		for (final SchemaRelationship outRel : getOutgoingRelationships(SchemaRelationship.class)) {
 			src.append(outRel.getPropertySource(_className));
 			viewProperties.add(outRel.getPropertyName(_className));
 		}
 		
 		// output related node definitions, collect property views
-		for (final NodeIsRelatedToNode inRel : getIncomingRelationships(NodeIsRelatedToNode.class)) {
+		for (final SchemaRelationship inRel : getIncomingRelationships(SchemaRelationship.class)) {
 			src.append(inRel.getPropertySource(_className));
 			viewProperties.add(inRel.getPropertyName(_className));
 		}
@@ -198,17 +182,12 @@ public class Schema extends AbstractSchemaNode implements NodeSchema {
 	
 	private Iterable<String> getProperties() {
 		
-		final Set<String> allKeys = new LinkedHashSet<>();
 		final List<String> keys   = new LinkedList<>();
 		final Node node           = getNode();
 
-		for (final PropertyKey key : Services.getInstance().getConfigurationProvider().getPropertySet(getClass(), "hidden")) {
-			allKeys.add(key.dbName());
-		}
-		
 		for (final String key : node.getPropertyKeys()) {
 
-			if (node.hasProperty(key) && !allKeys.contains(key)) {
+			if (node.hasProperty(key) && key.startsWith("_")) {
 				
 				keys.add(key);
 			}
@@ -232,7 +211,7 @@ public class Schema extends AbstractSchemaNode implements NodeSchema {
 			}
 		}
 		
-		errorBuffer.add(Schema.class.getSimpleName(), new InvalidPropertySchemaToken(source, "invalid_property_definition", "Unknow value type " + source + ", options are " + Arrays.asList(Type.values()) + "."));
+		errorBuffer.add(SchemaNode.class.getSimpleName(), new InvalidPropertySchemaToken(source, "invalid_property_definition", "Unknow value type " + source + ", options are " + Arrays.asList(Type.values()) + "."));
 		throw new FrameworkException(422, errorBuffer);
 	}
 	

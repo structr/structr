@@ -6,8 +6,8 @@ import org.apache.commons.lang.StringUtils;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidPropertySchemaToken;
-import org.structr.core.entity.Schema;
-import org.structr.core.entity.Schema.Type;
+import org.structr.core.entity.SchemaNode;
+import org.structr.core.entity.SchemaNode.Type;
 
 /**
  *
@@ -35,6 +35,10 @@ public abstract class PropertyParser {
 		this.className    = className;
 		this.propertyName = propertyName;
 		this.rawSource    = rawSource;
+		
+		if (this.propertyName.startsWith("_")) {
+			this.propertyName = this.propertyName.substring(1);
+		}
 	}
 	
 	public String getPropertySource(final ErrorBuffer errorBuffer) throws FrameworkException {
@@ -120,7 +124,7 @@ public abstract class PropertyParser {
 				
 			} else {
 	
-				errorBuffer.add(Schema.class.getSimpleName(), new InvalidPropertySchemaToken(source, "invalid_validation_expression", "Valdation expression must be enclosed in (), e.g. (" + source + ")"));
+				errorBuffer.add(SchemaNode.class.getSimpleName(), new InvalidPropertySchemaToken(source, "invalid_validation_expression", "Valdation expression must be enclosed in (), e.g. (" + source + ")"));
 			}
 		}
 	}

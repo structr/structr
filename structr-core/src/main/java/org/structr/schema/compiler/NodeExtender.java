@@ -70,7 +70,7 @@ public class NodeExtender {
 			jfiles.add(new CharSequenceJavaFileObject(className, content));
 			fqcns.add(packageName.concat(".".concat(className)));
 
-			if ("true".equals(Services.getInstance().getConfigurationValue("nodeextender.log"))) {
+			if ("true".equals(Services.getInstance().getConfigurationValue("NodeExtender.log"))) {
 
 				System.out.println("########################################################################################################################################################");
 				System.out.println(content);

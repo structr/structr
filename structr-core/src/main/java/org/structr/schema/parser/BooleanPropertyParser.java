@@ -2,7 +2,7 @@ package org.structr.schema.parser;
 
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.Schema.Type;
+import org.structr.core.entity.SchemaNode.Type;
 import org.structr.core.property.BooleanProperty;
 
 /**

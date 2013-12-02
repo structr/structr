@@ -4,7 +4,7 @@ import org.apache.commons.lang.StringUtils;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidPropertySchemaToken;
-import org.structr.core.entity.Schema;
+import org.structr.core.entity.SchemaNode;
 
 /**
  *
@@ -51,7 +51,7 @@ public abstract class NumericalPropertyParser extends PropertyParser {
 						
 					} else {
 
-						errorBuffer.add(Schema.class.getSimpleName(), new InvalidPropertySchemaToken(expression, "invalid_range_expression", "Range must have exactly two bounds."));
+						errorBuffer.add(SchemaNode.class.getSimpleName(), new InvalidPropertySchemaToken(expression, "invalid_range_expression", "Range must have exactly two bounds."));
 						error = true;
 					}
 
@@ -70,12 +70,12 @@ public abstract class NumericalPropertyParser extends PropertyParser {
 
 				} else {
 
-					errorBuffer.add(Schema.class.getSimpleName(), new InvalidPropertySchemaToken(expression, "invalid_range_expression", "Range expression must start and end with [ or ], e.g. [" + expression + "]."));
+					errorBuffer.add(SchemaNode.class.getSimpleName(), new InvalidPropertySchemaToken(expression, "invalid_range_expression", "Range expression must start and end with [ or ], e.g. [" + expression + "]."));
 				}
 
 			} else {
 
-				errorBuffer.add(Schema.class.getSimpleName(), new InvalidPropertySchemaToken(expression, "invalid_range_expression", "Range expression must contain two values separated by a comma."));
+				errorBuffer.add(SchemaNode.class.getSimpleName(), new InvalidPropertySchemaToken(expression, "invalid_range_expression", "Range expression must contain two values separated by a comma."));
 			}
 		}
 	}

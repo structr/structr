@@ -21,7 +21,7 @@ import org.structr.core.Services;
 import org.structr.core.entity.AbstractRelationship;
 import static org.structr.core.entity.AbstractSchemaNode.accessFlags;
 import org.structr.core.entity.ManyToMany;
-import org.structr.core.entity.Schema;
+import org.structr.core.entity.SchemaNode;
 import org.structr.core.property.Property;
 import org.structr.core.property.SourceId;
 import org.structr.core.property.StringProperty;
@@ -33,9 +33,9 @@ import org.structr.schema.SchemaHelper;
  *
  * @author Christian Morgner
  */
-public class NodeIsRelatedToNode extends ManyToMany<Schema, Schema> implements RelationshipSchema {
+public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> implements RelationshipSchema {
 
-	private static final Logger logger                      = Logger.getLogger(NodeIsRelatedToNode.class.getName());
+	private static final Logger logger                      = Logger.getLogger(SchemaRelationship.class.getName());
 	private static final Pattern ValidKeyPattern            = Pattern.compile("[a-zA-Z_]+");
 	
 	public static final Property<String> sourceId           = new SourceId("sourceId");
@@ -47,18 +47,18 @@ public class NodeIsRelatedToNode extends ManyToMany<Schema, Schema> implements R
 	public static final Property<String> targetNotion       = new StringProperty("targetNotion");
 	
 	
-	public static final View defaultView = new View(NodeIsRelatedToNode.class, PropertyView.Public,
-		sourceId, targetId, sourceMultiplicity, targetMultiplicity, sourceNotion, targetNotion
+	public static final View defaultView = new View(SchemaRelationship.class, PropertyView.Public,
+		sourceId, targetId, sourceMultiplicity, targetMultiplicity, sourceNotion, targetNotion, relationshipType
 	);
 
 	@Override
-	public Class<Schema> getSourceType() {
-		return Schema.class;
+	public Class<SchemaNode> getSourceType() {
+		return SchemaNode.class;
 	}
 
 	@Override
-	public Class<Schema> getTargetType() {
-		return Schema.class;
+	public Class<SchemaNode> getTargetType() {
+		return SchemaNode.class;
 	}
 
 	@Override
@@ -89,13 +89,19 @@ public class NodeIsRelatedToNode extends ManyToMany<Schema, Schema> implements R
 	@Override
 	public boolean onCreation(SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 		
-		if (SchemaHelper.reloadSchema(errorBuffer)) {
+		if (super.onCreation(securityContext, errorBuffer)) {
+			
+			if (SchemaHelper.reloadSchema(errorBuffer)) {
 
-			final String signature = getResourceSignature();
-			final Long flags       = getProperty(accessFlags);
+				final String signature = getResourceSignature();
+				final Long flags       = getProperty(accessFlags);
 
-			SchemaHelper.createGrant(signature, flags);
-			return true;
+				if (StringUtils.isNotBlank(signature)) {
+
+					SchemaHelper.createGrant(signature, flags);
+					return true;
+				}
+			}
 		}
 		
 		return false;
@@ -103,14 +109,20 @@ public class NodeIsRelatedToNode extends ManyToMany<Schema, Schema> implements R
 
 	@Override
 	public boolean onModification(SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
-		
-		if (SchemaHelper.reloadSchema(errorBuffer)) {
 
-			final String signature = getResourceSignature();
-			final Long flags       = getProperty(accessFlags);
+		if (super.onModification(securityContext, errorBuffer)) {
 
-			SchemaHelper.createGrant(signature, flags);
-			return true;
+			if (SchemaHelper.reloadSchema(errorBuffer)) {
+
+				final String signature = getResourceSignature();
+				final Long flags       = getProperty(accessFlags);
+
+				if (StringUtils.isNotBlank(signature)) {
+
+					SchemaHelper.createGrant(signature, flags);
+					return true;
+				}
+			}
 		}
 		
 		return false;
@@ -118,8 +130,14 @@ public class NodeIsRelatedToNode extends ManyToMany<Schema, Schema> implements R
 
 	@Override
 	public void onRelationshipDeletion() {
+
 		Services.getInstance().getConfigurationProvider().unregisterEntityType(getClassName());
-		SchemaHelper.removeGrant(getResourceSignature());
+		
+		final String signature = getResourceSignature();
+		if (StringUtils.isNotBlank(signature)) {
+			
+			SchemaHelper.removeGrant(getResourceSignature());
+		}
 	}
 
 	@Override
@@ -279,11 +297,11 @@ public class NodeIsRelatedToNode extends ManyToMany<Schema, Schema> implements R
 	
 	// ----- private methods -----
 	private String getSchemaNodeSourceType() {
-		return getSourceNode().getProperty(Schema.className);
+		return getSourceNode().getProperty(SchemaNode.className);
 	}
 
 	private String getSchemaNodeTargetType() {
-		return getTargetNode().getProperty(Schema.className);
+		return getTargetNode().getProperty(SchemaNode.className);
 	}
 
 	private String getNotion(final String _className, final String notionSource) {

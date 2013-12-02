@@ -1,5 +1,6 @@
 package org.structr.core.entity;
 
+import org.apache.commons.lang.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -26,13 +27,19 @@ public abstract class AbstractSchemaNode extends AbstractNode {
 	@Override
 	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 		
-		if (SchemaHelper.reloadSchema(errorBuffer)) {
+		if (super.onCreation(securityContext, errorBuffer)) {
+			
+			if (SchemaHelper.reloadSchema(errorBuffer)) {
 
-			final String signature = getResourceSignature();
-			final Long flags       = getProperty(accessFlags);
+				final String signature = getResourceSignature();
+				final Long flags       = getProperty(accessFlags);
 
-			SchemaHelper.createGrant(signature, flags);
-			return true;
+				if (StringUtils.isNotBlank(signature)) {
+
+					SchemaHelper.createGrant(signature, flags);
+					return true;
+				}
+			}
 		}
 		
 		return false;
@@ -41,13 +48,19 @@ public abstract class AbstractSchemaNode extends AbstractNode {
 	@Override
 	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 		
-		if (SchemaHelper.reloadSchema(errorBuffer)) {
+		if (super.onModification(securityContext, errorBuffer)) {
+			
+			if (SchemaHelper.reloadSchema(errorBuffer)) {
 
-			final String signature = getResourceSignature();
-			final Long flags       = getProperty(accessFlags);
+				final String signature = getResourceSignature();
+				final Long flags       = getProperty(accessFlags);
 
-			SchemaHelper.createGrant(signature, flags);
-			return true;
+				if (StringUtils.isNotBlank(signature)) {
+
+					SchemaHelper.createGrant(signature, flags);
+					return true;
+				}
+			}
 		}
 		
 		return false;
@@ -55,8 +68,14 @@ public abstract class AbstractSchemaNode extends AbstractNode {
 
 	@Override
 	public void onNodeDeletion() {
+
 		Services.getInstance().getConfigurationProvider().unregisterEntityType(getClassName());
-		SchemaHelper.removeGrant(getResourceSignature());
+		
+		final String signature = getResourceSignature();
+		if (StringUtils.isNotBlank(signature)) {
+			
+			SchemaHelper.removeGrant(getResourceSignature());
+		}
 	}
 	
 	private String getResourceSignature() {
