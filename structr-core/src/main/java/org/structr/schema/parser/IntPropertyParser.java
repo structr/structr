@@ -3,8 +3,8 @@ package org.structr.schema.parser;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.InvalidPropertySchemaToken;
-import org.structr.core.entity.SchemaNode;
-import org.structr.core.entity.SchemaNode.Type;
+import org.structr.core.entity.Schema;
+import org.structr.core.entity.Schema.Type;
 import org.structr.core.property.IntProperty;
 
 /**
@@ -41,7 +41,7 @@ public class IntPropertyParser extends NumericalPropertyParser {
 			
 		} catch (Throwable t) {
 			
-			errorBuffer.add(SchemaNode.class.getSimpleName(), new InvalidPropertySchemaToken(source, "invalid_" + which +"_bound", StringUtils.capitalize(which) + " bound must be of type Integer."));
+			errorBuffer.add(Schema.class.getSimpleName(), new InvalidPropertySchemaToken(source, "invalid_" + which +"_bound", StringUtils.capitalize(which) + " bound must be of type Integer."));
 		}
 		
 		return null;

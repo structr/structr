@@ -189,7 +189,7 @@ public abstract class Notion<S extends NodeInterface, T> {
 	
 	public static <S, T> List<T> convertList(List<S> source, Adapter<S, T> adapter) {
 		
-		List<T> result = new LinkedList<T>();
+		List<T> result = new LinkedList<>();
 		for(S s : source) {
 	
 			try {

@@ -4,8 +4,8 @@ import org.apache.commons.lang.StringUtils;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidPropertySchemaToken;
-import org.structr.core.entity.SchemaNode;
-import org.structr.core.entity.SchemaNode.Type;
+import org.structr.core.entity.Schema;
+import org.structr.core.entity.Schema.Type;
 import org.structr.core.property.EnumProperty;
 
 /**
@@ -72,7 +72,7 @@ public class EnumPropertyParser extends PropertyParser {
 
 				} else {
 
-					errorBuffer.add(SchemaNode.class.getSimpleName(), new InvalidPropertySchemaToken(expression, "invalid_property_definition", "Invalid enum type name, must match [a-zA-Z_]+."));
+					errorBuffer.add(Schema.class.getSimpleName(), new InvalidPropertySchemaToken(expression, "invalid_property_definition", "Invalid enum type name, must match [a-zA-Z_]+."));
 
 				}
 			}
@@ -82,7 +82,7 @@ public class EnumPropertyParser extends PropertyParser {
 
 		} else {
 
-			errorBuffer.add(SchemaNode.class.getSimpleName(), new InvalidPropertySchemaToken(expression, "invalid_property_definition", "No enum types found, please specify a list of types, e.g. (red, green, blue)"));
+			errorBuffer.add(Schema.class.getSimpleName(), new InvalidPropertySchemaToken(expression, "invalid_property_definition", "No enum types found, please specify a list of types, e.g. (red, green, blue)"));
 		}
 	}
 }

@@ -21,7 +21,7 @@ import org.structr.core.Services;
 import org.structr.core.entity.AbstractRelationship;
 import static org.structr.core.entity.AbstractSchemaNode.accessFlags;
 import org.structr.core.entity.ManyToMany;
-import org.structr.core.entity.SchemaNode;
+import org.structr.core.entity.Schema;
 import org.structr.core.property.Property;
 import org.structr.core.property.SourceId;
 import org.structr.core.property.StringProperty;
@@ -33,7 +33,7 @@ import org.structr.schema.SchemaHelper;
  *
  * @author Christian Morgner
  */
-public class NodeIsRelatedToNode extends ManyToMany<SchemaNode, SchemaNode> implements RelationshipSchema {
+public class NodeIsRelatedToNode extends ManyToMany<Schema, Schema> implements RelationshipSchema {
 
 	private static final Logger logger                      = Logger.getLogger(NodeIsRelatedToNode.class.getName());
 	private static final Pattern ValidKeyPattern            = Pattern.compile("[a-zA-Z_]+");
@@ -52,13 +52,13 @@ public class NodeIsRelatedToNode extends ManyToMany<SchemaNode, SchemaNode> impl
 	);
 
 	@Override
-	public Class<SchemaNode> getSourceType() {
-		return SchemaNode.class;
+	public Class<Schema> getSourceType() {
+		return Schema.class;
 	}
 
 	@Override
-	public Class<SchemaNode> getTargetType() {
-		return SchemaNode.class;
+	public Class<Schema> getTargetType() {
+		return Schema.class;
 	}
 
 	@Override
@@ -269,7 +269,7 @@ public class NodeIsRelatedToNode extends ManyToMany<SchemaNode, SchemaNode> impl
 		src.append("\t}\n\n");
 		src.append("\t@Override\n");
 		src.append("\tpublic String name() {\n");
-		src.append("\t\treturn \"").append(getProperty(relationshipType)).append("\";\n");
+		src.append("\t\treturn \"").append(getRelationshipType()).append("\";\n");
 		src.append("\t}\n\n");
 		
 		src.append("}\n");
@@ -279,11 +279,11 @@ public class NodeIsRelatedToNode extends ManyToMany<SchemaNode, SchemaNode> impl
 	
 	// ----- private methods -----
 	private String getSchemaNodeSourceType() {
-		return getSourceNode().getProperty(SchemaNode.className);
+		return getSourceNode().getProperty(Schema.className);
 	}
 
 	private String getSchemaNodeTargetType() {
-		return getTargetNode().getProperty(SchemaNode.className);
+		return getTargetNode().getProperty(Schema.className);
 	}
 
 	private String getNotion(final String _className, final String notionSource) {

@@ -28,7 +28,6 @@ import org.structr.core.Services;
 import static org.structr.core.entity.AbstractNode.createdBy;
 import static org.structr.core.entity.AbstractNode.deleted;
 import static org.structr.core.entity.AbstractNode.hidden;
-import static org.structr.core.entity.AbstractNode.name;
 import static org.structr.core.entity.AbstractNode.owner;
 import static org.structr.core.entity.AbstractSchemaNode.className;
 import org.structr.core.entity.relationship.NodeIsRelatedToNode;
@@ -52,7 +51,7 @@ import org.structr.schema.parser.StringPropertyParser;
  *
  * @author Christian Morgner
  */
-public class SchemaNode extends AbstractSchemaNode implements NodeSchema {
+public class Schema extends AbstractSchemaNode implements NodeSchema {
 	
 	public enum Type {
 		String, Integer, Long, Double, Boolean, Enum, Date
@@ -60,14 +59,14 @@ public class SchemaNode extends AbstractSchemaNode implements NodeSchema {
 
 	private static final Map<Type, Class<? extends PropertyParser>> parserMap = new EnumMap<>(Type.class);
 
-	public static final Property<List<SchemaNode>>     outNodes    = new EndNodes<>("outNodes", NodeIsRelatedToNode.class, new SchemaNotion(SchemaNode.class));
-	public static final Property<List<SchemaNode>>     inNodes     = new StartNodes<>("inNodes", NodeIsRelatedToNode.class, new SchemaNotion(SchemaNode.class));
+	public static final Property<List<Schema>>     outNodes    = new EndNodes<>("outNodes", NodeIsRelatedToNode.class, new SchemaNotion(Schema.class));
+	public static final Property<List<Schema>>     inNodes     = new StartNodes<>("inNodes", NodeIsRelatedToNode.class, new SchemaNotion(Schema.class));
 	
-	public static final View defaultView = new View(SchemaNode.class, PropertyView.Public,
+	public static final View defaultView = new View(Schema.class, PropertyView.Public,
 		className, outNodes, inNodes
 	);
 	
-	public static final View hiddenView = new View(SchemaNode.class, "hidden",
+	public static final View hiddenView = new View(Schema.class, "hidden",
 		className, outNodes, inNodes, id, owner, type, createdBy, deleted, hidden, createdDate, lastModifiedDate, visibleToPublicUsers, visibleToAuthenticatedUsers, visibilityStartDate, visibilityEndDate		
 	);
 	
@@ -164,21 +163,8 @@ public class SchemaNode extends AbstractSchemaNode implements NodeSchema {
 		}
 
 		if (!viewProperties.isEmpty()) {
-
-			// output default view
-			src.append("\n\tpublic static final View defaultView = new View(").append(_className).append(".class, PropertyView.Public,\n");
-			src.append("\t\t");
-
-			for (final Iterator<String> it = viewProperties.iterator(); it.hasNext();) {
-
-				src.append(it.next()).append("Property");
-
-				if (it.hasNext()) {
-					src.append(", ");
-				}
-			}
-
-			src.append("\n\t);\n");
+			formatView(src, _className, "default", "PropertyView.Public", viewProperties);
+			formatView(src, _className, "ui", "PropertyView.Ui", viewProperties);
 		}
 		
 		if (!validators.isEmpty()) {
@@ -224,9 +210,9 @@ public class SchemaNode extends AbstractSchemaNode implements NodeSchema {
 
 			if (node.hasProperty(key) && !allKeys.contains(key)) {
 				
-						keys.add(key);
-					}
-				}
+				keys.add(key);
+			}
+		}
 		
 		return keys;
 	}
@@ -246,7 +232,26 @@ public class SchemaNode extends AbstractSchemaNode implements NodeSchema {
 			}
 		}
 		
-		errorBuffer.add(SchemaNode.class.getSimpleName(), new InvalidPropertySchemaToken(source, "invalid_property_definition", "Unknow value type " + source + ", options are " + Arrays.asList(Type.values()) + "."));
+		errorBuffer.add(Schema.class.getSimpleName(), new InvalidPropertySchemaToken(source, "invalid_property_definition", "Unknow value type " + source + ", options are " + Arrays.asList(Type.values()) + "."));
 		throw new FrameworkException(422, errorBuffer);
+	}
+	
+	private void formatView(final StringBuilder src, final String _className, final String viewName, final String view, final Set<String> viewProperties) {
+
+		// output default view
+		src.append("\n\tpublic static final View ").append(viewName).append("View = new View(").append(_className).append(".class, ").append(view).append(",\n");
+		src.append("\t\t");
+
+		for (final Iterator<String> it = viewProperties.iterator(); it.hasNext();) {
+
+			src.append(it.next()).append("Property");
+
+			if (it.hasNext()) {
+				src.append(", ");
+			}
+		}
+
+		src.append("\n\t);\n");
+		
 	}
 }

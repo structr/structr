@@ -24,7 +24,6 @@ import org.structr.core.notion.*;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.PropertyView;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.common.SecurityContext;
@@ -38,7 +37,6 @@ import org.structr.common.error.PropertiesNotFoundToken;
 import org.structr.common.error.TypeToken;
 import org.structr.core.JsonInput;
 import org.structr.core.Result;
-import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
@@ -54,20 +52,22 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> implement
 
 	private static final Logger logger = Logger.getLogger(TypeAndPropertySetDeserializationStrategy.class.getName());
 	
-	protected PropertyKey[] propertyKeys  = null;
-	protected boolean createIfNotExisting = false;
-	protected Class targetType            = null;
+	protected Set<PropertyKey> identifyingPropertyKeys = null;
+	protected Set<PropertyKey> foreignPropertyKeys     = null;
+	protected boolean createIfNotExisting              = false;
+	protected Class targetType                         = null;
 
 	//~--- constructors ---------------------------------------------------
 
-	public SchemaDeserializationStrategy(PropertyKey... propertyKeys) {
-		this(false, null, propertyKeys);
+	public SchemaDeserializationStrategy(Set<PropertyKey> identifyingPropertyKeys, Set<PropertyKey> foreignPropertyKeys) {
+		this(false, null, identifyingPropertyKeys, foreignPropertyKeys);
 	}
 	
-	public SchemaDeserializationStrategy(final boolean createIfNotExisting, final Class targetType, final PropertyKey... propertyKeys) {
-		this.createIfNotExisting = createIfNotExisting;
-		this.propertyKeys = propertyKeys;
-		this.targetType = targetType;
+	public SchemaDeserializationStrategy(final boolean createIfNotExisting, final Class targetType, final Set<PropertyKey> identifyingPropertyKeys, final Set<PropertyKey> foreignPropertyKeys) {
+		this.createIfNotExisting     = createIfNotExisting;
+		this.identifyingPropertyKeys = identifyingPropertyKeys;
+		this.foreignPropertyKeys     = foreignPropertyKeys;
+		this.targetType              = targetType;
 	}
 
 	//~--- methods --------------------------------------------------------
@@ -109,7 +109,7 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> implement
 				boolean attributesComplete = true;
 				
 				// Check if all property keys of the PropertySetNotion are present
-				for (PropertyKey key : propertyKeys) {
+				for (PropertyKey key : identifyingPropertyKeys) {
 					attributesComplete &= attributes.containsKey(key);
 				}
 				
@@ -131,13 +131,12 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> implement
 						if (targetType != null) {
 							
 							// remove attributes that do not belong to the target node
-							final Set<PropertyKey> targetProperties = Services.getInstance().getConfigurationProvider().getPropertySet(targetType, PropertyView.Public);
 							final PropertyMap foreignProperties = new PropertyMap();
 
 							for (final Iterator<PropertyKey> it = attributes.keySet().iterator(); it.hasNext();) {
 								
 								final PropertyKey key = it.next();
-								if (!targetProperties.contains(key)) {
+								if (foreignPropertyKeys.contains(key)) {
 
 									// move entry to foreign map and remove from attributes
 									foreignProperties.put(key, attributes.get(key));
