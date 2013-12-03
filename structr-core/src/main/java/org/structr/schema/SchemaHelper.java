@@ -11,6 +11,9 @@ import java.util.Set;
 import org.apache.commons.lang.StringUtils;
 import org.neo4j.graphdb.PropertyContainer;
 import org.structr.common.CaseHelper;
+import org.structr.common.PropertyView;
+import org.structr.common.ValidationHelper;
+import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidPropertySchemaToken;
@@ -316,6 +319,21 @@ public class SchemaHelper {
 		
 	}
 
+	public static void formatImportStatements(final StringBuilder src, final Class baseType) {
+
+		src.append("import ").append(baseType.getName()).append(";\n");
+		src.append("import ").append(PropertyView.class.getName()).append(";\n");
+		src.append("import ").append(View.class.getName()).append(";\n");
+		src.append("import ").append(ValidationHelper.class.getName()).append(";\n");
+		src.append("import ").append(ErrorBuffer.class.getName()).append(";\n");
+		src.append("import org.structr.core.validator.*;\n");
+		src.append("import org.structr.core.property.*;\n");
+		src.append("import org.structr.core.notion.*;\n");
+		src.append("import java.util.Date;\n");
+		src.append("import java.util.List;\n\n");
+
+	}
+	
 	// ----- private methods -----
 	private static PropertyParser getParserForRawValue(final ErrorBuffer errorBuffer, final String className, final String propertyName, final String source) throws FrameworkException {
 		

@@ -264,12 +264,8 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 		final Set<String> enums          = new LinkedHashSet<>();
 		
 		src.append("package org.structr.dynamic;\n\n");
-		
-		src.append("import ").append(baseType.getName()).append(";\n");
-		src.append("import ").append(PropertyView.class.getName()).append(";\n");
-		src.append("import ").append(View.class.getName()).append(";\n");
-		src.append("import org.structr.core.property.*;\n");
-		src.append("import org.structr.core.entity.*;\n\n");
+
+		SchemaHelper.formatImportStatements(src, baseType);
 		
 		src.append("public class ").append(_className).append(" extends ").append(getBaseType()).append(" {\n\n");
 		
