@@ -59,6 +59,8 @@ import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.RelationshipTypeProperty;
+import org.structr.core.property.SourceId;
+import org.structr.core.property.TargetId;
 
 
 /**
@@ -71,14 +73,16 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	private static final Logger logger = Logger.getLogger(AbstractRelationship.class.getName());
 
 	public static final Property<Integer> cascadeDelete = new IntProperty("cascadeDelete").writeOnce();
-	public static final Property<String> relType        = new RelationshipTypeProperty("relType");
+	public static final Property<String>  relType       = new RelationshipTypeProperty("relType");
+	public static final SourceId          sourceId      = new SourceId("sourceId");
+	public static final TargetId          targetId      = new TargetId("targetId");
 	
 	public static final View defauftView = new View(AbstractRelationship.class, PropertyView.Public,
-		id, type, relType
+		id, type, relType, sourceId, targetId
 	);
 	
 	public static final View uiView = new View(AbstractRelationship.class, PropertyView.Ui,
-		id, type, relType
+		id, type, relType, sourceId, targetId
 	);
 
 	private boolean readOnlyPropertiesUnlocked = false;
@@ -112,15 +116,12 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 			this.securityContext = securityContext;
 			this.properties      = data;
 			this.isDirty         = true;
-
 		}
-
 	}
 
 	public AbstractRelationship(final SecurityContext securityContext, final Relationship dbRel) {
 
 		init(securityContext, dbRel);
-
 	}
 
 	@Override
@@ -143,6 +144,14 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 		this.dbRelationship  = rel.dbRelationship;
 		this.isDirty         = false;
 		this.securityContext = securityContext;
+	}
+
+	public Property<String> getSourceIdProperty() {
+		return sourceId;
+	}
+
+	public Property<String> getTargetIdProperty() {
+		return null;
 	}
 
 	@Override

@@ -36,12 +36,10 @@ import org.structr.web.entity.dom.Page;
  */
 public class PageLink extends ManyToOne<DOMNode, Page> {
 
-	public static final Property<String> sourceId = new StringProperty("sourceId");
-	public static final Property<String> targetId = new StringProperty("targetId");
-	public static final Property<String> type     = new StringProperty("type");
+	public static final Property<String> linkType     = new StringProperty("linkType");
 
 	public static final View uiView = new View(PageLink.class, PropertyView.Ui,
-		sourceId, targetId, type	
+		 linkType	
 	);
 	
 	static {
@@ -63,15 +61,5 @@ public class PageLink extends ManyToOne<DOMNode, Page> {
 	@Override
 	public String name() {
 		return "PAGE";
-	}
-
-	@Override
-	public Property<String> getSourceIdProperty() {
-		return sourceId;
-	}
-
-	@Override
-	public Property<String> getTargetIdProperty() {
-		return targetId;
 	}
 }

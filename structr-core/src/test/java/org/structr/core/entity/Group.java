@@ -46,6 +46,4 @@ public class Group extends AbstractNode implements Principal {
 	public String getEncryptedPassword() {
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
-
-
 }
