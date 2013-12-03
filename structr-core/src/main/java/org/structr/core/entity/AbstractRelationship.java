@@ -44,6 +44,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.IdNotFoundToken;
 import org.structr.common.error.ReadOnlyPropertyToken;
 import org.structr.core.GraphObject;
+import static org.structr.core.GraphObject.id;
+import static org.structr.core.GraphObject.type;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -56,6 +58,7 @@ import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.property.RelationshipTypeProperty;
 
 
 /**
@@ -68,9 +71,14 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	private static final Logger logger = Logger.getLogger(AbstractRelationship.class.getName());
 
 	public static final Property<Integer> cascadeDelete = new IntProperty("cascadeDelete").writeOnce();
+	public static final Property<String> relType        = new RelationshipTypeProperty("relType");
 	
-	public static final View defauflView = new View(AbstractRelationship.class, PropertyView.Public,
-		id, type
+	public static final View defauftView = new View(AbstractRelationship.class, PropertyView.Public,
+		id, type, relType
+	);
+	
+	public static final View uiView = new View(AbstractRelationship.class, PropertyView.Ui,
+		id, type, relType
 	);
 
 	private boolean readOnlyPropertiesUnlocked = false;
