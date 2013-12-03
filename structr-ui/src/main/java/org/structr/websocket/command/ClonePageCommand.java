@@ -22,12 +22,9 @@ package org.structr.websocket.command;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.NodeAttribute;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.html.Html;
 import org.structr.websocket.message.MessageBuilder;
@@ -38,6 +35,7 @@ import org.structr.websocket.message.WebSocketMessage;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.CreateRelationshipCommand;
@@ -92,14 +90,14 @@ public class ClonePageCommand extends AbstractCommand {
 
 				app.beginTx();
 				
-				Page newPage = (Page) Services.command(securityContext,
+				Page newPage = (Page) StructrApp.getInstance(securityContext).command(
 						       CreateNodeCommand.class).execute(new NodeAttribute(AbstractNode.type, Page.class.getSimpleName()),
 							       new NodeAttribute(AbstractNode.name, newName),
 							       new NodeAttribute(AbstractNode.visibleToAuthenticatedUsers, true));
 
 				if (newPage != null) {
 
-					String pageId                     = newPage.getProperty(AbstractNode.uuid);
+					String pageId                     = newPage.getProperty(GraphObject.id);
 					Iterable<DOMChildren> relsOut = nodeToClone.getOutgoingRelationships(DOMChildren.class);
 					Html htmlNode                     = null;
 
@@ -124,7 +122,7 @@ public class ClonePageCommand extends AbstractCommand {
 
 						try {
 
-							Services.command(securityContext, CreateRelationshipCommand.class).execute(newPage, htmlNode, DOMChildren.class, relProps);
+							StructrApp.getInstance(securityContext).command(CreateRelationshipCommand.class).execute(newPage, htmlNode, DOMChildren.class, relProps);
 							// DOMElement.children.createRelationship(securityContext, newPage, htmlNode, relProps);
 
 						} catch (Throwable t) {

@@ -35,9 +35,8 @@ import org.neo4j.graphdb.index.IndexHits;
 import org.structr.common.AccessControllable;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
-import org.structr.core.Services;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.relationship.NodeHasLocation;
-import org.structr.core.module.ModuleService;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -165,8 +164,9 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 	@Override
 	public T instantiateDummy(final Node entity, final String entityType) throws FrameworkException {
 
-		Class<T> nodeClass = Services.getService(ModuleService.class).getNodeEntityClass(entityType);
-		T newNode          = null;
+		Map<String, Class<? extends NodeInterface>> entities = StructrApp.getConfiguration().getNodeEntities();
+		Class<T> nodeClass                                   = (Class<T>)entities.get(entityType);
+		T newNode                                            = null;
 
 		if (nodeClass != null) {
 

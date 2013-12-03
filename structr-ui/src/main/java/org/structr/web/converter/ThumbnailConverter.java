@@ -77,7 +77,7 @@ public class ThumbnailConverter extends PropertyConverter {
 			return null;
 		}
 //		try {
-//			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+//			StructrApp.getInstance(securityContext).command(TransactionCommand.class).execute(new StructrTransaction() {
 //
 //				@Override
 //				public Object execute() throws FrameworkException {

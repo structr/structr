@@ -29,9 +29,9 @@ public class Hr extends DOMElement {
 //
 //	static {
 //
-//		EntityContext.registerPropertySet(Hr.class, PropertyView.All, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Hr.class, PropertyView.Public, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Hr.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//		StructrApp.getConfiguration().registerPropertySet(Hr.class, PropertyView.All, HtmlElement.UiKey.values());
+//		StructrApp.getConfiguration().registerPropertySet(Hr.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		StructrApp.getConfiguration().registerPropertySet(Hr.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 //
 //	}
 

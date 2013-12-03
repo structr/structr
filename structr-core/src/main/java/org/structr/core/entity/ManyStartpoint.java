@@ -78,13 +78,13 @@ public class ManyStartpoint<S extends NodeInterface> extends AbstractEndpoint im
 
 			}
 		}
-
+		
 		// create new relationships
 		for (S sourceNode : toBeCreated) {
 
 			relation.ensureCardinality(securityContext, sourceNode, targetNode);
-
-			app.create(sourceNode, targetNode, relation.getClass());
+			
+			app.create(sourceNode, targetNode, relation.getClass(), getNotionProperties(securityContext, relation.getClass(), sourceNode.getUuid()));
 		}
 	}
 

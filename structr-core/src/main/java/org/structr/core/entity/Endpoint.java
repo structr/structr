@@ -18,12 +18,12 @@ public class Endpoint<A extends NodeInterface, B extends NodeInterface, S extend
 	
 	public NodeInterface createRelatedNode(final SecurityContext securityContext, final NodeInterface node) throws FrameworkException {
 
-		return Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<AbstractNode>() {
+		return StructrApp.getInstance(securityContext).command(TransactionCommand.class).execute(new StructrTransaction<AbstractNode>() {
 
 			@Override
 			public AbstractNode execute() throws FrameworkException {
 
-				AbstractNode relatedNode = Services.command(securityContext, CreateNodeCommand.class).execute(new NodeAttribute(AbstractNode.type, destType.getSimpleName()));
+				AbstractNode relatedNode = StructrApp.getInstance(securityContext).command(CreateNodeCommand.class).execute(new NodeAttribute(AbstractNode.type, destType.getSimpleName()));
                                 PropertyMap props        = new PropertyMap();
 
                                 if (cascadeDelete > 0) {
@@ -33,7 +33,7 @@ public class Endpoint<A extends NodeInterface, B extends NodeInterface, S extend
 				}
                                 
 				// create relationship
-				Services.command(securityContext, CreateRelationshipCommand.class).execute(node, relatedNode, relType, props, false);
+				StructrApp.getInstance(securityContext).command(CreateRelationshipCommand.class).execute(node, relatedNode, relType, props, false);
 
 				return relatedNode;
 			}
@@ -65,7 +65,7 @@ public class Endpoint<A extends NodeInterface, B extends NodeInterface, S extend
 			if (!removeRel) {
 				
 				// Check interfaces
-				for (Class iface : EntityContext.getInterfacesForType(targetType)) {
+				for (Class iface : StructrApp.getConfiguration().getInterfacesForType(targetType)) {
 
 					removeRel |= iface.isAssignableFrom(otherClass);
 				}
@@ -102,7 +102,7 @@ public class Endpoint<A extends NodeInterface, B extends NodeInterface, S extend
 			if (!removeRel) {
 				
 				// Check interfaces
-				for (Class iface : EntityContext.getInterfacesForType(sourceType)) {
+				for (Class iface : StructrApp.getConfiguration().getInterfacesForType(sourceType)) {
 
 					removeRel |= iface.isAssignableFrom(otherClass);
 				}
@@ -162,8 +162,8 @@ public class Endpoint<A extends NodeInterface, B extends NodeInterface, S extend
 	public AbstractRelationship createRelationship(final SecurityContext securityContext, final AbstractNode sourceNode, final AbstractNode targetNode, final PropertyMap properties) throws FrameworkException {
 
 		// create relationship if it does not already exist
-		final CreateRelationshipCommand<?> createRel = Services.command(securityContext, CreateRelationshipCommand.class);
-		final DeleteRelationshipCommand deleteRel    = Services.command(securityContext, DeleteRelationshipCommand.class);
+		final CreateRelationshipCommand<?> createRel = StructrApp.getInstance(securityContext).command(CreateRelationshipCommand.class);
+		final DeleteRelationshipCommand deleteRel    = StructrApp.getInstance(securityContext).command(DeleteRelationshipCommand.class);
 
 		if ((sourceNode != null) && (targetNode != null)) {
 
@@ -189,7 +189,7 @@ public class Endpoint<A extends NodeInterface, B extends NodeInterface, S extend
 					if (getDirection().equals(Direction.OUTGOING)) {
 
 						// set combined type
-						String tripleKey = EntityContext.createCombinedRelationshipType(declaringClass.getSimpleName(), relType.name(), destType.getSimpleName());
+						String tripleKey = StructrApp.getConfiguration().createCombinedRelationshipType(declaringClass.getSimpleName(), relType.name(), destType.getSimpleName());
 						props.put(AbstractRelationship.combinedType, Search.clean(tripleKey));
 
 						newRel = createRel.execute(sourceNode, finalTargetNode, getRelType(), props, false);
@@ -198,7 +198,7 @@ public class Endpoint<A extends NodeInterface, B extends NodeInterface, S extend
 					} else {
 
 						// set combined type
-						String tripleKey = EntityContext.createCombinedRelationshipType(destType.getSimpleName(), relType.name(), declaringClass.getSimpleName());
+						String tripleKey = StructrApp.getConfiguration().createCombinedRelationshipType(destType.getSimpleName(), relType.name(), declaringClass.getSimpleName());
 						props.put(AbstractRelationship.combinedType, Search.clean(tripleKey));
 
 						newRel = createRel.execute(finalTargetNode, sourceNode, getRelType(), props, false);
@@ -208,7 +208,7 @@ public class Endpoint<A extends NodeInterface, B extends NodeInterface, S extend
 
 					if (newRel != null) {
 
-						FactoryDefinition factoryDefinition = EntityContext.getFactoryDefinition();
+						FactoryDefinition factoryDefinition = StructrApp.getConfiguration().getFactoryDefinition();
 						
 						switch (getCardinality()) {
 
@@ -237,7 +237,7 @@ public class Endpoint<A extends NodeInterface, B extends NodeInterface, S extend
 			};
 
 			// execute transaction
-			return Services.command(securityContext, TransactionCommand.class).execute(transaction);
+			return StructrApp.getInstance(securityContext).command(TransactionCommand.class).execute(transaction);
 
 		} else {
 
@@ -270,7 +270,7 @@ public class Endpoint<A extends NodeInterface, B extends NodeInterface, S extend
 
 	public void removeRelationship(final SecurityContext securityContext, final AbstractNode sourceNode, final AbstractNode targetNode) throws FrameworkException {
 
-		final DeleteRelationshipCommand deleteRel = Services.command(securityContext, DeleteRelationshipCommand.class);
+		final DeleteRelationshipCommand deleteRel = StructrApp.getInstance(securityContext).command(DeleteRelationshipCommand.class);
 
 		if ((sourceNode != null) && (targetNode != null)) {
 
@@ -341,7 +341,7 @@ public class Endpoint<A extends NodeInterface, B extends NodeInterface, S extend
 			};
 
 			// execute transaction
-			Services.command(securityContext, TransactionCommand.class).execute(transaction);
+			StructrApp.getInstance(securityContext).command(TransactionCommand.class).execute(transaction);
 
 		} else {
 
@@ -390,7 +390,7 @@ public class Endpoint<A extends NodeInterface, B extends NodeInterface, S extend
 //			if (!removeRel) {
 //				
 //				// Check interfaces
-//				for (Class iface : EntityContext.getInterfacesForType(targetType)) {
+//				for (Class iface : StructrApp.getConfiguration().getInterfacesForType(targetType)) {
 //
 //					removeRel |= iface.isAssignableFrom(otherClass);
 //				}
@@ -427,7 +427,7 @@ public class Endpoint<A extends NodeInterface, B extends NodeInterface, S extend
 //			if (!removeRel) {
 //				
 //				// Check interfaces
-//				for (Class iface : EntityContext.getInterfacesForType(sourceType)) {
+//				for (Class iface : StructrApp.getConfiguration().getInterfacesForType(sourceType)) {
 //
 //					removeRel |= iface.isAssignableFrom(otherClass);
 //				}

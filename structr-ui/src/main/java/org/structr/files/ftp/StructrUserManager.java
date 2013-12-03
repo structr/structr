@@ -33,6 +33,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
 import org.structr.core.Services;
+import org.structr.core.app.StructrApp;
 import org.structr.core.auth.AuthHelper;
 import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.entity.AbstractUser;
@@ -69,7 +70,7 @@ public class StructrUserManager implements UserManager {
 		
 		try {
 			
-			result = Services.command(securityContext, SearchNodeCommand.class).execute(
+			result = StructrApp.getInstance(securityContext).command(SearchNodeCommand.class).execute(
 				Search.andExactTypeAndSubtypes(Principal.class));
 
 		} catch (FrameworkException ex) {

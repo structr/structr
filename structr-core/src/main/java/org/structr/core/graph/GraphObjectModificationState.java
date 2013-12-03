@@ -162,7 +162,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 		status |= STATE_DELETED;
 		
 		if (status != statusBefore) {
-			removedProperties.put(GraphObject.uuid, object.getUuid());
+			removedProperties.put(GraphObject.id, object.getUuid());
 			modified = true;
 		}
 	}

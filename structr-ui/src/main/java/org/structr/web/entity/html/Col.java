@@ -29,9 +29,9 @@ public class Col extends DOMElement {
 //
 //	static {
 //
-//		EntityContext.registerPropertySet(Col.class, PropertyView.All, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Col.class, PropertyView.Public, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Col.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//		StructrApp.getConfiguration().registerPropertySet(Col.class, PropertyView.All, HtmlElement.UiKey.values());
+//		StructrApp.getConfiguration().registerPropertySet(Col.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		StructrApp.getConfiguration().registerPropertySet(Col.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 //
 //	}
 

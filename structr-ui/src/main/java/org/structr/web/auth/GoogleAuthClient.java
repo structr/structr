@@ -19,7 +19,7 @@
 package org.structr.web.auth;
 
 import java.util.logging.Logger;
-import org.structr.core.Services;
+import org.structr.core.app.StructrApp;
 
 /**
  *
@@ -43,21 +43,21 @@ public class GoogleAuthClient extends StructrOAuthClient {
 	@Override
 	public String getUserResourceUri() {
 		
-		return Services.getConfigurationValue("oauth.google.user_details_resource_uri", "");
+		return StructrApp.getConfigurationValue("oauth.google.user_details_resource_uri", "");
 			
 	}
 
 	@Override
 	public String getReturnUri() {
 		
-		return Services.getConfigurationValue("oauth.google.return_uri", "/");
+		return StructrApp.getConfigurationValue("oauth.google.return_uri", "/");
 			
 	}
 
 	@Override
 	public String getErrorUri() {
 		
-		return Services.getConfigurationValue("oauth.google.error_uri", "/");
+		return StructrApp.getConfigurationValue("oauth.google.error_uri", "/");
 			
 	}
 	

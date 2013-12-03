@@ -20,7 +20,7 @@
 
 package org.structr.websocket.command;
 
-import org.structr.core.EntityContext;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
@@ -48,7 +48,7 @@ public class GetProperty extends AbstractCommand {
 
 		if (node != null) {
 
-			webSocketData.setNodeData(key, node.getProperty(EntityContext.getPropertyKeyForJSONName(node.getClass(), key)));
+			webSocketData.setNodeData(key, node.getProperty(StructrApp.getConfiguration().getPropertyKeyForJSONName(node.getClass(), key)));
 
 			// send only over local connection (no broadcast)
 			getWebSocket().send(webSocketData, true);

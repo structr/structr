@@ -85,7 +85,7 @@ var _Entities = {
         var t = $('.props', el);
 
         // General
-        _Entities.appendRowWithInputField(entity, t, 'data-structr-container', 'Container (set to ${this.uuid})');
+        _Entities.appendRowWithInputField(entity, t, 'data-structr-container', 'Container (set to ${this.id})');
         _Entities.appendRowWithInputField(entity, t, 'data-structr-attr', 'Attribute Key (if set, render input field in edit mode)');
         _Entities.appendRowWithInputField(entity, t, 'data-structr-type', 'Data type (e.g. Date, Boolean; default: String)');
         _Entities.appendRowWithInputField(entity, t, 'data-structr-raw-value', 'Raw value (unformatted value for Date or Number fields)');

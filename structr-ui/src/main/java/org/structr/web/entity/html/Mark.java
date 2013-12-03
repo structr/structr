@@ -29,9 +29,9 @@ public class Mark extends DOMElement {
 //
 //	static {
 //
-//		EntityContext.registerPropertySet(Mark.class, PropertyView.All, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Mark.class, PropertyView.Public, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Mark.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//		StructrApp.getConfiguration().registerPropertySet(Mark.class, PropertyView.All, HtmlElement.UiKey.values());
+//		StructrApp.getConfiguration().registerPropertySet(Mark.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		StructrApp.getConfiguration().registerPropertySet(Mark.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 //
 //	}
 

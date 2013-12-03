@@ -43,7 +43,7 @@ public class OneEndpoint<T extends NodeInterface> extends AbstractEndpoint imple
 		if (targetNode != null) {
 
 			// create new relationship
-			StructrApp.getInstance(securityContext).create(sourceNode, targetNode, relation.getClass());
+			StructrApp.getInstance(securityContext).create(sourceNode, targetNode, relation.getClass(), getNotionProperties(securityContext, relation.getClass(), targetNode.getUuid()));
 		}
 	}
 

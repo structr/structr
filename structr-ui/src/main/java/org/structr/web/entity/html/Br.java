@@ -29,9 +29,9 @@ public class Br extends DOMElement {
 //
 //	static {
 //
-//		EntityContext.registerPropertySet(Br.class, PropertyView.All, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Br.class, PropertyView.Public, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Br.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//		StructrApp.getConfiguration().registerPropertySet(Br.class, PropertyView.All, HtmlElement.UiKey.values());
+//		StructrApp.getConfiguration().registerPropertySet(Br.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		StructrApp.getConfiguration().registerPropertySet(Br.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 //
 //	}
 

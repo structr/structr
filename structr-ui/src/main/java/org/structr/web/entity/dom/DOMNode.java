@@ -52,7 +52,6 @@ import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Ownership;
 import org.structr.core.Predicate;
@@ -995,7 +994,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			
 			if (_data != null) {
 
-				Object value = _data.getProperty(EntityContext.getPropertyKeyForJSONName(_data.getClass(), part));
+				Object value = _data.getProperty(StructrApp.getConfiguration().getPropertyKeyForJSONName(_data.getClass(), part));
 
 				if (value instanceof GraphObject) {
 					_data = (GraphObject) value;
@@ -1007,7 +1006,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 				// special keyword "size"
 				if (i > 0 && "size".equals(lowerCasePart)) {
 					
-					Object val = _data.getProperty(EntityContext.getPropertyKeyForJSONName(_data.getClass(), parts[i-1]));
+					Object val = _data.getProperty(StructrApp.getConfiguration().getPropertyKeyForJSONName(_data.getClass(), parts[i-1]));
 					
 					if (val instanceof List) {
 						
@@ -1260,7 +1259,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 		if (_data != null) {
 			
-			PropertyKey referenceKeyProperty = EntityContext.getPropertyKeyForJSONName(_data.getClass(), referenceKey);
+			PropertyKey referenceKeyProperty = StructrApp.getConfiguration().getPropertyKeyForJSONName(_data.getClass(), referenceKey);
 			//return getEditModeValue(securityContext, renderContext, _data, referenceKeyProperty, defaultValue);
 			Object value = _data.getProperty(referenceKeyProperty);
 			
@@ -1470,7 +1469,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 		try {
 
-			Result<Content> result = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(searchAttributes);
+			Result<Content> result = StructrApp.getInstance().command(SearchNodeCommand.class).execute(searchAttributes);
 			for (Content content : result.getResults()) {
 
 				resultPages.add((Page) content.getOwnerDocument());
@@ -2000,7 +1999,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 				
 				// omit system properties (except type), parent/children and page relationships
 				if (key.equals(GraphObject.type) || (!key.isUnvalidated()
-					&& !key.equals(GraphObject.uuid)
+					&& !key.equals(GraphObject.id)
 					&& !key.equals(DOMNode.ownerDocument) && !key.equals(DOMNode.pageId)
 					&& !key.equals(DOMNode.parent) && !key.equals(DOMNode.parentId)
 					&& !key.equals(DOMNode.children) && !key.equals(DOMNode.childrenIds))) {
@@ -2064,8 +2063,8 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 		if (node != null && node instanceof DOMNode) {
 
-			String otherId = ((DOMNode)node).getProperty(GraphObject.uuid);
-			String ourId   = getProperty(GraphObject.uuid);
+			String otherId = ((DOMNode)node).getProperty(GraphObject.id);
+			String ourId   = getProperty(GraphObject.id);
 			
 			if (ourId != null && otherId != null && ourId.equals(otherId)) {
 				return true;

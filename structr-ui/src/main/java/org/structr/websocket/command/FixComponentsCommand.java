@@ -99,11 +99,11 @@ public class FixComponentsCommand extends AbstractCommand {
 		
 		SecurityContext securityContext = SecurityContext.getSuperUserInstance();
 
-		Result<DOMNode> result = (Result<DOMNode>) Services.command(securityContext, SearchNodeCommand.class).execute(
+		Result<DOMNode> result = (Result<DOMNode>) StructrApp.getInstance(securityContext).command(SearchNodeCommand.class).execute(
 			Search.andExactTypeAndSubtypes(DOMNode.class)
 		);
 
-		final CreateRelationshipCommand createRel = Services.command(securityContext, CreateRelationshipCommand.class);
+		final CreateRelationshipCommand createRel = StructrApp.getInstance(securityContext).command(CreateRelationshipCommand.class);
 		
 		for (DOMNode node : result.getResults()) {
 			

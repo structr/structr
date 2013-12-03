@@ -9,8 +9,8 @@ import org.structr.core.Value;
  */
 public class StreamingJsonWriter extends StreamingWriter {
 
-	public StreamingJsonWriter(final Value<String> propertyView, final boolean indent) {
-		super(propertyView, indent);
+	public StreamingJsonWriter(final Value<String> propertyView, final boolean indent, final int outputNestingDepth) {
+		super(propertyView, indent, outputNestingDepth);
 	}
 	
 	@Override

@@ -29,9 +29,9 @@ public class Bdi extends DOMElement {
 //
 //	static {
 //
-//		EntityContext.registerPropertySet(Bdi.class, PropertyView.All, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Bdi.class, PropertyView.Public, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Bdi.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//		StructrApp.getConfiguration().registerPropertySet(Bdi.class, PropertyView.All, HtmlElement.UiKey.values());
+//		StructrApp.getConfiguration().registerPropertySet(Bdi.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		StructrApp.getConfiguration().registerPropertySet(Bdi.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 //
 //	}
 

@@ -39,7 +39,6 @@
         <module>structr-core</module>
         <module>structr-rest</module>
         <module>structr-ui</module>
-        <module>structr-server</module>
     </modules>
 
     <build>

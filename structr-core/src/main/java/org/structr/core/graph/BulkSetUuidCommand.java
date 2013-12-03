@@ -25,7 +25,6 @@ import org.neo4j.tooling.GlobalGraphOperations;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
 import org.structr.core.Result;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
@@ -37,6 +36,8 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.GraphObject;
+import org.structr.schema.SchemaHelper;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -64,11 +65,11 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 
 		if (entityType != null) {
 
-			final Class type = EntityContext.getEntityClassForRawType(entityType);
+			final Class type = SchemaHelper.getEntityClassForRawType(entityType);
 
 			if (type != null) {
 
-				// final Result<AbstractNode> result = Services.command(securityContext, SearchNodeCommand.class).execute(true, false, Search.andExactType(type.getSimpleName()));
+				// final Result<AbstractNode> result = StructrApp.getInstance(securityContext).command(SearchNodeCommand.class).execute(true, false, Search.andExactType(type.getSimpleName()));
 				final Result<AbstractNode> result = nodeFactory.instantiateAll(GlobalGraphOperations.at(graphDb).getAllNodes());
 				final List<AbstractNode> nodes    = result.getResults();
 
@@ -86,7 +87,7 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 
 						try {
 
-							node.setProperty(AbstractNode.uuid, UUID.randomUUID().toString().replaceAll("[\\-]+", ""));
+							node.setProperty(GraphObject.id, UUID.randomUUID().toString().replaceAll("[\\-]+", ""));
 
 						} catch (FrameworkException fex) {
 
@@ -117,7 +118,7 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 
 		} else if (relType != null) {
 
-			// final Result<AbstractNode> result = Services.command(securityContext, SearchNodeCommand.class).execute(true, false, Search.andExactType(type.getSimpleName()));
+			// final Result<AbstractNode> result = StructrApp.getInstance(securityContext).command(SearchNodeCommand.class).execute(true, false, Search.andExactType(type.getSimpleName()));
 			final List<AbstractRelationship> rels = relFactory.instantiate(GlobalGraphOperations.at(graphDb).getAllRelationships());
 
 			logger.log(Level.INFO, "Start setting UUID on all rels of type {0}", new Object[] { relType });
@@ -134,7 +135,7 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 
 					try {
 
-						rel.setProperty(AbstractRelationship.uuid, UUID.randomUUID().toString().replaceAll("[\\-]+", ""));
+						rel.setProperty(AbstractRelationship.id, UUID.randomUUID().toString().replaceAll("[\\-]+", ""));
 
 					} catch (FrameworkException fex) {
 

@@ -28,7 +28,7 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.Services;
+import org.structr.core.app.StructrApp;
 import org.structr.core.cypher.CypherQueryHandler;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.GraphDatabaseCommand;
@@ -54,7 +54,7 @@ public class CypherQueryConverter extends PropertyConverter {
 		this.handler = handler;
 		
 		try {
-			graphDb = (GraphDatabaseService)Services.command(SecurityContext.getSuperUserInstance(), GraphDatabaseCommand.class).execute();
+			graphDb = (GraphDatabaseService)StructrApp.getInstance().command(GraphDatabaseCommand.class).execute();
 			engine  = new ExecutionEngine(graphDb);
 
 		} catch(Throwable t) {
@@ -76,7 +76,7 @@ public class CypherQueryConverter extends PropertyConverter {
 			Map<String, Object> parameters = new LinkedHashMap<>();
 			String query                   = handler.getQuery();
 			String name                    = currentObject.getProperty(AbstractNode.name);
-			String uuid                    = currentObject.getProperty(AbstractNode.uuid);
+			String uuid                    = currentObject.getProperty(GraphObject.id);
 
 			// initialize parameters
 			parameters.put("id",   uuid);

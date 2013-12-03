@@ -25,7 +25,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.Services;
+import org.structr.core.app.StructrApp;
 import org.structr.core.graph.CypherQueryCommand;
 
 /**
@@ -50,7 +50,7 @@ public class CypherQuery {
 	
 	private CypherQuery(SecurityContext securityContext, String indexName) {
 
-		this.cypherQueryCommand = Services.command(securityContext, CypherQueryCommand.class);
+		this.cypherQueryCommand = StructrApp.getInstance(securityContext).command(CypherQueryCommand.class);
 		this.indexName = indexName;
 	}
 	

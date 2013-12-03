@@ -119,9 +119,9 @@ public class GraphObjectComparator extends ViewTransformation<GraphObject> imple
 			
 			logger.log(Level.WARNING, "Cannot compare properties {0} of type {1} to {2} of type {3}, property {4} error.",
 				new Object[] {
-					n1.getProperty(AbstractNode.uuid),
+					n1.getProperty(GraphObject.id),
 					n1.getProperty(AbstractNode.type),
-					n2.getProperty(AbstractNode.uuid),
+					n2.getProperty(GraphObject.id),
 					n2.getProperty(AbstractNode.type),
 					sortKey
 				});

@@ -304,7 +304,7 @@ public class Image extends File {
 				
 			} else {
 
-				logger.log(Level.WARNING, "Could not create thumbnail for image {0} ({1})", new Object[] { getName(), getId() });
+				logger.log(Level.WARNING, "Could not create thumbnail for image {0} ({1})", new Object[] { getName(), getUuid() });
 			}
 
 			app.commitTx();

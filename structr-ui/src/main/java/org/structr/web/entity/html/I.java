@@ -29,9 +29,9 @@ public class I extends DOMElement {
 //
 //	static {
 //
-//		EntityContext.registerPropertySet(I.class, PropertyView.All, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(I.class, PropertyView.Public, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(I.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//		StructrApp.getConfiguration().registerPropertySet(I.class, PropertyView.All, HtmlElement.UiKey.values());
+//		StructrApp.getConfiguration().registerPropertySet(I.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		StructrApp.getConfiguration().registerPropertySet(I.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 //
 //	}
 

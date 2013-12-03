@@ -27,7 +27,7 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.tooling.GlobalGraphOperations;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
+import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.GenericRelationship;
 import org.structr.core.entity.Security;
@@ -75,7 +75,7 @@ public class BulkMigrateRelationships extends NodeServiceCommand implements Main
 				public void handleGraphObject(SecurityContext securityContext, AbstractRelationship rel) {
 
 					// Treat only relationships with UUID and which are instantiated as generic relationships
-					if (rel.getProperty(AbstractNode.uuid) != null) {
+					if (rel.getProperty(GraphObject.id) != null) {
 
 						Class type = rel.getClass();
 						

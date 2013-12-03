@@ -29,9 +29,9 @@ public class Samp extends DOMElement {
 //
 //	static {
 //
-//		EntityContext.registerPropertySet(Samp.class, PropertyView.All, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Samp.class, PropertyView.Public, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Samp.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//		StructrApp.getConfiguration().registerPropertySet(Samp.class, PropertyView.All, HtmlElement.UiKey.values());
+//		StructrApp.getConfiguration().registerPropertySet(Samp.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		StructrApp.getConfiguration().registerPropertySet(Samp.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 //
 //	}
 

@@ -26,6 +26,7 @@ import org.neo4j.index.lucene.ValueContext;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.PropertyValidator;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.search.IntegerSearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
@@ -43,12 +44,20 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> {
 		this(name, name, null);
 	}
 	
-	public IntProperty(String name, Integer defaultValue) {
-		this(name, name, defaultValue);
+	public IntProperty(String name, PropertyValidator<Integer>... validators) {
+		this(name, name, null, validators);
 	}
 	
-	public IntProperty(String jsonName, String dbName, Integer defaultValue) {
+	public IntProperty(String name, Integer defaultValue, PropertyValidator<Integer>... validators) {
+		this(name, name, defaultValue, validators);
+	}
+	
+	public IntProperty(String jsonName, String dbName, Integer defaultValue, PropertyValidator<Integer>... validators) {
 		super(jsonName, dbName, defaultValue);
+		
+		for (PropertyValidator<Integer> validator : validators) {
+			addValidator(validator);
+		}
 	}
 	
 	@Override

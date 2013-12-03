@@ -29,9 +29,10 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.IdNotFoundToken;
 import org.structr.core.Adapter;
-import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
+import org.structr.core.app.StructrApp;
+import org.structr.schema.SchemaHelper;
 
 /**
  *
@@ -52,7 +53,7 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 	public static final int RESULT_COUNT_ACCURATE_LIMIT	= 5000;
 	
 	// encapsulates all criteria for node creation
-	protected FactoryDefinition factoryDefinition = EntityContext.getFactoryDefinition();
+	protected FactoryDefinition factoryDefinition = StructrApp.getConfiguration().getFactoryDefinition();
 	protected FactoryProfile factoryProfile       = null;
 	
 	public Factory(final SecurityContext securityContext) {
@@ -177,7 +178,7 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 	}
 
 	protected Class<T> getClassForName(final String rawType) {
-		return EntityContext.getEntityClassForRawType(rawType);
+		return SchemaHelper.getEntityClassForRawType(rawType);
 	}
 
 	// <editor-fold defaultstate="collapsed" desc="private methods">

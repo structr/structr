@@ -29,9 +29,9 @@ public class Dfn extends DOMElement {
 //
 //	static {
 //
-//		EntityContext.registerPropertySet(Dfn.class, PropertyView.All, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Dfn.class, PropertyView.Public, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Dfn.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//		StructrApp.getConfiguration().registerPropertySet(Dfn.class, PropertyView.All, HtmlElement.UiKey.values());
+//		StructrApp.getConfiguration().registerPropertySet(Dfn.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		StructrApp.getConfiguration().registerPropertySet(Dfn.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 //
 //	}
 

@@ -25,9 +25,7 @@ import org.neo4j.tooling.GlobalGraphOperations;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
 import org.structr.core.Result;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 
@@ -38,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.schema.SchemaHelper;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -67,11 +66,11 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 		Class type = null;
 		if (entityType != null) {
 
-			type = EntityContext.getEntityClassForRawType(entityType);
+			type = SchemaHelper.getEntityClassForRawType(entityType);
 		}
-		// final Result<AbstractNode> result = Services.command(securityContext, SearchNodeCommand.class).execute(true, false, Search.andExactType(type.getSimpleName()));
+		// final Result<AbstractNode> result = StructrApp.getInstance(securityContext).command(SearchNodeCommand.class).execute(true, false, Search.andExactType(type.getSimpleName()));
 		final Result<AbstractNode> result = nodeFactory.instantiateAll(GlobalGraphOperations.at(graphDb).getAllNodes());
-		final List<AbstractNode> nodes    = new ArrayList<AbstractNode>();
+		final List<AbstractNode> nodes    = new ArrayList<>();
 
 		for (AbstractNode node : result.getResults()) {
 
@@ -116,7 +115,7 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 
 		logger.log(Level.INFO, "Done with (re-)indexing {0} nodes", count);
 
-		// final Result<AbstractNode> result = Services.command(securityContext, SearchNodeCommand.class).execute(true, false, Search.andExactType(type.getSimpleName()));
+		// final Result<AbstractNode> result = StructrApp.getInstance(securityContext).command(SearchNodeCommand.class).execute(true, false, Search.andExactType(type.getSimpleName()));
 		final List<AbstractRelationship> unfilteredRels = relFactory.instantiate(GlobalGraphOperations.at(graphDb).getAllRelationships());
 		final List<AbstractRelationship> rels           = new ArrayList<AbstractRelationship>();
 

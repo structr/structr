@@ -21,8 +21,8 @@ package org.structr.core.property;
 import java.util.LinkedList;
 import java.util.List;
 import org.structr.common.SecurityContext;
-import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 
 /**
@@ -43,7 +43,7 @@ public class HyperRelationProperty<S extends AbstractNode, T extends AbstractNod
 		this.step2 = step2;
 		
 		// make us known to the Collection context
-		EntityContext.registerConvertedProperty(this);
+		StructrApp.getConfiguration().registerConvertedProperty(this);
 	}
 	
 	@Override

@@ -18,9 +18,11 @@
  */
 package org.structr.core.graph;
 
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
@@ -44,6 +46,7 @@ public class ModificationQueue {
 	private static final Logger logger = Logger.getLogger(ModificationQueue.class.getName());
 	
 	private ConcurrentSkipListMap<String, GraphObjectModificationState> modifications = new ConcurrentSkipListMap<>();
+	private Map<String, TransactionPostProcess> postProcesses                         = new LinkedHashMap<>();
 	private Set<String> alreadyPropagated                                             = new LinkedHashSet<>();
 	private Set<String> synchronizationKeys                                           = new TreeSet<>();
 	
@@ -104,6 +107,18 @@ public class ModificationQueue {
 			logger.log(Level.INFO, "{0} ms", t);
 		}
 
+		return valid;
+	}
+	
+	public boolean doPostProcessing(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+		
+		boolean valid = true;
+		
+		for (final TransactionPostProcess process : postProcesses.values()) {
+			
+			valid &= process.execute(securityContext, errorBuffer);
+		}
+		
 		return valid;
 	}
 
@@ -215,6 +230,14 @@ public class ModificationQueue {
 		}
 		
 		return modificationEvents;
+	}
+	
+	public void postProcess(final String key, final TransactionPostProcess process) {
+		
+		if (!postProcesses.containsKey(key)) {
+			
+			this.postProcesses.put(key, process);
+		}
 	}
 
 	// ----- private methods -----

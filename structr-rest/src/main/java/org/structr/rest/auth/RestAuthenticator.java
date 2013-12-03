@@ -22,7 +22,6 @@ package org.structr.rest.auth;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.entity.AbstractNode;
@@ -33,8 +32,10 @@ import org.structr.core.entity.Principal;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.structr.common.AccessMode;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.search.SearchUserCommand;
+import org.structr.rest.servlet.JsonRestServlet;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -85,7 +86,7 @@ public class RestAuthenticator implements Authenticator {
 			if (userHeader != null) {
 
 				long userId           = Long.parseLong(userHeader);
-				AbstractNode userNode = (AbstractNode) Services.command(SecurityContext.getSuperUserInstance(), SearchUserCommand.class).execute(userId);
+				AbstractNode userNode = (AbstractNode) StructrApp.getInstance().command(SearchUserCommand.class).execute(userId);
 
 				if ((userNode != null) && (userNode instanceof Principal)) {
 

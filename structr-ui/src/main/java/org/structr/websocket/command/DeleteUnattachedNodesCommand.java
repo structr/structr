@@ -22,7 +22,6 @@ package org.structr.websocket.command;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
 import org.structr.core.Services;
@@ -81,11 +80,11 @@ public class DeleteUnattachedNodesCommand extends AbstractCommand {
 
 		final String sortOrder   = webSocketData.getSortOrder();
 		final String sortKey     = webSocketData.getSortKey();
-		PropertyKey sortProperty = EntityContext.getPropertyKeyForJSONName(DOMNode.class, sortKey);
+		PropertyKey sortProperty = StructrApp.getConfiguration().getPropertyKeyForJSONName(DOMNode.class, sortKey);
 
 		try {
 
-			Result result = (Result) Services.command(securityContext, SearchNodeCommand.class).execute(true, false, searchAttributes, sortProperty, "desc".equals(sortOrder));
+			Result result = (Result) StructrApp.getInstance(securityContext).command(SearchNodeCommand.class).execute(true, false, searchAttributes, sortProperty, "desc".equals(sortOrder));
 			final List<AbstractNode> filteredResults	= new LinkedList();
 			List<? extends GraphObject> resultList		= result.getResults();
 

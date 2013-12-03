@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Properties;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.mail.Email;
 import org.apache.commons.mail.EmailException;
@@ -45,10 +46,6 @@ import org.structr.core.Services;
 public abstract class MailHelper {
 
 	private static final String charset      = "UTF-8";
-	private static final String smtpHost     = Services.getSmtpHost();
-	private static final String smtpPort     = Services.getSmtpPort();
-	private static final String smtpUser     = Services.getSmtpUser();
-	private static final String smtpPassword = Services.getSmtpPassword();
 
 	//~--- constructors ---------------------------------------------------
 
@@ -84,6 +81,13 @@ public abstract class MailHelper {
 	private static void setup(final Email mail, final String to, final String toName, final String from, final String fromName, final String cc, final String bcc, final String bounce, final String subject)
 		throws EmailException {
 
+		// FIXME: this might be slow if the config file is read each time
+		final Properties config   = Services.getInstance().getCurrentConfig();
+		final String smtpHost     = config.getProperty(Services.SMTP_HOST);
+		final String smtpPort     = config.getProperty(Services.SMTP_PORT);
+		final String smtpUser     = config.getProperty(Services.SMTP_USER);
+		final String smtpPassword = config.getProperty(Services.SMTP_PASSWORD);
+		
 		mail.setCharset(charset);
 		mail.setHostName(smtpHost);
 		mail.setSmtpPort(Integer.parseInt(smtpPort));
@@ -125,8 +129,8 @@ public abstract class MailHelper {
 	 */
 	public static String replacePlaceHoldersInTemplate(final String template, final Map<String, String> replacementMap) {
 		
-		List<String> toReplace = new ArrayList<String>();
-		List<String> replaceBy = new ArrayList<String>();
+		List<String> toReplace = new ArrayList<>();
+		List<String> replaceBy = new ArrayList<>();
 		
 		for (Entry<String, String> property : replacementMap.entrySet()) {
 			

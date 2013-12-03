@@ -23,9 +23,7 @@ package org.structr.core.graph;
 import org.neo4j.graphdb.GraphDatabaseService;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
-import org.structr.core.Services;
 import org.structr.core.Transformation;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
@@ -43,6 +41,7 @@ import org.structr.core.entity.Security;
 import org.structr.core.entity.relationship.PrincipalOwnsAbstractNode;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.schema.SchemaHelper;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -91,7 +90,7 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 			// Determine node type
 			PropertyMap properties     = new PropertyMap(attributes);
 			Object typeObject          = properties.get(AbstractNode.type);
-			Class nodeType             = typeObject != null ? EntityContext.getEntityClassForRawType(typeObject.toString()) : EntityContext.getFactoryDefinition().getGenericNodeType();
+			Class nodeType             = typeObject != null ? SchemaHelper.getEntityClassForRawType(typeObject.toString()) : StructrApp.getConfiguration().getFactoryDefinition().getGenericNodeType();
 			NodeFactory<T> nodeFactory = new NodeFactory<>(securityContext);
 			boolean isCreation         = true;
 
@@ -114,7 +113,7 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 					securityRel.setAllowed(Permission.values());
 
 					node.unlockReadOnlyPropertiesOnce();
-					node.setProperty(AbstractNode.createdBy, user.getProperty(AbstractNode.uuid));
+					node.setProperty(AbstractNode.createdBy, user.getProperty(GraphObject.id));
 				}
 
 				// set type
@@ -123,10 +122,16 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 					node.unlockReadOnlyPropertiesOnce();
 					node.setProperty(GraphObject.type, nodeType.getSimpleName());
 				}
-				
+
+				// set UUID
+				node.unlockReadOnlyPropertiesOnce();
+				node.setProperty(GraphObject.id, getNextUuid());
+
+				// set created date
 				node.unlockReadOnlyPropertiesOnce();
 				node.setProperty(AbstractNode.createdDate, now);
 
+				// set last modified date
 				node.unlockReadOnlyPropertiesOnce();
 				node.setProperty(AbstractNode.lastModifiedDate, now);
 
@@ -154,7 +159,7 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 			node.onNodeCreation();
 
 			// iterate post creation transformations
-			for (Transformation<GraphObject> transformation : EntityContext.getEntityCreationTransformations(node.getClass())) {
+			for (Transformation<GraphObject> transformation : StructrApp.getConfiguration().getEntityCreationTransformations(node.getClass())) {
 
 				transformation.apply(securityContext, node);
 

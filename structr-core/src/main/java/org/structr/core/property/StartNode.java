@@ -27,8 +27,8 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
+import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Target;
@@ -95,7 +95,7 @@ public class StartNode<S extends NodeInterface, T extends NodeInterface> extends
 		// configure notion
 		this.notion.setType(destType);
 		
-		EntityContext.registerConvertedProperty(this);
+		StructrApp.getConfiguration().registerConvertedProperty(this);
 	}
 	
 	@Override

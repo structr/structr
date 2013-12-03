@@ -23,7 +23,7 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringUtils;
 import org.apache.oltu.oauth2.client.response.OAuthResourceResponse;
-import org.structr.core.Services;
+import org.structr.core.app.StructrApp;
 
 /**
  *
@@ -52,21 +52,21 @@ public class GitHubAuthClient extends StructrOAuthClient {
 	@Override
 	public String getUserResourceUri() {
 		
-		return Services.getConfigurationValue("oauth.github.user_details_resource_uri", "");
+		return StructrApp.getConfigurationValue("oauth.github.user_details_resource_uri", "");
 			
 	}
 
 	@Override
 	public String getReturnUri() {
 		
-		return Services.getConfigurationValue("oauth.github.return_uri", "/");
+		return StructrApp.getConfigurationValue("oauth.github.return_uri", "/");
 			
 	}
 
 	@Override
 	public String getErrorUri() {
 		
-		return Services.getConfigurationValue("oauth.github.error_uri", "/");
+		return StructrApp.getConfigurationValue("oauth.github.error_uri", "/");
 			
 	}
 

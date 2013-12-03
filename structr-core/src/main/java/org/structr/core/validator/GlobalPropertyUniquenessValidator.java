@@ -26,10 +26,8 @@ import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
 import org.structr.core.entity.AbstractNode;
 import java.util.logging.Logger;
-import org.apache.commons.lang.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 
 //~--- classes ----------------------------------------------------------------
@@ -40,16 +38,17 @@ import org.structr.core.app.StructrApp;
  *
  * @author Christian Morgner
  */
-public class GlobalPropertyUniquenessValidator implements PropertyValidator<String> {
+public class GlobalPropertyUniquenessValidator<T> implements PropertyValidator<T> {
 
 	private static final Logger logger = Logger.getLogger(GlobalPropertyUniquenessValidator.class.getName());
 
 	//~--- get methods ----------------------------------------------------
 
 	@Override
-	public boolean isValid(SecurityContext securityContext, GraphObject object, PropertyKey key, String value, ErrorBuffer errorBuffer) {
+	public boolean isValid(SecurityContext securityContext, GraphObject object, PropertyKey<T> key, T value, ErrorBuffer errorBuffer) {
 
-		if (StringUtils.isEmpty(value)) {
+		// FIXME: changed isEmpty to != null
+		if (value == null) {
 
 			errorBuffer.add(object.getType(), new EmptyPropertyToken(key));
 
@@ -65,11 +64,11 @@ public class GlobalPropertyUniquenessValidator implements PropertyValidator<Stri
 			try {
 
 				// UUID is globally unique
-				if (key.equals(GraphObject.uuid)) {
+				if (key.equals(GraphObject.id)) {
 					
 					
 					//return true; // trust uniqueness
-					existingNode = StructrApp.getInstance().get(value);
+					existingNode = StructrApp.getInstance().get(value.toString());
 					//existingNode = StructrApp.getInstance().nodeQuery(AbstractNode.class).and(key, value).getFirst();
 					
 				} else {

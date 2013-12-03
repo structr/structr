@@ -58,8 +58,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import static junit.framework.Assert.assertTrue;
-import static junit.framework.Assert.fail;
 import org.structr.core.entity.relationship.NodeHasLocation;
 import org.structr.core.graph.RelationshipInterface;
 
@@ -122,6 +120,8 @@ public class SearchResultsTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
+			ex.printStackTrace();
+			
 			logger.log(Level.SEVERE, ex.toString());
 			fail("Unexpected exception");
 
@@ -149,6 +149,8 @@ public class SearchResultsTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
+			ex.printStackTrace();
+			
 			logger.log(Level.SEVERE, ex.toString());
 			fail("Unexpected exception");
 
@@ -204,6 +206,8 @@ public class SearchResultsTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
+			ex.printStackTrace();
+			
 			logger.log(Level.SEVERE, ex.toString());
 			fail("Unexpected exception");
 
@@ -233,6 +237,8 @@ public class SearchResultsTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
+			ex.printStackTrace();
+			
 			logger.log(Level.SEVERE, ex.toString());
 			fail("Unexpected exception");
 
@@ -280,6 +286,8 @@ public class SearchResultsTest extends StructrTest {
 			fail("Expected a FrameworkException (name must_not_be_empty)");
 			
 		} catch (FrameworkException nfe) {
+			nfe.printStackTrace();
+			
 		}
 
 	}
@@ -294,8 +302,9 @@ public class SearchResultsTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
+			ex.printStackTrace();
+			
 			logger.log(Level.SEVERE, ex.toString());
-			System.out.println(ex.toString());
 			fail("Unexpected exception");
 
 		}
@@ -322,6 +331,8 @@ public class SearchResultsTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
+			ex.printStackTrace();
+			
 			logger.log(Level.SEVERE, ex.toString());
 			fail("Unexpected exception");
 
@@ -347,6 +358,8 @@ public class SearchResultsTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
+			ex.printStackTrace();
+			
 			logger.log(Level.SEVERE, ex.toString());
 			fail("Unexpected exception");
 
@@ -372,6 +385,8 @@ public class SearchResultsTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
+			ex.printStackTrace();
+			
 			logger.log(Level.SEVERE, ex.toString());
 			fail("Unexpected exception");
 
@@ -393,6 +408,8 @@ public class SearchResultsTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
+			ex.printStackTrace();
+			
 			logger.log(Level.SEVERE, ex.toString());
 			fail("Unexpected exception");
 
@@ -414,6 +431,8 @@ public class SearchResultsTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
+			ex.printStackTrace();
+			
 			logger.log(Level.SEVERE, ex.toString());
 			fail("Unexpected exception");
 
@@ -435,6 +454,8 @@ public class SearchResultsTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
+			ex.printStackTrace();
+			
 			logger.log(Level.SEVERE, ex.toString());
 			fail("Unexpected exception");
 
@@ -456,6 +477,8 @@ public class SearchResultsTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
+			ex.printStackTrace();
+			
 			logger.log(Level.SEVERE, ex.toString());
 			fail("Unexpected exception");
 
@@ -477,6 +500,8 @@ public class SearchResultsTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
+			ex.printStackTrace();
+			
 			logger.log(Level.SEVERE, ex.toString());
 			fail("Unexpected exception");
 

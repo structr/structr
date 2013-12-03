@@ -81,7 +81,7 @@ public class ArrayPropertyTest extends StructrTest {
 			assertEquals(arr, testEntity.getProperty(key));
 			
 			
-			Result<TestFour> result = Services.command(securityContext, SearchNodeCommand.class).execute(
+			Result<TestFour> result = StructrApp.getInstance(securityContext).command(SearchNodeCommand.class).execute(
 				Search.andExactType(TestFour.class),
 				Search.andExactProperty(securityContext, key, arr)
 			);
@@ -113,7 +113,7 @@ public class ArrayPropertyTest extends StructrTest {
 			
 			assertNotNull(testEntity);
 
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+			StructrApp.getInstance(securityContext).command(TransactionCommand.class).execute(new StructrTransaction() {
 
 				@Override
 				public Object execute() throws FrameworkException {
@@ -129,8 +129,8 @@ public class ArrayPropertyTest extends StructrTest {
 			// check value from database
 			assertEquals(arr, testEntity.getProperty(key));	
 			
-			Result<TestFour> result = Services.command(securityContext, SearchRelationshipCommand.class).execute(
-				Search.andExactRelType(EntityContext.getNamedRelation(TestRelationship.Relation.test_relationships.name())),
+			Result<TestFour> result = StructrApp.getInstance(securityContext).command(SearchRelationshipCommand.class).execute(
+				Search.andExactRelType(StructrApp.getConfiguration().getNamedRelation(TestRelationship.Relation.test_relationships.name())),
 				Search.andExactProperty(securityContext, key, arr)
 			);
 			

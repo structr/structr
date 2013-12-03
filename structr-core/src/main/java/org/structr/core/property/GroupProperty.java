@@ -31,9 +31,9 @@ import org.apache.lucene.search.BooleanClause.Occur;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.ReadOnlyPropertyToken;
-import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.PropertyGroup;
+import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.NodeService.NodeIndex;
 import org.structr.core.graph.NodeService.RelationshipIndex;
@@ -49,7 +49,7 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 	private static final Logger logger = Logger.getLogger(GroupProperty.class.getName());
 	
 	// indicates whether this group property is 
-	protected Map<String, PropertyKey> propertyKeys    = new LinkedHashMap<String, PropertyKey>();
+	protected Map<String, PropertyKey> propertyKeys    = new LinkedHashMap<>();
 	protected Class<? extends GraphObject> entityClass = null;
 	protected Property<Boolean> nullValuesOnlyProperty = null;
 	
@@ -66,8 +66,8 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 		this.entityClass            = entityClass;
 
 		// register in entity context
-		EntityContext.registerProperty(entityClass, nullValuesOnlyProperty);
-		EntityContext.registerPropertyGroup(entityClass, this, this);	
+		// FIXME: StructrApp.getConfiguration().registerProperty(entityClass, nullValuesOnlyProperty);
+		StructrApp.getConfiguration().registerPropertyGroup(entityClass, this, this);	
 	}
 	
 	@Override

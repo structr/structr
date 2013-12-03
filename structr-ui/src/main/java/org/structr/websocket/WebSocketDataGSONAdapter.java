@@ -24,7 +24,7 @@ import com.google.gson.*;
 
 import org.structr.common.PropertyView;
 import org.structr.core.GraphObject;
-import org.structr.core.GraphObjectGSONAdapter;
+import org.structr.rest.GraphObjectGSONAdapter;
 import org.structr.core.Value;
 import org.structr.core.StaticValue;
 import org.structr.websocket.message.WebSocketMessage;
@@ -39,7 +39,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.JsonInputGSONAdapter;
+import org.structr.rest.JsonInputGSONAdapter;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -51,14 +51,12 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 
 	private static final Logger logger                   = Logger.getLogger(WebSocketDataGSONAdapter.class.getName());
 	private GraphObjectGSONAdapter graphObjectSerializer = null;
-	private Value<String> propertyView                   = new StaticValue<String>(PropertyView.Public);
+	private Value<String> propertyView                   = new StaticValue<>(PropertyView.Public);
 
 	//~--- constructors ---------------------------------------------------
 
-	public WebSocketDataGSONAdapter(PropertyKey idProperty) {
-
-		graphObjectSerializer = new GraphObjectGSONAdapter(propertyView, idProperty);
-
+	public WebSocketDataGSONAdapter(final PropertyKey idProperty, final int outputNestingDepth) {
+		graphObjectSerializer = new GraphObjectGSONAdapter(propertyView, idProperty, outputNestingDepth);
 	}
 
 	//~--- methods --------------------------------------------------------

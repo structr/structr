@@ -37,15 +37,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.AccessMode;
-import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.exception.UnauthorizedException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Person;
 import org.structr.core.entity.SuperUser;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import static org.structr.web.auth.HttpAuthenticator.checkSessionAuthentication;
 
 //~--- classes ----------------------------------------------------------------

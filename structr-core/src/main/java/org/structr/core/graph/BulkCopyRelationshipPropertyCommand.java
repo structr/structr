@@ -22,7 +22,6 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.tooling.GlobalGraphOperations;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -31,7 +30,8 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
-import org.structr.core.EntityContext;
+import org.structr.core.GraphObject;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.property.PropertyKey;
 
@@ -71,11 +71,11 @@ public class BulkCopyRelationshipPropertyCommand extends NodeServiceCommand impl
 				public void handleGraphObject(SecurityContext securityContext, AbstractRelationship rel) {
 
 					// Treat only "our" rels
-					if(rel.getProperty(AbstractNode.uuid) != null) {
+					if(rel.getProperty(GraphObject.id) != null) {
 
-						Class type = rel.getClass();
-						PropertyKey destPropertyKey   = EntityContext.getPropertyKeyForDatabaseName(type, destKey);
-						PropertyKey sourcePropertyKey = EntityContext.getPropertyKeyForDatabaseName(type, sourceKey);
+						Class type                    = rel.getClass();
+						PropertyKey destPropertyKey   = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, destKey);
+						PropertyKey sourcePropertyKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, sourceKey);
 						
 						try {
 							// copy properties

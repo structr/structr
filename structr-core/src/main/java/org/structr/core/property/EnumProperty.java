@@ -22,6 +22,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.ValueToken;
 import org.structr.core.GraphObject;
+import org.structr.core.PropertyValidator;
 import org.structr.core.converter.PropertyConverter;
 
 /**
@@ -33,19 +34,23 @@ public class EnumProperty<T extends Enum> extends AbstractPrimitiveProperty<T> {
 	
 	private Class<T> enumType = null;
 	
-	public EnumProperty(String name, Class<T> enumType) {
-		this(name, enumType, null);
+	public EnumProperty(String name, Class<T> enumType, final PropertyValidator<T>... validators) {
+		this(name, enumType, null, validators);
 	}
 	
-	public EnumProperty(String name, Class<T> enumType, T defaultValue) {
-		this(name, name, enumType, defaultValue);
+	public EnumProperty(String name, Class<T> enumType, T defaultValue, final PropertyValidator<T>... validators) {
+		this(name, name, enumType, defaultValue, validators);
 	}
 	
-	public EnumProperty(String jsonName, String dbName, Class<T> enumType, T defaultValue) {
+	public EnumProperty(String jsonName, String dbName, Class<T> enumType, T defaultValue, final PropertyValidator<T>... validators) {
 		
 		super(jsonName, dbName, defaultValue);
 		
 		this.enumType = enumType;
+		
+		for (final PropertyValidator<T> validator : validators) {
+			addValidator(validator);
+		}
 	}
 	
 	@Override

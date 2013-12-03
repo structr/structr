@@ -70,15 +70,16 @@ public class PathsConverter extends PropertyConverter {
 	@Override
 	public Object revert(Object source) {
 
-		AbstractNode startNode         = (AbstractNode) currentObject;
-		TraversalDescription localDesc = Traversal.description().depthFirst().uniqueness(Uniqueness.NODE_PATH).relationships(RelType.CONTAINS, Direction.INCOMING);
+		final AbstractNode startNode         = (AbstractNode) currentObject;
+		final TraversalDescription localDesc = Traversal.description().depthFirst().uniqueness(Uniqueness.NODE_PATH).relationships(RelType.CONTAINS, Direction.INCOMING);
+		final String uuidPropertyName        = GraphObject.id.dbName();
 
-		Set<String> treeAddresses = new HashSet<String>();
+		Set<String> treeAddresses = new HashSet<>();
 
 		// do traversal
 		for (Path path : localDesc.traverse(startNode.getNode())) {
 
-			String pageId       = (String) path.endNode().getProperty("uuid");
+			String pageId       = (String) path.endNode().getProperty(uuidPropertyName);
 			String treeAddress  = "";
 			boolean isConnected = false;
 

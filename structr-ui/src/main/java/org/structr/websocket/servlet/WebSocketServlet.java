@@ -38,16 +38,11 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.servlet.ServletConfig;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.Services;
-import org.structr.core.graph.NodeService;
+import org.structr.core.GraphObject;
 import org.structr.core.graph.TransactionCommand;
-import org.structr.rest.ResourceProvider;
+import org.structr.rest.service.HttpServiceServlet;
 import org.structr.websocket.SynchronizationController;
 
 //~--- classes ----------------------------------------------------------------
@@ -56,39 +51,21 @@ import org.structr.websocket.SynchronizationController;
  *
  * @author Christian Morgner
  */
-public class WebSocketServlet extends HttpServlet {
+public class WebSocketServlet extends HttpServiceServlet {
 
-	private static final String STRUCTR_PROTOCOL = "structr";
-	private static ServletConfig config          = null;
-	private static WebSocketFactory factory      = null;
 	private static final Logger logger           = Logger.getLogger(WebSocketServlet.class.getName());
-
-	private PropertyKey idProperty               = null;
-	private ResourceProvider resourceProvider    = null;
-	
-	public WebSocketServlet(final PropertyKey idProperty) {
-		this.idProperty = idProperty;
-	}
-
-	public WebSocketServlet(final ResourceProvider resourceProvider) {
-		this.resourceProvider = resourceProvider;
-	}
-
-	public WebSocketServlet(final ResourceProvider resourceProvider, final PropertyKey idProperty) {
-		this.idProperty = idProperty;
-		this.resourceProvider = resourceProvider;
-	}
-
-	//~--- methods --------------------------------------------------------
+	private static final String STRUCTR_PROTOCOL = "structr";
+	private static WebSocketFactory factory      = null;
 
 	@Override
 	public void init() {
 
-		// servlet config
-		config = this.getServletConfig();
-
 		// create GSON serializer
-		final Gson gson = new GsonBuilder().setPrettyPrinting().registerTypeAdapter(WebSocketMessage.class, new WebSocketDataGSONAdapter(idProperty)).create();
+		final Gson gson = new GsonBuilder()
+			.setPrettyPrinting()
+			.registerTypeAdapter(WebSocketMessage.class, new WebSocketDataGSONAdapter(GraphObject.id, outputNestingDepth))
+			.create();
+		
 		final SynchronizationController syncController = new SynchronizationController(gson);
 		
 		// register (Structr) transaction listener
@@ -102,7 +79,7 @@ public class WebSocketServlet extends HttpServlet {
 
 				if (STRUCTR_PROTOCOL.equals(protocol)) {
 
-					return new StructrWebSocket(syncController, config, request, gson, idProperty);
+					return new StructrWebSocket(syncController, request, gson, GraphObject.id, getAuthenticator());
 
 				} else {
 
@@ -138,9 +115,4 @@ public class WebSocketServlet extends HttpServlet {
 
 		}
 	}
-
-	public void setResourceProvider(final ResourceProvider resourceProvider) {
-		this.resourceProvider = resourceProvider;
-	}
-	
 }

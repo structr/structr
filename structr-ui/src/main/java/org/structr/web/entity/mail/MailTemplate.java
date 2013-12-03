@@ -30,7 +30,7 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UniqueToken;
 import org.structr.core.Result;
-import org.structr.core.Services;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchNodeCommand;
@@ -55,7 +55,7 @@ public class MailTemplate extends AbstractNode {
 	
 	private static final Logger logger = Logger.getLogger(MailTemplate.class.getName());
 
-	public static final Property<Content> text   = new EndNode<>("text", TemplateText.class, new PropertySetNotion(true, uuid, name));
+	public static final Property<Content> text   = new EndNode<>("text", TemplateText.class, new PropertySetNotion(true, id, name));
 	public static final Property<String>  locale = new StringProperty("locale").indexed();
 	
 	public static final org.structr.common.View uiView = new org.structr.common.View(MailTemplate.class, PropertyView.Ui,
@@ -74,13 +74,13 @@ public class MailTemplate extends AbstractNode {
 		
 		String _name	= getProperty(name);
 		String _locale	= getProperty(locale);
-		String _uuid	= getProperty(uuid);
+		String _uuid	= getProperty(id);
 
 		hasError |= ValidationHelper.checkStringNotBlank(this, name, errorBuffer);
 		hasError |= ValidationHelper.checkStringNotBlank(this, locale, errorBuffer);
 
 		try {
-			Result<MailTemplate> res = (Result) Services.command(securityContext, SearchNodeCommand.class).execute(
+			Result<MailTemplate> res = (Result) StructrApp.getInstance(securityContext).command(SearchNodeCommand.class).execute(
 				Search.andExactType(MailTemplate.class),
 				Search.andExactName(_name),
 				Search.andExactProperty(securityContext, locale, _locale)

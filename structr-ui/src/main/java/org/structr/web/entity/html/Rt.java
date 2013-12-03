@@ -29,9 +29,9 @@ public class Rt extends DOMElement {
 //
 //	static {
 //
-//		EntityContext.registerPropertySet(Rt.class, PropertyView.All, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Rt.class, PropertyView.Public, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Rt.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//		StructrApp.getConfiguration().registerPropertySet(Rt.class, PropertyView.All, HtmlElement.UiKey.values());
+//		StructrApp.getConfiguration().registerPropertySet(Rt.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		StructrApp.getConfiguration().registerPropertySet(Rt.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 //
 //	}
 

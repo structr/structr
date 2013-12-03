@@ -1,7 +1,6 @@
 package org.structr.rest.entity;
 
 import org.structr.core.entity.OneToOne;
-import org.structr.core.property.Property;
 
 /**
  *
@@ -22,15 +21,5 @@ public class GroupThreeOneOneToOne extends OneToOne<TestGroupPropThree, TestGrou
 	@Override
 	public String name() {
 		return "OWNS";
-	}
-
-	@Override
-	public Property<String> getSourceIdProperty() {
-		return null;
-	}
-
-	@Override
-	public Property<String> getTargetIdProperty() {
-		return null;
 	}
 }

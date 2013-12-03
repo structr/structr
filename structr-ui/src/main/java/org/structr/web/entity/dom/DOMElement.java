@@ -34,7 +34,6 @@ import org.apache.commons.lang.StringUtils;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
@@ -108,7 +107,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	private static final int HtmlPrefixLength			= PropertyView.Html.length();
 	private final static String STRUCTR_ACTION_PROPERTY		= "data-structr-action";
 	
-	public static final  Property<List<DOMElement>> syncedNodes     = new EndNodes("syncedNodes", Sync.class, new PropertyNotion(uuid));
+	public static final  Property<List<DOMElement>> syncedNodes     = new EndNodes("syncedNodes", Sync.class, new PropertyNotion(id));
 	
 	private static final Map<String, HtmlProperty> htmlProperties              = new LRUMap(200);	// use LURMap here to avoid infinite growing
 	private static final List<GraphDataSource<List<GraphObject>>> listSources  = new LinkedList<>();
@@ -288,7 +287,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		// include arbitrary data-* attributes
 		renderCustomAttributes(buffer, securityContext, renderContext);
 
-		for (PropertyKey attribute : EntityContext.getPropertySet(getClass(), PropertyView.Html)) {
+		for (PropertyKey attribute : StructrApp.getConfiguration().getPropertySet(getClass(), PropertyView.Html)) {
 
 			String value = getPropertyWithVariableReplacement(securityContext, renderContext, attribute);
 
@@ -448,7 +447,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 									} else {
 
-										propertyKey = EntityContext.getPropertyKeyForJSONName(currentDataNode.getClass(), subKey, false);
+										propertyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(currentDataNode.getClass(), subKey, false);
 										renderContext.setRelatedProperty(propertyKey);
 
 										if (propertyKey != null) {
@@ -623,7 +622,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		
 			// try to find native html property defined in
 			// DOMElement or one of its subclasses
-			PropertyKey key = EntityContext.getPropertyKeyForJSONName(getClass(), name, false);
+			PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(getClass(), name, false);
 			
 			if (key != null && key instanceof HtmlProperty) {
 				
@@ -1137,7 +1136,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 				//HttpServletResponse response = renderContext.getResponse();
 				
 				
-				Resource resource     = ResourceHelper.applyViewTransformation(request, securityContext, ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, AbstractNode.uuid), AbstractNode.uuid), propertyView);
+				Resource resource     = ResourceHelper.applyViewTransformation(request, securityContext, ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, GraphObject.id), GraphObject.id), propertyView);
 
 				// TODO: decide if we need to rest the REST request here
 				//securityContext.checkResourceAccess(request, resource.getResourceSignature(), resource.getGrant(request, response), PropertyView.Ui);
@@ -1157,7 +1156,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 				if (sortKeyName != null) {
 
 					Class<? extends GraphObject> type = resource.getEntityClass();
-					sortKey = EntityContext.getPropertyKeyForDatabaseName(type, sortKeyName);
+					sortKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, sortKeyName);
 				}
 
 				// do action
@@ -1190,7 +1189,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 			String cypherQuery = ((DOMElement) referenceNode).getPropertyWithVariableReplacement(securityContext, renderContext, DOMElement.cypherQuery);
 			if (cypherQuery != null && !cypherQuery.isEmpty()) {
 				
-				return Services.command(securityContext, CypherQueryCommand.class).execute(cypherQuery);
+				return StructrApp.getInstance(securityContext).command(CypherQueryCommand.class).execute(cypherQuery);
 			}
 			
 			return null;

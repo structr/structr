@@ -26,8 +26,8 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
+import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeFactory;
@@ -49,7 +49,7 @@ public class TraverserEntityProperty<T extends AbstractNode> extends AbstractRea
 		this.traverserInterface = traverser;
 		
 		// make us known to the entity context
-		EntityContext.registerConvertedProperty(this);
+		StructrApp.getConfiguration().registerConvertedProperty(this);
 	}
 
 	@Override

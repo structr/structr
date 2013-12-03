@@ -27,7 +27,6 @@ import org.apache.commons.lang.StringUtils;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
-import org.structr.core.Services;
 import org.structr.core.graph.CypherQueryCommand;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
@@ -46,6 +45,7 @@ import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.StructrApp;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.relationship.DOMChildren;
 
@@ -70,7 +70,7 @@ public class View extends DOMElement {
 
 		try {
 
-			return (List<GraphObject>) Services.command(securityContext, CypherQueryCommand.class).execute(getQuery(request));
+			return (List<GraphObject>) StructrApp.getInstance(securityContext).command(CypherQueryCommand.class).execute(getQuery(request));
 
 		} catch (Throwable t) {
 
