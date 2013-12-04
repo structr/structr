@@ -44,19 +44,10 @@ public abstract class PropertyParser {
 	public String getPropertySource(final ErrorBuffer errorBuffer) throws FrameworkException {
 		
 		final String keyName   = getKey().name();
-		int length             = rawSource.length();
-		int previousLength     = 0;
 		String parserSource    = rawSource.substring(keyName.length());
 
 		// second: uniqueness and/or non-null, check until the two methods to not change the length of the string any more
-		while (previousLength != length) {
-
-			parserSource = extractUniqueness(parserSource);
-			parserSource = extractNonNull(parserSource);
-
-			previousLength = length;
-			length = parserSource.length();
-		}
+		parserSource = extractUniqueness(parserSource);
 
 		extractComplexValidation(parserSource);
 		
@@ -97,9 +88,9 @@ public abstract class PropertyParser {
 		return source;
 	}
 
-	private String extractNonNull(final String source) {
+	public void setNotNull(final boolean notNull) {
 
-		if (source.startsWith("+")) {
+		if (notNull) {
 
 			StringBuilder buf = new StringBuilder();
 			buf.append("ValidationHelper.checkPropertyNotNull(this, ");
@@ -107,11 +98,7 @@ public abstract class PropertyParser {
 			buf.append(", errorBuffer)");
 
 			globalValidators.add(buf.toString());
-
-			return source.substring(1);
 		}
-
-		return source;
 	}
 
 	private void extractComplexValidation(final String source) throws FrameworkException {

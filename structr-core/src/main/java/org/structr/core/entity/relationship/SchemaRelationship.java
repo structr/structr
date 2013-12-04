@@ -20,7 +20,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import static org.structr.core.entity.AbstractSchemaNode.accessFlags;
+import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.ManyToMany;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.TransactionCommand;
@@ -95,7 +95,7 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 		if (super.onCreation(securityContext, errorBuffer)) {
 			
 			final String signature = getResourceSignature();
-			final Long flags       = getProperty(accessFlags);
+			final Long flags       = getProperty(AbstractSchemaNode.accessFlags);
 
 			if (StringUtils.isNotBlank(signature)) {
 
@@ -117,7 +117,7 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 		if (super.onModification(securityContext, errorBuffer)) {
 
 			final String signature = getResourceSignature();
-			final Long flags       = getProperty(accessFlags);
+			final Long flags       = getProperty(AbstractSchemaNode.accessFlags);
 
 			if (StringUtils.isNotBlank(signature)) {
 

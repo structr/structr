@@ -265,10 +265,18 @@ public class SchemaHelper {
 			
 			if (propertyContainer.hasProperty(propertyName)) {
 				
-				final String rawType        = propertyContainer.getProperty(propertyName).toString();
-				final PropertyParser parser = SchemaHelper.getParserForRawValue(errorBuffer, entity.getClassName(), propertyName, rawType);
-			
+				String rawType  = propertyContainer.getProperty(propertyName).toString();
+				boolean notNull = false;
+
+				// detect and remove not-null constraint
+				if (rawType.startsWith("+")) {
+					rawType = rawType.substring(1);
+					notNull = true;
+				}
+				
+				PropertyParser parser = SchemaHelper.getParserForRawValue(errorBuffer, entity.getClassName(), propertyName, rawType, notNull);
 				if (parser != null) {
+					
 					// append created source from parser
 					src.append(parser.getPropertySource(errorBuffer));
 
@@ -329,20 +337,25 @@ public class SchemaHelper {
 		src.append("import org.structr.core.validator.*;\n");
 		src.append("import org.structr.core.property.*;\n");
 		src.append("import org.structr.core.notion.*;\n");
+		src.append("import org.structr.core.entity.*;\n");
 		src.append("import java.util.Date;\n");
 		src.append("import java.util.List;\n\n");
 
 	}
 	
 	// ----- private methods -----
-	private static PropertyParser getParserForRawValue(final ErrorBuffer errorBuffer, final String className, final String propertyName, final String source) throws FrameworkException {
+	private static PropertyParser getParserForRawValue(final ErrorBuffer errorBuffer, final String className, final String propertyName, final String source, final boolean notNull) throws FrameworkException {
 		
 		for (final Map.Entry<Type, Class<? extends PropertyParser>> entry : parserMap.entrySet()) {
 			
 			if (source.startsWith(entry.getKey().name())) {
 				
 				try {
-					return entry.getValue().getConstructor(ErrorBuffer.class, String.class, String.class, String.class).newInstance(errorBuffer, className, propertyName, source);
+					
+					final PropertyParser parser = entry.getValue().getConstructor(ErrorBuffer.class, String.class, String.class, String.class).newInstance(errorBuffer, className, propertyName, source);
+					parser.setNotNull(notNull);
+					
+					return parser;
 					
 				} catch (Throwable t) {
 					t.printStackTrace();
@@ -354,3 +367,4 @@ public class SchemaHelper {
 		throw new FrameworkException(422, errorBuffer);
 	}
 }
+
