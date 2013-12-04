@@ -3,13 +3,11 @@ package org.structr.core.entity;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import org.neo4j.helpers.collection.Iterables;
 import org.structr.common.PropertyView;
-import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.InvalidSchemaToken;
-import org.structr.core.Services;
 import org.structr.core.entity.relationship.SchemaRelationship;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
@@ -36,7 +34,7 @@ public class SchemaNode extends AbstractSchemaNode implements Schema {
 	@Override
 	public Iterable<PropertyKey> getPropertyKeys(final String propertyView) {
 		
-		final Set<PropertyKey> propertyKeys = new LinkedHashSet<>(Services.getInstance().getConfigurationProvider().getPropertySet(getClass(), propertyView));
+		final Set<PropertyKey> propertyKeys = new LinkedHashSet<>(Iterables.toList(super.getPropertyKeys(propertyView)));
 		
 		// add "custom" property keys as String properties
 		for (final String key : SchemaHelper.getProperties(getNode())) {
@@ -65,9 +63,6 @@ public class SchemaNode extends AbstractSchemaNode implements Schema {
 		SchemaHelper.formatImportStatements(src, baseType);
 		
 		src.append("public class ").append(_className).append(" extends ").append(baseType.getSimpleName()).append(" {\n\n");
-
-		// extract properties from node
-		src.append(SchemaHelper.extractProperties(this, validators, enums, viewProperties, errorBuffer));
 		
 		// output related node definitions, collect property views
 		for (final SchemaRelationship outRel : getOutgoingRelationships(SchemaRelationship.class)) {
@@ -80,6 +75,9 @@ public class SchemaNode extends AbstractSchemaNode implements Schema {
 			src.append(inRel.getPropertySource(_className));
 			viewProperties.add(inRel.getPropertyName(_className) + "Property");
 		}
+
+		// extract properties from node
+		src.append(SchemaHelper.extractProperties(this, validators, enums, viewProperties, errorBuffer));
 		
 		// output possible enum definitions
 		for (final String enumDefition : enums) {
@@ -108,20 +106,5 @@ public class SchemaNode extends AbstractSchemaNode implements Schema {
 		src.append("}\n");
 		
 		return src.toString();
-	}
-	
-	@Override
-	public boolean isValid(final ErrorBuffer errorBuffer) {
-		
-		boolean error = false;
-		
-		error |= ValidationHelper.checkStringNotBlank(this, name, errorBuffer);
-
-		if (!error && Services.getInstance().getConfigurationProvider().getNodeEntityClass(getProperty(name)) != null) {
-			
-			errorBuffer.add(SchemaNode.class.getSimpleName(), new InvalidSchemaToken(getProperty(name), "type_already_exists"));
-		}
-		
-		return !error && super.isValid(errorBuffer);
 	}
 }

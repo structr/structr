@@ -23,6 +23,7 @@ import org.structr.core.entity.ResourceAccess;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.schema.parser.BooleanPropertyParser;
+import org.structr.schema.parser.CountPropertyParser;
 import org.structr.schema.parser.DatePropertyParser;
 import org.structr.schema.parser.DoublePropertyParser;
 import org.structr.schema.parser.EnumPropertyParser;
@@ -38,7 +39,7 @@ import org.structr.schema.parser.StringPropertyParser;
 public class SchemaHelper {
 	
 	public enum Type {
-		String, Integer, Long, Double, Boolean, Enum, Date
+		String, Integer, Long, Double, Boolean, Enum, Date, Count
 	}
 
 	private static final Map<String, String> normalizedEntityNameCache        = new LinkedHashMap<>();
@@ -53,6 +54,7 @@ public class SchemaHelper {
 		parserMap.put(Type.Boolean, BooleanPropertyParser.class);
 		parserMap.put(Type.Enum,    EnumPropertyParser.class);
 		parserMap.put(Type.Date,    DatePropertyParser.class);
+		parserMap.put(Type.Count,   CountPropertyParser.class);
 	}
 
 	/**

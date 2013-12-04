@@ -26,7 +26,7 @@ public abstract class PropertyParser {
 	public abstract Type getKey();
 	public abstract String getPropertyType();
 	public abstract String getValueType();
-	public abstract String getEnumType();
+	public abstract String getAuxiliaryType();
 	public abstract void extractTypeValidation(final String expression) throws FrameworkException;
 
 	public PropertyParser(final ErrorBuffer errorBuffer, final String className, final String propertyName, final String rawSource) {
@@ -69,7 +69,7 @@ public abstract class PropertyParser {
 		
 		buf.append("\tpublic static final Property<").append(getValueType()).append("> ").append(propertyName).append("Property");
 		buf.append(" = new ").append(getPropertyType()).append("(\"").append(propertyName).append("\"");
-		buf.append(getEnumType());
+		buf.append(getAuxiliaryType());
 		buf.append(localValidator);
 		buf.append(").indexed();\n");
 		

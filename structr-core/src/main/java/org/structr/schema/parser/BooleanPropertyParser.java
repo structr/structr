@@ -26,7 +26,7 @@ public class BooleanPropertyParser extends PropertyParser {
 	}
 
 	@Override
-	public String getEnumType() {
+	public String getAuxiliaryType() {
 		return "";
 	}
 	

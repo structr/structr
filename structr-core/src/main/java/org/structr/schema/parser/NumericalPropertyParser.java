@@ -19,7 +19,7 @@ public abstract class NumericalPropertyParser extends PropertyParser {
 	public abstract Number parseNumber(final ErrorBuffer errorBuffer, final String source, final String which);
 	
 	@Override
-	public String getEnumType() {
+	public String getAuxiliaryType() {
 		return "";
 	}
 

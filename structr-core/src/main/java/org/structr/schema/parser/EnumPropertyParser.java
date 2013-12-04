@@ -32,7 +32,7 @@ public class EnumPropertyParser extends PropertyParser {
 	}
 
 	@Override
-	public String getEnumType() {
+	public String getAuxiliaryType() {
 		return enumType;
 	}
 	

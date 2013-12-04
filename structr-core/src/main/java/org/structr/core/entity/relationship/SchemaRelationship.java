@@ -17,8 +17,10 @@ import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.InvalidSchemaToken;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
+import static org.structr.core.entity.AbstractNode.name;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.ManyToMany;
@@ -93,7 +95,14 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 	public boolean onCreation(SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 		
 		if (super.onCreation(securityContext, errorBuffer)) {
+
+			// check if type already exists and raise an error if yes.
+			if (Services.getInstance().getConfigurationProvider().getRelationshipEntityClass(getProperty(name)) != null) {
 			
+				errorBuffer.add(SchemaNode.class.getSimpleName(), new InvalidSchemaToken(getProperty(name), "type_already_exists"));
+				return false;
+			}
+
 			final String signature = getResourceSignature();
 			final Long flags       = getProperty(AbstractSchemaNode.accessFlags);
 

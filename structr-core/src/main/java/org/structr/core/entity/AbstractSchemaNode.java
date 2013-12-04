@@ -4,7 +4,9 @@ import org.apache.commons.lang.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.InvalidSchemaToken;
 import org.structr.core.Services;
+import static org.structr.core.entity.AbstractNode.name;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.Property;
@@ -33,6 +35,13 @@ public abstract class AbstractSchemaNode extends AbstractNode {
 	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 		
 		if (super.onCreation(securityContext, errorBuffer)) {
+
+			// check if type already exists and raise an error if yes.
+			if (Services.getInstance().getConfigurationProvider().getNodeEntityClass(getProperty(name)) != null) {
+			
+				errorBuffer.add(SchemaNode.class.getSimpleName(), new InvalidSchemaToken(getProperty(name), "type_already_exists"));
+				return false;
+			}
 			
 			final String signature = getResourceSignature();
 			final Long flags       = getProperty(accessFlags);

@@ -36,7 +36,6 @@ import org.structr.core.GraphObject;
 import org.structr.core.Result;
 import org.structr.core.Value;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -252,7 +251,7 @@ public abstract class StreamingWriter {
 				
 				if (serializer == null) {
 
-					Set<Class> interfaces = new LinkedHashSet<Class>();
+					Set<Class> interfaces = new LinkedHashSet<>();
 					collectAllInterfaces(localType, interfaces);
 
 					for (Class interfaceType : interfaces) {

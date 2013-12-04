@@ -33,6 +33,8 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -53,6 +55,7 @@ public class SecurityContext {
 
 	private static final Logger logger                   = Logger.getLogger(SecurityContext.class.getName());
 	private static final Map<String, Long> resourceFlags = new LinkedHashMap<>();
+	private static final Pattern customViewPattern       = Pattern.compile(".*properties=([a-zA-Z_,]+)");
 
 	//~--- fields ---------------------------------------------------------
 
@@ -62,6 +65,7 @@ public class SecurityContext {
 	private Authenticator authenticator    = null;
 	private Principal cachedUser           = null;
 	private HttpServletRequest request     = null;
+	private Set<String> customView         = null;
 
 	//~--- constructors ---------------------------------------------------
 
@@ -93,6 +97,34 @@ public class SecurityContext {
 		this.request    = request;
 
 		initRequestBasedCache(request);
+		
+		// check for custom view attributes
+		if (request != null) {
+			
+			try {
+				final String contentType = request.getContentType();
+				if (contentType != null && contentType.startsWith("application/json;")) {
+
+					customView = new LinkedHashSet<>();
+
+					final Matcher matcher = customViewPattern.matcher(contentType);
+					if (matcher.matches()) {
+
+						final String properties = matcher.group(1);
+						final String[] parts    = properties.split("[,]+");
+						for (final String part : parts) {
+							
+							final String p = part.trim();
+							if (p.length() > 0) {
+								
+								customView.add(p);
+							}
+						}
+					}
+				}
+				
+			} catch (Throwable ignore) { }
+		}
 	}
 
 	//~--- methods --------------------------------------------------------
@@ -580,9 +612,15 @@ public class SecurityContext {
 	public void setAuthenticator(final Authenticator authenticator) {
 		this.authenticator = authenticator;
 	}
-	
-	//~--- inner classes --------------------------------------------------
 
+	public boolean hasCustomView() {
+		return customView != null;
+	}
+	
+	public Set<String> getCustomView() {
+		return customView;
+	}
+	
 	// ----- nested classes -----
 	private static class SuperUserSecurityContext extends SecurityContext {
 		
