@@ -284,12 +284,15 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 		src.append(SchemaHelper.extractProperties(this, validators, enums, viewProperties, errorBuffer));
 		
 		// source and target id properties
-		src.append("\tpublic static final Property<String> sourceId = new SourceId(\"sourceId\");\n");
-		src.append("\tpublic static final Property<String> targetId = new SourceId(\"targetId\");\n\n");
+		src.append("\tpublic static final Property<String> sourceIdProperty = new SourceId(\"sourceId\");\n");
+		src.append("\tpublic static final Property<String> targetIdProperty = new SourceId(\"targetId\");\n");
 
 		// add sourceId and targetId to view properties
-		SchemaHelper.addPropertyToView("public", "sourceId", viewProperties);
-		SchemaHelper.addPropertyToView("public", "targetId", viewProperties);
+		SchemaHelper.addPropertyToView(PropertyView.Public, "sourceId", viewProperties);
+		SchemaHelper.addPropertyToView(PropertyView.Public, "targetId", viewProperties);
+		
+		SchemaHelper.addPropertyToView(PropertyView.Ui, "sourceId", viewProperties);
+		SchemaHelper.addPropertyToView(PropertyView.Ui, "targetId", viewProperties);
 		
 		// output possible enum definitions
 		for (final String enumDefition : enums) {
@@ -322,7 +325,7 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 		}
 		
 		// abstract method implementations
-		src.append("\t@Override\n");
+		src.append("\n\t@Override\n");
 		src.append("\tpublic Class<").append(_sourceNodeType).append("> getSourceType() {\n");
 		src.append("\t\treturn ").append(_sourceNodeType).append(".class;\n");
 		src.append("\t}\n\n");

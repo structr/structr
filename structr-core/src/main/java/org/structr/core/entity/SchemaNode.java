@@ -73,14 +73,16 @@ public class SchemaNode extends AbstractSchemaNode implements Schema {
 		for (final SchemaRelationship outRel : getOutgoingRelationships(SchemaRelationship.class)) {
 
 			src.append(outRel.getPropertySource(_className));
-			SchemaHelper.addPropertyToView("public", outRel.getPropertyName(_className), viewProperties);
+			SchemaHelper.addPropertyToView(PropertyView.Public, outRel.getPropertyName(_className), viewProperties);
+			SchemaHelper.addPropertyToView(PropertyView.Ui, outRel.getPropertyName(_className), viewProperties);
 		}
 		
 		// output related node definitions, collect property views
 		for (final SchemaRelationship inRel : getIncomingRelationships(SchemaRelationship.class)) {
 
 			src.append(inRel.getPropertySource(_className));
-			SchemaHelper.addPropertyToView("public", inRel.getPropertyName(_className), viewProperties);
+			SchemaHelper.addPropertyToView(PropertyView.Public, inRel.getPropertyName(_className), viewProperties);
+			SchemaHelper.addPropertyToView(PropertyView.Ui, inRel.getPropertyName(_className), viewProperties);
 		}
 
 		// extract properties from node

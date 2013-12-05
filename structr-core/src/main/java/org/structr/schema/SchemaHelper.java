@@ -288,7 +288,8 @@ public class SchemaHelper {
 					enums.addAll(parser.getEnumDefinitions());
 
 					// register property in default view
-					addPropertyToView("public", propertyName.substring(1), views);
+					addPropertyToView(PropertyView.Public, propertyName.substring(1), views);
+					addPropertyToView(PropertyView.Ui, propertyName.substring(1), views);
 				}
 			}
 		}
