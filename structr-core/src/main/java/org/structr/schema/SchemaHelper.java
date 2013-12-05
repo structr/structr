@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -257,7 +258,7 @@ public class SchemaHelper {
 		
 	}
 	
-	public static String extractProperties(final Schema entity, final Set<String> validators, final Set<String> enums, final Set<String> viewProperties, final ErrorBuffer errorBuffer) throws FrameworkException {
+	public static String extractProperties(final Schema entity, final Set<String> validators, final Set<String> enums, final Map<String, Set<String>> views, final ErrorBuffer errorBuffer) throws FrameworkException {
 		
 		final PropertyContainer propertyContainer = entity.getPropertyContainer();
 		final StringBuilder src                   = new StringBuilder();
@@ -265,7 +266,7 @@ public class SchemaHelper {
 		// output property source code and collect views
 		for (final String propertyName : SchemaHelper.getProperties(propertyContainer)) {
 			
-			if (propertyContainer.hasProperty(propertyName)) {
+			if (!propertyName.startsWith("__") && propertyContainer.hasProperty(propertyName)) {
 				
 				String rawType  = propertyContainer.getProperty(propertyName).toString();
 				boolean notNull = false;
@@ -287,12 +288,51 @@ public class SchemaHelper {
 					enums.addAll(parser.getEnumDefinitions());
 
 					// register property in default view
-					viewProperties.add(propertyName.substring(1) + "Property");
+					addPropertyToView("public", propertyName.substring(1), views);
+				}
+			}
+		}
+		
+		for (final String rawViewName : getViews(propertyContainer)) {
+			
+			if (propertyContainer.hasProperty(rawViewName)) {
+				
+				final String value    = propertyContainer.getProperty(rawViewName).toString();
+				final String[] parts  = value.split("[,\\s]+");
+				final String viewName = rawViewName.substring(2);
+				
+				// clear view before filling it again
+				Set<String> view = views.get(viewName);
+				if (view == null) {
+					
+					view = new LinkedHashSet<>();
+					views.put(viewName, view);
+					
+				} else {
+					
+					view.clear();
+				}
+
+				// add parts to view, overrides defaults (because of clear() above)
+				for (int i=0; i<parts.length; i++) {
+					view.add(parts[i].trim());
 				}
 			}
 		}
 
 		return src.toString();
+	}
+	
+	public static void addPropertyToView(final String viewName, final String propertyName, final Map<String, Set<String>> views) {
+		
+		Set<String> view = views.get(viewName);
+		if (view == null) {
+			
+			view = new LinkedHashSet<>();
+			views.put(viewName, view);
+		}
+		
+		view.add(propertyName + "Property");
 	}
 		
 	public static Iterable<String> getProperties(final PropertyContainer propertyContainer) {
@@ -309,16 +349,38 @@ public class SchemaHelper {
 		
 		return keys;
 	}
+		
+	public static Iterable<String> getViews(final PropertyContainer propertyContainer) {
+		
+		final List<String> keys = new LinkedList<>();
+
+		for (final String key : propertyContainer.getPropertyKeys()) {
+
+			if (propertyContainer.hasProperty(key) && key.startsWith("__")) {
+				
+				keys.add(key);
+			}
+		}
+		
+		return keys;
+	}
 	
 	public static void formatView(final StringBuilder src, final String _className, final String viewName, final String view, final Set<String> viewProperties) {
 
 		// output default view
-		src.append("\n\tpublic static final View ").append(viewName).append("View = new View(").append(_className).append(".class, ").append(view).append(",\n");
+		src.append("\n\tpublic static final View ").append(viewName).append("View = new View(").append(_className).append(".class, \"").append(view).append("\",\n");
 		src.append("\t\t");
 
 		for (final Iterator<String> it = viewProperties.iterator(); it.hasNext();) {
 
-			src.append(it.next());
+			String propertyName = it.next();
+			
+			// convert _-prefixed property names to "real" name
+			if (propertyName.startsWith("_")) {
+				propertyName = propertyName.substring(1) + "Property";
+			}
+			
+			src.append(propertyName);
 
 			if (it.hasNext()) {
 				src.append(", ");

@@ -1,6 +1,7 @@
 package org.structr.rest.service;
 
 import java.util.Properties;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServlet;
@@ -26,7 +27,7 @@ public class HttpServiceServlet extends HttpServlet {
 	protected boolean userAutoCreate              = false;
 	protected int outputNestingDepth              = 3;
 
-	public void initializeFromProperties(final Properties properties, final String servletName) {
+	public void initializeFromProperties(final Properties properties, final String servletName, final Set<ResourceProvider> resourceProviders) {
 
 		final String resourceProviderKeyName = servletName.concat(".resourceprovider");
 		final String authenticatorKeyName    = servletName.concat(".authenticator");
@@ -50,6 +51,7 @@ public class HttpServiceServlet extends HttpServlet {
 
 			try {
 				resourceProvider = (ResourceProvider)Class.forName(resourceProviderValue).newInstance();
+				resourceProviders.add(resourceProvider);
 
 			} catch (Throwable t) {
 

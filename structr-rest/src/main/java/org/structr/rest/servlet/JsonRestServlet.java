@@ -224,7 +224,7 @@ public class JsonRestServlet extends HttpServiceServlet {
 
 		try {
 
-			Authenticator authenticator     = getAuthenticator();
+			Authenticator authenticator = getAuthenticator();
 			securityContext = authenticator.initializeAndExamineRequest(request, response);
 
 //			logRequest("GET", request);

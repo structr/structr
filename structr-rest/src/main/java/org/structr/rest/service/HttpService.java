@@ -6,9 +6,11 @@ import java.io.File;
 import java.io.IOException;
 import java.util.EnumSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.DispatcherType;
@@ -41,6 +43,7 @@ import org.structr.core.RunnableService;
 import org.structr.core.Services;
 import org.structr.core.auth.SuperUserAuthenticator;
 import org.structr.rest.DefaultResourceProvider;
+import org.structr.rest.ResourceProvider;
 import org.structr.rest.servlet.JsonRestServlet;
 import org.tuckey.web.filters.urlrewrite.UrlRewriteFilter;
 
@@ -62,6 +65,9 @@ public class HttpService implements RunnableService {
 	public static final String APPLICATION_HTTPS_ENABLED     = "application.https.enabled";
 	public static final String APPLICATION_KEYSTORE_PATH     = "application.keystore.path";
 	public static final String APPLICATION_KEYSTORE_PASSWORD = "application.keystore.password";
+
+	// set of resource providers for this service
+	private Set<ResourceProvider> resourceProviders          = new LinkedHashSet<>();
 	
 	private enum LifecycleEvent {
 		Started, Stopped
@@ -407,6 +413,10 @@ public class HttpService implements RunnableService {
 	public String getName() {
 		return HttpService.class.getName();
 	}
+	
+	public Set<ResourceProvider> getResourceProviders() {
+		return resourceProviders;
+	}
 
 	// ----- private methods -----
 	private List<ContextHandler> collectResourceHandlers(final StructrConf properties) {
@@ -516,7 +526,7 @@ public class HttpService implements RunnableService {
 						if (servletPath != null) {
 
 							final HttpServiceServlet servlet = (HttpServiceServlet)Class.forName(servletClassName).newInstance();
-							servlet.initializeFromProperties(properties, servletName);
+							servlet.initializeFromProperties(properties, servletName, resourceProviders);
 							
 							if (servletPath.endsWith("*")) {
 								

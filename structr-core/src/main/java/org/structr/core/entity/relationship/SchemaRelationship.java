@@ -2,7 +2,9 @@ package org.structr.core.entity.relationship;
 
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -20,7 +22,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidSchemaToken;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import static org.structr.core.entity.AbstractNode.name;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.ManyToMany;
@@ -55,6 +56,8 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 	public static final View defaultView = new View(SchemaRelationship.class, PropertyView.Public,
 		AbstractNode.name, sourceId, targetId, sourceMultiplicity, targetMultiplicity, sourceNotion, targetNotion, relationshipType
 	);
+	
+	private Set<String> dynamicViews = new LinkedHashSet<>();
 
 	@Override
 	public Class<SchemaNode> getSourceType() {
@@ -97,9 +100,9 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 		if (super.onCreation(securityContext, errorBuffer)) {
 
 			// check if type already exists and raise an error if yes.
-			if (Services.getInstance().getConfigurationProvider().getRelationshipEntityClass(getProperty(name)) != null) {
+			if (Services.getInstance().getConfigurationProvider().getRelationshipEntityClass(getClassName()) != null) {
 			
-				errorBuffer.add(SchemaNode.class.getSimpleName(), new InvalidSchemaToken(getProperty(name), "type_already_exists"));
+				errorBuffer.add(SchemaNode.class.getSimpleName(), new InvalidSchemaToken(getClassName(), "type_already_exists"));
 				return false;
 			}
 
@@ -263,14 +266,14 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 	@Override
 	public String getSource(final ErrorBuffer errorBuffer) throws FrameworkException {
 
-		final StringBuilder src          = new StringBuilder();
-		final Class baseType             = AbstractRelationship.class;
-		final String _className          = getClassName();
-		final String _sourceNodeType     = getSchemaNodeSourceType();
-		final String _targetNodeType     = getSchemaNodeTargetType();
-		final Set<String> viewProperties = new LinkedHashSet<>();
-		final Set<String> validators     = new LinkedHashSet<>();
-		final Set<String> enums          = new LinkedHashSet<>();
+		final Map<String, Set<String>> viewProperties = new LinkedHashMap<>();
+		final StringBuilder src                       = new StringBuilder();
+		final Class baseType                          = AbstractRelationship.class;
+		final String _className                       = getClassName();
+		final String _sourceNodeType                  = getSchemaNodeSourceType();
+		final String _targetNodeType                  = getSchemaNodeTargetType();
+		final Set<String> validators                  = new LinkedHashSet<>();
+		final Set<String> enums                       = new LinkedHashSet<>();
 		
 		src.append("package org.structr.dynamic;\n\n");
 
@@ -278,24 +281,30 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 		
 		src.append("public class ").append(_className).append(" extends ").append(getBaseType()).append(" {\n\n");
 		
-		src.append(SchemaHelper.extractProperties(this, null, null, null, errorBuffer));
+		src.append(SchemaHelper.extractProperties(this, validators, enums, viewProperties, errorBuffer));
 		
 		// source and target id properties
 		src.append("\tpublic static final Property<String> sourceId = new SourceId(\"sourceId\");\n");
 		src.append("\tpublic static final Property<String> targetId = new SourceId(\"targetId\");\n\n");
 
 		// add sourceId and targetId to view properties
-		viewProperties.add("sourceId");
-		viewProperties.add("targetId");
+		SchemaHelper.addPropertyToView("public", "sourceId", viewProperties);
+		SchemaHelper.addPropertyToView("public", "targetId", viewProperties);
 		
 		// output possible enum definitions
 		for (final String enumDefition : enums) {
 			src.append(enumDefition);
 		}
 
-		if (!viewProperties.isEmpty()) {
-			SchemaHelper.formatView(src, _className, "default", "PropertyView.Public", viewProperties);
-			SchemaHelper.formatView(src, _className, "ui", "PropertyView.Ui", viewProperties);
+		for (Map.Entry<String, Set<String>> entry :viewProperties.entrySet()) {
+
+			final String viewName  = entry.getKey();
+			final Set<String> view = entry.getValue();
+			
+			if (!view.isEmpty()) {
+				dynamicViews.add(viewName);
+				SchemaHelper.formatView(src, _className, viewName, viewName, view);
+			}
 		}
 		
 		if (!validators.isEmpty()) {
@@ -337,6 +346,11 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 		src.append("}\n");
 		
 		return src.toString();
+	}
+	
+	@Override
+	public Set<String> getViews() {
+		return dynamicViews;
 	}
 	
 	// ----- private methods -----

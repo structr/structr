@@ -92,18 +92,19 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	private final String testClassesDir					                       = fileSep.concat("test-classes");
 	private final String classesDir						                       = fileSep.concat("classes");
 	 
-	private final Map<Class, Map<PropertyKey, Set<PropertyValidator>>> globalValidatorMap          = new LinkedHashMap<>();
-	private final Map<Class, Map<String, Set<PropertyKey>>> globalPropertyViewMap                  = new LinkedHashMap<>();
-	private final Map<Class, Map<String, PropertyKey>> globalClassDBNamePropertyMap                = new LinkedHashMap<>();
-	private final Map<Class, Map<String, PropertyKey>> globalClassJSNamePropertyMap                = new LinkedHashMap<>();
-	private final Map<Class, Map<String, PropertyGroup>> globalAggregatedPropertyGroupMap          = new LinkedHashMap<>();
-	private final Map<Class, Map<String, PropertyGroup>> globalPropertyGroupMap                    = new LinkedHashMap<>();
-	private final Map<Class, Map<String, ViewTransformation>> viewTransformations                  = new LinkedHashMap<>();
-	private final Map<Class, Set<Transformation<GraphObject>>> globalTransformationMap             = new LinkedHashMap<>();
-	private final Map<Class, Set<Method>> exportedMethodMap                                        = new LinkedHashMap<>();
+	private final Map<String, Map<String, Set<PropertyKey>>> globalPropertyViewMap                 = new LinkedHashMap<>();
+	private final Map<String, Map<PropertyKey, Set<PropertyValidator>>> globalValidatorMap         = new LinkedHashMap<>();
+	private final Map<String, Map<String, PropertyKey>> globalClassDBNamePropertyMap               = new LinkedHashMap<>();
+	private final Map<String, Map<String, PropertyKey>> globalClassJSNamePropertyMap               = new LinkedHashMap<>();
+	private final Map<String, Map<String, PropertyGroup>> globalAggregatedPropertyGroupMap         = new LinkedHashMap<>();
+	private final Map<String, Map<String, PropertyGroup>> globalPropertyGroupMap                   = new LinkedHashMap<>();
+	private final Map<String, Map<String, ViewTransformation>> viewTransformations                 = new LinkedHashMap<>();
+	private final Map<String, Set<Transformation<GraphObject>>> globalTransformationMap            = new LinkedHashMap<>();
+	private final Map<String, Set<Method>> exportedMethodMap                                       = new LinkedHashMap<>();
 	private final Map<Class, Set<Class>> interfaceMap                                              = new LinkedHashMap<>();
 	private final Map<String, Class> reverseInterfaceMap                                           = new LinkedHashMap<>();
 	private final Set<PropertyKey> globalKnownPropertyKeys                                         = new LinkedHashSet<>();
+	private final Set<String> dynamicViews                                                         = new LinkedHashSet<>();
         
 	private FactoryDefinition factoryDefinition                                                    = new DefaultFactoryDefinition();
 
@@ -516,6 +517,8 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 		relationshipEntityClassCache.remove(typeName);
 		relationshipPackages.remove(JarConfigurationProvider.DYNAMIC_TYPES_PACKAGE + typeName);
+		
+		
 	}
 
 	@Override
@@ -532,13 +535,14 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 			if (AbstractNode.class.isAssignableFrom(type)) {
 				nodeEntityClassCache.put(simpleName, type);
 				nodeEntityPackages.add(fullName.substring(0, fullName.lastIndexOf(".")));
+				globalPropertyViewMap.remove(type.getName());
 			}
 			
 			if (AbstractRelationship.class.isAssignableFrom(type)) {
 
 				relationshipEntityClassCache.put(simpleName, type);
 				relationshipPackages.add(fullName.substring(0, fullName.lastIndexOf(".")));
-				
+				globalPropertyViewMap.remove(type.getName());
 			}
 
 			for (Class interfaceClass : type.getInterfaces()) {
@@ -599,10 +603,10 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 			}
 		}
 		
-		Set<Method> typeMethods = exportedMethodMap.get(type);
+		Set<Method> typeMethods = exportedMethodMap.get(type.getName());
 		if (typeMethods == null) {
 			typeMethods = new LinkedHashSet<>();
-			exportedMethodMap.put(type, typeMethods);
+			exportedMethodMap.put(type.getName(), typeMethods);
 		}
 		
 		typeMethods.addAll(getAnnotatedMethods(type, Export.class));
@@ -640,7 +644,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	
 	@Override
 	public Set<Method> getExportedMethodsForType(Class type) {
-		return exportedMethodMap.get(type);
+		return exportedMethodMap.get(type.getName());
 	}
 	
 	@Override
@@ -752,7 +756,16 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 			views.addAll(view.keySet());
 		}
 		
+		// merge dynamic views in as well
+		views.addAll(dynamicViews);
+		
 		return Collections.unmodifiableSet(views);
+	}
+	
+	@Override
+	public void registerDynamicViews(final Set<String> dynamicViews) {
+		this.dynamicViews.clear();
+		this.dynamicViews.addAll(dynamicViews);
 	}
 	
 	@Override
@@ -1199,13 +1212,13 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 	private Map<String, Set<PropertyKey>> getPropertyViewMapForType(Class type) {
 
-		Map<String, Set<PropertyKey>> propertyViewMap = globalPropertyViewMap.get(type);
+		Map<String, Set<PropertyKey>> propertyViewMap = globalPropertyViewMap.get(type.getName());
 
 		if (propertyViewMap == null) {
 
 			propertyViewMap = new LinkedHashMap<>();
 
-			globalPropertyViewMap.put(type, propertyViewMap);
+			globalPropertyViewMap.put(type.getName(), propertyViewMap);
 
 		}
 
@@ -1214,13 +1227,13 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 	private Map<String, PropertyKey> getClassDBNamePropertyMapForType(Class type) {
 
-		Map<String, PropertyKey> classDBNamePropertyMap = globalClassDBNamePropertyMap.get(type);
+		Map<String, PropertyKey> classDBNamePropertyMap = globalClassDBNamePropertyMap.get(type.getName());
 
 		if (classDBNamePropertyMap == null) {
 
 			classDBNamePropertyMap = new LinkedHashMap<>();
 
-			globalClassDBNamePropertyMap.put(type, classDBNamePropertyMap);
+			globalClassDBNamePropertyMap.put(type.getName(), classDBNamePropertyMap);
 
 		}
 
@@ -1229,13 +1242,13 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 	private Map<String, PropertyKey> getClassJSNamePropertyMapForType(Class type) {
 
-		Map<String, PropertyKey> classJSNamePropertyMap = globalClassJSNamePropertyMap.get(type);
+		Map<String, PropertyKey> classJSNamePropertyMap = globalClassJSNamePropertyMap.get(type.getName());
 
 		if (classJSNamePropertyMap == null) {
 
 			classJSNamePropertyMap = new LinkedHashMap<>();
 
-			globalClassJSNamePropertyMap.put(type, classJSNamePropertyMap);
+			globalClassJSNamePropertyMap.put(type.getName(), classJSNamePropertyMap);
 
 		}
 
@@ -1244,13 +1257,13 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 	private Map<PropertyKey, Set<PropertyValidator>> getPropertyValidatorMapForType(Class type) {
 
-		Map<PropertyKey, Set<PropertyValidator>> validatorMap = globalValidatorMap.get(type);
+		Map<PropertyKey, Set<PropertyValidator>> validatorMap = globalValidatorMap.get(type.getName());
 
 		if (validatorMap == null) {
 
 			validatorMap = new LinkedHashMap<>();
 
-			globalValidatorMap.put(type, validatorMap);
+			globalValidatorMap.put(type.getName(), validatorMap);
 
 		}
 
@@ -1259,13 +1272,13 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 	private Map<String, PropertyGroup> getAggregatedPropertyGroupMapForType(Class type) {
 
-		Map<String, PropertyGroup> groupMap = globalAggregatedPropertyGroupMap.get(type);
+		Map<String, PropertyGroup> groupMap = globalAggregatedPropertyGroupMap.get(type.getName());
 
 		if (groupMap == null) {
 
 			groupMap = new LinkedHashMap<>();
 
-			globalAggregatedPropertyGroupMap.put(type, groupMap);
+			globalAggregatedPropertyGroupMap.put(type.getName(), groupMap);
 
 		}
 
@@ -1274,13 +1287,13 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 	private Map<String, PropertyGroup> getPropertyGroupMapForType(Class type) {
 
-		Map<String, PropertyGroup> groupMap = globalPropertyGroupMap.get(type);
+		Map<String, PropertyGroup> groupMap = globalPropertyGroupMap.get(type.getName());
 
 		if (groupMap == null) {
 
 			groupMap = new LinkedHashMap<>();
 
-			globalPropertyGroupMap.put(type, groupMap);
+			globalPropertyGroupMap.put(type.getName(), groupMap);
 
 		}
 
@@ -1289,13 +1302,13 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 	private Set<Transformation<GraphObject>> getEntityCreationTransformationsForType(Class type) {
 
-		Set<Transformation<GraphObject>> transformations = globalTransformationMap.get(type);
+		Set<Transformation<GraphObject>> transformations = globalTransformationMap.get(type.getName());
 
 		if (transformations == null) {
 
 			transformations = new LinkedHashSet<>();
 
-			globalTransformationMap.put(type, transformations);
+			globalTransformationMap.put(type.getName(), transformations);
 
 		}
 
@@ -1304,10 +1317,10 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	
 	private Map<String, ViewTransformation> getViewTransformationMapForType(Class type) {
 		
-		Map<String, ViewTransformation> viewTransformationMap = viewTransformations.get(type);
+		Map<String, ViewTransformation> viewTransformationMap = viewTransformations.get(type.getName());
 		if(viewTransformationMap == null) {
 			viewTransformationMap = new LinkedHashMap<>();
-			viewTransformations.put(type, viewTransformationMap);
+			viewTransformations.put(type.getName(), viewTransformationMap);
 		}
 		
 		return viewTransformationMap;

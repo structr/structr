@@ -1,7 +1,10 @@
 package org.structr.core.entity;
 
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import org.neo4j.helpers.collection.Iterables;
 import org.structr.common.PropertyView;
@@ -31,6 +34,8 @@ public class SchemaNode extends AbstractSchemaNode implements Schema {
 		name, relatedTo, relatedFrom
 	);
 	
+	private Set<String> dynamicViews = new LinkedHashSet<>();
+	
 	@Override
 	public Iterable<PropertyKey> getPropertyKeys(final String propertyView) {
 		
@@ -51,12 +56,12 @@ public class SchemaNode extends AbstractSchemaNode implements Schema {
 	@Override
 	public String getSource(final ErrorBuffer errorBuffer) throws FrameworkException {
 		
-		final Set<String> viewProperties = new LinkedHashSet<>();
-		final Set<String> validators     = new LinkedHashSet<>();
-		final Set<String> enums          = new LinkedHashSet<>();
-		final StringBuilder src          = new StringBuilder();
-		final Class baseType             = AbstractNode.class;
-		final String _className          = getProperty(name);
+		final Map<String, Set<String>> viewProperties = new LinkedHashMap<>();
+		final Set<String> validators                  = new LinkedHashSet<>();
+		final Set<String> enums                       = new LinkedHashSet<>();
+		final StringBuilder src                       = new StringBuilder();
+		final Class baseType                          = AbstractNode.class;
+		final String _className                       = getProperty(name);
 		
 		src.append("package org.structr.dynamic;\n\n");
 		
@@ -66,14 +71,16 @@ public class SchemaNode extends AbstractSchemaNode implements Schema {
 		
 		// output related node definitions, collect property views
 		for (final SchemaRelationship outRel : getOutgoingRelationships(SchemaRelationship.class)) {
+
 			src.append(outRel.getPropertySource(_className));
-			viewProperties.add(outRel.getPropertyName(_className) + "Property");
+			SchemaHelper.addPropertyToView("public", outRel.getPropertyName(_className), viewProperties);
 		}
 		
 		// output related node definitions, collect property views
 		for (final SchemaRelationship inRel : getIncomingRelationships(SchemaRelationship.class)) {
+
 			src.append(inRel.getPropertySource(_className));
-			viewProperties.add(inRel.getPropertyName(_className) + "Property");
+			SchemaHelper.addPropertyToView("public", inRel.getPropertyName(_className), viewProperties);
 		}
 
 		// extract properties from node
@@ -84,9 +91,15 @@ public class SchemaNode extends AbstractSchemaNode implements Schema {
 			src.append(enumDefition);
 		}
 
-		if (!viewProperties.isEmpty()) {
-			SchemaHelper.formatView(src, _className, "default", "PropertyView.Public", viewProperties);
-			SchemaHelper.formatView(src, _className, "ui", "PropertyView.Ui", viewProperties);
+		for (Entry<String, Set<String>> entry :viewProperties.entrySet()) {
+
+			final String viewName  = entry.getKey();
+			final Set<String> view = entry.getValue();
+			
+			if (!view.isEmpty()) {
+				dynamicViews.add(viewName);
+				SchemaHelper.formatView(src, _className, viewName, viewName, view);
+			}
 		}
 		
 		if (!validators.isEmpty()) {
@@ -106,5 +119,10 @@ public class SchemaNode extends AbstractSchemaNode implements Schema {
 		src.append("}\n");
 		
 		return src.toString();
+	}
+	
+	@Override
+	public Set<String> getViews() {
+		return dynamicViews;
 	}
 }

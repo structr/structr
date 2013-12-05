@@ -60,6 +60,7 @@ public interface ConfigurationProvider {
 	public ViewTransformation getViewTransformation(final Class type, final String view);
 	
 	public Set<String> getPropertyViews();
+	public void registerDynamicViews(final Set<String> dynamicViews);
 	
 	public void registerPropertySet(final Class type, final String propertyView, final PropertyKey... propertyKey);
 	public Set<PropertyKey> getPropertySet(final Class type, final String propertyView);

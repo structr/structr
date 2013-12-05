@@ -5,6 +5,8 @@
 
 package org.structr.schema;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
 import org.structr.common.StructrConf;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.core.Command;
@@ -32,6 +34,7 @@ public class SchemaService implements Service {
 	
 	public static boolean reloadSchema(final ErrorBuffer errorBuffer) {
 
+		final Set<String> dynamicViews  = new LinkedHashSet<>();
 		final NodeExtender nodeExtender = new NodeExtender();
 		boolean success                 = true;
 
@@ -39,11 +42,13 @@ public class SchemaService implements Service {
 			// collect node classes
 			for (final SchemaNode schemaNode : StructrApp.getInstance().nodeQuery(SchemaNode.class).getAsList()) {
 				nodeExtender.addClass(schemaNode.getClassName(), schemaNode.getSource(errorBuffer));
+				dynamicViews.addAll(schemaNode.getViews());
 			}
 
 			// collect relationship classes
-			for (final SchemaRelationship schemaRelationships : StructrApp.getInstance().relationshipQuery(SchemaRelationship.class).getAsList()) {
-				nodeExtender.addClass(schemaRelationships.getClassName(), schemaRelationships.getSource(errorBuffer));
+			for (final SchemaRelationship schemaRelationship : StructrApp.getInstance().relationshipQuery(SchemaRelationship.class).getAsList()) {
+				nodeExtender.addClass(schemaRelationship.getClassName(), schemaRelationship.getSource(errorBuffer));
+				dynamicViews.addAll(schemaRelationship.getViews());
 			}
 
 			// compile all classes at once
@@ -52,6 +57,13 @@ public class SchemaService implements Service {
 			}
 
 			success = !errorBuffer.hasError();
+			
+			// inject views in configuration provider
+			if (success) {
+				
+				Services.getInstance().getConfigurationProvider().registerDynamicViews(dynamicViews);
+				// TODO: add all views 
+			}
 			
 		} catch (Throwable t) {
 			

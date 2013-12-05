@@ -21,7 +21,6 @@ package org.structr.rest;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
-import org.structr.rest.ResourceProvider;
 import org.structr.rest.resource.*;
 
 /**
@@ -34,7 +33,7 @@ public class DefaultResourceProvider implements ResourceProvider {
 	@Override
 	public Map<Pattern, Class<? extends Resource>> getResources() {
 
-		Map<Pattern, Class<? extends Resource>> resourceMap = new LinkedHashMap<Pattern, Class<? extends Resource>>();
+		Map<Pattern, Class<? extends Resource>> resourceMap = new LinkedHashMap<>();
 
 		resourceMap.put(Pattern.compile("[a-zA-Z0-9]{32}"),	UuidResource.class);			// matches a UUID without dashes
 
