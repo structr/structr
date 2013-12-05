@@ -742,7 +742,7 @@ img.button {
     cursor: pointer;
 }
 
-.nodeHover, .nodeActive, #graph .node {
+.nodeHover, .nodeActive, #graph .node, #schema-graph .node {
     color: #333 ! important;
     background-color: #e7e7e7 ! important;
     border: 1px solid #aaa;
@@ -753,10 +753,15 @@ img.button {
     margin: 4px 0 4px 0;
 }
 
+#schema-graph .node {
+    padding: 2px 6px;
+    margin: 0 ! important;
+}
+
 button {
     color: #222;
     font-weight: bold;
-    padding: 2px 8px 2px 4px;
+    padding: 1px 8px 2px 4px;
     margin: 0 3px 6px 0;
     vertical-align: middle;
     line-height: 1.5em;
@@ -1219,4 +1224,57 @@ input.auto-refresh {
 
 button.add_property {
     font-size: 2em;
+}
+
+.schema-input-container {
+    margin: 12px;
+}
+
+.schema-input {
+    border-radius: 3px;
+    font-size: 1.5em;
+}
+
+.schema-props {
+    background-color: #f9f9f9;
+    width: 100%;
+    font-size: .9em;
+    border-collapse: collapse;
+}
+
+.schema-props th, .schema-props td {
+    border: 1px solid #ccc;
+}
+
+.schema-props td {
+    border: 1px solid #ccc;
+    padding: 2px 4px;
+}
+
+.schema-props tr:nth-child(even) {
+    background-color: #fff;
+}
+
+#schema-graph .label {
+    font-size: 1.25em;
+    background: rgba(255, 255, 255, .7);
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    min-width: 1em;
+    text-align: center;
+    padding: .5em;
+}
+
+#schema-graph .node {
+    opacity: .9;
+}
+
+#schema-graph .node h2 {
+    margin: 6px 0;
+}
+
+.property-name, .property-type, .property-format, #relationship-label {
+    border: none;
+    background: transparent;
+    font-size: 1em;
 }

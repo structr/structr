@@ -54,8 +54,11 @@ import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.structr.common.PropertyView;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
+import org.structr.core.entity.AbstractNode;
+import org.structr.rest.ResourceProvider;
 import org.structr.rest.service.HttpServiceServlet;
 
 //~--- classes ----------------------------------------------------------------
@@ -68,11 +71,31 @@ import org.structr.rest.service.HttpServiceServlet;
 public class CsvServlet extends HttpServiceServlet {
 
 	private static final Logger logger = Logger.getLogger(CsvServlet.class.getName());
+	
+	private static final String DELIMITER = ";";
+	private static final String REMOVE_LINE_BREAK_PARAM = "nolinebreaks";
 
 	//~--- fields ---------------------------------------------------------
 
 	private Map<Pattern, Class<? extends Resource>> resourceMap = new LinkedHashMap<>();
 	private Value<String> propertyView                          = null;
+	private String defaultPropertyView                          = PropertyView.Public;
+	private PropertyKey defaultIdProperty                       = AbstractNode.id;
+	private ResourceProvider resourceProvider                   = null;
+
+	private static boolean removeLineBreaks = false;
+
+	//~--- constructors ---------------------------------------------------
+
+	public CsvServlet(final ResourceProvider resourceProvider, final String defaultPropertyView, final PropertyKey<String> idProperty) {
+
+		this.resourceProvider    = resourceProvider;
+		this.defaultPropertyView = defaultPropertyView;
+		this.defaultIdProperty   = idProperty;
+
+	}
+
+	//~--- methods --------------------------------------------------------
 
 	@Override
 	public void init() {
@@ -133,6 +156,10 @@ public class CsvServlet extends HttpServiceServlet {
 
 			}
 
+			// Should line breaks be removed?
+			removeLineBreaks = StringUtils.equals(request.getParameter(REMOVE_LINE_BREAK_PARAM), "1");
+			
+			
 			// do action
 			Result result = resource.doGet(sortKey, sortDescending, pageSize, page, offsetId);
 
@@ -161,6 +188,8 @@ public class CsvServlet extends HttpServiceServlet {
 
 				Writer writer = response.getWriter();
 
+				writeUtf8Bom(writer);
+				
 				// gson.toJson(result, writer);
 				writeCsv(result, writer);
 				response.setStatus(HttpServletResponse.SC_OK);
@@ -227,8 +256,22 @@ public class CsvServlet extends HttpServiceServlet {
 
 	private static String escapeForCsv(final Object value) {
 		
-		return StringUtils.replace(value.toString(), "\"", "\\\"");
+		String result = StringUtils.replace(value.toString(), "\"", "\\\"");
 		
+		if (!removeLineBreaks) {
+			return StringUtils.replace(StringUtils.replace(result, "\r\n", "\n"), "\r", "\n");
+		}
+		
+		return StringUtils.replace(StringUtils.replace(result, "\r\n", ""), "\r", "");
+		
+	}
+	
+	private void writeUtf8Bom(Writer out) {
+		try {
+			out.write("\ufeff");
+		} catch (IOException ex) {
+			logger.log(Level.WARNING, "Unable to write UTF-8 BOM", ex);
+		}
 	}
 	
 	/**
@@ -267,11 +310,11 @@ public class CsvServlet extends HttpServiceServlet {
 
 				for (PropertyKey key : obj.getPropertyKeys(propertyView)) {
 
-					row.append("\"").append(key.dbName()).append("\",");
+					row.append("\"").append(key.dbName()).append("\"").append(DELIMITER);
 				}
 
 				// remove last ,
-				int pos = row.lastIndexOf(",");
+				int pos = row.lastIndexOf(DELIMITER);
 				if (pos >= 0) {
 
 					row.deleteCharAt(pos);
@@ -295,12 +338,12 @@ public class CsvServlet extends HttpServiceServlet {
 
 				row.append("\"").append((value != null
 							 ? escapeForCsv(value)
-							 : "")).append("\",");
+							 : "")).append("\"").append(DELIMITER);
 
 			}
 
 			// remove last ,
-			row.deleteCharAt(row.lastIndexOf(","));
+			row.deleteCharAt(row.lastIndexOf(DELIMITER));
 			out.append(row).append("\r\n");
 
 			// flush each line

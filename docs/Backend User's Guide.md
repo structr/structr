@@ -4,13 +4,13 @@ This document contains a step-by-step guide to the Structr backend. We will star
 You should already know what a REST server is, and why you want to use such a server on top of a graph database, which has its own advantages and disadvantages compared to a relational database. You should also be familiar with Java, Apache Maven and git, as Structr is hosted on github and we rely on Maven to manage dependencies and builds etc.
 
 ## Table of contents
-- [About Structr](#about-Structr)
+- [About Structr](#about-structr)
 - [The Neo4j property graph](#the-neo4j-property-graph)
 - [The first steps](#the-first-steps)
     - [Creating a new project](#creating-a-new-project)
         - [Server.java](#serverjava)
         - [Adding custom configuration elements](#adding-custom-configuration-elements)
-        - [The configuration file (Structr.conf)](#the-configuration-file-Structrconf)
+        - [The configuration file (structr.conf)](#the-configuration-file-structrconf)
         - [Caution](#caution)
     - [Starting the server](#starting-the-server)
         - [Compiling](#compiling)
@@ -86,17 +86,17 @@ Data in a Neo4j database is stored in what is called a property graph. This grap
 
 ## The first steps
 ### Creating a new project
-Structr has several Maven archetypes available for you to start your project with. As we want to create a backend project from scratch, we will use the archetype named `Structr-base-archetype`. So the first step would be to let Maven create a new project from the base archetype:
+Structr has several Maven archetypes available for you to start your project with. As we want to create a backend project from scratch, we will use the archetype named `structr-base-archetype`. So the first step would be to let Maven create a new project from the base archetype:
 
     mvn archetype:generate \
-        -DarchetypeRepository=http://maven.Structr.org/artifactory/snapshot \
-        -DarchetypeGroupId=org.Structr \
-        -DarchetypeArtifactId=Structr-base-archetype \
-        -DarchetypeVersion=0.8-SNAPSHOT \
-        -DgroupId=org.Structr \
+        -DarchetypeRepository=http://maven.structr.org/artifactory/snapshot \
+        -DarchetypeGroupId=org.structr \
+        -DarchetypeArtifactId=structr-base-archetype \
+        -DarchetypeVersion=0.8.2 \
+        -DgroupId=org.structr \
         -DartifactId=example-backend \
         -Dversion=0.1 \
-        -Dpackage=org.Structr.example
+        -Dpackage=org.structr.example
 
 When you execute this command, Maven will ask you to confirm the choices you made and will create a project named `example-backend` in the current directory. We assume you are already familiar with the layout of a Maven project, so let's jump directly into the code.
 
@@ -157,7 +157,7 @@ String value          = Services.getConfigurationValue("my.configuration.value")
 String valueOrDefault = Services.getConfigurationValue("my.configuration.value", "myDefault");
 ```
 
-#### The configuration file (Structr.conf)
+#### The configuration file (structr.conf)
 When Structr is started for the first time, it creates a new configuration file from the values that are encoded in the server class. (*this behaviour needs to be discussed further as it might lead to confusion*)
 
 #### Caution
@@ -189,7 +189,7 @@ To be able to attach a debugger to a running Structr REST server, you can use th
 Replace the port 5005 in the example above by your preferred debugging port
 
 #### Tips
-When you move the Structr working directory to another directory, make sure you delete the Structr.conf because there are absolute paths stored in this file. We are currently working on improving the configuration, so this will hopefully be fixed soon.
+When you move the Structr working directory to another directory, make sure you delete the structr.conf because there are absolute paths stored in this file. We are currently working on improving the configuration, so this will hopefully be fixed soon.
 
 ## Building the data model
 Structr extends the Neo4j property graph, adding type safety, validation, automatic indexing and transparent relationship creation. The basic building block of a Structr REST application is the class `AbstractNode`. All node entities must inherit from this class in order to be available in Structr. 
@@ -706,7 +706,7 @@ dev:~$ curl -i "http://localhost:1234/api/authors?name=Author%20A"
    "result": [
       {
          "name": "Author A",
-         "email": "z@Structr.org",
+         "email": "z@structr.org",
          "birthday": "01.01.1970",
          "cakeday": "2020-01-01T10:00:00+0100",
          "id": "46020bbb748a41859bc8e79661a4c203",
@@ -730,7 +730,7 @@ dev:~$ curl -i "http://localhost:1234/api/authors?birthday=01.01.1989"
    "result": [
       {
          "name": "Author T",
-         "email": "g@Structr.org",
+         "email": "g@structr.org",
          "birthday": "01.01.1989",
          "cakeday": "2001-01-01T10:00:00+0100",
          "id": "f99755edefed4704ab998820fb41e71a",
@@ -757,7 +757,7 @@ dev:~$ curl -i "http://localhost:1234/api/authors?loose=1&name=z&email=a"
    "result": [
       {
          "name": "Author Z",
-         "email": "a@Structr.org",
+         "email": "a@structr.org",
          "birthday": "01.01.1995",
          "cakeday": "1995-01-01T10:00:00+0100",
          "id": "15c07deca1c94b3ab0aa60a3b02e2e5e",
@@ -791,7 +791,7 @@ dev:~$ curl -i "http://localhost:1234/api/authors?birthday=%5B01.01.1980%20TO%20
    "result": [
       {
          "name": "Author K",
-         "email": "p@Structr.org",
+         "email": "p@structr.org",
          "birthday": "01.01.1980",
          "cakeday": "2010-01-01T10:00:00+0100",
          "id": "5cb83f7e01404534bfa0ad0db9191912",
@@ -799,7 +799,7 @@ dev:~$ curl -i "http://localhost:1234/api/authors?birthday=%5B01.01.1980%20TO%20
       },
       {
          "name": "Author L",
-         "email": "o@Structr.org",
+         "email": "o@structr.org",
          "birthday": "01.01.1981",
          "cakeday": "2009-01-01T10:00:00+0100",
          "id": "a427880cc9ce4e20a0eb023eb8c8ac56",
@@ -807,7 +807,7 @@ dev:~$ curl -i "http://localhost:1234/api/authors?birthday=%5B01.01.1980%20TO%20
       },
       {
          "name": "Author M",
-         "email": "n@Structr.org",
+         "email": "n@structr.org",
          "birthday": "01.01.1982",
          "cakeday": "2008-01-01T10:00:00+0100",
          "id": "0aed6335d2f940a590a4ac6cacbd3886",
@@ -815,7 +815,7 @@ dev:~$ curl -i "http://localhost:1234/api/authors?birthday=%5B01.01.1980%20TO%20
       },
       {
          "name": "Author N",
-         "email": "m@Structr.org",
+         "email": "m@structr.org",
          "birthday": "01.01.1983",
          "cakeday": "2007-01-01T10:00:00+0100",
          "id": "391ed290e7ef4bbcbb61137efdf9f14f",
@@ -823,7 +823,7 @@ dev:~$ curl -i "http://localhost:1234/api/authors?birthday=%5B01.01.1980%20TO%20
       },
       {
          "name": "Author O",
-         "email": "l@Structr.org",
+         "email": "l@structr.org",
          "birthday": "01.01.1984",
          "cakeday": "2006-01-01T10:00:00+0100",
          "id": "ee3f914867704472bad6adf458debb5c",
@@ -831,7 +831,7 @@ dev:~$ curl -i "http://localhost:1234/api/authors?birthday=%5B01.01.1980%20TO%20
       },
       {
          "name": "Author P",
-         "email": "k@Structr.org",
+         "email": "k@structr.org",
          "birthday": "01.01.1985",
          "cakeday": "2005-01-01T10:00:00+0100",
          "id": "9847ce91a8154758a762fdbe5937f549",
@@ -839,7 +839,7 @@ dev:~$ curl -i "http://localhost:1234/api/authors?birthday=%5B01.01.1980%20TO%20
       },
       {
          "name": "Author Q",
-         "email": "j@Structr.org",
+         "email": "j@structr.org",
          "birthday": "01.01.1986",
          "cakeday": "2004-01-01T10:00:00+0100",
          "id": "43148d2f446742dc95a11112ff48aeb8",
@@ -847,7 +847,7 @@ dev:~$ curl -i "http://localhost:1234/api/authors?birthday=%5B01.01.1980%20TO%20
       },
       {
          "name": "Author R",
-         "email": "i@Structr.org",
+         "email": "i@structr.org",
          "birthday": "01.01.1987",
          "cakeday": "2003-01-01T10:00:00+0100",
          "id": "c2aa4d415afa4d9cad75bdacd8c6b8bc",
@@ -855,7 +855,7 @@ dev:~$ curl -i "http://localhost:1234/api/authors?birthday=%5B01.01.1980%20TO%20
       },
       {
          "name": "Author S",
-         "email": "h@Structr.org",
+         "email": "h@structr.org",
          "birthday": "01.01.1988",
          "cakeday": "2002-01-01T10:00:00+0100",
          "id": "cda04be3cce849ec8c0bfded5bc62e28",
@@ -863,7 +863,7 @@ dev:~$ curl -i "http://localhost:1234/api/authors?birthday=%5B01.01.1980%20TO%20
       },
       {
          "name": "Author T",
-         "email": "g@Structr.org",
+         "email": "g@structr.org",
          "birthday": "01.01.1989",
          "cakeday": "2001-01-01T10:00:00+0100",
          "id": "90a7323b4ae24a16a86cf651b702311e",
@@ -871,7 +871,7 @@ dev:~$ curl -i "http://localhost:1234/api/authors?birthday=%5B01.01.1980%20TO%20
       },
       {
          "name": "Author U",
-         "email": "f@Structr.org",
+         "email": "f@structr.org",
          "birthday": "01.01.1990",
          "cakeday": "2000-01-01T10:00:00+0100",
          "id": "c18808619efb4af7a5de6794138afce9",
@@ -904,7 +904,7 @@ dev:~$ curl -i "http://localhost:1234/api/authors?birthday=%5B01.01.1980%20TO%20
    "result": [
       {
          "name": "Author U",
-         "email": "f@Structr.org",
+         "email": "f@structr.org",
          "birthday": "01.01.1990",
          "cakeday": "2000-01-01T10:00:00+0100",
          "id": "ca747d849a3448e6b755e7ea08040055",
@@ -912,7 +912,7 @@ dev:~$ curl -i "http://localhost:1234/api/authors?birthday=%5B01.01.1980%20TO%20
       },
       {
          "name": "Author T",
-         "email": "g@Structr.org",
+         "email": "g@structr.org",
          "birthday": "01.01.1989",
          "cakeday": "2001-01-01T10:00:00+0100",
          "id": "edb98057eb3747a3bfb6837f1c87ee29",
@@ -920,7 +920,7 @@ dev:~$ curl -i "http://localhost:1234/api/authors?birthday=%5B01.01.1980%20TO%20
       },
       {
          "name": "Author S",
-         "email": "h@Structr.org",
+         "email": "h@structr.org",
          "birthday": "01.01.1988",
          "cakeday": "2002-01-01T10:00:00+0100",
          "id": "442b3223ff7f48519600cd19babf4acf",
@@ -928,7 +928,7 @@ dev:~$ curl -i "http://localhost:1234/api/authors?birthday=%5B01.01.1980%20TO%20
       },
       {
          "name": "Author R",
-         "email": "i@Structr.org",
+         "email": "i@structr.org",
          "birthday": "01.01.1987",
          "cakeday": "2003-01-01T10:00:00+0100",
          "id": "e3889f3133a448ecb0a89606b1b07d48",
@@ -936,7 +936,7 @@ dev:~$ curl -i "http://localhost:1234/api/authors?birthday=%5B01.01.1980%20TO%20
       },
       {
          "name": "Author Q",
-         "email": "j@Structr.org",
+         "email": "j@structr.org",
          "birthday": "01.01.1986",
          "cakeday": "2004-01-01T10:00:00+0100",
          "id": "7e67e0cc095d4855937a23e506df264e",
@@ -944,7 +944,7 @@ dev:~$ curl -i "http://localhost:1234/api/authors?birthday=%5B01.01.1980%20TO%20
       },
       {
          "name": "Author P",
-         "email": "k@Structr.org",
+         "email": "k@structr.org",
          "birthday": "01.01.1985",
          "cakeday": "2005-01-01T10:00:00+0100",
          "id": "9e2aed5255c841a7be38121b07bf0ed6",
@@ -952,7 +952,7 @@ dev:~$ curl -i "http://localhost:1234/api/authors?birthday=%5B01.01.1980%20TO%20
       },
       {
          "name": "Author O",
-         "email": "l@Structr.org",
+         "email": "l@structr.org",
          "birthday": "01.01.1984",
          "cakeday": "2006-01-01T10:00:00+0100",
          "id": "742e60011e5c4c29b6b1a686ed6fef3e",
@@ -960,7 +960,7 @@ dev:~$ curl -i "http://localhost:1234/api/authors?birthday=%5B01.01.1980%20TO%20
       },
       {
          "name": "Author N",
-         "email": "m@Structr.org",
+         "email": "m@structr.org",
          "birthday": "01.01.1983",
          "cakeday": "2007-01-01T10:00:00+0100",
          "id": "293c30c464a2410c967e630bd8686c11",
@@ -968,7 +968,7 @@ dev:~$ curl -i "http://localhost:1234/api/authors?birthday=%5B01.01.1980%20TO%20
       },
       {
          "name": "Author M",
-         "email": "n@Structr.org",
+         "email": "n@structr.org",
          "birthday": "01.01.1982",
          "cakeday": "2008-01-01T10:00:00+0100",
          "id": "443e4179bdb4427990c6dfbbd0da916b",
@@ -976,7 +976,7 @@ dev:~$ curl -i "http://localhost:1234/api/authors?birthday=%5B01.01.1980%20TO%20
       },
       {
          "name": "Author L",
-         "email": "o@Structr.org",
+         "email": "o@structr.org",
          "birthday": "01.01.1981",
          "cakeday": "2009-01-01T10:00:00+0100",
          "id": "27a558a90db34506b4061a2534dff436",
@@ -984,7 +984,7 @@ dev:~$ curl -i "http://localhost:1234/api/authors?birthday=%5B01.01.1980%20TO%20
       },
       {
          "name": "Author K",
-         "email": "p@Structr.org",
+         "email": "p@structr.org",
          "birthday": "01.01.1980",
          "cakeday": "2010-01-01T10:00:00+0100",
          "id": "dc1776a068f84ffcb634d5445ed13965",
