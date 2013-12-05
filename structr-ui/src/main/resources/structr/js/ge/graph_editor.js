@@ -170,7 +170,7 @@ function Graph(element) {
         graph.nodeIds.splice(i,1);
         delete graph.nodes[node.id];
         $.each(graph.relationships, function(i, rel) {
-            if (node.id === rel.startNodeId || node.id === rel.endNodeId) {
+            if (node.id === rel.sourceId || node.id === rel.targetId) {
                 delete graph.relationships[rel.id];
             }
         });
@@ -203,25 +203,25 @@ function Graph(element) {
                 var results = data.result;
                 for (var i = 0; i < Math.min(maxRels, results.length); i++) {
                     var r = results[i];
-                    var type = simpleType(r.combinedType);
+                    var type = simpleType(r.relType);
+                    if (!type || graph.hasRelationship(r.id) || isIn(type, graph.hiddenRelationshipTypes)) {
+                        continue;
+                    }
                     if (!isIn(type, graph.relationshipTypes)) {
                         graph.addRelType(type);
                     }
-                    if (graph.hasRelationship(r.id) || isIn(type, graph.hiddenRelationshipTypes)) {
-                        continue;
-                    }
                     var rel;
                     if (direction === 'out') {
-                        if (!(graph.hasNode(r.endNodeId))) {
-                            graph.render(r.endNodeId, depth + 1, nextPos(pos, canvas.h / (depth + 3)));
+                        if (!(graph.hasNode(r.targetId))) {
+                            graph.render(r.targetId, depth + 1, nextPos(pos, canvas.h / (depth + 3)));
                         }
-                        rel = new Relationship(graph, r.id, type, nodeId, r.endNodeId);
+                        rel = new Relationship(graph, r.id, type, nodeId, r.targetId);
                     } else if (direction === 'in') {
 
-                        if (!(graph.hasNode(r.startNodeId))) {
-                            graph.render(r.startNodeId, depth + 1, nextPos(pos, canvas.h / (depth + 3)));
+                        if (!(graph.hasNode(r.sourceId))) {
+                            graph.render(r.sourceId, depth + 1, nextPos(pos, canvas.h / (depth + 3)));
                         }
-                        rel = new Relationship(graph, r.id, type, r.startNodeId, nodeId);
+                        rel = new Relationship(graph, r.id, type, r.sourceId, nodeId);
                     }
                     graph.addRelationship(rel);
 
