@@ -60,7 +60,7 @@ var _Schema = {
                     lineWidth: 5,
                     strokeStyle: "#81ce25"
                 },
-                Endpoint: ["Dot", { radius: 6 }],
+                Endpoint: ["Dot", {radius: 6}],
                 EndpointStyle: {
                     fillStyle: "#aaa"
                 },
@@ -75,15 +75,17 @@ var _Schema = {
                 ]
             });
 
-            instance.bind('connection', function(info) {
-                console.log('Source ID:', getIdFromIdString(info.sourceId));
-                console.log('Target ID:', getIdFromIdString(info.targetId));
-                
-                _Schema.connect(getIdFromIdString(info.sourceId), getIdFromIdString(info.targetId));
-
-            });
-
             _Schema.loadSchema(function() {
+                instance.bind('connection', function(info) {
+                    //console.log('Source ID:', getIdFromIdString(info.sourceId));
+                    //console.log('Target ID:', getIdFromIdString(info.targetId));
+                    _Schema.connect(getIdFromIdString(info.sourceId), getIdFromIdString(info.targetId));
+                });
+                instance.bind('connectionDetached', function(info) {
+                    console.log('Rel ID:', info.connection.getParameter('id'));
+                    //console.log('Target ID:', getIdFromIdString(info.targetId));
+                    _Schema.detach(info.connection.getParameter('id'));
+                });
             });
         });
 
@@ -170,7 +172,7 @@ var _Schema = {
                                     + (format ? format : '') + '"></td><td><input class="not-null" type="checkbox"'
                                     + (notNull ? ' checked="checked"' : '') + '></td><td><input class="unique" type="checkbox"'
                                     + (unique ? ' checked="checked"' : '') + '</td></div>');
-                            
+
                             $('#' + id + ' .' + key + ' .property-type option[value="' + type + '"]').attr('selected', true);
 
                             $('#' + id + ' .' + key + ' .property-type').on('change', function() {
@@ -191,21 +193,21 @@ var _Schema = {
 
                         }
                     });
-                    
+
                     propertiesTable.append('<tr class="new"><td><input size="15" type="text" class="property-name" placeholder="Enter name"></td>'
                             + '<td>' + typeOptions + '</td>'
                             + '<td><input size="15" type="text" class="property-format" placeholder="Enter format"></td>'
                             + '<td><input class="not-null" type="checkbox"></td>'
                             + '<td><input class="unique" type="checkbox"></td></div>');
-                    
+
                     $('#' + id + ' .new .property-name').on('blur', function() {
-                        var name = $('#' + id +' .new .property-name').val();
+                        var name = $('#' + id + ' .new .property-name').val();
                         var type = $('#' + id + ' .new .property-type').val();
                         var format = $('#' + id + ' .new .property-format').val();
                         var notNull = $('#' + id + ' .new .not-null').is(':checked');
                         var unique = $('#' + id + ' .new .unique').is(':checked');
-                        
-                        if (name && name.length && type)  {
+
+                        if (name && name.length && type) {
                             _Schema.putPropertyDefinition(res.id, ' {"'
                                     + '_' + name + '": "'
                                     + (notNull ? '+' : '')
@@ -217,7 +219,7 @@ var _Schema = {
                     });
 
                     $('#' + id + ' .new .property-type').on('change', function() {
-                        var name = $('#' + id +' .new .property-name').val();
+                        var name = $('#' + id + ' .new .property-name').val();
                         var type = $('#' + id + ' .new .property-type').val();
                         var notNull = $('#' + id + ' .new .not-null').is(':checked');
                         var unique = $('#' + id + ' .new .unique').is(':checked');
@@ -229,7 +231,7 @@ var _Schema = {
                                 + (unique ? '!' : '')
                                 + (format ? '(' + format + ')' : '')
                                 + '"}');
-                        if (name && name.length && type && (type !== 'Enum' || (format && format.length)))  {
+                        if (name && name.length && type && (type !== 'Enum' || (format && format.length))) {
                             _Schema.putPropertyDefinition(res.id, ' {"'
                                     + '_' + name + '": "'
                                     + (notNull ? '+' : '')
@@ -241,7 +243,7 @@ var _Schema = {
                     });
 
                     $('#' + id + ' .new .property-format').on('change', function() {
-                        var name = $('#' + id +' .new .property-name').val();
+                        var name = $('#' + id + ' .new .property-name').val();
                         var type = $('#' + id + ' .new .property-type').val();
                         var notNull = $('#' + id + ' .new .not-null').is(':checked');
                         var unique = $('#' + id + ' .new .unique').is(':checked');
@@ -253,7 +255,7 @@ var _Schema = {
                                 + (unique ? '!' : '')
                                 + (format ? '(' + format + ')' : '')
                                 + '"}');
-                        if (name && name.length && type && (type !== 'Enum' || (format && format.length)))  {
+                        if (name && name.length && type && (type !== 'Enum' || (format && format.length))) {
                             _Schema.putPropertyDefinition(res.id, ' {"'
                                     + '_' + name + '": "'
                                     + (notNull ? '+' : '')
@@ -275,7 +277,8 @@ var _Schema = {
 //                        ],
                         maxConnections: -1,
                         //isSource: true,
-                        isTarget: true
+                        isTarget: true,
+                        deleteEndpointsOnDetach: false
                     });
                     nodes[res.id + '_bottom'] = instance.addEndpoint(id, {
                         //anchor: [ "Perimeter", { shape: "Square" } ],
@@ -287,13 +290,15 @@ var _Schema = {
 //                            [0, 0.5, -1, 0, 0, 0, "left"]
 //                        ],
                         maxConnections: -1,
-                        isSource: true
+                        isSource: true,
+                        deleteEndpointsOnDetach: false
+
                                 //isTarget: true
                     });
                     instance.draggable(id,
-                    {
-                        containment: '#schema-graph'
-                    });
+                            {
+                                containment: '#schema-graph'
+                            });
                 });
 
                 if (callback) {
@@ -315,15 +320,24 @@ var _Schema = {
                     rels[res.id] = instance.connect({
                         source: nodes[res.sourceId + '_bottom'],
                         target: nodes[res.targetId + '_top'],
+                        deleteEndpointsOnDetach: false,
+                        parameters: {'id': res.id},
                         overlays: [
                             ["Label", {
                                     cssClass: "label multiplicity",
                                     label: res.sourceMultiplicity ? res.sourceMultiplicity : '*',
-                                    location: .15,
+                                    location: .2,
                                     id: "sourceMultiplicity",
                                     events: {
                                         "click": function(label, evt) {
-                                            alert("clicked on label for connection " + label.component.id);
+                                            console.log(rels[res.id].getOverlay('sourceMultiplicity').label);
+                                            var overlay = rels[res.id].getOverlay('sourceMultiplicity');
+                                            overlay.setLabel('<input id="source-mult-label" type="text" size="15" id="id_' + res.id + '_sourceMultiplicity" value="' + overlay.label + '">');
+                                            $('#source-mult-label').focus().on('blur', function() {
+                                                _Schema.setRelationshipProperty(res.id, 'sourceMultiplicity', $(this).val());
+                                                overlay.setLabel($(this).val());
+                                            });
+                                            evt.preventDefault();
                                         }
                                     }
                                 }
@@ -337,9 +351,9 @@ var _Schema = {
                                         "click": function(label, evt) {
                                             console.log(rels[res.id].getOverlay('label').label);
                                             var overlay = rels[res.id].getOverlay('label');
-                                            overlay.setLabel('<input id="relationship-label" type="text" size="15" id="id_' + res.id + '_relationshipType">');
+                                            overlay.setLabel('<input id="relationship-label" type="text" size="15" id="id_' + res.id + '_relationshipType" value="' + overlay.label + '">');
                                             $('#relationship-label').focus().on('blur', function() {
-                                                _Schema.setRelationshipType(res.id, $(this).val());
+                                                _Schema.setRelationshipProperty(res.id, 'relationshipType', $(this).val());
                                                 overlay.setLabel($(this).val());
                                             });
                                             evt.preventDefault();
@@ -350,11 +364,18 @@ var _Schema = {
                             ["Label", {
                                     cssClass: "label multiplicity",
                                     label: res.targetMultiplicity ? res.targetMultiplicity : '*',
-                                    location: .85,
+                                    location: .8,
                                     id: "targetMultiplicity",
                                     events: {
                                         "click": function(label, evt) {
-                                            alert("clicked on label for connection " + label.component.id);
+                                            console.log(rels[res.id].getOverlay('targetMultiplicity').label);
+                                            var overlay = rels[res.id].getOverlay('targetMultiplicity');
+                                            overlay.setLabel('<input id="target-mult-label" type="text" size="15" id="id_' + res.id + '_targetMultiplicity" value="' + overlay.label + '">');
+                                            $('#target-mult-label').focus().on('blur', function() {
+                                                _Schema.setRelationshipProperty(res.id, 'targetMultiplicity', $(this).val());
+                                                overlay.setLabel($(this).val());
+                                            });
+                                            evt.preventDefault();
                                         }
                                     }
                                 }
@@ -396,7 +417,7 @@ var _Schema = {
                 + (unique ? '!' : '')
                 + (format ? '(' + format + ')' : '')
                 + '"}');
-        if (name && name.length && type)  {
+        if (name && name.length && type) {
 
             if (type === 'del') {
                 _Schema.putPropertyDefinition(entityId, ' {"_' + name + '":null}');
@@ -425,9 +446,9 @@ var _Schema = {
     },
     createRelationshipDefinition: function(sourceId, targetId, relationshipType) {
         var data = '{"sourceId":"' + sourceId + '","targetId":"' + targetId + '"'
-                    + (relationshipType && relationshipType.length ? ',"relationshipType":"' + relationshipType + '"' : '')
-                    + '}';
-            console.log(data);
+                + (relationshipType && relationshipType.length ? ',"relationshipType":"' + relationshipType + '"' : '')
+                + '}';
+        console.log(data);
         $.ajax({
             url: rootUrl + 'schema_relationships',
             type: 'POST',
@@ -436,16 +457,37 @@ var _Schema = {
             data: data,
             error: function(data) {
                 console.log(data);
+            },
+            statusCode: {
+                201: function() {
+                    console.log('rel created');
+                }
             }
         });
     },
-    setRelationshipType: function(entityId, relationshipType) {
+    removeRelationshipDefinition: function(id) {
+        $.ajax({
+            url: rootUrl + 'schema_relationships/' + id,
+            type: 'DELETE',
+            dataType: 'json',
+            contentType: 'application/json; charset=utf-8',
+            error: function(data) {
+                console.log(data);
+            },
+            statusCode: {
+                200: function(data, textStatus, jqXHR) {
+                    console.log('rel deleted', data, textStatus, jqXHR);
+                }
+            }
+        });
+    },
+    setRelationshipProperty: function(entityId, key, value) {
         $.ajax({
             url: rootUrl + 'schema_relationships/' + entityId,
             type: 'PUT',
             dataType: 'json',
             contentType: 'application/json; charset=utf-8',
-            data: '{"relationshipType":"' + relationshipType + '"}',
+            data: '{"' + key + '":"' + value + '"}',
             error: function(data) {
                 console.log(data);
             }
@@ -454,6 +496,10 @@ var _Schema = {
     connect: function(sourceId, targetId) {
         //Structr.dialog('Enter relationship details');
         _Schema.createRelationshipDefinition(sourceId, targetId, 'CLICK HERE TO CHANGE RELATIONSHIP TYPE');
+    },
+    detach: function(relationshipId) {
+        //Structr.dialog('Enter relationship details');
+        _Schema.removeRelationshipDefinition(relationshipId);
     }
 };
 
