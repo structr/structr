@@ -97,9 +97,9 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 		if (super.onCreation(securityContext, errorBuffer)) {
 
 			// check if type already exists and raise an error if yes.
-			if (Services.getInstance().getConfigurationProvider().getRelationshipEntityClass(getProperty(name)) != null) {
+			if (Services.getInstance().getConfigurationProvider().getRelationshipEntityClass(getClassName()) != null) {
 			
-				errorBuffer.add(SchemaNode.class.getSimpleName(), new InvalidSchemaToken(getProperty(name), "type_already_exists"));
+				errorBuffer.add(SchemaNode.class.getSimpleName(), new InvalidSchemaToken(getClassName(), "type_already_exists"));
 				return false;
 			}
 
