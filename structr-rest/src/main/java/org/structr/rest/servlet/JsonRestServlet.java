@@ -20,6 +20,7 @@
 
 package org.structr.rest.servlet;
 
+import org.structr.rest.JsonInputGSONAdapter;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
@@ -27,11 +28,9 @@ import com.google.gson.JsonSyntaxException;
 
 import org.apache.commons.lang.StringUtils;
 
-import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.JsonInput;
-import org.structr.rest.ResourceProvider;
 import org.structr.rest.RestMethodResult;
 import org.structr.common.PagingHelper;
 import org.structr.rest.resource.Resource;
@@ -51,23 +50,20 @@ import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.*;
 import org.structr.core.Value;
+import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
-import org.structr.core.auth.AuthenticatorCommand;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeFactory;
-import org.structr.core.property.Property;
 import org.structr.rest.serialization.StreamingWriter;
 import org.structr.rest.adapter.FrameworkExceptionGSONAdapter;
 import org.structr.rest.adapter.ResultGSONAdapter;
-import org.structr.rest.resource.*;
 import org.structr.rest.serialization.StreamingHtmlWriter;
 import org.structr.rest.serialization.StreamingJsonWriter;
+import org.structr.rest.service.HttpServiceServlet;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -78,7 +74,7 @@ import org.structr.rest.serialization.StreamingJsonWriter;
  *
  * @author Christian Morgner
  */
-public class JsonRestServlet extends HttpServlet {
+public class JsonRestServlet extends HttpServiceServlet {
 
 	public static final int DEFAULT_VALUE_PAGE_SIZE                     = 20;
 	public static final String DEFAULT_VALUE_SORT_ORDER                 = "asc";
@@ -92,24 +88,12 @@ public class JsonRestServlet extends HttpServlet {
 
 	//~--- fields ---------------------------------------------------------
 
-	private Map<Pattern, Class<? extends Resource>> resourceMap = new LinkedHashMap<Pattern, Class<? extends Resource>>();
-	private Property<String> defaultIdProperty                  = AbstractNode.uuid;
-	private String defaultPropertyView                          = PropertyView.Public;
+	private Map<Pattern, Class<? extends Resource>> resourceMap = new LinkedHashMap<>();
+	private Value<String> propertyView                          = null;
 	private ThreadLocalGson gson                                = null;
 	private ThreadLocalJsonWriter jsonWriter                    = null;
 	private ThreadLocalHtmlWriter htmlWriter                    = null;
 	private Writer logWriter                                    = null;
-	private Value<String> propertyView                          = null;
-	private ResourceProvider resourceProvider                   = null;
-
-	public JsonRestServlet(final ResourceProvider resourceProvider, final String defaultPropertyView, final PropertyKey<String> idProperty) {
-		
-		this.resourceProvider    = resourceProvider;
-		this.defaultPropertyView = defaultPropertyView;
-		
-		// CHM (2013-04-21): id property will be ignored from now on..
-		// this.defaultIdProperty   = idProperty;
-	}
 	
 	@Override
 	public void init() {
@@ -117,7 +101,7 @@ public class JsonRestServlet extends HttpServlet {
 		boolean indentJson = true;
 		
 		try {
-			indentJson = Boolean.parseBoolean(Services.getConfigurationValue(Services.JSON_INDENTATION, "true"));
+			indentJson = Boolean.parseBoolean(StructrApp.getConfigurationValue(Services.JSON_INDENTATION, "true"));
 		
 		} catch (Throwable t) {
 			
@@ -130,9 +114,9 @@ public class JsonRestServlet extends HttpServlet {
 
 		// initialize variables
 		this.propertyView   = new ThreadLocalPropertyView();
-		this.gson           = new ThreadLocalGson();
-		this.jsonWriter     = new ThreadLocalJsonWriter(propertyView, indentJson);
-		this.htmlWriter     = new ThreadLocalHtmlWriter(propertyView, indentJson);
+		this.gson           = new ThreadLocalGson(outputNestingDepth);
+		this.jsonWriter     = new ThreadLocalJsonWriter(propertyView, indentJson, outputNestingDepth);
+		this.htmlWriter     = new ThreadLocalHtmlWriter(propertyView, indentJson, outputNestingDepth);
 
 	}
 
@@ -274,7 +258,7 @@ public class JsonRestServlet extends HttpServlet {
 			if (sortKeyName != null) {
 				
 				Class<? extends GraphObject> type = resource.getEntityClass();
-				sortKey = EntityContext.getPropertyKeyForDatabaseName(type, sortKeyName);
+				sortKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, sortKeyName);
 			}
 			
 			// do action
@@ -750,29 +734,6 @@ public class JsonRestServlet extends HttpServlet {
 	
 	// <editor-fold defaultstate="collapsed" desc="private methods">
 
-	/**
-	 * Tries to parse the given String to an int value, returning
-	 * defaultValue on error.
-	 *
-	 * @param value the source String to parse
-	 * @param defaultValue the default value that will be returned when parsing fails
-	 * @return the parsed value or the given default value when parsing fails
-	 */
-	private int parseInt(String value, int defaultValue) {
-
-		if (value == null) {
-
-			return defaultValue;
-
-		}
-
-		try {
-			return Integer.parseInt(value);
-		} catch (Throwable ignore) {}
-
-		return defaultValue;
-	}
-
 	private String jsonError(final int code, final String message) {
 
 		StringBuilder buf = new StringBuilder(100);
@@ -803,12 +764,6 @@ public class JsonRestServlet extends HttpServlet {
 		
 		return new LinkedHashMap<>();
 	}
-
-	private Authenticator getAuthenticator() throws FrameworkException {
-		
-		return (Authenticator) Services.command(null, AuthenticatorCommand.class).execute(getServletConfig());
-		
-	}
 	// </editor-fold>
 
 	// <editor-fold defaultstate="collapsed" desc="nested classes">
@@ -832,11 +787,17 @@ public class JsonRestServlet extends HttpServlet {
 
 	private class ThreadLocalGson extends ThreadLocal<Gson> {
 		
+		private int outputNestingDepth = 3;
+		
+		public ThreadLocalGson(final int outputNestingDepth) {
+			this.outputNestingDepth = outputNestingDepth;
+		}
+		
 		@Override
 		protected Gson initialValue() {
 			
 			JsonInputGSONAdapter jsonInputAdapter = new JsonInputGSONAdapter(propertyView, defaultIdProperty);
-			ResultGSONAdapter resultGsonAdapter   = new ResultGSONAdapter(propertyView, defaultIdProperty);
+			ResultGSONAdapter resultGsonAdapter   = new ResultGSONAdapter(propertyView, defaultIdProperty, outputNestingDepth);
 
 			// create GSON serializer
 			return new GsonBuilder()
@@ -853,17 +814,19 @@ public class JsonRestServlet extends HttpServlet {
 		
 		private Value<String> propertyView;
 		private boolean indent = false;
+		private int depth      = 3;
 		
-		public ThreadLocalJsonWriter(Value<String> propertyView, boolean indent) {
+		public ThreadLocalJsonWriter(Value<String> propertyView, boolean indent, final int outputNestingDepth) {
 			
 			this.propertyView = propertyView;
 			this.indent       = indent;
+			this.depth        = outputNestingDepth;
 		}
 		
 		@Override
 		protected StreamingWriter initialValue() {
 			
-			return new StreamingJsonWriter(this.propertyView, indent);
+			return new StreamingJsonWriter(this.propertyView, indent, depth);
 		}
 
 	}
@@ -872,17 +835,19 @@ public class JsonRestServlet extends HttpServlet {
 		
 		private Value<String> propertyView;
 		private boolean indent = false;
+		private int depth      = 3;
 		
-		public ThreadLocalHtmlWriter(Value<String> propertyView, boolean indent) {
+		public ThreadLocalHtmlWriter(Value<String> propertyView, boolean indent, final int outputNestingDepth) {
 			
 			this.propertyView = propertyView;
 			this.indent       = indent;
+			this.depth        = outputNestingDepth;
 		}
 		
 		@Override
 		protected StreamingHtmlWriter initialValue() {
 			
-			return new StreamingHtmlWriter(this.propertyView, indent);
+			return new StreamingHtmlWriter(this.propertyView, indent, depth);
 		}
 
 	}

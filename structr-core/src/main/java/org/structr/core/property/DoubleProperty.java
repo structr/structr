@@ -25,6 +25,7 @@ import org.neo4j.index.lucene.ValueContext;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.PropertyValidator;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.NodeService.NodeIndex;
 import org.structr.core.graph.search.DoubleSearchAttribute;
@@ -37,7 +38,8 @@ import org.structr.core.graph.search.SearchAttribute;
  */
 public class DoubleProperty extends AbstractPrimitiveProperty<Double> {
 	
-	public DoubleProperty(String name) {
+	public DoubleProperty(String name, final PropertyValidator<Double>... validators) {
+
 		super(name);
 		
 		if (name.equals("latitude") || name.equals("longitude")) {
@@ -48,6 +50,10 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> {
 			// of on setProperty
 			nodeIndices.add(NodeIndex.layer);
 			passivelyIndexed();
+		}
+		
+		for (PropertyValidator<Double> validator : validators) {
+			addValidator(validator);
 		}
 	}
 	

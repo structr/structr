@@ -28,7 +28,6 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.tooling.GlobalGraphOperations;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.MaintenanceCommand;
@@ -54,7 +53,7 @@ public class DeleteSpatialIndexCommand extends NodeServiceCommand implements Mai
 	public void execute(Map<String, Object> attributes) throws FrameworkException {
 		
 		
-		final GraphDatabaseService graphDb = Services.getService(NodeService.class).getGraphDb();
+		final GraphDatabaseService graphDb = StructrApp.getInstance().getService(NodeService.class).getGraphDb();
 		final List<Node> toDelete          = new LinkedList<>();
 
 		for (final Node node: GlobalGraphOperations.at(graphDb).getAllNodes()) {

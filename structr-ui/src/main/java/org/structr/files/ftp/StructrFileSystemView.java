@@ -80,7 +80,7 @@ public class StructrFileSystemView implements FileSystemView {
 		workingDir = newWorkingDirectory.getAbsolutePath();
 		
 //		try {
-//			Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(new StructrTransaction() {
+//			StructrApp.getInstance().command(TransactionCommand.class).execute(new StructrTransaction() {
 //
 //				@Override
 //				public Object execute() throws FrameworkException {

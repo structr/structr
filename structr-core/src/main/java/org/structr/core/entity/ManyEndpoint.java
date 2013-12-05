@@ -78,13 +78,14 @@ public class ManyEndpoint<T extends NodeInterface> extends AbstractEndpoint impl
 
 			}
 		}
-
+		
+		// test: obtain properties from notion
 		// create new relationships
 		for (T targetNode : toBeCreated) {
 
 			relation.ensureCardinality(securityContext, sourceNode, targetNode);
 
-			app.create(sourceNode, targetNode, relation.getClass());
+			app.create(sourceNode, targetNode, relation.getClass(), getNotionProperties(securityContext, relation.getClass(), targetNode.getUuid()));
 		}
 	}
 

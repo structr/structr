@@ -28,12 +28,9 @@ import org.structr.core.property.StringProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.DeleteNodeCommand;
-import org.structr.core.graph.NodeService;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -43,7 +40,10 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import org.structr.common.SecurityContext;
+import org.structr.core.GraphObject;
+import org.structr.core.app.StructrApp;
 import org.structr.core.property.IntProperty;
+import org.structr.schema.SchemaHelper;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
@@ -88,7 +88,7 @@ public class Component extends DOMElement {
 
 		try {
 
-			DeleteNodeCommand deleteCommand = Services.command(securityContext, DeleteNodeCommand.class);
+			DeleteNodeCommand deleteCommand = StructrApp.getInstance(securityContext).command(DeleteNodeCommand.class);
 
 			for (AbstractNode contentNode : contentNodes.values()) {
 
@@ -178,9 +178,9 @@ public class Component extends DOMElement {
 
 			}
 
-		} else if (subTypes.contains(EntityContext.normalizeEntityName(key.dbName()))) {
+		} else if (subTypes.contains(SchemaHelper.normalizeEntityName(key.dbName()))) {
 
-			List<Component> results = new LinkedList<Component>();
+			List<Component> results = new LinkedList<>();
 
 			collectChildren(results, this, 0, null);
 
@@ -220,7 +220,7 @@ public class Component extends DOMElement {
 
 			}
 
-			String componentId = node.getProperty(AbstractNode.uuid);
+			String componentId = node.getProperty(GraphObject.id);
 
 			// new default behaviour: make all components visible
 			// only filter if uuids are present in the request URI

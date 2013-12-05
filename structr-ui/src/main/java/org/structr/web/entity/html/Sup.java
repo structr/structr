@@ -29,9 +29,9 @@ public class Sup extends DOMElement {
 //
 //	static {
 //
-//		EntityContext.registerPropertySet(Sup.class, PropertyView.All, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Sup.class, PropertyView.Public, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Sup.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//		StructrApp.getConfiguration().registerPropertySet(Sup.class, PropertyView.All, HtmlElement.UiKey.values());
+//		StructrApp.getConfiguration().registerPropertySet(Sup.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		StructrApp.getConfiguration().registerPropertySet(Sup.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 //
 //	}
 

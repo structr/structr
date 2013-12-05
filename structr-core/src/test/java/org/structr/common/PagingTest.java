@@ -105,6 +105,8 @@ public class PagingTest extends StructrTest {
 
               } catch (FrameworkException ex) {
 
+		      ex.printStackTrace();
+		      
                       logger.log(Level.SEVERE, ex.toString());
                       fail("Unexpected exception");
 

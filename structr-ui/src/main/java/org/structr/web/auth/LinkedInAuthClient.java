@@ -24,7 +24,7 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringUtils;
 import org.apache.oltu.oauth2.client.response.OAuthResourceResponse;
-import org.structr.core.Services;
+import org.structr.core.app.StructrApp;
 
 /**
  *
@@ -58,21 +58,21 @@ public class LinkedInAuthClient extends StructrOAuthClient {
 	@Override
 	public String getUserResourceUri() {
 		
-		return Services.getConfigurationValue("oauth.linkedin.user_details_resource_uri", "");
+		return StructrApp.getConfigurationValue("oauth.linkedin.user_details_resource_uri", "");
 			
 	}
 
 	@Override
 	public String getReturnUri() {
 		
-		return Services.getConfigurationValue("oauth.linkedin.return_uri", "/");
+		return StructrApp.getConfigurationValue("oauth.linkedin.return_uri", "/");
 			
 	}
 
 	@Override
 	public String getErrorUri() {
 		
-		return Services.getConfigurationValue("oauth.linkedin.error_uri", "/");
+		return StructrApp.getConfigurationValue("oauth.linkedin.error_uri", "/");
 			
 	}
 

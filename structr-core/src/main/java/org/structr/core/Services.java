@@ -20,12 +20,14 @@
 
 package org.structr.core;
 
-import java.util.Collections;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Iterator;
 import org.apache.commons.lang.StringUtils;
 
-import org.structr.common.Path;
-import org.structr.core.module.InitializeModuleServiceCommand;
-import org.structr.core.module.ModuleService;
+import org.structr.module.JarConfigurationProvider;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -38,8 +40,24 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.lang.RandomStringUtils;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.tooling.GlobalGraphOperations;
 import org.structr.common.SecurityContext;
+import org.structr.common.StructrConf;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeFactory;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.NodeService;
+import org.structr.core.graph.RelationshipFactory;
+import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.graph.SyncCommand;
+import org.structr.core.property.StringProperty;
+import org.structr.schema.ConfigurationProvider;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -54,99 +72,77 @@ import org.structr.common.error.FrameworkException;
  */
 public class Services {
 
-	// Application constants
-	public static final String APPLICATION_TITLE         = "application.title";
-	public static final String APPLICATION_HOST          = "application.host";
-	public static final String APPLICATION_HTTP_PORT     = "application.http.port";
-	public static final String APPLICATION_HTTPS_PORT    = "application.https.port";
-	public static final String APPLICATION_HTTPS_ENABLED = "application.https.enabled";
-	public static final String REST_PATH                 = "application.rest.path";
-	public static final String APPLICATION_FTP_PORT      = "application.ftp.port";
+	private static final Logger logger                       = Logger.getLogger(StructrApp.class.getName());
+	private static StructrConf baseConf                      = null;
+	private static final String INITIAL_SEED_FILE            = "seed.zip";
 
-	// Keystore
-	public static final String APPLICATION_KEYSTORE_PATH     = "application.keystore.path";
-	public static final String APPLICATION_KEYSTORE_PASSWORD = "application.keystore.password";
+	// Configuration constants
+	public static final String BASE_PATH                     = "base.path";
+	public static final String CONFIGURED_SERVICES           = "configured.services";
+	public static final String CONFIG_FILE_PATH              = "configfile.path";
+	public static final String DATABASE_PATH                 = "database.path";
+	public static final String FILES_PATH                    = "files.path";
+	public static final String LOG_DATABASE_PATH             = "log.database.path";
+	public static final String FOREIGN_TYPE                  = "foreign.type.key";
+	public static final String NEO4J_SHELL_ENABLED           = "neo4j.shell.enabled";
+	public static final String LOG_SERVICE_INTERVAL          = "structr.logging.interval";
+	public static final String LOG_SERVICE_THRESHOLD         = "structr.logging.threshold";
+	public static final String SERVER_IP                     = "server.ip";
+	public static final String SMTP_HOST                     = "smtp.host";
+	public static final String SMTP_PORT                     = "smtp.port";
+	public static final String SMTP_USER                     = "smtp.user";
+	public static final String SMTP_PASSWORD                 = "smtp.password";
+	public static final String SUPERUSER_USERNAME            = "superuser.username";
+	public static final String SUPERUSER_PASSWORD            = "superuser.password";
+	public static final String TCP_PORT                      = "tcp.port";
+	public static final String TMP_PATH                      = "tmp.path";
+	public static final String UDP_PORT                      = "udp.port";
+	public static final String JSON_INDENTATION              = "json.indentation";
+	public static final String GEOCODING_PROVIDER            = "geocoding.provider";
+	public static final String GEOCODING_LANGUAGE            = "geocoding.language";
+	public static final String GEOCODING_APIKEY              = "geocoding.apikey";
+	public static final String CONFIGURATION                 = "configuration.provider";
+	public static final String TESTING                       = "testing";
+	public static final String MIGRATION_KEY                 = "NodeService.migration";
 	
-	// Base constants
-	public static final String BASE_PATH             = "base.path";
-	public static final String CONFIGURED_SERVICES   = "configured.services";
-	public static final String CONFIG_FILE_PATH      = "configfile.path";
-
-	// Database-related constants
-	public static final String DATABASE_PATH       = "database.path";
-	public static final String FILES_PATH          = "files.path";
-	public static final String LOG_DATABASE_PATH   = "log.database.path";
-	public static final String FOREIGN_TYPE        = "foreign.type.key";
-	public static final String NEO4J_SHELL_ENABLED = "neo4j.shell.enabled";
+	// singleton instance
+	private static Services singletonInstance = null;
 	
-	// LogService-related constants
-	public static final String LOG_SERVICE_INTERVAL  = "structr.logging.interval";
-	public static final String LOG_SERVICE_THRESHOLD = "structr.logging.threshold";
+	// non-static members
+	private final Map<String, Object> attributes       = new ConcurrentHashMap<>(10, 0.9f, 8);
+	private final Map<Class, Service> serviceCache     = new ConcurrentHashMap<>(10, 0.9f, 8);
+	private final Set<Class> registeredServiceClasses  = new LinkedHashSet<>();
+	private final Set<String> configuredServiceClasses = new LinkedHashSet<>();
+	private StructrConf structrConf                    = new StructrConf();
+	private ConfigurationProvider configuration        = null;
+	private boolean initializationDone                 = false;
+	private String configuredServiceNames              = null;
+	private String configurationClass                  = null;
 
-	// Network-related constants
-	public static final String SERVER_IP              = "server.ip";
-	public static final String SERVLET_REAL_ROOT_PATH = "servlet.context";
-	public static final String SMTP_HOST              = "smtp.host";
-	public static final String SMTP_PORT              = "smtp.port";
-	public static final String SMTP_USER              = "smtp.user";
-	public static final String SMTP_PASSWORD          = "smtp.password";
-
-	public static final String RESOURCES              = "resources";
-
-	// Security-related constants
-	public static final String SUPERUSER_USERNAME = "superuser.username";
-	public static final String SUPERUSER_PASSWORD = "superuser.password";
-
-	public static final String TCP_PORT           = "tcp.port";
-	public static final String TMP_PATH           = "tmp.path";
-	public static final String UDP_PORT           = "udp.port";
+	private Services() { }
 	
-	public static final String JSON_OUTPUT_DEPTH  = "json.depth";
-	public static final String JSON_INDENTATION   = "json.indentation";
+	public static Services getInstance() {
+		
+		if (singletonInstance == null) {
+			
+			singletonInstance = new Services();
+			singletonInstance.initialize();
+		}
+		
+		return singletonInstance;
+	}
 	
-	// geocoding
-	public static final String GEOCODING_PROVIDER = "geocoding.provider";
-	public static final String GEOCODING_LANGUAGE = "geocoding.language";
-	public static final String GEOCODING_APIKEY   = "geocoding.apikey";
+	public static Services getInstance(final StructrConf properties) {
+		
+		if (singletonInstance == null) {
+			
+			singletonInstance = new Services();
+			singletonInstance.initialize(properties);
+		}
+		
+		return singletonInstance;
+	}
 	
-	private static Map<String, String> config    = null;
-	private static final Logger logger            = Logger.getLogger(Services.class.getName());
-
-	private static final Map<String, Object> attributes      = new ConcurrentHashMap<>(10, 0.9f, 8);
-	private static final Map<Class, Service> serviceCache    = new ConcurrentHashMap<>(10, 0.9f, 8);
-	private static final Set<Class> registeredServiceClasses = new LinkedHashSet<>();
-	private static final Set<Class> configuredServiceClasses = new LinkedHashSet<>();
-	private static boolean initializationDone = false;
-	private static String httpsEnabled;
-	private static String appTitle;
-	private static String appHost;
-	private static String appHttpPort;
-	private static String appHttpsPort;
-	private static String appFtpPort;
-	private static String keystorePath;
-	private static String keystorePassword;
-	private static String basePath;
-	private static String restPath;
-	private static String configFilePath;
-	private static String configuredServices;
-	private static String databasePath;
-	private static String logDatabasePath;
-	private static String filesPath;
-	private static String resources;
-	private static String serverIp;
-	private static String smtpHost;
-	private static String smtpPort;
-	private static String smtpUser;
-	private static String smtpPassword;
-	private static String superuserPassword;
-	private static String superuserUsername;
-	private static String tcpPort;
-	private static String tmpPath;
-	private static String udpPort;
-	private static String jsonDepth;
-
-	//~--- methods --------------------------------------------------------
-
 	/**
 	 * Creates and returns a command of the given <code>type</code>. If a command is
 	 * found, the corresponding service will be discovered and activated.
@@ -156,7 +152,7 @@ public class Services {
 	 * @param commandType the runtime type of the desired command
 	 * @return the command
 	 */
-	public static <T extends Command> T command(SecurityContext securityContext, Class<T> commandType) {
+	public <T extends Command> T command(SecurityContext securityContext, Class<T> commandType) {
 
 		Class serviceClass = null;
 		T command          = null;
@@ -168,7 +164,7 @@ public class Services {
 
 			serviceClass = command.getServiceClass();
 
-			if ((serviceClass != null) && isConfigured(serviceClass)) {
+			if ((serviceClass != null) && configuredServiceClasses.contains(serviceClass.getSimpleName())) {
 
 				// search for already running service..
 				Service service = serviceCache.get(serviceClass);
@@ -208,96 +204,90 @@ public class Services {
 		return (command);
 	}
 
-	public static void initialize(final Map<String, String> initConfig) {
+	private void initialize() {
+		
+		final StructrConf config = getBaseConfiguration();
+		
+		// read structr.conf
+		final String configFileName = "structr.conf";	// TODO: make configurable
+		
+		logger.log(Level.INFO, "Reading {0}..", configFileName);
+		
+		try {
+			final FileInputStream fis = new FileInputStream(configFileName);
+			structrConf.load(fis);
+			fis.close();
 
-		config = initConfig;
-		initialize();
-	}
-
-	public static void initialize() {
-
-		logger.log(Level.INFO, "Initializing service layer");
-
-		if (config == null) {
-
-			logger.log(Level.SEVERE, "Could not initialize service layer: Service configuration is null");
-
-			return;
+		} catch (IOException ioex) {
+			
+			logger.log(Level.WARNING, "Unable to read configuration file {0}: {1}", new Object[] { configFileName, ioex.getMessage() } );
 		}
+		
+		mergeConfiguration(config, structrConf);
+		
+		initialize(config);
+		
+	}
+	
+	private void initialize(final StructrConf properties) {
 
-		configFilePath     = getConfigValue(config, Services.CONFIG_FILE_PATH, "./structr.conf");
-		configuredServices = getConfigValue(config, Services.CONFIGURED_SERVICES,
-			"ModuleService NodeService AgentService CloudService CacheService LogService NotificationService");
-		appTitle          = getConfigValue(config, Services.APPLICATION_TITLE, "structr");
-		appHost           = getConfigValue(config, Services.APPLICATION_HOST, "localhost");
-		appHttpPort       = getConfigValue(config, Services.APPLICATION_HTTP_PORT, "8082");
-		appHttpsPort      = getConfigValue(config, Services.APPLICATION_HTTPS_PORT, "8083");
-		appFtpPort        = getConfigValue(config, Services.APPLICATION_FTP_PORT, "8022");
-		httpsEnabled      = getConfigValue(config, Services.APPLICATION_HTTPS_ENABLED, "false");
-		keystorePath      = getConfigValue(config, Services.APPLICATION_KEYSTORE_PATH, "");
-		keystorePassword  = getConfigValue(config, Services.APPLICATION_KEYSTORE_PASSWORD, "");
-		tmpPath           = getConfigValue(config, Services.TMP_PATH, "/tmp");
-		basePath          = getConfigValue(config, Services.BASE_PATH, ".");
-		restPath          = getConfigValue(config, Services.REST_PATH, "/structr/rest");
-		databasePath      = getConfigValue(config, Services.DATABASE_PATH, "./db");
-		logDatabasePath   = getConfigValue(config, Services.LOG_DATABASE_PATH, "./logdb.dat");
-		filesPath         = getConfigValue(config, Services.FILES_PATH, "./files");
-		resources         = getConfigValue(config, Services.RESOURCES, "");
-		serverIp          = getConfigValue(config, Services.SERVER_IP, "127.0.0.1");
-		tcpPort           = getConfigValue(config, Services.TCP_PORT, "54555");
-		udpPort           = getConfigValue(config, Services.UDP_PORT, "57555");
-		smtpHost          = getConfigValue(config, Services.SMTP_HOST, "localhost");
-		smtpPort          = getConfigValue(config, Services.SMTP_PORT, "25");
-		smtpUser          = getConfigValue(config, Services.SMTP_USER, "");
-		smtpPassword      = getConfigValue(config, Services.SMTP_PASSWORD, "");
-		superuserUsername = getConfigValue(config, Services.SUPERUSER_USERNAME, "superadmin");
-		superuserPassword = getConfigValue(config, Services.SUPERUSER_PASSWORD, "");    // intentionally no default password!
-		jsonDepth         = getConfigValue(config, Services.JSON_OUTPUT_DEPTH, "3");
+		this.structrConf = properties;
+
+		configurationClass     = properties.getProperty(Services.CONFIGURATION);
+		configuredServiceNames = properties.getProperty(Services.CONFIGURED_SERVICES);
+		
+		// create set of configured services
+		configuredServiceClasses.addAll(Arrays.asList(configuredServiceNames.split("[ ,]+")));
+
+		// if configuration is not yet established, instantiate it
+		// this is the place where the service classes get the
+		// opportunity to modifyConfiguration the default configuration
+		getConfigurationProvider();
 		
 		logger.log(Level.INFO, "Starting services");
 
-		try {
-			// initialize module service (which can be thought of as the root service)
-			// securityContext can be null here, as the command is a null command
-			Services.command(null, InitializeModuleServiceCommand.class).execute();
-
-		} catch(FrameworkException fex) {
-			
-			// initialization failed!
-			fex.printStackTrace();
-		}
-
 		// initialize other services
-		for (Class serviceClass : registeredServiceClasses) {
+		for (final String serviceClassName : configuredServiceClasses) {
 
-			if (Service.class.isAssignableFrom(serviceClass) && isConfigured(serviceClass)) {
+			try {
 
-				try {
+				Class serviceClass = getServiceClassForName(serviceClassName);
+				
+				if (serviceClass != null) {
 					createService(serviceClass);
-				} catch (Throwable t) {
-
-					t.printStackTrace();
-					
-					logger.log(Level.WARNING, "Exception while registering service {0}: {1}",
-						   new Object[] { serviceClass.getName(),
-								  t.getMessage() });
 				}
+
+			} catch (Throwable t) {
+
+				logger.log(Level.WARNING, "Exception while registering service {0}: {1}", new Object[] { serviceClassName, t });
+				t.printStackTrace();
 			}
 		}
 
 		logger.log(Level.INFO, "{0} service(s) processed", serviceCache.size());
 		registeredServiceClasses.clear();
 
+		// do migration of an existing database
+		if (getService(NodeService.class) != null) {
+			
+			if ("true".equals(properties.getProperty(Services.MIGRATION_KEY))) {
+				migrateDatabase();
+			}
+
+			// check for empty database and seed file
+			importSeedFile(properties.getProperty(Services.BASE_PATH));
+		}
+		
 		logger.log(Level.INFO, "Initialization complete");
 		
 		initializationDone = true;
 	}
 	
-	public static boolean isInitialized() {
+	public boolean isInitialized() {
 		return initializationDone;
 	}
 
-	public static void shutdown() {
+	public void shutdown() {
 
 		logger.log(Level.INFO, "Shutting down service layer");
 		for (Service service : serviceCache.values()) {
@@ -324,7 +314,12 @@ public class Services {
 
 		serviceCache.clear();
 
-//              serviceClassCache.clear();
+		// shut down configuration provider
+		configuration.shutdown();
+		
+		// clear singleton instance
+		singletonInstance = null;
+		
 		logger.log(Level.INFO, "Finished shutdown of service layer");
 	}
 
@@ -334,30 +329,65 @@ public class Services {
 	 *
 	 * @param serviceClass the service class to register
 	 */
-	public static void registerServiceClass(Class serviceClass) {
-
-		// register service classes except module service (which is initialized manually)
-		if (!serviceClass.equals(ModuleService.class)) {
-			registeredServiceClasses.add(serviceClass);
+	public void registerServiceClass(Class serviceClass) {
+		
+		registeredServiceClasses.add(serviceClass);
+		
+		// let service instance visit default configuration
+		try {
+			
+			Service service = (Service)serviceClass.newInstance();
+			//service.modifyConfiguration(getBaseConfiguration());
+			
+		} catch (Throwable t) {
+			t.printStackTrace();
 		}
 	}
 
-	public static String getConfigurationValue(String key) {
+	public String getConfigurationValue(String key) {
+		return getConfigurationValue(key, null);
+	}
+	
+	public String getConfigurationValue(String key, String defaultValue) {
+		return getCurrentConfig().getProperty(key, defaultValue);
+	}
+	
+	public Class getServiceClassForName(final String serviceClassName) {
 		
-		if(config != null) {
-			return config.get(key);
+		for (Class serviceClass : registeredServiceClasses) {
+			
+			if (serviceClass.getSimpleName().equals(serviceClassName)) {
+				return serviceClass;
+			}
+			
 		}
+		
 		return null;
 	}
 	
-	public static String getConfigurationValue(String key, String defaultValue) {
-		
-		String value = getConfigurationValue(key);
-		if(value == null) {
-			return defaultValue;
+	public ConfigurationProvider getConfigurationProvider() {
+
+		// instantiate configuration provider
+		if (configuration == null) {
+
+			// when executing tests, the configuration class may already exist,
+			// so we don't instantiate it again since all the entities are already
+			// known to the ClassLoader and we would miss the code in all the static
+			// initializers.
+			try {
+
+				configuration = (ConfigurationProvider)Class.forName(configurationClass).newInstance();
+				configuration.initialize();
+
+			} catch (Throwable t) {
+
+				t.printStackTrace();
+				
+				logger.log(Level.SEVERE, "Unable to instantiate schema provider of type {0}: {1}", new Object[] { configurationClass, t.getMessage() });
+			}
 		}
 
-		return value;
+		return configuration;
 	}
 	
 	/**
@@ -366,7 +396,7 @@ public class Services {
 	 * @param name
 	 * @param value 
 	 */
-	public static void setAttribute(final String name, final Object value) {
+	public void setAttribute(final String name, final Object value) {
 		synchronized (attributes) {
 			attributes.put(name, value);
 		}
@@ -378,7 +408,7 @@ public class Services {
 	 * @param name
 	 * @return 
 	 */
-	public static Object getAttribute(final String name) {
+	public Object getAttribute(final String name) {
 		return attributes.get(name);
 	}
 	
@@ -387,19 +417,16 @@ public class Services {
 	 * 
 	 * @param name 
 	 */
-	public static void removeAttribute(final String name) {
+	public void removeAttribute(final String name) {
 		attributes.remove(name);
 	}
 	
-	private static Service createService(Class serviceClass) throws InstantiationException, IllegalAccessException {
+	private Service createService(Class serviceClass) throws InstantiationException, IllegalAccessException {
 
 		logger.log(Level.FINE, "Creating service ", serviceClass.getName());
 
 		Service service = (Service) serviceClass.newInstance();
-
-		// initialize newly created service (applies to all subclasses)
-		logger.log(Level.FINEST, "Initializing service ", serviceClass.getName());
-		service.initialize(config);
+		service.initialize(getCurrentConfig());
 
 		if (service instanceof RunnableService) {
 
@@ -423,231 +450,12 @@ public class Services {
 		return service;
 	}
 
-	//~--- get methods ----------------------------------------------------
-
-	/**
-	 * Return the application title
-	 * @return 
-	 */
-	public static String getApplicationTitle() {
-		return appTitle;
-	}
-
-	/**
-	 * Return the application host name
-	 * @return 
-	 */
-	public static String getApplicationHost() {
-		return appHost;
-	}
-	
-	/**
-	 * Return the application HTTP port
-	 * @return 
-	 */
-	public static String getHttpPort() {
-		return appHttpPort;
-	}
-	
-	/**
-	 * Return the application FTP port
-	 * @return 
-	 */
-	public static String getFtpPort() {
-		return appFtpPort;
-	}
-
-	/**
-	 * Return HTTPS enabled
-	 * @return 
-	 */
-	public static boolean getHttpsEnabled() {
-		return "true".equals(httpsEnabled);
-	}
-
-	/**
-	 * Return the application HTTPS port
-	 * @return 
-	 */
-	public static String getHttpsPort() {
-		return appHttpsPort;
-	}
-
-	/**
-	 * Return the keystore path
-	 *
-	 * @return
-	 */
-	public static String getKeystorePath() {
-		return keystorePath;
-	}
-
-	/**
-	 * Return the static rest path
-	 *
-	 * @return
-	 */
-	public static String getRestPath() {
-		return restPath;
-	}
-	
-	/**
-	 * Return the keystore password
-	 *
-	 * @return
-	 */
-	public static String getKeystorePassword() {
-		return keystorePassword;
-	}
-
-	/**
-	 * Return the static base path
-	 *
-	 * @return
-	 */
-	public static String getBasePath() {
-		return getPath(Path.Base);
-	}
-
-	/**
-	 * Return the configured services
-	 *
-	 * @return
-	 */
-	public static String getConfiguredServices() {
-		return configuredServices;
-	}
-
-	/**
-	 * Return the static tmp path. This is the directory where the
-	 * temporary files are stored
-	 * @return 
-	 */
-	public static String getTmpPath() {
-		return getPath(Path.Temp);
-	}
-
-	/**
-	 * Return the configuration file path.
-	 * @return 
-	 */
-	public static String getConfigFilePath() {
-		return getPath(Path.ConfigFile);
-	}
-
-	/**
-	 * Return the database path. This is the directory where the
-	 * database files are stored.
-	 * @return 
-	 */
-	public static String getDatabasePath() {
-		return getPath(Path.Database);
-	}
-
-	/**
-	 * Return the log database path. This is the file path of the
-	 * log database.
-	 * @return 
-	 */
-	public static String getLogDatabasePath() {
-		return getPath(Path.LogDatabase);
-	}
-
-	/**
-	 * Return the file path. This is the directory where the
-	 * binary files of file and image nodes are stored.
-	 * @return 
-	 */
-	public static String getFilesPath() {
-		return getPath(Path.Files);
-	}
-
-	/**
-	 * Return the resources. This is a list of files that
-	 * need to be scanned for entities, agents, services etc.
-	 * @return 
-	 */
-	public static String getResources() {
-		return resources;
-	}
-
-	/**
-	 * Return the local host address for the outside world
-	 */
-	public static String getServerIP() {
-		return serverIp;
-	}
-
-	/**
-	 * Return the TCP port remote clients can connect to
-	 * @return 
-	 */
-	public static String getTcpPort() {
-		return tcpPort;
-	}
-
-	/**
-	 * Return the UDP port remote clients can connect to
-	 * @return 
-	 */
-	public static String getUdpPort() {
-		return udpPort;
-	}
-
-	/**
-	 * Return the SMTP host for sending out e-mails
-	 * @return 
-	 */
-	public static String getSmtpHost() {
-		return smtpHost;
-	}
-
-	/**
-	 * Return the SMTP port for sending out e-mails
-	 * @return 
-	 */
-	public static String getSmtpPort() {
-		return smtpPort;
-	}
-
-	/**
-	 * Return the SMTP user for sending out e-mails
-	 * @return 
-	 */
-	public static String getSmtpUser() {
-		return smtpUser;
-	}
-
-	/**
-	 * Return the SMTP user for sending out e-mails
-	 * @return 
-	 */
-	public static String getSmtpPassword() {
-		return smtpPassword;
-	}
-
-	/**
-	 * Return the superuser username
-	 * @return 
-	 */
-	public static String getSuperuserUsername() {
-		return superuserUsername;
-	}
-
-	/**
-	 * Return the superuser username
-	 * @return 
-	 */
-	public static String getSuperuserPassword() {
-		return superuserPassword;
-	}
-
 	/**
 	 * Return all registered services
 	 *
 	 * @return
 	 */
-	public static List<Service> getServices() {
+	public List<Service> getServices() {
 
 		List<Service> services = new LinkedList<>();
 		for (Service service : serviceCache.values()) {
@@ -657,15 +465,11 @@ public class Services {
 		return services;
 	}
 	
-	public static <T extends Service> T getService(final Class<T> type) {
+	public <T extends Service> T getService(final Class<T> type) {
 		return (T) serviceCache.get(type);
 	}
-
-	public static Map<String, String> getContext() {
-		return config;
-	}
-
-	public static String getConfigValue(final Map<String, String> config, final String key, final String defaultValue) {
+	
+	public String getConfigValue(final Map<String, String> config, final String key, final String defaultValue) {
 
 		String value = StringUtils.strip(config.get(key));
 
@@ -673,139 +477,9 @@ public class Services {
 			return value;
 		}
 
-		return value;
+		return defaultValue;
 	}
 
-	public static String getPath(final Path path) {
-
-		String returnPath = null;
-
-		switch (path) {
-
-			case ConfigFile :
-				returnPath = configFilePath;
-
-				break;
-
-			case Base :
-				returnPath = basePath;
-
-				break;
-
-			case Rest :
-				returnPath = restPath;
-
-				break;
-
-			case Database :
-				returnPath = getAbsolutePath(databasePath);
-
-				break;
-
-			case LogDatabase :
-				returnPath = getAbsolutePath(logDatabasePath);
-
-				break;
-
-			case Files :
-				returnPath = getAbsolutePath(filesPath);
-
-				break;
-
-			case Temp :
-				returnPath = getAbsolutePath(tmpPath);
-
-				break;
-		}
-
-		return returnPath;
-	}
-
-	public static String getFilePath(final Path path, final String... pathParts) {
-
-		StringBuilder returnPath = new StringBuilder();
-		String filePath   = getPath(path);
-
-		returnPath.append(filePath);
-		returnPath.append(filePath.endsWith("/")
-			   ? ""
-			   : "/");
-
-		for (String pathPart : pathParts) {
-			returnPath.append(pathPart);
-		}
-
-		return returnPath.toString();
-	}
-
-	public static int getOutputNestingDepth() {
-		
-		try { return Integer.parseInt(jsonDepth); } catch(Throwable t) {}
-		
-		return 3;
-	}
-	
-	private static String getAbsolutePath(final String path) {
-
-		if (path == null) {
-			return null;
-		}
-		
-		if (path.startsWith("/")) {
-			return path;
-		}
-
-		StringBuilder absolutePath = new StringBuilder();
-
-		absolutePath.append(basePath);
-		absolutePath.append(basePath.endsWith("/")
-			   ? ""
-			   : "/");
-		absolutePath.append(path);
-
-		return (absolutePath.toString());
-	}
-
-	/**
-	 * Return true if service is configured
-	 *
-	 * @param serviceClass
-	 * @return
-	 */
-	private static boolean isConfigured(final Class serviceClass) {
-
-		if(!configuredServiceClasses.contains(serviceClass)) {
-
-			// Try once to find service class in string list "configuredServices".
-			// If already initialized, there is no need to check the string field
-			// again, because this method is called once for each registered service
-			// when structr starts.
-			if (initializationDone) {
-				return false;
-			}
-			
-			boolean configurationContainsClass = StringUtils.contains(configuredServices, serviceClass.getSimpleName());
-
-			if (configurationContainsClass) {
-				configuredServiceClasses.add(serviceClass);
-			}
-
-			return configurationContainsClass;
-		}
-		
-		return true;
-	}
-
-	/**
-	 * Return true if the given service is available to be potentially used
-	 * 
-	 * @param serviceClass
-	 * @return 
-	 */
-	public static boolean isAvailable(final Class serviceClass) {
-		return configuredServiceClasses.contains(serviceClass);
-	}
-        
 	/**
 	 * Return true if the given service is ready to be used,
          * means initialized and running.
@@ -813,10 +487,220 @@ public class Services {
 	 * @param serviceClass
 	 * @return 
 	 */
-	public static boolean isReady(final Class serviceClass) {
+	public boolean isReady(final Class serviceClass) {
                 Service service = serviceCache.get(serviceClass);
                 return (service != null && service.isRunning());
-                
 	}
 	
+	public StructrConf getCurrentConfig() {
+		return structrConf;
+	}
+
+	public Set<String> getResources() {
+		
+		final Set<String> resources = new LinkedHashSet<>();
+
+		// scan through structr.conf and try to identify module-specific classes
+		for (final Object configurationValue : structrConf.values()) {
+			
+			for (final String value : configurationValue.toString().split("[\\s ,;]+")) {
+	
+				try {
+
+					// try to load class and find source code origin
+					final Class candidate = Class.forName(value.toString());
+					if (!candidate.getName().startsWith("org.structr")) {
+
+						final String codeLocation = candidate.getProtectionDomain().getCodeSource().getLocation().toString();
+						if (codeLocation.startsWith("file:") && codeLocation.endsWith(".jar") || codeLocation.endsWith(".war")) {
+
+							resources.add(codeLocation.substring(5));
+						}
+					}
+
+				} catch (Throwable ignore) { }
+			}
+		}
+
+		logger.log(Level.INFO, "Found {0} possible resources: {1}", new Object[] { resources.size(), resources } );
+		
+		return resources;
+	}
+	
+	public static StructrConf getBaseConfiguration() {
+
+		if (baseConf == null) {
+			
+			baseConf = new StructrConf();
+			
+			baseConf.setProperty(CONFIGURATION,             JarConfigurationProvider.class.getName());
+			baseConf.setProperty(CONFIGURED_SERVICES,       "NodeService AgentService CronService SchemaService");
+			baseConf.setProperty(NEO4J_SHELL_ENABLED,       "true");
+			baseConf.setProperty(JSON_INDENTATION,          "true");
+
+			baseConf.setProperty(SUPERUSER_USERNAME,        "superadmin");
+			baseConf.setProperty(SUPERUSER_PASSWORD,        RandomStringUtils.randomAlphanumeric(12));
+
+			baseConf.setProperty(BASE_PATH,                 "");
+			baseConf.setProperty(TMP_PATH,                  "/tmp");
+			baseConf.setProperty(DATABASE_PATH,             System.getProperty("user.dir").concat("/db"));
+			baseConf.setProperty(FILES_PATH,                System.getProperty("user.dir").concat("/files"));
+			baseConf.setProperty(LOG_DATABASE_PATH,         System.getProperty("user.dir").concat("/logDb.dat"));
+
+			baseConf.setProperty(SMTP_HOST,                 "localhost");
+			baseConf.setProperty(SMTP_PORT,                 "25");
+			baseConf.setProperty(TCP_PORT,                  "54555");
+			baseConf.setProperty(UDP_PORT,                  "57555");
+		}
+		
+		return baseConf;
+	}
+	
+	public static void mergeConfiguration(final StructrConf baseConfig, final StructrConf additionalConfig) {
+		baseConfig.putAll(additionalConfig);
+	}
+	
+	
+	private void migrateDatabase() {
+
+		final GraphDatabaseService graphDb     = getService(NodeService.class).getGraphDb();
+		final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
+		final NodeFactory nodeFactory          = new NodeFactory(superUserContext);
+		final RelationshipFactory relFactory   = new RelationshipFactory(superUserContext);
+		final Iterator<Node> allNodes          = GlobalGraphOperations.at(graphDb).getAllNodes().iterator();
+		final Iterator<Relationship> allRels   = GlobalGraphOperations.at(graphDb).getAllRelationships().iterator();
+		final App app                          = StructrApp.getInstance();
+		final StringProperty uuidProperty      = new StringProperty("uuid");
+		final int txLimit                      = 100;
+		
+		int actualNodeCount                    = 0;
+		int actualRelCount                     = 0;
+		int count                              = 0;
+
+		logger.log(Level.INFO, "Migration of ID properties from uuid to id requested.");
+
+		// iterate over all nodes
+		while (allNodes.hasNext()) {
+
+			app.beginTx();
+
+			try {
+				while (allNodes.hasNext() && (++count % txLimit) != 0) {
+
+					final Node node = allNodes.next();
+
+					// do migration of ID properties
+					if (node.hasProperty("uuid")) {
+
+						try {
+							final NodeInterface nodeInterface = nodeFactory.instantiate(node);
+							final String uuid = nodeInterface.getProperty(uuidProperty);
+							
+							if (uuid != null) {
+
+								nodeInterface.setProperty(GraphObject.id, uuid);
+								nodeInterface.removeProperty(uuidProperty);
+								actualNodeCount++;
+							}
+
+						} catch (Throwable t) {
+							t.printStackTrace();
+						}
+					}
+				}
+				
+				// no validation but indexing etc.
+				app.commitTx(false);
+
+			} catch (Throwable t) {
+
+				t.printStackTrace();
+
+			} finally {
+
+				app.finishTx();
+			}
+		}
+
+		logger.log(Level.INFO, "Migrated {0} nodes to new ID property.", actualNodeCount);
+
+		count = 0;
+
+		// iterate over all relationships
+		while (allRels.hasNext()) {
+
+			app.beginTx();
+
+			try {
+				while (allRels.hasNext() && (++count % txLimit) != 0) {
+
+					final Relationship rel = allRels.next();
+
+					// do migration of ID properties
+					if (rel.hasProperty("uuid")) {
+
+						try {
+							final RelationshipInterface relInterface = relFactory.instantiate(rel);
+							final String uuid = relInterface.getProperty(uuidProperty);
+							
+							if (uuid != null) {
+								relInterface.setProperty(GraphObject.id, uuid);
+								relInterface.removeProperty(uuidProperty);
+								actualRelCount++;
+							}
+
+						} catch (Throwable t) {
+							t.printStackTrace();
+						}
+					}
+				}
+
+				// no validation but indexing etc.
+				app.commitTx(false);
+
+			} catch (Throwable t) {
+
+				t.printStackTrace();
+
+			} finally {
+
+				app.finishTx();
+			}
+		}
+
+		logger.log(Level.INFO, "Migrated {0} relationships to new ID property.", actualRelCount);
+	}
+	
+	private void importSeedFile(final String basePath) {
+		
+		final GraphDatabaseService graphDb = getService(NodeService.class).getGraphDb();
+		final File seedFile                = new File(basePath + "/" + INITIAL_SEED_FILE);
+		
+		if (seedFile.exists()) {
+
+			final Iterator<Node> allNodes = GlobalGraphOperations.at(graphDb).getAllNodes().iterator();
+			final String idName           = GraphObject.id.dbName();
+			boolean hasApplicationNodes   = false;
+
+			while (allNodes.hasNext()) {
+
+				if (allNodes.next().hasProperty(idName)) {
+					hasApplicationNodes = true;
+				}
+			}
+
+			if (!hasApplicationNodes) {
+
+				logger.log(Level.INFO, "Found initial seed file and no application nodes, applying initial seed..");
+
+				try {
+					SyncCommand.importFromFile(graphDb, SecurityContext.getSuperUserInstance(), seedFile.getAbsoluteFile().getAbsolutePath(), false);
+
+				} catch (FrameworkException fex) {
+
+					logger.log(Level.WARNING, "Unable to import initial seed file.", fex);
+				}
+			}
+		}
+	}
 }

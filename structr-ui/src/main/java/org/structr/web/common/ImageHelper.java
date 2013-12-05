@@ -43,7 +43,7 @@ import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import org.apache.commons.io.IOUtils;
 import org.structr.common.SecurityContext;
-import org.structr.core.Services;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.property.PropertyMap;
@@ -78,7 +78,7 @@ public abstract class ImageHelper extends FileHelper {
 	public static Image createImage(final SecurityContext securityContext, final byte[] imageData, final String contentType, final Class<? extends Image> imageType, final boolean markAsThumbnail)
 		throws FrameworkException, IOException {
 
-		CreateNodeCommand<Image> createNodeCommand = Services.command(securityContext, CreateNodeCommand.class);
+		CreateNodeCommand<Image> createNodeCommand = StructrApp.getInstance(securityContext).command(CreateNodeCommand.class);
 		PropertyMap props                          = new PropertyMap();
 		
 		props.put(AbstractNode.type, imageType == null ? Image.class.getSimpleName() : imageType.getSimpleName());

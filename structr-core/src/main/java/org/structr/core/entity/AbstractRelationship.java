@@ -37,14 +37,15 @@ import org.neo4j.graphdb.index.Index;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.common.UuidCreationTransformation;
 import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.IdNotFoundToken;
 import org.structr.common.error.ReadOnlyPropertyToken;
-import org.structr.core.EntityContext;
+import org.structr.core.GraphObject;
+import static org.structr.core.GraphObject.id;
+import static org.structr.core.GraphObject.type;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -57,6 +58,9 @@ import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.property.RelationshipTypeProperty;
+import org.structr.core.property.SourceId;
+import org.structr.core.property.TargetId;
 
 
 /**
@@ -69,15 +73,17 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	private static final Logger logger = Logger.getLogger(AbstractRelationship.class.getName());
 
 	public static final Property<Integer> cascadeDelete = new IntProperty("cascadeDelete").writeOnce();
+	public static final Property<String>  relType       = new RelationshipTypeProperty("relType");
+	public static final SourceId          sourceId      = new SourceId("sourceId");
+	public static final TargetId          targetId      = new TargetId("targetId");
 	
-	public static final View defauflView = new View(AbstractRelationship.class, PropertyView.Public,
-		uuid, type
+	public static final View defauftView = new View(AbstractRelationship.class, PropertyView.Public,
+		id, type, relType, sourceId, targetId
 	);
 	
-	static {
-
-		EntityContext.registerEntityCreationTransformation(AbstractRelationship.class, new UuidCreationTransformation());
-	}
+	public static final View uiView = new View(AbstractRelationship.class, PropertyView.Ui,
+		id, type, relType, sourceId, targetId
+	);
 
 	private boolean readOnlyPropertiesUnlocked = false;
 	private String cachedEndNodeId             = null;
@@ -110,43 +116,12 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 			this.securityContext = securityContext;
 			this.properties      = data;
 			this.isDirty         = true;
-
 		}
-
 	}
 
 	public AbstractRelationship(final SecurityContext securityContext, final Relationship dbRel) {
 
 		init(securityContext, dbRel);
-
-	}
-	
-	/**
-	 * Called when a relationship of this combinedType is instatiated. Please note that
-	 * a relationship can (and will) be instantiated several times during a
-	 * normal rendering turn.
-	 */
-	@Override
-	public void onRelationshipInstantiation() {
-
-		try {
-
-			if (dbRelationship != null) {
-
-				Node startNode = dbRelationship.getStartNode();
-				Node endNode   = dbRelationship.getEndNode();
-
-				if ((startNode != null) && (endNode != null) && startNode.hasProperty(AbstractNode.uuid.dbName()) && endNode.hasProperty(AbstractNode.uuid.dbName())) {
-
-					cachedStartNodeId = (String) startNode.getProperty(AbstractNode.uuid.dbName());
-					cachedEndNodeId   = (String) endNode.getProperty(AbstractNode.uuid.dbName());
-
-				}
-
-			}
-
-		} catch (Throwable t) {
-		}
 	}
 
 	@Override
@@ -169,6 +144,50 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 		this.dbRelationship  = rel.dbRelationship;
 		this.isDirty         = false;
 		this.securityContext = securityContext;
+	}
+
+	public Property<String> getSourceIdProperty() {
+		return sourceId;
+	}
+
+	public Property<String> getTargetIdProperty() {
+		return null;
+	}
+
+	@Override
+	public void onRelationshipCreation() {
+	}
+	
+	/**
+	 * Called when a relationship of this combinedType is instatiated. Please note that
+	 * a relationship can (and will) be instantiated several times during a
+	 * normal rendering turn.
+	 */
+	@Override
+	public void onRelationshipInstantiation() {
+
+		try {
+
+			if (dbRelationship != null) {
+
+				Node startNode = dbRelationship.getStartNode();
+				Node endNode   = dbRelationship.getEndNode();
+
+				if ((startNode != null) && (endNode != null) && startNode.hasProperty(GraphObject.id.dbName()) && endNode.hasProperty(GraphObject.id.dbName())) {
+
+					cachedStartNodeId = (String) startNode.getProperty(GraphObject.id.dbName());
+					cachedEndNodeId   = (String) endNode.getProperty(GraphObject.id.dbName());
+
+				}
+
+			}
+
+		} catch (Throwable t) {
+		}
+	}
+
+	@Override
+	public void onRelationshipDeletion() {
 	}
 
 	@Override
@@ -270,7 +289,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	@Override
 	public String getUuid() {
 
-		return getProperty(AbstractRelationship.uuid);
+		return getProperty(AbstractRelationship.id);
 
 	}
 	
@@ -457,7 +476,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	@Override
 	public Iterable<PropertyKey> getPropertyKeys(final String propertyView) {
 
-		return EntityContext.getPropertySet(this.getClass(), propertyView);
+		return StructrApp.getConfiguration().getPropertySet(this.getClass(), propertyView);
 
 	}
 
@@ -502,7 +521,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 	public String getOtherNodeId(final AbstractNode node) {
 
-		return getOtherNode(node).getProperty(AbstractRelationship.uuid);
+		return getOtherNode(node).getProperty(AbstractRelationship.id);
 
 	}
 
@@ -549,7 +568,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 		boolean error = false;
 
-		error |= ValidationHelper.checkStringNotBlank(this, AbstractRelationship.uuid, errorBuffer);
+		error |= ValidationHelper.checkStringNotBlank(this, AbstractRelationship.id, errorBuffer);
 
 		return !error;
 
@@ -570,7 +589,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	public <T> void setProperty(final PropertyKey<T> key, final T value) throws FrameworkException {
 
 		// check for read-only properties
-		//if (EntityContext.isReadOnlyProperty(type, key) || (EntityContext.isWriteOnceProperty(type, key) && (dbRelationship != null) && dbRelationship.hasProperty(key.name()))) {
+		//if (StructrApp.getConfiguration().isReadOnlyProperty(type, key) || (StructrApp.getConfiguration().isWriteOnceProperty(type, key) && (dbRelationship != null) && dbRelationship.hasProperty(key.name()))) {
 		if (key.isReadOnly() || (key.isWriteOnce() && (dbRelationship != null) && dbRelationship.hasProperty(key.dbName()))) {
 
 			if (readOnlyPropertiesUnlocked || securityContext.isSuperUser()) {
@@ -592,7 +611,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	@Override
 	public void addToIndex() {
 
-		for (PropertyKey key : EntityContext.getPropertySet(entityType, PropertyView.All)) {
+		for (PropertyKey key : StructrApp.getConfiguration().getPropertySet(entityType, PropertyView.All)) {
 			
 			if (key.isIndexed()) {
 				
@@ -611,7 +630,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	@Override
 	public void removeFromIndex() {
 		
-		for (Index<Relationship> index : Services.getService(NodeService.class).getRelationshipIndices()) {
+		for (Index<Relationship> index : Services.getInstance().getService(NodeService.class).getRelationshipIndices()) {
 			
 			synchronized (index) {
 				
@@ -622,7 +641,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	
 	public void removeFromIndex(PropertyKey key) {
 		
-		for (Index<Relationship> index : Services.getService(NodeService.class).getRelationshipIndices()) {
+		for (Index<Relationship> index : Services.getInstance().getService(NodeService.class).getRelationshipIndices()) {
 			
 			synchronized (index) {
 				
@@ -634,7 +653,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	@Override
 	public void indexPassiveProperties() {
 
-		for (PropertyKey key : EntityContext.getPropertySet(entityType, PropertyView.All)) {
+		for (PropertyKey key : StructrApp.getConfiguration().getPropertySet(entityType, PropertyView.All)) {
 			
 			if (key.isPassivelyIndexed()) {
 				

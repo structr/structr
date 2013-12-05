@@ -23,9 +23,7 @@ package org.structr.rest.resource;
 import org.structr.core.Result;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
-import org.structr.core.agent.ProcessTaskCommand;
-import org.structr.core.agent.Task;
+import org.structr.agent.Task;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.NotAllowedException;
 import org.structr.rest.exception.NotFoundException;
@@ -100,7 +98,7 @@ public class MaintenanceResource extends Resource {
 
 					} else if (MaintenanceCommand.class.isAssignableFrom(taskOrCommand)) {
 
-						MaintenanceCommand cmd = (MaintenanceCommand)Services.command(securityContext, taskOrCommand);
+						MaintenanceCommand cmd = (MaintenanceCommand)StructrApp.getInstance(securityContext).command(taskOrCommand);
 						cmd.execute(propertySet);
 
 					} else {

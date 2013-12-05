@@ -30,7 +30,7 @@ public class Trash extends Folder {
 //
 //	static {
 //
-//		EntityContext.registerPropertySet(Trash.class, PropertyView.All, Key.values());
+//		StructrApp.getConfiguration().registerPropertySet(Trash.class, PropertyView.All, Key.values());
 //	}
 //
 }

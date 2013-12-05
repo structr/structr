@@ -80,6 +80,7 @@ public class FrontendTest extends StructrUiTest {
 
 	}
 
+	@Override
 	public void test00() {
 	}
 

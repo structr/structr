@@ -5,7 +5,6 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.structr.common.SecurityContext;
@@ -14,8 +13,8 @@ import org.structr.core.Command;
 import org.structr.core.GraphObject;
 import org.structr.core.Service;
 import org.structr.core.Services;
-import org.structr.core.agent.AgentService;
-import org.structr.core.agent.Task;
+import org.structr.agent.AgentService;
+import org.structr.agent.Task;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Relation;
@@ -34,6 +33,7 @@ import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.graph.search.SearchRelationshipCommand;
 import org.structr.core.property.PropertyMap;
+import org.structr.schema.ConfigurationProvider;
 
 /**
  * Stateful facade for accessing the Structr core layer.
@@ -48,45 +48,7 @@ public class StructrApp implements App {
 	private SecurityContext securityContext                     = null;
 	
 	private StructrApp(final SecurityContext securityContext) {
-		
 		this.securityContext = securityContext;
-
-		if (!Services.isInitialized()) {
-
-			final Map<String, String> context = new LinkedHashMap<>();
-			final String basePath             = ".";
-
-			logger.log(Level.INFO, "Initializing Structr with base path {0}..", basePath);
-
-			context.put(Services.CONFIGURED_SERVICES, "ModuleService NodeService");
-			context.put(Services.TMP_PATH,          "/tmp/");
-			context.put(Services.BASE_PATH,         basePath);
-			context.put(Services.DATABASE_PATH,     basePath + "/db");
-			context.put(Services.FILES_PATH,        basePath + "/files");
-			context.put(Services.LOG_DATABASE_PATH, basePath + "/logDb.dat");
-
-			Services.initialize(context);
-			
-			// wait for initialization
-			while (!Services.isInitialized()) {
-				
-				try { Thread.sleep(100); } catch (Throwable t) {}
-			}
-			
-			// register shutdown hook
-			Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-
-				@Override
-				public void run() {
-					
-					Services.shutdown();
-				}
-				
-			}));
-			
-			logger.log(Level.INFO, "Initialization done.");
-		}
-	
 	}
 	
 	// ----- public methods -----
@@ -204,13 +166,18 @@ public class StructrApp implements App {
 	}
 	
 	@Override
+	public void commitTx(final boolean doValidation) throws FrameworkException {
+		command(TransactionCommand.class).commitTx(doValidation);
+	}
+	
+	@Override
 	public void finishTx() {
 		command(TransactionCommand.class).finishTx();
 	}
 	
 	@Override
 	public void shutdown() {
-		Services.shutdown();
+		Services.getInstance().shutdown();
 	}
 
 	@Override
@@ -219,7 +186,7 @@ public class StructrApp implements App {
 		Command command = commandCache.get(commandType);
 		if (command == null) {
 			
-			command = Services.command(securityContext, commandType);
+			command = Services.getInstance().command(securityContext, commandType);
 			commandCache.put(commandType, command);
 		}
 		
@@ -241,22 +208,22 @@ public class StructrApp implements App {
 	
 	@Override
 	public <T extends Command & MaintenanceCommand> void maintenance(final Class<T> commandClass, final Map<String, Object> propertySet) throws FrameworkException {
-		((MaintenanceCommand)Services.command(securityContext, commandClass)).execute(propertySet);
+		((MaintenanceCommand)Services.getInstance().command(securityContext, commandClass)).execute(propertySet);
 	}
 	
 	@Override
 	public List<GraphObject> cypher(final String cypherQuery, final Map<String, Object> parameters) throws FrameworkException {
-		return Services.command(securityContext, CypherQueryCommand.class).execute(cypherQuery, parameters);
+		return Services.getInstance().command(securityContext, CypherQueryCommand.class).execute(cypherQuery, parameters);
 	}
 
 	@Override
 	public <T extends Service> T getService(Class<T> serviceClass) {
-		return Services.getService(serviceClass);
+		return Services.getInstance().getService(serviceClass);
 	}
 
 	@Override
 	public GraphDatabaseService getGraphDatabaseService() {
-		return Services.command(securityContext, GraphDatabaseCommand.class).execute();
+		return Services.getInstance().command(securityContext, GraphDatabaseCommand.class).execute();
 	}
 	
 	// ----- public static methods ----
@@ -279,5 +246,17 @@ public class StructrApp implements App {
 	 */
 	public static App getInstance(final SecurityContext securityContext) {
 		return new StructrApp(securityContext);
+	}
+	
+	public static ConfigurationProvider getConfiguration() {
+		return Services.getInstance().getConfigurationProvider();
+	}
+	
+	public static String getConfigurationValue(final String key) {
+		return Services.getInstance().getConfigurationValue(key, null);
+	}
+	
+	public static String getConfigurationValue(final String key, final String defaultValue) {
+		return Services.getInstance().getConfigurationValue(key, defaultValue);
 	}
 }

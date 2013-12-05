@@ -18,7 +18,6 @@
  */
 package org.structr.core.entity;
 
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -32,14 +31,9 @@ import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.property.LongProperty;
-import org.structr.core.Result;
-import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.relationship.Access;
-import org.structr.core.graph.search.Search;
-import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.IntProperty;
@@ -73,7 +67,7 @@ public class ResourceAccess extends AbstractNode {
 	public static final Property<Long>                      flags           = new LongProperty("flags").indexed();
 	public static final Property<Integer>                   position        = new IntProperty("position").indexed();
 	
-	public static final Property<List<PropertyAccess>>  propertyAccess      = new EndNodes<>("propertyAccess", Access.class, new PropertySetNotion(uuid, name));
+	public static final Property<List<PropertyAccess>>  propertyAccess      = new EndNodes<>("propertyAccess", Access.class, new PropertySetNotion(id, name));
 
 	public static final View uiView = new View(ResourceAccess.class, PropertyView.Ui,
 		signature, flags, position

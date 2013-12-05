@@ -22,7 +22,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
-import org.structr.core.Services;
 import org.structr.core.graph.CypherQueryCommand;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;
@@ -34,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
+import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
 
 //~--- classes ----------------------------------------------------------------
@@ -74,7 +74,7 @@ public class CypherQueryResource extends Resource {
 			if (queryObject != null) {
 
 				String query                 = queryObject.toString();
-				List<GraphObject> resultList = (List<GraphObject>) Services.command(securityContext, CypherQueryCommand.class).execute(query);
+				List<GraphObject> resultList = (List<GraphObject>) StructrApp.getInstance(securityContext).command(CypherQueryCommand.class).execute(query);
 
 				for (GraphObject obj : resultList) {
 

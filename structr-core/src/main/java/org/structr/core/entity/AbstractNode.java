@@ -36,12 +36,10 @@ import org.structr.common.GraphObjectComparator;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.common.UuidCreationTransformation;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.NullArgumentToken;
 import org.structr.common.error.ReadOnlyPropertyToken;
-import org.structr.core.EntityContext;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.Services;
 import org.structr.core.graph.NodeRelationshipStatisticsCommand;
@@ -55,6 +53,7 @@ import java.util.logging.Logger;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.index.Index;
+import org.structr.core.GraphObject;
 import org.structr.core.IterableAdapter;
 import org.structr.core.Ownership;
 import org.structr.core.app.StructrApp;
@@ -86,22 +85,12 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	public static final Property<Principal>       owner            = new StartNode<>("owner", PrincipalOwnsAbstractNode.class);
 	public static final Property<String>          ownerId          = new EntityIdProperty("ownerId", owner);
 
-	public static final View defaultView = new View(AbstractNode.class, PropertyView.Public, uuid, type);
+	public static final View defaultView = new View(AbstractNode.class, PropertyView.Public, id, type);
 	
 	public static final View uiView = new View(AbstractNode.class, PropertyView.Ui,
-		uuid, name, owner, type, createdBy, deleted, hidden, createdDate, lastModifiedDate, visibleToPublicUsers, visibleToAuthenticatedUsers, visibilityStartDate, visibilityEndDate
+		id, name, owner, type, createdBy, deleted, hidden, createdDate, lastModifiedDate, visibleToPublicUsers, visibleToAuthenticatedUsers, visibilityStartDate, visibilityEndDate
 	);
 	
-	//~--- static initializers --------------------------------------------
-
-	static {
-
-		// register transformation for automatic uuid creation
-		EntityContext.registerEntityCreationTransformation(AbstractNode.class, new UuidCreationTransformation());
-	}
-
-	//~--- fields ---------------------------------------------------------
-
 	protected PropertyMap cachedConvertedProperties  = new PropertyMap();
 	protected PropertyMap cachedRawProperties        = new PropertyMap();
 	protected Principal cachedOwnerNode              = null;
@@ -227,8 +216,8 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			String type = dbNode.hasProperty(AbstractNode.type.dbName())
 				      ? (String) dbNode.getProperty(AbstractNode.type.dbName())
 				      : "<AbstractNode>";
-			String id   = dbNode.hasProperty(AbstractNode.uuid.dbName())
-				      ? (String) dbNode.getProperty(AbstractNode.uuid.dbName())
+			String id   = dbNode.hasProperty(GraphObject.id.dbName())
+				      ? (String) dbNode.getProperty(GraphObject.id.dbName())
 				      : Long.toString(dbNode.getId());
 
 			return name + " (" + type + "," + id + ")";
@@ -349,7 +338,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	@Override
 	public String getUuid() {
 
-		return getProperty(AbstractNode.uuid);
+		return getProperty(GraphObject.id);
 
 	}
 
@@ -409,7 +398,25 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	 */
 	@Override
 	public Iterable<PropertyKey> getPropertyKeys(final String propertyView) {
-		return EntityContext.getPropertySet(this.getClass(), propertyView);
+		
+		// check for custom view in content-type field
+		if (securityContext != null && securityContext.hasCustomView()) {
+			
+			final Set<PropertyKey> keys  = new LinkedHashSet<>(StructrApp.getConfiguration().getPropertySet(entityType, propertyView));
+			final Set<String> customView = securityContext.getCustomView();
+			
+			for (Iterator<PropertyKey> it = keys.iterator(); it.hasNext();) {
+				if (!customView.contains(it.next().jsonName())) {
+					
+					it.remove();
+				}
+			}
+			
+			return keys;
+		}
+		
+		// this is the default if no application/json; properties=[...] content-type header is present on the request
+		return StructrApp.getConfiguration().getPropertySet(entityType, propertyView);
 	}
 
 	/**
@@ -482,7 +489,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	public List<String> getStringListProperty(final PropertyKey<List<String>> key) {
 
 		Object propertyValue = getProperty(key);
-		List<String> result  = new LinkedList<String>();
+		List<String> result  = new LinkedList<>();
 
 		if (propertyValue == null) {
 
@@ -892,7 +899,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 		boolean error = false;
 
-		error |= ValidationHelper.checkStringNotBlank(this, uuid, errorBuffer);
+		error |= ValidationHelper.checkStringNotBlank(this, id, errorBuffer);
 		error |= ValidationHelper.checkStringNotBlank(this, type, errorBuffer);
 
 		return !error;
@@ -1082,7 +1089,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	@Override
 	public void addToIndex() {
 
-		for (PropertyKey key : EntityContext.getPropertySet(entityType, PropertyView.All)) {
+		for (PropertyKey key : StructrApp.getConfiguration().getPropertySet(entityType, PropertyView.All)) {
 			
 			if (key.isIndexed()) {
 				
@@ -1101,7 +1108,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	@Override
 	public void removeFromIndex() {
 		
-		for (Index<Node> index : Services.getService(NodeService.class).getNodeIndices()) {
+		for (Index<Node> index : Services.getInstance().getService(NodeService.class).getNodeIndices()) {
 			
 			synchronized (index) {
 				
@@ -1112,7 +1119,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	
 	public void removeFromIndex(PropertyKey key) {
 		
-		for (Index<Node> index : Services.getService(NodeService.class).getNodeIndices()) {
+		for (Index<Node> index : Services.getInstance().getService(NodeService.class).getNodeIndices()) {
 			
 			synchronized (index) {
 				
@@ -1124,7 +1131,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	@Override
 	public void indexPassiveProperties() {
 		
-		for (PropertyKey key : EntityContext.getPropertySet(entityType, PropertyView.All)) {
+		for (PropertyKey key : StructrApp.getConfiguration().getPropertySet(entityType, PropertyView.All)) {
 			
 			if (key.isPassivelyIndexed()) {
 				

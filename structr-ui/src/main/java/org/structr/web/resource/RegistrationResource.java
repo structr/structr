@@ -58,6 +58,7 @@ import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.property.PropertyMap;
+import org.structr.rest.service.HttpService;
 import org.structr.web.entity.User;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.mail.MailTemplate;
@@ -136,7 +137,7 @@ public class RegistrationResource extends Resource {
 			localeString = (String) propertySet.get(MailTemplate.locale.jsonName());
 			confKey = UUID.randomUUID().toString();
 			
-			Result result = Services.command(superUserContext, SearchNodeCommand.class).execute(
+			Result result = StructrApp.getInstance().command(SearchNodeCommand.class).execute(
 				Search.andExactTypeAndSubtypes(User.class),
 				Search.andExactProperty(superUserContext, User.eMail, emailString));
 				
@@ -236,11 +237,13 @@ public class RegistrationResource extends Resource {
 		// WARNING! This is unchecked user input!!
 		populateReplacementMap(replacementMap, propertySetFromUserPOST);
 
-		String userEmail = user.getProperty(User.eMail);
+		final String userEmail = user.getProperty(User.eMail);
+		final String appHost   = Services.getInstance().getConfigurationValue(HttpService.APPLICATION_HOST);
+		final String httpPort  = Services.getInstance().getConfigurationValue(HttpService.APPLICATION_HTTP_PORT);
 		
 		replacementMap.put(toPlaceholder(User.eMail.jsonName()), userEmail);
 		replacementMap.put(toPlaceholder("link"),
-			getTemplateText(TemplateKey.BASE_URL, "http://" + Services.getApplicationHost() + ":" + Services.getHttpPort())
+			getTemplateText(TemplateKey.BASE_URL, "http://" + appHost + ":" + httpPort)
 			+ getTemplateText(TemplateKey.CONFIRM_REGISTRATION_PAGE, HtmlServlet.CONFIRM_REGISTRATION_PAGE)
 			//+ "/" + HtmlServlet.CONFIRM_REGISTRATION_PAGE
 			+ getTemplateText(TemplateKey.CONFIRM_KEY_KEY, HtmlServlet.CONFIRM_KEY_KEY)
@@ -285,7 +288,7 @@ public class RegistrationResource extends Resource {
 				attrs.add(Search.andExactProperty(securityContext, MailTemplate.locale, localeString));
 			}
 			
-			List<MailTemplate> templates = (List<MailTemplate>) Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(attrs).getResults();
+			List<MailTemplate> templates = (List<MailTemplate>) StructrApp.getInstance().command(SearchNodeCommand.class).execute(attrs).getResults();
 			
 			if (!templates.isEmpty()) {
 				
@@ -465,7 +468,7 @@ public class RegistrationResource extends Resource {
 				props.put(User.name, credentialValue);
 				props.put(User.confirmationKey, confKey);
 
-				return (Principal) Services.command(securityContext, CreateNodeCommand.class).execute(props);
+				return (Principal) StructrApp.getInstance(securityContext).command(CreateNodeCommand.class).execute(props);
 
 			}
 			

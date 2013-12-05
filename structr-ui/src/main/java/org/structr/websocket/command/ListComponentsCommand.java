@@ -24,7 +24,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchNodeCommand;
@@ -38,6 +37,7 @@ import org.structr.websocket.message.MessageBuilder;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.app.StructrApp;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.dom.ShadowDocument;
@@ -72,7 +72,7 @@ public class ListComponentsCommand extends AbstractCommand {
 		try {
 
 			// get shadow document
-			Result result = (Result) Services.command(securityContext, SearchNodeCommand.class).execute(Search.andExactType(ShadowDocument.class));
+			Result result = (Result) StructrApp.getInstance(securityContext).command(SearchNodeCommand.class).execute(Search.andExactType(ShadowDocument.class));
 			List<AbstractNode> filteredResults	= new LinkedList();
 			List<AbstractNode> resultList		= result.getResults();
 

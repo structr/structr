@@ -25,7 +25,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.LowercaseUniqueToken;
 import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
-import org.structr.core.Services;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeService.NodeIndex;
 import org.structr.core.graph.search.SearchUserCommand;
@@ -74,7 +74,7 @@ public class LowercaseTypeUniquenessValidator implements PropertyValidator<Strin
 
 	private static AbstractNode lookup(final NodeIndex index, final PropertyKey key, final String value) {
 		try {
-			return (AbstractNode) Services.command(SecurityContext.getSuperUserInstance(), SearchUserCommand.class).execute(value, key, index);
+			return (AbstractNode) StructrApp.getInstance().command(SearchUserCommand.class).execute(value, key, index);
 
 		} catch (final FrameworkException fex) {
 			fex.printStackTrace();

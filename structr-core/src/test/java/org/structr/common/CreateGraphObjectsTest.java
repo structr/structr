@@ -37,14 +37,15 @@ import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import static junit.framework.Assert.fail;
 import org.apache.commons.lang.StringUtils;
+import org.structr.core.GraphObject;
 import org.structr.core.entity.Cache;
 import org.structr.core.entity.Location;
 import org.structr.core.entity.Person;
 import org.structr.core.entity.PropertyAccess;
 import org.structr.core.entity.PropertyDefinition;
 import org.structr.core.entity.ResourceAccess;
+import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.TestNine;
 import org.structr.core.entity.TestOne;
 import org.structr.core.entity.TestSeven;
@@ -127,7 +128,7 @@ public class CreateGraphObjectsTest extends StructrTest {
 			
 			final String uuid = StringUtils.replace(UUID.randomUUID().toString(), "-", "");
 
-			props.put(AbstractNode.uuid, uuid);
+			props.put(GraphObject.id, uuid);
 
 			try {
 				app.beginTx();
@@ -223,6 +224,7 @@ public class CreateGraphObjectsTest extends StructrTest {
 			entityList.remove(TestTwo.class);
 			entityList.remove(TestNine.class);
 			entityList.remove(PropertyDefinition.class);
+			entityList.remove(SchemaNode.class);
 
 			for (Class type : entityList) {
 

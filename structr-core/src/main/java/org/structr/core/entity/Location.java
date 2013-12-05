@@ -37,9 +37,9 @@ import org.structr.core.property.DoubleProperty;
  */
 public class Location extends AbstractNode {
 
-	public static final Property<Double> latitude  = new DoubleProperty("latitude").indexed();
-	public static final Property<Double> longitude = new DoubleProperty("longitude").indexed();
-	public static final Property<Double> altitude  = new DoubleProperty("altitude").indexed();
+	public static final Property<Double> latitude  = new DoubleProperty("latitude").passivelyIndexed();	// these need to be indexed at the end
+	public static final Property<Double> longitude = new DoubleProperty("longitude").passivelyIndexed();	// of the transaction so the spatial
+	public static final Property<Double> altitude  = new DoubleProperty("altitude").passivelyIndexed();	// indexer sees all properties at once
 
 	public static final View publicView = new View(Location.class, PropertyView.Public,
 		latitude, longitude, altitude
@@ -81,21 +81,28 @@ public class Location extends AbstractNode {
 	
 	private boolean notifyLocatables() {
 		
-		// FIXME: LocationRelationship has a direction. but it is ignored here
-		
-		boolean allLocatablesAreValid = false;
-		
-		for(RelationshipInterface rel : this.getRelationships(NodeHasLocation.class)) {
-			
-			NodeInterface otherNode = rel.getOtherNode(this);
-			if(otherNode != null && otherNode instanceof Locatable) {
-				
-				// notify other node of location change
-				allLocatablesAreValid |= !((Locatable)otherNode).locationChanged();
+		try {
+			// FIXME: LocationRelationship has a direction. but it is ignored here
+
+			boolean allLocatablesAreValid = false;
+
+			for(RelationshipInterface rel : this.getRelationships(NodeHasLocation.class)) {
+
+				NodeInterface otherNode = rel.getOtherNode(this);
+				if(otherNode != null && otherNode instanceof Locatable) {
+
+					// notify other node of location change
+					allLocatablesAreValid |= !((Locatable)otherNode).locationChanged();
+				}
 			}
+
+			return allLocatablesAreValid;
+			
+		} catch (Throwable t) {
+			t.printStackTrace();
 		}
 		
-		return allLocatablesAreValid;
+		return false;
 	}
 
 }

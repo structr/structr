@@ -29,10 +29,10 @@ public class Code extends DOMElement {
 //
 //	static {
 //
-//		EntityContext.registerPropertySet(Code.class, PropertyView.All, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Code.class, PropertyView.Public, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Code.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-//		EntityContext.registerEntityRelation(Code.class, Content.class, RelType.CONTAINS, Direction.OUTGOING, Relation.Cardinality.ManyToMany);
+//		StructrApp.getConfiguration().registerPropertySet(Code.class, PropertyView.All, HtmlElement.UiKey.values());
+//		StructrApp.getConfiguration().registerPropertySet(Code.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		StructrApp.getConfiguration().registerPropertySet(Code.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//		StructrApp.getConfiguration().registerEntityRelation(Code.class, Content.class, RelType.CONTAINS, Direction.OUTGOING, Relation.Cardinality.ManyToMany);
 //
 //	}
 

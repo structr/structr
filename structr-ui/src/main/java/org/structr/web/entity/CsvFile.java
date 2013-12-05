@@ -29,7 +29,7 @@ public class CsvFile extends File {
 //
 //	static {
 //
-//		EntityContext.registerPropertySet(CsvFile.class, PropertyView.All, Key.values());
+//		StructrApp.getConfiguration().registerPropertySet(CsvFile.class, PropertyView.All, Key.values());
 //	}
 //
 }

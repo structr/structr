@@ -29,9 +29,9 @@ public class Var extends DOMElement {
 //
 //	static {
 //
-//		EntityContext.registerPropertySet(Var.class, PropertyView.All, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Var.class, PropertyView.Public, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Var.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//		StructrApp.getConfiguration().registerPropertySet(Var.class, PropertyView.All, HtmlElement.UiKey.values());
+//		StructrApp.getConfiguration().registerPropertySet(Var.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		StructrApp.getConfiguration().registerPropertySet(Var.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 //
 //	}
 

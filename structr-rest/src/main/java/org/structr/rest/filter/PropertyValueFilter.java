@@ -52,7 +52,7 @@ public class PropertyValueFilter<T extends Comparable> extends Filter {
 		if (t != null) {
 			return predicate.evaluate(securityContext, t, value.get(securityContext));
 		} else {
-			logger.log(Level.WARNING, "Null property for key {0} on ID {1}", new Object[] { propertyKey, object.getProperty(AbstractNode.uuid) });
+			logger.log(Level.WARNING, "Null property for key {0} on ID {1}", new Object[] { propertyKey, object.getProperty(GraphObject.id) });
 		}
 		
 		return false;

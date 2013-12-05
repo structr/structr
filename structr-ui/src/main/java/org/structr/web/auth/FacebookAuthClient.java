@@ -21,7 +21,7 @@ package org.structr.web.auth;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringUtils;
-import org.structr.core.Services;
+import org.structr.core.app.StructrApp;
 
 /**
  *
@@ -50,21 +50,21 @@ public class FacebookAuthClient extends StructrOAuthClient {
 	@Override
 	public String getUserResourceUri() {
 		
-		return Services.getConfigurationValue("oauth.facebook.user_details_resource_uri", "");
+		return StructrApp.getConfigurationValue("oauth.facebook.user_details_resource_uri", "");
 			
 	}
 
 	@Override
 	public String getReturnUri() {
 		
-		return Services.getConfigurationValue("oauth.facebook.return_uri", "/");
+		return StructrApp.getConfigurationValue("oauth.facebook.return_uri", "/");
 			
 	}
 
 	@Override
 	public String getErrorUri() {
 		
-		return Services.getConfigurationValue("oauth.facebook.error_uri", "/");
+		return StructrApp.getConfigurationValue("oauth.facebook.error_uri", "/");
 			
 	}
 	

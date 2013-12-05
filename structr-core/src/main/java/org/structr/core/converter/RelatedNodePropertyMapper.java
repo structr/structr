@@ -29,7 +29,6 @@ import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.RelationProperty;
 
@@ -104,24 +103,29 @@ public class RelatedNodePropertyMapper<T extends NodeInterface> extends Property
 				final RelationProperty relationProperty = (RelationProperty)sourceKey;
 				final App app                           = StructrApp.getInstance();
 				final Class<T> relatedType              = relationProperty.getTargetType();
-				
-				try {
-					app.beginTx();
-					
-					relatedNode = app.create(relatedType);
-					
-					//FIXME: this may be the wrong direction..
-					relationProperty.addSingleElement(securityContext, localNode, relatedNode);
-					
-					app.commitTx();
 
-				} catch (FrameworkException fex) {
+				if (relatedType != null) {
 					
-					fex.printStackTrace();
+					try {
+						app.beginTx();
+
+						relatedNode = app.create(relatedType);
+						relationProperty.addSingleElement(securityContext, localNode, relatedNode);
+
+						app.commitTx();
+
+					} catch (FrameworkException fex) {
+
+						fex.printStackTrace();
+
+					} finally {
+
+						app.finishTx();
+					}
 					
-				} finally {
+				} else {
 					
-					app.finishTx();
+					logger.log(Level.SEVERE, "Related type was null for {0}", currentObject);
 				}
 			}
 		}

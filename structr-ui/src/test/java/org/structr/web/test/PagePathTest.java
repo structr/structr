@@ -18,10 +18,6 @@
  */
 package org.structr.web.test;
 
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
 import static junit.framework.TestCase.assertEquals;
 import org.structr.common.error.FrameworkException;
 import org.structr.web.common.StructrUiTest;

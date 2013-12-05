@@ -22,18 +22,15 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import org.structr.common.*;
 import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 
 //~--- JDK imports ------------------------------------------------------------
-import java.text.*;
 
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.ServletException;
 
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.fileupload.FileItem;
@@ -42,9 +39,8 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.IOUtils;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.auth.Authenticator;
-import org.structr.core.auth.AuthenticatorCommand;
 import org.structr.core.entity.AbstractNode;
+import org.structr.rest.service.HttpServiceServlet;
 import org.structr.web.auth.HttpAuthenticator;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.Image;
@@ -55,22 +51,20 @@ import org.structr.web.entity.Image;
  *
  * @author Axel Morgner
  */
-public class UploadServlet extends HttpServlet {
+public class UploadServlet extends HttpServiceServlet {
 
 	private static final Logger logger = Logger.getLogger(UploadServlet.class.getName());
-
-	private ServletFileUpload uploader = null;
-	private File filesDir = null;
 
 	private static final int MEMORY_THRESHOLD	= 1024 * 1024 * 10;  // above 10 MB, files are stored on disk
 	private static final int MAX_FILE_SIZE		= 1024 * 1024 * 100; // 100 MB
 	private static final int MAX_REQUEST_SIZE	= 1024 * 1024 * 120; // 120 MB
 
-	//~--- fields ---------------------------------------------------------
-	private DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
+	// non-static fields
+	private ServletFileUpload uploader = null;
+	private File filesDir              = null;
 
-	public UploadServlet() {
-	}
+
+	public UploadServlet() { }
 
 	//~--- methods --------------------------------------------------------
 	@Override
@@ -79,7 +73,7 @@ public class UploadServlet extends HttpServlet {
 		DiskFileItemFactory fileFactory = new DiskFileItemFactory();
 		fileFactory.setSizeThreshold(MEMORY_THRESHOLD);
 
-		filesDir = new File(Services.getTmpPath());
+		filesDir = new File(Services.getInstance().getConfigurationValue(Services.TMP_PATH)); // new File(Services.getInstance().getTmpPath());
 		if (!filesDir.exists()) {
 			filesDir.mkdir();
 		}
@@ -168,11 +162,4 @@ public class UploadServlet extends HttpServlet {
 			HttpAuthenticator.writeInternalServerError(response);
 		}
 	}
-
-	private Authenticator getAuthenticator() throws FrameworkException {
-
-		return (Authenticator) Services.command(null, AuthenticatorCommand.class).execute(getServletConfig());
-
-	}
-
 }

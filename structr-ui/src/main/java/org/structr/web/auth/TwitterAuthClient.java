@@ -22,7 +22,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
-import org.structr.core.Services;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Person;
 import org.structr.core.property.PropertyKey;
 import twitter4j.Twitter;
@@ -168,14 +168,14 @@ public class TwitterAuthClient extends StructrOAuthClient {
 	@Override
 	public String getReturnUri() {
 		
-		return Services.getConfigurationValue("oauth.twitter.return_uri", "/");
+		return StructrApp.getConfigurationValue("oauth.twitter.return_uri", "/");
 			
 	}
 
 	@Override
 	public String getErrorUri() {
 		
-		return Services.getConfigurationValue("oauth.twitter.error_uri", "/");
+		return StructrApp.getConfigurationValue("oauth.twitter.error_uri", "/");
 			
 	}
 

@@ -25,13 +25,9 @@ import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
-import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.websocket.StructrWebSocket;
@@ -114,7 +110,7 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 							String key = (String) entry.getKey();
 							Object val = entry.getValue();
 
-							PropertyKey propertyKey = EntityContext.getPropertyKeyForDatabaseName(newNode.getClass(), key);
+							PropertyKey propertyKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(newNode.getClass(), key);
 							if (propertyKey != null) {
 
 								try {

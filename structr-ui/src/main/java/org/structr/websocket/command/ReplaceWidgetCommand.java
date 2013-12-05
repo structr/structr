@@ -27,7 +27,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
+import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 
@@ -94,7 +94,7 @@ public class ReplaceWidgetCommand extends AbstractCommand {
 			deleteRecursively((DOMNode) origNode);
 
 			// Set uuid of original node to new widget node
-			newWidget.setProperty(AbstractNode.uuid, id);
+			newWidget.setProperty(GraphObject.id, id);
 
 			if (existingParent != null) {
 
@@ -134,7 +134,7 @@ public class ReplaceWidgetCommand extends AbstractCommand {
 	 */
 	private void deleteRecursively(final DOMNode node) throws FrameworkException {
 		
-		final DeleteNodeCommand deleteNode = Services.command(getWebSocket().getSecurityContext(), DeleteNodeCommand.class);
+		final DeleteNodeCommand deleteNode = StructrApp.getInstance(getWebSocket().getSecurityContext()).command(DeleteNodeCommand.class);
 		
 		// Delete original node recursively
 		Set<DOMNode> allChildren = DOMNode.getAllChildNodes(node);

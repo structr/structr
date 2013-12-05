@@ -35,7 +35,7 @@ public class TestResourceProvider implements ResourceProvider {
 	@Override
 	public Map<Pattern, Class<? extends Resource>> getResources() {
 
-		Map<Pattern, Class<? extends Resource>> resourceMap = new LinkedHashMap<Pattern, Class<? extends Resource>>();
+		Map<Pattern, Class<? extends Resource>> resourceMap = new LinkedHashMap<>();
 
 		resourceMap.put(Pattern.compile("[a-zA-Z0-9]{32}"),	UuidResource.class);			// matches a UUID without dashes
 

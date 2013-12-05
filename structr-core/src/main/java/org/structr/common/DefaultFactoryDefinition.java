@@ -25,13 +25,11 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.GenericNode;
 import org.structr.core.entity.GenericRelationship;
-import org.structr.core.entity.Relation;
-import org.structr.core.experimental.NodeExtender;
-import org.structr.core.module.ModuleService;
 
 /**
  * The default factory for unknown types in structr. When structr needs to
@@ -46,11 +44,9 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 
 	public static final String COMBINED_RELATIONSHIP_KEY_SEP = " ";
 	
-	public static final NodeExtender genericNodeExtender = new NodeExtender(GenericNode.class, "org.structr.core.entity.dynamic");
 	public static final Class GENERIC_NODE_TYPE          = GenericNode.class;
 	public static final Class GENERIC_REL_TYPE           = GenericRelationship.class;
 	
-	private ModuleService moduleService = null;
 	private String externalNodeTypeName = null;
 
 	@Override
@@ -83,7 +79,7 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 	}
 
 	@Override
-	public Class determineNodeType(Node node) {
+	public Class determineNodeType(final Node node) {
 		
 		final String type = GraphObject.type.dbName();
 		if (node.hasProperty(type)) {
@@ -91,7 +87,11 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 			final Object obj =  node.getProperty(type);
 			if (obj != null) {
 				
-				return getModuleService().getNodeEntityClass(obj.toString());
+				Class nodeType = StructrApp.getConfiguration().getNodeEntities().get(obj.toString());
+				if (nodeType != null) {
+					
+					return nodeType;
+				}
 			}
 			
 		} else {
@@ -100,7 +100,7 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 				
 				// try to determine external node
 				// type name from configuration
-				externalNodeTypeName = Services.getConfigurationValue(Services.FOREIGN_TYPE);
+				externalNodeTypeName = StructrApp.getConfigurationValue(Services.FOREIGN_TYPE);
 			}
 			
 			if (externalNodeTypeName != null && node.hasProperty(externalNodeTypeName)) {
@@ -108,13 +108,17 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 				Object typeObj = node.getProperty(externalNodeTypeName);
 				if (typeObj != null) {
 					
-					String externalNodeType = typeObj.toString();
+					// String externalNodeType = typeObj.toString();
 					
 					// initialize dynamic type
-					genericNodeExtender.getType(externalNodeType);
+					// genericNodeExtender.getType(externalNodeType);
 					
 					// return dynamic type
-					return moduleService.getNodeEntityClass(typeObj.toString());
+					Class dynamicType = StructrApp.getConfiguration().getNodeEntityClass(typeObj.toString());
+					if (dynamicType != null) {
+						
+						return dynamicType;
+					}
 				}
 			}
 			
@@ -128,8 +132,6 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 	public Class determineRelationshipType(Relationship relationship) {
 
 		final String type = GraphObject.type.dbName();
-		
-		final ModuleService moduleService = getModuleService();
 		
 		// first try: duck-typing
 		final String sourceType = relationship.getStartNode().hasProperty(type) ? relationship.getStartNode().getProperty(type).toString() : null;
@@ -151,9 +153,11 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 			
 			if (obj != null) {
 				
-				Class relationClass = moduleService.getRelationshipEntityClass(obj.toString());
-				moduleService.setRelationClassForCombinedType(sourceType, relType, targetType, relationClass);
-				return relationClass;
+				Class relationClass = StructrApp.getConfiguration().getRelationshipEntityClass(obj.toString());
+				if (relationClass != null) {
+					StructrApp.getConfiguration().setRelationClassForCombinedType(sourceType, relType, targetType, relationClass);
+					return relationClass;
+				}
 			}
 		}
 
@@ -167,7 +171,10 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 			
 			if (obj != null) {
 				
-				return getClassForCombinedType(obj.toString());
+				Class classForCombinedType = getClassForCombinedType(obj.toString());
+				if (classForCombinedType != null) {
+					return classForCombinedType;
+				}
 			}
 		}
 		
@@ -187,11 +194,6 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 	}
 
 	private Class getClassForCombinedType(final String sourceType, final String relType, final String targetType) {
-		
-		return getModuleService().getRelationClassForCombinedType(sourceType, relType, targetType);
-	}
-
-	private ModuleService getModuleService() {
-		return Services.getService(ModuleService.class);
+		return StructrApp.getConfiguration().getRelationClassForCombinedType(sourceType, relType, targetType);
 	}
 }

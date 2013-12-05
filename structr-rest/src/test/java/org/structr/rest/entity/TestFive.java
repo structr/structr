@@ -20,8 +20,8 @@ package org.structr.rest.entity;
 
 import java.util.List;
 import org.structr.common.PropertyView;
-import org.structr.core.EntityContext;
-import static org.structr.core.GraphObject.uuid;
+import org.structr.common.View;
+import static org.structr.core.GraphObject.id;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.notion.PropertyNotion;
 import org.structr.core.property.EndNode;
@@ -35,14 +35,11 @@ import org.structr.core.property.StartNode;
  */
 public class TestFive extends AbstractNode {
 	
-	public static final Property<List<TestOne>> manyToManyTestOnes = new EndNodes<>("manyToManyTestOnes", FiveOneManyToMany.class, new PropertyNotion(uuid));
-	public static final Property<List<TestOne>> oneToManyTestOnes  = new EndNodes<>("oneToManyTestOnes",  FiveOneOneToMany.class, new PropertyNotion(uuid));
+	public static final Property<List<TestOne>> manyToManyTestOnes = new EndNodes<>("manyToManyTestOnes", FiveOneManyToMany.class, new PropertyNotion(id));
+	public static final Property<List<TestOne>> oneToManyTestOnes  = new EndNodes<>("oneToManyTestOnes",  FiveOneOneToMany.class, new PropertyNotion(id));
 	
 	public static final Property<TestThree>     oneToOneTestThree  = new EndNode<>("oneToOneTestThree",  FiveThreeOneToOne.class);
 	public static final Property<TestThree>     manyToOneTestThree = new StartNode<>("manyToOneTestThree", ThreeFiveOneToMany.class);
 	
-	static {
-		
-		EntityContext.registerPropertySet(TestFive.class, PropertyView.Public, AbstractNode.name, manyToManyTestOnes, oneToManyTestOnes, oneToOneTestThree, manyToOneTestThree);
-	}
+	public static final View defaultView = new View(TestFive.class, PropertyView.Public, AbstractNode.name, manyToManyTestOnes, oneToManyTestOnes, oneToOneTestThree, manyToOneTestThree);
 }

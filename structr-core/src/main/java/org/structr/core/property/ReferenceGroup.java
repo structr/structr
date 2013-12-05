@@ -27,12 +27,11 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.lucene.search.BooleanClause;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.PropertyGroup;
+import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.search.PropertySearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchAttributeGroup;
@@ -63,8 +62,8 @@ public class ReferenceGroup extends Property<PropertyMap> implements PropertyGro
 		this.entityClass            = entityClass;
 
 		// register in entity context
-		EntityContext.registerProperty(entityClass, nullValuesOnlyProperty);
-		EntityContext.registerPropertyGroup(entityClass, this, this);	
+		// FIXME StructrApp.getConfiguration().registerProperty(entityClass, nullValuesOnlyProperty);
+		StructrApp.getConfiguration().registerPropertyGroup(entityClass, this, this);	
 	}
 	
 	// ----- interface PropertyGroup -----

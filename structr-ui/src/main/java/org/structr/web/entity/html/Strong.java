@@ -29,9 +29,9 @@ public class Strong extends DOMElement {
 //
 //	static {
 //
-//		EntityContext.registerPropertySet(Strong.class, PropertyView.All, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Strong.class, PropertyView.Public, HtmlElement.UiKey.values());
-//		EntityContext.registerPropertySet(Strong.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
+//		StructrApp.getConfiguration().registerPropertySet(Strong.class, PropertyView.All, HtmlElement.UiKey.values());
+//		StructrApp.getConfiguration().registerPropertySet(Strong.class, PropertyView.Public, HtmlElement.UiKey.values());
+//		StructrApp.getConfiguration().registerPropertySet(Strong.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
 //
 //	}
 

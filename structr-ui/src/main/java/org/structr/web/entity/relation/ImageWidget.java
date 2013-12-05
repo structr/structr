@@ -1,7 +1,6 @@
 package org.structr.web.entity.relation;
 
 import org.structr.core.entity.OneToMany;
-import org.structr.core.property.Property;
 import org.structr.web.entity.Image;
 import org.structr.web.entity.Widget;
 
@@ -24,15 +23,5 @@ public class ImageWidget extends OneToMany<Widget, Image> {
 	@Override
 	public String name() {
 		return "PICTURE_OF";
-	}
-
-	@Override
-	public Property<String> getSourceIdProperty() {
-		return null;
-	}
-
-	@Override
-	public Property<String> getTargetIdProperty() {
-		return null;
 	}
 }

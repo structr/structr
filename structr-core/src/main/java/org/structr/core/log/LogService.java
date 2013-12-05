@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.StructrConf;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -52,7 +53,7 @@ public class LogService implements SingletonService {
 	private TxPageFile logDb		= null;
 
 	/** Dependent services */
-	private Set<RunnableService> registeredServices = new HashSet<RunnableService>();
+	private Set<RunnableService> registeredServices = new HashSet<>();
 	private boolean isInitialized                   = false;
 
 	//~--- methods --------------------------------------------------------
@@ -69,10 +70,10 @@ public class LogService implements SingletonService {
 	}
 
 	@Override
-	public void initialize(Map<String, String> context) {
+	public void initialize(final StructrConf configurationFile) {
 
 //              String dbPath = (String) context.get(Services.DATABASE_PATH);
-		String logDbPath = Services.getLogDatabasePath();
+		String logDbPath = configurationFile.getProperty(Services.LOG_DATABASE_PATH);
 
 		try {
 
@@ -177,8 +178,8 @@ public class LogService implements SingletonService {
 		return LogService.class.getSimpleName();
 
 	}
-
 	// </editor-fold>
+	
 	@Override
 	public boolean isRunning() {
 
@@ -186,4 +187,8 @@ public class LogService implements SingletonService {
 
 	}
 
+
+//	@Override
+//	public void visitConfiguration(final StructrConf configuration) {
+//	}
 }

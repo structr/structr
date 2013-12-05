@@ -23,9 +23,7 @@ package org.structr.core.graph;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
-import org.structr.core.Services;
 import org.structr.core.Transformation;
 import org.structr.core.entity.AbstractRelationship;
 
@@ -34,6 +32,8 @@ import org.structr.core.entity.AbstractRelationship;
 import java.util.Date;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Relation;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -80,12 +80,18 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 
 		if (newRel != null) {
 
-//			newRel.unlockReadOnlyPropertiesOnce();
-//			newRel.setProperty(GraphObject.type, relType.getSimpleName());
+			newRel.unlockReadOnlyPropertiesOnce();
+			newRel.setProperty(GraphObject.type, relType.getSimpleName());
 
+			// set UUID
+			newRel.unlockReadOnlyPropertiesOnce();
+			newRel.setProperty(GraphObject.id, getNextUuid());
+
+			// set created date
 			newRel.unlockReadOnlyPropertiesOnce();
 			newRel.setProperty(AbstractRelationship.createdDate, now);
 
+			// set last modified date
 			newRel.unlockReadOnlyPropertiesOnce();
 			newRel.setProperty(AbstractRelationship.lastModifiedDate, now);
 
@@ -113,10 +119,10 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 			}
 
 			// notify relationship of its creation
-			newRel.onRelationshipInstantiation();
+			newRel.onRelationshipCreation();
 
 			// iterate post creation transformations
-			for (Transformation<GraphObject> transformation : EntityContext.getEntityCreationTransformations(newRel.getClass())) {
+			for (Transformation<GraphObject> transformation : StructrApp.getConfiguration().getEntityCreationTransformations(newRel.getClass())) {
 
 				transformation.apply(securityContext, newRel);
 

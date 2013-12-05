@@ -33,7 +33,6 @@ import org.structr.core.entity.AbstractNode;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.LinkedList;
 import java.util.List;
 
 import java.util.UUID;
@@ -41,20 +40,16 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.structr.common.Path;
 import org.structr.common.PathHelper;
 import org.structr.common.SecurityContext;
-import org.structr.core.Result;
+import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.graph.CreateNodeCommand;
-import org.structr.core.graph.search.Search;
-import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.property.PropertyMap;
 import org.structr.util.Base64;
 import org.structr.web.entity.AbstractFile;
-import static org.structr.web.servlet.HtmlServlet.searchNodesAsSuperuser;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -133,7 +128,7 @@ public class FileHelper {
 	public static org.structr.web.entity.File createFile(final SecurityContext securityContext, final byte[] fileData, final String contentType, final Class<? extends org.structr.web.entity.File> fileType)
 		throws FrameworkException, IOException {
 
-		CreateNodeCommand<org.structr.web.entity.File> createNodeCommand = Services.command(securityContext, CreateNodeCommand.class);
+		CreateNodeCommand<org.structr.web.entity.File> createNodeCommand = StructrApp.getInstance(securityContext).command(CreateNodeCommand.class);
 		PropertyMap props                                                = new PropertyMap();
 		
 		props.put(AbstractNode.type, fileType == null ? org.structr.web.entity.File.class.getSimpleName() : fileType.getSimpleName());
@@ -247,7 +242,7 @@ public class FileHelper {
 	 */
 	public static void writeToFile(final org.structr.web.entity.File fileNode, final byte[] data) throws FrameworkException, IOException {
 
-		String uuid = fileNode.getProperty(AbstractNode.uuid);
+		String uuid = fileNode.getProperty(GraphObject.id);
 		if (uuid == null) {
 
 			final String newUuid = UUID.randomUUID().toString().replaceAll("[\\-]+", "");
@@ -258,7 +253,7 @@ public class FileHelper {
 
 				app.beginTx();
 				fileNode.unlockReadOnlyPropertiesOnce();
-				fileNode.setProperty(AbstractNode.uuid, newUuid);
+				fileNode.setProperty(GraphObject.id, newUuid);
 				app.commitTx();
 				
 			} finally {
@@ -270,7 +265,9 @@ public class FileHelper {
 
 		fileNode.setRelativeFilePath(org.structr.web.entity.File.getDirectoryPath(uuid) + "/" + uuid);
 
-		java.io.File fileOnDisk = new java.io.File(Services.getFilesPath() + "/" + fileNode.getRelativeFilePath());
+		final String filesPath = Services.getInstance().getConfigurationValue(Services.FILES_PATH);
+		
+		java.io.File fileOnDisk = new java.io.File(filesPath + "/" + fileNode.getRelativeFilePath());
 
 		fileOnDisk.getParentFile().mkdirs();
 		FileUtils.writeByteArrayToFile(fileOnDisk, data);
@@ -399,7 +396,7 @@ public class FileHelper {
 
 		if (relativeFilePath != null) {
 
-			String filePath         = Services.getFilePath(Path.Files, relativeFilePath);
+			String filePath = getFilePath(relativeFilePath);
 
 			try {
 			
@@ -434,7 +431,7 @@ public class FileHelper {
 
 		if (path != null) {
 
-			String filePath         = Services.getFilePath(Path.Files, path);
+			String filePath = getFilePath(path);
 
 			try {
 
@@ -506,23 +503,14 @@ public class FileHelper {
 
 		logger.log(Level.FINE, "Search for file with uuid: {0}", uuid);
 
-		List<SearchAttribute> searchAttrs = new LinkedList<>();
-
-		searchAttrs.add(Search.andExactUuid(uuid));
-		searchAttrs.add(Search.orExactTypeAndSubtypes(org.structr.web.entity.AbstractFile.class));
-
-		
 		try {
-			Result<AbstractFile> results = searchNodesAsSuperuser.execute(false, false, searchAttrs);
-			logger.log(Level.FINE, "{0} files found", results.size());
-			if (results.isEmpty()) return null;
-		
-			return (AbstractFile) results.get(0);
+			return StructrApp.getInstance().get(AbstractFile.class, uuid);
 			
-		} catch (FrameworkException ex) {
-			logger.log(Level.SEVERE, null, ex);
+		} catch (Throwable t) {
+			
+			logger.log(Level.WARNING, "Unable to load file by UUID {0}: {1}", new Object[] { uuid, t.getMessage() } );
 		}
-
+		
 		return null;
 	}
 		
@@ -530,23 +518,14 @@ public class FileHelper {
 
 		logger.log(Level.FINE, "Search for file with name: {0}", name);
 
-		List<SearchAttribute> searchAttrs = new LinkedList<>();
-
-		searchAttrs.add(Search.andExactName(name));
-		searchAttrs.add(Search.orExactTypeAndSubtypes(org.structr.web.entity.AbstractFile.class));
-
-		
 		try {
-			Result<AbstractFile> results = searchNodesAsSuperuser.execute(false, false, searchAttrs);
-			logger.log(Level.FINE, "{0} files found", results.size());
-			if (results.isEmpty()) return null;
-		
-			return (AbstractFile) results.get(0);
+			return StructrApp.getInstance().nodeQuery(AbstractFile.class).andName(name).getFirst();
 			
-		} catch (FrameworkException ex) {
-			logger.log(Level.SEVERE, null, ex);
+		} catch (Throwable t) {
+			
+			logger.log(Level.WARNING, "Unable to load file by name {0}: {1}", new Object[] { name, t.getMessage() } );
 		}
-
+		
 		return null;
 	}
 	
@@ -561,7 +540,7 @@ public class FileHelper {
 		
 		String folderPath = file.getProperty(AbstractFile.name);
 		
-		if (folderPath == null) folderPath = file.getProperty(AbstractNode.uuid);
+		if (folderPath == null) folderPath = file.getProperty(GraphObject.id);
 		
 		while (parentFolder != null) {
 			folderPath = parentFolder.getName().concat("/").concat(folderPath);
@@ -571,4 +550,21 @@ public class FileHelper {
 		return "/".concat(folderPath);
 	}
 	
+	public static String getFilePath(final String... pathParts) {
+
+		String filePath          = Services.getInstance().getConfigurationValue(Services.FILES_PATH);
+		StringBuilder returnPath = new StringBuilder();
+
+		returnPath.append(filePath);
+		returnPath.append(filePath.endsWith("/")
+			   ? ""
+			   : "/");
+
+		for (String pathPart : pathParts) {
+			returnPath.append(pathPart);
+		}
+
+		return returnPath.toString();
+	}
+
 }

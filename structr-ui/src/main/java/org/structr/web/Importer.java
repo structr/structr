@@ -32,12 +32,10 @@ import org.jsoup.nodes.*;
 import org.structr.common.CaseHelper;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
-import org.structr.common.Path;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
@@ -66,6 +64,7 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.lang.WordUtils;
+import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.BooleanProperty;
@@ -151,9 +150,9 @@ public class Importer {
 
 	public void init() {
 
-		searchNode = Services.command(securityContext, SearchNodeCommand.class);
-		createNode = Services.command(securityContext, CreateNodeCommand.class);
-		createRel  = Services.command(securityContext, CreateRelationshipCommand.class);
+		searchNode = StructrApp.getInstance(securityContext).command(SearchNodeCommand.class);
+		createNode = StructrApp.getInstance(securityContext).command(CreateNodeCommand.class);
+		createRel  = StructrApp.getInstance(securityContext).command(CreateRelationshipCommand.class);
 	}
 
 	public boolean parse() throws FrameworkException {
@@ -222,7 +221,7 @@ public class Importer {
 				createChildNodes(parsedDocument, page, page, baseUrl);
 				logger.log(Level.INFO, "##### Finished fetching {0} for page {1} #####", new Object[] { address, name });
 
-				pageId = page.getProperty(AbstractNode.uuid);
+				pageId = page.getProperty(GraphObject.id);
 			}
 
 			app.commitTx();
@@ -473,9 +472,9 @@ public class Importer {
 
 		// Create temporary file with new uuid
 		// FIXME: This is much too dangerous!
-		String relativeFilePath = org.structr.web.entity.File.getDirectoryPath(uuid) + "/" + uuid;
-		String filePath         = Services.getFilePath(Path.Files, relativeFilePath);
-		java.io.File fileOnDisk = new java.io.File(filePath);
+		final String relativeFilePath = org.structr.web.entity.File.getDirectoryPath(uuid) + "/" + uuid;
+		final String filePath         = FileHelper.getFilePath(relativeFilePath);
+		final java.io.File fileOnDisk = new java.io.File(filePath);
 
 		fileOnDisk.getParentFile().mkdirs();
 
@@ -605,7 +604,7 @@ public class Importer {
 	private File createFileNode(final String uuid, final String name, final String contentType, final long size, final long checksum) throws FrameworkException {
 
 		String relativeFilePath = File.getDirectoryPath(uuid) + "/" + uuid;
-		File fileNode           = (File) createNode.execute(new NodeAttribute(AbstractNode.uuid, uuid), new NodeAttribute(AbstractNode.type, File.class.getSimpleName()),
+		File fileNode           = (File) createNode.execute(new NodeAttribute(GraphObject.id, uuid), new NodeAttribute(AbstractNode.type, File.class.getSimpleName()),
 						  new NodeAttribute(AbstractNode.name, name), new NodeAttribute(File.relativeFilePath, relativeFilePath),
 						  new NodeAttribute(File.contentType, contentType), new NodeAttribute(AbstractNode.visibleToPublicUsers, publicVisible),
 						  new NodeAttribute(File.size, size), new NodeAttribute(File.checksum, checksum),
@@ -618,7 +617,7 @@ public class Importer {
 	private Image createImageNode(final String uuid, final String name, final String contentType, final long size, final long checksum) throws FrameworkException {
 
 		String relativeFilePath = Image.getDirectoryPath(uuid) + "/" + uuid;
-		Image imageNode         = (Image) createNode.execute(new NodeAttribute(AbstractNode.uuid, uuid), new NodeAttribute(AbstractNode.type, Image.class.getSimpleName()),
+		Image imageNode         = (Image) createNode.execute(new NodeAttribute(GraphObject.id, uuid), new NodeAttribute(AbstractNode.type, Image.class.getSimpleName()),
 						  new NodeAttribute(AbstractNode.name, name), new NodeAttribute(File.relativeFilePath, relativeFilePath),
 						  new NodeAttribute(File.contentType, contentType), new NodeAttribute(AbstractNode.visibleToPublicUsers, publicVisible),
 						  new NodeAttribute(File.size, size), new NodeAttribute(File.checksum, checksum),

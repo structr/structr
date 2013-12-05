@@ -37,7 +37,7 @@ public abstract class AbstractGeoCodingProvider implements GeoCodingProvider {
 	protected String apiKey            = null;
 	
 	public AbstractGeoCodingProvider() {
-		this.apiKey = Services.getConfigurationValue(Services.GEOCODING_APIKEY, "");
+		this.apiKey = Services.getInstance().getConfigurationValue(Services.GEOCODING_APIKEY, "");
 	}
 	
 	protected <T> T extract(Map source, String path, Class<T> type) {

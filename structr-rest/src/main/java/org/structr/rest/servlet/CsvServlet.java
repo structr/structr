@@ -25,17 +25,13 @@ import com.google.gson.JsonSyntaxException;
 
 import org.apache.commons.lang.StringUtils;
 
-import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
 import org.structr.core.Value;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.property.PropertyKey;
-import org.structr.rest.ResourceProvider;
 import org.structr.common.PagingHelper;
 import org.structr.rest.resource.Resource;
 
@@ -56,12 +52,14 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.structr.core.Services;
+import org.structr.common.PropertyView;
+import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
-import org.structr.core.auth.AuthenticatorCommand;
+import org.structr.core.entity.AbstractNode;
+import org.structr.rest.ResourceProvider;
+import org.structr.rest.service.HttpServiceServlet;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -70,7 +68,7 @@ import org.structr.core.auth.AuthenticatorCommand;
  *
  * @author Axel Morgner
  */
-public class CsvServlet extends HttpServlet {
+public class CsvServlet extends HttpServiceServlet {
 
 	private static final Logger logger = Logger.getLogger(CsvServlet.class.getName());
 	
@@ -79,10 +77,10 @@ public class CsvServlet extends HttpServlet {
 
 	//~--- fields ---------------------------------------------------------
 
+	private Map<Pattern, Class<? extends Resource>> resourceMap = new LinkedHashMap<>();
 	private Value<String> propertyView                          = null;
-	private Map<Pattern, Class<? extends Resource>> resourceMap = new LinkedHashMap<Pattern, Class<? extends Resource>>();
 	private String defaultPropertyView                          = PropertyView.Public;
-	private PropertyKey defaultIdProperty                       = AbstractNode.uuid;
+	private PropertyKey defaultIdProperty                       = AbstractNode.id;
 	private ResourceProvider resourceProvider                   = null;
 
 	private static boolean removeLineBreaks = false;
@@ -154,7 +152,7 @@ public class CsvServlet extends HttpServlet {
 
 				Class<? extends GraphObject> type = resource.getEntityClass();
 
-				sortKey = EntityContext.getPropertyKeyForDatabaseName(type, sortKeyName);
+				sortKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, sortKeyName);
 
 			}
 
@@ -256,31 +254,6 @@ public class CsvServlet extends HttpServlet {
 
 	}
 
-	/**
-	 * Tries to parse the given String to an int value, returning
-	 * defaultValue on error.
-	 *
-	 * @param value the source String to parse
-	 * @param defaultValue the default value that will be returned when parsing fails
-	 * @return the parsed value or the given default value when parsing fails
-	 */
-	private int parseInt(String value, int defaultValue) {
-
-		if (value == null) {
-
-			return defaultValue;
-		}
-
-		try {
-
-			return Integer.parseInt(value);
-
-		} catch (Throwable ignore) {}
-
-		return defaultValue;
-
-	}
-
 	private static String escapeForCsv(final Object value) {
 		
 		String result = StringUtils.replace(value.toString(), "\"", "\\\"");
@@ -378,16 +351,6 @@ public class CsvServlet extends HttpServlet {
 		}
 
 	}
-
-	//~--- get methods ----------------------------------------------------
-	
-	private Authenticator getAuthenticator() throws FrameworkException {
-		
-		return (Authenticator) Services.command(null, AuthenticatorCommand.class).execute(getServletConfig());
-		
-	}
-
-	//~--- inner classes --------------------------------------------------
 
 	// <editor-fold defaultstate="collapsed" desc="nested classes">
 	private class ThreadLocalPropertyView extends ThreadLocal<String> implements Value<String> {

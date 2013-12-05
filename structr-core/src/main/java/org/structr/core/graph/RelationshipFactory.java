@@ -24,20 +24,15 @@ import org.neo4j.graphdb.Relationship;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.core.GraphObject;
-import org.structr.core.Services;
-import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.GenericRelationship;
-import org.structr.core.module.ModuleService;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -82,35 +77,11 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 		} catch (Throwable t) { }
 
 		if (newRel == null) {
-			newRel = (T)EntityContext.getFactoryDefinition().createGenericRelationship();
+			newRel = (T)StructrApp.getConfiguration().getFactoryDefinition().createGenericRelationship();
 		}
 
 		newRel.init(securityContext, relationship);
 		newRel.onRelationshipInstantiation();
-
-		String newRelType = newRel.getProperty(GraphObject.type);
-		if (newRelType == null && !(relClass.equals(GenericRelationship.class))) { //  || (newNodeType != null && !newNodeType.equals(nodeType))) {
-
-			final App app = StructrApp.getInstance();
-			
-			try {
-				
-				app.beginTx();
-				
-				newRel.unlockReadOnlyPropertiesOnce();
-				newRel.setProperty(GraphObject.type, relClass.getSimpleName());
-				
-				app.commitTx();
-				
-			} catch (Throwable t) {
-
-				logger.log(Level.SEVERE, "Unable to set type property {0} on relationship {1}: {2}", new Object[] { relClass, newRel, t.getMessage() } );
-			} finally {
-				
-				app.finishTx();
-				
-			}
-		}
 			
 		return newRel;
 	}
@@ -166,8 +137,9 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 	@Override
 	public T instantiateDummy(final Relationship entity, final String entityType) throws FrameworkException {
 
-		Class<T> relClass = Services.getService(ModuleService.class).getRelationshipEntityClass(entityType);
-		T newRel          = null;
+		Map<String, Class<? extends RelationshipInterface>> entities = StructrApp.getConfiguration().getRelationshipEntities();
+		Class<T> relClass                                            = (Class<T>)entities.get(entityType);
+		T newRel                                                     = null;
 
 		if (relClass != null) {
 

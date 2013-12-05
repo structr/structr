@@ -44,9 +44,14 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
-import org.structr.core.EntityContext;
 import org.structr.core.ViewTransformation;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.SchemaNode;
+import org.structr.core.entity.relationship.SchemaRelationship;
+import org.structr.core.graph.search.SearchNodeCommand;
+import org.structr.core.graph.search.SearchRelationshipCommand;
 import org.structr.rest.resource.TransformationResource;
+import org.structr.rest.resource.TypeResource;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -88,7 +93,7 @@ public class ResourceHelper {
 		String[] pathParts = path.split("[/]+");
 
 		// 2.: create container for resource constraints
-		List<Resource> resourceChain = new ArrayList<Resource>(pathParts.length);
+		List<Resource> resourceChain = new ArrayList<>(pathParts.length);
 
 		// 3.: try to assign resource constraints for each URI part
 		for (int i = 0; i < pathParts.length; i++) {
@@ -147,7 +152,6 @@ public class ResourceHelper {
 						}
 
 					}
-
 				}
 
 				if (!found) {
@@ -268,7 +272,7 @@ public class ResourceHelper {
 		Class type = finalResource.getEntityClass();
 		if (type != null) {
 			
-			ViewTransformation transformation = EntityContext.getViewTransformation(type, propertyView.get(securityContext));
+			ViewTransformation transformation = StructrApp.getConfiguration().getViewTransformation(type, propertyView.get(securityContext));
 			if (transformation != null) {
 				
 				transformedResource = transformedResource.tryCombineWith(new TransformationResource(securityContext, transformation));

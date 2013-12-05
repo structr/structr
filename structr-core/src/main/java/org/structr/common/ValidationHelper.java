@@ -44,7 +44,8 @@ public class ValidationHelper {
 	 * @param key the property key whose value should be checked
 	 * @param minLength the min length
 	 * @param errorBuffer the error buffer
-	 * @return whether the property value has a minimum length of minLength
+	 * 
+	 * @return true if there is an error checking the given node
 	 */
 	public static boolean checkStringMinLength(GraphObject node, PropertyKey<String> key, int minLength, ErrorBuffer errorBuffer) {
 
@@ -77,7 +78,8 @@ public class ValidationHelper {
 	 * @param node the node
 	 * @param key the property key
 	 * @param errorBuffer the error buffer
-	 * @return whether the property value is a non-empty string
+	 * 
+	 * @return true if there is an error checking the given node
 	 */
 	public static boolean checkStringNotBlank(GraphObject node, PropertyKey<String> key, ErrorBuffer errorBuffer) {
 
@@ -101,7 +103,8 @@ public class ValidationHelper {
 	 * @param node the node
 	 * @param key the property key
 	 * @param errorBuffer the error buffer
-	 * @return whether the property value is a non-null string
+	 * 
+	 * @return true if there is an error checking the given node
 	 */
 	public static boolean checkPropertyNotNull(GraphObject node, PropertyKey key, ErrorBuffer errorBuffer) {
 		
@@ -144,7 +147,8 @@ public class ValidationHelper {
 	 * @param node the node
 	 * @param key the property key
 	 * @param errorBuffer the error buffer
-	 * @return whether the property value is a non-empty Date
+	 * 
+	 * @return true if there is an error checking the given node
 	 */
 	public static boolean checkDate(GraphObject node, PropertyKey<Date> key, ErrorBuffer errorBuffer) {
 
@@ -172,7 +176,8 @@ public class ValidationHelper {
 	 * @param key1 the first Date key
 	 * @param key2 the second Date key
 	 * @param errorBuffer the error buffer
-	 * @return whether the Date value of key1 lies before the one of key2
+	 * 
+	 * @return true if there is an error checking the given node
 	 */
 	public static boolean checkDatesChronological(GraphObject node, PropertyKey<Date> key1, PropertyKey<Date> key2, ErrorBuffer errorBuffer) {
 
@@ -203,7 +208,8 @@ public class ValidationHelper {
 	 * @param key the property key
 	 * @param values the values to check against
 	 * @param errorBuffer the error buffer
-	 * @return whether the value for the given property key is in values
+	 * 
+	 * @return true if there is an error checking the given node
 	 */
 	public static boolean checkStringInArray(GraphObject node, PropertyKey<String> key, String[] values, ErrorBuffer errorBuffer) {
 
@@ -232,7 +238,8 @@ public class ValidationHelper {
 	 * @param key the property key
 	 * @param enumType the enum type to check against
 	 * @param errorBuffer the error buffer
-	 * @return whether the value for the given property key is of enumType
+	 * 
+	 * @return true if there is an error checking the given node
 	 */
 	public static boolean checkStringInEnum(GraphObject node, PropertyKey<? extends Enum> key, Class<? extends Enum> enumType, ErrorBuffer errorBuffer) {
 		
@@ -249,7 +256,8 @@ public class ValidationHelper {
 	 * @param key the property key
 	 * @param enumType the enum type to check against
 	 * @param errorBuffer the error buffer
-	 * @return whether the value for the given property key is of enumType
+	 * 
+	 * @return true if there is an error checking the given node
 	 */
 	public static boolean checkStringInEnum(String typeString, GraphObject node, PropertyKey<? extends Enum> key, Class<? extends Enum> enumType, ErrorBuffer errorBuffer) {
 
@@ -277,7 +285,8 @@ public class ValidationHelper {
 	 * @param key the property key
 	 * @param values the values array
 	 * @param errorBuffer the error buffer
-	 * @return whether the property value for the given key is null or in values
+	 * 
+	 * @return true if there is an error checking the given node
 	 */
 	public static boolean checkNullOrStringInArray(GraphObject node, PropertyKey<String> key, String[] values, ErrorBuffer errorBuffer) {
 
@@ -301,5 +310,164 @@ public class ValidationHelper {
 		errorBuffer.add(type, new ValueToken(key, values));
 
 		return true;
+	}
+	
+	public static boolean checkIntegerInRangeError(final GraphObject node, final PropertyKey<Integer> key, final String range, final ErrorBuffer errorBuffer) {
+
+		// we expect expression to have the following format:
+		// - "[" or "]" followed by a number (including negative values
+		// - a comma (must exist)
+		// - a number (including negative values followed by "[" or "]"
+
+		final int length        = range.length();
+		final String leftBound  = range.substring(0, 1);
+		final String rightBound = range.substring(length-1, length);
+		final String[] parts    = range.substring(1, length-1).split("[,]+");
+		final String type       = node.getType();
+
+		if (parts.length == 2) {
+
+			final String leftPart   = parts[0].trim();
+			final String rightPart  = parts[1].trim();
+			final int left          = Integer.parseInt(leftPart);
+			final int right         = Integer.parseInt(rightPart);
+			final Integer value     = node.getProperty(key);
+
+			// do not check for non-null values, ignore (silently succeed)
+			if (value != null) {
+
+				// result
+				boolean inRange         = true;
+
+				if ("[".equals(leftBound)) {
+					inRange &= value.intValue() >= left;
+				} else {
+					inRange &= value.intValue() > left;
+				}
+
+				if ("]".equals(rightBound)) {
+					inRange &= value.intValue() <= right;
+				} else {
+					inRange &= value.intValue() < right;
+				}
+
+				if (!inRange) {
+					
+					errorBuffer.add(type, new RangeToken(key, range));
+				}
+
+				return !inRange;
+			}
+			
+		}
+		
+		// no error
+		return false;
+	}
+	
+	public static boolean checkLongInRangeError(final GraphObject node, final PropertyKey<Long> key, final String range, final ErrorBuffer errorBuffer) {
+
+		// we expect expression to have the following format:
+		// - "[" or "]" followed by a number (including negative values
+		// - a comma (must exist)
+		// - a number (including negative values followed by "[" or "]"
+
+		final int length        = range.length();
+		final String leftBound  = range.substring(0, 1);
+		final String rightBound = range.substring(length-1, length);
+		final String[] parts    = range.substring(1, length-1).split("[,]+");
+		final String type       = node.getType();
+
+		if (parts.length == 2) {
+
+			final String leftPart   = parts[0].trim();
+			final String rightPart  = parts[1].trim();
+			final long left         = Long.parseLong(leftPart);
+			final long right        = Long.parseLong(rightPart);
+			final Long value     = node.getProperty(key);
+
+			// do not check for non-null values, ignore (silently succeed)
+			if (value != null) {
+
+				// result
+				boolean inRange         = true;
+
+				if ("[".equals(leftBound)) {
+					inRange &= value.intValue() >= left;
+				} else {
+					inRange &= value.intValue() > left;
+				}
+
+				if ("]".equals(rightBound)) {
+					inRange &= value.intValue() <= right;
+				} else {
+					inRange &= value.intValue() < right;
+				}
+
+				if (!inRange) {
+					
+					errorBuffer.add(type, new RangeToken(key, range));
+				}
+
+				return !inRange;
+			}
+			
+		}
+		
+		// no error
+		return false;
+	}
+	
+	public static boolean checkDoubleInRangeError(final GraphObject node, final PropertyKey<Double> key, final String range, final ErrorBuffer errorBuffer) {
+
+		// we expect expression to have the following format:
+		// - "[" or "]" followed by a number (including negative values
+		// - a comma (must exist)
+		// - a number (including negative values followed by "[" or "]"
+
+		final int length        = range.length();
+		final String leftBound  = range.substring(0, 1);
+		final String rightBound = range.substring(length-1, length);
+		final String[] parts    = range.substring(1, length-1).split("[,]+");
+		final String type       = node.getType();
+
+		if (parts.length == 2) {
+
+			final String leftPart  = parts[0].trim();
+			final String rightPart = parts[1].trim();
+			final double left      = Double.parseDouble(leftPart);
+			final double right     = Double.parseDouble(rightPart);
+			final Double value     = node.getProperty(key);
+
+			// do not check for non-null values, ignore (silently succeed)
+			if (value != null) {
+
+				// result
+				boolean inRange         = true;
+
+				if ("[".equals(leftBound)) {
+					inRange &= value.intValue() >= left;
+				} else {
+					inRange &= value.intValue() > left;
+				}
+
+				if ("]".equals(rightBound)) {
+					inRange &= value.intValue() <= right;
+				} else {
+					inRange &= value.intValue() < right;
+				}
+
+				if (!inRange) {
+					
+					errorBuffer.add(type, new RangeToken(key, range));
+				}
+				
+				return !inRange;
+			}
+			
+		}
+		
+		// no error
+		return false;
 	}
 }

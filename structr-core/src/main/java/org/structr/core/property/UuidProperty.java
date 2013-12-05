@@ -30,7 +30,7 @@ public class UuidProperty extends StringProperty {
 
 	public UuidProperty() {
 		
-		super("uuid", new GlobalPropertyUniquenessValidator(), new SimpleRegexValidator("[a-zA-Z0-9]{32}"));
+		super("id", new GlobalPropertyUniquenessValidator(), new SimpleRegexValidator("[a-zA-Z0-9]{32}"));
 
 		indexed();
 		readOnly();

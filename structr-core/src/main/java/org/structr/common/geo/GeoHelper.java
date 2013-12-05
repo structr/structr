@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Location;
 import org.structr.core.property.PropertyMap;
@@ -33,6 +32,7 @@ import org.structr.core.property.PropertyMap;
 
 import java.util.logging.Logger;
 import org.apache.commons.collections.map.LRUMap;
+import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.search.DistanceSearchAttribute;
 
@@ -102,7 +102,7 @@ public class GeoHelper {
 	 */
 	public static GeoCodingResult geocode(final String street, final String house, String postalCode, final String city, final String state, final String country) throws FrameworkException {
 		
-		String language        = Services.getConfigurationValue(Services.GEOCODING_LANGUAGE, "de");
+		String language        = Services.getInstance().getConfigurationValue(Services.GEOCODING_LANGUAGE, "de");
 		String cacheKey        = cacheKey(street, house, postalCode, city, state, country, language);
 		GeoCodingResult result = geoCache.get(cacheKey);
 		
@@ -176,7 +176,7 @@ public class GeoHelper {
 
 				if (providerClass == null) {
 
-					String geocodingProvider = Services.getConfigurationValue(Services.GEOCODING_PROVIDER, GoogleGeoCodingProvider.class.getName());
+					String geocodingProvider = StructrApp.getConfigurationValue(Services.GEOCODING_PROVIDER, GoogleGeoCodingProvider.class.getName());
 					providerClass = (Class<GeoCodingProvider>)Class.forName(geocodingProvider);
 				}
 

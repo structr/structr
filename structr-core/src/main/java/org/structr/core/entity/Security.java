@@ -40,7 +40,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
@@ -57,7 +56,7 @@ import org.structr.core.property.TargetId;
  * @author Axel Morgner
  *
  */
-public class Security extends ManyToMany<Principal, NodeInterface> {
+public class Security extends ManyToMany<Principal, AbstractNode> {
 
 	private static final Logger logger = Logger.getLogger(Security.class.getName());
 	
@@ -86,7 +85,7 @@ public class Security extends ManyToMany<Principal, NodeInterface> {
 		if (dbRelationship != null) {
 			
 			for (String key : dbRelationship.getPropertyKeys()) {
-				keys.add(EntityContext.getPropertyKeyForDatabaseName(entityType, key));
+				keys.add(StructrApp.getConfiguration().getPropertyKeyForDatabaseName(entityType, key));
 			}
 		}
 		
@@ -255,8 +254,8 @@ public class Security extends ManyToMany<Principal, NodeInterface> {
 	}
 
 	@Override
-	public Class<NodeInterface> getTargetType() {
-		return NodeInterface.class;
+	public Class<AbstractNode> getTargetType() {
+		return AbstractNode.class;
 	}
 
 	@Override

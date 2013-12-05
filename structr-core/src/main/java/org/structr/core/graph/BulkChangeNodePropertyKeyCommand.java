@@ -34,10 +34,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang.StringUtils;
 import org.neo4j.graphdb.Node;
-import org.structr.core.EntityContext;
 import org.structr.core.app.StructrApp;
-import org.structr.core.module.ModuleService;
+import org.structr.module.JarConfigurationProvider;
 import org.structr.core.property.PropertyKey;
+import org.structr.schema.SchemaHelper;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -76,7 +76,7 @@ public class BulkChangeNodePropertyKeyCommand extends NodeServiceCommand impleme
 
 				type = (String) properties.get(AbstractNode.type.dbName());
 
-				nodes = StructrApp.getInstance(securityContext).nodeQuery(EntityContext.getEntityClassForRawType(type)).getResult();
+				nodes = StructrApp.getInstance(securityContext).nodeQuery(SchemaHelper.getEntityClassForRawType(type)).getResult();
 
 				properties.remove(AbstractNode.type.dbName());
 
@@ -85,46 +85,40 @@ public class BulkChangeNodePropertyKeyCommand extends NodeServiceCommand impleme
 				nodes = nodeFactory.instantiateAll(GlobalGraphOperations.at(graphDb).getAllNodes());
 			}
 
-			final Class cls = Services.getService(ModuleService.class).getNodeEntityClass(type);
-			
 			long nodeCount = bulkGraphOperation(securityContext, nodes.getResults(), 1000, "ChangeNodePropertyKey", new BulkGraphOperation<AbstractNode>() {
 
 				@Override
 				public void handleGraphObject(SecurityContext securityContext, AbstractNode node) {
 
-					// Treat only "our" nodes
-					if (node.getProperty(AbstractNode.uuid) != null) {
+					for (Entry entry : properties.entrySet()) {
 
-						for (Entry entry : properties.entrySet()) {
+						String key = (String) entry.getKey();
 
-							String key = (String) entry.getKey();
-							
-							PropertyKey propertyKey = EntityContext.getPropertyKeyForDatabaseName(node.getClass(), key);
-							if (propertyKey != null) {
-									
-								Node dbNode = node.getNode();
+						PropertyKey propertyKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(node.getClass(), key);
+						if (propertyKey != null) {
 
-								if (dbNode.hasProperty(newKey)) {
+							Node dbNode = node.getNode();
 
-									logger.log(Level.SEVERE, "Node {0} has already a property with key {1}", new Object[] { node, newKey });
-									throw new IllegalStateException("Node has already a property of the new key");
+							if (dbNode.hasProperty(newKey)) {
 
-								}
+								logger.log(Level.SEVERE, "Node {0} has already a property with key {1}", new Object[] { node, newKey });
+								throw new IllegalStateException("Node has already a property of the new key");
 
-								if (dbNode.hasProperty(oldKey)) {
-
-									dbNode.setProperty(newKey, dbNode.getProperty(oldKey));
-									dbNode.removeProperty(oldKey);
-
-								}
-								
-								node.updateInIndex();
-									
 							}
+
+							if (dbNode.hasProperty(oldKey)) {
+
+								dbNode.setProperty(newKey, dbNode.getProperty(oldKey));
+								dbNode.removeProperty(oldKey);
+
+							}
+
+							node.updateInIndex();
 
 						}
 
 					}
+
 				}
 
 				@Override

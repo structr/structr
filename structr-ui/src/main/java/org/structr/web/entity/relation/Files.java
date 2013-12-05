@@ -1,7 +1,6 @@
 package org.structr.web.entity.relation;
 
 import org.structr.core.entity.relationship.AbstractChildren;
-import org.structr.core.property.Property;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 
@@ -19,15 +18,5 @@ public class Files extends AbstractChildren<Folder, File> {
 	@Override
 	public Class<File> getTargetType() {
 		return File.class;
-	}
-
-	@Override
-	public Property<String> getSourceIdProperty() {
-		return null;
-	}
-
-	@Override
-	public Property<String> getTargetIdProperty() {
-		return null;
 	}
 }

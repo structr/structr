@@ -25,7 +25,6 @@ import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Adapter;
-import org.structr.core.EntityContext;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -42,7 +41,7 @@ import org.structr.core.graph.NodeInterface;
  * Combines a serialization strategy and a deserialization strategy to form a
  * notion of an object. A notion in this context is a viewer-specific selection
  * of properties that can be configured separately for each entity via
- * {@link EntityContext}. You can for example configure the User entity to
+ * {@link SchemaHelper}. You can for example configure the User entity to
  * return only its name when referenced from a Folder entity, but to return the
  * whole object when referenced from a Group entity.
  *
@@ -190,7 +189,7 @@ public abstract class Notion<S extends NodeInterface, T> {
 	
 	public static <S, T> List<T> convertList(List<S> source, Adapter<S, T> adapter) {
 		
-		List<T> result = new LinkedList<T>();
+		List<T> result = new LinkedList<>();
 		for(S s : source) {
 	
 			try {

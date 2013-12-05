@@ -28,14 +28,10 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.EntityContext;
-import org.structr.core.Result;
-import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.search.Search;
-import org.structr.core.graph.search.SearchNodeCommand;
+import org.structr.schema.SchemaHelper;
 
 /**
  * Tries to fix properties in the database that have been stored there with the
@@ -50,13 +46,12 @@ public class BulkFixNodePropertiesCommand extends NodeServiceCommand implements 
 	@Override
 	public void execute(Map<String, Object> attributes) throws FrameworkException {
 
-		final String propertyName      = (String)attributes.get("name");
-		final String entityTypeName    = (String)attributes.get("type");
-		final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
+		final String propertyName   = (String)attributes.get("name");
+		final String entityTypeName = (String)attributes.get("type");
 
 		if (entityTypeName != null) {
 
-			final Class type = EntityContext.getEntityClassForRawType(entityTypeName);
+			final Class type = SchemaHelper.getEntityClassForRawType(entityTypeName);
 			if (type != null) {
 				
 				final List<AbstractNode> nodes    = StructrApp.getInstance(securityContext).nodeQuery(type).getAsList();
@@ -120,7 +115,7 @@ public class BulkFixNodePropertiesCommand extends NodeServiceCommand implements 
 
 							if (propertyName != null) {
 								
-								PropertyKey key = EntityContext.getPropertyKeyForDatabaseName(type, propertyName);
+								PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, propertyName);
 								if (key != null) {
 									
 									// needs type cast to Property to use fixDatabaseProperty method

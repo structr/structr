@@ -22,7 +22,7 @@ package org.structr.web.entity;
 
 import java.util.List;
 import org.structr.common.PropertyView;
-import org.structr.core.entity.AbstractNode;
+import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.PropertyNotion;
 import org.structr.core.property.Property;
@@ -38,7 +38,7 @@ import org.structr.web.entity.html.relation.ResourceLink;
  */
 public interface Linkable extends NodeInterface {
 
-	public static final Property<List<Link>> linkingElements = new StartNodes<>("linkingElements", ResourceLink.class, new PropertyNotion(AbstractNode.uuid));
+	public static final Property<List<Link>> linkingElements = new StartNodes<>("linkingElements", ResourceLink.class, new PropertyNotion(GraphObject.id));
 
 	public static final org.structr.common.View uiView = new org.structr.common.View(Linkable.class, PropertyView.Ui, linkingElements);
 }

@@ -67,6 +67,7 @@ import org.structr.core.StaticValue;
 import org.structr.core.Value;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 
 /**
  *
@@ -112,7 +113,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 	@Override
 	public void execute(Map<String, Object> attributes) throws FrameworkException {
 		
-		GraphDatabaseService graphDb = Services.getService(NodeService.class).getGraphDb();
+		GraphDatabaseService graphDb = Services.getInstance().getService(NodeService.class).getGraphDb();
 		String mode                  = (String)attributes.get("mode");
 		String fileName              = (String)attributes.get("file");
 		String validate              = (String)attributes.get("validate");
@@ -484,16 +485,17 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 	private static void exportDatabase(ZipOutputStream zos, PrintWriter writer, Iterable<Node> nodes, Iterable<Relationship> relationships) throws IOException, FrameworkException {
 		
 		// start database zip entry
-		ZipEntry dbEntry           = new ZipEntry(STRUCTR_ZIP_DB_NAME);
-		int nodeCount              = 0;
-		int relCount               = 0;
+		final ZipEntry dbEntry        = new ZipEntry(STRUCTR_ZIP_DB_NAME);
+		final String uuidPropertyName = GraphObject.id.dbName();
+		int nodeCount                 = 0;
+		int relCount                  = 0;
 		
 		zos.putNextEntry(dbEntry);
 
 		for (Node node : nodes) {
 
 			// ignore non-structr nodes
-			if (node.hasProperty(GraphObject.uuid.dbName())) {
+			if (node.hasProperty(GraphObject.id.dbName())) {
 
 				writer.print("N");
 
@@ -515,15 +517,15 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 		for (Relationship rel : relationships) {
 
 			// ignore non-structr nodes
-			if (rel.hasProperty(GraphObject.uuid.dbName())) {
+			if (rel.hasProperty(GraphObject.id.dbName())) {
 
-				Node startNode = rel.getStartNode();
-				Node endNode   = rel.getEndNode();
+				final Node startNode = rel.getStartNode();
+				final Node endNode   = rel.getEndNode();
 
-				if (startNode.hasProperty("uuid") && endNode.hasProperty("uuid")) {
+				if (startNode.hasProperty(uuidPropertyName) && endNode.hasProperty(uuidPropertyName)) {
 
-					String startId = (String)startNode.getProperty("uuid");
-					String endId   = (String)endNode.getProperty("uuid");
+					String startId = (String)startNode.getProperty(uuidPropertyName);
+					String endId   = (String)endNode.getProperty(uuidPropertyName);
 
 					writer.print("R");
 					serialize(writer, startId);
@@ -598,6 +600,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 		final App app                    = StructrApp.getInstance();
 		final Value<Long> nodeCountValue = new StaticValue<>(0L);
 		final Value<Long> relCountValue  = new StaticValue<>(0L);
+		final String uuidPropertyName    = GraphObject.id.dbName();
 		double t0                        = System.nanoTime();
 		
 		try {
@@ -613,8 +616,9 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 			long relCount                   = 0;
 
 			try {
-				app.beginTx();
 			
+				app.beginTx();
+				
 				reader = new BufferedReader(new InputStreamReader(zis));
 
 				do {
@@ -675,7 +679,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 									Object obj = deserialize(reader);
 
-									if ("uuid".equals(currentKey) && currentObject instanceof Node) {
+									if (uuidPropertyName.equals(currentKey) && currentObject instanceof Node) {
 
 										String uuid = (String)obj;
 										uuidMap.put(uuid, (Node)currentObject);
@@ -717,27 +721,6 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 				NodeInterface entity = nodeFactory.instantiate(node);
 				TransactionCommand.nodeCreated(entity);
 				entity.addToIndex();
-
-//				// make nodes visible in transaction context
-//				RelationshipFactory relFactory     = new RelationshipFactory(securityContext);
-//				NodeFactory nodeFactory            = new NodeFactory(securityContext);
-//				
-//				for (Node node : nodes) {
-//					
-//					NodeInterface entity = nodeFactory.instantiate(node);
-//					TransactionCommand.nodeCreated(entity);
-//					entity.addToIndex();
-//					
-//				}
-//				
-//				for (Relationship rel : rels) {
-//					
-//					RelationshipInterface entity = relFactory.instantiate(rel);
-//					TransactionCommand.relationshipCreated(entity);
-//					entity.addToIndex();
-//				}
-//				
-//				return null;
 			}
 
 			for (Relationship rel : rels) {

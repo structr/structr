@@ -31,8 +31,8 @@ import org.structr.web.entity.TestImage;
 
 /**
  * Test creation of thumbnails
- *
- * All tests are executed in superuser context
+
+ All tests are executed in superuser config
  *
  * @author Axel Morgner
  */

@@ -18,7 +18,7 @@
  */
 package org.structr.rest.adapter;
 
-import org.structr.core.GraphObjectGSONAdapter;
+import org.structr.rest.GraphObjectGSONAdapter;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
@@ -49,8 +49,8 @@ public class ResultGSONAdapter implements JsonSerializer<Result>, JsonDeserializ
 	private DecimalFormat decimalFormat                   = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 	private GraphObjectGSONAdapter graphObjectGsonAdapter = null;
 
-	public ResultGSONAdapter(Value<String> propertyView, PropertyKey idProperty) {
-		this.graphObjectGsonAdapter = new GraphObjectGSONAdapter(propertyView, idProperty);
+	public ResultGSONAdapter(Value<String> propertyView, PropertyKey idProperty, final int outputNestingDepth) {
+		this.graphObjectGsonAdapter = new GraphObjectGSONAdapter(propertyView, idProperty, outputNestingDepth);
 	}
 
 	@Override
@@ -102,7 +102,7 @@ public class ResultGSONAdapter implements JsonSerializer<Result>, JsonDeserializ
 
 				JsonArray resultArray = new JsonArray();
 				for(GraphObject graphObject : results) {
-					Object value = graphObject.getProperty(AbstractNode.uuid);	// FIXME: UUID key hard-coded, use variable in Result here!
+					Object value = graphObject.getProperty(GraphObject.id);	// FIXME: UUID key hard-coded, use variable in Result here!
 					if(value != null) {
 						resultArray.add(new JsonPrimitive(value.toString()));
 					}

@@ -1,7 +1,6 @@
 package org.structr.web.entity.relation;
 
 import org.structr.core.entity.ManyToMany;
-import org.structr.core.property.Property;
 import org.structr.web.entity.Tag;
 import org.structr.web.entity.Taggable;
 
@@ -24,15 +23,5 @@ public class Tagging extends ManyToMany<Tag, Taggable> {
 	@Override
 	public String name() {
 		return "TAG";
-	}
-
-	@Override
-	public Property<String> getSourceIdProperty() {
-		return null;
-	}
-
-	@Override
-	public Property<String> getTargetIdProperty() {
-		return null;
 	}
 }
