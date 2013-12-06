@@ -26,11 +26,12 @@ import java.util.logging.Logger;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.DeleteRelationshipCommand;
 import org.structr.core.graph.NodeInterface;
 import org.structr.web.entity.dom.DOMNode;
-import org.structr.web.entity.dom.relationship.DOMChildren;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -62,6 +63,8 @@ public class RemoveCommand extends AbstractCommand {
 
 			if (node != null) {
 
+				App app = StructrApp.getInstance(securityContext);
+				
 				if (node instanceof DOMNode) {
 
 					// Use new DOM interface
@@ -81,23 +84,39 @@ public class RemoveCommand extends AbstractCommand {
 					}
 					
 				} else {
+					try {
 
-					// Old style: Delete all incoming CONTAINS rels
-					DeleteRelationshipCommand deleteRel = StructrApp.getInstance(securityContext).command(DeleteRelationshipCommand.class);
-					DOMChildren rel                     = node.getIncomingRelationship(DOMChildren.class);
+						// Old style: Delete all incoming CONTAINS rels
+						app.beginTx();
 
-					if (rel != null) {
+						for (AbstractRelationship rel : node.getIncomingRelationships()) {
 
-						try {
+							try {
 
-							deleteRel.execute(rel);
+								if ("CONTAINS".equals(rel.getType())) {
 
-						} catch (FrameworkException ex) {
+									app.delete(rel);
 
-							logger.log(Level.SEVERE, "Could not remove relationship " + rel, ex);
+								}
+
+							} catch (FrameworkException ex) {
+
+								logger.log(Level.SEVERE, "Could not remove relationship " + rel, ex);
+
+							}
 
 						}
-
+						
+						app.commitTx();
+						
+					} catch (Throwable t) {
+						
+						getWebSocket().send(MessageBuilder.status().code(400).message("Error in RemoveCommand: " + t.getMessage()).build(), true);
+						
+					} finally {
+						
+						app.finishTx();
+						
 					}
 				}
 

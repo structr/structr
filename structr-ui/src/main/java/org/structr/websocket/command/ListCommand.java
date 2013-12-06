@@ -24,7 +24,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
@@ -42,8 +41,8 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.schema.SchemaHelper;
-import org.structr.web.entity.dom.relationship.DOMChildren;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -99,15 +98,22 @@ public class ListCommand extends AbstractCommand {
 			List<AbstractNode> filteredResults     = new LinkedList<>();
 			List<? extends GraphObject> resultList = result.getResults();
 
-			// determine which of the nodes have children
+			// determine which of the nodes have a parent
 			for (GraphObject obj : resultList) {
 
 				if (obj instanceof AbstractNode) {
 
 					AbstractNode node = (AbstractNode) obj;
-
-					if (!node.hasIncomingRelationships(DOMChildren.class)) {
-
+					
+					boolean hasParent = false;
+					for (AbstractRelationship rel : node.getIncomingRelationships()) {
+						if ("CONTAINS".equals(rel.getType())) {
+							hasParent = true;
+							break;
+						}
+					}
+					
+					if (!hasParent) {
 						filteredResults.add(node);
 					}
 
