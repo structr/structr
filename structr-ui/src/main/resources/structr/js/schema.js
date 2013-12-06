@@ -16,20 +16,37 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-var canvas, instance, res, nodes = [], rels = [];
+var canvas, instance, res, nodes = [], rels = [], localStorageSuffix = '_schema_' + port, initialRelType = 'UNDEFINED_RELATIONSHIP_TYPE';
 
 $(document).ready(function() {
     Structr.registerModule('schema', _Schema);
     Structr.classes.push('schema');
 });
 
+$(window).unload(function() {
+    _Schema.storePositions();
+});
+
 var _Schema = {
     type_icon: 'icon/database_table.png',
     schemaLoading: false,
     schemaLoaded: false,
+    reload: function() {
+        _Schema.storePositions();
+        main.empty();
+        _Schema.init();
+        _Schema.resize();
+    },
+    storePositions: function() {
+        $.each($('#schema-graph .node'), function(i, n) {
+            var node = $(n);
+            localStorage.setItem(node.attr('id') + localStorageSuffix + 'node-position', JSON.stringify(node.position()));
+        });
+    },
+    getPosition: function(id) {
+        return JSON.parse(localStorage.getItem(id + localStorageSuffix + 'node-position'));
+    },
     init: function() {
-
-        console.log('Init new schema');
 
         _Schema.schemaLoading = false;
         _Schema.schemaLoaded = false;
@@ -39,14 +56,7 @@ var _Schema = {
         main.append('<div class="schema-input-container"><input class="schema-input" id="type-name" type="text" size="20" placeholder="New type"><button id="create-type" class="btn"><img src="icon/add.png"> Add Type</button></div>');
         $('#type-name').focus();
         $('#create-type').on('click', function() {
-            var url = rootUrl + 'schema_nodes';
-            $.ajax({
-                url: url,
-                type: 'POST',
-                dataType: 'json',
-                contentType: 'application/json; charset=utf-8',
-                data: '{ "name": "' + $('#type-name').val() + '"}'
-            });
+            _Schema.createNodeDefinition($('#type-name').val());
         });
 
 
@@ -117,7 +127,7 @@ var _Schema = {
         _Schema.schemaLoading = true;
 
         _Schema.loadNodes(function() {
-            console.log(nodes);
+            //console.log(nodes);
             _Schema.loadRels(callback);
         });
 
@@ -150,9 +160,10 @@ var _Schema = {
                     var propertiesTable = $('#' + id + ' .schema-props');
 
                     var node = $('#' + id);
+                    var storedPosition = _Schema.getPosition(id);
                     node.offset({
-                        left: i * 180 + 25,
-                        top: i * 180 + 131
+                        left: storedPosition ? storedPosition.left : i * 180 + 25,
+                        top: storedPosition ? storedPosition.top : i * 180 + 131
                     });
 
                     $.each(Object.keys(res), function(i, key) {
@@ -344,7 +355,7 @@ var _Schema = {
                             ],
                             ["Label", {
                                     cssClass: "label rel-type",
-                                    label: res.relationshipType,
+                                    label: (res.relationshipType === initialRelType ? '&nbsp;' : res.relationshipType),
                                     location: .5,
                                     id: "label",
                                     events: {
@@ -441,7 +452,32 @@ var _Schema = {
             data: data,
             error: function(data) {
                 console.log(data);
+            },
+            statusCode: {
+                200: function() {
+                    _Schema.reload();
+                }
             }
+        });
+    },
+    createNodeDefinition: function(type) {
+        var url = rootUrl + 'schema_nodes';
+        $.ajax({
+            url: url,
+            type: 'POST',
+            dataType: 'json',
+            contentType: 'application/json; charset=utf-8',
+            data: '{ "name": "' + type + '"}',
+            error: function(data) {
+                console.log(data);
+            },
+            statusCode: {
+                201: function() {
+                    console.log('node created');
+                    _Schema.reload();
+                }
+            }
+            
         });
     },
     createRelationshipDefinition: function(sourceId, targetId, relationshipType) {
@@ -461,6 +497,7 @@ var _Schema = {
             statusCode: {
                 201: function() {
                     console.log('rel created');
+                    _Schema.reload();
                 }
             }
         });
@@ -490,12 +527,19 @@ var _Schema = {
             data: '{"' + key + '":"' + value + '"}',
             error: function(data) {
                 console.log(data);
+            },
+            statusCode: {
+                200: function(data, textStatus, jqXHR) {
+                    console.log('rel deleted', data, textStatus, jqXHR);
+                    _Schema.reload();
+                }
             }
         });
     },
     connect: function(sourceId, targetId) {
         //Structr.dialog('Enter relationship details');
-        _Schema.createRelationshipDefinition(sourceId, targetId, 'CLICK HERE TO CHANGE RELATIONSHIP TYPE');
+        _Schema.createRelationshipDefinition(sourceId, targetId, initialRelType);
+        
     },
     detach: function(relationshipId) {
         //Structr.dialog('Enter relationship details');
