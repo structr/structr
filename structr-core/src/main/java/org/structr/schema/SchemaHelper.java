@@ -213,6 +213,12 @@ public class SchemaHelper {
 					new NodeAttribute(ResourceAccess.flags, flagsValue)
 				);
 
+				// create additional grant for the Ui view
+				app.create(ResourceAccess.class,
+					new NodeAttribute(ResourceAccess.signature, signature + "/_Ui"),
+					new NodeAttribute(ResourceAccess.flags, flagsValue)
+				);
+
 			} else {
 				
 				// modify flags of grant
