@@ -21,6 +21,7 @@ package org.structr.common;
 import org.structr.core.property.PropertyKey;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.regex.Pattern;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.error.*;
 import org.structr.core.property.GenericProperty;
@@ -47,7 +48,7 @@ public class ValidationHelper {
 	 * 
 	 * @return true if there is an error checking the given node
 	 */
-	public static boolean checkStringMinLength(GraphObject node, PropertyKey<String> key, int minLength, ErrorBuffer errorBuffer) {
+	public static boolean checkStringMinLength(final GraphObject node, final PropertyKey<String> key, final int minLength, final ErrorBuffer errorBuffer) {
 
 		String value = node.getProperty(key);
 		String type  = node.getType();
@@ -81,7 +82,7 @@ public class ValidationHelper {
 	 * 
 	 * @return true if there is an error checking the given node
 	 */
-	public static boolean checkStringNotBlank(GraphObject node, PropertyKey<String> key, ErrorBuffer errorBuffer) {
+	public static boolean checkStringNotBlank(final GraphObject node, final PropertyKey<String> key, final ErrorBuffer errorBuffer) {
 
 		String type  = node.getType();
 
@@ -106,7 +107,7 @@ public class ValidationHelper {
 	 * 
 	 * @return true if there is an error checking the given node
 	 */
-	public static boolean checkPropertyNotNull(GraphObject node, PropertyKey key, ErrorBuffer errorBuffer) {
+	public static boolean checkPropertyNotNull(final GraphObject node, final PropertyKey key, final ErrorBuffer errorBuffer) {
 		
 		String type  = node.getType();
 
@@ -150,7 +151,7 @@ public class ValidationHelper {
 	 * 
 	 * @return true if there is an error checking the given node
 	 */
-	public static boolean checkDate(GraphObject node, PropertyKey<Date> key, ErrorBuffer errorBuffer) {
+	public static boolean checkDate(final GraphObject node, final PropertyKey<Date> key, final ErrorBuffer errorBuffer) {
 
 		Date date     = node.getProperty(key);
 		String type   = node.getType();
@@ -179,7 +180,7 @@ public class ValidationHelper {
 	 * 
 	 * @return true if there is an error checking the given node
 	 */
-	public static boolean checkDatesChronological(GraphObject node, PropertyKey<Date> key1, PropertyKey<Date> key2, ErrorBuffer errorBuffer) {
+	public static boolean checkDatesChronological(final GraphObject node, final PropertyKey<Date> key1, final PropertyKey<Date> key2, final ErrorBuffer errorBuffer) {
 
 		Date date1    = node.getProperty(key1);
 		Date date2    = node.getProperty(key2);
@@ -211,7 +212,7 @@ public class ValidationHelper {
 	 * 
 	 * @return true if there is an error checking the given node
 	 */
-	public static boolean checkStringInArray(GraphObject node, PropertyKey<String> key, String[] values, ErrorBuffer errorBuffer) {
+	public static boolean checkStringInArray(final GraphObject node, final PropertyKey<String> key, final String[] values, final ErrorBuffer errorBuffer) {
 
 		String type  = node.getType();
 
@@ -241,9 +242,32 @@ public class ValidationHelper {
 	 * 
 	 * @return true if there is an error checking the given node
 	 */
-	public static boolean checkStringInEnum(GraphObject node, PropertyKey<? extends Enum> key, Class<? extends Enum> enumType, ErrorBuffer errorBuffer) {
+	public static boolean checkStringInEnum(final GraphObject node, final PropertyKey<? extends Enum> key, Class<? extends Enum> enumType, final ErrorBuffer errorBuffer) {
 		
 		return checkStringInEnum(node.getType(), node, key, enumType, errorBuffer);
+	}
+	
+	/**
+	 * Checks whether the value of the given property key of the given node
+	 * if not null and matches the given regular expression.
+	 * 
+	 * @param node
+	 * @param key
+	 * @param expression
+	 * @param errorBuffer
+	 * @return 
+	 */
+	public static boolean checkStringMatchesRegex(final GraphObject node, final PropertyKey<String> key, final String expression, final ErrorBuffer errorBuffer) {
+
+		String value = node.getProperty(key);
+		boolean matches = value != null && value.matches(expression);
+		
+		if (!matches) {
+			errorBuffer.add(node.getType(), new MatchToken(key, expression));
+		}
+		
+		return matches;
+		
 	}
 	
 	/**
@@ -259,7 +283,7 @@ public class ValidationHelper {
 	 * 
 	 * @return true if there is an error checking the given node
 	 */
-	public static boolean checkStringInEnum(String typeString, GraphObject node, PropertyKey<? extends Enum> key, Class<? extends Enum> enumType, ErrorBuffer errorBuffer) {
+	public static boolean checkStringInEnum(final String typeString, final GraphObject node, final PropertyKey<? extends Enum> key, Class<? extends Enum> enumType, final ErrorBuffer errorBuffer) {
 
 		Enum value = node.getProperty(key);
 		Enum[] values = enumType.getEnumConstants();
@@ -288,7 +312,7 @@ public class ValidationHelper {
 	 * 
 	 * @return true if there is an error checking the given node
 	 */
-	public static boolean checkNullOrStringInArray(GraphObject node, PropertyKey<String> key, String[] values, ErrorBuffer errorBuffer) {
+	public static boolean checkNullOrStringInArray(final GraphObject node, final PropertyKey<String> key, String[] values, final ErrorBuffer errorBuffer) {
 
 		String value = node.getProperty(key);
 		String type  = node.getType();
