@@ -343,7 +343,7 @@ public class DOMNodeTest extends DOMTest {
 		Text test3 = document.createTextNode("test3");
 		Text test4 = document.createTextNode("test4");
 		Text test5 = document.createTextNode("test5");
-		Text test6 = document.createTextNode("test5");
+		Text test6 = document.createTextNode("test6");
 		assertNotNull(test1);
 		assertNotNull(test2);
 		assertNotNull(test3);
@@ -393,7 +393,7 @@ public class DOMNodeTest extends DOMTest {
 		Text test3 = document.createTextNode("test3");
 		Text test4 = document.createTextNode("test4");
 		Text test5 = document.createTextNode("test5");
-		Text test6 = document.createTextNode("test5");
+		Text test6 = document.createTextNode("test6");
 		assertNotNull(test1);
 		assertNotNull(test2);
 		assertNotNull(test3);
