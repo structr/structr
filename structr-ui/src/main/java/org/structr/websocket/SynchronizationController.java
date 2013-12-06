@@ -240,7 +240,11 @@ public class SynchronizationController implements StructrTransactionListener {
 			final RelationshipType relType           = modificationEvent.getRelationshipType();
 			
 			// only interested in CONTAINS relationships
-			if (modificationEvent.isDeleted() && "CONTAINS".equals(relType.name())) {
+			if (!("CONTAINS".equals(relType.name()))) {
+				return null;
+			}
+			
+			if (modificationEvent.isDeleted()) { // && "CONTAINS".equals(relType.name())) {
 
 				final WebSocketMessage message = createMessage("REMOVE_CHILD");
 
@@ -250,7 +254,7 @@ public class SynchronizationController implements StructrTransactionListener {
 				return message;
 			}
 
-			if (modificationEvent.isCreated() && "CONTAINS".equals(relType.name())) {
+			if (modificationEvent.isCreated()) {
 
 
 				final WebSocketMessage message = new WebSocketMessage();
@@ -304,6 +308,7 @@ public class SynchronizationController implements StructrTransactionListener {
 
 				return message;
 			}
+			
 		}
 		
 		return null;
