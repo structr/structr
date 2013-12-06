@@ -257,6 +257,19 @@ public class SchemaHelper {
 				app.delete(grant);
 			}
 			
+			// delete grant
+			ResourceAccess schemaGrant = app.nodeQuery(ResourceAccess.class).and(ResourceAccess.signature, "_schema/" + signature).getFirst();
+			if (schemaGrant != null) {
+				
+				app.delete(schemaGrant);
+			}
+			// delete grant
+			ResourceAccess viewGrant = app.nodeQuery(ResourceAccess.class).and(ResourceAccess.signature, signature + "/_Ui").getFirst();
+			if (viewGrant != null) {
+				
+				app.delete(viewGrant);
+			}
+
 			app.commitTx();
 
 		} catch (Throwable t) {
