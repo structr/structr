@@ -576,6 +576,28 @@ var Structr = {
             }
         });
     },
+    errorFromResponse: function(response, callback) {
+        var errorText = '';
+        
+        $.each(Object.keys(response.errors), function(i, err) {
+            errorText += err + ': ';
+            //console.log(Object.keys(response.errors[err]));
+            $.each(Object.keys(response.errors[err]), function(j, attr) {
+               errorText += attr + ' ' ;
+               //console.log(attr, Object.keys(response.errors[err][attr]));
+               $.each(response.errors[err][attr], function(k, cond) {
+                   //console.log(cond);
+                   $.each(Object.keys(cond), function(l, key) {
+                       errorText += key + ' ' + cond[key];
+                   });
+               });
+            });
+            errorText += '\n';
+            //console.log(errorText);
+        });
+        
+        Structr.error(errorText, function() {}, function() {});
+    },
     tempInfo: function(text, autoclose) {
         window.clearTimeout(dialogId);
         if (text)

@@ -455,12 +455,13 @@ var _Schema = {
             dataType: 'json',
             contentType: 'application/json; charset=utf-8',
             data: data,
-            error: function(data) {
-                console.log(data);
-            },
             statusCode: {
                 200: function() {
                     _Schema.reload();
+                },
+                422: function(data) {
+                    console.log(data);
+                    Structr.errorFromResponse(data.responseJSON);
                 }
             }
         });
@@ -473,13 +474,14 @@ var _Schema = {
             dataType: 'json',
             contentType: 'application/json; charset=utf-8',
             data: '{ "name": "' + type + '"}',
-            error: function(data) {
-                console.log(data);
-            },
             statusCode: {
                 201: function() {
                     console.log('node created');
                     _Schema.reload();
+                },
+                422: function(data) {
+                    console.log(data);
+                    Structr.errorFromResponse(data.responseJSON);
                 }
             }
             
@@ -496,13 +498,14 @@ var _Schema = {
             dataType: 'json',
             contentType: 'application/json; charset=utf-8',
             data: data,
-            error: function(data) {
-                console.log(data);
-            },
             statusCode: {
                 201: function() {
-                    console.log('rel created');
+                    //console.log('rel created');
                     _Schema.reload();
+                },
+                422: function(data) {
+                    console.log(data);
+                    Structr.errorFromResponse(data.responseJSON);
                 }
             }
         });
@@ -513,12 +516,13 @@ var _Schema = {
             type: 'DELETE',
             dataType: 'json',
             contentType: 'application/json; charset=utf-8',
-            error: function(data) {
-                console.log(data);
-            },
             statusCode: {
                 200: function(data, textStatus, jqXHR) {
-                    console.log('rel deleted', data, textStatus, jqXHR);
+                    //console.log('rel removed', data, textStatus, jqXHR);
+                },
+                422: function(data) {
+                    console.log(data);
+                    Structr.errorFromResponse(data.responseJSON);
                 }
             }
         });
@@ -530,13 +534,14 @@ var _Schema = {
             dataType: 'json',
             contentType: 'application/json; charset=utf-8',
             data: '{"' + key + '":"' + value + '"}',
-            error: function(data) {
-                console.log(data);
-            },
             statusCode: {
                 200: function(data, textStatus, jqXHR) {
-                    console.log('rel deleted', data, textStatus, jqXHR);
+                    //console.log('rel property set', data, textStatus, jqXHR);
                     _Schema.reload();
+                },
+                422: function(data) {
+                    console.log(data);
+                    Structr.errorFromResponse(data.responseJSON);
                 }
             }
         });
