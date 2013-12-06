@@ -8,6 +8,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import org.neo4j.helpers.collection.Iterables;
 import org.structr.common.PropertyView;
+import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -127,4 +128,12 @@ public class SchemaNode extends AbstractSchemaNode implements Schema {
 	public Set<String> getViews() {
 		return dynamicViews;
 	}
+	
+	@Override
+	public boolean isValid(final ErrorBuffer errorBuffer) {
+
+		return ValidationHelper.checkStringMatchesRegex(this, name, "[a-zA-Z_]+", errorBuffer);
+
+	}
+
 }
