@@ -54,15 +54,20 @@ var _Schema = {
         _Schema.keys = [];
 
         main.append('<div class="schema-input-container"><input class="schema-input" id="type-name" type="text" size="20" placeholder="New type"><button id="create-type" class="btn"><img src="icon/add.png"> Add Type</button></div>');
-        $('#type-name').focus();
+        $('#type-name').focus().on('keyup', function(e) {;
+            if (e.keyCode === 13) {
+                $('#create-type').click();
+            }
+        });
         $('#create-type').on('click', function() {
             _Schema.createNodeDefinition($('#type-name').val());
         });
 
-
         jsPlumb.ready(function() {
             main.append('<div class="canvas" id="schema-graph"></div>');
+
             canvas = $('#schema-graph');
+            _Schema.resize();
 
             instance = jsPlumb.getInstance({
                 //Connector: "StateMachine",

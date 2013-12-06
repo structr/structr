@@ -118,6 +118,13 @@ $(document).ready(function() {
         Structr.modules['types'].onload();
     });
 
+    $('#schema_').on('click', function(e) {
+        e.stopPropagation();
+        Structr.clearMain();
+        Structr.activateMenuEntry('schema');
+        Structr.modules['schema'].onload();
+    });
+
     $('#elements_').on('click', function(e) {
         e.stopPropagation();
         Structr.clearMain();
