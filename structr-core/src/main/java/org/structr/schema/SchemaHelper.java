@@ -207,6 +207,12 @@ public class SchemaHelper {
 					new NodeAttribute(ResourceAccess.flags, flagsValue)
 				);
 				
+				// create additional grant for the _schema resource
+				app.create(ResourceAccess.class,
+					new NodeAttribute(ResourceAccess.signature, "_schema/" + signature),
+					new NodeAttribute(ResourceAccess.flags, flagsValue)
+				);
+
 			} else {
 				
 				// modify flags of grant
