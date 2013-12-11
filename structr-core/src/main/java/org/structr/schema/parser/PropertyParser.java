@@ -3,6 +3,8 @@ package org.structr.schema.parser;
 import java.util.Set;
 import java.util.LinkedHashSet;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
+import org.structr.common.ValidationHelper;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidPropertySchemaToken;
@@ -80,7 +82,12 @@ public abstract class PropertyParser {
 
 		if (source.startsWith("!")) {
 
-			localValidator = ", new GlobalPropertyUniquenessValidator()";
+			StringBuilder buf = new StringBuilder();
+			buf.append("ValidationHelper.checkPropertyUniquenessError(this, ");
+			buf.append(className).append(".").append(propertyName).append("Property");
+			buf.append(", errorBuffer)");
+
+			globalValidators.add(buf.toString());
 
 			return source.substring(1);
 		}

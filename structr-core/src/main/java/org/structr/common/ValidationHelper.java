@@ -21,11 +21,15 @@ package org.structr.common;
 import org.structr.core.property.PropertyKey;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.regex.Pattern;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.error.*;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.GraphObject;
+import org.structr.core.Result;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
 
 /**
  * Defines helper methods for property validation.
@@ -491,6 +495,52 @@ public class ValidationHelper {
 			
 		}
 		
+		// no error
+		return false;
+	}
+	
+	public static boolean checkPropertyUniquenessError(final GraphObject object, final PropertyKey key, final ErrorBuffer errorBuffer) {
+
+		if (key != null) {
+
+			final Object value         = object.getProperty(key);
+			Result<GraphObject> result = null;
+			boolean exists             = false;
+			String id                  = null;
+
+			try {
+
+				if (object instanceof NodeInterface) {
+					
+					result = StructrApp.getInstance().nodeQuery(((NodeInterface)object).getClass()).and(key, value).getResult();
+					
+				} else {
+					
+					result = StructrApp.getInstance().relationshipQuery(((RelationshipInterface)object).getClass()).and(key, value).getResult();
+					
+				}
+				exists = !result.isEmpty();
+
+			} catch (FrameworkException fex) {
+
+				fex.printStackTrace();
+
+			}
+
+			if (exists) {
+
+				GraphObject foundNode = result.get(0);
+				if (foundNode.getId() != object.getId()) {
+
+					id = ((AbstractNode) result.get(0)).getUuid();
+
+					errorBuffer.add(object.getType(), new UniqueToken(id, key, value));
+
+					return true;
+				}
+			}
+		}
+
 		// no error
 		return false;
 	}
