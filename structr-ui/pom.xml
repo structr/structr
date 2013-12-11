@@ -69,7 +69,7 @@
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>structr-server</artifactId>
+            <artifactId>structr-rest</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
