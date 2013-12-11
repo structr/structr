@@ -54,7 +54,8 @@ var _Schema = {
         _Schema.keys = [];
 
         main.append('<div class="schema-input-container"><input class="schema-input" id="type-name" type="text" size="20" placeholder="New type"><button id="create-type" class="btn"><img src="icon/add.png"> Add Type</button></div>');
-        $('#type-name').focus().on('keyup', function(e) {;
+        $('#type-name').focus().on('keyup', function(e) {
+            ;
             if (e.keyCode === 13) {
                 $('#create-type').click();
             }
@@ -159,6 +160,7 @@ var _Schema = {
 
                 $.each(data.result, function(i, res) {
                     var id = 'id_' + res.id;
+                    nodes[res.id] = res;
                     canvas.append('<div class="schema node" id="' + id + '"><h2>' + res.name + '</h2>'
                             + '<table class="schema-props"><th>Property Name</th><th>Type</th><th>Format</th><th>Not null</th><th>Unique</th></table>'
                             + '</div>');
@@ -172,42 +174,7 @@ var _Schema = {
                     });
 
                     $.each(Object.keys(res), function(i, key) {
-                        //console.log(key);
-                        if (key.startsWith('_')) {
-                            var notNull = (res[key].indexOf('+') > -1);
-                            var unique = (res[key].indexOf('!') > -1);
-                            var type = res[key].replace('+', '').replace('!', '');
-                            var format;
-                            if (type.indexOf('(') > -1) {
-                                var parts = type.split('(');
-                                type = parts[0];
-                                format = parts[1].replace(')', '');
-                            }
-                            propertiesTable.append('<tr class="' + key + '"><td><input size="15" type="text" class="property-name" value="' + key.substring(1) + '"></td><td>'
-                                    + typeOptions + '</td><td><input size="15" type="text" class="property-format" value="'
-                                    + (format ? format : '') + '"></td><td><input class="not-null" type="checkbox"'
-                                    + (notNull ? ' checked="checked"' : '') + '></td><td><input class="unique" type="checkbox"'
-                                    + (unique ? ' checked="checked"' : '') + '</td></div>');
-
-                            $('#' + id + ' .' + key + ' .property-type option[value="' + type + '"]').attr('selected', true);
-
-                            $('#' + id + ' .' + key + ' .property-type').on('change', function() {
-                                _Schema.savePropertyDefintion(res.id, key);
-                            });
-
-                            $('#' + id + ' .' + key + ' .property-format').on('blur', function() {
-                                _Schema.savePropertyDefintion(res.id, key);
-                            });
-
-                            $('#' + id + ' .' + key + ' .not-null').on('change', function() {
-                                _Schema.savePropertyDefintion(res.id, key);
-                            });
-
-                            $('#' + id + ' .' + key + ' .unique').on('change', function() {
-                                _Schema.savePropertyDefintion(res.id, key);
-                            });
-
-                        }
+                        _Schema.appendLocalProperty(propertiesTable, id, res, key);
                     });
 
                     propertiesTable.append('<tr class="new"><td><input size="15" type="text" class="property-name" placeholder="Enter name"></td>'
@@ -399,6 +366,25 @@ var _Schema = {
 
                         ]
                     });
+
+                    console.log('relationship was loaded:', res);
+                    console.log('source node: ', nodes[res.sourceId]);
+                    console.log('target node: ', nodes[res.targetId]);
+
+                    // Add source property
+                    var source = nodes[res.sourceId];
+                    var key = source.name.toLowerCase() + (res.sourceMultiplicity !== '1' ? 's' : '');
+                    var node = nodes[res.sourceId];
+                    _Schema.appendRelatedProperty($('#id_' + node.id + ' .schema-props'), res, key);
+
+                    // Add target property
+                    var target = nodes[res.targetId];
+                    var key = target.name.toLowerCase() + (res.targetMultiplicity !== '1' ? 's' : '');
+                    var node = nodes[res.targetId];
+                    _Schema.appendRelatedProperty($('#id_' + node.id + ' .schema-props'), res, key);
+                    
+                    instance.repaintEverything();
+
                 });
 
                 if (callback) {
@@ -417,6 +403,55 @@ var _Schema = {
             width: w + 'px',
             height: h + 'px',
         });
+
+    },
+    appendLocalProperty: function(el, id, res, key) {
+
+        if (key.startsWith('_')) {
+            
+            var notNull = (res[key].indexOf('+') > -1);
+            var unique = (res[key].indexOf('!') > -1);
+            var type = res[key].replace('+', '').replace('!', '');
+            var format;
+            if (type.indexOf('(') > -1) {
+                var parts = type.split('(');
+                type = parts[0];
+                format = parts[1].replace(')', '');
+            }
+            el.append('<tr class="' + key + '"><td><input size="15" type="text" class="property-name" value="' + key.substring(1) + '"></td><td>'
+                    + typeOptions + '</td><td><input size="15" type="text" class="property-format" value="'
+                    + (format ? format : '') + '"></td><td><input class="not-null" type="checkbox"'
+                    + (notNull ? ' checked="checked"' : '') + '></td><td><input class="unique" type="checkbox"'
+                    + (unique ? ' checked="checked"' : '') + '</td></div>');
+
+            $('#' + id + ' .' + key + ' .property-type option[value="' + type + '"]').attr('selected', true);
+
+            $('#' + id + ' .' + key + ' .property-type').on('change', function() {
+                _Schema.savePropertyDefintion(res.id, key);
+            });
+
+            $('#' + id + ' .' + key + ' .property-format').on('blur', function() {
+                _Schema.savePropertyDefintion(res.id, key);
+            });
+
+            $('#' + id + ' .' + key + ' .not-null').on('change', function() {
+                _Schema.savePropertyDefintion(res.id, key);
+            });
+
+            $('#' + id + ' .' + key + ' .unique').on('change', function() {
+                _Schema.savePropertyDefintion(res.id, key);
+            });
+
+        }
+
+    },
+    appendRelatedProperty: function(el, rel, key) {
+
+        el.append('<tr class="' + key + '"><td><input size="15" type="text" class="property-name" value="' + key + '"></td><td>'
+                + 'Related (' + rel.relationshipType + ')' + '</td><td><input size="15" type="text" class="property-format" value="'
+                + '' + '"></td><td><input class="not-null" type="checkbox"'
+                + '' + '></td><td><input class="unique" type="checkbox"'
+                + '' + '</td></div>');
 
     },
     savePropertyDefintion: function(entityId, key) {
@@ -484,7 +519,7 @@ var _Schema = {
                     Structr.errorFromResponse(data.responseJSON);
                 }
             }
-            
+
         });
     },
     createRelationshipDefinition: function(sourceId, targetId, relationshipType) {
@@ -549,7 +584,7 @@ var _Schema = {
     connect: function(sourceId, targetId) {
         //Structr.dialog('Enter relationship details');
         _Schema.createRelationshipDefinition(sourceId, targetId, initialRelType);
-        
+
     },
     detach: function(relationshipId) {
         //Structr.dialog('Enter relationship details');
