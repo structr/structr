@@ -182,6 +182,15 @@ public class StructrUiTest extends TestCase {
 		config.setProperty("HtmlServlet.defaultview", PropertyView.Public);
 		config.setProperty("HtmlServlet.outputdepth", "3");
 
+		// Configure resource handlers
+		config.setProperty(HttpService.RESOURCE_HANDLERS, "StructrUiHandler");
+
+		config.setProperty("StructrUiHandler.contextPath", "/structr");
+		config.setProperty("StructrUiHandler.resourceBase", "src/main/resources/structr");
+		config.setProperty("StructrUiHandler.directoriesListed", Boolean.toString(false));
+		config.setProperty("StructrUiHandler.welcomeFiles", "index.html");
+		
+		
 		final Services services = Services.getInstance(config);
 
 		// wait for service layer to be initialized

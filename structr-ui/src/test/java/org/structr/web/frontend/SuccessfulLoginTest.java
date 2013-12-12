@@ -24,8 +24,7 @@ import org.structr.web.test.FrontendTest;
 public class SuccessfulLoginTest extends FrontendTest {
 
 	public void test() {
-		
-		run("successful_login");
+		assertEquals(0, run("successful_login"));
 	}
 
 }

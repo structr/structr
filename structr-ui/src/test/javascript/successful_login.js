@@ -18,7 +18,6 @@
  */
 
 var s = require('../setup');
-var casper = require('casper').create(s.casperOptions);
 
 var testName = 'successful_login';
 var heading = "Successful Login"
@@ -28,8 +27,6 @@ var numberOfTests = 2;
 s.startRecording(window, casper, testName);
 
 casper.test.begin(testName, numberOfTests, function(test) {
-
-    casper.start(s.url);
 
     casper.then(function() {
         s.animatedType(this, '#usernameField', false, 'admin');
@@ -50,13 +47,9 @@ casper.test.begin(testName, numberOfTests, function(test) {
 
     casper.waitWhileVisible('#dialogBox', function() {
 
-        test.assertEval(function() {
-            return $('#errorText').text() === '';
-        });
+        test.assertEval(function() { return $('#errorText').text() === ''; });
 
-        test.assertEval(function() {
-            return $('#pages').is(':visible');
-        });
+        test.assertEval(function() { return $('#pages').is(':visible'); });
 
     });
 

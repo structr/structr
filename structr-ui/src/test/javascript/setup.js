@@ -54,6 +54,22 @@ exports.casperOptions = {
     viewportSize: {
         width: w,
         height: h
+    },
+    onError: function() {
+        console.log('############### onError ################');
+        this.exit(1);
+    },
+    onWaitTimeout: function() {
+        console.log('############### onWaitTimeout ################');
+        this.exit(1);
+    },
+    onTimeout: function() {
+        console.log('############### onTimeout ################');
+        this.exit(1);
+    },
+    onStepTimeout: function() {
+        console.log('############### onStepTimeout ################');
+        this.exit(1);
     }
 }
 
@@ -77,7 +93,7 @@ exports.docsDir = '../../../../docs';
 /**
  * Set to true to enable debug logging
  */
-exports.debug = false;
+exports.debug = true;
 
 /**
  * The input field with the given selector will be filled
@@ -348,3 +364,14 @@ exports.startRecording = function(window, casper, testName) {
             console.log('screenshot ' + i + ' created');
     }, recordingInterval);
 }
+
+casper.test.setUp(function() {
+
+    casper.options.viewportSize = {
+        width: exports.w,
+        height: exports.h
+    };
+
+    casper.start(exports.url);
+    
+});

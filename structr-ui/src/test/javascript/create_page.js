@@ -18,7 +18,6 @@
  */
 
 var s = require('../setup');
-var casper = require('casper').create(s.casperOptions);
 
 var testName = 'create_page';
 var heading = "Create Page"
@@ -28,8 +27,6 @@ var numberOfTests = 3;
 s.startRecording(window, casper, testName);
 
 casper.test.begin(testName, numberOfTests, function(test) {
-
-    casper.start(s.url);
 
     casper.then(function() {
         s.animatedType(this, '#usernameField', false, 'admin');

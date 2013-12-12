@@ -27,6 +27,7 @@ import org.structr.web.common.StructrUiTest;
 
 import java.util.logging.Logger;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.auth.UiAuthenticator;
@@ -56,11 +57,15 @@ public class FrontendTest extends StructrUiTest {
 			createResourceAccess("_login", UiAuthenticator.NON_AUTH_USER_POST);
 			app.commitTx();
 			
-			String[] args = {"/bin/sh", "-c", "cd src/test/javascript; PATH=$PATH:./bin/`uname`/ casperjs/bin/casperjs test " + testName+ ".js"};
+			String[] args = {"/bin/sh", "-c", "cd src/test/javascript; PATH=$PATH:./bin/`uname`/ casperjs/bin/casperjs --fail-fast test " + testName+ ".js"};
 
 			Process proc = Runtime.getRuntime().exec(args);
 			logger.log(Level.INFO, IOUtils.toString(proc.getInputStream()));
-			logger.log(Level.WARNING, IOUtils.toString(proc.getErrorStream()));
+			String warnings = IOUtils.toString(proc.getErrorStream());
+			
+			if (StringUtils.isNotBlank(warnings)) {
+				logger.log(Level.WARNING, warnings);
+			}
 			
 			int exitValue = proc.exitValue();
 			

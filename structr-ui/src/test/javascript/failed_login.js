@@ -18,7 +18,6 @@
  */
 
 var s = require('../setup');
-var casper = require('casper').create(s.casperOptions);
 
 var testName = 'failed_login';
 var heading = "Failed Login"
@@ -29,8 +28,6 @@ s.startRecording(window, casper, testName);
 
 casper.test.begin(testName, numberOfTests, function(test) {
 
-    casper.start(s.url);
-    
     casper.then(function() {
         s.animatedType(this, '#usernameField', false, 'wrong');
     });

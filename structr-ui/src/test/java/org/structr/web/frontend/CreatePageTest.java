@@ -24,8 +24,7 @@ import org.structr.web.test.FrontendTest;
 public class CreatePageTest extends FrontendTest {
 
 	public void test() {
-		
-		run("create_page");
+		assertEquals(0, run("create_page"));
 	}
 
 }
