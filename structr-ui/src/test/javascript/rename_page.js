@@ -45,15 +45,11 @@ casper.test.begin(testName, numberOfTests, function(test) {
         this.click('#loginButton');
     });
 
-    casper.waitWhileVisible('#dialogBox', function() {
+    casper.waitForSelector('#errorText', function() {
 
-        test.assertEval(function() {
-            return $('#errorText').text() === '';
-        });
+        test.assertEval(function() { return !($('#errorText').text() === 'Wrong username or password!'); });
 
-        test.assertEval(function() {
-            return $('#pages').is(':visible');
-        });
+        test.assertEval(function() { return $('#pages').is(':visible'); });
 
     });
     
@@ -65,11 +61,7 @@ casper.test.begin(testName, numberOfTests, function(test) {
         this.click('#add_page');
     });
 
-    casper.wait(1000, function() {
-        test.assertEval(function() {
-            return $('#errorText').text() === '';
-        });
-    });
+    casper.wait(1000);
 
     casper.then(function() {
         s.moveMousePointerTo(casper, '#previewTabs li:nth-child(2)');
@@ -90,11 +82,7 @@ casper.test.begin(testName, numberOfTests, function(test) {
         s.moveMousePointerTo(casper, '#previews');
     });
 
-    casper.wait(5000, function() {
-        test.assertEval(function() {
-            return $('#errorText').text() === '';
-        });
-    });
+    casper.wait(5000);
 
     casper.then(function() {
         

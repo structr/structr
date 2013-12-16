@@ -45,15 +45,11 @@ casper.test.begin(testName, numberOfTests, function(test) {
         this.click('#loginButton');
     });
 
-    casper.waitWhileVisible('#dialogBox', function() {
+    casper.waitForSelector('#errorText', function() {
 
-        test.assertEval(function() {
-            return $('#errorText').text() === '';
-        });
+        test.assertEval(function() { return !($('#errorText').text() === 'Wrong username or password!'); });
 
-        test.assertEval(function() {
-            return $('#pages').is(':visible');
-        });
+        test.assertEval(function() { return $('#pages').is(':visible'); });
 
     });
     
@@ -65,11 +61,9 @@ casper.test.begin(testName, numberOfTests, function(test) {
         this.click('#add_page');
     });
 
-    casper.wait(2000, function() {
-        test.assertEval(function() {
-            return $('#errorText').text() === '';
-        });
-    });
+    casper.wait(5000);
+    
+    // TODO: Add assertion to detect creation of page
 
     casper.then(function() {
         

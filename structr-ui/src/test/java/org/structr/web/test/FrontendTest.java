@@ -51,11 +51,11 @@ public class FrontendTest extends StructrUiTest {
 
 		try {
 			
-			app.beginTx();
 
 			createAdminUser();
 			createResourceAccess("_login", UiAuthenticator.NON_AUTH_USER_POST);
-			app.commitTx();
+
+			app.beginTx();
 			
 			String[] args = {"/bin/sh", "-c", "cd src/test/javascript; PATH=$PATH:./bin/`uname`/ casperjs/bin/casperjs --fail-fast test " + testName+ ".js"};
 
@@ -70,6 +70,8 @@ public class FrontendTest extends StructrUiTest {
 			int exitValue = proc.exitValue();
 			
 			logger.log(Level.INFO, "casperjs subprocess returned with {0}", exitValue);
+
+			app.commitTx();
 			
 			return exitValue;
 			
@@ -99,7 +101,12 @@ public class FrontendTest extends StructrUiTest {
 		try {
 			app.beginTx();
 			User user = app.create(User.class, properties);
+			user.setProperty(User.password, "admin");
 			app.commitTx();
+		
+		} catch (Throwable t) {
+
+			t.printStackTrace();
 			
 		} finally {
 			

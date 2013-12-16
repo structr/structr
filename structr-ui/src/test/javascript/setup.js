@@ -76,7 +76,7 @@ exports.casperOptions = {
 /**
  * Base URL for Structr UI tests
  */
-exports.url = 'http://localhost:8875/structr/#pages';
+exports.url = 'http://localhost:8875/structr/';
 
 /**
  * Image type extension
@@ -135,7 +135,7 @@ exports.animatedType = function(casper, selector, inIframe, text, blur, len) {
         console.log('Typing in', selector, ', in iframe?', inIframe);
 
     casper.thenEvaluate(function(s, t, f) {
-        
+
         var el;
         if (f) {
             el = $('iframe:first-child').contents().find(s);
@@ -183,23 +183,24 @@ exports.mousePointer = function(casper, pos) {
 
     //casper.then(function() {
 
-        var currentPos = casper.evaluate(function(p) {
-            
-            var c = $('#testCursor');
-            if (!c.length) {
-                $('body').append('<img id="testCursor" src="icon/cursor2.png" style="position: absolute; top: ' + p.top + 'px; left: ' + p.left + 'px; z-index: 999999">')
-                c = $('#testCursor');
-            } else {
-                c.offset({
-                    top: p.top,
-                    left: p.left
-                });
-            }
-            return c.offset();
-        }, pos);
-        
-        if (exports.debug) console.log('current cursor position', currentPos.left, currentPos.top);
-        
+    var currentPos = casper.evaluate(function(p) {
+
+        var c = $('#testCursor');
+        if (!c.length) {
+            $('body').append('<img id="testCursor" src="icon/cursor2.png" style="position: absolute; top: ' + p.top + 'px; left: ' + p.left + 'px; z-index: 999999">')
+            c = $('#testCursor');
+        } else {
+            c.offset({
+                top: p.top,
+                left: p.left
+            });
+        }
+        return c.offset();
+    }, pos);
+
+    if (exports.debug)
+        console.log('current cursor position', currentPos.left, currentPos.top);
+
     //});
 
 }
@@ -227,7 +228,7 @@ exports.moveMousePointer = function(casper, startPos, endPos, step) {
     };
 
     exports.mousePointer(casper, pos);
-    
+
     casper.then(function() {
         exports.moveMousePointer(casper, startPos, endPos, step + 1);
     });
@@ -280,15 +281,15 @@ exports.dragDropElement = function(casper, sourceSelector, targetSelector) {
     casper.then(function() {
 
         //exports.moveMousePointerTo(casper, targetSelector);
-        
+
         var positions = this.evaluate(function(s, t) {
             var sourceEl = $(s);
             var targetEl = $(t);
-            
+
             var c = $('#testCursor');
 
             if (sourceEl.length && targetEl.length) {
-                
+
                 c.appendTo(sourceEl);
 
                 var sourcePos = {'left': sourceEl.offset().left + sourceEl.width() / 2, 'top': sourceEl.offset().top + sourceEl.height() / 2};
@@ -299,18 +300,18 @@ exports.dragDropElement = function(casper, sourceSelector, targetSelector) {
                     dy: (targetPos.top - sourcePos.top),
                     moves: 10
                 });
-                
-                return {'sourcePos':sourcePos, 'targetPos':targetPos};
-                
+
+                return {'sourcePos': sourcePos, 'targetPos': targetPos};
+
             }
 
         }, sourceSelector, targetSelector);
-        
+
         exports.mousePointer(this, positions.targetPos);
-        
+
         if (exports.debug)
             console.log(positions.sourcePos.left, positions.sourcePos.top, positions.targetPos.left, positions.targetPos.top);
-        
+
     });
 
 }
@@ -351,6 +352,12 @@ exports.animateHtml = function(testName, heading, desc) {
  * Start recording of screenshots
  */
 exports.startRecording = function(window, casper, testName) {
+
+    casper.options.viewportSize = {
+        width: w,
+        height: h
+    };
+
     var i = 0;
 
     var fs = require('fs');
@@ -367,11 +374,6 @@ exports.startRecording = function(window, casper, testName) {
 
 casper.test.setUp(function() {
 
-    casper.options.viewportSize = {
-        width: exports.w,
-        height: exports.h
-    };
-
     casper.start(exports.url);
-    
+
 });

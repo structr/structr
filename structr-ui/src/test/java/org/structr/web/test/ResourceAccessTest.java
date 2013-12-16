@@ -310,9 +310,15 @@ public class ResourceAccessTest extends StructrUiTest {
 			
 			return access;
 			
+		} catch (Throwable t) {
+
+			t.printStackTrace();
+			
 		} finally {
 			
 			app.finishTx();
 		}
+		
+		return null;
 	}	
 }

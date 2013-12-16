@@ -45,13 +45,15 @@ casper.test.begin(testName, numberOfTests, function(test) {
         this.click('#loginButton');
     });
 
-    casper.waitWhileVisible('#dialogBox', function() {
+    casper.waitForSelector('#errorText', function() {
 
-        test.assertEval(function() { return $('#errorText').text() === ''; });
+        test.assertEval(function() { return !($('#errorText').text() === 'Wrong username or password!'); });
 
         test.assertEval(function() { return $('#pages').is(':visible'); });
 
     });
+    
+    
 
     casper.then(function() {
         

@@ -45,17 +45,23 @@ casper.test.begin(testName, numberOfTests, function(test) {
         this.click('#loginButton');
     });
 
-    casper.waitWhileVisible('#dialogBox', function() {
+    casper.waitForSelector('#errorText', function() {
 
-        test.assertEval(function() {
-            return $('#errorText').text() === '';
-        });
+        test.assertEval(function() { return !($('#errorText').text() === 'Wrong username or password!'); });
 
-        test.assertEval(function() {
-            return $('#pages').is(':visible');
-        });
+        test.assertEval(function() { return $('#pages').is(':visible'); });
 
     });
+
+    casper.then(function() {
+        s.moveMousePointerTo(casper, '#pagesTab');
+    });
+
+    casper.then(function() {
+        this.click('#pagesTab');
+    });
+
+    casper.wait(1000);
     
     casper.then(function() {
         s.moveMousePointerTo(casper, '#add_page');
@@ -65,26 +71,20 @@ casper.test.begin(testName, numberOfTests, function(test) {
         this.click('#add_page');
     });
 
-    casper.wait(2000, function() {
-        test.assertEval(function() {
-            return $('#errorText').text() === '';
-        });
-    });
+    casper.wait(2000);
 
     casper.then(function() {
         s.moveMousePointerTo(casper, '#add_content');
     });
 
     casper.then(function() {
-        s.dragDropElement(casper, '#add_content', '#pages .html_element > div.node:eq(1) > div.node:eq(1)');
+        s.dragDropElement(casper, '#add_content', '#pagesTree > .page > .html_element > div.node:eq(1) > div.node:eq(1)');
     });
 
     casper.wait(3000);
+    
     casper.then(function() {
-        
-        test.assertEval(function() {
-            return $('#pages .node.page .html_element > div.node:eq(1) > div.node:eq(1) > .content:eq(1) .content_').text() === '#text';
-        });
+        test.assertEvalEquals(function() { return $('#pagesTree > .page > .html_element > div.node:eq(1) > div.node:eq(1) > .content:eq(1) > .content_').text(); }, '#text');
     });
 
     casper.then(function() {
