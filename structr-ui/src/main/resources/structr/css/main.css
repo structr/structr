@@ -105,11 +105,12 @@ input[type="text"]:disabled, input.disabled {
 }
 
 .menu ul {
-    width: 800px;
+    width: 940px;
     list-style-type: none;
     padding: 0;
     margin: 0;
     float: left;
+	overflow: hidden;
 }
 
 .menu ul li {

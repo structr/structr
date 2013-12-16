@@ -20,7 +20,7 @@
 /**
  * Screenshot/animation dimensions (pixel)
  */
-var w = 960, h = 800;
+var w = 1920, h = 1080;
 
 /**
  * Interval for typing simulation in ms
@@ -46,32 +46,6 @@ var recordingInterval = 100;
  * Length of animation images filenames (f.e. 0023.png)
  */
 var filenameLength = 4;
-
-/**
- * Set casper options, see http://docs.casperjs.org/en/latest/modules/casper.html#index-1
- */
-exports.casperOptions = {
-    viewportSize: {
-        width: w,
-        height: h
-    },
-    onError: function() {
-        console.log('############### onError ################');
-        this.exit(1);
-    },
-    onWaitTimeout: function() {
-        console.log('############### onWaitTimeout ################');
-        this.exit(1);
-    },
-    onTimeout: function() {
-        console.log('############### onTimeout ################');
-        this.exit(1);
-    },
-    onStepTimeout: function() {
-        console.log('############### onStepTimeout ################');
-        this.exit(1);
-    }
-}
 
 /**
  * Base URL for Structr UI tests
@@ -236,23 +210,33 @@ exports.moveMousePointer = function(casper, startPos, endPos, step) {
 }
 
 /**
- * Move mouse pointer to element with given selector
+ * Move mouse pointer to element with given selector.
+ * 
+ * Set offset if you want to place the pointer off the center
+ * of the target element.
  */
-exports.moveMousePointerTo = function(casper, selector) {
+exports.moveMousePointerTo = function(casper, selector, offset) {
 
     if (exports.debug)
         console.log('move mouse pointer to', selector);
 
     casper.then(function() {
 
-        var positions = this.evaluate(function(s) {
+        var positions = this.evaluate(function(s, o) {
             var el = $(s);
             var c = $('#testCursor');
 
             if (el.length && c.length) {
 
-                var startPos = {left: c.offset().left + c.width() / 2, top: c.offset().top + c.height() / 2};
-                var endPos = {left: el.offset().left + el.width() / 2, top: el.offset().top + el.height() / 2};
+                var startPos = {
+                    left: c.offset().left + c.width() / 2,
+                    top: c.offset().top + c.height() / 2
+                };
+
+                var endPos = {
+                    left: (el.offset().left + el.width() / 2) + (o ? o.x : 0),
+                    top: (el.offset().top + el.height() / 2) + (o ? o.y : 0)
+                };
 
                 return {
                     start: startPos,
@@ -260,7 +244,7 @@ exports.moveMousePointerTo = function(casper, selector) {
                 };
 
             }
-        }, selector);
+        }, selector, offset);
 
         if (exports.debug)
             console.log('start position:', positions.start.left, positions.start.top, ', end position:', positions.end.left, positions.end.top);
@@ -273,47 +257,116 @@ exports.moveMousePointerTo = function(casper, selector) {
 /**
  * Drag element with given source selector onto element with target selector
  */
-exports.dragDropElement = function(casper, sourceSelector, targetSelector) {
+exports.dragDropElement = function(casper, sourceSelector, targetSelector, offset) {
 
     if (exports.debug)
         console.log('drag element', sourceSelector, targetSelector);
 
     casper.then(function() {
 
-        //exports.moveMousePointerTo(casper, targetSelector);
+        //  exports.moveMousePointerTo(casper, sourceSelector);
 
-        var positions = this.evaluate(function(s, t) {
+        var positions = this.evaluate(function(s, t, o) {
             var sourceEl = $(s);
             var targetEl = $(t);
 
-            var c = $('#testCursor');
-
             if (sourceEl.length && targetEl.length) {
 
-                c.appendTo(sourceEl);
 
-                var sourcePos = {'left': sourceEl.offset().left + sourceEl.width() / 2, 'top': sourceEl.offset().top + sourceEl.height() / 2};
-                var targetPos = {'left': targetEl.offset().left + targetEl.width() / 2, 'top': targetEl.offset().top + targetEl.height() / 2};
+                var sourcePos = {
+                    left: sourceEl.offset().left + sourceEl.width() / 2,
+                    top: sourceEl.offset().top + sourceEl.height() / 2
+                };
+                var targetPos = {
+                    left: (targetEl.offset().left + targetEl.width() / 2) + (o ? o.x : 0),
+                    top: (targetEl.offset().top + targetEl.height() / 2) + (o ? o.y : 0)
+                };
 
-                sourceEl.simulate('drag', {
-                    dx: (targetPos.left - sourcePos.left),
-                    dy: (targetPos.top - sourcePos.top),
-                    moves: 10
-                });
-
-                return {'sourcePos': sourcePos, 'targetPos': targetPos};
+                return {sourcePos: sourcePos, targetPos: targetPos};
 
             }
 
-        }, sourceSelector, targetSelector);
-
-        exports.mousePointer(this, positions.targetPos);
+        }, sourceSelector, targetSelector, offset);
 
         if (exports.debug)
-            console.log(positions.sourcePos.left, positions.sourcePos.top, positions.targetPos.left, positions.targetPos.top);
+            console.log('moved element from ... to ...', positions.sourcePos.left, positions.sourcePos.top, positions.targetPos.left, positions.targetPos.top);
+
+        var steps = 10;
+
+        for (var i = 1; i <= steps; i++) {
+
+            //exports.mousePointer(casper, positions.sourcePos);
+            //window.setTimeout(function() {
+
+            var pos = casper.thenEvaluate(function(s, sp, tp, st, j) {
+
+                var sourceEl = $(s);
+
+                var dx = tp.left - sp.left;
+                var dy = tp.top - sp.top;
+
+                var newX = sp.left + dx / st * j;
+                var newY = sp.top + dy / st * j;
+
+                var movedEl = $('#moved-element-clone');
+                if (!movedEl.length) {
+                    movedEl = sourceEl.clone();
+                    movedEl.attr('id', 'moved-element-clone').appendTo('body');
+                }
+
+                var c = $('#testCursor');
+                c.appendTo(movedEl);
+
+                movedEl.offset({left: newX, top: newY});
+                c.offset({left: newX, top: newY});
+
+//                    sourceEl.simulate('drag', {
+//                        dx: dx/st,
+//                        dy: dy/st,
+//                        interpolation: {
+//                            duration: 500,
+//                            stepCount: 10
+//                        }
+//                    });
+
+
+            }, sourceSelector, positions.sourcePos, positions.targetPos, steps, i);
+
+//                console.log('x: ' + pos.x + ', y: ' + pos.y);
+
+
+            //}, typeInterval*i);
+
+            //exports.mousePointer(this, positions.targetPos);
+        }
+
+        casper.thenEvaluate(function() {
+
+            var movedEl = $('#moved-element-clone');
+            if (movedEl.length) {
+                movedEl.remove();
+            }
+
+        });
+
+        var d = {
+            x: positions.targetPos.left - positions.sourcePos.left,
+            y: positions.targetPos.top  - positions.sourcePos.top
+        }
+
+        console.log('x: ' + d.x + ', y: ' + d.y);
+
+        casper.thenEvaluate(function(s, d) {
+
+            var sourceEl = $(s);
+            sourceEl.simulate('drag-n-drop', {
+                dx: d.x,
+                dy: d.y
+            });
+
+        }, sourceSelector, d);
 
     });
-
 }
 
 /**
@@ -353,6 +406,9 @@ exports.animateHtml = function(testName, heading, desc) {
  */
 exports.startRecording = function(window, casper, testName) {
 
+    /**
+     * Set casper options, see http://docs.casperjs.org/en/latest/modules/casper.html#index-1
+     */
     casper.options.viewportSize = {
         width: w,
         height: h
@@ -375,5 +431,10 @@ exports.startRecording = function(window, casper, testName) {
 casper.test.setUp(function() {
 
     casper.start(exports.url);
+
+    casper.evaluate(function() {
+        localStorage.clear();
+    }, {});
+
 
 });

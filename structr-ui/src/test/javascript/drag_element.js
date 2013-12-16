@@ -48,21 +48,12 @@ casper.test.begin(testName, numberOfTests, function(test) {
     casper.waitForSelector('#errorText', function() {
 
         test.assertEval(function() { return !($('#errorText').text() === 'Wrong username or password!'); });
-
         test.assertEval(function() { return $('#pages').is(':visible'); });
 
     });
 
-    casper.then(function() {
-        s.moveMousePointerTo(casper, '#pagesTab');
-    });
+    //casper.wait(1000);
 
-    casper.then(function() {
-        this.click('#pagesTab');
-    });
-
-    casper.wait(1000);
-    
     casper.then(function() {
         s.moveMousePointerTo(casper, '#add_page');
     });
@@ -71,21 +62,23 @@ casper.test.begin(testName, numberOfTests, function(test) {
         this.click('#add_page');
     });
 
+//    casper.wait(1000);
+//
+//    casper.then(function() {
+//        s.moveMousePointerTo(casper, '#add_content');
+//    });
+
     casper.wait(2000);
 
     casper.then(function() {
-        s.moveMousePointerTo(casper, '#add_content');
+        s.dragDropElement(casper, '#add_content', '#pagesTree > .page > .html_element > div.node:eq(1) > div.node:eq(1)', { x:-10, y:-14 });
     });
 
-    casper.then(function() {
-        s.dragDropElement(casper, '#add_content', '#pagesTree > .page > .html_element > div.node:eq(1) > div.node:eq(1)');
-    });
-
-    casper.wait(3000);
-    
-    casper.then(function() {
-        test.assertEvalEquals(function() { return $('#pagesTree > .page > .html_element > div.node:eq(1) > div.node:eq(1) > .content:eq(1) > .content_').text(); }, '#text');
-    });
+    casper.wait(2000);
+//    
+//    casper.then(function() {
+//        test.assertEvalEquals(function() { return $('#pagesTree > .page > .html_element > div.node:eq(1) > div.node:eq(1) > .content:eq(1) > .content_').text(); }, '#text');
+//    });
 
     casper.then(function() {
         
