@@ -28,6 +28,12 @@ s.startRecording(window, casper, testName);
 
 casper.test.begin(testName, numberOfTests, function(test) {
 
+    casper.start(s.url);
+    
+    casper.thenEvaluate(function() {
+        window.localStorage.clear();
+    }, {});
+    
     casper.then(function() {
         s.animatedType(this, '#usernameField', false, 'admin');
     });
@@ -52,7 +58,27 @@ casper.test.begin(testName, numberOfTests, function(test) {
 
     });
 
-    //casper.wait(1000);
+    casper.wait(100);
+    
+    casper.then(function() {
+        s.moveMousePointerTo(casper, '#pagesTab');
+    });
+
+    casper.then(function() {
+        this.click('#pagesTab');
+    });
+
+    casper.wait(100);
+    
+    casper.then(function() {
+        s.moveMousePointerTo(casper, '#paletteTab');
+    });
+
+    casper.then(function() {
+        this.click('#paletteTab');
+    });
+
+    casper.wait(100);
 
     casper.then(function() {
         s.moveMousePointerTo(casper, '#add_page');
@@ -62,23 +88,17 @@ casper.test.begin(testName, numberOfTests, function(test) {
         this.click('#add_page');
     });
 
-//    casper.wait(1000);
-//
-//    casper.then(function() {
-//        s.moveMousePointerTo(casper, '#add_content');
-//    });
+    casper.wait(2000);
+
+    casper.then(function() {
+        s.dragDropElement(casper, '#add_content', '#pagesTree > .page > .html_element > div.node:eq(1) > div.node:eq(1)', { x:0, y:-16 });
+    });
 
     casper.wait(2000);
 
     casper.then(function() {
-        s.dragDropElement(casper, '#add_content', '#pagesTree > .page > .html_element > div.node:eq(1) > div.node:eq(1)', { x:-10, y:-14 });
+        test.assertEvalEquals(function() { return $('#pagesTree > .page > .html_element > div.node:eq(1) > div.node:eq(1) > .content:eq(1) > .content_').text(); }, '#text');
     });
-
-    casper.wait(2000);
-//    
-//    casper.then(function() {
-//        test.assertEvalEquals(function() { return $('#pagesTree > .page > .html_element > div.node:eq(1) > div.node:eq(1) > .content:eq(1) > .content_').text(); }, '#text');
-//    });
 
     casper.then(function() {
         

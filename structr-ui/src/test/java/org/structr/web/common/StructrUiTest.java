@@ -85,7 +85,7 @@ public class StructrUiTest extends TestCase {
 
 	// the jetty server
 	private boolean running = false;
-	private String basePath;
+	protected String basePath;
 	
 	protected static final String prot = "http://";
 //	protected static final String contextPath = "/";

@@ -50,7 +50,7 @@ var filenameLength = 4;
 /**
  * Base URL for Structr UI tests
  */
-exports.url = 'http://localhost:8875/structr/';
+exports.url = 'http://localhost:8875/structr/#pages';
 
 /**
  * Image type extension
@@ -260,7 +260,7 @@ exports.moveMousePointerTo = function(casper, selector, offset) {
 exports.dragDropElement = function(casper, sourceSelector, targetSelector, offset) {
 
     if (exports.debug)
-        console.log('drag element', sourceSelector, targetSelector);
+        console.log('drag element', sourceSelector, targetSelector, offset);
 
     casper.then(function() {
 
@@ -289,16 +289,17 @@ exports.dragDropElement = function(casper, sourceSelector, targetSelector, offse
         }, sourceSelector, targetSelector, offset);
 
         if (exports.debug)
-            console.log('moved element from ... to ...', positions.sourcePos.left, positions.sourcePos.top, positions.targetPos.left, positions.targetPos.top);
+            console.log('move element from ... to ...', positions.sourcePos.left, positions.sourcePos.top, positions.targetPos.left, positions.targetPos.top);
+
+        exports.moveMousePointerTo(casper, sourceSelector);
 
         var steps = 10;
 
         for (var i = 1; i <= steps; i++) {
 
-            //exports.mousePointer(casper, positions.sourcePos);
             //window.setTimeout(function() {
 
-            var pos = casper.thenEvaluate(function(s, sp, tp, st, j) {
+            var pos = this.thenEvaluate(function(s, sp, tp, st, j) {
 
                 var sourceEl = $(s);
 
@@ -320,53 +321,71 @@ exports.dragDropElement = function(casper, sourceSelector, targetSelector, offse
                 movedEl.offset({left: newX, top: newY});
                 c.offset({left: newX, top: newY});
 
-//                    sourceEl.simulate('drag', {
-//                        dx: dx/st,
-//                        dy: dy/st,
-//                        interpolation: {
-//                            duration: 500,
-//                            stepCount: 10
-//                        }
-//                    });
 
 
             }, sourceSelector, positions.sourcePos, positions.targetPos, steps, i);
 
-//                console.log('x: ' + pos.x + ', y: ' + pos.y);
 
 
             //}, typeInterval*i);
 
             //exports.mousePointer(this, positions.targetPos);
         }
+    });
 
-        casper.thenEvaluate(function() {
+    var d = casper.thenEvaluate(function(s, t, o) {
 
-            var movedEl = $('#moved-element-clone');
-            if (movedEl.length) {
-                movedEl.remove();
-            }
-
-        });
-
-        var d = {
-            x: positions.targetPos.left - positions.sourcePos.left,
-            y: positions.targetPos.top  - positions.sourcePos.top
+        var movedEl = $('#moved-element-clone');
+        if (movedEl.length) {
+            movedEl.remove();
         }
 
-        console.log('x: ' + d.x + ', y: ' + d.y);
+//            var positions = this.evaluate(function(s, t, o) {
+        var sourceEl = $(s);
+        var targetEl = $(t);
 
-        casper.thenEvaluate(function(s, d) {
+        if (sourceEl.length && targetEl.length) {
 
-            var sourceEl = $(s);
-            sourceEl.simulate('drag-n-drop', {
+
+            var sourcePos = {
+                left: sourceEl.offset().left + sourceEl.width() / 2,
+                top: sourceEl.offset().top + sourceEl.height() / 2
+            };
+            var targetPos = {
+                left: (targetEl.offset().left + targetEl.width() / 2) + (o ? o.x : 0),
+                top: (targetEl.offset().top + targetEl.height() / 2) + (o ? o.y : 0)
+            };
+
+        }
+
+//            }, sourceSelector, targetSelector, offset);
+
+
+
+        var d = {
+            x: targetPos.left - sourcePos.left,
+            y: targetPos.top - sourcePos.top
+        }
+
+//            this.evaluate(function(s) {
+
+        var sourceEl = $(s);
+        sourceEl.simulate('drag-n-drop', {
                 dx: d.x,
                 dy: d.y
-            });
+//            dx: -1350,
+//            dy: 190
+        });
+        
+        return d;
 
-        }, sourceSelector, d);
+//            }, sourceSelector);
 
-    });
+
+    }, sourceSelector, targetSelector, offset);
+
+    console.log('d[x,y]: ' + d.x + ', ' + d.y);
+
 }
 
 /**
@@ -427,14 +446,3 @@ exports.startRecording = function(window, casper, testName) {
             console.log('screenshot ' + i + ' created');
     }, recordingInterval);
 }
-
-casper.test.setUp(function() {
-
-    casper.start(exports.url);
-
-    casper.evaluate(function() {
-        localStorage.clear();
-    }, {});
-
-
-});

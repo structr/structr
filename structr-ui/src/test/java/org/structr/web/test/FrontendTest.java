@@ -57,7 +57,7 @@ public class FrontendTest extends StructrUiTest {
 
 			app.beginTx();
 			
-			String[] args = {"/bin/sh", "-c", "cd src/test/javascript; PATH=$PATH:./bin/`uname`/ casperjs/bin/casperjs --fail-fast test " + testName+ ".js"};
+			String[] args = {"/bin/sh", "-c", "cd src/test/javascript ; PATH=$PATH:./bin/`uname`/ casperjs/bin/casperjs --local-storage-path=" + basePath + " --fail-fast test " + testName+ ".js"};
 
 			Process proc = Runtime.getRuntime().exec(args);
 			logger.log(Level.INFO, IOUtils.toString(proc.getInputStream()));

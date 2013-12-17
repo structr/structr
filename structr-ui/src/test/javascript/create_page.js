@@ -28,6 +28,13 @@ s.startRecording(window, casper, testName);
 
 casper.test.begin(testName, numberOfTests, function(test) {
 
+    casper.start(s.url);
+    
+    casper.thenEvaluate(function() {
+        window.localStorage.clear();
+    }, {});
+    
+
     casper.then(function() {
         s.animatedType(this, '#usernameField', false, 'admin');
     });
