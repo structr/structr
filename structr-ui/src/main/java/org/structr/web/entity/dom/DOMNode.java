@@ -24,6 +24,7 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.text.NumberFormat;
 import java.text.DecimalFormat;
+import java.text.Normalizer;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -253,6 +254,52 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 				    out[i] = StringUtils.capitalize(in[i]);
 				};
 				return StringUtils.join(out, " ");
+
+			}
+
+		});
+		functions.put("clean", new Function<String, String>() {
+
+			@Override
+			public String apply(String[] s) {
+
+				String result;
+				
+				if ((s != null) && (s.length > 0) && (s[0] != null)) {
+					
+					String normalized = Normalizer.normalize(s[0], Normalizer.Form.NFD)
+						.replaceAll("\\<", "")
+						.replaceAll("\\>", "")
+						.replaceAll("\\.", "")
+						.replaceAll("\\'", "-")
+						.replaceAll("\\?", "")
+						.replaceAll("\\(", "")
+						.replaceAll("\\)", "")
+						.replaceAll("\\{", "")
+						.replaceAll("\\}", "")
+						.replaceAll("\\[", "")
+						.replaceAll("\\]", "")
+						.replaceAll("\\+", "-")
+						.replaceAll("/", "-")
+						.replaceAll("–", "-")
+						.replaceAll("\\\\", "-")
+						.replaceAll("\\|", "-")
+						.replaceAll("'", "-")
+						.replaceAll("!", "")
+						.replaceAll(",", "")
+						.replaceAll("-", " ")
+						.replaceAll("_", " ")
+						.replaceAll("`", "-");
+
+					result = normalized.replaceAll("-", " ");
+					result = StringUtils.normalizeSpace(result.toLowerCase());
+					result = result.replaceAll("[^\\p{ASCII}]", "").replaceAll("\\p{P}", "-").replaceAll("\\-(\\s+\\-)+", "-");
+					result = result.replaceAll(" ", "-");
+
+					return result;
+				}
+				
+				return null;
 
 			}
 
