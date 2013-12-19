@@ -32,7 +32,7 @@ import org.structr.core.notion.PropertyNotion;
 import org.structr.core.property.EndNode;
 import org.structr.core.property.EntityIdProperty;
 import org.structr.web.common.HtmlProperty;
-import org.structr.web.entity.html.relation.Hyperlink;
+import org.structr.web.entity.html.relation.ResourceLink;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -67,7 +67,7 @@ public class A extends DOMElement {
 //	public static final EndNodes<P>       pParents    = new EndNodes<P>("pParents", P.class, RelType.CONTAINS, Direction.INCOMING, false);
 // 
 
-	public static final Property<Linkable> linkable    = new EndNode<>("linkable", Hyperlink.class, new PropertyNotion(AbstractNode.name));
+	public static final Property<Linkable> linkable    = new EndNode<>("linkable", ResourceLink.class, new PropertyNotion(AbstractNode.name));
 	public static final Property<String>   linkableId  = new EntityIdProperty("linkableId", linkable);
 
 	public static final View uiView = new View(A.class, PropertyView.Ui,
