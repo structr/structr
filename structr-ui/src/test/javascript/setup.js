@@ -67,7 +67,7 @@ exports.docsDir = '../../../../docs';
 /**
  * Set to true to enable debug logging
  */
-exports.debug = true;
+exports.debug = false;
 
 /**
  * The input field with the given selector will be filled
@@ -262,11 +262,13 @@ exports.dragDropElement = function(casper, sourceSelector, targetSelector, offse
     if (exports.debug)
         console.log('drag element', sourceSelector, targetSelector, offset);
 
+    var positions;
+    
     casper.then(function() {
 
         //  exports.moveMousePointerTo(casper, sourceSelector);
 
-        var positions = this.evaluate(function(s, t, o) {
+        positions = this.evaluate(function(s, t, o) {
             var sourceEl = $(s);
             var targetEl = $(t);
 
@@ -299,15 +301,15 @@ exports.dragDropElement = function(casper, sourceSelector, targetSelector, offse
 
             //window.setTimeout(function() {
 
-            var pos = this.thenEvaluate(function(s, sp, tp, st, j) {
+            this.thenEvaluate(function(source, sourcePos, targetPos, st, j) {
 
-                var sourceEl = $(s);
+                var sourceEl = $(source);
 
-                var dx = tp.left - sp.left;
-                var dy = tp.top - sp.top;
+                var dx = targetPos.left - sourcePos.left;
+                var dy = targetPos.top - sourcePos.top;
 
-                var newX = sp.left + dx / st * j;
-                var newY = sp.top + dy / st * j;
+                var newX = sourcePos.left + dx / st * j;
+                var newY = sourcePos.top + dy / st * j;
 
                 var movedEl = $('#moved-element-clone');
                 if (!movedEl.length) {
@@ -321,19 +323,14 @@ exports.dragDropElement = function(casper, sourceSelector, targetSelector, offse
                 movedEl.offset({left: newX, top: newY});
                 c.offset({left: newX, top: newY});
 
-
-
             }, sourceSelector, positions.sourcePos, positions.targetPos, steps, i);
-
-
-
-            //}, typeInterval*i);
-
             //exports.mousePointer(this, positions.targetPos);
         }
     });
 
-    var d = casper.thenEvaluate(function(s, t, o) {
+    casper.thenEvaluate(function(s, t, o) {
+
+        //exports.moveMousePointerTo(casper, sourceSelector);
 
         var movedEl = $('#moved-element-clone');
         if (movedEl.length) {
@@ -377,14 +374,10 @@ exports.dragDropElement = function(casper, sourceSelector, targetSelector, offse
 //            dy: 190
         });
         
-        return d;
-
-//            }, sourceSelector);
-
 
     }, sourceSelector, targetSelector, offset);
 
-    console.log('d[x,y]: ' + d.x + ', ' + d.y);
+    //console.log('d[x,y]: ' + d.x + ', ' + d.y);
 
 }
 
@@ -439,7 +432,7 @@ exports.startRecording = function(window, casper, testName) {
 
     // Remove old screenshots
     fs.removeTree(exports.docsDir + '/screenshots/' + testName);
-
+    
     window.setInterval(function() {
         casper.capture(exports.docsDir + '/screenshots/' + testName + '/' + exports.pad(i++) + '.' + exports.imageType);
         if (exports.debug)

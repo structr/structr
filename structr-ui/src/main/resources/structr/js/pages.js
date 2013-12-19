@@ -923,5 +923,13 @@ var _Pages = {
         });
 
         $('#pages_').removeClass('nodeHover').droppable('enable');
+    },
+    clearSlideoutsInLocalStorage: function() {
+        
+        localStorage.setItem('structrActiveTabLeft_8875', 'foo');
+        localStorage.setItem('structrActiveTabRight_8875', 'bar');
+        
+        return localStorage.getItem('structrActiveTabLeft_8875') + ',' + localStorage.getItem('structrActiveTabRight_8875', '');
+        
     }
 };
