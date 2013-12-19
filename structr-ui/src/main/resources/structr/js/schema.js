@@ -374,13 +374,13 @@ var _Schema = {
                     // Add source property
                     var source = nodes[res.sourceId];
                     var key = source.name.toLowerCase() + (res.sourceMultiplicity !== '1' ? 's' : '');
-                    var node = nodes[res.sourceId];
+                    var node = nodes[res.targetId];
                     _Schema.appendRelatedProperty($('#id_' + node.id + ' .schema-props'), res, key);
 
                     // Add target property
                     var target = nodes[res.targetId];
                     var key = target.name.toLowerCase() + (res.targetMultiplicity !== '1' ? 's' : '');
-                    var node = nodes[res.targetId];
+                    var node = nodes[res.sourceId];
                     _Schema.appendRelatedProperty($('#id_' + node.id + ' .schema-props'), res, key);
                     
                     instance.repaintEverything();
