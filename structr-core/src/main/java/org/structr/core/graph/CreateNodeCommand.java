@@ -33,6 +33,8 @@ import org.structr.core.entity.Principal;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.Permission;
 import org.structr.core.app.App;
@@ -159,10 +161,15 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 			node.onNodeCreation();
 
 			// iterate post creation transformations
-			for (Transformation<GraphObject> transformation : StructrApp.getConfiguration().getEntityCreationTransformations(node.getClass())) {
+			Set<Transformation<GraphObject>> transformations = StructrApp.getConfiguration().getEntityCreationTransformations(node.getClass());
+			for (Transformation<GraphObject> transformation : transformations) {
 
 				transformation.apply(securityContext, node);
 
+			}
+			
+			if (transformations.isEmpty()) {
+				logger.log(Level.WARNING, "No entity creation transformation for {0}", node.getClass());
 			}
 		}
 

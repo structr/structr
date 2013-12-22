@@ -3,8 +3,6 @@ package org.structr.schema.parser;
 import java.util.Set;
 import java.util.LinkedHashSet;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-import org.structr.common.ValidationHelper;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidPropertySchemaToken;
