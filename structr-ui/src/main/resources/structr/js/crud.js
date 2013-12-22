@@ -1735,7 +1735,8 @@ var _Crud = {
                 contentType: 'application/json; charset=utf-8',
                 //async: false,
                 success: function(data) {
-                    var json = '{"' + key + '":'  + JSON.stringify(relatedObj) + '}';
+                    // Extract id
+                    var json = '{"' + key + '":'  + JSON.stringify({'id':relatedObj.id}) + '}';
                     //console.log(data.result);
                     //var value = data.result[key];
                     //_Crud.crudUpdate(id, key, _Crud.idArray([ relatedId ]), reload ? document.location.reload() : function() {});
