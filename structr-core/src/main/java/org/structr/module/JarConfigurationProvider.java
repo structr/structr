@@ -274,6 +274,11 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		return agentClass;
 
 	}
+	
+	@Override
+	public Map<String, Class> getInterfaces() {
+		return reverseInterfaceMap;
+	}
 
 	@Override
 	public void setRelationClassForCombinedType(final String combinedType, final Class clazz) {
@@ -610,6 +615,9 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		}
 		
 		typeMethods.addAll(getAnnotatedMethods(type, Export.class));
+		
+		// extract interfaces for later use
+		getInterfacesForType(type);
 	}
 	
 	/**

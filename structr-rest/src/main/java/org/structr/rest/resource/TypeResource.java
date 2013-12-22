@@ -95,23 +95,24 @@ public class TypeResource extends SortableResource {
 		if (rawType != null) {
 
 			final App app = StructrApp.getInstance(securityContext);
-			
 
 			// test if resource class exists
 			entityClass = SchemaHelper.getEntityClassForRawType(rawType);
 			if (entityClass != null) {
 				
-				if (AbstractNode.class.isAssignableFrom(entityClass)) {
-					searchCommandType = SearchNodeCommand.class;
-					query             = app.nodeQuery(entityClass);
-					isNode            = true;
-					return true;
-				}
-				
 				if (AbstractRelationship.class.isAssignableFrom(entityClass)) {
+					
 					searchCommandType = SearchRelationshipCommand.class;
 					query             = app.relationshipQuery(entityClass);
 					isNode            = false;
+					return true;
+					
+				} else {
+					
+					// include interfaces here
+					searchCommandType = SearchNodeCommand.class;
+					query             = app.nodeQuery(entityClass);
+					isNode            = true;
 					return true;
 				}
 			}

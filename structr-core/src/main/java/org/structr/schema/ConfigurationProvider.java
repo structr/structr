@@ -31,7 +31,7 @@ public interface ConfigurationProvider {
 	public Map<String, Class<? extends Agent>> getAgents();
 	public Map<String, Class<? extends NodeInterface>> getNodeEntities();
 	public Map<String, Class<? extends RelationshipInterface>> getRelationshipEntities();
-	
+	public Map<String, Class> getInterfaces();
 	
 	public Set<Class> getClassesForInterface(final String simpleName);
 	

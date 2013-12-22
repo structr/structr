@@ -165,12 +165,10 @@ public class SchemaHelper {
 			type = configuration.getRelationshipEntities().get(normalizedEntityName);
 		}
 		
-		// FIXME
 		// third try: interface
-//		if (type == null) {
-//			type = reverseInterfaceMap.get(normalizedEntityName);
-//
-//		}
+		if (type == null) {
+			type = configuration.getInterfaces().get(normalizedEntityName);
+		}
 
 		// store type but only if it exists!
 		if (type != null) {
