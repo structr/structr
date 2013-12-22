@@ -148,6 +148,9 @@ public class EntityContext {
 		}
 		
 		typeMethods.addAll(getAnnotatedMethods(type, Export.class));
+		
+		// initialize reverse interface map
+		getInterfacesForType(type);
 	}
 	
 	public static void registerProperty(Class type, PropertyKey propertyKey) {
