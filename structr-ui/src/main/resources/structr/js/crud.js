@@ -862,11 +862,11 @@ var _Crud = {
             contentType: 'application/json; charset=utf-8',
             //async: false,
             success: function(data) {
-                //console.log('refresh', id, key, data.result[key]);
+                //console.log('refresh', id, key, data.result[key], data.result.type);
                 if (key) {
-                    _Crud.refreshCell(id, key, data.result[key]);
+                    _Crud.refreshCell(id, key, data.result[key], data.result.type);
                 } else {
-                    _Crud.refreshRow(id, data.result);
+                    _Crud.refreshRow(id, data.result, data.result.type);
                 }
             }
         });
@@ -1191,21 +1191,21 @@ var _Crud = {
         
     },
 
-    refreshCell : function(id, key, newValue) {
-        //    console.log('refreshCell', id, key, newValue);
+    refreshCell : function(id, key, newValue, type) {
+        //    console.log('refreshCell', id, key, newValue, type);
         var cells = _Crud.cells(id, key);
         $.each(cells, function(i, cell) {
             cell.empty();
-            _Crud.populateCell(id, key, _Crud.type, newValue, cell);
+            _Crud.populateCell(id, key, type, newValue, cell);
             blinkGreen(cell);
         });
     },
     
-    refreshRow : function(id, item) {
+    refreshRow : function(id, item, type) {
         //    console.log('refreshCell', id, key, newValue);
         var row = _Crud.row(id);
         row.empty();
-        _Crud.populateRow(id, item);
+        _Crud.populateRow(id, item, type);
     },
 
     activateTextInputField : function(input, id, key) {

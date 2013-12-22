@@ -179,6 +179,7 @@ var _UsersAndGroups = {
                 + ' <b title="' + user.name + '" class="name_">' + user.name + '</b> <span class="id">' + user.id + '</span>'
                 + '</div>');
             div = Structr.node(user.id);
+            if (!div || !div.length) return;
             
             newDelIcon = '<img title="Delete user \'' + user.name + '\'" '
             + 'alt="Delete user \'' + user.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">';
