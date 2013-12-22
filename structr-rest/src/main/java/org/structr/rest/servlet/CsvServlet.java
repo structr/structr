@@ -75,6 +75,9 @@ import org.structr.core.auth.AuthenticatorCommand;
 public class CsvServlet extends HttpServlet {
 
 	private static final Logger logger = Logger.getLogger(CsvServlet.class.getName());
+	
+	private static final String DELIMITER = ";";
+	private static final String REMOVE_LINE_BREAK_PARAM = "nolinebreaks";
 
 	//~--- fields ---------------------------------------------------------
 
@@ -83,6 +86,8 @@ public class CsvServlet extends HttpServlet {
 	private String defaultPropertyView                          = PropertyView.Public;
 	private PropertyKey defaultIdProperty                       = AbstractNode.uuid;
 	private ResourceProvider resourceProvider                   = null;
+
+	private static boolean removeLineBreaks = false;
 
 	//~--- constructors ---------------------------------------------------
 
@@ -161,6 +166,10 @@ public class CsvServlet extends HttpServlet {
 
 			}
 
+			// Should line breaks be removed?
+			removeLineBreaks = StringUtils.equals(request.getParameter(REMOVE_LINE_BREAK_PARAM), "1");
+			
+			
 			// do action
 			Result result = resource.doGet(sortKey, sortDescending, pageSize, page, offsetId);
 
@@ -189,6 +198,8 @@ public class CsvServlet extends HttpServlet {
 
 				Writer writer = response.getWriter();
 
+				writeUtf8Bom(writer);
+				
 				// gson.toJson(result, writer);
 				writeCsv(result, writer);
 				response.setStatus(HttpServletResponse.SC_OK);
@@ -278,6 +289,26 @@ public class CsvServlet extends HttpServlet {
 
 	}
 
+	private static String escapeForCsv(final Object value) {
+		
+		String result = StringUtils.replace(value.toString(), "\"", "\\\"");
+		
+		if (!removeLineBreaks) {
+			return StringUtils.replace(StringUtils.replace(result, "\r\n", "\n"), "\r", "\n");
+		}
+		
+		return StringUtils.replace(StringUtils.replace(result, "\r\n", ""), "\r", "");
+		
+	}
+	
+	private void writeUtf8Bom(Writer out) {
+		try {
+			out.write("\ufeff");
+		} catch (IOException ex) {
+			logger.log(Level.WARNING, "Unable to write UTF-8 BOM", ex);
+		}
+	}
+	
 	/**
 	 * Write list of objects to output
 	 *
@@ -314,17 +345,18 @@ public class CsvServlet extends HttpServlet {
 
 				for (PropertyKey key : obj.getPropertyKeys(propertyView)) {
 
-					row.append("\"").append(key.dbName()).append("\",");
+					row.append("\"").append(key.dbName()).append("\"").append(DELIMITER);
 				}
 
 				// remove last ,
-				int pos = row.lastIndexOf(",");
+				int pos = row.lastIndexOf(DELIMITER);
 				if (pos >= 0) {
 
 					row.deleteCharAt(pos);
 				}
 				
-				out.append(row).append("\n");
+				// append DOS-style line feed as defined in RFC 4180
+				out.append(row).append("\r\n");
 
 				// flush each line
 				out.flush();
@@ -340,14 +372,14 @@ public class CsvServlet extends HttpServlet {
 				Object value = obj.getProperty(key);
 
 				row.append("\"").append((value != null
-							 ? StringUtils.replace(value.toString(), "\"", "\\\"")    // escaping for CSV
-							 : "")).append("\",");
+							 ? escapeForCsv(value)
+							 : "")).append("\"").append(DELIMITER);
 
 			}
 
 			// remove last ,
-			row.deleteCharAt(row.lastIndexOf(","));
-			out.append(row).append("\n");
+			row.deleteCharAt(row.lastIndexOf(DELIMITER));
+			out.append(row).append("\r\n");
 
 			// flush each line
 			out.flush();

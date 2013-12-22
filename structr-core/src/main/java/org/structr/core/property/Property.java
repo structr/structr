@@ -22,6 +22,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -30,6 +31,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.index.Index;
 import org.structr.common.SecurityContext;
@@ -371,7 +373,15 @@ public abstract class Property<T> implements PropertyKey<T> {
 						
 						if (value != null && !StringUtils.isBlank(value.toString())) {
 							
-							index.add(dbNode, dbName, value);
+							try {
+							
+								index.add(dbNode, dbName, value);
+								
+							} catch (NotFoundException e) {
+								
+								logger.log(Level.WARNING, "Could not add node to layer", e.getMessage());
+								
+							}
 							
 						} else if (isIndexedWhenEmpty()) {
 							
