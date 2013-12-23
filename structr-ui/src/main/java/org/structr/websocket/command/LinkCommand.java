@@ -30,7 +30,7 @@ import java.util.Map;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.web.entity.Linkable;
-import org.structr.web.entity.html.Link;
+import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.html.relation.ResourceLink;
 import org.structr.websocket.StructrWebSocket;
 
@@ -55,7 +55,7 @@ public class LinkCommand extends AbstractCommand {
 		String sourceId                       = webSocketData.getId();
 		Map<String, Object> properties        = webSocketData.getNodeData();
 		String targetId                       = (String) properties.get("targetId");
-		final Link sourceNode                 = (Link) getNode(sourceId);
+		final DOMElement sourceNode           = (DOMElement) getNode(sourceId);
 		final Linkable targetNode             = (Linkable) getNode(targetId);
 
 		if ((sourceNode != null) && (targetNode != null)) {

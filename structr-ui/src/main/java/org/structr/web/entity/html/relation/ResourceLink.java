@@ -26,7 +26,7 @@ import org.structr.common.View;
 import org.structr.core.entity.ManyToOne;
 import org.structr.core.property.StringProperty;
 import org.structr.web.entity.Linkable;
-import org.structr.web.entity.html.Link;
+import org.structr.web.entity.dom.DOMElement;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -34,7 +34,7 @@ import org.structr.web.entity.html.Link;
  *
  * @author Christian Morgner
  */
-public class ResourceLink extends ManyToOne<Link, Linkable> {
+public class ResourceLink extends ManyToOne<DOMElement, Linkable> {
 
 	public static final Property<String> sourceId = new StringProperty("sourceId");
 	public static final Property<String> targetId = new StringProperty("targetId");
@@ -51,8 +51,8 @@ public class ResourceLink extends ManyToOne<Link, Linkable> {
 	}
 
 	@Override
-	public Class<Link> getSourceType() {
-		return Link.class;
+	public Class<DOMElement> getSourceType() {
+		return DOMElement.class;
 	}
 
 	@Override
