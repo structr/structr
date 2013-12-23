@@ -32,6 +32,7 @@ import static junit.framework.TestCase.assertNotNull;
 import org.neo4j.cypher.javacompat.ExecutionEngine;
 import org.neo4j.cypher.javacompat.ExecutionResult;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.Transaction;
 
@@ -41,6 +42,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.SixOneOneToOne;
 import org.structr.core.entity.TestOne;
 import org.structr.core.entity.TestSix;
+import org.structr.core.graph.NodeInterface;
 
 /**
  *
@@ -61,16 +63,19 @@ public class CypherNotInTransactionTest extends StructrTest {
 
 		try {
 
-			final TestOne testOne  = createTestNode(TestOne.class);
-			final TestSix testSix  = createTestNode(TestSix.class);
-			SixOneOneToOne rel     = null;
+			final NodeInterface testNode1 = this.createTestNode(TestSix.class);
+			final NodeInterface testNode2 = this.createTestNode(TestOne.class);
+			SixOneOneToOne rel            = null;
+
+			assertNotNull(testNode1);
+			assertNotNull(testNode2);
 
 			assertNotNull(testOne);
 			assertNotNull(testSix);
 			
 			try {
 				app.beginTx();
-				rel = app.create(testSix, testOne, SixOneOneToOne.class);
+				rel = app.create(testNode1, testNode2, SixOneOneToOne.class);
 				app.commitTx();
 
 			} finally {
@@ -114,18 +119,28 @@ public class CypherNotInTransactionTest extends StructrTest {
 	}
 
 	/**
-	 * This test passes with Neo4j 1.8, but fails with 1.9.M02-M05
+	 * This test passes with Neo4j 1.8, but fails with 1.9.M02-1.9.5
 	 */
 //	public void test02DeleteRelationshipAfterLookupWithCypherNotInTransaction() {
 //
 //		try {
 //
-//			List<AbstractNode> testNodes = this.createTestNodes("UnknownTestType", 2);
+//			final NodeInterface testNode1 = this.createTestNode(TestSix.class);
+//			final NodeInterface testNode2 = this.createTestNode(TestOne.class);
+//			SixOneOneToOne rel            = null;
 //
-//			assertNotNull(testNodes);
-//			assertTrue(testNodes.size() == 2);
+//			assertNotNull(testNode1);
+//			assertNotNull(testNode2);
 //
-//			AbstractRelationship rel = createRelationshipCommand.execute(testNodes.get(0), testNodes.get(1), TestRelType.ONE_TO_ONE);
+//			try {
+//				app.beginTx();
+//				rel = app.create(testNode1, testNode2, SixOneOneToOne.class);
+//				app.commitTx();
+//
+//			} finally {
+//
+//				app.finishTx();
+//			}
 //
 //			assertNotNull(rel);
 //
@@ -167,20 +182,19 @@ public class CypherNotInTransactionTest extends StructrTest {
 //	}
 
 	/**
-	 * This test passes with Neo4j 1.8, but fails with 1.9.M02-M05
+	 * This test passes with Neo4j 1.8, but fails with 1.9.M02-1.9.5
 	 */
 //	public void test03DeleteNodeAfterLookupWithCypherNotInTransaction() {
 //
 //		try {
 //
-//			List<AbstractNode> testNodes = this.createTestNodes("UnknownTestType", 1);
+//			AbstractNode testNode = this.createTestNode(TestSix.class);
 //
-//			assertNotNull(testNodes);
-//			assertTrue(testNodes.size() == 1);
+//			assertNotNull(testNode);
 //
 //			GraphDatabaseService graphDb      = graphDbCommand.execute();
 //			ExecutionEngine engine            = new ExecutionEngine(graphDb);
-//			ExecutionResult result            = engine.execute("start n = node:keywordAllNodes(type = 'UnknownTestType') return n");
+//			ExecutionResult result            = engine.execute("start n = node:keywordAllNodes(type = 'TestSix') return n");
 //
 //			final Iterator<Node> nodes = result.columnAs("n");
 //			
@@ -201,7 +215,7 @@ public class CypherNotInTransactionTest extends StructrTest {
 //
 //			try {
 //
-//				testNodes.get(0).getUuid();
+//				testNode.getUuid();
 //				fail("Should have raised an org.neo4j.graphdb.NotFoundException");
 //
 //			} catch (org.neo4j.graphdb.NotFoundException e) {}
