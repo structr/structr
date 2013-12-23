@@ -96,13 +96,9 @@ public class HtmlServlet extends HttpServiceServlet {
 	
 	private static final ThreadLocalMatcher threadLocalUUIDMatcher = new ThreadLocalMatcher("[a-zA-Z0-9]{32}");
 
-	
-	private static Date lastModified;
-
 	// non-static fields
 	private DecimalFormat decimalFormat              = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 	private SearchNodeCommand searchNodesAsSuperuser = null;
-	private EditMode edit                            = null;
 
 	public HtmlServlet() {}
 	
@@ -156,7 +152,7 @@ public class HtmlServlet extends HttpServiceServlet {
 			
 			renderContext.setResourceProvider(resourceProvider);
 			
-			edit = renderContext.getEditMode(user);
+			EditMode edit = renderContext.getEditMode(user);
 			
 			DOMNode rootElement               = null;
 			AbstractNode dataNode             = null;
@@ -199,7 +195,7 @@ public class HtmlServlet extends HttpServiceServlet {
 
 					logger.log(Level.FINE, "File found in {0} seconds", decimalFormat.format((System.nanoTime() - start) / 1000000000.0));
 
-					streamFile(securityContext, file, request, response);
+					streamFile(securityContext, file, request, response, edit);
 					return;
 
 				}
@@ -285,10 +281,6 @@ public class HtmlServlet extends HttpServiceServlet {
 
 				setNoCacheHeaders(response);
 				
-			} else {
-				
-				lastModified = rootElement.getLastModifiedDate();
-
 			}
 
 			if (securityContext.isVisible(rootElement)) {
@@ -684,6 +676,7 @@ public class HtmlServlet extends HttpServiceServlet {
 	private static boolean notModifiedSince(final HttpServletRequest request, HttpServletResponse response, final AbstractNode node) {
 
 		boolean notModified = false;
+		final Date lastModified = node.getLastModifiedDate();
 
 		// add some caching directives to header
 		// see http://weblogs.java.net/blog/2007/08/08/expires-http-header-magic-number-yslow
@@ -744,7 +737,7 @@ public class HtmlServlet extends HttpServiceServlet {
 	}
 	
 
-	private void streamFile(SecurityContext securityContext, final org.structr.web.entity.File file, HttpServletRequest request, HttpServletResponse response) throws IOException {
+	private void streamFile(SecurityContext securityContext, final org.structr.web.entity.File file, HttpServletRequest request, HttpServletResponse response, final EditMode edit) throws IOException {
 
 		if (!securityContext.isVisible(file)) {
 			
