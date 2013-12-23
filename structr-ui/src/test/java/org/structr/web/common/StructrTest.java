@@ -256,7 +256,7 @@ public class StructrTest extends TestCase {
 
 			for (int i = 0; i < number; i++) {
 
-				rels.add(app.create(startNode, endNode, relType));
+				rels.add((T)app.create(startNode, endNode, relType));
 			}
 
 			app.commitTx();
@@ -274,7 +274,7 @@ public class StructrTest extends TestCase {
 		try {
 			app.beginTx();
 
-			final T rel = app.create(startNode, endNode, relType);
+			final T rel = (T)app.create(startNode, endNode, relType);
 
 			app.commitTx();
 

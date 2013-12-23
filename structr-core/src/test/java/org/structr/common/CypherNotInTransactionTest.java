@@ -32,17 +32,14 @@ import static junit.framework.TestCase.assertNotNull;
 import org.neo4j.cypher.javacompat.ExecutionEngine;
 import org.neo4j.cypher.javacompat.ExecutionResult;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.Transaction;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.SixOneOneToOne;
 import org.structr.core.entity.TestOne;
 import org.structr.core.entity.TestSix;
-import org.structr.core.graph.NodeInterface;
 
 /**
  *
@@ -63,19 +60,16 @@ public class CypherNotInTransactionTest extends StructrTest {
 
 		try {
 
-			final NodeInterface testNode1 = this.createTestNode(TestSix.class);
-			final NodeInterface testNode2 = this.createTestNode(TestOne.class);
+			final TestSix testSix = this.createTestNode(TestSix.class);
+			final TestOne testOne = this.createTestNode(TestOne.class);
 			SixOneOneToOne rel            = null;
 
-			assertNotNull(testNode1);
-			assertNotNull(testNode2);
-
-			assertNotNull(testOne);
 			assertNotNull(testSix);
+			assertNotNull(testOne);
 			
 			try {
 				app.beginTx();
-				rel = app.create(testNode1, testNode2, SixOneOneToOne.class);
+				rel = app.create(testSix, testOne, SixOneOneToOne.class);
 				app.commitTx();
 
 			} finally {

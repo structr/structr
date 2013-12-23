@@ -200,7 +200,7 @@ public class StructrRestTest extends TestCase {
 
 			for (int i = 0; i < number; i++) {
 
-				rels.add(app.create(startNode, endNode, relType));
+				rels.add((T)app.create(startNode, endNode, relType));
 			}
 			app.commitTx();
 
