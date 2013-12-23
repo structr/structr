@@ -83,7 +83,9 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 	public T instantiateWithType(final Node node, final Class<T> nodeClass, boolean isCreation) throws FrameworkException {
 
 		SecurityContext securityContext = factoryProfile.getSecurityContext();
-		T newNode = (T)securityContext.lookup(node);
+		
+		long id = node.getId();
+		T newNode = (T)securityContext.lookup(id);
 		
 		if (newNode == null) {
 
@@ -130,7 +132,7 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 			}
 			
 			// cache node for this request
-			securityContext.store(newNode);
+			securityContext.store(id, newNode);
 		}
 		
 		// check access

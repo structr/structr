@@ -158,16 +158,16 @@ public class SecurityContext {
 		}
 	}
 	
-	public NodeInterface lookup(Node node) {
-		return cache.get(node.getId());
+	public NodeInterface lookup(final long id) {
+		return cache.get(id);
 	}
 	
-	public void store(NodeInterface node) {
+	public void store(final long id, final NodeInterface node) {
 		
 		Node dbNode = node.getNode();
 		if (dbNode != null) {
 			
-			cache.put(dbNode.getId(), node);
+			cache.put(id, node);
 		}
 	}
 	
@@ -680,16 +680,6 @@ public class SecurityContext {
 			return true;
 
 		}
-	
-		@Override
-		public NodeInterface lookup(Node node) {
-			return null;
-		}
-		
-		@Override
-		public void store(NodeInterface node) {
-		}
-
 		
 	}
 
