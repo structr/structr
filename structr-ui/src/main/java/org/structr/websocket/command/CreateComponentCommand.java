@@ -23,6 +23,7 @@ package org.structr.websocket.command;
 import org.structr.common.SecurityContext;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.ShadowDocument;
 import org.structr.web.entity.relation.Sync;
@@ -54,13 +55,13 @@ public class CreateComponentCommand extends AbstractCommand {
 
 		if (id != null) {
 
-			final DOMNode node = getDOMNode(id);
+			final DOMElement node = (DOMElement) getDOMNode(id);
 
 			try {
 
 				app.beginTx();
 
-				DOMNode clonedNode = (DOMNode) node.cloneNode(false);
+				DOMElement clonedNode = (DOMElement) node.cloneNode(false);
 				moveChildNodes(node, clonedNode);
 
 				ShadowDocument hiddenDoc = getOrCreateHiddenDocument();

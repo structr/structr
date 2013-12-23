@@ -68,6 +68,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.BooleanProperty;
+import org.structr.web.entity.relation.Files;
 import org.structr.web.entity.relation.Folders;
 
 //~--- classes ----------------------------------------------------------------
@@ -90,6 +91,8 @@ public class Importer {
 	private static CreateNodeCommand createNode;
 	private static CreateRelationshipCommand createRel;
 	private static SearchNodeCommand searchNode;
+	
+	private static App app;
 
 	private final static String DATA_META_PREFIX = "data-structr-meta-";
 	
@@ -149,10 +152,10 @@ public class Importer {
 	//~--- methods --------------------------------------------------------
 
 	public void init() {
-
-		searchNode = StructrApp.getInstance(securityContext).command(SearchNodeCommand.class);
-		createNode = StructrApp.getInstance(securityContext).command(CreateNodeCommand.class);
-		createRel  = StructrApp.getInstance(securityContext).command(CreateRelationshipCommand.class);
+		app = StructrApp.getInstance(securityContext);
+//		searchNode = StructrApp.getInstance(securityContext).command(SearchNodeCommand.class);
+//		createNode = StructrApp.getInstance(securityContext).command(CreateNodeCommand.class);
+//		createRel  = StructrApp.getInstance(securityContext).command(CreateRelationshipCommand.class);
 	}
 
 	public boolean parse() throws FrameworkException {
@@ -203,7 +206,7 @@ public class Importer {
 
 	public String readPage() throws FrameworkException {
 
-		final App app = StructrApp.getInstance(securityContext);
+		
 
 		try {
 			final URL baseUrl = StringUtils.isNotBlank(address) ? new URL(address) : null;
@@ -243,8 +246,6 @@ public class Importer {
 	}
 
 	public void createChildNodes(final DOMNode parent, final Page page, final String baseUrl) throws FrameworkException {
-
-		final App app = StructrApp.getInstance(securityContext);
 
 		try {
 			
@@ -540,7 +541,8 @@ public class Importer {
 
 					if (parent != null) {
 
-						createRel.execute(parent, fileNode, Folders.class);
+						app.create(parent, fileNode, Files.class);
+						//createRel.execute(parent, fileNode, Folders.class);
 					}
 
 					if (contentType.equals("text/css")) {

@@ -38,10 +38,10 @@ import java.util.logging.Logger;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.graph.CreateRelationshipCommand;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.PropertyMap;
+import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.relationship.DOMChildren;
 import org.structr.websocket.StructrWebSocket;
 
@@ -122,7 +122,7 @@ public class ClonePageCommand extends AbstractCommand {
 
 						try {
 
-							StructrApp.getInstance(securityContext).command(CreateRelationshipCommand.class).execute(newPage, htmlNode, DOMChildren.class, relProps);
+							StructrApp.getInstance(securityContext).create((DOMNode) newPage, (DOMNode) htmlNode, DOMChildren.class, relProps);
 							// DOMElement.children.createRelationship(securityContext, newPage, htmlNode, relProps);
 
 						} catch (Throwable t) {

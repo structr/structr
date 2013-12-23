@@ -22,7 +22,6 @@ package org.structr.websocket.command;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
@@ -33,9 +32,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.CreateRelationshipCommand;
 import org.structr.core.property.PropertyMap;
+import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.relationship.DOMChildren;
 
 //~--- classes ----------------------------------------------------------------
@@ -64,15 +62,15 @@ public class InsertCommand extends AbstractCommand {
 
 		if (parentId != null) {
 
-			AbstractNode parentNode        = getNode(parentId);
-			AbstractNode nodeToInsert      = null;
+			DOMNode parentNode        = (DOMNode) getNode(parentId);
+			DOMNode nodeToInsert      = null;
 
 			try {
 
 				PropertyMap nodeProperties = PropertyMap.inputTypeToJavaType(securityContext, properties);
 
 				app.beginTx();
-				nodeToInsert = app.create(AbstractNode.class, nodeProperties);
+				nodeToInsert = app.create(DOMNode.class, nodeProperties);
 				app.commitTx();
 				
 			} catch (FrameworkException fex) {

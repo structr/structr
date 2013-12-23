@@ -25,6 +25,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.relation.Sync;
 import org.structr.websocket.StructrWebSocket;
@@ -85,13 +86,13 @@ public class CloneComponentCommand extends AbstractCommand {
 		}
 
 
-		final DOMNode node = getDOMNode(id);
+		final DOMElement node = (DOMElement) getDOMNode(id);
 
 		try {
 
 			app.beginTx();
 
-			DOMNode clonedNode = (DOMNode) node.cloneNode(false);
+			DOMElement clonedNode = (DOMElement) node.cloneNode(false);
 			parentNode.appendChild(clonedNode);
 
 			app.create(node, clonedNode, Sync.class);

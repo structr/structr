@@ -25,12 +25,12 @@ import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
-import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.CreateRelationshipCommand;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchNodeCommand;
+import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.relation.Sync;
@@ -114,13 +114,13 @@ public class FixComponentsCommand extends AbstractCommand {
 				
 				try {
 				
-					DOMNode clonedNode = (DOMNode) node.cloneNode(false);
+					DOMElement clonedNode = (DOMElement) node.cloneNode(false);
 
 					moveChildNodes(node, clonedNode);
 					clonedNode.setProperty(DOMNode.ownerDocument, hiddenDoc);
 
-					createRel.execute(node, clonedNode, Sync.class);
-					createRel.execute(clonedNode, node, Sync.class);
+					createRel.execute((DOMElement) node, clonedNode, Sync.class);
+					createRel.execute(clonedNode, (DOMElement) node, Sync.class);
 					
 				} catch (Exception ex) {
 					
