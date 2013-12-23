@@ -21,14 +21,13 @@
 package org.structr.common;
 
 import java.util.Iterator;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertNull;
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
+import static junit.framework.TestCase.assertNotNull;
 
 import org.neo4j.cypher.javacompat.ExecutionEngine;
 import org.neo4j.cypher.javacompat.ExecutionResult;
@@ -39,10 +38,9 @@ import org.neo4j.graphdb.Transaction;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.GenericNode;
 import org.structr.core.entity.SixOneOneToOne;
-import org.structr.core.graph.NodeInterface;
+import org.structr.core.entity.TestOne;
+import org.structr.core.entity.TestSix;
 
 /**
  *
@@ -63,15 +61,16 @@ public class CypherNotInTransactionTest extends StructrTest {
 
 		try {
 
-			final List<NodeInterface> testNodes = this.createTestNodes(GenericNode.class, 2);
-			SixOneOneToOne rel                  = null;
+			final TestOne testOne  = createTestNode(TestOne.class);
+			final TestSix testSix  = createTestNode(TestSix.class);
+			SixOneOneToOne rel     = null;
 
-			assertNotNull(testNodes);
-			assertTrue(testNodes.size() == 2);
-
+			assertNotNull(testOne);
+			assertNotNull(testSix);
+			
 			try {
 				app.beginTx();
-				rel = app.create(testNodes.get(0), testNodes.get(1), SixOneOneToOne.class);
+				rel = app.create(testSix, testOne, SixOneOneToOne.class);
 				app.commitTx();
 
 			} finally {
@@ -220,15 +219,16 @@ public class CypherNotInTransactionTest extends StructrTest {
 
 		try {
 
-			final List<NodeInterface> testNodes = this.createTestNodes(GenericNode.class, 2);
-			AbstractRelationship rel            = null;
+			final TestOne testOne  = createTestNode(TestOne.class);
+			final TestSix testSix  = createTestNode(TestSix.class);
+			SixOneOneToOne rel     = null;
 
-			assertNotNull(testNodes);
-			assertTrue(testNodes.size() == 2);
+			assertNotNull(testOne);
+			assertNotNull(testSix);
 
 			try {
 				app.beginTx();
-				rel = app.create(testNodes.get(0), testNodes.get(1), SixOneOneToOne.class);
+				rel = app.create(testSix, testOne, SixOneOneToOne.class);
 				app.commitTx();
 
 			} finally {
@@ -244,7 +244,7 @@ public class CypherNotInTransactionTest extends StructrTest {
 
 			try {
 
-				testNodes.get(0).getRelationships().iterator().next().getRelationship().delete();
+				testOne.getRelationships().iterator().next().getRelationship().delete();
 				tx.success();
 
 			} finally {
@@ -269,15 +269,16 @@ public class CypherNotInTransactionTest extends StructrTest {
 
 		try {
 
-			final List<NodeInterface> testNodes = this.createTestNodes(GenericNode.class, 2);
-			AbstractRelationship rel            = null;
+			final TestOne testOne  = createTestNode(TestOne.class);
+			final TestSix testSix  = createTestNode(TestSix.class);
+			SixOneOneToOne rel     = null;
 
-			assertNotNull(testNodes);
-			assertTrue(testNodes.size() == 2);
+			assertNotNull(testOne);
+			assertNotNull(testSix);
 
 			try {
 				app.beginTx();
-				rel = app.create(testNodes.get(0), testNodes.get(1), SixOneOneToOne.class);
+				rel = app.create(testSix, testOne, SixOneOneToOne.class);
 				app.commitTx();
 
 			} finally {
@@ -288,7 +289,7 @@ public class CypherNotInTransactionTest extends StructrTest {
 			assertNotNull(rel);
 
 			GraphDatabaseService graphDb = graphDbCommand.execute();
-			GraphObject  searchRes       = app.get(testNodes.get(0).getUuid());
+			GraphObject  searchRes       = app.get(testSix.getUuid());
 			
 			assertNotNull(searchRes);
 			
@@ -296,7 +297,7 @@ public class CypherNotInTransactionTest extends StructrTest {
 
 			try {
 
-				((AbstractNode)searchRes).getRelationships().iterator().next().getRelationship().delete();
+				testSix.getRelationships().iterator().next().getRelationship().delete();
 				tx.success();
 
 			} finally {

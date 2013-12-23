@@ -31,7 +31,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.GenericRelationship;
 import org.structr.core.entity.Security;
-import org.structr.core.entity.relationship.PrincipalOwnsAbstractNode;
+import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.graph.BulkGraphOperation;
 import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.NodeServiceCommand;
@@ -100,7 +100,7 @@ public class BulkMigrateRelationships extends NodeServiceCommand implements Main
 
 							} else if ("OWNS".equals(relType)) {
 
-								rel.setProperty(AbstractRelationship.type, PrincipalOwnsAbstractNode.class.getSimpleName());
+								rel.setProperty(AbstractRelationship.type, PrincipalOwnsNode.class.getSimpleName());
 
 							} else if ("SECURITY".equals(relType)) {
 

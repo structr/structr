@@ -32,18 +32,16 @@ import org.structr.core.entity.TestTwo;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
+import static junit.framework.TestCase.assertNotNull;
 import org.structr.core.Result;
-import org.structr.core.entity.GenericNode;
 import org.structr.core.entity.SixOneOneToOne;
+import org.structr.core.entity.TestSix;
 import org.structr.core.entity.relationship.NodeHasLocation;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.RelationshipInterface;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -133,15 +131,16 @@ public class DeleteGraphObjectsTest extends StructrTest {
 
 		try {
 			
-			final List<NodeInterface> nodes = this.createTestNodes(GenericNode.class, 2);
-			RelationshipInterface rel       = null;
+			final TestOne testOne  = createTestNode(TestOne.class);
+			final TestSix testSix  = createTestNode(TestSix.class);
+			SixOneOneToOne rel     = null;
 
-			assertNotNull(nodes);
-			assertTrue(nodes.size() == 2);
-			
+			assertNotNull(testOne);
+			assertNotNull(testSix);
+
 			try {
 				app.beginTx();
-				rel = app.create(nodes.get(0), nodes.get(1), SixOneOneToOne.class);
+				rel = app.create(testSix, testOne, SixOneOneToOne.class);
 				app.commitTx();
 			
 			} finally {

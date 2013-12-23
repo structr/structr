@@ -47,20 +47,22 @@ public abstract class OneToMany<S extends NodeInterface, T extends NodeInterface
 		final Class<? extends OneToMany> clazz = this.getClass();
 		final Class<S> sourceType              = getSourceType();
 
+		if (targetNode != null) {
 
-		// check existing relationships
-		final Relation<?, T, ?, ?> incomingRel = targetNode.getIncomingRelationship(clazz);
-		if (incomingRel != null && sourceType.isAssignableFrom(incomingRel.getSourceType())) {
+			// check existing relationships
+			final Relation<?, T, ?, ?> incomingRel = targetNode.getIncomingRelationship(clazz);
+			if (incomingRel != null && sourceType.isAssignableFrom(incomingRel.getSourceType())) {
 
-			try {
+				try {
 
-				app.beginTx();
-				app.delete(incomingRel);
-				app.commitTx();
+					app.beginTx();
+					app.delete(incomingRel);
+					app.commitTx();
 
-			} finally {
+				} finally {
 
-				app.finishTx();
+					app.finishTx();
+				}
 			}
 		}
 	}

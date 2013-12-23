@@ -87,12 +87,12 @@ public class StructrApp implements App {
 	}
 	
 	@Override
-	public <T extends Relation> T create(final NodeInterface fromNode, final NodeInterface toNode, final Class<T> relType) throws FrameworkException {
+	public <A extends NodeInterface, B extends NodeInterface, R extends Relation<A, B, ?, ?>> R create(final A fromNode, final B toNode, final Class<R> relType) throws FrameworkException {
 		return command(CreateRelationshipCommand.class).execute(fromNode, toNode, relType);
 	}
 
 	@Override
-	public <T extends Relation> T create(final NodeInterface fromNode, final NodeInterface toNode, final Class<T> relType, final PropertyMap properties) throws FrameworkException {
+	public <A extends NodeInterface, B extends NodeInterface, R extends Relation<A, B, ?, ?>> R create(final A fromNode, final B toNode, final Class<R> relType, final PropertyMap properties) throws FrameworkException {
 		return command(CreateRelationshipCommand.class).execute(fromNode, toNode, relType, properties);
 	}
 

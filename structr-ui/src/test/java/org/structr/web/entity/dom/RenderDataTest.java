@@ -34,6 +34,7 @@ import org.w3c.dom.Element;
 import static org.mockito.Mockito.*;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeInterface;
 import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.entity.User;
 import org.structr.web.entity.relation.RenderNode;
@@ -60,7 +61,7 @@ public class RenderDataTest extends DOMTest {
 			try {
 				app.beginTx();
 
-				Folder rootNode = folders.get(0); rootNode.setProperty(AbstractNode.name, "rootNode");
+				Folder rootNode   = folders.get(0); rootNode.setProperty(AbstractNode.name, "rootNode");
 				Folder folderA    = folders.get(1); folderA.setProperty(AbstractNode.name, "folderA");
 				Folder folderB    = folders.get(2); folderB.setProperty(AbstractNode.name, "folderB");
 				Folder folderC    = folders.get(3); folderC.setProperty(AbstractNode.name, "folderC");
@@ -118,7 +119,7 @@ public class RenderDataTest extends DOMTest {
 				// create RENDER_NODE relationship between first ul and rootNode
 				PropertyMap properties = new PropertyMap();
 				//properties.put(LinkedListNode.keyProperty, key);
-				StructrApp.getInstance(securityContext).command(CreateRelationshipCommand.class).execute((DOMElement)div, rootNode, RenderNode.class, properties);
+				StructrApp.getInstance(securityContext).command(CreateRelationshipCommand.class).execute((DOMElement)div, (NodeInterface)rootNode, RenderNode.class, properties);
 
 				((DOMElement) div).setProperty(DOMElement.dataKey, "root");
 

@@ -155,7 +155,11 @@ public class ViewFilterResource extends WrappingResource {
 		if (propertyView != null) {
 			
 			// append view / scope part
-			signature.append("/_");
+			if (!signature.toString().endsWith("/")) {
+				signature.append("/");
+			}
+			
+			signature.append("_");
 			signature.append(SchemaHelper.normalizeEntityName(propertyView));
 		}
 

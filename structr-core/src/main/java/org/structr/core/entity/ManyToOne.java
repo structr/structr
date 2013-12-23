@@ -47,20 +47,22 @@ public abstract class ManyToOne<S extends NodeInterface, T extends NodeInterface
 		final Class<? extends ManyToOne> clazz = this.getClass();
 		final Class<T> targetType              = getTargetType();
 
+		if (sourceNode != null) {
 
-		// check existing relationships
-		final Relation<?, T, ?, ?> outgoingRel = sourceNode.getOutgoingRelationship(clazz);
-		if (outgoingRel != null && targetType.isAssignableFrom(outgoingRel.getTargetType())) {
+			// check existing relationships
+			final Relation<?, T, ?, ?> outgoingRel = sourceNode.getOutgoingRelationship(clazz);
+			if (outgoingRel != null && targetType.isAssignableFrom(outgoingRel.getTargetType())) {
 
-			try {
+				try {
 
-				app.beginTx();
-				app.delete(outgoingRel);
-				app.commitTx();
+					app.beginTx();
+					app.delete(outgoingRel);
+					app.commitTx();
 
-			} finally {
+				} finally {
 
-				app.finishTx();
+					app.finishTx();
+				}
 			}
 		}
 	}

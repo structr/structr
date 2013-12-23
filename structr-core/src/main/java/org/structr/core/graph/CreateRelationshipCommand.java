@@ -33,8 +33,9 @@ import java.util.Date;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Relation;
+import org.structr.core.entity.Source;
+import org.structr.core.entity.Target;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 
@@ -58,22 +59,22 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 
 	//~--- methods --------------------------------------------------------
 
-	public <T extends Relation> T execute(final NodeInterface fromNode, final NodeInterface toNode, final Class<T> relType) throws FrameworkException {
+	public <A extends NodeInterface, B extends NodeInterface, R extends Relation<A, B, ?, ?>> R execute(final A fromNode, final B toNode, final Class<R> relType) throws FrameworkException {
 		return createRelationship(fromNode, toNode, relType, null);
 	}
 
-	public <T extends Relation> T execute(final NodeInterface fromNode, final NodeInterface toNode, final Class<T> relType, final PropertyMap properties) throws FrameworkException {
+	public <A extends NodeInterface, B extends NodeInterface, R extends Relation<A, B, ?, ?>> R execute(final A fromNode, final B toNode, final Class<R> relType, final PropertyMap properties) throws FrameworkException {
 		return createRelationship(fromNode, toNode, relType, properties);
 	}
 
-	private synchronized <T extends Relation> T createRelationship(final NodeInterface fromNode, final NodeInterface toNode, final Class<T> relType, final PropertyMap properties) throws FrameworkException {
+	private synchronized <A extends NodeInterface, B extends NodeInterface, R extends Relation<A, B, ?, ?>> R createRelationship(final A fromNode, final B toNode, final Class<R> relType, final PropertyMap properties) throws FrameworkException {
 
-		final RelationshipFactory<T> factory = new RelationshipFactory(securityContext);
-		final T template                     = instantiate(relType);
+		final RelationshipFactory<R> factory = new RelationshipFactory(securityContext);
+		final R template                     = instantiate(relType);
 		final Node startNode                 = fromNode.getNode();
 		final Node endNode                   = toNode.getNode();
 		final Relationship rel               = startNode.createRelationshipTo(endNode, template);
-		final T newRel                       = factory.instantiateWithType(rel, relType, true);
+		final R newRel                       = factory.instantiate(rel);
 		final Date now                       = new Date();
 
 		// logger.log(Level.INFO, "CREATING relationship {0}-[{1}]->{2}", new Object[] {  fromNode.getType(), newRel.getRelType(), toNode.getType() } );

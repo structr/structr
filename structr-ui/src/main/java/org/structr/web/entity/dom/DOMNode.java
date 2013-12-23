@@ -69,7 +69,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.web.common.Function;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.entity.Principal;
-import org.structr.core.entity.relationship.PrincipalOwnsAbstractNode;
+import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.graph.search.PropertySearchAttribute;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.CollectionIdProperty;
@@ -1210,7 +1210,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 				// special keyword "owner"
 				if ("owner".equals(lowerCasePart)) {
 
-					Ownership rel = getIncomingRelationship(PrincipalOwnsAbstractNode.class);
+					Ownership rel = getIncomingRelationship(PrincipalOwnsNode.class);
 					if (rel != null) {
 					
 						_data = rel.getSourceNode();

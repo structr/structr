@@ -51,8 +51,9 @@ public interface App {
 
 	public void delete(final NodeInterface node) throws FrameworkException;
 
-	public <T extends Relation> T create(final NodeInterface fromNode, final NodeInterface toNode, final Class<T> relType) throws FrameworkException;
-	public <T extends Relation> T create(final NodeInterface fromNode, final NodeInterface toNode, final Class<T> relType, final PropertyMap properties) throws FrameworkException;
+	
+	public <A extends NodeInterface, B extends NodeInterface, R extends Relation<A, B, ?, ?>> R create(final A fromNode, final B toNode, final Class<R> relType) throws FrameworkException;
+	public <A extends NodeInterface, B extends NodeInterface, R extends Relation<A, B, ?, ?>> R create(final A fromNode, final B toNode, final Class<R> relType, final PropertyMap properties) throws FrameworkException;
 	
 	public void delete(final RelationshipInterface relationship) throws FrameworkException;
 

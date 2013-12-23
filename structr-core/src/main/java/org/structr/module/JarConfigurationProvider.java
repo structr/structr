@@ -424,7 +424,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		
 		// Abort here if both types are AbstractNode.
 		// This can only happen in a recursion because AbstractNode is abstract.
-		if (sourceType.equals(AbstractNode.class) && targetType.equals(AbstractNode.class)) {
+		if (sourceType.equals(NodeInterface.class) && targetType.equals(NodeInterface.class)) {
 			return Integer.MIN_VALUE;
 		}
 

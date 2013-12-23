@@ -55,7 +55,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.User;
-import org.structr.core.entity.relationship.PrincipalOwnsAbstractNode;
+import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.graph.NodeInterface;
 
 //~--- classes ----------------------------------------------------------------
@@ -176,11 +176,11 @@ public class OwnerTest extends StructrTest {
 			t1.setProperty(AbstractNode.owner, group1);
 			assertEquals(group1, t1.getProperty(AbstractNode.owner));
 			
-			Ownership ownerRel = t1.getIncomingRelationship(PrincipalOwnsAbstractNode.class);
+			Ownership ownerRel = t1.getIncomingRelationship(PrincipalOwnsNode.class);
 			assertNotNull(ownerRel);
 
 			// Do additional low-level check here to ensure cardinality!
-			List<Relationship> incomingRels = Iterables.toList(t1.getNode().getRelationships(Direction.INCOMING, new PrincipalOwnsAbstractNode()));
+			List<Relationship> incomingRels = Iterables.toList(t1.getNode().getRelationships(Direction.INCOMING, new PrincipalOwnsNode()));
 			assertEquals(1, incomingRels.size());
 
 			superUserApp.commitTx();

@@ -40,7 +40,7 @@ import org.structr.common.Permission;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Security;
-import org.structr.core.entity.relationship.PrincipalOwnsAbstractNode;
+import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.SchemaHelper;
@@ -105,13 +105,13 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 				if ((user != null) && user instanceof AbstractNode) {
 
 					// Create new relationship to user and grant permissions to user or group
-					AbstractNode owner = (AbstractNode)user;
+					Principal owner = (Principal)user;
 
 					App app = StructrApp.getInstance(securityContext);
 					
-					app.create(owner, node, PrincipalOwnsAbstractNode.class);
+					app.create(owner, (NodeInterface)node, PrincipalOwnsNode.class);
 					
-					Security securityRel = app.create(owner, node, Security.class);
+					Security securityRel = app.create(owner, (NodeInterface)node, Security.class);
 					securityRel.setAllowed(Permission.values());
 
 					node.unlockReadOnlyPropertiesOnce();

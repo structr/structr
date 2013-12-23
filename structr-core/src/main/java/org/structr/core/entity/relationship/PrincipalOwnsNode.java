@@ -1,15 +1,15 @@
 package org.structr.core.entity.relationship;
 
 import org.structr.core.Ownership;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.OneToMany;
 import org.structr.core.entity.Principal;
+import org.structr.core.graph.NodeInterface;
 
 /**
  *
  * @author Christian Morgner
  */
-public class PrincipalOwnsAbstractNode extends OneToMany<Principal, AbstractNode> implements Ownership {
+public class PrincipalOwnsNode extends OneToMany<Principal, NodeInterface> implements Ownership {
 
 	@Override
 	public Class<Principal> getSourceType() {
@@ -22,7 +22,7 @@ public class PrincipalOwnsAbstractNode extends OneToMany<Principal, AbstractNode
 	}
 
 	@Override
-	public Class<AbstractNode> getTargetType() {
-		return AbstractNode.class;
+	public Class<NodeInterface> getTargetType() {
+		return NodeInterface.class;
 	}
 }

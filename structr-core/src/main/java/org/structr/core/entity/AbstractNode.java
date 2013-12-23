@@ -57,7 +57,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.IterableAdapter;
 import org.structr.core.Ownership;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.relationship.PrincipalOwnsAbstractNode;
+import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeService;
 import org.structr.core.graph.RelationshipFactory;
@@ -82,7 +82,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	public static final Property<Boolean>         deleted          = new BooleanProperty("deleted").indexed();
 	public static final Property<Boolean>         hidden           = new BooleanProperty("hidden").indexed();
       
-	public static final Property<Principal>       owner            = new StartNode<>("owner", PrincipalOwnsAbstractNode.class);
+	public static final Property<Principal>       owner            = new StartNode<>("owner", PrincipalOwnsNode.class);
 	public static final Property<String>          ownerId          = new EntityIdProperty("ownerId", owner);
 
 	public static final View defaultView = new View(AbstractNode.class, PropertyView.Public, id, type);
@@ -745,7 +745,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 		if (cachedOwnerNode == null) {
 
-			final Ownership ownership = getIncomingRelationship(PrincipalOwnsAbstractNode.class);
+			final Ownership ownership = getIncomingRelationship(PrincipalOwnsNode.class);
 			if (ownership != null) {
 				
 				Principal principal = ownership.getSourceNode();

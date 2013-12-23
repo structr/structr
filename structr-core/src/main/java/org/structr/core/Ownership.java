@@ -1,7 +1,7 @@
 package org.structr.core;
 
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
+import org.structr.core.graph.NodeInterface;
 
 /**
  *
@@ -10,5 +10,5 @@ import org.structr.core.entity.Principal;
 public interface Ownership {
 	
 	public Principal getSourceNode();
-	public AbstractNode getTargetNode();
+	public NodeInterface getTargetNode();
 }
