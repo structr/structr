@@ -88,9 +88,6 @@ public class Importer {
 	};
 	private static final Logger logger                               = Logger.getLogger(Importer.class.getName());
 	private static final Map<String, String> contentTypeForExtension = new HashMap<String, String>();
-	private static CreateNodeCommand createNode;
-	private static CreateRelationshipCommand createRel;
-	private static SearchNodeCommand searchNode;
 	
 	private static App app;
 
@@ -432,15 +429,7 @@ public class Importer {
 	 */
 	private boolean fileExists(final String name, final long checksum) throws FrameworkException {
 
-		List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
-
-		searchAttrs.add(Search.andExactProperty(securityContext, AbstractNode.name, name));
-		searchAttrs.add(Search.andExactProperty(securityContext, File.checksum, checksum));
-		searchAttrs.add(Search.andExactTypeAndSubtypes(File.class));
-
-		Result files = searchNode.execute(searchAttrs);
-
-		return !files.isEmpty();
+		return app.nodeQuery(File.class).andName(name).and(File.checksum, checksum).getFirst() != null;
 
 	}
 
@@ -450,19 +439,14 @@ public class Importer {
 	 */
 	private Folder findOrCreateFolder(final String name) throws FrameworkException {
 
-		List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
+		Folder folder = app.nodeQuery(Folder.class).andName(name).getFirst();
 
-		searchAttrs.add(Search.andExactProperty(securityContext, AbstractNode.name, name));
-		searchAttrs.add(Search.andExactType(Folder.class));
+		if (folder != null) {
 
-		Result folders = searchNode.execute(searchAttrs);
-
-		if (!folders.isEmpty()) {
-
-			return (Folder) folders.get(0);
+			return folder;
 		}
 
-		return (Folder) createNode.execute(new NodeAttribute(AbstractNode.type, Folder.class.getSimpleName()), new NodeAttribute(AbstractNode.name, name));
+		return (Folder) app.create(Folder.class, new NodeAttribute(AbstractNode.type, Folder.class.getSimpleName()), new NodeAttribute(AbstractNode.name, name));
 
 	}
 
@@ -592,8 +576,7 @@ public class Importer {
 			folder = findOrCreateFolder(part);
 
 			if (parent != null) {
-
-				createRel.execute(parent, folder, Folders.class);
+				app.create(parent, folder, Folders.class);
 			}
 
 			folder.updateInIndex();
@@ -606,7 +589,7 @@ public class Importer {
 	private File createFileNode(final String uuid, final String name, final String contentType, final long size, final long checksum) throws FrameworkException {
 
 		String relativeFilePath = File.getDirectoryPath(uuid) + "/" + uuid;
-		File fileNode           = (File) createNode.execute(new NodeAttribute(GraphObject.id, uuid), new NodeAttribute(AbstractNode.type, File.class.getSimpleName()),
+		File fileNode           = app.create(File.class, new NodeAttribute(GraphObject.id, uuid),
 						  new NodeAttribute(AbstractNode.name, name), new NodeAttribute(File.relativeFilePath, relativeFilePath),
 						  new NodeAttribute(File.contentType, contentType), new NodeAttribute(AbstractNode.visibleToPublicUsers, publicVisible),
 						  new NodeAttribute(File.size, size), new NodeAttribute(File.checksum, checksum),
@@ -619,7 +602,7 @@ public class Importer {
 	private Image createImageNode(final String uuid, final String name, final String contentType, final long size, final long checksum) throws FrameworkException {
 
 		String relativeFilePath = Image.getDirectoryPath(uuid) + "/" + uuid;
-		Image imageNode         = (Image) createNode.execute(new NodeAttribute(GraphObject.id, uuid), new NodeAttribute(AbstractNode.type, Image.class.getSimpleName()),
+		Image imageNode         = app.create(Image.class, new NodeAttribute(GraphObject.id, uuid),
 						  new NodeAttribute(AbstractNode.name, name), new NodeAttribute(File.relativeFilePath, relativeFilePath),
 						  new NodeAttribute(File.contentType, contentType), new NodeAttribute(AbstractNode.visibleToPublicUsers, publicVisible),
 						  new NodeAttribute(File.size, size), new NodeAttribute(File.checksum, checksum),
