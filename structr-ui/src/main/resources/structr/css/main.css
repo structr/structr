@@ -714,8 +714,52 @@ span.id {
     width: 16px;
     margin-left: 4px ! important;
     vertical-align: top;
-    float: right;
-    position: relative;
+    /*float: right;*/
+    position: absolute;
+}
+
+.edit_icon, .edit_file_icon {
+    right: 64px;
+}
+
+.page > .edit_props_icon {
+    right: 44px;
+}
+
+.widget .edit_icon {
+    right: 4px;
+}
+
+.folder .edit_props_icon {
+    right: 44px;
+}
+
+.group .edit_props_icon, .user .edit_props_icon {
+    right: 24px;
+}
+
+.edit_props_icon, .file .edit_props_icon {
+    right: 44px;
+}
+
+.delete_icon {
+    right: 24px;
+}
+
+li.page .delete_icon {
+    right: -20px;
+}
+
+li.page .view_icon {
+    right: 20px;
+}
+
+.group .delete_icon, .user .delete_icon {
+    right: 4px;
+}
+
+.key_icon {
+    right: 4px;
 }
 
 .key_icon {
@@ -725,7 +769,7 @@ span.id {
     opacity: 0.3;
 }
 
-.nodeHover > .key_icon {
+.nodeHover > .key_icon, .nodeHover > .icons .key_icon {
     filter: alpha(opacity=100);
     -khtml-opacity: 1;
     -moz-opacity: 1;
