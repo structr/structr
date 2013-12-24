@@ -58,6 +58,7 @@ import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.property.PropertyMap;
+import org.structr.module.JarConfigurationProvider;
 import org.structr.rest.service.HttpService;
 import org.structr.web.entity.User;
 import org.structr.web.entity.dom.Content;
@@ -244,14 +245,10 @@ public class RegistrationResource extends Resource {
 		replacementMap.put(toPlaceholder(User.eMail.jsonName()), userEmail);
 		replacementMap.put(toPlaceholder("link"),
 			getTemplateText(TemplateKey.BASE_URL, "http://" + appHost + ":" + httpPort)
-			+ getTemplateText(TemplateKey.CONFIRM_REGISTRATION_PAGE, HtmlServlet.CONFIRM_REGISTRATION_PAGE)
-			//+ "/" + HtmlServlet.CONFIRM_REGISTRATION_PAGE
-			+ getTemplateText(TemplateKey.CONFIRM_KEY_KEY, HtmlServlet.CONFIRM_KEY_KEY)
-			+ "=" + confKey
-			+ "&" + getTemplateText(TemplateKey.TARGET_PAGE_KEY, HtmlServlet.TARGET_PAGE_KEY)
-			+ "=" + getTemplateText(TemplateKey.TARGET_PAGE, "register_thanks")
-			+ "&" + getTemplateText(TemplateKey.ERROR_PAGE_KEY, HtmlServlet.ERROR_PAGE_KEY)
-			+ "=" + getTemplateText(TemplateKey.ERROR_PAGE, "register_error"));
+			+ "/" + getTemplateText(TemplateKey.CONFIRM_REGISTRATION_PAGE, HtmlServlet.CONFIRM_REGISTRATION_PAGE)
+			+ "?" + getTemplateText(TemplateKey.CONFIRM_KEY_KEY, HtmlServlet.CONFIRM_KEY_KEY) + "=" + confKey
+			+ "&" + getTemplateText(TemplateKey.TARGET_PAGE_KEY, HtmlServlet.TARGET_PAGE_KEY) + "=" + getTemplateText(TemplateKey.TARGET_PAGE, "register_thanks")
+			+ "&" + getTemplateText(TemplateKey.ERROR_PAGE_KEY, HtmlServlet.ERROR_PAGE_KEY)   + "=" + getTemplateText(TemplateKey.ERROR_PAGE, "register_error"));
 
 		String textMailTemplate = getTemplateText(TemplateKey.TEXT_BODY, "Go to ${link} to finalize registration.");
 		String htmlMailTemplate = getTemplateText(TemplateKey.HTML_BODY, "<div>Click <a href='${link}'>here</a> to finalize registration.</div>");
@@ -436,41 +433,51 @@ public class RegistrationResource extends Resource {
 
 		final App app = StructrApp.getInstance(securityContext);
 		
+		Principal user = null;
+		
 		try {
 			
 			app.beginTx();
 
 			// First, search for a person with that e-mail address
-			Person person = (Person) AuthHelper.getPrincipalForCredential(credentialKey, credentialValue);
+			user = AuthHelper.getPrincipalForCredential(credentialKey, credentialValue);
 
-			if (person != null) {
+			if (user != null) {
 
 				// convert to user
-				person.unlockReadOnlyPropertiesOnce();
-				person.setProperty(AbstractNode.type, User.class.getSimpleName());
+				user.unlockReadOnlyPropertiesOnce();
+				user.setProperty(AbstractNode.type, User.class.getSimpleName());
 
-				User user = new User();
-				user.init(securityContext, person.getNode());
+				user = new User();
+				
+				user.init(securityContext, user.getNode());
 
-				// index manually, because type is a system property!
-				person.updateInIndex();
 
 				user.setProperty(User.confirmationKey, confKey);
 
-				return user;
-
 			} else if (autoCreate) {
 
-				propertySet.put(AbstractNode.type.jsonName(), userClass != null ? userClass.getSimpleName() : User.class.getSimpleName());
-
+				// Clear properties set by us from the user-defined props
+				propertySet.remove(credentialKey.jsonName());
+				propertySet.remove(User.name.jsonName());
+				propertySet.remove(User.confirmationKey.jsonName());
+				
 				PropertyMap props = PropertyMap.inputTypeToJavaType(securityContext, propertySet);
+				
 				props.put(credentialKey, credentialValue);
 				props.put(User.name, credentialValue);
 				props.put(User.confirmationKey, confKey);
 
-				return (Principal) StructrApp.getInstance(securityContext).command(CreateNodeCommand.class).execute(props);
+				user = (Principal) StructrApp.getInstance(securityContext).create(userClass, props);
 
 			}
+			
+//			if (user != null) {
+//
+//				// index manually because the credential key is treated as generic property!
+//				user.updateInIndex();
+//				
+//			}
 			
 			app.commitTx();
 			
@@ -483,7 +490,7 @@ public class RegistrationResource extends Resource {
 			app.finishTx();
 		}
 		
-		return null;
+		return user;
 		
 	}
 	
