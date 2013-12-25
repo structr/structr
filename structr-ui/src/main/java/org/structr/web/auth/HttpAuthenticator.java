@@ -264,7 +264,7 @@ public class HttpAuthenticator implements Authenticator {
 				//securityContext.setAttribute("OAuthAccessToken", accessToken);
 				
 				String value = oauthServer.getCredential(request);
-				logger.log(Level.FINE, "Got email: {0}", new Object[] { value });
+				logger.log(Level.FINE, "Got credential value: {0}", new Object[] { value });
 
 				if (value != null) {
 					
