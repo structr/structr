@@ -189,9 +189,18 @@ public class StructrOAuthClient {
 
 	private static Class getTokenResponseClassForName(final String name) {
 
+		// The following comments are taken from https://cwiki.apache.org/confluence/display/OLTU/OAuth+2.0+Client+Quickstart
+		
+		// "Facebook is not fully compatible with OAuth 2.0 draft 10, access token response is
+		// application/x-www-form-urlencoded, not json encoded so we use dedicated response class for that
+		// Custom response classes are an easy way to deal with oauth providers that introduce modifications to
+		// OAuth 2.0 specification"
+		
 		switch (name) {
 			
 			case "github" :
+				return GitHubTokenResponse.class;
+			case "facebook" :
 				return GitHubTokenResponse.class;
 			default :
 				return OAuthJSONAccessTokenResponse.class;
