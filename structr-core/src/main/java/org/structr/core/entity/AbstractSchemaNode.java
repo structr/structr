@@ -1,5 +1,6 @@
 package org.structr.core.entity;
 
+import java.util.List;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
@@ -7,7 +8,9 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidSchemaToken;
 import org.structr.core.Services;
 import static org.structr.core.entity.AbstractNode.name;
+import org.structr.core.entity.relationship.SchemaNodeResourceAccess;
 import org.structr.core.graph.TransactionCommand;
+import org.structr.core.property.EndNodes;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.Property;
 import org.structr.core.validator.TypeUniquenessValidator;
@@ -21,6 +24,7 @@ import org.structr.schema.SchemaHelper;
 public abstract class AbstractSchemaNode extends AbstractNode {
 	
 	public static final Property<Long> accessFlags = new LongProperty("accessFlags").indexed();
+	public static final Property<List<ResourceAccess>> grants = new EndNodes("grants", SchemaNodeResourceAccess.class);
 
 	static {
 		
@@ -48,7 +52,7 @@ public abstract class AbstractSchemaNode extends AbstractNode {
 
 			if (StringUtils.isNotBlank(signature)) {
 
-				SchemaHelper.createGrant(signature, flags);
+				setProperty(grants, SchemaHelper.createGrants(signature, flags));
 				
 				// register transaction post processing that recreates the schema information
 				TransactionCommand.postProcess("reloadSchema", new ReloadSchema());
@@ -70,7 +74,7 @@ public abstract class AbstractSchemaNode extends AbstractNode {
 
 			if (StringUtils.isNotBlank(signature)) {
 
-				SchemaHelper.createGrant(signature, flags);
+				SchemaHelper.updateGrants(getProperty(grants), signature, flags);
 				
 				// register transaction post processing that recreates the schema information
 				TransactionCommand.postProcess("reloadSchema", new ReloadSchema());
@@ -90,7 +94,7 @@ public abstract class AbstractSchemaNode extends AbstractNode {
 		final String signature = getResourceSignature();
 		if (StringUtils.isNotBlank(signature)) {
 			
-			SchemaHelper.removeGrant(getResourceSignature());
+			SchemaHelper.removeGrants(getResourceSignature());
 		}
 	}
 	

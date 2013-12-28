@@ -111,7 +111,7 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 
 			if (StringUtils.isNotBlank(signature)) {
 
-				SchemaHelper.createGrant(signature, flags);
+				SchemaHelper.createGrants(signature, flags);
 
 				// register transaction post processing that recreates the schema information
 				TransactionCommand.postProcess("reloadSchema", new ReloadSchema());
@@ -133,7 +133,7 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 
 			if (StringUtils.isNotBlank(signature)) {
 
-				SchemaHelper.createGrant(signature, flags);
+				SchemaHelper.createGrants(signature, flags);
 
 				// register transaction post processing that recreates the schema information
 				TransactionCommand.postProcess("reloadSchema", new ReloadSchema());
@@ -153,7 +153,7 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 		final String signature = getResourceSignature();
 		if (StringUtils.isNotBlank(signature)) {
 			
-			SchemaHelper.removeGrant(getResourceSignature());
+			SchemaHelper.removeGrants(getResourceSignature());
 		}
 	}
 
