@@ -505,10 +505,10 @@ var _Pages = {
         var oldName = $.trim(element.children('b.name_').attr('title'));
         element.children('b').hide();
         element.find('.button').hide();
-        var input = $('input.newName_', element);
+        var input = $('input.new-name', element);
 
         if (!input.length) {
-            element.append('<input type="text" size="' + (oldName.length + 4) + '" class="newName_" value="' + oldName + '">');
+            element.append('<input type="text" size="' + (oldName.length + 4) + '" class="new-name" value="' + oldName + '">');
             input = $('input', element);
         }
 

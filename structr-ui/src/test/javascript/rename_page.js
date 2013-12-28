@@ -81,7 +81,7 @@ casper.test.begin(testName, numberOfTests, function(test) {
     });
 
     casper.then(function() {
-        s.animatedType(this, '#previewTabs li:nth-child(2) .newName_', false, 'renamed-page', true);
+        s.animatedType(this, '#previewTabs li:nth-child(2) .new-name', false, 'renamed-page', true);
     });
 
     casper.then(function() {

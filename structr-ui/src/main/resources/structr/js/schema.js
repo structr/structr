@@ -16,7 +16,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-var canvas, instance, res, nodes = [], rels = [], localStorageSuffix = '_schema_' + port, initialRelType = 'UNDEFINED_RELATIONSHIP_TYPE';
+var canvas, instance, res, nodes = [], rels = [], localStorageSuffix = '_schema_' + port, undefinedRelType = 'UNDEFINED_RELATIONSHIP_TYPE', initialRelType = undefinedRelType;
 
 $(document).ready(function() {
     Structr.registerModule('schema', _Schema);
@@ -55,10 +55,15 @@ var _Schema = {
 
         main.append('<div class="schema-input-container"><input class="schema-input" id="type-name" type="text" size="20" placeholder="New type"><button id="create-type" class="btn"><img src="icon/add.png"> Add Type</button></div>');
         $('#type-name').focus().on('keyup', function(e) {
-            ;
+
             if (e.keyCode === 13) {
-                $('#create-type').click();
+                e.preventDefault();
+                if ($('#type-name').val().length) {
+                    $('#create-type').click();
+                }
+                return false;
             }
+
         });
         $('#create-type').on('click', function() {
             _Schema.createNodeDefinition($('#type-name').val());
@@ -98,7 +103,7 @@ var _Schema = {
                     _Schema.connect(getIdFromIdString(info.sourceId), getIdFromIdString(info.targetId));
                 });
                 instance.bind('connectionDetached', function(info) {
-                    console.log('Rel ID:', info.connection.getParameter('id'));
+                    //console.log('Rel ID:', info.connection.getParameter('id'));
                     //console.log('Target ID:', getIdFromIdString(info.targetId));
                     _Schema.detach(info.connection.getParameter('id'));
                 });
@@ -161,12 +166,15 @@ var _Schema = {
                 $.each(data.result, function(i, res) {
                     var id = 'id_' + res.id;
                     nodes[res.id] = res;
-                    canvas.append('<div class="schema node" id="' + id + '"><h2>' + res.name + '</h2>'
+                    canvas.append('<div class="schema node" id="' + id + '"><b>' + res.name + '</b>'
                             + '<table class="schema-props"><th>Property Name</th><th>Type</th><th>Format</th><th>Not null</th><th>Unique</th></table>'
                             + '</div>');
                     var propertiesTable = $('#' + id + ' .schema-props');
 
                     var node = $('#' + id);
+                    node.children('b').on('click', function() {
+                        _Schema.makeNameEditable(node);
+                    });
                     var storedPosition = _Schema.getPosition(id);
                     node.offset({
                         left: storedPosition ? storedPosition.left : i * 180 + 25,
@@ -313,7 +321,7 @@ var _Schema = {
                                     id: "sourceMultiplicity",
                                     events: {
                                         "click": function(label, evt) {
-                                            console.log(rels[res.id].getOverlay('sourceMultiplicity').label);
+                                            //console.log(rels[res.id].getOverlay('sourceMultiplicity').label);
                                             var overlay = rels[res.id].getOverlay('sourceMultiplicity');
                                             overlay.setLabel('<input id="source-mult-label" type="text" size="15" id="id_' + res.id + '_sourceMultiplicity" value="' + overlay.label + '">');
                                             $('#source-mult-label').focus().on('blur', function() {
@@ -332,7 +340,7 @@ var _Schema = {
                                     id: "label",
                                     events: {
                                         "click": function(label, evt) {
-                                            console.log(rels[res.id].getOverlay('label').label);
+                                            //console.log(rels[res.id].getOverlay('label').label);
                                             var overlay = rels[res.id].getOverlay('label');
                                             overlay.setLabel('<input id="relationship-label" type="text" size="15" id="id_' + res.id + '_relationshipType" value="' + overlay.label + '">');
                                             $('#relationship-label').focus().on('blur', function() {
@@ -351,7 +359,7 @@ var _Schema = {
                                     id: "targetMultiplicity",
                                     events: {
                                         "click": function(label, evt) {
-                                            console.log(rels[res.id].getOverlay('targetMultiplicity').label);
+                                            //console.log(rels[res.id].getOverlay('targetMultiplicity').label);
                                             var overlay = rels[res.id].getOverlay('targetMultiplicity');
                                             overlay.setLabel('<input id="target-mult-label" type="text" size="15" id="id_' + res.id + '_targetMultiplicity" value="' + overlay.label + '">');
                                             $('#target-mult-label').focus().on('blur', function() {
@@ -367,9 +375,9 @@ var _Schema = {
                         ]
                     });
 
-                    console.log('relationship was loaded:', res);
-                    console.log('source node: ', nodes[res.sourceId]);
-                    console.log('target node: ', nodes[res.targetId]);
+//                    console.log('relationship was loaded:', res);
+//                    console.log('source node: ', nodes[res.sourceId]);
+//                    console.log('target node: ', nodes[res.targetId]);
 
                     // Add source property
                     var source = nodes[res.sourceId];
@@ -447,8 +455,11 @@ var _Schema = {
     },
     appendRelatedProperty: function(el, rel, key) {
 
+        var relType = rel.relationshipType;
+        relType = relType === undefinedRelType ? '' : relType;
+
         el.append('<tr class="' + key + '"><td><input size="15" type="text" class="property-name" value="' + key + '"></td><td>'
-                + 'Related (' + rel.relationshipType + ')' + '</td><td><input size="15" type="text" class="property-format" value="'
+                + 'Related (' + relType + ')' + '</td><td><input size="15" type="text" class="property-format" value="'
                 + '' + '"></td><td><input class="not-null" type="checkbox"'
                 + '' + '></td><td><input class="unique" type="checkbox"'
                 + '' + '</td></div>');
@@ -484,6 +495,7 @@ var _Schema = {
         }
     },
     putPropertyDefinition: function(id, data) {
+        console.log('putPropertyDefinition', id, data);
         $.ajax({
             url: rootUrl + 'schema_nodes/' + id,
             type: 'PUT',
@@ -511,11 +523,11 @@ var _Schema = {
             data: '{ "name": "' + type + '"}',
             statusCode: {
                 201: function() {
-                    console.log('node created');
+                    //console.log('node created');
                     _Schema.reload();
                 },
                 422: function(data) {
-                    console.log(data);
+                    //console.log(data);
                     Structr.errorFromResponse(data.responseJSON);
                 }
             }
@@ -526,7 +538,7 @@ var _Schema = {
         var data = '{"sourceId":"' + sourceId + '","targetId":"' + targetId + '"'
                 + (relationshipType && relationshipType.length ? ',"relationshipType":"' + relationshipType + '"' : '')
                 + '}';
-        console.log(data);
+        //console.log(data);
         $.ajax({
             url: rootUrl + 'schema_relationships',
             type: 'POST',
@@ -554,6 +566,7 @@ var _Schema = {
             statusCode: {
                 200: function(data, textStatus, jqXHR) {
                     //console.log('rel removed', data, textStatus, jqXHR);
+                    _Schema.reload();
                 },
                 422: function(data) {
                     console.log(data);
@@ -589,8 +602,51 @@ var _Schema = {
     detach: function(relationshipId) {
         //Structr.dialog('Enter relationship details');
         _Schema.removeRelationshipDefinition(relationshipId);
+    },
+    makeNameEditable: function(element) {
+        //element.off('dblclick');
+
+        var id = element.prop('id').substring(3);
+
+        element.off('hover');
+        element.children('b').hide();
+        var oldName = $.trim(element.children('b').text());
+        var input = $('input.new-name', element);
+
+        if (!input.length) {
+            element.prepend('<input type="text" size="' + (oldName.length + 8) + '" class="new-name" value="' + oldName + '">');
+            input = $('input.new-name', element);
+        }
+
+        input.show().focus().select();
+
+        input.on('blur', function() {
+            _Schema.changeName(id, element, input, oldName);
+            return false;
+        });
+
+        input.keypress(function(e) {    
+            if (e.keyCode === 13 || e.keyCode === 9) {
+                e.preventDefault();
+                _Schema.changeName(id, element, input, oldName);
+                return false;
+            }
+        });
+        element.off('click');
+    },
+    changeName: function(id, element, input, oldName) {
+        var newName = input.val();
+        if (oldName !== newName) {
+            _Schema.putPropertyDefinition(id, JSON.stringify({name: newName}));
+            _Schema.reload();
+        } else {
+            input.hide();
+            element.children('b').show();
+        }
     }
 };
+
+
 
 var typeOptions = '<select class="property-type"><option value="">--Select type--</option>'
         + '<option value="String">String</option>'

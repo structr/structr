@@ -566,7 +566,7 @@ ul#previewTabs {
     cursor: text;
 }
 
-.newName_ {
+.new-name {
     border: 1px solid #a5a5a5;
     margin: -1px 0;
     font-size: 0.95em;
@@ -1322,4 +1322,21 @@ button.add_property {
     border: none;
     background: transparent;
     font-size: 1em;
+}
+
+.schema b {
+    font-size: 1.5em;
+    display: inline-block;
+    margin: 2px 0;
+}
+
+.schema b:hover {
+    cursor: text;
+    box-shadow: 2px 0 #000;
+    color: #222; background-color: #ffe; padding: 1px; margin: 1px 0; -moz-box-shadow: 0 0 5px #888; -webkit-box-shadow: 0 0 5px yellow; box-shadow: 0 0 5px #888;
+}
+
+.schema .new-name {
+    font-size: 1.5em;
+    margin: 2px 0 2px 0;
 }

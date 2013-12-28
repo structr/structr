@@ -932,7 +932,7 @@ var _Entities = {
         element.off('hover');
         var oldName = $.trim(element.children('b.name_').attr('title'));
         //console.log('oldName', oldName);
-        element.children('b.name_').replaceWith('<input type="text" size="' + (oldName.length + 4) + '" class="newName_" value="' + oldName + '">');
+        element.children('b.name_').replaceWith('<input type="text" size="' + (oldName.length + 4) + '" class="new-name" value="' + oldName + '">');
         element.find('.button').hide();
 
         var input = $('input', element);
