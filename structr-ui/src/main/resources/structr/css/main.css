@@ -1340,3 +1340,10 @@ button.add_property {
     font-size: 1.5em;
     margin: 2px 0 2px 0;
 }
+
+.schema .icon {
+    position: absolute;
+    right: 6px;
+    top: 6px;
+    cursor: pointer;
+}

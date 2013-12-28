@@ -66,7 +66,7 @@ var _Schema = {
 
         });
         $('#create-type').on('click', function() {
-            _Schema.createNodeDefinition($('#type-name').val());
+            _Schema.createNode($('#type-name').val());
         });
 
         jsPlumb.ready(function() {
@@ -166,7 +166,7 @@ var _Schema = {
                 $.each(data.result, function(i, res) {
                     var id = 'id_' + res.id;
                     nodes[res.id] = res;
-                    canvas.append('<div class="schema node" id="' + id + '"><b>' + res.name + '</b>'
+                    canvas.append('<div class="schema node" id="' + id + '"><b>' + res.name + '</b><img class="icon" src="icon/cross_small_grey.png">'
                             + '<table class="schema-props"><th>Property Name</th><th>Type</th><th>Format</th><th>Not null</th><th>Unique</th></table>'
                             + '</div>');
                     var propertiesTable = $('#' + id + ' .schema-props');
@@ -175,6 +175,11 @@ var _Schema = {
                     node.children('b').on('click', function() {
                         _Schema.makeNameEditable(node);
                     });
+                    
+                    node.children('.icon').on('click', function() {
+                        _Schema.deleteNode(res.id);
+                    });
+                    
                     var storedPosition = _Schema.getPosition(id);
                     node.offset({
                         left: storedPosition ? storedPosition.left : i * 180 + 25,
@@ -215,13 +220,13 @@ var _Schema = {
                         var notNull = $('#' + id + ' .new .not-null').is(':checked');
                         var unique = $('#' + id + ' .new .unique').is(':checked');
                         var format = $('#' + id + ' .new .property-format').val();
-                        console.log('PUT ' + res.id + ' {"'
-                                + '_' + name + '": "'
-                                + (notNull ? '+' : '')
-                                + type
-                                + (unique ? '!' : '')
-                                + (format ? '(' + format + ')' : '')
-                                + '"}');
+//                        console.log('PUT ' + res.id + ' {"'
+//                                + '_' + name + '": "'
+//                                + (notNull ? '+' : '')
+//                                + type
+//                                + (unique ? '!' : '')
+//                                + (format ? '(' + format + ')' : '')
+//                                + '"}');
                         if (name && name.length && type && (type !== 'Enum' || (format && format.length))) {
                             _Schema.putPropertyDefinition(res.id, ' {"'
                                     + '_' + name + '": "'
@@ -239,13 +244,13 @@ var _Schema = {
                         var notNull = $('#' + id + ' .new .not-null').is(':checked');
                         var unique = $('#' + id + ' .new .unique').is(':checked');
                         var format = $('#' + id + ' .new .property-format').val();
-                        console.log('PUT ' + res.id + ' {"'
-                                + '_' + name + '": "'
-                                + (notNull ? '+' : '')
-                                + type
-                                + (unique ? '!' : '')
-                                + (format ? '(' + format + ')' : '')
-                                + '"}');
+//                        console.log('PUT ' + res.id + ' {"'
+//                                + '_' + name + '": "'
+//                                + (notNull ? '+' : '')
+//                                + type
+//                                + (unique ? '!' : '')
+//                                + (format ? '(' + format + ')' : '')
+//                                + '"}');
                         if (name && name.length && type && (type !== 'Enum' || (format && format.length))) {
                             _Schema.putPropertyDefinition(res.id, ' {"'
                                     + '_' + name + '": "'
@@ -381,13 +386,13 @@ var _Schema = {
 
                     // Add source property
                     var source = nodes[res.sourceId];
-                    var key = source.name.toLowerCase() + (res.sourceMultiplicity !== '1' ? 's' : '');
+                    var key = (res.sourceMultiplicity !== '1' ? pluralize(source.name.toLowerCase()) : source.name.toLowerCase());
                     var node = nodes[res.targetId];
                     _Schema.appendRelatedProperty($('#id_' + node.id + ' .schema-props'), res, key);
 
                     // Add target property
                     var target = nodes[res.targetId];
-                    var key = target.name.toLowerCase() + (res.targetMultiplicity !== '1' ? 's' : '');
+                    var key = (res.targetMultiplicity !== '1' ? pluralize(target.name.toLowerCase()) : target.name.toLowerCase());
                     var node = nodes[res.sourceId];
                     _Schema.appendRelatedProperty($('#id_' + node.id + ' .schema-props'), res, key);
                     
@@ -472,13 +477,13 @@ var _Schema = {
         var format = $('#' + id + ' .' + key + ' .property-format').val();
         var notNull = $('#' + id + ' .' + key + ' .not-null').is(':checked');
         var unique = $('#' + id + ' .' + key + ' .unique').is(':checked');
-        console.log('PUT ' + entityId + ' {"'
-                + '_' + name + '": "'
-                + (notNull ? '+' : '')
-                + (type === 'del' ? null : type)
-                + (unique ? '!' : '')
-                + (format ? '(' + format + ')' : '')
-                + '"}');
+//        console.log('PUT ' + entityId + ' {"'
+//                + '_' + name + '": "'
+//                + (notNull ? '+' : '')
+//                + (type === 'del' ? null : type)
+//                + (unique ? '!' : '')
+//                + (format ? '(' + format + ')' : '')
+//                + '"}');
         if (name && name.length && type) {
 
             if (type === 'del') {
@@ -495,7 +500,7 @@ var _Schema = {
         }
     },
     putPropertyDefinition: function(id, data) {
-        console.log('putPropertyDefinition', id, data);
+        //console.log('putPropertyDefinition', id, data);
         $.ajax({
             url: rootUrl + 'schema_nodes/' + id,
             type: 'PUT',
@@ -513,7 +518,7 @@ var _Schema = {
             }
         });
     },
-    createNodeDefinition: function(type) {
+    createNode: function(type) {
         var url = rootUrl + 'schema_nodes';
         $.ajax({
             url: url,
@@ -523,6 +528,26 @@ var _Schema = {
             data: '{ "name": "' + type + '"}',
             statusCode: {
                 201: function() {
+                    //console.log('node created');
+                    _Schema.reload();
+                },
+                422: function(data) {
+                    //console.log(data);
+                    Structr.errorFromResponse(data.responseJSON);
+                }
+            }
+
+        });
+    },
+    deleteNode: function(id) {
+        var url = rootUrl + 'schema_nodes/' + id;
+        $.ajax({
+            url: url,
+            type: 'DELETE',
+            dataType: 'json',
+            contentType: 'application/json; charset=utf-8',
+            statusCode: {
+                200: function() {
                     //console.log('node created');
                     _Schema.reload();
                 },
@@ -636,17 +661,17 @@ var _Schema = {
     },
     changeName: function(id, element, input, oldName) {
         var newName = input.val();
+        input.hide();
+        element.children('b').text(newName).show();
         if (oldName !== newName) {
             _Schema.putPropertyDefinition(id, JSON.stringify({name: newName}));
-            _Schema.reload();
-        } else {
-            input.hide();
-            element.children('b').show();
         }
     }
 };
 
-
+function pluralize(name) {
+    return name.endsWith('y') ? name.substring(0, name.length-1) + 'ies' : (name.endsWith('s') ? name : name + 's');
+}
 
 var typeOptions = '<select class="property-type"><option value="">--Select type--</option>'
         + '<option value="String">String</option>'

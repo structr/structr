@@ -201,7 +201,7 @@ $(document).ready(function() {
         }
     });
 
-    $(window).on('keydown', function (e) {
+    $(window).on('keydown', function(e) {
         if (e.ctrlKey && (e.which === 83)) {
             e.preventDefault();
             dialogSaveButton.click();
@@ -497,10 +497,10 @@ var Structr = {
         $('#maximizeDialog').show().on('click', function() {
             Structr.maximize();
         });
-        
-        $('.CodeMirror').each(function(i, el){
+
+        $('.CodeMirror').each(function(i, el) {
             el.CodeMirror.refresh();
-        });        
+        });
 
     },
     maximize: function() {
@@ -546,10 +546,10 @@ var Structr = {
         $('#minimizeDialog').show().on('click', function() {
             Structr.resize();
         });
-        
-        $('.CodeMirror').each(function(i, el){
+
+        $('.CodeMirror').each(function(i, el) {
             el.CodeMirror.refresh();
-        });        
+        });
 
     },
     error: function(text, callback) {
@@ -576,27 +576,35 @@ var Structr = {
             }
         });
     },
-    errorFromResponse: function(response, callback) {
+    errorFromResponse: function(response, url) {
         var errorText = '';
-        
-        $.each(Object.keys(response.errors), function(i, err) {
-            errorText += err + ': ';
-            //console.log(Object.keys(response.errors[err]));
-            $.each(Object.keys(response.errors[err]), function(j, attr) {
-               errorText += attr + ' ' ;
-               //console.log(attr, Object.keys(response.errors[err][attr]));
-               $.each(response.errors[err][attr], function(k, cond) {
-                   //console.log(cond);
-                   $.each(Object.keys(cond), function(l, key) {
-                       errorText += key + ' ' + cond[key];
-                   });
-               });
+        if (response.errors) {
+            $.each(Object.keys(response.errors), function(i, err) {
+                errorText += err + ': ';
+                //console.log(Object.keys(response.errors[err]));
+                $.each(Object.keys(response.errors[err]), function(j, attr) {
+                    errorText += attr + ' ';
+                    //console.log(attr, Object.keys(response.errors[err][attr]));
+                    $.each(response.errors[err][attr], function(k, cond) {
+                        console.log(cond);
+                        if (typeof cond === 'Object') {
+                            $.each(Object.keys(cond), function(l, key) {
+                                errorText += key + ' ' + cond[key];
+                            });
+                        } else {
+                            errorText += ' ' + cond;
+                        }
+                    });
+                });
+                errorText += '\n';
+                //console.log(errorText);
             });
-            errorText += '\n';
-            //console.log(errorText);
+        } else {
+            errorText += url + ': ' + response.code + ' ' + response.message;
+        }
+        Structr.error(errorText, function() {
+        }, function() {
         });
-        
-        Structr.error(errorText, function() {}, function() {});
     },
     tempInfo: function(text, autoclose) {
         window.clearTimeout(dialogId);
