@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
@@ -25,6 +26,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.ManyToMany;
+import org.structr.core.entity.ResourceAccess;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.Property;
@@ -106,12 +108,14 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 				return false;
 			}
 
-			final String signature = getResourceSignature();
+			final String signature        = getResourceSignature();
+			final String inverseSignature = getInverseResourceSignature();
 			final Long flags       = getProperty(AbstractSchemaNode.accessFlags);
 
-			if (StringUtils.isNotBlank(signature)) {
+			if (StringUtils.isNotBlank(signature) && StringUtils.isNotBlank(inverseSignature)) {
 
-				SchemaHelper.createGrants(signature, flags);
+				getSourceNode().setProperty(AbstractSchemaNode.targetNodeGrants, SchemaHelper.createGrants(signature, flags));
+				getTargetNode().setProperty(AbstractSchemaNode.sourceNodeGrants, SchemaHelper.createGrants(inverseSignature, flags));
 
 				// register transaction post processing that recreates the schema information
 				TransactionCommand.postProcess("reloadSchema", new ReloadSchema());
@@ -128,12 +132,14 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 
 		if (super.onModification(securityContext, errorBuffer)) {
 
-			final String signature = getResourceSignature();
+			final String signature        = getResourceSignature();
+			final String inverseSignature = getInverseResourceSignature();
 			final Long flags       = getProperty(AbstractSchemaNode.accessFlags);
 
-			if (StringUtils.isNotBlank(signature)) {
+			if (StringUtils.isNotBlank(signature) && StringUtils.isNotBlank(inverseSignature)) {
 
-				SchemaHelper.createGrants(signature, flags);
+				SchemaHelper.updateGrants(getSourceNode().getProperty(AbstractSchemaNode.targetNodeGrants), signature, flags);
+				SchemaHelper.updateGrants(getTargetNode().getProperty(AbstractSchemaNode.sourceNodeGrants), inverseSignature, flags);
 
 				// register transaction post processing that recreates the schema information
 				TransactionCommand.postProcess("reloadSchema", new ReloadSchema());
@@ -151,9 +157,12 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 		Services.getInstance().getConfigurationProvider().unregisterEntityType(getClassName());
 		
 		final String signature = getResourceSignature();
-		if (StringUtils.isNotBlank(signature)) {
+		final String inverseSignature = getInverseResourceSignature();
+		
+		if (StringUtils.isNotBlank(signature) && StringUtils.isNotBlank(inverseSignature)) {
 			
-			SchemaHelper.removeGrants(getResourceSignature());
+			SchemaHelper.removeGrants(signature);
+			SchemaHelper.removeGrants(inverseSignature);
 		}
 	}
 
@@ -197,7 +206,7 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 				
 			} else {
 				
-				final String propertyName = CaseHelper.toLowerCamelCase(_targetType) + "s";
+				final String propertyName = CaseHelper.plural(CaseHelper.toLowerCamelCase(_targetType));
 				
 				buf.append("\tpublic static final Property<List<").append(_targetType).append(">> ").append(propertyName).append("Property");
 				buf.append(" = new EndNodes<>(\"").append(propertyName).append("\", ").append(_className).append(".class");
@@ -218,7 +227,7 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 				
 			} else {
 				
-				final String propertyName = CaseHelper.toLowerCamelCase(_sourceType) + "s";
+				final String propertyName = CaseHelper.plural(CaseHelper.toLowerCamelCase(_sourceType));
 				
 				buf.append("\tpublic static final Property<List<").append(_sourceType).append(">> ").append(propertyName).append("Property");
 				buf.append(" = new StartNodes<>(\"").append(propertyName).append("\", ").append(_className).append(".class");
@@ -245,7 +254,7 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 				
 			} else {
 				
-				return CaseHelper.toLowerCamelCase(_targetType) + "s";
+				return CaseHelper.plural(CaseHelper.toLowerCamelCase(_targetType));
 			}
 			
 		} else if (_targetType.equals(relatedClassName)) {
@@ -256,7 +265,7 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 				
 			} else {
 				
-				return CaseHelper.toLowerCamelCase(_sourceType) + "s";
+				return CaseHelper.plural(CaseHelper.toLowerCamelCase(_sourceType));
 			}
 		}
 		
@@ -469,6 +478,14 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 		return _sourceType + "/" + _targetType;
 	}
 	
+	private String getInverseResourceSignature() {
+		
+		final String _sourceType = getSchemaNodeSourceType();
+		final String _targetType = getSchemaNodeTargetType();
+		
+		return _targetType + "/" + _sourceType;
+	}
+
 	private String getRelationshipType() {
 		
 		String relType = getProperty(relationshipType);

@@ -8,7 +8,10 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidSchemaToken;
 import org.structr.core.Services;
 import static org.structr.core.entity.AbstractNode.name;
+import org.structr.core.entity.relationship.TargetSchemaNodeResourceAccess;
 import org.structr.core.entity.relationship.SchemaNodeResourceAccess;
+import org.structr.core.entity.relationship.SchemaRelationship;
+import org.structr.core.entity.relationship.SourceSchemaNodeResourceAccess;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.LongProperty;
@@ -23,8 +26,11 @@ import org.structr.schema.SchemaHelper;
  */
 public abstract class AbstractSchemaNode extends AbstractNode {
 	
-	public static final Property<Long> accessFlags = new LongProperty("accessFlags").indexed();
-	public static final Property<List<ResourceAccess>> grants = new EndNodes("grants", SchemaNodeResourceAccess.class);
+	public static final Property<Long> accessFlags                      = new LongProperty("accessFlags").indexed();
+	public static final Property<List<ResourceAccess>> grants           = new EndNodes("grants", SchemaNodeResourceAccess.class);
+	public static final Property<List<ResourceAccess>> sourceNodeGrants = new EndNodes("sourceNodeGrants", SourceSchemaNodeResourceAccess.class);
+	public static final Property<List<ResourceAccess>> targetNodeGrants = new EndNodes("targetNodeGrants", TargetSchemaNodeResourceAccess.class);
+	
 
 	static {
 		
@@ -75,6 +81,16 @@ public abstract class AbstractSchemaNode extends AbstractNode {
 			if (StringUtils.isNotBlank(signature)) {
 
 				SchemaHelper.updateGrants(getProperty(grants), signature, flags);
+				
+				// Trigger update of resource access grants for related properties
+				
+				for (SchemaRelationship rel : getIncomingRelationships(SchemaRelationship.class)) {
+					rel.onModification(securityContext, errorBuffer);
+				}
+
+				for (SchemaRelationship rel : getOutgoingRelationships(SchemaRelationship.class)) {
+					rel.onModification(securityContext, errorBuffer);
+				}
 				
 				// register transaction post processing that recreates the schema information
 				TransactionCommand.postProcess("reloadSchema", new ReloadSchema());
