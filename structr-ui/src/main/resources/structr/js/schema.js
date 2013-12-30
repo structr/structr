@@ -167,7 +167,7 @@ var _Schema = {
                     var id = 'id_' + res.id;
                     nodes[res.id] = res;
                     canvas.append('<div class="schema node" id="' + id + '"><b>' + res.name + '</b><img class="icon" src="icon/cross_small_grey.png">'
-                            + '<table class="schema-props"><th>Property Name</th><th>Type</th><th>Format</th><th>Not null</th><th>Unique</th></table>'
+                            + '<table class="schema-props"><th>JSON Name</th><th>DB Name</th><th>Type</th><th>Format</th><th>Not null</th><th>Unique</th></table>'
                             + '</div>');
                     var propertiesTable = $('#' + id + ' .schema-props');
 
@@ -190,18 +190,20 @@ var _Schema = {
                         _Schema.appendLocalProperty(propertiesTable, id, res, key);
                     });
 
-                    propertiesTable.append('<tr class="new"><td><input size="15" type="text" class="property-name" placeholder="Enter name"></td>'
+                    propertiesTable.append('<tr class="new"><td><input size="15" type="text" class="property-name" placeholder="Enter JSON name"></td>'
+                            + '<td><input size="15" type="text" class="property-dbname" placeholder="Enter DB name"></td>'
                             + '<td>' + typeOptions + '</td>'
                             + '<td><input size="15" type="text" class="property-format" placeholder="Enter format"></td>'
                             + '<td><input class="not-null" type="checkbox"></td>'
                             + '<td><input class="unique" type="checkbox"></td></div>');
 
                     $('#' + id + ' .new .property-name').on('blur', function() {
-                        var name = $('#' + id + ' .new .property-name').val();
-                        var type = $('#' + id + ' .new .property-type').val();
-                        var format = $('#' + id + ' .new .property-format').val();
+                        var name    = $('#' + id + ' .new .property-name').val();
+                        var dbName  = $('#' + id + ' .new .property-dbname').val();
+                        var type    = $('#' + id + ' .new .property-type').val();
+                        var format  = $('#' + id + ' .new .property-format').val();
                         var notNull = $('#' + id + ' .new .not-null').is(':checked');
-                        var unique = $('#' + id + ' .new .unique').is(':checked');
+                        var unique  = $('#' + id + ' .new .unique').is(':checked');
 
                         if (name && name.length && type) {
                             _Schema.putPropertyDefinition(res.id, ' {"'
@@ -215,11 +217,12 @@ var _Schema = {
                     });
 
                     $('#' + id + ' .new .property-type').on('change', function() {
-                        var name = $('#' + id + ' .new .property-name').val();
-                        var type = $('#' + id + ' .new .property-type').val();
+                        var name    = $('#' + id + ' .new .property-name').val();
+                        var dbName  = $('#' + id + ' .new .property-dbname').val();
+                        var type    = $('#' + id + ' .new .property-type').val();
                         var notNull = $('#' + id + ' .new .not-null').is(':checked');
-                        var unique = $('#' + id + ' .new .unique').is(':checked');
-                        var format = $('#' + id + ' .new .property-format').val();
+                        var unique  = $('#' + id + ' .new .unique').is(':checked');
+                        var format  = $('#' + id + ' .new .property-format').val();
 //                        console.log('PUT ' + res.id + ' {"'
 //                                + '_' + name + '": "'
 //                                + (notNull ? '+' : '')
@@ -239,11 +242,12 @@ var _Schema = {
                     });
 
                     $('#' + id + ' .new .property-format').on('change', function() {
-                        var name = $('#' + id + ' .new .property-name').val();
-                        var type = $('#' + id + ' .new .property-type').val();
+                        var name    = $('#' + id + ' .new .property-name').val();
+                        var dbName  = $('#' + id + ' .new .property-dbname').val();
+                        var type    = $('#' + id + ' .new .property-type').val();
                         var notNull = $('#' + id + ' .new .not-null').is(':checked');
-                        var unique = $('#' + id + ' .new .unique').is(':checked');
-                        var format = $('#' + id + ' .new .property-format').val();
+                        var unique  = $('#' + id + ' .new .unique').is(':checked');
+                        var format  = $('#' + id + ' .new .property-format').val();
 //                        console.log('PUT ' + res.id + ' {"'
 //                                + '_' + name + '": "'
 //                                + (notNull ? '+' : '')
@@ -386,15 +390,15 @@ var _Schema = {
 
                     // Add source property
                     var source = nodes[res.sourceId];
-                    var key = (res.sourceMultiplicity !== '1' ? pluralize(source.name.toLowerCase()) : source.name.toLowerCase());
+                    var key = res.sourceJsonName ? res.sourceJsonName : (res.sourceMultiplicity !== '1' ? pluralize(source.name.toLowerCase()) : source.name.toLowerCase());
                     var node = nodes[res.targetId];
-                    _Schema.appendRelatedProperty($('#id_' + node.id + ' .schema-props'), res, key);
+                    _Schema.appendRelatedProperty($('#id_' + node.id + ' .schema-props'), node.id, res, key);
 
                     // Add target property
                     var target = nodes[res.targetId];
-                    var key = (res.targetMultiplicity !== '1' ? pluralize(target.name.toLowerCase()) : target.name.toLowerCase());
+                    var key = res.targetJsonName ? res.targetJsonName : (res.targetMultiplicity !== '1' ? pluralize(target.name.toLowerCase()) : target.name.toLowerCase());
                     var node = nodes[res.sourceId];
-                    _Schema.appendRelatedProperty($('#id_' + node.id + ' .schema-props'), res, key);
+                    _Schema.appendRelatedProperty($('#id_' + node.id + ' .schema-props'), node.id, res, key);
                     
                     instance.repaintEverything();
 
@@ -422,6 +426,11 @@ var _Schema = {
 
         if (key.startsWith('_')) {
             
+            var name = key.substring(1);
+            var dbName = '';
+            if (key.indexOf('|') > -1) {
+                dbName = key.substring(key.indexOf('|'));
+            }
             var notNull = (res[key].indexOf('+') > -1);
             var unique = (res[key].indexOf('!') > -1);
             var type = res[key].replace('+', '').replace('!', '');
@@ -431,7 +440,8 @@ var _Schema = {
                 type = parts[0];
                 format = parts[1].replace(')', '');
             }
-            el.append('<tr class="' + key + '"><td><input size="15" type="text" class="property-name" value="' + key.substring(1) + '"></td><td>'
+            el.append('<tr class="' + key + '"><td><input size="15" type="text" class="property-name" value="' + name + '"></td><td>'
+                    + '<input size="15" type="text" class="property-dbname" value="' + dbName + '"></td><td>'
                     + typeOptions + '</td><td><input size="15" type="text" class="property-format" value="'
                     + (format ? format : '') + '"></td><td><input class="not-null" type="checkbox"'
                     + (notNull ? ' checked="checked"' : '') + '></td><td><input class="unique" type="checkbox"'
@@ -440,43 +450,64 @@ var _Schema = {
             $('#' + id + ' .' + key + ' .property-type option[value="' + type + '"]').attr('selected', true);
 
             $('#' + id + ' .' + key + ' .property-type').on('change', function() {
-                _Schema.savePropertyDefintion(res.id, key);
+                _Schema.savePropertyDefinition(res.id, key);
             });
 
             $('#' + id + ' .' + key + ' .property-format').on('blur', function() {
-                _Schema.savePropertyDefintion(res.id, key);
+                _Schema.savePropertyDefinition(res.id, key);
             });
 
             $('#' + id + ' .' + key + ' .not-null').on('change', function() {
-                _Schema.savePropertyDefintion(res.id, key);
+                _Schema.savePropertyDefinition(res.id, key);
             });
 
             $('#' + id + ' .' + key + ' .unique').on('change', function() {
-                _Schema.savePropertyDefintion(res.id, key);
+                _Schema.savePropertyDefinition(res.id, key);
             });
 
         }
 
     },
-    appendRelatedProperty: function(el, rel, key) {
+    appendRelatedProperty: function(el, id, rel, key) {
 
         var relType = rel.relationshipType;
         relType = relType === undefinedRelType ? '' : relType;
 
-        el.append('<tr class="' + key + '"><td><input size="15" type="text" class="property-name" value="' + key + '"></td><td>'
+        var dbName = key;
+        if (id === rel.sourceId) {
+            dbName = rel.targetDbName ? rel.targetDbName : '';
+        } else {
+            dbName = rel.sourceDbName ? rel.sourceDbName : '';
+        }
+
+        el.append('<tr class="' + key + '"><td><input size="15" type="text" class="property-name related" value="' + key + '"></td><td>'
+                + '<input size="15" type="text" class="property-dbname related" value="' + dbName + '"></td><td>'
                 + 'Related (' + relType + ')' + '</td><td><input size="15" type="text" class="property-format" value="'
                 + '' + '"></td><td><input class="not-null" type="checkbox"'
                 + '' + '></td><td><input class="unique" type="checkbox"'
                 + '' + '</td></div>');
 
+        $('#id_' + id + ' .' + key + ' .property-name').on('blur', function() {
+            console.log('modified related property name', id, rel, key, $(this).val());
+            
+            var newName = $(this).val();
+            
+            if (id === rel.sourceId) {
+                _Schema.setRelationshipProperty(rel.id, 'targetJsonName', newName);
+            } else {
+                _Schema.setRelationshipProperty(rel.id, 'sourceJsonName', newName);
+            }
+        });
+
     },
-    savePropertyDefintion: function(entityId, key) {
-        var id = 'id_' + entityId;
-        var name = $('#' + id + ' .' + key + ' .property-name').val();
-        var type = $('#' + id + ' .' + key + ' .property-type').val();
-        var format = $('#' + id + ' .' + key + ' .property-format').val();
+    savePropertyDefinition: function(entityId, key) {
+        var id      = 'id_' + entityId;
+        var name    = $('#' + id + ' .' + key + ' .property-name').val();
+        var dbName  = $('#' + id + ' .' + key + ' .property-dbname').val();
+        var type    = $('#' + id + ' .' + key + ' .property-type').val();
+        var format  = $('#' + id + ' .' + key + ' .property-format').val();
         var notNull = $('#' + id + ' .' + key + ' .not-null').is(':checked');
-        var unique = $('#' + id + ' .' + key + ' .unique').is(':checked');
+        var unique  = $('#' + id + ' .' + key + ' .unique').is(':checked');
 //        console.log('PUT ' + entityId + ' {"'
 //                + '_' + name + '": "'
 //                + (notNull ? '+' : '')
@@ -490,7 +521,7 @@ var _Schema = {
                 _Schema.putPropertyDefinition(entityId, ' {"_' + name + '":null}');
             } else {
                 _Schema.putPropertyDefinition(entityId, ' {"'
-                        + '_' + name + '": "'
+                        + '_' + name + (dbName ? '|' + dbName : '') + '": "'
                         + (notNull ? '+' : '')
                         + (type === 'del' ? null : type)
                         + (unique ? '!' : '')

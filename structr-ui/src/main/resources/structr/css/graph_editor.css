@@ -16,12 +16,6 @@ canvas {
     height: 300px;
 }
 
-.schema {
-    width: 400px;
-    /*height: 200px;*/
-    padding-bottom: 6px ! important;
-}
-
 .medium {
     width: 200px;
     height: 100px;

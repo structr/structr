@@ -1278,6 +1278,12 @@ button.add_property {
  * Schema
  */
 
+.schema {
+    width: 600px;
+    /*height: 200px;*/
+    padding-bottom: 6px ! important;
+}
+
 .schema-input-container {
     margin: 12px;
 }
@@ -1325,7 +1331,7 @@ button.add_property {
     margin: 6px 0;
 }
 
-.property-name, .property-type, .property-format, #relationship-label {
+.property-name, .property-dbname, .property-type, .property-format, #relationship-label {
     border: none;
     background: transparent;
     font-size: 1em;
@@ -1338,7 +1344,7 @@ button.add_property {
 }
 
 .schema b:hover,
-.schema .property-name:hover {
+.schema .related:hover {
     cursor: text;
     box-shadow: 2px 0 #000;
     color: #222;
@@ -1352,7 +1358,7 @@ button.add_property {
     margin: 1px 0 1px -1px;
 }
 
-.schema .property-name:hover {
+.schema .related:hover {
     margin: 1px 0 1px 1px;
 }
 

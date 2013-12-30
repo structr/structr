@@ -166,6 +166,8 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 	public String getPropertySource(final String relatedClassName) {
 		
 		final StringBuilder buf          = new StringBuilder();
+		final String _sourceJsonName     = getProperty(sourceJsonName);
+		final String _targetJsonName     = getProperty(targetJsonName);
 		final String _sourceMultiplicity = getProperty(sourceMultiplicity);
 		final String _targetMultiplicity = getProperty(targetMultiplicity);
 		final String _sourceNotion       = getProperty(sourceNotion);
@@ -178,7 +180,7 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 
 			if ("1".equals(_targetMultiplicity)) {
 
-				final String propertyName = CaseHelper.toLowerCamelCase(_targetType);
+				final String propertyName = _targetJsonName != null ? _targetJsonName : CaseHelper.toLowerCamelCase(_targetType);
 				
 				buf.append("\tpublic static final Property<").append(_targetType).append("> ").append(propertyName).append("Property");
 				buf.append(" = new EndNode<>(\"").append(propertyName).append("\", ").append(_className).append(".class");
@@ -187,7 +189,7 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 				
 			} else {
 				
-				final String propertyName = CaseHelper.plural(CaseHelper.toLowerCamelCase(_targetType));
+				final String propertyName = _targetJsonName != null ? _targetJsonName : CaseHelper.plural(CaseHelper.toLowerCamelCase(_targetType));
 				
 				buf.append("\tpublic static final Property<List<").append(_targetType).append(">> ").append(propertyName).append("Property");
 				buf.append(" = new EndNodes<>(\"").append(propertyName).append("\", ").append(_className).append(".class");
@@ -199,7 +201,7 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 			
 			if ("1".equals(_sourceMultiplicity)) {
 
-				final String propertyName = CaseHelper.toLowerCamelCase(_sourceType);
+				final String propertyName = _sourceJsonName != null ? _sourceJsonName : CaseHelper.toLowerCamelCase(_sourceType);
 				
 				buf.append("\tpublic static final Property<").append(_sourceType).append("> ").append(propertyName).append("Property");
 				buf.append(" = new StartNode<>(\"").append(propertyName).append("\", ").append(_className).append(".class");
@@ -208,7 +210,7 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 				
 			} else {
 				
-				final String propertyName = CaseHelper.plural(CaseHelper.toLowerCamelCase(_sourceType));
+				final String propertyName = _sourceJsonName != null ? _sourceJsonName : CaseHelper.plural(CaseHelper.toLowerCamelCase(_sourceType));
 				
 				buf.append("\tpublic static final Property<List<").append(_sourceType).append(">> ").append(propertyName).append("Property");
 				buf.append(" = new StartNodes<>(\"").append(propertyName).append("\", ").append(_className).append(".class");
@@ -222,12 +224,18 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 
 	public String getPropertyName(final String relatedClassName) {
 		
-		final String _sourceMultiplicity = getProperty(sourceMultiplicity);
-		final String _targetMultiplicity = getProperty(targetMultiplicity);
 		final String _sourceType         = getSchemaNodeSourceType();
 		final String _targetType         = getSchemaNodeTargetType();
 
 		if (_sourceType.equals(relatedClassName)) {
+
+			final String _targetJsonName     = getProperty(targetJsonName);
+
+			if (_targetJsonName != null) {
+				return _targetJsonName;
+			}
+
+			final String _targetMultiplicity = getProperty(targetMultiplicity);
 
 			if ("1".equals(_targetMultiplicity)) {
 
@@ -239,6 +247,14 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 			}
 			
 		} else if (_targetType.equals(relatedClassName)) {
+
+			final String _sourceJsonName     = getProperty(sourceJsonName);
+			
+			if (_sourceJsonName != null) {
+				return _sourceJsonName;
+			}
+
+			final String _sourceMultiplicity = getProperty(sourceMultiplicity);
 			
 			if ("1".equals(_sourceMultiplicity)) {
 
