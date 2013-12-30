@@ -1,19 +1,13 @@
 package org.structr.core.entity;
 
-import java.util.List;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.InvalidSchemaToken;
 import org.structr.core.Services;
 import static org.structr.core.entity.AbstractNode.name;
-import org.structr.core.entity.relationship.TargetSchemaNodeResourceAccess;
-import org.structr.core.entity.relationship.SchemaNodeResourceAccess;
 import org.structr.core.entity.relationship.SchemaRelationship;
-import org.structr.core.entity.relationship.SourceSchemaNodeResourceAccess;
 import org.structr.core.graph.TransactionCommand;
-import org.structr.core.property.EndNodes;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.Property;
 import org.structr.core.validator.TypeUniquenessValidator;
@@ -27,9 +21,6 @@ import org.structr.schema.SchemaHelper;
 public abstract class AbstractSchemaNode extends AbstractNode {
 	
 	public static final Property<Long> accessFlags                      = new LongProperty("accessFlags").indexed();
-	public static final Property<List<ResourceAccess>> grants           = new EndNodes("grants", SchemaNodeResourceAccess.class);
-	public static final Property<List<ResourceAccess>> sourceNodeGrants = new EndNodes("sourceNodeGrants", SourceSchemaNodeResourceAccess.class);
-	public static final Property<List<ResourceAccess>> targetNodeGrants = new EndNodes("targetNodeGrants", TargetSchemaNodeResourceAccess.class);
 	
 
 	static {
@@ -47,24 +38,17 @@ public abstract class AbstractSchemaNode extends AbstractNode {
 		if (super.onCreation(securityContext, errorBuffer)) {
 
 			// check if type already exists and raise an error if yes.
-			if (Services.getInstance().getConfigurationProvider().getNodeEntityClass(getProperty(name)) != null) {
+//			if (Services.getInstance().getConfigurationProvider().getNodeEntityClass(getClassName()) != null) {
+//			
+//				errorBuffer.add(SchemaNode.class.getSimpleName(), new InvalidSchemaToken(getProperty(name), "type_already_exists"));
+//				return false;
+//			}
 			
-				errorBuffer.add(SchemaNode.class.getSimpleName(), new InvalidSchemaToken(getProperty(name), "type_already_exists"));
-				return false;
-			}
-			
-			final String signature = getResourceSignature();
-			final Long flags       = getProperty(accessFlags);
 
-			if (StringUtils.isNotBlank(signature)) {
+			// register transaction post processing that recreates the schema information
+			TransactionCommand.postProcess("reloadSchema", new ReloadSchema());
 
-				setProperty(grants, SchemaHelper.createGrants(signature, flags));
-				
-				// register transaction post processing that recreates the schema information
-				TransactionCommand.postProcess("reloadSchema", new ReloadSchema());
-				
-				return true;
-			}
+			return true;
 		}
 		
 		return false;
@@ -75,28 +59,10 @@ public abstract class AbstractSchemaNode extends AbstractNode {
 		
 		if (super.onModification(securityContext, errorBuffer)) {
 			
-			final String signature = getResourceSignature();
-			final Long flags       = getProperty(accessFlags);
+			// register transaction post processing that recreates the schema information
+			TransactionCommand.postProcess("reloadSchema", new ReloadSchema());
 
-			if (StringUtils.isNotBlank(signature)) {
-
-				SchemaHelper.updateGrants(getProperty(grants), signature, flags);
-				
-				// Trigger update of resource access grants for related properties
-				
-				for (SchemaRelationship rel : getIncomingRelationships(SchemaRelationship.class)) {
-					rel.onModification(securityContext, errorBuffer);
-				}
-
-				for (SchemaRelationship rel : getOutgoingRelationships(SchemaRelationship.class)) {
-					rel.onModification(securityContext, errorBuffer);
-				}
-				
-				// register transaction post processing that recreates the schema information
-				TransactionCommand.postProcess("reloadSchema", new ReloadSchema());
-
-				return true;
-			}
+			return true;
 		}
 		
 		return false;
@@ -110,11 +76,11 @@ public abstract class AbstractSchemaNode extends AbstractNode {
 		final String signature = getResourceSignature();
 		if (StringUtils.isNotBlank(signature)) {
 			
-			SchemaHelper.removeGrants(getResourceSignature());
+			SchemaHelper.removeDynamicGrants(getResourceSignature());
 		}
 	}
 	
-	private String getResourceSignature() {
+	public String getResourceSignature() {
 		return SchemaHelper.normalizeEntityName(getProperty(name));
 	}
 }

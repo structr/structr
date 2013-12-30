@@ -9,6 +9,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.commons.lang.StringUtils;
 import org.neo4j.graphdb.PropertyContainer;
 import org.structr.common.CaseHelper;
@@ -20,8 +22,9 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidPropertySchemaToken;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.ResourceAccess;
+import org.structr.core.entity.DynamicResourceAccess;
 import org.structr.core.entity.SchemaNode;
+import org.structr.core.entity.relationship.SchemaRelationship;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.schema.parser.BooleanPropertyParser;
 import org.structr.schema.parser.CountPropertyParser;
@@ -178,18 +181,52 @@ public class SchemaHelper {
 	}
 
 	public static boolean reloadSchema(final ErrorBuffer errorBuffer) {
+		
+		final App app = StructrApp.getInstance();
+		
+		try {
+
+			app.beginTx();
+			
+			removeAllDynamicGrants();
+			
+			for (final SchemaNode schemaNode : StructrApp.getInstance().nodeQuery(SchemaNode.class).getAsList()) {
+				
+				createDynamicGrants(schemaNode.getResourceSignature(), null);
+				
+			}
+			
+			for (final SchemaRelationship schemaRelationship : StructrApp.getInstance().relationshipQuery(SchemaRelationship.class).getAsList()) {
+				
+				createDynamicGrants(schemaRelationship.getResourceSignature(), null);
+				createDynamicGrants(schemaRelationship.getInverseResourceSignature(), null);
+				
+			}
+
+			app.commitTx();
+			
+		} catch (Throwable t) {
+
+			t.printStackTrace();
+
+		} finally {
+
+			app.finishTx();
+		}
+			
 		return SchemaService.reloadSchema(errorBuffer);
+			
 	}
 
-	public static List<ResourceAccess> createGrants(final String signature, final Long flags) {
+	public static List<DynamicResourceAccess> createDynamicGrants(final String signature, final Long flags) {
 
-		List<ResourceAccess> grants = new LinkedList<>();
+		List<DynamicResourceAccess> grants = new LinkedList<>();
 
 		final App app = StructrApp.getInstance();
 		try {
 
 			app.beginTx();
-			ResourceAccess grant = app.nodeQuery(ResourceAccess.class).and(ResourceAccess.signature, signature).getFirst();
+			DynamicResourceAccess grant = app.nodeQuery(DynamicResourceAccess.class).and(DynamicResourceAccess.signature, signature).getFirst();
 			long flagsValue = 255;
 
 			// set value from grant flags
@@ -200,21 +237,21 @@ public class SchemaHelper {
 			if (grant == null) {
 
 				// create new grant
-				grants.add(app.create(ResourceAccess.class,
-					new NodeAttribute(ResourceAccess.signature, signature),
-					new NodeAttribute(ResourceAccess.flags, flagsValue)
+				grants.add(app.create(DynamicResourceAccess.class,
+					new NodeAttribute(DynamicResourceAccess.signature, signature),
+					new NodeAttribute(DynamicResourceAccess.flags, flagsValue)
 				));
 
 				// create additional grant for the _schema resource
-				grants.add(app.create(ResourceAccess.class,
-					new NodeAttribute(ResourceAccess.signature, "_schema/" + signature),
-					new NodeAttribute(ResourceAccess.flags, flagsValue)
+				grants.add(app.create(DynamicResourceAccess.class,
+					new NodeAttribute(DynamicResourceAccess.signature, "_schema/" + signature),
+					new NodeAttribute(DynamicResourceAccess.flags, flagsValue)
 				));
 
 				// create additional grant for the Ui view
-				grants.add(app.create(ResourceAccess.class,
-					new NodeAttribute(ResourceAccess.signature, signature + "/_Ui"),
-					new NodeAttribute(ResourceAccess.flags, flagsValue)
+				grants.add(app.create(DynamicResourceAccess.class,
+					new NodeAttribute(DynamicResourceAccess.signature, signature + "/_Ui"),
+					new NodeAttribute(DynamicResourceAccess.flags, flagsValue)
 				));
 
 			} else {
@@ -223,7 +260,7 @@ public class SchemaHelper {
 				// Caution: this means that the SchemaNode is the 
 				// primary source for resource access flag values
 				// of dynamic nodes
-				grant.setProperty(ResourceAccess.flags, flagsValue);
+				grant.setProperty(DynamicResourceAccess.flags, flagsValue);
 			}
 
 			app.commitTx();
@@ -241,42 +278,67 @@ public class SchemaHelper {
 
 	}
 
-	public static void updateGrants(final List<ResourceAccess> grants, final String signature, final Long flags) {
+//	public static void updateGrants(final List<DynamicResourceAccess> grants, final String signature, final Long flags) {
+//
+//		final App app = StructrApp.getInstance();
+//		
+//		long flagsValue = 255;
+//
+//		// set value from grant flags
+//		if (flags != null) {
+//			flagsValue = flags.longValue();
+//		}
+//		
+//		try {
+//			app.beginTx();
+//			
+//			for (DynamicResourceAccess grant : grants) {
+//				
+//				final String oldSignature = grant.getProperty(DynamicResourceAccess.signature);
+//				
+//				if (oldSignature.startsWith("_schema/")) {
+//					
+//					grant.setProperty(DynamicResourceAccess.signature, "_schema/" + signature);
+//					
+//				} else if (oldSignature.endsWith("/_Ui")) {
+//					
+//					grant.setProperty(DynamicResourceAccess.signature, signature + "/_Ui");
+//					
+//				} else {
+//					
+//					grant.setProperty(DynamicResourceAccess.signature, signature);
+//					
+//				}
+//				
+//				grant.setProperty(DynamicResourceAccess.flags, flagsValue);
+//				
+//			}
+//			
+//			app.commitTx();
+//
+//		} catch (Throwable t) {
+//
+//			t.printStackTrace();
+//
+//		} finally {
+//
+//			app.finishTx();
+//		}
+//
+//	}
+
+	public static void removeAllDynamicGrants() {
 
 		final App app = StructrApp.getInstance();
-		
-		long flagsValue = 255;
-
-		// set value from grant flags
-		if (flags != null) {
-			flagsValue = flags.longValue();
-		}
-		
 		try {
+
 			app.beginTx();
-			
-			for (ResourceAccess grant : grants) {
-				
-				final String oldSignature = grant.getProperty(ResourceAccess.signature);
-				
-				if (oldSignature.startsWith("_schema/")) {
-					
-					grant.setProperty(ResourceAccess.signature, "_schema/" + signature);
-					
-				} else if (oldSignature.endsWith("/_Ui")) {
-					
-					grant.setProperty(ResourceAccess.signature, signature + "/_Ui");
-					
-				} else {
-					
-					grant.setProperty(ResourceAccess.signature, signature);
-					
-				}
-				
-				grant.setProperty(ResourceAccess.flags, flagsValue);
-				
+
+			// delete grants
+			for (DynamicResourceAccess grant : app.nodeQuery(DynamicResourceAccess.class).getAsList()) {
+				app.delete(grant);
 			}
-			
+
 			app.commitTx();
 
 		} catch (Throwable t) {
@@ -290,7 +352,7 @@ public class SchemaHelper {
 
 	}
 
-	public static void removeGrants(final String signature) {
+	public static void removeDynamicGrants(final String signature) {
 
 		final App app = StructrApp.getInstance();
 		try {
@@ -298,20 +360,20 @@ public class SchemaHelper {
 			app.beginTx();
 
 			// delete grant
-			ResourceAccess grant = app.nodeQuery(ResourceAccess.class).and(ResourceAccess.signature, signature).getFirst();
+			DynamicResourceAccess grant = app.nodeQuery(DynamicResourceAccess.class).and(DynamicResourceAccess.signature, signature).getFirst();
 			if (grant != null) {
 
 				app.delete(grant);
 			}
 
 			// delete grant
-			ResourceAccess schemaGrant = app.nodeQuery(ResourceAccess.class).and(ResourceAccess.signature, "_schema/" + signature).getFirst();
+			DynamicResourceAccess schemaGrant = app.nodeQuery(DynamicResourceAccess.class).and(DynamicResourceAccess.signature, "_schema/" + signature).getFirst();
 			if (schemaGrant != null) {
 
 				app.delete(schemaGrant);
 			}
 			// delete grant
-			ResourceAccess viewGrant = app.nodeQuery(ResourceAccess.class).and(ResourceAccess.signature, signature + "/_Ui").getFirst();
+			DynamicResourceAccess viewGrant = app.nodeQuery(DynamicResourceAccess.class).and(DynamicResourceAccess.signature, signature + "/_Ui").getFirst();
 			if (viewGrant != null) {
 
 				app.delete(viewGrant);

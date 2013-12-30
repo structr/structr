@@ -40,6 +40,7 @@ import java.util.logging.Logger;
 import org.apache.commons.lang.StringUtils;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.Cache;
+import org.structr.core.entity.DynamicResourceAccess;
 import org.structr.core.entity.Location;
 import org.structr.core.entity.Person;
 import org.structr.core.entity.PropertyAccess;
@@ -244,6 +245,14 @@ public class CreateGraphObjectsTest extends StructrTest {
 
 						props.put(ResourceAccess.signature, "/");
 						props.put(ResourceAccess.flags, 6L);
+
+					}
+
+					// For DynamicResourceAccess, fill mandatory fields
+					if (type.equals(DynamicResourceAccess.class)) {
+
+						props.put(DynamicResourceAccess.signature, "/");
+						props.put(DynamicResourceAccess.flags, 6L);
 
 					}
 

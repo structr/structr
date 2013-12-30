@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
@@ -20,13 +19,10 @@ import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.InvalidSchemaToken;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.ManyToMany;
-import org.structr.core.entity.ResourceAccess;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.Property;
@@ -53,10 +49,15 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 	public static final Property<String> targetMultiplicity = new StringProperty("targetMultiplicity");
 	public static final Property<String> sourceNotion       = new StringProperty("sourceNotion");
 	public static final Property<String> targetNotion       = new StringProperty("targetNotion");
+	public static final Property<String> sourceJsonName     = new StringProperty("sourceJsonName");
+	public static final Property<String> targetJsonName     = new StringProperty("targetJsonName");
+	public static final Property<String> sourceDbName       = new StringProperty("sourceDbName");
+	public static final Property<String> targetDbName       = new StringProperty("targetDbName");
 	
 	
 	public static final View defaultView = new View(SchemaRelationship.class, PropertyView.Public,
-		AbstractNode.name, sourceId, targetId, sourceMultiplicity, targetMultiplicity, sourceNotion, targetNotion, relationshipType
+		AbstractNode.name, sourceId, targetId, sourceMultiplicity, targetMultiplicity, sourceNotion, targetNotion, relationshipType,
+		sourceJsonName, targetJsonName, sourceDbName, targetDbName
 	);
 	
 	private Set<String> dynamicViews = new LinkedHashSet<>();
@@ -102,26 +103,16 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 		if (super.onCreation(securityContext, errorBuffer)) {
 
 			// check if type already exists and raise an error if yes.
-			if (Services.getInstance().getConfigurationProvider().getRelationshipEntityClass(getClassName()) != null) {
+//			if (Services.getInstance().getConfigurationProvider().getRelationshipEntityClass(getClassName()) != null) {
+//			
+//				errorBuffer.add(SchemaNode.class.getSimpleName(), new InvalidSchemaToken(getClassName(), "type_already_exists"));
+//				return false;
+//			}
 			
-				errorBuffer.add(SchemaNode.class.getSimpleName(), new InvalidSchemaToken(getClassName(), "type_already_exists"));
-				return false;
-			}
+			// register transaction post processing that recreates the schema information
+			TransactionCommand.postProcess("reloadSchema", new ReloadSchema());
 
-			final String signature        = getResourceSignature();
-			final String inverseSignature = getInverseResourceSignature();
-			final Long flags       = getProperty(AbstractSchemaNode.accessFlags);
-
-			if (StringUtils.isNotBlank(signature) && StringUtils.isNotBlank(inverseSignature)) {
-
-				getSourceNode().setProperty(AbstractSchemaNode.targetNodeGrants, SchemaHelper.createGrants(signature, flags));
-				getTargetNode().setProperty(AbstractSchemaNode.sourceNodeGrants, SchemaHelper.createGrants(inverseSignature, flags));
-
-				// register transaction post processing that recreates the schema information
-				TransactionCommand.postProcess("reloadSchema", new ReloadSchema());
-
-				return true;
-			}
+			return true;
 		}
 		
 		return false;
@@ -132,20 +123,10 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 
 		if (super.onModification(securityContext, errorBuffer)) {
 
-			final String signature        = getResourceSignature();
-			final String inverseSignature = getInverseResourceSignature();
-			final Long flags       = getProperty(AbstractSchemaNode.accessFlags);
+			// register transaction post processing that recreates the schema information
+			TransactionCommand.postProcess("reloadSchema", new ReloadSchema());
 
-			if (StringUtils.isNotBlank(signature) && StringUtils.isNotBlank(inverseSignature)) {
-
-				SchemaHelper.updateGrants(getSourceNode().getProperty(AbstractSchemaNode.targetNodeGrants), signature, flags);
-				SchemaHelper.updateGrants(getTargetNode().getProperty(AbstractSchemaNode.sourceNodeGrants), inverseSignature, flags);
-
-				// register transaction post processing that recreates the schema information
-				TransactionCommand.postProcess("reloadSchema", new ReloadSchema());
-
-				return true;
-			}
+			return true;
 		}
 		
 		return false;
@@ -161,8 +142,8 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 		
 		if (StringUtils.isNotBlank(signature) && StringUtils.isNotBlank(inverseSignature)) {
 			
-			SchemaHelper.removeGrants(signature);
-			SchemaHelper.removeGrants(inverseSignature);
+			SchemaHelper.removeDynamicGrants(signature);
+			SchemaHelper.removeDynamicGrants(inverseSignature);
 		}
 	}
 
@@ -470,7 +451,7 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 		return buf.toString();
 	}
 	
-	private String getResourceSignature() {
+	public String getResourceSignature() {
 		
 		final String _sourceType = getSchemaNodeSourceType();
 		final String _targetType = getSchemaNodeTargetType();
@@ -478,7 +459,7 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 		return _sourceType + "/" + _targetType;
 	}
 	
-	private String getInverseResourceSignature() {
+	public String getInverseResourceSignature() {
 		
 		final String _sourceType = getSchemaNodeSourceType();
 		final String _targetType = getSchemaNodeTargetType();
