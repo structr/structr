@@ -208,6 +208,7 @@ var _Schema = {
                         if (name && name.length && type) {
                             _Schema.putPropertyDefinition(res.id, ' {"'
                                     + '_' + name + '": "'
+                                    + (dbName ? dbName + '|' : '')
                                     + (notNull ? '+' : '')
                                     + (type === 'del' ? null : type)
                                     + (unique ? '!' : '')
@@ -233,6 +234,7 @@ var _Schema = {
                         if (name && name.length && type && (type !== 'Enum' || (format && format.length))) {
                             _Schema.putPropertyDefinition(res.id, ' {"'
                                     + '_' + name + '": "'
+                                    + (dbName ? dbName + '|' : '')
                                     + (notNull ? '+' : '')
                                     + type
                                     + (unique ? '!' : '')
@@ -258,6 +260,7 @@ var _Schema = {
                         if (name && name.length && type && (type !== 'Enum' || (format && format.length))) {
                             _Schema.putPropertyDefinition(res.id, ' {"'
                                     + '_' + name + '": "'
+                                    + (dbName ? dbName + '|' : '')
                                     + (notNull ? '+' : '')
                                     + type
                                     + (unique ? '!' : '')
@@ -428,12 +431,16 @@ var _Schema = {
             
             var name = key.substring(1);
             var dbName = '';
-            if (key.indexOf('|') > -1) {
-                dbName = key.substring(key.indexOf('|'));
+            var type;
+            if (res[key].indexOf('|') > -1) {
+                dbName = res[key].substring(0, res[key].indexOf('|'));
+                type = res[key].substring(res[key].indexOf('|')+1).replace('+', '').replace('!', '');
+            } else {
+                type = res[key].replace('+', '').replace('!', '');
             }
             var notNull = (res[key].indexOf('+') > -1);
             var unique = (res[key].indexOf('!') > -1);
-            var type = res[key].replace('+', '').replace('!', '');
+            
             var format;
             if (type.indexOf('(') > -1) {
                 var parts = type.split('(');
@@ -480,8 +487,7 @@ var _Schema = {
             dbName = rel.sourceDbName ? rel.sourceDbName : '';
         }
 
-        el.append('<tr class="' + key + '"><td><input size="15" type="text" class="property-name related" value="' + key + '"></td><td>'
-                + '<input size="15" type="text" class="property-dbname related" value="' + dbName + '"></td><td>'
+        el.append('<tr class="' + key + '"><td><input size="15" type="text" class="property-name related" value="' + key + '"></td><td></td><td>'
                 + 'Related (' + relType + ')' + '</td><td><input size="15" type="text" class="property-format" value="'
                 + '' + '"></td><td><input class="not-null" type="checkbox"'
                 + '' + '></td><td><input class="unique" type="checkbox"'
@@ -521,7 +527,8 @@ var _Schema = {
                 _Schema.putPropertyDefinition(entityId, ' {"_' + name + '":null}');
             } else {
                 _Schema.putPropertyDefinition(entityId, ' {"'
-                        + '_' + name + (dbName ? '|' + dbName : '') + '": "'
+                        + '_' + name + '": "'
+                        + (dbName ? dbName + '|' : '')
                         + (notNull ? '+' : '')
                         + (type === 'del' ? null : type)
                         + (unique ? '!' : '')

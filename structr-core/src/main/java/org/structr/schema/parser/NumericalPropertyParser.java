@@ -12,8 +12,8 @@ import org.structr.core.entity.SchemaNode;
  */
 public abstract class NumericalPropertyParser extends PropertyParser {
 	
-	public NumericalPropertyParser(final ErrorBuffer errorBuffer, final String className, final String propertyName, final String rawSource) {
-		super(errorBuffer, className, propertyName, rawSource);
+	public NumericalPropertyParser(final ErrorBuffer errorBuffer, final String className, final String propertyName, final String dbName, final String rawSource) {
+		super(errorBuffer, className, propertyName, dbName, rawSource);
 	}
 
 	public abstract Number parseNumber(final ErrorBuffer errorBuffer, final String source, final String which);

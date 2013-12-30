@@ -13,8 +13,8 @@ import org.structr.schema.SchemaHelper.Type;
  */
 public class LongPropertyParser extends NumericalPropertyParser {
 
-	public LongPropertyParser(final ErrorBuffer errorBuffer, final String className, final String propertyName, final String rawSource) {
-		super(errorBuffer, className, propertyName, rawSource);
+	public LongPropertyParser(final ErrorBuffer errorBuffer, final String className, final String propertyName, final String dbName, final String rawSource) {
+		super(errorBuffer, className, propertyName, dbName, rawSource);
 	}
 	
 	@Override

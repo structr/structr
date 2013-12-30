@@ -51,13 +51,11 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 	public static final Property<String> targetNotion       = new StringProperty("targetNotion");
 	public static final Property<String> sourceJsonName     = new StringProperty("sourceJsonName");
 	public static final Property<String> targetJsonName     = new StringProperty("targetJsonName");
-	public static final Property<String> sourceDbName       = new StringProperty("sourceDbName");
-	public static final Property<String> targetDbName       = new StringProperty("targetDbName");
 	
 	
 	public static final View defaultView = new View(SchemaRelationship.class, PropertyView.Public,
 		AbstractNode.name, sourceId, targetId, sourceMultiplicity, targetMultiplicity, sourceNotion, targetNotion, relationshipType,
-		sourceJsonName, targetJsonName, sourceDbName, targetDbName
+		sourceJsonName, targetJsonName
 	);
 	
 	private Set<String> dynamicViews = new LinkedHashSet<>();

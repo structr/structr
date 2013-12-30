@@ -17,8 +17,8 @@ public class EnumPropertyParser extends PropertyParser {
 	private String enumTypeName = "";
 	private String enumType     = "";
 	
-	public EnumPropertyParser(final ErrorBuffer errorBuffer, final String className, final String propertyName, final String rawSource) {
-		super(errorBuffer, className, propertyName, rawSource);
+	public EnumPropertyParser(final ErrorBuffer errorBuffer, final String className, final String propertyName, final String dbName, final String rawSource) {
+		super(errorBuffer, className, propertyName, dbName, rawSource);
 	}
 
 	@Override

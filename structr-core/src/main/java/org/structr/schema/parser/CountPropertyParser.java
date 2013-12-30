@@ -15,8 +15,8 @@ public class CountPropertyParser extends PropertyParser {
 
 	private String auxType = "";
 	
-	public CountPropertyParser(final ErrorBuffer errorBuffer, final String className, final String propertyName, final String rawSource) {
-		super(errorBuffer, className, propertyName, rawSource);
+	public CountPropertyParser(final ErrorBuffer errorBuffer, final String className, final String propertyName, final String dbName, final String rawSource) {
+		super(errorBuffer, className, propertyName, dbName, rawSource);
 	}
 	
 	@Override

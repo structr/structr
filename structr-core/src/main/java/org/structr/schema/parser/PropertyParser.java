@@ -18,7 +18,8 @@ public abstract class PropertyParser {
 	protected Set<String> globalValidators = new LinkedHashSet<>();
 	protected Set<String> enumDefinitions  = new LinkedHashSet<>();
 	protected ErrorBuffer errorBuffer      = null;
-	protected String propertyName          = "";;
+	protected String propertyName          = "";
+	protected String dbName                = "";
 	protected String localValidator        = "";
 	protected String className             = "";
 	protected String rawSource             = "";
@@ -29,11 +30,12 @@ public abstract class PropertyParser {
 	public abstract String getAuxiliaryType();
 	public abstract void extractTypeValidation(final String expression) throws FrameworkException;
 
-	public PropertyParser(final ErrorBuffer errorBuffer, final String className, final String propertyName, final String rawSource) {
+	public PropertyParser(final ErrorBuffer errorBuffer, final String className, final String propertyName, final String dbName, final String rawSource) {
 		
 		this.errorBuffer  = errorBuffer;
 		this.className    = className;
 		this.propertyName = propertyName;
+		this.dbName       = dbName;
 		this.rawSource    = rawSource;
 		
 		if (this.propertyName.startsWith("_")) {
@@ -69,6 +71,9 @@ public abstract class PropertyParser {
 		
 		buf.append("\tpublic static final Property<").append(getValueType()).append("> ").append(propertyName).append("Property");
 		buf.append(" = new ").append(getPropertyType()).append("(\"").append(propertyName).append("\"");
+		if (dbName != null) {
+			buf.append(", \"").append(dbName).append("\"");
+		}
 		buf.append(getAuxiliaryType());
 		buf.append(localValidator);
 		buf.append(").indexed();\n");

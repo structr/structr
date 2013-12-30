@@ -398,11 +398,21 @@ public class SchemaHelper {
 		final StringBuilder src = new StringBuilder();
 
 		// output property source code and collect views
-		for (final String propertyName : SchemaHelper.getProperties(propertyContainer)) {
+		for (String propertyName : SchemaHelper.getProperties(propertyContainer)) {
 
 			if (!propertyName.startsWith("__") && propertyContainer.hasProperty(propertyName)) {
 
 				String rawType = propertyContainer.getProperty(propertyName).toString();
+
+				String dbName = null;
+				// detect optional db name
+				if (rawType.contains("|")) {
+					
+					dbName = rawType.substring(0, rawType.indexOf("|"));
+					rawType = rawType.substring(rawType.indexOf("|")+1);
+					
+				}
+				
 				boolean notNull = false;
 
 				// detect and remove not-null constraint
@@ -411,7 +421,7 @@ public class SchemaHelper {
 					notNull = true;
 				}
 
-				PropertyParser parser = SchemaHelper.getParserForRawValue(errorBuffer, entity.getClassName(), propertyName, rawType, notNull);
+				PropertyParser parser = SchemaHelper.getParserForRawValue(errorBuffer, entity.getClassName(), propertyName, dbName, rawType, notNull);
 				if (parser != null) {
 
 					// append created source from parser
@@ -543,7 +553,7 @@ public class SchemaHelper {
 	}
 
 	// ----- private methods -----
-	private static PropertyParser getParserForRawValue(final ErrorBuffer errorBuffer, final String className, final String propertyName, final String source, final boolean notNull) throws FrameworkException {
+	private static PropertyParser getParserForRawValue(final ErrorBuffer errorBuffer, final String className, final String propertyName, final String dbName, final String source, final boolean notNull) throws FrameworkException {
 
 		for (final Map.Entry<Type, Class<? extends PropertyParser>> entry : parserMap.entrySet()) {
 
@@ -551,7 +561,7 @@ public class SchemaHelper {
 
 				try {
 
-					final PropertyParser parser = entry.getValue().getConstructor(ErrorBuffer.class, String.class, String.class, String.class).newInstance(errorBuffer, className, propertyName, source);
+					final PropertyParser parser = entry.getValue().getConstructor(ErrorBuffer.class, String.class, String.class, String.class, String.class).newInstance(errorBuffer, className, propertyName, dbName, source);
 					parser.setNotNull(notNull);
 
 					return parser;

@@ -1344,6 +1344,8 @@ button.add_property {
 }
 
 .schema b:hover,
+.schema .property-name:hover,
+.schema .property-dbname:hover,
 .schema .related:hover {
     cursor: text;
     box-shadow: 2px 0 #000;
