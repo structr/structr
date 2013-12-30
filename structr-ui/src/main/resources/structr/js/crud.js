@@ -1822,7 +1822,7 @@ var _Crud = {
         });
 
         $('#resourceTabs .resourceBox').css({
-            height: h - 137 + 'px'
+            height: h - ($('#resourceTabsMenu').height()+109) + 'px'
         });
 
         $('.searchResults').css({

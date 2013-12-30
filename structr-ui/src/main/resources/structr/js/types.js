@@ -100,6 +100,9 @@ var _Types = {
 
         var t = $('a[href="#' + _Types.type + '"]');
         t.click();
+        
+        _Crud.resize();
+
 
     },
     /**

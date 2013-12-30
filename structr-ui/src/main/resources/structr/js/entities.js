@@ -354,7 +354,7 @@ var _Entities = {
 
             tabs.children('ul').append('<li id="tab-' + view + '">' + tabText + '</li>');
 
-            tabs.append('<div class="propTabContent" id="tabView-' + view + '"><br></div>');
+            tabs.append('<div class="propTabContent" id="tabView-' + view + '"></div>');
 
             var tab = $('#tab-' + view);
 

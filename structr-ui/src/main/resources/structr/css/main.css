@@ -350,7 +350,8 @@ img.disabled {
 }
 
 .props {
-    width: 776px;
+    /*width: 872px;*/
+    width: 100%;
     border-collapse: collapse;
     margin-bottom: 12px;
     border: 1px solid #b5b5b5;
@@ -495,6 +496,8 @@ ul#previewTabs {
 
 .propTabContent {
     display: none;
+    float: left;
+    width: 100%;
 }
 
 .propTabContent section {
@@ -807,7 +810,7 @@ button {
     color: #222;
     font-weight: bold;
     padding: 1px 8px 2px 4px;
-    margin: 0 3px 6px 0;
+    margin: 0 3px 3px 0;
     vertical-align: middle;
     line-height: 1.5em;
     border-radius: 5px;
@@ -821,8 +824,7 @@ button {
 button:hover:not(.disabled) {
     color: #333;
     border-radius: 5px;
-    padding: 2px 8px 2px 4px;
-    margin-bottom: 6px;
+    padding: 1px 8px 2px 4px;
     vertical-align: middle;
     line-height: 1.5em;
     border: 1px solid #bbb;
@@ -1271,6 +1273,11 @@ button.add_property {
     font-size: 2em;
 }
 
+
+/**
+ * Schema
+ */
+
 .schema-input-container {
     margin: 12px;
 }
@@ -1302,8 +1309,8 @@ button.add_property {
 
 #schema-graph .label {
     font-size: 1.25em;
-    background: rgba(255, 255, 255, .7);
-    border: 1px solid #ccc;
+    background: rgba(255, 255, 255, .8);
+    border: 1px solid #aaa;
     border-radius: 3px;
     min-width: 1em;
     text-align: center;
@@ -1311,7 +1318,7 @@ button.add_property {
 }
 
 #schema-graph .node {
-    opacity: .9;
+    opacity: .8;
 }
 
 #schema-graph .node h2 {
@@ -1330,15 +1337,28 @@ button.add_property {
     margin: 2px 0;
 }
 
-.schema b:hover {
+.schema b:hover,
+.schema .property-name:hover {
     cursor: text;
     box-shadow: 2px 0 #000;
-    color: #222; background-color: #ffe; padding: 1px; margin: 1px 0; -moz-box-shadow: 0 0 5px #888; -webkit-box-shadow: 0 0 5px yellow; box-shadow: 0 0 5px #888;
+    color: #222;
+    background-color: #ffe;
+    padding: 1px;
+    -webkit-box-shadow: 0 0 5px yellow;
+       -moz-box-shadow: 0 0 5px #888;
+            box-shadow: 0 0 5px #888;
+}
+.schema b:hover {
+    margin: 1px 0 1px -1px;
+}
+
+.schema .property-name:hover {
+    margin: 1px 0 1px 1px;
 }
 
 .schema .new-name {
-    font-size: 1.5em;
-    margin: 2px 0 2px 0;
+    font-size: 1.3em;
+    margin: 0;
 }
 
 .schema .icon {
