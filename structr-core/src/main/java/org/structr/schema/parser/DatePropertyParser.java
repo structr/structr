@@ -17,8 +17,8 @@ public class DatePropertyParser extends PropertyParser {
 
 	private String auxType = ", \"" + ISO8601DateProperty.PATTERN + "\"";
 	
-	public DatePropertyParser(final ErrorBuffer errorBuffer, final String className, final String propertyName, final String dbName, final String rawSource) {
-		super(errorBuffer, className, propertyName, dbName, rawSource);
+	public DatePropertyParser(final ErrorBuffer errorBuffer, final String className, final String propertyName, final String dbName, final String rawSource, final String defaultValue) {
+		super(errorBuffer, className, propertyName, dbName, rawSource, defaultValue);
 	}
 	
 	@Override

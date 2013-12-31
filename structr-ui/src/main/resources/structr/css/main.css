@@ -1331,7 +1331,7 @@ button.add_property {
     margin: 6px 0;
 }
 
-.property-name, .property-dbname, .property-type, .property-format, #relationship-label {
+.property-name, .property-dbname, .property-type, .property-format, .default, #relationship-label {
     border: none;
     background: transparent;
     font-size: 1em;

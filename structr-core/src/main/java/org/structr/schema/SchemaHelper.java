@@ -421,7 +421,16 @@ public class SchemaHelper {
 					notNull = true;
 				}
 
-				PropertyParser parser = SchemaHelper.getParserForRawValue(errorBuffer, entity.getClassName(), propertyName, dbName, rawType, notNull);
+				String defaultValue = null;
+				// detect and remove default value
+				if (rawType.contains(":")) {
+
+					defaultValue = rawType.substring(rawType.indexOf(":")+1);
+					rawType = rawType.substring(0, rawType.indexOf(":"));
+					
+				}
+
+				PropertyParser parser = SchemaHelper.getParserForRawValue(errorBuffer, entity.getClassName(), propertyName, dbName, rawType, notNull, defaultValue);
 				if (parser != null) {
 
 					// append created source from parser
@@ -553,7 +562,7 @@ public class SchemaHelper {
 	}
 
 	// ----- private methods -----
-	private static PropertyParser getParserForRawValue(final ErrorBuffer errorBuffer, final String className, final String propertyName, final String dbName, final String source, final boolean notNull) throws FrameworkException {
+	private static PropertyParser getParserForRawValue(final ErrorBuffer errorBuffer, final String className, final String propertyName, final String dbName, final String source, final boolean notNull, final String defaultValue) throws FrameworkException {
 
 		for (final Map.Entry<Type, Class<? extends PropertyParser>> entry : parserMap.entrySet()) {
 
@@ -561,7 +570,7 @@ public class SchemaHelper {
 
 				try {
 
-					final PropertyParser parser = entry.getValue().getConstructor(ErrorBuffer.class, String.class, String.class, String.class, String.class).newInstance(errorBuffer, className, propertyName, dbName, source);
+					final PropertyParser parser = entry.getValue().getConstructor(ErrorBuffer.class, String.class, String.class, String.class, String.class, String.class).newInstance(errorBuffer, className, propertyName, dbName, source, defaultValue);
 					parser.setNotNull(notNull);
 
 					return parser;

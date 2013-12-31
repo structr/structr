@@ -11,8 +11,8 @@ import org.structr.schema.SchemaHelper.Type;
  */
 public class BooleanPropertyParser extends PropertyParser {
 
-	public BooleanPropertyParser(final ErrorBuffer errorBuffer, final String className, final String propertyName, final String dbName, final String rawSource) {
-		super(errorBuffer, className, propertyName, dbName, rawSource);
+	public BooleanPropertyParser(final ErrorBuffer errorBuffer, final String className, final String propertyName, final String dbName, final String rawSource, final String defaultValue) {
+		super(errorBuffer, className, propertyName, dbName, rawSource, defaultValue);
 	}
 	
 	@Override

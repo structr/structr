@@ -13,8 +13,8 @@ import org.structr.schema.SchemaHelper.Type;
  */
 public class DoublePropertyParser extends NumericalPropertyParser {
 	
-	public DoublePropertyParser(final ErrorBuffer errorBuffer, final String className, final String propertyName, final String dbName, final String rawSource) {
-		super(errorBuffer, className, propertyName, dbName, rawSource);
+	public DoublePropertyParser(final ErrorBuffer errorBuffer, final String className, final String propertyName, final String dbName, final String rawSource, final String defaultValue) {
+		super(errorBuffer, className, propertyName, dbName, rawSource, defaultValue);
 	}
 
 	@Override
@@ -44,5 +44,10 @@ public class DoublePropertyParser extends NumericalPropertyParser {
 		}
 		
 		return null;
+	}
+
+	@Override
+	public String getDefaultValueSource() {
+		return defaultValue.concat("d");
 	}
 }

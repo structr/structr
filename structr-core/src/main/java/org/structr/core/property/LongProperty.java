@@ -39,16 +39,27 @@ import org.structr.core.graph.search.SearchAttribute;
 public class LongProperty extends AbstractPrimitiveProperty<Long> {
 	
 	public static final String LONG_EMPTY_FIELD_VALUE = NumericUtils.longToPrefixCoded(Long.MIN_VALUE);
+
+	public LongProperty(String name) {
+		this(name, name, null);
+	}
 	
 	public LongProperty(String name, final PropertyValidator<Long>... validators) {
+		this(name, name, null, validators);
+	}		
 
-		super(name);
+	public LongProperty(String name, Long defaultValue, PropertyValidator<Long>... validators) {
+		this(name, name, defaultValue, validators);
+	}
+	
+	public LongProperty(String jsonName, String dbName, Long defaultValue, PropertyValidator<Long>... validators) {
+		super(jsonName, dbName, defaultValue);
 		
 		for (PropertyValidator<Long> validator : validators) {
 			addValidator(validator);
 		}
 	}
-	
+		
 	@Override
 	public String typeName() {
 		return "Long";

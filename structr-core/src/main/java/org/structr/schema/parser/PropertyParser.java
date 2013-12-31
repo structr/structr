@@ -23,6 +23,7 @@ public abstract class PropertyParser {
 	protected String localValidator        = "";
 	protected String className             = "";
 	protected String rawSource             = "";
+	protected String defaultValue          = "";
 	
 	public abstract Type getKey();
 	public abstract String getPropertyType();
@@ -30,13 +31,14 @@ public abstract class PropertyParser {
 	public abstract String getAuxiliaryType();
 	public abstract void extractTypeValidation(final String expression) throws FrameworkException;
 
-	public PropertyParser(final ErrorBuffer errorBuffer, final String className, final String propertyName, final String dbName, final String rawSource) {
+	public PropertyParser(final ErrorBuffer errorBuffer, final String className, final String propertyName, final String dbName, final String rawSource, final String defaultValue) {
 		
 		this.errorBuffer  = errorBuffer;
 		this.className    = className;
 		this.propertyName = propertyName;
 		this.dbName       = dbName;
 		this.rawSource    = rawSource;
+		this.defaultValue = defaultValue;
 		
 		if (this.propertyName.startsWith("_")) {
 			this.propertyName = this.propertyName.substring(1);
@@ -69,12 +71,20 @@ public abstract class PropertyParser {
 		
 		final StringBuilder buf = new StringBuilder();
 		
-		buf.append("\tpublic static final Property<").append(getValueType()).append("> ").append(propertyName).append("Property");
+		String valueType = getValueType();
+		
+		buf.append("\tpublic static final Property<").append(valueType).append("> ").append(propertyName).append("Property");
 		buf.append(" = new ").append(getPropertyType()).append("(\"").append(propertyName).append("\"");
 		if (dbName != null) {
 			buf.append(", \"").append(dbName).append("\"");
+		} else if ("String".equals(valueType)) {
+			// StringProperty has three leading String parameters
+			buf.append(", \"").append(propertyName).append("\"");
 		}
 		buf.append(getAuxiliaryType());
+		if (defaultValue != null) {
+			buf.append(", ").append(getDefaultValueSource());
+		}
 		buf.append(localValidator);
 		buf.append(").indexed();\n");
 		
@@ -125,4 +135,9 @@ public abstract class PropertyParser {
 			}
 		}
 	}
+	
+	public String getDefaultValueSource() {
+		return defaultValue;
+	}
+	
 }

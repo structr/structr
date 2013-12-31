@@ -39,14 +39,30 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 	private static final Logger logger = Logger.getLogger(BooleanProperty.class.getName());
 	private static final Set<String> TRUE_VALUES = new LinkedHashSet<>(Arrays.asList(new String[] { "true", "1", "on" }));
 
+	public BooleanProperty(String name) {
+		this(name, name, null);
+	}
+	
+	public BooleanProperty(String name, Boolean defaultValue) {
+		this(name, name, defaultValue);
+	}
+
 	public BooleanProperty(String name, PropertyValidator<Boolean>... validators) {
-		super(name);
+		this(name);
 		
 		for (PropertyValidator<Boolean> validator : validators) {
 			addValidator(validator);
 		}
 	}
 	
+	public BooleanProperty(String jsonName, String dbName, Boolean defaultValue, PropertyValidator<Boolean>... validators) {
+		super(jsonName, dbName, defaultValue);
+		
+		for (PropertyValidator<Boolean> validator : validators) {
+			addValidator(validator);
+		}
+	}
+
 	@Override
 	public Property<Boolean> indexed() {
 		return super.passivelyIndexed();

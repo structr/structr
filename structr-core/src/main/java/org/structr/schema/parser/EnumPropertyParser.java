@@ -17,8 +17,8 @@ public class EnumPropertyParser extends PropertyParser {
 	private String enumTypeName = "";
 	private String enumType     = "";
 	
-	public EnumPropertyParser(final ErrorBuffer errorBuffer, final String className, final String propertyName, final String dbName, final String rawSource) {
-		super(errorBuffer, className, propertyName, dbName, rawSource);
+	public EnumPropertyParser(final ErrorBuffer errorBuffer, final String className, final String propertyName, final String dbName, final String rawSource, final String defaultValue) {
+		super(errorBuffer, className, propertyName, dbName, rawSource, defaultValue);
 	}
 
 	@Override
@@ -84,5 +84,10 @@ public class EnumPropertyParser extends PropertyParser {
 
 			errorBuffer.add(SchemaNode.class.getSimpleName(), new InvalidPropertySchemaToken(expression, "invalid_property_definition", "No enum types found, please specify a list of types, e.g. (red, green, blue)"));
 		}
+	}
+
+	@Override
+	public String getDefaultValueSource() {
+		return enumTypeName.concat(".").concat(defaultValue);
 	}
 }
