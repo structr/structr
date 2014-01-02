@@ -28,11 +28,12 @@ import org.structr.schema.SchemaNotion;
  */
 public class SchemaNode extends AbstractSchemaNode implements Schema {
 
-	public static final Property<List<SchemaNode>>  relatedTo   = new EndNodes<>("relatedTo", SchemaRelationship.class, new SchemaNotion(SchemaNode.class));
-	public static final Property<List<SchemaNode>>  relatedFrom = new StartNodes<>("relatedFrom", SchemaRelationship.class, new SchemaNotion(SchemaNode.class));
+	public static final Property<List<SchemaNode>>  relatedTo    = new EndNodes<>("relatedTo", SchemaRelationship.class, new SchemaNotion(SchemaNode.class));
+	public static final Property<List<SchemaNode>>  relatedFrom  = new StartNodes<>("relatedFrom", SchemaRelationship.class, new SchemaNotion(SchemaNode.class));
+	public static final Property<String>            extendsClass = new StringProperty("extendsClass").indexed();
 	
 	public static final View defaultView = new View(SchemaNode.class, PropertyView.Public,
-		name, relatedTo, relatedFrom
+		name, extendsClass, relatedTo, relatedFrom
 	);
 	
 	private Set<String> dynamicViews = new LinkedHashSet<>();
@@ -63,12 +64,17 @@ public class SchemaNode extends AbstractSchemaNode implements Schema {
 		final StringBuilder src                       = new StringBuilder();
 		final Class baseType                          = AbstractNode.class;
 		final String _className                       = getProperty(name);
+		final String _extendsClass                    = getProperty(extendsClass);
 		
 		src.append("package org.structr.dynamic;\n\n");
 		
 		SchemaHelper.formatImportStatements(src, baseType);
 		
-		src.append("public class ").append(_className).append(" extends ").append(baseType.getSimpleName()).append(" {\n\n");
+		
+		
+		String superClass = _extendsClass != null ? _extendsClass : baseType.getSimpleName();
+		
+		src.append("public class ").append(_className).append(" extends ").append(superClass).append(" {\n\n");
 		
 		// output related node definitions, collect property views
 		for (final SchemaRelationship outRel : getOutgoingRelationships(SchemaRelationship.class)) {
