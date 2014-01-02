@@ -43,6 +43,10 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> {
 	public IntProperty(String name) {
 		this(name, name, null);
 	}
+
+	public IntProperty(final String jsonName, final String dbName) {
+		this(jsonName, dbName, null);
+	}
 	
 	public IntProperty(String name, PropertyValidator<Integer>... validators) {
 		this(name, name, null, validators);

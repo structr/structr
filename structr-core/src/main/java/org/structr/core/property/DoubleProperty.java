@@ -38,11 +38,27 @@ import org.structr.core.graph.search.SearchAttribute;
  */
 public class DoubleProperty extends AbstractPrimitiveProperty<Double> {
 	
-	public DoubleProperty(String name, final PropertyValidator<Double>... validators) {
+	public DoubleProperty(final String name) {
+		this(name, name, null);
+	}
+	
+	public DoubleProperty(final String jsonName, final String dbName) {
+		this(jsonName, dbName, null);
+	}
 
-		super(name);
+	public DoubleProperty(final String name, final Double defaultValue) {
+		this(name, name, defaultValue);
+	}
+
+	public DoubleProperty(final String name, final PropertyValidator<Double>... validators) {
+		this(name, name, null, validators);
+	}
+
+	public DoubleProperty(final String jsonName, final String dbName, final Double defaultValue, final PropertyValidator<Double>... validators) {
+
+		super(jsonName, dbName, defaultValue);
 		
-		if (name.equals("latitude") || name.equals("longitude")) {
+		if (jsonName.equals("latitude") || jsonName.equals("longitude")) {
 			
 			// add layer node index and make
 			// this property be indexed at the

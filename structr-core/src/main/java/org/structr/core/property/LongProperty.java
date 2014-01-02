@@ -43,6 +43,10 @@ public class LongProperty extends AbstractPrimitiveProperty<Long> {
 	public LongProperty(String name) {
 		this(name, name, null);
 	}
+
+	public LongProperty(final String jsonName, final String dbName) {
+		this(jsonName, dbName, null);
+	}
 	
 	public LongProperty(String name, final PropertyValidator<Long>... validators) {
 		this(name, name, null, validators);

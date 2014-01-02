@@ -42,7 +42,11 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 	public BooleanProperty(String name) {
 		this(name, name, null);
 	}
-	
+
+	public BooleanProperty(final String jsonName, final String dbName) {
+		this(jsonName, dbName, null);
+	}
+
 	public BooleanProperty(String name, Boolean defaultValue) {
 		this(name, name, defaultValue);
 	}
