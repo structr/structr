@@ -332,7 +332,8 @@ function StructrApp(baseUrl) {
                     val = rawVal || (inp.val() && inp.val().replace(/<br>/gi, '\n'));
                 }
             } else {
-                val = rawVal || el.html().replace(/<br>/gi, '\n');
+                //val = rawVal || el.html().replace(/<br>/gi, '\n');
+                val = rawVal || el.text();
             }
         }
         //console.log(el, type, id, key, val);
