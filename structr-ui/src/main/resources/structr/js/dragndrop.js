@@ -88,8 +88,8 @@ var _Dragndrop = {
                 }
 
                 if (!target) {
-                    console.log('no target');
-                    return;
+                    // synthetize target with id only
+                    target = { id: targetId };
                 }
 
 
@@ -153,7 +153,7 @@ var _Dragndrop = {
 
     },
     /**
-     * Define what happens in case of a source object is dropped onto
+     * Define what happens when a source object is dropped onto
      * a target object in the given page.
      * 
      * The optional tag is used to create new elements if the source object
@@ -386,7 +386,7 @@ var _Dragndrop = {
     imageDropped: function(source, target, pageId) {
 
         var nodeData = {}, name = source.name, tag;
-        console.log('Image dropped, creating <img> node', name);
+        log('Image dropped, creating <img> node', name);
         nodeData._html_src = '/' + name;
         nodeData.name = name;
         tag = 'img';
