@@ -1013,7 +1013,6 @@ button img {
 
 .ui-draggable, .ui-sortable {
     cursor: move;
-    z-index: 4;
 }
 
 #offset-tester {

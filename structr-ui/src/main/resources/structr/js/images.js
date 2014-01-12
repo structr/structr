@@ -236,7 +236,8 @@ var _Images = {
             revert: 'invalid',
             helper: 'clone',
             //containment: '#main',
-            stack: 'div',
+            appenTo: '#main',
+            zIndex: 2,
             stop : function(e,ui) {
                 $('#pages_').removeClass('nodeHover').droppable('enable');
             }
@@ -410,7 +411,7 @@ var _Images = {
                 var fileId = getId(ui.draggable);
                 var folderId = getId(self);
                 log('fileId, folderId', fileId, folderId);
-                if (!(fileId == folderId)) {
+                if (!(fileId === folderId)) {
                     var nodeData = {};
                     nodeData.id = fileId;
                     addExpandedNode(folderId);
