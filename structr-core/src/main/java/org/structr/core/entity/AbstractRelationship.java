@@ -549,6 +549,10 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	}
 
 	@Override
+	public void afterDeletion(SecurityContext securityContext, PropertyMap properties) {
+	}
+
+	@Override
 	public void ownerModified(SecurityContext securityContext) {
 	}
 	

@@ -879,6 +879,10 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	}
 
 	@Override
+	public void afterDeletion(SecurityContext securityContext, PropertyMap properties) {
+	}
+
+	@Override
 	public void ownerModified(SecurityContext securityContext) {
 	}
 	

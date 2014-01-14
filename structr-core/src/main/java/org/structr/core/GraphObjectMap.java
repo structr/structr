@@ -25,7 +25,6 @@ import org.structr.core.property.PropertyMap;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
 
 /**
  * A dummy graph object that uses a map as its data store.
@@ -109,6 +108,10 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 
 	@Override
 	public void afterModification(SecurityContext securityContext) {
+	}
+
+	@Override
+	public void afterDeletion(SecurityContext securityContext, PropertyMap properties) {
 	}
 
 	@Override

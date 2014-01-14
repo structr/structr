@@ -306,12 +306,13 @@ public class StaticRelationshipResource extends SortableResource {
 		} else {
 
 			// look for methods that have an @Export annotation
-			GraphObject entity = typedIdResource.getIdResource().getEntity(SearchNodeCommand.class);
-			Class entityType   = typedIdResource.getEntityClass();
-			String methodName  = typeResource.getRawType();
-			boolean success    = false;
+			GraphObject entity     = typedIdResource.getIdResource().getEntity(SearchNodeCommand.class);
+			Class entityType       = typedIdResource.getEntityClass();
+			String methodName      = typeResource.getRawType();
+			FrameworkException fex = null;
+			boolean success        = false;
 
-			if (entityType != null && methodName != null) {
+			if (entity != null && entityType != null && methodName != null) {
 
 				for (Method method : StructrApp.getConfiguration().getExportedMethodsForType(entityType)) {
 
@@ -330,7 +331,15 @@ public class StaticRelationshipResource extends SortableResource {
 
 								} catch (Throwable t) {
 								
-									logger.log(Level.WARNING, "Unable to call RPC method {0}: {1}", new Object[] { methodName, t.getMessage() } );
+									// store FrameworkException for later use
+									if (t.getCause() instanceof FrameworkException) {
+										
+										fex = (FrameworkException)t.getCause();
+										
+									} else {
+										
+										logger.log(Level.WARNING, "Unable to call RPC method {0}: {1}", new Object[] { methodName, t.getMessage() } );
+									}
 								}
 								
 							} else {
@@ -346,6 +355,13 @@ public class StaticRelationshipResource extends SortableResource {
 			if (success) {
 
 				return new RestMethodResult(HttpServletResponse.SC_OK);
+				
+			} else {
+				
+				// throw FrameworkException
+				if (fex != null) {
+					throw fex;
+				}
 			}
 
 		}

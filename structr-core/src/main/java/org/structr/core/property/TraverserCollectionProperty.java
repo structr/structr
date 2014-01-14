@@ -79,8 +79,8 @@ public class TraverserCollectionProperty<T extends AbstractNode> extends Abstrac
 		Iterable<Node> nodes = traversalDescription.traverse(node.getNode()).nodes();
 
 		// collect results and convert nodes into structr nodes
-		NodeFactory<T> nodeFactory = new NodeFactory<T>(securityContext);
-		List<T> nodeList           = new LinkedList<T>();
+		NodeFactory<T> nodeFactory = new NodeFactory<>(securityContext);
+		List<T> nodeList           = new LinkedList<>();
 
 		for(Node n : nodes) {
 			

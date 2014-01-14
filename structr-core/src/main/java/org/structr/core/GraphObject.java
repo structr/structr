@@ -214,6 +214,15 @@ public interface GraphObject {
 	public void afterModification(SecurityContext securityContext);
 
 	/**
+	 * Called when an entity was successfully deleted. Please note that this method
+	 * has no access to the database entity since it is called _after_ the successful
+	 * deletion.
+	 * 
+	 * @param securityContext the context in which the deletion took place
+	 */
+	public void afterDeletion(SecurityContext securityContext, PropertyMap properties);
+
+	/**
 	 * Called when the owner of this entity was successfully modified. Please note
 	 * that this method will run in its own toplevel transaction and can NOT prevent
 	 * the owner modification.

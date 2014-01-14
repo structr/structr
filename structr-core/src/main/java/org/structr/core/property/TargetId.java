@@ -60,7 +60,7 @@ public class TargetId extends Property<String> {
 		if (obj instanceof RelationshipInterface) {
 		
 			try {
-				((RelationshipInterface)obj).setSourceNodeId(value);
+				((RelationshipInterface)obj).setTargetNodeId(value);
 				
 			} catch (Throwable t) {
 				

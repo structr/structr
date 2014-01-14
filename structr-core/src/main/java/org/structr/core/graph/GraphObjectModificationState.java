@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.RelationshipType;
+import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -162,7 +163,14 @@ public class GraphObjectModificationState implements ModificationEvent {
 		status |= STATE_DELETED;
 		
 		if (status != statusBefore) {
-			removedProperties.put(GraphObject.id, object.getUuid());
+			
+			//removedProperties.put(GraphObject.id, object.getUuid());
+
+			// copy all properties on deletion
+			for (final PropertyKey key : object.getPropertyKeys(PropertyView.Public)) {
+				removedProperties.put(key, object.getProperty(key));
+			}
+			
 			modified = true;
 		}
 	}
@@ -351,14 +359,16 @@ public class GraphObjectModificationState implements ModificationEvent {
 				object.afterCreation(securityContext);
 				break;
 
-			case  3: // modified, deleted => no callback as node/rel is gone
+			case  3: // modified, deleted => deletion callback
+				object.afterDeletion(securityContext, removedProperties);
 				break;
 
 			case  2: // modified => modification callback
 				object.afterModification(securityContext);
 				break;
 
-			case  1: // deleted => no callback as node/rel is gone
+			case  1: // deleted => deletion callback
+				object.afterDeletion(securityContext, removedProperties);
 				break;
 
 			case  0: // no action, no callback
