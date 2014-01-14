@@ -253,7 +253,7 @@ var _Dragndrop = {
                 log('content element dropped on content, doing nothing');
                 return false;
             }
-            console.log('wrap content', pageId, target.id, tag);
+            log('wrap content', pageId, target.id, tag);
             Command.wrapContent(pageId, target.id, tag);
         } else {
             Command.createAndAppendDOMNode(pageId, target.id, (tag !== 'content' ? tag : ''), nodeData);
@@ -338,7 +338,7 @@ var _Dragndrop = {
         var parentTag = target.tag;
 
         //var parentTag = self.children('.tag_').text();
-        console.log(source, target, parentTag);
+        log(source, target, parentTag);
         nodeData.linkableId = source.id;
 
         if (parentTag === 'head') {
@@ -376,12 +376,9 @@ var _Dragndrop = {
         source.id = undefined;
 
         Structr.modules['files'].unload();
-        _Pages.makeMenuDroppable();
-
         Command.createAndAppendDOMNode(pageId, target.id, tag, nodeData);
 
         return true;
-
     },
     imageDropped: function(source, target, pageId) {
 
@@ -392,11 +389,8 @@ var _Dragndrop = {
         tag = 'img';
 
         Structr.modules['images'].unload();
-        _Pages.makeMenuDroppable();
-
         Command.createAndAppendDOMNode(pageId, target.id, tag, nodeData);
 
         return true;
     }
-
 }

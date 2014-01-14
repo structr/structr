@@ -102,7 +102,7 @@ $(document).ready(function() {
         Structr.modules['pages'].onload();
         _Pages.resize();
     });
-
+    
     $('#widgets_').on('click', function(e) {
         e.stopPropagation();
         Structr.clearMain();
@@ -328,7 +328,7 @@ var Structr = {
         }
     },
     clearMain: function() {
-        $.ui.ddmanager.droppables = {};
+        $.ui.ddmanager.droppables.default = [];
         $('iframe').unload();
         main.empty();
     },
@@ -453,7 +453,6 @@ var Structr = {
             });
 
             Structr.resize();
-
         }
     },
     resize: function() {
@@ -501,7 +500,6 @@ var Structr = {
         $('.CodeMirror').each(function(i, el) {
             el.CodeMirror.refresh();
         });
-
     },
     maximize: function() {
 
@@ -550,7 +548,6 @@ var Structr = {
         $('.CodeMirror').each(function(i, el) {
             el.CodeMirror.refresh();
         });
-
     },
     error: function(text, callback) {
         if (text)
@@ -859,7 +856,24 @@ var Structr = {
             $('.page', pager).val(page[type]);
             $('.node', el).remove();
             if (isPagesEl)
-                _Pages.clearPreviews();
+                _Pages.clearPreviews();                e.stopPropagation();
+                //$('#pages_').droppable('disable');
+                log('over is off');
+
+                Structr.activateMenuEntry('pages');
+                window.location.href = '/structr/#pages';
+
+                if (files && files.length)
+                    files.hide();
+                if (folders && folders.length)
+                    folders.hide();
+                if (widgets && widgets.length)
+                    widgets.hide();
+
+//                _Pages.init();
+                Structr.modules['pages'].onload();
+                _Pages.resize();
+
             Command.list(type, pageSize[type], page[type], sort, order, callback);
         });
 
@@ -873,7 +887,44 @@ var Structr = {
             Command.list(type, pageSize[type], page[type], sort, order, callback);
         });
         return Command.list(type, pageSize[type], page[type], sort, order, callback);
-    }
+    },
+    makePagesMenuDroppable: function() {
+
+        try {
+            $('#pages_').droppable('destroy');
+        } catch (err) {
+            log('exception:', err.toString())
+        }
+
+        $('#pages_').droppable({
+            accept: '.element, .content, .component, .file, .image, .widget',
+            greedy: true,
+            hoverClass: 'nodeHover',
+            tolerance: 'pointer',
+            over: function(e, ui) {
+
+                e.stopPropagation();
+                $('#pages_').droppable('disable');
+                log('over is off');
+
+                Structr.activateMenuEntry('pages');
+                window.location.href = '/structr/#pages';
+
+                if (files && files.length)
+                    files.hide();
+                if (folders && folders.length)
+                    folders.hide();
+                if (widgets && widgets.length)
+                    widgets.hide();
+
+//                _Pages.init();
+                Structr.modules['pages'].onload();
+                _Pages.resize();
+            }
+
+        });
+        $('#pages_').removeClass('nodeHover').droppable('enable');
+    }    
 };
 
 function getElementPath(element) {

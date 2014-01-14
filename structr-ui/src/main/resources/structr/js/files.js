@@ -46,9 +46,11 @@ var _Files = {
 
         log('_Files.init');
 
-        Structr.initPager('Folder', 1, 25);
         Structr.initPager('File', 1, 25);
-
+        Structr.initPager('Folder', 1, 25);
+        
+        Structr.makePagesMenuDroppable();
+        
     },
     resize: function() {
 
@@ -87,7 +89,7 @@ var _Files = {
 
         _Files.refreshFolders();
         _Files.refreshFiles();
-
+        
     },
     unload: function() {
         $(main.children('table')).remove();
@@ -284,7 +286,7 @@ var _Files = {
             },
             stop: function(e, ui) {
                 $(this).show();
-                $('#pages_').droppable('enable').removeClass('nodeHover');
+                //$('#pages_').droppable('enable').removeClass('nodeHover');
             }
         });
 
@@ -540,7 +542,7 @@ var _Files = {
                 dialogBtn.append('<button id="saveFile" disabled="disabled" class="disabled"> Save </button>');
                 dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="disabled"> Save and close</button>');
 
-                dialogSaveButton = $('#saveFile', dialogBtn);
+                dialogSaveButton = $('#saveFile', dialogBtn);clearDroppables
                 var saveAndClose = $('#saveAndClose', dialogBtn);
 
                 text1 = text;

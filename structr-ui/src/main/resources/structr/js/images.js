@@ -47,6 +47,7 @@ var _Images = {
 	
     init : function() {
         Structr.initPager('Image', 1, 100);
+        Structr.makePagesMenuDroppable();
     },
     resize : function() {
 
@@ -95,7 +96,7 @@ var _Images = {
     },
 	
     refreshImages : function() {
-        _Images.resize();
+        //_Images.resize();
         images.empty();
         images.append('<h1>Images</h1>');
         
@@ -164,17 +165,18 @@ var _Images = {
             });
         }        
         Structr.addPager(images, 'Image');
+        _Images.resize();
     },
 	
-    refreshFolders : function() {
-        folders.empty();
-        folders.append('<button class="add_folder_icon button"><img title="Add Folder" alt="Add Folder" src="' + _Images.add_folder_icon + '"> Add Folder</button>');
-        $('.add_folder_icon', main).on('click', function(e) {
-            e.stopPropagation();
-            Command.create({'type':'Folder'});
-        });
-        Structr.addPager(folders, 'Folder');
-    },
+//    refreshFolders : function() {
+//        folders.empty();
+//        folders.append('<button class="add_folder_icon button"><img title="Add Folder" alt="Add Folder" src="' + _Images.add_folder_icon + '"> Add Folder</button>');
+//        $('.add_folder_icon', main).on('click', function(e) {
+//            e.stopPropagation();
+//            Command.create({'type':'Folder'});
+//        });
+//        Structr.addPager(folders, 'Folder');
+//    },
 
     getIcon : function(file) {
         var icon = viewRootUrl + file.name;
@@ -236,10 +238,14 @@ var _Images = {
             revert: 'invalid',
             helper: 'clone',
             //containment: '#main',
-            appenTo: '#main',
+            appendTo: '#main',
             zIndex: 2,
-            stop : function(e,ui) {
-                $('#pages_').removeClass('nodeHover').droppable('enable');
+            start: function(e, ui) {
+                $(this).hide();
+            },
+            stop: function(e, ui) {
+                $(this).show();
+                $('#pages_').droppable('enable').removeClass('nodeHover');
             }
         });
 
