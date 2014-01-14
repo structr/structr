@@ -39,7 +39,6 @@ $(document).ready(function() {
         _Pages.resize();
     });
 
-    _Pages.makeMenuDroppable();
 });
 
 var _Pages = {
@@ -54,7 +53,7 @@ var _Pages = {
         Structr.initPager('Page', 1, 25);
         Structr.initPager('File', 1, 25);
         Structr.initPager('Image', 1, 25);
-
+        
     },
     resize: function(offsetLeft, offsetRight) {
 
@@ -892,38 +891,6 @@ var _Pages = {
 
         });
 
-    },
-    makeMenuDroppable: function() {
-
-        $('#pages_').droppable({
-            accept: '.element, .content, .component, .file, .image, .widget',
-            greedy: true,
-            hoverClass: 'nodeHover',
-            tolerance: 'pointer',
-            over: function(e, ui) {
-
-                e.stopPropagation();
-                $('#pages_').droppable('disable');
-                log('over is off');
-
-                Structr.activateMenuEntry('pages');
-                window.location.href = '/structr/#pages';
-
-                if (files && files.length)
-                    files.hide();
-                if (folders && folders.length)
-                    folders.hide();
-                if (widgets && widgets.length)
-                    widgets.hide();
-
-//                _Pages.init();
-                Structr.modules['pages'].onload();
-                _Pages.resize();
-            }
-
-        });
-
-        $('#pages_').removeClass('nodeHover').droppable('enable');
     },
     clearSlideoutsInLocalStorage: function() {
         
