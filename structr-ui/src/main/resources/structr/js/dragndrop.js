@@ -263,7 +263,7 @@ var _Dragndrop = {
     widgetDropped: function(source, target, pageId) {
 
         Structr.modules['widgets'].unload();
-        _Pages.makeMenuDroppable();
+        Structr.makePagesMenuDroppable();
 
         //var pattern = /^\[[a-zA-Z]+\]$/;
         var pattern = /\[[a-zA-Z]+\]/g;
