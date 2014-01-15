@@ -70,12 +70,15 @@ public class RelationshipResource extends WrappingResource {
 
 			try {
 				List<GraphObject> resultList = new LinkedList<>();
-				for(GraphObject obj : results) {
+				for (GraphObject obj : results) {
 
-					if(obj instanceof AbstractNode) {
+					if (obj instanceof AbstractNode) {
 
-						List relationships = Iterables.toList(((AbstractNode) obj).getRelationships());
-						if(relationships != null) {
+						List relationships = Direction.INCOMING.equals(direction) ? 
+							Iterables.toList(((AbstractNode) obj).getIncomingRelationships()) :
+							Iterables.toList(((AbstractNode) obj).getOutgoingRelationships());
+						
+						if (relationships != null) {
 
 							resultList.addAll(relationships);
 						}
