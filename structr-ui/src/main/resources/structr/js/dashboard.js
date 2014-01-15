@@ -63,7 +63,7 @@ var _Dashboard = {
         drawGraph();
     },
     appendNode: function(node) {
-        graph.render(node.id, 0, [canvas.w / 2, canvas.h / 2]);
+        graph.renderNode(node.id, 0, [canvas.w / 2, canvas.h / 2]);
     },
     clearSearch: function() {
         _Dashboard.clearSearchResults();

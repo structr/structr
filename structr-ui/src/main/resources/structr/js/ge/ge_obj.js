@@ -24,7 +24,7 @@ function Node(g, entity, size, pos, depth) {
 
     this.id = entity.id;
     this.type = entity.type;
-    this.pos = pos;
+    this.pos = limitPositionToCanvas(pos);
     this.size = size;
     this.depth = depth;
 
@@ -142,31 +142,30 @@ function Node(g, entity, size, pos, depth) {
         $(self.element).addClass(newSize);
         g.redrawRelationships();
     };
-
 }
 
-function Relationship(g, id, type, startNodeId, endNodeId) {
+function Relationship(g, id, type, sourceId, targetId) {
 
     var self = this;
 
     this.id = id;
     this.type = type;
-    this.startNodeId = startNodeId;
-    this.endNodeId = endNodeId;
+    this.sourceId = sourceId;
+    this.targetId = targetId;
 
-    var startNode = g.nodes[startNodeId];
+    var startNode = g.nodes[sourceId];
     if (startNode) {
         startNode.relIds.push(id);
     }
-    var endNode = g.nodes[endNodeId];
+    var endNode = g.nodes[targetId];
     if (endNode) {
         endNode.relIds.push(id);
     }
 
     this.redraw = function() {
 
-        var startNodeElement = Structr.node(self.startNodeId);
-        var endNodeElement = Structr.node(self.endNodeId);
+        var startNodeElement = Structr.node(self.sourceId);
+        var endNodeElement = Structr.node(self.targetId);
         
         if (startNodeElement && startNodeElement.size() > 0 && endNodeElement && endNodeElement.size() > 0) {
 
@@ -188,4 +187,9 @@ function Relationship(g, id, type, startNodeId, endNodeId) {
             //console.log('could not draw rel ' + self.id);
         }
     }
+}
+
+function limitPositionToCanvas(pos) {
+    var newPos = [ Math.min(canvas.w-176, Math.max(12, pos[0])), Math.min(canvas.h-101, Math.max(12, pos[1])) ];
+    return newPos;
 }
