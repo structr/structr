@@ -241,7 +241,7 @@ var _Images = {
             appendTo: '#main',
             zIndex: 2,
             start: function(e, ui) {
-                $(this).hide();
+                //$(this).hide();
             },
             stop: function(e, ui) {
                 $(this).show();

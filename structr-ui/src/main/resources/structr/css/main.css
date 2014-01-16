@@ -648,7 +648,7 @@ span.id {
     width: 100%;
 }
 
-#images .node {
+.image {
     width: 102px;
     height: 130px;
     float: left;
@@ -665,13 +665,13 @@ span.id {
 
 }
 
-#images .node div.wrap {
+.image div.wrap {
     position: absolute;
     top: 50%;
     left: 50%;
 }
 
-#images .node img.thumbnail {
+.image img.thumbnail {
     margin-top: -42px;
     margin-left: -50%;
     max-width: 100px;
@@ -729,7 +729,7 @@ span.id {
     right: 44px;
 }
 
-.widget .edit_icon {
+#remoteWidgets .widget .edit_icon {
     right: 4px;
 }
 

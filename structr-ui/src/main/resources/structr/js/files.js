@@ -283,6 +283,9 @@ var _Files = {
             zIndex: 2,
             start: function(e, ui) {
                 $(this).hide();
+                $(ui)[0].helper.css({
+                   width: files.width() + 'px' 
+                });
             },
             stop: function(e, ui) {
                 $(this).show();
