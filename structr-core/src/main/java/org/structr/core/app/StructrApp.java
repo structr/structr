@@ -107,7 +107,7 @@ public class StructrApp implements App {
 		final Class<? extends SearchCommand> searchType = SearchNodeCommand.class;
 
 		final Query<NodeInterface> query = new StructrQuery<>(securityContext, searchType);
-		return query.uuid(uuid).getFirst();
+		return query.uuid(uuid).includeDeletedAndHidden().getFirst();
 	}
 
 	@Override
