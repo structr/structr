@@ -545,7 +545,7 @@ var _Files = {
                 dialogBtn.append('<button id="saveFile" disabled="disabled" class="disabled"> Save </button>');
                 dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="disabled"> Save and close</button>');
 
-                dialogSaveButton = $('#saveFile', dialogBtn);clearDroppables
+                dialogSaveButton = $('#saveFile', dialogBtn);
                 var saveAndClose = $('#saveAndClose', dialogBtn);
 
                 text1 = text;
