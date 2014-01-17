@@ -1154,6 +1154,11 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			// so that they can be used as property keys for data objects
 			if (_data == null) {
 
+				// details data object id
+				if ("id".equals(lowerCasePart)) {
+					return renderContext.getDetailsDataObject().getUuid();
+				}
+
 				// special keyword "this"
 				if ("this".equals(lowerCasePart)) {
 
