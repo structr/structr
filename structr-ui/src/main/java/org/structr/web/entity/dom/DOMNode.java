@@ -1156,7 +1156,13 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 				// details data object id
 				if ("id".equals(lowerCasePart)) {
-					return renderContext.getDetailsDataObject().getUuid();
+					
+					GraphObject detailsObject = renderContext.getDetailsDataObject();
+					
+					if (detailsObject != null) {
+						return renderContext.getDetailsDataObject().getUuid();
+					}
+					
 				}
 
 				// special keyword "this"
