@@ -284,24 +284,46 @@ var _Crud = {
                 
                 200: function(data) {
 
-                    $.each(data.result, function(i, res) {
-                        //console.log(res);
-                        var type = res.type;
-
-                        _Crud.determinePagerData(type);
-
-                        _Crud.schema[type] = res;
-                        //console.log('Type definition for ' + type + ' loaded');
-                        //console.log('schema loaded?', _Crud.isSchemaLoaded());
-
+                    // no schema entry found?
+                    if(data.result_count === 0){
+                        
+                        console.log("ERROR: loading Schema " + type);
+                        //Structr.error("ERROR: loading Schema " + type, true);
+                        
+                        
+                        var typeIndex = _Crud.types.indexOf(type)
+                        
+                        // Delete broken type from list
+                        _Crud.types.splice(typeIndex,typeIndex+1);
+                        
+                        
                         if (_Crud.isSchemaLoaded()) {
                             //console.log('Schema loaded successfully');
                             if (callback) {
                                 callback();
-                            }
+                            }   
                         }
+                    }else{
 
-                    });
+                        $.each(data.result, function(i, res) {
+                            //console.log(res);
+                            var type = res.type;
+
+                            _Crud.determinePagerData(type);
+
+                            _Crud.schema[type] = res;
+                            //console.log('Type definition for ' + type + ' loaded');
+                            //console.log('schema loaded?', _Crud.isSchemaLoaded());
+
+                            if (_Crud.isSchemaLoaded()) {
+                                //console.log('Schema loaded successfully');
+                                if (callback) {
+                                    callback();
+                                }
+                            }
+
+                        });
+                    }
                 },
                 
                 401: function(data) {
