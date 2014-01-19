@@ -91,7 +91,7 @@ var _Entities = {
         _Entities.appendRowWithInputField(entity, t, 'data-structr-raw-value', 'Raw value (unformatted value for Date or Number fields)');
         _Entities.appendRowWithInputField(entity, t, 'data-structr-hide', 'Hide [edit|non-edit|edit,non-edit]');
 
-        if (entity.type === 'Button') {
+        if (entity.type === 'Button' || entity.type === 'A') {
 
             // Buttons
 
@@ -103,7 +103,7 @@ var _Entities = {
 
             if (entity['data-structr-action'] === 'delete') {
 
-                // Delete button
+                // Delete action
                 t.append('<tr><td class="key">Confirm on delete?</td><td class="value" id="confirmOnDel"></td><td></td></tr>');
                 _Entities.appendBooleanSwitch($('#confirmOnDel', t), entity, 'data-structr-confirm', '', 'If active, a user has to confirm the delete action.');
             }

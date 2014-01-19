@@ -281,29 +281,28 @@ var _Crud = {
             contentType: 'application/json; charset=utf-8',
             //async: false,
             statusCode: {
-                
                 200: function(data) {
 
                     // no schema entry found?
-                    if(data.result_count === 0){
-                        
+                    if (data.result_count === 0) {
+
                         console.log("ERROR: loading Schema " + type);
                         //Structr.error("ERROR: loading Schema " + type, true);
-                        
-                        
+
+
                         var typeIndex = _Crud.types.indexOf(type)
-                        
+
                         // Delete broken type from list
-                        _Crud.types.splice(typeIndex,typeIndex+1);
-                        
-                        
+                        _Crud.types.splice(typeIndex, typeIndex + 1);
+
+
                         if (_Crud.isSchemaLoaded()) {
                             //console.log('Schema loaded successfully');
                             if (callback) {
                                 callback();
-                            }   
+                            }
                         }
-                    }else{
+                    } else {
 
                         $.each(data.result, function(i, res) {
                             //console.log(res);
@@ -325,7 +324,6 @@ var _Crud = {
                         });
                     }
                 },
-                
                 401: function(data) {
                     console.log(data);
                     Structr.errorFromResponse(data.responseJSON, url);
@@ -1474,50 +1472,51 @@ var _Crud = {
         }
 
         $.each(types, function(t, type) {
-
-            var url = rootUrl + _Crud.restType(type) + '/' + view + _Crud.sortAndPagingParameters(type, 'name', 'asc', 1000, 1) + '&name=' + encodeURIComponent(searchString) + '&loose=1';
+            var searchPart = searchString === '*' || searchString === '' ? '' : '&name=' + encodeURIComponent(searchString) + '&loose=1';
+            var url = rootUrl + _Crud.restType(type) + '/' + view + _Crud.sortAndPagingParameters(type, 'name', 'asc', 1000, 1) + searchPart;
             searchResults.append('<div id="placeholderFor' + type + '" class="searchResultGroup resourceBox"><img class="loader" src="img/ajax-loader.gif">Searching for "' + searchString + '" in ' + type + '</div>');
+
+            //console.log('Search URL', url)
 
             $.ajax({
                 url: url,
                 type: 'GET',
                 dataType: 'json',
                 contentType: 'application/json; charset=utf-8',
-                //async: false,
-                success: function(data) {
+                statusCode: {
+                    200: function(data) {
 
-                    $('#placeholderFor' + type + '').remove();
-                    if (data.result.length) {
-
-                        searchResults.append('<div id="resultsFor' + type + '" class="searchResultGroup resourceBox"><h3>' + type.capitalize() + '</h3></div>');
-
-                    } else {
-
-                        searchResults.append('<div id="resultsFor' + type + '" class="searchResultGroup resourceBox">No results for ' + type.capitalize() + '</div>');
-                        window.setTimeout(function() {
-                            $('#resultsFor' + type).fadeOut('fast')
-                        }, 1000);
-
-
-                    }
-
-                    $.each(data.result, function(i, node) {
-
-                        //console.log('node', node);
-                        var displayName = _Crud.displayName(node);
-                        $('#resultsFor' + type, searchResults).append('<div title="' + displayName + '" id="_' + node.id + '" class="node ' + node.type.toLowerCase() + ' ' + node.id + '_">' + fitStringToSize(displayName, 120) + '</div>');
-
-                        var nodeEl = $('#_' + node.id, searchResults);
-                        //console.log(node);
-                        if (node.type === 'Image') {
-                            nodeEl.prepend('<div class="wrap"><img class="thumbnail" src="/' + node.id + '"></div>');
+                        $('#placeholderFor' + type + '').remove();
+                        if (data.result.length) {
+                            searchResults.append('<div id="resultsFor' + type + '" class="searchResultGroup resourceBox"><h3>' + type.capitalize() + '</h3></div>');
+                        } else {
+                            searchResults.append('<div id="resultsFor' + type + '" class="searchResultGroup resourceBox">No results for ' + type.capitalize() + '</div>');
+                            window.setTimeout(function() {
+                                $('#resultsFor' + type).fadeOut('fast')
+                            }, 1000);
                         }
 
-                        nodeEl.on('click', function(e) {
-                            onClickCallback(e, node);
-                        });
+                        $.each(data.result, function(i, node) {
 
-                    });
+                            //console.log('node', node);
+                            var displayName = _Crud.displayName(node);
+                            $('#resultsFor' + type, searchResults).append('<div title="' + displayName + '" id="_' + node.id + '" class="node ' + node.type.toLowerCase() + ' ' + node.id + '_">' + fitStringToSize(displayName, 120) + '</div>');
+
+                            var nodeEl = $('#_' + node.id, searchResults);
+                            //console.log(node);
+                            if (node.type === 'Image') {
+                                nodeEl.prepend('<div class="wrap"><img class="thumbnail" src="/' + node.id + '"></div>');
+                            }
+
+                            nodeEl.on('click', function(e) {
+                                onClickCallback(e, node);
+                            });
+
+                        });
+                    },
+                    401: function() {
+                        $('#placeholderFor' + type + '').remove();
+                    }
                 }
             });
 
@@ -1705,27 +1704,9 @@ var _Crud = {
                 }
             });
         } else {
-
-            $.ajax({
-                url: url,
-                type: 'GET',
-                dataType: 'json',
-                contentType: 'application/json; charset=utf-8',
-                //async: false,
-                success: function(data) {
-                    var json = '{"' + key + '":' + JSON.stringify(relatedObj) + '}';
-                    //console.log(data.result);
-                    //var value = data.result[key];
-                    //_Crud.crudUpdate(id, key, _Crud.idArray([ relatedId ]), reload ? document.location.reload() : function() {});
-                    //console.log('update single related object', id, relatedObj, json);
-                    _Crud.crudUpdateObj(id, json, function() {
-                        _Crud.crudRefresh(id, key);
-                        dialogCancelButton.click();
-                    });
-                },
-                error: function(a, b, c) {
-                    console.log(a, b, c);
-                }
+            _Crud.crudUpdateObj(id, '{"' + key + '":' + JSON.stringify({'id': relatedObj.id}) + '}', function() {
+                _Crud.crudRefresh(id, key);
+                dialogCancelButton.click();
             });
         }
     },
@@ -1844,7 +1825,7 @@ var _Crud = {
         });
 
         $('#resourceTabs .resourceBox').css({
-            height: h - ($('#resourceTabsMenu').height()+109) + 'px'
+            height: h - ($('#resourceTabsMenu').height() + 109) + 'px'
         });
 
         $('.searchResults').css({
