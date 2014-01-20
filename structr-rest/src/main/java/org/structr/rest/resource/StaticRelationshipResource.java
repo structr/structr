@@ -332,7 +332,11 @@ public class StaticRelationshipResource extends SortableResource {
 								} catch (Throwable t) {
 								
 									// store FrameworkException for later use
-									if (t.getCause() instanceof FrameworkException) {
+									if (t instanceof FrameworkException) {
+										
+										fex = (FrameworkException)t;
+										
+									} else if (t.getCause() instanceof FrameworkException) {
 										
 										fex = (FrameworkException)t.getCause();
 										

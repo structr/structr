@@ -176,20 +176,15 @@ public class CronEntry implements Delayed {
 		// asterisk with step: */3
 		if (field.startsWith("*/")) {
 
-			throw new UnsupportedOperationException("Steps are not supported yet.");
+			int step = Integer.parseInt(field.substring(2));
+			if(step > 0 & step <= maxValue) {
 
-			/*
-			 * int step = Integer.parseInt(field.substring(2));
-			 * if(step > 0 & step <= maxValue) {
-			 *
-			 *       return new CronField(minValue, maxValue, step);
-			 *
-			 * } else {
-			 *
-			 *       throw new IllegalArgumentException("Illegal step: '" + step + "'");
-			 * }
-			 */
+			      return new CronField(minValue, maxValue, step);
 
+			} else {
+
+			      throw new IllegalArgumentException("Illegal step: '" + step + "'");
+			}
 		}
 
 		// simple number: 2
