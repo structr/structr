@@ -290,10 +290,10 @@ var _Crud = {
                         //Structr.error("ERROR: loading Schema " + type, true);
 
 
-                        var typeIndex = _Crud.types.indexOf(type)
+                        var typeIndex = _Crud.types.indexOf(type);
 
                         // Delete broken type from list
-                        _Crud.types.splice(typeIndex, typeIndex + 1);
+                        _Crud.types.splice(typeIndex, 1);
 
 
                         if (_Crud.isSchemaLoaded()) {

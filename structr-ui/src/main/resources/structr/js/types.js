@@ -195,10 +195,10 @@ var _Types = {
                         //Structr.error("ERROR: loading Schema " + type, true);
                         
                         
-                        var typeIndex = _Types.types.indexOf(type)
+                        var typeIndex = _Types.types.indexOf(type);
                         
                         // Delete broken type from list
-                        _Types.types.splice(typeIndex,typeIndex+1);
+                        _Types.types.splice(typeIndex, 1);
                         
                         
                         if (_Types.isSchemaLoaded()) {

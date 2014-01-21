@@ -365,6 +365,7 @@ var _Entities = {
                 $('li', tabs).removeClass('active');
                 self.addClass('active');
                 var tabView = $('#tabView-' + view);
+                tabView.empty();
                 tabView.show();
 
                 $.ajax({

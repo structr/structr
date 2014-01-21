@@ -20,6 +20,7 @@
 
 package org.structr.web.entity;
 
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import org.apache.commons.io.FileUtils;
@@ -73,18 +74,25 @@ public class File extends AbstractFile implements Linkable {
 	@Override
 	public void onNodeDeletion() {
 
+		String filePath = null;
 		try {
+			final String path = getRelativeFilePath();
 
-			java.io.File toDelete = new java.io.File(getFileLocation().toURI());
+			if (path != null) {
+
+			filePath = FileHelper.getFilePath(path);
+
+			java.io.File toDelete = new java.io.File(filePath);
 
 			if (toDelete.exists() && toDelete.isFile()) {
 
 				toDelete.delete();
 			}
+			}
 
 		} catch (Throwable t) {
 
-			logger.log(Level.WARNING, "Exception while trying to delete file {0}: {1}", new Object[] { getFileLocation(), t });
+			logger.log(Level.WARNING, "Exception while trying to delete file {0}: {1}", new Object[] { filePath, t });
 
 		}
 
@@ -172,52 +180,59 @@ public class File extends AbstractFile implements Linkable {
 
 	}
 
-	public URL getFileLocation() {
-
-		final String filesPath = Services.getInstance().getConfigurationValue(Services.FILES_PATH);
-		final String urlString = "file://" + filesPath + "/" + getRelativeFilePath();
-
-		try {
-
-			return new URL(urlString);
-
-		} catch (MalformedURLException mue) {
-
-			logger.log(Level.SEVERE, "Invalid URL: {0}", urlString);
-
-		}
-
-		return null;
-
-	}
+//	public URL getFileLocation() {
+//
+//		final String filesPath = Services.getInstance().getConfigurationValue(Services.FILES_PATH);
+//		final String urlString = "file://" + filesPath + "/" + getRelativeFilePath();
+//
+//		try {
+//
+//			return new URL(urlString);
+//
+//		} catch (MalformedURLException mue) {
+//
+//			logger.log(Level.SEVERE, "Invalid URL: {0}", urlString);
+//
+//		}
+//
+//		return null;
+//
+//	}
 
 	public InputStream getInputStream() {
 
-		URL url        = null;
-		InputStream in = null;
+		final String path = getRelativeFilePath();
 
-		try {
+		if (path != null) {
 
-			url = getFileLocation();
+			final String filePath = FileHelper.getFilePath(path);
+			final App app         = StructrApp.getInstance(securityContext);
 
-			return url.openStream();
+			FileInputStream fis = null;
+			try {
 
-		} catch (IOException e) {
+				java.io.File fileOnDisk = new java.io.File(filePath);
+				
+				// Return file input stream and save checksum and size after closing
+				fis = new FileInputStream(fileOnDisk);
+				
+				return fis;
+					
+			} catch (FileNotFoundException e) {
+				logger.log(Level.SEVERE, "File not found: {0}", new Object[] { path });
 
-			logger.log(Level.SEVERE, "Error while reading from {0}", new Object[] { url, e.getMessage() });
+				if (fis != null) {
 
-			if (in != null) {
+					try {
 
-				try {
+						fis.close();
 
-					in.close();
+					} catch (IOException ignore) {}
 
-				} catch (IOException ignore) {}
-
+				}
 			}
-
 		}
-
+		
 		return null;
 
 	}
