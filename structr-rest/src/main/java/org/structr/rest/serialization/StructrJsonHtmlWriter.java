@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Writer;
 import org.structr.core.GraphObject;
-import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.rest.serialization.html.Document;
@@ -192,6 +191,11 @@ public class StructrJsonHtmlWriter implements RestWriter {
 	@Override
 	public RestWriter value(String value) throws IOException {
 
+		if (!hasName) {
+			
+			currentElement = currentElement.block("li");
+		}
+
 		if ("id".equals(lastName)) {
 
 			currentElement.inline("a").css("id").attr(new Href(value)).text(value);
@@ -211,6 +215,11 @@ public class StructrJsonHtmlWriter implements RestWriter {
 
 	@Override
 	public RestWriter nullValue() throws IOException {
+
+		if (!hasName) {
+			
+			currentElement = currentElement.block("li");
+		}
 		
 		currentElement.inline("span").css("null").text("null");
 		currentElement = currentElement.parent();
@@ -222,6 +231,11 @@ public class StructrJsonHtmlWriter implements RestWriter {
 
 	@Override
 	public RestWriter value(boolean value) throws IOException {
+
+		if (!hasName) {
+			
+			currentElement = currentElement.block("li");
+		}
 		
 		currentElement.inline("span").css("boolean").text(value);
 		currentElement = currentElement.parent();
@@ -233,6 +247,11 @@ public class StructrJsonHtmlWriter implements RestWriter {
 
 	@Override
 	public RestWriter value(double value) throws IOException {
+
+		if (!hasName) {
+			
+			currentElement = currentElement.block("li");
+		}
 		
 		currentElement.inline("span").css("number").text(value);
 		currentElement = currentElement.parent();
@@ -244,6 +263,11 @@ public class StructrJsonHtmlWriter implements RestWriter {
 
 	@Override
 	public RestWriter value(long value) throws IOException {
+
+		if (!hasName) {
+			
+			currentElement = currentElement.block("li");
+		}
 		
 		currentElement.inline("span").css("number").text(value);
 		currentElement = currentElement.parent();
@@ -255,6 +279,11 @@ public class StructrJsonHtmlWriter implements RestWriter {
 
 	@Override
 	public RestWriter value(Number value) throws IOException {
+
+		if (!hasName) {
+			
+			currentElement = currentElement.block("li");
+		}
 		
 		currentElement.inline("span").css("number").text(value);
 		currentElement = currentElement.parent();
