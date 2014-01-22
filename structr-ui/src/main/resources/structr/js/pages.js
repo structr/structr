@@ -463,6 +463,7 @@ var _Pages = {
 
     },
     reloadIframe: function(id, name) {
+        _Pages.clearIframeDroppables();
         var iframe = $('#preview_' + id);
         if (iframe.parent().is(':hidden') || !localStorage.getItem(autoRefreshDisabledKey + id)) {
             iframe.prop('src', viewRootUrl + name + '?edit=2');
