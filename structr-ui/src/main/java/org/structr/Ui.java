@@ -51,6 +51,7 @@ public class Ui {
 
 			final StructrConf config = Services.getBaseConfiguration();
 			
+			config.setProperty(Services.BASE_PATH, "./");
 			config.setProperty(Services.CONFIGURED_SERVICES, "NodeService LogService FtpService HttpService");
 			config.setProperty(Services.CONFIGURATION, JarConfigurationProvider.class.getName());
 			config.setProperty(HttpService.APPLICATION_TITLE, "Structr UI");
