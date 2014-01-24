@@ -20,7 +20,7 @@
 /**
  * Screenshot/animation dimensions (pixel)
  */
-var w = 1440, h = 900;
+var w = 1280, h = 720;
 
 /**
  * Interval for typing simulation in ms
