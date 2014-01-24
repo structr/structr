@@ -1,4 +1,4 @@
-/* 
+    /* 
  *  Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
  * 
  *  This file is part of structr <http://structr.org>.
@@ -850,30 +850,15 @@ var Structr = {
             }
         });
 
-        pageLeft.on('click', function() {
+        pageLeft.on('click', function(e) {
+            e.stopPropagation();
             pageRight.removeAttr('disabled').removeClass('disabled');
             page[type]--;
             $('.page', pager).val(page[type]);
             $('.node', el).remove();
-            if (isPagesEl)
-                _Pages.clearPreviews();                e.stopPropagation();
-                //$('#pages_').droppable('disable');
-                log('over is off');
-
-                Structr.activateMenuEntry('pages');
-                window.location.href = '/structr/#pages';
-
-                if (files && files.length)
-                    files.hide();
-                if (folders && folders.length)
-                    folders.hide();
-                if (widgets && widgets.length)
-                    widgets.hide();
-
-//                _Pages.init();
-                Structr.modules['pages'].onload();
-                _Pages.resize();
-
+            if (isPagesEl) {
+                _Pages.clearPreviews();
+            }
             Command.list(type, pageSize[type], page[type], sort, order, callback);
         });
 
@@ -882,8 +867,9 @@ var Structr = {
             page[type]++;
             $('.page', pager).val(page[type]);
             $('.node', el).remove();
-            if (isPagesEl)
+            if (isPagesEl) {
                 _Pages.clearPreviews();
+            }
             Command.list(type, pageSize[type], page[type], sort, order, callback);
         });
         return Command.list(type, pageSize[type], page[type], sort, order, callback);
