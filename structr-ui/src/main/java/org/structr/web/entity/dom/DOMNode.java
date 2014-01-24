@@ -190,6 +190,14 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			}
 
 		});
+		functions.put("join", new Function<String, String>() {
+
+			@Override
+			public String apply(String[] s) {
+				return StringUtils.join(s);
+			}
+
+		});
 		functions.put("abbr", new Function<String, String>() {
 
 			@Override
