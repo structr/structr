@@ -55,6 +55,9 @@ public class Ui {
 			config.setProperty(Services.CONFIGURATION, JarConfigurationProvider.class.getName());
 			config.setProperty(HttpService.APPLICATION_TITLE, "Structr UI");
 
+			// Add this class to config so HttpService can derive the jar file containing the static resources from it
+			config.setProperty(HttpService.MAIN_CLASS, Ui.class.getName());
+
 			// Configure servlets
 			config.setProperty(HttpService.SERVLETS, "JsonRestServlet WebSocketServlet CsvServlet HtmlServlet");
 			
@@ -113,7 +116,7 @@ public class Ui {
 			// let structr.conf override defaults
 			// read structr.conf
 			final String configFileName = "structr.conf";
-
+			
 			try {
 				final FileInputStream fis    = new FileInputStream(configFileName);
 				final Properties structrConf = new Properties();
