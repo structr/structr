@@ -169,7 +169,7 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 			}
 			
 			if (transformations.isEmpty()) {
-				logger.log(Level.WARNING, "No entity creation transformation for {0}", node.getClass());
+				logger.log(Level.FINE, "No entity creation transformation for {0}", node.getClass());
 			}
 		}
 
