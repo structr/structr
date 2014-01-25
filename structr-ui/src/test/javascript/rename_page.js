@@ -19,8 +19,8 @@
 
 var s = require('../setup');
 
-var testName = 'rename_page';
-var heading = "Rename Page"
+var testName = '005_rename_page';
+var heading = "Rename Page", sections = [];
 var desc = "This animation shows how a new page can be renamed."
 var numberOfTests = 3;
 
@@ -33,6 +33,8 @@ casper.test.begin(testName, numberOfTests, function(test) {
     casper.thenEvaluate(function() {
         window.localStorage.clear();
     }, {});
+    
+    sections.push('<a href="004_create_page_test.html">Login and create a page.</a>');
     
     casper.then(function() {
         s.animatedType(this, '#usernameField', false, 'admin');
@@ -69,6 +71,8 @@ casper.test.begin(testName, numberOfTests, function(test) {
 
     casper.wait(1000);
 
+    sections.push('You can rename a page by simply clicking on the name on the preview tab. After entering a new name, press return or tab, or click outside the input field.');
+
     casper.then(function() {
         s.moveMousePointerTo(casper, '#previewTabs li:nth-child(2)');
     });
@@ -92,7 +96,7 @@ casper.test.begin(testName, numberOfTests, function(test) {
 
     casper.then(function() {
         
-        s.animateHtml(testName, heading, desc);
+        s.animateHtml(testName, heading, sections);
 
         test.done();
         this.exit();

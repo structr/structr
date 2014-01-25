@@ -19,8 +19,8 @@
 
 var s = require('../setup');
 
-var testName = 'failed_login';
-var heading = "Failed Login"
+var testName = '001_failed_login';
+var heading = "Failed Login", sections = [];
 var desc = "This animation shows what happens if an incorrect username/password combination was entered."
 var numberOfTests = 2;
 
@@ -34,6 +34,8 @@ casper.test.begin(testName, numberOfTests, function(test) {
         window.localStorage.clear();
     }, {});
 
+    sections.push('If you enter a wrong combination of username and password, the system does not allow you to log in.');
+
     casper.then(function() {
         s.animatedType(this, '#usernameField', false, 'wrong');
     });
@@ -43,7 +45,7 @@ casper.test.begin(testName, numberOfTests, function(test) {
     });
 
     casper.then(function() {
-        s.mousePointer(casper, { left: 180, top: 180 });
+        s.mousePointer(casper, { left: 600, top: 400 });
         s.moveMousePointerTo(casper, '#loginButton');
     });
 
@@ -65,7 +67,7 @@ casper.test.begin(testName, numberOfTests, function(test) {
     
     casper.then(function() {
         
-        s.animateHtml(testName, heading, desc);
+        s.animateHtml(testName, heading, sections);
         
         test.done();
         this.exit();

@@ -35,12 +35,12 @@ var mouseInterval = 10;
 /**
  * Number of steps for mouse movement (fewer steps = faster)
  */
-var mouseSteps = 10;
+var mouseSteps = 20;
 
 /**
  * Recording interval in ms
  */
-var recordingInterval = 100;
+var recordingInterval = 50;
 
 /**
  * Length of animation images filenames (f.e. 0023.png)
@@ -391,25 +391,33 @@ exports.pad = function(num) {
 /**
  * Create an HTML file with JS-animated video
  */
-exports.animateHtml = function(testName, heading, desc) {
+exports.animateHtml = function(testName, heading, sections) {
 
     var fs = require('fs');
 
-    var html = '<!DOCTYPE html><html><head><title>structr UI Test: ' + heading + '</title><link rel="stylesheet" type="text/css" media="screen" href="test.css"></head><body><h1>' + heading + '</h1><div id="desc">' + desc + '</div><img width="' + w + '" height="' + h + '" id="anim"><script type="text/javascript">'
+    var html = '<!DOCTYPE html><html><head><title>structr UI Test: ' + heading + '</title><link rel="stylesheet" type="text/css" media="screen" href="test.css"></head><body><div id="main"><h1>' + heading + '</h1>'
+
+    sections.forEach(function(s) {
+        html += '<section>' + s + '</section>';
+    });
+    
+    html += '<img width="' + w + '" height="' + h + '" id="anim"><script type="text/javascript">'
 
     html += '\n'
-            + 'var anim = document.getElementById("anim");\n'
-            + 'play(0);\n';
+            + 'var t; var anim = document.getElementById("anim");\n'
+            + 'play(0,50);\n';
 
     var files = fs.list(exports.docsDir + '/screenshots/' + testName + '/');
 
     html += 'function setImg(i) { anim.src = "../screenshots/' + testName + '/" + ("000000000" + i).substr(-' + filenameLength + ') + ".' + exports.imageType + '"; }\n'
             + 'function play(i, v) { setImg(i);\n'
-            + ' if (i<' + (files.length - 3) + ') { window.setTimeout(function() { play(i+1,v); }, v?v:100); }; }\n';
+            + ' if (i<' + (files.length - 3) + ') { t = window.setTimeout(function() { play(i+1,v); }, v?v:100); }; }\n';
 
-    html += '</script><div><button onclick="play(0)">Play</button><button onclick="play(0,250)">Slow Motion</button></div></body></html>';
+    html += '</script><div><button onclick="play(0,50)">Play</button><button onclick="window.clearTimeout(t)">Stop</button><button onclick="play(0,250)">Slow Motion</button></div></div></body></html>';
 
-    fs.write(exports.docsDir + '/html/' + testName + '.html', html);
+    fs.write(exports.docsDir + '/html/' + testName + '_test.html', html);
+    
+    exports.createNavigation();
 
 }
 
@@ -438,4 +446,31 @@ exports.startRecording = function(window, casper, testName) {
         if (exports.debug)
             console.log('screenshot ' + i + ' created');
     }, recordingInterval);
+}
+
+/**
+ * Create navigation page
+ */
+exports.createNavigation = function() {
+
+    var fs = require('fs');
+
+    var files = fs.list(exports.docsDir + '/html/');
+
+    var html = '<!DOCTYPE html><html><head><title>Structr Documentation Menu</title><link rel="stylesheet" type="text/css" media="screen" href="test.css"></head><body><ul id="menu">'
+    
+    files.forEach(function(file) {
+        if (file.indexOf('_test') > -1) {
+            var name = file.substring(4, file.indexOf('_test')).split('_').map(function(n) {
+                return n.charAt(0).toUpperCase() + n.slice(1);
+            }).join(' ');
+            html += '<li><a href="' + file + '" target="cont">' + name + '</a></li>\n';
+        }
+        
+    });
+    
+    html += '</ul></body></html>';
+
+    fs.write(exports.docsDir + '/html/nav.html', html);
+
 }

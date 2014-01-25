@@ -19,8 +19,8 @@
 
 var s = require('../setup');
 
-var testName = 'create_page';
-var heading = "Create Page"
+var testName = '004_create_page';
+var heading = "Create Page", sections = [];
 var desc = "This animation shows how an empty page is created."
 var numberOfTests = 3;
 
@@ -34,7 +34,8 @@ casper.test.begin(testName, numberOfTests, function(test) {
         window.localStorage.clear();
     }, {});
     
-
+    sections.push('Login with username and password.');
+    
     casper.then(function() {
         s.animatedType(this, '#usernameField', false, 'admin');
     });
@@ -44,7 +45,7 @@ casper.test.begin(testName, numberOfTests, function(test) {
     });
 
     casper.then(function() {
-        s.mousePointer(casper, { left: 180, top: 180 });
+        s.mousePointer(casper, { left: 600, top: 400 });
         s.moveMousePointerTo(casper, '#loginButton');
     });
 
@@ -60,6 +61,10 @@ casper.test.begin(testName, numberOfTests, function(test) {
 
     });
     
+    sections.push('If it is not already active, click on the "Pages" menu entry.');
+    
+    sections.push('Click on the icon with the green plus on the rightmost tab above the preview frame.');
+    
     casper.then(function() {
         s.moveMousePointerTo(casper, '#add_page');
     });
@@ -72,9 +77,11 @@ casper.test.begin(testName, numberOfTests, function(test) {
     
     // TODO: Add assertion to detect creation of page
 
+    sections.push('A new page with a random name has been created. The page is automatically loaded into the preview window.');
+
     casper.then(function() {
         
-        s.animateHtml(testName, heading, desc);
+        s.animateHtml(testName, heading, sections);
 
         test.done();
         this.exit();

@@ -19,8 +19,8 @@
 
 var s = require('../setup');
 
-var testName = 'inline_editing';
-var heading = "Inline Editing"
+var testName = '006_inline_editing';
+var heading = "Inline Editing", sections = [];
 var desc = "This animation shows how to edit text directly in the rendered page."
 var numberOfTests = 4;
 
@@ -33,6 +33,8 @@ casper.test.begin(testName, numberOfTests, function(test) {
     casper.thenEvaluate(function() {
         window.localStorage.clear();
     }, {});
+    
+    sections.push('<a href="004_create_page_test.html">Login and create a page.</a>');
     
     casper.then(function() {
         s.animatedType(this, '#usernameField', false, 'admin');
@@ -76,8 +78,11 @@ casper.test.begin(testName, numberOfTests, function(test) {
     casper.wait(1000, function() {
     });
 
+    sections.push('To edit a text section, click on it in the preview window and directly edit the text in the page. You can add new and even empty lines by simply pressing return. When finished, hit tab, or click outside the text section.');
+
     casper.then(function() {
-        s.mousePointer(casper, { left: 395, top: 190 });
+        s.moveMousePointer(casper, { left: 73, top: 78 }, { left: 45, top: 185 });
+        //s.moveMousePointerTo(this, 'body div:nth-child(2) span');
     });
 
     casper.then(function() {
@@ -107,7 +112,7 @@ casper.test.begin(testName, numberOfTests, function(test) {
 
     casper.then(function() {
         
-        s.animateHtml(testName, heading, desc);
+        s.animateHtml(testName, heading, sections);
 
         test.done();
         this.exit();

@@ -19,8 +19,8 @@
 
 var s = require('../setup');
 
-var testName = 'create_user';
-var heading = "Create User"
+var testName = '003_create_user';
+var heading = "Create User", sections = [];
 var desc = "This animation shows how to create a new user."
 var numberOfTests = 3;
 
@@ -34,7 +34,8 @@ casper.test.begin(testName, numberOfTests, function(test) {
         window.localStorage.clear();
     }, {});
     
-
+    sections.push('Enter username and password.');
+    
     casper.then(function() {
         s.animatedType(this, '#usernameField', false, 'admin');
     });
@@ -43,8 +44,10 @@ casper.test.begin(testName, numberOfTests, function(test) {
         s.animatedType(this, '#passwordField', false, 'admin');
     });
 
+    sections.push('Click on the login button.');
+    
     casper.then(function() {
-        s.mousePointer(casper, { left: 180, top: 180 });
+        s.mousePointer(casper, { left: 600, top: 400 });
         s.moveMousePointerTo(casper, '#loginButton');
     });
 
@@ -60,6 +63,8 @@ casper.test.begin(testName, numberOfTests, function(test) {
 
     });
     
+    sections.push('Click on the "Users and Groups" menu entry.');
+    
     casper.then(function() {
         s.moveMousePointerTo(casper, '#usersAndGroups_');
     });
@@ -69,6 +74,8 @@ casper.test.begin(testName, numberOfTests, function(test) {
     });
 
     casper.wait(1000);
+    
+    sections.push('Click the "Add User" icon.');
     
     casper.then(function() {
         s.moveMousePointerTo(casper, '.add_user_icon');
@@ -86,9 +93,11 @@ casper.test.begin(testName, numberOfTests, function(test) {
         });
     });
 
+    sections.push('A new user with a random name has been created in the users area.');
+
     casper.then(function() {
         
-        s.animateHtml(testName, heading, desc);
+        s.animateHtml(testName, heading, sections);
 
         test.done();
         this.exit();

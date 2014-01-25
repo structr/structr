@@ -19,8 +19,8 @@
 
 var s = require('../setup');
 
-var testName = 'create_folder';
-var heading = "Create Folder"
+var testName = '008_create_folder';
+var heading = "Create Folder", sections = [];
 var desc = "This animation shows how to create a new folder."
 var numberOfTests = 3;
 
@@ -34,6 +34,7 @@ casper.test.begin(testName, numberOfTests, function(test) {
         window.localStorage.clear();
     }, {});
     
+    sections.push('Enter username and password.');
 
     casper.then(function() {
         s.animatedType(this, '#usernameField', false, 'admin');
@@ -43,8 +44,10 @@ casper.test.begin(testName, numberOfTests, function(test) {
         s.animatedType(this, '#passwordField', false, 'admin');
     });
 
+    sections.push('Click on the login button.');
+
     casper.then(function() {
-        s.mousePointer(casper, { left: 180, top: 180 });
+        s.mousePointer(casper, { left: 600, top: 400 });
         s.moveMousePointerTo(casper, '#loginButton');
     });
 
@@ -59,6 +62,8 @@ casper.test.begin(testName, numberOfTests, function(test) {
         test.assertEval(function() { return $('#pages').is(':visible'); });
 
     });
+
+    sections.push('Click on the "Files" menu entry.');
     
     casper.then(function() {
         s.moveMousePointerTo(casper, '#files_');
@@ -69,6 +74,8 @@ casper.test.begin(testName, numberOfTests, function(test) {
     });
 
     casper.wait(1000);
+
+    sections.push('Click the "Add Folder" icon.');
     
     casper.then(function() {
         s.moveMousePointerTo(casper, '.add_folder_icon');
@@ -80,6 +87,8 @@ casper.test.begin(testName, numberOfTests, function(test) {
 
     casper.wait(1000);
 
+    sections.push('A new folder with a random name has been created in the folders area.');
+
     casper.then(function() {
         test.assertEval(function() {
             return $('#folders .node.folder').size() === 1;
@@ -88,7 +97,7 @@ casper.test.begin(testName, numberOfTests, function(test) {
 
     casper.then(function() {
         
-        s.animateHtml(testName, heading, desc);
+        s.animateHtml(testName, heading, sections);
 
         test.done();
         this.exit();

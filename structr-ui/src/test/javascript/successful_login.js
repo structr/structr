@@ -19,8 +19,8 @@
 
 var s = require('../setup');
 
-var testName = 'successful_login';
-var heading = "Successful Login"
+var testName = '002_successful_login';
+var heading = "Successful Login", sections = [];
 var desc = "This animation shows a successful login."
 var numberOfTests = 2;
 
@@ -34,6 +34,8 @@ casper.test.begin(testName, numberOfTests, function(test) {
         window.localStorage.clear();
     }, {});
     
+    sections.push('If you enter a valid combination of username and password, the system allows you to log in.');
+    
     casper.then(function() {
         s.animatedType(this, '#usernameField', false, 'admin');
     });
@@ -43,7 +45,7 @@ casper.test.begin(testName, numberOfTests, function(test) {
     });
 
     casper.then(function() {
-        s.mousePointer(casper, { left: 180, top: 180 });
+        s.mousePointer(casper, { left: 600, top: 400 });
         s.moveMousePointerTo(casper, '#loginButton');
     });
 
@@ -63,7 +65,7 @@ casper.test.begin(testName, numberOfTests, function(test) {
 
     casper.then(function() {
         
-        s.animateHtml(testName, heading, desc);
+        s.animateHtml(testName, heading, sections);
         
         test.done();
         this.exit();
