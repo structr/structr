@@ -274,7 +274,7 @@ var _Crud = {
 
         //_Crud.schema[type] = [];
 
-        var url = rootUrl + '_schema/' + type.toUnderscore();
+        var url = rootUrl + '_schema/' + type;
         $.ajax({
             url: url,
             dataType: 'json',

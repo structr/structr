@@ -81,6 +81,7 @@ public abstract class AbstractSchemaNode extends AbstractNode {
 	}
 	
 	public String getResourceSignature() {
-		return SchemaHelper.normalizeEntityName(getProperty(name));
+		//return SchemaHelper.normalizeEntityName(getProperty(name));
+		return getProperty(name);
 	}
 }

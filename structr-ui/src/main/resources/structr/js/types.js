@@ -179,7 +179,7 @@ var _Types = {
 
         //_Types.schema[type] = [];
         //console.log(type);
-        var url = rootUrl + '_schema/' + type.toUnderscore();
+        var url = rootUrl + '_schema/' + type;
         $.ajax({
             url: url,
             dataType: 'json',
