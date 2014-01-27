@@ -60,7 +60,9 @@ casper.test.begin(testName, numberOfTests, function(test) {
         test.assertEval(function() { return $('#pages').is(':visible'); });
 
     });
-    
+
+    casper.wait(100);
+ 
     casper.then(function() {
         s.moveMousePointerTo(casper, '#add_page');
     });
@@ -75,8 +77,8 @@ casper.test.begin(testName, numberOfTests, function(test) {
         });
     });
 
-    casper.wait(1000, function() {
-    });
+    casper.wait(1000);
+    
 
     sections.push('To edit a text section, click on it in the preview window and directly edit the text in the page. You can add new and even empty lines by simply pressing return. When finished, hit tab, or click outside the text section.');
 
@@ -85,27 +87,30 @@ casper.test.begin(testName, numberOfTests, function(test) {
         //s.moveMousePointerTo(this, 'body div:nth-child(2) span');
     });
 
+
+    casper.then(function() {
+        test.assertExists('iframe');
+    });
+
     casper.then(function() {
         s.clickInIframe(this, 'body div:nth-child(2) span');
     });
 
-    casper.wait(1000, function() {
-    });
+    casper.wait(1000);
 
     casper.then(function() {
-        s.animatedType(this, 'body div:nth-child(2) span', true, 'New Text', true);
+        s.animatedType(this, 'body div:nth-child(2) span', true, 'N', true);
     });
 
     casper.then(function() {
         s.mousePointer(casper, { left: 380, top: 140 });
     });
 
-    casper.wait(2000, function() {
-    });
+    casper.wait(1000);
     
     casper.then(function() {
         test.assertEval(function() {
-            return $('#pages .node.page .html_element > div.node:eq(1) > div.node:eq(1) > .content:eq(0) .content_').text() === 'New Text';
+            return $('#pages .node.page .html_element > div.node:eq(1) > div.node:eq(1) > .content:eq(0) .content_').text() === 'N';
         });
     });
     

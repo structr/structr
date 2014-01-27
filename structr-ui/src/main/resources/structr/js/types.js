@@ -331,8 +331,6 @@ var _Types = {
             }
         }
 
-        typeNode.append('<button class="add_property" class="btn"><img class="add_button icon" src="icon/add.png"> Add property</button>');
-
         _Crud.resize();
 
     },

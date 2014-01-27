@@ -565,7 +565,7 @@ var _Pages = {
 
         var tab = _Pages.addTab(entity);
 
-        previews.append('<div class="previewBox"><iframe id="preview_'
+        previews.append('<div class="previewBox"><iframe name="foo" id="preview_'
                 + entity.id + '"></iframe></div><div style="clear: both"></div>');
 
         _Pages.resetTab(tab, entity.name);

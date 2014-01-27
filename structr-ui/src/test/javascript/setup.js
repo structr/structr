@@ -67,7 +67,7 @@ exports.docsDir = '../../../../docs';
 /**
  * Set to true to enable debug logging
  */
-exports.debug = false;
+exports.debug = true;
 
 /**
  * The input field with the given selector will be filled
@@ -81,7 +81,7 @@ exports.animatedType = function(casper, selector, inIframe, text, blur, len) {
     var t = '';
 
     if (len === undefined) {
-        len = 0;
+        len = 1;
     }
 
     if (len === text.length + 1) {
@@ -103,27 +103,93 @@ exports.animatedType = function(casper, selector, inIframe, text, blur, len) {
         return;
     }
 
-    t = text.substr(0, len);
+    //t = text.substr(0, len);
+    t = text.substring(len - 1, len);
 
     if (exports.debug)
-        console.log('Typing in', selector, ', in iframe?', inIframe);
+        console.log('Typing text ', t, ' in', selector, 'in iframe?', inIframe);
 
-    casper.thenEvaluate(function(s, t, f) {
+//    casper.thenEvaluate(function(s, t, f) {
+//
+//        var el;
+//        if (f) {
+//            el = $('iframe:first-child').contents().find(s);
+//        } else {
+//            el = $(s);
+//        }
+//
+//        if (el && el.length) {
+//            casper.sendKeys(s, t, {keepFocus: true});
+//        }
+//
+////        if (el && el.is('input')) {
+////            el.val(t);
+////        } else {
+////            el.text(t);
+////        }
+//        
+//
+//    }, selector, t, inIframe);
 
-        var el;
-        if (f) {
-            el = $('iframe:first-child').contents().find(s);
+
+//    if (inIframe) {
+//        casper.page.switchToChildFrame(0);
+//    }
+//
+//    casper.sendKeys(selector, t, {keepFocus: true});
+//
+//    if (inIframe) {
+//        casper.page.switchToParentFrame();
+//    }
+
+    casper.then(function() {
+
+        if (inIframe) {
+
+            casper.test.assertExists('iframe');
+
+            casper.withFrame(0, function() {
+
+                casper.test.assertExists('body div:nth-child(2) span');
+
+                console.log('sendKeys', casper.fetchText('body div:nth-child(2) span'));
+                //casper.sendKeys('body div:nth-child(2) span', t, {keepFocus: true});
+
+                casper.evaluate(function(s, t) {
+                    
+                    var el = $(s);
+                    if (el && el.is('input')) {
+                        el.val(t);
+                    } else {
+                        el.text(t);
+                    }
+                    
+                }, selector, t);
+
+                
+            });
+
+
         } else {
-            el = $(s);
+            casper.sendKeys(selector, t, {keepFocus: true});
         }
 
-        if (el && el.is('input')) {
-            el.val(t);
-        } else {
-            el.text(t);
-        }
+    });
 
-    }, selector, t, inIframe);
+//    casper.thenEvaluate(function(s, tt, f) {
+//
+//        if (f) {
+//
+//            this.withFrame('foo', function() {
+//                this.sendKeys(s, tt, {keepFocus: true});
+//            });
+//
+//        } else {
+//            this.sendKeys(s, tt, {keepFocus: true});
+//        }
+//
+//    }, selector, t, inIframe);
+
 
     window.setTimeout(function() {
         exports.animatedType(casper, selector, inIframe, text, blur, len + 1);
@@ -244,12 +310,17 @@ exports.moveMousePointerTo = function(casper, selector, offset) {
                 };
 
             }
+
+
         }, selector, offset);
 
         if (exports.debug)
             console.log('start position:', positions.start.left, positions.start.top, ', end position:', positions.end.left, positions.end.top);
 
         exports.moveMousePointer(casper, positions.start, positions.end);
+
+        this.mouseEvent('mouseover', selector);
+
     });
 
 }
@@ -263,7 +334,7 @@ exports.dragDropElement = function(casper, sourceSelector, targetSelector, offse
         console.log('drag element', sourceSelector, targetSelector, offset);
 
     var positions;
-    
+
     casper.then(function() {
 
         //  exports.moveMousePointerTo(casper, sourceSelector);
@@ -368,12 +439,13 @@ exports.dragDropElement = function(casper, sourceSelector, targetSelector, offse
 
         var sourceEl = $(s);
         sourceEl.simulate('drag-n-drop', {
-                dx: d.x,
-                dy: d.y
+            dx: d.x,
+            dy: d.y
 //            dx: -1350,
 //            dy: 190
         });
-        
+
+        this.mouseEvent('mouseover', targetSelector);
 
     }, sourceSelector, targetSelector, offset);
 
@@ -400,7 +472,7 @@ exports.animateHtml = function(testName, heading, sections) {
     sections.forEach(function(s) {
         html += '<section>' + s + '</section>';
     });
-    
+
     html += '<img width="' + w + '" height="' + h + '" id="anim"><script type="text/javascript">'
 
     html += '\n'
@@ -416,7 +488,7 @@ exports.animateHtml = function(testName, heading, sections) {
     html += '</script><div><button onclick="play(0,50)">Play</button><button onclick="window.clearTimeout(t)">Stop</button><button onclick="play(0,250)">Slow Motion</button></div></div></body></html>';
 
     fs.write(exports.docsDir + '/html/' + testName + '_test.html', html);
-    
+
     exports.createNavigation();
 
 }
@@ -440,7 +512,7 @@ exports.startRecording = function(window, casper, testName) {
 
     // Remove old screenshots
     fs.removeTree(exports.docsDir + '/screenshots/' + testName);
-    
+
     window.setInterval(function() {
         casper.capture(exports.docsDir + '/screenshots/' + testName + '/' + exports.pad(i++) + '.' + exports.imageType);
         if (exports.debug)
@@ -458,7 +530,7 @@ exports.createNavigation = function() {
     var files = fs.list(exports.docsDir + '/html/');
 
     var html = '<!DOCTYPE html><html><head><title>Structr Documentation Menu</title><link rel="stylesheet" type="text/css" media="screen" href="test.css"></head><body><ul id="menu">'
-    
+
     files.forEach(function(file) {
         if (file.indexOf('_test') > -1) {
             var name = file.substring(4, file.indexOf('_test')).split('_').map(function(n) {
@@ -466,9 +538,9 @@ exports.createNavigation = function() {
             }).join(' ');
             html += '<li><a href="' + file + '" target="cont">' + name + '</a></li>\n';
         }
-        
+
     });
-    
+
     html += '</ul></body></html>';
 
     fs.write(exports.docsDir + '/html/nav.html', html);
