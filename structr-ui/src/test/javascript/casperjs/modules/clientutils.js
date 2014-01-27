@@ -59,6 +59,26 @@
         // public members
         this.options = options || {};
         this.options.scope = this.options.scope || document;
+
+        /**
+         * Calls a method part of the current prototype, with arguments.
+         *
+         * @param  {String} method Method name
+         * @param  {Array}  args   arguments
+         * @return {Mixed}
+         */
+        this.__call = function __call(method, args) {
+            if (method === "__call") {
+                return;
+            }
+            try {
+                return this[method].apply(this, args);
+            } catch (err) {
+                err.__isCallError = true;
+                return err;
+            }
+        };
+
         /**
          * Clicks on the DOM element behind the provided selector.
          *
@@ -130,19 +150,24 @@
         /**
          * Checks if a given DOM element is visible in remove page.
          *
-         * @param Object   element  DOM element
+         * @param  Object   element  DOM element
          * @return Boolean
          */
         this.elementVisible = function elementVisible(elem) {
+            var style;
             try {
-                var comp = window.getComputedStyle(elem, null);
-                return comp.visibility !== 'hidden' &&
-                       comp.display !== 'none' &&
-                       elem.offsetHeight > 0 &&
-                       elem.offsetWidth > 0;
+                style = window.getComputedStyle(elem, null);
             } catch (e) {
                 return false;
             }
+            var hidden = style.visibility === 'hidden' || style.display === 'none';
+            if (hidden) {
+                return false;
+            }
+            if (style.display === "inline") {
+                return true;
+            }
+            return elem.clientHeight > 0 && elem.clientWidth > 0;
         }
 
         /**
@@ -290,7 +315,7 @@
          *
          * @param  String            selector  CSS3 selector
          * @param  HTMLElement|null  scope     Element to search child elements within
-         * @return NodeList|undefined
+         * @return Array|undefined
          */
         this.findAll = function findAll(selector, scope) {
             scope = scope || this.options.scope;
@@ -299,7 +324,7 @@
                 if (pSelector.type === 'xpath') {
                     return this.getElementsByXPath(pSelector.path, scope);
                 } else {
-                    return scope.querySelectorAll(pSelector.path);
+                    return Array.prototype.slice.call(scope.querySelectorAll(pSelector.path));
                 }
             } catch (e) {
                 this.log('findAll(): invalid selector provided "' + selector + '":' + e, "error");
@@ -560,10 +585,19 @@
                 }
             }
             var formSelector = '';
-            if (options && options.formSelector) {
+            if (options.formSelector) {
                 formSelector = options.formSelector + ' ';
             }
             var inputs = this.findAll(formSelector + '[name="' + inputName + '"]');
+
+            if (options.inputSelector) {
+                inputs = inputs.concat(this.findAll(options.inputSelector));
+            }
+
+            if (options.inputXPath) {
+                inputs = inputs.concat(this.getElementsByXPath(options.inputXPath));
+            }
+
             switch (inputs.length) {
                 case 0:  return undefined;
                 case 1:  return getSingleValue(inputs[0]);
@@ -619,7 +653,7 @@
                 var center_x = 1, center_y = 1;
                 try {
                     var pos = elem.getBoundingClientRect();
-                    center_x = Math.floor((pos.left + pos.right) / 2),
+                    center_x = Math.floor((pos.left + pos.right) / 2);
                     center_y = Math.floor((pos.top + pos.bottom) / 2);
                 } catch(e) {}
                 evt.initMouseEvent(type, true, true, window, 1, 1, 1, center_x, center_y, false, false, false, false, 0, elem);
@@ -688,6 +722,23 @@
                 a.snapshotItem(i).parentNode.removeChild(a.snapshotItem(i));
             }
         };
+
+        /**
+         * Scrolls current document to x, y coordinates.
+         *
+         * @param  {Number} x X position
+         * @param  {Number} y Y position
+         */
+        this.scrollTo = function scrollTo(x, y) {
+            window.scrollTo(parseInt(x || 0, 10), parseInt(y || 0, 10));
+        };
+
+        /**
+         * Scrolls current document up to its bottom.
+         */
+        this.scrollToBottom = function scrollToBottom() {
+            this.scrollTo(0, this.getDocumentHeight());
+        },
 
         /**
          * Performs an AJAX request.
@@ -766,24 +817,6 @@
                 case "input":
                     var type = field.getAttribute('type') || "text";
                     switch (type.toLowerCase()) {
-                        case "color":
-                        case "date":
-                        case "datetime":
-                        case "datetime-local":
-                        case "email":
-                        case "hidden":
-                        case "month":
-                        case "number":
-                        case "password":
-                        case "range":
-                        case "search":
-                        case "tel":
-                        case "text":
-                        case "time":
-                        case "url":
-                        case "week":
-                            field.value = value;
-                            break;
                         case "checkbox":
                             if (fields.length > 1) {
                                 var values = value;
@@ -813,7 +846,7 @@
                             }
                             break;
                         default:
-                            out = "Unsupported input field type: " + type;
+                            field.value = value;
                             break;
                     }
                     break;

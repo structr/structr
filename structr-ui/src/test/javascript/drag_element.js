@@ -22,7 +22,7 @@ var s = require('../setup');
 var testName = '007_add_element_to_page';
 var heading = "Add Element to Page", sections = [];
 var desc = "This animation shows how a content element is dragged into a page."
-var numberOfTests = 4;
+var numberOfTests = 3;
 
 s.startRecording(window, casper, testName);
 

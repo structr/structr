@@ -25,7 +25,7 @@ var w = 1280, h = 720;
 /**
  * Interval for typing simulation in ms
  */
-var typeInterval = 20;
+var typeInterval = 10;
 
 /**
  * Interval for moving mouse cursor in ms (lower = faster)
@@ -67,7 +67,7 @@ exports.docsDir = '../../../../docs';
 /**
  * Set to true to enable debug logging
  */
-exports.debug = true;
+exports.debug = false;
 
 /**
  * The input field with the given selector will be filled
@@ -87,7 +87,7 @@ exports.animatedType = function(casper, selector, inIframe, text, blur, len) {
     if (len === text.length + 1) {
 
         if (blur) {
-            casper.evaluate(function(s, f) {
+            casper.thenEvaluate(function(s, f) {
                 var el;
                 if (f) {
                     el = $('iframe:first-child').contents().find(s);
@@ -109,91 +109,23 @@ exports.animatedType = function(casper, selector, inIframe, text, blur, len) {
     if (exports.debug)
         console.log('Typing text ', t, ' in', selector, 'in iframe?', inIframe);
 
-//    casper.thenEvaluate(function(s, t, f) {
-//
-//        var el;
-//        if (f) {
-//            el = $('iframe:first-child').contents().find(s);
-//        } else {
-//            el = $(s);
-//        }
-//
-//        if (el && el.length) {
-//            casper.sendKeys(s, t, {keepFocus: true});
-//        }
-//
-////        if (el && el.is('input')) {
-////            el.val(t);
-////        } else {
-////            el.text(t);
-////        }
-//        
-//
-//    }, selector, t, inIframe);
-
-
-//    if (inIframe) {
-//        casper.page.switchToChildFrame(0);
-//    }
-//
-//    casper.sendKeys(selector, t, {keepFocus: true});
-//
-//    if (inIframe) {
-//        casper.page.switchToParentFrame();
-//    }
-
     casper.then(function() {
 
         if (inIframe) {
-
-            casper.test.assertExists('iframe');
-
             casper.withFrame(0, function() {
-
-                casper.test.assertExists('body div:nth-child(2) span');
-
-                console.log('sendKeys', casper.fetchText('body div:nth-child(2) span'));
-                //casper.sendKeys('body div:nth-child(2) span', t, {keepFocus: true});
-
-                casper.evaluate(function(s, t) {
-                    
-                    var el = $(s);
-                    if (el && el.is('input')) {
-                        el.val(t);
-                    } else {
-                        el.text(t);
-                    }
-                    
-                }, selector, t);
-
-                
+                casper.sendKeys('body div:nth-child(2) span', t, {keepFocus: true});
             });
-
-
         } else {
             casper.sendKeys(selector, t, {keepFocus: true});
+            //casper.sendKeys(selector, t);
         }
 
     });
 
-//    casper.thenEvaluate(function(s, tt, f) {
-//
-//        if (f) {
-//
-//            this.withFrame('foo', function() {
-//                this.sendKeys(s, tt, {keepFocus: true});
-//            });
-//
-//        } else {
-//            this.sendKeys(s, tt, {keepFocus: true});
-//        }
-//
-//    }, selector, t, inIframe);
-
-
-    window.setTimeout(function() {
+    casper.wait(inIframe ? 1 : typeInterval, function() {
         exports.animatedType(casper, selector, inIframe, text, blur, len + 1);
-    }, typeInterval);
+    });
+
 
 }
 
@@ -206,9 +138,9 @@ exports.clickInIframe = function(casper, selector) {
         console.log('Clicking in iframe on', selector);
 
     casper.evaluate(function(s) {
-
-        $('iframe:first-child').contents().find(s).click();
-
+        var el = $('iframe:first-child').contents().find(s);
+        el.click();
+        el.focus();
     }, selector);
 
 }
