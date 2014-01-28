@@ -46,6 +46,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeService;
 import org.structr.core.graph.NodeService.NodeIndex;
 import org.structr.core.graph.NodeService.RelationshipIndex;
+import org.structr.core.graph.search.NotBlankSearchAttribute;
 import org.structr.core.graph.search.RangeSearchAttribute;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
@@ -58,6 +59,7 @@ import org.structr.core.graph.search.PropertySearchAttribute;
  */
 public abstract class Property<T> implements PropertyKey<T> {
 
+	private static final Logger logger             = Logger.getLogger(Property.class.getName());
 	private static final Pattern rangeQueryPattern = Pattern.compile("\\[(.+) TO (.+)\\]");
 	
 	protected List<PropertyValidator<T>> validators        = new LinkedList<>();
@@ -528,7 +530,26 @@ public abstract class Property<T> implements PropertyKey<T> {
 					return new RangeSearchAttribute(key, rangeStartConverted, rangeEndConverted, Occur.MUST);
 				}
 
+				logger.log(Level.WARNING, "Unable to determine range query bounds for {0}", requestParameter);
+				
 				return null;
+				
+			} else {
+				
+				if ("[]".equals(requestParameter)) {
+					
+					if (key.isIndexedWhenEmpty()) {
+						
+						// requestParameter contains only [],
+						// which we use as a "not-blank" selector
+
+						return new NotBlankSearchAttribute(key);
+						
+					} else {
+						
+						throw new FrameworkException(400, "PropertyKey " + key.jsonName() + " must be indexedWhenEmpty() to be used in not-blank search query.");
+					}
+				}
 			}
 		}
 
