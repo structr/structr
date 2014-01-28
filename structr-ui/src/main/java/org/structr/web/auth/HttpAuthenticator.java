@@ -193,7 +193,7 @@ public class HttpAuthenticator implements Authenticator {
 			
 			request.logout();
 			
-			app.finishTx();
+			app.commitTx();
 
 		} catch (Exception ex) {
 
