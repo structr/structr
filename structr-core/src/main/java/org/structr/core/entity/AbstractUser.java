@@ -27,7 +27,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import static org.structr.core.entity.Principal.password;
-import org.structr.core.entity.relationship.Parentship;
+import org.structr.core.entity.relationship.Groups;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 
@@ -104,14 +104,9 @@ public abstract class AbstractUser extends Person implements Principal {
 
 		List<Principal> parents         = new LinkedList<>();
 
-		for (Parentship rel : getRelationships(Parentship.class)) {
+		for (Groups rel : getIncomingRelationships(Groups.class)) {
 
-			NodeInterface node = rel.getSourceNode();
-
-			if (node instanceof Principal) {
-
-				parents.add((Principal) node);
-			}
+			parents.add(rel.getSourceNode());
 
 		}
 

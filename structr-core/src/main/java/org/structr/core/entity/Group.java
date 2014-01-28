@@ -16,26 +16,21 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web.entity;
+package org.structr.core.entity;
 
 import java.util.LinkedList;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.Principal;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.List;
 import java.util.logging.Logger;
 import org.structr.common.PropertyView;
-import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractUser;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
-import org.structr.web.entity.relation.Groups;
+import org.structr.core.entity.relationship.Groups;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -50,11 +45,11 @@ public class Group extends AbstractUser implements Principal {
 
 	public static final Property<List<Principal>> members = new EndNodes<>("members", Groups.class);
 	
-	public static final org.structr.common.View uiView = new org.structr.common.View(User.class, PropertyView.Ui,
+	public static final org.structr.common.View uiView = new org.structr.common.View(Group.class, PropertyView.Ui,
 		type, name, members, blocked
 	);
 	
-	public static final org.structr.common.View publicView = new org.structr.common.View(User.class, PropertyView.Public,
+	public static final org.structr.common.View publicView = new org.structr.common.View(Group.class, PropertyView.Public,
 		type, name, members, blocked
 	);
 

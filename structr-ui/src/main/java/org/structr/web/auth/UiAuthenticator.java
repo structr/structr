@@ -136,7 +136,7 @@ public class UiAuthenticator extends HttpAuthenticator {
 
 		// test for cross site resource sharing
 		String origin = request.getHeader("Origin");
-		 if (!StringUtils.isBlank(origin)) {
+		if (!StringUtils.isBlank(origin)) {
 
 			 // allow cross site resource sharing (read only)
 			response.setHeader("Access-Control-Allow-Origin", origin);

@@ -25,7 +25,7 @@ import org.structr.common.error.FrameworkException;
 
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
-import org.structr.web.entity.Group;
+import org.structr.core.entity.Group;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;

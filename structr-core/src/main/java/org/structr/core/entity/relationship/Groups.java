@@ -18,27 +18,28 @@
  */
 package org.structr.core.entity.relationship;
 
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.OneToMany;
+import org.structr.core.entity.Group;
+import org.structr.core.entity.ManyToMany;
+import org.structr.core.entity.Principal;
 
 /**
  *
  * @author Christian Morgner
  */
-public class Parentship extends OneToMany<AbstractNode, AbstractNode> {
+public class Groups extends ManyToMany<Group, Principal> {
 
 	@Override
-	public Class<AbstractNode> getSourceType() {
-		return AbstractNode.class;
+	public Class<Group> getSourceType() {
+		return Group.class;
+	}
+
+	@Override
+	public Class<Principal> getTargetType() {
+		return Principal.class;
 	}
 
 	@Override
 	public String name() {
 		return "CONTAINS";
-	}
-
-	@Override
-	public Class<AbstractNode> getTargetType() {
-		return AbstractNode.class;
 	}
 }
