@@ -41,7 +41,7 @@ import org.structr.core.property.StringProperty;
  */
 public interface Principal extends NodeInterface, AccessControllable {
 
-	public static final Property<String>	          sessionId  = new StringProperty("sessionId").indexed();
+	public static final Property<String>	          sessionId  = new StringProperty("sessionId").indexedWhenEmpty();
 	public static final Property<Boolean>	          blocked    = new BooleanProperty("blocked");
 	public static final Property<String>	          password   = new PasswordProperty("password");
 	public static final Property<String>	          salt       = new StringProperty("salt");
