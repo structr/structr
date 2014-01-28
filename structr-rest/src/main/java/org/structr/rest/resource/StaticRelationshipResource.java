@@ -63,6 +63,7 @@ public class StaticRelationshipResource extends SortableResource {
 
 	TypeResource typeResource       = null;
 	TypedIdResource typedIdResource = null;
+	PropertyKey propertyKey         = null;
 
 	//~--- constructors ---------------------------------------------------constructors
 
@@ -71,6 +72,7 @@ public class StaticRelationshipResource extends SortableResource {
 		this.securityContext = securityContext;
 		this.typedIdResource = typedIdResource;
 		this.typeResource    = typeResource;
+		this.propertyKey     = findPropertyKey(typedIdResource, typeResource);
 	}
 
 	//~--- methods --------------------------------------------------------
@@ -92,10 +94,9 @@ public class StaticRelationshipResource extends SortableResource {
 			}
 			
 			// second try: property key
-			final PropertyKey key = findPropertyKey(typedIdResource, typeResource);
-			if (key != null) {
+			if (propertyKey != null) {
 
-				final Object value = sourceEntity.getProperty(key);
+				final Object value = sourceEntity.getProperty(propertyKey);
 				if (value != null) {
 
 					if (value instanceof List) {
@@ -142,13 +143,12 @@ public class StaticRelationshipResource extends SortableResource {
 		if (results != null) {
 
 			// fetch static relationship definition
-			final PropertyKey key = findPropertyKey(typedIdResource, typeResource);
-			if (key != null && key instanceof RelationProperty) {
+			if (propertyKey != null && propertyKey instanceof RelationProperty) {
 
 				final GraphObject sourceEntity = typedIdResource.getEntity();
 				if (sourceEntity != null) {
 
-					if (key.isReadOnly()) {
+					if (propertyKey.isReadOnly()) {
 
 						logger.log(Level.INFO, "Read-only property on {1}: {0}", new Object[] { sourceEntity.getClass(), typeResource.getRawType() });
 						return new RestMethodResult(HttpServletResponse.SC_FORBIDDEN);
@@ -166,7 +166,7 @@ public class StaticRelationshipResource extends SortableResource {
 						}
 
 						// set property on source node
-						sourceEntity.setProperty(key, nodes);
+						sourceEntity.setProperty(propertyKey, nodes);
 						app.commitTx();
 
 					} finally {
@@ -184,7 +184,6 @@ public class StaticRelationshipResource extends SortableResource {
 	public RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException {
 
 		final GraphObject sourceNode  = typedIdResource.getEntity();
-		final PropertyKey propertyKey = findPropertyKey(typedIdResource, typeResource);
 		final App app                 = StructrApp.getInstance(securityContext);
 
 		if (sourceNode != null && propertyKey != null && propertyKey instanceof RelationProperty) {
@@ -395,7 +394,11 @@ public class StaticRelationshipResource extends SortableResource {
 
 	@Override
 	public Class getEntityClass() {
-		return typeResource.getEntityClass();
+		Class type = typeResource.getEntityClass();
+		if (type == null && propertyKey != null) {
+			return propertyKey.relatedType();
+		}
+		return type;
 	}
 
 	@Override

@@ -88,7 +88,7 @@ public class TypedIdResource extends FilterableResource {
 	@Override
 	public Resource tryCombineWith(Resource next) throws FrameworkException {
 
-		if(next instanceof TypeResource) {
+		if (next instanceof TypeResource) {
 
 			// next constraint is a type constraint
 			// => follow predefined statc relationship
@@ -97,7 +97,7 @@ public class TypedIdResource extends FilterableResource {
 			resource.configureIdProperty(idProperty);
 			return resource;
 
-		} else if(next instanceof RelationshipResource) {
+		} else if (next instanceof RelationshipResource) {
 
 			// make rel constraint wrap this
 			((RelationshipResource)next).wrapResource(this);

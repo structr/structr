@@ -784,7 +784,6 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	 * 
 	 * @param type the type of the entities for which the view will be registered
 	 * @param propertyView the name of the property view for which the property set will be registered
-	 * @param viewPrefix a string that will be prepended to all property keys in this view
 	 * @param propertySet the set of property keys to register for the given view
 	 */
 	@Override
