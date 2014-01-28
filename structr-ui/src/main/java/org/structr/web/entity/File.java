@@ -37,8 +37,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -59,7 +57,7 @@ public class File extends AbstractFile implements Linkable {
 
 	private static final Logger logger                          = Logger.getLogger(File.class.getName());
 	
-	public static final Property<String>       contentType      = new StringProperty("contentType").indexed();
+	public static final Property<String>       contentType      = new StringProperty("contentType").indexedWhenEmpty();
 	public static final Property<String>       relativeFilePath = new StringProperty("relativeFilePath");
 	public static final Property<Long>         size             = new LongProperty("size").indexed();
 	public static final Property<String>       url              = new StringProperty("url");
