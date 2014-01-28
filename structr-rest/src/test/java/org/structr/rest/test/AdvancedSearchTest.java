@@ -231,7 +231,7 @@ public class AdvancedSearchTest extends StructrRestTest {
 				.body("result[0].id", equalTo(test07))
 
 			.when()
-				.get(concat("/test_sixs?testEightStrings=string19&testSevenNames=test12&anInt=7"));
+				.get(concat("/test_sixs?testEightStrings=string19&testSevenName=test12&anInt=7"));
 		
 		// test inexact related search with collection property
 		// expected result is a list of four objects:

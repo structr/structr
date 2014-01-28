@@ -56,6 +56,7 @@ import org.structr.core.Value;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.graph.NodeFactory;
+import org.structr.core.graph.search.Search;
 import org.structr.rest.serialization.StreamingWriter;
 import org.structr.rest.adapter.FrameworkExceptionGSONAdapter;
 import org.structr.rest.adapter.ResultGSONAdapter;
@@ -82,8 +83,29 @@ public class JsonRestServlet extends HttpServiceServlet {
 	public static final String REQUEST_PARAMETER_OFFSET_ID              = "pageStartId";
 	public static final String REQUEST_PARAMETER_SORT_KEY               = "sort";
 	public static final String REQUEST_PARAMETER_SORT_ORDER             = "order";
+	public static final Set<String> commonRequestParameters             = new LinkedHashSet<>();
 	private static final Logger logger                                  = Logger.getLogger(JsonRestServlet.class.getName());
 
+	static {
+		
+		commonRequestParameters.add(REQUEST_PARAMETER_LOOSE_SEARCH);
+		commonRequestParameters.add(REQUEST_PARAMETER_PAGE_NUMBER);
+		commonRequestParameters.add(REQUEST_PARAMETER_PAGE_SIZE);
+		commonRequestParameters.add(REQUEST_PARAMETER_OFFSET_ID);
+		commonRequestParameters.add(REQUEST_PARAMETER_SORT_KEY);
+		commonRequestParameters.add(REQUEST_PARAMETER_SORT_ORDER);
+		
+		// cross reference here, but these need to be added as well..
+		commonRequestParameters.add(Search.DISTANCE_SEARCH_KEYWORD);
+		commonRequestParameters.add(Search.LOCATION_SEARCH_KEYWORD);
+		commonRequestParameters.add(Search.STREET_SEARCH_KEYWORD);
+		commonRequestParameters.add(Search.HOUSE_SEARCH_KEYWORD);
+		commonRequestParameters.add(Search.POSTAL_CODE_SEARCH_KEYWORD);
+		commonRequestParameters.add(Search.CITY_SEARCH_KEYWORD);
+		commonRequestParameters.add(Search.STATE_SEARCH_KEYWORD);
+		commonRequestParameters.add(Search.COUNTRY_SEARCH_KEYWORD);
+	}
+	
 	//~--- fields ---------------------------------------------------------
 
 	private Map<Pattern, Class<? extends Resource>> resourceMap = new LinkedHashMap<>();

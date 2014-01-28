@@ -39,13 +39,13 @@ import org.apache.lucene.search.BooleanClause.Occur;
 import org.structr.common.CaseHelper;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.Permission;
-import org.structr.common.PropertyView;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
+import org.structr.core.Services;
 import org.structr.core.Value;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -57,6 +57,7 @@ import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NoResultsException;
 import org.structr.rest.exception.NotAllowedException;
 import org.structr.rest.servlet.JsonRestServlet;
+import org.structr.schema.ConfigurationProvider;
 
 //~--- classes ----------------------------------------------------------------
 /**
@@ -331,6 +332,41 @@ public abstract class Resource {
 		
 		if (type != null && request != null && !request.getParameterMap().isEmpty()) {
 
+			final boolean looseSearch        = parseInteger(request.getParameter(JsonRestServlet.REQUEST_PARAMETER_LOOSE_SEARCH)) == 1;
+			final ConfigurationProvider conf = Services.getInstance().getConfigurationProvider();
+
+			for (final String name : request.getParameterMap().keySet()) {
+
+				final PropertyKey key = conf.getPropertyKeyForJSONName(type, getFirstPartOfString(name));
+				if (key != null) {
+
+					if (key.isSearchable()) {
+
+						searchAttributes.addAll(key.extractSearchableAttribute(securityContext, request, looseSearch));
+
+					} else if (!JsonRestServlet.commonRequestParameters.contains(name)) {
+
+						throw new FrameworkException(400, "Search key " + name + " is not indexed.");
+					}
+
+				} else if (!JsonRestServlet.commonRequestParameters.contains(name)) {
+				
+					// exclude common request parameters here (should not throw exception)
+					throw new FrameworkException(400, "Invalid search key " + name);
+				}
+			}
+		}
+
+		return searchAttributes;
+	}
+	
+	/*
+	protected List<SearchAttribute> extractSearchableAttributes(final SecurityContext securityContext, final Class type, final HttpServletRequest request) throws FrameworkException {
+
+		List<SearchAttribute> searchAttributes = new LinkedList<>();
+		
+		if (type != null && request != null && !request.getParameterMap().isEmpty()) {
+
 			boolean looseSearch = parseInteger(request.getParameter(JsonRestServlet.REQUEST_PARAMETER_LOOSE_SEARCH)) == 1;
 
 			for (final PropertyKey key : StructrApp.getConfiguration().getPropertySet(type, PropertyView.All)) {
@@ -344,6 +380,7 @@ public abstract class Resource {
 
 		return searchAttributes;
 	}
+	*/
 
 	public abstract boolean isCollectionResource() throws FrameworkException;
 
@@ -351,8 +388,25 @@ public abstract class Resource {
 		return false;
 	}
 
-	//~--- set methods ----------------------------------------------------
 	public void setSecurityContext(final SecurityContext securityContext) {
 		this.securityContext = securityContext;
+	}
+	
+	// ----- private methods -----
+	/**
+	 * Returns the first part of the given source string when it contains a "."
+	 * 
+	 * @param parameter
+	 * @return 
+	 */
+	private String getFirstPartOfString(final String source) {
+		
+		final int pos = source.indexOf(".");
+		if (pos > -1) {
+			
+			return source.substring(0, pos);
+		}
+		
+		return source;
 	}
 }
