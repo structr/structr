@@ -20,7 +20,6 @@ package org.structr.web.entity.html;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.web.entity.dom.DOMElement;
 import org.structr.core.property.Property;
 import org.apache.commons.lang.ArrayUtils;
 
@@ -35,6 +34,7 @@ import org.structr.core.notion.PropertyNotion;
 import org.structr.core.property.EndNode;
 import org.structr.core.property.EntityIdProperty;
 import org.structr.web.common.HtmlProperty;
+import org.structr.web.entity.LinkSource;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.html.relation.ResourceLink;
 import org.w3c.dom.Node;
@@ -44,7 +44,7 @@ import org.w3c.dom.Node;
 /**
  * @author Axel Morgner
  */
-public class Script extends DOMElement {
+public class Script extends LinkSource {
 
 	private static final Logger logger = Logger.getLogger(Script.class.getName());
 	

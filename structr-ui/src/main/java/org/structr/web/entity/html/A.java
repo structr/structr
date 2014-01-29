@@ -18,26 +18,20 @@
  */
 package org.structr.web.entity.html;
 
-import org.structr.web.entity.dom.DOMElement;
 import org.apache.commons.lang.ArrayUtils;
 import org.structr.core.property.Property;
 
 import org.structr.common.PropertyView;
 import org.structr.common.View;
-import org.structr.core.entity.AbstractNode;
-import org.structr.web.entity.Linkable;
-import org.structr.core.notion.PropertyNotion;
-import org.structr.core.property.EndNode;
-import org.structr.core.property.EntityIdProperty;
 import org.structr.web.common.HtmlProperty;
-import org.structr.web.entity.html.relation.ResourceLink;
+import org.structr.web.entity.LinkSource;
 
 //~--- classes ----------------------------------------------------------------
 
 /**
  * @author Axel Morgner
  */
-public class A extends DOMElement {
+public class A extends LinkSource {
 
 	public static final Property<String>            _href       = new HtmlProperty("href");
 	public static final Property<String>            _target     = new HtmlProperty("target");
@@ -64,9 +58,6 @@ public class A extends DOMElement {
 //	public static final EndNodes<Div>     divParents  = new EndNodes<Div>("divParents", Div.class, RelType.CONTAINS, Direction.INCOMING, false);
 //	public static final EndNodes<P>       pParents    = new EndNodes<P>("pParents", P.class, RelType.CONTAINS, Direction.INCOMING, false);
 // 
-
-	public static final Property<Linkable> linkable    = new EndNode<>("linkable", ResourceLink.class, new PropertyNotion(AbstractNode.name));
-	public static final Property<String>   linkableId  = new EntityIdProperty("linkableId", linkable);
 
 	public static final View uiView = new View(A.class, PropertyView.Ui,
 		linkableId, linkable
