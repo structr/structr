@@ -94,4 +94,17 @@ public abstract class ManyToMany<S extends NodeInterface, T extends NodeInterfac
 	public Direction getDirectionForType(final Class<? extends NodeInterface> type) {
 		return super.getDirectionForType(getSourceType(), getTargetType(), type);
 	}
+	
+	@Override
+	public Class getOtherType(final Class type) {
+		
+		switch (getDirectionForType(type)) {
+			
+			case INCOMING: return getSourceType();
+			case OUTGOING: return getTargetType();
+			case BOTH:     return getSourceType();	// don't know...
+		}
+		
+		return null;
+	}
 }

@@ -668,15 +668,13 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	@Override
 	public void setSourceNodeId(final String startNodeId) throws FrameworkException {
 
-		final String type        = this.getClass().getSimpleName();
-		final App app            = StructrApp.getInstance(securityContext);
-		final PropertyMap _props = getProperties();
-		
 		// Do nothing if new id equals old
 		if (getSourceNodeId().equals(startNodeId)) {
 			return;
 		}
 
+		final App app = StructrApp.getInstance(securityContext);
+		
 		try {
 			
 			app.beginTx();
@@ -684,13 +682,15 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 			final NodeInterface newStartNode = (NodeInterface)app.get(startNodeId);
 			final NodeInterface endNode      = getTargetNode();
 			final Class relationType         = getClass();
+			final PropertyMap _props         = getProperties();
+			final String type                = this.getClass().getSimpleName();
 
 			if (newStartNode == null) {
 				throw new FrameworkException(type, new IdNotFoundToken(startNodeId));
 			}
 			
-			// delete low-level relationship
-			dbRelationship.delete();
+			// delete this as the new rel will be the container afterwards
+			app.delete(this);
 			
 			// create new relationship
 			app.create(newStartNode, endNode, relationType, _props);
@@ -706,31 +706,31 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	@Override
 	public void setTargetNodeId(final String targetIdNode) throws FrameworkException {
 
-		final String type        = this.getClass().getSimpleName();
-		final App app            = StructrApp.getInstance(securityContext);
-		final PropertyMap _props = getProperties();
-		
 		// Do nothing if new id equals old
 		if (getTargetNodeId().equals(targetIdNode)) {
 			return;
 		}
+
+		final App app = StructrApp.getInstance(securityContext);
 
 		try {
 			
 			app.beginTx();
 			
 			final NodeInterface newTargetNode = (NodeInterface)app.get(targetIdNode);
-			final NodeInterface startNode     = getTargetNode();
+			final NodeInterface startNode     = getSourceNode();
 			final Class relationType          = getClass();
+			final PropertyMap _props          = getProperties();
+			final String type                 = this.getClass().getSimpleName();
 
 			if (newTargetNode == null) {
 				throw new FrameworkException(type, new IdNotFoundToken(targetIdNode));
 			}
 			
-			// delete low-level relationship
-			dbRelationship.delete();
+			// delete this as the new rel will be the container afterwards
+			app.delete(this);
 			
-			// create new relationship
+			// create new relationship and store here
 			app.create(startNode, newTargetNode, relationType, _props);
 			
 			app.commitTx();

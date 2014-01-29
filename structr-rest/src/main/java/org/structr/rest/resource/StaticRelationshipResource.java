@@ -29,6 +29,7 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.neo4j.graphdb.Node;
 import org.neo4j.helpers.collection.Iterables;
 
 import org.structr.core.property.PropertyKey;
@@ -39,6 +40,8 @@ import org.structr.core.GraphObject;
 import org.structr.core.Result;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.OtherNodeTypeRelationFilter;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
@@ -86,10 +89,18 @@ public class StaticRelationshipResource extends SortableResource {
 
 			// first try: look through existing relations
 			if (!typeResource.isNode && sourceEntity instanceof NodeInterface) {
-				
-				final List<GraphObject> list = Iterables.toList(((NodeInterface)sourceEntity).getRelationships(typeResource.entityClass));
-				applyDefaultSorting(list, sortKey, sortDescending);
 
+				final NodeInterface source      = (NodeInterface)sourceEntity;
+				final Node sourceNode           = source.getNode();
+				final Class relationshipType    = typeResource.entityClass;
+				final Relation relation         = AbstractNode.getRelationshipForType(relationshipType);
+				final Class destNodeType        = relation.getOtherType(typedIdResource.getEntityClass());
+
+				// filter list according to end node type
+				final List<GraphObject> list = Iterables.toList(Iterables.filter(new OtherNodeTypeRelationFilter(securityContext, sourceNode, destNodeType), source.getRelationships(relationshipType)));
+				
+				applyDefaultSorting(list, sortKey, sortDescending);
+				
 				return new Result(PagingHelper.subList(list, pageSize, page, offsetId), list.size(), isCollectionResource(), isPrimitiveArray());
 			}
 			

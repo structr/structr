@@ -19,6 +19,9 @@
 package org.structr.core.entity;
 
 import org.neo4j.graphdb.Direction;
+import static org.neo4j.graphdb.Direction.BOTH;
+import static org.neo4j.graphdb.Direction.INCOMING;
+import static org.neo4j.graphdb.Direction.OUTGOING;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
@@ -97,5 +100,18 @@ public abstract class OneToOne<S extends NodeInterface, T extends NodeInterface>
 	@Override
 	public Direction getDirectionForType(final Class<? extends NodeInterface> type) {
 		return super.getDirectionForType(getSourceType(), getTargetType(), type);
+	}
+	
+	@Override
+	public Class getOtherType(final Class type) {
+		
+		switch (getDirectionForType(type)) {
+			
+			case INCOMING: return getSourceType();
+			case OUTGOING: return getTargetType();
+			case BOTH:     return getSourceType();	// don't know...
+		}
+		
+		return null;
 	}
 }

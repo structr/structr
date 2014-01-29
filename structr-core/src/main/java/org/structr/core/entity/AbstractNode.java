@@ -1142,7 +1142,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		}
 	}
 	
-	protected <A extends NodeInterface, B extends NodeInterface, R extends Relation<A, B, ?, ?>> R getRelationshipForType(final Class<R> type) {
+	public static <A extends NodeInterface, B extends NodeInterface, R extends Relation<A, B, ?, ?>> R getRelationshipForType(final Class<R> type) {
 		
 		try {
 			

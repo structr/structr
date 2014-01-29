@@ -71,6 +71,8 @@ public interface Relation<A extends NodeInterface, B extends NodeInterface, S ex
 	
 	public Class<A> getSourceType();
 	public Class<B> getTargetType();
+	
+	public Class getOtherType(final Class type);
 
 	public Direction getDirectionForType(final Class<? extends NodeInterface> type);
 	

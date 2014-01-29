@@ -80,6 +80,10 @@ public class TargetId extends Property<String> {
 			try {
 				((RelationshipInterface)obj).setTargetNodeId(value);
 				
+			} catch (FrameworkException fex) {
+				
+				throw fex;
+				
 			} catch (Throwable t) {
 				
 				t.printStackTrace();

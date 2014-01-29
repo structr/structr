@@ -70,6 +70,10 @@ public class SourceId extends Property<String> {
 			try {
 				((RelationshipInterface)obj).setSourceNodeId(value);
 				
+			} catch (FrameworkException fex) {
+				
+				throw fex;
+
 			} catch (Throwable t) {
 				
 				t.printStackTrace();
