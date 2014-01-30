@@ -18,7 +18,6 @@
  */
 package org.structr.web.entity.html;
 
-import org.structr.web.entity.dom.DOMElement;
 import org.structr.core.property.Property;
 import org.apache.commons.lang.ArrayUtils;
 
@@ -35,6 +34,7 @@ import org.structr.core.property.EndNode;
 import org.structr.core.property.EntityIdProperty;
 import org.structr.web.common.HtmlProperty;
 import org.structr.web.entity.File;
+import org.structr.web.entity.LinkSource;
 import org.structr.web.entity.html.relation.ResourceLink;
 
 //~--- classes ----------------------------------------------------------------
@@ -42,7 +42,7 @@ import org.structr.web.entity.html.relation.ResourceLink;
 /**
  * @author Axel Morgner
  */
-public class Link extends DOMElement {
+public class Link extends LinkSource {
 
 	public static final Property<String> _href     = new HtmlProperty("href");
 	public static final Property<String> _rel      = new HtmlProperty("rel");

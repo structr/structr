@@ -27,9 +27,8 @@ import org.structr.websocket.message.WebSocketMessage;
 import java.util.Map;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.web.entity.LinkSource;
 import org.structr.web.entity.Linkable;
-import org.structr.web.entity.dom.DOMElement;
-import org.structr.web.entity.html.relation.ResourceLink;
 import org.structr.websocket.StructrWebSocket;
 
 //~--- classes ----------------------------------------------------------------
@@ -53,14 +52,16 @@ public class LinkCommand extends AbstractCommand {
 		String sourceId                       = webSocketData.getId();
 		Map<String, Object> properties        = webSocketData.getNodeData();
 		String targetId                       = (String) properties.get("targetId");
-		final DOMElement sourceNode           = (DOMElement) getNode(sourceId);
+		final LinkSource sourceNode           = (LinkSource) getNode(sourceId);
 		final Linkable targetNode             = (Linkable) getNode(targetId);
 
 		if ((sourceNode != null) && (targetNode != null)) {
 
 			try {
 				app.beginTx();
-				app.create(sourceNode, targetNode, ResourceLink.class);
+				
+				sourceNode.setProperty(LinkSource.linkable, targetNode);
+				
 				app.commitTx();
 
 			} catch (Throwable t) {
