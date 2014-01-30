@@ -30,6 +30,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.GraphObject;
+import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 
 //~--- classes ----------------------------------------------------------------
@@ -65,20 +67,37 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 
 		try {
 
-			try {
-				newRel = relClass.newInstance();
+			newRel = relClass.newInstance();
 
-			} catch (Throwable t2) {
-				newRel = null;
-			}
-
-		} catch (Throwable t) { }
+		} catch (Throwable t) {
+			newRel = null;
+		}
 
 		if (newRel == null) {
 			newRel = (T)StructrApp.getConfiguration().getFactoryDefinition().createGenericRelationship();
 		}
 
 		newRel.init(securityContext, relationship);
+
+		// try to set correct type property on relationship entity
+		final String type = newRel.getProperty(GraphObject.type);
+		if (type == null || (type != null && !type.equals(relClass.getSimpleName()))) {
+
+			final App app = StructrApp.getInstance();
+
+			try {
+
+				app.beginTx();
+				newRel.unlockReadOnlyPropertiesOnce();
+				newRel.setProperty(GraphObject.type, relClass.getSimpleName());
+				app.commitTx();
+
+			} finally {
+
+				app.finishTx();
+			}
+		}
+		
 		newRel.onRelationshipInstantiation();
 			
 		return newRel;

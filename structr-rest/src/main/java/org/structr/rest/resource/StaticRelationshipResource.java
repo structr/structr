@@ -95,9 +95,13 @@ public class StaticRelationshipResource extends SortableResource {
 				final Class relationshipType    = typeResource.entityClass;
 				final Relation relation         = AbstractNode.getRelationshipForType(relationshipType);
 				final Class destNodeType        = relation.getOtherType(typedIdResource.getEntityClass());
-
+				final Result partialResult      = typeResource.doGet(sortKey, sortDescending, pageSize, page, offsetId);
+				
 				// filter list according to end node type
 				final List<GraphObject> list = Iterables.toList(Iterables.filter(new OtherNodeTypeRelationFilter(securityContext, sourceNode, destNodeType), source.getRelationships(relationshipType)));
+
+				// intersect partial result with result list
+				list.retainAll(partialResult.getResults());
 				
 				applyDefaultSorting(list, sortKey, sortDescending);
 				

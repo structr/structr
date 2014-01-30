@@ -390,7 +390,6 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 			return nodeFactory.instantiate(dbRelationship.getEndNode());
 			
 		} catch (Throwable t) {
-			t.printStackTrace();
 			// ignore
 		}
 		
@@ -406,7 +405,6 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 			return nodeFactory.instantiate(dbRelationship.getStartNode());
 			
 		} catch (Throwable t) {
-			t.printStackTrace();
 			// ignore
 		}
 		
@@ -423,7 +421,6 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 			
 		} catch (Throwable t) {
 			// ignore
-			t.printStackTrace();
 		}
 		
 		return null;
