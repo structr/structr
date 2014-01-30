@@ -179,7 +179,7 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 	}
 	
 	// ----- interface PropertySchema -----
-	public String getPropertySource(final String relatedClassName) {
+	public String getPropertySource(final String relatedClassName, final Set<String> existingPropertyNames) {
 		
 		final StringBuilder buf          = new StringBuilder();
 		final String _sourceJsonName     = getProperty(sourceJsonName);
@@ -196,19 +196,19 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 
 			if ("1".equals(_targetMultiplicity)) {
 
-				final String propertyName = _targetJsonName != null ? _targetJsonName : CaseHelper.toLowerCamelCase(_targetType);
+				//final String propertyName = _targetJsonName != null ? _targetJsonName : (finalPropertyName != null ? finalPropertyName : CaseHelper.toLowerCamelCase(_targetType));
 				
-				buf.append("\tpublic static final Property<").append(_targetType).append("> ").append(propertyName).append("Property");
-				buf.append(" = new EndNode<>(\"").append(propertyName).append("\", ").append(_className).append(".class");
+				buf.append("\tpublic static final Property<").append(_targetType).append("> ").append(getPropertyName(relatedClassName, existingPropertyNames)).append("Property");
+				buf.append(" = new EndNode<>(\"").append(getPropertyName(relatedClassName, existingPropertyNames)).append("\", ").append(_className).append(".class");
 				buf.append(getNotion(_sourceType, _targetNotion));
 				buf.append(");\n");
 				
 			} else {
 				
-				final String propertyName = _targetJsonName != null ? _targetJsonName : CaseHelper.plural(CaseHelper.toLowerCamelCase(_targetType));
+				//final String propertyName = _targetJsonName != null ? _targetJsonName : CaseHelper.plural(finalPropertyName != null ? finalPropertyName : CaseHelper.toLowerCamelCase(_targetType));
 				
-				buf.append("\tpublic static final Property<List<").append(_targetType).append(">> ").append(propertyName).append("Property");
-				buf.append(" = new EndNodes<>(\"").append(propertyName).append("\", ").append(_className).append(".class");
+				buf.append("\tpublic static final Property<List<").append(_targetType).append(">> ").append(getPropertyName(relatedClassName, existingPropertyNames)).append("Property");
+				buf.append(" = new EndNodes<>(\"").append(getPropertyName(relatedClassName, existingPropertyNames)).append("\", ").append(_className).append(".class");
 				buf.append(getNotion(_sourceType, _targetNotion));
 				buf.append(");\n");
 			}
@@ -217,19 +217,19 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 			
 			if ("1".equals(_sourceMultiplicity)) {
 
-				final String propertyName = _sourceJsonName != null ? _sourceJsonName : CaseHelper.toLowerCamelCase(_sourceType);
+				//final String propertyName = _sourceJsonName != null ? _sourceJsonName : CaseHelper.toLowerCamelCase(_sourceType);
 				
-				buf.append("\tpublic static final Property<").append(_sourceType).append("> ").append(propertyName).append("Property");
-				buf.append(" = new StartNode<>(\"").append(propertyName).append("\", ").append(_className).append(".class");
+				buf.append("\tpublic static final Property<").append(_sourceType).append("> ").append(getPropertyName(relatedClassName, existingPropertyNames)).append("Property");
+				buf.append(" = new StartNode<>(\"").append(getPropertyName(relatedClassName, existingPropertyNames)).append("\", ").append(_className).append(".class");
 				buf.append(getNotion(_targetType, _sourceNotion));
 				buf.append(");\n");
 				
 			} else {
 				
-				final String propertyName = _sourceJsonName != null ? _sourceJsonName : CaseHelper.plural(CaseHelper.toLowerCamelCase(_sourceType));
+				//final String propertyName = _sourceJsonName != null ? _sourceJsonName : CaseHelper.plural(CaseHelper.toLowerCamelCase(_sourceType));
 				
-				buf.append("\tpublic static final Property<List<").append(_sourceType).append(">> ").append(propertyName).append("Property");
-				buf.append(" = new StartNodes<>(\"").append(propertyName).append("\", ").append(_className).append(".class");
+				buf.append("\tpublic static final Property<List<").append(_sourceType).append(">> ").append(getPropertyName(relatedClassName, existingPropertyNames)).append("Property");
+				buf.append(" = new StartNodes<>(\"").append(getPropertyName(relatedClassName, existingPropertyNames)).append("\", ").append(_className).append(".class");
 				buf.append(getNotion(_targetType, _sourceNotion));
 				buf.append(");\n");
 			}
@@ -238,7 +238,9 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 		return buf.toString();
 	}
 
-	public String getPropertyName(final String relatedClassName) {
+	public String getPropertyName(final String relatedClassName, final Set<String> existingPropertyNames) {
+		
+		String propertyName = "";
 		
 		final String _sourceType         = getSchemaNodeSourceType();
 		final String _targetType         = getSchemaNodeTargetType();
@@ -248,18 +250,19 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 			final String _targetJsonName     = getProperty(targetJsonName);
 
 			if (_targetJsonName != null) {
-				return _targetJsonName;
-			}
-
-			final String _targetMultiplicity = getProperty(targetMultiplicity);
-
-			if ("1".equals(_targetMultiplicity)) {
-
-				return CaseHelper.toLowerCamelCase(_targetType);
-				
+				propertyName = _targetJsonName;
 			} else {
-				
-				return CaseHelper.plural(CaseHelper.toLowerCamelCase(_targetType));
+
+				final String _targetMultiplicity = getProperty(targetMultiplicity);
+
+				if ("1".equals(_targetMultiplicity)) {
+
+					propertyName = CaseHelper.toLowerCamelCase(_targetType);
+
+				} else {
+
+					propertyName = CaseHelper.plural(CaseHelper.toLowerCamelCase(_targetType));
+				}
 			}
 			
 		} else if (_targetType.equals(relatedClassName)) {
@@ -267,22 +270,29 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 			final String _sourceJsonName     = getProperty(sourceJsonName);
 			
 			if (_sourceJsonName != null) {
-				return _sourceJsonName;
-			}
-
-			final String _sourceMultiplicity = getProperty(sourceMultiplicity);
-			
-			if ("1".equals(_sourceMultiplicity)) {
-
-				return CaseHelper.toLowerCamelCase(_sourceType);
-				
+				propertyName = _sourceJsonName;
 			} else {
-				
-				return CaseHelper.plural(CaseHelper.toLowerCamelCase(_sourceType));
+
+				final String _sourceMultiplicity = getProperty(sourceMultiplicity);
+
+				if ("1".equals(_sourceMultiplicity)) {
+
+					propertyName = CaseHelper.toLowerCamelCase(_sourceType);
+
+				} else {
+
+					propertyName = CaseHelper.plural(CaseHelper.toLowerCamelCase(_sourceType));
+				}
 			}
 		}
 		
-		return "";
+		if (existingPropertyNames.contains(propertyName)) {			
+			propertyName += "X";
+		}
+
+		existingPropertyNames.add(propertyName);
+
+		return propertyName;		
 	}
 
 	@Override

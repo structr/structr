@@ -84,6 +84,8 @@ public class SchemaNode extends AbstractSchemaNode implements Schema {
 		final String _className                       = getProperty(name);
 		final String _extendsClass                    = getProperty(extendsClass);
 		
+		final Set<String> existingPropertyNames       = new LinkedHashSet<>();
+		
 		src.append("package org.structr.dynamic;\n\n");
 		
 		SchemaHelper.formatImportStatements(src, baseType);
@@ -97,17 +99,17 @@ public class SchemaNode extends AbstractSchemaNode implements Schema {
 		// output related node definitions, collect property views
 		for (final SchemaRelationship outRel : getOutgoingRelationships(SchemaRelationship.class)) {
 
-			src.append(outRel.getPropertySource(_className));
-			SchemaHelper.addPropertyToView(PropertyView.Public, outRel.getPropertyName(_className), viewProperties);
-			SchemaHelper.addPropertyToView(PropertyView.Ui, outRel.getPropertyName(_className), viewProperties);
+			src.append(outRel.getPropertySource(_className, existingPropertyNames));
+			addPropertyNameToViews(outRel.getPropertyName(_className, existingPropertyNames), viewProperties);
+			
 		}
 		
 		// output related node definitions, collect property views
 		for (final SchemaRelationship inRel : getIncomingRelationships(SchemaRelationship.class)) {
 
-			src.append(inRel.getPropertySource(_className));
-			SchemaHelper.addPropertyToView(PropertyView.Public, inRel.getPropertyName(_className), viewProperties);
-			SchemaHelper.addPropertyToView(PropertyView.Ui, inRel.getPropertyName(_className), viewProperties);
+			src.append(inRel.getPropertySource(_className, existingPropertyNames));
+			addPropertyNameToViews(inRel.getPropertyName(_className, existingPropertyNames), viewProperties);
+			
 		}
 
 		// extract properties from node
@@ -160,4 +162,8 @@ public class SchemaNode extends AbstractSchemaNode implements Schema {
 
 	}
 
+	private void addPropertyNameToViews(final String propertyName, final Map<String, Set<String>> viewProperties) {
+		SchemaHelper.addPropertyToView(PropertyView.Public, propertyName, viewProperties);
+		SchemaHelper.addPropertyToView(PropertyView.Ui, propertyName, viewProperties);
+	}
 }
