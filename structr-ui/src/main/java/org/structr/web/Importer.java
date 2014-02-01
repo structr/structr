@@ -630,7 +630,7 @@ public class Importer {
 
 			String url = matcher.group(2);
 
-			logger.log(Level.INFO, "Trying to download form URL found in CSS: {0}", url);
+			logger.log(Level.INFO, "Trying to download from URL found in CSS: {0}", url);
 			downloadFiles(url, baseUrl);
 
 		}
