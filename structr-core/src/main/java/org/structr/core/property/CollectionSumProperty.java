@@ -22,6 +22,7 @@ import java.util.List;
 import org.apache.lucene.search.SortField;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
+import org.structr.core.Predicate;
 import org.structr.core.graph.NodeInterface;
 
 /**
@@ -31,7 +32,8 @@ import org.structr.core.graph.NodeInterface;
 public class CollectionSumProperty<T extends NodeInterface, S extends Number> extends AbstractReadOnlyProperty<S> {
 
 	private Property<List<T>> collectionKey = null;
-	private Property<S> valueKey = null;
+	private Property<S> valueKey            = null;
+	private Predicate<T> predicate          = null;
 	
 	public CollectionSumProperty(String name, Property<List<T>> collectionKey, Property<S> valueKey) {
 		super(name);
@@ -40,6 +42,12 @@ public class CollectionSumProperty<T extends NodeInterface, S extends Number> ex
 		this.valueKey = valueKey;
 	}
 	
+	public CollectionSumProperty(String name, Property<List<T>> collectionKey, Property<S> valueKey, Predicate<T> predicate) {
+		
+		this(name, collectionKey, valueKey);
+		this.predicate = predicate;
+	}
+
 	@Override
 	public Class relatedType() {
 		return null;
@@ -62,8 +70,12 @@ public class CollectionSumProperty<T extends NodeInterface, S extends Number> ex
 		
 		for (T collectionObj : obj.getProperty(collectionKey)) {
 			
-			S value = collectionObj.getProperty(valueKey);
+			if (predicate != null && !predicate.evaluate(securityContext, collectionObj)) {
+				continue;
+			}
 			
+			S value = collectionObj.getProperty(valueKey);
+						
 			if (value instanceof Integer) {
 				intSum += (Integer) value;
 			} else if (value instanceof Long) {
