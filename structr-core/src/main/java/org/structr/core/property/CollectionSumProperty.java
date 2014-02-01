@@ -20,9 +20,9 @@ package org.structr.core.property;
 
 import java.util.List;
 import org.apache.lucene.search.SortField;
+import org.neo4j.helpers.Predicate;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
-import org.structr.core.Predicate;
 import org.structr.core.graph.NodeInterface;
 
 /**
@@ -70,7 +70,7 @@ public class CollectionSumProperty<T extends NodeInterface, S extends Number> ex
 		
 		for (T collectionObj : obj.getProperty(collectionKey)) {
 			
-			if (predicate != null && !predicate.evaluate(securityContext, collectionObj)) {
+			if (predicate != null && !predicate.accept(collectionObj)) {
 				continue;
 			}
 			
