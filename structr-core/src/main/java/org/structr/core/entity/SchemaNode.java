@@ -100,6 +100,7 @@ public class SchemaNode extends AbstractSchemaNode implements Schema {
 		for (final SchemaRelationship outRel : getOutgoingRelationships(SchemaRelationship.class)) {
 
 			src.append(outRel.getPropertySource(_className, existingPropertyNames));
+			existingPropertyNames.clear();
 			addPropertyNameToViews(outRel.getPropertyName(_className, existingPropertyNames), viewProperties);
 			
 		}
@@ -108,6 +109,7 @@ public class SchemaNode extends AbstractSchemaNode implements Schema {
 		for (final SchemaRelationship inRel : getIncomingRelationships(SchemaRelationship.class)) {
 
 			src.append(inRel.getPropertySource(_className, existingPropertyNames));
+			existingPropertyNames.clear();
 			addPropertyNameToViews(inRel.getPropertyName(_className, existingPropertyNames), viewProperties);
 			
 		}
