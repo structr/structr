@@ -731,8 +731,10 @@ var _Schema = {
         
         dialogText.append('<table id="admin-tools-table">');
         $('#admin-tools-table').append('<tr><td><button id="rebuild-index">Rebuild Index</button></td><td><label for"rebuild-index">Rebuild database index for all nodes and relationships</label></td></tr>');
-        $('#admin-tools-table').append('<tr><td><select id="node-type-selector"><option>-- Select Node Type --</option></select><!--select id="rel-type-selector"><option>-- Select Relationship Type --</option></select--><button id="add-uuids">Add UUIDs</button></td><td><label for"setUuid">Add UUIDs to all nodes of the selected type</label></td></tr>');
+        $('#admin-tools-table').append('<tr><td><select id="node-type-selector"><option value="">-- Select Node Type --</option></select><!--select id="rel-type-selector"><option>-- Select Relationship Type --</option></select--><button id="add-uuids">Add UUIDs</button></td><td><label for"setUuid">Add UUIDs to all nodes of the selected type</label></td></tr>');
         $('#admin-tools-table').append('</table>');
+
+        var nodeTypeSelector = $('#node-type-selector');
 
         $('#rebuild-index').on('click', function(e) {
             var btn = $(this);
@@ -747,7 +749,7 @@ var _Schema = {
                statusCode: {
                    200: function() {
                         var btn = $('#rebuild-index');
-                        btn.removeClass('disabled').attr('disbaled', '');
+                        btn.removeClass('disabled').attr('disabled', null);
                         btn.html(text + ' <img src="icon/tick.png">');
                         window.setTimeout(function() {
                             $('img', btn).fadeOut();
@@ -768,10 +770,17 @@ var _Schema = {
         $('#add-uuids').on('click', function(e) {
             var btn = $(this);
             var text = btn.text();
-            btn.attr('disabled', 'disabled').addClass('disabled').html(text + ' <img src="img/al.gif">');
             e.preventDefault();
-            var type = $('#node-type-selector').val();
+            var type = nodeTypeSelector.val();
             var relType = $('#rel-type-selector').val();
+            if (!type) {
+                nodeTypeSelector.addClass('notify');
+                nodeTypeSelector.on('change', function() {
+                    nodeTypeSelector.removeClass('notify');
+                });
+                return;
+            }
+            btn.attr('disabled', 'disabled').addClass('disabled').html(text + ' <img src="img/al.gif">');
             $.ajax({
                url: rootUrl + 'maintenance/setUuid',
                type: 'POST',
@@ -780,7 +789,8 @@ var _Schema = {
                statusCode: {
                    200: function() {
                         var btn = $('#add-uuids');
-                        btn.removeClass('disabled').attr('disbaled', '');
+                        nodeTypeSelector.removeClass('notify');
+                        btn.removeClass('disabled').attr('disabled', null);
                         btn.html(text + ' <img src="icon/tick.png">');
                         window.setTimeout(function() {
                             $('img', btn).fadeOut();

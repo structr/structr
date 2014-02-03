@@ -1387,3 +1387,7 @@ button.add_property {
 #admin-tools-table td:first-child {
     text-align: center;
 }
+
+.notify {
+    border-color: #f50;
+}
