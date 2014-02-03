@@ -32,17 +32,11 @@ import org.structr.web.common.ImageHelper;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Result;
 import org.structr.core.entity.AbstractNode;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.Image;
-import org.structr.core.graph.CreateNodeCommand;
-import org.structr.core.graph.CreateRelationshipCommand;
 import org.structr.core.graph.NodeAttribute;
-import org.structr.core.graph.search.Search;
-import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.property.StringProperty;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
@@ -61,6 +55,7 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.lang.WordUtils;
+import org.jsoup.Connection;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -183,7 +178,10 @@ public class Importer {
 
 			try {
 
-				parsedDocument = Jsoup.parse(new URL(address), timeout);
+				parsedDocument = Jsoup.connect(address)
+					.userAgent("Mozilla")
+					.timeout(timeout)
+					.get();
 
 
 			} catch (IOException ioe) {
