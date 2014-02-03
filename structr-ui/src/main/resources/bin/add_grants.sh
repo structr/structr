@@ -65,6 +65,8 @@ post resource_access '{"signature":"_schema/Comment","flags":255}'
 post resource_access '{"signature":"_schema/ResourceAccess","flags":255}'
 post resource_access '{"signature":"_schema/Person","flags":255}'
 post resource_access '{"signature":"_schema/Widget","flags":255}'
+post resource_access '{"signature":"_schema/SchemaNode","flags":255}'
+post resource_access '{"signature":"_schema/SchemaRelationship","flags":255}'
 
 
 ################################################
@@ -216,3 +218,21 @@ post resource_access '{"signature":"Widget/_Public","flags":1023}'
 post resource_access '{"signature":"Widget/_Protected","flags":1023}'
 post resource_access '{"signature":"Widget/_Ui","flags":1023}'
 post resource_access '{"signature":"Widget/Id","flags":1023}'
+
+post resource_access '{"signature":"SchemaNode","flags":255, "position":'$ELEM_POS', "visibleToPublicUsers":true}'
+((ELEM_POS++))
+post resource_access '{"signature":"SchemaNode/_All","flags":1023}'
+post resource_access '{"signature":"SchemaNode/_Html","flags":1023}'
+post resource_access '{"signature":"SchemaNode/_Public","flags":1023}'
+post resource_access '{"signature":"SchemaNode/_Protected","flags":1023}'
+post resource_access '{"signature":"SchemaNode/_Ui","flags":1023}'
+post resource_access '{"signature":"SchemaNode/Id","flags":1023}'
+
+post resource_access '{"signature":"SchemaRelationship","flags":255, "position":'$ELEM_POS', "visibleToPublicUsers":true}'
+((ELEM_POS++))
+post resource_access '{"signature":"SchemaRelationship/_All","flags":1023}'
+post resource_access '{"signature":"SchemaRelationship/_Html","flags":1023}'
+post resource_access '{"signature":"SchemaRelationship/_Public","flags":1023}'
+post resource_access '{"signature":"SchemaRelationship/_Protected","flags":1023}'
+post resource_access '{"signature":"SchemaRelationship/_Ui","flags":1023}'
+post resource_access '{"signature":"SchemaRelationship/Id","flags":1023}'
