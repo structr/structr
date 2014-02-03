@@ -46,7 +46,6 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Person;
 import org.structr.core.property.PropertyKey;
-import org.structr.web.auth.StructrOAuthClient;
 import org.structr.web.resource.RegistrationResource;
 import org.structr.web.servlet.HtmlServlet;
 
@@ -155,7 +154,7 @@ public class HttpAuthenticator implements Authenticator {
 				principal.setProperty(Principal.sessionId, sessionIdFromRequest);
 				app.commitTx();
 
-			} catch (Exception ex) {
+			} catch (FrameworkException ex) {
 
 				logger.log(Level.SEVERE, null, ex);
 
@@ -210,7 +209,6 @@ public class HttpAuthenticator implements Authenticator {
 	 * 
 	 * @param request
 	 * @param response
-	 * @param authProperty
 	 * @return 
 	 */
 	protected static Principal checkExternalAuthentication(final HttpServletRequest request, final HttpServletResponse response) {
