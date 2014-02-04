@@ -569,7 +569,7 @@ public class Services {
 		final Iterator<Relationship> allRels   = GlobalGraphOperations.at(graphDb).getAllRelationships().iterator();
 		final App app                          = StructrApp.getInstance();
 		final StringProperty uuidProperty      = new StringProperty("uuid");
-		final int txLimit                      = 100;
+		final int txLimit                      = 2000;
 		
 		int actualNodeCount                    = 0;
 		int actualRelCount                     = 0;
@@ -587,8 +587,8 @@ public class Services {
 
 					final Node node = allNodes.next();
 
-					// do migration of ID properties
-					if (node.hasProperty("uuid")) {
+					// do migration of our own ID properties (and only our own!)
+					if (node.hasProperty("uuid") && node.getProperty("uuid") instanceof String && !node.hasProperty("id")) {
 
 						try {
 							final NodeInterface nodeInterface = nodeFactory.instantiate(node);
@@ -616,8 +616,10 @@ public class Services {
 
 			} finally {
 
-				app.finishTx();
+				app.finishTx(false);
 			}
+
+			logger.log(Level.INFO, "Migrated {0} of {1} nodes so far.", new Object[] { actualNodeCount, count });
 		}
 
 		logger.log(Level.INFO, "Migrated {0} nodes to new ID property.", actualNodeCount);
@@ -634,8 +636,8 @@ public class Services {
 
 					final Relationship rel = allRels.next();
 
-					// do migration of ID properties
-					if (rel.hasProperty("uuid")) {
+					// do migration of our own ID properties (and only our own!)
+					if (rel.hasProperty("uuid") && rel.getProperty("uuid") instanceof String && !rel.hasProperty("id")) {
 
 						try {
 							final RelationshipInterface relInterface = relFactory.instantiate(rel);
@@ -662,8 +664,10 @@ public class Services {
 
 			} finally {
 
-				app.finishTx();
+				app.finishTx(false);
 			}
+
+			logger.log(Level.INFO, "Migrated {0} of {1} relationships so far.", new Object[] { actualRelCount, count });
 		}
 
 		logger.log(Level.INFO, "Migrated {0} relationships to new ID property.", actualRelCount);

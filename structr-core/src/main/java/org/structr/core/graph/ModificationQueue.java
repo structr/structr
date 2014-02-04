@@ -60,7 +60,7 @@ public class ModificationQueue {
 		return synchronizationKeys;
 	}
 	
-	public boolean doInnerCallbacks(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+	public boolean doInnerCallbacks(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
 		long t0                  = System.currentTimeMillis();
 		boolean hasModifications = true;

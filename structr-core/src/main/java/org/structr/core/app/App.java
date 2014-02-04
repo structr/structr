@@ -43,6 +43,7 @@ public interface App {
 	public void commitTx() throws FrameworkException;
 	public void commitTx(final boolean doValidation) throws FrameworkException;
 	public void finishTx();
+	public void finishTx(final boolean doValidation);
 	
 	public <T extends NodeInterface> T create(final Class<T> type, final String name) throws FrameworkException;
 	public <T extends NodeInterface> T create(final Class<T> type, final PropertyMap properties) throws FrameworkException;

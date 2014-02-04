@@ -190,7 +190,12 @@ public class StructrApp implements App {
 	
 	@Override
 	public void finishTx() {
-		command(TransactionCommand.class).finishTx();
+		finishTx(true);
+	}
+	
+	@Override
+	public void finishTx(final boolean doCallbacks) {
+		command(TransactionCommand.class).finishTx(doCallbacks);
 	}
 	
 	@Override

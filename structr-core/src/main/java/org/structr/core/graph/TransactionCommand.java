@@ -93,7 +93,7 @@ public class TransactionCommand extends NodeServiceCommand {
 		if (tx != null && tx.isToplevel()) {
 
 			// 1. do inner callbacks (may cause transaction to fail)
-			if (!modificationQueue.doInnerCallbacks(securityContext, errorBuffer)) {
+			if (doValidation && !modificationQueue.doInnerCallbacks(securityContext, errorBuffer)) {
 
 				// create error
 				if (doValidation) {
@@ -105,7 +105,7 @@ public class TransactionCommand extends NodeServiceCommand {
 			}
 			
 			// 1.5: execute validatable post-transaction action
-			if (!modificationQueue.doPostProcessing(securityContext, errorBuffer)) {
+			if (doValidation && !modificationQueue.doPostProcessing(securityContext, errorBuffer)) {
 
 				tx.failure();
 
@@ -145,6 +145,10 @@ public class TransactionCommand extends NodeServiceCommand {
 	}
 	
 	public void finishTx() {
+		finishTx(true);
+	}
+	
+	public void finishTx(final boolean doCallbacks) {
 		
 		final TransactionReference tx = transactions.get();
 		if (tx != null) {
@@ -162,7 +166,7 @@ public class TransactionCommand extends NodeServiceCommand {
 					t.printStackTrace();
 				}
 
-				if (modificationQueue != null && tx.isSuccessful()) {
+				if (doCallbacks && modificationQueue != null && tx.isSuccessful()) {
 					
 					modificationQueue.doOuterCallbacks(securityContext);
 
@@ -171,7 +175,9 @@ public class TransactionCommand extends NodeServiceCommand {
 					for (StructrTransactionListener listener : listeners) {
 						listener.transactionCommited(securityContext, modificationEvents);
 					}
-					
+				}
+
+				if (modificationQueue != null) {
 					modificationQueue.clear();
 				}
 				
