@@ -240,7 +240,7 @@ var _Elements = {
 
         var btn = $('#delete-all-unattached-nodes')
         btn.on('click', function() {
-            Structr.confirmation('<p>Delete all DOM not bound to a parent DOM element?</p>',
+            Structr.confirmation('<p>Delete all DOM elements without parent?</p>',
                     function() {
                         Command.deleteUnattachedNodes();
                         $.unblockUI({

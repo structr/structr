@@ -1374,3 +1374,20 @@ button.add_property {
     top: 6px;
     cursor: pointer;
 }
+
+#admin-tools {
+    position: absolute;
+    right: 12px;
+}
+
+#admin-tools-table td {
+    padding: 0 1em 1em 0;
+}
+
+#admin-tools-table td:first-child {
+    text-align: center;
+}
+
+.notify {
+    border-color: #f50;
+}

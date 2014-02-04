@@ -43,6 +43,7 @@ import org.structr.core.graph.BulkDeleteSoftDeletedNodesCommand;
 import org.structr.core.graph.BulkRebuildIndexCommand;
 import org.structr.core.graph.BulkSetUuidCommand;
 import org.structr.core.graph.SyncCommand;
+import org.structr.schema.SchemaHelper;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -142,7 +143,7 @@ public class MaintenanceParameterResource extends Resource {
 
         @Override
         public String getResourceSignature() {
-                return getUriPart();
+                return SchemaHelper.normalizeEntityName(getUriPart());
         }
 	
 	public static void registerMaintenanceTask(String key, Class<? extends Task> task) {

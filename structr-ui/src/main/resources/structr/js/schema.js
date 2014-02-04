@@ -54,6 +54,15 @@ var _Schema = {
         _Schema.keys = [];
 
         main.append('<div class="schema-input-container"><input class="schema-input" id="type-name" type="text" size="20" placeholder="New type"><button id="create-type" class="btn"><img src="icon/add.png"> Add Type</button></div>');
+        console.log(user);
+
+        if (true) {
+            $('.schema-input-container').append('<button class="btn" id="admin-tools">Admin Tools</button>');
+            $('#admin-tools').on('click', function() {
+               _Schema.openAdminTools();
+            });
+        }
+
         $('#type-name').focus().on('keyup', function(e) {
 
             if (e.keyCode === 13) {
@@ -445,7 +454,6 @@ var _Schema = {
             } else {
                 type = res[key];
             }
-            console.log(type);
             
             var notNull = (res[key].indexOf('+') > -1);
             var unique = (res[key].indexOf('!') > -1);
@@ -457,7 +465,7 @@ var _Schema = {
                 defaultValue = (type.substring(type.indexOf(':') + 1));
                 type = type.substring(0, type.indexOf(':'));
             }
-            console.log(type);
+
             var format;
             if (type.indexOf('(') > -1) {
                 var parts = type.split('(');
@@ -505,7 +513,7 @@ var _Schema = {
                 + '' + '</td><td></td></div>');
 
         $('#id_' + id + ' .' + key + ' .property-name').on('blur', function() {
-            console.log('modified related property name', id, rel, key, $(this).val());
+            //console.log('modified related property name', id, rel, key, $(this).val());
             
             var newName = $(this).val();
             
@@ -717,6 +725,81 @@ var _Schema = {
         if (oldName !== newName) {
             _Schema.putPropertyDefinition(id, JSON.stringify({name: newName}));
         }
+    },
+    openAdminTools: function() {
+        Structr.dialog('Admin Tools', function(){}, function(){});
+        
+        dialogText.append('<table id="admin-tools-table">');
+        $('#admin-tools-table').append('<tr><td><button id="rebuild-index">Rebuild Index</button></td><td><label for"rebuild-index">Rebuild database index for all nodes and relationships</label></td></tr>');
+        $('#admin-tools-table').append('<tr><td><select id="node-type-selector"><option value="">-- Select Node Type --</option></select><!--select id="rel-type-selector"><option>-- Select Relationship Type --</option></select--><button id="add-uuids">Add UUIDs</button></td><td><label for"setUuid">Add UUIDs to all nodes of the selected type</label></td></tr>');
+        $('#admin-tools-table').append('</table>');
+
+        var nodeTypeSelector = $('#node-type-selector');
+
+        $('#rebuild-index').on('click', function(e) {
+            var btn = $(this);
+            var text = btn.text();
+            btn.attr('disabled', 'disabled').addClass('disabled').html(text + ' <img src="img/al.gif">');
+            e.preventDefault();
+            $.ajax({
+               url: rootUrl + 'maintenance/rebuildIndex',
+               type: 'POST',
+               data: {},
+               contentType: 'application/json',
+               statusCode: {
+                   200: function() {
+                        var btn = $('#rebuild-index');
+                        btn.removeClass('disabled').attr('disabled', null);
+                        btn.html(text + ' <img src="icon/tick.png">');
+                        window.setTimeout(function() {
+                            $('img', btn).fadeOut();
+                        }, 1000);
+                   }
+               }
+            });
+        });
+
+        Command.list('SchemaNode', 100, 1, 'name', 'asc', function(n) {
+            $('#node-type-selector').append('<option>' + n.name + '</option>'); 
+        });
+
+        Command.list('SchemaRelationship', 100, 1, 'relationshipType', 'asc', function(r) {
+            $('#rel-type-selector').append('<option>' + r.relationshipType + '</option>'); 
+        });
+
+        $('#add-uuids').on('click', function(e) {
+            var btn = $(this);
+            var text = btn.text();
+            e.preventDefault();
+            var type = nodeTypeSelector.val();
+            var relType = $('#rel-type-selector').val();
+            if (!type) {
+                nodeTypeSelector.addClass('notify');
+                nodeTypeSelector.on('change', function() {
+                    nodeTypeSelector.removeClass('notify');
+                });
+                return;
+            }
+            btn.attr('disabled', 'disabled').addClass('disabled').html(text + ' <img src="img/al.gif">');
+            $.ajax({
+               url: rootUrl + 'maintenance/setUuid',
+               type: 'POST',
+               data: JSON.stringify({'type': type, 'relType': relType}),
+               contentType: 'application/json',
+               statusCode: {
+                   200: function() {
+                        var btn = $('#add-uuids');
+                        nodeTypeSelector.removeClass('notify');
+                        btn.removeClass('disabled').attr('disabled', null);
+                        btn.html(text + ' <img src="icon/tick.png">');
+                        window.setTimeout(function() {
+                            $('img', btn).fadeOut();
+                        }, 1000);
+                   }
+               }
+            });
+        });
+
     }
 };
 

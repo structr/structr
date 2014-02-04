@@ -162,7 +162,7 @@ public class UiAuthenticator extends HttpAuthenticator {
 		boolean validUser = (user != null);
 		
 		// super user is always authenticated
-		if (validUser && user instanceof SuperUser) {
+		if (validUser && (user instanceof SuperUser || user.getProperty(Principal.isAdmin))) {
 			return;
 		}
 		
