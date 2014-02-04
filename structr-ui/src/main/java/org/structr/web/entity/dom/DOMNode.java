@@ -1281,11 +1281,13 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 				if ("page_count".equals(lowerCasePart)) {
 
 					Result result = renderContext.getResult();
-
-					if (result != null) {
-
-						return result.getPageCount();
-
+					
+					Integer pageCount = result.getPageCount();
+					
+					if (pageCount != null) {
+						return pageCount;
+					} else {
+						return 1;
 					}
 
 				}
