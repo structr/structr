@@ -114,6 +114,7 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 			newNode.init(factoryProfile.getSecurityContext(), node);
 			newNode.onNodeInstantiation();
 
+			/* dont set node type here!
 			String newNodeType = newNode.getProperty(GraphObject.type);
 			if (newNodeType == null && nodeClass != null) {
 				
@@ -128,6 +129,7 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 					logger.log(Level.SEVERE, "Unable to set type property {0} on node {1}: {2}", new Object[] { nodeClass, newNode, t.getMessage() } );
 				}
 			}
+			*/
 			
 			// cache node for this request
 			securityContext.store(id, newNode);

@@ -43,26 +43,18 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.TestOne;
-import org.structr.core.graph.search.Search;
-import org.structr.core.graph.search.SearchAttribute;
-
-//~--- JDK imports ------------------------------------------------------------
-
-import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
-import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Person;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.User;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 

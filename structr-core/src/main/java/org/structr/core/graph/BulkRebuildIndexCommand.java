@@ -181,7 +181,7 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 
 		@Override
 		public boolean accept(final Node node) {
-			return node.hasProperty(idName);
+			return node.hasProperty(idName) && node.getProperty(idName) instanceof String;
 		}
 	}
 
@@ -189,7 +189,7 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 
 		@Override
 		public boolean accept(final Relationship rel) {
-			return rel.hasProperty(idName);
+			return rel.hasProperty(idName) && rel.getProperty(idName) instanceof String;
 		}
 	}
 
