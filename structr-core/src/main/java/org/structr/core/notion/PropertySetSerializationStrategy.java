@@ -40,10 +40,10 @@ public class PropertySetSerializationStrategy implements SerializationStrategy {
 	@Override
 	public Object serialize(SecurityContext securityContext, Class type, GraphObject source) throws FrameworkException {
 
-		if(source != null) {
+		if (source != null) {
 			
 			PropertyMap propertyMap = new PropertyMap();
-			for(PropertyKey key : propertyKeys) {
+			for (PropertyKey key : propertyKeys) {
 				propertyMap.put(key, source.getProperty(key));
 			}
 			

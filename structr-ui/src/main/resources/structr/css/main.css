@@ -1277,6 +1277,20 @@ button.add_property {
  * Schema
  */
 
+#create-type {
+    margin-top: -2px;
+    margin-left: 4px;
+}
+
+#create-type img, #admin-tools img {
+    margin-top: -3px;
+}
+
+#admin-tools {
+    margin-top: 2px;
+    padding-left: 4px;
+}
+
 .schema {
     width: 600px;
     /*height: 200px;*/

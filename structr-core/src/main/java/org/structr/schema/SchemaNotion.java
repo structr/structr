@@ -60,7 +60,9 @@ public class SchemaNotion extends Notion {
 					SchemaRelationship.sourceMultiplicity,
 					SchemaRelationship.targetMultiplicity,
 					SchemaRelationship.sourceNotion,
-					SchemaRelationship.targetNotion     
+					SchemaRelationship.targetNotion,
+					SchemaRelationship.sourceJsonName,
+					SchemaRelationship.targetJsonName 
 				)
 			)
 		);

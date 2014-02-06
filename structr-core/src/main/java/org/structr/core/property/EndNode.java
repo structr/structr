@@ -253,4 +253,9 @@ public class EndNode<S extends NodeInterface, T extends NodeInterface> extends P
 
 		return relatedNodes;
 	}
+
+	@Override
+	public Relation getRelation() {
+		return relation;
+	}
 }

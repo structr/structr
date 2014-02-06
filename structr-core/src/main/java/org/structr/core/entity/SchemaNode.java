@@ -30,6 +30,8 @@ import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.relationship.SchemaRelationship;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
@@ -76,80 +78,101 @@ public class SchemaNode extends AbstractSchemaNode implements Schema {
 	@Override
 	public String getSource(final ErrorBuffer errorBuffer) throws FrameworkException {
 		
-		final Map<String, Set<String>> viewProperties = new LinkedHashMap<>();
-		final Set<String> validators                  = new LinkedHashSet<>();
-		final Set<String> enums                       = new LinkedHashSet<>();
-		final StringBuilder src                       = new StringBuilder();
-		final Class baseType                          = AbstractNode.class;
-		final String _className                       = getProperty(name);
-		final String _extendsClass                    = getProperty(extendsClass);
+		final App app = StructrApp.getInstance();
 		
-		final Set<String> existingPropertyNames       = new LinkedHashSet<>();
-		
-		src.append("package org.structr.dynamic;\n\n");
-		
-		SchemaHelper.formatImportStatements(src, baseType);
-		
-		
-		
-		String superClass = _extendsClass != null ? _extendsClass : baseType.getSimpleName();
-		
-		src.append("public class ").append(_className).append(" extends ").append(superClass).append(" {\n\n");
-		
-		// output related node definitions, collect property views
-		for (final SchemaRelationship outRel : getOutgoingRelationships(SchemaRelationship.class)) {
-
-			src.append(outRel.getPropertySource(_className, existingPropertyNames));
-			existingPropertyNames.clear();
-			addPropertyNameToViews(outRel.getPropertyName(_className, existingPropertyNames), viewProperties);
+		try {
 			
-		}
+			app.beginTx();
 		
-		// output related node definitions, collect property views
-		for (final SchemaRelationship inRel : getIncomingRelationships(SchemaRelationship.class)) {
+			final Map<String, Set<String>> viewProperties = new LinkedHashMap<>();
+			final Set<String> validators                  = new LinkedHashSet<>();
+			final Set<String> enums                       = new LinkedHashSet<>();
+			final StringBuilder src                       = new StringBuilder();
+			final Class baseType                          = AbstractNode.class;
+			final String _className                       = getProperty(name);
+			final String _extendsClass                    = getProperty(extendsClass);
 
-			src.append(inRel.getPropertySource(_className, existingPropertyNames));
-			existingPropertyNames.clear();
-			addPropertyNameToViews(inRel.getPropertyName(_className, existingPropertyNames), viewProperties);
-			
-		}
+			final Set<String> existingPropertyNames       = new LinkedHashSet<>();
 
-		// extract properties from node
-		src.append(SchemaHelper.extractProperties(this, validators, enums, viewProperties, errorBuffer));
-		
-		// output possible enum definitions
-		for (final String enumDefition : enums) {
-			src.append(enumDefition);
-		}
+			src.append("package org.structr.dynamic;\n\n");
 
-		for (Entry<String, Set<String>> entry :viewProperties.entrySet()) {
+			SchemaHelper.formatImportStatements(src, baseType);
 
-			final String viewName  = entry.getKey();
-			final Set<String> view = entry.getValue();
-			
-			if (!view.isEmpty()) {
-				dynamicViews.add(viewName);
-				SchemaHelper.formatView(src, _className, viewName, viewName, view);
+
+
+			String superClass = _extendsClass != null ? _extendsClass : baseType.getSimpleName();
+
+			src.append("public class ").append(_className).append(" extends ").append(superClass).append(" {\n\n");
+
+			// output related node definitions, collect property views
+			for (final SchemaRelationship outRel : getOutgoingRelationships(SchemaRelationship.class)) {
+
+				final String propertyName = outRel.getPropertyName(_className, existingPropertyNames, true);
+
+				//outRel.setProperty(SchemaRelationship.targetJsonName, propertyName);
+
+				src.append(outRel.getPropertySource(propertyName, true));
+				//existingPropertyNames.clear();
+				addPropertyNameToViews(propertyName, viewProperties);
+
 			}
-		}
-		
-		if (!validators.isEmpty()) {
-			
-			src.append("\n\t@Override\n");
-			src.append("\tpublic boolean isValid(final ErrorBuffer errorBuffer) {\n\n");
-			src.append("\t\tboolean error = false;\n\n");
-			
-			for (final String validator : validators) {
-				src.append("\t\terror |= ").append(validator).append(";\n");
+
+			// output related node definitions, collect property views
+			for (final SchemaRelationship inRel : getIncomingRelationships(SchemaRelationship.class)) {
+
+				final String propertyName = inRel.getPropertyName(_className, existingPropertyNames, false);
+
+				//inRel.setProperty(SchemaRelationship.sourceJsonName, propertyName);
+				
+				src.append(inRel.getPropertySource(propertyName, false));
+				//existingPropertyNames.clear();
+				addPropertyNameToViews(propertyName, viewProperties);
+
 			}
+
+			// extract properties from node
+			src.append(SchemaHelper.extractProperties(this, validators, enums, viewProperties, errorBuffer));
+
+			// output possible enum definitions
+			for (final String enumDefition : enums) {
+				src.append(enumDefition);
+			}
+
+			for (Entry<String, Set<String>> entry :viewProperties.entrySet()) {
+
+				final String viewName  = entry.getKey();
+				final Set<String> view = entry.getValue();
+
+				if (!view.isEmpty()) {
+					dynamicViews.add(viewName);
+					SchemaHelper.formatView(src, _className, viewName, viewName, view);
+				}
+			}
+
+			if (!validators.isEmpty()) {
+
+				src.append("\n\t@Override\n");
+				src.append("\tpublic boolean isValid(final ErrorBuffer errorBuffer) {\n\n");
+				src.append("\t\tboolean error = false;\n\n");
+
+				for (final String validator : validators) {
+					src.append("\t\terror |= ").append(validator).append(";\n");
+				}
+
+				src.append("\n\t\treturn !error;\n");
+				src.append("\t}\n");
+			}
+
+			src.append("}\n");
+
+			app.commitTx();
 			
-			src.append("\n\t\treturn !error;\n");
-			src.append("\t}\n");
+			return src.toString();
+		
+		} finally {
+			app.finishTx();
 		}
-		
-		src.append("}\n");
-		
-		return src.toString();
+
 	}
 	
 	@Override

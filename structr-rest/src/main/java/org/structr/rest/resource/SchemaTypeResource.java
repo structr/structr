@@ -1,20 +1,20 @@
 /**
- * Copyright (C) 2010-2014 Structr, c/o Morgner UG (haftungsbeschränkt) <structr@structr.org>
+ * Copyright (C) 2010-2014 Structr, c/o Morgner UG (haftungsbeschränkt)
+ * <structr@structr.org>
  *
  * This file is part of Structr <http://structr.org>.
  *
- * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
+ * Structr is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Affero General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
  *
- * Structr is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * Structr is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr. If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.rest.resource;
 
@@ -31,7 +31,6 @@ import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;
 
 //~--- JDK imports ------------------------------------------------------------
-
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -39,31 +38,33 @@ import java.util.Set;
 import java.util.TreeMap;
 
 import javax.servlet.http.HttpServletRequest;
+import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.PropertyDefinition;
+import org.structr.core.entity.Relation;
+import org.structr.core.entity.SchemaNode;
+import org.structr.core.property.RelationProperty;
 import org.structr.schema.SchemaHelper;
 
 //~--- classes ----------------------------------------------------------------
-
 /**
  *
  * @author Axel Morgner
  */
 public class SchemaTypeResource extends Resource {
 
-	protected Class entityClass          = null;
-	protected String rawType             = null;
+	protected Class entityClass = null;
+	protected String rawType = null;
 	protected HttpServletRequest request = null;
-	protected TypeResource typeResource  = null;
+	protected TypeResource typeResource = null;
 
 	//~--- methods --------------------------------------------------------
-
 	public SchemaTypeResource(SecurityContext securityContext, TypeResource typeResource) {
 		this.securityContext = securityContext;
 		this.typeResource = typeResource;
-		this.rawType         = typeResource.getRawType();
+		this.rawType = typeResource.getRawType();
 	}
-	
+
 	@Override
 	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) throws FrameworkException {
 
@@ -98,14 +99,14 @@ public class SchemaTypeResource extends Resource {
 			schema.setProperty(new LongProperty("flags"), SecurityContext.getResourceFlags(rawType));
 
 			// list property sets for all views
-			Set<String> propertyViews              = new LinkedHashSet<>(StructrApp.getConfiguration().getPropertyViews());
+			Set<String> propertyViews = new LinkedHashSet<>(StructrApp.getConfiguration().getPropertyViews());
 			Map<String, Map<String, Object>> views = new TreeMap();
 
 			schema.setProperty(new StringProperty("views"), views);
 
 			for (String view : propertyViews) {
 
-				Set<PropertyKey> properties              = new LinkedHashSet<>(StructrApp.getConfiguration().getPropertySet(type, view));
+				Set<PropertyKey> properties = new LinkedHashSet<>(StructrApp.getConfiguration().getPropertySet(type, view));
 				Map<String, Object> propertyConverterMap = new TreeMap<>();
 
 				// augment property set with properties from PropertyDefinition
@@ -122,7 +123,7 @@ public class SchemaTypeResource extends Resource {
 				}
 
 				// ignore "all" and empty views
-	//                      if (!"all".equals(view) && !properties.isEmpty()) {
+				//                      if (!"all".equals(view) && !properties.isEmpty()) {
 				if (!properties.isEmpty()) {
 
 					for (PropertyKey property : properties) {
@@ -133,10 +134,14 @@ public class SchemaTypeResource extends Resource {
 						propProperties.put("jsonName", property.jsonName());
 						propProperties.put("className", property.getClass().getName());
 
-						propProperties.put("declaringClass", property.getDeclaringClass());
+						Class declaringClass = property.getDeclaringClass();
+
+						propProperties.put("declaringClass", declaringClass);
 						propProperties.put("defaultValue", property.defaultValue());
 						propProperties.put("readOnly", property.isReadOnly());
 						propProperties.put("system", property.isUnvalidated());
+						propProperties.put("indexed", property.isIndexed());
+						propProperties.put("indexedWhenEmpty", property.isIndexedWhenEmpty());
 
 						Class<? extends GraphObject> relatedType = property.relatedType();
 						if (relatedType != null) {
@@ -148,7 +153,7 @@ public class SchemaTypeResource extends Resource {
 						propProperties.put("isCollection", property.isCollection());
 
 						PropertyConverter databaseConverter = property.databaseConverter(securityContext, null);
-						PropertyConverter inputConverter    = property.inputConverter(securityContext);
+						PropertyConverter inputConverter = property.inputConverter(securityContext);
 
 						if (databaseConverter != null) {
 
@@ -158,6 +163,26 @@ public class SchemaTypeResource extends Resource {
 						if (inputConverter != null) {
 
 							propProperties.put("inputConverter", inputConverter.getClass().getName());
+						}
+
+						//if (declaringClass != null && ("org.structr.dynamic".equals(declaringClass.getPackage().getName()))) {
+						if (declaringClass != null && (declaringClass.getName().startsWith("org.structr.dynamic"))) {
+
+//							final App app = StructrApp.getInstance();
+//							SchemaNode node = (SchemaNode) app.nodeQuery(SchemaNode.class).andName(declaringClass.getSimpleName()).getFirst();
+//							if (node != null) {
+//								List<SchemaNode> relatedToList = node.getProperty(SchemaNode.relatedTo);
+//								for (SchemaNode relatedNode : relatedToList) {
+//									System.out.println("JSON name: " + property.jsonName() + ", property class: " + property.getClass().getName() + ", relatedNode: " + relatedNode.getName());
+									Relation relation = ((RelationProperty) property).getRelation();
+
+									if (relation != null) {
+										propProperties.put("relationshipType", relation.name());
+									}
+
+//								}
+//							}
+
 						}
 
 						propertyConverterMap.put(property.jsonName(), propProperties);
@@ -196,7 +221,6 @@ public class SchemaTypeResource extends Resource {
 	}
 
 	//~--- get methods ----------------------------------------------------
-
 	@Override
 	public String getUriPart() {
 
