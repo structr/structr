@@ -171,15 +171,16 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 
 			final String _sourceType = getSchemaNodeSourceType();
 			final String _targetType = getSchemaNodeTargetType();
+			final String _relType    = getRelationshipType();
 
-			name = _sourceType + _targetType;
+			name = _sourceType + _relType + _targetType;
 		}
 		
 		return name;
 	}
 	
 	// ----- interface PropertySchema -----
-	public String getPropertySource(final String relatedClassName, final Set<String> existingPropertyNames) {
+	public String getPropertySource(final String propertyName, final boolean outgoing) {
 		
 		final StringBuilder buf          = new StringBuilder();
 		//final String _sourceJsonName     = getProperty(sourceJsonName);
@@ -192,9 +193,7 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 		final String _targetType         = getSchemaNodeTargetType();
 		final String _className          = getClassName();
 
-		final String propertyName = getPropertyName(relatedClassName, existingPropertyNames);
-		
-		if (_sourceType.equals(relatedClassName)) {
+		if (outgoing) {
 
 			if ("1".equals(_targetMultiplicity)) {
 
@@ -211,7 +210,7 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 				buf.append(");\n");
 			}
 			
-		} else if (_targetType.equals(relatedClassName)) {
+		} else {
 			
 			if ("1".equals(_sourceMultiplicity)) {
 
@@ -232,14 +231,14 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 		return buf.toString();
 	}
 
-	public String getPropertyName(final String relatedClassName, final Set<String> existingPropertyNames) {
+	public String getPropertyName(final String relatedClassName, final Set<String> existingPropertyNames, final boolean outgoing) {
 		
 		String propertyName = "";
 		
 		final String _sourceType         = getSchemaNodeSourceType();
 		final String _targetType         = getSchemaNodeTargetType();
 
-		if (_sourceType.equals(relatedClassName)) {
+		if (outgoing) {
 
 			final String _targetJsonName     = getProperty(targetJsonName);
 
@@ -259,7 +258,7 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 				}
 			}
 			
-		} else if (_targetType.equals(relatedClassName)) {
+		} else {
 
 			final String _sourceJsonName     = getProperty(sourceJsonName);
 			
@@ -281,7 +280,16 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 		}
 		
 		if (existingPropertyNames.contains(propertyName)) {			
-			propertyName += "X";
+			
+			// First level: Add direction suffix
+			propertyName += outgoing ? "Out" : "In";
+			int i=0;
+			
+			// New name still exists: Add number
+			while (existingPropertyNames.contains(propertyName)) {
+				propertyName += ++i;
+			}
+			
 		}
 
 		existingPropertyNames.add(propertyName);

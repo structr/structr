@@ -21,10 +21,9 @@ var canvas, instance, res, nodes = [], rels = [], localStorageSuffix = '_schema_
 $(document).ready(function() {
     Structr.registerModule('schema', _Schema);
     Structr.classes.push('schema');
-});
-
-$(window).unload(function() {
-    _Schema.storePositions();
+    
+    
+    
 });
 
 var _Schema = {
@@ -54,10 +53,9 @@ var _Schema = {
         _Schema.keys = [];
 
         main.append('<div class="schema-input-container"><input class="schema-input" id="type-name" type="text" size="20" placeholder="New type"><button id="create-type" class="btn"><img src="icon/add.png"> Add Type</button></div>');
-        console.log(user);
 
         if (true) {
-            $('.schema-input-container').append('<button class="btn" id="admin-tools">Admin Tools</button>');
+            $('.schema-input-container').append('<button class="btn" id="admin-tools"><img src="icon/wrench.png"> Admin Tools</button>');
             $('#admin-tools').on('click', function() {
                _Schema.openAdminTools();
             });
@@ -104,6 +102,7 @@ var _Schema = {
                     ]
                 ]
             });
+
 
             _Schema.loadSchema(function() {
                 instance.bind('connection', function(info) {
@@ -314,10 +313,11 @@ var _Schema = {
 
                                 //isTarget: true
                     });
-                    instance.draggable(id,
-                            {
-                                containment: '#schema-graph'
-                            });
+                    
+                    instance.draggable(id, { containment: '#schema-graph', stop: function() { _Schema.storePositions(); } });
+                    
+                    //node.on('dragStop')
+                            
                 });
 
                 if (callback) {
@@ -340,6 +340,7 @@ var _Schema = {
                         source: nodes[res.sourceId + '_bottom'],
                         target: nodes[res.targetId + '_top'],
                         deleteEndpointsOnDetach: false,
+                        connector:[ "Flowchart", { cornerRadius: 40,  gap: 6} ],
                         parameters: {'id': res.id},
                         overlays: [
                             ["Label", {
@@ -513,7 +514,7 @@ var _Schema = {
                 + '' + '</td><td></td></div>');
 
         $('#id_' + id + ' .' + key + ' .property-name').on('blur', function() {
-            //console.log('modified related property name', id, rel, key, $(this).val());
+            console.log('modified related property name', id, rel, key, $(this).val());
             
             var newName = $(this).val();
             
@@ -621,6 +622,7 @@ var _Schema = {
     createRelationshipDefinition: function(sourceId, targetId, relationshipType) {
         var data = '{"sourceId":"' + sourceId + '","targetId":"' + targetId + '"'
                 + (relationshipType && relationshipType.length ? ',"relationshipType":"' + relationshipType + '"' : '')
+                + ', "sourceMultiplicity" : "*", "targetMultiplicity" : "*"'
                 + '}';
         //console.log(data);
         $.ajax({

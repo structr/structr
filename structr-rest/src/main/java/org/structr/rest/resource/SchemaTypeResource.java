@@ -18,6 +18,7 @@
  */
 package org.structr.rest.resource;
 
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import org.structr.common.CaseHelper;
 import org.structr.common.SecurityContext;
@@ -39,8 +40,10 @@ import java.util.Set;
 import java.util.TreeMap;
 
 import javax.servlet.http.HttpServletRequest;
+import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.PropertyDefinition;
+import org.structr.core.entity.SchemaNode;
 import org.structr.schema.SchemaHelper;
 
 //~--- classes ----------------------------------------------------------------
@@ -133,10 +136,14 @@ public class SchemaTypeResource extends Resource {
 						propProperties.put("jsonName", property.jsonName());
 						propProperties.put("className", property.getClass().getName());
 
-						propProperties.put("declaringClass", property.getDeclaringClass());
+						Class declaringClass = property.getDeclaringClass();
+						
+						propProperties.put("declaringClass", declaringClass);
 						propProperties.put("defaultValue", property.defaultValue());
 						propProperties.put("readOnly", property.isReadOnly());
 						propProperties.put("system", property.isUnvalidated());
+						propProperties.put("indexed", property.isIndexed());
+						propProperties.put("indexedWhenEmpty", property.isIndexedWhenEmpty());
 
 						Class<? extends GraphObject> relatedType = property.relatedType();
 						if (relatedType != null) {
@@ -160,6 +167,23 @@ public class SchemaTypeResource extends Resource {
 							propProperties.put("inputConverter", inputConverter.getClass().getName());
 						}
 
+						//if (declaringClass != null && ("org.structr.dynamic".equals(declaringClass.getPackage().getName()))) {
+						if (declaringClass != null && (declaringClass.getName().startsWith("org.structr.dynamic"))) {
+							
+							final App app = StructrApp.getInstance();
+							SchemaNode node = (SchemaNode) app.nodeQuery(SchemaNode.class).andName(declaringClass.getSimpleName()).getFirst();
+							if (node != null) {
+								TODO
+								List<SchemaNode> relatedToList = node.getProperty(SchemaNode.relatedTo);
+								for (SchemaNode relatedNode : relatedToList) {
+									System.out.println(relatedNode);
+									propProperties.put("relatedNode", relatedNode.getName());
+									
+								}
+							}
+							
+						}
+						
 						propertyConverterMap.put(property.jsonName(), propProperties);
 
 					}
