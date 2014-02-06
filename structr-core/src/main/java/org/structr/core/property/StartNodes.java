@@ -252,4 +252,9 @@ public class StartNodes<S extends NodeInterface, T extends NodeInterface> extend
 
 		return relatedNodes;
 	}
+
+	@Override
+	public Relation getRelation() {
+		return relation;
+	}
 }

@@ -62,7 +62,7 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 	 * @param destType
 	 * @param relType
 	 */
-	public  EndNodes(final String name, final Class<? extends Relation<S, T, ? extends Source, ManyEndpoint<T>>> relationClass) {
+	public EndNodes(final String name, final Class<? extends Relation<S, T, ? extends Source, ManyEndpoint<T>>> relationClass) {
 		this(name, relationClass, new ObjectNotion());
 	}
 
@@ -251,5 +251,10 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 		}
 
 		return relatedNodes;
+	}
+
+	@Override
+	public Relation getRelation() {
+		return relation;
 	}
 }
