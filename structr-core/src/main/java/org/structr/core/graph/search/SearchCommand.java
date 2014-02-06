@@ -22,10 +22,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.lucene.search.BooleanQuery;
@@ -356,23 +358,23 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		if (filterResults) {
 
 			// sorted result set
-			List<GraphObject> finalResult            = new LinkedList<>();
-			List<GraphObject> intermediateResultList = intermediateResult.getResults();
-			int resultCount                          = 0;
+			Set<GraphObject> intermediateResultSet = new LinkedHashSet<>(intermediateResult.getResults());
+			List<GraphObject> finalResult          = new LinkedList<>();
+			int resultCount                        = 0;
 
-			if (intermediateResultList.isEmpty()) {
+			if (intermediateResultSet.isEmpty()) {
 				
 				// merge sources according to their occur flag
-				intermediateResultList.addAll(mergeSources(sources));
+				intermediateResultSet.addAll(mergeSources(sources));
 				
 			} else if (!sources.isEmpty()) {
 				
 				// merge sources according to their occur flag
-				intermediateResultList.retainAll(mergeSources(sources));
+				intermediateResultSet.retainAll(mergeSources(sources));
 			}
 
 			// Filter intermediate result
-			for (GraphObject obj : intermediateResultList) {
+			for (GraphObject obj : intermediateResultSet) {
 
 				boolean addToResult = true;
 
@@ -403,10 +405,10 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		}
 	}
 	
-	private List<GraphObject> mergeSources(List<SourceSearchAttribute> sources) {
+	private Set<GraphObject> mergeSources(List<SourceSearchAttribute> sources) {
 		
-		LinkedList<GraphObject> mergedResult = new LinkedList<>();
-		boolean alreadyAdded                 = false;
+		Set<GraphObject> mergedResult = new LinkedHashSet<>();
+		boolean alreadyAdded          = false;
 		
 		for (Iterator<SourceSearchAttribute> it = sources.iterator(); it.hasNext();) {
 			

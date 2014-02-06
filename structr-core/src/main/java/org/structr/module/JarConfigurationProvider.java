@@ -592,7 +592,9 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 				}
 				
 			} catch (Throwable t) {
-				logger.log(Level.WARNING, "Unable to instantiate {0}: {1}", new Object[] { type, t.getMessage() } );
+//				ignore
+//				t.printStackTrace();
+//				logger.log(Level.WARNING, "Unable to instantiate {0}: {1}", new Object[] { type, t.getMessage() } );
 			}
 		}
 		
@@ -616,7 +618,12 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	 */
 	@Override
 	public void registerEntityCreationTransformation(Class type, Transformation<GraphObject> transformation) {
-		getEntityCreationTransformationsForType(type).add(transformation);
+		
+		final Set<Transformation<GraphObject>> transformations = getEntityCreationTransformationsForType(type);
+		if (!transformations.contains(transformation)) {
+			
+			transformations.add(transformation);
+		}
 	}
 
 	@Override
@@ -677,7 +684,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	}
 
 	@Override
-	public Set<Transformation<GraphObject>> getEntityCreationTransformations(Class type) {
+	public synchronized Set<Transformation<GraphObject>> getEntityCreationTransformations(Class type) {
 
 		Set<Transformation<GraphObject>> transformations = new TreeSet<>();
 		Class localType                                  = type;
@@ -1297,14 +1304,15 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 	private Set<Transformation<GraphObject>> getEntityCreationTransformationsForType(Class type) {
 
-		Set<Transformation<GraphObject>> transformations = globalTransformationMap.get(type.getName());
-
+		final String name = type.getName();
+		
+		
+		Set<Transformation<GraphObject>> transformations = globalTransformationMap.get(name);
 		if (transformations == null) {
 
 			transformations = new LinkedHashSet<>();
 
-			globalTransformationMap.put(type.getName(), transformations);
-
+			globalTransformationMap.put(name, transformations);
 		}
 
 		return transformations;

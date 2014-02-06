@@ -18,8 +18,9 @@
  */
 package org.structr.core.property;
 
-import java.util.LinkedList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.Direction;
@@ -216,9 +217,9 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 	
 	// ----- overridden methods from super class -----
 	@Override
-	protected <T extends NodeInterface> List<T> getRelatedNodesReverse(final SecurityContext securityContext, final NodeInterface obj, final Class destinationType) {
+	protected <T extends NodeInterface> Set<T> getRelatedNodesReverse(final SecurityContext securityContext, final NodeInterface obj, final Class destinationType) {
 
-		List<T> relatedNodes = new LinkedList<>();
+		Set<T> relatedNodes = new LinkedHashSet<>();
 		
 		if (obj instanceof AbstractNode) {
 

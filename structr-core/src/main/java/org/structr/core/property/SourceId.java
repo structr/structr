@@ -51,7 +51,10 @@ public class SourceId extends Property<String> {
 				final Relationship relationship = ((RelationshipInterface)obj).getRelationship();
 				final NodeInterface startNode   = new NodeFactory<>(securityContext).instantiate(relationship.getStartNode());
 				
-				return startNode.getUuid();
+				if (startNode != null) {
+					
+					return startNode.getUuid();
+				}
 				
 			} catch (Throwable t) {
 				

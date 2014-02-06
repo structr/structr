@@ -50,8 +50,11 @@ public class TargetId extends Property<String> {
 			try {
 				final Relationship relationship = ((RelationshipInterface)obj).getRelationship();
 				final NodeInterface endNode     = new NodeFactory<>(securityContext).instantiate(relationship.getEndNode());
-				
-				return endNode.getUuid();
+
+				if (endNode != null) {
+					
+					return endNode.getUuid();
+				}
 				
 			} catch (Throwable t) {
 				
