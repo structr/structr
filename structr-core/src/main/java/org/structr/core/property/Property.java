@@ -567,9 +567,9 @@ public abstract class Property<T> implements PropertyKey<T> {
 		}
 	}
 	
-	protected <T extends NodeInterface> List<T> getRelatedNodesReverse(final SecurityContext securityContext, final NodeInterface obj, final Class destinationType) {
+	protected <T extends NodeInterface> Set<T> getRelatedNodesReverse(final SecurityContext securityContext, final NodeInterface obj, final Class destinationType) {
 		// this is the default implementation
-		return Collections.emptyList();
+		return Collections.emptySet();
 	}
 	
 }
