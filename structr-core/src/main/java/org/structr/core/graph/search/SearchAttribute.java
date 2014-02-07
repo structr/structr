@@ -22,6 +22,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.Query;
+import org.neo4j.helpers.Predicate;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.property.PropertyKey;
@@ -32,7 +33,7 @@ import org.structr.core.property.PropertyKey;
  * @author Axel Morgner
  * @param <T>
  */
-public abstract class SearchAttribute<T> extends NodeAttribute<T> {
+public abstract class SearchAttribute<T> extends NodeAttribute<T> implements Predicate<GraphObject> {
 
 	public static final String WILDCARD = "*";
 
@@ -82,5 +83,11 @@ public abstract class SearchAttribute<T> extends NodeAttribute<T> {
 
 	public void addToResult(final Set<GraphObject> list) {
 		result.addAll(list);
+	}
+	
+	// ----- interface Predicate<Node> -----
+	@Override
+	public boolean accept(final GraphObject obj) {
+		return includeInResult(obj);
 	}
 }

@@ -102,7 +102,7 @@ public abstract class Search {
 
 	private static List<SearchAttribute> getTypeAndSubtypesInternal(final Class type, final boolean isExactMatch) {
 
-		final ConfigurationProvider configuration                                     = StructrApp.getConfiguration();
+		final ConfigurationProvider configuration                             = StructrApp.getConfiguration();
 		final Map<String, Class<? extends NodeInterface>> nodeEntities        = configuration.getNodeEntities();
 		final Map<String, Class<? extends RelationshipInterface>> relEntities = configuration.getRelationshipEntities();
 		final List<SearchAttribute> attrs                                     = new LinkedList<>();

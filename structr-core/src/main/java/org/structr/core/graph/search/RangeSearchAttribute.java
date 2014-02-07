@@ -25,6 +25,7 @@ import org.apache.lucene.search.BooleanClause.Occur;
 
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermRangeQuery;
+import org.neo4j.graphdb.Node;
 import org.neo4j.index.impl.lucene.LuceneUtil;
 import org.structr.core.GraphObject;
 
@@ -115,7 +116,22 @@ public class RangeSearchAttribute<T> extends SearchAttribute<T> {
 
 	@Override
 	public boolean includeInResult(GraphObject entity) {
-		return true;
+		
+		final T value = entity.getProperty(searchKey);
+		if (value != null) {
+
+			if (value instanceof Comparable && rangeStart instanceof Comparable && rangeEnd instanceof Comparable) {
+
+				final Comparable cv = (Comparable)value;
+				final Comparable cs = (Comparable)rangeStart;
+				final Comparable ce = (Comparable)rangeEnd;
+
+				// FIXME: is this correct??
+				return cs.compareTo(cv) <= 0 && ce.compareTo(cv) >= 0;
+			}
+		}
+		
+		return false;
 	}
 
 	@Override

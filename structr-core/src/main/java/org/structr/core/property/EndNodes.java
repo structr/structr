@@ -121,10 +121,15 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 
 	@Override
 	public List<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+		return getProperty(securityContext, obj, applyConverter, null);
+	}
+
+	@Override
+	public List<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final org.neo4j.helpers.Predicate<GraphObject> predicate) {
 		
 		ManyEndpoint<T> endpoint = relation.getTarget();
 		
-		return Iterables.toList(Iterables.filter(new NotNullPredicate(), endpoint.get(securityContext, (NodeInterface)obj)));
+		return Iterables.toList(Iterables.filter(new NotNullPredicate(), endpoint.get(securityContext, (NodeInterface)obj, predicate)));
 	}
 
 	@Override

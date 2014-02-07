@@ -20,8 +20,10 @@ package org.structr.core.property;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.graphdb.PropertyContainer;
+import org.neo4j.helpers.Predicate;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -56,6 +58,11 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 	
 	@Override
 	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+		return getProperty(securityContext, obj, applyConverter, null);
+	}
+	
+	@Override
+	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
 
 		Object value = null;
 		

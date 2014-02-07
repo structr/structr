@@ -24,9 +24,11 @@ import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.helpers.Function;
+import org.neo4j.helpers.Predicate;
 import org.neo4j.helpers.collection.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeFactory;
@@ -45,10 +47,10 @@ public class ManyStartpoint<S extends NodeInterface> extends AbstractEndpoint im
 	}
 	
 	@Override
-	public Iterable<S> get(final SecurityContext securityContext, final NodeInterface node) {
+	public Iterable<S> get(final SecurityContext securityContext, final NodeInterface node, final Predicate<GraphObject> predicate) {
 		
 		final NodeFactory<S> nodeFactory  = new NodeFactory<>(securityContext);
-		final Iterable<Relationship> rels = getRawSource(securityContext, node.getNode());
+		final Iterable<Relationship> rels = getRawSource(securityContext, node.getNode(), predicate);
 		
 		if (rels != null) {
 			
@@ -69,7 +71,7 @@ public class ManyStartpoint<S extends NodeInterface> extends AbstractEndpoint im
 	public void set(final SecurityContext securityContext, final NodeInterface targetNode, final Iterable<S> collection) throws FrameworkException {
 
 		final App app            = StructrApp.getInstance(securityContext);
-		final Set<S> toBeDeleted = new LinkedHashSet<>(Iterables.toList(get(securityContext, targetNode)));
+		final Set<S> toBeDeleted = new LinkedHashSet<>(Iterables.toList(get(securityContext, targetNode, null)));
 		final Set<S> toBeCreated = new LinkedHashSet<>();
 
 		if (collection != null) {
@@ -107,12 +109,12 @@ public class ManyStartpoint<S extends NodeInterface> extends AbstractEndpoint im
 	}
 
 	@Override
-	public Iterable<Relationship> getRawSource(final SecurityContext securityContext, final Node dbNode) {
-		return getMultiple(securityContext, dbNode, relation, Direction.INCOMING, relation.getSourceType());
+	public Iterable<Relationship> getRawSource(final SecurityContext securityContext, final Node dbNode, final Predicate<GraphObject> predicate) {
+		return getMultiple(securityContext, dbNode, relation, Direction.INCOMING, relation.getSourceType(), predicate);
 	}
 
 	@Override
-	public boolean hasElements(SecurityContext securityContext, Node dbNode) {
-		return getRawSource(securityContext, dbNode).iterator().hasNext();
+	public boolean hasElements(final SecurityContext securityContext, final Node dbNode, final Predicate<GraphObject> predicate) {
+		return getRawSource(securityContext, dbNode, predicate).iterator().hasNext();
 	}
 }

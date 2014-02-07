@@ -32,6 +32,7 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.neo4j.graphdb.Node;
+import org.neo4j.helpers.Predicate;
 import org.neo4j.helpers.collection.Iterables;
 
 import org.structr.core.property.PropertyKey;
@@ -47,7 +48,10 @@ import org.structr.core.entity.OtherNodeTypeRelationFilter;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.search.SearchAttribute;
+import org.structr.core.graph.search.SearchAttributeGroup;
 import org.structr.core.graph.search.SearchNodeCommand;
+import org.structr.core.graph.search.TypeSearchAttribute;
 import org.structr.core.notion.Notion;
 import org.structr.core.property.RelationProperty;
 import org.structr.rest.RestMethodResult;
@@ -117,7 +121,9 @@ public class StaticRelationshipResource extends SortableResource {
 			// second try: property key
 			if (propertyKey != null) {
 
-				final Object value = sourceEntity.getProperty(propertyKey);
+				final Predicate<GraphObject> predicate = toPredicate(typeResource.collectSearchAttributes(sortDescending));
+				final Object value                     = sourceEntity.getProperty(propertyKey, predicate);
+				
 				if (value != null) {
 
 					if (value instanceof Iterable) {
@@ -129,6 +135,7 @@ public class StaticRelationshipResource extends SortableResource {
 							propertyResults.add(obj);
 						}
 						
+						/*
 						if (typeResource.getEntityClass() != null) {
 						
 							final Set<GraphObject> typeResourceResults = new LinkedHashSet<>(typeResource.doGet(null, sortDescending, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE, null).getResults());
@@ -136,7 +143,8 @@ public class StaticRelationshipResource extends SortableResource {
 							// merge list with results from type resource (which includes request parameter based filtering)
 							propertyResults.retainAll(typeResourceResults);
 						}
-
+						*/
+	
 						final List<GraphObject> finalResult = new LinkedList<>(propertyResults);
 						applyDefaultSorting(finalResult, sortKey, sortDescending);
 
@@ -540,5 +548,57 @@ public class StaticRelationshipResource extends SortableResource {
 		}
 		
 		return convertedObject;
+	}
+	
+	private Predicate<GraphObject> toPredicate(final List<SearchAttribute> searchAttributes) {
+		return new AndPredicate(searchAttributes);
+	}
+	
+	private class AndPredicate implements Predicate<GraphObject> {
+
+		final List<Predicate<GraphObject>> predicates = new LinkedList<>();
+
+		public AndPredicate(List<SearchAttribute> searchAttributes) {
+			
+			for (final SearchAttribute attr : searchAttributes) {
+
+				if (attr instanceof SearchAttributeGroup) {
+					
+					for (final SearchAttribute groupAttr : ((SearchAttributeGroup)attr).getSearchAttributes()) {
+						// ignore type search attributes as the nodes will
+						// already have the correct type when arriving here
+						if (groupAttr instanceof TypeSearchAttribute) {
+							continue;
+						}
+				
+						predicates.add(attr);
+					}
+					
+				} else {
+
+					// ignore type search attributes as the nodes will
+					// already have the correct type when arriving here
+					if (attr instanceof TypeSearchAttribute) {
+						continue;
+					}
+								
+					predicates.add(attr);
+				}
+			}
+		}
+
+		@Override
+		public boolean accept(GraphObject obj) {
+
+			boolean result = true;
+
+			for (Predicate<GraphObject> predicate : predicates) {
+				
+				result &= predicate.accept(obj);
+			}
+
+			return result;
+		}
+		
 	}
 }

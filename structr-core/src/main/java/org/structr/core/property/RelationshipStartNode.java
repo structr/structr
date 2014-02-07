@@ -23,6 +23,7 @@
 
 package org.structr.core.property;
 
+import org.neo4j.graphdb.Node;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
@@ -81,6 +82,11 @@ public class RelationshipStartNode<T extends AbstractNode> extends AbstractReadO
 
 	@Override
 	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+		return getProperty(securityContext, obj, applyConverter, null);
+	}
+
+	@Override
+	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final org.neo4j.helpers.Predicate<GraphObject> predicate) {
 		return (T)((AbstractRelationship)obj).getSourceNode();
 	}
 

@@ -54,6 +54,11 @@ public class TraverserEntityProperty<T extends AbstractNode> extends AbstractRea
 
 	@Override
 	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+		return getProperty(securityContext, obj, applyConverter, null);
+	}
+
+	@Override
+	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final org.neo4j.helpers.Predicate<GraphObject> predicate) {
 		
 		TraversalDescription description = traverserInterface.getTraversalDescription(securityContext);
 		AbstractNode currentNode = (AbstractNode)obj;

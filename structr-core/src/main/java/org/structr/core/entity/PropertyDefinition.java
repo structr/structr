@@ -28,6 +28,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.lucene.search.BooleanClause.Occur;
+import org.neo4j.graphdb.Node;
+import org.neo4j.helpers.Predicate;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.ValidationHelper;
@@ -311,6 +313,16 @@ public class PropertyDefinition<T> extends AbstractNode implements PropertyKey<T
 		
 		if (delegate != null) {
 			return delegate.getProperty(securityContext, obj, applyConverter);
+		}
+		
+		return null;
+	}
+
+	@Override
+	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
+		
+		if (delegate != null) {
+			return delegate.getProperty(securityContext, obj, applyConverter, predicate);
 		}
 		
 		return null;

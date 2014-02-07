@@ -30,6 +30,7 @@ import org.apache.lucene.search.BooleanClause;
 import static org.apache.lucene.search.BooleanClause.Occur.MUST;
 import static org.apache.lucene.search.BooleanClause.Occur.MUST_NOT;
 import static org.apache.lucene.search.BooleanClause.Occur.SHOULD;
+import org.neo4j.graphdb.Node;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -138,10 +139,15 @@ public class CollectionNotionProperty<S extends NodeInterface, T> extends Proper
 
 	@Override
 	public List<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+		return getProperty(securityContext, obj, applyConverter, null);
+	}
+
+	@Override
+	public List<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final org.neo4j.helpers.Predicate<GraphObject> predicate) {
 		
 		try {
 			
-			return (notion.getCollectionAdapterForGetter(securityContext).adapt(collectionProperty.getProperty(securityContext, obj, applyConverter)));
+			return (notion.getCollectionAdapterForGetter(securityContext).adapt(collectionProperty.getProperty(securityContext, obj, applyConverter, predicate)));
 			
 		} catch (FrameworkException fex) {
 			

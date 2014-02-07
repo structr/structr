@@ -21,6 +21,7 @@ package org.structr.core.property;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.lucene.search.BooleanClause;
+import org.neo4j.helpers.Predicate;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -163,6 +164,7 @@ public interface PropertyKey<T> {
 	public Class getDeclaringClass();
 
 	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter);
+	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, Predicate<GraphObject> predicate);
 	public void setProperty(SecurityContext securityContext, GraphObject obj, T value) throws FrameworkException;
 
 	public void registrationCallback(Class<GraphObject> entityType);

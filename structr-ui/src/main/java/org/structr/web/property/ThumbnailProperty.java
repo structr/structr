@@ -56,6 +56,11 @@ public class ThumbnailProperty extends AbstractReadOnlyProperty<Image> {
 
 	@Override
 	public Image getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+		return getProperty(securityContext, obj, applyConverter, null);
+	}
+
+	@Override
+	public Image getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, org.neo4j.helpers.Predicate<GraphObject> predicate) {
 		
 		try {
 			return databaseConverter(securityContext, obj).revert(null);

@@ -25,6 +25,7 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import org.apache.lucene.search.SortField;
+import org.neo4j.graphdb.Node;
 
 /**
  *
@@ -53,6 +54,11 @@ public class IntegerSumProperty extends AbstractReadOnlyProperty<Integer> {
 
 	@Override
 	public Integer getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+		return getProperty(securityContext, obj, applyConverter, null);
+	}
+
+	@Override
+	public Integer getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final org.neo4j.helpers.Predicate<GraphObject> predicate) {
 		
 		int sum = 0;
 		

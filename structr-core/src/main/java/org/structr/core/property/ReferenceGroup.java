@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.lucene.search.BooleanClause;
+import org.neo4j.graphdb.Node;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -214,9 +215,14 @@ public class ReferenceGroup extends Property<PropertyMap> implements PropertyGro
 	public Object fixDatabaseProperty(Object value) {
 		return null;
 	}
-	
+
 	@Override
 	public PropertyMap getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+		return getProperty(securityContext, obj, applyConverter, null);
+	}
+
+	@Override
+	public PropertyMap getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final org.neo4j.helpers.Predicate<GraphObject> predicate) {
 		return getGroupedProperties(securityContext, obj);
 	}
 	

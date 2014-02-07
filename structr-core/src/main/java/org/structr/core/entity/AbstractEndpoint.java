@@ -26,9 +26,11 @@ import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.helpers.Predicate;
 import org.neo4j.helpers.collection.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -43,7 +45,7 @@ public abstract class AbstractEndpoint {
 	
 	public Relationship getSingle(final SecurityContext securityContext, final Node dbNode, final RelationshipType relationshipType, final Direction direction, final Class otherNodeType) {
 		
-		final Iterable<Relationship> rels     = getMultiple(securityContext, dbNode, relationshipType, direction, otherNodeType);
+		final Iterable<Relationship> rels     = getMultiple(securityContext, dbNode, relationshipType, direction, otherNodeType, null);
 		final Iterator<Relationship> iterator = rels.iterator();
 		
 		// FIXME: this returns only the first relationship that matches, i.e. there is NO check for multiple relationships
@@ -54,8 +56,8 @@ public abstract class AbstractEndpoint {
 		return null;
 	}
 
-	public Iterable<Relationship> getMultiple(final SecurityContext securityContext, final Node dbNode, final RelationshipType relationshipType, final Direction direction, final Class otherNodeType) {
-		return Iterables.filter(new OtherNodeTypeFilter(securityContext, dbNode, otherNodeType), dbNode.getRelationships(direction, relationshipType));
+	public Iterable<Relationship> getMultiple(final SecurityContext securityContext, final Node dbNode, final RelationshipType relationshipType, final Direction direction, final Class otherNodeType, final Predicate<GraphObject> predicate) {
+		return Iterables.filter(new OtherNodeTypeFilter(securityContext, dbNode, otherNodeType, predicate), dbNode.getRelationships(direction, relationshipType));
 	}
 	
 	// ----- protected methods -----

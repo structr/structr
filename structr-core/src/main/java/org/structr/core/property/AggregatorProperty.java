@@ -44,9 +44,14 @@ public class AggregatorProperty<T> extends AbstractReadOnlyCollectionProperty<T>
 		
 		this.aggregation = aggregator;
 	}
-	
+
 	@Override
-	public List<T> getProperty(SecurityContext securityContext, GraphObject currentObject, boolean applyConverter) {
+	public List<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+		return getProperty(securityContext, obj, applyConverter, null);
+	}
+
+	@Override
+	public List<T> getProperty(SecurityContext securityContext, GraphObject currentObject, boolean applyConverter, final org.neo4j.helpers.Predicate<GraphObject> predicate) {
 		
 		if(currentObject != null && currentObject instanceof AbstractNode) {
 			

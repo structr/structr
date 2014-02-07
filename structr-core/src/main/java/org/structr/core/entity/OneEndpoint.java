@@ -21,8 +21,10 @@ package org.structr.core.entity;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
+import org.neo4j.helpers.Predicate;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
@@ -40,10 +42,10 @@ public class OneEndpoint<T extends NodeInterface> extends AbstractEndpoint imple
 	}
 
 	@Override
-	public T get(final SecurityContext securityContext, final NodeInterface node) {
+	public T get(final SecurityContext securityContext, final NodeInterface node, final Predicate<GraphObject> predicate) {
 		
 		final NodeFactory<T> nodeFactory = new NodeFactory<>(securityContext);
-		final Relationship rel           = getRawSource(securityContext, node.getNode());
+		final Relationship rel           = getRawSource(securityContext, node.getNode(), predicate);
 		
 		if (rel != null) {
 			return nodeFactory.adapt(rel.getEndNode());
@@ -66,12 +68,12 @@ public class OneEndpoint<T extends NodeInterface> extends AbstractEndpoint imple
 	}
 
 	@Override
-	public Relationship getRawSource(final SecurityContext securityContext, final Node dbNode) {
+	public Relationship getRawSource(final SecurityContext securityContext, final Node dbNode, final Predicate<GraphObject> predicate) {
 		return getSingle(securityContext, dbNode, relation, Direction.OUTGOING, relation.getTargetType());
 	}
 
 	@Override
-	public boolean hasElements(SecurityContext securityContext, Node dbNode) {
-		return getRawSource(securityContext, dbNode) != null;
+	public boolean hasElements(SecurityContext securityContext, Node dbNode, final Predicate<GraphObject> predicate) {
+		return getRawSource(securityContext, dbNode, predicate) != null;
 	}
 }

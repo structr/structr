@@ -125,10 +125,15 @@ public class StartNode<S extends NodeInterface, T extends NodeInterface> extends
 
 	@Override
 	public S getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+		return getProperty(securityContext, obj, applyConverter, null);
+	}
+
+	@Override
+	public S getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final org.neo4j.helpers.Predicate<GraphObject> predicate) {
 		
 		final OneStartpoint<? extends S> startpoint = relation.getSource();
 		
-		return startpoint.get(securityContext, (NodeInterface)obj);
+		return startpoint.get(securityContext, (NodeInterface)obj, predicate);
 	}
 
 	@Override

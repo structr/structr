@@ -20,6 +20,7 @@ package org.structr.core.property;
 
 import java.util.LinkedList;
 import java.util.List;
+import org.neo4j.graphdb.Node;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
@@ -45,9 +46,14 @@ public class HyperRelationProperty<S extends AbstractNode, T extends AbstractNod
 		// make us known to the Collection context
 		StructrApp.getConfiguration().registerConvertedProperty(this);
 	}
-	
+
 	@Override
 	public List<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+		return getProperty(securityContext, obj, applyConverter, null);
+	}
+
+	@Override
+	public List<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final org.neo4j.helpers.Predicate<GraphObject> predicate) {
 
 		List<S> connectors = obj.getProperty(step1);
 		List<T> endNodes   = new LinkedList<>();

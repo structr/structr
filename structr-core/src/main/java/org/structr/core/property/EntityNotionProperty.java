@@ -19,7 +19,6 @@
 package org.structr.core.property;
 
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -28,6 +27,7 @@ import org.apache.lucene.search.BooleanClause.Occur;
 import static org.apache.lucene.search.BooleanClause.Occur.MUST;
 import static org.apache.lucene.search.BooleanClause.Occur.MUST_NOT;
 import static org.apache.lucene.search.BooleanClause.Occur.SHOULD;
+import org.neo4j.graphdb.Node;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -136,9 +136,14 @@ public class EntityNotionProperty<S extends NodeInterface, T> extends Property<T
 
 	@Override
 	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+		return getProperty(securityContext, obj, applyConverter, null);
+	}
+
+	@Override
+	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final org.neo4j.helpers.Predicate<GraphObject> predicate) {
 		
 		try {
-			return notion.getAdapterForGetter(securityContext).adapt(entityProperty.getProperty(securityContext, obj, applyConverter));
+			return notion.getAdapterForGetter(securityContext).adapt(entityProperty.getProperty(securityContext, obj, applyConverter, predicate));
 			
 		} catch (FrameworkException fex) {
 			

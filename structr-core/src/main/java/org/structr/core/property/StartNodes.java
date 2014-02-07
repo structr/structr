@@ -26,6 +26,7 @@ import java.util.logging.Logger;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
+import org.neo4j.helpers.Predicate;
 import org.neo4j.helpers.collection.Iterables;
 import org.structr.common.NotNullPredicate;
 import org.structr.common.SecurityContext;
@@ -121,10 +122,15 @@ public class StartNodes<S extends NodeInterface, T extends NodeInterface> extend
 
 	@Override
 	public List<S> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+		return getProperty(securityContext, obj, applyConverter, null);
+	}
+
+	@Override
+	public List<S> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
 		
 		ManyStartpoint<S> startpoint = relation.getSource();
 
-		return Iterables.toList(Iterables.filter(new NotNullPredicate(), startpoint.get(securityContext, (NodeInterface)obj)));
+		return Iterables.toList(Iterables.filter(new NotNullPredicate(), startpoint.get(securityContext, (NodeInterface)obj, predicate)));
 	}
 
 	@Override

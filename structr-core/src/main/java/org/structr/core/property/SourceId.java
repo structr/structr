@@ -18,6 +18,7 @@
  */
 package org.structr.core.property;
 
+import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -43,7 +44,12 @@ public class SourceId extends Property<String> {
 	}
 
 	@Override
-	public String getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter) {
+	public String getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+		return getProperty(securityContext, obj, applyConverter, null);
+	}
+
+	@Override
+	public String getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final org.neo4j.helpers.Predicate<GraphObject> predicate) {
 		
 		if (obj instanceof RelationshipInterface) {
 		

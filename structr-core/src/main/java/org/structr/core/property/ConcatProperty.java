@@ -18,6 +18,7 @@
  */
 package org.structr.core.property;
 
+import org.neo4j.graphdb.Node;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 
@@ -38,9 +39,14 @@ public class ConcatProperty extends AbstractReadOnlyProperty<String> {
 		this.propertyKeys = propertyKeys;
 		this.separator = separator;
 	}
-	
+
 	@Override
 	public String getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+		return getProperty(securityContext, obj, applyConverter, null);
+	}
+
+	@Override
+	public String getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final org.neo4j.helpers.Predicate<GraphObject> predicate) {
 		
 		StringBuilder combinedPropertyValue = new StringBuilder();
 		int len = propertyKeys.length;

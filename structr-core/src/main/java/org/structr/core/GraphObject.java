@@ -18,20 +18,21 @@
  */
 package org.structr.core;
 
-import org.structr.core.property.Property;
-import org.structr.core.property.ISO8601DateProperty;
-import org.structr.core.property.BooleanProperty;
 import java.util.Date;
 import org.neo4j.graphdb.PropertyContainer;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.property.PropertyMap;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.property.BooleanProperty;
+import org.structr.core.property.ISO8601DateProperty;
+import org.structr.core.property.Property;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.core.property.UuidProperty;
+
 
 /**
  * A common base class for {@link AbstractNode} and {@link AbstractRelationship}.
@@ -111,7 +112,17 @@ public interface GraphObject {
 	 * @param propertyKey the property key to retrieve the value for
 	 * @return the converted, validated, transformed property value
 	 */
-	public <T>  T getProperty(final PropertyKey<T> propertyKey);
+	public <T> T getProperty(final PropertyKey<T> propertyKey);
+	
+	/**
+	 * Returns the (converted, validated, transformed, etc.) property for the given
+	 * property key with the given filter applied to it.
+	 * 
+	 * @param propertyKey the property key to retrieve the value for
+	 * @param filter the filter to apply to all properties
+	 * @return the converted, validated, transformed property value
+	 */
+	public <T> T getProperty(final PropertyKey<T> propertyKey, final org.neo4j.helpers.Predicate<GraphObject> filter);
 	
 	/**
 	 * Returns the property value for the given key as a Comparable

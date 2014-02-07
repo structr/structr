@@ -18,6 +18,7 @@
  */
 package org.structr.core.property;
 
+import org.neo4j.graphdb.Node;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.RelationshipInterface;
@@ -26,7 +27,7 @@ import org.structr.core.graph.RelationshipInterface;
  *
  * @author Christian Morgner
  */
-public class RelationshipTypeProperty extends AbstractReadOnlyProperty {
+public class RelationshipTypeProperty extends AbstractReadOnlyProperty<String> {
 
 	public RelationshipTypeProperty(final String name) {
 		super(name);
@@ -38,7 +39,12 @@ public class RelationshipTypeProperty extends AbstractReadOnlyProperty {
 	}
 
 	@Override
-	public Object getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+	public String getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+		return getProperty(securityContext, obj, applyConverter, null);
+	}
+
+	@Override
+	public String getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final org.neo4j.helpers.Predicate<GraphObject> predicate) {
 		
 		if (obj instanceof RelationshipInterface) {
 			

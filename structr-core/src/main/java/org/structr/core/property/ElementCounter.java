@@ -22,6 +22,7 @@ import java.util.Collection;
 import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.SortField;
+import org.neo4j.graphdb.Node;
 import org.neo4j.index.lucene.ValueContext;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -45,9 +46,14 @@ public class ElementCounter extends AbstractReadOnlyProperty<Integer> {
 		
 		this.collectionProperty = collectionProperty;
 	}
-	
+
 	@Override
 	public Integer getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+		return getProperty(securityContext, obj, applyConverter, null);
+	}
+
+	@Override
+	public Integer getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final org.neo4j.helpers.Predicate<GraphObject> predicate) {
 		
 		int count = 0;
 		

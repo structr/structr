@@ -320,17 +320,22 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 	@Override
 	public <T> T getProperty(final PropertyKey<T> key) {
-		return getProperty(key, true);
+		return getProperty(key, true, null);
 	}
 
-	private <T> T getProperty(final PropertyKey<T> key, boolean applyConverter) {
+	@Override
+	public <T> T getProperty(final PropertyKey<T> key, final org.neo4j.helpers.Predicate<GraphObject> predicate) {
+		return getProperty(key, true, predicate);
+	}
+
+	private <T> T getProperty(final PropertyKey<T> key, boolean applyConverter, final org.neo4j.helpers.Predicate<GraphObject> predicate) {
 
 		// early null check, this should not happen...
 		if (key == null || key.dbName() == null) {
 			return null;
 		}
 
-		return key.getProperty(securityContext, this, applyConverter);
+		return key.getProperty(securityContext, this, applyConverter, predicate);
 	}
 
 	@Override
@@ -338,7 +343,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 		if (key != null) {
 
-			final T propertyValue = getProperty(key, false);	// get "raw" property without converter
+			final T propertyValue = getProperty(key, false, null);	// get "raw" property without converter
 
 			// check property converter
 			PropertyConverter converter = key.databaseConverter(securityContext, this);
@@ -459,7 +464,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	@Override
 	public Object getPropertyForIndexing(final PropertyKey key) {
 		
-		Object value = getProperty(key, false);
+		Object value = getProperty(key, false, null);
 		if (value != null) {
 			return value;
 		}

@@ -429,7 +429,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	@Override
 	public Object getPropertyForIndexing(final PropertyKey key) {
 		
-		Object value = getProperty(key, false);
+		Object value = getProperty(key, false, null);
 		if (value != null) {
 			return value;
 		}
@@ -446,17 +446,22 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	 */
 	@Override
 	public <T> T getProperty(final PropertyKey<T> key) {
-		return getProperty(key, true);
+		return getProperty(key, true, null);
+	}
+
+	@Override
+	public <T> T getProperty(final PropertyKey<T> key, final org.neo4j.helpers.Predicate<GraphObject> predicate) {
+		return getProperty(key, true, predicate);
 	}
 	
-	private <T> T getProperty(final PropertyKey<T> key, boolean applyConverter) {
+	private <T> T getProperty(final PropertyKey<T> key, boolean applyConverter, final org.neo4j.helpers.Predicate<GraphObject> predicate) {
 
 		// early null check, this should not happen...
 		if (key == null || key.dbName() == null) {
 			return null;
 		}
 		
-		return key.getProperty(securityContext, this, applyConverter);
+		return key.getProperty(securityContext, this, applyConverter, predicate);
 	}
 
 	public String getPropertyMD5(final PropertyKey key) {
@@ -673,7 +678,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		
 		final RelationshipFactory<R> factory = new RelationshipFactory<>(securityContext);
 		final R template                     = getRelationshipForType(type);
-		final Relationship relationship      = template.getSource().getRawSource(securityContext, dbNode);
+		final Relationship relationship      = template.getSource().getRawSource(securityContext, dbNode, null);
 		
 		if (relationship != null) {
 			return factory.adapt(relationship);
@@ -688,7 +693,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		final RelationshipFactory<R> factory = new RelationshipFactory<>(securityContext);
 		final R template                     = getRelationshipForType(type);
 		
-		return new IterableAdapter<>(template.getSource().getRawSource(securityContext, dbNode), factory);
+		return new IterableAdapter<>(template.getSource().getRawSource(securityContext, dbNode, null), factory);
 	}
 	
 	@Override
@@ -696,7 +701,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		
 		final RelationshipFactory<R> factory = new RelationshipFactory<>(securityContext);
 		final R template                     = getRelationshipForType(type);
-		final Relationship relationship      = template.getTarget().getRawSource(securityContext, dbNode);
+		final Relationship relationship      = template.getTarget().getRawSource(securityContext, dbNode, null);
 		
 		if (relationship != null) {
 			return factory.adapt(relationship);
@@ -711,7 +716,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		final RelationshipFactory<R> factory = new RelationshipFactory<>(securityContext);
 		final R template                     = getRelationshipForType(type);
 		
-		return new IterableAdapter<>(template.getTarget().getRawSource(securityContext, dbNode), factory);
+		return new IterableAdapter<>(template.getTarget().getRawSource(securityContext, dbNode, null), factory);
 	}
 	
 	@Override
@@ -798,11 +803,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	}
 
 	public <A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> boolean hasIncomingRelationships(final Class<R> type) {
-		return getRelationshipForType(type).getSource().hasElements(securityContext, dbNode);
+		return getRelationshipForType(type).getSource().hasElements(securityContext, dbNode, null);
 	}
 
 	public <A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> boolean hasOutgoingRelationships(final Class<R> type) {
-		return getRelationshipForType(type).getTarget().hasElements(securityContext, dbNode);
+		return getRelationshipForType(type).getTarget().hasElements(securityContext, dbNode, null);
 	}
 
 	// ----- interface AccessControllable -----

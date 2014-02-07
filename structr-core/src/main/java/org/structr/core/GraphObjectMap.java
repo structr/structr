@@ -54,6 +54,11 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 	}
 
 	@Override
+	public <T> T getProperty(PropertyKey<T> propertyKey, org.neo4j.helpers.Predicate<GraphObject> filter) {
+		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+	}
+
+	@Override
 	public void setProperty(PropertyKey key, Object value) throws FrameworkException {
 		properties.put(key, value);
 	}

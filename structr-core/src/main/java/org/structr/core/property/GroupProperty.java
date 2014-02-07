@@ -28,6 +28,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.lucene.search.BooleanClause.Occur;
+import org.neo4j.graphdb.Node;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.ReadOnlyPropertyToken;
@@ -301,9 +302,14 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 	public Object fixDatabaseProperty(Object value) {
 		return null;
 	}
-	
+
 	@Override
 	public PropertyMap getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+		return getProperty(securityContext, obj, applyConverter, null);
+	}
+
+	@Override
+	public PropertyMap getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final org.neo4j.helpers.Predicate<GraphObject> predicate) {
 		return getGroupedProperties(securityContext, obj);
 	}
 	

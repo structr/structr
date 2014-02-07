@@ -32,6 +32,7 @@ import java.util.List;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
 import org.structr.common.AccessControllable;
+import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
 
@@ -170,6 +171,11 @@ public class SuperUser implements Principal, AccessControllable {
 
 		return null;
 
+	}
+
+	@Override
+	public <T> T getProperty(PropertyKey<T> key, org.neo4j.helpers.Predicate<GraphObject> predicate) {
+		return null;
 	}
 
 	@Override

@@ -22,8 +22,6 @@ import org.structr.core.Result;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.search.DistanceSearchAttribute;
-import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.rest.RestMethodResult;
@@ -49,6 +47,8 @@ import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.graph.search.DistanceSearchAttribute;
+import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.graph.search.SearchRelationshipCommand;
 import org.structr.core.notion.Notion;
@@ -126,7 +126,7 @@ public class TypeResource extends SortableResource {
 	public Result doGet(final PropertyKey sortKey, final boolean sortDescending, final int pageSize, final int page, final String offsetId) throws FrameworkException {
 
 		boolean inexactSearch                  = parseInteger(request.getParameter(JsonRestServlet.REQUEST_PARAMETER_LOOSE_SEARCH)) == 1;
-		List<SearchAttribute> searchAttributes = new LinkedList<>();
+		List<SearchAttribute> searchAttributes = null;
 		boolean includeDeletedAndHidden        = false;
 		boolean publicOnly                     = false;
 		PropertyKey actualSortKey              = sortKey;
@@ -137,21 +137,8 @@ public class TypeResource extends SortableResource {
 			if (entityClass == null) {
 				throw new NotFoundException();
 			}
-
-			final List<SearchAttribute> validAttributes = extractSearchableAttributes(securityContext, entityClass, request);
-			final DistanceSearchAttribute distanceSearch = getDistanceSearch(request, keys(validAttributes));
 			
-			// distance search?
-			if (distanceSearch != null) {
-				searchAttributes.add(distanceSearch);
-			}
-
-			// add type to return
-			
-			searchAttributes.add(Search.andTypeAndSubtypes(entityClass, !inexactSearch));
-			
-			// searchable attributes from SchemaHelper
-			searchAttributes.addAll(validAttributes);
+			searchAttributes = collectSearchAttributes(inexactSearch);
 			
 			// default sort key & order
 			if (actualSortKey == null) {
@@ -377,6 +364,28 @@ public class TypeResource extends SortableResource {
 	@Override
 	public boolean isCollectionResource() {
 		return true;
+	}
+	
+	public List<SearchAttribute> collectSearchAttributes(final boolean inexactSearch) throws FrameworkException {
+
+		final List<SearchAttribute> searchAttributes = new LinkedList<>();
+		final List<SearchAttribute> validAttributes  = extractSearchableAttributes(securityContext, entityClass, request);
+		final DistanceSearchAttribute distanceSearch = getDistanceSearch(request, keys(validAttributes));
+
+		// distance search?
+		if (distanceSearch != null) {
+			searchAttributes.add(distanceSearch);
+		}
+
+		// add type to return
+		if (entityClass != null) {
+			searchAttributes.add(Search.andTypeAndSubtypes(entityClass, !inexactSearch));
+		}
+
+		// searchable attributes from SchemaHelper
+		searchAttributes.addAll(validAttributes);
+		
+		return searchAttributes;
 	}
 
 	// ----- private methods -----

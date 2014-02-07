@@ -140,7 +140,7 @@ public class PropertySearchAttribute<T> extends SearchAttribute<T> {
 	}
 
 	@Override
-	public boolean includeInResult(GraphObject entity) {
+	public boolean includeInResult(final GraphObject entity) {
 		
 		T nodeValue          = entity.getProperty(getKey());
 		Occur occur          = getOccur();

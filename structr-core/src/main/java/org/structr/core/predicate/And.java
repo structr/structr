@@ -18,6 +18,9 @@
  */
 package org.structr.core.predicate;
 
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
 import org.structr.common.SecurityContext;
 import org.structr.core.Predicate;
 
@@ -28,16 +31,25 @@ import org.structr.core.Predicate;
  */
 public class And<T> implements Predicate<T> {
 
-	Predicate<T> p1 = null;
-	Predicate<T> p2 = null;
+	final List<Predicate<T>> predicates = new LinkedList<>();
 
-	public And(Predicate<T> p1, Predicate<T> p2) {
-		this.p1 = p1;
-		this.p2 = p2;
+	public And(Predicate<T>... predicateArray) {
+		this(Arrays.asList(predicateArray));
+	}
+
+	public And(List<Predicate<T>> predicateList) {
+		predicates.addAll(predicateList);
 	}
 
 	@Override
 	public boolean evaluate(SecurityContext securityContext, T... obj) {
-		return p1.evaluate(securityContext, obj) && p2.evaluate(securityContext, obj);
+		
+		boolean result = true;
+		
+		for (Predicate<T> predicate : predicates) {
+			result &= predicate.evaluate(securityContext, obj);
+		}
+		
+		return result;
 	}
 }

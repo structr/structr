@@ -20,6 +20,7 @@ package org.structr.core.property;
 
 import java.util.List;
 import org.apache.lucene.search.SortField;
+import org.neo4j.graphdb.Node;
 import org.neo4j.helpers.Predicate;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
@@ -60,6 +61,11 @@ public class CollectionSumProperty<T extends NodeInterface, S extends Number> ex
 
 	@Override
 	public S getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+		return getProperty(securityContext, obj, applyConverter, null);
+	}
+
+	@Override
+	public S getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> pred) {
 		
 		Integer intSum    = 0;
 		Long    longSum   = 0L;

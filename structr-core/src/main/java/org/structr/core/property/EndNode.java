@@ -125,10 +125,15 @@ public class EndNode<S extends NodeInterface, T extends NodeInterface> extends P
 
 	@Override
 	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+		return getProperty(securityContext, obj, applyConverter, null);
+	}
+
+	@Override
+	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final org.neo4j.helpers.Predicate<GraphObject> predicate) {
 		
 		OneEndpoint<T> endpoint  = relation.getTarget();
 		
-		return endpoint.get(securityContext, (NodeInterface)obj);
+		return endpoint.get(securityContext, (NodeInterface)obj, predicate);
 	}
 
 	@Override
