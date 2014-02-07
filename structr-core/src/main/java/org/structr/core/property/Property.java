@@ -389,7 +389,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 
 					} catch (Throwable t) {
 
-						Logger.getLogger(Property.class.getName()).log(Level.INFO, "Unable to index property {0} of type {1} on {2}", new Object[] { value, this.getClass().getSimpleName(), entity } );
+						logger.log(Level.INFO, "Unable to index property with dbName {0} and value {1} of type {2} on {3}: {4}", new Object[] { dbName, value, this.getClass().getSimpleName(), entity, t } );
 					}
 				}
 			}
@@ -427,7 +427,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 
 					} catch (Throwable t) {
 
-						Logger.getLogger(Property.class.getName()).log(Level.INFO, "Unable to index property {0} of type {1} on {2}", new Object[] { value, this.getClass().getSimpleName(), entity } );
+						logger.log(Level.INFO, "Unable to index property with dbName {0} and value {1} of type {2} on {3}: {4}", new Object[] { dbName, value, this.getClass().getSimpleName(), entity, t } );
 					}
 				}
 			}

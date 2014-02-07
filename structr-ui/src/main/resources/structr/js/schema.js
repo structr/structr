@@ -406,16 +406,11 @@ var _Schema = {
                         ]
                     });
 
-//                    console.log('relationship was loaded:', res);
-//                    console.log('source node: ', nodes[res.sourceId]);
-//                    console.log('target node: ', nodes[res.targetId]);
-
                     // Add source property
                     var source = nodes[res.sourceId];
 
-                    _Schema.getPropertyName(source.name, res.relationshipType, false, function(key) {
-                        var node = nodes[res.targetId];
-                        _Schema.appendRelatedProperty($('#id_' + node.id + ' .schema-props'), node.id, res, res.sourceJsonName ? res.sourceJsonName : key, false);
+                    _Schema.getPropertyName(source.name, res.relationshipType, true, function(key) {
+                        _Schema.appendRelatedProperty($('#id_' + source.id + ' .schema-props'), source.id, res, res.targetJsonName ? res.targetJsonName : key, true);
                         instance.repaintEverything();
                     });
 
@@ -423,26 +418,10 @@ var _Schema = {
                     // Add target property
                     var target = nodes[res.targetId];
 
-                    _Schema.getPropertyName(target.name, res.relationshipType, true, function(key) {
-                        console.log('getPropertyName', key)
-                        var node = nodes[res.sourceId];
-                        _Schema.appendRelatedProperty($('#id_' + node.id + ' .schema-props'), node.id, res, res.targetJsonName ? res.targetJsonName : key, true);
+                    _Schema.getPropertyName(target.name, res.relationshipType, false, function(key) {
+                        _Schema.appendRelatedProperty($('#id_' + target.id + ' .schema-props'), target.id, res, res.sourceJsonName ? res.sourceJsonName : key, false);
                         instance.repaintEverything();
                     });
-
-
-//                    // Add source property
-//                    var source = nodes[res.sourceId];
-//                    var key = res.sourceJsonName ? res.sourceJsonName : (res.sourceMultiplicity !== '1' ? pluralize(source.name.toLowerCase()) : source.name.toLowerCase());
-//                    var node = nodes[res.targetId];
-//                    _Schema.appendRelatedProperty($('#id_' + node.id + ' .schema-props'), node.id, res, key);
-//
-//                    // Add target property
-//                    var target = nodes[res.targetId];
-//                    var key = res.targetJsonName ? res.targetJsonName : (res.targetMultiplicity !== '1' ? pluralize(target.name.toLowerCase()) : target.name.toLowerCase());
-//                    var node = nodes[res.sourceId];
-//                    _Schema.appendRelatedProperty($('#id_' + node.id + ' .schema-props'), node.id, res, key);
-
 
                 });
 
@@ -525,7 +504,6 @@ var _Schema = {
 
     },
     appendRelatedProperty: function(el, id, rel, key, out) {
-        console.log('appendRelatedProperty', id, rel, key, out)
         var relType = rel.relationshipType;
         relType = relType === undefinedRelType ? '' : relType;
 
@@ -536,9 +514,10 @@ var _Schema = {
                 + '' + '</td><td></td></div>');
 
         $('#id_' + id + ' .' + key + ' .property-name').on('blur', function() {
-            console.log('modified related property name', id, rel, key, $(this).val());
 
             var newName = $(this).val();
+            
+            if (newName === '') newName = undefined;
 
             if (id === rel.sourceId) {
                 _Schema.setRelationshipProperty(rel.id, 'targetJsonName', newName);
@@ -689,7 +668,7 @@ var _Schema = {
             type: 'PUT',
             dataType: 'json',
             contentType: 'application/json; charset=utf-8',
-            data: '{"' + key + '":"' + value + '"}',
+            data: '{"' + key + '":' + (value ? '"' + value + '"' : 'null') + '}',
             statusCode: {
                 200: function(data, textStatus, jqXHR) {
                     //console.log('rel property set', data, textStatus, jqXHR);
@@ -828,7 +807,6 @@ var _Schema = {
 
     },
     getPropertyName: function(type, relationshipType, out, callback) {
-        console.log('getPropertyName for ', type, relationshipType, out ? '->' : '<-')
         $.ajax({
             url: rootUrl + '_schema/' + type,
             type: 'GET',
@@ -839,14 +817,9 @@ var _Schema = {
                     Object.keys(properties).forEach(function(key) {
                         var obj = properties[key];
                         var simpleClassName = obj.className.split('.')[obj.className.split('.').length - 1];
-                        var relatedType = obj.relatedType.split('.')[obj.relatedType.split('.').length - 1];
-
-                        if (obj.relationshipType) {
-
-                            console.log(simpleClassName, obj.relationshipType);
+                        if (obj.relatedType && obj.relationshipType) {
                             if (obj.relationshipType === relationshipType && (simpleClassName.startsWith('EndNode') && out)
                                     || (simpleClassName.startsWith('StartNode') && !out)) {
-                                console.log('found', key, 'for', type, relationshipType, out ? '->' : '<-')
                                 callback(key);
                             }
 
