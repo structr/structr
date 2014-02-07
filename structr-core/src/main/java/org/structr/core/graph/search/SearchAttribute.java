@@ -18,8 +18,8 @@
  */
 package org.structr.core.graph.search;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.Query;
 import org.structr.core.GraphObject;
@@ -36,8 +36,8 @@ public abstract class SearchAttribute<T> extends NodeAttribute<T> {
 
 	public static final String WILDCARD = "*";
 
-	private List<GraphObject> result = new LinkedList<>();
-	private Occur occur              = null;
+	private Set<GraphObject> result = new LinkedHashSet<>();
+	private Occur occur             = null;
 
 	public abstract Query getQuery();
 	public abstract boolean isExactMatch();
@@ -68,11 +68,11 @@ public abstract class SearchAttribute<T> extends NodeAttribute<T> {
 		return occur;
 	}
 
-	public void setResult(final List<GraphObject> result) {
+	public void setResult(final Set<GraphObject> result) {
 		this.result = result;
 	}
 
-	public List<GraphObject> getResult() {
+	public Set<GraphObject> getResult() {
 		return result;
 	}
 
@@ -80,7 +80,7 @@ public abstract class SearchAttribute<T> extends NodeAttribute<T> {
 		result.add(graphObject);
 	}
 
-	public void addToResult(final List<GraphObject> list) {
+	public void addToResult(final Set<GraphObject> list) {
 		result.addAll(list);
 	}
 }

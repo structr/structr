@@ -316,7 +316,7 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 
 			fromIndex = Math.max(0, size + (page * pageSize));
 
-			final List<T> nodes = new LinkedList<T>();
+			final List<T> nodes = new LinkedList<>();
 			int toIndex         = Math.min(size, fromIndex + pageSize);
 
 			for (S n : rawNodes.subList(fromIndex, toIndex)) {
@@ -344,11 +344,11 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 
 	protected Result page(final IndexHits<S> input, final int overallResultCount, final int offset, final int pageSize) throws FrameworkException {
 
-		final List<T> nodes = new LinkedList<T>();
-		int position		= 0;
-		int count		= 0;
-		int overallCount	= 0;
-		boolean pageFull	= false;
+		final List<T> nodes = new LinkedList<>();
+		int position	    = 0;
+		int count	    = 0;
+		int overallCount    = 0;
+		boolean pageFull    = false;
 		
 		SecurityContext securityContext = factoryProfile.getSecurityContext();
 		

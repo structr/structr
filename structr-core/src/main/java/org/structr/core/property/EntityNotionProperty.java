@@ -32,7 +32,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
-import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
@@ -40,9 +39,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeService;
 import org.structr.core.graph.search.EmptySearchAttribute;
-import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.graph.search.SourceSearchAttribute;
 import org.structr.core.notion.Notion;
 
@@ -232,7 +229,7 @@ public class EntityNotionProperty<S extends NodeInterface, T> extends Property<T
 					}
 				}
 
-				attr.setResult(new LinkedList<>(intersectionResult));
+				attr.setResult(intersectionResult);
 				
 			} else {
 				

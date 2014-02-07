@@ -83,7 +83,6 @@ public class CreateGraphObjectsTest extends StructrTest {
 				app.create(TestOne.class);
 				fail("Should have raised an org.neo4j.graphdb.NotInTransactionException");
 			} catch (org.neo4j.graphdb.NotInTransactionException e) {
-				e.printStackTrace();
 			}
 
 			try {
@@ -110,8 +109,6 @@ public class CreateGraphObjectsTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			ex.printStackTrace();
-			
 			logger.log(Level.SEVERE, ex.toString());
 			fail("Unexpected exception");
 

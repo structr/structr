@@ -21,9 +21,11 @@ package org.structr.rest.resource;
 import org.structr.common.PagingHelper;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -95,17 +97,21 @@ public class StaticRelationshipResource extends SortableResource {
 				final Class relationshipType    = typeResource.entityClass;
 				final Relation relation         = AbstractNode.getRelationshipForType(relationshipType);
 				final Class destNodeType        = relation.getOtherType(typedIdResource.getEntityClass());
-				final Result partialResult      = typeResource.doGet(sortKey, sortDescending, pageSize, page, offsetId);
+				final Set partialResult         = new LinkedHashSet<>(typeResource.doGet(sortKey, sortDescending, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE, null).getResults());
 				
 				// filter list according to end node type
-				final List<GraphObject> list = Iterables.toList(Iterables.filter(new OtherNodeTypeRelationFilter(securityContext, sourceNode, destNodeType), source.getRelationships(relationshipType)));
+				final Set<GraphObject> set = Iterables.toSet(Iterables.filter(new OtherNodeTypeRelationFilter(securityContext, sourceNode, destNodeType), source.getRelationships(relationshipType)));
 
 				// intersect partial result with result list
-				list.retainAll(partialResult.getResults());
+				set.retainAll(partialResult);
 				
-				applyDefaultSorting(list, sortKey, sortDescending);
+				final List<GraphObject> finalResult = new LinkedList<>(set);
 				
-				return new Result(PagingHelper.subList(list, pageSize, page, offsetId), list.size(), isCollectionResource(), isPrimitiveArray());
+				// sort after merge
+				applyDefaultSorting(finalResult, sortKey, sortDescending);
+
+				// return result
+				return new Result(PagingHelper.subList(finalResult, pageSize, page, offsetId), finalResult.size(), isCollectionResource(), isPrimitiveArray());
 			}
 			
 			// second try: property key
@@ -114,32 +120,28 @@ public class StaticRelationshipResource extends SortableResource {
 				final Object value = sourceEntity.getProperty(propertyKey);
 				if (value != null) {
 
-					if (value instanceof List) {
+					if (value instanceof Iterable) {
 
-						final List<GraphObject> list = (List<GraphObject>)value;
-						applyDefaultSorting(list, sortKey, sortDescending);
+						final Set<GraphObject> propertyResults = new LinkedHashSet<>();
 
-						return new Result(PagingHelper.subList(list, pageSize, page, offsetId), list.size(), isCollectionResource(), isPrimitiveArray());
+						// fill set with data
+						for (final GraphObject obj : ((Iterable<GraphObject>)value)) {
+							propertyResults.add(obj);
+						}
+						
+						if (typeResource.getEntityClass() != null) {
+						
+							final Set<GraphObject> typeResourceResults = new LinkedHashSet<>(typeResource.doGet(null, sortDescending, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE, null).getResults());
 
-					} else if (value instanceof Iterable) {
-
-						// check type of value (must be an Iterable of GraphObjects in order to proceed here)
-						final List<GraphObject> propertyListResult = new LinkedList<>();
-						final Iterable sourceIterable              = (Iterable) value;
-
-						for (final Object o : sourceIterable) {
-
-							if (o instanceof GraphObject) {
-
-								propertyListResult.add((GraphObject) o);
-							}
+							// merge list with results from type resource (which includes request parameter based filtering)
+							propertyResults.retainAll(typeResourceResults);
 						}
 
-						applyDefaultSorting(propertyListResult, sortKey, sortDescending);
+						final List<GraphObject> finalResult = new LinkedList<>(propertyResults);
+						applyDefaultSorting(finalResult, sortKey, sortDescending);
 
-						//return new Result(propertyListResult, null, isCollectionResource(), isPrimitiveArray());
-						return new Result(PagingHelper.subList(propertyListResult, pageSize, page, offsetId), propertyListResult.size(), isCollectionResource(), isPrimitiveArray());
-
+						// return result
+						return new Result(PagingHelper.subList(finalResult, pageSize, page, offsetId), finalResult.size(), isCollectionResource(), isPrimitiveArray());
 					}
 				}
 
