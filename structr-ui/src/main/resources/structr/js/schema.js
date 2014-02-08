@@ -17,13 +17,11 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 var canvas, instance, res, nodes = [], rels = [], localStorageSuffix = '_schema_' + port, undefinedRelType = 'UNDEFINED_RELATIONSHIP_TYPE', initialRelType = undefinedRelType;
+var radius = 20, stub = 30, offset = 0;
 
 $(document).ready(function() {
     Structr.registerModule('schema', _Schema);
     Structr.classes.push('schema');
-
-
-
 });
 
 var _Schema = {
@@ -337,18 +335,33 @@ var _Schema = {
             contentType: 'application/json; charset=utf-8',
             success: function(data) {
 
+                var sId, tId;
                 $.each(data.result, function(i, res) {
+
+                    if (sId === res.sourceId && tId === res.targetId) {
+                        radius +=10;
+                        stub += 30;
+                        offset += .05;
+                    } else {
+                        radius = 20;
+                        stub = 30;
+                        offset = 0;
+                    }
+
+                    sId = res.sourceId;
+                    tId = res.targetId;
+
                     rels[res.id] = instance.connect({
-                        source: nodes[res.sourceId + '_bottom'],
-                        target: nodes[res.targetId + '_top'],
+                        source: nodes[sId + '_bottom'],
+                        target: nodes[tId + '_top'],
                         deleteEndpointsOnDetach: false,
-                        connector: ["Flowchart", {cornerRadius: 40, gap: 6}],
+                        connector: ["Flowchart", {cornerRadius: radius, stub: stub, gap: 6}],
                         parameters: {'id': res.id},
                         overlays: [
                             ["Label", {
                                     cssClass: "label multiplicity",
                                     label: res.sourceMultiplicity ? res.sourceMultiplicity : '*',
-                                    location: .2,
+                                    location: .2 + offset,
                                     id: "sourceMultiplicity",
                                     events: {
                                         "click": function(label, evt) {
@@ -367,7 +380,7 @@ var _Schema = {
                             ["Label", {
                                     cssClass: "label rel-type",
                                     label: (res.relationshipType === initialRelType ? '&nbsp;' : res.relationshipType),
-                                    location: .5,
+                                    location: .5 + offset,
                                     id: "label",
                                     events: {
                                         "click": function(label, evt) {
@@ -386,7 +399,7 @@ var _Schema = {
                             ["Label", {
                                     cssClass: "label multiplicity",
                                     label: res.targetMultiplicity ? res.targetMultiplicity : '*',
-                                    location: .8,
+                                    location: .8-offset,
                                     id: "targetMultiplicity",
                                     events: {
                                         "click": function(label, evt) {
@@ -511,13 +524,14 @@ var _Schema = {
                 + (out ? '-' : '&lt;-') + '[:' + relType + ']' + (out ? '-&gt;' : '-') + '</td><td><input size="15" type="text" class="property-format" value="'
                 + '' + '"></td><td><input class="not-null" type="checkbox"'
                 + '' + '></td><td><input class="unique" type="checkbox"'
-                + '' + '</td><td></td></div>');
+                + '' + '</td><td></td></tr>');
 
         $('#id_' + id + ' .' + key + ' .property-name').on('blur', function() {
 
             var newName = $(this).val();
-            
-            if (newName === '') newName = undefined;
+
+            if (newName === '')
+                newName = undefined;
 
             if (id === rel.sourceId) {
                 _Schema.setRelationshipProperty(rel.id, 'targetJsonName', newName);
@@ -818,8 +832,8 @@ var _Schema = {
                         var obj = properties[key];
                         var simpleClassName = obj.className.split('.')[obj.className.split('.').length - 1];
                         if (obj.relatedType && obj.relationshipType) {
-                            if (obj.relationshipType === relationshipType && (simpleClassName.startsWith('EndNode') && out)
-                                    || (simpleClassName.startsWith('StartNode') && !out)) {
+                            if (obj.relationshipType === relationshipType && ((simpleClassName.startsWith('EndNode') && out)
+                                    || (simpleClassName.startsWith('StartNode') && !out))) {
                                 callback(key);
                             }
 
