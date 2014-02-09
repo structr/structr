@@ -71,16 +71,6 @@
     </build>
 
     <distributionManagement>
-        <!--        <repository>
-            <id>releases.maven.structr.org</id>
-            <name>maven.structr.org-releases</name>
-            <url>http://maven.structr.org/artifactory/release</url>
-        </repository>
-        <snapshotRepository>
-            <id>snapshots.maven.structr.org</id>
-            <name>maven.structr.org-snapshots</name>
-            <url>http://maven.structr.org/artifactory/snapshot</url>
-        </snapshotRepository>-->
         <repository>
             <id>sonatype-nexus-staging</id>
             <name>Maven Central Staging</name>

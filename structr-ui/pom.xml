@@ -49,14 +49,6 @@
             <id>jodd</id>
             <url>http://repo1.maven.org/maven2/org/jodd/</url>
         </repository>
-        <!--        <repository>
-            <id>alfresco-releases</id>
-            <url>https://maven.alfresco.com/nexus/content/repositories/releases</url>
-        </repository>
-        <repository>
-            <id>alfresco-snapshots</id>
-            <url>https://maven.alfresco.com/nexus/content/repositories/snapshots</url>
-        </repository>-->
         <repository>
             <id>snapshots.maven.structr.org</id>
             <url>http://maven.structr.org/artifactory/snapshot</url>
@@ -80,12 +72,6 @@
             <scope>test</scope>
             <optional>false</optional>
         </dependency>
-        <!--        <dependency>
-                <artifactId>urlrewritefilter</artifactId>
-                <groupId>org.tuckey</groupId>
-                <type>jar</type>
-                <version>4.0.4</version>
-        </dependency>-->
         <dependency>
             <groupId>diff_match_patch</groupId>
             <artifactId>diff_match_patch</artifactId>
@@ -111,11 +97,6 @@
             <artifactId>jersey-client</artifactId>
             <version>1.9-ea04</version>
         </dependency>
-        <!--        <dependency>
-            <groupId>org.neo4j</groupId>
-            <artifactId>neo4j-rest-graphdb</artifactId>
-            <version>1.9.5</version>
-        </dependency>-->
         <dependency>
             <groupId>com.flagstone</groupId>
             <artifactId>transform</artifactId>
@@ -131,11 +112,6 @@
             <artifactId>jodd-lagarto</artifactId>
             <version>3.4.5</version>
         </dependency>
-        <!--        <dependency>
-            <groupId>org.jodd</groupId>
-            <artifactId>jodd-http</artifactId>
-            <version>3.4.5</version>
-        </dependency>-->
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-compress</artifactId>
@@ -450,7 +426,7 @@
             <name>GNU General Public License, Version 3</name>
             <url>http://www.gnu.org/licenses/agpl-3.0-standalone.html</url>
             <comments>
-                Copyright (C) 2010-2014 Axel Morgner, structr &lt;structr@structr.org&gt;
+                Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt), structr &lt;structr@structr.org&gt;
 
                 This file is part of structr &lt;http://structr.org&gt;.
 
@@ -476,16 +452,6 @@
     </scm>
     
     <distributionManagement>
-        <!--        <repository>
-            <id>releases.maven.structr.org</id>
-            <name>maven.structr.org-releases</name>
-            <url>http://maven.structr.org/artifactory/release</url>
-        </repository>
-        <snapshotRepository>
-            <id>snapshots.maven.structr.org</id>
-            <name>maven.structr.org-snapshots</name>
-            <url>http://maven.structr.org/artifactory/snapshot</url>
-        </snapshotRepository>-->
         <repository>
             <id>sonatype-nexus-staging</id>
             <name>Maven Central Staging</name>
