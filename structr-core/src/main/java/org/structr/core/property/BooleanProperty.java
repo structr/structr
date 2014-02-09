@@ -1,20 +1,20 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Structr, c/o Morgner UG (haftungsbeschränkt) <structr@structr.org>
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core.property;
 
@@ -37,16 +37,36 @@ import org.structr.core.converter.PropertyConverter;
 public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 	
 	private static final Logger logger = Logger.getLogger(BooleanProperty.class.getName());
-	private static final Set<String> TRUE_VALUES = new LinkedHashSet<String>(Arrays.asList(new String[] { "true", "1", "on" }));
+	private static final Set<String> TRUE_VALUES = new LinkedHashSet<>(Arrays.asList(new String[] { "true", "1", "on" }));
+
+	public BooleanProperty(String name) {
+		this(name, name, null);
+	}
+
+	public BooleanProperty(final String jsonName, final String dbName) {
+		this(jsonName, dbName, null);
+	}
+
+	public BooleanProperty(String name, Boolean defaultValue) {
+		this(name, name, defaultValue);
+	}
 
 	public BooleanProperty(String name, PropertyValidator<Boolean>... validators) {
-		super(name);
+		this(name);
 		
 		for (PropertyValidator<Boolean> validator : validators) {
 			addValidator(validator);
 		}
 	}
 	
+	public BooleanProperty(String jsonName, String dbName, Boolean defaultValue, PropertyValidator<Boolean>... validators) {
+		super(jsonName, dbName, defaultValue);
+		
+		for (PropertyValidator<Boolean> validator : validators) {
+			addValidator(validator);
+		}
+	}
+
 	@Override
 	public Property<Boolean> indexed() {
 		return super.passivelyIndexed();
@@ -161,7 +181,8 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 				
 				if (source instanceof String) {
 
-					logger.log(Level.WARNING, "Wrong input type for {0}. Expected: {1}, found: {2}", new Object[]{jsonName, Boolean.class.getName(), source.getClass().getName()});
+					// don't log this
+					// logger.log(Level.WARNING, "Wrong input type for {0}. Expected: {1}, found: {2}", new Object[]{jsonName, Boolean.class.getName(), source.getClass().getName()});
 					
 					returnValue = TRUE_VALUES.contains(source.toString().toLowerCase());
 

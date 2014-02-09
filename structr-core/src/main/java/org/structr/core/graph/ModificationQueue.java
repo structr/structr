@@ -1,24 +1,28 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Structr, c/o Morgner UG (haftungsbeschränkt) <structr@structr.org>
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core.graph;
 
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
@@ -30,8 +34,6 @@ import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.property.PropertyKey;
 
 /**
@@ -43,9 +45,10 @@ public class ModificationQueue {
 
 	private static final Logger logger = Logger.getLogger(ModificationQueue.class.getName());
 	
-	private ConcurrentSkipListMap<String, GraphObjectModificationState> modifications = new ConcurrentSkipListMap<String, GraphObjectModificationState>();
-	private Set<String> alreadyPropagated                                             = new LinkedHashSet<String>();
-	private Set<String> synchronizationKeys                                           = new TreeSet<String>();
+	private ConcurrentSkipListMap<String, GraphObjectModificationState> modifications = new ConcurrentSkipListMap<>();
+	private Map<String, TransactionPostProcess> postProcesses                         = new LinkedHashMap<>();
+	private Set<String> alreadyPropagated                                             = new LinkedHashSet<>();
+	private Set<String> synchronizationKeys                                           = new TreeSet<>();
 	
 	/**
 	 * Returns a set containing the different entity types of
@@ -57,7 +60,7 @@ public class ModificationQueue {
 		return synchronizationKeys;
 	}
 	
-	public boolean doInnerCallbacks(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+	public boolean doInnerCallbacks(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
 		long t0                  = System.currentTimeMillis();
 		boolean hasModifications = true;
@@ -106,6 +109,18 @@ public class ModificationQueue {
 
 		return valid;
 	}
+	
+	public boolean doPostProcessing(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+		
+		boolean valid = true;
+		
+		for (final TransactionPostProcess process : postProcesses.values()) {
+			
+			valid &= process.execute(securityContext, errorBuffer);
+		}
+		
+		return valid;
+	}
 
 	public void doOuterCallbacks(SecurityContext securityContext) {
 
@@ -114,10 +129,10 @@ public class ModificationQueue {
 		// copy modifications, do after transaction callbacks
 		for (GraphObjectModificationState state : modifications.values()) {
 
-			if (!state.isDeleted()) {
+//			if (!state.isDeleted()) {
 				
 				state.doOuterCallback(securityContext);
-			}
+//			}
 		}
 
 		long t = System.currentTimeMillis() - t0;
@@ -133,53 +148,54 @@ public class ModificationQueue {
 		modifications.clear();
 	}
 
-	public void create(AbstractNode node) {
+	public void create(NodeInterface node) {
 		getState(node).create();
 		
 //		synchronizationKeys.add(node.getType());
 	}
 
-	public void create(AbstractRelationship relationship) {
+	public <S extends NodeInterface, T extends NodeInterface> void create(final RelationshipInterface relationship) {
 
 		getState(relationship).create();
 
-		modifyEndNodes(relationship.getStartNode(), relationship.getEndNode(), relationship.getRelType());
+		modifyEndNodes(relationship.getSourceNode(), relationship.getTargetNode(), relationship.getRelType());
 		
-		String combinedType = relationship.getProperty(AbstractRelationship.combinedType);
-		if (combinedType != null) {
-			synchronizationKeys.add(combinedType);
-		}
+		// FIXME
+//		String combinedType = relationship.getProperty(RelationshipInterface.combinedType);
+//		if (combinedType != null) {
+//			synchronizationKeys.add(combinedType);
+//		}
 	}
 
-	public void modifyOwner(AbstractNode node) {
+	public void modifyOwner(NodeInterface node) {
 		getState(node).modifyOwner();
 	}
 	
-	public void modifySecurity(AbstractNode node) {
+	public void modifySecurity(NodeInterface node) {
 		getState(node).modifySecurity();
 	}
 	
-	public void modifyLocation(AbstractNode node) {
+	public void modifyLocation(NodeInterface node) {
 		getState(node).modifyLocation();
 	}
 	
-	public void modify(AbstractNode node, PropertyKey key, Object previousValue) {
-		getState(node).modify(key, previousValue);
+	public void modify(NodeInterface node, PropertyKey key, Object previousValue, Object newValue) {
+		getState(node).modify(key, previousValue, newValue);
 		
 		if (key != null&& key.requiresSynchronization()) {
 			synchronizationKeys.add(node.getClass().getSimpleName().concat(".").concat(key.getSynchronizationKey()));
 		}
 	}
 
-	public void modify(AbstractRelationship relationship, PropertyKey key, Object previousValue) {
-		getState(relationship).modify(key, previousValue);
+	public void modify(RelationshipInterface relationship, PropertyKey key, Object previousValue, Object newValue) {
+		getState(relationship).modify(key, previousValue, newValue);
 		
 		if (key != null && key.requiresSynchronization()) {
 			synchronizationKeys.add(relationship.getClass().getSimpleName().concat(".").concat(key.getSynchronizationKey()));
 		}
 	}
 	
-	public void propagatedModification(AbstractNode node) {
+	public void propagatedModification(NodeInterface node) {
 
 		if (node != null) {
 		
@@ -194,18 +210,38 @@ public class ModificationQueue {
 	}
 	}
 
-	public void delete(AbstractNode node) {
+	public void delete(NodeInterface node) {
 		getState(node).delete(false);
 	}
 
-	public void delete(AbstractRelationship relationship, boolean passive) {
+	public void delete(RelationshipInterface relationship, boolean passive) {
 
 		getState(relationship).delete(passive);
 
-		modifyEndNodes(relationship.getStartNode(), relationship.getEndNode(), relationship.getRelType());
+		modifyEndNodes(relationship.getSourceNode(), relationship.getTargetNode(), relationship.getRelType());
+	}
+	
+	public List<ModificationEvent> getModificationEvents() {
+		
+		final List<ModificationEvent> modificationEvents = new LinkedList<>();
+		for (final GraphObjectModificationState state : modifications.values()) {
+			
+			modificationEvents.add(state);
+		}
+		
+		return modificationEvents;
+	}
+	
+	public void postProcess(final String key, final TransactionPostProcess process) {
+		
+		if (!postProcesses.containsKey(key)) {
+			
+			this.postProcesses.put(key, process);
+		}
 	}
 
-	private void modifyEndNodes(AbstractNode startNode, AbstractNode endNode, RelationshipType relType) {
+	// ----- private methods -----
+	private void modifyEndNodes(NodeInterface startNode, NodeInterface endNode, RelationshipType relType) {
 		
 //		synchronizationKeys.add(relType.name());
 
@@ -230,15 +266,15 @@ public class ModificationQueue {
 			return;
 		}
 
-		modify(startNode, null, null);
-		modify(endNode, null, null);
+		modify(startNode, null, null, null);
+		modify(endNode, null, null, null);
 	}
 
-	private GraphObjectModificationState getState(AbstractNode node) {
+	private GraphObjectModificationState getState(NodeInterface node) {
 		return getState(node, false);
 	}
 	
-	private GraphObjectModificationState getState(AbstractNode node, boolean checkPropagation) {
+	private GraphObjectModificationState getState(NodeInterface node, boolean checkPropagation) {
 
 		String hash = hash(node);
 		GraphObjectModificationState state = modifications.get(hash);
@@ -252,7 +288,7 @@ public class ModificationQueue {
 		return state;
 	}
 
-	private GraphObjectModificationState getState(AbstractRelationship rel) {
+	private GraphObjectModificationState getState(RelationshipInterface rel) {
 
 		String hash = hash(rel);
 		GraphObjectModificationState state = modifications.get(hash);
@@ -266,11 +302,11 @@ public class ModificationQueue {
 		return state;
 	}
 
-	private String hash(AbstractNode node) {
+	private String hash(NodeInterface node) {
 		return "N" + node.getId();
 	}
 
-	private String hash(AbstractRelationship rel) {
+	private String hash(RelationshipInterface rel) {
 		return "R" + rel.getId();
 	}
 }

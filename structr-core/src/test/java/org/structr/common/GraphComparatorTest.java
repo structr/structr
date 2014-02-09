@@ -1,23 +1,21 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Structr, c/o Morgner UG (haftungsbeschränkt) <structr@structr.org>
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
 package org.structr.common;
 
 
@@ -202,21 +200,15 @@ public class GraphComparatorTest extends StructrTest {
 		
 		try {
 		
-			Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(new StructrTransaction<Object>() {
-				
-				@Override
-				public Object execute() throws FrameworkException {
-					
-					obj.setProperty(key, value);
-					return null;
-				}
-				
-			});
+			app.beginTx();
+			obj.setProperty(key, value);
+			app.commitTx();
 			
-			
-			
-		} catch (FrameworkException ex) {}
-		
+		} catch (FrameworkException ex) {
+
+		} finally {
+
+			app.finishTx();
+		}
 	}
-	
 }

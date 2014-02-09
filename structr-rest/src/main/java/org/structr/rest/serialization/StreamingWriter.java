@@ -1,20 +1,20 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Structr, c/o Morgner UG (haftungsbeschränkt) <structr@structr.org>
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.rest.serialization;
 
@@ -34,10 +34,8 @@ import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
-import org.structr.core.Services;
 import org.structr.core.Value;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -52,25 +50,26 @@ public abstract class StreamingWriter {
 	private static final Logger logger                   = Logger.getLogger(StreamingWriter.class.getName());
 	private static final long MAX_SERIALIZATION_TIME     = TimeUnit.SECONDS.toMillis(30);
 
-	private final Map<Class, Serializer> serializerCache = new LinkedHashMap<Class, Serializer>();
-	private final Map<Class, Serializer> serializers     = new LinkedHashMap<Class, Serializer>();
+	private final Map<Class, Serializer> serializerCache = new LinkedHashMap<>();
+	private final Map<Class, Serializer> serializers     = new LinkedHashMap<>();
 	private final Serializer<GraphObject> root           = new RootSerializer();
-	private final Set<Class> nonSerializerClasses        = new LinkedHashSet<Class>();
+	private final Set<Class> nonSerializerClasses        = new LinkedHashSet<>();
 	private final Property<String> id                    = new StringProperty("id");
-	private final int outputNestingDepth                 = Services.getOutputNestingDepth();
+	private int outputNestingDepth                       = 3;
 	private DecimalFormat decimalFormat                  = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
-	private PropertyKey idProperty                       = GraphObject.uuid;
+	private PropertyKey idProperty                       = GraphObject.id;
 	private SecurityContext securityContext              = null;
 	private Value<String> propertyView                   = null;
 	private boolean indent                               = true;
 
 	public abstract RestWriter getRestWriter(final Writer writer);
 	
-	public StreamingWriter(Value<String> propertyView, boolean indent) {
+	public StreamingWriter(Value<String> propertyView, boolean indent, final int outputNestingDepth) {
 
-		this.securityContext = SecurityContext.getSuperUserInstance();
-		this.propertyView    = propertyView;
-		this.indent          = indent;
+		this.securityContext    = SecurityContext.getSuperUserInstance();
+		this.outputNestingDepth = outputNestingDepth;
+		this.propertyView       = propertyView;
+		this.indent             = indent;
 
 		serializers.put(GraphObject.class, root);
 		serializers.put(PropertyMap.class, new PropertyMapSerializer());
@@ -154,7 +153,7 @@ public abstract class StreamingWriter {
 				
 				for(GraphObject graphObject : results) {
 					
-					Object value = graphObject.getProperty(AbstractNode.uuid);	// FIXME: UUID key hard-coded, use variable in Result here!
+					Object value = graphObject.getProperty(GraphObject.id);	// FIXME: UUID key hard-coded, use variable in Result here!
 					if(value != null) {
 						
 						writer.value(value.toString());
@@ -252,7 +251,7 @@ public abstract class StreamingWriter {
 				
 				if (serializer == null) {
 
-					Set<Class> interfaces = new LinkedHashSet<Class>();
+					Set<Class> interfaces = new LinkedHashSet<>();
 					collectAllInterfaces(localType, interfaces);
 
 					for (Class interfaceType : interfaces) {

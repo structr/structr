@@ -1,4 +1,4 @@
-/* 
+    /* 
  *  Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
  * 
  *  This file is part of structr <http://structr.org>.
@@ -102,7 +102,7 @@ $(document).ready(function() {
         Structr.modules['pages'].onload();
         _Pages.resize();
     });
-
+    
     $('#widgets_').on('click', function(e) {
         e.stopPropagation();
         Structr.clearMain();
@@ -116,6 +116,13 @@ $(document).ready(function() {
         Structr.clearMain();
         Structr.activateMenuEntry('types');
         Structr.modules['types'].onload();
+    });
+
+    $('#schema_').on('click', function(e) {
+        e.stopPropagation();
+        Structr.clearMain();
+        Structr.activateMenuEntry('schema');
+        Structr.modules['schema'].onload();
     });
 
     $('#elements_').on('click', function(e) {
@@ -194,7 +201,7 @@ $(document).ready(function() {
         }
     });
 
-    $(window).on('keydown', function (e) {
+    $(window).on('keydown', function(e) {
         if (e.ctrlKey && (e.which === 83)) {
             e.preventDefault();
             dialogSaveButton.click();
@@ -321,7 +328,7 @@ var Structr = {
         }
     },
     clearMain: function() {
-        $.ui.ddmanager.droppables = {};
+        $.ui.ddmanager.droppables.default = [];
         $('iframe').unload();
         main.empty();
     },
@@ -446,7 +453,6 @@ var Structr = {
             });
 
             Structr.resize();
-
         }
     },
     resize: function() {
@@ -490,11 +496,10 @@ var Structr = {
         $('#maximizeDialog').show().on('click', function() {
             Structr.maximize();
         });
-        
-        $('.CodeMirror').each(function(i, el){
-            el.CodeMirror.refresh();
-        });        
 
+        $('.CodeMirror').each(function(i, el) {
+            el.CodeMirror.refresh();
+        });
     },
     maximize: function() {
 
@@ -539,11 +544,10 @@ var Structr = {
         $('#minimizeDialog').show().on('click', function() {
             Structr.resize();
         });
-        
-        $('.CodeMirror').each(function(i, el){
-            el.CodeMirror.refresh();
-        });        
 
+        $('.CodeMirror').each(function(i, el) {
+            el.CodeMirror.refresh();
+        });
     },
     error: function(text, callback) {
         if (text)
@@ -567,6 +571,36 @@ var Structr = {
                 border: 'none',
                 backgroundColor: 'transparent'
             }
+        });
+    },
+    errorFromResponse: function(response, url) {
+        var errorText = '';
+        if (response.errors) {
+            $.each(Object.keys(response.errors), function(i, err) {
+                errorText += err + ': ';
+                //console.log(Object.keys(response.errors[err]));
+                $.each(Object.keys(response.errors[err]), function(j, attr) {
+                    errorText += attr + ' ';
+                    //console.log(attr, Object.keys(response.errors[err][attr]));
+                    $.each(response.errors[err][attr], function(k, cond) {
+                        console.log(cond);
+                        if (typeof cond === 'Object') {
+                            $.each(Object.keys(cond), function(l, key) {
+                                errorText += key + ' ' + cond[key];
+                            });
+                        } else {
+                            errorText += ' ' + cond;
+                        }
+                    });
+                });
+                errorText += '\n';
+                //console.log(errorText);
+            });
+        } else {
+            errorText += url + ': ' + response.code + ' ' + response.message;
+        }
+        Structr.error(errorText, function() {
+        }, function() {
         });
     },
     tempInfo: function(text, autoclose) {
@@ -816,13 +850,15 @@ var Structr = {
             }
         });
 
-        pageLeft.on('click', function() {
+        pageLeft.on('click', function(e) {
+            e.stopPropagation();
             pageRight.removeAttr('disabled').removeClass('disabled');
             page[type]--;
             $('.page', pager).val(page[type]);
             $('.node', el).remove();
-            if (isPagesEl)
+            if (isPagesEl) {
                 _Pages.clearPreviews();
+            }
             Command.list(type, pageSize[type], page[type], sort, order, callback);
         });
 
@@ -831,12 +867,50 @@ var Structr = {
             page[type]++;
             $('.page', pager).val(page[type]);
             $('.node', el).remove();
-            if (isPagesEl)
+            if (isPagesEl) {
                 _Pages.clearPreviews();
+            }
             Command.list(type, pageSize[type], page[type], sort, order, callback);
         });
         return Command.list(type, pageSize[type], page[type], sort, order, callback);
-    }
+    },
+    makePagesMenuDroppable: function() {
+
+        try {
+            $('#pages_').droppable('destroy');
+        } catch (err) {
+            log('exception:', err.toString())
+        }
+
+        $('#pages_').droppable({
+            accept: '.element, .content, .component, .file, .image, .widget',
+            greedy: true,
+            hoverClass: 'nodeHover',
+            tolerance: 'pointer',
+            over: function(e, ui) {
+
+                e.stopPropagation();
+                $('#pages_').droppable('disable');
+                log('over is off');
+
+                Structr.activateMenuEntry('pages');
+                window.location.href = '/structr/#pages';
+
+                if (files && files.length)
+                    files.hide();
+                if (folders && folders.length)
+                    folders.hide();
+                if (widgets && widgets.length)
+                    widgets.hide();
+
+//                _Pages.init();
+                Structr.modules['pages'].onload();
+                _Pages.resize();
+            }
+
+        });
+        $('#pages_').removeClass('nodeHover').droppable('enable');
+    }    
 };
 
 function getElementPath(element) {

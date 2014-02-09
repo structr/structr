@@ -1,28 +1,25 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Structr, c/o Morgner UG (haftungsbeschränkt) <structr@structr.org>
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
 package org.structr.websocket.command;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
 import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
@@ -37,6 +34,8 @@ import org.structr.websocket.message.WebSocketMessage;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.app.StructrApp;
+import org.structr.schema.SchemaHelper;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 
@@ -65,7 +64,7 @@ public class SearchCommand extends AbstractCommand {
 		
 		Class type = null;
 		if (typeString != null) {
-			type = EntityContext.getEntityClassForRawType(typeString);
+			type = SchemaHelper.getEntityClassForRawType(typeString);
 		}
 
 		List<SearchAttribute> searchAttributes = new LinkedList();
@@ -87,12 +86,12 @@ public class SearchCommand extends AbstractCommand {
 		final String sortKey     = webSocketData.getSortKey();
 //		final int pageSize       = webSocketData.getPageSize();
 //		final int page           = webSocketData.getPage();
-		PropertyKey sortProperty = EntityContext.getPropertyKeyForJSONName(AbstractNode.class, sortKey);
+		PropertyKey sortProperty = StructrApp.getConfiguration().getPropertyKeyForJSONName(AbstractNode.class, sortKey);
 
 		try {
 
 			// do search
-			Result result = (Result) Services.command(securityContext, SearchNodeCommand.class).execute(true, false, searchAttributes, sortProperty, "desc".equals(sortOrder));
+			Result result = (Result) StructrApp.getInstance(securityContext).command(SearchNodeCommand.class).execute(true, false, searchAttributes, sortProperty, "desc".equals(sortOrder));
 //			List<AbstractNode> filteredResults     = new LinkedList<AbstractNode>();
 //			List<? extends GraphObject> resultList = result.getResults();
 //

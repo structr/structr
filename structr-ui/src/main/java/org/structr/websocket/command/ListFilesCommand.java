@@ -1,29 +1,25 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Structr, c/o Morgner UG (haftungsbeschränkt) <structr@structr.org>
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
 package org.structr.websocket.command;
 
-import org.neo4j.graphdb.Direction;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
 import org.structr.core.Services;
@@ -34,13 +30,15 @@ import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.PagingHelper;
-import org.structr.web.common.RelType;
 import org.structr.websocket.message.WebSocketMessage;
 import org.structr.websocket.StructrWebSocket;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.*;
+import org.structr.core.app.StructrApp;
+import org.structr.schema.SchemaHelper;
+import org.structr.web.entity.relation.FileChildren;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -62,7 +60,7 @@ public class ListFilesCommand extends AbstractCommand {
 
 		final SecurityContext securityContext  = getWebSocket().getSecurityContext();
 		String rawType                         = (String) webSocketData.getNodeData().get("type");
-		Class type                             = EntityContext.getEntityClassForRawType(rawType);
+		Class type                             = SchemaHelper.getEntityClassForRawType(rawType);
 		List<SearchAttribute> searchAttributes = new LinkedList();
 
 		searchAttributes.add(Search.andExactType(type));
@@ -76,12 +74,12 @@ public class ListFilesCommand extends AbstractCommand {
 		final String sortKey     = webSocketData.getSortKey();
 		final int pageSize       = webSocketData.getPageSize();
 		final int page           = webSocketData.getPage();
-		PropertyKey sortProperty = EntityContext.getPropertyKeyForJSONName(type, sortKey);
+		PropertyKey sortProperty = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, sortKey);
 
 		try {
 
 			// do search
-			Result result = (Result) Services.command(securityContext, SearchNodeCommand.class).execute(true, false, searchAttributes, sortProperty, "desc".equals(sortOrder));
+			Result result = (Result) StructrApp.getInstance(securityContext).command(SearchNodeCommand.class).execute(true, false, searchAttributes, sortProperty, "desc".equals(sortOrder));
 			List<AbstractNode> filteredResults     = new LinkedList();
 			List<? extends GraphObject> resultList = result.getResults();
 
@@ -92,7 +90,7 @@ public class ListFilesCommand extends AbstractCommand {
 
 					AbstractNode node = (AbstractNode) obj;
 
-					if (!node.hasRelationship(RelType.CONTAINS, Direction.INCOMING)) {
+					if (!node.hasIncomingRelationships(FileChildren.class)) {
 
 						filteredResults.add(node);
 					}

@@ -18,10 +18,9 @@
  */
 
 var s = require('../setup');
-var casper = require('casper').create(s.casperOptions);
 
-var testName = 'rename_page';
-var heading = "Rename Page"
+var testName = '005_rename_page';
+var heading = "Rename Page", sections = [];
 var desc = "This animation shows how a new page can be renamed."
 var numberOfTests = 3;
 
@@ -30,7 +29,13 @@ s.startRecording(window, casper, testName);
 casper.test.begin(testName, numberOfTests, function(test) {
 
     casper.start(s.url);
-
+    
+    casper.thenEvaluate(function() {
+        window.localStorage.clear();
+    }, {});
+    
+    sections.push('<a href="004_create_page_test.html">Login and create a page.</a>');
+    
     casper.then(function() {
         s.animatedType(this, '#usernameField', false, 'admin');
     });
@@ -48,15 +53,11 @@ casper.test.begin(testName, numberOfTests, function(test) {
         this.click('#loginButton');
     });
 
-    casper.waitWhileVisible('#dialogBox', function() {
+    casper.waitForSelector('#errorText', function() {
 
-        test.assertEval(function() {
-            return $('#errorText').text() === '';
-        });
+        test.assertEval(function() { return !($('#errorText').text() === 'Wrong username or password!'); });
 
-        test.assertEval(function() {
-            return $('#pages').is(':visible');
-        });
+        test.assertEval(function() { return $('#pages').is(':visible'); });
 
     });
     
@@ -68,11 +69,9 @@ casper.test.begin(testName, numberOfTests, function(test) {
         this.click('#add_page');
     });
 
-    casper.wait(1000, function() {
-        test.assertEval(function() {
-            return $('#errorText').text() === '';
-        });
-    });
+    casper.wait(1000);
+
+    sections.push('You can rename a page by simply clicking on the name on the preview tab. After entering a new name, press return or tab, or click outside the input field.');
 
     casper.then(function() {
         s.moveMousePointerTo(casper, '#previewTabs li:nth-child(2)');
@@ -86,22 +85,18 @@ casper.test.begin(testName, numberOfTests, function(test) {
     });
 
     casper.then(function() {
-        s.animatedType(this, '#previewTabs li:nth-child(2) .newName_', false, 'renamed-page', true);
+        s.animatedType(this, '#previewTabs li:nth-child(2) .new-name', false, 'renamed-page', true);
     });
 
     casper.then(function() {
         s.moveMousePointerTo(casper, '#previews');
     });
 
-    casper.wait(5000, function() {
-        test.assertEval(function() {
-            return $('#errorText').text() === '';
-        });
-    });
+    casper.wait(5000);
 
     casper.then(function() {
         
-        s.animateHtml(testName, heading, desc);
+        s.animateHtml(testName, heading, sections);
 
         test.done();
         this.exit();

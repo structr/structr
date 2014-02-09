@@ -1,38 +1,31 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Structr, c/o Morgner UG (haftungsbeschränkt) <structr@structr.org>
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
 package org.structr.core.notion;
 
 import java.util.*;
-import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.search.Search;
-import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.SearchNodeCommand;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -41,7 +34,9 @@ import org.structr.common.error.PropertiesNotFoundToken;
 import org.structr.common.error.TypeToken;
 import org.structr.core.JsonInput;
 import org.structr.core.Result;
-import org.structr.core.graph.CreateNodeCommand;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeInterface;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -50,7 +45,7 @@ import org.structr.core.graph.CreateNodeCommand;
  *
  * @author Christian Morgner
  */
-public class TypeAndPropertySetDeserializationStrategy<S, T extends GraphObject> implements DeserializationStrategy<S, T> {
+public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterface> implements DeserializationStrategy<S, T> {
 
 	private static final Logger logger = Logger.getLogger(TypeAndPropertySetDeserializationStrategy.class.getName());
 	
@@ -90,14 +85,16 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends GraphObject>
 
 	private T deserialize(SecurityContext securityContext, Class<T> type, PropertyMap attributes) throws FrameworkException {
 
+		final App app = StructrApp.getInstance(securityContext);
+		
 		if (attributes != null) {
 			
-			List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
-
+			Result<T> result = Result.EMPTY_RESULT;
+			
 			// Check if properties contain the UUID attribute
-			if (attributes.containsKey(GraphObject.uuid)) {
-				
-				attrs.add(Search.andExactUuid(attributes.get(GraphObject.uuid)));
+			if (attributes.containsKey(GraphObject.id)) {
+
+				result = new Result(app.get(attributes.get(GraphObject.id)), false);
 				
 			} else {
 
@@ -110,51 +107,41 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends GraphObject>
 				}
 				
 				if (attributesComplete) {
-
-					attrs.add(Search.andExactTypeAndSubtypes(type));
-
-					for (Entry<PropertyKey, Object> entry : attributes.entrySet()) {
-						attrs.add(Search.andExactProperty(securityContext, entry.getKey(), entry.getValue() != null ? entry.getValue().toString() : null));
-					}
+					
+					result = app.nodeQuery(type).and(attributes).getResult();
 					
 				}
-				
-			
 			}
 
 			// just check for existance
-			Result<T> result = Services.command(securityContext, SearchNodeCommand.class).execute(attrs);
-			int size         = result.size();
-			
+			final int size = result.size();
 			switch (size) {
-				
+
 				case 0:
-					
+
 					if (createIfNotExisting) {
 
-						attributes.put(AbstractNode.type, type.getSimpleName());
-						
 						// create node and return it
-						T newNode = (T)Services.command(securityContext, CreateNodeCommand.class).execute(attributes);
+						T newNode = app.create(type, attributes);
 						if (newNode != null) {
 
 							return newNode;
 						}						
 					}
-						
+
 					break;
-					
+
 				case 1:
 					return getTypedResult(result, type);
-						
+
 				default:
-					
+
 					logger.log(Level.SEVERE, "Found {0} nodes for given type and properties, property set is ambiguous!\n"
 						+ "This is often due to wrong modeling, or you should consider creating a uniquness constraint for " + type.getName(), size);
-					
+
 					break;
 			}
-			
+
 			throw new FrameworkException(type.getSimpleName(), new PropertiesNotFoundToken(AbstractNode.base, attributes));
 		}
 		

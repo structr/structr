@@ -1,22 +1,21 @@
-/*
- *  Copyright (C) 2013 Axel Morgner
- * 
- *  This file is part of structr <http://structr.org>.
- * 
- *  structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU Affero General Public License as
- *  published by the Free Software Foundation, either version 3 of the
- *  License, or (at your option) any later version.
- * 
- *  structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- * 
- *  You should have received a copy of the GNU Affero General Public License
- *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+/**
+ * Copyright (C) 2010-2014 Structr, c/o Morgner UG (haftungsbeschränkt) <structr@structr.org>
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package org.structr.files.ftp;
 
 import java.util.Date;
@@ -28,6 +27,8 @@ import org.apache.ftpserver.ftplet.FtpFile;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractUser;
 import org.structr.core.entity.Principal;
@@ -141,19 +142,18 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 	@Override
 	public boolean setLastModified(final long l) {
 
+		final App app = StructrApp.getInstance();
+
 		try {
-			Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(new StructrTransaction() {
+			app.beginTx();
+			structrFile.setProperty(AbstractFile.lastModifiedDate, new Date(l));
+			app.commitTx();
 
-				@Override
-				public Object execute() throws FrameworkException {
-
-					structrFile.setProperty(AbstractFile.lastModifiedDate, new Date(l));
-					return null;
-				}
-
-			});
 		} catch (FrameworkException ex) {
 			logger.log(Level.SEVERE, null, ex);
+
+		} finally {
+			app.finishTx();
 		}
 
 		return true;
@@ -162,19 +162,18 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 	@Override
 	public boolean delete() {
 
+		final App app = StructrApp.getInstance();
+
 		try {
-			Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(new StructrTransaction() {
+			app.beginTx();
+			app.delete(structrFile);
+			app.commitTx();
 
-				@Override
-				public Object execute() throws FrameworkException {
-
-					Services.command(SecurityContext.getSuperUserInstance(), DeleteNodeCommand.class).execute(structrFile);
-					return null;
-				}
-
-			});
 		} catch (FrameworkException ex) {
 			logger.log(Level.SEVERE, null, ex);
+
+		} finally {
+			app.finishTx();
 		}
 
 		return true;
@@ -187,48 +186,45 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 	
 		logger.log(Level.INFO, "move()");
 		
-		AbstractStructrFtpFile targetFile = (AbstractStructrFtpFile) target;
-
-		final String path = targetFile instanceof StructrFtpFile ? "/" : targetFile.getAbsolutePath();
+		final AbstractStructrFtpFile targetFile = (AbstractStructrFtpFile) target;
+		final String path                       = targetFile instanceof StructrFtpFile ? "/" : targetFile.getAbsolutePath();
+		final App app                           = StructrApp.getInstance();
 
 		try {
-			Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(new StructrTransaction() {
+			app.beginTx();
 
-				@Override
-				public Object execute() throws FrameworkException {
+			if (path.contains("/")) {
 
-					if (path.contains("/")) {
+				String newParentPath = StringUtils.substringBeforeLast(path, "/");
+				AbstractFile newParent = FileHelper.getFileByAbsolutePath(newParentPath);
 
-						String newParentPath = StringUtils.substringBeforeLast(path, "/");
-						AbstractFile newParent = FileHelper.getFileByAbsolutePath(newParentPath);
+				if (newParent != null && newParent instanceof Folder) {
 
-						if (newParent != null && newParent instanceof Folder) {
+					Folder newParentFolder = (Folder) newParent;
+					structrFile.setProperty(AbstractFile.parent, newParentFolder);
 
-							Folder newParentFolder = (Folder) newParent;
-							structrFile.setProperty(AbstractFile.parent, newParentFolder);
+				} else {
 
-						} else {
+					// Move to /
+					structrFile.setProperty(AbstractFile.parent, null);
 
-							// Move to /
-							structrFile.setProperty(AbstractFile.parent, null);
-
-						}
-
-					}
-
-					if (!("/".equals(path))) {
-						final String newName = path.contains("/") ? StringUtils.substringAfterLast(path, "/") : path;
-						structrFile.setProperty(AbstractNode.name, newName);
-					}
-
-					return null;
 				}
 
-			});
+			}
+
+			if (!("/".equals(path))) {
+				final String newName = path.contains("/") ? StringUtils.substringAfterLast(path, "/") : path;
+				structrFile.setProperty(AbstractNode.name, newName);
+			}
+			
+			app.commitTx();
 
 		} catch (FrameworkException ex) {
 			logger.log(Level.SEVERE, "Could not move ftp file", ex);
 			return false;
+
+		} finally {
+			app.finishTx();
 		}
 
 		return true;

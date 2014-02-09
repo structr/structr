@@ -85,13 +85,13 @@ var _Entities = {
         var t = $('.props', el);
 
         // General
-        _Entities.appendRowWithInputField(entity, t, 'data-structr-container', 'Container (set to ${this.uuid})');
+        _Entities.appendRowWithInputField(entity, t, 'data-structr-id', 'Element ID (set to ${this.id})');
         _Entities.appendRowWithInputField(entity, t, 'data-structr-attr', 'Attribute Key (if set, render input field in edit mode)');
         _Entities.appendRowWithInputField(entity, t, 'data-structr-type', 'Data type (e.g. Date, Boolean; default: String)');
         _Entities.appendRowWithInputField(entity, t, 'data-structr-raw-value', 'Raw value (unformatted value for Date or Number fields)');
         _Entities.appendRowWithInputField(entity, t, 'data-structr-hide', 'Hide [edit|non-edit|edit,non-edit]');
 
-        if (entity.type === 'Button') {
+        if (entity.type === 'Button' || entity.type === 'A') {
 
             // Buttons
 
@@ -103,7 +103,7 @@ var _Entities = {
 
             if (entity['data-structr-action'] === 'delete') {
 
-                // Delete button
+                // Delete action
                 t.append('<tr><td class="key">Confirm on delete?</td><td class="value" id="confirmOnDel"></td><td></td></tr>');
                 _Entities.appendBooleanSwitch($('#confirmOnDel', t), entity, 'data-structr-confirm', '', 'If active, a user has to confirm the delete action.');
             }
@@ -354,7 +354,7 @@ var _Entities = {
 
             tabs.children('ul').append('<li id="tab-' + view + '">' + tabText + '</li>');
 
-            tabs.append('<div class="propTabContent" id="tabView-' + view + '"><br></div>');
+            tabs.append('<div class="propTabContent" id="tabView-' + view + '"></div>');
 
             var tab = $('#tab-' + view);
 
@@ -365,6 +365,7 @@ var _Entities = {
                 $('li', tabs).removeClass('active');
                 self.addClass('active');
                 var tabView = $('#tabView-' + view);
+                tabView.empty();
                 tabView.show();
 
                 $.ajax({
@@ -932,7 +933,7 @@ var _Entities = {
         element.off('hover');
         var oldName = $.trim(element.children('b.name_').attr('title'));
         //console.log('oldName', oldName);
-        element.children('b.name_').replaceWith('<input type="text" size="' + (oldName.length + 4) + '" class="newName_" value="' + oldName + '">');
+        element.children('b.name_').replaceWith('<input type="text" size="' + (oldName.length + 4) + '" class="new-name" value="' + oldName + '">');
         element.find('.button').hide();
 
         var input = $('input', element);

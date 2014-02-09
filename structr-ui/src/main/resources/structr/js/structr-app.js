@@ -94,7 +94,7 @@ function StructrApp(baseUrl) {
             return s.trim();
         });
         var id = btn.attr('data-structr-id');
-        var container = $('[data-structr-container="' + id + '"]');
+        var container = $('[data-structr-id="' + id + '"]');
 
         if (action === 'create') {
 
@@ -119,11 +119,13 @@ function StructrApp(baseUrl) {
             //container.find('[data-structr-attr="name"]').val(); console.log(id, container, name)
             s.delete(id, btn.attr('data-structr-confirm') === 'true', reload, f ? f.val : undefined);
 
+        } else {
+            s.customAction(id, type, action, s.data[id], reload);
         }
     });
     
     this.editAction = function(btn, id, attrs, reload) {
-        var container = $('[data-structr-container="' + id + '"]');
+        var container = $('[data-structr-id="' + id + '"]');
         
         //show edit elements and hide non-edit elements 
         s.hideEdit(container);
@@ -212,7 +214,7 @@ function StructrApp(baseUrl) {
     },
     
     this.saveAction = function(btn, id, attrs, reload) {
-        var container = $('[data-structr-container="' + id + '"]');
+        var container = $('[data-structr-id="' + id + '"]');
         $.each(attrs, function(i, key) {
             
             var inp = s.input($('[data-structr-attr="' + key + '"]', container));
@@ -260,7 +262,7 @@ function StructrApp(baseUrl) {
         if (reload) {
             window.location.reload();
         } else {
-            var container = $('[data-structr-container="' + id + '"]');
+            var container = $('[data-structr-id="' + id + '"]');
             $.each(attrs, function(i, key) {
                 var inp = s.input($('[data-structr-attr="' + key + '"]', container));
                 if (inp && inp.is('select')) {
@@ -333,6 +335,7 @@ function StructrApp(baseUrl) {
                 }
             } else {
                 val = rawVal || el.html().replace(/<br>/gi, '\n');
+                //val = rawVal || el.text();
             }
         }
         //console.log(el, type, id, key, val);
@@ -348,6 +351,11 @@ function StructrApp(baseUrl) {
     this.create = function(type, data, reload) {
         //console.log('Create', type, data, reload);
         s.request('POST', structrRestUrl + type.toUnderscore(), data, reload, 'Successfully created new ' + type, 'Could not create ' + type);
+    };
+
+    this.customAction = function(id, type, action, data, reload) {
+        //console.log('Create', type, data, reload);
+        s.request('POST', structrRestUrl + type.toUnderscore() + '/' + id + '/' + action, data, reload, 'Successfully execute custom action ' + action, 'Could not execute custom action ' + type);
     };
 
     this.request = function(method, url, data, reload, successMsg, errorMsg, onSuccess, onError) {

@@ -1,19 +1,20 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Structr, c/o Morgner UG (haftungsbeschränkt) <structr@structr.org>
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify it under the
- * terms of the GNU Affero General Public License as published by the Free
- * Software Foundation, either version 3 of the License, or (at your option) any
- * later version.
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr. If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.web.servlet;
 
@@ -22,30 +23,26 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import org.structr.common.*;
 import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
-import org.structr.web.auth.HttpAuthenticator;
 
 //~--- JDK imports ------------------------------------------------------------
-import java.text.*;
 
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.ServletException;
 
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.IOUtils;
-import org.structr.core.auth.Authenticator;
-import org.structr.core.auth.AuthenticatorCommand;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
+import org.structr.rest.service.HttpServiceServlet;
+import org.structr.web.auth.HttpAuthenticator;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.Image;
 
@@ -55,22 +52,20 @@ import org.structr.web.entity.Image;
  *
  * @author Axel Morgner
  */
-public class UploadServlet extends HttpServlet {
+public class UploadServlet extends HttpServiceServlet {
 
 	private static final Logger logger = Logger.getLogger(UploadServlet.class.getName());
 
+	private static final int MEMORY_THRESHOLD	= 1024 * 1024 * 10;  // above 10 MB, files are stored on disk
+	private static final int MAX_FILE_SIZE		= 1024 * 1024 * 100; // 100 MB
+	private static final int MAX_REQUEST_SIZE	= 1024 * 1024 * 120; // 120 MB
+
+	// non-static fields
 	private ServletFileUpload uploader = null;
-	private File filesDir = null;
+	private File filesDir              = null;
 
-	private static final int MEMORY_THRESHOLD = 1024 * 1024 * 10;  // above 10 MB, files are stored on disk
-	private static final int MAX_FILE_SIZE = 1024 * 1024 * 100; // 100 MB
-	private static final int MAX_REQUEST_SIZE = 1024 * 1024 * 120; // 120 MB
 
-	//~--- fields ---------------------------------------------------------
-	private DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
-
-	public UploadServlet() {
-	}
+	public UploadServlet() { }
 
 	//~--- methods --------------------------------------------------------
 	@Override
@@ -79,7 +74,7 @@ public class UploadServlet extends HttpServlet {
 		DiskFileItemFactory fileFactory = new DiskFileItemFactory();
 		fileFactory.setSizeThreshold(MEMORY_THRESHOLD);
 
-		filesDir = new File(Services.getTmpPath());
+		filesDir = new File(Services.getInstance().getConfigurationValue(Services.TMP_PATH)); // new File(Services.getInstance().getTmpPath());
 		if (!filesDir.exists()) {
 			filesDir.mkdir();
 		}
@@ -125,43 +120,39 @@ public class UploadServlet extends HttpServlet {
 			List<FileItem> fileItemsList = uploader.parseRequest(request);
 			Iterator<FileItem> fileItemsIterator = fileItemsList.iterator();
 
+			final App app = StructrApp.getInstance(securityContext);
 			while (fileItemsIterator.hasNext()) {
 
 				final FileItem fileItem = fileItemsIterator.next();
 
-				Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+				app.beginTx();
 
-					@Override
-					public Object execute() throws FrameworkException {
+				try {
 
-						try {
+					String contentType = fileItem.getContentType();
+					boolean isImage = (contentType != null && contentType.startsWith("image"));
 
-							String contentType = fileItem.getContentType();
-							boolean isImage = (contentType != null && contentType.startsWith("image"));
-							
-							Class type = isImage ? Image.class : org.structr.web.entity.File.class;
-							
-							String name = fileItem.getName().replaceAll("\\\\", "/");
-							
-							org.structr.web.entity.File newFile = FileHelper.createFile(securityContext, IOUtils.toByteArray(fileItem.getInputStream()), contentType, type);
-							newFile.setProperty(AbstractNode.name, PathHelper.getName(name));
-							newFile.setProperty(AbstractNode.visibleToPublicUsers, true);
-							newFile.setProperty(AbstractNode.visibleToAuthenticatedUsers, true);
+					Class type = isImage ? Image.class : org.structr.web.entity.File.class;
 
-							// Just write out the uuids of the new files
-							out.write(newFile.getUuid());
+					String name = fileItem.getName().replaceAll("\\\\", "/");
 
-							return newFile;
+					org.structr.web.entity.File newFile = FileHelper.createFile(securityContext, IOUtils.toByteArray(fileItem.getInputStream()), contentType, type);
+					newFile.setProperty(AbstractNode.name, PathHelper.getName(name));
+					newFile.setProperty(AbstractNode.visibleToPublicUsers, true);
+					newFile.setProperty(AbstractNode.visibleToAuthenticatedUsers, true);
 
-						} catch (IOException ex) {
-							logger.log(Level.WARNING, "Could not upload file", ex);
-						}
+					// Just write out the uuids of the new files
+					out.write(newFile.getUuid());
 
-						return null;
+					app.commitTx();
 
-					}
+				} catch (IOException ex) {
+					logger.log(Level.WARNING, "Could not upload file", ex);
+				} finally {
 
-				});
+					app.finishTx();
+
+				}
 
 			}
 
@@ -172,11 +163,4 @@ public class UploadServlet extends HttpServlet {
 			HttpAuthenticator.writeInternalServerError(response);
 		}
 	}
-
-	private Authenticator getAuthenticator() throws FrameworkException {
-
-		return (Authenticator) Services.command(null, AuthenticatorCommand.class).execute(getServletConfig());
-
-	}
-
 }

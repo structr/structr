@@ -1,22 +1,21 @@
-/*
- *  Copyright (C) 2013 Axel Morgner
- * 
- *  This file is part of structr <http://structr.org>.
- * 
- *  structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU Affero General Public License as
- *  published by the Free Software Foundation, either version 3 of the
- *  License, or (at your option) any later version.
- * 
- *  structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- * 
- *  You should have received a copy of the GNU Affero General Public License
- *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+/**
+ * Copyright (C) 2010-2014 Structr, c/o Morgner UG (haftungsbeschränkt) <structr@structr.org>
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package org.structr.web.common;
 
 import java.io.IOException;
@@ -53,14 +52,14 @@ public class FtpTest extends StructrUiTest {
 		PropertyMap props = new PropertyMap();
 		props.put(AbstractUser.name, username);
 		props.put(AbstractUser.password, password);
-		return (User) createTestNodes(User.class.getSimpleName(), 1, props).get(0);
+		return (User) createTestNodes(User.class, 1, props).get(0);
 	}
 	
 	protected Folder createFTPDirectory(final String path, final String name) throws FrameworkException {
 		PropertyMap props = new PropertyMap();
 		props.put(Folder.name, name);
 		props.put(Folder.owner, ftpUser);
-		Folder dir = (Folder) createTestNodes(Folder.class.getSimpleName(), 1, props).get(0);
+		Folder dir = (Folder) createTestNodes(Folder.class, 1, props).get(0);
 		
 		if (StringUtils.isNotBlank(path)) {
 			AbstractFile parent = FileHelper.getFileByAbsolutePath(path);
@@ -80,7 +79,7 @@ public class FtpTest extends StructrUiTest {
 		props.put(File.name, name);
 		props.put(File.size, 0L);
 		props.put(File.owner, ftpUser);
-		File file = (File) createTestNodes(File.class.getSimpleName(), 1, props).get(0);
+		File file = (File) createTestNodes(File.class, 1, props).get(0);
 		
 		if (StringUtils.isNotBlank(path)) {
 			AbstractFile parent = FileHelper.getFileByAbsolutePath(path);
@@ -120,7 +119,7 @@ public class FtpTest extends StructrUiTest {
 		
 		try {
 
-			ftp.connect("localhost", 8876);
+			ftp.connect("localhost", ftpPort);
 			logger.log(Level.INFO, "Reply from FTP server:", ftp.getReplyString());
 			
 			int reply = ftp.getReplyCode();

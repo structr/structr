@@ -1,24 +1,21 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Structr, c/o Morgner UG (haftungsbeschränkt) <structr@structr.org>
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
-
 package org.structr.web;
 
 import org.apache.commons.io.FileUtils;
@@ -32,25 +29,14 @@ import org.jsoup.nodes.*;
 import org.structr.common.CaseHelper;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
-import org.structr.common.Path;
 import org.structr.common.PropertyView;
-import org.structr.web.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Result;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.Image;
-import org.structr.core.graph.CreateNodeCommand;
-import org.structr.core.graph.CreateRelationshipCommand;
 import org.structr.core.graph.NodeAttribute;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
-import org.structr.core.graph.search.Search;
-import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.property.StringProperty;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
@@ -69,7 +55,13 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.lang.WordUtils;
+import org.jsoup.Connection;
+import org.structr.core.GraphObject;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.property.BooleanProperty;
+import org.structr.web.entity.relation.Files;
+import org.structr.web.entity.relation.Folders;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -88,9 +80,8 @@ public class Importer {
 	};
 	private static final Logger logger                               = Logger.getLogger(Importer.class.getName());
 	private static final Map<String, String> contentTypeForExtension = new HashMap<String, String>();
-	private static CreateNodeCommand createNode;
-	private static CreateRelationshipCommand createRel;
-	private static SearchNodeCommand searchNode;
+	
+	private static App app;
 
 	private final static String DATA_META_PREFIX = "data-structr-meta-";
 	
@@ -150,10 +141,10 @@ public class Importer {
 	//~--- methods --------------------------------------------------------
 
 	public void init() {
-
-		searchNode = Services.command(securityContext, SearchNodeCommand.class);
-		createNode = Services.command(securityContext, CreateNodeCommand.class);
-		createRel  = Services.command(securityContext, CreateRelationshipCommand.class);
+		app = StructrApp.getInstance(securityContext);
+//		searchNode = StructrApp.getInstance(securityContext).command(SearchNodeCommand.class);
+//		createNode = StructrApp.getInstance(securityContext).command(CreateNodeCommand.class);
+//		createRel  = StructrApp.getInstance(securityContext).command(CreateRelationshipCommand.class);
 	}
 
 	public boolean parse() throws FrameworkException {
@@ -187,7 +178,10 @@ public class Importer {
 
 			try {
 
-				parsedDocument = Jsoup.parse(new URL(address), timeout);
+				parsedDocument = Jsoup.connect(address)
+					.userAgent("Mozilla")
+					.timeout(timeout)
+					.get();
 
 
 			} catch (IOException ioe) {
@@ -204,38 +198,39 @@ public class Importer {
 
 	public String readPage() throws FrameworkException {
 
+		
+
 		try {
-			
 			final URL baseUrl = StringUtils.isNotBlank(address) ? new URL(address) : null;
+			
+			app.beginTx();
 
-			return Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<String>() {
+			// AbstractNode page = findOrCreateNode(attrs, "/");
+			Page page = Page.createNewPage(securityContext, name);
 
-				@Override
-				public String execute() throws FrameworkException {
+			String pageId = null;
+			if (page != null) {
 
-					// AbstractNode page = findOrCreateNode(attrs, "/");
-					Page page = Page.createNewPage(securityContext, name);
+				page.setProperty(AbstractNode.visibleToAuthenticatedUsers, authVisible);
+				page.setProperty(AbstractNode.visibleToPublicUsers, publicVisible);
+				createChildNodes(parsedDocument, page, page, baseUrl);
+				logger.log(Level.INFO, "##### Finished fetching {0} for page {1} #####", new Object[] { address, name });
 
-					if (page != null) {
+				pageId = page.getProperty(GraphObject.id);
+			}
 
-						page.setProperty(AbstractNode.visibleToAuthenticatedUsers, authVisible);
-						page.setProperty(AbstractNode.visibleToPublicUsers, publicVisible);
-						createChildNodes(parsedDocument, page, page, baseUrl);
-						logger.log(Level.INFO, "##### Finished fetching {0} for page {1} #####", new Object[] { address, name });
+			app.commitTx();
 
-						return page.getProperty(AbstractNode.uuid);
+			return pageId;
 
-					}
-
-					return null;
-				}
-
-			});
-
+			
 		} catch (MalformedURLException ex) {
 
 			logger.log(Level.SEVERE, "Could not resolve address " + address, ex);
 
+		} finally {
+			
+			app.finishTx();
 		}
 
 		return null;
@@ -244,33 +239,35 @@ public class Importer {
 
 	public void createChildNodes(final DOMNode parent, final Page page, final String baseUrl) throws FrameworkException {
 
-		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+		try {
+			
+			app.beginTx();
 
-			@Override
-			public Object execute() throws FrameworkException {
-				
-				try {
-					
-					createChildNodes(parsedDocument.body(), parent, page, new URL(baseUrl));
-					
-				} catch (MalformedURLException ex) {
-					
-					logger.log(Level.WARNING, "Could not read URL {1}, calling method without base URL", baseUrl);
-					
-					createChildNodes(parsedDocument.body(), parent, page, null);
-					
-				}
-				
-				return null;
+			try {
+
+				createChildNodes(parsedDocument.body(), parent, page, new URL(baseUrl));
+
+			} catch (MalformedURLException ex) {
+
+				logger.log(Level.WARNING, "Could not read URL {1}, calling method without base URL", baseUrl);
+
+				createChildNodes(parsedDocument.body(), parent, page, null);
+
 			}
-		});
+			
+			app.commitTx();
+			
+		} finally {
+			
+			app.finishTx();
+		}
+
 	}
 	
 	// ----- private methods -----
 	private void createChildNodes(final Node startNode, final DOMNode parent, Page page, final URL baseUrl) throws FrameworkException {
 
-		List<Node> children = startNode.childNodes();
-
+		final List<Node> children = startNode.childNodes();
 		for (Node node : children) {
 
 			String tag                = node.nodeName();
@@ -348,12 +345,12 @@ public class Importer {
 			if (StringUtils.isBlank(tag)) {
 
 				newNode = (Content) page.createTextNode(content);
-				
+
 			} else {
 
 				newNode = (org.structr.web.entity.dom.DOMElement) page.createElement(tag);
 			}
-			
+
 			if (newNode != null) {
 
 				// "id" attribute: Put it into the "_html_id" field
@@ -377,20 +374,20 @@ public class Importer {
 						// convert data-* attributes to local camel case properties on the node,
 						// but don't convert data-structr-* attributes as they are internal
 						if (key.startsWith("data-")) {
-						
+
 							if (!key.startsWith(DATA_META_PREFIX)) {
 
 								newNode.setProperty(new StringProperty(nodeAttr.getKey()), nodeAttr.getValue());
-								
+
 							} else {
-								
+
 								int l = DATA_META_PREFIX.length();
-								
+
 								String upperCaseKey = WordUtils.capitalize(key.substring(l), new char[] { '-' }).replaceAll("-", "");
 								String camelCaseKey = key.substring(l, l+1).concat(upperCaseKey.substring(1));
-								
+
 								String value = nodeAttr.getValue();
-								
+
 								if (value != null) {
 									if (value.equalsIgnoreCase("true")) {
 										newNode.setProperty(new BooleanProperty(camelCaseKey), true);
@@ -400,9 +397,9 @@ public class Importer {
 										newNode.setProperty(new StringProperty(camelCaseKey), nodeAttr.getValue());
 									}
 								}
-								
+
 							}
-							
+
 						} else {
 
 							newNode.setProperty(new StringProperty(PropertyView.Html.concat(nodeAttr.getKey())), nodeAttr.getValue());
@@ -417,10 +414,9 @@ public class Importer {
 				// linkNodes(parent, newNode, page, localIndex);
 				// Step down and process child nodes
 				createChildNodes(node, newNode, page, baseUrl);
-			
+
 			}
 		}
-
 	}
 
 	/**
@@ -428,15 +424,7 @@ public class Importer {
 	 */
 	private boolean fileExists(final String name, final long checksum) throws FrameworkException {
 
-		List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
-
-		searchAttrs.add(Search.andExactProperty(securityContext, AbstractNode.name, name));
-		searchAttrs.add(Search.andExactProperty(securityContext, File.checksum, checksum));
-		searchAttrs.add(Search.andExactTypeAndSubtypes(File.class));
-
-		Result files = searchNode.execute(searchAttrs);
-
-		return !files.isEmpty();
+		return app.nodeQuery(File.class).andName(name).and(File.checksum, checksum).getFirst() != null;
 
 	}
 
@@ -446,19 +434,14 @@ public class Importer {
 	 */
 	private Folder findOrCreateFolder(final String name) throws FrameworkException {
 
-		List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
+		Folder folder = app.nodeQuery(Folder.class).andName(name).getFirst();
 
-		searchAttrs.add(Search.andExactProperty(securityContext, AbstractNode.name, name));
-		searchAttrs.add(Search.andExactType(Folder.class));
+		if (folder != null) {
 
-		Result folders = searchNode.execute(searchAttrs);
-
-		if (!folders.isEmpty()) {
-
-			return (Folder) folders.get(0);
+			return folder;
 		}
 
-		return (Folder) createNode.execute(new NodeAttribute(AbstractNode.type, Folder.class.getSimpleName()), new NodeAttribute(AbstractNode.name, name));
+		return (Folder) app.create(Folder.class, new NodeAttribute(AbstractNode.type, Folder.class.getSimpleName()), new NodeAttribute(AbstractNode.name, name));
 
 	}
 
@@ -469,9 +452,9 @@ public class Importer {
 
 		// Create temporary file with new uuid
 		// FIXME: This is much too dangerous!
-		String relativeFilePath = org.structr.web.entity.File.getDirectoryPath(uuid) + "/" + uuid;
-		String filePath         = Services.getFilePath(Path.Files, relativeFilePath);
-		java.io.File fileOnDisk = new java.io.File(filePath);
+		final String relativeFilePath = org.structr.web.entity.File.getDirectoryPath(uuid) + "/" + uuid;
+		final String filePath         = FileHelper.getFilePath(relativeFilePath);
+		final java.io.File fileOnDisk = new java.io.File(filePath);
 
 		fileOnDisk.getParentFile().mkdirs();
 
@@ -537,7 +520,8 @@ public class Importer {
 
 					if (parent != null) {
 
-						createRel.execute(parent, fileNode, RelType.CONTAINS);
+						app.create(parent, fileNode, Files.class);
+						//createRel.execute(parent, fileNode, Folders.class);
 					}
 
 					if (contentType.equals("text/css")) {
@@ -587,8 +571,7 @@ public class Importer {
 			folder = findOrCreateFolder(part);
 
 			if (parent != null) {
-
-				createRel.execute(parent, folder, RelType.CONTAINS);
+				app.create(parent, folder, Folders.class);
 			}
 
 			folder.updateInIndex();
@@ -601,7 +584,7 @@ public class Importer {
 	private File createFileNode(final String uuid, final String name, final String contentType, final long size, final long checksum) throws FrameworkException {
 
 		String relativeFilePath = File.getDirectoryPath(uuid) + "/" + uuid;
-		File fileNode           = (File) createNode.execute(new NodeAttribute(AbstractNode.uuid, uuid), new NodeAttribute(AbstractNode.type, File.class.getSimpleName()),
+		File fileNode           = app.create(File.class, new NodeAttribute(GraphObject.id, uuid),
 						  new NodeAttribute(AbstractNode.name, name), new NodeAttribute(File.relativeFilePath, relativeFilePath),
 						  new NodeAttribute(File.contentType, contentType), new NodeAttribute(AbstractNode.visibleToPublicUsers, publicVisible),
 						  new NodeAttribute(File.size, size), new NodeAttribute(File.checksum, checksum),
@@ -614,7 +597,7 @@ public class Importer {
 	private Image createImageNode(final String uuid, final String name, final String contentType, final long size, final long checksum) throws FrameworkException {
 
 		String relativeFilePath = Image.getDirectoryPath(uuid) + "/" + uuid;
-		Image imageNode         = (Image) createNode.execute(new NodeAttribute(AbstractNode.uuid, uuid), new NodeAttribute(AbstractNode.type, Image.class.getSimpleName()),
+		Image imageNode         = app.create(Image.class, new NodeAttribute(GraphObject.id, uuid),
 						  new NodeAttribute(AbstractNode.name, name), new NodeAttribute(File.relativeFilePath, relativeFilePath),
 						  new NodeAttribute(File.contentType, contentType), new NodeAttribute(AbstractNode.visibleToPublicUsers, publicVisible),
 						  new NodeAttribute(File.size, size), new NodeAttribute(File.checksum, checksum),
@@ -645,7 +628,7 @@ public class Importer {
 
 			String url = matcher.group(2);
 
-			logger.log(Level.INFO, "Trying to download form URL found in CSS: {0}", url);
+			logger.log(Level.INFO, "Trying to download from URL found in CSS: {0}", url);
 			downloadFiles(url, baseUrl);
 
 		}

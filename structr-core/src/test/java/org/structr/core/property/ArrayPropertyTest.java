@@ -1,43 +1,27 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Structr, c/o Morgner UG (haftungsbeschränkt) <structr@structr.org>
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core.property;
 
-import java.lang.String;
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertTrue;
-import static junit.framework.Assert.fail;
 import org.apache.commons.lang.ArrayUtils;
-import org.structr.common.RelType;
 import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
-import org.structr.core.Result;
-import org.structr.core.Services;
 import org.structr.core.entity.TestFour;
-import org.structr.core.entity.TestOne;
-import org.structr.core.entity.TestRelationship;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
-import org.structr.core.graph.search.Search;
-import org.structr.core.graph.search.SearchNodeCommand;
-import org.structr.core.graph.search.SearchRelationshipCommand;
 
 /**
  *
@@ -57,16 +41,15 @@ public class ArrayPropertyTest extends StructrTest {
 			// store a string array in the test entitiy
 			final String[] arr = new String[] { "one", "two", "three", "four", "five" };
 
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+			try {
+				app.beginTx();
+				instance.setProperty(securityContext, testEntity, arr);
+				app.commitTx();
 
-				@Override
-				public Object execute() throws FrameworkException {
-					
-					instance.setProperty(securityContext, testEntity, arr);
-					return null;
-				}
-				
-			});
+			} finally {
+
+				app.finishTx();
+			}
 			
 			String[] newArr = instance.getProperty(securityContext, testEntity, true);
 
@@ -98,7 +81,7 @@ public class ArrayPropertyTest extends StructrTest {
 			assertEquals(arr, testEntity.getProperty(key));
 			
 			
-			Result<TestFour> result = Services.command(securityContext, SearchNodeCommand.class).execute(
+			Result<TestFour> result = StructrApp.getInstance(securityContext).command(SearchNodeCommand.class).execute(
 				Search.andExactType(TestFour.class),
 				Search.andExactProperty(securityContext, key, arr)
 			);
@@ -130,7 +113,7 @@ public class ArrayPropertyTest extends StructrTest {
 			
 			assertNotNull(testEntity);
 
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+			StructrApp.getInstance(securityContext).command(TransactionCommand.class).execute(new StructrTransaction() {
 
 				@Override
 				public Object execute() throws FrameworkException {
@@ -146,8 +129,8 @@ public class ArrayPropertyTest extends StructrTest {
 			// check value from database
 			assertEquals(arr, testEntity.getProperty(key));	
 			
-			Result<TestFour> result = Services.command(securityContext, SearchRelationshipCommand.class).execute(
-				Search.andExactRelType(EntityContext.getNamedRelation(TestRelationship.Relation.test_relationships.name())),
+			Result<TestFour> result = StructrApp.getInstance(securityContext).command(SearchRelationshipCommand.class).execute(
+				Search.andExactRelType(StructrApp.getConfiguration().getNamedRelation(TestRelationship.Relation.test_relationships.name())),
 				Search.andExactProperty(securityContext, key, arr)
 			);
 			

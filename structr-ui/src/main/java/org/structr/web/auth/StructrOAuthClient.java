@@ -1,20 +1,20 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Structr, c/o Morgner UG (haftungsbeschränkt) <structr@structr.org>
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.web.auth;
 
@@ -36,7 +36,7 @@ import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
 import org.apache.oltu.oauth2.common.message.types.GrantType;
 import org.apache.oltu.oauth2.common.utils.JSONUtils;
 import org.codehaus.jettison.json.JSONException;
-import org.structr.core.Services;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Person;
 import org.structr.core.property.PropertyKey;
 
@@ -102,7 +102,7 @@ public class StructrOAuthClient {
 	/**
 	 * Create an end-user authorization request
 	 * 
-	 * Use with {@code response.setRedirect(request.getLocationUri());}
+	 * Use with {@literal response.setRedirect(request.getLocationUri());}
 	 * 
 	 * @param request
 	 * @return
@@ -142,18 +142,18 @@ public class StructrOAuthClient {
 	 */
 	public static StructrOAuthClient getServer(final String name) {
 
-		String configuredOauthServers  = Services.getConfigurationValue(CONFIGURED_OAUTH_SERVERS, "twitter facebook google github stackoverflow");
+		String configuredOauthServers  = StructrApp.getConfigurationValue(CONFIGURED_OAUTH_SERVERS, "twitter facebook google github stackoverflow");
 		String[] authServers = configuredOauthServers.split(" ");
 
 		for (String authServer : authServers) {
 			
 			if (authServer.equals(name)) {
 			
-				String authLocation  = Services.getConfigurationValue("oauth." + authServer + ".authorization_location", null);
-				String tokenLocation = Services.getConfigurationValue("oauth." + authServer + ".token_location", null);
-				String clientId      = Services.getConfigurationValue("oauth." + authServer + ".client_id", null);
-				String clientSecret  = Services.getConfigurationValue("oauth." + authServer + ".client_secret", null);
-				String redirectUri   = Services.getConfigurationValue("oauth." + authServer + ".redirect_uri", null);
+				String authLocation  = StructrApp.getConfigurationValue("oauth." + authServer + ".authorization_location", null);
+				String tokenLocation = StructrApp.getConfigurationValue("oauth." + authServer + ".token_location", null);
+				String clientId      = StructrApp.getConfigurationValue("oauth." + authServer + ".client_id", null);
+				String clientSecret  = StructrApp.getConfigurationValue("oauth." + authServer + ".client_secret", null);
+				String redirectUri   = StructrApp.getConfigurationValue("oauth." + authServer + ".redirect_uri", null);
 
 				// Minumum required fields
 				if (clientId != null && clientSecret != null && redirectUri != null) {
@@ -189,9 +189,18 @@ public class StructrOAuthClient {
 
 	private static Class getTokenResponseClassForName(final String name) {
 
+		// The following comments are taken from https://cwiki.apache.org/confluence/display/OLTU/OAuth+2.0+Client+Quickstart
+		
+		// "Facebook is not fully compatible with OAuth 2.0 draft 10, access token response is
+		// application/x-www-form-urlencoded, not json encoded so we use dedicated response class for that
+		// Custom response classes are an easy way to deal with oauth providers that introduce modifications to
+		// OAuth 2.0 specification"
+		
 		switch (name) {
 			
 			case "github" :
+				return GitHubTokenResponse.class;
+			case "facebook" :
 				return GitHubTokenResponse.class;
 			default :
 				return OAuthJSONAccessTokenResponse.class;

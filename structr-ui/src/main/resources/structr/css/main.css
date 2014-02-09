@@ -105,11 +105,12 @@ input[type="text"]:disabled, input.disabled {
 }
 
 .menu ul {
-    width: 800px;
+    width: 940px;
     list-style-type: none;
     padding: 0;
     margin: 0;
     float: left;
+	overflow: hidden;
 }
 
 .menu ul li {
@@ -349,7 +350,8 @@ img.disabled {
 }
 
 .props {
-    width: 776px;
+    /*width: 872px;*/
+    width: 100%;
     border-collapse: collapse;
     margin-bottom: 12px;
     border: 1px solid #b5b5b5;
@@ -494,6 +496,8 @@ ul#previewTabs {
 
 .propTabContent {
     display: none;
+    float: left;
+    width: 100%;
 }
 
 .propTabContent section {
@@ -565,7 +569,7 @@ ul#previewTabs {
     cursor: text;
 }
 
-.newName_ {
+.new-name {
     border: 1px solid #a5a5a5;
     margin: -1px 0;
     font-size: 0.95em;
@@ -644,7 +648,7 @@ span.id {
     width: 100%;
 }
 
-#images .node {
+.image {
     width: 102px;
     height: 130px;
     float: left;
@@ -661,13 +665,13 @@ span.id {
 
 }
 
-#images .node div.wrap {
+.image div.wrap {
     position: absolute;
     top: 50%;
     left: 50%;
 }
 
-#images .node img.thumbnail {
+.image img.thumbnail {
     margin-top: -42px;
     margin-left: -50%;
     max-width: 100px;
@@ -713,8 +717,52 @@ span.id {
     width: 16px;
     margin-left: 4px ! important;
     vertical-align: top;
-    float: right;
-    position: relative;
+    /*float: right;*/
+    position: absolute;
+}
+
+.edit_icon, .edit_file_icon {
+    right: 64px;
+}
+
+.page > .edit_props_icon {
+    right: 44px;
+}
+
+#remoteWidgets .widget .edit_icon {
+    right: 4px;
+}
+
+.folder .edit_props_icon {
+    right: 44px;
+}
+
+.group .edit_props_icon, .user .edit_props_icon {
+    right: 24px;
+}
+
+.edit_props_icon, .file .edit_props_icon {
+    right: 44px;
+}
+
+.delete_icon {
+    right: 24px;
+}
+
+li.page .delete_icon {
+    right: -20px;
+}
+
+li.page .view_icon {
+    right: 20px;
+}
+
+.group .delete_icon, .user .delete_icon {
+    right: 4px;
+}
+
+.key_icon {
+    right: 4px;
 }
 
 .key_icon {
@@ -724,7 +772,7 @@ span.id {
     opacity: 0.3;
 }
 
-.nodeHover > .key_icon {
+.nodeHover > .key_icon, .nodeHover > .icons .key_icon {
     filter: alpha(opacity=100);
     -khtml-opacity: 1;
     -moz-opacity: 1;
@@ -742,7 +790,7 @@ img.button {
     cursor: pointer;
 }
 
-.nodeHover, .nodeActive, #graph .node {
+.nodeHover, .nodeActive, #graph .node, #schema-graph .node {
     color: #333 ! important;
     background-color: #e7e7e7 ! important;
     border: 1px solid #aaa;
@@ -753,11 +801,16 @@ img.button {
     margin: 4px 0 4px 0;
 }
 
+#schema-graph .node {
+    padding: 2px 6px;
+    margin: 0 ! important;
+}
+
 button {
     color: #222;
     font-weight: bold;
-    padding: 2px 8px 2px 4px;
-    margin: 0 3px 6px 0;
+    padding: 1px 8px 2px 4px;
+    margin: 0 3px 3px 0;
     vertical-align: middle;
     line-height: 1.5em;
     border-radius: 5px;
@@ -771,8 +824,7 @@ button {
 button:hover:not(.disabled) {
     color: #333;
     border-radius: 5px;
-    padding: 2px 8px 2px 4px;
-    margin-bottom: 6px;
+    padding: 1px 8px 2px 4px;
     vertical-align: middle;
     line-height: 1.5em;
     border: 1px solid #bbb;
@@ -961,7 +1013,6 @@ button img {
 
 .ui-draggable, .ui-sortable {
     cursor: move;
-    z-index: 4;
 }
 
 #offset-tester {
@@ -1219,4 +1270,138 @@ input.auto-refresh {
 
 button.add_property {
     font-size: 2em;
+}
+
+
+/**
+ * Schema
+ */
+
+#create-type {
+    margin-top: -2px;
+    margin-left: 4px;
+}
+
+#create-type img, #admin-tools img {
+    margin-top: -3px;
+}
+
+#admin-tools {
+    margin-top: 2px;
+    padding-left: 4px;
+}
+
+.schema {
+    width: 600px;
+    /*height: 200px;*/
+    padding-bottom: 6px ! important;
+}
+
+.schema-input-container {
+    margin: 12px;
+}
+
+.schema-input {
+    border-radius: 3px;
+    font-size: 1.5em;
+}
+
+.schema-props {
+    background-color: #f9f9f9;
+    width: 100%;
+    font-size: .9em;
+    border-collapse: collapse;
+}
+
+.schema-props th, .schema-props td {
+    border: 1px solid #ccc;
+}
+
+.schema-props td {
+    border: 1px solid #ccc;
+    padding: 2px 4px;
+}
+
+.schema-props tr:nth-child(even) {
+    background-color: #fff;
+}
+
+#schema-graph .label {
+    font-size: 1.25em;
+    background: rgba(255, 255, 255, .8);
+    border: 1px solid #aaa;
+    border-radius: 3px;
+    min-width: 1em;
+    text-align: center;
+    padding: .5em;
+}
+
+#schema-graph .node {
+    opacity: .8;
+}
+
+#schema-graph .node h2 {
+    margin: 6px 0;
+}
+
+.property-name, .property-dbname, .property-type, .property-format, .default, #relationship-label {
+    border: none;
+    background: transparent;
+    font-size: 1em;
+}
+
+.schema b {
+    font-size: 1.5em;
+    display: inline-block;
+    margin: 2px 0;
+}
+
+.schema b:hover,
+.schema .property-name:hover,
+.schema .property-dbname:hover,
+.schema .related:hover {
+    cursor: text;
+    box-shadow: 2px 0 #000;
+    color: #222;
+    background-color: #ffe;
+    padding: 1px;
+    -webkit-box-shadow: 0 0 5px yellow;
+       -moz-box-shadow: 0 0 5px #888;
+            box-shadow: 0 0 5px #888;
+}
+.schema b:hover {
+    margin: 1px 0 1px -1px;
+}
+
+.schema .related:hover {
+    margin: 1px 0 1px 1px;
+}
+
+.schema .new-name {
+    font-size: 1.3em;
+    margin: 0;
+}
+
+.schema .icon {
+    position: absolute;
+    right: 6px;
+    top: 6px;
+    cursor: pointer;
+}
+
+#admin-tools {
+    position: absolute;
+    right: 12px;
+}
+
+#admin-tools-table td {
+    padding: 0 1em 1em 0;
+}
+
+#admin-tools-table td:first-child {
+    text-align: center;
+}
+
+.notify {
+    border-color: #f50;
 }

@@ -1,23 +1,21 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Structr, c/o Morgner UG (haftungsbeschränkt) <structr@structr.org>
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
 package org.structr.web.auth;
 
 import org.apache.commons.codec.binary.Base64;
@@ -43,11 +41,10 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import org.structr.common.AccessMode;
 import org.structr.common.PathHelper;
-import org.structr.core.Services;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Person;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.web.resource.RegistrationResource;
 import org.structr.web.servlet.HtmlServlet;
@@ -148,25 +145,22 @@ public class HttpAuthenticator implements Authenticator {
 		if (user != null) {
 
 			final String sessionIdFromRequest = request.getRequestedSessionId();
+			final App app                     = StructrApp.getInstance();
 			final Principal principal         = user;
 
 			try {
 
-				Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(new StructrTransaction() {
+				app.beginTx();
+				principal.setProperty(Principal.sessionId, sessionIdFromRequest);
+				app.commitTx();
 
-					@Override
-					public Object execute() throws FrameworkException {
-
-						// store session id in user object
-						principal.setProperty(Principal.sessionId, sessionIdFromRequest);
-						return null;
-					}
-				});
-
-			} catch (Exception ex) {
+			} catch (FrameworkException ex) {
 
 				logger.log(Level.SEVERE, null, ex);
 
+			} finally {
+				
+				app.finishTx();
 			}
 
 		}
@@ -177,23 +171,17 @@ public class HttpAuthenticator implements Authenticator {
 
 	@Override
 	public void doLogout(HttpServletRequest request) {
+
+		final App app = StructrApp.getInstance();
 	
 		try {
 
+			app.beginTx();
+			
 			Principal user = getUser(request, false);
 			if (user != null) {
 
-				final Principal principal = user;
-				
-				Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(new StructrTransaction() {
-
-					@Override
-					public Object execute() throws FrameworkException {
-
-						principal.setProperty(Principal.sessionId, null);
-						return null;
-					}
-				});
+				user.setProperty(Principal.sessionId, null);
 			}
 
 			HttpSession session = request.getSession(false);
@@ -203,14 +191,17 @@ public class HttpAuthenticator implements Authenticator {
 			}
 			
 			request.logout();
+			
+			app.commitTx();
 
 		} catch (Exception ex) {
 
 			logger.log(Level.WARNING, "Error while logging out user", ex);
 
+		} finally {
+			
+			app.finishTx();
 		}
-
-	
 	}
 
 	/**
@@ -218,7 +209,6 @@ public class HttpAuthenticator implements Authenticator {
 	 * 
 	 * @param request
 	 * @param response
-	 * @param authProperty
 	 * @return 
 	 */
 	protected static Principal checkExternalAuthentication(final HttpServletRequest request, final HttpServletResponse response) {
@@ -270,7 +260,7 @@ public class HttpAuthenticator implements Authenticator {
 				//securityContext.setAttribute("OAuthAccessToken", accessToken);
 				
 				String value = oauthServer.getCredential(request);
-				logger.log(Level.FINE, "Got email: {0}", new Object[] { value });
+				logger.log(Level.FINE, "Got credential value: {0}", new Object[] { value });
 
 				if (value != null) {
 					
@@ -286,18 +276,12 @@ public class HttpAuthenticator implements Authenticator {
 
 					if (user != null) {
 
-						final Principal principal = user;
-						
+						final App app  = StructrApp.getInstance();
+
 						try {
-
-							Services.command(superUserContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-								@Override
-								public Object execute() throws FrameworkException {
-									principal.setProperty(Principal.sessionId, HttpAuthenticator.getSessionId(request));
-									return null;
-								}
-							});
+							app.beginTx();
+							user.setProperty(Principal.sessionId, HttpAuthenticator.getSessionId(request));
+							app.commitTx();
 									
 							HtmlServlet.setNoCacheHeaders(response);
 							
@@ -319,14 +303,13 @@ public class HttpAuthenticator implements Authenticator {
 
 							logger.log(Level.SEVERE, "Could not set session id for user {0}", user.toString());
 
+						} finally {
+							
+							app.finishTx();
 						}
-
 					}
-
 				}
-					
 			}
-			
 		}
 
 		try {

@@ -1,24 +1,21 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Structr, c/o Morgner UG (haftungsbeschränkt) <structr@structr.org>
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
-
 package org.structr.websocket.command;
 
 import java.util.List;
@@ -27,14 +24,12 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
+import org.structr.core.GraphObject;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.DeleteNodeCommand;
-import org.structr.core.graph.NodeAttribute;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.web.entity.Widget;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
@@ -59,66 +54,63 @@ public class ReplaceWidgetCommand extends AbstractCommand {
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
-		final String id				= webSocketData.getId();
-		String pageId				= webSocketData.getPageId();
-		final Map<String, Object> nodeData	= webSocketData.getNodeData();
-		final String parentId			= (String) nodeData.get("parentId");
-		final String baseUrl			= (String) nodeData.get("widgetHostBaseUrl");
+		final String id	                   = webSocketData.getId();
+		String pageId                      = webSocketData.getPageId();
+		final Map<String, Object> nodeData = webSocketData.getNodeData();
+		final String parentId              = (String) nodeData.get("parentId");
+		final String baseUrl               = (String) nodeData.get("widgetHostBaseUrl");
+		final App app                      = StructrApp.getInstance(getWebSocket().getSecurityContext());
 		
 		final Page page			= getPage(pageId);
 		final AbstractNode origNode	= getNode(id);
 		
-		final CreateNodeCommand createNode = Services.command(getWebSocket().getSecurityContext(), CreateNodeCommand.class);
-		final DeleteNodeCommand deleteNode = Services.command(getWebSocket().getSecurityContext(), DeleteNodeCommand.class);
-		
 		try {
-			Services.command(getWebSocket().getSecurityContext(), TransactionCommand.class).execute(new StructrTransaction<Object>() {
-				
-				@Override
-				public Object execute() throws FrameworkException {
+			
+			app.beginTx();
 
-					DOMNode existingParent = null;
-					if (parentId != null) {
-						// Remove original node from existing parent to ensure correct position
-						existingParent = (DOMNode) getNode(parentId);
-					}
-					
-					// Create temporary parent node
-					DOMNode parent = (Div) createNode.execute(new NodeAttribute(AbstractNode.type, Div.class.getSimpleName()));
-					
-					// Expand source code to widget
-					Widget.expandWidget(getWebSocket().getSecurityContext(), page, parent, baseUrl, nodeData);
+			DOMNode existingParent = null;
+			if (parentId != null) {
+				// Remove original node from existing parent to ensure correct position
+				existingParent = (DOMNode) getNode(parentId);
+			}
 
-					DOMNode newWidget = (DOMNode) parent.getChildNodes().item(0);
-					moveSyncRels((DOMElement) origNode, (DOMElement) newWidget);
-					
-					if (existingParent != null) {
-						existingParent.removeChild((DOMNode) origNode);
+			// Create temporary parent node
+			DOMNode parent = app.create(Div.class);
 
-					}
+			// Expand source code to widget
+			Widget.expandWidget(getWebSocket().getSecurityContext(), page, parent, baseUrl, nodeData);
 
-					deleteRecursively((DOMNode) origNode);
-						
-					// Set uuid of original node to new widget node
-					newWidget.setProperty(AbstractNode.uuid, id);
-					
-					if (existingParent != null) {
-					
-						// Append new widget to existing parent
-						existingParent.appendChild(newWidget);
-					}						
-					
-					// Delete temporary parent node
-					deleteNode.execute(parent);
-					
-					return null;
-					
-				}
-				
-			});
+			DOMNode newWidget = (DOMNode) parent.getChildNodes().item(0);
+			moveSyncRels((DOMElement) origNode, (DOMElement) newWidget);
+
+			if (existingParent != null) {
+				existingParent.removeChild((DOMNode) origNode);
+
+			}
+
+			deleteRecursively((DOMNode) origNode);
+
+			// Set uuid of original node to new widget node
+			newWidget.setProperty(GraphObject.id, id);
+
+			if (existingParent != null) {
+
+				// Append new widget to existing parent
+				existingParent.appendChild(newWidget);
+			}						
+
+			// Delete temporary parent node
+			app.delete(parent);
+
+			app.commitTx();
 			
 		} catch (FrameworkException ex) {
+			
 			logger.log(Level.SEVERE, null, ex);
+			
+		} finally {
+			
+			app.finishTx();
 		}
 
 	}
@@ -139,7 +131,7 @@ public class ReplaceWidgetCommand extends AbstractCommand {
 	 */
 	private void deleteRecursively(final DOMNode node) throws FrameworkException {
 		
-		final DeleteNodeCommand deleteNode = Services.command(getWebSocket().getSecurityContext(), DeleteNodeCommand.class);
+		final DeleteNodeCommand deleteNode = StructrApp.getInstance(getWebSocket().getSecurityContext()).command(DeleteNodeCommand.class);
 		
 		// Delete original node recursively
 		Set<DOMNode> allChildren = DOMNode.getAllChildNodes(node);

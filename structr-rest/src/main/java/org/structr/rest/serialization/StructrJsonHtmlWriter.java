@@ -1,13 +1,29 @@
+/**
+ * Copyright (C) 2010-2014 Structr, c/o Morgner UG (haftungsbeschränkt) <structr@structr.org>
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package org.structr.rest.serialization;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Writer;
-import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
-import org.structr.core.Services;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.module.ModuleService;
 import org.structr.rest.serialization.html.Document;
 import org.structr.rest.serialization.html.Tag;
 import org.structr.rest.serialization.html.attr.Css;
@@ -52,7 +68,7 @@ public class StructrJsonHtmlWriter implements RestWriter {
 	@Override
 	public RestWriter beginDocument(final String baseUrl, final String propertyView) throws IOException {
 		
-		String restPath    = Services.getConfigurationValue(Services.REST_PATH);
+		String restPath    = "/structr/rest"; // FIXME;
 		String currentType = baseUrl.replace(restPath + "/", "").replace("/" + propertyView, "");
 
 		Tag head = doc.block("head");
@@ -64,15 +80,14 @@ public class StructrJsonHtmlWriter implements RestWriter {
 		Tag top  = body.block("div").id("top");
 		Tag ul1  = top.block("ul");
 
-		for (String view : EntityContext.getPropertyViews()) {
+		for (String view : StructrApp.getConfiguration().getPropertyViews()) {
 			
 			ul1.block("li").inline("a").attr(new Href(restPath + "/" + currentType + "/" + view), new If(view.equals(propertyView), new Css("active"))).text(view);
 		}
 		
 		Tag left = body.block("div").id("left");
 
-		ModuleService moduleService = (ModuleService)Services.getService(ModuleService.class);
-		for (String rawType : moduleService.getCachedNodeEntityTypes()) {
+		for (String rawType : StructrApp.getConfiguration().getNodeEntities().keySet()) {
 			
 			left.block("p").inline("a").attr(new Href(restPath + "/" + rawType), new If(rawType.equals(currentType), new Css("active"))).text(rawType);
 		}
@@ -194,6 +209,11 @@ public class StructrJsonHtmlWriter implements RestWriter {
 	@Override
 	public RestWriter value(String value) throws IOException {
 
+		if (!hasName) {
+			
+			currentElement = currentElement.block("li");
+		}
+
 		if ("id".equals(lastName)) {
 
 			currentElement.inline("a").css("id").attr(new Href(value)).text(value);
@@ -213,6 +233,11 @@ public class StructrJsonHtmlWriter implements RestWriter {
 
 	@Override
 	public RestWriter nullValue() throws IOException {
+
+		if (!hasName) {
+			
+			currentElement = currentElement.block("li");
+		}
 		
 		currentElement.inline("span").css("null").text("null");
 		currentElement = currentElement.parent();
@@ -224,6 +249,11 @@ public class StructrJsonHtmlWriter implements RestWriter {
 
 	@Override
 	public RestWriter value(boolean value) throws IOException {
+
+		if (!hasName) {
+			
+			currentElement = currentElement.block("li");
+		}
 		
 		currentElement.inline("span").css("boolean").text(value);
 		currentElement = currentElement.parent();
@@ -235,6 +265,11 @@ public class StructrJsonHtmlWriter implements RestWriter {
 
 	@Override
 	public RestWriter value(double value) throws IOException {
+
+		if (!hasName) {
+			
+			currentElement = currentElement.block("li");
+		}
 		
 		currentElement.inline("span").css("number").text(value);
 		currentElement = currentElement.parent();
@@ -246,6 +281,11 @@ public class StructrJsonHtmlWriter implements RestWriter {
 
 	@Override
 	public RestWriter value(long value) throws IOException {
+
+		if (!hasName) {
+			
+			currentElement = currentElement.block("li");
+		}
 		
 		currentElement.inline("span").css("number").text(value);
 		currentElement = currentElement.parent();
@@ -257,6 +297,11 @@ public class StructrJsonHtmlWriter implements RestWriter {
 
 	@Override
 	public RestWriter value(Number value) throws IOException {
+
+		if (!hasName) {
+			
+			currentElement = currentElement.block("li");
+		}
 		
 		currentElement.inline("span").css("number").text(value);
 		currentElement = currentElement.parent();

@@ -1,41 +1,35 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Structr, c/o Morgner UG (haftungsbeschränkt) <structr@structr.org>
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
 package org.structr.websocket.command;
 
-import java.io.IOException;
 
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.web.common.FileHelper;
 import org.structr.websocket.StructrWebSocket;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 
 //~--- classes ----------------------------------------------------------------
@@ -63,35 +57,19 @@ public class UploadCommand extends AbstractCommand {
 	public void processMessage(WebSocketMessage webSocketData) {
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
+		final App app = StructrApp.getInstance(securityContext);
 		
 		try {
 
-			final String name        = (String) webSocketData.getNodeData().get("name");
-			final String rawData     = (String) webSocketData.getNodeData().get("fileData");
-
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-				@Override
-				public Object execute() throws FrameworkException {
-					
-					try {
-						org.structr.web.entity.File newFile = FileHelper.createFileBase64(securityContext, rawData, null);
-						newFile.setProperty(AbstractNode.name, name);
-						
-						return newFile;
-						
-					} catch (IOException ex) {
-						logger.log(Level.WARNING, "Could not upload file", ex);
-					}
-					
-					return null;
-				
-				}
-				
-			});
+			app.beginTx();
 			
-			// This should trigger setting of lastModifiedDate in any case
-			//getWebSocket().send(MessageBuilder.status().code(200).message(size + " bytes of " + file.getName() + " successfully saved.").build(), true);
+			final String name                   = (String) webSocketData.getNodeData().get("name");
+			final String rawData                = (String) webSocketData.getNodeData().get("fileData");
+			org.structr.web.entity.File newFile = FileHelper.createFileBase64(securityContext, rawData, null);
+			
+			newFile.setProperty(AbstractNode.name, name);
+			
+			app.commitTx();
 
 		} catch (Throwable t) {
 
@@ -101,6 +79,10 @@ public class UploadCommand extends AbstractCommand {
 			getWebSocket().send(MessageBuilder.status().code(400).message("Could not upload file: ".concat((msg != null)
 				? msg
 				: "")).build(), true);
+			
+		} finally {
+			
+			app.finishTx();
 		}
 	}
 

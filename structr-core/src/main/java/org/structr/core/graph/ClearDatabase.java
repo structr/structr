@@ -1,30 +1,27 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Structr, c/o Morgner UG (haftungsbeschränkt) <structr@structr.org>
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
 package org.structr.core.graph;
 
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.tooling.GlobalGraphOperations;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -32,7 +29,9 @@ import org.structr.core.entity.AbstractNode;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
+import org.structr.core.GraphObject;
 import org.structr.core.Result;
+import org.structr.core.app.StructrApp;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -56,7 +55,6 @@ public class ClearDatabase extends NodeServiceCommand {
 
 		if (graphDb != null) {
 
-			final DeleteNodeCommand delNode   = Services.command(securityContext, DeleteNodeCommand.class);
 			final Result<AbstractNode> result = nodeFactory.instantiateAll(GlobalGraphOperations.at(graphDb).getAllNodes());
 			
 			long deletedNodes = bulkGraphOperation(securityContext, result.getResults(), 1000, "ClearDatabase", new BulkGraphOperation<AbstractNode>() {
@@ -65,10 +63,10 @@ public class ClearDatabase extends NodeServiceCommand {
 				public void handleGraphObject(SecurityContext securityContext, AbstractNode node) {
 
 					// Delete only "our" nodes
-					if (node.getProperty(AbstractNode.uuid) != null) {
+					if (node.getProperty(GraphObject.id) != null) {
 
 						try {
-							delNode.execute(node);
+							StructrApp.getInstance(securityContext).delete(node);
 							
 						} catch (FrameworkException fex) {
 							logger.log(Level.WARNING, "Unable to delete node {0}: {1}", new Object[] { node.getUuid(), fex.getMessage() } );

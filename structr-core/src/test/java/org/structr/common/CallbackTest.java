@@ -1,20 +1,20 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Structr, c/o Morgner UG (haftungsbeschränkt) <structr@structr.org>
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.common;
 
@@ -23,19 +23,10 @@ import java.util.logging.Logger;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertTrue;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.property.PropertyMap;
-import org.structr.core.GraphObject;
-import org.structr.core.Services;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Person;
 import org.structr.core.entity.TestEight;
 import org.structr.core.entity.TestFive;
 import org.structr.core.entity.User;
-import org.structr.core.graph.CreateNodeCommand;
-import org.structr.core.graph.DeleteNodeCommand;
 import org.structr.core.graph.NodeAttribute;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 
 /**
  *
@@ -70,18 +61,17 @@ public class CallbackTest extends StructrTest {
 
 // ##################################### test creation callbacks
 			
-			final TestEight test = (TestEight)Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+			TestEight test = null;
+			
+			try {
+				app.beginTx();
+				test = app.create(TestEight.class, new NodeAttribute(TestEight.testProperty, 123));
+				app.commitTx();
 
-				@Override
-				public Object execute() throws FrameworkException {
+			} finally {
 
-					return (TestEight)Services.command(securityContext, CreateNodeCommand.class).execute(
-						new NodeAttribute(AbstractNode.type, TestEight.class.getSimpleName()),
-						new NodeAttribute(TestEight.testProperty, 123)
-					);
-				}
-				
-			});
+				app.finishTx();
+			}
 			
 			// only the creation methods should have been called now!
 			assertTrue("onCreationTimestamp should be != 0", test.getOnCreationTimestamp() != 0L);
@@ -99,18 +89,16 @@ public class CallbackTest extends StructrTest {
 			// reset timestamps
 			test.resetTimestamps();
 			
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-				@Override
-				public Object execute() throws FrameworkException {
-
-					test.setProperty(TestEight.testProperty, 234);
-					
-					return null;
-				}
-				
-			});
+			try {
+				app.beginTx();
+				test.setProperty(TestEight.testProperty, 234);
+				app.commitTx();
 			
+			} finally {
+
+				app.finishTx();
+			}
+
 			// only the modification methods should have been called now!
 			assertEquals("onCreationTimestamp should be == 0", 0L, test.getOnCreationTimestamp());
 			assertTrue("onModificationTimestamp should be != 0", test.getOnModificationTimestamp() != 0L);
@@ -126,18 +114,16 @@ public class CallbackTest extends StructrTest {
 			// reset timestamps
 			test.resetTimestamps();
 			
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-				@Override
-				public Object execute() throws FrameworkException {
-
-					test.setProperty(TestEight.testProperty, 234);
-					
-					return null;
-				}
-				
-			});
+			try {
+				app.beginTx();
+				test.setProperty(TestEight.testProperty, 234);
+				app.commitTx();
 			
+			} finally {
+
+				app.finishTx();
+			}
+
 			// only the creation methods should have been called now!
 			assertEquals("onCreationTimestamp should be == 0", 0L, test.getOnCreationTimestamp());
 			assertEquals("onModificationTimestamp should be == 0", 0L, test.getOnModificationTimestamp());
@@ -154,18 +140,16 @@ public class CallbackTest extends StructrTest {
 			// reset timestamps
 			test.resetTimestamps();
 			
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-				@Override
-				public Object execute() throws FrameworkException {
-
-					Services.command(securityContext, DeleteNodeCommand.class).execute(test);
-					
-					return null;
-				}
-				
-			});
+			try {
+				app.beginTx();
+				app.delete(test);
+				app.commitTx();
 			
+			} finally {
+
+				app.finishTx();
+			}
+
 			// only the creation methods should have been called now!
 			assertEquals("onCreationTimestamp should be == 0", 0L, test.getOnCreationTimestamp());
 			assertEquals("onModificationTimestamp should be == 0", 0L, test.getOnModificationTimestamp());
@@ -185,32 +169,24 @@ public class CallbackTest extends StructrTest {
 	
 	private void testCallbacks(final SecurityContext securityContext) {
 		
-		final PropertyMap properties = new PropertyMap();
-		
 		TestFive entity = null;
 		Integer zero = 0;
 		Integer one  = 1;
 		
-		// set type of new entity
-		properties.put(GraphObject.type, TestFive.class.getSimpleName());
-
 		try {
 
-			entity = Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<TestFive>() {
-
-				@Override
-				public TestFive execute() throws FrameworkException {
-
-					return (TestFive)Services.command(securityContext, CreateNodeCommand.class).execute(properties);
-				}
-
-
-			});
+			app.beginTx();
+			entity = app.create(TestFive.class);
+			app.commitTx();
 			
 			
 		} catch (Throwable t) {
 			
 			t.printStackTrace();
+
+		} finally {
+
+			app.finishTx();
 		}
 
 		assertNotNull("Entity should have been created", entity);
@@ -229,19 +205,16 @@ public class CallbackTest extends StructrTest {
 		try {
 			final TestFive finalEntity = entity;
 			
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-				@Override
-				public Object execute() throws FrameworkException {
-
-					finalEntity.setProperty(TestFive.intProperty, 123);
-					
-					return null;
-				}
-			});
+			app.beginTx();
+			finalEntity.setProperty(TestFive.intProperty, 123);
+			app.commitTx();
 			
 		} catch (Throwable t) {
 			t.printStackTrace();
+
+		} finally {
+
+			app.finishTx();
 		}
 		
 		

@@ -1,23 +1,21 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Structr, c/o Morgner UG (haftungsbeschränkt) <structr@structr.org>
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
 package org.structr.web.converter;
 
 import net.sf.jmimemagic.Magic;
@@ -28,18 +26,16 @@ import org.apache.commons.lang.StringUtils;
 import org.structr.web.common.ImageHelper;
 import org.structr.common.KeyAndClass;
 import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.Services;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.web.entity.Image;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -77,75 +73,72 @@ public class ImageConverter extends PropertyConverter {
 			return false;
 		}
 
+		final App app = StructrApp.getInstance(securityContext);
+		
 		try {
 
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-				@Override
-				public Object execute() throws FrameworkException {
+			app.beginTx();
+			
 					
-					Image img = null;
+			Image img = null;
 
-					try {
-						if (source instanceof byte[]) {
+			try {
+				if (source instanceof byte[]) {
 
-							byte[] data      = (byte[]) source;
-							MagicMatch match = Magic.getMagicMatch(data);
-							String mimeType  = match.getMimeType();
-							
-							if (keyAndClass != null) {
+					byte[] data      = (byte[]) source;
+					MagicMatch match = Magic.getMagicMatch(data);
+					String mimeType  = match.getMimeType();
 
-								img = (Image) ImageHelper.createFile(securityContext, data, mimeType, keyAndClass.getCls());
-								
-							} else {
-								
-								ImageHelper.setImageData((Image) currentObject, data, mimeType);
-								
+					if (keyAndClass != null) {
+
+						img = (Image) ImageHelper.createFile(securityContext, data, mimeType, keyAndClass.getCls());
+
+					} else {
+
+						ImageHelper.setImageData((Image) currentObject, data, mimeType);
+
+					}
+
+				} else if (source instanceof String) {
+
+					String sourceString = (String) source;
+
+					if (StringUtils.isNotBlank(sourceString)) {
+
+						if (keyAndClass != null) {
+
+							// UUID?
+							if (sourceString.length() == 32) {
+
+								img = (Image) ImageHelper.transformFile(securityContext, sourceString, keyAndClass != null ? keyAndClass.getCls() : null);
 							}
 
-						} else if (source instanceof String) {
+							if (img == null) {
 
-							String sourceString = (String) source;
-							
-							if (StringUtils.isNotBlank(sourceString)) {
+								img = (Image) ImageHelper.createFileBase64(securityContext, sourceString, keyAndClass != null ? keyAndClass.getCls() : null);
 
-								if (keyAndClass != null) {
-
-									// UUID?
-									if (sourceString.length() == 32) {
-										
-										img = (Image) ImageHelper.transformFile(securityContext, sourceString, keyAndClass != null ? keyAndClass.getCls() : null);
-									}
-
-									if (img == null) {
-
-										img = (Image) ImageHelper.createFileBase64(securityContext, sourceString, keyAndClass != null ? keyAndClass.getCls() : null);
-
-									}
-									
-								} else {
-									
-									ImageHelper.decodeAndSetFileData((Image) currentObject, sourceString);
-									
-								}
 							}
+
+						} else {
+
+							ImageHelper.decodeAndSetFileData((Image) currentObject, sourceString);
 
 						}
-						
-					} catch (Throwable t) {
-						logger.log(Level.WARNING, "Cannot create image node from given data", t);
 					}
 
-					if (img != null) {
-
-						// manual indexing of UUID needed here to avoid a 404 in the following setProperty call
-						img.updateInIndex();
-						currentObject.setProperty(keyAndClass.getPropertyKey(), img);
-					}
-					
-					return null;
 				}
-			});
+
+			} catch (Throwable t) {
+				logger.log(Level.WARNING, "Cannot create image node from given data", t);
+			}
+
+			if (img != null) {
+
+				// manual indexing of UUID needed here to avoid a 404 in the following setProperty call
+				img.updateInIndex();
+				currentObject.setProperty(keyAndClass.getPropertyKey(), img);
+			}
+					
 
 		} catch (Throwable t) {
 

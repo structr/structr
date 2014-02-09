@@ -1,44 +1,38 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Structr, c/o Morgner UG (haftungsbeschränkt) <structr@structr.org>
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
 package org.structr.core.graph;
 
 import org.neo4j.graphdb.Relationship;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.graphdb.index.IndexHits;
-import static org.structr.common.RelType.SECURITY;
-import org.structr.core.Result;
-import org.structr.core.entity.SecurityRelationship;
-import org.structr.core.property.PropertyMap;
+import org.structr.core.GraphObject;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -49,7 +43,7 @@ import org.structr.core.property.PropertyMap;
  *
  * @author Axel Morgner
  */
-public class RelationshipFactory<T extends AbstractRelationship> extends Factory<Relationship, T> {
+public class RelationshipFactory<T extends RelationshipInterface> extends Factory<Relationship, T> {
 
 	private static final Logger logger = Logger.getLogger(RelationshipFactory.class.getName());
 
@@ -58,95 +52,62 @@ public class RelationshipFactory<T extends AbstractRelationship> extends Factory
 		super(securityContext);
 	}
 
-	//~--- methods --------------------------------------------------------
-
-	public T instantiate(final String combinedRelType) throws FrameworkException {
-
-		Class<T> relClass = EntityContext.getNamedRelationClass(combinedRelType);
-		T newRel          = null;
-
-		if (relClass != null) {
-
-			try {
-				newRel = relClass.newInstance();				
-				newRel.onRelationshipInstantiation();
-				
-			} catch (InstantiationException ex) {
-				logger.log(Level.FINE, "Could not instantiate relationship", ex);
-			} catch (IllegalAccessException ex) {
-				logger.log(Level.SEVERE, "Could not access relationship", ex);
-			}
-
-		}
-
-
-		return newRel;
-	}
-
-	public T instantiate(final PropertyMap properties) throws FrameworkException {
-
-		String combinedRelType = (String) properties.get(AbstractRelationship.combinedType);
-		T newRel               = instantiate(combinedRelType);
-
-		newRel.setProperties(properties);
-
-		return newRel;
+	@Override
+	public T instantiate(final Relationship relationship) throws FrameworkException {
+		return (T) instantiateWithType(relationship, factoryDefinition.determineRelationshipType(relationship), false);
 	}
 
 	@Override
-	public T instantiate(final Relationship relationship) throws FrameworkException {
+	public T instantiateWithType(Relationship relationship, Class<T> relClass, boolean isCreation) throws FrameworkException {
 
+		logger.log(Level.FINEST, "Instantiate relationship with type {0}", relClass.getName());
+		
 		SecurityContext securityContext = factoryProfile.getSecurityContext();
-		Class<T> relClass = null;
 		T newRel          = null;
 
 		try {
 
-			if (relClass == null && relationship.hasProperty(AbstractRelationship.combinedType.dbName())) {
+			newRel = relClass.newInstance();
 
-				// Relationship has a combined type
-				String combinedRelType = (String) relationship.getProperty(AbstractRelationship.combinedType.dbName());
-				newRel = instantiate(combinedRelType);
-
-			} else {
-			
-				// Create combined relationship type on the fly
-				relClass = findNamedRelation(relationship);
-			}
-
-			// 3rd: Try security relationship directly
-			if (newRel == null && relClass == null && SECURITY.name().equals(relationship.getType().name())) {
-				
-				relClass = (Class) SecurityRelationship.class;
-
-			}
-			
-			if (relClass != null && newRel == null) {
-
-				try {
-					newRel = relClass.newInstance();
-				} catch (Throwable t2) {
-					newRel = null;
-				}
-			}
-
-		} catch (Throwable t) { }
+		} catch (Throwable t) {
+			newRel = null;
+		}
 
 		if (newRel == null) {
-			newRel = (T)EntityContext.getFactoryDefinition().createGenericRelationship();
+			newRel = (T)StructrApp.getConfiguration().getFactoryDefinition().createGenericRelationship();
 		}
 
 		newRel.init(securityContext, relationship);
+
+		// try to set correct type property on relationship entity
+		final String type = newRel.getProperty(GraphObject.type);
+		if (type == null || (type != null && !type.equals(relClass.getSimpleName()))) {
+
+			final App app = StructrApp.getInstance();
+
+			try {
+
+				app.beginTx();
+				newRel.unlockReadOnlyPropertiesOnce();
+				newRel.setProperty(GraphObject.type, relClass.getSimpleName());
+				app.commitTx();
+
+			} finally {
+
+				app.finishTx();
+			}
+		}
+		
 		newRel.onRelationshipInstantiation();
 			
 		return newRel;
 	}
 
 	@Override
-	public T adapt(Relationship s) {
+	public T adapt(Relationship relationship) {
 
 		try {
-			return instantiate(s);
+			return instantiate(relationship);
 			
 		} catch (FrameworkException fex) {
 			
@@ -164,7 +125,7 @@ public class RelationshipFactory<T extends AbstractRelationship> extends Factory
 	 */
 	public List<T> instantiate(final Iterable<Relationship> input) throws FrameworkException {
 
-		List<T> rels = new LinkedList<T>();
+		List<T> rels = new LinkedList<>();
 
 		if ((input != null) && input.iterator().hasNext()) {
 
@@ -180,23 +141,6 @@ public class RelationshipFactory<T extends AbstractRelationship> extends Factory
 
 		return rels;
 	}
-	
-	private Class<T> findNamedRelation(Relationship relationship) {
-		
-		String sourceNodeType = (String) relationship.getStartNode().getProperty(AbstractNode.type.dbName());
-		String destNodeType   = (String) relationship.getEndNode().getProperty(AbstractNode.type.dbName());
-
-		
-		Class sourceType = EntityContext.getEntityClassForRawType(sourceNodeType);
-		Class destType   = EntityContext.getEntityClassForRawType(destNodeType);
-		
-		return EntityContext.getNamedRelationClass(sourceType, destType, relationship.getType());
-	}
-
-	@Override
-	public T instantiateWithType(Relationship obj, String nodeType, boolean isCreation) throws FrameworkException {
-		return instantiate(obj);
-	}
 
 	@Override
 	public T instantiate(Relationship obj, boolean includeDeletedAndHidden, boolean publicOnly) throws FrameworkException {
@@ -205,5 +149,34 @@ public class RelationshipFactory<T extends AbstractRelationship> extends Factory
 		factoryProfile.setPublicOnly(publicOnly);
 
 		return instantiate(obj);
+	}
+
+	@Override
+	public T instantiateDummy(final Relationship entity, final String entityType) throws FrameworkException {
+
+		Map<String, Class<? extends RelationshipInterface>> entities = StructrApp.getConfiguration().getRelationshipEntities();
+		Class<T> relClass                                            = (Class<T>)entities.get(entityType);
+		T newRel                                                     = null;
+
+		if (relClass != null) {
+
+			try {
+
+				newRel = relClass.newInstance();
+				newRel.init(factoryProfile.getSecurityContext(), entity);
+				
+				// let rel. know of its instantiation so it can cache its start- and end node ID.
+				newRel.onRelationshipInstantiation();
+
+			} catch (Throwable t) {
+
+				newRel = null;
+
+			}
+
+		}
+
+		return newRel;
+
 	}
 }

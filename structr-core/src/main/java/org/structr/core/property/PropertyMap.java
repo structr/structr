@@ -1,20 +1,20 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Structr, c/o Morgner UG (haftungsbeschränkt) <structr@structr.org>
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core.property;
 
@@ -31,10 +31,11 @@ import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.TypeToken;
-import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
+import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
+import org.structr.schema.SchemaHelper;
 
 /**
  * A container for properties and their values that is used for input/output and database
@@ -46,7 +47,7 @@ public class PropertyMap {
 	
 	private static final Logger logger = Logger.getLogger(PropertyMap.class.getName());
 	
-	protected Map<PropertyKey, Object> properties = new LinkedHashMap<PropertyKey, Object>();
+	protected Map<PropertyKey, Object> properties = new LinkedHashMap<>();
 
 	public PropertyMap() {
 	}
@@ -115,7 +116,7 @@ public class PropertyMap {
 	 */
 	public int contentHashCode(Set<PropertyKey> comparableKeys, boolean includeSystemProperties) {
 		
-		Map<PropertyKey, Object> sortedMap = new TreeMap<PropertyKey, Object>(new PropertyKeyComparator());
+		Map<PropertyKey, Object> sortedMap = new TreeMap<>(new PropertyKeyComparator());
 		int hashCode                       = 42;
 		
 		sortedMap.putAll(properties);
@@ -166,7 +167,7 @@ public class PropertyMap {
 
 				if (key != null) {
 
-					PropertyKey propertyKey     = EntityContext.getPropertyKeyForDatabaseName(entity.getClass(), key);
+					PropertyKey propertyKey     = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(entity.getClass(), key);
 					PropertyConverter converter = propertyKey.databaseConverter(securityContext, entity);
 
 					if (converter != null) {
@@ -207,7 +208,7 @@ public class PropertyMap {
 
 				if (key != null) {
 
-					PropertyKey propertyKey     = EntityContext.getPropertyKeyForDatabaseName(entityType, key);
+					PropertyKey propertyKey     = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(entityType, key);
 					PropertyConverter converter = propertyKey.databaseConverter(securityContext, entity);
 
 					if (converter != null) {
@@ -241,7 +242,7 @@ public class PropertyMap {
 			Object typeName = source.get(AbstractNode.type.jsonName());
 			if (typeName != null) {
 
-				Class<? extends GraphObject> type = EntityContext.getEntityClassForRawType(typeName.toString());
+				Class<? extends GraphObject> type = SchemaHelper.getEntityClassForRawType(typeName.toString());
 				if (type != null) {
 
 					return inputTypeToJavaType(securityContext, type, source);
@@ -273,7 +274,7 @@ public class PropertyMap {
 
 				if (key != null) {
 
-					PropertyKey propertyKey     = EntityContext.getPropertyKeyForJSONName(entity, key);
+					PropertyKey propertyKey     = StructrApp.getConfiguration().getPropertyKeyForJSONName(entity, key);
 					PropertyConverter converter = propertyKey.inputConverter(securityContext);
 
 					if (converter != null) {
@@ -302,7 +303,7 @@ public class PropertyMap {
 	
 	public static Map<String, Object> javaTypeToInputType(SecurityContext securityContext, Class<? extends GraphObject> entity, PropertyMap properties) throws FrameworkException {
 		
-		Map<String, Object> inputTypedProperties = new LinkedHashMap<String, Object>();
+		Map<String, Object> inputTypedProperties = new LinkedHashMap<>();
 		
 		for(Entry<PropertyKey, Object> entry : properties.entrySet()) {
 			

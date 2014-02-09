@@ -1,43 +1,61 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Structr, c/o Morgner UG (haftungsbeschränkt) <structr@structr.org>
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
-
 package org.structr.web.entity;
 
-import org.neo4j.graphdb.Direction;
 
-import org.structr.web.common.RelType;
+import java.util.List;
 import org.structr.core.entity.LinkedTreeNode;
-import org.structr.core.property.CollectionProperty;
-import org.structr.core.property.EntityProperty;
+import org.structr.core.property.CollectionIdProperty;
+import org.structr.core.property.EndNode;
+import org.structr.core.property.EndNodes;
+import org.structr.core.property.EntityIdProperty;
+import org.structr.core.property.Property;
+import org.structr.core.property.StartNode;
+import org.structr.web.entity.relation.FileChildren;
+import org.structr.web.entity.relation.FileSiblings;
+import org.structr.web.entity.relation.Folders;
 
 /**
  * Base class for filesystem objects in structr.
  *
  * @author Christian Morgner
  */
-public class AbstractFile extends LinkedTreeNode {
+public class AbstractFile extends LinkedTreeNode<FileChildren, FileSiblings, AbstractFile> {
+	
+	public static final Property<List<AbstractFile>> children  = new EndNodes<>("children", FileChildren.class);
+	public static final Property<Folder> parent                = new StartNode<>("parent", Folders.class);
+	public static final Property<AbstractFile> previousSibling = new StartNode<>("previousSibling", FileSiblings.class);
+	public static final Property<AbstractFile> nextSibling     = new EndNode<>("nextSibling", FileSiblings.class);
+	 
+	public static final Property<List<String>> childrenIds     = new CollectionIdProperty("childrenIds", children);
+	public static final Property<String> nextSiblingId         = new EntityIdProperty("nextSiblingId", nextSibling);
+ 
+	public static final Property<String> parentId              = new EntityIdProperty("parentId", parent);
 
-	public static final EntityProperty<AbstractFile> previousSibling = new EntityProperty<>("previousSibling", AbstractFile.class, RelType.CONTAINS_NEXT_SIBLING, Direction.INCOMING, false);
-	public static final EntityProperty<AbstractFile> nextSibling     = new EntityProperty<>("nextSibling", AbstractFile.class, RelType.CONTAINS_NEXT_SIBLING, Direction.OUTGOING, false);
-	public static final CollectionProperty<AbstractFile> children    = new CollectionProperty<>("children", AbstractFile.class, RelType.CONTAINS, Direction.OUTGOING, true);
-	public static final EntityProperty<Folder> parent                = new EntityProperty<>("parent", Folder.class, RelType.CONTAINS, Direction.INCOMING, true);
-
+	
+	@Override
+	public Class<FileChildren> getChildLinkType() {
+		return FileChildren.class;
+	}
+	
+	@Override
+	public Class<FileSiblings> getSiblingLinkType() {
+		return FileSiblings.class;
+	}
 }

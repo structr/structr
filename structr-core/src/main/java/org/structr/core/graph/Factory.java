@@ -1,20 +1,20 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Structr, c/o Morgner UG (haftungsbeschränkt) <structr@structr.org>
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core.graph;
 
@@ -23,21 +23,23 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.index.IndexHits;
+import org.neo4j.helpers.Function;
 import org.structr.common.FactoryDefinition;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.IdNotFoundToken;
 import org.structr.core.Adapter;
-import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
+import org.structr.core.app.StructrApp;
+import org.structr.schema.SchemaHelper;
 
 /**
  *
  * @author Christian Morgner
  */
 
-public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T> {
+public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>, Function<S, T> {
 
 	private static final Logger logger = Logger.getLogger(Factory.class.getName());
 	
@@ -51,7 +53,7 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 	public static final int RESULT_COUNT_ACCURATE_LIMIT	= 5000;
 	
 	// encapsulates all criteria for node creation
-	protected FactoryDefinition factoryDefinition = EntityContext.getFactoryDefinition();
+	protected FactoryDefinition factoryDefinition = StructrApp.getConfiguration().getFactoryDefinition();
 	protected FactoryProfile factoryProfile       = null;
 	
 	public Factory(final SecurityContext securityContext) {
@@ -79,10 +81,11 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 	
 	public abstract T instantiate(final S obj) throws FrameworkException;
 	
-	public abstract T instantiateWithType(final S obj, final String nodeType, boolean isCreation) throws FrameworkException;
+	public abstract T instantiateWithType(final S obj, final Class<T> type, boolean isCreation) throws FrameworkException;
 	
 	public abstract T instantiate(final S obj, final boolean includeDeletedAndHidden, final boolean publicOnly) throws FrameworkException;
-	
+
+	public abstract T instantiateDummy(final S entity, final String entityType) throws FrameworkException;
 
 	/**
 	 * Create structr nodes from all given underlying database nodes
@@ -138,7 +141,7 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 	 */
 	public List<T> bulkInstantiate(final Iterable<S> input) throws FrameworkException {
 
-		List<T> nodes = new LinkedList<T>();
+		List<T> nodes = new LinkedList<>();
 
 		if ((input != null) && input.iterator().hasNext()) {
 
@@ -169,6 +172,14 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 		return null;
 	}
 
+	@Override
+	public T apply(final S from) {
+		return adapt(from);
+	}
+
+	protected Class<T> getClassForName(final String rawType) {
+		return SchemaHelper.getEntityClassForRawType(rawType);
+	}
 
 	// <editor-fold defaultstate="collapsed" desc="private methods">
 	protected List<S> read(final Iterable<S> it) {
@@ -190,7 +201,7 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 		final int pageSize       = Math.min(size, factoryProfile.getPageSize());
 		final int page           = factoryProfile.getPage();
 		final String offsetId    = factoryProfile.getOffsetId();
-		List<T> elements         = new LinkedList<T>();
+		List<T> elements         = new LinkedList<>();
 		int position             = 0;
 		int count                = 0;
 		int offset               = 0;
@@ -234,7 +245,7 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 
 		}
 
-		if (!gotOffset) {
+		if (!nodesUpToOffset.isEmpty() && !gotOffset) {
 
 			throw new FrameworkException("offsetId", new IdNotFoundToken(offsetId));
 		}
@@ -305,7 +316,7 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 
 			fromIndex = Math.max(0, size + (page * pageSize));
 
-			final List<T> nodes = new LinkedList<T>();
+			final List<T> nodes = new LinkedList<>();
 			int toIndex         = Math.min(size, fromIndex + pageSize);
 
 			for (S n : rawNodes.subList(fromIndex, toIndex)) {
@@ -333,11 +344,11 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 
 	protected Result page(final IndexHits<S> input, final int overallResultCount, final int offset, final int pageSize) throws FrameworkException {
 
-		final List<T> nodes = new LinkedList<T>();
-		int position		= 0;
-		int count		= 0;
-		int overallCount	= 0;
-		boolean pageFull	= false;
+		final List<T> nodes = new LinkedList<>();
+		int position	    = 0;
+		int count	    = 0;
+		int overallCount    = 0;
+		boolean pageFull    = false;
 		
 		SecurityContext securityContext = factoryProfile.getSecurityContext();
 		
@@ -547,5 +558,4 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 	}
 
 	// </editor-fold>
-
 }

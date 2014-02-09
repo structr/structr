@@ -1,20 +1,20 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Structr, c/o Morgner UG (haftungsbeschränkt) <structr@structr.org>
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.web.common;
 
@@ -23,19 +23,10 @@ import com.jayway.restassured.RestAssured;
 import java.io.ByteArrayOutputStream;
 import org.apache.commons.io.FileUtils;
 
-import org.neo4j.graphdb.RelationshipType;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.graph.CreateNodeCommand;
-import org.structr.core.graph.CreateRelationshipCommand;
-import org.structr.core.graph.DeleteNodeCommand;
-import org.structr.core.graph.FindNodeCommand;
 import org.structr.core.graph.GraphDatabaseCommand;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -47,16 +38,24 @@ import java.net.URL;
 import java.nio.charset.Charset;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 import junit.framework.TestCase;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.servlet.ServletHolder;
-import org.structr.Ui;
+import org.structr.common.PropertyView;
 import org.structr.core.property.PropertyMap;
 import org.structr.common.SecurityContext;
+import org.structr.common.StructrConf;
+import org.structr.core.Services;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.GenericNode;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.log.ReadLogCommand;
+import org.structr.core.log.WriteLogCommand;
 import org.structr.files.ftp.FtpService;
-import org.structr.server.Structr;
+import org.structr.module.JarConfigurationProvider;
+import org.structr.rest.service.HttpService;
+import org.structr.rest.servlet.JsonRestServlet;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.servlet.HtmlServlet;
 import org.structr.websocket.servlet.WebSocketServlet;
@@ -76,19 +75,17 @@ public class StructrUiTest extends TestCase {
 
 	//~--- fields ---------------------------------------------------------
 
-	protected Map<String, String> context = new ConcurrentHashMap<String, String>(20, 0.9f, 8);
-	protected CreateNodeCommand createNodeCommand;
-	protected CreateRelationshipCommand createRelationshipCommand;
-	protected DeleteNodeCommand deleteNodeCommand;
-	protected FindNodeCommand findNodeCommand;
-	protected GraphDatabaseCommand graphDbCommand;
-	protected SecurityContext securityContext;
-	protected TransactionCommand transactionCommand;
+	protected StructrConf config                 = new StructrConf();
+	protected GraphDatabaseCommand graphDbCommand = null;
+	protected SecurityContext securityContext     = null;
+	protected ReadLogCommand readLogCommand;
+	protected WriteLogCommand writeLogCommand;
+
+	protected App app = null;
 
 	// the jetty server
 	private boolean running = false;
-	private Server server;
-	private String basePath;
+	protected String basePath;
 	
 	protected static final String prot = "http://";
 //	protected static final String contextPath = "/";
@@ -97,6 +94,7 @@ public class StructrUiTest extends TestCase {
 	protected static final String wsUrl = "/structr/ws";
 	protected static final String host = "localhost";
 	protected static final int httpPort = 8875;
+	protected static final int ftpPort = 8876;
 	
 	protected static String baseUri;
 	
@@ -115,73 +113,100 @@ public class StructrUiTest extends TestCase {
 	
 	//~--- methods --------------------------------------------------------
 
-	protected void init() {
+	@Override
+	protected void setUp() throws Exception {
 
-		String name = "structr-ui-test-" + System.nanoTime();
+		config = Services.getBaseConfiguration();
 		
-		// set up base path
-		basePath = "/tmp/" + name;
+		final Date now           = new Date();
+		final long timestamp     = now.getTime();
 		
-		try {
+		basePath = "/tmp/structr-test-" + timestamp;
 
-			// HTML Servlet
-			HtmlServlet htmlServlet = new HtmlServlet();
-			ServletHolder htmlServletHolder = new ServletHolder(htmlServlet);
-			Map<String, String> htmlInitParams = new HashMap<String, String>();
+		// enable "just testing" flag to avoid JAR resource scanning
+		config.setProperty(Services.TESTING, "true");
+		
+		config.setProperty(Services.CONFIGURATION, JarConfigurationProvider.class.getName());
+		config.setProperty(Services.CONFIGURED_SERVICES, "NodeService LogService FtpService HttpService");
+		config.setProperty(Services.TMP_PATH, "/tmp/");
+		config.setProperty(Services.BASE_PATH, basePath);
+		config.setProperty(Services.DATABASE_PATH, basePath + "/db");
+		config.setProperty(Services.FILES_PATH, basePath + "/files");
+		config.setProperty(Services.LOG_DATABASE_PATH, basePath + "/logDb.dat");
+		config.setProperty(Services.TCP_PORT, "13465");
+		config.setProperty(Services.UDP_PORT, "13466");
+		config.setProperty(Services.SUPERUSER_USERNAME, "superadmin");
+		config.setProperty(Services.SUPERUSER_PASSWORD, "sehrgeheim");
 
-			htmlInitParams.put("Authenticator", "org.structr.web.auth.HttpAuthenticator");
-			htmlServletHolder.setInitParameters(htmlInitParams);
-			htmlServletHolder.setInitOrder(1);
+		config.setProperty(FtpService.APPLICATION_FTP_PORT, Integer.toString(ftpPort));
+		
+		// configure servlets
+		config.setProperty(HttpService.APPLICATION_TITLE, "structr unit test app" + timestamp);
+		config.setProperty(HttpService.APPLICATION_HOST, host);
+		config.setProperty(HttpService.APPLICATION_HTTP_PORT, Integer.toString(httpPort));
+		config.setProperty(HttpService.SERVLETS, "JsonRestServlet WebSocketServlet CsvServlet HtmlServlet");
+
+		config.setProperty("JsonRestServlet.class", JsonRestServlet.class.getName());
+		config.setProperty("JsonRestServlet.path", restUrl);
+		config.setProperty("JsonRestServlet.resourceprovider", UiResourceProvider.class.getName());
+		config.setProperty("JsonRestServlet.authenticator", UiAuthenticator.class.getName());
+		config.setProperty("JsonRestServlet.user.class", "");
+		config.setProperty("JsonRestServlet.user.autocreate", "false");
+		config.setProperty("JsonRestServlet.defaultview", PropertyView.Public);
+		config.setProperty("JsonRestServlet.outputdepth", "3");
+		
+		config.setProperty("WebSocketServlet.class", WebSocketServlet.class.getName());
+		config.setProperty("WebSocketServlet.path", wsUrl);
+		config.setProperty("WebSocketServlet.resourceprovider", UiResourceProvider.class.getName());
+		config.setProperty("WebSocketServlet.authenticator", UiAuthenticator.class.getName());
+		config.setProperty("WebSocketServlet.user.class", "");
+		config.setProperty("WebSocketServlet.user.autocreate", "false");
+		config.setProperty("WebSocketServlet.defaultview", PropertyView.Public);
+		config.setProperty("WebSocketServlet.outputdepth", "3");
+
+//		config.setProperty("CsvServlet.class", CsvServlet.class.getName());
+//		config.setProperty("CsvServlet.path", csvUrl);
+//		config.setProperty("CsvServlet.resourceprovider", UiResourceProvider.class.getName());
+//		config.setProperty("CsvServlet.authenticator", UiAuthenticator.class.getName());
+//		config.setProperty("CsvServlet.user.class", "");
+//		config.setProperty("CsvServlet.user.autocreate", "false");
+//		config.setProperty("CsvServlet.defaultview", PropertyView.Public);
+//		config.setProperty("CsvServlet.outputdepth", "3");
+
+		config.setProperty("HtmlServlet.class", HtmlServlet.class.getName());
+		config.setProperty("HtmlServlet.path", htmlUrl);
+		config.setProperty("HtmlServlet.resourceprovider", UiResourceProvider.class.getName());
+		config.setProperty("HtmlServlet.authenticator", UiAuthenticator.class.getName());
+		config.setProperty("HtmlServlet.user.class", "");
+		config.setProperty("HtmlServlet.user.autocreate", "false");
+		config.setProperty("HtmlServlet.defaultview", PropertyView.Public);
+		config.setProperty("HtmlServlet.outputdepth", "3");
+
+		// Configure resource handlers
+		config.setProperty(HttpService.RESOURCE_HANDLERS, "StructrUiHandler");
+
+		config.setProperty("StructrUiHandler.contextPath", "/structr");
+		config.setProperty("StructrUiHandler.resourceBase", "src/main/resources/structr");
+		config.setProperty("StructrUiHandler.directoriesListed", Boolean.toString(false));
+		config.setProperty("StructrUiHandler.welcomeFiles", "index.html");
+		
+		
+		final Services services = Services.getInstance(config);
+
+		// wait for service layer to be initialized
+		do {
+			try { Thread.sleep(100); } catch(Throwable t) {}
 			
-			// CSV Servlet
-//			CsvServlet csvServlet     = new CsvServlet(DefaultResourceProvider.class.newInstance(), PropertyView.All, AbstractNode.uuid);
-//			ServletHolder csvServletHolder    = new ServletHolder(csvServlet);
-//			Map<String, String> servletParams = new HashMap<String, String>();
-//
-//			servletParams.put("Authenticator", "org.structr.web.auth.HttpAuthenticator");
-//			csvServletHolder.setInitParameters(servletParams);
-//			csvServletHolder.setInitOrder(2);
+		} while (!services.isInitialized());
 
-			// WebSocket Servlet
-			WebSocketServlet wsServlet = new WebSocketServlet(AbstractNode.uuid);
-			ServletHolder wsServletHolder = new ServletHolder(wsServlet);
-			Map<String, String> wsInitParams = new HashMap<String, String>();
-
-			wsInitParams.put("Authenticator", "org.structr.web.auth.UiAuthenticator");
-			wsInitParams.put("IdProperty", "uuid");
-			wsServletHolder.setInitParameters(wsInitParams);
-			wsServletHolder.setInitOrder(3);
-
-			server = Structr.createServer(Ui.class, "structr UI", httpPort)
-
-				.host(host)
-				.basePath(basePath)
-				
-				.addServlet(htmlUrl + "/*", htmlServletHolder)
-				.addServlet(wsUrl + "/*", wsServletHolder)
-				//.addServlet("/structr/csv/*", csvServletHolder)
-			    
-				.addResourceHandler("/structr", "src/main/resources/structr", true, new String[] { "index.html"})
-				
-				.addConfiguredServices(FtpService.class)
-				.ftpPort(8876)
-			    
-				.enableRewriteFilter()
-				//.logRequests(true)
-				
-				.resourceProvider(UiResourceProvider.class)
-				.authenticator(UiAuthenticator.class)
-				
-			    
-				.start(false, true);
-			
-			running = server.isRunning();
-
-		} catch(Throwable t) {
-			
-			t.printStackTrace();
-		}
-
+		securityContext           = SecurityContext.getSuperUserInstance();
+		
+		app = StructrApp.getInstance(securityContext);
+		
+		graphDbCommand            = app.command(GraphDatabaseCommand.class);
+		writeLogCommand           = app.command(WriteLogCommand.class);
+		readLogCommand            = app.command(ReadLogCommand.class);
+		
 	}
 
 	public void test00() {
@@ -190,41 +215,28 @@ public class StructrUiTest extends TestCase {
 	@Override
 	protected void tearDown() throws Exception {
 		
-		if (running) {
+		Services.getInstance().shutdown();
+		
+		File testDir = new File(basePath);
+		int count = 0;
 
-			// stop structr
-			server.stop();
+		// try up to 10 times to delete the directory
+		while (testDir.exists() && count++ < 10) {
 
-			// do we need to wait here? answer: yes!
-			
-			do {
-				try { Thread.sleep(100); } catch(Throwable t) {}
-				
-			} while(!server.isStopped());
+			try {
 
-			server.destroy();
+				if (testDir.isDirectory()) {
 
-			File testDir = new File(basePath);
-			int count = 0;
+					FileUtils.deleteDirectory(testDir);
 
-			// try up to 10 times to delete the directory
-			while (testDir.exists() && count++ < 10) {
-				
-				try {
+				} else {
 
-					if (testDir.isDirectory()) {
+					testDir.delete();
+				}
 
-						FileUtils.deleteDirectory(testDir);
+			} catch(Throwable t) {}
 
-					} else {
-
-						testDir.delete();
-					}
-
-				} catch(Throwable t) {}
-
-				try { Thread.sleep(500); } catch(Throwable t) {}
-			}
+			try { Thread.sleep(500); } catch(Throwable t) {}
 		}
 
 		super.tearDown();
@@ -269,85 +281,72 @@ public class StructrUiTest extends TestCase {
 
 	}
 
-	protected <T extends AbstractNode> List<T> createTestNodes(final Class<T> type, final int number) throws FrameworkException {
+	protected <T extends NodeInterface> List<T> createTestNodes(final Class<T> type, final int number) throws FrameworkException {
 
 		final PropertyMap props = new PropertyMap();
 		props.put(AbstractNode.type, type.getSimpleName());
 
-		return (List<T>) transactionCommand.execute(new StructrTransaction<List<T>>() {
-
-			@Override
-			public List<T> execute() throws FrameworkException {
-
-				List<T> nodes = new LinkedList<>();
-
-				for (int i = 0; i < number; i++) {
-
-					props.put(AbstractNode.name, type.getSimpleName() + i);
-
-					nodes.add((T) createNodeCommand.execute(props));
-				}
-
-				return nodes;
-
+		try {
+			List<T> nodes = new LinkedList<>();
+			
+			app.beginTx();
+			for (int i = 0; i < number; i++) {
+				props.put(AbstractNode.name, type.getSimpleName() + i);
+				nodes.add(app.create(type, props));
 			}
+			app.commitTx();
 
-		});
-
+			return nodes;
+			
+		} finally {
+			
+			app.finishTx();
+		}
 	}
 
-	protected List<AbstractNode> createTestNodes(final String type, final int number) throws FrameworkException {
-		final PropertyMap props = new PropertyMap();
-		return createTestNodes(type, number, props);
-	}
+	protected <T extends NodeInterface> List<T> createTestNodes(final Class<T> type, final int number, final PropertyMap props) throws FrameworkException {
 
-	protected List<AbstractNode> createTestNodes(final String type, final int number, final PropertyMap props) throws FrameworkException {
+		try {
+			
+			List<T> nodes = new LinkedList<>();
 
-		props.put(AbstractNode.type, type);
-
-		return (List<AbstractNode>) transactionCommand.execute(new StructrTransaction() {
-
-			@Override
-			public Object execute() throws FrameworkException {
-
-				List<AbstractNode> nodes = new LinkedList<>();
-
-				for (int i = 0; i < number; i++) {
-
-					nodes.add((AbstractNode) createNodeCommand.execute(props));
-				}
-
-				return nodes;
-
+			app.beginTx();
+			for (int i = 0; i < number; i++) {
+				nodes.add(app.create(type, props));
 			}
 
-		});
+			app.commitTx();
+			
+			return nodes;
 
+		} finally {
+			
+			app.finishTx();
+		}
 	}
 
-	protected List<AbstractRelationship> createTestRelationships(final RelationshipType relType, final int number) throws FrameworkException {
+	protected List<RelationshipInterface> createTestRelationships(final Class relType, final int number) throws FrameworkException {
 
-		List<AbstractNode> nodes     = createTestNodes("UnknownTestType", 2);
-		final AbstractNode startNode = nodes.get(0);
-		final AbstractNode endNode   = nodes.get(1);
+		List<GenericNode> nodes     = createTestNodes(GenericNode.class, 2);
+		final GenericNode startNode = nodes.get(0);
+		final GenericNode endNode   = nodes.get(1);
 
-		return (List<AbstractRelationship>) transactionCommand.execute(new StructrTransaction() {
 
-			@Override
-			public Object execute() throws FrameworkException {
+		try {
+			List<RelationshipInterface> rels = new LinkedList<>();
 
-				List<AbstractRelationship> rels = new LinkedList<>();
-
-				for (int i = 0; i < number; i++) {
-
-					rels.add((AbstractRelationship) createRelationshipCommand.execute(startNode, endNode, relType));
-				}
-
-				return rels;
-
+			app.beginTx();
+			for (int i = 0; i < number; i++) {
+				rels.add(app.create(startNode, endNode, relType));
 			}
 
-		});
+			return rels;
+
+		} finally {
+			
+			app.finishTx();
+		}
+
 
 	}
 
@@ -369,7 +368,7 @@ public class StructrUiTest extends TestCase {
 
 		String path                = packageName.replace('.', '/');
 		Enumeration<URL> resources = classLoader.getResources(path);
-		List<File> dirs            = new ArrayList<File>();
+		List<File> dirs            = new ArrayList<>();
 
 		while (resources.hasMoreElements()) {
 
@@ -379,7 +378,7 @@ public class StructrUiTest extends TestCase {
 
 		}
 
-		List<Class> classList = new ArrayList<Class>();
+		List<Class> classList = new ArrayList<>();
 
 		for (File directory : dirs) {
 
@@ -390,125 +389,6 @@ public class StructrUiTest extends TestCase {
 
 	}
 
-	//~--- set methods ----------------------------------------------------
-
-	@Override
-	protected void setUp() throws Exception {
-
-		init();
-
-		securityContext           = SecurityContext.getSuperUserInstance();
-		createNodeCommand         = Services.command(securityContext, CreateNodeCommand.class);
-		createRelationshipCommand = Services.command(securityContext, CreateRelationshipCommand.class);
-		deleteNodeCommand         = Services.command(securityContext, DeleteNodeCommand.class);
-		transactionCommand        = Services.command(securityContext, TransactionCommand.class);
-		graphDbCommand            = Services.command(securityContext, GraphDatabaseCommand.class);
-		findNodeCommand           = Services.command(securityContext, FindNodeCommand.class);
-
-	}
-
-	private File checkUrlrewriteConf(String basePath) throws IOException {
-
-		// create and register config file
-		String urlrewritePath = basePath + "/urlwrewrite.xml";
-		File urlrewriteFile   = new File(urlrewritePath);
-
-		// Create structr.conf if not existing
-		if (!urlrewriteFile.exists()) {
-
-			// synthesize a urlrewrite.xml file
-			List<String> config = new LinkedList<String>();
-
-			config.add("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
-			config.add("<!DOCTYPE urlrewrite\n" +
-				"        PUBLIC \"-//tuckey.org//DTD UrlRewrite 3.2//EN\"\n" +
-				"        \"http://www.tuckey.org/res/dtds/urlrewrite3.2.dtd\">");
-			
-			config.add("<urlrewrite>");
-			config.add("    <rule match-type=\"regex\">");
-			config.add("        <name>RedirectToHtmlServlet</name>");
-			config.add("        <condition type=\"request-uri\" operator=\"notequal\">^/structr/</condition>");
-			config.add("        <from>^/(.*)$</from>");
-			config.add("        <to type=\"forward\" last=\"true\">/structr/html/$1</to>");
-			config.add("    </rule>");
-			config.add("</urlrewrite>");
-
-			urlrewriteFile.createNewFile();
-			FileUtils.writeLines(urlrewriteFile, "UTF-8", config);
-		}
-		
-		return urlrewriteFile;		
-	}
-
-	private File checkStructrConf(String basePath, String sourceJarName) throws IOException {
-
-		// create and register config file
-		String confPath = basePath + "/structr.conf";
-		File confFile   = new File(confPath);
-
-		// Create structr.conf if not existing
-		if (!confFile.exists()) {
-
-			// synthesize a config file
-			List<String> config = new LinkedList<String>();
-
-			config.add("##################################");
-			config.add("# structr global config file     #");
-			config.add("##################################");
-			config.add("");
-			
-			if (sourceJarName.endsWith(".jar") || sourceJarName.endsWith(".war")) {
-				
-				config.add("# resources");
-				config.add("resources = " + sourceJarName);
-				config.add("");
-			}
-			
-			config.add("# JSON output nesting depth");
-			config.add("json.depth = 1");
-			config.add("");
-			config.add("# base directory");
-			config.add("base.path = " + basePath);
-			config.add("");
-			config.add("# temp files directory");
-			config.add("tmp.path = /tmp");
-			config.add("");
-			config.add("# database files directory");
-			config.add("database.path = " + basePath + "/db");
-			config.add("");
-			config.add("# binary files directory");
-			config.add("files.path = " + basePath + "/files");
-			config.add("");
-			config.add("# REST server settings");
-			config.add("application.host = " + host);
-			config.add("application.http.port = " + httpPort);
-			config.add("application.rest.path = " + restUrl);
-			config.add("");
-			config.add("application.https.enabled = false");
-			config.add("application.https.port = ");
-			config.add("application.keystore.path = ");
-			config.add("application.keystore.password = ");
-			config.add("");
-			config.add("# SMPT settings");
-			config.add("smtp.host = localhost");
-			config.add("smtp.port = 25");
-			config.add("");
-			config.add("superuser.username = superadmin");
-			config.add("superuser.password = sehrgeheim");
-			config.add("");
-			config.add("# services");
-			config.add("configured.services = ModuleService NodeService");
-			config.add("");
-			config.add("log.requests = false");
-			config.add("log.name = structr-yyyy_mm_dd.request.log");
-
-			confFile.createNewFile();
-			FileUtils.writeLines(confFile, "UTF-8", config);
-		}
-		
-		return confFile;
-	}
-	
 	protected String getUuidFromLocation(String location) {
 		return location.substring(location.lastIndexOf("/") + 1);
 	}

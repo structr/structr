@@ -6,13 +6,13 @@
     <parent>
         <groupId>org.structr</groupId>
         <artifactId>structr</artifactId>
-        <version>0.8.2</version>
+        <version>0.9.0</version>
     </parent>
 
     <groupId>org.structr</groupId>
     <artifactId>structr-ui</artifactId>
     <packaging>jar</packaging>
-    <version>0.8.2</version>
+    <version>0.9.0</version>
     <name>structr-ui</name>
     <description>Structr is an open source framework based on the popular Neo4j graph database.</description>
     <developers>
@@ -69,7 +69,7 @@
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>structr-server</artifactId>
+            <artifactId>structr-rest</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -217,6 +217,16 @@
                         <argument>target/lib/*:target/${project.artifactId}-${project.version}.jar</argument>
                         <argument>org.structr.Ui</argument>
                     </arguments>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.16</version>
+                <configuration>
+                    <forkCount>1</forkCount>
+                    <reuseForks>false</reuseForks>
+                    <argLine>-Xmx1024m -XX:MaxPermSize=256m</argLine>
                 </configuration>
             </plugin>
             <plugin>
@@ -440,7 +450,7 @@
             <name>GNU General Public License, Version 3</name>
             <url>http://www.gnu.org/licenses/agpl-3.0-standalone.html</url>
             <comments>
-                Copyright (C) 2010-2013 Axel Morgner, structr &lt;structr@structr.org&gt;
+                Copyright (C) 2010-2014 Axel Morgner, structr &lt;structr@structr.org&gt;
 
                 This file is part of structr &lt;http://structr.org&gt;.
 

@@ -1,20 +1,20 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Structr, c/o Morgner UG (haftungsbeschränkt) <structr@structr.org>
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core.graph.search;
 
@@ -22,10 +22,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.lucene.search.BooleanQuery;
@@ -72,9 +74,9 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	
 
 	// ----- public command methods -----
-	public Result<T> execute(final boolean includeDeletedAndHidden, final boolean publicOnly, final SearchAttribute... attributes) throws FrameworkException {
+	public Result<T> execute(final boolean includeDeletedAndHidden, final boolean publicOnly, final SearchAttribute<?>... attributes) throws FrameworkException {
 		
-		List<SearchAttribute> attrs = new ArrayList();
+		List<SearchAttribute<?>> attrs = new ArrayList();
 		
 		// DON'T use Arrays.asList here! The result would be a list without add() methods, {@see Arrays#AbstractList}
 		for (SearchAttribute attr : attributes) {
@@ -84,53 +86,53 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		return execute(includeDeletedAndHidden, publicOnly, attrs);
 	}
 
-	public Result<T> execute(final SearchAttribute... attributes) throws FrameworkException {
+	public Result<T> execute(final SearchAttribute<?>... attributes) throws FrameworkException {
 
 		return execute(INCLUDE_DELETED_AND_HIDDEN, PUBLIC_ONLY, attributes);
 	}
 
-	public Result<T> execute(final List<SearchAttribute> searchAttrs) throws FrameworkException {
+	public Result<T> execute(final List<SearchAttribute<?>> searchAttrs) throws FrameworkException {
 		
 		return execute(INCLUDE_DELETED_AND_HIDDEN, PUBLIC_ONLY, searchAttrs);
 	}
 
-	public Result<T> execute(final boolean includeDeletedAndHidden, final List<SearchAttribute> searchAttrs) throws FrameworkException {
+	public Result<T> execute(final boolean includeDeletedAndHidden, final List<SearchAttribute<?>> searchAttrs) throws FrameworkException {
 		
 		return execute(includeDeletedAndHidden, false, searchAttrs);
 	}
 
 	public Result<T> execute(final boolean includeDeletedAndHidden, final boolean publicOnly,
-			      final List<SearchAttribute> searchAttrs) throws FrameworkException {
+			      final List<SearchAttribute<?>> searchAttrs) throws FrameworkException {
 		
 		return execute(includeDeletedAndHidden, publicOnly, searchAttrs, null);
 	}
 
 	public Result<T> execute(final boolean includeDeletedAndHidden, final boolean publicOnly,
-			      final List<SearchAttribute> searchAttrs, final PropertyKey sortKey) throws FrameworkException {
+			      final List<SearchAttribute<?>> searchAttrs, final PropertyKey sortKey) throws FrameworkException {
 		
 		return execute(includeDeletedAndHidden, publicOnly, searchAttrs, sortKey, false);
 	}
 
 	public Result<T> execute(final boolean includeDeletedAndHidden, final boolean publicOnly,
-			      final List<SearchAttribute> searchAttrs, final PropertyKey sortKey, final boolean sortDescending) throws FrameworkException {
+			      final List<SearchAttribute<?>> searchAttrs, final PropertyKey sortKey, final boolean sortDescending) throws FrameworkException {
 		
 		return execute(includeDeletedAndHidden, publicOnly, searchAttrs, sortKey, sortDescending, NodeFactory.DEFAULT_PAGE_SIZE);
 	}
 
 	public Result<T> execute(final boolean includeDeletedAndHidden, final boolean publicOnly,
-			      final List<SearchAttribute> searchAttrs, final PropertyKey sortKey, final boolean sortDescending, final int pageSize) throws FrameworkException {
+			      final List<SearchAttribute<?>> searchAttrs, final PropertyKey sortKey, final boolean sortDescending, final int pageSize) throws FrameworkException {
 		
 		return execute(includeDeletedAndHidden, publicOnly, searchAttrs, sortKey, sortDescending, pageSize, NodeFactory.DEFAULT_PAGE);
 	}
 
 	public Result<T> execute(final boolean includeDeletedAndHidden, final boolean publicOnly,
-			      final List<SearchAttribute> searchAttrs, final PropertyKey sortKey, final boolean sortDescending, final int pageSize, final int page) throws FrameworkException {
+			      final List<SearchAttribute<?>> searchAttrs, final PropertyKey sortKey, final boolean sortDescending, final int pageSize, final int page) throws FrameworkException {
 		
 		return execute(includeDeletedAndHidden, publicOnly, searchAttrs, sortKey, sortDescending, pageSize, page, null);
 	}
 
 	public Result<T> execute(final boolean includeDeletedAndHidden, final boolean publicOnly,
-			      final List<SearchAttribute> searchAttrs, final PropertyKey sortKey, final boolean sortDescending, final int pageSize, final int page, final String offsetId) throws FrameworkException {
+			      final List<SearchAttribute<?>> searchAttrs, final PropertyKey sortKey, final boolean sortDescending, final int pageSize, final int page, final String offsetId) throws FrameworkException {
 
 		return search(includeDeletedAndHidden, publicOnly, searchAttrs, sortKey, sortDescending, pageSize, page, offsetId);
 	}
@@ -151,7 +153,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	 * @param sortType                      The entity type to sort the results (needed for lucene)
 	 * @return
 	 */
-	protected Result<T> search(final boolean includeDeletedAndHidden, final boolean publicOnly, final List<SearchAttribute> searchAttrs, final PropertyKey sortKey, final boolean sortDescending, final int pageSize, final int page, final String offsetId) throws FrameworkException {
+	protected Result<T> search(final boolean includeDeletedAndHidden, final boolean publicOnly, final List<SearchAttribute<?>> searchAttrs, final PropertyKey sortKey, final boolean sortDescending, final int pageSize, final int page, final String offsetId) throws FrameworkException {
 
 		if (page == 0 || pageSize <= 0) {
 
@@ -169,7 +171,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		}
 
 		// At this point, all search attributes are ready
-		List<SourceSearchAttribute> sources    = new ArrayList<SourceSearchAttribute>();
+		List<SourceSearchAttribute> sources    = new ArrayList<>();
 		boolean hasEmptySearchFields           = false;
 		DistanceSearchAttribute distanceSearch = null;
 		GeoCodingResult coords                 = null;
@@ -204,7 +206,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 		// check for optional-only queries
 		// (some query types seem to allow no MUST occurs)
-		for (Iterator<SearchAttribute> it = searchAttrs.iterator(); it.hasNext();) {
+		for (Iterator<SearchAttribute<?>> it = searchAttrs.iterator(); it.hasNext();) {
 
 			SearchAttribute attr = it.next();
 
@@ -279,7 +281,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 				if (coords != null) {
 
-					Map<String, Object> params = new HashMap<String, Object>();
+					Map<String, Object> params = new HashMap<>();
 
 					params.put(LayerNodeIndex.POINT_PARAMETER, coords.toArray());
 					params.put(LayerNodeIndex.DISTANCE_IN_KM_PARAMETER, dist);
@@ -356,23 +358,23 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		if (filterResults) {
 
 			// sorted result set
-			List<GraphObject> finalResult            = new LinkedList<GraphObject>();
-			List<GraphObject> intermediateResultList = intermediateResult.getResults();
-			int resultCount                          = 0;
+			Set<GraphObject> intermediateResultSet = new LinkedHashSet<>(intermediateResult.getResults());
+			List<GraphObject> finalResult          = new LinkedList<>();
+			int resultCount                        = 0;
 
-			if (intermediateResultList.isEmpty()) {
+			if (intermediateResultSet.isEmpty()) {
 				
 				// merge sources according to their occur flag
-				intermediateResultList.addAll(mergeSources(sources));
+				intermediateResultSet.addAll(mergeSources(sources));
 				
 			} else if (!sources.isEmpty()) {
 				
 				// merge sources according to their occur flag
-				intermediateResultList.retainAll(mergeSources(sources));
+				intermediateResultSet.retainAll(mergeSources(sources));
 			}
 
 			// Filter intermediate result
-			for (GraphObject obj : intermediateResultList) {
+			for (GraphObject obj : intermediateResultSet) {
 
 				boolean addToResult = true;
 
@@ -403,10 +405,10 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		}
 	}
 	
-	private List<GraphObject> mergeSources(List<SourceSearchAttribute> sources) {
+	private Set<GraphObject> mergeSources(List<SourceSearchAttribute> sources) {
 		
-		LinkedList<GraphObject> mergedResult = new LinkedList<GraphObject>();
-		boolean alreadyAdded                 = false;
+		Set<GraphObject> mergedResult = new LinkedHashSet<>();
+		boolean alreadyAdded          = false;
 		
 		for (Iterator<SourceSearchAttribute> it = sources.iterator(); it.hasNext();) {
 			

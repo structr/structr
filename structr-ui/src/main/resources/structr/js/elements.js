@@ -240,7 +240,7 @@ var _Elements = {
 
         var btn = $('#delete-all-unattached-nodes')
         btn.on('click', function() {
-            Structr.confirmation('<p>Delete all DOM not bound to a parent DOM element?</p>',
+            Structr.confirmation('<p>Delete all DOM elements without parent?</p>',
                     function() {
                         Command.deleteUnattachedNodes();
                         $.unblockUI({
@@ -407,7 +407,7 @@ var _Elements = {
 
                 if (entity.tag !== 'img') {
 
-                    dialog.append('<p>Click on a Page, File or Image to establish a hyperlink to this ' + entity.tag + ' element.</p>');
+                    dialog.append('<p>Click on a Page, File or Image to establish a hyperlink to this &lt;' + entity.tag + '&gt; element.</p>');
 
                     dialog.append('<h3>Pages</h3><div class="linkBox" id="pagesToLink"></div>');
 

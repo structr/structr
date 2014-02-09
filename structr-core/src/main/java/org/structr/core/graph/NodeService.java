@@ -1,23 +1,21 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Structr, c/o Morgner UG (haftungsbeschränkt) <structr@structr.org>
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
 package org.structr.core.graph;
 
 import org.apache.commons.collections.map.LRUMap;
@@ -31,7 +29,6 @@ import org.neo4j.graphdb.factory.GraphDatabaseFactory;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.helpers.collection.MapUtil;
 import org.neo4j.index.impl.lucene.LuceneIndexImplementation;
-import org.neo4j.kernel.EmbeddedGraphDatabase;
 
 import org.structr.core.Command;
 import org.structr.core.RunnableService;
@@ -48,8 +45,8 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.cypher.javacompat.ExecutionEngine;
-import org.neo4j.graphdb.factory.GraphDatabaseBuilder;
 import org.neo4j.shell.ShellSettings;
+import org.structr.common.StructrConf;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -82,11 +79,12 @@ public class NodeService implements SingletonService {
 	private ExecutionEngine cypherExecutionEngine   = null;
 	
 	// indices
-	private Map<RelationshipIndex, Index<Relationship>> relIndices = new EnumMap<RelationshipIndex, Index<Relationship>>(RelationshipIndex.class);
-	private Map<NodeIndex, Index<Node>> nodeIndices                = new EnumMap<NodeIndex, Index<Node>>(NodeIndex.class);
+	private Map<RelationshipIndex, Index<Relationship>> relIndices = new EnumMap<>(RelationshipIndex.class);
+	private Map<NodeIndex, Index<Node>> nodeIndices                = new EnumMap<>(NodeIndex.class);
 
 	/** Dependent services */
-	private Set<RunnableService> registeredServices = new HashSet<RunnableService>();
+	private Set<RunnableService> registeredServices = new HashSet<>();
+	private String filesPath                        = null;
 	private boolean isInitialized                   = false;
 
 	//~--- constant enums -------------------------------------------------
@@ -122,7 +120,7 @@ public class NodeService implements SingletonService {
 			command.setArgument(RelationshipIndex.rel_fulltext.name(), relFulltextIndex);
 			command.setArgument(RelationshipIndex.rel_keyword.name(), relKeywordIndex);
 
-			command.setArgument("filesPath", Services.getFilesPath());
+			command.setArgument("filesPath", filesPath);
 			
 			command.setArgument("indices", NodeIndex.values());
 			command.setArgument("relationshipIndices", RelationshipIndex.values());
@@ -132,10 +130,11 @@ public class NodeService implements SingletonService {
 	}
 
 	@Override
-	public void initialize(Map<String, String> context) {
+	public void initialize(final StructrConf config) {
 
-//              String dbPath = (String) context.get(Services.DATABASE_PATH);
-		String dbPath = Services.getDatabasePath();
+		final Map<String, String> neo4jConfiguration = new LinkedHashMap<>();
+		final String basePath                        = config.getProperty(Services.BASE_PATH);
+		final String dbPath                          = config.getProperty(Services.DATABASE_PATH);
 
 		logger.log(Level.INFO, "Initializing database ({0}) ...", dbPath);
 
@@ -147,16 +146,23 @@ public class NodeService implements SingletonService {
 
 		}
 
+		// neo4j remote shell configuration
+		if ("true".equals(config.getProperty(Services.NEO4J_SHELL_ENABLED, "false"))) {
+			
+			// enable neo4j remote shell, thanks Michael :)
+			neo4jConfiguration.put(ShellSettings.remote_shell_enabled.name(), "true");
+		}
+		
+		
 		try {
 
-			graphDb = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(dbPath).loadPropertiesFromFile(dbPath + "/neo4j.conf").newGraphDatabase();
+			graphDb = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(dbPath).setConfig(neo4jConfiguration).loadPropertiesFromFile(dbPath + "/neo4j.conf").newGraphDatabase();
 
 		} catch (Throwable t) {
 
 			logger.log(Level.INFO, "Database config {0}/neo4j.conf not found", dbPath);
 
-			// thanks Michael :)
-			graphDb = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(dbPath).setConfig(ShellSettings.remote_shell_enabled, "true").newGraphDatabase();
+			graphDb = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(dbPath).setConfig(neo4jConfiguration).newGraphDatabase();
 
 		}
 
@@ -168,7 +174,7 @@ public class NodeService implements SingletonService {
 
 		}
 
-		String filesPath = Services.getFilesPath();
+		filesPath = config.getProperty(Services.FILES_PATH);
 
 		// check existence of files path
 		File files = new File(filesPath);
@@ -211,13 +217,13 @@ public class NodeService implements SingletonService {
 		logger.log(Level.FINE, "Keyword node index ready.");
 		logger.log(Level.FINE, "Initializing layer index...");
 
-		final Map<String, String> config = new HashMap<String, String>();
+		final Map<String, String> spatialConfig = new HashMap<>();
 
-		config.put(LayerNodeIndex.LAT_PROPERTY_KEY, Location.latitude.dbName());
-		config.put(LayerNodeIndex.LON_PROPERTY_KEY, Location.longitude.dbName());
-		config.put(SpatialIndexProvider.GEOMETRY_TYPE, LayerNodeIndex.POINT_PARAMETER);
+		spatialConfig.put(LayerNodeIndex.LAT_PROPERTY_KEY, Location.latitude.dbName());
+		spatialConfig.put(LayerNodeIndex.LON_PROPERTY_KEY, Location.longitude.dbName());
+		spatialConfig.put(SpatialIndexProvider.GEOMETRY_TYPE, LayerNodeIndex.POINT_PARAMETER);
 
-		layerIndex = new LayerNodeIndex("layerIndex", graphDb, config);
+		layerIndex = new LayerNodeIndex("layerIndex", graphDb, spatialConfig);
 		nodeIndices.put(NodeIndex.layer, layerIndex);
 
 		logger.log(Level.FINE, "Layer index ready.");
@@ -350,4 +356,5 @@ public class NodeService implements SingletonService {
 	public Index<Relationship> getRelationshipIndex(RelationshipIndex name) {
 		return relIndices.get(name);
 	}
+
 }

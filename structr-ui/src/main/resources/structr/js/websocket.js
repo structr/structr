@@ -315,7 +315,6 @@ function connect() {
                 $(result).each(function(i, entity) {
 
                     //var obj = StructrModel.create(entity);
-
                     StructrModel.callCallback(data.callback, entity);
 
                 });

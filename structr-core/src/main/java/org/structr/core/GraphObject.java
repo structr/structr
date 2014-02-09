@@ -1,37 +1,38 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Structr, c/o Morgner UG (haftungsbeschränkt) <structr@structr.org>
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core;
 
-import org.structr.core.property.Property;
-import org.structr.core.property.ISO8601DateProperty;
-import org.structr.core.property.BooleanProperty;
 import java.util.Date;
 import org.neo4j.graphdb.PropertyContainer;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.property.PropertyMap;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.property.BooleanProperty;
+import org.structr.core.property.ISO8601DateProperty;
+import org.structr.core.property.Property;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.core.property.UuidProperty;
+
 
 /**
  * A common base class for {@link AbstractNode} and {@link AbstractRelationship}.
@@ -42,7 +43,7 @@ public interface GraphObject {
 
 	public static final Property<String>  base                        = new StringProperty("base");
 	public static final Property<String>  type                        = new StringProperty("type").readOnly().indexed().writeOnce();
-	public static final Property<String>  uuid                        = new UuidProperty();
+	public static final Property<String>  id                          = new UuidProperty();
 
 	public static final Property<Date>    createdDate                 = new ISO8601DateProperty("createdDate").indexed().unvalidated().readOnly().writeOnce();
 	public static final Property<Date>    lastModifiedDate            = new ISO8601DateProperty("lastModifiedDate").passivelyIndexed().unvalidated().readOnly();
@@ -73,6 +74,13 @@ public interface GraphObject {
 	 */
 	public String getType();
 
+	/**
+	 * Sets the security context to be used by this entity.
+	 * 
+	 * @param securityContext 
+	 */
+	public void setSecurityContext(final SecurityContext securityContext);
+	
 	/**
 	 * Returns the underlying property container for this graph object.
 	 * 
@@ -105,6 +113,16 @@ public interface GraphObject {
 	 * @return the converted, validated, transformed property value
 	 */
 	public <T> T getProperty(final PropertyKey<T> propertyKey);
+	
+	/**
+	 * Returns the (converted, validated, transformed, etc.) property for the given
+	 * property key with the given filter applied to it.
+	 * 
+	 * @param propertyKey the property key to retrieve the value for
+	 * @param filter the filter to apply to all properties
+	 * @return the converted, validated, transformed property value
+	 */
+	public <T> T getProperty(final PropertyKey<T> propertyKey, final org.neo4j.helpers.Predicate<GraphObject> filter);
 	
 	/**
 	 * Returns the property value for the given key as a Comparable
@@ -205,6 +223,15 @@ public interface GraphObject {
 	 * @param securityContext the context in which the modification took place
 	 */
 	public void afterModification(SecurityContext securityContext);
+
+	/**
+	 * Called when an entity was successfully deleted. Please note that this method
+	 * has no access to the database entity since it is called _after_ the successful
+	 * deletion.
+	 * 
+	 * @param securityContext the context in which the deletion took place
+	 */
+	public void afterDeletion(SecurityContext securityContext, PropertyMap properties);
 
 	/**
 	 * Called when the owner of this entity was successfully modified. Please note

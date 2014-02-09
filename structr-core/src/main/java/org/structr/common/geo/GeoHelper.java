@@ -1,20 +1,20 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Structr, c/o Morgner UG (haftungsbeschränkt) <structr@structr.org>
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.common.geo;
 
@@ -23,20 +23,17 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Location;
-import org.structr.core.graph.CreateNodeCommand;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyMap;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.logging.Logger;
 import org.apache.commons.collections.map.LRUMap;
+import org.structr.core.Services;
+import org.structr.core.app.StructrApp;
 import org.structr.core.graph.search.DistanceSearchAttribute;
 
 //~--- classes ----------------------------------------------------------------
@@ -74,15 +71,7 @@ public class GeoHelper {
 		props.put(Location.latitude,  latitude);
 		props.put(Location.longitude, longitude);
 
-		StructrTransaction transaction = new StructrTransaction<AbstractNode>() {
-
-			@Override
-			public AbstractNode execute() throws FrameworkException {
-				return Services.command(SecurityContext.getSuperUserInstance(), CreateNodeCommand.class).execute(props);
-			}
-		};
-
-		return (Location) Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(transaction);
+		return StructrApp.getInstance().create(Location.class, props);
 	}
 
 	public static GeoCodingResult geocode(DistanceSearchAttribute distanceSearch) throws FrameworkException {
@@ -113,7 +102,7 @@ public class GeoHelper {
 	 */
 	public static GeoCodingResult geocode(final String street, final String house, String postalCode, final String city, final String state, final String country) throws FrameworkException {
 		
-		String language        = Services.getConfigurationValue(Services.GEOCODING_LANGUAGE, "de");
+		String language        = Services.getInstance().getConfigurationValue(Services.GEOCODING_LANGUAGE, "de");
 		String cacheKey        = cacheKey(street, house, postalCode, city, state, country, language);
 		GeoCodingResult result = geoCache.get(cacheKey);
 		
@@ -187,7 +176,7 @@ public class GeoHelper {
 
 				if (providerClass == null) {
 
-					String geocodingProvider = Services.getConfigurationValue(Services.GEOCODING_PROVIDER, GoogleGeoCodingProvider.class.getName());
+					String geocodingProvider = StructrApp.getConfigurationValue(Services.GEOCODING_PROVIDER, GoogleGeoCodingProvider.class.getName());
 					providerClass = (Class<GeoCodingProvider>)Class.forName(geocodingProvider);
 				}
 

@@ -463,11 +463,6 @@ StructrFolder.prototype.remove = function() {
 
     folders.append(folderEl);
 
-    folderEl.draggable({
-        revert: 'invalid',
-        containment: '#main',
-        stack: '.folder'
-    });
 }
 
 StructrFolder.prototype.append = function(refNode) {
@@ -496,49 +491,39 @@ StructrFile.prototype.setProperty = function(key, value, recursive, callback) {
 
 StructrFile.prototype.remove = function() {
     var file = this;
-    var parentFolder = StructrModel.obj(file.parent.id);
-    var parentFolderEl = Structr.node(parentFolder.id);
+    
+    if (file.parent) {
+        
+        var parentFolder = StructrModel.obj(file.parent.id);
+        var parentFolderEl = Structr.node(parentFolder.id);
 
-    parentFolder.files = removeFromArray(parentFolder.files, file);
-    if (!parentFolder.files.length && !parentFolder.folders.length) {
-        _Entities.removeExpandIcon(parentFolderEl);
-        enable(parentFolderEl.children('.delete_icon')[0]);
+        parentFolder.files = removeFromArray(parentFolder.files, file);
+        if (!parentFolder.files.length && !parentFolder.folders.length) {
+            _Entities.removeExpandIcon(parentFolderEl);
+            enable(parentFolderEl.children('.delete_icon')[0]);
+        }
+        
+        file.parent = undefined;
     }
-
-    var parentElement = files;
-
 
     var fileEl = Structr.node(file.id);
-    if (!fileEl)
+    if (!fileEl) {
         return;
+    } else {
+        fileEl.remove();
+    }
 
-    _Entities.resetMouseOverState(fileEl);
+    _Files.appendFileElement(this);
 
-    parentElement.append(fileEl);
-
-
-    fileEl.children('.delete_icon').replaceWith('<img title="Delete File ' + file.id + '" '
-            + 'alt="Delete File ' + file.id + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
-
-    fileEl.children('.delete_icon').on('click', function(e) {
-        e.stopPropagation();
-        _Entities.deleteNode(this, file);
-    });
-
-    fileEl.draggable({
-        revert: 'invalid',
-        containment: '#main',
-        stack: 'div'
-    });
 }
 
-StructrFile.prototype.append = function(refNode) {
+StructrFile.prototype.append = function() {
     var file = this;
-    if (refNode) {
-        var parentFolder = StructrModel.obj(refNode.id);
+    if (file.parent) {
+        var parentFolder = StructrModel.obj(file.parent.id);
         parentFolder.files.push(file);
     }
-    StructrModel.expand(_Files.appendFileElement(this, refNode), this);
+    StructrModel.expand(_Files.appendFileElement(this, parentFolder), this);
 }
 
 
@@ -591,8 +576,11 @@ StructrUser.prototype.setProperty = function(key, value, recursive, callback) {
 
 StructrUser.prototype.remove = function() {
     var user = this;
+    
     var group = StructrModel.obj(user.groups[0]);
     var groupEl = Structr.node(group.id);
+
+    user.groups = removeFromArray(user.groups, group);
 
     group.members = removeFromArray(group.members, user);
     if (!group.members.length) {
@@ -600,38 +588,23 @@ StructrUser.prototype.remove = function() {
         enable(groupEl.children('.delete_icon')[0]);
     }
 
-    var parentElement = users;
-
     var userEl = Structr.node(user.id);
-    if (!userEl)
+    if (!userEl) {
         return;
+    } else {
+        userEl.remove();
+    }
 
-    _Entities.resetMouseOverState(userEl);
-
-    parentElement.append(userEl);
-
-    userEl.children('.delete_icon').replaceWith('<img title="Delete User ' + user.id + '" '
-            + 'alt="Delete User ' + user.id + '" class="delete_icon button" src="' + Structr.delete_icon + '">');
-
-    userEl.children('.delete_icon').on('click', function(e) {
-        e.stopPropagation();
-        _Entities.deleteNode(this, user);
-    });
-
-    userEl.draggable({
-        revert: 'invalid',
-        containment: '#main',
-        stack: 'div'
-    });
+    _UsersAndGroups.appendUserElement(this);
 }
 
-StructrUser.prototype.append = function(refNode) {
+StructrUser.prototype.append = function() {
     var user = this;
-    if (refNode) {
-        var group = StructrModel.obj(refNode.id);
-        group.members.push(user);
+    var group = StructrModel.obj(user.groups[0]);
+    if (group) {
+        group.members.push(user.id);
     }
-    StructrModel.expand(_UsersAndGroups.appendUserElement(this, refNode), this);
+    StructrModel.expand(_UsersAndGroups.appendUserElement(this, group), this);
 }
 
 /**************************************
@@ -921,7 +894,7 @@ StructrSearchResult.prototype.append = function() {
 function removeFromArray(array, obj) {
     var newArray = [];
     $.each(array, function(i, el) {
-        if (el.id !== obj.id) {
+        if (el.id !== obj.id && el !== obj.id) {
             newArray.push(el);
         }
     });

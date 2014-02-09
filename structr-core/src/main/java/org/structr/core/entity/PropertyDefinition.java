@@ -1,20 +1,20 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Structr, c/o Morgner UG (haftungsbeschränkt) <structr@structr.org>
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core.entity;
 
@@ -28,32 +28,21 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.lucene.search.BooleanClause.Occur;
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.DynamicRelationshipType;
-import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.graphdb.Node;
+import org.neo4j.helpers.Predicate;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.ValidationHelper;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
-import org.structr.core.Result;
-import org.structr.core.Services;
+import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.experimental.NodeExtender;
 import org.structr.core.graph.NodeService;
-import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.SearchNodeCommand;
-import org.structr.core.notion.Notion;
-import org.structr.core.notion.PropertySetNotion;
-import org.structr.core.property.AbstractRelationProperty;
 import org.structr.core.property.BooleanProperty;
-import org.structr.core.property.CollectionProperty;
 import org.structr.core.property.DoubleProperty;
-import org.structr.core.property.EntityProperty;
 import org.structr.core.property.ISO8601DateProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.LongProperty;
@@ -71,7 +60,7 @@ public class PropertyDefinition<T> extends AbstractNode implements PropertyKey<T
 	
 	private static final Logger logger = Logger.getLogger(PropertyDefinition.class.getName());
 
-	public static final NodeExtender nodeExtender = new NodeExtender(GenericNode.class, "org.structr.core.entity.dynamic");
+	// public static final NodeExtender nodeExtender = new NodeExtender(GenericNode.class, "org.structr.core.entity.dynamic");
 	
 	public static final Property<String>               validationExpression     = new StringProperty("validationExpression");
 	public static final Property<String>               validationErrorMessage   = new StringProperty("validationErrorMessage");
@@ -101,9 +90,9 @@ public class PropertyDefinition<T> extends AbstractNode implements PropertyKey<T
 	);
 	
 	// ----- private members -----
-	private static final Map<String, Map<String, PropertyDefinition>> dynamicTypes = new ConcurrentHashMap<String, Map<String, PropertyDefinition>>();
-	private static final Map<String, Class<? extends PropertyKey>> delegateMap     = new LinkedHashMap<String, Class<? extends PropertyKey>>();
-	private List<PropertyValidator> validators                                     = new LinkedList<PropertyValidator>();
+	private static final Map<String, Map<String, PropertyDefinition>> dynamicTypes = new ConcurrentHashMap<>();
+	private static final Map<String, Class<? extends PropertyKey>> delegateMap     = new LinkedHashMap<>();
+	private List<PropertyValidator> validators                                     = new LinkedList<>();
 	private Class declaringClass                                                   = null;
 	private PropertyKey<T> delegate                                                = null;
 
@@ -116,8 +105,8 @@ public class PropertyDefinition<T> extends AbstractNode implements PropertyKey<T
 		delegateMap.put("Double",     DoubleProperty.class);
 		delegateMap.put("Boolean",    BooleanProperty.class);
 		delegateMap.put("Date",       ISO8601DateProperty.class);
-		delegateMap.put("Collection", CollectionProperty.class);
-		delegateMap.put("Entity",     EntityProperty.class);
+//		delegateMap.put("Collection", EndNodes.class);
+//		delegateMap.put("Entity",     End.class);
 	}
 	
 	public static void clearPropertyDefinitions() {
@@ -330,6 +319,16 @@ public class PropertyDefinition<T> extends AbstractNode implements PropertyKey<T
 	}
 
 	@Override
+	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
+		
+		if (delegate != null) {
+			return delegate.getProperty(securityContext, obj, applyConverter, predicate);
+		}
+		
+		return null;
+	}
+
+	@Override
 	public void setProperty(SecurityContext securityContext, GraphObject obj, T value) throws FrameworkException {
 		
 		if (delegate != null) {
@@ -388,7 +387,8 @@ public class PropertyDefinition<T> extends AbstractNode implements PropertyKey<T
 	
 	// ----- private methods -----
 	private void initialize() {
-		
+	
+		/*
 		if (delegate == null) {
 			
 			String _kind        = super.getProperty(PropertyDefinition.kind);
@@ -409,7 +409,7 @@ public class PropertyDefinition<T> extends AbstractNode implements PropertyKey<T
 				
 				if (keyClass != null) {
 
-					if (AbstractRelationProperty.class.isAssignableFrom(keyClass)) {
+					if (EndNodes.class.isAssignableFrom(keyClass) || End.class.isAssignableFrom(keyClass)) {
 					
 						try {
 
@@ -429,7 +429,7 @@ public class PropertyDefinition<T> extends AbstractNode implements PropertyKey<T
 							           );
 
 							// register property
-							EntityContext.registerProperty(dataClass, delegate);
+							// StructrApp.getConfiguration().registerProperty(dataClass, delegate);
 
 						} catch (Throwable t) {
 
@@ -444,7 +444,7 @@ public class PropertyDefinition<T> extends AbstractNode implements PropertyKey<T
 							delegate = keyClass.getConstructor(String.class).newInstance(_name);
 
 							// register property
-							EntityContext.registerProperty(dataClass, delegate);
+							// StructrApp.getConfiguration().registerProperty(dataClass, delegate);
 
 						} catch (Throwable t) {
 
@@ -456,6 +456,7 @@ public class PropertyDefinition<T> extends AbstractNode implements PropertyKey<T
 				delegate.setDeclaringClass(dataClass);
 			}
 		}
+		*/
 	}
 
 	// ----- static methods -----
@@ -464,13 +465,9 @@ public class PropertyDefinition<T> extends AbstractNode implements PropertyKey<T
 		if (dynamicTypes.isEmpty()) {
 			
 			try {
-				SecurityContext securityContext = SecurityContext.getSuperUserInstance();
-
-				Result<PropertyDefinition> propertyDefinitions = Services.command(securityContext, SearchNodeCommand.class).execute(
-					Search.andExactType(PropertyDefinition.class)
-				);
-
-				for (PropertyDefinition def : propertyDefinitions.getResults()) {
+				final List<PropertyDefinition> propertyDefinitions = StructrApp.getInstance().nodeQuery(PropertyDefinition.class).getAsList();
+				for (PropertyDefinition def : propertyDefinitions) {
+					
 					getPropertyDefinitionsForKind(def.getProperty(PropertyDefinition.kind)).put(def.dbName(), def);
 				}
 
@@ -486,7 +483,7 @@ public class PropertyDefinition<T> extends AbstractNode implements PropertyKey<T
 		Map<String, PropertyDefinition> definitionsForKind = dynamicTypes.get(kind);
 		if (definitionsForKind == null) {
 			
-			definitionsForKind = new ConcurrentHashMap<String, PropertyDefinition>();
+			definitionsForKind = new ConcurrentHashMap<>();
 			dynamicTypes.put(kind, definitionsForKind);
 		}
 		

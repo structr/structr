@@ -71,11 +71,11 @@ function drawGraph(id) {
     $(window).resize(function() {
         resizeCanvas();
     });
-    headers = {
-        'X-StructrSessionToken': token
-    };
+//    headers = {
+//        'X-StructrSessionToken': token
+//    };
     if (id) {
-        graph.render(id, 0, [canvas.w / 2, canvas.h / 2]);
+        graph.renderNode(id, 0, [canvas.w / 2, canvas.h / 2]);
     }
 }
 
@@ -94,7 +94,7 @@ function Graph(element) {
             if (!isIn(type, graph.hiddenRelationshipTypes)) {
                 graph.hiddenRelationshipTypes.push(type);
                 $.each(graph.relationships, function(k, rel) {
-                    if (rel.type === type) {
+                    if (simpleType(rel.type) === type || simpleType(rel.relType) === type) {
                         delete graph.relationships[rel.id];
                     }
                 });
@@ -114,18 +114,18 @@ function Graph(element) {
         graph.nodes = {};
         graph.relationships = {};
         $.each(tmpNodes, function(i, node) {
-            graph.render(node.id, node.depth, node.pos);
+            graph.renderNode(node.id, node.depth, node.pos);
         });
-        graph.redrawRelationships();
+        //graph.redrawRelationships();
     };
 
-    this.render = function(nodeId, depth, pos, callback) {
+    this.renderNode = function(nodeId, depth, pos, callback) {
         if (!nodeId || depth > maxDepth || graph.hasNode(nodeId)) {
             return;
         }
         graph.nodeIds.push(nodeId);
         $.ajax({
-            headers: headers,
+            //headers: headers,
             url: rootUrl + nodeId + '/ui',
             dataType: "json",
             success: function(data) {
@@ -141,7 +141,7 @@ function Graph(element) {
                 if (callback) {
                     callback();
                 }
-            }
+            }                                                                                                                                                       
         });
     };
 
@@ -170,11 +170,11 @@ function Graph(element) {
         graph.nodeIds.splice(i,1);
         delete graph.nodes[node.id];
         $.each(graph.relationships, function(i, rel) {
-            if (node.id === rel.startNodeId || node.id === rel.endNodeId) {
+            if (node.id === rel.sourceId || node.id === rel.targetId) {
                 delete graph.relationships[rel.id];
             }
         });
-        graph.render(node.id, 0, pos);
+        graph.renderNode(node.id, 0, pos);
     };
 
 
@@ -193,40 +193,46 @@ function Graph(element) {
 
     this.renderRelationships = function(nodeId, direction, depth, pos) {
         $.ajax({
-            headers: headers,
+            //headers: headers,
             url: rootUrl + nodeId + '/' + direction,
             dataType: "json",
             success: function(data) {
-                if (!data || data.length === 0 || !data.result) {
+                if (!data || data.length === 0 || !data.result || !data.result.length) {
                     return;
                 }
                 var results = data.result;
-                for (var i = 0; i < Math.min(maxRels, results.length); i++) {
+                var count = 0, i = 0;
+                while (i < results.length && count < maxRels) {
                     var r = results[i];
-                    var type = simpleType(r.combinedType);
+                    i++;
+                    var type = simpleType(r.relType || r.type);
                     if (!isIn(type, graph.relationshipTypes)) {
                         graph.addRelType(type);
                     }
-                    if (graph.hasRelationship(r.id) || isIn(type, graph.hiddenRelationshipTypes)) {
+                    if (!type || graph.hasRelationship(r.id) || isIn(type, graph.hiddenRelationshipTypes)) {
+                        //console.log('not rendering rel of type', type, graph.hasRelationship(r.id), isIn(type, graph.hiddenRelationshipTypes))
                         continue;
                     }
-                    var rel;
+                    
                     if (direction === 'out') {
-                        if (!(graph.hasNode(r.endNodeId))) {
-                            graph.render(r.endNodeId, depth + 1, nextPos(pos, canvas.h / (depth + 3)));
+                        if (!(graph.hasNode(r.targetId))) {
+                            graph.renderNode(r.targetId, depth + 1, nextPos(pos, canvas.h / (depth + 3)), function() {
+                                graph.addRelationship(new Relationship(graph, r.id, type, r.sourceId, r.targetId));
+                            });
+                        } else {
+                            graph.addRelationship(new Relationship(graph, r.id, type, r.sourceId, r.targetId));
                         }
-                        rel = new Relationship(graph, r.id, type, nodeId, r.endNodeId);
                     } else if (direction === 'in') {
-
-                        if (!(graph.hasNode(r.startNodeId))) {
-                            graph.render(r.startNodeId, depth + 1, nextPos(pos, canvas.h / (depth + 3)));
+                       if (!(graph.hasNode(r.sourceId))) {
+                            graph.renderNode(r.sourceId, depth + 1, nextPos(pos, canvas.h / (depth + 3)), function() {
+                                graph.addRelationship(new Relationship(graph, r.id, type, r.sourceId, r.targetId));
+                            });
+                        } else {
+                            graph.addRelationship(new Relationship(graph, r.id, type, r.sourceId, r.targetId));
                         }
-                        rel = new Relationship(graph, r.id, type, r.startNodeId, nodeId);
                     }
-                    graph.addRelationship(rel);
-
+                    count++;
                 }
-                graph.redrawRelationships();
             }
         });
     };
@@ -242,8 +248,9 @@ function resizeCanvas() {
 }
 
 function simpleType(combinedType) {
-    if (!combinedType || !combinedType.contains(' ')) {
-        return combinedType;
+    if (!combinedType) return combinedType;
+    if (!combinedType.contains(' ')) {
+        return combinedType.toUpperCase();
     }
-    return combinedType.split(' ')[1];
+    return combinedType.split(' ')[1].toUpperCase();
 }

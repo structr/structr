@@ -1,23 +1,21 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Structr, c/o Morgner UG (haftungsbeschränkt) <structr@structr.org>
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
 package org.structr.core.graph.search;
 
 import org.apache.commons.lang.StringUtils;
@@ -26,12 +24,8 @@ import org.apache.commons.lang.StringUtils;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.RelationshipMapping;
-import org.structr.core.module.ModuleService;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -45,7 +39,13 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.lucene.search.BooleanClause.Occur;
+import org.structr.core.GraphObject;
 import org.structr.core.Result;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.Relation;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
+import org.structr.schema.ConfigurationProvider;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -100,24 +100,23 @@ public abstract class Search {
 
 	//~--- methods --------------------------------------------------------
 
-	private static List<SearchAttribute> getExactTypeAndSubtypesInternal(final Class type, final boolean isExactMatch) {
+	private static List<SearchAttribute> getTypeAndSubtypesInternal(final Class type, final boolean isExactMatch) {
 
-		List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
-
-		ModuleService moduleService = Services.getService(ModuleService.class);
-		Map<String, Class> entities = moduleService.getCachedNodeEntities();
+		final ConfigurationProvider configuration                             = StructrApp.getConfiguration();
+		final Map<String, Class<? extends NodeInterface>> nodeEntities        = configuration.getNodeEntities();
+		final Map<String, Class<? extends RelationshipInterface>> relEntities = configuration.getRelationshipEntities();
+		final List<SearchAttribute> attrs                                     = new LinkedList<>();
 
 		if (type == null) {
 
-			// no entity class for the given type found,
-			// examine interface types and subclasses
-			Set<Class> classesForInterface = moduleService.getClassesForInterface(type.getSimpleName());
+			// no entity class for the given type found, examine interface types and subclasses
+			Set<Class> classesForInterface = configuration.getClassesForInterface(type.getSimpleName());
 
 			if (classesForInterface != null) {
 
 				for (Class clazz : classesForInterface) {
 
-					attrs.addAll(getExactTypeAndSubtypesInternal(clazz, isExactMatch));
+					attrs.addAll(getTypeAndSubtypesInternal(clazz, isExactMatch));
 				}
 
 			}
@@ -125,13 +124,23 @@ public abstract class Search {
 			return attrs;
 		}
 
-		for (Map.Entry<String, Class> entity : entities.entrySet()) {
+		for (Map.Entry<String, Class<? extends NodeInterface>> entity : nodeEntities.entrySet()) {
 
-			Class entityClass = entity.getValue();
+			Class<? extends NodeInterface> entityClass = entity.getValue();
 
 			if (type.isAssignableFrom(entityClass)) {
 
-				attrs.add(Search.orExactType(entityClass, isExactMatch));
+				attrs.add(Search.orType(entityClass, isExactMatch));
+			}
+		}
+
+		for (Map.Entry<String, Class<? extends RelationshipInterface>> entity : relEntities.entrySet()) {
+
+			Class<? extends RelationshipInterface> entityClass = entity.getValue();
+
+			if (type.isAssignableFrom(entityClass)) {
+
+				attrs.add(Search.orType(entityClass, isExactMatch));
 			}
 		}
 
@@ -140,13 +149,13 @@ public abstract class Search {
 	}
 
 	public static SearchAttributeGroup andExactTypeAndSubtypes(final Class type) {
-		return andExactTypeAndSubtypes(type, true);
+		return andTypeAndSubtypes(type, true);
 	}
 	
-	public static SearchAttributeGroup andExactTypeAndSubtypes(final Class type, final boolean isExactMatch) {
+	public static SearchAttributeGroup andTypeAndSubtypes(final Class type, final boolean isExactMatch) {
 
 		SearchAttributeGroup attrs          = new SearchAttributeGroup(Occur.MUST);
-		List<SearchAttribute> attrsInternal = getExactTypeAndSubtypesInternal(type, isExactMatch);
+		List<SearchAttribute> attrsInternal = getTypeAndSubtypesInternal(type, isExactMatch);
 
 		for (SearchAttribute attr : attrsInternal) {
 
@@ -160,7 +169,7 @@ public abstract class Search {
 	public static SearchAttributeGroup orExactTypeAndSubtypes(final Class type) {
 
 		SearchAttributeGroup attrs          = new SearchAttributeGroup(Occur.SHOULD);
-		List<SearchAttribute> attrsInternal = getExactTypeAndSubtypesInternal(type, true);
+		List<SearchAttribute> attrsInternal = getTypeAndSubtypesInternal(type, true);
 
 		for (SearchAttribute attr : attrsInternal) {
 
@@ -175,58 +184,36 @@ public abstract class Search {
 		return new PropertySearchAttribute(AbstractNode.name, searchString, Occur.SHOULD, false);
 	}
 
-	public static SearchAttribute andName(final String searchString) {
+	public static SearchAttribute<String> andName(final String searchString) {
 		return new PropertySearchAttribute(AbstractNode.name, searchString, Occur.MUST, false);
 	}
 
-	public static <T> SearchAttribute andProperty(final SecurityContext securityContext, final PropertyKey<T> key, final T searchValue) {
+	public static <T> SearchAttribute<T> andProperty(final SecurityContext securityContext, final PropertyKey<T> key, final T searchValue) {
 		return key.getSearchAttribute(securityContext, Occur.MUST, searchValue, false);
 	}
 
-	public static SearchAttribute orExactType(final Class type) {
-		return orExactType(type, true);
+	public static SearchAttribute<String> orExactType(final Class type) {
+		return orType(type, true);
 	}
 	
-	public static SearchAttribute orExactType(final Class type, boolean isExactMatch) {
+	public static SearchAttribute<String> orType(final Class type, boolean isExactMatch) {
 		return new TypeSearchAttribute(type, Occur.SHOULD, isExactMatch);
 	}
 
-	public static SearchAttribute andExactType(final Class type) {
-		return andExactType(type, true);
+	public static SearchAttribute<String> andExactType(final Class type) {
+		return andType(type, true);
 	}
 
-	public static SearchAttribute andExactType(final Class type, boolean isExactMatch) {
+	public static SearchAttribute<String> andType(final Class type, boolean isExactMatch) {
 		return new TypeSearchAttribute(type, Occur.MUST, isExactMatch);
 	}
 
-	public static SearchAttribute andExactRelType(final RelationshipMapping namedRelation) {
-
-		return andExactRelType(namedRelation.getRelType().name(), namedRelation.getSourceType().getSimpleName(), namedRelation.getDestType().getSimpleName());
-
+	public static SearchAttribute andExactRelType(final Class<? extends Relation> namedRelation) {
+		return new PropertySearchAttribute(AbstractRelationship.type, namedRelation.getSimpleName(), Occur.MUST, true);
 	}
 
-	public static SearchAttribute andExactRelType(final String relType, final String sourceType, final String destType) {
-
-		String searchString  = EntityContext.createCombinedRelationshipType(sourceType, relType, destType);
-		SearchAttribute attr = new PropertySearchAttribute(AbstractRelationship.combinedType, searchString, Occur.MUST, true);
-
-		return attr;
-
-	}
-
-	public static SearchAttribute orExactRelType(final RelationshipMapping namedRelation) {
-
-		return orExactRelType(namedRelation.getRelType().name(), namedRelation.getSourceType().getSimpleName(), namedRelation.getDestType().getSimpleName());
-
-	}
-
-	public static SearchAttribute orExactRelType(final String relType, final String sourceType, final String destType) {
-
-		String searchString  = EntityContext.createCombinedRelationshipType(sourceType, relType, destType);
-		SearchAttribute attr = new PropertySearchAttribute(AbstractRelationship.combinedType, searchString, Occur.SHOULD, true);
-
-		return attr;
-
+	public static SearchAttribute orExactRelType(final Class<? extends Relation> namedRelation) {
+		return new PropertySearchAttribute(AbstractRelationship.type, namedRelation.getSimpleName(), Occur.SHOULD, true);
 	}
 
 	public static SearchAttribute orExactName(final String searchString) {
@@ -238,14 +225,14 @@ public abstract class Search {
 	}
 
 	public static SearchAttribute andExactUuid(final String searchString) {
-		return new PropertySearchAttribute(AbstractNode.uuid, searchString, Occur.MUST, true);
+		return new PropertySearchAttribute(GraphObject.id, searchString, Occur.MUST, true);
 	}
 
-	public static <T> SearchAttribute andExactProperty(final SecurityContext securityContext, final PropertyKey<T> propertyKey, final T searchValue) {
+	public static <T> SearchAttribute<T> andExactProperty(final SecurityContext securityContext, final PropertyKey<T> propertyKey, final T searchValue) {
 		return propertyKey.getSearchAttribute(securityContext, Occur.MUST, searchValue, true);
 	}
 
-	public static <T> SearchAttribute orExactProperty(final SecurityContext securityContext, final PropertyKey<T> propertyKey, final T searchValue) {
+	public static <T> SearchAttribute<T> orExactProperty(final SecurityContext securityContext, final PropertyKey<T> propertyKey, final T searchValue) {
 		return propertyKey.getSearchAttribute(securityContext, Occur.SHOULD, searchValue, true);
 	}
 
@@ -389,24 +376,21 @@ public abstract class Search {
 	 *
 	 * Internally, the wildcard character '*' will be appended to the string.
 	 *
+	 * @param securityContext
 	 * @param string
 	 * @return
 	 */
 	public static List<String> getNodeNamesLike(SecurityContext securityContext, final String string) {
 
-		List<String> names                = new LinkedList<String>();
-		List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
-
-		// always add wildcard character '*' for auto completion
-		searchAttrs.add(Search.andName(string + SearchAttribute.WILDCARD));
+		List<String> names                = new LinkedList<>();
 
 		try {
 
-			Result<AbstractNode> result = Services.command(securityContext, SearchNodeCommand.class).execute(searchAttrs);
+			Result<NodeInterface> result = StructrApp.getInstance(securityContext).nodeQuery(NodeInterface.class).andName(string + SearchAttribute.WILDCARD).getResult();
 
 			if (result != null) {
 
-				for (AbstractNode node : result.getResults()) {
+				for (NodeInterface node : result.getResults()) {
 
 					names.add(node.getName());
 				}
@@ -423,105 +407,4 @@ public abstract class Search {
 
 	}
 	
-	/**
-	 * Expand a search string by splitting at ',' and add the parts to an exact
-	 * 'OR' search attribute group, combined by the given occur
-	 * 
-	 * @param searchValue 
-	 */
-	private static SearchAttributeGroup orMatchExactValues(final PropertyKey key, final String searchValue, final Occur occur) {
-		
-		SearchAttributeGroup group = new SearchAttributeGroup(Occur.SHOULD);
-		
-		if (searchValue == null || StringUtils.isBlank(searchValue)) {
-			return null;
-		}
-		
-		String[] parts = StringUtils.split(searchValue, ",");
-		
-		for (String part : parts) {
-			
-			SearchAttribute attr = new PropertySearchAttribute(key, part, occur, true);
-			
-			group.add(attr);
-			
-		}
-		
-		return group;
-	}
-	
-	/**
-	 * Expand a search string by splitting at ',' and add the parts to a loose
-	 * 'OR' search attribute group, combined by the given occur
-	 * 
-	 * @param searchValue 
-	 */
-	private static SearchAttributeGroup orMatchValues(final PropertyKey key, final String searchValue, final Occur occur) {
-		
-		SearchAttributeGroup group = new SearchAttributeGroup(Occur.SHOULD);
-		
-		if (searchValue == null || StringUtils.isBlank(searchValue)) {
-			return null;
-		}
-		
-		String[] parts = StringUtils.split(searchValue, ",");
-		
-		for (String part : parts) {
-			
-			SearchAttribute attr = new PropertySearchAttribute(key, part, occur, false);
-			
-			group.add(attr);
-			
-		}
-		
-		return group;
-	}
-	
-	/**
-	 * Expand a search string by splitting at ',' and add the parts to an exact
-	 * 'AND' search attribute group, combined by the given occur
-	 * 
-	 * @param searchValue 
-	 */
-	private static SearchAttributeGroup andMatchExactValues(final SecurityContext securityContext, final PropertyKey key, final String searchValue, final Occur occur) {
-		
-		SearchAttributeGroup group = new SearchAttributeGroup(Occur.MUST);
-		
-		if (searchValue == null || StringUtils.isBlank(searchValue)) {
-			return null;
-		}
-		
-		String[] parts = StringUtils.split(searchValue, ",");
-		
-		for (String part : parts) {
-	
-			group.add(key.getSearchAttribute(securityContext, occur, part, true));
-		}
-		
-		return group;
-	}
-	
-	/**
-	 * Expand a search string by splitting at ',' and add the parts to a loose
-	 * 'AND' search attribute group, combined by the given occur
-	 * 
-	 * @param searchValue 
-	 */
-	private static SearchAttributeGroup andMatchValues(final SecurityContext securityContext, final PropertyKey key, final String searchValue, final Occur occur) {
-		
-		SearchAttributeGroup group = new SearchAttributeGroup(Occur.MUST);
-		
-		if (searchValue == null || StringUtils.isBlank(searchValue)) {
-			return null;
-		}
-		
-		String[] parts = StringUtils.split(searchValue, ",");
-		
-		for (String part : parts) {
-			
-			group.add(key.getSearchAttribute(securityContext, occur, part, false));
-		}
-		
-		return group;
-	}	
 }

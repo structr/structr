@@ -1,35 +1,28 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Structr, c/o Morgner UG (haftungsbeschränkt) <structr@structr.org>
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
 package org.structr.websocket.command;
 
-import org.structr.web.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.NodeAttribute;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.html.Html;
 import org.structr.websocket.message.MessageBuilder;
@@ -40,9 +33,14 @@ import org.structr.websocket.message.WebSocketMessage;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.GraphObject;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.PropertyMap;
-import org.structr.web.entity.dom.DOMElement;
+import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.entity.dom.relationship.DOMChildren;
 import org.structr.websocket.StructrWebSocket;
 
 //~--- classes ----------------------------------------------------------------
@@ -68,6 +66,7 @@ public class ClonePageCommand extends AbstractCommand {
 	public void processMessage(WebSocketMessage webSocketData) {
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
+		final App app = StructrApp.getInstance(securityContext);
 
 		// Node to wrap
 		String nodeId                      = webSocketData.getId();
@@ -85,73 +84,68 @@ public class ClonePageCommand extends AbstractCommand {
 
 		if (nodeToClone != null) {
 
-			StructrTransaction transaction = new StructrTransaction() {
-
-				@Override
-				public Object execute() throws FrameworkException {
-
-					Page newPage = (Page) Services.command(securityContext,
-							       CreateNodeCommand.class).execute(new NodeAttribute(AbstractNode.type, Page.class.getSimpleName()),
-								       new NodeAttribute(AbstractNode.name, newName),
-								       new NodeAttribute(AbstractNode.visibleToAuthenticatedUsers, true));
-
-					if (newPage != null) {
-
-						String pageId                          = newPage.getProperty(AbstractNode.uuid);
-						Iterable<AbstractRelationship> relsOut = nodeToClone.getOutgoingRelationships(RelType.CONTAINS);
-						Html htmlNode                          = null;
-
-						for (AbstractRelationship out : relsOut) {
-
-							// Use first HTML element of existing node (the node to be cloned)
-							AbstractNode endNode = out.getEndNode();
-
-							if (endNode.getType().equals(Html.class.getSimpleName())) {
-
-								htmlNode = (Html) endNode;
-
-								break;
-
-							}
-						}
-
-						if (htmlNode != null) {
-
-							PropertyMap relProps = new PropertyMap();
-							relProps.put(new LongProperty(pageId), 0L);
-
-							try {
-
-								DOMElement.children.createRelationship(securityContext, newPage, htmlNode, relProps);
-
-							} catch (Throwable t) {
-
-								getWebSocket().send(MessageBuilder.status().code(400).message(t.getMessage()).build(), true);
-
-							}
-
-						}
-
-					} else {
-
-						getWebSocket().send(MessageBuilder.status().code(404).build(), true);
-					}
-
-					return null;
-
-				}
-
-			};
-
 			try {
 
-				Services.command(securityContext, TransactionCommand.class).execute(transaction);
+				app.beginTx();
+				
+				Page newPage = (Page) StructrApp.getInstance(securityContext).command(
+						       CreateNodeCommand.class).execute(new NodeAttribute(AbstractNode.type, Page.class.getSimpleName()),
+							       new NodeAttribute(AbstractNode.name, newName),
+							       new NodeAttribute(AbstractNode.visibleToAuthenticatedUsers, true));
+
+				if (newPage != null) {
+
+					String pageId                     = newPage.getProperty(GraphObject.id);
+					Iterable<DOMChildren> relsOut = nodeToClone.getOutgoingRelationships(DOMChildren.class);
+					Html htmlNode                     = null;
+
+					for (DOMChildren out : relsOut) {
+
+						// Use first HTML element of existing node (the node to be cloned)
+						NodeInterface endNode = out.getTargetNode();
+
+						if (endNode.getType().equals(Html.class.getSimpleName())) {
+
+							htmlNode = (Html) endNode;
+
+							break;
+
+						}
+					}
+
+					if (htmlNode != null) {
+
+						PropertyMap relProps = new PropertyMap();
+						relProps.put(new LongProperty(pageId), 0L);
+
+						try {
+
+							StructrApp.getInstance(securityContext).create((DOMNode) newPage, (DOMNode) htmlNode, DOMChildren.class, relProps);
+							// DOMElement.children.createRelationship(securityContext, newPage, htmlNode, relProps);
+
+						} catch (Throwable t) {
+
+							getWebSocket().send(MessageBuilder.status().code(400).message(t.getMessage()).build(), true);
+
+						}
+
+					}
+
+				} else {
+
+					getWebSocket().send(MessageBuilder.status().code(404).build(), true);
+				}
+				
+				app.commitTx();
 
 			} catch (FrameworkException fex) {
 
 				logger.log(Level.WARNING, "Could not create node.", fex);
 				getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
 
+			} finally {
+				
+				app.finishTx();
 			}
 
 		} else {

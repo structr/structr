@@ -1,23 +1,21 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Structr, c/o Morgner UG (haftungsbeschränkt) <structr@structr.org>
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
 package org.structr.core.graph;
 
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -26,24 +24,16 @@ import org.neo4j.tooling.GlobalGraphOperations;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.search.Search;
-import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.SearchNodeCommand;
-
-//~--- JDK imports ------------------------------------------------------------
-
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.core.EntityContext;
+import org.structr.core.GraphObject;
+import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.module.ModuleService;
 import org.structr.core.property.PropertyKey;
+import org.structr.schema.SchemaHelper;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -65,10 +55,7 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 		final GraphDatabaseService graphDb     = (GraphDatabaseService) arguments.get("graphDb");
 		final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
 		final NodeFactory nodeFactory          = new NodeFactory(superUserContext);
-		final SearchNodeCommand searchNode     = Services.command(superUserContext, SearchNodeCommand.class);
-		
-		
-		String type                      = null;
+		String type                            = null;
 		
 		if (graphDb != null) {
 
@@ -77,11 +64,8 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 			if (properties.containsKey(AbstractNode.type.dbName())) {
 
 				type = (String) properties.get(AbstractNode.type.dbName());
-				List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
 
-				attrs.add(Search.andExactType(EntityContext.getEntityClassForRawType(type)));
-
-				nodes = searchNode.execute(attrs);
+				nodes = StructrApp.getInstance(securityContext).nodeQuery(SchemaHelper.getEntityClassForRawType(type)).getResult();
 
 				properties.remove(AbstractNode.type.dbName());
 
@@ -90,15 +74,14 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 				nodes = nodeFactory.instantiateAll(GlobalGraphOperations.at(graphDb).getAllNodes());
 			}
 
-			final Class cls = Services.getService(ModuleService.class).getNodeEntityClass(type);
-			
-			long nodeCount = bulkGraphOperation(securityContext, nodes.getResults(), 1000, "SetNodeProperties", new BulkGraphOperation<AbstractNode>() {
+			final Class cls = StructrApp.getConfiguration().getNodeEntities().get(type);
+			long nodeCount  = bulkGraphOperation(securityContext, nodes.getResults(), 1000, "SetNodeProperties", new BulkGraphOperation<AbstractNode>() {
 
 				@Override
 				public void handleGraphObject(SecurityContext securityContext, AbstractNode node) {
 
 					// Treat only "our" nodes
-					if (node.getProperty(AbstractNode.uuid) != null) {
+					if (node.getProperty(GraphObject.id) != null) {
 
 						for (Entry entry : properties.entrySet()) {
 
@@ -110,7 +93,7 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 								key = "type";
 							}
 
-							PropertyConverter inputConverter = EntityContext.getPropertyKeyForJSONName(cls, key).inputConverter(securityContext);
+							PropertyConverter inputConverter = StructrApp.getConfiguration().getPropertyKeyForJSONName(cls, key).inputConverter(securityContext);
 
 							
 							if (inputConverter != null) {
@@ -124,7 +107,7 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 								val = entry.getValue();
 							}
 
-							PropertyKey propertyKey = EntityContext.getPropertyKeyForDatabaseName(node.getClass(), key);
+							PropertyKey propertyKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(node.getClass(), key);
 							if (propertyKey != null) {
 
 								try {

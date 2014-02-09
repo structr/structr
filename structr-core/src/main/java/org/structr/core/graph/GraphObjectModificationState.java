@@ -1,26 +1,29 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Structr, c/o Morgner UG (haftungsbeschränkt) <structr@structr.org>
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core.graph;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
+import org.neo4j.graphdb.RelationshipType;
+import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -34,27 +37,40 @@ import org.structr.core.property.PropertyMap;
  *
  * @author Christian Morgner
  */
-public class GraphObjectModificationState {
+public class GraphObjectModificationState implements ModificationEvent {
 
 	private static final Logger logger = Logger.getLogger(GraphObjectModificationState.class.getName());
 	
-	private static final int STATE_DELETED =                    1;
-	private static final int STATE_MODIFIED =                   2;
-	private static final int STATE_CREATED =                    4;
-	private static final int STATE_DELETED_PASSIVELY =          8;
-	private static final int STATE_OWNER_MODIFIED =            16;
-	private static final int STATE_SECURITY_MODIFIED =         32;
-	private static final int STATE_LOCATION_MODIFIED =         64;
-	private static final int STATE_PROPAGATING_MODIFICATION = 128;
-	private static final int STATE_PROPAGATED_MODIFICATION =  256;
+	public static final int STATE_DELETED =                    1;
+	public static final int STATE_MODIFIED =                   2;
+	public static final int STATE_CREATED =                    4;
+	public static final int STATE_DELETED_PASSIVELY =          8;
+	public static final int STATE_OWNER_MODIFIED =            16;
+	public static final int STATE_SECURITY_MODIFIED =         32;
+	public static final int STATE_LOCATION_MODIFIED =         64;
+	public static final int STATE_PROPAGATING_MODIFICATION = 128;
+	public static final int STATE_PROPAGATED_MODIFICATION =  256;
 	
-	private PropertyMap removedProperties = new PropertyMap();
-	private boolean modified              = false;
-	private GraphObject object            = null;
-	private int status                    = 0;
+	private PropertyMap modifiedProperties = new PropertyMap();
+	private PropertyMap removedProperties  = new PropertyMap();
+	private RelationshipType relType       = null;
+	private boolean isNode                 = false;
+	private boolean modified               = false;
+	private GraphObject object             = null;
+	private String uuid                    = null;
+	private int status                     = 0;
 
 	public GraphObjectModificationState(GraphObject object) {
+
 		this.object = object;
+		this.isNode = (object instanceof NodeInterface);
+		
+		if (!isNode) {
+			this.relType = ((RelationshipInterface)object).getRelType();
+		}
+		
+		// store uuid for later use
+		this.uuid = object.getUuid();
 	}
 
 	@Override
@@ -117,7 +133,7 @@ public class GraphObjectModificationState {
 		}
 	}
 
-	public void modify(PropertyKey key, Object previousValue) {
+	public void modify(PropertyKey key, Object previousValue, Object newValue) {
 		
 		int statusBefore = status;
 		
@@ -129,6 +145,9 @@ public class GraphObjectModificationState {
 		}
 		
 		if (status != statusBefore) {
+			if (key != null) {
+				modifiedProperties.put(key, newValue);
+			}
 			modified = true;
 		}
 	}
@@ -144,24 +163,20 @@ public class GraphObjectModificationState {
 		status |= STATE_DELETED;
 		
 		if (status != statusBefore) {
+			
+			//removedProperties.put(GraphObject.id, object.getUuid());
+
+			// copy all properties on deletion
+			for (final PropertyKey key : object.getPropertyKeys(PropertyView.Public)) {
+				removedProperties.put(key, object.getProperty(key));
+			}
+			
 			modified = true;
 		}
 	}
 
 	public boolean isPassivelyDeleted() {
 		return (status & STATE_DELETED_PASSIVELY) == STATE_DELETED_PASSIVELY;
-	}
-
-	public boolean isCreated() {
-		return (status & STATE_CREATED) == STATE_CREATED;
-	}
-
-	public boolean isModified() {
-		return (status & STATE_MODIFIED) == STATE_MODIFIED;
-	}
-
-	public boolean isDeleted() {
-		return (status & STATE_DELETED) == STATE_DELETED;
 	}
 
 	/**
@@ -344,14 +359,16 @@ public class GraphObjectModificationState {
 				object.afterCreation(securityContext);
 				break;
 
-			case  3: // modified, deleted => no callback as node/rel is gone
+			case  3: // modified, deleted => deletion callback
+				object.afterDeletion(securityContext, removedProperties);
 				break;
 
 			case  2: // modified => modification callback
 				object.afterModification(securityContext);
 				break;
 
-			case  1: // deleted => no callback as node/rel is gone
+			case  1: // deleted => deletion callback
+				object.afterDeletion(securityContext, removedProperties);
 				break;
 
 			case  0: // no action, no callback
@@ -361,15 +378,69 @@ public class GraphObjectModificationState {
 				break;
 		}
 	}
-
-	public GraphObject getObject() {
-		return object;
-	}
 	
 	public boolean wasModified() {
 		return modified;
 	}
 	
+	// ----- interface ModificationEvent -----
+	
+	@Override
+	public int getStatus() {
+		return status;
+	}
+
+	@Override
+	public boolean isCreated() {
+		return (status & STATE_CREATED) == STATE_CREATED;
+	}
+
+	@Override
+	public boolean isModified() {
+		return (status & STATE_MODIFIED) == STATE_MODIFIED;
+	}
+
+	@Override
+	public boolean isDeleted() {
+		return (status & STATE_DELETED) == STATE_DELETED;
+	}
+
+	@Override
+	public GraphObject getGraphObject() {
+		return object;
+	}
+
+	@Override
+	public String getUuid() {
+		return uuid;
+	}
+
+	@Override
+	public PropertyMap getModifiedProperties() {
+		return modifiedProperties;
+	}
+
+	@Override
+	public PropertyMap getRemovedProperties() {
+		return removedProperties;
+	}
+	
+	@Override
+	public Map<String, Object> getData(final SecurityContext securityContext) throws FrameworkException {
+		return PropertyMap.javaTypeToInputType(securityContext, object.getClass(), modifiedProperties);
+	}
+
+	@Override
+	public boolean isNode() {
+		return isNode;
+	}
+
+	@Override
+	public RelationshipType getRelationshipType() {
+		return relType;
+	}
+	
+	// ----- private methods -----
 	/**
 	 * Call validators. This must be synchronized globally
 	 * 

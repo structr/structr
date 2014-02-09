@@ -39,7 +39,6 @@ $(document).ready(function() {
         _Pages.resize();
     });
 
-    _Pages.makeMenuDroppable();
 });
 
 var _Pages = {
@@ -53,7 +52,8 @@ var _Pages = {
 
         Structr.initPager('Page', 1, 25);
         Structr.initPager('File', 1, 25);
-
+        Structr.initPager('Image', 1, 25);
+        
     },
     resize: function(offsetLeft, offsetRight) {
 
@@ -463,6 +463,7 @@ var _Pages = {
 
     },
     reloadIframe: function(id, name) {
+        _Pages.clearIframeDroppables();
         var iframe = $('#preview_' + id);
         if (iframe.parent().is(':hidden') || !localStorage.getItem(autoRefreshDisabledKey + id)) {
             iframe.prop('src', viewRootUrl + name + '?edit=2');
@@ -505,10 +506,10 @@ var _Pages = {
         var oldName = $.trim(element.children('b.name_').attr('title'));
         element.children('b').hide();
         element.find('.button').hide();
-        var input = $('input.newName_', element);
+        var input = $('input.new-name', element);
 
         if (!input.length) {
-            element.append('<input type="text" size="' + (oldName.length + 4) + '" class="newName_" value="' + oldName + '">');
+            element.append('<input type="text" size="' + (oldName.length + 4) + '" class="new-name" value="' + oldName + '">');
             input = $('input', element);
         }
 
@@ -538,7 +539,7 @@ var _Pages = {
     },
     appendPageElement: function(entity) {
 
-        var hasChildren = entity.childElements.length;
+        var hasChildren = entity.children.length;
 
         pages.append('<div id="id_' + entity.id + '" class="node page"></div>');
         var div = Structr.node(entity.id);
@@ -564,7 +565,7 @@ var _Pages = {
 
         var tab = _Pages.addTab(entity);
 
-        previews.append('<div class="previewBox"><iframe id="preview_'
+        previews.append('<div class="previewBox"><iframe name="foo" id="preview_'
                 + entity.id + '"></iframe></div><div style="clear: both"></div>');
 
         _Pages.resetTab(tab, entity.name);
@@ -892,36 +893,12 @@ var _Pages = {
         });
 
     },
-    makeMenuDroppable: function() {
-
-        $('#pages_').droppable({
-            accept: '.element, .content, .component, .file, .image, .widget',
-            greedy: true,
-            hoverClass: 'nodeHover',
-            tolerance: 'pointer',
-            over: function(e, ui) {
-
-                e.stopPropagation();
-                $('#pages_').droppable('disable');
-                log('over is off');
-
-                Structr.activateMenuEntry('pages');
-                window.location.href = '/structr/#pages';
-
-                if (files && files.length)
-                    files.hide();
-                if (folders && folders.length)
-                    folders.hide();
-                if (widgets && widgets.length)
-                    widgets.hide();
-
-//                _Pages.init();
-                Structr.modules['pages'].onload();
-                _Pages.resize();
-            }
-
-        });
-
-        $('#pages_').removeClass('nodeHover').droppable('enable');
+    clearSlideoutsInLocalStorage: function() {
+        
+        localStorage.setItem('structrActiveTabLeft_8875', 'foo');
+        localStorage.setItem('structrActiveTabRight_8875', 'bar');
+        
+        return localStorage.getItem('structrActiveTabLeft_8875') + ',' + localStorage.getItem('structrActiveTabRight_8875', '');
+        
     }
 };

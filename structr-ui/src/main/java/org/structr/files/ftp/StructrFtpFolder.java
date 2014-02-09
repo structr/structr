@@ -1,22 +1,21 @@
-/*
- *  Copyright (C) 2013 Axel Morgner
- * 
- *  This file is part of structr <http://structr.org>.
- * 
- *  structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU Affero General Public License as
- *  published by the Free Software Foundation, either version 3 of the
- *  License, or (at your option) any later version.
- * 
- *  structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- * 
- *  You should have received a copy of the GNU Affero General Public License
- *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+/**
+ * Copyright (C) 2010-2014 Structr, c/o Morgner UG (haftungsbeschränkt) <structr@structr.org>
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package org.structr.files.ftp;
 
 import java.io.IOException;
@@ -27,21 +26,13 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.ftpserver.ftplet.FtpFile;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
-import org.structr.core.Services;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.CreateNodeCommand;
-import org.structr.core.graph.NodeAttribute;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
+import org.structr.core.app.StructrApp;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchNodeCommand;
-import org.structr.web.common.FileHelper;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
@@ -108,7 +99,7 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 			searchAttrs.add(Search.orExactTypeAndSubtypes(org.structr.web.entity.Folder.class));
 
 			try {
-				Result<Folder> results = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(false, false, searchAttrs);
+				Result<Folder> results = StructrApp.getInstance().command(SearchNodeCommand.class).execute(false, false, searchAttrs);
 				logger.log(Level.INFO, "{0} folders found", results.size());
 
 				for (Folder f : results.getResults()) {
@@ -132,7 +123,7 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 			searchAttrs.add(Search.orExactTypeAndSubtypes(org.structr.web.entity.File.class));
 
 			try {
-				Result<File> results = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(false, false, searchAttrs);
+				Result<File> results = StructrApp.getInstance().command(SearchNodeCommand.class).execute(false, false, searchAttrs);
 				logger.log(Level.INFO, "{0} files found", results.size());
 
 				for (File f : results.getResults()) {

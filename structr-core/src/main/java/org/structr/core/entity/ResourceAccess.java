@@ -1,48 +1,41 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Structr, c/o Morgner UG (haftungsbeschränkt) <structr@structr.org>
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core.entity;
 
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.graphdb.Direction;
 import org.structr.core.property.Property;
 import org.structr.common.PropertyView;
-import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.property.LongProperty;
-import org.structr.core.Result;
-import org.structr.core.Services;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
-import org.structr.core.graph.search.Search;
-import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.SearchNodeCommand;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.relationship.Access;
 import org.structr.core.notion.PropertySetNotion;
-import org.structr.core.property.CollectionProperty;
+import org.structr.core.property.EndNodes;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
@@ -67,13 +60,14 @@ import org.structr.core.validator.TypeUniquenessValidator;
  */
 public class ResourceAccess extends AbstractNode {
 
-	private static final Map<String, ResourceAccess> grantCache = new ConcurrentHashMap<String, ResourceAccess>();
+	private static final Map<String, ResourceAccess> grantCache = new ConcurrentHashMap<>();
 	private static final Logger logger                          = Logger.getLogger(ResourceAccess.class.getName());
 
 	public static final Property<String>                    signature       = new StringProperty("signature", new TypeUniquenessValidator(ResourceAccess.class)).indexed();
 	public static final Property<Long>                      flags           = new LongProperty("flags").indexed();
 	public static final Property<Integer>                   position        = new IntProperty("position").indexed();
-	public static final CollectionProperty<PropertyAccess>  propertyAccess  = new CollectionProperty<PropertyAccess>("propertyAccess", PropertyAccess.class, RelType.PROPERTY_ACCESS, Direction.OUTGOING, new PropertySetNotion(uuid, name), true);
+	
+	public static final Property<List<PropertyAccess>>  propertyAccess      = new EndNodes<>("propertyAccess", Access.class, new PropertySetNotion(id, name));
 
 	public static final View uiView = new View(ResourceAccess.class, PropertyView.Ui,
 		signature, flags, position
@@ -104,38 +98,44 @@ public class ResourceAccess extends AbstractNode {
 	
 	public void setFlag(final long flag) throws FrameworkException {
 
-		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+		App app = StructrApp.getInstance(securityContext);
 
-			@Override
-			public Object execute() throws FrameworkException {
+		try {
+			app.beginTx();
 
-				// reset cached field
-				cachedFlags = null;
+			// reset cached field
+			cachedFlags = null;
 
-				// set modified property
-				setProperty(ResourceAccess.flags, getFlags() | flag);
-				
-				return null;
-			}
-		});
+			// set modified property
+			setProperty(ResourceAccess.flags, getFlags() | flag);
+
+			app.commitTx();
+
+		} finally {
+
+			app.finishTx();
+		}
 	}
 	
 	public void clearFlag(final long flag) throws FrameworkException {
 
-		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+		App app = StructrApp.getInstance(securityContext);
 
-			@Override
-			public Object execute() throws FrameworkException {
+		try {
 
-				// reset cached field
-				cachedFlags = null;
+			app.beginTx();
 
-				// set modified property
-				setProperty(ResourceAccess.flags, getFlags() & ~flag);
-				
-				return null;
-			}
-		});
+			// reset cached field
+			cachedFlags = null;
+
+			// set modified property
+			setProperty(ResourceAccess.flags, getFlags() & ~flag);
+			app.commitTx();
+
+		} finally {
+
+			app.finishTx();
+		}
 	}
 	
 	public long getFlags() {
@@ -216,40 +216,10 @@ public class ResourceAccess extends AbstractNode {
 		ResourceAccess grant = grantCache.get(signature);
 		if (grant == null) {
 
-			SecurityContext securityContext        = SecurityContext.getSuperUserInstance();
-			SearchNodeCommand search               = Services.command(securityContext, SearchNodeCommand.class);
-			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
-
-			searchAttributes.add(Search.andExactType(ResourceAccess.class));
-			searchAttributes.add(Search.andExactProperty(securityContext, ResourceAccess.signature, signature));
-
-			Result result = search.execute(searchAttributes);
-
-			if (result.isEmpty()) {
+			grant = StructrApp.getInstance().nodeQuery(ResourceAccess.class).and(ResourceAccess.signature, signature).getFirst();
+			if (grant == null) {
 
 				logger.log(Level.WARNING, "No resource access object found for {0}", signature);
-
-			} else {
-
-				final AbstractNode node = (AbstractNode) result.get(0);
-
-				if (node instanceof ResourceAccess) {
-
-					grant = (ResourceAccess) node;
-					
-					grantCache.put(signature, grant);
-
-				} else {
-
-					logger.log(Level.SEVERE, "Grant for URI {0} has wrong type!", new Object[] { signature, node.getClass().getName() });
-
-				}
-
-				if (result.size() > 1) {
-
-					logger.log(Level.SEVERE, "Found {0} grants for URI {1}!", new Object[] { result.size(), signature });
-
-				}
 			}
 		}
 		

@@ -18,12 +18,11 @@
  */
 
 var s = require('../setup');
-var casper = require('casper').create(s.casperOptions);
 
-var testName = 'drag_element';
-var heading = "Drag Element"
+var testName = '007_add_element_to_page';
+var heading = "Add Element to Page", sections = [];
 var desc = "This animation shows how a content element is dragged into a page."
-var numberOfTests = 4;
+var numberOfTests = 3;
 
 s.startRecording(window, casper, testName);
 
@@ -40,7 +39,7 @@ casper.test.begin(testName, numberOfTests, function(test) {
     });
 
     casper.then(function() {
-        s.mousePointer(casper, { left: 180, top: 180 });
+        s.mousePointer(casper, { left: 600, top: 400 });
         s.moveMousePointerTo(casper, '#loginButton');
     });
 
@@ -48,18 +47,39 @@ casper.test.begin(testName, numberOfTests, function(test) {
         this.click('#loginButton');
     });
 
-    casper.waitWhileVisible('#dialogBox', function() {
+    casper.waitForSelector('#errorText', function() {
 
         test.assertEval(function() {
-            return $('#errorText').text() === '';
+            return !($('#errorText').text() === 'Wrong username or password!');
         });
-
         test.assertEval(function() {
             return $('#pages').is(':visible');
         });
 
     });
-    
+
+    casper.wait(100);
+
+    casper.then(function() {
+        s.moveMousePointerTo(casper, '#pagesTab');
+    });
+
+    casper.then(function() {
+        this.click('#pagesTab');
+    });
+
+    casper.wait(100);
+
+    casper.then(function() {
+        s.moveMousePointerTo(casper, '#paletteTab');
+    });
+
+    casper.then(function() {
+        this.click('#paletteTab');
+    });
+
+    casper.wait(100);
+
     casper.then(function() {
         s.moveMousePointerTo(casper, '#add_page');
     });
@@ -68,35 +88,31 @@ casper.test.begin(testName, numberOfTests, function(test) {
         this.click('#add_page');
     });
 
-    casper.wait(2000, function() {
-        test.assertEval(function() {
-            return $('#errorText').text() === '';
-        });
+    casper.wait(2000);
+
+    sections.push('To add HTML elements to a page, open the "Pages Tree View" slideout on the left and the "HTML Palette" slideout on the right hand side.');
+
+    casper.then(function() {
+        s.dragDropElement(casper, '#add_content', '#pagesTree > .page > .html_element > div.node:eq(1) > div.node:eq(1)', {x: 0, y: -16});
+    });
+
+    sections.push('Then drag the desired element and drop it onto the target element in the page tree or in the page preview window.');
+    
+    casper.wait(2000);
+
+    casper.then(function() {
+        test.assertEvalEquals(function() {
+            return $('#pagesTree > .page > .html_element > div.node:eq(1) > div.node:eq(1) > .content:eq(1) > .content_').text();
+        }, '#text');
     });
 
     casper.then(function() {
-        s.moveMousePointerTo(casper, '#add_content');
-    });
 
-    casper.then(function() {
-        s.dragDropElement(casper, '#add_content', '#pages .html_element > div.node:eq(1) > div.node:eq(1)');
-    });
-
-    casper.wait(3000);
-    casper.then(function() {
-        
-        test.assertEval(function() {
-            return $('#pages .node.page .html_element > div.node:eq(1) > div.node:eq(1) > .content:eq(1) .content_').text() === '#text';
-        });
-    });
-
-    casper.then(function() {
-        
-        s.animateHtml(testName, heading, desc);
+        s.animateHtml(testName, heading, sections);
 
         test.done();
         this.exit();
-        
+
     });
 
     casper.run();

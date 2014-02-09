@@ -1,63 +1,61 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Structr, c/o Morgner UG (haftungsbeschränkt) <structr@structr.org>
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
 package org.structr.rest.resource;
 
 import org.structr.common.PagingHelper;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.neo4j.graphdb.Node;
+import org.neo4j.helpers.Predicate;
+import org.neo4j.helpers.collection.Iterables;
 
 import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.TypeToken;
-import org.structr.core.Adapter;
-import org.structr.core.EntityContext;
 import org.structr.core.Export;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
-import org.structr.core.Services;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.graph.DeleteRelationshipCommand;
+import org.structr.core.entity.OtherNodeTypeRelationFilter;
+import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeFactory;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
-import org.structr.core.graph.search.Search;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.search.SearchAttribute;
+import org.structr.core.graph.search.SearchAttributeGroup;
 import org.structr.core.graph.search.SearchNodeCommand;
+import org.structr.core.graph.search.TypeSearchAttribute;
 import org.structr.core.notion.Notion;
-import org.structr.core.property.AbstractRelationProperty;
+import org.structr.core.property.RelationProperty;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
-import org.structr.rest.exception.NotFoundException;
-import org.structr.rest.exception.SystemException;
 //~--- JDK imports ------------------------------------------------------------
 
 //~--- classes ----------------------------------------------------------------
@@ -74,6 +72,7 @@ public class StaticRelationshipResource extends SortableResource {
 
 	TypeResource typeResource       = null;
 	TypedIdResource typedIdResource = null;
+	PropertyKey propertyKey         = null;
 
 	//~--- constructors ---------------------------------------------------constructors
 
@@ -82,6 +81,7 @@ public class StaticRelationshipResource extends SortableResource {
 		this.securityContext = securityContext;
 		this.typedIdResource = typedIdResource;
 		this.typeResource    = typeResource;
+		this.propertyKey     = findPropertyKey(typedIdResource, typeResource);
 	}
 
 	//~--- methods --------------------------------------------------------
@@ -90,42 +90,66 @@ public class StaticRelationshipResource extends SortableResource {
 	public Result doGet(final PropertyKey sortKey, final boolean sortDescending, final int pageSize, final int page, final String offsetId) throws FrameworkException {
 
 		// ok, source node exists, fetch it
-		final AbstractNode sourceNode = typedIdResource.getTypesafeNode();
-		if (sourceNode != null) {
+		final GraphObject sourceEntity = typedIdResource.getEntity();
+		if (sourceEntity != null) {
 
-			final PropertyKey key = findPropertyKey(typedIdResource, typeResource);
-			if (key != null) {
+			// first try: look through existing relations
+			if (!typeResource.isNode && sourceEntity instanceof NodeInterface) {
 
-				final Object value = sourceNode.getProperty(key);
+				final NodeInterface source      = (NodeInterface)sourceEntity;
+				final Node sourceNode           = source.getNode();
+				final Class relationshipType    = typeResource.entityClass;
+				final Relation relation         = AbstractNode.getRelationshipForType(relationshipType);
+				final Class destNodeType        = relation.getOtherType(typedIdResource.getEntityClass());
+				final Set partialResult         = new LinkedHashSet<>(typeResource.doGet(sortKey, sortDescending, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE, null).getResults());
+				
+				// filter list according to end node type
+				final Set<GraphObject> set = Iterables.toSet(Iterables.filter(new OtherNodeTypeRelationFilter(securityContext, sourceNode, destNodeType), source.getRelationships(relationshipType)));
+
+				// intersect partial result with result list
+				set.retainAll(partialResult);
+				
+				final List<GraphObject> finalResult = new LinkedList<>(set);
+				
+				// sort after merge
+				applyDefaultSorting(finalResult, sortKey, sortDescending);
+
+				// return result
+				return new Result(PagingHelper.subList(finalResult, pageSize, page, offsetId), finalResult.size(), isCollectionResource(), isPrimitiveArray());
+			}
+			
+			// second try: property key
+			if (propertyKey != null) {
+
+				final Predicate<GraphObject> predicate = toPredicate(typeResource.collectSearchAttributes(sortDescending));
+				final Object value                     = sourceEntity.getProperty(propertyKey, predicate);
+				
 				if (value != null) {
 
-					if (value instanceof List) {
+					if (value instanceof Iterable) {
 
-						final List<GraphObject> list = (List<GraphObject>)value;
-						applyDefaultSorting(list, sortKey, sortDescending);
+						final Set<GraphObject> propertyResults = new LinkedHashSet<>();
 
-						//return new Result(list, null, isCollectionResource(), isPrimitiveArray());
-						return new Result(PagingHelper.subList(list, pageSize, page, offsetId), list.size(), isCollectionResource(), isPrimitiveArray());
-
-					} else if (value instanceof Iterable) {
-
-						// check type of value (must be an Iterable of GraphObjects in order to proceed here)
-						final List<GraphObject> propertyListResult = new LinkedList<GraphObject>();
-						final Iterable sourceIterable              = (Iterable) value;
-
-						for (final Object o : sourceIterable) {
-
-							if (o instanceof GraphObject) {
-
-								propertyListResult.add((GraphObject) o);
-							}
+						// fill set with data
+						for (final GraphObject obj : ((Iterable<GraphObject>)value)) {
+							propertyResults.add(obj);
 						}
+						
+						/*
+						if (typeResource.getEntityClass() != null) {
+						
+							final Set<GraphObject> typeResourceResults = new LinkedHashSet<>(typeResource.doGet(null, sortDescending, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE, null).getResults());
 
-						applyDefaultSorting(propertyListResult, sortKey, sortDescending);
+							// merge list with results from type resource (which includes request parameter based filtering)
+							propertyResults.retainAll(typeResourceResults);
+						}
+						*/
+	
+						final List<GraphObject> finalResult = new LinkedList<>(propertyResults);
+						applyDefaultSorting(finalResult, sortKey, sortDescending);
 
-						//return new Result(propertyListResult, null, isCollectionResource(), isPrimitiveArray());
-						return new Result(PagingHelper.subList(propertyListResult, pageSize, page, offsetId), propertyListResult.size(), isCollectionResource(), isPrimitiveArray());
-
+						// return result
+						return new Result(PagingHelper.subList(finalResult, pageSize, page, offsetId), finalResult.size(), isCollectionResource(), isPrimitiveArray());
 					}
 				}
 
@@ -139,102 +163,40 @@ public class StaticRelationshipResource extends SortableResource {
 	public RestMethodResult doPut(final Map<String, Object> propertySet) throws FrameworkException {
 
 		final List<? extends GraphObject> results = typedIdResource.doGet(null, false, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE, null).getResults();
-		final SearchNodeCommand searchNode        = Services.command(securityContext, SearchNodeCommand.class);
-
+		final App app                             = StructrApp.getInstance(securityContext);
+		
 		if (results != null) {
 
 			// fetch static relationship definition
-			final PropertyKey key = findPropertyKey(typedIdResource, typeResource);
-			if (key != null && key instanceof AbstractRelationProperty) {
+			if (propertyKey != null && propertyKey instanceof RelationProperty) {
 
-				final AbstractRelationProperty staticRel = (AbstractRelationProperty)key;
-				final AbstractNode startNode             = typedIdResource.getTypesafeNode();
+				final GraphObject sourceEntity = typedIdResource.getEntity();
+				if (sourceEntity != null) {
 
-				if (startNode != null) {
+					if (propertyKey.isReadOnly()) {
 
-					Class startNodeType = startNode.getClass();
-					
-					//if (EntityContext.isReadOnlyProperty(startNodeType, EntityContext.getPropertyKeyForName(startNodeType, typeResource.getRawType()))) {
-					if (EntityContext.getPropertyKeyForJSONName(startNodeType, typeResource.getRawType()).isReadOnly()) {
-
-						logger.log(Level.INFO, "Read-only property on {1}: {0}", new Object[] { startNode.getClass(), typeResource.getRawType() });
-
+						logger.log(Level.INFO, "Read-only property on {1}: {0}", new Object[] { sourceEntity.getClass(), typeResource.getRawType() });
 						return new RestMethodResult(HttpServletResponse.SC_FORBIDDEN);
 
 					}
 
-					final DeleteRelationshipCommand deleteRel = Services.command(securityContext, DeleteRelationshipCommand.class);
-					final Iterable<AbstractRelationship> rels = startNode.getRelationships(staticRel.getRelType(), staticRel.getDirection());
-					final StructrTransaction transaction      = new StructrTransaction() {
+					try {
+						app.beginTx();
+						final List<GraphObject> nodes = new LinkedList<>();
 
-						@Override
-						public Object execute() throws FrameworkException {
+						// Now add new relationships for any new id: This should be the rest of the property set
+						for (final Object obj : propertySet.values()) {
 
-							for (final AbstractRelationship rel : rels) {
-
-								final AbstractNode otherNode = rel.getOtherNode(startNode);
-								final Class otherNodeType    = otherNode.getClass();
-								final String id              = otherNode.getProperty(AbstractNode.uuid);
-
-								// Delete relationship only if not contained in property set
-								// check type of other node as well, there can be relationships
-								// of the same type to more than one destTypes!
-								if (staticRel.getDestType().equals(otherNodeType) &&!propertySet.containsValue(id)) {
-
-									deleteRel.execute(rel);
-
-								} else {
-
-									// Remove id from set because there's already an existing relationship
-									propertySet.values().remove(id);
-								}
-
-							}
-
-							// Now add new relationships for any new id: This should be the rest of the property set
-							for (final Object obj : propertySet.values()) {
-
-								final String uuid                 = (String) obj;
-								final List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
-
-								attrs.add(Search.andExactUuid(uuid));
-
-								final Result results = searchNode.execute(attrs);
-
-								if (results.isEmpty()) {
-
-									throw new NotFoundException();
-
-								}
-
-								if (results.size() > 1) {
-
-									throw new SystemException("More than one result found for uuid " + uuid + "!");
-
-								}
-
-								final AbstractNode targetNode = (AbstractNode) results.get(0);
-
-//                                                              String type             = EntityContext.normalizeEntityName(typeResource.getRawType());
-								final Class type = staticRel.getDestType();
-
-								if (!type.equals(targetNode.getClass())) {
-
-									throw new FrameworkException(startNode.getClass().getSimpleName(), new TypeToken(AbstractNode.uuid, type.getSimpleName()));
-
-								}
-
-								staticRel.createRelationship(securityContext, startNode, targetNode);
-
-							}
-
-							return null;
+							nodes.add(app.get(obj.toString()));
 						}
-					};
 
-					// execute transaction
-					Services.command(securityContext, TransactionCommand.class).execute(transaction);
+						// set property on source node
+						sourceEntity.setProperty(propertyKey, nodes);
+						app.commitTx();
 
+					} finally {
+						app.finishTx();
+					}
 				}
 
 			}
@@ -246,67 +208,61 @@ public class StaticRelationshipResource extends SortableResource {
 	@Override
 	public RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException {
 
-		final AbstractNode sourceNode = typedIdResource.getIdResource().getNode();
-		final PropertyKey propertyKey = findPropertyKey(typedIdResource, typeResource);
+		final GraphObject sourceNode  = typedIdResource.getEntity();
+		final App app                 = StructrApp.getInstance(securityContext);
 
-		if (sourceNode != null && propertyKey != null && propertyKey instanceof AbstractRelationProperty) {
+		if (sourceNode != null && propertyKey != null && propertyKey instanceof RelationProperty) {
 
-			final StructrTransaction transaction = new StructrTransaction() {
+			final RelationProperty relationProperty = (RelationProperty)propertyKey;
+			final Class sourceNodeType              = sourceNode.getClass();
+			NodeInterface newNode                   = null;
 
-				@Override
-				public Object execute() throws FrameworkException {
+			if (propertyKey.isReadOnly()) {
 
-					final AbstractRelationProperty relationshipProperty = (AbstractRelationProperty)propertyKey;
-					final Class sourceNodeType                          = sourceNode.getClass();
+				logger.log(Level.INFO, "Read-only property on {0}: {1}", new Object[] { sourceNodeType, typeResource.getRawType() });
 
-					if (relationshipProperty.isReadOnly()) {
+				return null;
+			}
 
-						logger.log(Level.INFO, "Read-only property on {0}: {1}", new Object[] { sourceNodeType, typeResource.getRawType() });
+			// fetch notion
+			final Notion notion                  = relationProperty.getNotion();
+			final PropertyKey primaryPropertyKey = notion.getPrimaryPropertyKey();
 
-						return null;
-					}
+			try {
+				app.beginTx();
 
-					// fetch notion
-					final Notion notion                  = relationshipProperty.getNotion();
-					final PropertyKey primaryPropertyKey = notion.getPrimaryPropertyKey();
+				// apply notion if the property set contains the ID property as the only element
+				if (primaryPropertyKey != null && propertySet.containsKey(primaryPropertyKey.jsonName()) && propertySet.size() == 1) {
 
-					// apply notion if the property set contains the ID property as the only element
-					if (primaryPropertyKey != null && propertySet.containsKey(primaryPropertyKey.jsonName()) && propertySet.size() == 1) {
+					/*
+					 * FIXME: is this needed at all??
+					 * 
+					// the notion that is defined for this relationship can deserialize
+					// objects with a single key (uuid for example), and the POSTed
+					// property set contains value(s) for this key, so we only need
+					// to create relationships
+					final Object keySource = propertySet.get(primaryPropertyKey.jsonName());
+					if (keySource != null) {
 
-						// the notion that is defined for this relationship can deserialize
-						// objects with a single key (uuid for example), and the POSTed
-						// property set contains value(s) for this key, so we only need
-						// to create relationships
-						final Adapter<Object, GraphObject> deserializationStrategy = notion.getAdapterForSetter(securityContext);
-						final Object keySource                                     = propertySet.get(primaryPropertyKey.jsonName());
+						if (keySource instanceof Collection) {
 
-						if (keySource != null) {
+							sourceNode.setProperty(propertyKey, notion.getCollectionAdapterForSetter(securityContext).adapt(keySource));
 
-							GraphObject otherNode = null;
+						} else {
 
-							if (keySource instanceof Collection) {
+							sourceNode.setProperty(propertyKey, notion.getAdapterForSetter(securityContext).adapt(keySource));
+						}
 
-								final Collection collection = (Collection) keySource;
+						/*
+						GraphObject otherNode = null;
 
-								for (final Object key : collection) {
+						if (keySource instanceof Collection) {
 
-									otherNode = deserializationStrategy.adapt(key);
+							final Collection collection = (Collection) keySource;
 
-									if (otherNode != null && otherNode instanceof AbstractNode) {
+							for (final Object key : collection) {
 
-										relationshipProperty.createRelationship(securityContext, sourceNode, (AbstractNode)otherNode);
-
-									} else {
-
-										logger.log(Level.WARNING, "Relationship end node has invalid type {0}", otherNode.getClass().getName());
-									}
-
-								}
-
-							} else {
-
-								// create a single relationship
-								otherNode = deserializationStrategy.adapt(keySource);
+								otherNode = deserializationStrategy.adapt(key);
 
 								if (otherNode != null && otherNode instanceof AbstractNode) {
 
@@ -315,51 +271,52 @@ public class StaticRelationshipResource extends SortableResource {
 								} else {
 
 									logger.log(Level.WARNING, "Relationship end node has invalid type {0}", otherNode.getClass().getName());
-
 								}
-							}
 
-							return otherNode;
+							}
 
 						} else {
 
-							logger.log(Level.INFO, "Key {0} not found in {1}", new Object[] { primaryPropertyKey.jsonName(), propertySet.toString() });
+							// create a single relationship
+							otherNode = deserializationStrategy.adapt(keySource);
 
+							if (otherNode != null && otherNode instanceof AbstractNode) {
+
+								relationshipProperty.createRelationship(securityContext, sourceNode, (AbstractNode)otherNode);
+
+							} else {
+
+								logger.log(Level.WARNING, "Relationship end node has invalid type {0}", otherNode.getClass().getName());
+
+							}
 						}
+
+						return otherNode;
 
 					} else {
 
-						// the notion can not deserialize objects with a single key, or
-						// the POSTed propertySet did not contain a key to deserialize,
-						// so we create a new node from the POSTed properties and link
-						// the source node to it. (this is the "old" implementation)
-						final AbstractNode otherNode = typeResource.createNode(propertySet);
+						logger.log(Level.INFO, "Key {0} not found in {1}", new Object[] { primaryPropertyKey.jsonName(), propertySet.toString() });
 
-						// FIXME: this prevents post creation transformations from working
-						// properly if they rely on an already existing relationship when
-						// the transformation runs.
-
-						// TODO: we need to find a way to notify the listener at the end of the
-						// transaction, when all entities and relationships are created!
-						if (otherNode != null) {
-
-							// FIXME: this creates duplicate relationships when the related
-							//        node ID is already present in the property set..
-
-
-
-							relationshipProperty.createRelationship(securityContext, sourceNode, otherNode);
-
-							return otherNode;
-
-						}
 					}
+					*/
 
-					return null;
+
+				} else {
+
+					// the notion can not deserialize objects with a single key, or the POSTed propertySet did not contain a key to deserialize,
+					// so we create a new node from the POSTed properties and link the source node to it. (this is the "old" implementation)
+					newNode = typeResource.createNode(propertySet);
+					if (newNode != null) {
+
+						relationProperty.addSingleElement(securityContext, sourceNode, newNode);
+					}
 				}
-			};
+				app.commitTx();
 
-			AbstractNode newNode = (AbstractNode) Services.command(securityContext, TransactionCommand.class).execute(transaction);
+			} finally {
+				app.finishTx();
+			}
+
 			if (newNode != null) {
 
 				RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_CREATED);
@@ -371,14 +328,15 @@ public class StaticRelationshipResource extends SortableResource {
 		} else {
 
 			// look for methods that have an @Export annotation
-			AbstractNode entity = typedIdResource.getTypesafeNode();
-			Class entityType    = typedIdResource.getEntityClass();
-			String methodName   = typeResource.getRawType();
-			boolean success     = false;
+			GraphObject entity     = typedIdResource.getIdResource().getEntity(SearchNodeCommand.class);
+			Class entityType       = typedIdResource.getEntityClass();
+			String methodName      = typeResource.getRawType();
+			FrameworkException fex = null;
+			boolean success        = false;
 
-			if (entityType != null && methodName != null) {
+			if (entity != null && entityType != null && methodName != null) {
 
-				for (Method method : EntityContext.getExportedMethodsForType(entityType)) {
+				for (Method method : StructrApp.getConfiguration().getExportedMethodsForType(entityType)) {
 
 					if (methodName.equals(method.getName())) {
 
@@ -395,7 +353,19 @@ public class StaticRelationshipResource extends SortableResource {
 
 								} catch (Throwable t) {
 								
-									logger.log(Level.WARNING, "Unable to call RPC method {0}: {1}", new Object[] { methodName, t.getMessage() } );
+									// store FrameworkException for later use
+									if (t instanceof FrameworkException) {
+										
+										fex = (FrameworkException)t;
+										
+									} else if (t.getCause() instanceof FrameworkException) {
+										
+										fex = (FrameworkException)t.getCause();
+										
+									} else {
+										
+										logger.log(Level.WARNING, "Unable to call RPC method {0}: {1}", new Object[] { methodName, t.getMessage() } );
+									}
 								}
 								
 							} else {
@@ -411,6 +381,13 @@ public class StaticRelationshipResource extends SortableResource {
 			if (success) {
 
 				return new RestMethodResult(HttpServletResponse.SC_OK);
+				
+			} else {
+				
+				// throw FrameworkException
+				if (fex != null) {
+					throw fex;
+				}
 			}
 
 		}
@@ -442,7 +419,11 @@ public class StaticRelationshipResource extends SortableResource {
 
 	@Override
 	public Class getEntityClass() {
-		return typeResource.getEntityClass();
+		Class type = typeResource.getEntityClass();
+		if (type == null && propertyKey != null) {
+			return propertyKey.relatedType();
+		}
+		return type;
 	}
 
 	@Override
@@ -469,10 +450,28 @@ public class StaticRelationshipResource extends SortableResource {
         }
 	
 	// ----- private methods -----
+	private <A extends NodeInterface, B extends NodeInterface, R extends Relation<A, B, ?, ?>> R getRelationshipForType(final Class<R> type) {
+		
+		try {
+			
+			return type.newInstance();
+			
+		} catch (Throwable t) {
+
+			// TODO: throw meaningful exception here,
+			// should be a RuntimeException that indicates
+			// wrong use of Relationships etc.
+			
+			t.printStackTrace();
+		}
+		
+		return null;
+	}
+
 	private Object[] extractParameters(Map<String, Object> properties, Class[] parameterTypes) {
 		
-		List<Object> values     = new ArrayList<Object>(properties.values());
-		List<Object> parameters = new ArrayList<Object>();
+		List<Object> values     = new ArrayList<>(properties.values());
+		List<Object> parameters = new ArrayList<>();
 		int index               = 0;
 		
 		// only try to convert when both lists have equal size
@@ -503,7 +502,7 @@ public class StaticRelationshipResource extends SortableResource {
 		if (type.equals(String.class)) {
 
 			// strings can be returned immediately
-			convertedObject = value.toString();
+			return value.toString();
 
 		} else if (value instanceof Number) {
 
@@ -549,5 +548,57 @@ public class StaticRelationshipResource extends SortableResource {
 		}
 		
 		return convertedObject;
+	}
+	
+	private Predicate<GraphObject> toPredicate(final List<SearchAttribute> searchAttributes) {
+		return new AndPredicate(searchAttributes);
+	}
+	
+	private class AndPredicate implements Predicate<GraphObject> {
+
+		final List<Predicate<GraphObject>> predicates = new LinkedList<>();
+
+		public AndPredicate(List<SearchAttribute> searchAttributes) {
+			
+			for (final SearchAttribute attr : searchAttributes) {
+
+				if (attr instanceof SearchAttributeGroup) {
+					
+					for (final SearchAttribute groupAttr : ((SearchAttributeGroup)attr).getSearchAttributes()) {
+						// ignore type search attributes as the nodes will
+						// already have the correct type when arriving here
+						if (groupAttr instanceof TypeSearchAttribute) {
+							continue;
+						}
+				
+						predicates.add(attr);
+					}
+					
+				} else {
+
+					// ignore type search attributes as the nodes will
+					// already have the correct type when arriving here
+					if (attr instanceof TypeSearchAttribute) {
+						continue;
+					}
+								
+					predicates.add(attr);
+				}
+			}
+		}
+
+		@Override
+		public boolean accept(GraphObject obj) {
+
+			boolean result = true;
+
+			for (Predicate<GraphObject> predicate : predicates) {
+				
+				result &= predicate.accept(obj);
+			}
+
+			return result;
+		}
+		
 	}
 }

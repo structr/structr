@@ -1,23 +1,24 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Structr, c/o Morgner UG (haftungsbeschränkt) <structr@structr.org>
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core.property;
 
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -31,7 +32,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.index.Index;
 import org.structr.common.SecurityContext;
@@ -42,9 +42,11 @@ import org.structr.core.Services;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeService;
 import org.structr.core.graph.NodeService.NodeIndex;
 import org.structr.core.graph.NodeService.RelationshipIndex;
+import org.structr.core.graph.search.NotBlankSearchAttribute;
 import org.structr.core.graph.search.RangeSearchAttribute;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
@@ -60,7 +62,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	private static final Logger logger             = Logger.getLogger(Property.class.getName());
 	private static final Pattern rangeQueryPattern = Pattern.compile("\\[(.+) TO (.+)\\]");
 	
-	protected List<PropertyValidator<T>> validators        = new LinkedList<PropertyValidator<T>>();
+	protected List<PropertyValidator<T>> validators        = new LinkedList<>();
 	protected Class<? extends GraphObject> declaringClass  = null;
 	protected T defaultValue                               = null;
 	protected boolean readOnly                             = false;
@@ -75,8 +77,8 @@ public abstract class Property<T> implements PropertyKey<T> {
 
 	private boolean requiresSynchronization                = false;
 	
-	protected Set<RelationshipIndex> relationshipIndices   = new LinkedHashSet<RelationshipIndex>();
-	protected Set<NodeIndex> nodeIndices                   = new LinkedHashSet<NodeIndex>();
+	protected Set<RelationshipIndex> relationshipIndices   = new LinkedHashSet<>();
+	protected Set<NodeIndex> nodeIndices                   = new LinkedHashSet<>();
 
 	protected Property(String name) {
 		this(name, name);
@@ -243,7 +245,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	}
 	
 	@Override
-	public void setDeclaringClass(Class<? extends GraphObject> declaringClass) {
+	public void setDeclaringClass(Class declaringClass) {
 		this.declaringClass = declaringClass;
 	}
 	
@@ -252,10 +254,9 @@ public abstract class Property<T> implements PropertyKey<T> {
 	}
 	
 	@Override
-	public Class<? extends GraphObject> getDeclaringClass() {
+	public Class getDeclaringClass() {
 		return declaringClass;
 	}
-
 	
 	@Override
 	public String toString() {
@@ -358,7 +359,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 
 		if (entity instanceof AbstractNode) {
 
-			NodeService nodeService = Services.getService(NodeService.class);
+			NodeService nodeService = Services.getInstance().getService(NodeService.class);
 			AbstractNode node       = (AbstractNode)entity;
 			Node dbNode             = node.getNode();
 
@@ -367,37 +368,35 @@ public abstract class Property<T> implements PropertyKey<T> {
 				Index<Node> index = nodeService.getNodeIndex(indexName);
 				if (index != null) {
 
-					synchronized (index) {
+					try {
 
-						index.remove(dbNode, dbName);
-						
-						if (value != null && !StringUtils.isBlank(value.toString())) {
-							
-							try {
-							
-								index.add(dbNode, dbName, value);
-								
-							} catch (NotFoundException e) {
-								
-								logger.log(Level.WARNING, "Could not add node to layer", e.getMessage());
-								
-							}
-							
-						} else if (isIndexedWhenEmpty()) {
-							
-							value = getValueForEmptyFields();
-							if (value != null) {
-								
-								index.add(dbNode, dbName, value);
+						synchronized (index) {
+
+							index.remove(dbNode, dbName);
+
+							if (value != null && !StringUtils.isBlank(value.toString())) {
+									index.add(dbNode, dbName, value);
+
+							} else if (isIndexedWhenEmpty()) {
+
+								value = getValueForEmptyFields();
+								if (value != null) {
+
+									index.add(dbNode, dbName, value);
+								}
 							}
 						}
+
+					} catch (Throwable t) {
+
+						logger.log(Level.INFO, "Unable to index property with dbName {0} and value {1} of type {2} on {3}: {4}", new Object[] { dbName, value, this.getClass().getSimpleName(), entity, t } );
 					}
 				}
 			}
 			
 		} else {
 			
-			NodeService nodeService  = Services.getService(NodeService.class);
+			NodeService nodeService  = Services.getInstance().getService(NodeService.class);
 			AbstractRelationship rel = (AbstractRelationship)entity;
 			Relationship dbRel       = rel.getRelationship();
 
@@ -406,22 +405,29 @@ public abstract class Property<T> implements PropertyKey<T> {
 				Index<Relationship> index = nodeService.getRelationshipIndex(indexName);
 				if (index != null) {
 
-					synchronized (index) {
+					try {
 
-						index.remove(dbRel, dbName);
-							
-						if (value != null && !StringUtils.isBlank(value.toString())) {
+						synchronized (index) {
 
-							index.add(dbRel, dbName, value);
-							
-						} else if (isIndexedWhenEmpty()) {
-							
-							value = getValueForEmptyFields();
-							if (value != null) {
-								
+							index.remove(dbRel, dbName);
+
+							if (value != null && !StringUtils.isBlank(value.toString())) {
+
 								index.add(dbRel, dbName, value);
+
+							} else if (isIndexedWhenEmpty()) {
+
+								value = getValueForEmptyFields();
+								if (value != null) {
+
+									index.add(dbRel, dbName, value);
+								}
 							}
 						}
+
+					} catch (Throwable t) {
+
+						logger.log(Level.INFO, "Unable to index property with dbName {0} and value {1} of type {2} on {3}: {4}", new Object[] { dbName, value, this.getClass().getSimpleName(), entity, t } );
 					}
 				}
 			}
@@ -437,7 +443,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	@Override
 	public List<SearchAttribute> extractSearchableAttribute(SecurityContext securityContext, HttpServletRequest request, boolean looseSearch) throws FrameworkException {
 					
-		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+		List<SearchAttribute> searchAttributes = new LinkedList<>();
 		String searchValue                     = request.getParameter(jsonName());
 		if (searchValue != null) {
 
@@ -524,7 +530,26 @@ public abstract class Property<T> implements PropertyKey<T> {
 					return new RangeSearchAttribute(key, rangeStartConverted, rangeEndConverted, Occur.MUST);
 				}
 
+				logger.log(Level.WARNING, "Unable to determine range query bounds for {0}", requestParameter);
+				
 				return null;
+				
+			} else {
+				
+				if ("[]".equals(requestParameter)) {
+					
+					if (key.isIndexedWhenEmpty()) {
+						
+						// requestParameter contains only [],
+						// which we use as a "not-blank" selector
+
+						return new NotBlankSearchAttribute(key);
+						
+					} else {
+						
+						throw new FrameworkException(400, "PropertyKey " + key.jsonName() + " must be indexedWhenEmpty() to be used in not-blank search query.");
+					}
+				}
 			}
 		}
 
@@ -541,4 +566,10 @@ public abstract class Property<T> implements PropertyKey<T> {
 			return Search.andExactProperty(securityContext, key, extractSearchableAttribute(securityContext, requestParameter));
 		}
 	}
+	
+	protected <T extends NodeInterface> Set<T> getRelatedNodesReverse(final SecurityContext securityContext, final NodeInterface obj, final Class destinationType) {
+		// this is the default implementation
+		return Collections.emptySet();
+	}
+	
 }

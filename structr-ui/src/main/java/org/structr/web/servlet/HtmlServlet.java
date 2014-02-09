@@ -1,23 +1,21 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Structr, c/o Morgner UG (haftungsbeschränkt) <structr@structr.org>
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
 package org.structr.web.servlet;
 
 import java.io.IOException;
@@ -35,7 +33,6 @@ import org.structr.common.*;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.*;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
@@ -54,20 +51,17 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.LocaleUtils;
 import org.apache.commons.lang.time.DateUtils;
 import org.apache.lucene.search.BooleanClause.Occur;
-import org.structr.core.auth.Authenticator;
-import org.structr.core.auth.AuthenticatorCommand;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
-import org.structr.core.graph.GetNodeByIdCommand;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.rest.ResourceProvider;
+import org.structr.rest.service.HttpServiceServlet;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.common.ThreadLocalMatcher;
@@ -82,48 +76,34 @@ import org.structr.web.entity.dom.DOMNode;
  * @author Christian Morgner
  * @author Axel Morgner
  */
-public class HtmlServlet extends HttpServlet {
+public class HtmlServlet extends HttpServiceServlet {
 
-	private static final Logger logger                                          = Logger.getLogger(HtmlServlet.class.getName());
-	private static Date lastModified;
-	public static final String REST_RESPONSE			= "restResponse";
-	public static final String REDIRECT				= "redirect";
-	public static final String POSSIBLE_ENTRY_POINTS		= "possibleEntryPoints";
-	public static final String REQUEST_CONTAINS_UUID_IDENTIFIER	= "request_contains_uuids";
+	private static final Logger logger                          = Logger.getLogger(HtmlServlet.class.getName());
 	
-	public static final String CONFIRM_REGISTRATION_PAGE	= "confirm_registration";
-	public static final String GET_SESSION_ID_PAGE		= "get_session_id";
-	public static final String CONFIRM_KEY_KEY		= "key";
-	public static final String TARGET_PAGE_KEY		= "target";
-	public static final String ERROR_PAGE_KEY		= "onerror";
-	public static final String LOCALE_KEY			= "locale";
+	public static final String REST_RESPONSE	                    = "restResponse";
+	public static final String REDIRECT                         = "redirect";
+	public static final String POSSIBLE_ENTRY_POINTS            = "possibleEntryPoints";
+	public static final String REQUEST_CONTAINS_UUID_IDENTIFIER = "request_contains_uuids";
 	
-	private ResourceProvider resourceProvider                   = null;
-
-	private static final ThreadLocalMatcher threadLocalUUIDMatcher              = new ThreadLocalMatcher("[a-zA-Z0-9]{32}");
+	public static final String CONFIRM_REGISTRATION_PAGE        = "confirm_registration";
+	public static final String GET_SESSION_ID_PAGE              = "get_session_id";
+	public static final String CONFIRM_KEY_KEY                  = "key";
+	public static final String TARGET_PAGE_KEY                  = "target";
+	public static final String ERROR_PAGE_KEY                   = "onerror";
+	public static final String LOCALE_KEY                       = "locale";
 	
-	public static SearchNodeCommand searchNodesAsSuperuser;
-	//~--- fields ---------------------------------------------------------
+	private static final ThreadLocalMatcher threadLocalUUIDMatcher = new ThreadLocalMatcher("[a-zA-Z0-9]{32}");
 
-
-	private DecimalFormat decimalFormat                                         = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
-	private EditMode edit;
-//	private Gson gson;
+	// non-static fields
+	private DecimalFormat decimalFormat              = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
+	private SearchNodeCommand searchNodesAsSuperuser = null;
 
 	public HtmlServlet() {}
-	
-	public HtmlServlet(final ResourceProvider resourceProvider) {
-
-		this.resourceProvider    = resourceProvider;
-
-	}
-
-	//~--- methods --------------------------------------------------------
 	
 	@Override
 	public void init() {
 		
-		 searchNodesAsSuperuser = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class);
+		 searchNodesAsSuperuser = StructrApp.getInstance().command(SearchNodeCommand.class);
 	}
 
 	@Override
@@ -170,7 +150,7 @@ public class HtmlServlet extends HttpServlet {
 			
 			renderContext.setResourceProvider(resourceProvider);
 			
-			edit = renderContext.getEditMode(user);
+			EditMode edit = renderContext.getEditMode(user);
 			
 			DOMNode rootElement               = null;
 			AbstractNode dataNode             = null;
@@ -213,7 +193,7 @@ public class HtmlServlet extends HttpServlet {
 
 					logger.log(Level.FINE, "File found in {0} seconds", decimalFormat.format((System.nanoTime() - start) / 1000000000.0));
 
-					streamFile(securityContext, file, request, response);
+					streamFile(securityContext, file, request, response, edit);
 					return;
 
 				}
@@ -240,7 +220,7 @@ public class HtmlServlet extends HttpServlet {
 
 				} else {
 
-					AbstractNode n = (AbstractNode) Services.command(securityContext, GetNodeByIdCommand.class).execute(PathHelper.getName(path));
+					AbstractNode n = (AbstractNode) StructrApp.getInstance(securityContext).get(PathHelper.getName(path));
 					if (n != null) {
 						dataNode = n;
 					}
@@ -299,10 +279,6 @@ public class HtmlServlet extends HttpServlet {
 
 				setNoCacheHeaders(response);
 				
-			} else {
-				
-				lastModified = rootElement.getLastModifiedDate();
-
 			}
 
 			if (securityContext.isVisible(rootElement)) {
@@ -451,7 +427,7 @@ public class HtmlServlet extends HttpServlet {
 
 		logger.log(Level.FINE, "Looking for an index page ...");
 
-		List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
+		List<SearchAttribute> searchAttrs = new LinkedList<>();
 		searchAttrs.add(Search.orExactType(Page.class));
 		
 		Result results = (Result) searchNodesAsSuperuser.execute(searchAttrs);
@@ -532,8 +508,8 @@ public class HtmlServlet extends HttpServlet {
 			
 		}
 		
-		String targetPage	= request.getParameter(TARGET_PAGE_KEY);
-		String errorPage	= request.getParameter(ERROR_PAGE_KEY);
+		String targetPage = request.getParameter(TARGET_PAGE_KEY);
+		String errorPage  = request.getParameter(ERROR_PAGE_KEY);
 
 		if (CONFIRM_REGISTRATION_PAGE.equals(path)) {
 		
@@ -546,20 +522,22 @@ public class HtmlServlet extends HttpServlet {
 			if (!results.isEmpty()) {
 				
 				final Principal user = (Principal) results.get(0);
+				final App app        = StructrApp.getInstance(securityContext);
 				
-				Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-
-					@Override
-					public Object execute() throws FrameworkException {
-						
-						// Clear confirmation key and set session id
-						user.setProperty(User.confirmationKey, null);
-						user.setProperty(Principal.sessionId, request.getSession().getId());
-						
-						return null;
-					}
+				try {
 					
-				});
+					app.beginTx();
+					
+					// Clear confirmation key and set session id
+					user.setProperty(User.confirmationKey, null);
+					user.setProperty(Principal.sessionId, request.getSession().getId());
+					
+					app.commitTx();
+					
+				} finally {
+					
+					app.finishTx();
+				}
 				
 				// Redirect to target page
 				if (StringUtils.isNotBlank(targetPage)) {
@@ -601,7 +579,7 @@ public class HtmlServlet extends HttpServlet {
 
 			logger.log(Level.FINE, "Requested id: {0}", uuid);
 
-			List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
+			List<SearchAttribute> searchAttrs = new LinkedList<>();
 
 			searchAttrs.add(Search.andExactUuid(uuid));
 
@@ -636,7 +614,7 @@ public class HtmlServlet extends HttpServlet {
 
 			logger.log(Level.FINE, "Requested name: {0}", name);
 
-			List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
+			List<SearchAttribute> searchAttrs = new LinkedList<>();
 
 			searchAttrs.add(Search.andExactName(name));
 
@@ -696,6 +674,7 @@ public class HtmlServlet extends HttpServlet {
 	private static boolean notModifiedSince(final HttpServletRequest request, HttpServletResponse response, final AbstractNode node) {
 
 		boolean notModified = false;
+		final Date lastModified = node.getLastModifiedDate();
 
 		// add some caching directives to header
 		// see http://weblogs.java.net/blog/2007/08/08/expires-http-header-magic-number-yslow
@@ -756,7 +735,7 @@ public class HtmlServlet extends HttpServlet {
 	}
 	
 
-	private void streamFile(SecurityContext securityContext, final org.structr.web.entity.File file, HttpServletRequest request, HttpServletResponse response) throws IOException {
+	private void streamFile(SecurityContext securityContext, final org.structr.web.entity.File file, HttpServletRequest request, HttpServletResponse response, final EditMode edit) throws IOException {
 
 		if (!securityContext.isVisible(file)) {
 			
@@ -813,12 +792,6 @@ public class HtmlServlet extends HttpServlet {
 				response.setStatus(HttpServletResponse.SC_OK);
 			}
 		}
-	}
-
-	private Authenticator getAuthenticator() throws FrameworkException {
-		
-		return (Authenticator) Services.command(null, AuthenticatorCommand.class).execute(getServletConfig());
-		
 	}
 	
 	/**

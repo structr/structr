@@ -1,43 +1,42 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Structr, c/o Morgner UG (haftungsbeschränkt) <structr@structr.org>
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package org.structr.web.entity;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
-import org.neo4j.graphdb.Direction;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.property.CollectionProperty;
+import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
 import org.structr.web.Importer;
-import org.structr.web.common.RelType;
 import org.structr.web.common.ThreadLocalMatcher;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
+import org.structr.web.entity.relation.ImageWidget;
 import org.structr.web.property.UiNotion;
 
 /**
@@ -46,10 +45,11 @@ import org.structr.web.property.UiNotion;
  */
 public class Widget extends AbstractNode implements Taggable {
 
-	private static final ThreadLocalMatcher		threadLocalTemplateMatcher	= new ThreadLocalMatcher("\\[[a-zA-Z]+\\]");
-	public static final Property<String>		source				= new StringProperty("source");
-	public static final Property<String>		description			= new StringProperty("description");
-	public static final CollectionProperty<Image>	pictures				= new CollectionProperty<>("pictures", Image.class, RelType.PICTURE_OF, Direction.INCOMING, new UiNotion(), true);
+	private static final ThreadLocalMatcher threadLocalTemplateMatcher = new ThreadLocalMatcher("\\[[a-zA-Z]+\\]");
+	
+	public static final Property<String>      source      = new StringProperty("source");
+	public static final Property<String>      description = new StringProperty("description");
+	public static final Property<List<Image>> pictures    = new EndNodes<>("pictures", ImageWidget.class, new UiNotion());
 	
 	public static final org.structr.common.View uiView = new org.structr.common.View(User.class, PropertyView.Ui,
 		type, name, source, description, pictures, tags

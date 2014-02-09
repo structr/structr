@@ -1,23 +1,21 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Structr, c/o Morgner UG (haftungsbeschränkt) <structr@structr.org>
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
 package org.structr.core.graph;
 
 import java.io.BufferedReader;
@@ -65,8 +63,9 @@ import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.StaticValue;
 import org.structr.core.Value;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
 
 /**
  *
@@ -77,9 +76,9 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 	private static final Logger logger                 = Logger.getLogger(SyncCommand.class.getName());
 	private static final String STRUCTR_ZIP_DB_NAME    = "db";
 	
-	private static final Map<Class, String> typeMap    = new LinkedHashMap<Class, String>();
-	private static final Map<Class, Method> methodMap  = new LinkedHashMap<Class, Method>();
-	private static final Map<String, Class> classMap   = new LinkedHashMap<String, Class>();
+	private static final Map<Class, String> typeMap    = new LinkedHashMap<>();
+	private static final Map<Class, Method> methodMap  = new LinkedHashMap<>();
+	private static final Map<String, Class> classMap   = new LinkedHashMap<>();
 
 	static {
 		
@@ -112,7 +111,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 	@Override
 	public void execute(Map<String, Object> attributes) throws FrameworkException {
 		
-		GraphDatabaseService graphDb = Services.getService(NodeService.class).getGraphDb();
+		GraphDatabaseService graphDb = Services.getInstance().getService(NodeService.class).getGraphDb();
 		String mode                  = (String)attributes.get("mode");
 		String fileName              = (String)attributes.get("file");
 		String validate              = (String)attributes.get("validate");
@@ -484,16 +483,17 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 	private static void exportDatabase(ZipOutputStream zos, PrintWriter writer, Iterable<Node> nodes, Iterable<Relationship> relationships) throws IOException, FrameworkException {
 		
 		// start database zip entry
-		ZipEntry dbEntry           = new ZipEntry(STRUCTR_ZIP_DB_NAME);
-		int nodeCount              = 0;
-		int relCount               = 0;
+		final ZipEntry dbEntry        = new ZipEntry(STRUCTR_ZIP_DB_NAME);
+		final String uuidPropertyName = GraphObject.id.dbName();
+		int nodeCount                 = 0;
+		int relCount                  = 0;
 		
 		zos.putNextEntry(dbEntry);
 
 		for (Node node : nodes) {
 
 			// ignore non-structr nodes
-			if (node.hasProperty(GraphObject.uuid.dbName())) {
+			if (node.hasProperty(GraphObject.id.dbName())) {
 
 				writer.print("N");
 
@@ -515,15 +515,15 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 		for (Relationship rel : relationships) {
 
 			// ignore non-structr nodes
-			if (rel.hasProperty(GraphObject.uuid.dbName())) {
+			if (rel.hasProperty(GraphObject.id.dbName())) {
 
-				Node startNode = rel.getStartNode();
-				Node endNode   = rel.getEndNode();
+				final Node startNode = rel.getStartNode();
+				final Node endNode   = rel.getEndNode();
 
-				if (startNode.hasProperty("uuid") && endNode.hasProperty("uuid")) {
+				if (startNode.hasProperty(uuidPropertyName) && endNode.hasProperty(uuidPropertyName)) {
 
-					String startId = (String)startNode.getProperty("uuid");
-					String endId   = (String)endNode.getProperty("uuid");
+					String startId = (String)startNode.getProperty(uuidPropertyName);
+					String endId   = (String)endNode.getProperty(uuidPropertyName);
 
 					writer.print("R");
 					serialize(writer, startId);
@@ -595,143 +595,150 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 	
 	private static void importDatabase(final GraphDatabaseService graphDb, final SecurityContext securityContext, final ZipInputStream zis, boolean doValidation) throws FrameworkException {
 	
-		final Value<Long> nodeCountValue = new StaticValue<Long>(0L);
-		final Value<Long> relCountValue  = new StaticValue<Long>(0L);
+		final App app                    = StructrApp.getInstance();
+		final Value<Long> nodeCountValue = new StaticValue<>(0L);
+		final Value<Long> relCountValue  = new StaticValue<>(0L);
+		final String uuidPropertyName    = GraphObject.id.dbName();
 		double t0                        = System.nanoTime();
 		
-		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction(doValidation) {
+		try {
+			
+			Map<String, Node> uuidMap       = new LinkedHashMap<>();
+			List<Relationship> rels         = new LinkedList<>();
+			List<Node> nodes                = new LinkedList<>();
+			PropertyContainer currentObject = null;
+			BufferedReader reader           = null;
+			String currentKey               = null;
+			boolean finished                = false;
+			long nodeCount                  = 0;
+			long relCount                   = 0;
 
-			@Override
-			public Object execute() throws FrameworkException {
+			try {
+			
+				app.beginTx();
+				
+				reader = new BufferedReader(new InputStreamReader(zis));
 
-				Map<String, Node> uuidMap       = new LinkedHashMap<String, Node>();
-				List<Relationship> rels         = new LinkedList<Relationship>();
-				List<Node> nodes                = new LinkedList<Node>();
-				PropertyContainer currentObject = null;
-				BufferedReader reader           = null;
-				String currentKey               = null;
-				boolean finished                = false;
-				long nodeCount                  = 0;
-				long relCount                   = 0;
-					
-				try {
-					reader = new BufferedReader(new InputStreamReader(zis));
+				do {
 
-					do {
+					try {
 
-						try {
+						// store current position
+						reader.mark(4);
 
-							// store current position
-							reader.mark(4);
+						// read one byte
+						String objectType = read(reader, 1);
 
-							// read one byte
-							String objectType = read(reader, 1);
+						// skip newlines
+						if ("\n".equals(objectType)) {
+							continue;
+						}
 
-							// skip newlines
-							if ("\n".equals(objectType)) {
-								continue;
-							}
+						if ("N".equals(objectType)) {
 
-							if ("N".equals(objectType)) {
+							currentObject = graphDb.createNode();
+							nodeCount++;
 
-								currentObject = graphDb.createNode();
-								nodeCount++;
+							// store for later use
+							nodes.add((Node)currentObject);
+
+						} else if ("R".equals(objectType)) {
+
+							String startId     = (String)deserialize(reader);
+							String endId       = (String)deserialize(reader);
+							String relTypeName = (String)deserialize(reader);
+
+							Node endNode   = uuidMap.get(endId);
+							Node startNode = uuidMap.get(startId);
+
+							if (startNode != null && endNode != null) {
+
+								RelationshipType relType = DynamicRelationshipType.withName(relTypeName);
+								currentObject = startNode.createRelationshipTo(endNode, relType);
 
 								// store for later use
-								nodes.add((Node)currentObject);
+								rels.add((Relationship)currentObject);
+							}
 
-							} else if ("R".equals(objectType)) {
+							relCount++;
 
-								String startId     = (String)deserialize(reader);
-								String endId       = (String)deserialize(reader);
-								String relTypeName = (String)deserialize(reader);
+						} else {
 
-								Node endNode   = uuidMap.get(endId);
-								Node startNode = uuidMap.get(startId);
+							// reset if not at the beginning of a line
+							reader.reset();
 
-								if (startNode != null && endNode != null) {
+							if (currentKey == null) {
 
-									RelationshipType relType = DynamicRelationshipType.withName(relTypeName);
-									currentObject = startNode.createRelationshipTo(endNode, relType);
-
-									// store for later use
-									rels.add((Relationship)currentObject);
-								}
-
-								relCount++;
+								currentKey = (String)deserialize(reader);
 
 							} else {
 
-								// reset if not at the beginning of a line
-								reader.reset();
+								if (currentObject != null) {
 
-								if (currentKey == null) {
+									Object obj = deserialize(reader);
 
-									currentKey = (String)deserialize(reader);
+									if (uuidPropertyName.equals(currentKey) && currentObject instanceof Node) {
+
+										String uuid = (String)obj;
+										uuidMap.put(uuid, (Node)currentObject);
+									}
+
+									// store object in DB
+									currentObject.setProperty(currentKey, obj);
+
+									currentKey = null;
 
 								} else {
 
-									if (currentObject != null) {
-
-										Object obj = deserialize(reader);
-
-										if ("uuid".equals(currentKey) && currentObject instanceof Node) {
-
-											String uuid = (String)obj;
-											uuidMap.put(uuid, (Node)currentObject);
-										}
-
-										// store object in DB
-										currentObject.setProperty(currentKey, obj);
-
-										currentKey = null;
-
-									} else {
-
-										logger.log(Level.WARNING, "No current object to store property in.");
-									}
+									logger.log(Level.WARNING, "No current object to store property in.");
 								}
 							}
-
-						} catch (EOFException eofex) {
-
-							finished = true;
 						}
 
-					} while (!finished);
-					
-				} catch (IOException ioex) {
-				}
-				
-				logger.log(Level.INFO, "Imported {0} nodes and {1} rels, committing transaction..", new Object[] { nodeCount, relCount } );
-				
-				nodeCountValue.set(securityContext, nodeCount);
-				relCountValue.set(securityContext, relCount);
+					} catch (EOFException eofex) {
 
-				// make nodes visible in transaction context
-				RelationshipFactory relFactory     = new RelationshipFactory(securityContext);
-				NodeFactory nodeFactory            = new NodeFactory(securityContext);
-				
-				for (Node node : nodes) {
-					
-					AbstractNode entity = nodeFactory.instantiate(node);
-					TransactionCommand.nodeCreated(entity);
-					entity.addToIndex();
-					
-				}
-				
-				for (Relationship rel : rels) {
-					
-					AbstractRelationship entity = relFactory.instantiate(rel);
-					TransactionCommand.relationshipCreated(entity);
-					entity.addToIndex();
-				}
-				
-				return null;
+						finished = true;
+					}
+
+				} while (!finished);
+
+			} catch (IOException ioex) {
 			}
 
-		});
+			logger.log(Level.INFO, "Imported {0} nodes and {1} rels, committing transaction..", new Object[] { nodeCount, relCount } );
 
+			nodeCountValue.set(securityContext, nodeCount);
+			relCountValue.set(securityContext, relCount);
+
+			// make nodes visible in transaction context
+			RelationshipFactory relFactory     = new RelationshipFactory(securityContext);
+			NodeFactory nodeFactory            = new NodeFactory(securityContext);
+
+			for (Node node : nodes) {
+
+				NodeInterface entity = nodeFactory.instantiate(node);
+				TransactionCommand.nodeCreated(entity);
+				entity.addToIndex();
+			}
+
+			for (Relationship rel : rels) {
+
+				RelationshipInterface entity = relFactory.instantiate(rel);
+				TransactionCommand.relationshipCreated(entity);
+				entity.addToIndex();
+			}
+			
+			app.commitTx();
+			
+		} catch (FrameworkException fex) {
+			
+			fex.printStackTrace();
+			
+		} finally {
+			
+			app.finishTx();
+		}
+		
 		double t1   = System.nanoTime();
 		double time = ((t1 - t0) / 1000000000.0);
 

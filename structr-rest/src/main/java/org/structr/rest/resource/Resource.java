@@ -1,20 +1,20 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Structr, c/o Morgner UG (haftungsbeschränkt) <structr@structr.org>
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.rest.resource;
 
@@ -39,28 +39,25 @@ import org.apache.lucene.search.BooleanClause.Occur;
 import org.structr.common.CaseHelper;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.Permission;
-import org.structr.common.PropertyView;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.Value;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.graph.DeleteNodeCommand;
-import org.structr.core.graph.DeleteRelationshipCommand;
 import org.structr.core.graph.NodeFactory;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NoResultsException;
 import org.structr.rest.exception.NotAllowedException;
 import org.structr.rest.servlet.JsonRestServlet;
+import org.structr.schema.ConfigurationProvider;
 
 //~--- classes ----------------------------------------------------------------
 /**
@@ -101,8 +98,6 @@ public abstract class Resource {
 
 	public RestMethodResult doDelete() throws FrameworkException {
 
-		final DeleteNodeCommand deleteNode = Services.command(securityContext, DeleteNodeCommand.class);
-		final DeleteRelationshipCommand deleteRel = Services.command(securityContext, DeleteRelationshipCommand.class);
 		Iterable<? extends GraphObject> results = null;
 
 		// catch 204, DELETE must return 200 if resource is empty
@@ -115,35 +110,35 @@ public abstract class Resource {
 		if (results != null) {
 
 			final Iterable<? extends GraphObject> finalResults = results;
+			final App app                                      = StructrApp.getInstance(securityContext);
+			
+			try {
+				app.beginTx();
+				for (final GraphObject obj : finalResults) {
 
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
-				@Override
-				public Object execute() throws FrameworkException {
+					if (obj instanceof AbstractRelationship) {
 
-					for (final GraphObject obj : finalResults) {
+						app.delete((AbstractRelationship)obj);
 
-						if (obj instanceof AbstractRelationship) {
+					} else if (obj instanceof AbstractNode) {
 
-							deleteRel.execute((AbstractRelationship)obj);
+						if (!securityContext.isAllowed((AbstractNode)obj, Permission.delete)) {
 
-						} else if (obj instanceof AbstractNode) {
+							logger.log(Level.WARNING, "Could not delete {0} because {1} has no delete permission", new Object[]{obj, securityContext.getUser(true)});
+							throw new NotAllowedException();
 
-							if (!securityContext.isAllowed((AbstractNode)obj, Permission.delete)) {
-
-								logger.log(Level.WARNING, "Could not delete {0} because {1} has no delete permission", new Object[]{obj, securityContext.getUser(true)});
-								throw new NotAllowedException();
-
-							}
-
-							// delete cascading
-							deleteNode.execute((AbstractNode)obj, true);
 						}
 
+						// delete cascading
+						app.delete((AbstractNode)obj);
 					}
 
-					return null;
 				}
-			});
+				app.commitTx();
+
+			} finally {
+				app.finishTx();
+			}
 
 		}
 
@@ -153,34 +148,32 @@ public abstract class Resource {
 	public RestMethodResult doPut(final Map<String, Object> propertySet) throws FrameworkException {
 
 		final Result<GraphObject> result = doGet(null, false, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE, null);
-		final List<GraphObject> results = result.getResults();
+		final List<GraphObject> results  = result.getResults();
+		final App app                    = StructrApp.getInstance(securityContext);
 
 		if (results != null && !results.isEmpty()) {
 
 			final Class type = results.get(0).getClass();
+			
+			try {
+				app.beginTx();
 
-			final StructrTransaction transaction = new StructrTransaction() {
-				@Override
-				public Object execute() throws FrameworkException {
+				PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, type, propertySet);
 
-					PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, type, propertySet);
+				for (final GraphObject obj : results) {
 
-					for (final GraphObject obj : results) {
+					for (final Entry<PropertyKey, Object> attr : properties.entrySet()) {
 
-						for (final Entry<PropertyKey, Object> attr : properties.entrySet()) {
-
-							obj.setProperty(attr.getKey(), attr.getValue());
-
-						}
+						obj.setProperty(attr.getKey(), attr.getValue());
 
 					}
 
-					return null;
 				}
-			};
+				app.commitTx();
 
-			// modify results in a single transaction
-			Services.command(securityContext, TransactionCommand.class).execute(transaction);
+			} finally {
+				app.finishTx();
+			}
 
 			return new RestMethodResult(HttpServletResponse.SC_OK);
 
@@ -208,12 +201,12 @@ public abstract class Resource {
 
 		Class sourceNodeType = typedIdResource.getTypeResource().getEntityClass();
 		String rawName = typeResource.getRawType();
-		PropertyKey key = EntityContext.getPropertyKeyForJSONName(sourceNodeType, rawName, false);
+		PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(sourceNodeType, rawName, false);
 
 		if (key == null) {
 
 			// try to convert raw name into lower-case variable name
-			key = EntityContext.getPropertyKeyForJSONName(sourceNodeType, CaseHelper.toLowerCamelCase(rawName));
+			key = StructrApp.getConfiguration().getPropertyKeyForJSONName(sourceNodeType, CaseHelper.toLowerCamelCase(rawName));
 		}
 
 		return key;
@@ -231,7 +224,7 @@ public abstract class Resource {
 			// use configured id property
 			if (idProperty == null) {
 
-				uriBuilder.append(newObject.getId());
+				uriBuilder.append(newObject.getUuid());
 
 			} else {
 
@@ -335,13 +328,48 @@ public abstract class Resource {
 
 	protected List<SearchAttribute> extractSearchableAttributes(final SecurityContext securityContext, final Class type, final HttpServletRequest request) throws FrameworkException {
 
-		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+		List<SearchAttribute> searchAttributes = new LinkedList<>();
+		
+		if (type != null && request != null && !request.getParameterMap().isEmpty()) {
+
+			final boolean looseSearch        = parseInteger(request.getParameter(JsonRestServlet.REQUEST_PARAMETER_LOOSE_SEARCH)) == 1;
+			final ConfigurationProvider conf = Services.getInstance().getConfigurationProvider();
+
+			for (final String name : request.getParameterMap().keySet()) {
+
+				final PropertyKey key = conf.getPropertyKeyForJSONName(type, getFirstPartOfString(name));
+				if (key != null) {
+
+					if (key.isSearchable()) {
+
+						searchAttributes.addAll(key.extractSearchableAttribute(securityContext, request, looseSearch));
+
+					} else if (!JsonRestServlet.commonRequestParameters.contains(name)) {
+
+						throw new FrameworkException(400, "Search key " + name + " is not indexed.");
+					}
+
+				} else if (!JsonRestServlet.commonRequestParameters.contains(name)) {
+				
+					// exclude common request parameters here (should not throw exception)
+					throw new FrameworkException(400, "Invalid search key " + name);
+				}
+			}
+		}
+
+		return searchAttributes;
+	}
+	
+	/*
+	protected List<SearchAttribute> extractSearchableAttributes(final SecurityContext securityContext, final Class type, final HttpServletRequest request) throws FrameworkException {
+
+		List<SearchAttribute> searchAttributes = new LinkedList<>();
 		
 		if (type != null && request != null && !request.getParameterMap().isEmpty()) {
 
 			boolean looseSearch = parseInteger(request.getParameter(JsonRestServlet.REQUEST_PARAMETER_LOOSE_SEARCH)) == 1;
 
-			for (final PropertyKey key : EntityContext.getPropertySet(type, PropertyView.All)) {
+			for (final PropertyKey key : StructrApp.getConfiguration().getPropertySet(type, PropertyView.All)) {
 
 				if (key.isSearchable()) {
 					
@@ -352,6 +380,7 @@ public abstract class Resource {
 
 		return searchAttributes;
 	}
+	*/
 
 	public abstract boolean isCollectionResource() throws FrameworkException;
 
@@ -359,8 +388,25 @@ public abstract class Resource {
 		return false;
 	}
 
-	//~--- set methods ----------------------------------------------------
 	public void setSecurityContext(final SecurityContext securityContext) {
 		this.securityContext = securityContext;
+	}
+	
+	// ----- private methods -----
+	/**
+	 * Returns the first part of the given source string when it contains a "."
+	 * 
+	 * @param parameter
+	 * @return 
+	 */
+	private String getFirstPartOfString(final String source) {
+		
+		final int pos = source.indexOf(".");
+		if (pos > -1) {
+			
+			return source.substring(0, pos);
+		}
+		
+		return source;
 	}
 }

@@ -18,10 +18,9 @@
  */
 
 var s = require('../setup');
-var casper = require('casper').create(s.casperOptions);
 
-var testName = 'successful_login';
-var heading = "Successful Login"
+var testName = '002_successful_login';
+var heading = "Successful Login", sections = [];
 var desc = "This animation shows a successful login."
 var numberOfTests = 2;
 
@@ -30,7 +29,13 @@ s.startRecording(window, casper, testName);
 casper.test.begin(testName, numberOfTests, function(test) {
 
     casper.start(s.url);
-
+    
+    casper.thenEvaluate(function() {
+        window.localStorage.clear();
+    }, {});
+    
+    sections.push('If you enter a valid combination of username and password, the system allows you to log in.');
+    
     casper.then(function() {
         s.animatedType(this, '#usernameField', false, 'admin');
     });
@@ -40,7 +45,7 @@ casper.test.begin(testName, numberOfTests, function(test) {
     });
 
     casper.then(function() {
-        s.mousePointer(casper, { left: 180, top: 180 });
+        s.mousePointer(casper, { left: 600, top: 400 });
         s.moveMousePointerTo(casper, '#loginButton');
     });
 
@@ -48,21 +53,19 @@ casper.test.begin(testName, numberOfTests, function(test) {
         this.click('#loginButton');
     });
 
-    casper.waitWhileVisible('#dialogBox', function() {
+    casper.waitForSelector('#errorText', function() {
 
-        test.assertEval(function() {
-            return $('#errorText').text() === '';
-        });
+        test.assertEval(function() { return !($('#errorText').text() === 'Wrong username or password!'); });
 
-        test.assertEval(function() {
-            return $('#pages').is(':visible');
-        });
+        test.assertEval(function() { return $('#pages').is(':visible'); });
 
     });
+    
+    
 
     casper.then(function() {
         
-        s.animateHtml(testName, heading, desc);
+        s.animateHtml(testName, heading, sections);
         
         test.done();
         this.exit();

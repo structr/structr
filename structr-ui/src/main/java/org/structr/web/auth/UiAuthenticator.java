@@ -1,23 +1,21 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Structr, c/o Morgner UG (haftungsbeschränkt) <structr@structr.org>
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
 package org.structr.web.auth;
 
 import java.util.LinkedHashMap;
@@ -37,13 +35,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.AccessMode;
-import org.structr.core.Services;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.auth.exception.UnauthorizedException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Person;
 import org.structr.core.entity.SuperUser;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import static org.structr.web.auth.HttpAuthenticator.checkSessionAuthentication;
 
 //~--- classes ----------------------------------------------------------------
@@ -139,7 +136,7 @@ public class UiAuthenticator extends HttpAuthenticator {
 
 		// test for cross site resource sharing
 		String origin = request.getHeader("Origin");
-		 if (!StringUtils.isBlank(origin)) {
+		if (!StringUtils.isBlank(origin)) {
 
 			 // allow cross site resource sharing (read only)
 			response.setHeader("Access-Control-Allow-Origin", origin);
@@ -165,7 +162,7 @@ public class UiAuthenticator extends HttpAuthenticator {
 		boolean validUser = (user != null);
 		
 		// super user is always authenticated
-		if (validUser && user instanceof SuperUser) {
+		if (validUser && (user instanceof SuperUser || user.getProperty(Principal.isAdmin))) {
 			return;
 		}
 		
@@ -272,28 +269,23 @@ public class UiAuthenticator extends HttpAuthenticator {
 		if (user != null) {
 
 			final String sessionIdFromRequest = request.getRequestedSessionId();
+			final App app = StructrApp.getInstance();
 			
 			// Websocket connects don't have a session
 			if (sessionIdFromRequest != null) {
-			
-				final Principal principal         = user;
 
 				try {
-					
-					Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(new StructrTransaction() {
-
-						@Override
-						public Object execute() throws FrameworkException {
-							// store session id in user object
-							principal.setProperty(Principal.sessionId, sessionIdFromRequest);
-							return null;
-						}
-					});
-
+					app.beginTx();
+					user.setProperty(Principal.sessionId, sessionIdFromRequest);
+					app.commitTx();
+				
 				} catch (Exception ex) {
 
 					logger.log(Level.SEVERE, null, ex);
 
+				} finally {
+					
+					app.finishTx();
 				}
 			}
 

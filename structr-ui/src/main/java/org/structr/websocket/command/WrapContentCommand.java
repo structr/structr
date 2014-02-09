@@ -1,20 +1,20 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Structr, c/o Morgner UG (haftungsbeschränkt) <structr@structr.org>
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.websocket.command;
 
@@ -24,6 +24,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.web.entity.dom.DOMNode;
@@ -50,6 +52,7 @@ public class WrapContentCommand extends AbstractCommand {
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
+		final App app                      = StructrApp.getInstance(getWebSocket().getSecurityContext());
 		final Map<String, Object> nodeData = webSocketData.getNodeData();
 		final String parentId              = (String) nodeData.get("parentId");
 		final String pageId                = webSocketData.getPageId();
@@ -84,48 +87,31 @@ public class WrapContentCommand extends AbstractCommand {
 				
 				try {
 
-					final DOMNode elementNode = (DOMNode) Services.command(getWebSocket().getSecurityContext(), TransactionCommand.class).execute(new StructrTransaction() {
-
-						@Override
-						public DOMNode execute() throws FrameworkException {
-							
-							DOMNode newNode = null;
-							
-							if (tagName != null && !tagName.isEmpty()) {
-
-								newNode = (DOMNode) document.createElement(tagName);
-
-							}
-
-							// append new node to parent parent node
-							if (newNode != null) {
-
-								parentNode.appendChild(newNode);
-
-							}
-
-							return newNode;
-						}
-						
-					});
+					app.beginTx();
 					
-					Services.command(getWebSocket().getSecurityContext(), TransactionCommand.class).execute(new StructrTransaction() {
+					DOMNode elementNode = null;
+					if (tagName != null && !tagName.isEmpty()) {
 
-						@Override
-						public Object execute() throws FrameworkException {
-							
-							// append new node to parent parent node
-							if (elementNode != null) {
+						elementNode = (DOMNode) document.createElement(tagName);
 
-								// append content node to new node
-								elementNode.appendChild(contentNode);
+					}
 
-							}
+					// append new node to parent parent node
+					if (elementNode != null) {
 
-							return null;
-						}
-						
-					});
+						parentNode.appendChild(elementNode);
+
+					}
+					
+					// append new node to parent parent node
+					if (elementNode != null) {
+
+						// append content node to new node
+						elementNode.appendChild(contentNode);
+
+					}
+					
+					app.commitTx();
 
 				} catch (DOMException dex) {
 						
@@ -135,6 +121,10 @@ public class WrapContentCommand extends AbstractCommand {
 				} catch (FrameworkException ex) {
 					
 					Logger.getLogger(CreateAndAppendDOMNodeCommand.class.getName()).log(Level.SEVERE, null, ex);
+					
+				} finally {
+					
+					app.finishTx();
 				}
 				
 			} else {

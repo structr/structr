@@ -1,33 +1,37 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Structr, c/o Morgner UG (haftungsbeschränkt) <structr@structr.org>
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core.graph;
 
 import java.util.Iterator;
+import java.util.UUID;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.lang.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 import org.structr.core.GraphObject;
 import org.structr.core.Predicate;
-import org.structr.core.Services;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 
 /**
  * Abstract base class for all graph service commands.
@@ -36,7 +40,8 @@ import org.structr.core.Services;
  */
 public abstract class NodeServiceCommand extends Command {
 	
-	private static final Logger logger = Logger.getLogger(NodeServiceCommand.class.getName());
+	private static final Logger logger                        = Logger.getLogger(NodeServiceCommand.class.getName());
+	private static final ArrayBlockingQueue<String> uuidQueue = new ArrayBlockingQueue<>(1000);
 	
 	@Override
 	public Class getServiceClass()	{
@@ -68,6 +73,7 @@ public abstract class NodeServiceCommand extends Command {
 	 */
 	public static <T extends GraphObject> long bulkGraphOperation(final SecurityContext securityContext, final Iterable<T> nodes, final long commitCount, String description, final BulkGraphOperation<T> operation, boolean validation) throws FrameworkException {
 
+		final App app              = StructrApp.getInstance(securityContext);
 		final Iterator<T> iterator = nodes.iterator();
 		long objectCount           = 0L;
 		
@@ -75,40 +81,37 @@ public abstract class NodeServiceCommand extends Command {
 
 			try {
 
-				objectCount += Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<Integer>(validation) {
+				app.beginTx();
+				
+				while (iterator.hasNext()) {
 
-					@Override
-					public Integer execute() throws FrameworkException {
+					T node = iterator.next();
 
-						int count = 0;
+					try {
 
-						while (iterator.hasNext()) {
+						operation.handleGraphObject(securityContext, node);
 
-							T node = iterator.next();
+					} catch (Throwable t) {
 
-							try {
-
-								operation.handleGraphObject(securityContext, node);
-
-							} catch (Throwable t) {
-
-								operation.handleThrowable(securityContext, t, node);
-							}
-
-							// commit transaction after commitCount
-							if (++count >= commitCount) {
-								break;
-							}
-						}
-
-						return count;
+						operation.handleThrowable(securityContext, t, node);
 					}
-				});
+
+					// commit transaction after commitCount
+					if ((++objectCount % commitCount) == 0) {
+						break;
+					}
+				}
+				
+				app.commitTx();
 
 			} catch (Throwable t) {
 				
 				// bulk transaction failed, what to do?
 				operation.handleTransactionFailure(securityContext, t);
+				
+			} finally {
+				
+				app.finishTx();
 			}
 			
 			if (description != null) {
@@ -132,26 +135,68 @@ public abstract class NodeServiceCommand extends Command {
 	 */
 	public static void bulkTransaction(final SecurityContext securityContext, final long commitCount, final StructrTransaction transaction, final Predicate<Long> stopCondition) throws FrameworkException {
 
+		final App app                = StructrApp.getInstance(securityContext);
 		final AtomicLong objectCount = new AtomicLong(0L);
 		
 		while (!stopCondition.evaluate(securityContext, objectCount.get())) {
 
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+			try {
+				app.beginTx();
 
-				@Override
-				public Object execute() throws FrameworkException {
+				long loopCount = 0;
 
-					long loopCount = 0;
-					
-					while (loopCount++ < commitCount && !stopCondition.evaluate(securityContext, objectCount.get())) {
-						
-						transaction.execute();
-						objectCount.incrementAndGet();
-					}
+				while (loopCount++ < commitCount && !stopCondition.evaluate(securityContext, objectCount.get())) {
 
-					return null;
+					transaction.execute();
+					objectCount.incrementAndGet();
 				}
-			});
+
+				app.commitTx();
+				
+			} finally {
+				
+				app.finishTx();
+			}
 		}
+	}
+	
+	protected String getNextUuid() {
+		
+		String uuid = null;
+		
+		do {
+			
+			uuid = uuidQueue.poll();
+			
+		} while (uuid == null);
+		
+		return uuid;
+	}
+
+	// create uuid producer that fills the queue
+	static {
+		
+		Thread uuidProducer = new Thread(new Runnable() {
+
+			@Override
+			public void run() {
+
+				// please do not stop :)
+				while (true) {
+					
+					try {
+						while (true) {
+
+							uuidQueue.put(StringUtils.replace(UUID.randomUUID().toString(), "-", ""));
+						}
+
+					} catch (Throwable t) {	}
+				}
+			}
+			
+		}, "UuidProducerThread");
+		
+		uuidProducer.setDaemon(true);
+		uuidProducer.start();
 	}
 }

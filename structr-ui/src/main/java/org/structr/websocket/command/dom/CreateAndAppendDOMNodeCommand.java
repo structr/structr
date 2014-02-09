@@ -1,20 +1,20 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Structr, c/o Morgner UG (haftungsbeschränkt) <structr@structr.org>
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.websocket.command.dom;
 
@@ -25,11 +25,9 @@ import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
-import org.structr.core.Services;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.websocket.StructrWebSocket;
@@ -83,80 +81,74 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 			final Document document = getPage(pageId);
 			if (document != null) {
 
-				final String tagName  = (String) nodeData.get("tagName");
+				final String tagName = (String) nodeData.get("tagName");
+				final App app        = StructrApp.getInstance();
+				
 				nodeData.remove("tagName");
 				
 				try {
+					app.beginTx();
 
-					Services.command(getWebSocket().getSecurityContext(), TransactionCommand.class).execute(new StructrTransaction() {
+					DOMNode newNode;
 
-						@Override
-						public Object execute() throws FrameworkException {
-							
-							DOMNode newNode;
+					if (tagName != null && !tagName.isEmpty()) {
 
-							if (tagName != null && !tagName.isEmpty()) {
+						newNode = (DOMNode)document.createElement(tagName);
 
-								newNode = (DOMNode)document.createElement(tagName);
+					} else {
 
-							} else {
+						newNode = (DOMNode)document.createTextNode("#text");
+					}
 
-								newNode = (DOMNode)document.createTextNode("#text");
+					// append new node to parent
+					if (newNode != null) {
+
+						parentNode.appendChild(newNode);
+
+						for (Entry entry : nodeData.entrySet()) {
+
+							String key = (String) entry.getKey();
+							Object val = entry.getValue();
+
+							PropertyKey propertyKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(newNode.getClass(), key);
+							if (propertyKey != null) {
+
+								try {
+									Object convertedValue = val;
+
+									PropertyConverter inputConverter = propertyKey.inputConverter(SecurityContext.getSuperUserInstance());
+									if (inputConverter != null) {
+
+										convertedValue = inputConverter.convert(val);
+									}
+
+									//newNode.unlockReadOnlyPropertiesOnce();
+									newNode.setProperty(propertyKey, convertedValue);
+
+								} catch (FrameworkException fex) {
+
+									logger.log(Level.WARNING, "Unable to set node property {0} of node {1} to {2}: {3}", new Object[] { propertyKey, newNode.getUuid(), val, fex.getMessage() } );
+
+								}
 							}
 
-							// append new node to parent
+						}
+
+						// create a child text node if content is given
+						if (StringUtils.isNotBlank(childContent)) {
+
+							DOMNode childNode = (DOMNode)document.createTextNode(childContent);
+
 							if (newNode != null) {
 
-								parentNode.appendChild(newNode);
-
-								for (Entry entry : nodeData.entrySet()) {
-
-									String key = (String) entry.getKey();
-									Object val = entry.getValue();
-
-									PropertyKey propertyKey = EntityContext.getPropertyKeyForDatabaseName(newNode.getClass(), key);
-									if (propertyKey != null) {
-
-										try {
-											Object convertedValue = val;
-
-											PropertyConverter inputConverter = propertyKey.inputConverter(SecurityContext.getSuperUserInstance());
-											if (inputConverter != null) {
-
-												convertedValue = inputConverter.convert(val);
-											}
-
-											//newNode.unlockReadOnlyPropertiesOnce();
-											newNode.setProperty(propertyKey, convertedValue);
-
-										} catch (FrameworkException fex) {
-
-											logger.log(Level.WARNING, "Unable to set node property {0} of node {1} to {2}: {3}", new Object[] { propertyKey, newNode.getUuid(), val, fex.getMessage() } );
-
-										}
-									}
-
-								}
-								
-								// create a child text node if content is given
-								if (StringUtils.isNotBlank(childContent)) {
-									
-									DOMNode childNode = (DOMNode)document.createTextNode(childContent);
-									
-									if (newNode != null) {
-										
-										newNode.appendChild(childNode);
-
-									}
-									
-								}
+								newNode.appendChild(childNode);
 
 							}
 
-							return null;
 						}
-						
-					});
+
+					}
+					app.commitTx();
 					
 				} catch (DOMException dex) {
 						
@@ -166,6 +158,10 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 				} catch (FrameworkException ex) {
 					
 					Logger.getLogger(CreateAndAppendDOMNodeCommand.class.getName()).log(Level.SEVERE, null, ex);
+					
+				} finally {
+					
+					app.finishTx();
 				}
 				
 			} else {

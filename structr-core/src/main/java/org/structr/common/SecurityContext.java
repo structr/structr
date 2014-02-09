@@ -1,27 +1,24 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Structr, c/o Morgner UG (haftungsbeschränkt) <structr@structr.org>
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
 package org.structr.common;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.entity.*;
@@ -34,10 +31,14 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import org.neo4j.graphdb.Node;
+import org.structr.core.graph.NodeInterface;
+import org.structr.schema.SchemaHelper;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -51,16 +52,18 @@ import org.neo4j.graphdb.Node;
 public class SecurityContext {
 
 	private static final Logger logger                   = Logger.getLogger(SecurityContext.class.getName());
-	private static final Map<String, Long> resourceFlags = new LinkedHashMap<String, Long>();
+	private static final Map<String, Long> resourceFlags = new LinkedHashMap<>();
+	private static final Pattern customViewPattern       = Pattern.compile(".*properties=([a-zA-Z_,]+)");
 
 	//~--- fields ---------------------------------------------------------
 
-	private Map<Long, AbstractNode> cache = null;
-	private AccessMode accessMode         = AccessMode.Frontend;
-	private Map<String, Object> attrs     = Collections.synchronizedMap(new LinkedHashMap<String, Object>());
-	private Authenticator authenticator   = null;
-	private Principal cachedUser          = null;
-	private HttpServletRequest request    = null;
+	private Map<Long, NodeInterface> cache = new ConcurrentHashMap<>();
+	private AccessMode accessMode          = AccessMode.Frontend;
+	private Map<String, Object> attrs      = Collections.synchronizedMap(new LinkedHashMap<String, Object>());
+	private Authenticator authenticator    = null;
+	private Principal cachedUser           = null;
+	private HttpServletRequest request     = null;
+	private Set<String> customView         = null;
 
 	//~--- constructors ---------------------------------------------------
 
@@ -73,8 +76,6 @@ public class SecurityContext {
 
 		this.cachedUser = user;
 		this.accessMode = accessMode;
-
-		cache = new ConcurrentHashMap<Long, AbstractNode>();
 	}
 
 	/*
@@ -94,6 +95,34 @@ public class SecurityContext {
 		this.request    = request;
 
 		initRequestBasedCache(request);
+		
+		// check for custom view attributes
+		if (request != null) {
+			
+			try {
+				final String contentType = request.getContentType();
+				if (contentType != null && contentType.startsWith("application/json;")) {
+
+					customView = new LinkedHashSet<>();
+
+					final Matcher matcher = customViewPattern.matcher(contentType);
+					if (matcher.matches()) {
+
+						final String properties = matcher.group(1);
+						final String[] parts    = properties.split("[,]+");
+						for (final String part : parts) {
+							
+							final String p = part.trim();
+							if (p.length() > 0) {
+								
+								customView.add(p);
+							}
+						}
+					}
+				}
+				
+			} catch (Throwable ignore) { }
+		}
 	}
 
 	//~--- methods --------------------------------------------------------
@@ -102,12 +131,12 @@ public class SecurityContext {
 
 		// request-based caching
 		if (request != null && request.getServletContext() != null) {
-			cache = (Map<Long, AbstractNode>)request.getServletContext().getAttribute("NODE_CACHE");
+			cache = (Map<Long, NodeInterface>)request.getServletContext().getAttribute("NODE_CACHE");
 		}
 		
 		if (cache == null) {
 
-			cache = new ConcurrentHashMap<Long, AbstractNode>();
+			cache = new ConcurrentHashMap<>();
 			
 			if (request != null && request.getServletContext() != null) {
 				request.getServletContext().setAttribute("NODE_CACHE", cache);
@@ -127,22 +156,22 @@ public class SecurityContext {
 		}
 	}
 	
-	public AbstractNode lookup(Node node) {
-		return cache.get(node.getId());
+	public NodeInterface lookup(final long id) {
+		return cache.get(id);
 	}
 	
-	public void store(AbstractNode node) {
+	public void store(final long id, final NodeInterface node) {
 		
 		Node dbNode = node.getNode();
 		if (dbNode != null) {
 			
-			cache.put(dbNode.getId(), node);
+			cache.put(id, node);
 		}
 	}
 	
 	public static void clearResourceFlag(final String resource, long flag) {
 
-		String name     = EntityContext.normalizeEntityName(resource);
+		String name     = SchemaHelper.normalizeEntityName(resource);
 		Long flagObject = resourceFlags.get(name);
 		long flags      = 0;
 
@@ -285,7 +314,7 @@ public class SecurityContext {
 
 	public static long getResourceFlags(String resource) {
 
-		String name     = EntityContext.normalizeEntityName(resource);
+		String name     = SchemaHelper.normalizeEntityName(resource);
 		Long flagObject = resourceFlags.get(name);
 		long flags      = 0;
 
@@ -358,9 +387,6 @@ public class SecurityContext {
 
 		}
 
-		logger.log(Level.FINEST, "Returning {0} for user {1}, access mode {2}, node {3}, permission {4}",
-			new Object[] { isAllowed, ((AbstractNode) user).getNode().getProperty("uuid"), accessMode, ((AbstractNode) node).getNode().getProperty("uuid"), permission });
-
 		return isAllowed;
 
 	}
@@ -382,7 +408,7 @@ public class SecurityContext {
 
 	}
 
-	public boolean isReadable(final AbstractNode node, final boolean includeDeletedAndHidden, final boolean publicOnly) {
+	public boolean isReadable(final NodeInterface node, final boolean includeDeletedAndHidden, final boolean publicOnly) {
 
 		/**
 		 * The if-clauses in the following lines have been split
@@ -550,7 +576,7 @@ public class SecurityContext {
 
 	public static void setResourceFlag(final String resource, long flag) {
 
-		String name     = EntityContext.normalizeEntityName(resource);
+		String name     = SchemaHelper.normalizeEntityName(resource);
 		Long flagObject = resourceFlags.get(name);
 		long flags      = 0;
 
@@ -584,9 +610,15 @@ public class SecurityContext {
 	public void setAuthenticator(final Authenticator authenticator) {
 		this.authenticator = authenticator;
 	}
-	
-	//~--- inner classes --------------------------------------------------
 
+	public boolean hasCustomView() {
+		return customView != null;
+	}
+	
+	public Set<String> getCustomView() {
+		return customView;
+	}
+	
 	// ----- nested classes -----
 	private static class SuperUserSecurityContext extends SecurityContext {
 		
@@ -621,7 +653,7 @@ public class SecurityContext {
 		}
 
 		@Override
-		public boolean isReadable(final AbstractNode node, final boolean includeDeletedAndHidden, final boolean publicOnly) {
+		public boolean isReadable(final NodeInterface node, final boolean includeDeletedAndHidden, final boolean publicOnly) {
 		
 			return true;
 		}
@@ -646,16 +678,6 @@ public class SecurityContext {
 			return true;
 
 		}
-	
-		@Override
-		public AbstractNode lookup(Node node) {
-			return null;
-		}
-		
-		@Override
-		public void store(AbstractNode node) {
-		}
-
 		
 	}
 

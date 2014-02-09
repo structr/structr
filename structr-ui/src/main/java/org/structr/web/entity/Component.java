@@ -1,23 +1,21 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Structr, c/o Morgner UG (haftungsbeschränkt) <structr@structr.org>
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
 package org.structr.web.entity;
 
 import org.structr.web.entity.dom.Content;
@@ -28,12 +26,9 @@ import org.structr.core.property.StringProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.DeleteNodeCommand;
-import org.structr.core.graph.NodeService;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -43,7 +38,10 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import org.structr.common.SecurityContext;
+import org.structr.core.GraphObject;
+import org.structr.core.app.StructrApp;
 import org.structr.core.property.IntProperty;
+import org.structr.schema.SchemaHelper;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
@@ -88,83 +86,18 @@ public class Component extends DOMElement {
 
 		try {
 
-			DeleteNodeCommand deleteCommand = Services.command(securityContext, DeleteNodeCommand.class);
-			boolean cascade                 = true;
+			DeleteNodeCommand deleteCommand = StructrApp.getInstance(securityContext).command(DeleteNodeCommand.class);
 
 			for (AbstractNode contentNode : contentNodes.values()) {
 
-				deleteCommand.execute(contentNode, cascade);
+				deleteCommand.execute(contentNode);
 
 			}
-
-			// delete linked components
-//                      for(AbstractRelationship rel : getRelationships(RelType.DATA, Direction.INCOMING)) {
-//                              deleteCommand.execute(rel.getStartNode());
-//                      }
 
 		} catch (Throwable t) {
 			logger.log(Level.SEVERE, "Exception while deleting nested Components: {0}", t.getMessage());
 		}
 	}
-
-	// ----- private methods ----
-	/*
-	private void collectProperties(AbstractNode startNode, String componentId, int depth, AbstractRelationship ref) {
-
-		if (depth > MAX_DEPTH) {
-
-			return;
-
-		}
-
-		if (ref != null) {
-
-			if (componentId.equals(ref.getProperty(Component.componentId))) {
-
-				String dataKey = startNode.getProperty(Content.dataKey);
-
-				if (dataKey != null) {
-
-					contentNodes.put(dataKey, startNode);
-
-					return;
-
-				}
-
-			}
-
-		}
-
-		// collection of properties must not depend on page
-		for (AbstractRelationship rel : getChildRelationships(null, startNode, null, componentId)) {
-
-			AbstractNode endNode = rel.getEndNode();
-
-			if (endNode == null) {
-
-				continue;
-
-			}
-
-			if (endNode instanceof Component) {
-
-				String subType = endNode.getProperty(Component.kind);
-
-				if (subType != null) {
-
-					subTypes.add(subType);
-
-				}
-
-			} else {
-
-				collectProperties(endNode, componentId, depth + 1, rel);
-
-			}
-
-		}
-	}
-	*/
 	
 	private void collectChildren(List<Component> children, DOMNode startNode, int depth, AbstractRelationship ref) {
 
@@ -189,7 +122,7 @@ public class Component extends DOMElement {
 		// collection of properties must not depend on page
 		for (AbstractRelationship rel : startNode.getChildRelationships()) {
 
-			DOMNode endNode = (DOMNode)rel.getEndNode();
+			DOMNode endNode = (DOMNode)rel.getTargetNode();
 
 			if (endNode == null) {
 
@@ -243,9 +176,9 @@ public class Component extends DOMElement {
 
 			}
 
-		} else if (subTypes.contains(EntityContext.normalizeEntityName(key.dbName()))) {
+		} else if (subTypes.contains(SchemaHelper.normalizeEntityName(key.dbName()))) {
 
-			List<Component> results = new LinkedList<Component>();
+			List<Component> results = new LinkedList<>();
 
 			collectChildren(results, this, 0, null);
 
@@ -285,7 +218,7 @@ public class Component extends DOMElement {
 
 			}
 
-			String componentId = node.getProperty(AbstractNode.uuid);
+			String componentId = node.getProperty(GraphObject.id);
 
 			// new default behaviour: make all components visible
 			// only filter if uuids are present in the request URI

@@ -1,39 +1,33 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Structr, c/o Morgner UG (haftungsbeschränkt) <structr@structr.org>
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
 package org.structr.websocket.command;
 
-import org.neo4j.graphdb.Direction;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.websocket.message.WebSocketMessage;
-import org.structr.web.common.RelType;
 import org.structr.web.entity.Image;
 import org.structr.common.PagingHelper;
 import org.structr.websocket.StructrWebSocket;
@@ -44,6 +38,9 @@ import org.structr.websocket.message.MessageBuilder;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractRelationship;
+import org.structr.schema.SchemaHelper;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -71,8 +68,8 @@ public class ListCommand extends AbstractCommand {
 
 		final SecurityContext securityContext  = getWebSocket().getSecurityContext();
 		String rawType                         = (String) webSocketData.getNodeData().get("type");
-		Class type                             = EntityContext.getEntityClassForRawType(rawType);
-		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
+		Class type                             = SchemaHelper.getEntityClassForRawType(rawType);
+		List<SearchAttribute> searchAttributes = new LinkedList<>();
 		
 		if (type == null) {
 			getWebSocket().send(MessageBuilder.status().code(404).message("Type " + rawType + " not found").build(), true);
@@ -90,24 +87,31 @@ public class ListCommand extends AbstractCommand {
 		final String sortKey     = webSocketData.getSortKey();
 		final int pageSize       = webSocketData.getPageSize();
 		final int page           = webSocketData.getPage();
-		PropertyKey sortProperty = EntityContext.getPropertyKeyForJSONName(type, sortKey);
+		PropertyKey sortProperty = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, sortKey);
 
 		try {
 
 			// do search
-			Result result = (Result) Services.command(securityContext, SearchNodeCommand.class).execute(true, false, searchAttributes, sortProperty, "desc".equals(sortOrder));
-			List<AbstractNode> filteredResults     = new LinkedList<AbstractNode>();
+			Result result = (Result) StructrApp.getInstance(securityContext).command(SearchNodeCommand.class).execute(true, false, searchAttributes, sortProperty, "desc".equals(sortOrder));
+			List<AbstractNode> filteredResults     = new LinkedList<>();
 			List<? extends GraphObject> resultList = result.getResults();
 
-			// determine which of the nodes have children
+			// determine which of the nodes have a parent
 			for (GraphObject obj : resultList) {
 
 				if (obj instanceof AbstractNode) {
 
 					AbstractNode node = (AbstractNode) obj;
-
-					if (!node.hasRelationship(RelType.CONTAINS, Direction.INCOMING)) {
-
+					
+					boolean hasParent = false;
+					for (AbstractRelationship rel : node.getIncomingRelationships()) {
+						if ("CONTAINS".equals(rel.getType())) {
+							hasParent = true;
+							break;
+						}
+					}
+					
+					if (!hasParent) {
 						filteredResults.add(node);
 					}
 

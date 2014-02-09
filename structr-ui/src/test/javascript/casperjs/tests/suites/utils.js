@@ -24,6 +24,34 @@ casper.test.begin('utils.betterTypeOf() tests', 10,  function(test) {
     test.done();
 });
 
+casper.test.begin('utils.betterInstanceOf() tests', 13,  function(test) {
+    /*global XMLDocument*/
+    // need two objects to test inheritance
+    function Cow(){} var daisy = new Cow();
+    function SuperCow(){} SuperCow.prototype = new Cow(); var superDaisy = new SuperCow();
+    var date = new Date(); var regex = new RegExp(); var xmlDoc = document.implementation.createDocument("<y>", "x", null);
+    var testCases = [
+        {subject: 1, fn: Number, expected: true},
+        {subject: '1', fn: String, expected: true},
+        {subject: {}, fn: Object, expected: true},
+        {subject: [], fn: Array, expected: true},
+        {subject: undefined, fn: Array, expected: false},
+        {subject: null, fn: Array, expected: false},
+        {subject: function(){}, fn: Function, expected: true},
+        {subject: date, fn: Date, expected: true},
+        {subject: regex, fn: RegExp, expected: true},
+        {subject: xmlDoc, fn: XMLDocument, expected: true},
+        {subject: daisy, fn: Cow, expected: true},
+        {subject: superDaisy, fn: SuperCow, expected: true},
+        {subject: superDaisy, fn: Cow, expected: true}
+    ];
+    testCases.forEach(function(testCase) {
+        test.assertEquals(utils.betterInstanceOf(testCase.subject, testCase.fn), testCase.expected,
+            utils.format('betterInstanceOf() detects expected constructor "%s"', testCase.fn.name));
+    });
+    test.done();
+});
+
 casper.test.begin('utils.cleanUrl() tests', 11, function(test) {
     var testCases = {
         'http://google.com/': 'http://google.com/',
@@ -74,6 +102,15 @@ if (utils.gteVersion(phantom.version, '1.9.0')) {
         test.done();
     });
 }
+
+casper.test.begin('decodeUrl() tests', 4, function(test) {
+    /* global escape */
+    test.assertEquals(utils.decodeUrl('foo'), 'foo');
+    test.assertEquals(utils.decodeUrl('Forlì'), 'Forlì');
+    test.assertEquals(utils.decodeUrl(encodeURIComponent('Forlì')), 'Forlì');
+    test.assertEquals(utils.decodeUrl(escape('Forlì')), 'Forlì');
+    test.done();
+});
 
 casper.test.begin('equals() tests', 23, function(test) {
     test.assert(utils.equals(null, null), 'equals() null equality');
@@ -289,7 +326,8 @@ casper.test.begin('isJsFile() tests', 5, function(test) {
 });
 
 
-casper.test.begin('mergeObjects() tests', 8, function(test) {
+casper.test.begin('mergeObjects() tests', 10, function(test) {
+    /* jshint eqeqeq:false */
     var testCases = [
         {
             obj1: {a: 1}, obj2: {b: 2}, merged: {a: 1, b: 2}
@@ -323,13 +361,24 @@ casper.test.begin('mergeObjects() tests', 8, function(test) {
             'mergeObjects() can merge objects'
         );
     });
-    var obj = {x: 1};
+    var obj = {x: 1},
+        qtruntimeobject = {foo: 'baz'};
+
     var merged1 = utils.mergeObjects({}, {a: obj});
-    var merged2 = utils.mergeObjects({a: {}}, {a: obj});
     merged1.a.x = 2;
     test.assertEquals(obj.x, 1, 'mergeObjects() creates deep clones #1');
+
+    var merged2 = utils.mergeObjects({a: {}}, {a: obj});
     merged2.a.x = 2;
     test.assertEquals(obj.x, 1, 'mergeObjects() creates deep clones #2');
+
+    var refObj = {a: qtruntimeobject};
+    var merged3 = utils.mergeObjects({}, refObj, {keepReferences: false});
+    test.assertFalsy(merged3.a == refObj.a, 'disabling references should not point to same object');
+
+    var merged4 = utils.mergeObjects({}, refObj, {keepReferences: true});
+    test.assert(merged4.a == refObj.a, 'enabling references should point to same object');
+
     test.done();
 });
 

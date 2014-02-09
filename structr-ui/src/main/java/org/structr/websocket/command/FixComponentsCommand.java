@@ -1,40 +1,38 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Structr, c/o Morgner UG (haftungsbeschränkt) <structr@structr.org>
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package org.structr.websocket.command;
 
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.graphdb.Direction;
-import org.structr.web.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
-import org.structr.core.Services;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.graph.CreateRelationshipCommand;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchNodeCommand;
+import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
+import org.structr.web.entity.relation.Sync;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -58,29 +56,21 @@ public class FixComponentsCommand extends AbstractCommand {
 	public void processMessage(WebSocketMessage webSocketData) {
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
+		final App app                         = StructrApp.getInstance(securityContext);
 
 		try {
-
-
-			StructrTransaction transaction               = new StructrTransaction() {
-
-				@Override
-				public Object execute() throws FrameworkException {
-
-					fixLostComponents();
-
-					return null;
-
-				}
-
-			};
-
-			Services.command(securityContext, TransactionCommand.class).execute(transaction);
+			app.beginTx();
+			fixLostComponents();
+			app.commitTx();
 
 		} catch (Exception ex) {
 
 			// send DOM exception
 			getWebSocket().send(MessageBuilder.status().code(422).message(ex.getMessage()).build(), true);
+			
+		} finally {
+			
+			app.finishTx();
 		}
 
 	}
@@ -108,28 +98,28 @@ public class FixComponentsCommand extends AbstractCommand {
 		
 		SecurityContext securityContext = SecurityContext.getSuperUserInstance();
 
-		Result<DOMNode> result = (Result<DOMNode>) Services.command(securityContext, SearchNodeCommand.class).execute(
+		Result<DOMNode> result = (Result<DOMNode>) StructrApp.getInstance(securityContext).command(SearchNodeCommand.class).execute(
 			Search.andExactTypeAndSubtypes(DOMNode.class)
 		);
 
-		final CreateRelationshipCommand<?> createRel = Services.command(securityContext, CreateRelationshipCommand.class);
+		final CreateRelationshipCommand createRel = StructrApp.getInstance(securityContext).command(CreateRelationshipCommand.class);
 		
 		for (DOMNode node : result.getResults()) {
 			
 			if (node.hasChildNodes()
-				&& (node.hasRelationship(RelType.SYNC, Direction.INCOMING) || node.hasRelationship(RelType.SYNC, Direction.OUTGOING))
+				&& (node.hasIncomingRelationships(Sync.class) || node.hasRelationship(Sync.class))
 				&& (!hiddenDoc.equals(node.getOwnerDocument()))
 				) {
 				
 				try {
 				
-					DOMNode clonedNode = (DOMNode) node.cloneNode(false);
+					DOMElement clonedNode = (DOMElement) node.cloneNode(false);
 
 					moveChildNodes(node, clonedNode);
 					clonedNode.setProperty(DOMNode.ownerDocument, hiddenDoc);
 
-					createRel.execute(node, clonedNode, RelType.SYNC, true);
-					createRel.execute(clonedNode, node, RelType.SYNC, true);
+					createRel.execute((DOMElement) node, clonedNode, Sync.class);
+					createRel.execute(clonedNode, (DOMElement) node, Sync.class);
 					
 				} catch (Exception ex) {
 					

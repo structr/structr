@@ -1,26 +1,23 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Structr, c/o Morgner UG (haftungsbeschränkt) <structr@structr.org>
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
 package org.structr.web.test;
 
-import java.io.IOException;
 import java.util.logging.Level;
 import org.structr.web.common.StructrUiTest;
 
@@ -28,12 +25,8 @@ import org.structr.web.common.StructrUiTest;
 
 import java.util.logging.Logger;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.CreateNodeCommand;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.entity.User;
@@ -55,64 +48,72 @@ public class FrontendTest extends StructrUiTest {
 	protected int run(final String testName) {
 
 		try {
-			try {
-				transactionCommand.execute(new StructrTransaction<AbstractNode>() {
-
-					@Override
-					public AbstractNode execute() throws FrameworkException {
-
-						createAdminUser();
-						createResourceAccess("_login", UiAuthenticator.NON_AUTH_USER_POST);
-						
-						return null;
-					}
-
-				});
-				
-			} catch (FrameworkException ex) {
-				logger.log(Level.SEVERE, "Could not create admin user", ex);
-			}
 			
-			String[] args = {"/bin/sh", "-c", "cd src/test/javascript; PATH=$PATH:./bin/`uname`/ casperjs/bin/casperjs test " + testName+ ".js"};
+
+			createAdminUser();
+			createResourceAccess("_login", UiAuthenticator.NON_AUTH_USER_POST);
+
+			app.beginTx();
+			
+			// Workaround to remove local storage, as phantomjs is pretty buggy here.
+			// Currently, phantomjs doesn't allow localStorage to be modified remotely,
+			// and the --local-storage-path parameter is ignored.
+			//String[] args = {"/bin/sh", "-c", "cd src/test/javascript ; PATH=$PATH:./bin/`uname`/ casperjs/bin/casperjs --local-storage-path=" + basePath + " --fail-fast test " + testName+ ".js"};
+			String[] args = {"/bin/sh", "-c", "rm ~/.qws/share/data/Ofi\\ Labs/PhantomJS/* ; cd src/test/javascript ; PATH=$PATH:./bin/`uname`/ casperjs/bin/casperjs --web-security=no --fail-fast test " + testName+ ".js"};
 
 			Process proc = Runtime.getRuntime().exec(args);
 			logger.log(Level.INFO, IOUtils.toString(proc.getInputStream()));
-			logger.log(Level.WARNING, IOUtils.toString(proc.getErrorStream()));
+			String warnings = IOUtils.toString(proc.getErrorStream());
+			
+			if (StringUtils.isNotBlank(warnings)) {
+				logger.log(Level.WARNING, warnings);
+			}
 			
 			int exitValue = proc.exitValue();
 			
 			logger.log(Level.INFO, "casperjs subprocess returned with {0}", exitValue);
+
+			app.commitTx();
 			
 			return exitValue;
 			
-		} catch (IOException ex) {
+		} catch (Exception ex) {
 			logger.log(Level.SEVERE, null, ex);
+			
+		} finally {
+			
+			app.finishTx();
 		}
 		
 		return 1;
 
 	}
 
+	@Override
 	public void test00() {
 	}
 
 	protected void createAdminUser() throws FrameworkException {
 		
-		final CreateNodeCommand cmd  = Services.command(securityContext, CreateNodeCommand.class);
 		final PropertyMap properties = new PropertyMap();
 
-		properties.put(AbstractNode.type, User.class.getSimpleName());
 		properties.put(User.name, "admin");
 		properties.put(User.password, "admin");
-	
-		Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<User>() {
 
-			@Override
-			public User execute() throws FrameworkException {
+		try {
+			app.beginTx();
+			User user = app.create(User.class, properties);
+			user.setProperty(User.password, "admin");
+			app.commitTx();
+		
+		} catch (Throwable t) {
 
-				return (User)cmd.execute(properties);
-			}		
-		});
+			t.printStackTrace();
+			
+		} finally {
+			
+			app.finishTx();
+		}
 		
 	}
 	

@@ -1,36 +1,35 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Structr, c/o Morgner UG (haftungsbeschränkt) <structr@structr.org>
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
 package org.structr.web.entity;
 
-import org.neo4j.graphdb.Direction;
+import java.util.List;
 import org.structr.common.View;
 import org.structr.common.PropertyView;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.notion.PropertySetNotion;
-import org.structr.core.property.CollectionProperty;
-import org.structr.core.property.EntityProperty;
+import org.structr.core.property.EndNodes;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
-import org.structr.web.common.RelType;
+import org.structr.web.entity.relation.Files;
+import org.structr.web.entity.relation.Folders;
+import org.structr.web.entity.relation.Images;
 
 
 //~--- classes ----------------------------------------------------------------
@@ -43,13 +42,13 @@ import org.structr.web.common.RelType;
  */
 public class Folder extends AbstractFile {
 
-	public static final CollectionProperty<Folder>	folders      = new CollectionProperty<>("folders", Folder.class, RelType.CONTAINS, Direction.OUTGOING, new PropertySetNotion(uuid, name), true);
-	public static final CollectionProperty<File>	files        = new CollectionProperty<>("files", File.class, RelType.CONTAINS, Direction.OUTGOING, new PropertySetNotion(uuid, name), true);
-	public static final CollectionProperty<Image>	images       = new CollectionProperty<>("images", Image.class, RelType.CONTAINS, Direction.OUTGOING, new PropertySetNotion(uuid, name), true);
+	public static final Property<List<Folder>> folders = new EndNodes<>("folders", Folders.class, new PropertySetNotion(id, name));
+	public static final Property<List<File>>   files   = new EndNodes<>("files", Files.class, new PropertySetNotion(id, name));
+	public static final Property<List<Image>>  images  = new EndNodes<>("images", Images.class, new PropertySetNotion(id, name));
 	
 	public static final Property<Integer>		position     = new IntProperty("position").indexed();
 
-	public static final View defaultView = new View(Folder.class, PropertyView.Public, uuid, type, name);
+	public static final View defaultView = new View(Folder.class, PropertyView.Public, id, type, name);
 	
 	public static final View uiView = new View(Folder.class, PropertyView.Ui,
 		parent, folders, files, images

@@ -1,23 +1,21 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Structr, c/o Morgner UG (haftungsbeschränkt) <structr@structr.org>
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
 package org.structr.web.test;
 
 
@@ -27,14 +25,11 @@ import org.structr.web.common.StructrUiTest;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.SecurityContext;
-import org.structr.core.Services;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.web.entity.Folder;
 import org.structr.core.entity.ResourceAccess;
-import org.structr.core.graph.CreateNodeCommand;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.entity.User;
@@ -132,114 +127,62 @@ public class ResourceAccessTest extends StructrUiTest {
 			final User	testUser = createTestNodes(User.class, 1).get(0);
 			final Folder	testFolder	= createTestNodes(Folder.class, 1).get(0);
 
-			transactionCommand.execute(new StructrTransaction<AbstractNode>() {
+			assertNotNull(testFolder);
 
-				@Override
-				public AbstractNode execute() throws FrameworkException {
+			// no resource access node at all => forbidden
+			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().put("/folder/" + testFolder.getUuid());
 
-					assertNotNull(testFolder);
-
-					// no resource access node at all => forbidden
-					RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().put("/folder/" + testFolder.getUuid());
-
-					return null;
-				}
-
-			});
-
+			
 			final ResourceAccess folderGrant = createResourceAccess("Folder", UiAuthenticator.FORBIDDEN);
 
-			transactionCommand.execute(new StructrTransaction<AbstractNode>() {
+			// resource access explicetly set to FORBIDDEN => forbidden
+			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().put("/folder/" + testFolder.getUuid());
 
-				@Override
-				public AbstractNode execute() throws FrameworkException {
-
-					// resource access explicetly set to FORBIDDEN => forbidden
-					RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().put("/folder/" + testFolder.getUuid());
-
-					return null;
-				}
-
-			});
-					
+			
 			// allow PUT for authenticated users => access without user/pass should be still forbidden
 			folderGrant.setFlag(UiAuthenticator.AUTH_USER_PUT);
-
-			transactionCommand.execute(new StructrTransaction<AbstractNode>() {
-
-				@Override
-				public AbstractNode execute() throws FrameworkException {
-			
-					RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().put("/folder/" + testFolder.getUuid());
-
-
-					return null;
-				}
-
-			});
+		
+			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().put("/folder/" + testFolder.getUuid());
 
 			// allow PUT for non-authenticated users => access is forbidden with 403 because of missing rights for the test object
 			folderGrant.setFlag(UiAuthenticator.NON_AUTH_USER_PUT);
-					
-			transactionCommand.execute(new StructrTransaction<AbstractNode>() {
 
-				@Override
-				public AbstractNode execute() throws FrameworkException {
-					
-					
-					RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(403).when().put("/folder/" + testFolder.getUuid());
+			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(403).when().put("/folder/" + testFolder.getUuid());
 
-					// Prepare for next test
-					testUser.setProperty(AbstractNode.name, name);
-					testUser.setProperty(User.password, password);
-
-					return null;
-				}
-
-			});
-					
-			transactionCommand.execute(new StructrTransaction<AbstractNode>() {
-
-				@Override
-				public AbstractNode execute() throws FrameworkException {
-					
+			try {
+				app.beginTx();
+				// Prepare for next test
+				testUser.setProperty(AbstractNode.name, name);
+				testUser.setProperty(User.password, password);
 				
-					// test user has no specific rights on the object => still 403
-					RestAssured.given()
-						.headers("X-User", name, "X-Password", password)
-						.contentType("application/json; charset=UTF-8").expect().statusCode(403).when().put("/folder/" + testFolder.getUuid());
+				app.commitTx();
+				
+			} finally {
+				
+				app.finishTx();
+			}
 
-					return null;
-				}
+			// test user has no specific rights on the object => still 403
+			RestAssured.given()
+				.headers("X-User", name, "X-Password", password)
+				.contentType("application/json; charset=UTF-8").expect().statusCode(403).when().put("/folder/" + testFolder.getUuid());
 
-			});
-					
-			transactionCommand.execute(new StructrTransaction<AbstractNode>() {
+			try {
+				app.beginTx();
 
-				@Override
-				public AbstractNode execute() throws FrameworkException {
+				// now we give the user ownership and expect a 200
+				testFolder.setProperty(AbstractNode.owner, testUser);
+				
+				app.commitTx();
+				
+			} finally {
+				
+				app.finishTx();
+			}
 
-					// now we give the user ownership and expect a 200
-					testFolder.setProperty(AbstractNode.owner, testUser);
-
-					return null;
-				}
-
-			});
-					
-			transactionCommand.execute(new StructrTransaction<AbstractNode>() {
-
-				@Override
-				public AbstractNode execute() throws FrameworkException {
-
-					RestAssured.given()
-						.headers("X-User", name, "X-Password", password)
-						.contentType("application/json; charset=UTF-8").expect().statusCode(200).when().put("/folder/" + testFolder.getUuid());
-			
-					return null;
-				}
-
-			});
+			RestAssured.given()
+				.headers("X-User", name, "X-Password", password)
+				.contentType("application/json; charset=UTF-8").expect().statusCode(200).when().put("/folder/" + testFolder.getUuid());
 			
 			
 		} catch (FrameworkException ex) {
@@ -263,119 +206,71 @@ public class ResourceAccessTest extends StructrUiTest {
 			final String password    = "testpassword-01";
 			final User	testUser = createTestNodes(User.class, 1).get(0);
 
-			transactionCommand.execute(new StructrTransaction<AbstractNode>() {
-
-				@Override
-				public AbstractNode execute() throws FrameworkException {
-			
-					// no resource access node at all => forbidden
-					RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().delete("/folder/" + testFolder.getUuid());
-					return null;
-				}
-			});
+			// no resource access node at all => forbidden
+			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().delete("/folder/" + testFolder.getUuid());
 
 			final ResourceAccess folderGrant = createResourceAccess("Folder", UiAuthenticator.FORBIDDEN);
 
-			transactionCommand.execute(new StructrTransaction<AbstractNode>() {
+			// resource access explicetly set to FORBIDDEN => forbidden
+			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().delete("/folder/" + testFolder.getUuid());
 
-				@Override
-				public AbstractNode execute() throws FrameworkException {
-
-					// resource access explicetly set to FORBIDDEN => forbidden
-					RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().delete("/folder/" + testFolder.getUuid());
-
-					// allow DELETE for authenticated users => access without user/pass should be still forbidden
-					folderGrant.setFlag(UiAuthenticator.AUTH_USER_DELETE);
-
-					return null;
-				}
-
-			});
+			try {
+				
+				// allow DELETE for authenticated users => access without user/pass should be still forbidden
+				app.beginTx();
+				folderGrant.setFlag(UiAuthenticator.AUTH_USER_DELETE);
+				app.commitTx();
+				
+			} finally {
+				app.finishTx();
+			}
 					
-			transactionCommand.execute(new StructrTransaction<AbstractNode>() {
+			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().delete("/folder/" + testFolder.getUuid());
 
-				@Override
-				public AbstractNode execute() throws FrameworkException {
+			try {
+				
+				// allow DELETE for non-authenticated users => access is forbidden with 403 because of missing rights for the test object
+				app.beginTx();
+				folderGrant.setFlag(UiAuthenticator.NON_AUTH_USER_DELETE);
+				app.commitTx();
+				
+			} finally {
+				app.finishTx();
+			}
 
-					RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().delete("/folder/" + testFolder.getUuid());
+			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(403).when().delete("/folder/" + testFolder.getUuid());
 
-					// allow DELETE for non-authenticated users => access is forbidden with 403 because of missing rights for the test object
-					folderGrant.setFlag(UiAuthenticator.NON_AUTH_USER_DELETE);
+			try {
+				
+				app.beginTx();
+				testUser.setProperty(AbstractNode.name, name);
+				testUser.setProperty(User.password, password);
+				app.commitTx();
+				
+			} finally {
+				app.finishTx();
+			}
 
-					return null;
-				}
-
-			});
+			// test user has no specific rights on the object => still 403
+			RestAssured.given()
+				.headers("X-User", name, "X-Password", password)
+				.contentType("application/json; charset=UTF-8").expect().statusCode(403).when().delete("/folder/" + testFolder.getUuid());
 					
-			transactionCommand.execute(new StructrTransaction<AbstractNode>() {
 
-				@Override
-				public AbstractNode execute() throws FrameworkException {
+			try {
 
-					RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(403).when().delete("/folder/" + testFolder.getUuid());
-
-					return null;
-				}
-
-			});
+				// now we give the user ownership and expect a 200
+				app.beginTx();
+				testFolder.setProperty(AbstractNode.owner, testUser);
+				app.commitTx();
+				
+			} finally {
+				app.finishTx();
+			}
 					
-			transactionCommand.execute(new StructrTransaction<AbstractNode>() {
-
-				@Override
-				public AbstractNode execute() throws FrameworkException {
-
-
-					testUser.setProperty(AbstractNode.name, name);
-					testUser.setProperty(User.password, password);
-
-					return null;
-				}
-
-			});
-					
-			transactionCommand.execute(new StructrTransaction<AbstractNode>() {
-
-				@Override
-				public AbstractNode execute() throws FrameworkException {
-
-			
-					// test user has no specific rights on the object => still 403
-					RestAssured.given()
-						.headers("X-User", name, "X-Password", password)
-						.contentType("application/json; charset=UTF-8").expect().statusCode(403).when().delete("/folder/" + testFolder.getUuid());
-
-					return null;
-				}
-
-			});
-					
-			transactionCommand.execute(new StructrTransaction<AbstractNode>() {
-
-				@Override
-				public AbstractNode execute() throws FrameworkException {
-
-
-					// now we give the user ownership and expect a 200
-					testFolder.setProperty(AbstractNode.owner, testUser);
-
-					return null;
-				}
-
-			});
-					
-			transactionCommand.execute(new StructrTransaction<AbstractNode>() {
-
-				@Override
-				public AbstractNode execute() throws FrameworkException {
-
-
-					RestAssured.given()
-						.headers("X-User", name, "X-Password", password)
-						.contentType("application/json; charset=UTF-8").expect().statusCode(200).when().delete("/folder/" + testFolder.getUuid());
-			
-					return null;
-				}
-			});
+			RestAssured.given()
+				.headers("X-User", name, "X-Password", password)
+				.contentType("application/json; charset=UTF-8").expect().statusCode(200).when().delete("/folder/" + testFolder.getUuid());
 			
 			
 		} catch (FrameworkException ex) {
@@ -400,20 +295,28 @@ public class ResourceAccessTest extends StructrUiTest {
 	public static ResourceAccess createResourceAccess(String signature, long flags) throws FrameworkException {
 		
 		final PropertyMap properties = new PropertyMap();
+		final App app = StructrApp.getInstance();
 
 		properties.put(ResourceAccess.signature, signature);
 		properties.put(ResourceAccess.flags, flags);
 		properties.put(AbstractNode.type, ResourceAccess.class.getSimpleName());
-	
-		ResourceAccess newResourceAccess = Services.command(SecurityContext.getSuperUserInstance(), TransactionCommand.class).execute(new StructrTransaction<ResourceAccess>() {
 
-			@Override
-			public ResourceAccess execute() throws FrameworkException {
+		try {
+			app.beginTx();
+			ResourceAccess access = app.create(ResourceAccess.class, properties);
+			app.commitTx();
+			
+			return access;
+			
+		} catch (Throwable t) {
 
-				return (ResourceAccess) Services.command(SecurityContext.getSuperUserInstance(), CreateNodeCommand.class).execute(properties);
-			}		
-		});
+			t.printStackTrace();
+			
+		} finally {
+			
+			app.finishTx();
+		}
 		
-		return newResourceAccess;
+		return null;
 	}	
 }
