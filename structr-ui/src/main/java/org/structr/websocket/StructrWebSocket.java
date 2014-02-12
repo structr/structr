@@ -133,7 +133,7 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 	@Override
 	public void onMessage(final String data) {
 
-		logger.log(Level.INFO, "############################################################ RECEIVED \n{0}", data.substring(0, Math.min(data.length(), 1000)));
+		logger.log(Level.FINE, "############################################################ RECEIVED \n{0}", data.substring(0, Math.min(data.length(), 1000)));
 
 		// parse web socket data from JSON
 		WebSocketMessage webSocketData = gson.fromJson(data, WebSocketMessage.class);

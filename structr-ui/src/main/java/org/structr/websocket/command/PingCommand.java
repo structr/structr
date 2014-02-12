@@ -26,7 +26,7 @@ import org.structr.websocket.message.WebSocketMessage;
 //~--- classes ----------------------------------------------------------------
 
 /**
- * Websocket heartbeat command
+ * Websocket heartbeat command, keeps the websocket connection open
  * 
  * @author Axel Morgner
  */
@@ -43,8 +43,7 @@ public class PingCommand extends AbstractCommand {
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
-
-		logger.log(Level.INFO, "PING received from session {0}", webSocketData.getSessionId());
+		logger.log(Level.FINE, "PING received from session {0}", webSocketData.getSessionId());
 	}
 
 	//~--- get methods ----------------------------------------------------
