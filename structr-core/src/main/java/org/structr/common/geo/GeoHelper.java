@@ -119,10 +119,6 @@ public class GeoHelper {
 
 						// store in cache
 						geoCache.put(cacheKey, result);
-
-					} else {
-
-						geoCache.put(cacheKey, new NullResult());
 					}
 					
 				} catch (IOException ioex) {
@@ -132,11 +128,6 @@ public class GeoHelper {
 				}
 			}
 			
-		}
-
-		// do not try to geocode failed results again
-		if (result instanceof NullResult) {
-			return null;
 		}
 		
 		return result;
@@ -198,54 +189,5 @@ public class GeoHelper {
 		}
 		
 		return providerInstance;
-	}
-	
-	private static class NullResult implements GeoCodingResult {
-
-		@Override
-		public String getAddress() {
-			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-		}
-
-		@Override
-		public AddressComponent getAddressComponent(Type... types) {
-			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-		}
-
-		@Override
-		public List<AddressComponent> getAddressComponents() {
-			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-		}
-
-		@Override
-		public double getLatitude() {
-			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-		}
-
-		@Override
-		public double getLongitude() {
-			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-		}
-
-		@Override
-		public void setAddress(String address) {
-			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-		}
-
-		@Override
-		public void setLatitude(double latitude) {
-			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-		}
-
-		@Override
-		public void setLongitude(double longitude) {
-			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-		}
-
-		@Override
-		public Double[] toArray() {
-			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-		}
-		
 	}
 }
