@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2014 Structr, c/o Morgner UG (haftungsbeschränkt) <structr@structr.org>
+ * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,7 +18,6 @@
  */
 package org.structr.web.entity;
 
-import org.structr.web.entity.Image;
 import org.structr.common.ThumbnailParameters;
 import org.structr.web.property.ThumbnailProperty;
 

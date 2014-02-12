@@ -6,13 +6,13 @@
     <parent>
         <groupId>org.structr</groupId>
         <artifactId>structr</artifactId>
-        <version>0.9-SNAPSHOT</version>
+        <version>1.0-SNAPSHOT</version>
     </parent>
 
     <groupId>org.structr</groupId>
     <artifactId>structr-ui</artifactId>
     <packaging>jar</packaging>
-    <version>0.9-SNAPSHOT</version>
+    <version>1.0-SNAPSHOT</version>
     <name>structr-ui</name>
     <description>Structr is an open source framework based on the popular Neo4j graph database.</description>
     <developers>
@@ -49,14 +49,6 @@
             <id>jodd</id>
             <url>http://repo1.maven.org/maven2/org/jodd/</url>
         </repository>
-        <!--        <repository>
-            <id>alfresco-releases</id>
-            <url>https://maven.alfresco.com/nexus/content/repositories/releases</url>
-        </repository>
-        <repository>
-            <id>alfresco-snapshots</id>
-            <url>https://maven.alfresco.com/nexus/content/repositories/snapshots</url>
-        </repository>-->
         <repository>
             <id>snapshots.maven.structr.org</id>
             <url>http://maven.structr.org/artifactory/snapshot</url>
@@ -80,12 +72,6 @@
             <scope>test</scope>
             <optional>false</optional>
         </dependency>
-        <!--        <dependency>
-                <artifactId>urlrewritefilter</artifactId>
-                <groupId>org.tuckey</groupId>
-                <type>jar</type>
-                <version>4.0.4</version>
-        </dependency>-->
         <dependency>
             <groupId>diff_match_patch</groupId>
             <artifactId>diff_match_patch</artifactId>
@@ -94,7 +80,7 @@
         <dependency>
             <groupId>org.pegdown</groupId>
             <artifactId>pegdown</artifactId>
-            <version>1.1.0</version>
+            <version>1.4.1</version>
         </dependency>
         <dependency>
             <groupId>net.java</groupId>
@@ -111,11 +97,6 @@
             <artifactId>jersey-client</artifactId>
             <version>1.9-ea04</version>
         </dependency>
-        <!--        <dependency>
-            <groupId>org.neo4j</groupId>
-            <artifactId>neo4j-rest-graphdb</artifactId>
-            <version>1.9.5</version>
-        </dependency>-->
         <dependency>
             <groupId>com.flagstone</groupId>
             <artifactId>transform</artifactId>
@@ -124,18 +105,13 @@
         <dependency>
             <groupId>org.jsoup</groupId>
             <artifactId>jsoup</artifactId>
-            <version>1.7.1</version>
+            <version>1.7.3</version>
         </dependency>
         <dependency>
             <groupId>org.jodd</groupId>
             <artifactId>jodd-lagarto</artifactId>
             <version>3.4.5</version>
         </dependency>
-        <!--        <dependency>
-            <groupId>org.jodd</groupId>
-            <artifactId>jodd-http</artifactId>
-            <version>3.4.5</version>
-        </dependency>-->
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-compress</artifactId>
@@ -355,6 +331,32 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>2.2.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.9.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
         <finalName>${project.artifactId}-${project.version}</finalName>
         <!-- Added to make m2e happy, thanks to http://stackoverflow.com/questions/8706017/maven-dependency-plugin-goals-copy-dependencies-unpack-is-not-supported-b -->
@@ -389,13 +391,42 @@
             </plugins>
         </pluginManagement>
     </build>
+    <profiles>
+        <profile>
+            <id>release-sign-artifacts</id>
+            <activation>
+                <property>
+                    <name>performRelease</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.4</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
     <licenses>
         <license>
             <name>GNU General Public License, Version 3</name>
             <url>http://www.gnu.org/licenses/agpl-3.0-standalone.html</url>
             <comments>
-                Copyright (C) 2010-2014 Axel Morgner, structr &lt;structr@structr.org&gt;
+                Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt), structr &lt;structr@structr.org&gt;
 
                 This file is part of structr &lt;http://structr.org&gt;.
 
@@ -421,16 +452,6 @@
     </scm>
     
     <distributionManagement>
-        <!--        <repository>
-            <id>releases.maven.structr.org</id>
-            <name>maven.structr.org-releases</name>
-            <url>http://maven.structr.org/artifactory/release</url>
-        </repository>
-        <snapshotRepository>
-            <id>snapshots.maven.structr.org</id>
-            <name>maven.structr.org-snapshots</name>
-            <url>http://maven.structr.org/artifactory/snapshot</url>
-        </snapshotRepository>-->
         <repository>
             <id>sonatype-nexus-staging</id>
             <name>Maven Central Staging</name>

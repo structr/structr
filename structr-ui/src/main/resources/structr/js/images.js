@@ -207,7 +207,7 @@ var _Images = {
             + '<div class="progress"><div class="bar"><div class="indicator"><span class="part"></span>/<span class="size">' + img.size + '</span></div></div></div>'
             + '<div class="icons"></div></div>');
         div = Structr.node(img.id);
-
+        if (!div || !div.length) return;
             
         var tnSmall = img.tnSmall;
         if (tnSmall) {
@@ -397,7 +397,7 @@ var _Images = {
             });
 		
         }
-        
+
         _Entities.appendExpandIcon(div, folder, hasChildren);
         
         div.draggable({
