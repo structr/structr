@@ -19,6 +19,7 @@
 package org.structr.common.geo;
 
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -111,15 +112,23 @@ public class GeoHelper {
 			GeoCodingProvider provider = getGeoCodingProvider();
 			if (provider != null) {
 
-				result = provider.geocode(street, house, postalCode, city, state, country, language);
-				if (result != null) {
+				try {
 					
-					// store in cache
-					geoCache.put(cacheKey, result);
+					result = provider.geocode(street, house, postalCode, city, state, country, language);
+					if (result != null) {
+
+						// store in cache
+						geoCache.put(cacheKey, result);
+
+					} else {
+
+						geoCache.put(cacheKey, new NullResult());
+					}
 					
-				} else {
+				} catch (IOException ioex) {
 					
-					geoCache.put(cacheKey, new NullResult());
+					// IOException, try again next time
+					logger.log(Level.WARNING, "Unable to obtain geocoding result using provider {0}: {1}", new Object[] { provider.getClass().getName(), ioex.getMessage() });
 				}
 			}
 			

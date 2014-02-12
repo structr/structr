@@ -26,6 +26,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
+import org.structr.core.app.Query;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.NodeService.NodeIndex;
 import org.structr.core.graph.search.DoubleSearchAttribute;
@@ -156,7 +157,7 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> {
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(SecurityContext securityContext, BooleanClause.Occur occur, Double searchValue, boolean exactMatch) {
+	public SearchAttribute getSearchAttribute(SecurityContext securityContext, BooleanClause.Occur occur, Double searchValue, boolean exactMatch, final Query query) {
 		return new DoubleSearchAttribute(this, searchValue, occur, exactMatch);
 	}
 	

@@ -27,8 +27,6 @@ import org.structr.core.Result;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.CreateRelationshipCommand;
-import org.structr.core.graph.search.Search;
-import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
@@ -94,14 +92,9 @@ public class FixComponentsCommand extends AbstractCommand {
 	 */
 	private void fixLostComponents() throws FrameworkException {
 		
-		Page hiddenDoc = getOrCreateHiddenDocument();
-		
-		SecurityContext securityContext = SecurityContext.getSuperUserInstance();
-
-		Result<DOMNode> result = (Result<DOMNode>) StructrApp.getInstance(securityContext).command(SearchNodeCommand.class).execute(
-			Search.andExactTypeAndSubtypes(DOMNode.class)
-		);
-
+		Page hiddenDoc                            = getOrCreateHiddenDocument();
+		SecurityContext securityContext           = SecurityContext.getSuperUserInstance();
+		Result<DOMNode> result                    = StructrApp.getInstance(securityContext).nodeQuery(DOMNode.class).getResult();
 		final CreateRelationshipCommand createRel = StructrApp.getInstance(securityContext).command(CreateRelationshipCommand.class);
 		
 		for (DOMNode node : result.getResults()) {

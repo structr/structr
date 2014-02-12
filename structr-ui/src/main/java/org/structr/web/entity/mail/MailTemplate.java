@@ -30,8 +30,6 @@ import org.structr.common.error.UniqueToken;
 import org.structr.core.Result;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.search.Search;
-import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.EndNode;
 
@@ -78,12 +76,7 @@ public class MailTemplate extends AbstractNode {
 		hasError |= ValidationHelper.checkStringNotBlank(this, locale, errorBuffer);
 
 		try {
-			Result<MailTemplate> res = (Result) StructrApp.getInstance(securityContext).command(SearchNodeCommand.class).execute(
-				Search.andExactType(MailTemplate.class),
-				Search.andExactName(_name),
-				Search.andExactProperty(securityContext, locale, _locale)
-			);
-
+			Result<MailTemplate> res = StructrApp.getInstance(securityContext).nodeQuery(MailTemplate.class).andName(_name).and(locale, _locale).getResult();
 			if (!res.isEmpty() && res.size() > 1) {
 				
 				hasError = true;

@@ -16,16 +16,17 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.common.geo;
 
-import java.io.IOException;
+;exports.init = function(test){
+  
+    casper.then(function() {
+        s.moveMousePointerTo(casper, '#pagesTab');
+    });
 
-/**
- *
- * @author Christian Morgner
- */
-
-public interface GeoCodingProvider {
-
-	public GeoCodingResult geocode(final String street, final String house, String postalCode, final String city, final String state, final String country, String language) throws IOException;
-}
+    casper.then(function() {
+        this.click('#pagesTab');
+    });
+    
+    casper.wait(1000);
+    
+};

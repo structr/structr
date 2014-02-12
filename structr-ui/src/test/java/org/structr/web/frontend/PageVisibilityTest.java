@@ -16,16 +16,14 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.common.geo;
+package org.structr.web.frontend;
 
-import java.io.IOException;
+import org.structr.web.test.FrontendTest;
 
-/**
- *
- * @author Christian Morgner
- */
+public class PageVisibilityTest extends FrontendTest {
 
-public interface GeoCodingProvider {
+	public void test() {
+		assertEquals(0, run("page_visibility"));
+	}
 
-	public GeoCodingResult geocode(final String street, final String house, String postalCode, final String city, final String state, final String country, String language) throws IOException;
 }

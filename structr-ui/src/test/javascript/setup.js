@@ -53,6 +53,11 @@ var filenameLength = 4;
 exports.url = 'http://localhost:8875/structr/#pages';
 
 /**
+ * Base URL for structr
+ */
+exports.baseUrl = 'http://localhost:8875/';
+
+/**
  * Image type extension
  * 
  * Use png, gif, or jpg

@@ -25,7 +25,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.NotAllowedException;
@@ -34,7 +33,6 @@ import org.structr.rest.resource.Resource;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -46,16 +44,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang.StringUtils;
 import org.structr.core.app.App;
+import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.AuthHelper;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.entity.Person;
 import org.structr.core.entity.Principal;
-import org.structr.core.graph.search.Search;
-import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.property.PropertyMap;
-import org.structr.module.JarConfigurationProvider;
 import org.structr.rest.service.HttpService;
 import org.structr.web.entity.User;
 import org.structr.web.entity.dom.Content;
@@ -135,10 +130,7 @@ public class RegistrationResource extends Resource {
 			localeString = (String) propertySet.get(MailTemplate.locale.jsonName());
 			confKey = UUID.randomUUID().toString();
 			
-			Result result = StructrApp.getInstance().command(SearchNodeCommand.class).execute(
-				Search.andExactTypeAndSubtypes(User.class),
-				Search.andExactProperty(superUserContext, User.eMail, emailString));
-				
+			Result result = StructrApp.getInstance().nodeQuery(User.class).and(User.eMail, emailString).getResult();
 			if (!result.isEmpty()) {
 				
 				final App app = StructrApp.getInstance(securityContext);
@@ -272,18 +264,16 @@ public class RegistrationResource extends Resource {
 	}
 
 	private String getTemplateText(final TemplateKey key, final String defaultValue) {
+		
 		try {
-			List<SearchAttribute> attrs = new LinkedList();
 			
-			attrs.add(Search.andExactType(MailTemplate.class));
-			attrs.add(Search.andExactName(key.name()));
+			final Query<MailTemplate> query = StructrApp.getInstance().nodeQuery(MailTemplate.class).andName(key.name());
 			
 			if (localeString != null) {
-				attrs.add(Search.andExactProperty(securityContext, MailTemplate.locale, localeString));
+				query.and(MailTemplate.locale, localeString);
 			}
 			
-			List<MailTemplate> templates = (List<MailTemplate>) StructrApp.getInstance().command(SearchNodeCommand.class).execute(attrs).getResults();
-			
+			List<MailTemplate> templates = query.getAsList();
 			if (!templates.isEmpty()) {
 				
 				Content content = templates.get(0).getProperty(MailTemplate.text);

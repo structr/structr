@@ -27,7 +27,6 @@ import org.structr.rest.resource.*;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
-import org.structr.rest.resource.DynamicTypeResource;
 import org.structr.web.resource.LoginResource;
 import org.structr.web.resource.LogoutResource;
 import org.structr.web.resource.RegistrationResource;
@@ -44,7 +43,7 @@ public class UiResourceProvider implements ResourceProvider {
 	@Override
 	public Map<Pattern, Class<? extends Resource>> getResources() {
 
-		Map<Pattern, Class<? extends Resource>> resourceMap = new LinkedHashMap<Pattern, Class<? extends Resource>>();
+		Map<Pattern, Class<? extends Resource>> resourceMap = new LinkedHashMap<>();
 
 		resourceMap.put(Pattern.compile("[a-zA-Z0-9]{32}"), UuidResource.class);       // matches a UUID without dashes
 		resourceMap.put(Pattern.compile("cypher"), CypherQueryResource.class);         // cypher query
@@ -73,7 +72,6 @@ public class UiResourceProvider implements ResourceProvider {
 		
 		resourceMap.put(Pattern.compile("_schema"), SchemaResource.class);	               // special resource for schema information
 		
-		resourceMap.put(Pattern.compile("[a-z_A-Z]+"), DynamicTypeResource.class);		      // match dynamic types
 		resourceMap.put(Pattern.compile("[a-z_A-Z]+"), TypeResource.class);	              // any type match
 
 		return resourceMap;

@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -30,9 +29,6 @@ import org.apache.ftpserver.ftplet.FtpFile;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
 import org.structr.core.app.StructrApp;
-import org.structr.core.graph.search.Search;
-import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
@@ -94,12 +90,8 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 		
 		if ("/".equals(requestedPath)) {
 			
-			// Find all folders and files which have no parent
-			List<SearchAttribute> searchAttrs = new LinkedList<>();
-			searchAttrs.add(Search.orExactTypeAndSubtypes(org.structr.web.entity.Folder.class));
-
 			try {
-				Result<Folder> results = StructrApp.getInstance().command(SearchNodeCommand.class).execute(false, false, searchAttrs);
+				Result<Folder> results = StructrApp.getInstance().nodeQuery(Folder.class).getResult();
 				logger.log(Level.INFO, "{0} folders found", results.size());
 
 				for (Folder f : results.getResults()) {
@@ -119,11 +111,8 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 				logger.log(Level.SEVERE, null, ex);
 			}
 			
-			searchAttrs = new LinkedList<>();
-			searchAttrs.add(Search.orExactTypeAndSubtypes(org.structr.web.entity.File.class));
-
 			try {
-				Result<File> results = StructrApp.getInstance().command(SearchNodeCommand.class).execute(false, false, searchAttrs);
+				Result<File> results = StructrApp.getInstance().nodeQuery(File.class).getResult();
 				logger.log(Level.INFO, "{0} files found", results.size());
 
 				for (File f : results.getResults()) {

@@ -19,15 +19,12 @@
 package org.structr.rest.resource;
 
 //~--- JDK imports ------------------------------------------------------------
-import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.Search;
-import org.structr.core.graph.search.DistanceSearchAttribute;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -35,7 +32,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.lucene.search.BooleanClause.Occur;
 import org.structr.common.CaseHelper;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.Permission;
@@ -48,10 +44,12 @@ import org.structr.core.Result;
 import org.structr.core.Services;
 import org.structr.core.Value;
 import org.structr.core.app.App;
+import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.NodeFactory;
+import org.structr.core.graph.search.SearchCommand;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NoResultsException;
@@ -206,7 +204,7 @@ public abstract class Resource {
 		if (key == null) {
 
 			// try to convert raw name into lower-case variable name
-			key = StructrApp.getConfiguration().getPropertyKeyForJSONName(sourceNodeType, CaseHelper.toLowerCamelCase(rawName));
+			key = StructrApp.getConfiguration().getPropertyKeyForJSONName(sourceNodeType, CaseHelper.toLowerCamelCase(rawName), false);
 		}
 
 		return key;
@@ -280,23 +278,23 @@ public abstract class Resource {
 
 	public abstract String getResourceSignature();
 
-	protected DistanceSearchAttribute getDistanceSearch(final HttpServletRequest request, final Set<String> validAttrs) {
+	protected void extractDistanceSearch(final HttpServletRequest request, final Query query) {
 
 		if (request != null) {
 
-			final String distance = request.getParameter(Search.DISTANCE_SEARCH_KEYWORD);
+			final String distance = request.getParameter(SearchCommand.DISTANCE_SEARCH_KEYWORD);
 
 			if (!request.getParameterMap().isEmpty() && StringUtils.isNotBlank(distance)) {
 
 				final Double dist = Double.parseDouble(distance);
-				final String location = request.getParameter(Search.LOCATION_SEARCH_KEYWORD);
+				final String location = request.getParameter(SearchCommand.LOCATION_SEARCH_KEYWORD);
 
-				String street = request.getParameter(Search.STREET_SEARCH_KEYWORD);
-				String house = request.getParameter(Search.HOUSE_SEARCH_KEYWORD);
-				String postalCode = request.getParameter(Search.POSTAL_CODE_SEARCH_KEYWORD);
-				String city = request.getParameter(Search.CITY_SEARCH_KEYWORD);
-				String state = request.getParameter(Search.STATE_SEARCH_KEYWORD);
-				String country = request.getParameter(Search.COUNTRY_SEARCH_KEYWORD);
+				String street = request.getParameter(SearchCommand.STREET_SEARCH_KEYWORD);
+				String house = request.getParameter(SearchCommand.HOUSE_SEARCH_KEYWORD);
+				String postalCode = request.getParameter(SearchCommand.POSTAL_CODE_SEARCH_KEYWORD);
+				String city = request.getParameter(SearchCommand.CITY_SEARCH_KEYWORD);
+				String state = request.getParameter(SearchCommand.STATE_SEARCH_KEYWORD);
+				String country = request.getParameter(SearchCommand.COUNTRY_SEARCH_KEYWORD);
 
 				// if location, use city and street, else use all fields that are there!
 				if (location != null) {
@@ -318,22 +316,18 @@ public abstract class Resource {
 							break;
 					}
 				}
-
-				return new DistanceSearchAttribute(street, house, postalCode, city, state, country, dist, Occur.MUST);
+				
+				query.location(street, house, postalCode, city, state, country, dist);
 			}
 		}
-
-		return null;
 	}
 
-	protected List<SearchAttribute> extractSearchableAttributes(final SecurityContext securityContext, final Class type, final HttpServletRequest request) throws FrameworkException {
+	protected void extractSearchableAttributes(final SecurityContext securityContext, final Class type, final HttpServletRequest request, final Query query) throws FrameworkException {
 
-		List<SearchAttribute> searchAttributes = new LinkedList<>();
-		
 		if (type != null && request != null && !request.getParameterMap().isEmpty()) {
 
-			final boolean looseSearch        = parseInteger(request.getParameter(JsonRestServlet.REQUEST_PARAMETER_LOOSE_SEARCH)) == 1;
-			final ConfigurationProvider conf = Services.getInstance().getConfigurationProvider();
+			final ConfigurationProvider conf   = Services.getInstance().getConfigurationProvider();
+			final List<PropertyKey> searchKeys = new LinkedList<>();
 
 			for (final String name : request.getParameterMap().keySet()) {
 
@@ -342,7 +336,8 @@ public abstract class Resource {
 
 					if (key.isSearchable()) {
 
-						searchAttributes.addAll(key.extractSearchableAttribute(securityContext, request, looseSearch));
+						// add to list of searchable keys
+						searchKeys.add(key);
 
 					} else if (!JsonRestServlet.commonRequestParameters.contains(name)) {
 
@@ -355,32 +350,19 @@ public abstract class Resource {
 					throw new FrameworkException(400, "Invalid search key " + name);
 				}
 			}
-		}
-
-		return searchAttributes;
-	}
-	
-	/*
-	protected List<SearchAttribute> extractSearchableAttributes(final SecurityContext securityContext, final Class type, final HttpServletRequest request) throws FrameworkException {
-
-		List<SearchAttribute> searchAttributes = new LinkedList<>();
-		
-		if (type != null && request != null && !request.getParameterMap().isEmpty()) {
-
-			boolean looseSearch = parseInteger(request.getParameter(JsonRestServlet.REQUEST_PARAMETER_LOOSE_SEARCH)) == 1;
-
-			for (final PropertyKey key : StructrApp.getConfiguration().getPropertySet(type, PropertyView.All)) {
-
-				if (key.isSearchable()) {
-					
-					searchAttributes.addAll(key.extractSearchableAttribute(securityContext, request, looseSearch));
-				}
+			
+			// sort list of search keys according to their desired order
+			// so that querying search attributes can use other attributes
+			// to refine their partial results.
+			Collections.sort(searchKeys, new PropertyKeyProcessingOrderComparator());
+			
+			for (final PropertyKey key : searchKeys) {
+				
+				// hand list of search attributes over to key
+				key.extractSearchableAttribute(securityContext, request, query);
 			}
 		}
-
-		return searchAttributes;
 	}
-	*/
 
 	public abstract boolean isCollectionResource() throws FrameworkException;
 
@@ -408,5 +390,14 @@ public abstract class Resource {
 		}
 		
 		return source;
+	}
+	
+	// ----- nested classes -----
+	private static class PropertyKeyProcessingOrderComparator implements Comparator<PropertyKey> {
+
+		@Override
+		public int compare(final PropertyKey key1, final PropertyKey key2) {
+			return Integer.valueOf(key1.getProcessingOrderPosition()).compareTo(Integer.valueOf(key2.getProcessingOrderPosition()));
+		}
 	}
 }

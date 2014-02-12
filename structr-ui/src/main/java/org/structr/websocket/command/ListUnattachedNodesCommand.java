@@ -21,12 +21,7 @@ package org.structr.websocket.command;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.Result;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.search.Search;
-import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.websocket.message.WebSocketMessage;
 import org.structr.common.PagingHelper;
@@ -38,10 +33,12 @@ import org.structr.websocket.message.MessageBuilder;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.entity.dom.ShadowDocument;
 import org.structr.web.entity.dom.relationship.DOMChildren;
 
 //~--- classes ----------------------------------------------------------------
@@ -64,25 +61,22 @@ public class ListUnattachedNodesCommand extends AbstractCommand {
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
-		final SecurityContext securityContext  = getWebSocket().getSecurityContext();
-		List<SearchAttribute> searchAttributes = new LinkedList();
-
-		// Search for all DOM elements and Contents
-		searchAttributes.add(Search.orExactTypeAndSubtypes(DOMElement.class));
-		searchAttributes.add(Search.orExactType(Content.class));
-
-		final String sortOrder   = webSocketData.getSortOrder();
-		final String sortKey     = webSocketData.getSortKey();
-		final int pageSize       = webSocketData.getPageSize();
-		final int page           = webSocketData.getPage();
-		PropertyKey sortProperty = StructrApp.getConfiguration().getPropertyKeyForJSONName(DOMNode.class, sortKey);
+		final SecurityContext securityContext = getWebSocket().getSecurityContext();
+		final String sortOrder                = webSocketData.getSortOrder();
+		final String sortKey                  = webSocketData.getSortKey();
+		final int pageSize                    = webSocketData.getPageSize();
+		final int page                        = webSocketData.getPage();
+		final PropertyKey sortProperty        = StructrApp.getConfiguration().getPropertyKeyForJSONName(DOMNode.class, sortKey);
+		final Query query                     = StructrApp.getInstance(securityContext).nodeQuery().includeDeletedAndHidden().sort(sortProperty).order("desc".equals(sortOrder));
+		
+		query.orTypes(DOMElement.class);
+		query.orType(Content.class);
 
 		try {
 
 			// do search
-			Result result = (Result) StructrApp.getInstance(securityContext).command(SearchNodeCommand.class).execute(true, false, searchAttributes, sortProperty, "desc".equals(sortOrder));
 			List<AbstractNode> filteredResults     = new LinkedList();
-			List<? extends GraphObject> resultList = result.getResults();
+			List<? extends GraphObject> resultList = query.getAsList();
 
 			// determine which of the nodes have no incoming CONTAINS relationships and no page id
 			for (GraphObject obj : resultList) {
@@ -91,7 +85,7 @@ public class ListUnattachedNodesCommand extends AbstractCommand {
 
 					AbstractNode node = (AbstractNode) obj;
 
-					if (!node.hasIncomingRelationships(DOMChildren.class) && node.getProperty(DOMNode.ownerDocument) == null) {
+					if (!node.hasIncomingRelationships(DOMChildren.class) && node.getProperty(DOMNode.ownerDocument) == null && !(node instanceof ShadowDocument)) {
 
 						filteredResults.add(node);
 					}

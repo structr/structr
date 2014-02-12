@@ -21,11 +21,11 @@ package org.structr.core.property;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.lucene.search.BooleanClause.Occur;
-import org.neo4j.graphdb.Node;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
+import org.structr.core.app.Query;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.NodeService;
@@ -203,8 +203,8 @@ public class Reference<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occur occur, T searchValue, boolean exactMatch) {
-		return propertyKey.getSearchAttribute(securityContext, occur, searchValue, exactMatch);
+	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occur occur, T searchValue, boolean exactMatch, final Query query) {
+		return propertyKey.getSearchAttribute(securityContext, occur, searchValue, exactMatch, query);
 	}
 
 	@Override
@@ -237,13 +237,13 @@ public class Reference<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public List<SearchAttribute> extractSearchableAttribute(SecurityContext securityContext, HttpServletRequest request, boolean looseSearch) throws FrameworkException {
-		return propertyKey.extractSearchableAttribute(securityContext, request, looseSearch);
+	public void extractSearchableAttribute(SecurityContext securityContext, HttpServletRequest request, final Query query) throws FrameworkException {
+		propertyKey.extractSearchableAttribute(securityContext, request, query);
 	}
 
 	@Override
-	public T extractSearchableAttribute(SecurityContext securityContext, String requestParameter) throws FrameworkException {
-		return propertyKey.extractSearchableAttribute(securityContext, requestParameter);
+	public T convertSearchValue(SecurityContext securityContext, String requestParameter) throws FrameworkException {
+		return propertyKey.convertSearchValue(securityContext, requestParameter);
 	}
 
 	@Override
@@ -279,5 +279,10 @@ public class Reference<T> implements PropertyKey<T> {
 	@Override
 	public Property<T> indexedWhenEmpty() {
 		return propertyKey.indexedWhenEmpty();
+	}
+
+	@Override
+	public int getProcessingOrderPosition() {
+		return 0;
 	}
 }

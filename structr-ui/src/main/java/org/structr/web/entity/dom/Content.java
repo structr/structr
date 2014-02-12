@@ -33,7 +33,6 @@ import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Adapter;
-import org.structr.core.graph.search.Search;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.web.common.RenderContext;
@@ -49,6 +48,7 @@ import java.util.logging.Logger;
 import org.structr.common.Permission;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.search.SearchCommand;
 import org.structr.web.common.RenderContext.EditMode;
 import static org.structr.web.entity.dom.DOMNode.hideOnDetail;
 import static org.structr.web.entity.dom.DOMNode.hideOnIndex;
@@ -161,7 +161,7 @@ public class Content extends DOMNode implements Text {
 			String value = getProperty(Content.content);
 			if (value != null) {
 
-				return Search.escapeForLucene(value);
+				return SearchCommand.escapeForLucene(value);
 			}
 
 		}

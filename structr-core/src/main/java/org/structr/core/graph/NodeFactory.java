@@ -26,12 +26,9 @@ import org.structr.common.error.FrameworkException;
 import java.lang.reflect.Constructor;
 
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.neo4j.gis.spatial.indexprovider.SpatialRecordHits;
 import org.neo4j.graphdb.index.IndexHits;
 import org.structr.common.AccessControllable;
-import org.structr.core.GraphObject;
 import org.structr.core.Result;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.relationship.NodeHasLocation;
@@ -45,8 +42,6 @@ import org.structr.core.entity.relationship.NodeHasLocation;
  * @author Axel Morgner
  */
 public class NodeFactory<T extends NodeInterface & AccessControllable> extends Factory<Node, T> {
-
-	private static final Logger logger        = Logger.getLogger(NodeFactory.class.getName());
 
 	//~--- fields ---------------------------------------------------------
 
@@ -113,23 +108,6 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 
 			newNode.init(factoryProfile.getSecurityContext(), node);
 			newNode.onNodeInstantiation();
-
-			/* dont set node type here!
-			String newNodeType = newNode.getProperty(GraphObject.type);
-			if (newNodeType == null && nodeClass != null) {
-				
-				try {
-
-					newNode.unlockReadOnlyPropertiesOnce();
-					newNode.setProperty(GraphObject.type, nodeClass.getSimpleName());
-
-				} catch (Throwable t) {
-
-					t.printStackTrace();
-					logger.log(Level.SEVERE, "Unable to set type property {0} on node {1}: {2}", new Object[] { nodeClass, newNode, t.getMessage() } );
-				}
-			}
-			*/
 			
 			// cache node for this request
 			securityContext.store(id, newNode);

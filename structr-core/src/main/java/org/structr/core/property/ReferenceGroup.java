@@ -19,17 +19,15 @@
 package org.structr.core.property;
 
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.lucene.search.BooleanClause;
-import org.neo4j.graphdb.Node;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.PropertyGroup;
+import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractRelationship;
@@ -141,7 +139,7 @@ public class ReferenceGroup extends Property<PropertyMap> implements PropertyGro
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(SecurityContext securityContext, BooleanClause.Occur occur, PropertyMap searchValues, boolean exactMatch) {
+	public SearchAttribute getSearchAttribute(SecurityContext securityContext, BooleanClause.Occur occur, PropertyMap searchValues, boolean exactMatch, final Query query) {
 		
 		SearchAttributeGroup group = new SearchAttributeGroup(occur);
 		
@@ -150,7 +148,7 @@ public class ReferenceGroup extends Property<PropertyMap> implements PropertyGro
 			Object value = searchValues.get(new GenericProperty(key.jsonName()));
 			if (value != null) {
 				
-				group.add( new PropertySearchAttribute(key, value.toString(), BooleanClause.Occur.MUST, exactMatch) );
+				group.add(new PropertySearchAttribute(key, value.toString(), BooleanClause.Occur.MUST, exactMatch));
 			}
 		}
 		
@@ -265,16 +263,12 @@ public class ReferenceGroup extends Property<PropertyMap> implements PropertyGro
 	}
 		
 	@Override
-	public List<SearchAttribute> extractSearchableAttribute(SecurityContext securityContext, HttpServletRequest request, boolean looseSearch) throws FrameworkException {
+	public void extractSearchableAttribute(SecurityContext securityContext, HttpServletRequest request, final Query query) throws FrameworkException {
 
-		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
-		
 		for (PropertyKey key : propertyKeys.values()) {
 
-			searchAttributes.addAll(key.extractSearchableAttribute(securityContext, request, looseSearch));
+			key.extractSearchableAttribute(securityContext, request, query);
 		}
-		
-		return searchAttributes;
 	}
 
 	@Override

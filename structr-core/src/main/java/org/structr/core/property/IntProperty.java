@@ -27,6 +27,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
+import org.structr.core.app.Query;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.search.IntegerSearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
@@ -148,7 +149,7 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> {
 	}
 	
 	@Override
-	public SearchAttribute getSearchAttribute(SecurityContext securityContext, BooleanClause.Occur occur, Integer searchValue, boolean exactMatch) {
+	public SearchAttribute getSearchAttribute(SecurityContext securityContext, BooleanClause.Occur occur, Integer searchValue, boolean exactMatch, final Query query) {
 		return new IntegerSearchAttribute(this, searchValue, occur, exactMatch);
 	}
 

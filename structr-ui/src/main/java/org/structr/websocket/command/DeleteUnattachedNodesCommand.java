@@ -21,12 +21,7 @@ package org.structr.websocket.command;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.Result;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.search.Search;
-import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.websocket.message.WebSocketMessage;
 import org.structr.websocket.StructrWebSocket;
@@ -38,6 +33,7 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.app.App;
+import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.web.entity.dom.Content;
@@ -69,22 +65,18 @@ public class DeleteUnattachedNodesCommand extends AbstractCommand {
 
 		final SecurityContext securityContext  = getWebSocket().getSecurityContext();
 		final App app                          = StructrApp.getInstance(securityContext);
-		List<SearchAttribute> searchAttributes = new LinkedList();
+		final String sortOrder                 = webSocketData.getSortOrder();
+		final String sortKey                   = webSocketData.getSortKey();
+		PropertyKey sortProperty               = StructrApp.getConfiguration().getPropertyKeyForJSONName(DOMNode.class, sortKey);
+		final Query query                      = app.nodeQuery().sort(sortProperty).order("desc".equals(sortOrder)).includeDeletedAndHidden();
 
-
-		// Search for all DOM elements and Contents
-		searchAttributes.add(Search.orExactTypeAndSubtypes(DOMElement.class));
-		searchAttributes.add(Search.orExactType(Content.class));
-
-		final String sortOrder   = webSocketData.getSortOrder();
-		final String sortKey     = webSocketData.getSortKey();
-		PropertyKey sortProperty = StructrApp.getConfiguration().getPropertyKeyForJSONName(DOMNode.class, sortKey);
+		query.orTypes(DOMElement.class);
+		query.orType(Content.class);
 
 		try {
 
-			Result result = (Result) StructrApp.getInstance(securityContext).command(SearchNodeCommand.class).execute(true, false, searchAttributes, sortProperty, "desc".equals(sortOrder));
-			final List<AbstractNode> filteredResults	= new LinkedList();
-			List<? extends GraphObject> resultList		= result.getResults();
+			final List<AbstractNode> filteredResults = new LinkedList();
+			List<? extends GraphObject> resultList   = query.getAsList();
 
 			// determine which of the nodes have incoming CONTAINS relationships and are not components
 			for (GraphObject obj : resultList) {

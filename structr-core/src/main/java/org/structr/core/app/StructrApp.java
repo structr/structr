@@ -34,7 +34,6 @@ import org.structr.core.Services;
 import org.structr.agent.AgentService;
 import org.structr.agent.Task;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.CreateRelationshipCommand;
@@ -47,7 +46,6 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.TransactionCommand;
-import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.graph.search.SearchRelationshipCommand;
 import org.structr.core.property.PropertyMap;
@@ -62,7 +60,7 @@ public class StructrApp implements App {
 
 	private static final Logger logger = Logger.getLogger(StructrApp.class.getName());
 	
-	private Map<Class<? extends Command>, Command> commandCache = new LinkedHashMap<>();
+//	private Map<Class<? extends Command>, Command> commandCache = new LinkedHashMap<>();
 	private SecurityContext securityContext                     = null;
 	
 	private StructrApp(final SecurityContext securityContext) {
@@ -122,55 +120,62 @@ public class StructrApp implements App {
 	@Override
 	public NodeInterface get(final String uuid) throws FrameworkException {
 
-		final Class<? extends SearchCommand> searchType = SearchNodeCommand.class;
-
-		final Query<NodeInterface> query = new StructrQuery<>(securityContext, searchType);
+		final Query<NodeInterface> query = command(SearchNodeCommand.class);
 		return query.uuid(uuid).includeDeletedAndHidden().getFirst();
 	}
 
 	@Override
 	public <T extends GraphObject> T get(final Class<T> type, final String uuid) throws FrameworkException {
 
-		final Class<? extends SearchCommand> searchType = SearchNodeCommand.class;
-
-		final Query<T> query = new StructrQuery<>(securityContext, searchType);
-		return query.type(type).getFirst();
+		final Query<T> query = command(SearchNodeCommand.class);
+		return query.andType(type).getFirst();
 	}
 	
 	@Override
 	public <T extends GraphObject> List<T> get(final Class<T> type) throws FrameworkException {
 
-		final Class<? extends SearchCommand> searchType = SearchNodeCommand.class;
-		
-		final Query<T> query = new StructrQuery<>(securityContext, searchType);
-		return query.type(type).getAsList();
+		final Query<T> query = command(SearchNodeCommand.class);
+		return query.andType(type).getAsList();
+	}
+	
+	@Override
+	public Query<NodeInterface> nodeQuery() {
+		return command(SearchNodeCommand.class);
+	}
+	
+	@Override
+	public Query<NodeInterface> nodeQuery(final boolean exact) {
+		return command(SearchNodeCommand.class).exact(exact);
 	}
 	
 	@Override
 	public <T extends NodeInterface> Query<T> nodeQuery(final Class<T> type) {
-
-		Query<T> query = new StructrQuery<>(securityContext, SearchNodeCommand.class);
-		query.types(type);
-		
-		return query;
+		return command(SearchNodeCommand.class).andTypes(type);
 	}
 	
 	@Override
-	public <T extends NodeInterface> Query<T> nodeQuery(final Class<T> type, final boolean inexact) {
-
-		Query<T> query = new StructrQuery<>(securityContext, SearchNodeCommand.class);
-		query.types(type, inexact);
-		
-		return query;
+	public <T extends NodeInterface> Query<T> nodeQuery(final Class<T> type, final boolean exact) {
+		return command(SearchNodeCommand.class).exact(exact).andTypes(type);
 	}
-
+	
+	@Override
+	public Query<RelationshipInterface> relationshipQuery() {
+		return command(SearchRelationshipCommand.class);
+	}
+	
+	@Override
+	public Query<RelationshipInterface> relationshipQuery(final boolean exact) {
+		return command(SearchRelationshipCommand.class).exact(exact);
+	}
+	
 	@Override
 	public <T extends RelationshipInterface> Query<T> relationshipQuery(final Class<T> type) {
-
-		Query<T> query = new StructrQuery<>(securityContext, SearchRelationshipCommand.class);
-		query.and(AbstractRelationship.type, type.getSimpleName());
-		
-		return query;
+		return command(SearchRelationshipCommand.class).andTypes(type);
+	}
+	
+	@Override
+	public <T extends RelationshipInterface> Query<T> relationshipQuery(final Class<T> type, final boolean exact) {
+		return command(SearchRelationshipCommand.class).exact(exact).andTypes(type);
 	}
 	
 	@Override
@@ -205,15 +210,17 @@ public class StructrApp implements App {
 
 	@Override
 	public <T extends Command> T command(Class<T> commandType) {
-		
-		Command command = commandCache.get(commandType);
-		if (command == null) {
-			
-			command = Services.getInstance().command(securityContext, commandType);
-			commandCache.put(commandType, command);
-		}
-		
-		return (T)command;
+//		
+//		Command command = commandCache.get(commandType);
+//		if (command == null) {
+//			
+//			command = Services.getInstance().command(securityContext, commandType);
+//			commandCache.put(commandType, command);
+//		}
+//		
+//		return (T)command;
+
+		return Services.getInstance().command(securityContext, commandType);
 	}
 
 	@Override
