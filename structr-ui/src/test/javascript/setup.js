@@ -57,7 +57,7 @@ exports.url = 'http://localhost:8875/structr/#pages';
  * 
  * Use png, gif, or jpg
  */
-exports.imageType = 'png';
+exports.imageType = 'jpg';
 
 /**
  * Base directory for docs
