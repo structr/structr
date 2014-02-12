@@ -21,13 +21,8 @@ package org.structr.websocket.command;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.Result;
-import org.structr.core.Services;
 import org.structr.web.entity.Image;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.search.Search;
-import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.PagingHelper;
 import org.structr.websocket.message.WebSocketMessage;
@@ -36,6 +31,7 @@ import org.structr.websocket.StructrWebSocket;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.*;
+import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.schema.SchemaHelper;
 import org.structr.web.entity.relation.FileChildren;
@@ -59,29 +55,27 @@ public class ListFilesCommand extends AbstractCommand {
 		
 
 		final SecurityContext securityContext  = getWebSocket().getSecurityContext();
-		String rawType                         = (String) webSocketData.getNodeData().get("type");
-		Class type                             = SchemaHelper.getEntityClassForRawType(rawType);
-		List<SearchAttribute> searchAttributes = new LinkedList();
-
-		searchAttributes.add(Search.andExactType(type));
+		final String rawType                   = (String) webSocketData.getNodeData().get("type");
+		final Class type                       = SchemaHelper.getEntityClassForRawType(rawType);
+		final String sortOrder                 = webSocketData.getSortOrder();
+		final String sortKey                   = webSocketData.getSortKey();
+		final int pageSize                     = webSocketData.getPageSize();
+		final int page                         = webSocketData.getPage();
+		final PropertyKey sortProperty         = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, sortKey);
+		final Query query                      = StructrApp.getInstance(securityContext).nodeQuery(type).includeDeletedAndHidden().sort(sortProperty).order("desc".equals(sortOrder));
 		
 		// for image lists, suppress thumbnails
 		if (type.equals(Image.class)) {
-			searchAttributes.add(Search.andExactProperty(securityContext, Image.isThumbnail, false));
+			
+			query.and(Image.isThumbnail, false);
 		}
-
-		final String sortOrder   = webSocketData.getSortOrder();
-		final String sortKey     = webSocketData.getSortKey();
-		final int pageSize       = webSocketData.getPageSize();
-		final int page           = webSocketData.getPage();
-		PropertyKey sortProperty = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, sortKey);
+		
 
 		try {
 
 			// do search
-			Result result = (Result) StructrApp.getInstance(securityContext).command(SearchNodeCommand.class).execute(true, false, searchAttributes, sortProperty, "desc".equals(sortOrder));
 			List<AbstractNode> filteredResults     = new LinkedList();
-			List<? extends GraphObject> resultList = result.getResults();
+			List<? extends GraphObject> resultList = query.getAsList();
 
 			// add only root folders to the list
 			for (GraphObject obj : resultList) {

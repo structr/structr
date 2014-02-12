@@ -18,7 +18,6 @@
  */
 package org.structr.core.entity;
 
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -28,7 +27,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.lucene.search.BooleanClause.Occur;
-import org.neo4j.graphdb.Node;
 import org.neo4j.helpers.Predicate;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
@@ -37,6 +35,7 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
+import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.NodeService;
@@ -299,10 +298,10 @@ public class PropertyDefinition<T> extends AbstractNode implements PropertyKey<T
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occur occur, T searchValue, boolean exactMatch) {
+	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occur occur, T searchValue, boolean exactMatch, final Query query) {
 		
 		if (delegate != null) {
-			return delegate.getSearchAttribute(securityContext, occur, searchValue, exactMatch);
+			return delegate.getSearchAttribute(securityContext, occur, searchValue, exactMatch, query);
 		}
 		
 		return null;
@@ -519,20 +518,18 @@ public class PropertyDefinition<T> extends AbstractNode implements PropertyKey<T
 	}
 
 	@Override
-	public List extractSearchableAttribute(SecurityContext securityContext, HttpServletRequest request, boolean looseSearch) throws FrameworkException {
+	public void extractSearchableAttribute(SecurityContext securityContext, HttpServletRequest request, final Query query) throws FrameworkException {
 		
 		if (delegate != null) {
-			return delegate.extractSearchableAttribute(securityContext, request, looseSearch);
+			delegate.extractSearchableAttribute(securityContext, request, query);
 		}
-		
-		return Collections.emptyList();
 	}
 
 	@Override
-	public T extractSearchableAttribute(SecurityContext securityContext, String requestParameter) throws FrameworkException {
+	public T convertSearchValue(SecurityContext securityContext, String requestParameter) throws FrameworkException {
 		
 		if (delegate != null) {
-			return delegate.extractSearchableAttribute(securityContext, requestParameter);
+			return delegate.convertSearchValue(securityContext, requestParameter);
 		}
 		
 		return null;
@@ -606,5 +603,10 @@ public class PropertyDefinition<T> extends AbstractNode implements PropertyKey<T
 		}
 		
 		return null;
+	}
+	
+	@Override
+	public int getProcessingOrderPosition() {
+		return 0;
 	}
 }

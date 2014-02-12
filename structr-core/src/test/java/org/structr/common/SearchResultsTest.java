@@ -45,8 +45,6 @@ import org.structr.core.Result;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.TestOne;
 import org.structr.core.entity.TestSeven;
-import org.structr.core.graph.search.Search;
-import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
@@ -54,8 +52,6 @@ import org.structr.core.property.StringProperty;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.entity.relationship.NodeHasLocation;
@@ -179,15 +175,10 @@ public class SearchResultsTest extends StructrTest {
 
 			assertTrue(rel.getProperty(key1).equals(val1));
 
-			List<SearchAttribute> searchAttributes = new LinkedList<>();
-
-			searchAttributes.add(Search.andExactProperty(securityContext, key1, val1));
-
 			Result<RelationshipInterface> result = app.relationshipQuery(type).and(key1, val1).getResult();
 
 			assertTrue(result.size() == 1);
 			assertTrue(result.get(0).equals(rel));
-			searchAttributes.clear();
 
 			final String val2 = "ölllldjöoa8w4rasf";
 

@@ -47,7 +47,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.lucene.search.BooleanClause.Occur;
 import org.jsoup.Jsoup;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
@@ -57,20 +56,15 @@ import org.structr.core.GraphObject;
 import org.structr.core.Ownership;
 import org.structr.core.Predicate;
 import org.structr.core.Result;
-import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.search.Search;
-import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.web.common.Function;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.relationship.PrincipalOwnsNode;
-import org.structr.core.graph.search.PropertySearchAttribute;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.CollectionIdProperty;
 import org.structr.core.property.EndNode;
@@ -1526,16 +1520,9 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			resultPages = new HashSet<>();
 		}
 
-		// fetch search results
-		// List<GraphObject> results              = ((SearchResultView) startNode).getGraphObjects(request);
-		List<SearchAttribute> searchAttributes = new LinkedList<>();
-
-		searchAttributes.add(new PropertySearchAttribute(Content.content, search, Occur.MUST, false));
-		searchAttributes.add(Search.andExactType(Content.class));
-
 		try {
 
-			Result<Content> result = StructrApp.getInstance().command(SearchNodeCommand.class).execute(searchAttributes);
+			Result<Content> result = StructrApp.getInstance().nodeQuery(Content.class).and(Content.content, search, false).getResult();
 			for (Content content : result.getResults()) {
 
 				resultPages.add((Page) content.getOwnerDocument());

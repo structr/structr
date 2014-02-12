@@ -21,19 +21,15 @@ package org.structr.websocket.command;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.search.Search;
-import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.websocket.message.WebSocketMessage;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.schema.SchemaHelper;
 import org.structr.websocket.StructrWebSocket;
@@ -59,65 +55,37 @@ public class SearchCommand extends AbstractCommand {
 	public void processMessage(WebSocketMessage webSocketData) {
 
 		final SecurityContext securityContext  = getWebSocket().getSecurityContext();
-		String searchString                    = (String) webSocketData.getNodeData().get("searchString");
-		String typeString                      = (String) webSocketData.getNodeData().get("type");
+		final String searchString              = (String) webSocketData.getNodeData().get("searchString");
+		final String typeString                = (String) webSocketData.getNodeData().get("type");
 		
 		Class type = null;
 		if (typeString != null) {
 			type = SchemaHelper.getEntityClassForRawType(typeString);
 		}
 
-		List<SearchAttribute> searchAttributes = new LinkedList();
-		
 		if (searchString == null) {
 			getWebSocket().send(MessageBuilder.status().code(204).message("Empty search string").build(), true);
 			return;
 		}
 
-		searchAttributes.add(Search.andName(searchString));
-		if (type != null) {
-			
-			searchAttributes.add(Search.andExactType(type));
-			
-		}
-		
+		final String sortOrder         = webSocketData.getSortOrder();
+		final String sortKey           = webSocketData.getSortKey();
+		final PropertyKey sortProperty = StructrApp.getConfiguration().getPropertyKeyForJSONName(AbstractNode.class, sortKey);
+		final Query query              = StructrApp.getInstance(securityContext).nodeQuery().includeDeletedAndHidden().sort(sortProperty).order("desc".equals(sortOrder));
 
-		final String sortOrder   = webSocketData.getSortOrder();
-		final String sortKey     = webSocketData.getSortKey();
-//		final int pageSize       = webSocketData.getPageSize();
-//		final int page           = webSocketData.getPage();
-		PropertyKey sortProperty = StructrApp.getConfiguration().getPropertyKeyForJSONName(AbstractNode.class, sortKey);
+		query.andName(searchString);
+
+		if (type != null) {
+			query.andType(type);
+		}
 
 		try {
 
 			// do search
-			Result result = (Result) StructrApp.getInstance(securityContext).command(SearchNodeCommand.class).execute(true, false, searchAttributes, sortProperty, "desc".equals(sortOrder));
-//			List<AbstractNode> filteredResults     = new LinkedList<AbstractNode>();
-//			List<? extends GraphObject> resultList = result.getResults();
-//
-//			// determine which of the nodes have children
-//			for (GraphObject obj : resultList) {
-//
-//				if (obj instanceof AbstractNode) {
-//
-//					AbstractNode node = (AbstractNode) obj;
-//
-//					if (!node.hasRelationship(RelType.CONTAINS, Direction.INCOMING)) {
-//
-//						filteredResults.add(node);
-//					}
-//
-//				}
-//
-//			}
-
-//			// save raw result count
-//			int resultCountBeforePaging = filteredResults.size();
+			Result result = query.getResult();
 			
 			// set full result list
-			//webSocketData.setResult(PagingHelper.subList(result.getResults(), pageSize, page, null));
 			webSocketData.setResult(result.getResults());
-//			webSocketData.setRawResultCount(resultCountBeforePaging);
 
 			// send only over local connection
 			getWebSocket().send(webSocketData, true);

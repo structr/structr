@@ -23,8 +23,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.search.Search;
-import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.websocket.message.WebSocketMessage;
 import org.structr.common.PagingHelper;
 import org.structr.websocket.StructrWebSocket;
@@ -70,9 +68,9 @@ public class ListComponentsCommand extends AbstractCommand {
 		try {
 
 			// get shadow document
-			Result result = (Result) StructrApp.getInstance(securityContext).command(SearchNodeCommand.class).execute(Search.andExactType(ShadowDocument.class));
-			List<AbstractNode> filteredResults	= new LinkedList();
-			List<AbstractNode> resultList		= result.getResults();
+			Result result                      = StructrApp.getInstance(securityContext).nodeQuery(ShadowDocument.class).getResult();
+			List<AbstractNode> filteredResults = new LinkedList();
+			List<AbstractNode> resultList      = result.getResults();
 
 			if (result.isEmpty()) {
 				

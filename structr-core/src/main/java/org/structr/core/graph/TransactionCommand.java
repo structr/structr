@@ -56,12 +56,11 @@ public class TransactionCommand extends NodeServiceCommand {
 
 	private static final Logger logger                                  = Logger.getLogger(TransactionCommand.class.getName());
 	private static final Set<StructrTransactionListener> listeners      = new LinkedHashSet<>();
+	private static final ThreadLocal<ModificationQueue> queues          = new ThreadLocal<>();
+	private static final ThreadLocal<ErrorBuffer> buffers               = new ThreadLocal<>();
 	private static final ThreadLocal<TransactionCommand> currentCommand = new ThreadLocal<>();
 	private static final ThreadLocal<TransactionReference> transactions = new ThreadLocal<>();
 	private static final MultiSemaphore                    semaphore    = new MultiSemaphore();
-	
-	private ModificationQueue modificationQueue = null;
-	private ErrorBuffer errorBuffer             = null;
 
 	public void beginTx() {
 		
@@ -71,10 +70,10 @@ public class TransactionCommand extends NodeServiceCommand {
 		if (tx == null) {
 		
 			// start new transaction
-			this.modificationQueue = new ModificationQueue();
-			this.errorBuffer       = new ErrorBuffer();
-			tx                     = new TransactionReference(graphDb.beginTx());
+			tx = new TransactionReference(graphDb.beginTx());
 			
+			queues.set(new ModificationQueue());
+			buffers.set(new ErrorBuffer());
 			transactions.set(tx);
 			currentCommand.set(this);
 		}
@@ -92,6 +91,9 @@ public class TransactionCommand extends NodeServiceCommand {
 		final TransactionReference tx = transactions.get();
 		if (tx != null && tx.isToplevel()) {
 
+			final ModificationQueue modificationQueue = queues.get();
+			final ErrorBuffer errorBuffer             = buffers.get();
+			
 			// 1. do inner callbacks (may cause transaction to fail)
 			if (doValidation && !modificationQueue.doInnerCallbacks(securityContext, errorBuffer)) {
 
@@ -155,7 +157,11 @@ public class TransactionCommand extends NodeServiceCommand {
 			
 			if (tx.isToplevel()) {
 
+				final ModificationQueue modificationQueue = queues.get();
+				
 				// cleanup
+				queues.remove();
+				buffers.remove();
 				currentCommand.remove();
 				transactions.remove();
 
@@ -349,6 +355,6 @@ public class TransactionCommand extends NodeServiceCommand {
 	}
 
 	private ModificationQueue getModificationQueue() {
-		return modificationQueue;
+		return queues.get();
 	}
 }

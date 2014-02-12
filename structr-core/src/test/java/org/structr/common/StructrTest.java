@@ -165,10 +165,16 @@ public class StructrTest extends TestCase {
 
 			return nodes;
 
+		} catch (Throwable t) {
+			
+			t.printStackTrace();
+			
 		} finally {
 
 			app.finishTx();
 		}
+		
+		return null;
 	}
 
 	protected List<NodeInterface> createTestNodes(final Class type, final int number) throws FrameworkException {

@@ -21,19 +21,17 @@ package org.structr.core.property;
 import org.structr.core.graph.search.SearchAttributeGroup;
 import org.structr.core.graph.search.SearchAttribute;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.lucene.search.BooleanClause.Occur;
-import org.neo4j.graphdb.Node;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.ReadOnlyPropertyToken;
 import org.structr.core.GraphObject;
 import org.structr.core.PropertyGroup;
+import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.NodeService.NodeIndex;
@@ -152,7 +150,7 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occur occur, PropertyMap searchValues, boolean exactMatch) {
+	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occur occur, PropertyMap searchValues, boolean exactMatch, Query query) {
 		
 		SearchAttributeGroup group = new SearchAttributeGroup(occur);
 		
@@ -161,7 +159,7 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 			Object value = searchValues.get(new GenericProperty(key.jsonName()));
 			if (value != null) {
 				
-				group.add( new PropertySearchAttribute(key, value.toString(), Occur.MUST, exactMatch) );
+				group.add(new PropertySearchAttribute(key, value.toString(), Occur.MUST, exactMatch));
 			}
 		}
 		
@@ -352,11 +350,9 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 	}
 		
 	@Override
-	public List<SearchAttribute> extractSearchableAttribute(SecurityContext securityContext, HttpServletRequest request, boolean looseSearch) throws FrameworkException {
+	public void extractSearchableAttribute(SecurityContext securityContext, HttpServletRequest request, final Query query) throws FrameworkException {
 
-		List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
-		
-		for (PropertyKey propertyKey : propertyKeys.values()) {
+		 for (PropertyKey propertyKey : propertyKeys.values()) {
 
 			if (propertyKey instanceof Property) {
 
@@ -366,26 +362,20 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 				String searchValue = request.getParameter(key.dbName());
 				if (searchValue != null) {
 
-					if (looseSearch) {
+					if (!query.isExactSearch()) {
 
 						// no quotes allowed in loose search queries!
 						searchValue = removeQuotes(searchValue);
 
-						searchAttributes.add(new PropertySearchAttribute(this, searchValue.toLowerCase(), Occur.MUST, false));
+						query.and(this, searchValue.toLowerCase(), false);
 
 					} else {
 
-						SearchAttribute attr = key.determineSearchType(securityContext, key, searchValue);
-						if (attr != null) {
-
-							searchAttributes.add(attr);
-						}
+						key.determineSearchType(securityContext, searchValue, query);
 					}
 				}
 			}
 		}
-		
-		return searchAttributes;
 	}
 
 	@Override

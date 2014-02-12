@@ -18,7 +18,7 @@
  */
 package org.structr.common.geo;
 
-import org.structr.common.error.FrameworkException;
+import java.io.IOException;
 
 /**
  *
@@ -27,5 +27,5 @@ import org.structr.common.error.FrameworkException;
 
 public interface GeoCodingProvider {
 
-	public GeoCodingResult geocode(final String street, final String house, String postalCode, final String city, final String state, final String country, String language) throws FrameworkException;
+	public GeoCodingResult geocode(final String street, final String house, String postalCode, final String city, final String state, final String country, String language) throws IOException;
 }

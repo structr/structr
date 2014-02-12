@@ -56,7 +56,7 @@ import org.structr.core.Value;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.graph.NodeFactory;
-import org.structr.core.graph.search.Search;
+import org.structr.core.graph.search.SearchCommand;
 import org.structr.rest.serialization.StreamingWriter;
 import org.structr.rest.adapter.FrameworkExceptionGSONAdapter;
 import org.structr.rest.adapter.ResultGSONAdapter;
@@ -96,14 +96,14 @@ public class JsonRestServlet extends HttpServiceServlet {
 		commonRequestParameters.add(REQUEST_PARAMETER_SORT_ORDER);
 		
 		// cross reference here, but these need to be added as well..
-		commonRequestParameters.add(Search.DISTANCE_SEARCH_KEYWORD);
-		commonRequestParameters.add(Search.LOCATION_SEARCH_KEYWORD);
-		commonRequestParameters.add(Search.STREET_SEARCH_KEYWORD);
-		commonRequestParameters.add(Search.HOUSE_SEARCH_KEYWORD);
-		commonRequestParameters.add(Search.POSTAL_CODE_SEARCH_KEYWORD);
-		commonRequestParameters.add(Search.CITY_SEARCH_KEYWORD);
-		commonRequestParameters.add(Search.STATE_SEARCH_KEYWORD);
-		commonRequestParameters.add(Search.COUNTRY_SEARCH_KEYWORD);
+		commonRequestParameters.add(SearchCommand.DISTANCE_SEARCH_KEYWORD);
+		commonRequestParameters.add(SearchCommand.LOCATION_SEARCH_KEYWORD);
+		commonRequestParameters.add(SearchCommand.STREET_SEARCH_KEYWORD);
+		commonRequestParameters.add(SearchCommand.HOUSE_SEARCH_KEYWORD);
+		commonRequestParameters.add(SearchCommand.POSTAL_CODE_SEARCH_KEYWORD);
+		commonRequestParameters.add(SearchCommand.CITY_SEARCH_KEYWORD);
+		commonRequestParameters.add(SearchCommand.STATE_SEARCH_KEYWORD);
+		commonRequestParameters.add(SearchCommand.COUNTRY_SEARCH_KEYWORD);
 	}
 	
 	//~--- fields ---------------------------------------------------------

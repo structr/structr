@@ -34,9 +34,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.*;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.search.Search;
-import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.SearchAttributeGroup;
 import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.web.auth.HttpAuthenticator;
 import org.structr.web.entity.dom.Page;
@@ -56,8 +53,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.LocaleUtils;
 import org.apache.commons.lang.time.DateUtils;
-import org.apache.lucene.search.BooleanClause.Occur;
 import org.structr.core.app.App;
+import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
 import org.structr.rest.ResourceProvider;
@@ -351,7 +348,7 @@ public class HtmlServlet extends HttpServiceServlet {
 
 			logger.log(Level.FINE, "Requested name: {0}", name);
 
-			Result results = searchNodesAsSuperuser.execute(Search.andExactName(name));
+			Result results = StructrApp.getInstance().nodeQuery().and(AbstractNode.name, name).getResult();
 			
 			logger.log(Level.FINE, "{0} results", results.size());
 			request.setAttribute(POSSIBLE_ENTRY_POINTS, results.getResults());
@@ -427,10 +424,7 @@ public class HtmlServlet extends HttpServiceServlet {
 
 		logger.log(Level.FINE, "Looking for an index page ...");
 
-		List<SearchAttribute> searchAttrs = new LinkedList<>();
-		searchAttrs.add(Search.orExactType(Page.class));
-		
-		Result results = (Result) searchNodesAsSuperuser.execute(searchAttrs);
+		Result<Page> results = StructrApp.getInstance().nodeQuery(Page.class).getResult();
 
 		logger.log(Level.FINE, "{0} results", results.size());
 
@@ -445,12 +439,10 @@ public class HtmlServlet extends HttpServiceServlet {
 			
 			while (page == null || (i<results.size() && !securityContext.isVisible(page))) {
 				
-				page = (Page) results.get(i++);
-				
+				page = results.get(i++);
 			}
 			
 			return page;
-
 		}
 
 		return null;
@@ -513,15 +505,10 @@ public class HtmlServlet extends HttpServiceServlet {
 
 		if (CONFIRM_REGISTRATION_PAGE.equals(path)) {
 		
-			List<SearchAttribute> searchAttrs = new LinkedList();
-			searchAttrs.add(Search.andExactTypeAndSubtypes(Principal.class));
-			searchAttrs.add(Search.andExactProperty(securityContext, User.confirmationKey, key));
-
-			Result results = (Result) searchNodesAsSuperuser.execute(searchAttrs);
-			
+			Result<Principal> results = StructrApp.getInstance().nodeQuery(Principal.class).and(User.confirmationKey, key).getResult();;
 			if (!results.isEmpty()) {
 				
-				final Principal user = (Principal) results.get(0);
+				final Principal user = results.get(0);
 				final App app        = StructrApp.getInstance(securityContext);
 				
 				try {
@@ -579,19 +566,13 @@ public class HtmlServlet extends HttpServiceServlet {
 
 			logger.log(Level.FINE, "Requested id: {0}", uuid);
 
-			List<SearchAttribute> searchAttrs = new LinkedList<>();
-
-			searchAttrs.add(Search.andExactUuid(uuid));
-
-			SearchAttributeGroup group = new SearchAttributeGroup(Occur.MUST);
-
-			group.add(Search.orExactType(Page.class));
-			group.add(Search.orExactTypeAndSubtypes(File.class));
-//			group.add(Search.orExactTypeAndSubtypes(Image.class.getSimpleName())); // redundant
-			searchAttrs.add(group);
+			final Query query = StructrApp.getInstance().nodeQuery();
+			
+			query.and(GraphObject.id, uuid);
+			query.and().orType(Page.class).orTypes(File.class);
 
 			// Searching for pages needs super user context anyway
-			Result results = searchNodesAsSuperuser.execute(searchAttrs);
+			Result results = query.getResult();
 			
 			logger.log(Level.FINE, "{0} results", results.size());
 			request.setAttribute(POSSIBLE_ENTRY_POINTS, results.getResults());
@@ -614,19 +595,13 @@ public class HtmlServlet extends HttpServiceServlet {
 
 			logger.log(Level.FINE, "Requested name: {0}", name);
 
-			List<SearchAttribute> searchAttrs = new LinkedList<>();
-
-			searchAttrs.add(Search.andExactName(name));
-
-			SearchAttributeGroup group = new SearchAttributeGroup(Occur.MUST);
-
-			group.add(Search.orExactType(Page.class));
-			group.add(Search.orExactTypeAndSubtypes(File.class));
-//			group.add(Search.orExactTypeAndSubtypes(Image.class.getSimpleName())); // redundant
-			searchAttrs.add(group);
+			final Query query = StructrApp.getInstance().nodeQuery();
+			
+			query.and(AbstractNode.name, name);
+			query.and().orType(Page.class).orTypes(File.class);
 
 			// Searching for pages needs super user context anyway
-			Result results = searchNodesAsSuperuser.execute(searchAttrs);
+			Result results = query.getResult();
 			
 			logger.log(Level.FINE, "{0} results", results.size());
 			request.setAttribute(POSSIBLE_ENTRY_POINTS, results.getResults());

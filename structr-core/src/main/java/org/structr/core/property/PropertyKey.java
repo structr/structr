@@ -26,6 +26,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
+import org.structr.core.app.Query;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.NodeService;
 import org.structr.core.graph.search.SearchAttribute;
@@ -249,7 +250,13 @@ public interface PropertyKey<T> {
 
 	public void index(GraphObject entity, Object value);
 	
-	public SearchAttribute getSearchAttribute(SecurityContext securityContext, BooleanClause.Occur occur, T searchValue, boolean exactMatch);
-	public List<SearchAttribute> extractSearchableAttribute(SecurityContext securityContext, HttpServletRequest request, boolean looseSearch) throws FrameworkException;
-	public T extractSearchableAttribute(SecurityContext securityContext, String requestParameter) throws FrameworkException;
+	public SearchAttribute getSearchAttribute(SecurityContext securityContext, BooleanClause.Occur occur, T searchValue, boolean exactMatch, final Query query);
+	public void extractSearchableAttribute(SecurityContext securityContext, HttpServletRequest request, Query query) throws FrameworkException;
+	public T convertSearchValue(SecurityContext securityContext, String requestParameter) throws FrameworkException;
+	
+	/**
+	 * Returns the desired position of this property key type
+	 * in the processing order.
+	 */
+	public int getProcessingOrderPosition();
 }

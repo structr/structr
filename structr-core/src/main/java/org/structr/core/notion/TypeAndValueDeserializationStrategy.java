@@ -24,8 +24,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.PropertiesNotFoundToken;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.search.Search;
-import org.structr.core.graph.search.SearchAttribute;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -67,10 +65,6 @@ public class TypeAndValueDeserializationStrategy<S, T extends NodeInterface> imp
 	@Override
 	public T deserialize(final SecurityContext securityContext, Class<T> type, S source) throws FrameworkException {
 
-		List<SearchAttribute> attrs = new LinkedList();
-
-		attrs.add(Search.andExactTypeAndSubtypes(type));
-
 		// TODO: check why this doesn't work for setProperty with plain uuid..
 
 		final App app = StructrApp.getInstance(securityContext);
@@ -94,8 +88,7 @@ public class TypeAndValueDeserializationStrategy<S, T extends NodeInterface> imp
 				Object value = ((JsonInput)convertedSource).getAttributes().get(propertyKey.jsonName());
 				if (value != null) {
 					
-					String stringValue = value.toString();
-					attrs.add(Search.andExactProperty(securityContext, propertyKey, stringValue));
+					result = app.nodeQuery(type).and(propertyKey, value.toString()).getResult();
 				}
 
 			} else if (convertedSource instanceof GraphObject) {
@@ -109,12 +102,8 @@ public class TypeAndValueDeserializationStrategy<S, T extends NodeInterface> imp
 					
 					// fetch property key for "id", may be different for AbstractNode and AbstractRelationship!
 					PropertyKey<String> idProperty = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(obj.getClass(), GraphObject.id.dbName());
-					attrs.add(Search.andExactUuid(obj.getProperty(idProperty)));
-					
 					result = new Result(app.get(obj.getProperty(idProperty)), false);
-					
 				}
-				
 				
 			} else {
 

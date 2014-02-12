@@ -26,6 +26,7 @@ import java.util.logging.Logger;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
+import org.neo4j.helpers.Predicate;
 import org.neo4j.helpers.collection.Iterables;
 import org.structr.common.NotNullPredicate;
 import org.structr.common.SecurityContext;
@@ -222,38 +223,29 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 	
 	// ----- overridden methods from super class -----
 	@Override
-	protected <T extends NodeInterface> Set<T> getRelatedNodesReverse(final SecurityContext securityContext, final NodeInterface obj, final Class destinationType) {
+	protected <T extends NodeInterface> Set<T> getRelatedNodesReverse(final SecurityContext securityContext, final NodeInterface obj, final Class destinationType, final Predicate<GraphObject> predicate) {
 
 		Set<T> relatedNodes = new LinkedHashSet<>();
 		
-		if (obj instanceof AbstractNode) {
+		try {
 
-			AbstractNode node = (AbstractNode)obj;
+			final Object source = relation.getSource().get(securityContext, obj, predicate);
+			if (source instanceof Iterable) {
 
-			NodeFactory nodeFactory = new NodeFactory(securityContext);
-			Node dbNode             = node.getNode();
-			NodeInterface value     = null;
+				Iterable<T> nodes = (Iterable<T>)source;
+				for (final T n : nodes) {
 
-			try {
-
-				for (Relationship rel : dbNode.getRelationships(relation, Direction.INCOMING)) {
-
-					value = nodeFactory.instantiate(rel.getOtherNode(dbNode));
-
-					// break on first hit of desired type
-					if (value != null && destinationType.isInstance(value)) {
-						relatedNodes.add((T)value);
-					}
+					relatedNodes.add(n);
 				}
 
-			} catch (Throwable t) {
+			} else {
 
-				logger.log(Level.WARNING, "Unable to fetch related node: {0}", t.getMessage());
+				relatedNodes.add((T)source);
 			}
 
-		} else {
+		} catch (Throwable t) {
 
-			logger.log(Level.WARNING, "Property {0} is registered on illegal type {1}", new Object[] { this, obj.getClass() } );
+			logger.log(Level.WARNING, "Unable to fetch related node: {0}", t.getMessage());
 		}
 
 		return relatedNodes;

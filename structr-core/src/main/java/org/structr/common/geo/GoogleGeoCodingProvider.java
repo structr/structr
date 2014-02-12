@@ -38,7 +38,6 @@ import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
-import org.structr.common.error.FrameworkException;
 import org.structr.common.geo.GeoCodingResult.Type;
 
 /**
@@ -50,7 +49,7 @@ public class GoogleGeoCodingProvider extends AbstractGeoCodingProvider {
 	private static final Logger logger = Logger.getLogger(GoogleGeoCodingProvider.class.getName());
 
 	@Override
-	public GeoCodingResult geocode(final String street, final String house, String postalCode, final String city, final String state, final String country, final String language) throws FrameworkException {
+	public GeoCodingResult geocode(final String street, final String house, String postalCode, final String city, final String state, final String country, final String language) throws IOException {
 
 		String address =
 			
@@ -130,7 +129,7 @@ public class GoogleGeoCodingProvider extends AbstractGeoCodingProvider {
 
 	public static class GoogleGeoCodingResult implements GeoCodingResult {
 
-		private List<AddressComponent> addressComponents = new LinkedList<AddressComponent>();
+		private List<AddressComponent> addressComponents = new LinkedList<>();
 		private String address = null;
 		private double latitude;
 		private double longitude;

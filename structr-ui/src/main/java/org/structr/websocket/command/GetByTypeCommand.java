@@ -18,19 +18,14 @@
  */
 package org.structr.websocket.command;
 
-import java.util.LinkedList;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
-import org.structr.core.Services;
-import org.structr.core.graph.search.Search;
-import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.common.PagingHelper;
+import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.schema.SchemaHelper;
 import org.structr.web.entity.Image;
@@ -62,20 +57,12 @@ public class GetByTypeCommand extends AbstractCommand {
 	public void processMessage(final WebSocketMessage webSocketData) {
 
 		final SecurityContext securityContext  = getWebSocket().getSecurityContext();
-		String rawType                         = (String) webSocketData.getNodeData().get("type");
-		Class type                             = SchemaHelper.getEntityClassForRawType(rawType);
-		List<SearchAttribute> searchAttributes = new LinkedList();
+		final String rawType                   = (String) webSocketData.getNodeData().get("type");
+		final Class type                       = SchemaHelper.getEntityClassForRawType(rawType);
 
 		if (type == null) {
 			getWebSocket().send(MessageBuilder.status().code(404).message("Type " + rawType + " not found").build(), true);
 			return;
-		}
-
-		searchAttributes.add(Search.andExactType(type));
-
-		// for image lists, suppress thumbnails
-		if (type.equals(Image.class)) {
-			searchAttributes.add(Search.andExactProperty(securityContext, Image.isThumbnail, false));
 		}
 
 		final String sortOrder   = webSocketData.getSortOrder();
@@ -84,10 +71,19 @@ public class GetByTypeCommand extends AbstractCommand {
 		final int page           = webSocketData.getPage();
 		PropertyKey sortProperty = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, sortKey);
 
+		
+		final Query query = StructrApp.getInstance(securityContext).nodeQuery(type).includeDeletedAndHidden().sort(sortProperty).order("desc".equals(sortOrder));
+
+		// for image lists, suppress thumbnails
+		if (type.equals(Image.class)) {
+			query.and(Image.isThumbnail, false);
+		}
+
+
 		try {
 
 			// do search
-			Result result = (Result) StructrApp.getInstance(securityContext).command(SearchNodeCommand.class).execute(true, false, searchAttributes, sortProperty, "desc".equals(sortOrder));
+			Result result = query.getResult();
 
 			// save raw result count
 			int resultCountBeforePaging = result.size();

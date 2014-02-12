@@ -27,6 +27,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
+import org.structr.core.app.Query;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.search.LongSearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
@@ -147,7 +148,7 @@ public class LongProperty extends AbstractPrimitiveProperty<Long> {
 	}
 	
 	@Override
-	public SearchAttribute getSearchAttribute(SecurityContext securityContext, BooleanClause.Occur occur, Long searchValue, boolean exactMatch) {
+	public SearchAttribute getSearchAttribute(SecurityContext securityContext, BooleanClause.Occur occur, Long searchValue, boolean exactMatch, final Query query) {
 		return new LongSearchAttribute(this, searchValue, occur, exactMatch);
 	}
 

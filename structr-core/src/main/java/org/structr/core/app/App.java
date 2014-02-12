@@ -61,9 +61,15 @@ public interface App {
 	public <T extends GraphObject> List<T> get(final Class<T> type) throws FrameworkException;
 	public <T extends GraphObject> T get(final Class<T> type, final String uuid) throws FrameworkException;
 
+	public Query<? extends NodeInterface> nodeQuery();
+	public Query<? extends NodeInterface> nodeQuery(final boolean exact);
 	public <T extends NodeInterface> Query<T> nodeQuery(final Class<T> type);
-	public <T extends NodeInterface> Query<T> nodeQuery(final Class<T> type, final boolean inexact);
+	public <T extends NodeInterface> Query<T> nodeQuery(final Class<T> type, final boolean exact);
+	
+	public Query<? extends RelationshipInterface> relationshipQuery();
+	public Query<? extends RelationshipInterface> relationshipQuery(final boolean exact);
 	public <T extends RelationshipInterface> Query<T> relationshipQuery(final Class<T> type);
+	public <T extends RelationshipInterface> Query<T> relationshipQuery(final Class<T> type, final boolean exact);
 	
 	public void shutdown();
 	

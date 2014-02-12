@@ -31,14 +31,11 @@ import org.apache.ftpserver.usermanager.UsernamePasswordAuthentication;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
-import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.AuthHelper;
 import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.entity.AbstractUser;
 import org.structr.core.entity.Principal;
-import org.structr.core.graph.search.Search;
-import org.structr.core.graph.search.SearchNodeCommand;
 
 /**
  *
@@ -69,8 +66,7 @@ public class StructrUserManager implements UserManager {
 		
 		try {
 			
-			result = StructrApp.getInstance(securityContext).command(SearchNodeCommand.class).execute(
-				Search.andExactTypeAndSubtypes(Principal.class));
+			result = StructrApp.getInstance(securityContext).nodeQuery(Principal.class).getResult();
 
 		} catch (FrameworkException ex) {
 			

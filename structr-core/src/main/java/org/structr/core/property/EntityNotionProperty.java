@@ -27,12 +27,13 @@ import org.apache.lucene.search.BooleanClause.Occur;
 import static org.apache.lucene.search.BooleanClause.Occur.MUST;
 import static org.apache.lucene.search.BooleanClause.Occur.MUST_NOT;
 import static org.apache.lucene.search.BooleanClause.Occur.SHOULD;
-import org.neo4j.graphdb.Node;
+import org.neo4j.helpers.Predicate;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
 import org.structr.core.app.App;
+import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
@@ -177,11 +178,12 @@ public class EntityNotionProperty<S extends NodeInterface, T> extends Property<T
 	}
 	
 	@Override
-	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occur occur, T searchValue, boolean exactMatch) {
+	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occur occur, T searchValue, boolean exactMatch, final Query query) {
 		
-		SourceSearchAttribute attr            = new SourceSearchAttribute(occur);
-		Set<GraphObject> intersectionResult   = new LinkedHashSet<>();
-		boolean alreadyAdded                  = false;
+		final Predicate<GraphObject> predicate    = query != null ? query.toPredicate() : null;
+		final SourceSearchAttribute attr          = new SourceSearchAttribute(occur);
+		final Set<GraphObject> intersectionResult = new LinkedHashSet<>();
+		boolean alreadyAdded                      = false;
 
 		try {
 
@@ -202,20 +204,20 @@ public class EntityNotionProperty<S extends NodeInterface, T> extends Property<T
 								if (!alreadyAdded) {
 
 									// the first result is the basis of all subsequent intersections
-									intersectionResult.addAll(entityProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
+									intersectionResult.addAll(entityProperty.getRelatedNodesReverse(securityContext, node, declaringClass, predicate));
 
 									// the next additions are intersected with this one
 									alreadyAdded = true;
 
 								} else {
 
-									intersectionResult.retainAll(entityProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
+									intersectionResult.retainAll(entityProperty.getRelatedNodesReverse(securityContext, node, declaringClass, predicate));
 								}
 
 								break;
 
 							case SHOULD:
-								intersectionResult.addAll(entityProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
+								intersectionResult.addAll(entityProperty.getRelatedNodesReverse(securityContext, node, declaringClass, predicate));
 								break;
 
 							case MUST_NOT:
@@ -225,12 +227,12 @@ public class EntityNotionProperty<S extends NodeInterface, T> extends Property<T
 					
 				} else {
 
-					Result<AbstractNode> result = app.nodeQuery(entityProperty.relatedType(), true).and(notion.getPrimaryPropertyKey(), searchValue, true).getResult();
+					Result<AbstractNode> result = app.nodeQuery(entityProperty.relatedType(), false).and(notion.getPrimaryPropertyKey(), searchValue, false).getResult();
 					
 					// loose search behaves differently, all results must be combined
 					for (AbstractNode node : result.getResults()) {
 
-						intersectionResult.addAll(entityProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
+						intersectionResult.addAll(entityProperty.getRelatedNodesReverse(securityContext, node, declaringClass, predicate));
 					}
 				}
 
@@ -260,5 +262,10 @@ public class EntityNotionProperty<S extends NodeInterface, T> extends Property<T
 	@Override
 	public Object getValueForEmptyFields() {
 		return null;
+	}
+
+	@Override
+	public int getProcessingOrderPosition() {
+		return 1000;
 	}
 }

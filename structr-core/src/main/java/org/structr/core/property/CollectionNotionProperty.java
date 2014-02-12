@@ -30,12 +30,13 @@ import org.apache.lucene.search.BooleanClause;
 import static org.apache.lucene.search.BooleanClause.Occur.MUST;
 import static org.apache.lucene.search.BooleanClause.Occur.MUST_NOT;
 import static org.apache.lucene.search.BooleanClause.Occur.SHOULD;
-import org.neo4j.graphdb.Node;
+import org.neo4j.helpers.Predicate;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
 import org.structr.core.app.App;
+import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
@@ -181,7 +182,7 @@ public class CollectionNotionProperty<S extends NodeInterface, T> extends Proper
 	}
 	
 	@Override
-	public List<T> extractSearchableAttribute(SecurityContext securityContext, String requestParameter) throws FrameworkException {
+	public List<T> convertSearchValue(SecurityContext securityContext, String requestParameter) throws FrameworkException {
 
 		PropertyKey propertyKey = notion.getPrimaryPropertyKey();
 		List<T> list            = new LinkedList<>();
@@ -209,11 +210,12 @@ public class CollectionNotionProperty<S extends NodeInterface, T> extends Proper
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(SecurityContext securityContext, BooleanClause.Occur occur, List<T> searchValues, boolean exactMatch) {
+	public SearchAttribute getSearchAttribute(SecurityContext securityContext, BooleanClause.Occur occur, List<T> searchValues, boolean exactMatch, final Query query) {
 		
-		SourceSearchAttribute attr          = new SourceSearchAttribute(occur);
-		Set<GraphObject> intersectionResult = new LinkedHashSet<>();
-		boolean alreadyAdded                = false;
+		final Predicate<GraphObject> predicate    = query != null ? query.toPredicate() : null;
+		final SourceSearchAttribute attr          = new SourceSearchAttribute(occur);
+		final Set<GraphObject> intersectionResult = new LinkedHashSet<>();
+		boolean alreadyAdded                      = false;
 	
 		try {
 
@@ -249,20 +251,20 @@ public class CollectionNotionProperty<S extends NodeInterface, T> extends Proper
 									if (!alreadyAdded) {
 
 										// the first result is the basis of all subsequent intersections
-										intersectionResult.addAll(collectionProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
+										intersectionResult.addAll(collectionProperty.getRelatedNodesReverse(securityContext, node, declaringClass, predicate));
 
 										// the next additions are intersected with this one
 										alreadyAdded = true;
 
 									} else {
 
-										intersectionResult.retainAll(collectionProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
+										intersectionResult.retainAll(collectionProperty.getRelatedNodesReverse(securityContext, node, declaringClass, predicate));
 									}
 
 									break;
 
 								case SHOULD:
-									intersectionResult.addAll(collectionProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
+									intersectionResult.addAll(collectionProperty.getRelatedNodesReverse(securityContext, node, declaringClass, predicate));
 									break;
 
 								case MUST_NOT:
@@ -272,12 +274,12 @@ public class CollectionNotionProperty<S extends NodeInterface, T> extends Proper
 						
 					} else {
 
-						Result<AbstractNode> result = app.nodeQuery(collectionProperty.relatedType(), true).and(notion.getPrimaryPropertyKey(), searchValue, true).getResult();
+						Result<AbstractNode> result = app.nodeQuery(collectionProperty.relatedType(), false).and(notion.getPrimaryPropertyKey(), searchValue, false).getResult();
 
 						// loose search behaves differently, all results must be combined
 						for (AbstractNode node : result.getResults()) {
 
-							intersectionResult.addAll(collectionProperty.getRelatedNodesReverse(securityContext, node, declaringClass));
+							intersectionResult.addAll(collectionProperty.getRelatedNodesReverse(securityContext, node, declaringClass, predicate));
 						}
 
 					}
@@ -320,5 +322,10 @@ public class CollectionNotionProperty<S extends NodeInterface, T> extends Proper
 	@Override
 	public Object getValueForEmptyFields() {
 		return null;
+	}
+
+	@Override
+	public int getProcessingOrderPosition() {
+		return 1000;
 	}
 }

@@ -30,15 +30,16 @@ import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.search.BooleanClause;
-import org.apache.lucene.search.BooleanClause.Occur;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.index.Index;
+import org.neo4j.helpers.Predicate;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
 import org.structr.core.Services;
+import org.structr.core.app.Query;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
@@ -46,9 +47,6 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeService;
 import org.structr.core.graph.NodeService.NodeIndex;
 import org.structr.core.graph.NodeService.RelationshipIndex;
-import org.structr.core.graph.search.NotBlankSearchAttribute;
-import org.structr.core.graph.search.RangeSearchAttribute;
-import org.structr.core.graph.search.Search;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.PropertySearchAttribute;
 
@@ -432,43 +430,35 @@ public abstract class Property<T> implements PropertyKey<T> {
 				}
 			}
 		}
-		
 	}
 	
 	@Override
-	public SearchAttribute getSearchAttribute(SecurityContext securityContext, BooleanClause.Occur occur, T searchValue, boolean exactMatch) {
+	public SearchAttribute getSearchAttribute(SecurityContext securityContext, BooleanClause.Occur occur, T searchValue, boolean exactMatch, final Query query) {
 		return new PropertySearchAttribute(this, searchValue, occur, exactMatch);
 	}
 		
 	@Override
-	public List<SearchAttribute> extractSearchableAttribute(SecurityContext securityContext, HttpServletRequest request, boolean looseSearch) throws FrameworkException {
+	public void extractSearchableAttribute(SecurityContext securityContext, HttpServletRequest request, final Query query) throws FrameworkException {
 					
-		List<SearchAttribute> searchAttributes = new LinkedList<>();
-		String searchValue                     = request.getParameter(jsonName());
+		String searchValue = request.getParameter(jsonName());
 		if (searchValue != null) {
 
-			if (looseSearch) {
+			if (!query.isExactSearch()) {
 
 				// no quotes allowed in loose search queries!
-				//searchValue = removeQuotes(searchValue);
+				searchValue = removeQuotes(searchValue);
 
-				searchAttributes.add(Search.andProperty(securityContext, this, extractSearchableAttribute(securityContext, searchValue)));
+				query.and(this, convertSearchValue(securityContext, searchValue), false);
 
 			} else {
 
-				SearchAttribute attr = determineSearchType(securityContext, this, searchValue);
-				if (attr != null) {
-
-					searchAttributes.add(attr);
-				}
+				determineSearchType(securityContext, searchValue, query);
 			}
 		}
-		
-		return searchAttributes;
 	}
 	
 	@Override
-	public T extractSearchableAttribute(SecurityContext securityContext, String requestParameter) throws FrameworkException {
+	public T convertSearchValue(SecurityContext securityContext, String requestParameter) throws FrameworkException {
 
 		PropertyConverter inputConverter = inputConverter(securityContext);
 		Object convertedSearchValue      = requestParameter;
@@ -481,6 +471,11 @@ public abstract class Property<T> implements PropertyKey<T> {
 		return (T)convertedSearchValue;
 	}
 
+	@Override
+	public int getProcessingOrderPosition() {
+		return 0;
+	}
+	
 	public Set<NodeIndex> nodeIndices() {
 		return nodeIndices;
 	}
@@ -504,7 +499,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 		return resultStr;
 	}
 
-	protected final SearchAttribute determineSearchType(final SecurityContext securityContext, final PropertyKey key, final String requestParameter) throws FrameworkException {
+	protected void determineSearchType(final SecurityContext securityContext, final String requestParameter, final Query query) throws FrameworkException {
 
 		if (StringUtils.startsWith(requestParameter, "[") && StringUtils.endsWith(requestParameter, "]")) {
 
@@ -517,7 +512,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 					String rangeStart = matcher.group(1);
 					String rangeEnd = matcher.group(2);
 
-					PropertyConverter inputConverter = key.inputConverter(securityContext);
+					PropertyConverter inputConverter = inputConverter(securityContext);
 					Object rangeStartConverted = rangeStart;
 					Object rangeEndConverted = rangeEnd;
 
@@ -527,31 +522,32 @@ public abstract class Property<T> implements PropertyKey<T> {
 						rangeEndConverted = inputConverter.convert(rangeEndConverted);
 					}
 
-					return new RangeSearchAttribute(key, rangeStartConverted, rangeEndConverted, Occur.MUST);
+					query.andRange(this, rangeStartConverted, rangeEndConverted);
+					
+					return;
 				}
 
 				logger.log(Level.WARNING, "Unable to determine range query bounds for {0}", requestParameter);
-				
-				return null;
 				
 			} else {
 				
 				if ("[]".equals(requestParameter)) {
 					
-					if (key.isIndexedWhenEmpty()) {
+					if (isIndexedWhenEmpty()) {
 						
 						// requestParameter contains only [],
 						// which we use as a "not-blank" selector
-
-						return new NotBlankSearchAttribute(key);
+						query.notBlank(this);
+						
+						return;
 						
 					} else {
 						
-						throw new FrameworkException(400, "PropertyKey " + key.jsonName() + " must be indexedWhenEmpty() to be used in not-blank search query.");
+						throw new FrameworkException(400, "PropertyKey " + jsonName() + " must be indexedWhenEmpty() to be used in not-blank search query.");
 					}
 				}
 			}
-		}
+ 		}
 
 		if (requestParameter.contains(",") && requestParameter.contains(";")) {
 			throw new FrameworkException(422, "Mixing of AND and OR not allowed in request parameters");
@@ -559,17 +555,27 @@ public abstract class Property<T> implements PropertyKey<T> {
 
 		if (requestParameter.contains(";")) {
 
-			return Search.orExactProperty(securityContext, key, extractSearchableAttribute(securityContext, requestParameter));
+			query.or(this, convertSearchValue(securityContext, requestParameter));
 			
 		} else {
 			
-			return Search.andExactProperty(securityContext, key, extractSearchableAttribute(securityContext, requestParameter));
+			query.and(this, convertSearchValue(securityContext, requestParameter));
 		}
 	}
 	
-	protected <T extends NodeInterface> Set<T> getRelatedNodesReverse(final SecurityContext securityContext, final NodeInterface obj, final Class destinationType) {
+	protected <T extends NodeInterface> Set<T> getRelatedNodesReverse(final SecurityContext securityContext, final NodeInterface obj, final Class destinationType, final Predicate<GraphObject> predicate) {
 		// this is the default implementation
 		return Collections.emptySet();
 	}
-	
 }
+
+/*
+
+	public static <T> SearchAttribute<T> andExactProperty(final SecurityContext securityContext, final PropertyKey<T> propertyKey, final T searchValue) {
+	}
+
+	public static <T> SearchAttribute<T> orExactProperty(final SecurityContext securityContext, final PropertyKey<T> propertyKey, final T searchValue) {
+		return propertyKey.getSearchAttribute(securityContext, Occur.SHOULD, searchValue, true);
+	}
+
+ */

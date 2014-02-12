@@ -42,16 +42,13 @@ import org.structr.core.Export;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
 import org.structr.core.app.App;
+import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.OtherNodeTypeRelationFilter;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.SearchAttributeGroup;
-import org.structr.core.graph.search.SearchNodeCommand;
-import org.structr.core.graph.search.TypeSearchAttribute;
 import org.structr.core.notion.Notion;
 import org.structr.core.property.RelationProperty;
 import org.structr.rest.RestMethodResult;
@@ -94,34 +91,54 @@ public class StaticRelationshipResource extends SortableResource {
 		if (sourceEntity != null) {
 
 			// first try: look through existing relations
-			if (!typeResource.isNode && sourceEntity instanceof NodeInterface) {
+			if (propertyKey == null) {
 
-				final NodeInterface source      = (NodeInterface)sourceEntity;
-				final Node sourceNode           = source.getNode();
-				final Class relationshipType    = typeResource.entityClass;
-				final Relation relation         = AbstractNode.getRelationshipForType(relationshipType);
-				final Class destNodeType        = relation.getOtherType(typedIdResource.getEntityClass());
-				final Set partialResult         = new LinkedHashSet<>(typeResource.doGet(sortKey, sortDescending, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE, null).getResults());
+				if (sourceEntity instanceof NodeInterface) {
+					
+					if (!typeResource.isNode) {
+
+						final NodeInterface source      = (NodeInterface)sourceEntity;
+						final Node sourceNode           = source.getNode();
+						final Class relationshipType    = typeResource.entityClass;
+						final Relation relation         = AbstractNode.getRelationshipForType(relationshipType);
+						final Class destNodeType        = relation.getOtherType(typedIdResource.getEntityClass());
+						final Set partialResult         = new LinkedHashSet<>(typeResource.doGet(sortKey, sortDescending, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE, null).getResults());
+
+						// filter list according to end node type
+						final Set<GraphObject> set = Iterables.toSet(Iterables.filter(new OtherNodeTypeRelationFilter(securityContext, sourceNode, destNodeType), source.getRelationships(relationshipType)));
+
+						// intersect partial result with result list
+						set.retainAll(partialResult);
+
+						final List<GraphObject> finalResult = new LinkedList<>(set);
+
+						// sort after merge
+						applyDefaultSorting(finalResult, sortKey, sortDescending);
+
+						// return result
+						return new Result(PagingHelper.subList(finalResult, pageSize, page, offsetId), finalResult.size(), isCollectionResource(), isPrimitiveArray());
+
+					} else {
+						
+						// what here?
+					}
+				}
 				
-				// filter list according to end node type
-				final Set<GraphObject> set = Iterables.toSet(Iterables.filter(new OtherNodeTypeRelationFilter(securityContext, sourceNode, destNodeType), source.getRelationships(relationshipType)));
+			} else {
+//			
+//			// second try: property key
+//			if (propertyKey != null) {
 
-				// intersect partial result with result list
-				set.retainAll(partialResult);
+				Query query = typeResource.query;
+				if (query == null) {
+					
+					query = StructrApp.getInstance(securityContext).nodeQuery();
+				}
 				
-				final List<GraphObject> finalResult = new LinkedList<>(set);
+				// use search context from type resource
+				typeResource.collectSearchAttributes(query);
 				
-				// sort after merge
-				applyDefaultSorting(finalResult, sortKey, sortDescending);
-
-				// return result
-				return new Result(PagingHelper.subList(finalResult, pageSize, page, offsetId), finalResult.size(), isCollectionResource(), isPrimitiveArray());
-			}
-			
-			// second try: property key
-			if (propertyKey != null) {
-
-				final Predicate<GraphObject> predicate = toPredicate(typeResource.collectSearchAttributes(sortDescending));
+				final Predicate<GraphObject> predicate = query.toPredicate();
 				final Object value                     = sourceEntity.getProperty(propertyKey, predicate);
 				
 				if (value != null) {
@@ -328,7 +345,7 @@ public class StaticRelationshipResource extends SortableResource {
 		} else {
 
 			// look for methods that have an @Export annotation
-			GraphObject entity     = typedIdResource.getIdResource().getEntity(SearchNodeCommand.class);
+			GraphObject entity     = typedIdResource.getIdResource().getEntity();
 			Class entityType       = typedIdResource.getEntityClass();
 			String methodName      = typeResource.getRawType();
 			FrameworkException fex = null;
@@ -548,57 +565,5 @@ public class StaticRelationshipResource extends SortableResource {
 		}
 		
 		return convertedObject;
-	}
-	
-	private Predicate<GraphObject> toPredicate(final List<SearchAttribute> searchAttributes) {
-		return new AndPredicate(searchAttributes);
-	}
-	
-	private class AndPredicate implements Predicate<GraphObject> {
-
-		final List<Predicate<GraphObject>> predicates = new LinkedList<>();
-
-		public AndPredicate(List<SearchAttribute> searchAttributes) {
-			
-			for (final SearchAttribute attr : searchAttributes) {
-
-				if (attr instanceof SearchAttributeGroup) {
-					
-					for (final SearchAttribute groupAttr : ((SearchAttributeGroup)attr).getSearchAttributes()) {
-						// ignore type search attributes as the nodes will
-						// already have the correct type when arriving here
-						if (groupAttr instanceof TypeSearchAttribute) {
-							continue;
-						}
-				
-						predicates.add(attr);
-					}
-					
-				} else {
-
-					// ignore type search attributes as the nodes will
-					// already have the correct type when arriving here
-					if (attr instanceof TypeSearchAttribute) {
-						continue;
-					}
-								
-					predicates.add(attr);
-				}
-			}
-		}
-
-		@Override
-		public boolean accept(GraphObject obj) {
-
-			boolean result = true;
-
-			for (Predicate<GraphObject> predicate : predicates) {
-				
-				result &= predicate.accept(obj);
-			}
-
-			return result;
-		}
-		
 	}
 }

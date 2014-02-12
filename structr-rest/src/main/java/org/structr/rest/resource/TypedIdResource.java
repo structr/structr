@@ -125,7 +125,7 @@ public class TypedIdResource extends FilterableResource {
 	// ----- public methods -----
 	public GraphObject getEntity() throws FrameworkException {
 		
-		GraphObject entity = idResource.getEntity(typeResource.searchCommandType);
+		GraphObject entity = idResource.getEntity();
 		String type        = SchemaHelper.normalizeEntityName(typeResource.getRawType());
 		Class parentClass  = SchemaHelper.getEntityClassForRawType(type);
 		Class entityClass  = entity.getClass();
