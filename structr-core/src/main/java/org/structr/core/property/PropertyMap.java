@@ -18,7 +18,6 @@
  */
 package org.structr.core.property;
 
-import com.tinkerpop.gremlin.Tokens.T;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -71,7 +70,7 @@ public class PropertyMap {
 		return properties.containsKey(key);
 	}
 
-	public boolean containsValue(T value) {
+	public boolean containsValue(Object value) {
 		return properties.containsValue(value);
 	}
 
