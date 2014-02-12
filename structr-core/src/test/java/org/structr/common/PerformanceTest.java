@@ -32,6 +32,7 @@ import java.util.logging.Logger;
 import org.structr.core.entity.GenericNode;
 import org.structr.core.entity.relationship.NodeHasLocation;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.TransactionCommand;
 
 //~--- classes ----------------------------------------------------------------
 

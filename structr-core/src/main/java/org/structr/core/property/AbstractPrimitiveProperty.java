@@ -27,6 +27,7 @@ import org.neo4j.helpers.Predicate;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
@@ -67,30 +68,19 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 		Object value = null;
 		
 		final PropertyContainer propertyContainer = obj.getPropertyContainer();
-
-		boolean hasProperty = false;
-		
 		if (propertyContainer != null) {
 			
-			try {
-				// this may throw a java.lang.IllegalStateException: Relationship[<id>] has been deleted in this tx
-				hasProperty = propertyContainer.hasProperty(dbName());
-
-			} catch (NotFoundException nfex) {
+			try (final TransactionCommand cmd = StructrApp.getInstance(securityContext).beginTx()) {
 				
-				// FIXME: is logging necessary here? Node has probably been deleted
-				return null;
+				// this may throw a java.lang.IllegalStateException: Relationship[<id>] has been deleted in this tx
+				if (propertyContainer.hasProperty(dbName())) {
 
-			} catch (IllegalStateException ise) {
+					value = propertyContainer.getProperty(dbName());
+				}
 
-				logger.log(Level.WARNING, "Could not determine property " + dbName + " of the requested graph object", ise);
-
-			}
-
-			if (hasProperty) {
-
-				value = propertyContainer.getProperty(dbName());
-
+			} catch (NotFoundException | IllegalStateException | FrameworkException ex) {
+				
+				logger.log(Level.WARNING, "Could not determine property " + dbName + " of the requested graph object", ex);
 			}
 		}
 

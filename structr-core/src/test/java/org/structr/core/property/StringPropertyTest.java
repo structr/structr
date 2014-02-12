@@ -27,6 +27,7 @@ import org.structr.core.Result;
 import org.structr.core.entity.TestFour;
 import org.structr.core.entity.TestOne;
 import org.structr.core.entity.OneFourOneToOne;
+import org.structr.core.graph.TransactionCommand;
 
 /**
  *
@@ -37,6 +38,7 @@ public class StringPropertyTest extends StructrTest {
 	public void test() {
 		
 		try {
+
 			final Property<String> instance = TestFour.stringProperty;
 			final TestFour testEntity        = createTestNode(TestFour.class);
 			
@@ -45,18 +47,17 @@ public class StringPropertyTest extends StructrTest {
 			// store string in the test entitiy
 			final String value = "This is a test!";
 
-			try {
-				app.beginTx();
+			try (final TransactionCommand cmd = app.beginTx()) {
+
 				instance.setProperty(securityContext, testEntity, value);
 				app.commitTx();
-
-			} finally {
-
-				app.finishTx();
 			}
 
-			// check value from database
-			assertEquals(value, instance.getProperty(securityContext, testEntity, true));
+			try (final TransactionCommand cmd = app.beginTx()) {
+				
+				// check value from database
+				assertEquals(value, instance.getProperty(securityContext, testEntity, true));
+			}
 			
 		} catch (FrameworkException fex) {
 			
@@ -67,6 +68,7 @@ public class StringPropertyTest extends StructrTest {
 	public void testSimpleSearchOnNode() {
 		
 		try {
+
 			final PropertyMap properties  = new PropertyMap();
 			final PropertyKey<String> key = TestFour.stringProperty;
 			
@@ -79,10 +81,13 @@ public class StringPropertyTest extends StructrTest {
 			// check value from database
 			assertEquals("test", testEntity.getProperty(key));
 			
-			Result<TestFour> result = app.nodeQuery(TestFour.class).and(key, "test").getResult();
-			
-			assertEquals(result.size(), 1);
-			assertEquals(result.get(0), testEntity);
+			try (final TransactionCommand cmd = app.beginTx()) {
+				
+				Result<TestFour> result = app.nodeQuery(TestFour.class).and(key, "test").getResult();
+
+				assertEquals(result.size(), 1);
+				assertEquals(result.get(0), testEntity);
+			}
 		
 		} catch (FrameworkException fex) {
 			
@@ -94,6 +99,7 @@ public class StringPropertyTest extends StructrTest {
 	public void testSimpleSearchOnRelationship() {
 		
 		try {
+
 			final TestOne testOne        = createTestNode(TestOne.class);
 			final TestFour testFour      = createTestNode(TestFour.class);
 			final Property<String> key   = OneFourOneToOne.stringProperty;
@@ -105,23 +111,22 @@ public class StringPropertyTest extends StructrTest {
 			
 			assertNotNull(testEntity);
 
-			try {
-				app.beginTx();
+			try (final TransactionCommand cmd = app.beginTx()) {
+				
 				testEntity.setProperty(key, "test");
 				app.commitTx();
-
-			} finally {
-
-				app.finishTx();
 			}
 
-			// check value from database
-			assertEquals("test", testEntity.getProperty(key));
-			
-			Result<OneFourOneToOne> result = app.relationshipQuery(OneFourOneToOne.class).and(key, "test").getResult();
-			
-			assertEquals(result.size(), 1);
-			assertEquals(result.get(0), testEntity);
+			try (final TransactionCommand cmd = app.beginTx()) {
+				
+				// check value from database
+				assertEquals("test", testEntity.getProperty(key));
+
+				Result<OneFourOneToOne> result = app.relationshipQuery(OneFourOneToOne.class).and(key, "test").getResult();
+
+				assertEquals(result.size(), 1);
+				assertEquals(result.get(0), testEntity);
+			}
 		
 		} catch (FrameworkException fex) {
 			

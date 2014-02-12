@@ -22,6 +22,7 @@ import org.apache.commons.lang.ArrayUtils;
 import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.TestFour;
+import org.structr.core.graph.TransactionCommand;
 
 /**
  *
@@ -31,8 +32,8 @@ public class ArrayPropertyTest extends StructrTest {
 	
 	public void testStringArrayProperty() {
 		
-		
 		try {
+
 			final Property<String[]> instance = TestFour.stringArrayProperty;
 			final TestFour testEntity         = createTestNode(TestFour.class);
 			
@@ -41,19 +42,18 @@ public class ArrayPropertyTest extends StructrTest {
 			// store a string array in the test entitiy
 			final String[] arr = new String[] { "one", "two", "three", "four", "five" };
 
-			try {
-				app.beginTx();
+			try (final TransactionCommand cmd = app.beginTx()) {
+
 				instance.setProperty(securityContext, testEntity, arr);
 				app.commitTx();
-
-			} finally {
-
-				app.finishTx();
 			}
 			
-			String[] newArr = instance.getProperty(securityContext, testEntity, true);
+			try (final TransactionCommand cmd = app.beginTx()) {
 
-			assertTrue(ArrayUtils.isEquals(arr, newArr));
+				String[] newArr = instance.getProperty(securityContext, testEntity, true);
+
+				assertTrue(ArrayUtils.isEquals(arr, newArr));
+			}
 			
 		} catch (FrameworkException fex) {
 			

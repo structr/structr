@@ -71,6 +71,11 @@ public class TransactionReference implements Transaction {
 
 	@Override
 	public void finish() {
+		close();
+	}
+
+	@Override
+	public void close() {
 		
 		// only finish transaction if we are at root level
 		if (--referenceCount == 0) {
@@ -80,7 +85,7 @@ public class TransactionReference implements Transaction {
 				tx.failure();
 			}
 			
-			tx.finish();
+			tx.close();
 		}
 	}
 

@@ -55,13 +55,13 @@ import org.w3c.dom.Text;
 
 import org.structr.common.error.ErrorBuffer;
 import org.structr.core.Predicate;
-import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import static org.structr.core.entity.AbstractNode.owner;
 import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.RelationProperty;
 import org.structr.core.property.StartNodes;
@@ -136,15 +136,10 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		
 		Page newPage = null;
 
-		try {
+		try (final TransactionCommand cmd = app.beginTx()) {
 			
-			app.beginTx();
 			newPage = app.create(Page.class, properties);
 			app.commitTx();
-			
-		} finally {
-			
-			app.finishTx();
 		}
 		
 		return newPage;
@@ -191,9 +186,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 		final App app  = StructrApp.getInstance(securityContext);
 		
-		try {
-
-			app.beginTx();
+		try (final TransactionCommand cmd = app.beginTx()) {
 			
 			final Integer _version = getProperty(Page.version);
 			if (_version == null) {
@@ -206,10 +199,6 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 			}
 
 			app.commitTx();
-			
-		} finally {
-			
-			app.finishTx();
 		}
 	}
 
@@ -232,9 +221,8 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		
 		final Page _page = this;
 		
-		try {
-			app.beginTx();
-
+		try (final TransactionCommand cmd = app.beginTx()) {
+			
 			// create new content element
 			DOMElement element = (DOMElement)StructrApp.getInstance(securityContext).command(CreateNodeCommand.class).execute(
 				new NodeAttribute(AbstractNode.type, elementType),
@@ -251,10 +239,6 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 			
 			// FIXME: what to do with the exception here?
 			fex.printStackTrace();
-			
-		} finally {
-			
-			app.finishTx();
 		}
 		
 		return null;
@@ -265,9 +249,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		
 		final App app  = StructrApp.getInstance(securityContext);
 
-		try {
-
-			app.beginTx();
+		try (final TransactionCommand cmd = app.beginTx()) {
 			
 			// create new content element
 			org.structr.web.entity.dom.DocumentFragment fragment = (org.structr.web.entity.dom.DocumentFragment)StructrApp.getInstance(securityContext).command(CreateNodeCommand.class).execute(
@@ -287,10 +269,6 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 			
 			// FIXME: what to do with the exception here?
 			fex.printStackTrace();
-			
-		} finally {
-			
-			app.finishTx();
 		}
 		
 		return null;
@@ -302,10 +280,8 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		
 		final App app  = StructrApp.getInstance(securityContext);
 
-		try {
-			app.beginTx();
+		try (final TransactionCommand cmd = app.beginTx()) {
 			
-
 			// create new content element
 			Content content = (Content)StructrApp.getInstance(securityContext).command(CreateNodeCommand.class).execute(
 				new NodeAttribute(AbstractNode.type, Content.class.getSimpleName()),
@@ -324,10 +300,6 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 			
 			// FIXME: what to do with the exception here?
 			fex.printStackTrace();
-			
-		} finally {
-			
-			app.finishTx();
 		}
 		
 		return null;
@@ -338,10 +310,8 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		
 		final App app  = StructrApp.getInstance(securityContext);
 
-		try {
-			app.beginTx();
-
-
+		try (final TransactionCommand cmd = app.beginTx()) {
+			
 			// create new content element
 			org.structr.web.entity.dom.Comment content = (org.structr.web.entity.dom.Comment)StructrApp.getInstance(securityContext).command(CreateNodeCommand.class).execute(
 				new NodeAttribute(AbstractNode.type, org.structr.web.entity.dom.Comment.class.getSimpleName())
@@ -359,10 +329,6 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 			
 			// FIXME: what to do with the exception here?
 			fex.printStackTrace();
-			
-		} finally {
-			
-			app.finishTx();
 		}
 		
 		return null;
@@ -373,8 +339,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		
 		final App app  = StructrApp.getInstance(securityContext);
 
-		try {
-			app.beginTx();
+		try (final TransactionCommand cmd = app.beginTx()) {
 			
 			// create new content element
 			Cdata content = (Cdata)StructrApp.getInstance(securityContext).command(CreateNodeCommand.class).execute(
@@ -393,10 +358,6 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 			
 			// FIXME: what to do with the exception here?
 			fex.printStackTrace();
-			
-		} finally {
-			
-			app.finishTx();
 		}
 		
 		return null;
@@ -443,11 +404,8 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 			final DOMNode domNode = (DOMNode)node;
 			final App app  = StructrApp.getInstance(securityContext);
 
-			try {
-
-				app.beginTx();
-
-
+			try (final TransactionCommand cmd = app.beginTx()) {
+			
 				// step 1: use type-specific import impl.
 				Node importedNode = domNode.doImport(Page.this);
 
@@ -491,10 +449,6 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 			} catch (FrameworkException fex) {
 
 				throw new DOMException(DOMException.INVALID_STATE_ERR, fex.getMessage());
-			
-			} finally {
-
-				app.finishTx();
 			}
 		}
 		
@@ -513,11 +467,8 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 			final DOMNode domNode = (DOMNode)node;
 			final App app  = StructrApp.getInstance(securityContext);
 
-			try {
-
-				app.beginTx();
-
-
+			try (final TransactionCommand cmd = app.beginTx()) {
+			
 				// step 1: use type-specific adopt impl.
 				Node adoptedNode = domNode.doAdopt(Page.this);
 
@@ -559,10 +510,6 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 			} catch (FrameworkException fex) {
 
 				throw new DOMException(DOMException.INVALID_STATE_ERR, fex.getMessage());
-			
-			} finally {
-
-				app.finishTx();
 			}
 		}
 		

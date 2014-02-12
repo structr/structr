@@ -53,6 +53,7 @@ import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.TransactionCommand;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -79,29 +80,32 @@ public class PagingTest extends StructrTest {
 
       public void test01FirstPage() {
 
-              try {
+		try {
 
-                      Class type                             = TestOne.class;
-                      int number                             = 43;
+			Class type                             = TestOne.class;
+			int number                             = 43;
 
-		      // create nodes
-		      this.createTestNodes(type, number);
-		      
-                      Result result = app.nodeQuery(type).getResult();
+			// create nodes
+			this.createTestNodes(type, number);
 
-                      assertTrue(result.size() == number);
+			try (final TransactionCommand cmd = app.beginTx()) {
 
-                      PropertyKey sortKey = AbstractNode.name;
-                      boolean sortDesc    = false;
-                      int pageSize        = 10;
-                      int page            = 1;
+				Result result = app.nodeQuery(type).getResult();
 
-                      result = app.nodeQuery(type).includeDeletedAndHidden().sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getResult();
+				assertTrue(result.size() == number);
 
-                      logger.log(Level.INFO, "Raw result size: {0}, expected: {1}", new Object[] { result.getRawResultCount(), number });
-                      assertTrue(result.getRawResultCount() == number);
-                      logger.log(Level.INFO, "Result size: {0}, expected: {1}", new Object[] { result.size(), pageSize });
-                      assertTrue(result.size() == pageSize);
+				PropertyKey sortKey = AbstractNode.name;
+				boolean sortDesc    = false;
+				int pageSize        = 10;
+				int page            = 1;
+
+				result = app.nodeQuery(type).includeDeletedAndHidden().sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getResult();
+
+				logger.log(Level.INFO, "Raw result size: {0}, expected: {1}", new Object[] { result.getRawResultCount(), number });
+				assertTrue(result.getRawResultCount() == number);
+				logger.log(Level.INFO, "Result size: {0}, expected: {1}", new Object[] { result.size(), pageSize });
+				assertTrue(result.size() == pageSize);
+			}
 
               } catch (FrameworkException ex) {
 
@@ -130,8 +134,8 @@ public class PagingTest extends StructrTest {
 
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
 
-			try {
-				app.beginTx();
+			try (final TransactionCommand cmd = app.beginTx()) {
+				
 
 				int i                           = offset;
 				for (NodeInterface node : nodes) {
@@ -144,28 +148,27 @@ public class PagingTest extends StructrTest {
 					node.setProperty(AbstractNode.name, _name);
 				}
 				app.commitTx();
-
-			} finally {
-
-				app.finishTx();
 			}
 
-			Result result = app.nodeQuery(type).getResult();
-
-			assertEquals(number, result.size());
-
-			PropertyKey sortKey = AbstractNode.name;
-			boolean sortDesc    = false;
-			
-			
-			// test pages sizes from 0 to 10
-			for (int ps=0; ps<10; ps++) {
+			try (final TransactionCommand cmd = app.beginTx()) {
 				
-				// test all pages
-				for (int p=0; p<(number/Math.max(1,ps))+1; p++) {
-			
-					testPaging(type, ps, p, number, offset, includeDeletedAndHidden, publicOnly, sortKey, sortDesc);
-				
+				Result result = app.nodeQuery(type).getResult();
+
+				assertEquals(number, result.size());
+
+				PropertyKey sortKey = AbstractNode.name;
+				boolean sortDesc    = false;
+
+
+				// test pages sizes from 0 to 10
+				for (int ps=0; ps<10; ps++) {
+
+					// test all pages
+					for (int p=0; p<(number/Math.max(1,ps))+1; p++) {
+
+						testPaging(type, ps, p, number, offset, includeDeletedAndHidden, publicOnly, sortKey, sortDesc);
+
+					}
 				}
 			}
 
@@ -184,11 +187,6 @@ public class PagingTest extends StructrTest {
 
 		Result result = app.nodeQuery(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getResult();
 
-//              for (GraphObject obj : result.getResults()) {
-//                      
-//                      System.out.println(obj.getProperty(AbstractNode.name));
-//                      
-//              }
 		logger.log(Level.INFO, "Raw result size: {0}, expected: {1} (page size: {2}, page: {3})", new Object[] { result.getRawResultCount(), number, pageSize, page });
 		assertTrue(result.getRawResultCount() == ((pageSize == 0 || page == 0) ? 0 : number));
 
@@ -200,7 +198,7 @@ public class PagingTest extends StructrTest {
 
 		logger.log(Level.INFO, "Result size: {0}, expected: {1}, start index: {2}", new Object[] { result.size(), expectedResultCount, startIndex });
 		assertTrue(result.size() == expectedResultCount);
-		
+
 
 		for (int j = 0; j < expectedResultCount; j++) {
 
@@ -211,8 +209,5 @@ public class PagingTest extends StructrTest {
 			assertEquals(expectedName, gotName);
 
 		}
-		
 	}
-
-
 }

@@ -23,9 +23,11 @@ import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.relationship.NodeHasLocation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.DoubleProperty;
 
 //~--- classes ----------------------------------------------------------------
@@ -81,7 +83,8 @@ public class Location extends AbstractNode {
 	
 	private boolean notifyLocatables() {
 		
-		try {
+		try (final TransactionCommand cmd = StructrApp.getInstance().beginTx()) {
+			
 			// FIXME: LocationRelationship has a direction. but it is ignored here
 
 			boolean allLocatablesAreValid = false;

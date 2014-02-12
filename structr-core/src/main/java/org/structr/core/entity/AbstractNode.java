@@ -59,6 +59,7 @@ import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeService;
 import org.structr.core.graph.RelationshipFactory;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.EntityIdProperty;
 import org.structr.core.property.StartNode;
 
@@ -206,7 +207,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			return "AbstractNode with null database node";
 		}
 
-		try {
+		try (final TransactionCommand cmd = StructrApp.getInstance(securityContext).beginTx()) {
 
 			String name = dbNode.hasProperty(AbstractNode.name.dbName())
 				      ? (String) dbNode.getProperty(AbstractNode.name.dbName())
@@ -218,6 +219,8 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 				      ? (String) dbNode.getProperty(GraphObject.id.dbName())
 				      : Long.toString(dbNode.getId());
 
+			cmd.commitTx();
+			
 			return name + " (" + type + "," + id + ")";
 
 		} catch (Throwable ignore) {

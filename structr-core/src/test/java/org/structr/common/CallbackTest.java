@@ -27,6 +27,7 @@ import org.structr.core.entity.TestEight;
 import org.structr.core.entity.TestFive;
 import org.structr.core.entity.User;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.TransactionCommand;
 
 /**
  *
@@ -37,7 +38,11 @@ public class CallbackTest extends StructrTest {
 	public void testCallbacksWithSuperUserContext() {
 		
 		final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
-		testCallbacks(securityContext);
+		try {
+			testCallbacks(securityContext);
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception");
+		}
 	}
 	
 	public void testCallbacksWithNormalContext() {
@@ -63,14 +68,10 @@ public class CallbackTest extends StructrTest {
 			
 			TestEight test = null;
 			
-			try {
-				app.beginTx();
+			try (final TransactionCommand cmd = app.beginTx()) {
+
 				test = app.create(TestEight.class, new NodeAttribute(TestEight.testProperty, 123));
 				app.commitTx();
-
-			} finally {
-
-				app.finishTx();
 			}
 			
 			// only the creation methods should have been called now!
@@ -89,14 +90,9 @@ public class CallbackTest extends StructrTest {
 			// reset timestamps
 			test.resetTimestamps();
 			
-			try {
-				app.beginTx();
+			try (final TransactionCommand cmd = app.beginTx()) {
 				test.setProperty(TestEight.testProperty, 234);
 				app.commitTx();
-			
-			} finally {
-
-				app.finishTx();
 			}
 
 			// only the modification methods should have been called now!
@@ -114,14 +110,9 @@ public class CallbackTest extends StructrTest {
 			// reset timestamps
 			test.resetTimestamps();
 			
-			try {
-				app.beginTx();
+			try (final TransactionCommand cmd = app.beginTx()) {
 				test.setProperty(TestEight.testProperty, 234);
 				app.commitTx();
-			
-			} finally {
-
-				app.finishTx();
 			}
 
 			// only the creation methods should have been called now!
@@ -140,14 +131,9 @@ public class CallbackTest extends StructrTest {
 			// reset timestamps
 			test.resetTimestamps();
 			
-			try {
-				app.beginTx();
+			try (final TransactionCommand cmd = app.beginTx()) {
 				app.delete(test);
 				app.commitTx();
-			
-			} finally {
-
-				app.finishTx();
 			}
 
 			// only the creation methods should have been called now!
@@ -167,64 +153,57 @@ public class CallbackTest extends StructrTest {
 		}
 	}
 	
-	private void testCallbacks(final SecurityContext securityContext) {
+	private void testCallbacks(final SecurityContext securityContext) throws FrameworkException {
 		
 		TestFive entity = null;
 		Integer zero = 0;
 		Integer one  = 1;
 		
-		try {
+		try (final TransactionCommand cmd = app.beginTx()) {
 
-			app.beginTx();
 			entity = app.create(TestFive.class);
 			app.commitTx();
-			
 			
 		} catch (Throwable t) {
 			
 			t.printStackTrace();
-
-		} finally {
-
-			app.finishTx();
 		}
 
 		assertNotNull("Entity should have been created", entity);
 		
 		// creation assertions
-		assertEquals("modifiedInBeforeCreation should have a value of 1: ", one, entity.getProperty(TestFive.modifiedInBeforeCreation));
-		assertEquals("modifiedInAfterCreation should have a value of 1:  ", one, entity.getProperty(TestFive.modifiedInAfterCreation));
+		try (final TransactionCommand cmd = app.beginTx()) {
+			
+			assertEquals("modifiedInBeforeCreation should have a value of 1: ", one, entity.getProperty(TestFive.modifiedInBeforeCreation));
+			assertEquals("modifiedInAfterCreation should have a value of 1:  ", one, entity.getProperty(TestFive.modifiedInAfterCreation));
 
-		// modification assertions
-		assertEquals("modifiedInBeforeModification should have a value of 0: ", zero, entity.getProperty(TestFive.modifiedInBeforeModification));
-		assertEquals("modifiedInAfterModification should have a value of 0:  ", zero, entity.getProperty(TestFive.modifiedInAfterModification));
-		
+			// modification assertions
+			assertEquals("modifiedInBeforeModification should have a value of 0: ", zero, entity.getProperty(TestFive.modifiedInBeforeModification));
+			assertEquals("modifiedInAfterModification should have a value of 0:  ", zero, entity.getProperty(TestFive.modifiedInAfterModification));
+		}
 		
 		
 		// 2nd part of the test: modify node
-		try {
+		try (final TransactionCommand cmd = app.beginTx()) {
+
 			final TestFive finalEntity = entity;
-			
-			app.beginTx();
+
 			finalEntity.setProperty(TestFive.intProperty, 123);
 			app.commitTx();
 			
 		} catch (Throwable t) {
 			t.printStackTrace();
-
-		} finally {
-
-			app.finishTx();
 		}
 		
-		
-		// creation assertions
-		assertEquals("modifiedInBeforeCreation should have a value of 1: ", one, entity.getProperty(TestFive.modifiedInBeforeCreation));
-		assertEquals("modifiedInAfterCreation should have a value of 1:  ", one, entity.getProperty(TestFive.modifiedInAfterCreation));
+		try (final TransactionCommand cmd = app.beginTx()) {
 
-		// modification assertions
-		assertEquals("modifiedInBeforeModification should have a value of 1: ", one, entity.getProperty(TestFive.modifiedInBeforeModification));
-		assertEquals("modifiedInAfterModification should have a value of 1:  ", one, entity.getProperty(TestFive.modifiedInAfterModification));
-		
+			// creation assertions
+			assertEquals("modifiedInBeforeCreation should have a value of 1: ", one, entity.getProperty(TestFive.modifiedInBeforeCreation));
+			assertEquals("modifiedInAfterCreation should have a value of 1:  ", one, entity.getProperty(TestFive.modifiedInAfterCreation));
+
+			// modification assertions
+			assertEquals("modifiedInBeforeModification should have a value of 1: ", one, entity.getProperty(TestFive.modifiedInBeforeModification));
+			assertEquals("modifiedInAfterModification should have a value of 1:  ", one, entity.getProperty(TestFive.modifiedInAfterModification));
+		}
 	}
 }

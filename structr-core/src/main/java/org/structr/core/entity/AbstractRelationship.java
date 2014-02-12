@@ -52,6 +52,7 @@ import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeService;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
@@ -391,11 +392,12 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	public T getTargetNode() {
 
 		try {
+
 			NodeFactory<T> nodeFactory = new NodeFactory<>(SecurityContext.getSuperUserInstance());
 			return nodeFactory.instantiate(dbRelationship.getEndNode());
 			
-		} catch (Throwable t) {
-			// ignore
+		} catch (FrameworkException t) {
+			// ignore FrameworkException but let NotInTransactionException pass
 		}
 		
 		return null;
@@ -409,8 +411,8 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 			NodeFactory<S> nodeFactory = new NodeFactory<>(SecurityContext.getSuperUserInstance());
 			return nodeFactory.instantiate(dbRelationship.getStartNode());
 			
-		} catch (Throwable t) {
-			// ignore
+		} catch (FrameworkException t) {
+			// ignore FrameworkException but let NotInTransactionException pass
 		}
 		
 		return null;
@@ -424,8 +426,8 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 			NodeFactory nodeFactory = new NodeFactory(SecurityContext.getSuperUserInstance());
 			return (NodeInterface) nodeFactory.instantiate(dbRelationship.getOtherNode(node.getNode()));
 			
-		} catch (Throwable t) {
-			// ignore
+		} catch (FrameworkException t) {
+			// ignore FrameworkException but let NotInTransactionException pass
 		}
 		
 		return null;
@@ -435,7 +437,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	public RelationshipType getRelType() {
 
 		if (dbRelationship != null) {
-			
+
 			return dbRelationship.getType();
 		}
 

@@ -25,6 +25,7 @@ import static junit.framework.TestCase.assertTrue;
 import static junit.framework.TestCase.fail;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.StructrUiTest;
 import org.w3c.dom.DOMException;
@@ -61,7 +62,8 @@ public class PageTest extends StructrUiTest {
 			DOMNode div3   = (DOMNode)page.createElement("div");
 			DOMNode p3     = (DOMNode)page.createElement("p");
 
-			try {
+			try (final TransactionCommand cmd = app.beginTx()) {
+			
 				// add HTML element to page
 				page.appendChild(html);
 
@@ -123,7 +125,8 @@ public class PageTest extends StructrUiTest {
 			Node div   = srcPage.createElement("div");
 			Node p     = srcPage.createElement("p");
 
-			try {
+			try (final TransactionCommand cmd = app.beginTx()) {
+			
 				// add HTML element to page
 				srcPage.appendChild(html);
 
@@ -205,7 +208,8 @@ public class PageTest extends StructrUiTest {
 			Node div   = srcPage.createElement("div");
 			Node p     = srcPage.createElement("p");
 
-			try {
+			try (final TransactionCommand cmd = app.beginTx()) {
+			
 				// add HTML element to page
 				srcPage.appendChild(html);
 
@@ -294,7 +298,8 @@ public class PageTest extends StructrUiTest {
 			Node div   = page.createElement("div");
 			Node p     = page.createElement("p");
 
-			try {
+			try (final TransactionCommand cmd = app.beginTx()) {
+			
 				// add HTML element to page
 				page.appendChild(html);
 

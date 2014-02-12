@@ -29,6 +29,7 @@ import org.apache.ftpserver.ftplet.FtpFile;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
@@ -72,7 +73,12 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 
 	@Override
 	public long getLastModified() {
-		return structrFile.getProperty(Folder.lastModifiedDate).getTime();
+
+		try (final TransactionCommand cmd = StructrApp.getInstance().beginTx()) {
+			return structrFile.getProperty(Folder.lastModifiedDate).getTime();
+		} catch (FrameworkException fex) { }
+		
+		return 0L;
 	}
 
 	@Override
@@ -90,7 +96,8 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 		
 		if ("/".equals(requestedPath)) {
 			
-			try {
+			try (final TransactionCommand cmd = StructrApp.getInstance().beginTx()) {
+				
 				Result<Folder> results = StructrApp.getInstance().nodeQuery(Folder.class).getResult();
 				logger.log(Level.INFO, "{0} folders found", results.size());
 
@@ -111,7 +118,8 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 				logger.log(Level.SEVERE, null, ex);
 			}
 			
-			try {
+			try (final TransactionCommand cmd = StructrApp.getInstance().beginTx()) {
+				
 				Result<File> results = StructrApp.getInstance().nodeQuery(File.class).getResult();
 				logger.log(Level.INFO, "{0} files found", results.size());
 
@@ -138,25 +146,31 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 			
 		}
 		
-		List<Folder> folders = ((Folder) structrFile).getProperty(Folder.folders);
-		
-		for (Folder f : folders) {
+		try (final TransactionCommand cmd = StructrApp.getInstance().beginTx()) {
 			
-			FtpFile ftpFile = new StructrFtpFolder(f);
-			logger.log(Level.INFO, "Subfolder found: {0}", ftpFile.getAbsolutePath());
-			
-			ftpFiles.add(ftpFile);
+			List<Folder> folders = ((Folder) structrFile).getProperty(Folder.folders);
+
+			for (Folder f : folders) {
+
+				FtpFile ftpFile = new StructrFtpFolder(f);
+				logger.log(Level.INFO, "Subfolder found: {0}", ftpFile.getAbsolutePath());
+
+				ftpFiles.add(ftpFile);
+			}
+
+			List<File> files = ((Folder) structrFile).getProperty(Folder.files);
+
+			for (File f : files) {
+
+				FtpFile ftpFile = new StructrFtpFile(f);
+				logger.log(Level.INFO, "File found: {0}", ftpFile.getAbsolutePath());
+
+				ftpFiles.add(ftpFile);
+			}
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
 		}
 		
-		List<File> files = ((Folder) structrFile).getProperty(Folder.files);
-		
-		for (File f : files) {
-			
-			FtpFile ftpFile = new StructrFtpFile(f);
-			logger.log(Level.INFO, "File found: {0}", ftpFile.getAbsolutePath());
-			
-			ftpFiles.add(ftpFile);
-		}
 		return ftpFiles;
 	}
 

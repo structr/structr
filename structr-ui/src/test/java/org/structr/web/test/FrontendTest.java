@@ -27,6 +27,7 @@ import java.util.logging.Logger;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.entity.User;
@@ -47,13 +48,10 @@ public class FrontendTest extends StructrUiTest {
 
 	protected int run(final String testName) {
 
-		try {
+		try (final TransactionCommand cmd = app.beginTx()) {
 			
-
 			createAdminUser();
 			createResourceAccess("_login", UiAuthenticator.NON_AUTH_USER_POST);
-
-			app.beginTx();
 			
 			// Workaround to remove local storage, as phantomjs is pretty buggy here.
 			// Currently, phantomjs doesn't allow localStorage to be modified remotely,
@@ -79,10 +77,6 @@ public class FrontendTest extends StructrUiTest {
 			
 		} catch (Exception ex) {
 			logger.log(Level.SEVERE, null, ex);
-			
-		} finally {
-			
-			app.finishTx();
 		}
 		
 		return 1;
@@ -100,8 +94,8 @@ public class FrontendTest extends StructrUiTest {
 		properties.put(User.name, "admin");
 		properties.put(User.password, "admin");
 
-		try {
-			app.beginTx();
+		try (final TransactionCommand cmd = app.beginTx()) {
+			
 			User user = app.create(User.class, properties);
 			user.setProperty(User.password, "admin");
 			app.commitTx();
@@ -109,10 +103,6 @@ public class FrontendTest extends StructrUiTest {
 		} catch (Throwable t) {
 
 			t.printStackTrace();
-			
-		} finally {
-			
-			app.finishTx();
 		}
 		
 	}

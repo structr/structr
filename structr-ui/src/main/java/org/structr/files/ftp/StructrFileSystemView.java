@@ -25,8 +25,11 @@ import org.apache.ftpserver.ftplet.FileSystemView;
 import org.apache.ftpserver.ftplet.FtpException;
 import org.apache.ftpserver.ftplet.FtpFile;
 import org.apache.ftpserver.ftplet.User;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.app.StructrApp;
 import org.structr.core.auth.AuthHelper;
 import org.structr.core.entity.AbstractUser;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
@@ -50,8 +53,15 @@ public class StructrFileSystemView implements FileSystemView {
 
 	@Override
 	public FtpFile getHomeDirectory() throws FtpException {
-		org.structr.web.entity.User structrUser = (org.structr.web.entity.User) AuthHelper.getPrincipalForCredential(AbstractUser.name, user.getName());
-		return new StructrFtpFolder(structrUser.getProperty(org.structr.web.entity.User.homeDirectory));
+
+		try (final TransactionCommand cmd = StructrApp.getInstance().beginTx()) {
+			
+			org.structr.web.entity.User structrUser = (org.structr.web.entity.User) AuthHelper.getPrincipalForCredential(AbstractUser.name, user.getName());
+			return new StructrFtpFolder(structrUser.getProperty(org.structr.web.entity.User.homeDirectory));
+			
+		} catch (FrameworkException fex) { }
+		
+		return null;
 	}
 
 	@Override

@@ -52,7 +52,7 @@ import org.structr.core.property.PropertyKey;
  * 
  * @author Christian Morgner
  */
-public class TransactionCommand extends NodeServiceCommand {
+public class TransactionCommand extends NodeServiceCommand implements AutoCloseable {
 
 	private static final Logger logger                                  = Logger.getLogger(TransactionCommand.class.getName());
 	private static final Set<StructrTransactionListener> listeners      = new LinkedHashSet<>();
@@ -62,7 +62,7 @@ public class TransactionCommand extends NodeServiceCommand {
 	private static final ThreadLocal<TransactionReference> transactions = new ThreadLocal<>();
 	private static final MultiSemaphore                    semaphore    = new MultiSemaphore();
 
-	public void beginTx() {
+	public TransactionCommand beginTx() {
 		
 		final GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
 		TransactionReference tx            = transactions.get();
@@ -80,6 +80,8 @@ public class TransactionCommand extends NodeServiceCommand {
 		
 		// increase depth
 		tx.begin();
+		
+		return this;
 	}
 	
 	public void commitTx() throws FrameworkException {
@@ -166,7 +168,7 @@ public class TransactionCommand extends NodeServiceCommand {
 				transactions.remove();
 
 				try {
-					tx.finish();
+					tx.close();
 					
 				} catch (Throwable t) {
 					t.printStackTrace();
@@ -192,6 +194,11 @@ public class TransactionCommand extends NodeServiceCommand {
 				tx.end();
 			}
 		}
+	}
+	
+	@Override
+	public void close() throws FrameworkException {
+		finishTx();
 	}
 	
 	public static void postProcess(final String key, final TransactionPostProcess process) {

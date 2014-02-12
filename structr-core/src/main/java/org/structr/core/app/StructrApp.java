@@ -19,7 +19,6 @@
 package org.structr.core.app;
 
 import java.util.Arrays;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -179,8 +178,12 @@ public class StructrApp implements App {
 	}
 	
 	@Override
-	public void beginTx() {
-		command(TransactionCommand.class).beginTx();
+	public TransactionCommand beginTx() {
+		
+		final TransactionCommand cmd = command(TransactionCommand.class);
+		cmd.beginTx();
+		
+		return cmd;
 	}
 	
 	@Override

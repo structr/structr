@@ -54,6 +54,7 @@ import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.TransactionCommand;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -91,13 +92,11 @@ public class AdvancedPagingTest extends PagingTest {
 			final List<NodeInterface> nodes = this.createTestNodes(type, number);
 			final int offset                = 10;
 			
-			
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
 			
-			try {
-				app.beginTx();
+			try (final TransactionCommand cmd = app.beginTx()) {
 
-				int i                           = offset;
+				int i = offset;
 				for (NodeInterface node : nodes) {
 
 					// System.out.println("Node ID: " + node.getNodeId());
@@ -108,29 +107,27 @@ public class AdvancedPagingTest extends PagingTest {
 					node.setProperty(AbstractNode.name, _name);
 				}
 				app.commitTx();
-
-			} finally {
-
-				app.finishTx();
 			}
 
-			List<NodeInterface> result = app.get(type);
+			try (final TransactionCommand cmd = app.beginTx()) {
+				List<NodeInterface> result = app.get(type);
 
-			assertTrue(result.size() == number);
+				assertTrue(result.size() == number);
 
-			PropertyKey sortKey = AbstractNode.name;
-			boolean sortDesc    = false;
-			int pageSize        = 2;
-			int page            = 1;
+				PropertyKey sortKey = AbstractNode.name;
+				boolean sortDesc    = false;
+				int pageSize        = 2;
+				int page            = 1;
 
-			testPaging(type, pageSize, page, number, offset, includeDeletedAndHidden, publicOnly, sortKey, sortDesc);
+				testPaging(type, pageSize, page, number, offset, includeDeletedAndHidden, publicOnly, sortKey, sortDesc);
 
-			PropertyMap props = new PropertyMap();
+				PropertyMap props = new PropertyMap();
 
-			props.put(sortKey, "TestOne-09");
-			this.createTestNode(type, props);
-			testPaging(type, pageSize, page + 1, number + 1, offset - 1, includeDeletedAndHidden, publicOnly, sortKey, sortDesc);
-			System.out.println("paging test finished");
+				props.put(sortKey, "TestOne-09");
+				this.createTestNode(type, props);
+				testPaging(type, pageSize, page + 1, number + 1, offset - 1, includeDeletedAndHidden, publicOnly, sortKey, sortDesc);
+				System.out.println("paging test finished");
+			}
 
 		} catch (FrameworkException ex) {
 
@@ -152,9 +149,9 @@ public class AdvancedPagingTest extends PagingTest {
 
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
 
-			try {
-				app.beginTx();
-				int i                           = offset;
+			try (final TransactionCommand cmd = app.beginTx()) {
+				
+				int i = offset;
 				for (NodeInterface node : nodes) {
 
 					// System.out.println("Node ID: " + node.getNodeId());
@@ -165,77 +162,75 @@ public class AdvancedPagingTest extends PagingTest {
 					node.setProperty(AbstractNode.name, _name);
 				}
 				app.commitTx();
-
-			} finally {
-
-				app.finishTx();
 			}
 
-			List<NodeInterface> result = app.get(type);
+			try (final TransactionCommand cmd = app.beginTx()) {
+				List<NodeInterface> result = app.get(type);
 
-			assertEquals(number, result.size());
+				assertEquals(number, result.size());
 
-			PropertyKey sortKey = AbstractNode.name;
-			boolean sortDesc    = false;
-			int pageSize        = 2;
-			int page            = 1;
+				PropertyKey sortKey = AbstractNode.name;
+				boolean sortDesc    = false;
+				int pageSize        = 2;
+				int page            = 1;
 
-			result = app.nodeQuery(type).sort(sortKey).order(sortDesc).pageSize(pageSize).page(page).getAsList();
+				result = app.nodeQuery(type).sort(sortKey).order(sortDesc).pageSize(pageSize).page(page).getAsList();
 
-			assertEquals(2, result.size());
-			assertEquals("TestOne-0", result.get(0).getProperty(AbstractNode.name));
-			assertEquals("TestOne-1", result.get(1).getProperty(AbstractNode.name));
-			
-			page = -1;
-			
-			result = app.nodeQuery(type).sort(AbstractNode.name).pageSize(pageSize).page(page).getAsList();
+				assertEquals(2, result.size());
+				assertEquals("TestOne-0", result.get(0).getProperty(AbstractNode.name));
+				assertEquals("TestOne-1", result.get(1).getProperty(AbstractNode.name));
 
-			assertEquals(2, result.size());
-			assertEquals("TestOne-6", result.get(0).getProperty(AbstractNode.name));
-			assertEquals("TestOne-7", result.get(1).getProperty(AbstractNode.name));
-			
-			page = -2;
-			
-			result = app.nodeQuery(type).sort(sortKey).order(sortDesc).pageSize(pageSize).page(page).getAsList();
+				page = -1;
 
-			assertEquals(2, result.size());
-			assertEquals("TestOne-4", result.get(0).getProperty(AbstractNode.name));
-			assertEquals("TestOne-5", result.get(1).getProperty(AbstractNode.name));
+				result = app.nodeQuery(type).sort(AbstractNode.name).pageSize(pageSize).page(page).getAsList();
 
-			page = -3;
-			
-			result = app.nodeQuery(type).sort(sortKey).order(sortDesc).pageSize(pageSize).page(page).getAsList();
+				assertEquals(2, result.size());
+				assertEquals("TestOne-6", result.get(0).getProperty(AbstractNode.name));
+				assertEquals("TestOne-7", result.get(1).getProperty(AbstractNode.name));
 
-			assertEquals(2, result.size());
-			assertEquals("TestOne-2", result.get(0).getProperty(AbstractNode.name));
-			assertEquals("TestOne-3", result.get(1).getProperty(AbstractNode.name));
+				page = -2;
 
-			page = -4;
-			
-			result = app.nodeQuery(type).sort(sortKey).order(sortDesc).pageSize(pageSize).page(page).getAsList();
+				result = app.nodeQuery(type).sort(sortKey).order(sortDesc).pageSize(pageSize).page(page).getAsList();
 
-			assertEquals(2, result.size());
-			assertEquals("TestOne-0", result.get(0).getProperty(AbstractNode.name));
-			assertEquals("TestOne-1", result.get(1).getProperty(AbstractNode.name));
+				assertEquals(2, result.size());
+				assertEquals("TestOne-4", result.get(0).getProperty(AbstractNode.name));
+				assertEquals("TestOne-5", result.get(1).getProperty(AbstractNode.name));
 
-			// now with offsetId
-			
-			page = 1;
-			
-			
-			result = app.nodeQuery(type).sort(sortKey).order(sortDesc).pageSize(pageSize).page(page).offsetId(nodes.get(3).getUuid()).getAsList();
+				page = -3;
 
-			assertEquals(2, result.size());
-			assertEquals("TestOne-3", result.get(0).getProperty(AbstractNode.name));
-			assertEquals("TestOne-4", result.get(1).getProperty(AbstractNode.name));
+				result = app.nodeQuery(type).sort(sortKey).order(sortDesc).pageSize(pageSize).page(page).getAsList();
 
-			page = -1;
-			
-			result = app.nodeQuery(type).sort(sortKey).order(sortDesc).pageSize(pageSize).page(page).offsetId(nodes.get(5).getUuid()).getAsList();
+				assertEquals(2, result.size());
+				assertEquals("TestOne-2", result.get(0).getProperty(AbstractNode.name));
+				assertEquals("TestOne-3", result.get(1).getProperty(AbstractNode.name));
 
-			assertEquals(2, result.size());
-			assertEquals("TestOne-3", result.get(0).getProperty(AbstractNode.name));
-			assertEquals("TestOne-4", result.get(1).getProperty(AbstractNode.name));
+				page = -4;
+
+				result = app.nodeQuery(type).sort(sortKey).order(sortDesc).pageSize(pageSize).page(page).getAsList();
+
+				assertEquals(2, result.size());
+				assertEquals("TestOne-0", result.get(0).getProperty(AbstractNode.name));
+				assertEquals("TestOne-1", result.get(1).getProperty(AbstractNode.name));
+
+				// now with offsetId
+
+				page = 1;
+
+
+				result = app.nodeQuery(type).sort(sortKey).order(sortDesc).pageSize(pageSize).page(page).offsetId(nodes.get(3).getUuid()).getAsList();
+
+				assertEquals(2, result.size());
+				assertEquals("TestOne-3", result.get(0).getProperty(AbstractNode.name));
+				assertEquals("TestOne-4", result.get(1).getProperty(AbstractNode.name));
+
+				page = -1;
+
+				result = app.nodeQuery(type).sort(sortKey).order(sortDesc).pageSize(pageSize).page(page).offsetId(nodes.get(5).getUuid()).getAsList();
+
+				assertEquals(2, result.size());
+				assertEquals("TestOne-3", result.get(0).getProperty(AbstractNode.name));
+				assertEquals("TestOne-4", result.get(1).getProperty(AbstractNode.name));
+			}
 			
 		} catch (FrameworkException ex) {
 
@@ -257,8 +252,8 @@ public class AdvancedPagingTest extends PagingTest {
 
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
 
-			try {
-				app.beginTx();
+			try (final TransactionCommand cmd = app.beginTx()) {
+
 				int i = offset;
 				for (NodeInterface node : nodes) {
 
@@ -270,33 +265,31 @@ public class AdvancedPagingTest extends PagingTest {
 					node.setProperty(AbstractNode.name, _name);
 				}
 				app.commitTx();
-
-			} finally {
-
-				app.finishTx();
 			}
 
-			Result result = app.nodeQuery(type).getResult();
+			try (final TransactionCommand cmd = app.beginTx()) {
+				Result result = app.nodeQuery(type).getResult();
 
-			assertEquals(number, result.size());
+				assertEquals(number, result.size());
 
-			PropertyKey sortKey = AbstractNode.name;
-			boolean sortDesc    = false;
-			int pageSize        = 10;
-			int page            = 1;
+				PropertyKey sortKey = AbstractNode.name;
+				boolean sortDesc    = false;
+				int pageSize        = 10;
+				int page            = 1;
 
-			// now with offsetId
-			
-			result = app.nodeQuery(type).sort(sortKey).order(sortDesc).pageSize(pageSize).page(page).offsetId(nodes.get(3).getUuid()).getResult();
+				// now with offsetId
 
-			assertEquals(7, result.size());
-			assertEquals("TestOne-3", result.get(0).getProperty(AbstractNode.name));
-			assertEquals("TestOne-4", result.get(1).getProperty(AbstractNode.name));
-			assertEquals("TestOne-5", result.get(2).getProperty(AbstractNode.name));
-			assertEquals("TestOne-6", result.get(3).getProperty(AbstractNode.name));
-			assertEquals("TestOne-7", result.get(4).getProperty(AbstractNode.name));
-			assertEquals("TestOne-8", result.get(5).getProperty(AbstractNode.name));
-			assertEquals("TestOne-9", result.get(6).getProperty(AbstractNode.name));
+				result = app.nodeQuery(type).sort(sortKey).order(sortDesc).pageSize(pageSize).page(page).offsetId(nodes.get(3).getUuid()).getResult();
+
+				assertEquals(7, result.size());
+				assertEquals("TestOne-3", result.get(0).getProperty(AbstractNode.name));
+				assertEquals("TestOne-4", result.get(1).getProperty(AbstractNode.name));
+				assertEquals("TestOne-5", result.get(2).getProperty(AbstractNode.name));
+				assertEquals("TestOne-6", result.get(3).getProperty(AbstractNode.name));
+				assertEquals("TestOne-7", result.get(4).getProperty(AbstractNode.name));
+				assertEquals("TestOne-8", result.get(5).getProperty(AbstractNode.name));
+				assertEquals("TestOne-9", result.get(6).getProperty(AbstractNode.name));
+			}
 			
 		} catch (FrameworkException ex) {
 
@@ -320,10 +313,9 @@ public class AdvancedPagingTest extends PagingTest {
 
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
 
-			try {
-				app.beginTx();
+			try (final TransactionCommand cmd = app.beginTx()) {
 
-				int i                           = offset;
+				int i = offset;
 				for (NodeInterface node : nodes) {
 
 					// System.out.println("Node ID: " + node.getNodeId());
@@ -334,38 +326,36 @@ public class AdvancedPagingTest extends PagingTest {
 					node.setProperty(AbstractNode.name, _name);
 				}
 				app.commitTx();
-
-			} finally {
-
-				app.finishTx();
 			}
 
-			Result result = app.nodeQuery(type).getResult();
+			try (final TransactionCommand cmd = app.beginTx()) {
+				Result result = app.nodeQuery(type).getResult();
 
-			assertEquals(number, result.size());
+				assertEquals(number, result.size());
 
-			PropertyKey sortKey = AbstractNode.name;
-			boolean sortDesc    = false;
-			int pageSize        = 2;
-			int page            = -5;
-			
-			result = app.nodeQuery(type).sort(sortKey).order(sortDesc).pageSize(pageSize).page(page).getResult();
+				PropertyKey sortKey = AbstractNode.name;
+				boolean sortDesc    = false;
+				int pageSize        = 2;
+				int page            = -5;
 
-			assertEquals(2, result.size());
-			assertEquals("TestOne-0", result.get(0).getProperty(AbstractNode.name));
-			assertEquals("TestOne-1", result.get(1).getProperty(AbstractNode.name));
+				result = app.nodeQuery(type).sort(sortKey).order(sortDesc).pageSize(pageSize).page(page).getResult();
 
-			// unknown offsetId
-			
-			page = 1;
-			
-			try {
-				app.nodeQuery(type).sort(sortKey).order(sortDesc).pageSize(pageSize).page(page).offsetId("000000000000000000000").getResult();
-				
-				fail("Should have failed with a FrameworkException with 'id not found' token");
-				
-			} catch (FrameworkException fex) {
-				logger.log(Level.INFO, "Exception logged", fex);
+				assertEquals(2, result.size());
+				assertEquals("TestOne-0", result.get(0).getProperty(AbstractNode.name));
+				assertEquals("TestOne-1", result.get(1).getProperty(AbstractNode.name));
+
+				// unknown offsetId
+
+				page = 1;
+
+				try {
+					app.nodeQuery(type).sort(sortKey).order(sortDesc).pageSize(pageSize).page(page).offsetId("000000000000000000000").getResult();
+
+					fail("Should have failed with a FrameworkException with 'id not found' token");
+
+				} catch (FrameworkException fex) {
+					logger.log(Level.INFO, "Exception logged", fex);
+				}
 			}
 
 			

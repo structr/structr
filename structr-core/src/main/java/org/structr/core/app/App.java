@@ -31,15 +31,16 @@ import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyMap;
 
 /**
  * 
  * @author Christian Morgner
  */
-public interface App {
+public interface App  {
 
-	public void beginTx();
+	public TransactionCommand beginTx();
 	public void commitTx() throws FrameworkException;
 	public void commitTx(final boolean doValidation) throws FrameworkException;
 	public void finishTx();

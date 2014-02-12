@@ -25,6 +25,9 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.ftpserver.ftplet.FtpFile;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.app.StructrApp;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.web.entity.File;
 
 /**
@@ -55,8 +58,17 @@ public class StructrFtpFile extends AbstractStructrFtpFile {
 
 	@Override
 	public long getSize() {
-		Long size = ((File) structrFile).getSize();
-		return size == null ? 0 : size;
+
+		try (final TransactionCommand cmd = StructrApp.getInstance().beginTx()) {
+
+			Long size = ((File) structrFile).getSize();
+			return size == null ? 0 : size;
+			
+		} catch (FrameworkException fex) {
+			
+		}
+		
+		return 0L;
 	}
 
 	@Override

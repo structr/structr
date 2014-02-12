@@ -44,11 +44,14 @@ import java.util.Enumeration;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Logger;
+import org.junit.After;
+import org.junit.Before;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.GenericNode;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.log.ReadLogCommand;
 import org.structr.core.log.WriteLogCommand;
 import org.structr.module.JarConfigurationProvider;
@@ -76,7 +79,7 @@ public class StructrTest extends TestCase {
 	protected App app                             =  null;
 
 	//~--- methods --------------------------------------------------------
-
+	
 	public void test00DbAvailable() {
 
 		GraphDatabaseService graphDb = graphDbCommand.execute();
@@ -191,18 +194,13 @@ public class StructrTest extends TestCase {
 
 		props.put(AbstractNode.type, type.getSimpleName());
 
-		try {
-			app.beginTx();
+		try (TransactionCommand cmd = app.beginTx() ) {
 
 			final T newNode = app.create(type, props);
 
-			app.commitTx();
+			cmd.commitTx();
 		
 			return newNode;
-
-		} finally {
-
-			app.finishTx();
 		}
 
 	}
@@ -213,8 +211,7 @@ public class StructrTest extends TestCase {
 		final NodeInterface startNode = nodes.get(0);
 		final NodeInterface endNode   = nodes.get(1);
 
-		try {
-			app.beginTx();
+		try (TransactionCommand cmd = app.beginTx() ) {
 
 			List<T> rels = new LinkedList<>();
 
@@ -223,31 +220,23 @@ public class StructrTest extends TestCase {
 				rels.add((T)app.create(startNode, endNode, relType));
 			}
 
-			app.commitTx();
+			cmd.commitTx();
 
 			return rels;
-
-		} finally {
-
-			app.finishTx();
 		}
 
 	}
 
 	protected <T extends Relation> T createTestRelationship(final AbstractNode startNode, final AbstractNode endNode, final Class<T> relType) throws FrameworkException {
 
-		try {
-			app.beginTx();
+		try (TransactionCommand cmd = app.beginTx() ) {
+
 
 			final T rel = (T)app.create(startNode, endNode, relType);
 
-			app.commitTx();
+			cmd.commitTx();
 
 			return rel;
-
-		} finally {
-
-			app.finishTx();
 		}
 	}
 

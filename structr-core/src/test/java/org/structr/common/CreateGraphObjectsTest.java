@@ -51,6 +51,7 @@ import org.structr.core.entity.TestSeven;
 import org.structr.core.entity.TestTwo;
 import org.structr.core.entity.relationship.NodeHasLocation;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyMap;
 
 //~--- classes ----------------------------------------------------------------
@@ -94,14 +95,10 @@ public class CreateGraphObjectsTest extends StructrTest {
 
 			AbstractNode node = null;
 			
-			try {
-				app.beginTx();
+			try (final TransactionCommand cmd = app.beginTx()) {
+
 				node = app.create(TestOne.class);
 				app.commitTx();
-
-			} finally {
-
-				app.finishTx();
 			}
 
 			assertTrue(node != null);
@@ -126,19 +123,18 @@ public class CreateGraphObjectsTest extends StructrTest {
 
 			props.put(GraphObject.id, uuid);
 
-			try {
-				app.beginTx();
+			try (final TransactionCommand cmd = app.beginTx()) {
+
 				node = app.create(TestOne.class, props);
 				app.commitTx();
-
-			} finally {
-
-				app.finishTx();
 			}
 
-			assertTrue(node != null);
-			assertTrue(node instanceof TestOne);
-			assertEquals(node.getUuid(), uuid);
+			try (final TransactionCommand cmd = app.beginTx()) {
+
+				assertTrue(node != null);
+				assertTrue(node instanceof TestOne);
+				assertEquals(node.getUuid(), uuid);
+			}
 
 		} catch (FrameworkException ex) {
 
@@ -158,24 +154,22 @@ public class CreateGraphObjectsTest extends StructrTest {
 			final NodeInterface endNode     = nodes.get(1);
 			NodeHasLocation rel        = null;
 			
-
 			assertTrue(startNode != null);
 			assertTrue(endNode != null);
 
-			try {
-				app.beginTx();
+			try (final TransactionCommand cmd = app.beginTx()) {
+
 				rel = app.create(startNode, endNode, NodeHasLocation.class);
 				app.commitTx();
-
-			} finally {
-
-				app.finishTx();
 			}
 
-			assertEquals(startNode.getUuid(), rel.getSourceNodeId());
-			assertEquals(endNode.getUuid(), rel.getTargetNodeId());
-			assertEquals(RelType.IS_AT.name(), rel.getType());
-			assertEquals(NodeHasLocation.class, rel.getClass());
+			try (final TransactionCommand cmd = app.beginTx()) {
+
+				assertEquals(startNode.getUuid(), rel.getSourceNodeId());
+				assertEquals(endNode.getUuid(), rel.getTargetNodeId());
+				assertEquals(RelType.IS_AT.name(), rel.getType());
+				assertEquals(NodeHasLocation.class, rel.getClass());
+			}
 
 		} catch (FrameworkException ex) {
 
@@ -193,9 +187,7 @@ public class CreateGraphObjectsTest extends StructrTest {
 
 		final PropertyMap props = new PropertyMap();
 
-		try {
-
-			app.beginTx();
+		try (final TransactionCommand cmd = app.beginTx()) {
 
 			List<Class> entityList = Collections.EMPTY_LIST;
 
@@ -304,7 +296,7 @@ public class CreateGraphObjectsTest extends StructrTest {
 	 */
 	public void test05CheckRelationshipEntities() {
 
-		try {
+		try (final TransactionCommand cmd = app.beginTx()) {
 			
 			List<Class> entityList = null;
 
@@ -319,8 +311,6 @@ public class CreateGraphObjectsTest extends StructrTest {
 
 			assertTrue(entityList.contains(AbstractRelationship.class));
 			assertTrue(entityList.contains(GenericRelationship.class));
-
-			app.beginTx();
 
 			for (Class entityClass : entityList) {
 
@@ -352,10 +342,6 @@ public class CreateGraphObjectsTest extends StructrTest {
 			
 			logger.log(Level.SEVERE, ex.toString());
 			fail("Unexpected exception");
-
-		} finally {
-
-			app.finishTx();
 		}
 	}
 
