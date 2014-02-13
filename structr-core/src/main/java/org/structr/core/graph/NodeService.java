@@ -151,19 +151,18 @@ public class NodeService implements SingletonService {
 //			neo4jConfiguration.put(ShellSettings.remote_shell_enabled.name(), "true");
 //		}
 		
-		
-		try {
 
-			graphDb = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(dbPath).loadPropertiesFromFile(dbPath + "/neo4j.conf").newGraphDatabase();
+		final File confFile = new File(dbPath + "/neo4j.conf");
+		if (confFile.exists()) {
 
-		} catch (Throwable t) {
-
-			logger.log(Level.INFO, "Database config {0}/neo4j.conf not found", dbPath);
-
+			graphDb = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(dbPath).loadPropertiesFromFile(confFile.getAbsolutePath()).newGraphDatabase();
+			
+		} else {
+			
 			graphDb = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(dbPath).newGraphDatabase();
-
 		}
-
+		
+//		
 		if (graphDb == null) {
 
 			logger.log(Level.SEVERE, "Database could not be started ({0}) ...", dbPath);
