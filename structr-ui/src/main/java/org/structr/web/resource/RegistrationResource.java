@@ -137,17 +137,7 @@ public class RegistrationResource extends Resource {
 				user = (Principal) result.get(0);
 				
 				// For existing users, update confirmation key
-
-				try {
-				
-					app.beginTx();
-					user.setProperty(User.confirmationKey, confKey);
-					app.commitTx();
-					
-				} finally {
-					
-					app.finishTx();
-				}
+				user.setProperty(User.confirmationKey, confKey);
 				
 				existingUser = true;
 
@@ -418,13 +408,9 @@ public class RegistrationResource extends Resource {
 	 */
 	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final Map<String, Object> propertySet, final boolean autoCreate, final Class userClass) {
 
-		final App app = StructrApp.getInstance(securityContext);
-		
 		Principal user = null;
 		
 		try {
-			
-			app.beginTx();
 
 			// First, search for a person with that e-mail address
 			user = AuthHelper.getPrincipalForCredential(credentialKey, credentialValue);
@@ -459,22 +445,10 @@ public class RegistrationResource extends Resource {
 
 			}
 			
-//			if (user != null) {
-//
-//				// index manually because the credential key is treated as generic property!
-//				user.updateInIndex();
-//				
-//			}
-			
-			app.commitTx();
-			
 		} catch (FrameworkException ex) {
 			
 			logger.log(Level.SEVERE, null, ex);
 			
-		} finally {
-			
-			app.finishTx();
 		}
 		
 		return user;

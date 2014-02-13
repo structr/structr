@@ -19,7 +19,6 @@
 package org.structr.websocket.command;
 
 import org.structr.common.SecurityContext;
-import org.structr.core.entity.AbstractNode;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
@@ -58,22 +57,17 @@ public class SyncModeCommand extends AbstractCommand {
 
 			try {
 
-				app.beginTx();
-				
 				app.create(sourceNode, targetNode, Sync.class);
 
 				if (syncMode.equals("bidir")) {
 
 					app.create(targetNode, sourceNode, Sync.class);
 				}
-				app.commitTx();
 
 			} catch (Throwable t) {
 
 				getWebSocket().send(MessageBuilder.status().code(400).message(t.getMessage()).build(), true);
 
-			} finally {
-				app.finishTx();
 			}
 
 		} else {

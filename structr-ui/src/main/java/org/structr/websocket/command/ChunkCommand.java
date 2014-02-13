@@ -29,8 +29,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
-import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
 import org.structr.websocket.StructrWebSocket;
@@ -57,7 +55,6 @@ public class ChunkCommand extends AbstractCommand {
 	public void processMessage(WebSocketMessage webSocketData) {
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
-		final App app = StructrApp.getInstance(securityContext);
 		
 		try {
 
@@ -101,15 +98,8 @@ public class ChunkCommand extends AbstractCommand {
 			
 			if (size != finalSize) {
 
-				try {
-					app.beginTx();
-					file.setProperty(File.checksum, FileHelper.getChecksum(file));
-					app.commitTx();
+				file.setProperty(File.checksum, FileHelper.getChecksum(file));
 
-				} finally {
-
-					app.finishTx();
-				}
 			}
 			
 			// This should trigger setting of lastModifiedDate in any case

@@ -18,13 +18,12 @@
  */
 package org.structr.web.test;
 
-import javax.xml.transform.Transformer;
-import javax.xml.transform.dom.DOMSource;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.Tx;
 import org.structr.web.common.StructrUiTest;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.Page;
@@ -40,7 +39,7 @@ public class XPathTest extends StructrUiTest {
 		
 		final String pageName	= "page-01";
 
-		try {
+		try (final Tx tx = app.tx()) {
 
 			Page page = Page.createNewPage(securityContext, pageName);
 
@@ -86,6 +85,7 @@ public class XPathTest extends StructrUiTest {
 			assertEquals("Page Title", xpath.evaluate("/html/body/h1/text()", page, XPathConstants.STRING));
 			assertEquals(h1, xpath.evaluate("/html/body/h1", page, XPathConstants.NODE));
 			
+			tx.success();
 			
 		} catch (FrameworkException fex) {
 
@@ -106,7 +106,7 @@ public class XPathTest extends StructrUiTest {
 		
 		final String pageName	= "page-02";
 
-		try {
+		try (final Tx tx = app.tx()) {
 
 			Page page = Page.createNewPage(securityContext, pageName);
 
@@ -160,6 +160,7 @@ public class XPathTest extends StructrUiTest {
 			assertEquals(p3, xpath.evaluate("/html/body/div/p[@index=42]", page, XPathConstants.NODE));
 			assertEquals(p3, xpath.evaluate("/html/body/div/p[@index>40]", page, XPathConstants.NODE));
 			
+			tx.success();
 			
 		} catch (FrameworkException fex) {
 

@@ -23,12 +23,12 @@ import java.util.logging.Logger;
 import static junit.framework.TestCase.fail;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.graph.Tx;
 import org.structr.web.common.StructrUiTest;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.dom.relationship.DOMChildren;
-import org.structr.web.entity.relation.BlogCommentContents;
 import org.structr.web.entity.relation.PageLink;
 import org.w3c.dom.Text;
 
@@ -53,7 +53,7 @@ public class RelationClassAssignmentTest extends StructrUiTest {
 		final String h1ClassAttr = "heading";
 		final String divClassAttr = "main";
 
-		try {
+		try (final Tx tx = app.tx()) {
 
 			Page page = Page.createNewPage(securityContext, pageName);
 			if (page != null) {
@@ -89,6 +89,8 @@ public class RelationClassAssignmentTest extends StructrUiTest {
 				
 				
 			}
+			
+			tx.success();
 			
 		} catch (FrameworkException ex) {
 

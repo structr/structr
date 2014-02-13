@@ -55,7 +55,6 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.lang.WordUtils;
-import org.jsoup.Connection;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -198,13 +197,9 @@ public class Importer {
 
 	public String readPage() throws FrameworkException {
 
-		
-
 		try {
 			final URL baseUrl = StringUtils.isNotBlank(address) ? new URL(address) : null;
 			
-			app.beginTx();
-
 			// AbstractNode page = findOrCreateNode(attrs, "/");
 			Page page = Page.createNewPage(securityContext, name);
 
@@ -219,8 +214,6 @@ public class Importer {
 				pageId = page.getProperty(GraphObject.id);
 			}
 
-			app.commitTx();
-
 			return pageId;
 
 			
@@ -228,11 +221,7 @@ public class Importer {
 
 			logger.log(Level.SEVERE, "Could not resolve address " + address, ex);
 
-		} finally {
-			
-			app.finishTx();
 		}
-
 		return null;
 
 	}
@@ -240,28 +229,16 @@ public class Importer {
 	public void createChildNodes(final DOMNode parent, final Page page, final String baseUrl) throws FrameworkException {
 
 		try {
-			
-			app.beginTx();
 
-			try {
+			createChildNodes(parsedDocument.body(), parent, page, new URL(baseUrl));
 
-				createChildNodes(parsedDocument.body(), parent, page, new URL(baseUrl));
+		} catch (MalformedURLException ex) {
 
-			} catch (MalformedURLException ex) {
+			logger.log(Level.WARNING, "Could not read URL {1}, calling method without base URL", baseUrl);
 
-				logger.log(Level.WARNING, "Could not read URL {1}, calling method without base URL", baseUrl);
+			createChildNodes(parsedDocument.body(), parent, page, null);
 
-				createChildNodes(parsedDocument.body(), parent, page, null);
-
-			}
-			
-			app.commitTx();
-			
-		} finally {
-			
-			app.finishTx();
 		}
-
 	}
 	
 	// ----- private methods -----

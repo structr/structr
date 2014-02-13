@@ -49,10 +49,9 @@ public class StructrFtpUser implements User {
 	
 	@Override
 	public String getName() {
-
-		try (final TransactionCommand cmd = StructrApp.getInstance().beginTx()) {
+		try {
 			return structrUser.getProperty(org.structr.web.entity.User.name);
-		} catch (FrameworkException fex) { }
+		} catch (Exception fex) { }
 		
 		return null;
 	}
@@ -123,20 +122,18 @@ public class StructrFtpUser implements User {
 
 	@Override
 	public boolean getEnabled() {
-
-		try (final TransactionCommand cmd = StructrApp.getInstance().beginTx()) {
+		try {
 			return !structrUser.getProperty(org.structr.web.entity.User.blocked);
-		} catch (FrameworkException fex) { }
+		} catch (Exception fex) { }
 		
 		return false;
 	}
 
 	@Override
 	public String getHomeDirectory() {
-
-		try (final TransactionCommand cmd = StructrApp.getInstance().beginTx()) {
+		try {
 			return structrUser.getProperty(org.structr.web.entity.User.homeDirectory).getProperty(Folder.name);
-		} catch (FrameworkException fex) { }
+		} catch (Exception fex) { }
 		
 		return null;
 	}

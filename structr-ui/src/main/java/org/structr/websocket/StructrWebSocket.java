@@ -49,9 +49,10 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import org.structr.core.GraphObject;
+import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
-import org.structr.core.graph.TransactionCommand;
+import org.structr.core.graph.Tx;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -139,7 +140,9 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 		// parse web socket data from JSON
 		WebSocketMessage webSocketData = gson.fromJson(data, WebSocketMessage.class);
 
-		try {
+		final App app = StructrApp.getInstance(securityContext);
+		
+		try (final Tx tx = app.tx()) {
 
 			this.callback = webSocketData.getCallback();
 
@@ -178,12 +181,12 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 				webSocketData.setToken(null);
 
 				// process message
-				try (final TransactionCommand cmd = StructrApp.getInstance(securityContext).beginTx()) {
+				try {
 
 					abstractCommand.processMessage(webSocketData);
 					
 					// commit transaction
-					cmd.commitTx();
+					tx.success();
 
 				} catch (Throwable t) {
 
@@ -203,7 +206,7 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 
 			}
 
-		} catch (Throwable t) {
+		} catch (FrameworkException | IllegalAccessException | InstantiationException t) {
 
 			logger.log(Level.WARNING, "Unable to parse message.", t);
 
@@ -242,7 +245,7 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 				logger.log(Level.WARNING, "NOT sending message to unauthenticated client.");
 			}
 
-		} catch (Throwable t) {
+		} catch (IOException t) {
 
 			logger.log(Level.WARNING, "Error sending message to client.", t);
 			//t.printStackTrace();

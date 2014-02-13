@@ -87,7 +87,6 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 				nodeData.remove("tagName");
 				
 				try {
-					app.beginTx();
 
 					DOMNode newNode;
 
@@ -139,29 +138,17 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 
 							DOMNode childNode = (DOMNode)document.createTextNode(childContent);
 
-							if (newNode != null) {
-
-								newNode.appendChild(childNode);
-
-							}
+							newNode.appendChild(childNode);
 
 						}
 
 					}
-					app.commitTx();
 					
 				} catch (DOMException dex) {
 						
 					// send DOM exception
 					getWebSocket().send(MessageBuilder.status().code(422).message(dex.getMessage()).build(), true);		
 					
-				} catch (FrameworkException ex) {
-					
-					Logger.getLogger(CreateAndAppendDOMNodeCommand.class.getName()).log(Level.SEVERE, null, ex);
-					
-				} finally {
-					
-					app.finishTx();
 				}
 				
 			} else {

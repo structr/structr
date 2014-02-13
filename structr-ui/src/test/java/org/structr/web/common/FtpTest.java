@@ -30,6 +30,7 @@ import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
 import org.apache.commons.net.ftp.FTPReply;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractUser;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.AbstractFile;
@@ -95,12 +96,18 @@ public class FtpTest extends StructrUiTest {
 	}
 
 	protected void assertEmptyDirectory(final FTPClient ftp) {
+		
 		FTPFile[] dirs = null;
+		
 		try {
+			
 			dirs = ftp.listDirectories();
+			
 		} catch (IOException ex) {
+			
 			logger.log(Level.SEVERE, "Error in FTP test", ex);
 			fail("Unexpected exception: " + ex.getMessage());
+			
 		}
 			
 		assertNotNull(dirs);
@@ -136,8 +143,7 @@ public class FtpTest extends StructrUiTest {
 			
 			reply = ftp.getReplyCode();
 			assertEquals(FTPReply.USER_LOGGED_IN, reply);
-			
-			
+
 		} catch (IOException | FrameworkException ex) {
 			logger.log(Level.SEVERE, "Error in FTP test", ex);
 			fail("Unexpected exception: " + ex.getMessage());

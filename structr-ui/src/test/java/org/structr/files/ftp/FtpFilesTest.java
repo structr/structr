@@ -26,6 +26,9 @@ import static junit.framework.TestCase.assertNotNull;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.StructrApp;
+import org.structr.core.graph.TransactionCommand;
+import org.structr.core.graph.Tx;
 import org.structr.web.common.FtpTest;
 
 /**
@@ -40,7 +43,8 @@ public class FtpFilesTest extends FtpTest {
 	public void test01ListFiles() {
 		
 		FTPClient ftp = setupFTPClient();
-		try {
+
+		try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
 			
 			FTPFile[] files = ftp.listFiles();
 			
@@ -69,7 +73,9 @@ public class FtpFilesTest extends FtpTest {
 			assertEquals(name2, fileNames[1]);
 			
 			ftp.disconnect();
-			
+						
+			tx.success();
+
 		} catch (IOException | FrameworkException ex) {
 			logger.log(Level.SEVERE, "Error while listing FTP files", ex);
 			fail("Unexpected exception: " + ex.getMessage());
@@ -79,7 +85,8 @@ public class FtpFilesTest extends FtpTest {
 	public void test02RenameFile() {
 		
 		FTPClient ftp = setupFTPClient();
-		try {
+		
+		try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
 			
 			FTPFile[] files = ftp.listFiles();
 			
@@ -103,6 +110,8 @@ public class FtpFilesTest extends FtpTest {
 
 			ftp.disconnect();
 			
+			tx.success();
+
 		} catch (IOException | FrameworkException ex) {
 			logger.log(Level.SEVERE, "Error while renaming FTP file", ex);
 			fail("Unexpected exception: " + ex.getMessage());
@@ -112,7 +121,8 @@ public class FtpFilesTest extends FtpTest {
 	public void test03MoveFile() {
 		
 		FTPClient ftp = setupFTPClient();
-		try {
+
+		try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
 			
 			FTPFile[] files = ftp.listFiles();
 			
@@ -142,6 +152,8 @@ public class FtpFilesTest extends FtpTest {
 			
 			ftp.disconnect();
 			
+			tx.success();
+
 		} catch (IOException | FrameworkException ex) {
 			logger.log(Level.SEVERE, "Error while moving FTP file", ex);
 			fail("Unexpected exception: " + ex.getMessage());
@@ -151,7 +163,8 @@ public class FtpFilesTest extends FtpTest {
 	public void test04MoveFileToRoot() {
 		
 		FTPClient ftp = setupFTPClient();
-		try {
+
+		try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
 			
 			FTPFile[] files = ftp.listFiles();
 			
@@ -193,6 +206,8 @@ public class FtpFilesTest extends FtpTest {
 			
 			
 			ftp.disconnect();
+
+			tx.success();
 			
 		} catch (IOException | FrameworkException ex) {
 			logger.log(Level.SEVERE, "Error while moving FTP file", ex);

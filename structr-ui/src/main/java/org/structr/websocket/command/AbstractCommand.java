@@ -221,15 +221,7 @@ public abstract class AbstractCommand {
 			properties.put(AbstractNode.hidden, true);
 			properties.put(AbstractNode.visibleToAuthenticatedUsers, true);
 
-			try {
-				app.beginTx();
-				doc = app.create(ShadowDocument.class, properties);
-				app.commitTx();
-
-			} finally {
-
-				app.finishTx();
-			}
+			doc = app.create(ShadowDocument.class, properties);
 		}
 		
 		return doc;

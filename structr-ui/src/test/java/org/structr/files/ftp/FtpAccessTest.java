@@ -23,6 +23,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPReply;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.app.StructrApp;
+import org.structr.core.graph.Tx;
 import org.structr.web.common.FtpTest;
 
 /**
@@ -36,7 +39,8 @@ public class FtpAccessTest extends FtpTest {
 	
 	public void test01LoginFailed() {
 		
-		try {
+		try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
+			
 			FTPClient ftp = new FTPClient();
 
 			ftp.connect("127.0.0.1", ftpPort);
@@ -51,7 +55,7 @@ public class FtpAccessTest extends FtpTest {
 			
 			ftp.disconnect();
 			
-		} catch (IOException ex) {
+		} catch (IOException | FrameworkException ex) {
 			logger.log(Level.SEVERE, "Error in FTP test", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}

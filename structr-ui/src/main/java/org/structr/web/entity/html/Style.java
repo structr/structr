@@ -67,19 +67,13 @@ public class Style extends DOMElement {
 		
 		if (newChild instanceof Content) {
 
-			final App app = StructrApp.getInstance(securityContext);
 			try {
-				app.beginTx();
 				((Content)newChild).setProperty(Content.contentType, getProperty(_type));
-				app.commitTx();
 				
 			} catch (FrameworkException fex) {
 				
 				logger.log(Level.WARNING, "Unable to set property on new child: {0}", fex.getMessage());
 				
-			} finally {
-				
-				app.finishTx();
 			}
 		}
 	}

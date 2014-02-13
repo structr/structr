@@ -57,11 +57,11 @@ import javax.xml.xpath.XPathFactory;
 import org.apache.commons.collections.iterators.IteratorEnumeration;
 
 import org.apache.commons.collections.map.LRUMap;
+import org.neo4j.helpers.collection.Iterables;
 import org.structr.common.CaseHelper;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
-import org.structr.core.Services;
 import org.structr.core.Value;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
@@ -562,8 +562,12 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		int namePosition    = -1;
 		int index           = 0;
 		
-		List<String> names = new ArrayList<String>(10);
-		for (String key : this.getNode().getPropertyKeys()) {
+		List<String> keys = Iterables.toList(this.getNode().getPropertyKeys());
+		Collections.sort(keys);
+		
+		List<String> names = new ArrayList<>(10);
+
+		for (String key : keys) {
 
 			// use html properties only
 			if (key.startsWith(PropertyView.Html)) {
@@ -592,7 +596,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	
 	public List<String> getHtmlAttributeNames() {
 		
-		List<String> names = new ArrayList<String>(10);
+		List<String> names = new ArrayList<>(10);
 		
 		for (String key : this.getNode().getPropertyKeys()) {
 
@@ -688,23 +692,16 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		final App app = StructrApp.getInstance(securityContext);
 
 		try {
-			app.beginTx();
-
 			HtmlProperty htmlProperty = findOrCreateAttributeKey(name);
 			if (htmlProperty != null) {
 
 				htmlProperty.setProperty(securityContext, DOMElement.this, value);
 			}
-			
-			app.commitTx();
 
 		} catch (FrameworkException fex) {
 
 			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.getMessage());
 			
-		} finally {
-			
-			app.finishTx();
 		}
 	}
 
@@ -714,23 +711,16 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		final App app = StructrApp.getInstance(securityContext);
 		
 		try {
-			app.beginTx();
-
 			HtmlProperty htmlProperty = findOrCreateAttributeKey(name);
 			if (htmlProperty != null) {
 
 				htmlProperty.setProperty(securityContext, DOMElement.this, null);
 			}
 			
-			app.commitTx();
-
 		} catch (FrameworkException fex) {
 
 			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.getMessage());
 			
-		} finally {
-			
-			app.finishTx();
 		}
 	}
 
@@ -845,19 +835,12 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		final App app = StructrApp.getInstance(securityContext);
 
 		try {
-			app.beginTx();
-
 			setProperty(DOMElement._id, idString);
 			
-			app.commitTx();
-
 		} catch (FrameworkException fex) {
 
 			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());			
 			
-		} finally {
-			
-			app.finishTx();
 		}
 	}
 

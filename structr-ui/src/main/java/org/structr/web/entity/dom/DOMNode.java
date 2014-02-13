@@ -3,18 +3,17 @@
  *
  * This file is part of Structr <http://structr.org>.
  *
- * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
+ * Structr is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Affero General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
  *
- * Structr is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * Structr is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr. If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.web.entity.dom;
 
@@ -666,7 +665,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 				if (b == null || b.length == 0) {
 					return "";
 				}
-				
+
 				return b[0].equals("true") ? "false" : "true";
 			}
 
@@ -1159,13 +1158,13 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 				// details data object id
 				if ("id".equals(lowerCasePart)) {
-					
+
 					GraphObject detailsObject = renderContext.getDetailsDataObject();
-					
+
 					if (detailsObject != null) {
 						return renderContext.getDetailsDataObject().getUuid();
 					}
-					
+
 				}
 
 				// special keyword "this"
@@ -1275,9 +1274,9 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 				if ("page_count".equals(lowerCasePart)) {
 
 					Result result = renderContext.getResult();
-					
+
 					Integer pageCount = result.getPageCount();
-					
+
 					if (pageCount != null) {
 						return pageCount;
 					} else {
@@ -2061,9 +2060,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			final App app = StructrApp.getInstance(securityContext);
 
 			try {
-				app.beginTx();
 				DOMNode node = app.create(getClass(), properties);
-				app.commitTx();
 
 				return node;
 
@@ -2071,9 +2068,6 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 				throw new DOMException(DOMException.INVALID_STATE_ERR, ex.toString());
 
-			} finally {
-
-				app.finishTx();
 			}
 
 		}
@@ -2162,70 +2156,56 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	@Override
 	public final void normalize() {
 
-		final App app = StructrApp.getInstance(securityContext);
+		Document document = getOwnerDocument();
+		if (document != null) {
 
-		try {
+			// merge adjacent text nodes until there is only one left
+			Node child = getFirstChild();
+			while (child != null) {
 
-			Document document = getOwnerDocument();
-			if (document != null) {
+				if (child instanceof Text) {
 
-				// merge adjacent text nodes until there is only one left
-				Node child = getFirstChild();
-				while (child != null) {
+					Node next = child.getNextSibling();
+					if (next != null && next instanceof Text) {
 
-					if (child instanceof Text) {
+						String text1 = child.getNodeValue();
+						String text2 = next.getNodeValue();
 
-						Node next = child.getNextSibling();
-						if (next != null && next instanceof Text) {
+						// create new text node
+						Text newText = document.createTextNode(text1.concat(text2));
 
-							String text1 = child.getNodeValue();
-							String text2 = next.getNodeValue();
+						removeChild(child);
+						insertBefore(newText, next);
+						removeChild(next);
 
-							// create new text node
-							Text newText = document.createTextNode(text1.concat(text2));
-
-							removeChild(child);
-							insertBefore(newText, next);
-							removeChild(next);
-
-							child = newText;
-
-						} else {
-
-							// advance to next node
-							child = next;
-						}
+						child = newText;
 
 					} else {
 
 						// advance to next node
-						child = child.getNextSibling();
-
+						child = next;
 					}
-				}
 
-				// recursively normalize child nodes
-				if (hasChildNodes()) {
+				} else {
 
-					Node currentChild = getFirstChild();
-					while (currentChild != null) {
+					// advance to next node
+					child = child.getNextSibling();
 
-						currentChild.normalize();
-						currentChild = currentChild.getNextSibling();
-					}
 				}
 			}
 
-			app.commitTx();
+			// recursively normalize child nodes
+			if (hasChildNodes()) {
 
-		} catch (FrameworkException fex) {
+				Node currentChild = getFirstChild();
+				while (currentChild != null) {
 
-			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.getMessage());
-
-		} finally {
-
-			app.finishTx();
+					currentChild.normalize();
+					currentChild = currentChild.getNextSibling();
+				}
+			}
 		}
+
 	}
 
 	// ----- interface DOMAdoptable -----
@@ -2237,18 +2217,12 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			final App app = StructrApp.getInstance(securityContext);
 
 			try {
-
-				app.beginTx();
 				setProperty(ownerDocument, _page);
-				app.commitTx();
 
 			} catch (FrameworkException fex) {
 
 				throw new DOMException(DOMException.INVALID_STATE_ERR, fex.getMessage());
 
-			} finally {
-
-				app.finishTx();
 			}
 		}
 

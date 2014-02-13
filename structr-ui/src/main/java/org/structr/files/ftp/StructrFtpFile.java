@@ -58,17 +58,8 @@ public class StructrFtpFile extends AbstractStructrFtpFile {
 
 	@Override
 	public long getSize() {
-
-		try (final TransactionCommand cmd = StructrApp.getInstance().beginTx()) {
-
-			Long size = ((File) structrFile).getSize();
-			return size == null ? 0 : size;
-			
-		} catch (FrameworkException fex) {
-			
-		}
-		
-		return 0L;
+		Long size = ((File) structrFile).getSize();
+		return size == null ? 0L : size;
 	}
 
 	@Override

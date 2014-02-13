@@ -35,9 +35,11 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.IOUtils;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
@@ -120,12 +122,9 @@ public class UploadServlet extends HttpServiceServlet {
 			List<FileItem> fileItemsList = uploader.parseRequest(request);
 			Iterator<FileItem> fileItemsIterator = fileItemsList.iterator();
 
-			final App app = StructrApp.getInstance(securityContext);
 			while (fileItemsIterator.hasNext()) {
 
 				final FileItem fileItem = fileItemsIterator.next();
-
-				app.beginTx();
 
 				try {
 
@@ -144,19 +143,13 @@ public class UploadServlet extends HttpServiceServlet {
 					// Just write out the uuids of the new files
 					out.write(newFile.getUuid());
 
-					app.commitTx();
-
 				} catch (IOException ex) {
 					logger.log(Level.WARNING, "Could not upload file", ex);
-				} finally {
-
-					app.finishTx();
-
 				}
 
 			}
 
-		} catch (Throwable t) {
+		} catch (FrameworkException | IOException | FileUploadException t) {
 
 			t.printStackTrace();
 			logger.log(Level.SEVERE, "Exception while processing request", t);

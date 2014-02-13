@@ -86,8 +86,6 @@ public class FileOrFolder extends AbstractStructrFtpFile {
 		final App app             = StructrApp.getInstance();
 
 		try {
-			app.beginTx();
-			
 			Folder newFolder = (Folder) StructrApp.getInstance().command(CreateNodeCommand.class).execute(
 				new NodeAttribute(AbstractNode.type, Folder.class.getSimpleName()),
 				new NodeAttribute(AbstractNode.owner, owner.getStructrUser()),
@@ -98,16 +96,10 @@ public class FileOrFolder extends AbstractStructrFtpFile {
 				newFolder.setProperty(AbstractFile.parent, parentFolder);
 			}
 			
-			app.commitTx();
-			
 		} catch (FrameworkException ex) {
 			logger.log(Level.SEVERE, null, ex);
 			return false;
-
-			} finally {
-
-				app.finishTx();
-			}
+		}
 		
 		return true;
 	}
@@ -127,8 +119,6 @@ public class FileOrFolder extends AbstractStructrFtpFile {
 			final App app             = StructrApp.getInstance();
 
 			try {
-				app.beginTx();
-				
 				structrFile = FileHelper.createFile(SecurityContext.getSuperUserInstance(), new byte[0], null, File.class);
 				structrFile.setProperty(AbstractNode.type, File.class.getSimpleName());
 				structrFile.setProperty(AbstractNode.owner, owner.getStructrUser());
@@ -137,16 +127,10 @@ public class FileOrFolder extends AbstractStructrFtpFile {
 				if (parentFolder != null) {
 					structrFile.setProperty(AbstractFile.parent, parentFolder);
 				}
-				
-				app.commitTx();
 
 			} catch (FrameworkException ex) {
 				logger.log(Level.SEVERE, null, ex);
 				return null;
-
-			} finally {
-
-				app.finishTx();
 			}
 		}
 		

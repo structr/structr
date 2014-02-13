@@ -269,23 +269,14 @@ public class UiAuthenticator extends HttpAuthenticator {
 		if (user != null) {
 
 			final String sessionIdFromRequest = request.getRequestedSessionId();
-			final App app = StructrApp.getInstance();
 			
 			// Websocket connects don't have a session
 			if (sessionIdFromRequest != null) {
 
 				try {
-					app.beginTx();
 					user.setProperty(Principal.sessionId, sessionIdFromRequest);
-					app.commitTx();
-				
-				} catch (Exception ex) {
-
+				} catch (FrameworkException ex) {
 					logger.log(Level.SEVERE, null, ex);
-
-				} finally {
-					
-					app.finishTx();
 				}
 			}
 
