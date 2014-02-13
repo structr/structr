@@ -50,6 +50,7 @@ import java.util.regex.Pattern;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.neo4j.kernel.DeadlockDetectedException;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.*;
 import org.structr.core.Value;
@@ -193,9 +194,17 @@ public class JsonRestServlet extends HttpServiceServlet {
 			}
 
 			// isolate doDelete
-			try (final Tx tx = app.tx()) {
-				result = resource.doDelete();
-				tx.success();
+			boolean retry = true;
+			while (retry) {
+				
+				try (final Tx tx = app.tx()) {
+					result = resource.doDelete();
+					tx.success();
+					retry = false;
+
+				} catch (DeadlockDetectedException ddex) {
+					retry = true;
+				}
 			}
 
 			// isolate write output
@@ -313,9 +322,17 @@ public class JsonRestServlet extends HttpServiceServlet {
 			}
 			
 			// isolate doGet
-			try (final Tx tx = app.tx()) {
-				result = resource.doGet(sortKey, sortDescending, pageSize, page, offsetId);
-				tx.success();
+			boolean retry = true;
+			while (retry) {
+				
+				try (final Tx tx = app.tx()) {
+					result = resource.doGet(sortKey, sortDescending, pageSize, page, offsetId);
+					tx.success();
+					retry = false;
+
+				} catch (DeadlockDetectedException ddex) {
+					retry = true;
+				}
 			}
 			
 			result.setIsCollection(resource.isCollectionResource());
@@ -454,10 +471,17 @@ public class JsonRestServlet extends HttpServiceServlet {
 			}
 			
 			// isolate doHead
-			try (final Tx tx = app.tx()) {
-				result = resource.doHead();
-				tx.success();
-			}
+			boolean retry = true;
+			while (retry) {
+				
+				try (final Tx tx = app.tx()) {
+					result = resource.doHead();
+					tx.success();
+
+					} catch (DeadlockDetectedException ddex) {
+						retry = true;
+					}
+				}
 
 			// isolate write output
 			try (final Tx tx = app.tx()) {
@@ -550,10 +574,17 @@ public class JsonRestServlet extends HttpServiceServlet {
 			}
 			
 			// isolate doOptions
-			try (final Tx tx = app.tx()) {
-				result = resource.doOptions();
-				tx.success();
-			}
+			boolean retry = true;
+			while (retry) {
+				
+				try (final Tx tx = app.tx()) {
+					result = resource.doOptions();
+					tx.success();
+
+					} catch (DeadlockDetectedException ddex) {
+						retry = true;
+					}
+				}
 
 			// isolate write output
 			try (final Tx tx = app.tx()) {
@@ -658,9 +689,18 @@ public class JsonRestServlet extends HttpServiceServlet {
 				}
 				
 				// isolate doPost
-				try (final Tx tx = app.tx()) {
-					result = resource.doPost(properties);
-					tx.success();
+				boolean retry = true;
+				while (retry) {
+
+					try (final Tx tx = app.tx()) {
+
+						result = resource.doPost(properties);
+						tx.success();
+						retry = false;
+
+					} catch (DeadlockDetectedException ddex) {
+						retry = true;
+					}
 				}
 
 				// set default value for property view
@@ -789,9 +829,17 @@ public class JsonRestServlet extends HttpServiceServlet {
 				}
 				
 				// isolate doPut
-				try (final Tx tx = app.tx()) {
-					result = resource.doPut(properties);
-					tx.success();
+				boolean retry = true;
+				while (retry) {
+					
+					try (final Tx tx = app.tx()) {
+						result = resource.doPut(properties);
+						tx.success();
+						retry = false;
+
+					} catch (DeadlockDetectedException ddex) {
+						retry = true;
+					}
 				}
 
 				// isolate write output
