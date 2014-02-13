@@ -204,8 +204,6 @@ public class SchemaHelper {
 		
 		try {
 
-			app.beginTx();
-			
 			removeAllDynamicGrants();
 			
 			for (final SchemaNode schemaNode : StructrApp.getInstance().nodeQuery(SchemaNode.class).getAsList()) {
@@ -220,16 +218,10 @@ public class SchemaHelper {
 				createDynamicGrants(schemaRelationship.getInverseResourceSignature(), null);
 				
 			}
-
-			app.commitTx();
 			
 		} catch (Throwable t) {
 
 			t.printStackTrace();
-
-		} finally {
-
-			app.finishTx();
 		}
 			
 		return SchemaService.reloadSchema(errorBuffer);
@@ -243,7 +235,6 @@ public class SchemaHelper {
 		final App app = StructrApp.getInstance();
 		try {
 
-			app.beginTx();
 			DynamicResourceAccess grant = app.nodeQuery(DynamicResourceAccess.class).and(DynamicResourceAccess.signature, signature).getFirst();
 			long flagsValue = 255;
 
@@ -281,15 +272,9 @@ public class SchemaHelper {
 				grant.setProperty(DynamicResourceAccess.flags, flagsValue);
 			}
 
-			app.commitTx();
-
 		} catch (Throwable t) {
 
 			t.printStackTrace();
-
-		} finally {
-
-			app.finishTx();
 		}
 
 		return grants;
@@ -350,32 +335,21 @@ public class SchemaHelper {
 		final App app = StructrApp.getInstance();
 		try {
 
-			app.beginTx();
-
 			// delete grants
 			for (DynamicResourceAccess grant : app.nodeQuery(DynamicResourceAccess.class).getAsList()) {
 				app.delete(grant);
 			}
 
-			app.commitTx();
-
 		} catch (Throwable t) {
 
 			t.printStackTrace();
-
-		} finally {
-
-			app.finishTx();
 		}
-
 	}
 
 	public static void removeDynamicGrants(final String signature) {
 
 		final App app = StructrApp.getInstance();
 		try {
-
-			app.beginTx();
 
 			// delete grant
 			DynamicResourceAccess grant = app.nodeQuery(DynamicResourceAccess.class).and(DynamicResourceAccess.signature, signature).getFirst();
@@ -397,15 +371,9 @@ public class SchemaHelper {
 				app.delete(viewGrant);
 			}
 
-			app.commitTx();
-
 		} catch (Throwable t) {
 
 			t.printStackTrace();
-
-		} finally {
-
-			app.finishTx();
 		}
 
 	}

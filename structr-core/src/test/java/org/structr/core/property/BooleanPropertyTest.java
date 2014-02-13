@@ -27,6 +27,7 @@ import org.structr.core.Result;
 import org.structr.core.entity.TestFour;
 import org.structr.core.entity.TestOne;
 import org.structr.core.entity.OneFourOneToOne;
+import org.structr.core.graph.Tx;
 
 /**
  *
@@ -38,6 +39,7 @@ public class BooleanPropertyTest extends StructrTest {
 		
 		try {
 
+
 			final Property<Boolean> key = TestFour.booleanProperty;
 			final TestFour testEntity        = createTestNode(TestFour.class);
 			
@@ -46,18 +48,17 @@ public class BooleanPropertyTest extends StructrTest {
 			// store boolean in the test entitiy
 			final Boolean value = Boolean.TRUE;
 
-			try {
-				app.beginTx();
+			try (final Tx tx = app.tx()) {
+
 				testEntity.setProperty(key, value);
-				app.commitTx();
-
-			} finally {
-
-				app.finishTx();
+				tx.success();
 			}
 
-			// check value from database
-			assertEquals(value, testEntity.getProperty(key));
+			try (final Tx tx = app.tx()) {
+
+				// check value from database
+				assertEquals(value, testEntity.getProperty(key));
+			}
 			
 		} catch (FrameworkException fex) {
 			
@@ -68,6 +69,7 @@ public class BooleanPropertyTest extends StructrTest {
 	public void testSimpleSearchOnNode() {
 		
 		try {
+
 			final PropertyMap properties  = new PropertyMap();
 			final PropertyKey<Boolean> key = TestFour.booleanProperty;
 			
@@ -77,13 +79,16 @@ public class BooleanPropertyTest extends StructrTest {
 			
 			assertNotNull(testEntity);
 
-			// check value from database
-			assertEquals((Boolean)true, (Boolean)testEntity.getProperty(key));
-			
-			Result<TestFour> result = app.nodeQuery(TestFour.class).and(key, true).getResult();
-			
-			assertEquals(1, result.size());
-			assertEquals(testEntity, result.get(0));
+			try (final Tx tx = app.tx()) {
+
+				// check value from database
+				assertEquals((Boolean)true, (Boolean)testEntity.getProperty(key));
+
+				Result<TestFour> result = app.nodeQuery(TestFour.class).and(key, true).getResult();
+
+				assertEquals(1, result.size());
+				assertEquals(testEntity, result.get(0));
+			}
 		
 		} catch (FrameworkException fex) {
 			
@@ -95,6 +100,7 @@ public class BooleanPropertyTest extends StructrTest {
 	public void testSimpleSearchOnRelationship() {
 		
 		try {
+
 			final TestOne testOne        = createTestNode(TestOne.class);
 			final TestFour testFour      = createTestNode(TestFour.class);
 			final Property<Boolean> key = OneFourOneToOne.booleanProperty;
@@ -106,23 +112,22 @@ public class BooleanPropertyTest extends StructrTest {
 			
 			assertNotNull(testEntity);
 
-			try {
-				app.beginTx();
+			try (final Tx tx = app.tx()) {
+
 				testEntity.setProperty(key, true);
-				app.commitTx();
-
-			} finally {
-
-				app.finishTx();
+				tx.success();
 			}
 			
-			// check value from database
-			assertEquals((Boolean)true, (Boolean)testEntity.getProperty(key));
-			
-			Result<OneFourOneToOne> result = app.relationshipQuery(OneFourOneToOne.class).and(key, true).getResult();
-			
-			assertEquals(1, result.size());
-			assertEquals(testEntity, result.get(0));
+			try (final Tx tx = app.tx()) {
+
+				// check value from database
+				assertEquals((Boolean)true, (Boolean)testEntity.getProperty(key));
+
+				Result<OneFourOneToOne> result = app.relationshipQuery(OneFourOneToOne.class).and(key, true).getResult();
+
+				assertEquals(1, result.size());
+				assertEquals(testEntity, result.get(0));
+			}
 		
 		} catch (FrameworkException fex) {
 			

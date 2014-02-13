@@ -35,6 +35,7 @@ import static org.mockito.Mockito.*;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.entity.User;
 import org.structr.web.entity.relation.RenderNode;
@@ -58,9 +59,8 @@ public class RenderDataTest extends DOMTest {
 			
 			assertEquals(7, folders.size());
 
-			try {
-				app.beginTx();
-
+			try (final Tx tx = app.tx()) {
+			
 				Folder rootNode   = folders.get(0); rootNode.setProperty(AbstractNode.name, "rootNode");
 				Folder folderA    = folders.get(1); folderA.setProperty(AbstractNode.name, "folderA");
 				Folder folderB    = folders.get(2); folderB.setProperty(AbstractNode.name, "folderB");
@@ -129,9 +129,6 @@ public class RenderDataTest extends DOMTest {
 				((DOMElement) li4).setProperty(DOMElement.dataKey, "folders");
 
 				app.commitTx();
-
-			} finally {
-				app.finishTx();
 			}
 			
 			RenderContext ctx = new RenderContext(null, null, EditMode.NONE, Locale.GERMAN);
@@ -169,9 +166,8 @@ public class RenderDataTest extends DOMTest {
 		try {
 			final Page doc = (Page)getDocument();
 			
-			try {
-				app.beginTx();
-
+			try (final Tx tx = app.tx()) {
+			
 				final List<User> users = createTestNodes(User.class, 3);
 
 				assertEquals(3, users.size());
@@ -220,9 +216,6 @@ public class RenderDataTest extends DOMTest {
 				div.appendChild(p2);
 
 				app.commitTx();
-
-			} finally {
-				app.finishTx();
 			}
 						
 			HttpServletRequest request = mock(HttpServletRequest.class);

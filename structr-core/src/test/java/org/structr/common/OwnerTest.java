@@ -57,6 +57,7 @@ import org.structr.core.entity.Group;
 import org.structr.core.entity.User;
 import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.Tx;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -88,8 +89,7 @@ public class OwnerTest extends StructrTest {
 			Class type = TestOne.class;
 
 			final App superUserApp = StructrApp.getInstance();
-			try {
-				superUserApp.beginTx();
+			try (final Tx tx = app.tx()) {
 
 				List<NodeInterface> users = createTestNodes(User.class, 2);
 				user1 = (User) users.get(0);
@@ -102,45 +102,45 @@ public class OwnerTest extends StructrTest {
 
 				t1.setProperty(AbstractNode.owner, user1);
 
-				superUserApp.commitTx();
+				tx.success();
 
 			} catch (FrameworkException ex) {
 				logger.log(Level.SEVERE, ex.toString());
-			} finally {
-				superUserApp.finishTx();
 			}
 
-			assertEquals(user1, t1.getProperty(AbstractNode.owner));
-			
-			// Switch user context to user1
-			final App user1App = StructrApp.getInstance(SecurityContext.getInstance(user1, AccessMode.Backend));
+			try (final Tx tx = app.tx()) {
+				
+				assertEquals(user1, t1.getProperty(AbstractNode.owner));
 
-			// Check if user1 can see t1
-			assertEquals(t1, user1App.nodeQuery(type, false).getFirst());
+				// Switch user context to user1
+				final App user1App = StructrApp.getInstance(SecurityContext.getInstance(user1, AccessMode.Backend));
+
+				// Check if user1 can see t1
+				assertEquals(t1, user1App.nodeQuery(type, false).getFirst());
+			}
 			
-			try {
-				superUserApp.beginTx();
+			try (final Tx tx = app.tx()) {
 
 				// As superuser, make another user the owner
 				t1.setProperty(AbstractNode.owner, user2);
 
-				superUserApp.commitTx();
+				tx.success();
+				
 			} catch (FrameworkException ex) {
 				logger.log(Level.SEVERE, ex.toString());
-			} finally {
-				superUserApp.finishTx();
 			}
 			
-			
-			// Switch user context to user2
-			final App user2App = StructrApp.getInstance(SecurityContext.getInstance(user2, AccessMode.Backend));
-			
-			// Check if user2 can see t1
-			assertEquals(t1, user2App.nodeQuery(type, false).getFirst());
-			
-			// Check if user2 is owner of t1
-			assertEquals(user2, t1.getProperty(AbstractNode.owner));
+			try (final Tx tx = app.tx()) {
+				
+				// Switch user context to user2
+				final App user2App = StructrApp.getInstance(SecurityContext.getInstance(user2, AccessMode.Backend));
 
+				// Check if user2 can see t1
+				assertEquals(t1, user2App.nodeQuery(type, false).getFirst());
+
+				// Check if user2 is owner of t1
+				assertEquals(user2, t1.getProperty(AbstractNode.owner));
+			}
 			
 		} catch (FrameworkException ex) {
 
@@ -160,9 +160,8 @@ public class OwnerTest extends StructrTest {
 	public void test02SetDifferentPrincipalTypesAsOwner() {
 
 		final App superUserApp = StructrApp.getInstance();
-		try {
-			
-			superUserApp.beginTx();
+		
+		try (final Tx tx = app.tx()) {
 
 			List<NodeInterface> users = createTestNodes(User.class, 2);
 			User user1 = (User) users.get(0);
@@ -183,17 +182,13 @@ public class OwnerTest extends StructrTest {
 			List<Relationship> incomingRels = Iterables.toList(t1.getNode().getRelationships(Direction.INCOMING, new PrincipalOwnsNode()));
 			assertEquals(1, incomingRels.size());
 
-			superUserApp.commitTx();
+			tx.success();
 			
 		} catch (FrameworkException ex) {
 
 			logger.log(Level.SEVERE, ex.toString());
 			fail("Unexpected exception");
-
-		} finally {
-			superUserApp.finishTx();
 		}
-
 	}
 	
 	

@@ -51,6 +51,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
+import org.structr.core.graph.TransactionCommand;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -177,9 +178,12 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 				webSocketData.setToken(null);
 
 				// process message
-				try {
+				try (final TransactionCommand cmd = StructrApp.getInstance(securityContext).beginTx()) {
 
 					abstractCommand.processMessage(webSocketData);
+					
+					// commit transaction
+					cmd.commitTx();
 
 				} catch (Throwable t) {
 

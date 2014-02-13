@@ -30,6 +30,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.web.entity.Folder;
 import org.structr.core.entity.ResourceAccess;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.entity.User;
@@ -149,17 +150,13 @@ public class ResourceAccessTest extends StructrUiTest {
 
 			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(403).when().put("/folder/" + testFolder.getUuid());
 
-			try {
-				app.beginTx();
+			try (final Tx tx = app.tx()) {
+			
 				// Prepare for next test
 				testUser.setProperty(AbstractNode.name, name);
 				testUser.setProperty(User.password, password);
 				
 				app.commitTx();
-				
-			} finally {
-				
-				app.finishTx();
 			}
 
 			// test user has no specific rights on the object => still 403
@@ -167,17 +164,12 @@ public class ResourceAccessTest extends StructrUiTest {
 				.headers("X-User", name, "X-Password", password)
 				.contentType("application/json; charset=UTF-8").expect().statusCode(403).when().put("/folder/" + testFolder.getUuid());
 
-			try {
-				app.beginTx();
-
+			try (final Tx tx = app.tx()) {
+			
 				// now we give the user ownership and expect a 200
 				testFolder.setProperty(AbstractNode.owner, testUser);
 				
 				app.commitTx();
-				
-			} finally {
-				
-				app.finishTx();
 			}
 
 			RestAssured.given()
@@ -214,41 +206,27 @@ public class ResourceAccessTest extends StructrUiTest {
 			// resource access explicetly set to FORBIDDEN => forbidden
 			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().delete("/folder/" + testFolder.getUuid());
 
-			try {
-				
-				// allow DELETE for authenticated users => access without user/pass should be still forbidden
-				app.beginTx();
+			try (final Tx tx = app.tx()) {
+			
 				folderGrant.setFlag(UiAuthenticator.AUTH_USER_DELETE);
 				app.commitTx();
-				
-			} finally {
-				app.finishTx();
 			}
 					
 			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().delete("/folder/" + testFolder.getUuid());
 
-			try {
-				
-				// allow DELETE for non-authenticated users => access is forbidden with 403 because of missing rights for the test object
-				app.beginTx();
+			try (final Tx tx = app.tx()) {
+			
 				folderGrant.setFlag(UiAuthenticator.NON_AUTH_USER_DELETE);
 				app.commitTx();
-				
-			} finally {
-				app.finishTx();
 			}
 
 			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(403).when().delete("/folder/" + testFolder.getUuid());
 
-			try {
-				
-				app.beginTx();
+			try (final Tx tx = app.tx()) {
+			
 				testUser.setProperty(AbstractNode.name, name);
 				testUser.setProperty(User.password, password);
 				app.commitTx();
-				
-			} finally {
-				app.finishTx();
 			}
 
 			// test user has no specific rights on the object => still 403
@@ -256,16 +234,10 @@ public class ResourceAccessTest extends StructrUiTest {
 				.headers("X-User", name, "X-Password", password)
 				.contentType("application/json; charset=UTF-8").expect().statusCode(403).when().delete("/folder/" + testFolder.getUuid());
 					
-
-			try {
-
-				// now we give the user ownership and expect a 200
-				app.beginTx();
+			try (final Tx tx = app.tx()) {
+			
 				testFolder.setProperty(AbstractNode.owner, testUser);
 				app.commitTx();
-				
-			} finally {
-				app.finishTx();
 			}
 					
 			RestAssured.given()
@@ -301,8 +273,8 @@ public class ResourceAccessTest extends StructrUiTest {
 		properties.put(ResourceAccess.flags, flags);
 		properties.put(AbstractNode.type, ResourceAccess.class.getSimpleName());
 
-		try {
-			app.beginTx();
+			try (final Tx tx = app.tx()) {
+			
 			ResourceAccess access = app.create(ResourceAccess.class, properties);
 			app.commitTx();
 			
@@ -311,10 +283,6 @@ public class ResourceAccessTest extends StructrUiTest {
 		} catch (Throwable t) {
 
 			t.printStackTrace();
-			
-		} finally {
-			
-			app.finishTx();
 		}
 		
 		return null;

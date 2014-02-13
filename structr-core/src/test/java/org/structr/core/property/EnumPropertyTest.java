@@ -28,6 +28,7 @@ import org.structr.core.entity.TestEnum;
 import org.structr.core.entity.TestFour;
 import org.structr.core.entity.TestOne;
 import org.structr.core.entity.OneFourOneToOne;
+import org.structr.core.graph.Tx;
 
 /**
  *
@@ -38,6 +39,7 @@ public class EnumPropertyTest extends StructrTest {
 	public void testSimpleProperty() {
 		
 		try {
+
 			final PropertyMap properties    = new PropertyMap();
 			
 			properties.put(TestFour.enumProperty, TestEnum.Status1);
@@ -46,8 +48,11 @@ public class EnumPropertyTest extends StructrTest {
 			
 			assertNotNull(testEntity);
 
-			// check value from database
-			assertEquals(TestEnum.Status1, testEntity.getProperty(TestFour.enumProperty));
+			try (final Tx tx = app.tx()) {
+
+				// check value from database
+				assertEquals(TestEnum.Status1, testEntity.getProperty(TestFour.enumProperty));
+			}
 			
 		} catch (FrameworkException fex) {
 			
@@ -58,6 +63,7 @@ public class EnumPropertyTest extends StructrTest {
 	public void testSimpleSearchOnNode() {
 		
 		try {
+
 			final PropertyMap properties  = new PropertyMap();
 			final PropertyKey<TestEnum> key = TestFour.enumProperty;
 			
@@ -67,13 +73,16 @@ public class EnumPropertyTest extends StructrTest {
 			
 			assertNotNull(testEntity);
 
-			// check value from database
-			assertEquals(TestEnum.Status1, testEntity.getProperty(key));
-			
-			Result<TestFour> result = app.nodeQuery(TestFour.class).and(key, TestEnum.Status1).getResult();
-			
-			assertEquals(1, result.size());
-			assertEquals(testEntity, result.get(0));
+			try (final Tx tx = app.tx()) {
+
+				// check value from database
+				assertEquals(TestEnum.Status1, testEntity.getProperty(key));
+
+				Result<TestFour> result = app.nodeQuery(TestFour.class).and(key, TestEnum.Status1).getResult();
+
+				assertEquals(1, result.size());
+				assertEquals(testEntity, result.get(0));
+			}
 		
 		} catch (FrameworkException fex) {
 			
@@ -85,6 +94,7 @@ public class EnumPropertyTest extends StructrTest {
 	public void testSimpleSearchOnRelationship() {
 		
 		try {
+
 			final TestOne testOne        = createTestNode(TestOne.class);
 			final TestFour testFour      = createTestNode(TestFour.class);
 			final Property<TestEnum> key = OneFourOneToOne.enumProperty;
@@ -96,23 +106,22 @@ public class EnumPropertyTest extends StructrTest {
 			
 			assertNotNull(testEntity);
 
-			try {
-				app.beginTx();
+			try (final Tx tx = app.tx()) {
+
 				testEntity.setProperty(key, TestEnum.Status1);
-				app.commitTx();
-
-			} finally {
-
-				app.finishTx();
+				tx.success();
 			}
 			
-			// check value from database
-			assertEquals(TestEnum.Status1, testEntity.getProperty(key));
-			
-			Result<OneFourOneToOne> result = app.relationshipQuery(OneFourOneToOne.class).and(key, TestEnum.Status1).getResult();
-			
-			assertEquals(1, result.size());
-			assertEquals(testEntity, result.get(0));
+			try (final Tx tx = app.tx()) {
+
+				// check value from database
+				assertEquals(TestEnum.Status1, testEntity.getProperty(key));
+
+				Result<OneFourOneToOne> result = app.relationshipQuery(OneFourOneToOne.class).and(key, TestEnum.Status1).getResult();
+
+				assertEquals(1, result.size());
+				assertEquals(testEntity, result.get(0));
+			}
 		
 		} catch (FrameworkException fex) {
 			

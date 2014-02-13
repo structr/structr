@@ -18,7 +18,6 @@
  */
 package org.structr.core.graph;
 
-import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Relation;
@@ -51,14 +50,14 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 	//~--- methods --------------------------------------------------------
 
-	public void execute(NodeInterface node) throws FrameworkException {
+	public void execute(NodeInterface node) {
 
 		doDeleteNode(node);
 		deletedNodes.clear();
 
 	}
 
-	private AbstractNode doDeleteNode(final NodeInterface node) throws FrameworkException {
+	private AbstractNode doDeleteNode(final NodeInterface node) {
 
 		if (!deletedNodes.contains(node) && node.getUuid() == null) {
 

@@ -77,41 +77,30 @@ public class TestNine extends AbstractNode {
 
 	public void geocode() throws FrameworkException {
 
-		final App app = StructrApp.getInstance(securityContext);
-		
-		try {
-			app.beginTx();
+		Double lat              = getProperty(latitude);
+		Double lon              = getProperty(longitude);
 
-			Double lat              = getProperty(latitude);
-			Double lon              = getProperty(longitude);
+		if (lat == null || lon == null) {
 
-			if (lat == null || lon == null) {
+			String _city       = getProperty(city);
+			String _street     = getProperty(street);
+			String _postalCode = getProperty(postalCode);
 
-				String _city       = getProperty(city);
-				String _street     = getProperty(street);
-				String _postalCode = getProperty(postalCode);
+			GeoCodingResult geoCodingResult = GeoHelper.geocode(_street, null, _postalCode, _city, null, null);
+			if (geoCodingResult == null) {
 
-				GeoCodingResult geoCodingResult = GeoHelper.geocode(_street, null, _postalCode, _city, null, null);
-				if (geoCodingResult == null) {
-
-					return;
-				}
-
-				setProperty(latitude, geoCodingResult.getLatitude());
-				setProperty(longitude, geoCodingResult.getLongitude());
-
-				// set postal code if found
-				AddressComponent postalCodeComponent = geoCodingResult.getAddressComponent(GeoCodingResult.Type.postal_code);
-				if (postalCodeComponent != null) {
-
-					setProperty(postalCode, postalCodeComponent.getLongValue());
-				}
+				return;
 			}
-			app.commitTx();
 
-		} finally {
-			
-			app.finishTx();
+			setProperty(latitude, geoCodingResult.getLatitude());
+			setProperty(longitude, geoCodingResult.getLongitude());
+
+			// set postal code if found
+			AddressComponent postalCodeComponent = geoCodingResult.getAddressComponent(GeoCodingResult.Type.postal_code);
+			if (postalCodeComponent != null) {
+
+				setProperty(postalCode, postalCodeComponent.getLongValue());
+			}
 		}
 	}
 }

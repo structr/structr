@@ -63,42 +63,19 @@ public class Group extends AbstractUser implements Principal {
 	public void addMember(final Principal user) throws FrameworkException {
 
 		final App app = StructrApp.getInstance(securityContext);
-		try {
-			
-			app.beginTx();
+		List<Principal> _users = getProperty(members);
+		_users.add(user);
 
-			List<Principal> _users = getProperty(members);
-			_users.add(user);
-
-			setProperty(members, _users);
-			
-			app.commitTx();
-			
-		} finally {
-			
-			app.finishTx();
-		}
-		
+		setProperty(members, _users);
 	}
 	
 	public void removeMember(final Principal user) throws FrameworkException {
 
 		final App app = StructrApp.getInstance(securityContext);
-		try {
-			
-			app.beginTx();
+		List<Principal> _users = getProperty(members);
+		_users.remove(user);
 
-			List<Principal> _users = getProperty(members);
-			_users.remove(user);
-
-			setProperty(members, _users);
-			
-			app.commitTx();
-			
-		} finally {
-			
-			app.finishTx();
-		}
+		setProperty(members, _users);
 	}
 	
 	@Override

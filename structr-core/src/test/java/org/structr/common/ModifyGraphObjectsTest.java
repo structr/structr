@@ -32,6 +32,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.GenericNode;
 import org.structr.core.entity.relationship.NodeHasLocation;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 
@@ -71,29 +72,27 @@ public class ModifyGraphObjectsTest extends StructrTest {
 			props.put(AbstractNode.type, type);
 			props.put(AbstractNode.name, name);
 
-			try {
-				app.beginTx();
+			try (final Tx tx = app.tx()) {
+				
 				node = app.create(GenericNode.class, props);
-				app.commitTx();
-
-			} finally {
-
-				app.finishTx();
+				tx.success();
 			}
 
-			// Check defaults
-			assertEquals(GenericNode.class.getSimpleName(), node.getProperty(AbstractNode.type));
-			assertTrue(node.getProperty(AbstractNode.name).equals(name));
-			assertTrue(!node.getProperty(AbstractNode.hidden));
-			assertTrue(!node.getProperty(AbstractNode.deleted));
-			assertTrue(!node.getProperty(AbstractNode.visibleToAuthenticatedUsers));
-			assertTrue(!node.getProperty(AbstractNode.visibleToPublicUsers));
+			try (final Tx tx = app.tx()) {
+				
+				// Check defaults
+				assertEquals(GenericNode.class.getSimpleName(), node.getProperty(AbstractNode.type));
+				assertTrue(node.getProperty(AbstractNode.name).equals(name));
+				assertTrue(!node.getProperty(AbstractNode.hidden));
+				assertTrue(!node.getProperty(AbstractNode.deleted));
+				assertTrue(!node.getProperty(AbstractNode.visibleToAuthenticatedUsers));
+				assertTrue(!node.getProperty(AbstractNode.visibleToPublicUsers));
+			}
 
 			final String name2 = "GenericNode-name-äöüß";
 
-			try {
-				app.beginTx();
-
+			try (final Tx tx = app.tx()) {
+				
 				// Modify values
 				node.setProperty(AbstractNode.name, name2);
 				node.setProperty(AbstractNode.hidden, true);
@@ -101,18 +100,17 @@ public class ModifyGraphObjectsTest extends StructrTest {
 				node.setProperty(AbstractNode.visibleToAuthenticatedUsers, true);
 				node.setProperty(AbstractNode.visibleToPublicUsers, true);
 
-				app.commitTx();
-
-			} finally {
-
-				app.finishTx();
+				tx.success();
 			}
 
-			assertTrue(node.getProperty(AbstractNode.name).equals(name2));
-			assertTrue(node.getProperty(AbstractNode.hidden));
-			assertTrue(node.getProperty(AbstractNode.deleted));
-			assertTrue(node.getProperty(AbstractNode.visibleToAuthenticatedUsers));
-			assertTrue(node.getProperty(AbstractNode.visibleToPublicUsers));
+			try (final Tx tx = app.tx()) {
+				
+				assertTrue(node.getProperty(AbstractNode.name).equals(name2));
+				assertTrue(node.getProperty(AbstractNode.hidden));
+				assertTrue(node.getProperty(AbstractNode.deleted));
+				assertTrue(node.getProperty(AbstractNode.visibleToAuthenticatedUsers));
+				assertTrue(node.getProperty(AbstractNode.visibleToPublicUsers));
+			}
 
 		} catch (FrameworkException ex) {
 
@@ -134,46 +132,40 @@ public class ModifyGraphObjectsTest extends StructrTest {
 			final PropertyKey key1         = new StringProperty("jghsdkhgshdhgsdjkfgh");
 			final String val1              = "54354354546806849870";
 
-			try {
-				app.beginTx();
+			try (final Tx tx = app.tx()) {
+				
 				rel.setProperty(key1, val1);
-				app.commitTx();
-
-			} finally {
-
-				app.finishTx();
+				tx.success();
 			}
 			
-			assertTrue("Expected relationship to have a value for key '" + key1.dbName() + "'", rel.getRelationship().hasProperty(key1.dbName()));
-			
-			assertEquals(val1, rel.getRelationship().getProperty(key1.dbName()));
-			
-			Object vrfy1 = rel.getProperty(key1);
-			assertEquals(val1, vrfy1);
+			try (final Tx tx = app.tx()) {
+				
+				assertTrue("Expected relationship to have a value for key '" + key1.dbName() + "'", rel.getRelationship().hasProperty(key1.dbName()));
+
+				assertEquals(val1, rel.getRelationship().getProperty(key1.dbName()));
+
+				Object vrfy1 = rel.getProperty(key1);
+				assertEquals(val1, vrfy1);
+			}
 			
 			final String val2 = "öljkhöohü8osdfhoödhi";
 
-			try {
-				app.beginTx();
+			try (final Tx tx = app.tx()) {
+				
 				rel.setProperty(key1, val2);
-				app.commitTx();
-			
-			} finally {
-
-				app.finishTx();
+				tx.success();
 			}
 
-			Object vrfy2 = rel.getProperty(key1);
-			assertEquals(val2, vrfy2);
-			
+			try (final Tx tx = app.tx()) {
+				
+				Object vrfy2 = rel.getProperty(key1);
+				assertEquals(val2, vrfy2);
+			}
 
 		} catch (FrameworkException ex) {
 
 			logger.log(Level.SEVERE, ex.toString());
 			fail("Unexpected exception");
-
 		}
-
 	}
-
 }

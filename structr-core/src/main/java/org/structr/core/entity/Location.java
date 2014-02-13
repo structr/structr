@@ -23,9 +23,11 @@ import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.relationship.NodeHasLocation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.DoubleProperty;
 
 //~--- classes ----------------------------------------------------------------
@@ -80,29 +82,22 @@ public class Location extends AbstractNode {
 	}
 	
 	private boolean notifyLocatables() {
-		
-		try {
-			// FIXME: LocationRelationship has a direction. but it is ignored here
 
-			boolean allLocatablesAreValid = false;
+		// FIXME: LocationRelationship has a direction. but it is ignored here
 
-			for(RelationshipInterface rel : this.getRelationships(NodeHasLocation.class)) {
+		boolean allLocatablesAreValid = false;
 
-				NodeInterface otherNode = rel.getOtherNode(this);
-				if(otherNode != null && otherNode instanceof Locatable) {
+		for(RelationshipInterface rel : this.getRelationships(NodeHasLocation.class)) {
 
-					// notify other node of location change
-					allLocatablesAreValid |= !((Locatable)otherNode).locationChanged();
-				}
+			NodeInterface otherNode = rel.getOtherNode(this);
+			if(otherNode != null && otherNode instanceof Locatable) {
+
+				// notify other node of location change
+				allLocatablesAreValid |= !((Locatable)otherNode).locationChanged();
 			}
-
-			return allLocatablesAreValid;
-			
-		} catch (Throwable t) {
-			t.printStackTrace();
 		}
-		
-		return false;
+
+		return allLocatablesAreValid;
 	}
 
 }

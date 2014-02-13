@@ -50,6 +50,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.GenericNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.log.ReadLogCommand;
 import org.structr.core.log.WriteLogCommand;
 import org.structr.files.ftp.FtpService;
@@ -253,7 +254,7 @@ public class StructrUiTest extends TestCase {
 	 */
 	private static List<Class> findClasses(File directory, String packageName) throws ClassNotFoundException {
 
-		List<Class> classes = new ArrayList<Class>();
+		List<Class> classes = new ArrayList<>();
 
 		if (!directory.exists()) {
 
@@ -286,10 +287,10 @@ public class StructrUiTest extends TestCase {
 		final PropertyMap props = new PropertyMap();
 		props.put(AbstractNode.type, type.getSimpleName());
 
-		try {
-			List<T> nodes = new LinkedList<>();
+		try (final Tx tx = app.tx()) {
 			
-			app.beginTx();
+			List<T> nodes = new LinkedList<>();
+
 			for (int i = 0; i < number; i++) {
 				props.put(AbstractNode.name, type.getSimpleName() + i);
 				nodes.add(app.create(type, props));
@@ -297,20 +298,15 @@ public class StructrUiTest extends TestCase {
 			app.commitTx();
 
 			return nodes;
-			
-		} finally {
-			
-			app.finishTx();
 		}
 	}
 
 	protected <T extends NodeInterface> List<T> createTestNodes(final Class<T> type, final int number, final PropertyMap props) throws FrameworkException {
 
-		try {
+		try (final Tx tx = app.tx()) {
 			
 			List<T> nodes = new LinkedList<>();
 
-			app.beginTx();
 			for (int i = 0; i < number; i++) {
 				nodes.add(app.create(type, props));
 			}
@@ -318,10 +314,6 @@ public class StructrUiTest extends TestCase {
 			app.commitTx();
 			
 			return nodes;
-
-		} finally {
-			
-			app.finishTx();
 		}
 	}
 
@@ -331,23 +323,16 @@ public class StructrUiTest extends TestCase {
 		final GenericNode startNode = nodes.get(0);
 		final GenericNode endNode   = nodes.get(1);
 
-
-		try {
+		try (final Tx tx = app.tx()) {
+			
 			List<RelationshipInterface> rels = new LinkedList<>();
 
-			app.beginTx();
 			for (int i = 0; i < number; i++) {
 				rels.add(app.create(startNode, endNode, relType));
 			}
 
 			return rels;
-
-		} finally {
-			
-			app.finishTx();
 		}
-
-
 	}
 
 	//~--- get methods ----------------------------------------------------
