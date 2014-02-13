@@ -67,38 +67,26 @@ public class InsertCommand extends AbstractCommand {
 
 				PropertyMap nodeProperties = PropertyMap.inputTypeToJavaType(securityContext, properties);
 
-				app.beginTx();
 				nodeToInsert = app.create(DOMNode.class, nodeProperties);
-				app.commitTx();
 				
 			} catch (FrameworkException fex) {
 
 				logger.log(Level.WARNING, "Could not create node.", fex);
 				getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
 
-			} finally {
-				
-				app.finishTx();
 			}
 
 			if ((nodeToInsert != null) && (parentNode != null)) {
 
 				try {
 
-					app.beginTx();
-
 					PropertyMap relProperties = PropertyMap.inputTypeToJavaType(securityContext, relData);
 					app.create(parentNode, nodeToInsert, DOMChildren.class, relProperties);
-
-					app.commitTx();
 					
-				} catch (Throwable t) {
+				} catch (FrameworkException t) {
 
 					getWebSocket().send(MessageBuilder.status().code(400).message(t.getMessage()).build(), true);
 
-				} finally {
-					
-					app.finishTx();
 				}
 
 			} else {

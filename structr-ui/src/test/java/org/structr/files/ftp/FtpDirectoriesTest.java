@@ -26,6 +26,9 @@ import static junit.framework.TestCase.assertNotNull;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.StructrApp;
+import org.structr.core.graph.TransactionCommand;
+import org.structr.core.graph.Tx;
 import org.structr.web.common.FtpTest;
 
 /**
@@ -40,7 +43,8 @@ public class FtpDirectoriesTest extends FtpTest {
 	public void test01ListDirectories() {
 		
 		FTPClient ftp = setupFTPClient();
-		try {
+		
+		try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
 			
 			FTPFile[] dirs = ftp.listDirectories();
 			
@@ -70,6 +74,8 @@ public class FtpDirectoriesTest extends FtpTest {
 			
 			ftp.disconnect();
 			
+			tx.success();
+			
 		} catch (IOException | FrameworkException ex) {
 			logger.log(Level.SEVERE, "Error while listing FTP directories", ex);
 			fail("Unexpected exception: " + ex.getMessage());
@@ -80,7 +86,7 @@ public class FtpDirectoriesTest extends FtpTest {
 		
 		FTPClient ftp = setupFTPClient();
 		
-		try {
+		try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
 			assertEmptyDirectory(ftp);
 			
@@ -111,7 +117,9 @@ public class FtpDirectoriesTest extends FtpTest {
 			
 			ftp.disconnect();
 			
-		} catch (IOException ex) {
+			tx.success();
+			
+		} catch (IOException | FrameworkException ex) {
 			logger.log(Level.SEVERE, "Error while making FTP directories", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
@@ -121,7 +129,7 @@ public class FtpDirectoriesTest extends FtpTest {
 
 		FTPClient ftp = setupFTPClient();
 		
-		try {
+		try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
 			
 			FTPFile[] dirs = ftp.listDirectories();
 			
@@ -142,7 +150,9 @@ public class FtpDirectoriesTest extends FtpTest {
 			
 			ftp.disconnect();
 			
-		} catch (IOException ex) {
+			tx.success();
+			
+		} catch (IOException | FrameworkException ex) {
 			logger.log(Level.SEVERE, "Error while changing FTP directories", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
@@ -152,7 +162,7 @@ public class FtpDirectoriesTest extends FtpTest {
 
 		FTPClient ftp = setupFTPClient();
 		
-		try {
+		try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
 			
 			assertEmptyDirectory(ftp);
 			
@@ -182,7 +192,9 @@ public class FtpDirectoriesTest extends FtpTest {
 			
 			ftp.disconnect();
 			
-		} catch (IOException ex) {
+			tx.success();
+			
+		} catch (IOException | FrameworkException ex) {
 			logger.log(Level.SEVERE, "Error", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
@@ -192,7 +204,7 @@ public class FtpDirectoriesTest extends FtpTest {
 
 		FTPClient ftp = setupFTPClient();
 		
-		try {
+		try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
 			
 			assertEmptyDirectory(ftp);
 			
@@ -217,7 +229,9 @@ public class FtpDirectoriesTest extends FtpTest {
 			
 			ftp.disconnect();
 			
-		} catch (IOException ex) {
+			tx.success();
+			
+		} catch (IOException | FrameworkException ex) {
 			logger.log(Level.SEVERE, "Error", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
@@ -227,7 +241,7 @@ public class FtpDirectoriesTest extends FtpTest {
 
 		FTPClient ftp = setupFTPClient();
 		
-		try {
+		try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
 			
 			assertEmptyDirectory(ftp);
 			
@@ -260,7 +274,9 @@ public class FtpDirectoriesTest extends FtpTest {
 			
 			ftp.disconnect();
 			
-		} catch (IOException ex) {
+			tx.success();
+			
+		} catch (IOException | FrameworkException ex) {
 			logger.log(Level.SEVERE, "Error", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
@@ -270,7 +286,7 @@ public class FtpDirectoriesTest extends FtpTest {
 
 		FTPClient ftp = setupFTPClient();
 		
-		try {
+		try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
 			
 			FTPFile[] dirs = ftp.listDirectories();
 			
@@ -296,7 +312,9 @@ public class FtpDirectoriesTest extends FtpTest {
 			
 			ftp.disconnect();
 			
-		} catch (IOException ex) {
+			tx.success();
+			
+		} catch (IOException | FrameworkException ex) {
 			logger.log(Level.SEVERE, "Error while changing FTP directories", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
@@ -306,7 +324,7 @@ public class FtpDirectoriesTest extends FtpTest {
 
 		FTPClient ftp = setupFTPClient();
 		
-		try {
+		try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
 			
 			FTPFile[] dirs = ftp.listDirectories();
 			
@@ -332,7 +350,9 @@ public class FtpDirectoriesTest extends FtpTest {
 
 			ftp.disconnect();
 			
-		} catch (IOException ex) {
+			tx.success();
+			
+		} catch (IOException | FrameworkException ex) {
 			logger.log(Level.SEVERE, "Error while changing FTP directories", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}

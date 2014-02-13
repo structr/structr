@@ -53,27 +53,17 @@ public class ThumbnailTest extends StructrTest {
 	public void test01CreateThumbnail() {
 
 		try {
-			TestImage img = null;
-			
-			try (final Tx tx = app.tx()) {
-
-				img = (TestImage) ImageHelper.createFileBase64(securityContext, base64Image, TestImage.class);
-
-				app.commitTx();
-			}
+			TestImage img = (TestImage) ImageHelper.createFileBase64(securityContext, base64Image, TestImage.class);
 
 			assertNotNull(img);
 			assertTrue(img instanceof TestImage);
 
-			try (final Tx tx = app.tx()) {
+			Image tn = img.getProperty(TestImage.thumbnail);
 
-				Image tn = img.getProperty(TestImage.thumbnail);
-
-				assertNotNull(tn);
-				assertEquals(new Integer(200), tn.getWidth());
-				assertEquals(new Integer(48), tn.getHeight());  // cropToFit = false
-				assertEquals("image/" + Thumbnail.FORMAT, tn.getContentType());
-			}
+			assertNotNull(tn);
+			assertEquals(new Integer(200), tn.getWidth());
+			assertEquals(new Integer(48), tn.getHeight());  // cropToFit = false
+			assertEquals("image/" + Thumbnail.FORMAT, tn.getContentType());
 
 		} catch (Exception ex) {
 

@@ -136,19 +136,10 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 
 	@Override
 	public boolean setLastModified(final long l) {
-
-		final App app = StructrApp.getInstance();
-
 		try {
-			app.beginTx();
 			structrFile.setProperty(AbstractFile.lastModifiedDate, new Date(l));
-			app.commitTx();
-
 		} catch (FrameworkException ex) {
 			logger.log(Level.SEVERE, null, ex);
-
-		} finally {
-			app.finishTx();
 		}
 
 		return true;
@@ -160,15 +151,9 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 		final App app = StructrApp.getInstance();
 
 		try {
-			app.beginTx();
 			app.delete(structrFile);
-			app.commitTx();
-
 		} catch (FrameworkException ex) {
 			logger.log(Level.SEVERE, null, ex);
-
-		} finally {
-			app.finishTx();
 		}
 
 		return true;
@@ -186,8 +171,6 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 		final App app                           = StructrApp.getInstance();
 
 		try {
-			app.beginTx();
-
 			if (path.contains("/")) {
 
 				String newParentPath = StringUtils.substringBeforeLast(path, "/");
@@ -212,14 +195,9 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 				structrFile.setProperty(AbstractNode.name, newName);
 			}
 			
-			app.commitTx();
-
 		} catch (FrameworkException ex) {
 			logger.log(Level.SEVERE, "Could not move ftp file", ex);
 			return false;
-
-		} finally {
-			app.finishTx();
 		}
 
 		return true;

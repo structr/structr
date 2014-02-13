@@ -3,18 +3,17 @@
  *
  * This file is part of Structr <http://structr.org>.
  *
- * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
+ * Structr is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Affero General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
  *
- * Structr is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * Structr is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr. If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.web.entity;
 
@@ -32,11 +31,9 @@ import org.structr.core.property.Property;
 import org.structr.core.Services;
 
 //~--- JDK imports ------------------------------------------------------------
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -47,7 +44,6 @@ import org.structr.core.property.StringProperty;
 import org.structr.web.common.FileHelper;
 
 //~--- classes ----------------------------------------------------------------
-
 /**
  * A file that stores its binary content on disk.
  *
@@ -55,18 +51,18 @@ import org.structr.web.common.FileHelper;
  */
 public class File extends AbstractFile implements Linkable {
 
-	private static final Logger logger                          = Logger.getLogger(File.class.getName());
-	
-	public static final Property<String>       contentType      = new StringProperty("contentType").indexedWhenEmpty();
-	public static final Property<String>       relativeFilePath = new StringProperty("relativeFilePath");
-	public static final Property<Long>         size             = new LongProperty("size").indexed();
-	public static final Property<String>       url              = new StringProperty("url");
-	public static final Property<Long>         checksum         = new LongProperty("checksum").unvalidated();
-	public static final Property<Integer>      cacheForSeconds  = new IntProperty("cacheForSeconds");
+	private static final Logger logger = Logger.getLogger(File.class.getName());
+
+	public static final Property<String> contentType = new StringProperty("contentType").indexedWhenEmpty();
+	public static final Property<String> relativeFilePath = new StringProperty("relativeFilePath");
+	public static final Property<Long> size = new LongProperty("size").indexed();
+	public static final Property<String> url = new StringProperty("url");
+	public static final Property<Long> checksum = new LongProperty("checksum").unvalidated();
+	public static final Property<Integer> cacheForSeconds = new IntProperty("cacheForSeconds");
 
 	public static final View publicView = new View(File.class, PropertyView.Public, type, name, contentType, size, url, owner);
-	public static final View uiView     = new View(File.class, PropertyView.Ui, type, contentType, relativeFilePath, size, url, parent, checksum, cacheForSeconds, owner);
-	
+	public static final View uiView = new View(File.class, PropertyView.Ui, type, contentType, relativeFilePath, size, url, parent, checksum, cacheForSeconds, owner);
+
 	@Override
 	public void onNodeDeletion() {
 
@@ -76,66 +72,59 @@ public class File extends AbstractFile implements Linkable {
 
 			if (path != null) {
 
-			filePath = FileHelper.getFilePath(path);
+				filePath = FileHelper.getFilePath(path);
 
-			java.io.File toDelete = new java.io.File(filePath);
+				java.io.File toDelete = new java.io.File(filePath);
 
-			if (toDelete.exists() && toDelete.isFile()) {
+				if (toDelete.exists() && toDelete.isFile()) {
 
-				toDelete.delete();
-			}
+					toDelete.delete();
+				}
 			}
 
 		} catch (Throwable t) {
 
-			logger.log(Level.WARNING, "Exception while trying to delete file {0}: {1}", new Object[] { filePath, t });
+			logger.log(Level.WARNING, "Exception while trying to delete file {0}: {1}", new Object[]{filePath, t});
 
 		}
 
 	}
-	
+
 	@Override
 	public void afterCreation(SecurityContext securityContext) {
 
-		final App app = StructrApp.getInstance(securityContext);
 		try {
 
-			final String filesPath  = Services.getInstance().getConfigurationValue(Services.FILES_PATH);
+			final String filesPath = Services.getInstance().getConfigurationValue(Services.FILES_PATH);
 			java.io.File fileOnDisk = new java.io.File(filesPath + "/" + getRelativeFilePath());
 
 			if (fileOnDisk.exists()) {
 				return;
 			}
-			
+
 			fileOnDisk.getParentFile().mkdirs();
 
 			try {
-				
+
 				fileOnDisk.createNewFile();
 
 			} catch (IOException ex) {
-				
+
 				logger.log(Level.SEVERE, "Could not create file", ex);
 				return;
 			}
 
-			app.beginTx();
-			setProperty(checksum,	FileHelper.getChecksum(File.this));
-			
+			setProperty(checksum, FileHelper.getChecksum(File.this));
+
 			long fileSize = FileHelper.getSize(File.this);
 			if (fileSize > 0) {
 				setProperty(size, fileSize);
 			}
-			
-			app.commitTx();
 
 		} catch (FrameworkException ex) {
 
 			logger.log(Level.SEVERE, "Could not create file", ex);
 
-		} finally {
-			
-			app.finishTx();
 		}
 
 	}
@@ -194,7 +183,6 @@ public class File extends AbstractFile implements Linkable {
 //		return null;
 //
 //	}
-
 	public InputStream getInputStream() {
 
 		final String path = getRelativeFilePath();
@@ -202,20 +190,20 @@ public class File extends AbstractFile implements Linkable {
 		if (path != null) {
 
 			final String filePath = FileHelper.getFilePath(path);
-			final App app         = StructrApp.getInstance(securityContext);
+			final App app = StructrApp.getInstance(securityContext);
 
 			FileInputStream fis = null;
 			try {
 
 				java.io.File fileOnDisk = new java.io.File(filePath);
-				
+
 				// Return file input stream and save checksum and size after closing
 				fis = new FileInputStream(fileOnDisk);
-				
+
 				return fis;
-					
+
 			} catch (FileNotFoundException e) {
-				logger.log(Level.SEVERE, "File not found: {0}", new Object[] { path });
+				logger.log(Level.SEVERE, "File not found: {0}", new Object[]{path});
 
 				if (fis != null) {
 
@@ -223,149 +211,87 @@ public class File extends AbstractFile implements Linkable {
 
 						fis.close();
 
-					} catch (IOException ignore) {}
+					} catch (IOException ignore) {
+					}
 
 				}
 			}
 		}
-		
+
 		return null;
 
 	}
 
 	public OutputStream getOutputStream() {
-		
+
 		final String path = getRelativeFilePath();
 
 		if (path != null) {
 
 			final String filePath = FileHelper.getFilePath(path);
-			final App app         = StructrApp.getInstance(securityContext);
 
 			try {
 
 				java.io.File fileOnDisk = new java.io.File(filePath);
-				
+
 				// Return file output stream and save checksum and size after closing
 				FileOutputStream fos = new FileOutputStream(fileOnDisk) {
-					
+
 					@Override
 					public void close() throws IOException {
-						
+
 						super.close();
-						
+
 						try {
-							
-							app.beginTx();
-							setProperty(checksum,	FileHelper.getChecksum(File.this));
-							setProperty(size,	FileHelper.getSize(File.this));
-							app.commitTx();
-							
+							setProperty(checksum, FileHelper.getChecksum(File.this));
+							setProperty(size, FileHelper.getSize(File.this));
+
 						} catch (FrameworkException ex) {
-							
+
 							logger.log(Level.SEVERE, "Could not determine or save checksum and size after closing file output stream", ex);
-							
-						} finally {
-							
-							app.finishTx();
+
 						}
 					}
 				};
-				
+
 				return fos;
 
 			} catch (FileNotFoundException e) {
-				logger.log(Level.SEVERE, "File not found: {0}", new Object[] { path });
+				logger.log(Level.SEVERE, "File not found: {0}", new Object[]{path});
 			}
-			
+
 		}
 
 		return null;
-		
+
 	}
-	
+
 	public static String getDirectoryPath(final String uuid) {
 
 		return (uuid != null)
-		       ? uuid.substring(0, 1) + "/" + uuid.substring(1, 2) + "/" + uuid.substring(2, 3) + "/" + uuid.substring(3, 4)
-		       : null;
+			? uuid.substring(0, 1) + "/" + uuid.substring(1, 2) + "/" + uuid.substring(2, 3) + "/" + uuid.substring(3, 4)
+			: null;
 
 	}
 
 	//~--- set methods ----------------------------------------------------
-
 	public void setRelativeFilePath(final String filePath) throws FrameworkException {
-
-		final App app = StructrApp.getInstance(securityContext);
-		try {
-			
-			app.beginTx();
-			setProperty(File.relativeFilePath, filePath);
-			app.commitTx();
-			
-		} finally {
-			
-			app.finishTx();
-		}
+		setProperty(File.relativeFilePath, filePath);
 	}
 
 	public void setUrl(final String url) throws FrameworkException {
-
-		final App app = StructrApp.getInstance(securityContext);
-		try {
-			
-			app.beginTx();
-			setProperty(File.url, url);
-			app.commitTx();
-			
-		} finally {
-			
-			app.finishTx();
-		}
+		setProperty(File.url, url);
 	}
 
 	public void setContentType(final String contentType) throws FrameworkException {
-		
-		final App app = StructrApp.getInstance(securityContext);
-		try {
-			
-			app.beginTx();
-			setProperty(File.contentType, contentType);
-			app.commitTx();
-			
-		} finally {
-			
-			app.finishTx();
-		}
+		setProperty(File.contentType, contentType);
 	}
 
 	public void setSize(final Long size) throws FrameworkException {
-		
-		final App app = StructrApp.getInstance(securityContext);
-		try {
-			
-			app.beginTx();
-			setProperty(File.size, size);
-			app.commitTx();
-			
-		} finally {
-			
-			app.finishTx();
-		}
+		setProperty(File.size, size);
 	}
 
 	public void setChecksum(final Long checksum) throws FrameworkException {
-		
-		final App app = StructrApp.getInstance(securityContext);
-		try {
-			
-			app.beginTx();
-			setProperty(File.checksum, checksum);
-			app.commitTx();
-			
-		} finally {
-			
-			app.finishTx();
-		}
+		setProperty(File.checksum, checksum);
 	}
 }

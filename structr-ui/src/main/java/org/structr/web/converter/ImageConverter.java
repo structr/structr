@@ -73,13 +73,8 @@ public class ImageConverter extends PropertyConverter {
 			return false;
 		}
 
-		final App app = StructrApp.getInstance(securityContext);
-		
 		try {
 
-			app.beginTx();
-			
-					
 			Image img = null;
 
 			try {

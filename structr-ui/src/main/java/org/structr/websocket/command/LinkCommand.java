@@ -25,8 +25,7 @@ import org.structr.websocket.message.WebSocketMessage;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.Map;
-import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
+import org.structr.common.error.FrameworkException;
 import org.structr.web.entity.LinkSource;
 import org.structr.web.entity.Linkable;
 import org.structr.websocket.StructrWebSocket;
@@ -48,7 +47,6 @@ public class LinkCommand extends AbstractCommand {
 	public void processMessage(WebSocketMessage webSocketData) {
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
-		final App app                         = StructrApp.getInstance(securityContext);
 		String sourceId                       = webSocketData.getId();
 		Map<String, Object> properties        = webSocketData.getNodeData();
 		String targetId                       = (String) properties.get("targetId");
@@ -58,19 +56,12 @@ public class LinkCommand extends AbstractCommand {
 		if ((sourceNode != null) && (targetNode != null)) {
 
 			try {
-				app.beginTx();
-				
 				sourceNode.setProperty(LinkSource.linkable, targetNode);
-				
-				app.commitTx();
 
-			} catch (Throwable t) {
+			} catch (FrameworkException t) {
 
 				getWebSocket().send(MessageBuilder.status().code(400).message(t.getMessage()).build(), true);
 
-			} finally {
-				
-				app.finishTx();
 			}
 
 		} else {

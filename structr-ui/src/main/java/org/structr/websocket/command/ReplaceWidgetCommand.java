@@ -66,8 +66,6 @@ public class ReplaceWidgetCommand extends AbstractCommand {
 		
 		try {
 			
-			app.beginTx();
-
 			DOMNode existingParent = null;
 			if (parentId != null) {
 				// Remove original node from existing parent to ensure correct position
@@ -101,16 +99,11 @@ public class ReplaceWidgetCommand extends AbstractCommand {
 
 			// Delete temporary parent node
 			app.delete(parent);
-
-			app.commitTx();
 			
 		} catch (FrameworkException ex) {
 			
 			logger.log(Level.SEVERE, null, ex);
 			
-		} finally {
-			
-			app.finishTx();
 		}
 
 	}

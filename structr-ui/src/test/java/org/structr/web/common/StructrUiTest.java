@@ -3,33 +3,29 @@
  *
  * This file is part of Structr <http://structr.org>.
  *
- * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
+ * Structr is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Affero General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
  *
- * Structr is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * Structr is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr. If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.web.common;
-
 
 import com.jayway.restassured.RestAssured;
 import java.io.ByteArrayOutputStream;
 import org.apache.commons.io.FileUtils;
-
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.GraphDatabaseCommand;
 
 //~--- JDK imports ------------------------------------------------------------
-
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -62,7 +58,6 @@ import org.structr.web.servlet.HtmlServlet;
 import org.structr.websocket.servlet.WebSocketServlet;
 
 //~--- classes ----------------------------------------------------------------
-
 /**
  * Base class for all structr UI tests
  *
@@ -75,10 +70,9 @@ public class StructrUiTest extends TestCase {
 	private static final Logger logger = Logger.getLogger(StructrUiTest.class.getName());
 
 	//~--- fields ---------------------------------------------------------
-
-	protected StructrConf config                 = new StructrConf();
+	protected StructrConf config = new StructrConf();
 	protected GraphDatabaseCommand graphDbCommand = null;
-	protected SecurityContext securityContext     = null;
+	protected SecurityContext securityContext = null;
 	protected ReadLogCommand readLogCommand;
 	protected WriteLogCommand writeLogCommand;
 
@@ -87,7 +81,7 @@ public class StructrUiTest extends TestCase {
 	// the jetty server
 	private boolean running = false;
 	protected String basePath;
-	
+
 	protected static final String prot = "http://";
 //	protected static final String contextPath = "/";
 	protected static final String restUrl = "/structr/rest";
@@ -96,37 +90,36 @@ public class StructrUiTest extends TestCase {
 	protected static final String host = "localhost";
 	protected static final int httpPort = 8875;
 	protected static final int ftpPort = 8876;
-	
+
 	protected static String baseUri;
-	
+
 	static {
 
 		// check character set
 		checkCharset();
-		
-		baseUri = prot  + host + ":" + httpPort + htmlUrl + "/";
+
+		baseUri = prot + host + ":" + httpPort + htmlUrl + "/";
 		// configure RestAssured
 		RestAssured.basePath = restUrl;
 		RestAssured.baseURI = prot + host + ":" + httpPort;
 		RestAssured.port = httpPort;
-		
-	}
-	
-	//~--- methods --------------------------------------------------------
 
+	}
+
+	//~--- methods --------------------------------------------------------
 	@Override
 	protected void setUp() throws Exception {
 
 		config = Services.getBaseConfiguration();
-		
-		final Date now           = new Date();
-		final long timestamp     = now.getTime();
-		
+
+		final Date now = new Date();
+		final long timestamp = now.getTime();
+
 		basePath = "/tmp/structr-test-" + timestamp;
 
 		// enable "just testing" flag to avoid JAR resource scanning
 		config.setProperty(Services.TESTING, "true");
-		
+
 		config.setProperty(Services.CONFIGURATION, JarConfigurationProvider.class.getName());
 		config.setProperty(Services.CONFIGURED_SERVICES, "NodeService LogService FtpService HttpService");
 		config.setProperty(Services.TMP_PATH, "/tmp/");
@@ -140,7 +133,7 @@ public class StructrUiTest extends TestCase {
 		config.setProperty(Services.SUPERUSER_PASSWORD, "sehrgeheim");
 
 		config.setProperty(FtpService.APPLICATION_FTP_PORT, Integer.toString(ftpPort));
-		
+
 		// configure servlets
 		config.setProperty(HttpService.APPLICATION_TITLE, "structr unit test app" + timestamp);
 		config.setProperty(HttpService.APPLICATION_HOST, host);
@@ -155,7 +148,7 @@ public class StructrUiTest extends TestCase {
 		config.setProperty("JsonRestServlet.user.autocreate", "false");
 		config.setProperty("JsonRestServlet.defaultview", PropertyView.Public);
 		config.setProperty("JsonRestServlet.outputdepth", "3");
-		
+
 		config.setProperty("WebSocketServlet.class", WebSocketServlet.class.getName());
 		config.setProperty("WebSocketServlet.path", wsUrl);
 		config.setProperty("WebSocketServlet.resourceprovider", UiResourceProvider.class.getName());
@@ -173,7 +166,6 @@ public class StructrUiTest extends TestCase {
 //		config.setProperty("CsvServlet.user.autocreate", "false");
 //		config.setProperty("CsvServlet.defaultview", PropertyView.Public);
 //		config.setProperty("CsvServlet.outputdepth", "3");
-
 		config.setProperty("HtmlServlet.class", HtmlServlet.class.getName());
 		config.setProperty("HtmlServlet.path", htmlUrl);
 		config.setProperty("HtmlServlet.resourceprovider", UiResourceProvider.class.getName());
@@ -190,24 +182,26 @@ public class StructrUiTest extends TestCase {
 		config.setProperty("StructrUiHandler.resourceBase", "src/main/resources/structr");
 		config.setProperty("StructrUiHandler.directoriesListed", Boolean.toString(false));
 		config.setProperty("StructrUiHandler.welcomeFiles", "index.html");
-		
-		
+
 		final Services services = Services.getInstance(config);
 
 		// wait for service layer to be initialized
 		do {
-			try { Thread.sleep(100); } catch(Throwable t) {}
-			
+			try {
+				Thread.sleep(100);
+			} catch (Throwable t) {
+			}
+
 		} while (!services.isInitialized());
 
-		securityContext           = SecurityContext.getSuperUserInstance();
-		
+		securityContext = SecurityContext.getSuperUserInstance();
+
 		app = StructrApp.getInstance(securityContext);
-		
-		graphDbCommand            = app.command(GraphDatabaseCommand.class);
-		writeLogCommand           = app.command(WriteLogCommand.class);
-		readLogCommand            = app.command(ReadLogCommand.class);
-		
+
+		graphDbCommand = app.command(GraphDatabaseCommand.class);
+		writeLogCommand = app.command(WriteLogCommand.class);
+		readLogCommand = app.command(ReadLogCommand.class);
+
 	}
 
 	public void test00() {
@@ -215,9 +209,9 @@ public class StructrUiTest extends TestCase {
 
 	@Override
 	protected void tearDown() throws Exception {
-		
+
 		Services.getInstance().shutdown();
-		
+
 		File testDir = new File(basePath);
 		int count = 0;
 
@@ -235,9 +229,13 @@ public class StructrUiTest extends TestCase {
 					testDir.delete();
 				}
 
-			} catch(Throwable t) {}
+			} catch (Throwable t) {
+			}
 
-			try { Thread.sleep(500); } catch(Throwable t) {}
+			try {
+				Thread.sleep(500);
+			} catch (Throwable t) {
+			}
 		}
 
 		super.tearDown();
@@ -245,10 +243,12 @@ public class StructrUiTest extends TestCase {
 	}
 
 	/**
-	 * Recursive method used to find all classes in a given directory and subdirs.
+	 * Recursive method used to find all classes in a given directory and
+	 * subdirs.
 	 *
-	 * @param directory   The base directory
-	 * @param packageName The package name for classes found inside the base directory
+	 * @param directory The base directory
+	 * @param packageName The package name for classes found inside the base
+	 * directory
 	 * @return The classes
 	 * @throws ClassNotFoundException
 	 */
@@ -287,58 +287,46 @@ public class StructrUiTest extends TestCase {
 		final PropertyMap props = new PropertyMap();
 		props.put(AbstractNode.type, type.getSimpleName());
 
-		try (final Tx tx = app.tx()) {
-			
-			List<T> nodes = new LinkedList<>();
+		List<T> nodes = new LinkedList<>();
 
-			for (int i = 0; i < number; i++) {
-				props.put(AbstractNode.name, type.getSimpleName() + i);
-				nodes.add(app.create(type, props));
-			}
-			app.commitTx();
-
-			return nodes;
+		for (int i = 0; i < number; i++) {
+			props.put(AbstractNode.name, type.getSimpleName() + i);
+			nodes.add(app.create(type, props));
 		}
+
+		return nodes;
 	}
 
 	protected <T extends NodeInterface> List<T> createTestNodes(final Class<T> type, final int number, final PropertyMap props) throws FrameworkException {
 
-		try (final Tx tx = app.tx()) {
-			
-			List<T> nodes = new LinkedList<>();
+		List<T> nodes = new LinkedList<>();
 
-			for (int i = 0; i < number; i++) {
-				nodes.add(app.create(type, props));
-			}
-
-			app.commitTx();
-			
-			return nodes;
+		for (int i = 0; i < number; i++) {
+			nodes.add(app.create(type, props));
 		}
+
+		return nodes;
 	}
 
 	protected List<RelationshipInterface> createTestRelationships(final Class relType, final int number) throws FrameworkException {
 
-		List<GenericNode> nodes     = createTestNodes(GenericNode.class, 2);
+		List<GenericNode> nodes = createTestNodes(GenericNode.class, 2);
 		final GenericNode startNode = nodes.get(0);
 		final GenericNode endNode   = nodes.get(1);
 
-		try (final Tx tx = app.tx()) {
-			
-			List<RelationshipInterface> rels = new LinkedList<>();
+		List<RelationshipInterface> rels = new LinkedList<>();
 
-			for (int i = 0; i < number; i++) {
-				rels.add(app.create(startNode, endNode, relType));
-			}
-
-			return rels;
+		for (int i = 0; i < number; i++) {
+			rels.add(app.create(startNode, endNode, relType));
 		}
+
+		return rels;
 	}
 
 	//~--- get methods ----------------------------------------------------
-
 	/**
-	 * Get classes in given package and subpackages, accessible from the context class loader
+	 * Get classes in given package and subpackages, accessible from the
+	 * context class loader
 	 *
 	 * @param packageName The base package
 	 * @return The classes
@@ -351,9 +339,9 @@ public class StructrUiTest extends TestCase {
 
 		assert classLoader != null;
 
-		String path                = packageName.replace('.', '/');
+		String path = packageName.replace('.', '/');
 		Enumeration<URL> resources = classLoader.getResources(path);
-		List<File> dirs            = new ArrayList<>();
+		List<File> dirs = new ArrayList<>();
 
 		while (resources.hasMoreElements()) {
 
@@ -377,19 +365,18 @@ public class StructrUiTest extends TestCase {
 	protected String getUuidFromLocation(String location) {
 		return location.substring(location.lastIndexOf("/") + 1);
 	}
-	
+
 	private static void checkCharset() {
-		
+
 		System.out.println("######### Charset settings ##############");
 		System.out.println("Default Charset=" + Charset.defaultCharset());
 		System.out.println("file.encoding=" + System.getProperty("file.encoding"));
 		System.out.println("Default Charset=" + Charset.defaultCharset());
 		System.out.println("Default Charset in Use=" + getEncodingInUse());
-		System.out.println("This should look like the umlauts of 'a', 'o', 'u' and 'ss': äöüß");		
+		System.out.println("This should look like the umlauts of 'a', 'o', 'u' and 'ss': äöüß");
 		System.out.println("#########################################");
-		
+
 	}
-	
 
 	private static String getEncodingInUse() {
 		OutputStreamWriter writer = new OutputStreamWriter(new ByteArrayOutputStream());
@@ -400,5 +387,4 @@ public class StructrUiTest extends TestCase {
 //	public void testCharset() {
 //		assertTrue(StringUtils.remove(getEncodingInUse().toLowerCase(), "-").equals("utf8"));
 //	}
-
 }

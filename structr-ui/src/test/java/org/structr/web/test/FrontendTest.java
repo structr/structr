@@ -27,7 +27,7 @@ import java.util.logging.Logger;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.graph.TransactionCommand;
+import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.entity.User;
@@ -71,7 +71,7 @@ public class FrontendTest extends StructrUiTest {
 			
 			logger.log(Level.INFO, "casperjs subprocess returned with {0}", exitValue);
 
-			app.commitTx();
+			tx.success();
 			
 			return exitValue;
 			
@@ -98,7 +98,7 @@ public class FrontendTest extends StructrUiTest {
 			
 			User user = app.create(User.class, properties);
 			user.setProperty(User.password, "admin");
-			app.commitTx();
+			tx.success();
 		
 		} catch (Throwable t) {
 

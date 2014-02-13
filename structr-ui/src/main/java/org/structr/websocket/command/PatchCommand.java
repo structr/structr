@@ -32,8 +32,6 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
 import org.structr.websocket.StructrWebSocket;
 
 //~--- classes ----------------------------------------------------------------
@@ -65,21 +63,15 @@ public class PatchCommand extends AbstractCommand {
 			String oldText            = node.getProperty(Content.content);
 			LinkedList<Patch> patches = (LinkedList<Patch>) dmp.patch_fromText(patch);
 			final Object[] results    = dmp.patch_apply(patches, oldText);
-			final App app             = StructrApp.getInstance(getWebSocket().getSecurityContext());
 
 			try {
-				app.beginTx();
 				node.setProperty(Content.content, results[0].toString());
-				app.commitTx();
 				
 			} catch (Throwable t) {
 
 				logger.log(Level.WARNING, "Could not apply patch {0}", patch);
 				getWebSocket().send(MessageBuilder.status().code(400).message("Could not apply patch. " + t.getMessage()).build(), true);
 
-			} finally {
-				
-				app.finishTx();
 			}
 
 		} else {

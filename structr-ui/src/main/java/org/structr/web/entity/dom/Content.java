@@ -335,9 +335,7 @@ public class Content extends DOMNode implements Text {
 				
 				if (document != null && parent != null) {
 					
-					final App app = StructrApp.getInstance(securityContext);
 					try {
-						app.beginTx();
 
 						// first part goes into existing text element
 						setProperty(content, firstPart);
@@ -348,7 +346,6 @@ public class Content extends DOMNode implements Text {
 						// make new node a child of old parent
 						parent.appendChild(newNode);
 
-						app.commitTx();
 						
 						return newNode;
 
@@ -356,9 +353,6 @@ public class Content extends DOMNode implements Text {
 			
 						throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());			
 						
-					} finally {
-						
-						app.finishTx();
 					}
 					
 				} else {
@@ -408,20 +402,13 @@ public class Content extends DOMNode implements Text {
 	public void setData(final String data) throws DOMException {
 		
 		checkWriteAccess();
-		
-		final App app = StructrApp.getInstance(securityContext);
 		try {
-			app.beginTx();
 			setProperty(content, data);
-			app.commitTx();
-			
+
 		} catch (FrameworkException fex) {
 			
 			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());
 			
-		} finally {
-			
-			app.finishTx();
 		}
 	}
 
@@ -465,20 +452,14 @@ public class Content extends DOMNode implements Text {
 		
 		checkWriteAccess();
 
-		final App app = StructrApp.getInstance(securityContext);
 		try {
-			app.beginTx();
 			String text = getProperty(content);
 			setProperty(content, text.concat(data));
-			app.commitTx();
 			
 		} catch (FrameworkException fex) {
 			
 			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());
 			
-		} finally {
-			
-			app.finishTx();
 		}
 	}
 
@@ -487,9 +468,7 @@ public class Content extends DOMNode implements Text {
 		
 		checkWriteAccess();
 
-		final App app = StructrApp.getInstance(securityContext);
 		try {
-			app.beginTx();
 
 			String text = getProperty(content);
 
@@ -504,15 +483,11 @@ public class Content extends DOMNode implements Text {
 			// finally, set content to concatenated left, data and right parts
 			setProperty(content, buf.toString());
 
-			app.commitTx();
 			
 		} catch (FrameworkException fex) {
 			
 			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());
 			
-		} finally {
-			
-			app.finishTx();
 		}
 	}
 
@@ -522,9 +497,7 @@ public class Content extends DOMNode implements Text {
 		checkWriteAccess();
 		
 		// finally, set content to concatenated left and right parts
-		final App app = StructrApp.getInstance(securityContext);
 		try {
-			app.beginTx();
 
 			String text = getProperty(content);
 
@@ -533,15 +506,10 @@ public class Content extends DOMNode implements Text {
 
 			setProperty(content, leftPart.concat(rightPart));
 			
-			app.commitTx();
-			
 		} catch (FrameworkException fex) {
 			
 			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());
 			
-		} finally {
-			
-			app.finishTx();
 		}
 	}
 
@@ -551,9 +519,7 @@ public class Content extends DOMNode implements Text {
 		checkWriteAccess();
 
 		// finally, set content to concatenated left and right parts
-		final App app = StructrApp.getInstance(securityContext);
 		try {
-			app.beginTx();
 
 			String text = getProperty(content);
 
@@ -567,15 +533,10 @@ public class Content extends DOMNode implements Text {
 
 			setProperty(content, buf.toString());
 			
-			app.commitTx();
-			
 		} catch (FrameworkException fex) {
 			
 			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());
 			
-		} finally {
-			
-			app.finishTx();
 		}
 	}
 	
