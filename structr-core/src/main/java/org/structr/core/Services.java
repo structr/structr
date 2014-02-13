@@ -566,24 +566,26 @@ public class Services {
 		final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
 		final NodeFactory nodeFactory          = new NodeFactory(superUserContext);
 		final RelationshipFactory relFactory   = new RelationshipFactory(superUserContext);
-		final Iterator<Node> allNodes          = GlobalGraphOperations.at(graphDb).getAllNodes().iterator();
-		final Iterator<Relationship> allRels   = GlobalGraphOperations.at(graphDb).getAllRelationships().iterator();
 		final App app                          = StructrApp.getInstance();
 		final StringProperty uuidProperty      = new StringProperty("uuid");
 		final int txLimit                      = 2000;
 		
+		boolean hasChanges                     = true;
 		int actualNodeCount                    = 0;
 		int actualRelCount                     = 0;
-		int count                              = 0;
 
 		logger.log(Level.INFO, "Migration of ID properties from uuid to id requested.");
 
-		// iterate over all nodes
-		while (allNodes.hasNext()) {
-
+		
+		while (hasChanges) {
+			
+			hasChanges = false;
+			
 			try (final Tx tx = app.tx(false, false)) {
 
-				while (allNodes.hasNext() && (++count % txLimit) != 0) {
+				// iterate over all nodes, 
+				final Iterator<Node> allNodes = GlobalGraphOperations.at(graphDb).getAllNodes().iterator();
+				while (allNodes.hasNext() && ((actualNodeCount+1) % txLimit) != 0) {
 
 					final Node node = allNodes.next();
 
@@ -593,12 +595,13 @@ public class Services {
 						try {
 							final NodeInterface nodeInterface = nodeFactory.instantiate(node);
 							final String uuid = nodeInterface.getProperty(uuidProperty);
-							
+
 							if (uuid != null) {
 
 								nodeInterface.setProperty(GraphObject.id, uuid);
 								nodeInterface.removeProperty(uuidProperty);
 								actualNodeCount++;
+								hasChanges = true;
 							}
 
 						} catch (Throwable t) {
@@ -614,19 +617,21 @@ public class Services {
 				t.printStackTrace();
 			}
 
-			logger.log(Level.INFO, "Migrated {0} of {1} nodes so far.", new Object[] { actualNodeCount, count });
+			logger.log(Level.INFO, "Migrated {0} nodes so far.", actualNodeCount);
 		}
 
 		logger.log(Level.INFO, "Migrated {0} nodes to new ID property.", actualNodeCount);
 
-		count = 0;
-
 		// iterate over all relationships
-		while (allRels.hasNext()) {
-
+		hasChanges = true;
+		while (hasChanges) {
+		
+			hasChanges = false;
+			
 			try (final Tx tx = app.tx(false, false)) {
 
-				while (allRels.hasNext() && (++count % txLimit) != 0) {
+				final Iterator<Relationship> allRels   = GlobalGraphOperations.at(graphDb).getAllRelationships().iterator();
+				while (allRels.hasNext() && (actualRelCount % txLimit) != 0) {
 
 					final Relationship rel = allRels.next();
 
@@ -641,6 +646,7 @@ public class Services {
 								relInterface.setProperty(GraphObject.id, uuid);
 								relInterface.removeProperty(uuidProperty);
 								actualRelCount++;
+								hasChanges = true;
 							}
 
 						} catch (Throwable t) {
@@ -656,7 +662,7 @@ public class Services {
 				t.printStackTrace();
 			}
 
-			logger.log(Level.INFO, "Migrated {0} of {1} relationships so far.", new Object[] { actualRelCount, count });
+			logger.log(Level.INFO, "Migrated {0} relationships so far.", actualRelCount);
 		}
 
 		logger.log(Level.INFO, "Migrated {0} relationships to new ID property.", actualRelCount);
