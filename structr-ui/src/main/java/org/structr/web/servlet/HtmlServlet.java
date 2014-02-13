@@ -111,6 +111,7 @@ public class HtmlServlet extends HttpServiceServlet {
 
 		SecurityContext securityContext = null;
 		Authenticator authenticator = null;
+		App app = null;
 
 		try {
 			// isolate request authentication in a transaction
@@ -120,86 +121,75 @@ public class HtmlServlet extends HttpServiceServlet {
 				tx.success();
 			}
 
-			// Ensure access mode is frontend
-			securityContext.setAccessMode(AccessMode.Frontend);
+			app = StructrApp.getInstance(securityContext);
 
-			request.setCharacterEncoding("UTF-8");
-
-			// Important: Set character encoding before calling response.getWriter() !!, see Servlet Spec 5.4
-			response.setCharacterEncoding("UTF-8");
-
-			boolean dontCache = false;
-
-			String path = PathHelper.clean(request.getPathInfo());
-
-			logger.log(Level.FINE, "Path info {0}", path);
-			logger.log(Level.FINE, "Request examined by security context in {0} seconds", decimalFormat.format((System.nanoTime() - start) / 1000000000.0));
-
-			// don't continue on redirects
-			if (response.getStatus() == 302) {
-				return;
-			}
-
-			final App app = StructrApp.getInstance(securityContext);
-
-			Principal user = null;
 			try (final Tx tx = app.tx()) {
 
-				user = securityContext.getUser(false);
-				tx.success();
-			}
-			if (user != null) {
+				// Ensure access mode is frontend
+				securityContext.setAccessMode(AccessMode.Frontend);
 
-				// Don't cache if a user is logged in
-				dontCache = true;
+				request.setCharacterEncoding("UTF-8");
 
-			}
+				// Important: Set character encoding before calling response.getWriter() !!, see Servlet Spec 5.4
+				response.setCharacterEncoding("UTF-8");
 
-			RenderContext renderContext = RenderContext.getInstance(request, response, getEffectiveLocale(request));
+				boolean dontCache = false;
 
-			renderContext.setResourceProvider(resourceProvider);
+				String path = PathHelper.clean(request.getPathInfo());
 
-			EditMode edit = renderContext.getEditMode(user);
+				logger.log(Level.FINE, "Path info {0}", path);
+				logger.log(Level.FINE, "Request examined by security context in {0} seconds", decimalFormat.format((System.nanoTime() - start) / 1000000000.0));
 
-			DOMNode rootElement = null;
-			AbstractNode dataNode = null;
-
-			String[] uriParts = PathHelper.getParts(path);
-			if ((uriParts == null) || (uriParts.length == 0)) {
-
-				try (final Tx tx = app.tx()) {
-					// find a visible page
-					rootElement = findIndexPage(securityContext);
-					tx.success();
-				}
-
-				logger.log(Level.FINE, "No path supplied, trying to find index page");
-
-			} else {
-
-				// check if request was solely intended to obtain a session id
-				if (checkGetSessionId(request, response, path)) {
+				// don't continue on redirects
+				if (response.getStatus() == 302) {
 					return;
 				}
 
-				// check for registration, isolate request authentication in a transaction
-				try (final Tx tx = app.tx()) {
+				Principal user = securityContext.getUser(false);
+				if (user != null) {
+
+					// Don't cache if a user is logged in
+					dontCache = true;
+
+				}
+
+				RenderContext renderContext = RenderContext.getInstance(request, response, getEffectiveLocale(request));
+
+				renderContext.setResourceProvider(resourceProvider);
+
+				EditMode edit = renderContext.getEditMode(user);
+
+				DOMNode rootElement = null;
+				AbstractNode dataNode = null;
+
+				String[] uriParts = PathHelper.getParts(path);
+				if ((uriParts == null) || (uriParts.length == 0)) {
+
+					// find a visible page
+					rootElement = findIndexPage(securityContext);
+
+					logger.log(Level.FINE, "No path supplied, trying to find index page");
+
+				} else {
+
+					// check if request was solely intended to obtain a session id
+					if (checkGetSessionId(request, response, path)) {
+						return;
+					}
+
+					// check for registration, isolate request authentication in a transaction
 					if (checkRegistration(securityContext, request, response, path)) {
 						return;
 					}
-					tx.success();
+
+					if (rootElement == null) {
+
+						rootElement = findPage(request, path);
+
+					} else {
+						dontCache = true;
+					}
 				}
-
-				if (rootElement == null) {
-
-					rootElement = findPage(request, path);
-
-				} else {
-					dontCache = true;
-				}
-			}
-
-			try (final Tx tx = app.tx()) {
 
 				if (rootElement == null) { // No page found
 
