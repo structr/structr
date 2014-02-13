@@ -174,6 +174,16 @@ public class NodeService implements SingletonService {
 
 		}
 
+		// register shutdown hook
+		Runtime.getRuntime().addShutdownHook( new Thread()
+		{
+			@Override
+			public void run() {
+				
+			    graphDb.shutdown();
+			}
+		});
+
 		filesPath = config.getProperty(Services.FILES_PATH);
 
 		// check existence of files path
@@ -356,5 +366,4 @@ public class NodeService implements SingletonService {
 	public Index<Relationship> getRelationshipIndex(RelationshipIndex name) {
 		return relIndices.get(name);
 	}
-
 }
