@@ -19,6 +19,7 @@
 package org.structr.core.graph;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.StructrTransactionListener;
@@ -30,7 +31,9 @@ import org.structr.core.app.StructrApp;
  */
 public class Tx implements AutoCloseable {
 
+	private AtomicBoolean guard             = new AtomicBoolean(false);
 	private SecurityContext securityContext = null;
+	private boolean success                 = false;
 	private boolean doValidation            = true;
 	private boolean doCallbacks             = true;
 	private TransactionCommand cmd          = null;
@@ -56,6 +59,7 @@ public class Tx implements AutoCloseable {
 	}
 	
 	public void success() throws FrameworkException {
+		success = true;
 		cmd.commitTx(doValidation);
 	}
 	
@@ -64,27 +68,29 @@ public class Tx implements AutoCloseable {
 		
 		final ModificationQueue modificationQueue = cmd.finishTx();
 
-		{
-			cmd = app.command(TransactionCommand.class).beginTx();
+		if (success && guard.compareAndSet(false, true)) {
 
-			if (doCallbacks && modificationQueue != null) {
+			// experimental
+			try (final Tx tx = begin()) {
 
-				modificationQueue.doOuterCallbacks(securityContext);
+				if (doCallbacks && modificationQueue != null) {
 
-				// notify listeners
-				final List<ModificationEvent> modificationEvents = modificationQueue.getModificationEvents();
-				for (StructrTransactionListener listener : TransactionCommand.getTransactionListeners()) {
+					modificationQueue.doOuterCallbacks(securityContext);
 
-					listener.transactionCommited(securityContext, modificationEvents);
-				}
+					// notify listeners
+					final List<ModificationEvent> modificationEvents = modificationQueue.getModificationEvents();
+					for (StructrTransactionListener listener : TransactionCommand.getTransactionListeners()) {
 
-				if (modificationQueue != null) {
+						listener.transactionCommited(securityContext, modificationEvents);
+					}
+
 					modificationQueue.clear();
 				}
-			}
 
-			cmd.commitTx(doValidation);
-			cmd.finishTx();
+				tx.success();
+			}
+		
+			guard.set(false);
 		}
 	}
 }

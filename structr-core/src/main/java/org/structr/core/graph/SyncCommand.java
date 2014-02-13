@@ -248,6 +248,8 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 			importFromStream(graphDb, securityContext, new FileInputStream(fileName), doValidation);
 			
 		} catch (Throwable t) {
+
+			t.printStackTrace();
 			
 			throw new FrameworkException(500, t.getMessage());
 		}

@@ -165,6 +165,7 @@ public class JsonRestServlet extends HttpServiceServlet {
 		SecurityContext securityContext = null;
 		Authenticator authenticator     = null;
 		RestMethodResult result         = null;
+		Resource resource               = null;
 
 		try {
 
@@ -179,19 +180,18 @@ public class JsonRestServlet extends HttpServiceServlet {
 			request.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=utf-8");
 
-			List<Resource> chain            = ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty);
-			Resource resourceConstraint     = ResourceHelper.optimizeNestedResourceChain(chain, defaultIdProperty);
-			String resourceSignature        = resourceConstraint.getResourceSignature();
-
 			// isolate resource authentication
 			try (final Tx tx = StructrApp.getInstance().tx()) {
-				authenticator.checkResourceAccess(request, resourceSignature, propertyView.get(securityContext));
+
+				resource = ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty), defaultIdProperty);
+				authenticator.checkResourceAccess(request, resource.getResourceSignature(), propertyView.get(securityContext));
+
 				tx.success();
 			}
 
-			// isolate doPost
+			// isolate doDelete
 			try (final Tx tx = StructrApp.getInstance().tx()) {
-				result = resourceConstraint.doDelete();
+				result = resource.doDelete();
 				tx.success();
 			}
 
@@ -259,6 +259,7 @@ public class JsonRestServlet extends HttpServiceServlet {
 		SecurityContext securityContext = null;
 		Authenticator authenticator     = null;
 		Result result                   = null;
+		Resource resource               = null;
 
 		try {
 
@@ -278,12 +279,12 @@ public class JsonRestServlet extends HttpServiceServlet {
 
 			// evaluate constraints and measure query time
 			double queryTimeStart    = System.nanoTime();
-			Resource resource        = ResourceHelper.applyViewTransformation(request, securityContext, ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty), defaultIdProperty), propertyView);
-			String resourceSignature = resource.getResourceSignature();
 
 			// isolate resource authentication
 			try (final Tx tx = StructrApp.getInstance().tx()) {
-				authenticator.checkResourceAccess(request, resourceSignature, propertyView.get(securityContext));
+				
+				resource = ResourceHelper.applyViewTransformation(request, securityContext, ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty), defaultIdProperty), propertyView);
+				authenticator.checkResourceAccess(request, resource.getResourceSignature(), propertyView.get(securityContext));
 				tx.success();
 			}
 			
@@ -421,6 +422,7 @@ public class JsonRestServlet extends HttpServiceServlet {
 		SecurityContext securityContext = null;
 		Authenticator authenticator     = null;
 		RestMethodResult result         = null;
+		Resource resource               = null;
 
 		try {
 
@@ -436,13 +438,11 @@ public class JsonRestServlet extends HttpServiceServlet {
 			response.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=UTF-8");
 
-			List<Resource> chain      = ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty);
-			Resource resource         = ResourceHelper.optimizeNestedResourceChain(chain, defaultIdProperty);
-			String resourceSignature  = resource.getResourceSignature();
-
 			// isolate resource authentication
 			try (final Tx tx = StructrApp.getInstance().tx()) {
-				authenticator.checkResourceAccess(request, resourceSignature, propertyView.get(securityContext));
+				
+				resource = ResourceHelper.applyViewTransformation(request, securityContext, ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty), defaultIdProperty), propertyView);
+				authenticator.checkResourceAccess(request, resource.getResourceSignature(), propertyView.get(securityContext));
 				tx.success();
 			}
 			
@@ -516,6 +516,7 @@ public class JsonRestServlet extends HttpServiceServlet {
 		SecurityContext securityContext = null;
 		Authenticator authenticator     = null;
 		RestMethodResult result         = null;
+		Resource resource               = null;
 
 		try {
 
@@ -531,13 +532,11 @@ public class JsonRestServlet extends HttpServiceServlet {
 			response.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=UTF-8");
 
-			List<Resource> chain      = ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty);
-			Resource resource         = ResourceHelper.optimizeNestedResourceChain(chain, defaultIdProperty);
-			String resourceSignature  = resource.getResourceSignature();
-
 			// isolate resource authentication
 			try (final Tx tx = StructrApp.getInstance().tx()) {
-				authenticator.checkResourceAccess(request, resourceSignature, propertyView.get(securityContext));
+				
+				resource = ResourceHelper.applyViewTransformation(request, securityContext, ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty), defaultIdProperty), propertyView);
+				authenticator.checkResourceAccess(request, resource.getResourceSignature(), propertyView.get(securityContext));
 				tx.success();
 			}
 			
@@ -612,6 +611,7 @@ public class JsonRestServlet extends HttpServiceServlet {
 		Authenticator authenticator     = null;
 		RestMethodResult result         = null;
 		JsonInput propertySet           = null;
+		Resource resource               = null;
 
 		try {
 
@@ -636,14 +636,13 @@ public class JsonRestServlet extends HttpServiceServlet {
 			if (securityContext != null) {
 
 				// evaluate constraint chain
-				List<Resource> chain            = ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty);
-				Resource resource               = ResourceHelper.optimizeNestedResourceChain(chain, defaultIdProperty);
 				Map<String, Object> properties  = convertPropertySetToMap(propertySet);
-				String resourceSignature        = resource.getResourceSignature();
 
 				// isolate resource authentication
 				try (final Tx tx = StructrApp.getInstance().tx()) {
-					authenticator.checkResourceAccess(request, resourceSignature, propertyView.get(securityContext));
+				
+					resource = ResourceHelper.applyViewTransformation(request, securityContext, ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty), defaultIdProperty), propertyView);
+					authenticator.checkResourceAccess(request, resource.getResourceSignature(), propertyView.get(securityContext));
 					tx.success();
 				}
 				
@@ -741,6 +740,7 @@ public class JsonRestServlet extends HttpServiceServlet {
 		Authenticator authenticator     = null;
 		RestMethodResult result         = null;
 		JsonInput propertySet           = null;
+		Resource resource               = null;
 
 		try {
 
@@ -764,16 +764,14 @@ public class JsonRestServlet extends HttpServiceServlet {
 
 			if (securityContext != null) {
 
-				// evaluate constraint chain
-				List<Resource> chain	       = ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty);
-				Resource resource	       = ResourceHelper.optimizeNestedResourceChain(chain, defaultIdProperty);
-				String resourceSignature       = resource.getResourceSignature();
 				Map<String, Object> properties = convertPropertySetToMap(propertySet);
-
 
 				// isolate resource authentication
 				try (final Tx tx = StructrApp.getInstance().tx()) {
-					authenticator.checkResourceAccess(request, resourceSignature, propertyView.get(securityContext));
+				
+					// evaluate constraint chain
+					resource = ResourceHelper.applyViewTransformation(request, securityContext, ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty), defaultIdProperty), propertyView);
+					authenticator.checkResourceAccess(request, resource.getResourceSignature(), propertyView.get(securityContext));
 					tx.success();
 				}
 				
