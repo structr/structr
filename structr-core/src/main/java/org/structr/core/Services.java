@@ -276,6 +276,18 @@ public class Services {
 			// check for empty database and seed file
 			importSeedFile(properties.getProperty(Services.BASE_PATH));
 		}
+
+		logger.log(Level.INFO, "Registering shutdown hook.");
+
+		// register shutdown hook
+		Runtime.getRuntime().addShutdownHook( new Thread()
+		{
+			@Override
+			public void run() {
+				
+			    shutdown();
+			}
+		});
 		
 		logger.log(Level.INFO, "Initialization complete");
 		
@@ -288,8 +300,11 @@ public class Services {
 
 	public void shutdown() {
 
+		initializationDone = false;
+		
 		logger.log(Level.INFO, "Shutting down service layer");
 		for (Service service : serviceCache.values()) {
+			
 			try {
 
 				if (service instanceof RunnableService) {
@@ -576,7 +591,6 @@ public class Services {
 
 		logger.log(Level.INFO, "Migration of ID properties from uuid to id requested.");
 
-		
 		while (hasChanges) {
 			
 			hasChanges = false;
@@ -585,7 +599,7 @@ public class Services {
 
 				// iterate over all nodes, 
 				final Iterator<Node> allNodes = GlobalGraphOperations.at(graphDb).getAllNodes().iterator();
-				while (allNodes.hasNext() && ((actualNodeCount+1) % txLimit) != 0) {
+				while (allNodes.hasNext()) {
 
 					final Node node = allNodes.next();
 
@@ -607,6 +621,11 @@ public class Services {
 						} catch (Throwable t) {
 							t.printStackTrace();
 						}
+					}
+					
+					// break out of loop to allow transaction to commit
+					if (hasChanges && (actualNodeCount % txLimit) == 0) {
+						break;
 					}
 				}
 
@@ -630,8 +649,8 @@ public class Services {
 			
 			try (final Tx tx = app.tx(false, false)) {
 
-				final Iterator<Relationship> allRels   = GlobalGraphOperations.at(graphDb).getAllRelationships().iterator();
-				while (allRels.hasNext() && (actualRelCount % txLimit) != 0) {
+				final Iterator<Relationship> allRels = GlobalGraphOperations.at(graphDb).getAllRelationships().iterator();
+				while (allRels.hasNext()) {
 
 					final Relationship rel = allRels.next();
 
@@ -652,6 +671,11 @@ public class Services {
 						} catch (Throwable t) {
 							t.printStackTrace();
 						}
+					}
+					
+					// break out of loop to allow transaction to commit
+					if (hasChanges && (actualRelCount % txLimit) == 0) {
+						break;
 					}
 				}
 
