@@ -53,6 +53,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.*;
 import org.structr.core.Value;
+import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.graph.NodeFactory;
@@ -176,12 +177,14 @@ public class JsonRestServlet extends HttpServiceServlet {
 				tx.success();
 			}
 
+			final App app = StructrApp.getInstance(securityContext);
+
 //			logRequest("DELETE", request);
 			request.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=utf-8");
 
 			// isolate resource authentication
-			try (final Tx tx = StructrApp.getInstance().tx()) {
+			try (final Tx tx = app.tx()) {
 
 				resource = ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty), defaultIdProperty);
 				authenticator.checkResourceAccess(request, resource.getResourceSignature(), propertyView.get(securityContext));
@@ -190,13 +193,13 @@ public class JsonRestServlet extends HttpServiceServlet {
 			}
 
 			// isolate doDelete
-			try (final Tx tx = StructrApp.getInstance().tx()) {
+			try (final Tx tx = app.tx()) {
 				result = resource.doDelete();
 				tx.success();
 			}
 
 			// isolate write output
-			try (final Tx tx = StructrApp.getInstance().tx()) {
+			try (final Tx tx = app.tx()) {
 				result.commitResponse(gson.get(), response);
 				tx.success();
 			}
@@ -270,6 +273,8 @@ public class JsonRestServlet extends HttpServiceServlet {
 				tx.success();
 			}
 
+			final App app = StructrApp.getInstance(securityContext);
+
 //			logRequest("GET", request);
 			request.setCharacterEncoding("UTF-8");
 			response.setCharacterEncoding("UTF-8");
@@ -281,7 +286,7 @@ public class JsonRestServlet extends HttpServiceServlet {
 			double queryTimeStart    = System.nanoTime();
 
 			// isolate resource authentication
-			try (final Tx tx = StructrApp.getInstance().tx()) {
+			try (final Tx tx = app.tx()) {
 				
 				resource = ResourceHelper.applyViewTransformation(request, securityContext, ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty), defaultIdProperty), propertyView);
 				authenticator.checkResourceAccess(request, resource.getResourceSignature(), propertyView.get(securityContext));
@@ -308,7 +313,7 @@ public class JsonRestServlet extends HttpServiceServlet {
 			}
 			
 			// isolate doGet
-			try (final Tx tx = StructrApp.getInstance().tx()) {
+			try (final Tx tx = app.tx()) {
 				result = resource.doGet(sortKey, sortDescending, pageSize, page, offsetId);
 				tx.success();
 			}
@@ -336,7 +341,7 @@ public class JsonRestServlet extends HttpServiceServlet {
 			if (accept != null && accept.contains("text/html")) {
 				
 				// isolate write output
-				try (final Tx tx = StructrApp.getInstance().tx()) {
+				try (final Tx tx = app.tx()) {
 					response.setContentType("text/html; charset=utf-8");
 					htmlWriter.get().stream(writer, result, baseUrl);
 					tx.success();
@@ -345,7 +350,7 @@ public class JsonRestServlet extends HttpServiceServlet {
 			} else {
 			
 				// isolate write output
-				try (final Tx tx = StructrApp.getInstance().tx()) {
+				try (final Tx tx = app.tx()) {
 					response.setContentType("application/json; charset=utf-8");
 					jsonWriter.get().stream(writer, result, baseUrl);
 					tx.success();
@@ -433,13 +438,15 @@ public class JsonRestServlet extends HttpServiceServlet {
 				tx.success();
 			}
 
+			final App app = StructrApp.getInstance(securityContext);
+
 //			logRequest("HEAD", request);
 			request.setCharacterEncoding("UTF-8");
 			response.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=UTF-8");
 
 			// isolate resource authentication
-			try (final Tx tx = StructrApp.getInstance().tx()) {
+			try (final Tx tx = app.tx()) {
 				
 				resource = ResourceHelper.applyViewTransformation(request, securityContext, ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty), defaultIdProperty), propertyView);
 				authenticator.checkResourceAccess(request, resource.getResourceSignature(), propertyView.get(securityContext));
@@ -447,13 +454,13 @@ public class JsonRestServlet extends HttpServiceServlet {
 			}
 			
 			// isolate doHead
-			try (final Tx tx = StructrApp.getInstance().tx()) {
+			try (final Tx tx = app.tx()) {
 				result = resource.doHead();
 				tx.success();
 			}
 
 			// isolate write output
-			try (final Tx tx = StructrApp.getInstance().tx()) {
+			try (final Tx tx = app.tx()) {
 				result.commitResponse(gson.get(), response);
 				tx.success();
 			}
@@ -527,13 +534,15 @@ public class JsonRestServlet extends HttpServiceServlet {
 				tx.success();
 			}
 
+			final App app = StructrApp.getInstance(securityContext);
+
 //			logRequest("OPTIONS", request);
 			request.setCharacterEncoding("UTF-8");
 			response.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=UTF-8");
 
 			// isolate resource authentication
-			try (final Tx tx = StructrApp.getInstance().tx()) {
+			try (final Tx tx = app.tx()) {
 				
 				resource = ResourceHelper.applyViewTransformation(request, securityContext, ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty), defaultIdProperty), propertyView);
 				authenticator.checkResourceAccess(request, resource.getResourceSignature(), propertyView.get(securityContext));
@@ -541,13 +550,13 @@ public class JsonRestServlet extends HttpServiceServlet {
 			}
 			
 			// isolate doOptions
-			try (final Tx tx = StructrApp.getInstance().tx()) {
+			try (final Tx tx = app.tx()) {
 				result = resource.doOptions();
 				tx.success();
 			}
 
 			// isolate write output
-			try (final Tx tx = StructrApp.getInstance().tx()) {
+			try (final Tx tx = app.tx()) {
 				result.commitResponse(gson.get(), response);
 				tx.success();
 			}
@@ -622,13 +631,15 @@ public class JsonRestServlet extends HttpServiceServlet {
 				tx.success();
 			}
 
+			final App app = StructrApp.getInstance(securityContext);
+
 //			logRequest("POST", request);
 			request.setCharacterEncoding("UTF-8");
 			response.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=UTF-8");
 
 			// isolate input parsing (will include read and write operations)
-			try (final Tx tx = StructrApp.getInstance().tx()) {
+			try (final Tx tx = app.tx()) {
 				propertySet = gson.get().fromJson(request.getReader(), JsonInput.class);
 				tx.success();
 			}
@@ -639,7 +650,7 @@ public class JsonRestServlet extends HttpServiceServlet {
 				Map<String, Object> properties  = convertPropertySetToMap(propertySet);
 
 				// isolate resource authentication
-				try (final Tx tx = StructrApp.getInstance().tx()) {
+				try (final Tx tx = app.tx()) {
 				
 					resource = ResourceHelper.applyViewTransformation(request, securityContext, ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty), defaultIdProperty), propertyView);
 					authenticator.checkResourceAccess(request, resource.getResourceSignature(), propertyView.get(securityContext));
@@ -647,7 +658,7 @@ public class JsonRestServlet extends HttpServiceServlet {
 				}
 				
 				// isolate doPost
-				try (final Tx tx = StructrApp.getInstance().tx()) {
+				try (final Tx tx = app.tx()) {
 					result = resource.doPost(properties);
 					tx.success();
 				}
@@ -656,7 +667,7 @@ public class JsonRestServlet extends HttpServiceServlet {
 				propertyView.set(securityContext, defaultPropertyView);
 
 				// isolate write output
-				try (final Tx tx = StructrApp.getInstance().tx()) {
+				try (final Tx tx = app.tx()) {
 					result.commitResponse(gson.get(), response);
 					tx.success();
 				}
@@ -664,7 +675,7 @@ public class JsonRestServlet extends HttpServiceServlet {
 			} else {
 
 				// isolate write output
-				try (final Tx tx = StructrApp.getInstance().tx()) {
+				try (final Tx tx = app.tx()) {
 					result = new RestMethodResult(HttpServletResponse.SC_FORBIDDEN);
 					result.commitResponse(gson.get(), response);
 					tx.success();
@@ -751,13 +762,15 @@ public class JsonRestServlet extends HttpServiceServlet {
 				tx.success();
 			}
 
+			final App app = StructrApp.getInstance(securityContext);
+
 //			logRequest("PUT", request);
 			request.setCharacterEncoding("UTF-8");
 			response.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=UTF-8");
 
 			// isolate input parsing (will include read and write operations)
-			try (final Tx tx = StructrApp.getInstance().tx()) {
+			try (final Tx tx = app.tx()) {
 				propertySet = gson.get().fromJson(request.getReader(), JsonInput.class);
 				tx.success();
 			}
@@ -767,7 +780,7 @@ public class JsonRestServlet extends HttpServiceServlet {
 				Map<String, Object> properties = convertPropertySetToMap(propertySet);
 
 				// isolate resource authentication
-				try (final Tx tx = StructrApp.getInstance().tx()) {
+				try (final Tx tx = app.tx()) {
 				
 					// evaluate constraint chain
 					resource = ResourceHelper.applyViewTransformation(request, securityContext, ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty), defaultIdProperty), propertyView);
@@ -776,13 +789,13 @@ public class JsonRestServlet extends HttpServiceServlet {
 				}
 				
 				// isolate doPut
-				try (final Tx tx = StructrApp.getInstance().tx()) {
+				try (final Tx tx = app.tx()) {
 					result = resource.doPut(properties);
 					tx.success();
 				}
 
 				// isolate write output
-				try (final Tx tx = StructrApp.getInstance().tx()) {
+				try (final Tx tx = app.tx()) {
 					result.commitResponse(gson.get(), response);
 					tx.success();
 				}
@@ -790,7 +803,7 @@ public class JsonRestServlet extends HttpServiceServlet {
 			} else {
 
 				// isolate write output
-				try (final Tx tx = StructrApp.getInstance().tx()) {
+				try (final Tx tx = app.tx()) {
 					result = new RestMethodResult(HttpServletResponse.SC_FORBIDDEN);
 					result.commitResponse(gson.get(), response);
 					tx.success();
