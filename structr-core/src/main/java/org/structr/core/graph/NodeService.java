@@ -171,6 +171,16 @@ public class NodeService implements SingletonService {
 
 		}
 
+		// register shutdown hook
+		Runtime.getRuntime().addShutdownHook( new Thread()
+		{
+			@Override
+			public void run() {
+				
+			    graphDb.shutdown();
+			}
+		});
+
 		filesPath = config.getProperty(Services.FILES_PATH);
 
 		// check existence of files path
