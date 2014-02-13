@@ -20,14 +20,11 @@ package org.structr.core.property;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.helpers.Predicate;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
@@ -70,17 +67,10 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 		final PropertyContainer propertyContainer = obj.getPropertyContainer();
 		if (propertyContainer != null) {
 			
-			try (final TransactionCommand cmd = StructrApp.getInstance(securityContext).beginTx()) {
-				
-				// this may throw a java.lang.IllegalStateException: Relationship[<id>] has been deleted in this tx
-				if (propertyContainer.hasProperty(dbName())) {
+			// this may throw a java.lang.IllegalStateException: Relationship[<id>] has been deleted in this tx
+			if (propertyContainer.hasProperty(dbName())) {
 
-					value = propertyContainer.getProperty(dbName());
-				}
-
-			} catch (NotFoundException | IllegalStateException | FrameworkException ex) {
-				
-				logger.log(Level.WARNING, "Could not determine property " + dbName + " of the requested graph object", ex);
+				value = propertyContainer.getProperty(dbName());
 			}
 		}
 

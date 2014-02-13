@@ -28,6 +28,7 @@ import org.neo4j.graphdb.GraphDatabaseService;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.logging.Logger;
+import org.neo4j.graphdb.Transaction;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.StructrTransactionListener;
@@ -176,12 +177,19 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 
 				if (doCallbacks && modificationQueue != null && tx.isSuccessful()) {
 					
-					modificationQueue.doOuterCallbacks(securityContext);
+					// FIXME: experimental callback transaction here
+					final GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
+					try (final Transaction callbackTx = graphDb.beginTx()) {
 
-					// notify listeners
-					final List<ModificationEvent> modificationEvents = modificationQueue.getModificationEvents();
-					for (StructrTransactionListener listener : listeners) {
-						listener.transactionCommited(securityContext, modificationEvents);
+						modificationQueue.doOuterCallbacks(securityContext);
+
+						// notify listeners
+						final List<ModificationEvent> modificationEvents = modificationQueue.getModificationEvents();
+						for (StructrTransactionListener listener : listeners) {
+							listener.transactionCommited(securityContext, modificationEvents);
+						}
+						
+						callbackTx.success();
 					}
 				}
 

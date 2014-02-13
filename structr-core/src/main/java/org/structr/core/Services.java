@@ -54,6 +54,7 @@ import org.structr.core.graph.NodeService;
 import org.structr.core.graph.RelationshipFactory;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.SyncCommand;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.ConfigurationProvider;
 
@@ -680,28 +681,33 @@ public class Services {
 		
 		if (seedFile.exists()) {
 
-			final Iterator<Node> allNodes = GlobalGraphOperations.at(graphDb).getAllNodes().iterator();
-			final String idName           = GraphObject.id.dbName();
-			boolean hasApplicationNodes   = false;
+			try (final TransactionCommand tx = StructrApp.getInstance().beginTx()) {
 
-			while (allNodes.hasNext()) {
+				final Iterator<Node> allNodes = GlobalGraphOperations.at(graphDb).getAllNodes().iterator();
+				final String idName           = GraphObject.id.dbName();
+				boolean hasApplicationNodes   = false;
 
-				if (allNodes.next().hasProperty(idName)) {
-					hasApplicationNodes = true;
+				while (allNodes.hasNext()) {
+
+					if (allNodes.next().hasProperty(idName)) {
+						
+						hasApplicationNodes = true;
+						break;
+					}
 				}
-			}
 
-			if (!hasApplicationNodes) {
+				if (!hasApplicationNodes) {
 
-				logger.log(Level.INFO, "Found initial seed file and no application nodes, applying initial seed..");
+					logger.log(Level.INFO, "Found initial seed file and no application nodes, applying initial seed..");
 
-				try {
 					SyncCommand.importFromFile(graphDb, SecurityContext.getSuperUserInstance(), seedFile.getAbsoluteFile().getAbsolutePath(), false);
-
-				} catch (FrameworkException fex) {
-
-					logger.log(Level.WARNING, "Unable to import initial seed file.", fex);
 				}
+				
+				tx.commitTx();
+				
+			} catch (FrameworkException fex) {
+
+				logger.log(Level.WARNING, "Unable to import initial seed file.", fex);
 			}
 		}
 	}
