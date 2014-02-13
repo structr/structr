@@ -54,7 +54,7 @@ import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.TransactionCommand;
+import org.structr.core.graph.Tx;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -94,7 +94,7 @@ public class AdvancedPagingTest extends PagingTest {
 			
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
 			
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 
 				int i = offset;
 				for (NodeInterface node : nodes) {
@@ -106,10 +106,10 @@ public class AdvancedPagingTest extends PagingTest {
 
 					node.setProperty(AbstractNode.name, _name);
 				}
-				app.commitTx();
+				tx.success();
 			}
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				List<NodeInterface> result = app.get(type);
 
 				assertTrue(result.size() == number);
@@ -149,7 +149,7 @@ public class AdvancedPagingTest extends PagingTest {
 
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				
 				int i = offset;
 				for (NodeInterface node : nodes) {
@@ -161,10 +161,10 @@ public class AdvancedPagingTest extends PagingTest {
 
 					node.setProperty(AbstractNode.name, _name);
 				}
-				app.commitTx();
+				tx.success();
 			}
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				List<NodeInterface> result = app.get(type);
 
 				assertEquals(number, result.size());
@@ -252,7 +252,7 @@ public class AdvancedPagingTest extends PagingTest {
 
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 
 				int i = offset;
 				for (NodeInterface node : nodes) {
@@ -264,10 +264,10 @@ public class AdvancedPagingTest extends PagingTest {
 
 					node.setProperty(AbstractNode.name, _name);
 				}
-				app.commitTx();
+				tx.success();
 			}
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				Result result = app.nodeQuery(type).getResult();
 
 				assertEquals(number, result.size());
@@ -313,7 +313,7 @@ public class AdvancedPagingTest extends PagingTest {
 
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 
 				int i = offset;
 				for (NodeInterface node : nodes) {
@@ -325,10 +325,10 @@ public class AdvancedPagingTest extends PagingTest {
 
 					node.setProperty(AbstractNode.name, _name);
 				}
-				app.commitTx();
+				tx.success();
 			}
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				Result result = app.nodeQuery(type).getResult();
 
 				assertEquals(number, result.size());

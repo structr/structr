@@ -27,7 +27,7 @@ import org.structr.core.Result;
 import org.structr.core.entity.TestFour;
 import org.structr.core.entity.TestOne;
 import org.structr.core.entity.OneFourOneToOne;
-import org.structr.core.graph.TransactionCommand;
+import org.structr.core.graph.Tx;
 
 /**
  *
@@ -48,13 +48,13 @@ public class BooleanPropertyTest extends StructrTest {
 			// store boolean in the test entitiy
 			final Boolean value = Boolean.TRUE;
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 
 				testEntity.setProperty(key, value);
-				app.commitTx();
+				tx.success();
 			}
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 
 				// check value from database
 				assertEquals(value, testEntity.getProperty(key));
@@ -79,7 +79,7 @@ public class BooleanPropertyTest extends StructrTest {
 			
 			assertNotNull(testEntity);
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 
 				// check value from database
 				assertEquals((Boolean)true, (Boolean)testEntity.getProperty(key));
@@ -112,13 +112,13 @@ public class BooleanPropertyTest extends StructrTest {
 			
 			assertNotNull(testEntity);
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 
 				testEntity.setProperty(key, true);
-				app.commitTx();
+				tx.success();
 			}
 			
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 
 				// check value from database
 				assertEquals((Boolean)true, (Boolean)testEntity.getProperty(key));

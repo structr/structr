@@ -190,7 +190,7 @@ public class StructrTest extends TestCase {
 
 	protected List<NodeInterface> createTestNodes(final Class type, final int number, final long delay) throws FrameworkException {
 
-		try (final TransactionCommand cmd = app.beginTx()) {
+		try (final Tx tx = app.tx()) {
 			
 			List<NodeInterface> nodes = new LinkedList<>();
 
@@ -223,7 +223,7 @@ public class StructrTest extends TestCase {
 
 		props.put(AbstractNode.type, type.getSimpleName());
 
-		try (final TransactionCommand cmd = app.beginTx()) {
+		try (final Tx tx = app.tx()) {
 			
 			final T newNode = app.create(type, props);
 
@@ -240,7 +240,7 @@ public class StructrTest extends TestCase {
 		final NodeInterface startNode = nodes.get(0);
 		final NodeInterface endNode   = nodes.get(1);
 
-		try (final TransactionCommand cmd = app.beginTx()) {
+		try (final Tx tx = app.tx()) {
 			
 			List<T> rels = new LinkedList<>();
 
@@ -258,7 +258,7 @@ public class StructrTest extends TestCase {
 
 	protected <T extends Relation> T createTestRelationship(final AbstractNode startNode, final AbstractNode endNode, final Class<T> relType) throws FrameworkException {
 
-		try (final TransactionCommand cmd = app.beginTx()) {
+		try (final Tx tx = app.tx()) {
 			
 			final T rel = (T)app.create(startNode, endNode, relType);
 

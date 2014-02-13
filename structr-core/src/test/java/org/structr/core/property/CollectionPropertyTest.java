@@ -27,7 +27,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.TestOne;
 import org.structr.core.entity.TestSix;
-import org.structr.core.graph.TransactionCommand;
+import org.structr.core.graph.Tx;
 
 /**
  *
@@ -61,14 +61,14 @@ public class CollectionPropertyTest extends StructrTest {
 			twoTestOnesList.add(testOne1);
 			twoTestOnesList.add(testOne2);
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 
 				instance.setProperty(securityContext, testSix1, twoTestOnesList);
 				instance.setProperty(securityContext, testSix2, twoTestOnesList);
-				app.commitTx();
+				tx.success();
 			}
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 
 				List<TestOne> testOnesFromTestSix1 = instance.getProperty(securityContext, testSix1, true);
 				List<TestOne> testOnesFromTestSix2 = instance.getProperty(securityContext, testSix2, true);
@@ -85,14 +85,14 @@ public class CollectionPropertyTest extends StructrTest {
 			List<TestOne> oneTestOneList = new LinkedList<>();
 			oneTestOneList.add(testOne1);
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 
 				// set list with one TestOne node as related nodes
 				instance.setProperty(securityContext, testSix1, oneTestOneList);
-				app.commitTx();
+				tx.success();
 			}
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 
 				List<TestOne> oneTestOnesFromTestSix1 = instance.getProperty(securityContext, testSix1, true);
 

@@ -220,22 +220,7 @@ public class Security extends ManyToMany<Principal, NodeInterface> {
 		} else {
 			
 			final App app = StructrApp.getInstance(securityContext);
-			try {
-				
-				app.beginTx();
-				app.delete(this);
-				app.commitTx();
-				
-				
-			} catch (FrameworkException ex) {
-				
-				logger.log(Level.SEVERE, "Could not remove security relationship!", ex);
-				
-			} finally {
-				
-				app.finishTx();
-			}
-			
+			app.delete(this);
 		}
 
 	}

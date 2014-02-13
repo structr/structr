@@ -27,7 +27,7 @@ import org.structr.core.entity.TestEight;
 import org.structr.core.entity.TestFive;
 import org.structr.core.entity.User;
 import org.structr.core.graph.NodeAttribute;
-import org.structr.core.graph.TransactionCommand;
+import org.structr.core.graph.Tx;
 
 /**
  *
@@ -68,10 +68,10 @@ public class CallbackTest extends StructrTest {
 			
 			TestEight test = null;
 			
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 
 				test = app.create(TestEight.class, new NodeAttribute(TestEight.testProperty, 123));
-				app.commitTx();
+				tx.success();
 			}
 			
 			// only the creation methods should have been called now!
@@ -90,9 +90,9 @@ public class CallbackTest extends StructrTest {
 			// reset timestamps
 			test.resetTimestamps();
 			
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				test.setProperty(TestEight.testProperty, 234);
-				app.commitTx();
+				tx.success();
 			}
 
 			// only the modification methods should have been called now!
@@ -110,9 +110,9 @@ public class CallbackTest extends StructrTest {
 			// reset timestamps
 			test.resetTimestamps();
 			
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				test.setProperty(TestEight.testProperty, 234);
-				app.commitTx();
+				tx.success();
 			}
 
 			// only the creation methods should have been called now!
@@ -131,9 +131,9 @@ public class CallbackTest extends StructrTest {
 			// reset timestamps
 			test.resetTimestamps();
 			
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				app.delete(test);
-				app.commitTx();
+				tx.success();
 			}
 
 			// only the creation methods should have been called now!
@@ -159,10 +159,10 @@ public class CallbackTest extends StructrTest {
 		Integer zero = 0;
 		Integer one  = 1;
 		
-		try (final TransactionCommand cmd = app.beginTx()) {
+		try (final Tx tx = app.tx()) {
 
 			entity = app.create(TestFive.class);
-			app.commitTx();
+			tx.success();
 			
 		} catch (Throwable t) {
 			
@@ -172,7 +172,7 @@ public class CallbackTest extends StructrTest {
 		assertNotNull("Entity should have been created", entity);
 		
 		// creation assertions
-		try (final TransactionCommand cmd = app.beginTx()) {
+		try (final Tx tx = app.tx()) {
 			
 			assertEquals("modifiedInBeforeCreation should have a value of 1: ", one, entity.getProperty(TestFive.modifiedInBeforeCreation));
 			assertEquals("modifiedInAfterCreation should have a value of 1:  ", one, entity.getProperty(TestFive.modifiedInAfterCreation));
@@ -184,18 +184,18 @@ public class CallbackTest extends StructrTest {
 		
 		
 		// 2nd part of the test: modify node
-		try (final TransactionCommand cmd = app.beginTx()) {
+		try (final Tx tx = app.tx()) {
 
 			final TestFive finalEntity = entity;
 
 			finalEntity.setProperty(TestFive.intProperty, 123);
-			app.commitTx();
+			tx.success();
 			
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}
 		
-		try (final TransactionCommand cmd = app.beginTx()) {
+		try (final Tx tx = app.tx()) {
 
 			// creation assertions
 			assertEquals("modifiedInBeforeCreation should have a value of 1: ", one, entity.getProperty(TestFive.modifiedInBeforeCreation));

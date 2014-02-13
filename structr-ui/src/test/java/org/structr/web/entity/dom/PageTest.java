@@ -62,7 +62,7 @@ public class PageTest extends StructrUiTest {
 			DOMNode div3   = (DOMNode)page.createElement("div");
 			DOMNode p3     = (DOMNode)page.createElement("p");
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 			
 				// add HTML element to page
 				page.appendChild(html);
@@ -125,7 +125,7 @@ public class PageTest extends StructrUiTest {
 			Node div   = srcPage.createElement("div");
 			Node p     = srcPage.createElement("p");
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 			
 				// add HTML element to page
 				srcPage.appendChild(html);
@@ -208,7 +208,7 @@ public class PageTest extends StructrUiTest {
 			Node div   = srcPage.createElement("div");
 			Node p     = srcPage.createElement("p");
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 			
 				// add HTML element to page
 				srcPage.appendChild(html);
@@ -298,7 +298,7 @@ public class PageTest extends StructrUiTest {
 			Node div   = page.createElement("div");
 			Node p     = page.createElement("p");
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 			
 				// add HTML element to page
 				page.appendChild(html);

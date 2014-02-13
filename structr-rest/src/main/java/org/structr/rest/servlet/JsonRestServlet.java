@@ -56,7 +56,7 @@ import org.structr.core.Value;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.graph.NodeFactory;
-import org.structr.core.graph.TransactionCommand;
+import org.structr.core.graph.Tx;
 import org.structr.core.graph.search.SearchCommand;
 import org.structr.rest.serialization.StreamingWriter;
 import org.structr.rest.adapter.FrameworkExceptionGSONAdapter;
@@ -169,10 +169,10 @@ public class JsonRestServlet extends HttpServiceServlet {
 		try {
 
 			// isolate request authentication in a transaction
-			try (final TransactionCommand cmd = StructrApp.getInstance().beginTx()) {
+			try (final Tx tx = StructrApp.getInstance().tx()) {
 				authenticator = getAuthenticator();
 				securityContext = authenticator.initializeAndExamineRequest(request, response);
-				cmd.commitTx();
+				tx.success();
 			}
 
 //			logRequest("DELETE", request);
@@ -184,21 +184,21 @@ public class JsonRestServlet extends HttpServiceServlet {
 			String resourceSignature        = resourceConstraint.getResourceSignature();
 
 			// isolate resource authentication
-			try (final TransactionCommand cmd = StructrApp.getInstance().beginTx()) {
+			try (final Tx tx = StructrApp.getInstance().tx()) {
 				authenticator.checkResourceAccess(request, resourceSignature, propertyView.get(securityContext));
-				cmd.commitTx();
+				tx.success();
 			}
 
 			// isolate doPost
-			try (final TransactionCommand cmd = StructrApp.getInstance().beginTx()) {
+			try (final Tx tx = StructrApp.getInstance().tx()) {
 				result = resourceConstraint.doDelete();
-				cmd.commitTx();
+				tx.success();
 			}
 
 			// isolate write output
-			try (final TransactionCommand cmd = StructrApp.getInstance().beginTx()) {
+			try (final Tx tx = StructrApp.getInstance().tx()) {
 				result.commitResponse(gson.get(), response);
-				cmd.commitTx();
+				tx.success();
 			}
 
 		} catch (FrameworkException frameworkException) {
@@ -263,10 +263,10 @@ public class JsonRestServlet extends HttpServiceServlet {
 		try {
 
 			// isolate request authentication in a transaction
-			try (final TransactionCommand cmd = StructrApp.getInstance().beginTx()) {
+			try (final Tx tx = StructrApp.getInstance().tx()) {
 				authenticator = getAuthenticator();
 				securityContext = authenticator.initializeAndExamineRequest(request, response);
-				cmd.commitTx();
+				tx.success();
 			}
 
 //			logRequest("GET", request);
@@ -282,9 +282,9 @@ public class JsonRestServlet extends HttpServiceServlet {
 			String resourceSignature = resource.getResourceSignature();
 
 			// isolate resource authentication
-			try (final TransactionCommand cmd = StructrApp.getInstance().beginTx()) {
+			try (final Tx tx = StructrApp.getInstance().tx()) {
 				authenticator.checkResourceAccess(request, resourceSignature, propertyView.get(securityContext));
-				cmd.commitTx();
+				tx.success();
 			}
 			
 			// add sorting & paging
@@ -307,9 +307,9 @@ public class JsonRestServlet extends HttpServiceServlet {
 			}
 			
 			// isolate doGet
-			try (final TransactionCommand cmd = StructrApp.getInstance().beginTx()) {
+			try (final Tx tx = StructrApp.getInstance().tx()) {
 				result = resource.doGet(sortKey, sortDescending, pageSize, page, offsetId);
-				cmd.commitTx();
+				tx.success();
 			}
 			
 			result.setIsCollection(resource.isCollectionResource());
@@ -335,19 +335,19 @@ public class JsonRestServlet extends HttpServiceServlet {
 			if (accept != null && accept.contains("text/html")) {
 				
 				// isolate write output
-				try (final TransactionCommand cmd = StructrApp.getInstance().beginTx()) {
+				try (final Tx tx = StructrApp.getInstance().tx()) {
 					response.setContentType("text/html; charset=utf-8");
 					htmlWriter.get().stream(writer, result, baseUrl);
-					cmd.commitTx();
+					tx.success();
 				}
 			
 			} else {
 			
 				// isolate write output
-				try (final TransactionCommand cmd = StructrApp.getInstance().beginTx()) {
+				try (final Tx tx = StructrApp.getInstance().tx()) {
 					response.setContentType("application/json; charset=utf-8");
 					jsonWriter.get().stream(writer, result, baseUrl);
-					cmd.commitTx();
+					tx.success();
 				}
 				
 			}
@@ -425,10 +425,10 @@ public class JsonRestServlet extends HttpServiceServlet {
 		try {
 
 			// isolate request authentication in a transaction
-			try (final TransactionCommand cmd = StructrApp.getInstance().beginTx()) {
+			try (final Tx tx = StructrApp.getInstance().tx()) {
 				authenticator = getAuthenticator();
 				securityContext = authenticator.initializeAndExamineRequest(request, response);
-				cmd.commitTx();
+				tx.success();
 			}
 
 //			logRequest("HEAD", request);
@@ -441,21 +441,21 @@ public class JsonRestServlet extends HttpServiceServlet {
 			String resourceSignature  = resource.getResourceSignature();
 
 			// isolate resource authentication
-			try (final TransactionCommand cmd = StructrApp.getInstance().beginTx()) {
+			try (final Tx tx = StructrApp.getInstance().tx()) {
 				authenticator.checkResourceAccess(request, resourceSignature, propertyView.get(securityContext));
-				cmd.commitTx();
+				tx.success();
 			}
 			
 			// isolate doHead
-			try (final TransactionCommand cmd = StructrApp.getInstance().beginTx()) {
+			try (final Tx tx = StructrApp.getInstance().tx()) {
 				result = resource.doHead();
-				cmd.commitTx();
+				tx.success();
 			}
 
 			// isolate write output
-			try (final TransactionCommand cmd = StructrApp.getInstance().beginTx()) {
+			try (final Tx tx = StructrApp.getInstance().tx()) {
 				result.commitResponse(gson.get(), response);
-				cmd.commitTx();
+				tx.success();
 			}
 
 		} catch (FrameworkException frameworkException) {
@@ -520,10 +520,10 @@ public class JsonRestServlet extends HttpServiceServlet {
 		try {
 
 			// isolate request authentication in a transaction
-			try (final TransactionCommand cmd = StructrApp.getInstance().beginTx()) {
+			try (final Tx tx = StructrApp.getInstance().tx()) {
 				authenticator = getAuthenticator();
 				securityContext = authenticator.initializeAndExamineRequest(request, response);
-				cmd.commitTx();
+				tx.success();
 			}
 
 //			logRequest("OPTIONS", request);
@@ -536,21 +536,21 @@ public class JsonRestServlet extends HttpServiceServlet {
 			String resourceSignature  = resource.getResourceSignature();
 
 			// isolate resource authentication
-			try (final TransactionCommand cmd = StructrApp.getInstance().beginTx()) {
+			try (final Tx tx = StructrApp.getInstance().tx()) {
 				authenticator.checkResourceAccess(request, resourceSignature, propertyView.get(securityContext));
-				cmd.commitTx();
+				tx.success();
 			}
 			
 			// isolate doOptions
-			try (final TransactionCommand cmd = StructrApp.getInstance().beginTx()) {
+			try (final Tx tx = StructrApp.getInstance().tx()) {
 				result = resource.doOptions();
-				cmd.commitTx();
+				tx.success();
 			}
 
 			// isolate write output
-			try (final TransactionCommand cmd = StructrApp.getInstance().beginTx()) {
+			try (final Tx tx = StructrApp.getInstance().tx()) {
 				result.commitResponse(gson.get(), response);
-				cmd.commitTx();
+				tx.success();
 			}
 
 		} catch (FrameworkException frameworkException) {
@@ -616,10 +616,10 @@ public class JsonRestServlet extends HttpServiceServlet {
 		try {
 
 			// isolate request authentication in a transaction
-			try (final TransactionCommand cmd = StructrApp.getInstance().beginTx()) {
+			try (final Tx tx = StructrApp.getInstance().tx()) {
 				authenticator = getAuthenticator();
 				securityContext = authenticator.initializeAndExamineRequest(request, response);
-				cmd.commitTx();
+				tx.success();
 			}
 
 //			logRequest("POST", request);
@@ -628,9 +628,9 @@ public class JsonRestServlet extends HttpServiceServlet {
 			response.setContentType("application/json; charset=UTF-8");
 
 			// isolate input parsing (will include read and write operations)
-			try (final TransactionCommand cmd = StructrApp.getInstance().beginTx()) {
+			try (final Tx tx = StructrApp.getInstance().tx()) {
 				propertySet = gson.get().fromJson(request.getReader(), JsonInput.class);
-				cmd.commitTx();
+				tx.success();
 			}
 
 			if (securityContext != null) {
@@ -642,33 +642,33 @@ public class JsonRestServlet extends HttpServiceServlet {
 				String resourceSignature        = resource.getResourceSignature();
 
 				// isolate resource authentication
-				try (final TransactionCommand cmd = StructrApp.getInstance().beginTx()) {
+				try (final Tx tx = StructrApp.getInstance().tx()) {
 					authenticator.checkResourceAccess(request, resourceSignature, propertyView.get(securityContext));
-					cmd.commitTx();
+					tx.success();
 				}
 				
 				// isolate doPost
-				try (final TransactionCommand cmd = StructrApp.getInstance().beginTx()) {
+				try (final Tx tx = StructrApp.getInstance().tx()) {
 					result = resource.doPost(properties);
-					cmd.commitTx();
+					tx.success();
 				}
 
 				// set default value for property view
 				propertyView.set(securityContext, defaultPropertyView);
 
 				// isolate write output
-				try (final TransactionCommand cmd = StructrApp.getInstance().beginTx()) {
+				try (final Tx tx = StructrApp.getInstance().tx()) {
 					result.commitResponse(gson.get(), response);
-					cmd.commitTx();
+					tx.success();
 				}
 				
 			} else {
 
 				// isolate write output
-				try (final TransactionCommand cmd = StructrApp.getInstance().beginTx()) {
+				try (final Tx tx = StructrApp.getInstance().tx()) {
 					result = new RestMethodResult(HttpServletResponse.SC_FORBIDDEN);
 					result.commitResponse(gson.get(), response);
-					cmd.commitTx();
+					tx.success();
 				}
 
 			}
@@ -745,10 +745,10 @@ public class JsonRestServlet extends HttpServiceServlet {
 		try {
 
 			// isolate request authentication in a transaction
-			try (final TransactionCommand cmd = StructrApp.getInstance().beginTx()) {
+			try (final Tx tx = StructrApp.getInstance().tx()) {
 				authenticator = getAuthenticator();
 				securityContext = authenticator.initializeAndExamineRequest(request, response);
-				cmd.commitTx();
+				tx.success();
 			}
 
 //			logRequest("PUT", request);
@@ -757,9 +757,9 @@ public class JsonRestServlet extends HttpServiceServlet {
 			response.setContentType("application/json; charset=UTF-8");
 
 			// isolate input parsing (will include read and write operations)
-			try (final TransactionCommand cmd = StructrApp.getInstance().beginTx()) {
+			try (final Tx tx = StructrApp.getInstance().tx()) {
 				propertySet = gson.get().fromJson(request.getReader(), JsonInput.class);
-				cmd.commitTx();
+				tx.success();
 			}
 
 			if (securityContext != null) {
@@ -772,30 +772,30 @@ public class JsonRestServlet extends HttpServiceServlet {
 
 
 				// isolate resource authentication
-				try (final TransactionCommand cmd = StructrApp.getInstance().beginTx()) {
+				try (final Tx tx = StructrApp.getInstance().tx()) {
 					authenticator.checkResourceAccess(request, resourceSignature, propertyView.get(securityContext));
-					cmd.commitTx();
+					tx.success();
 				}
 				
 				// isolate doPut
-				try (final TransactionCommand cmd = StructrApp.getInstance().beginTx()) {
+				try (final Tx tx = StructrApp.getInstance().tx()) {
 					result = resource.doPut(properties);
-					cmd.commitTx();
+					tx.success();
 				}
 
 				// isolate write output
-				try (final TransactionCommand cmd = StructrApp.getInstance().beginTx()) {
+				try (final Tx tx = StructrApp.getInstance().tx()) {
 					result.commitResponse(gson.get(), response);
-					cmd.commitTx();
+					tx.success();
 				}
 				
 			} else {
 
 				// isolate write output
-				try (final TransactionCommand cmd = StructrApp.getInstance().beginTx()) {
+				try (final Tx tx = StructrApp.getInstance().tx()) {
 					result = new RestMethodResult(HttpServletResponse.SC_FORBIDDEN);
 					result.commitResponse(gson.get(), response);
-					cmd.commitTx();
+					tx.success();
 				}
 
 			}

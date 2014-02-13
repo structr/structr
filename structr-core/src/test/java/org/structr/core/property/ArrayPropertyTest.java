@@ -22,7 +22,7 @@ import org.apache.commons.lang.ArrayUtils;
 import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.TestFour;
-import org.structr.core.graph.TransactionCommand;
+import org.structr.core.graph.Tx;
 
 /**
  *
@@ -42,13 +42,13 @@ public class ArrayPropertyTest extends StructrTest {
 			// store a string array in the test entitiy
 			final String[] arr = new String[] { "one", "two", "three", "four", "five" };
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 
 				instance.setProperty(securityContext, testEntity, arr);
-				app.commitTx();
+				tx.success();
 			}
 			
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 
 				String[] newArr = instance.getProperty(securityContext, testEntity, true);
 

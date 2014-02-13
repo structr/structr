@@ -24,13 +24,11 @@ import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.fail;
 import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.TestThree;
 import org.structr.core.entity.TestSix;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
+import org.structr.core.graph.Tx;
 
 /**
  *
@@ -47,13 +45,13 @@ public class EntityPropertyTest extends StructrTest {
 			final TestThree b = createTestNode(TestThree.class);
 			final TestThree d = createTestNode(TestThree.class);
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 
 				a.setProperty(AbstractNode.name, "a");
 				c.setProperty(AbstractNode.name, "c");
 				b.setProperty(AbstractNode.name, "b");
 				d.setProperty(AbstractNode.name, "d");
-				app.commitTx();
+				tx.success();
 
 			} catch (FrameworkException fex) {
 
@@ -77,11 +75,11 @@ public class EntityPropertyTest extends StructrTest {
 			 */
 
 			// create two connections
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 
 				a.setProperty(TestSix.oneToOneTestThree, b);
 				c.setProperty(TestSix.oneToOneTestThree, d);
-				app.commitTx();
+				tx.success();
 
 			} catch (FrameworkException fex) {
 
@@ -90,7 +88,7 @@ public class EntityPropertyTest extends StructrTest {
 				fail("Unable to link test nodes");
 			}
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 
 				// verify connections
 				TestThree verifyB = a.getProperty(TestSix.oneToOneTestThree);
@@ -100,10 +98,10 @@ public class EntityPropertyTest extends StructrTest {
 				assertTrue(verifyD != null && verifyD.equals(d));
 			}
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 
 				a.setProperty(TestSix.oneToOneTestThree, d);
-				app.commitTx();
+				tx.success();
 
 			} catch (FrameworkException fex) {
 
@@ -112,7 +110,7 @@ public class EntityPropertyTest extends StructrTest {
 				fail("Unable to link test nodes");
 			}
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 
 				// verify connection
 				TestThree verifyD2 = a.getProperty(TestSix.oneToOneTestThree);
@@ -137,13 +135,13 @@ public class EntityPropertyTest extends StructrTest {
 			final TestThree testThree1 = createTestNode(TestThree.class);
 			final TestThree testThree2 = createTestNode(TestThree.class);
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 
 				testSix1.setProperty(AbstractNode.name, "a");
 				testSix2.setProperty(AbstractNode.name, "c");
 				testThree1.setProperty(AbstractNode.name, "b");
 				testThree2.setProperty(AbstractNode.name, "d");
-				app.commitTx();
+				tx.success();
 
 			} catch (FrameworkException fex) {
 
@@ -165,11 +163,11 @@ public class EntityPropertyTest extends StructrTest {
 			 * then connect A -> D, so C and B should not
 			 * be related any more
 			 */
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 
 				testSix1.setProperty(TestSix.oneToManyTestThrees, toList(testThree1));
 				testSix2.setProperty(TestSix.oneToManyTestThrees, toList(testThree2));
-				app.commitTx();
+				tx.success();
 
 			} catch (FrameworkException fex) {
 
@@ -178,7 +176,7 @@ public class EntityPropertyTest extends StructrTest {
 				fail("Unable to link test nodes");
 			}
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 
 				// verify connections
 				List<TestThree> verifyB = testSix1.getProperty(TestSix.oneToManyTestThrees);
@@ -188,10 +186,10 @@ public class EntityPropertyTest extends StructrTest {
 				assertTrue(verifyD != null && verifyD.get(0).equals(testThree2));
 			}
 			
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 
 				testSix1.setProperty(TestSix.oneToManyTestThrees, toList(testThree2));
-				app.commitTx();
+				tx.success();
 
 			} catch (FrameworkException fex) {
 
@@ -200,7 +198,7 @@ public class EntityPropertyTest extends StructrTest {
 				fail("Unable to link test nodes");
 			}
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 
 				// verify connection
 				List<TestThree> verifyD2 = testSix1.getProperty(TestSix.oneToManyTestThrees);

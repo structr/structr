@@ -94,35 +94,14 @@ public abstract class LinkedListNode<R extends AbstractListSiblings<T, T>, T ext
 		final T previousElement = listGetPrevious(currentElement);
 		if (previousElement == null) {
 
-			try {
-				app.beginTx();
-
-				linkNodes(getSiblingLinkType(), newElement, currentElement);
-
-				app.commitTx();
-
-			} finally {
-
-				app.finishTx();
-			}
+			linkNodes(getSiblingLinkType(), newElement, currentElement);
 
 		} else {
+			// delete old relationship
+			unlinkNodes(getSiblingLinkType(), previousElement, currentElement);
 
-			try {
-				app.beginTx();
-
-				// delete old relationship
-				unlinkNodes(getSiblingLinkType(), previousElement, currentElement);
-
-				linkNodes(getSiblingLinkType(), previousElement, newElement);
-				linkNodes(getSiblingLinkType(), newElement, currentElement);
-
-				app.commitTx();
-
-			} finally {
-
-				app.finishTx();
-			}
+			linkNodes(getSiblingLinkType(), previousElement, newElement);
+			linkNodes(getSiblingLinkType(), newElement, currentElement);
 		}
 	}
 
@@ -144,34 +123,14 @@ public abstract class LinkedListNode<R extends AbstractListSiblings<T, T>, T ext
 		final T next = listGetNext(currentElement);
 		if (next == null) {
 
-			try {
-				app.beginTx();
-
-				linkNodes(getSiblingLinkType(), currentElement, newElement);
-
-				app.commitTx();
-
-			} finally {
-
-				app.finishTx();
-			}
+			linkNodes(getSiblingLinkType(), currentElement, newElement);
 
 		} else {
 
-			try {
-				app.beginTx();
+			unlinkNodes(getSiblingLinkType(), currentElement, next);
 
-				unlinkNodes(getSiblingLinkType(), currentElement, next);
-
-				linkNodes(getSiblingLinkType(), currentElement, newElement);
-				linkNodes(getSiblingLinkType(), newElement, next);
-
-				app.commitTx();
-
-			} finally {
-
-				app.finishTx();
-			}
+			linkNodes(getSiblingLinkType(), currentElement, newElement);
+			linkNodes(getSiblingLinkType(), newElement, next);
 		}
 	}
 
@@ -189,22 +148,12 @@ public abstract class LinkedListNode<R extends AbstractListSiblings<T, T>, T ext
 
 		if (currentElement != null) {
 			
-			try {
-				app.beginTx();
+			if (previousElement != null) {
+				unlinkNodes(getSiblingLinkType(), previousElement, currentElement);
+			}
 
-				if (previousElement != null) {
-					unlinkNodes(getSiblingLinkType(), previousElement, currentElement);
-				}
-
-				if (nextElement != null) {
-					unlinkNodes(getSiblingLinkType(), currentElement, nextElement);
-				}
-
-				app.commitTx();
-
-			} finally {
-
-				app.finishTx();
+			if (nextElement != null) {
+				unlinkNodes(getSiblingLinkType(), currentElement, nextElement);
 			}
 		}
 
@@ -215,15 +164,7 @@ public abstract class LinkedListNode<R extends AbstractListSiblings<T, T>, T ext
 
 			if (previousNode != null && nextNode != null) {
 
-				try {
-					app.beginTx();
-					linkNodes(getSiblingLinkType(), previousElement, nextElement);
-					app.commitTx();
-
-				} finally {
-
-					app.finishTx();
-				}
+				linkNodes(getSiblingLinkType(), previousElement, nextElement);
 			}
 
 		}
@@ -234,39 +175,18 @@ public abstract class LinkedListNode<R extends AbstractListSiblings<T, T>, T ext
 	}
 	
 	public <R extends Relation<T, T, ?, ?>> void linkNodes(final Class<R> linkType, final T startNode, final T endNode, final PropertyMap properties) throws FrameworkException {
-		
-		final App app = StructrApp.getInstance(securityContext);
-		
-		try {
-			app.beginTx();
-			app.create(startNode, endNode, linkType, properties);
-			app.commitTx();
-
-		} finally {
-
-			app.finishTx();
-		}
+		StructrApp.getInstance(securityContext).create(startNode, endNode, linkType, properties);
 	}
 	
 	private void unlinkNodes(final Class<R> linkType, final T startNode, final T endNode) throws FrameworkException {
 		
 		final App app = StructrApp.getInstance(securityContext);
 		
-		try {
-			app.beginTx();
+		for (RelationshipInterface rel : startNode.getRelationships(linkType)) {
 
-			for (RelationshipInterface rel : startNode.getRelationships(linkType)) {
-
-				if (rel != null && rel.getTargetNode().equals(endNode)) {
-					app.delete(rel);
-				}
+			if (rel != null && rel.getTargetNode().equals(endNode)) {
+				app.delete(rel);
 			}
-
-			app.commitTx();
-
-		} finally {
-
-			app.finishTx();
 		}
 	}
 }

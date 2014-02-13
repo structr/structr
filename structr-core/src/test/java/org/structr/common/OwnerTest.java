@@ -57,7 +57,7 @@ import org.structr.core.entity.Group;
 import org.structr.core.entity.User;
 import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.TransactionCommand;
+import org.structr.core.graph.Tx;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -89,8 +89,7 @@ public class OwnerTest extends StructrTest {
 			Class type = TestOne.class;
 
 			final App superUserApp = StructrApp.getInstance();
-			try {
-				superUserApp.beginTx();
+			try (final Tx tx = app.tx()) {
 
 				List<NodeInterface> users = createTestNodes(User.class, 2);
 				user1 = (User) users.get(0);
@@ -103,15 +102,13 @@ public class OwnerTest extends StructrTest {
 
 				t1.setProperty(AbstractNode.owner, user1);
 
-				superUserApp.commitTx();
+				tx.success();
 
 			} catch (FrameworkException ex) {
 				logger.log(Level.SEVERE, ex.toString());
-			} finally {
-				superUserApp.finishTx();
 			}
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				
 				assertEquals(user1, t1.getProperty(AbstractNode.owner));
 
@@ -122,20 +119,18 @@ public class OwnerTest extends StructrTest {
 				assertEquals(t1, user1App.nodeQuery(type, false).getFirst());
 			}
 			
-			try {
-				superUserApp.beginTx();
+			try (final Tx tx = app.tx()) {
 
 				// As superuser, make another user the owner
 				t1.setProperty(AbstractNode.owner, user2);
 
-				superUserApp.commitTx();
+				tx.success();
+				
 			} catch (FrameworkException ex) {
 				logger.log(Level.SEVERE, ex.toString());
-			} finally {
-				superUserApp.finishTx();
 			}
 			
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				
 				// Switch user context to user2
 				final App user2App = StructrApp.getInstance(SecurityContext.getInstance(user2, AccessMode.Backend));
@@ -166,9 +161,7 @@ public class OwnerTest extends StructrTest {
 
 		final App superUserApp = StructrApp.getInstance();
 		
-		try {
-			
-			superUserApp.beginTx();
+		try (final Tx tx = app.tx()) {
 
 			List<NodeInterface> users = createTestNodes(User.class, 2);
 			User user1 = (User) users.get(0);
@@ -189,17 +182,13 @@ public class OwnerTest extends StructrTest {
 			List<Relationship> incomingRels = Iterables.toList(t1.getNode().getRelationships(Direction.INCOMING, new PrincipalOwnsNode()));
 			assertEquals(1, incomingRels.size());
 
-			superUserApp.commitTx();
+			tx.success();
 			
 		} catch (FrameworkException ex) {
 
 			logger.log(Level.SEVERE, ex.toString());
 			fail("Unexpected exception");
-
-		} finally {
-			superUserApp.finishTx();
 		}
-
 	}
 	
 	

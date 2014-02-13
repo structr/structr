@@ -27,7 +27,7 @@ import org.structr.core.Result;
 import org.structr.core.entity.TestFour;
 import org.structr.core.entity.TestOne;
 import org.structr.core.entity.OneFourOneToOne;
-import org.structr.core.graph.TransactionCommand;
+import org.structr.core.graph.Tx;
 
 /**
  *
@@ -47,13 +47,13 @@ public class LongPropertyTest extends StructrTest {
 			// store long in the test entitiy
 			final Long value = 2857312362L;
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				
 				instance.setProperty(securityContext, testEntity, value);
-				app.commitTx();
+				tx.success();
 			}
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				
 				// check value from database
 				assertEquals(value, instance.getProperty(securityContext, testEntity, true));
@@ -78,7 +78,7 @@ public class LongPropertyTest extends StructrTest {
 			
 			assertNotNull(testEntity);
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				
 				// check value from database
 				assertEquals((Long)2857312362L, (Long)testEntity.getProperty(key));
@@ -111,13 +111,13 @@ public class LongPropertyTest extends StructrTest {
 			
 			assertNotNull(testEntity);
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				
 				testEntity.setProperty(key, 2857312362L);
-				app.commitTx();
+				tx.success();
 			}
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				
 				// check value from database
 				assertEquals((Long)2857312362L, (Long)testEntity.getProperty(key));

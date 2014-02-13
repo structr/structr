@@ -44,14 +44,12 @@ import java.util.Enumeration;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Logger;
-import org.junit.After;
-import org.junit.Before;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.GenericNode;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.TransactionCommand;
+import org.structr.core.graph.Tx;
 import org.structr.core.log.ReadLogCommand;
 import org.structr.core.log.WriteLogCommand;
 import org.structr.module.JarConfigurationProvider;
@@ -150,8 +148,7 @@ public class StructrTest extends TestCase {
 
 	protected List<NodeInterface> createTestNodes(final Class type, final int number, final long delay) throws FrameworkException {
 
-		try {
-			app.beginTx();
+		try (final Tx tx = app.tx()) {
 
 			List<NodeInterface> nodes = new LinkedList<>();
 
@@ -164,17 +161,13 @@ public class StructrTest extends TestCase {
 				} catch (InterruptedException ex) {}
 			}
 
-			app.commitTx();
+			tx.success();
 
 			return nodes;
 
 		} catch (Throwable t) {
 			
 			t.printStackTrace();
-			
-		} finally {
-
-			app.finishTx();
 		}
 		
 		return null;
@@ -194,11 +187,11 @@ public class StructrTest extends TestCase {
 
 		props.put(AbstractNode.type, type.getSimpleName());
 
-		try (TransactionCommand cmd = app.beginTx() ) {
+		try (final Tx tx = app.tx()) {
 
 			final T newNode = app.create(type, props);
 
-			cmd.commitTx();
+			tx.success();
 		
 			return newNode;
 		}
@@ -211,7 +204,7 @@ public class StructrTest extends TestCase {
 		final NodeInterface startNode = nodes.get(0);
 		final NodeInterface endNode   = nodes.get(1);
 
-		try (TransactionCommand cmd = app.beginTx() ) {
+		try (final Tx tx = app.tx()) {
 
 			List<T> rels = new LinkedList<>();
 
@@ -220,7 +213,7 @@ public class StructrTest extends TestCase {
 				rels.add((T)app.create(startNode, endNode, relType));
 			}
 
-			cmd.commitTx();
+			tx.success();
 
 			return rels;
 		}
@@ -229,12 +222,11 @@ public class StructrTest extends TestCase {
 
 	protected <T extends Relation> T createTestRelationship(final AbstractNode startNode, final AbstractNode endNode, final Class<T> relType) throws FrameworkException {
 
-		try (TransactionCommand cmd = app.beginTx() ) {
-
+		try (final Tx tx = app.tx()) {
 
 			final T rel = (T)app.create(startNode, endNode, relType);
 
-			cmd.commitTx();
+			tx.success();
 
 			return rel;
 		}

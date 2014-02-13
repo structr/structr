@@ -21,13 +21,14 @@ package org.structr.core.property;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.fail;
+import static junit.framework.TestCase.assertEquals;
 import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
 import org.structr.core.entity.TestFour;
 import org.structr.core.entity.TestOne;
 import org.structr.core.entity.OneFourOneToOne;
-import org.structr.core.graph.TransactionCommand;
+import org.structr.core.graph.Tx;
 
 /**
  *
@@ -47,13 +48,13 @@ public class StringPropertyTest extends StructrTest {
 			// store string in the test entitiy
 			final String value = "This is a test!";
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 
 				instance.setProperty(securityContext, testEntity, value);
-				app.commitTx();
+				tx.success();
 			}
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				
 				// check value from database
 				assertEquals(value, instance.getProperty(securityContext, testEntity, true));
@@ -77,11 +78,11 @@ public class StringPropertyTest extends StructrTest {
 			final TestFour testEntity     = createTestNode(TestFour.class, properties);
 			
 			assertNotNull(testEntity);
-
-			// check value from database
-			assertEquals("test", testEntity.getProperty(key));
 			
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
+
+				// check value from database
+				assertEquals("test", testEntity.getProperty(key));
 				
 				Result<TestFour> result = app.nodeQuery(TestFour.class).and(key, "test").getResult();
 
@@ -111,13 +112,13 @@ public class StringPropertyTest extends StructrTest {
 			
 			assertNotNull(testEntity);
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				
 				testEntity.setProperty(key, "test");
-				app.commitTx();
+				tx.success();
 			}
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				
 				// check value from database
 				assertEquals("test", testEntity.getProperty(key));

@@ -38,7 +38,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.entity.SixOneOneToOne;
 import org.structr.core.entity.TestOne;
 import org.structr.core.entity.TestSix;
-import org.structr.core.graph.TransactionCommand;
+import org.structr.core.graph.Tx;
 
 /**
  *
@@ -66,10 +66,10 @@ public class CypherNotInTransactionTest extends StructrTest {
 			assertNotNull(testSix);
 			assertNotNull(testOne);
 			
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				
 				rel = app.create(testSix, testOne, SixOneOneToOne.class);
-				app.commitTx();
+				tx.success();
 			}
 
 			assertNotNull(rel);
@@ -77,7 +77,7 @@ public class CypherNotInTransactionTest extends StructrTest {
 			GraphDatabaseService graphDb      = graphDbCommand.execute();
 			ExecutionEngine engine            = (ExecutionEngine) new ExecutionEngine(graphDb);
 			
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				
 				ExecutionResult result            = engine.execute("start n = node(*) match (n)<-[r:ONE_TO_ONE]-() return r");
 				final Iterator<Relationship> rels = result.columnAs("r");
@@ -86,10 +86,10 @@ public class CypherNotInTransactionTest extends StructrTest {
 
 				rels.next().delete();
 				
-				app.commitTx();
+				tx.success();
 			}
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				
 				String uuid = rel.getUuid();
 				assertNull("UUID of deleted relationship should be null", uuid);
@@ -116,24 +116,21 @@ public class CypherNotInTransactionTest extends StructrTest {
 			assertNotNull(testOne);
 			assertNotNull(testSix);
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				
 				rel = app.create(testSix, testOne, SixOneOneToOne.class);
-				app.commitTx();
+				tx.success();
 			}
 
 			assertNotNull(rel);
 
-			GraphDatabaseService graphDb      = graphDbCommand.execute();
-			Transaction tx                    = graphDb.beginTx();
-
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				
 				testOne.getRelationships().iterator().next().getRelationship().delete();
-				app.commitTx();
+				tx.success();
 			}
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				
 				String uuid = rel.getUuid();
 				assertNull("UUID of deleted relationship should be null", uuid);
@@ -161,28 +158,28 @@ public class CypherNotInTransactionTest extends StructrTest {
 			assertNotNull(testOne);
 			assertNotNull(testSix);
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				
 				rel = app.create(testSix, testOne, SixOneOneToOne.class);
-				app.commitTx();
+				tx.success();
 			}
 
 			assertNotNull(rel);
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				
 				GraphObject  searchRes = app.get(testSix.getUuid());
 				assertNotNull(searchRes);
 			}
 			
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				
 				testSix.getRelationships().iterator().next().getRelationship().delete();
 
-				app.commitTx();
+				tx.success();
 			}
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				
 				String uuid = rel.getUuid();
 				assertNull("UUID of deleted relationship should be null", uuid);

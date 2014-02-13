@@ -55,7 +55,7 @@ public class ThumbnailTest extends StructrTest {
 		try {
 			TestImage img = null;
 			
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 
 				img = (TestImage) ImageHelper.createFileBase64(securityContext, base64Image, TestImage.class);
 
@@ -65,7 +65,7 @@ public class ThumbnailTest extends StructrTest {
 			assertNotNull(img);
 			assertTrue(img instanceof TestImage);
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 
 				Image tn = img.getProperty(TestImage.thumbnail);
 

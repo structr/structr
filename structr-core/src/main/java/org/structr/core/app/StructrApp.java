@@ -44,7 +44,7 @@ import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
-import org.structr.core.graph.TransactionCommand;
+import org.structr.core.graph.Tx;
 import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.graph.search.SearchRelationshipCommand;
 import org.structr.core.property.PropertyMap;
@@ -97,7 +97,7 @@ public class StructrApp implements App {
 	}
 
 	@Override
-	public void delete(final NodeInterface node) throws FrameworkException {
+	public void delete(final NodeInterface node) {
 		command(DeleteNodeCommand.class).execute(node);
 	}
 	
@@ -112,7 +112,7 @@ public class StructrApp implements App {
 	}
 
 	@Override
-	public void delete(final RelationshipInterface relationship) throws FrameworkException {
+	public void delete(final RelationshipInterface relationship) {
 		command(DeleteRelationshipCommand.class).execute(relationship);
 	}
 
@@ -178,32 +178,18 @@ public class StructrApp implements App {
 	}
 	
 	@Override
-	public TransactionCommand beginTx() {
-		
-		final TransactionCommand cmd = command(TransactionCommand.class);
-		cmd.beginTx();
-		
-		return cmd;
+	public Tx tx() {
+		return tx(true);
 	}
 	
 	@Override
-	public void commitTx() throws FrameworkException {
-		command(TransactionCommand.class).commitTx(true);
+	public Tx tx(final boolean doValidation) {
+		return tx(doValidation, true);
 	}
 	
 	@Override
-	public void commitTx(final boolean doValidation) throws FrameworkException {
-		command(TransactionCommand.class).commitTx(doValidation);
-	}
-	
-	@Override
-	public void finishTx() {
-		finishTx(true);
-	}
-	
-	@Override
-	public void finishTx(final boolean doCallbacks) {
-		command(TransactionCommand.class).finishTx(doCallbacks);
+	public Tx tx(final boolean doValidation, final boolean doCallbacks) {
+		return new Tx(securityContext, this, doValidation, doCallbacks).begin();
 	}
 	
 	@Override

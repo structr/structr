@@ -58,7 +58,7 @@ import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.TransactionCommand;
+import org.structr.core.graph.Tx;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -93,7 +93,7 @@ public class SortingTest extends StructrTest {
 
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				
 				int i = offset;
 				String name;
@@ -110,10 +110,10 @@ public class SortingTest extends StructrTest {
 
 				}
 				
-				app.commitTx();
+				tx.success();
 			}
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				
 				Result result = app.nodeQuery(type).getResult();
 
@@ -162,7 +162,7 @@ public class SortingTest extends StructrTest {
 
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				
 				int i = offset;
 				String name;
@@ -176,10 +176,10 @@ public class SortingTest extends StructrTest {
 					node.setProperty(AbstractNode.name, name);
 
 				}
-				app.commitTx();
+				tx.success();
 			}
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				
 				Result result = app.nodeQuery(type).getResult();
 
@@ -233,7 +233,7 @@ public class SortingTest extends StructrTest {
 
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				
 				int i = offset;
 				String name;
@@ -252,10 +252,10 @@ public class SortingTest extends StructrTest {
 					try { Thread.sleep(2); } catch (Throwable t) {}
 
 				}
-				app.commitTx();
+				tx.success();
 			}
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				
 				Result result = app.nodeQuery(type).getResult();
 
@@ -308,7 +308,7 @@ public class SortingTest extends StructrTest {
 
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				
 				int i = offset;
 				String name;
@@ -324,10 +324,10 @@ public class SortingTest extends StructrTest {
 					// slow down execution speed to make sure distinct changes fall in different milliseconds
 					try { Thread.sleep(2); } catch (Throwable t) {}
 				}
-				app.commitTx();
+				tx.success();
 			}
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				
 				Result result = app.nodeQuery(type).getResult();
 
@@ -377,7 +377,7 @@ public class SortingTest extends StructrTest {
 
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				
 				int i = offset;
 
@@ -388,10 +388,10 @@ public class SortingTest extends StructrTest {
 
 					i++;
 				}
-				app.commitTx();
+				tx.success();
 			}
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				
 				Result result = app.nodeQuery(type).getResult();
 
@@ -447,7 +447,7 @@ public class SortingTest extends StructrTest {
 			int i = offset;
 			String name;
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				
 				for (NodeInterface node : nodes) {
 
@@ -470,10 +470,10 @@ public class SortingTest extends StructrTest {
 
 				}
 
-				app.commitTx();
+				tx.success();
 			}
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				
 				Result result = app.nodeQuery(type).getResult();
 

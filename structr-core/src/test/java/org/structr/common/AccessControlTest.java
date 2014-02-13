@@ -55,7 +55,7 @@ import org.structr.core.entity.Person;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.User;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.TransactionCommand;
+import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 
@@ -92,7 +92,7 @@ public class AccessControlTest extends StructrTest {
 			
 			SecurityContext publicContext = SecurityContext.getInstance(null, AccessMode.Frontend);
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				
 				Result result = StructrApp.getInstance(publicContext).nodeQuery(type).getResult();
 
@@ -127,7 +127,7 @@ public class AccessControlTest extends StructrTest {
 			
 			SecurityContext publicContext = SecurityContext.getInstance(null, AccessMode.Frontend);
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				
 				Result result = StructrApp.getInstance(publicContext).nodeQuery(type).getResult();
 
@@ -165,7 +165,7 @@ public class AccessControlTest extends StructrTest {
 			
 			SecurityContext publicContext = SecurityContext.getInstance(null, AccessMode.Frontend);
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				Result result = StructrApp.getInstance(publicContext).nodeQuery(type).getResult();
 
 				assertEquals(1, result.size());
@@ -204,7 +204,7 @@ public class AccessControlTest extends StructrTest {
 			// Let another user search
 			SecurityContext user2Context = SecurityContext.getInstance(user2, AccessMode.Backend);
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				Result result = StructrApp.getInstance(user2Context).nodeQuery(type).getResult();
 
 				assertEquals(2, result.size());
@@ -242,7 +242,7 @@ public class AccessControlTest extends StructrTest {
 			// Let another user search
 			SecurityContext user2Context = SecurityContext.getInstance(user2, AccessMode.Frontend);
 			
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 
 				Result result = StructrApp.getInstance(user2Context).nodeQuery(type).getResult();
 
@@ -271,17 +271,17 @@ public class AccessControlTest extends StructrTest {
 			Class type = TestOne.class;
 			final TestOne t1 = createTestNode(TestOne.class, user1);
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				
 				// Grant read permission to user 2
 				user2.grant(Permission.read, t1);
-				app.commitTx();
+				tx.success();
 			}
 			
 			// Let user 2 search
 			SecurityContext user2Context = SecurityContext.getInstance(user2, AccessMode.Backend);
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 
 				result = StructrApp.getInstance(user2Context).nodeQuery(type).getResult();
 
@@ -289,14 +289,14 @@ public class AccessControlTest extends StructrTest {
 				assertEquals(t1.getUuid(), result.get(0).getUuid());
 			}
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 
 				// Revoke permission again
 				user2.revoke(Permission.read, t1);
-				app.commitTx();
+				tx.success();
 			}
 			
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				
 				result = StructrApp.getInstance(user2Context).nodeQuery(type).getResult();
 				assertTrue(result.isEmpty());
@@ -319,16 +319,16 @@ public class AccessControlTest extends StructrTest {
 			final Class type = TestOne.class;
 			final List<NodeInterface> nodes = createTestNodes(type, 10);
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				nodes.get(3).setProperty(AbstractNode.visibleToPublicUsers, true);
 				nodes.get(5).setProperty(AbstractNode.visibleToPublicUsers, true);
 				nodes.get(7).setProperty(AbstractNode.visibleToPublicUsers, true);
-				app.commitTx();
+				tx.success();
 			}
 
 			SecurityContext publicContext = SecurityContext.getInstance(null, AccessMode.Frontend);
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				
 				Result result = StructrApp.getInstance(publicContext).nodeQuery(type).getResult();
 
@@ -357,13 +357,13 @@ public class AccessControlTest extends StructrTest {
 			final Class type = TestOne.class;
 			final List<NodeInterface> nodes = createTestNodes(type, 10);
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 
 				nodes.get(3).setProperty(AbstractNode.visibleToPublicUsers, true);
 				nodes.get(5).setProperty(AbstractNode.visibleToPublicUsers, true);
 				nodes.get(7).setProperty(AbstractNode.visibleToPublicUsers, true);
 				nodes.get(9).setProperty(AbstractNode.visibleToPublicUsers, true);
-				app.commitTx();
+				tx.success();
 			}
 
 			SecurityContext publicContext = SecurityContext.getInstance(null, AccessMode.Frontend);
@@ -373,7 +373,7 @@ public class AccessControlTest extends StructrTest {
 			int pageSize        = 2;
 			int page            = 1;
 			
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				
 				Result result = StructrApp.getInstance(publicContext).nodeQuery(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getResult();
 
@@ -401,16 +401,12 @@ public class AccessControlTest extends StructrTest {
 
 		final App backendApp = StructrApp.getInstance(SecurityContext.getInstance(user, AccessMode.Backend));
 		
-		try {
-			backendApp.beginTx();
+		try (final Tx tx = backendApp.tx()) {
+			
 			final T result = backendApp.create(type, props);
-			backendApp.commitTx();
+			tx.success();
 
 			return result;
-
-		} finally {
-
-			app.finishTx();
 		}
 	}
 	

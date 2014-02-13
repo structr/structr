@@ -136,7 +136,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		
 		Page newPage = null;
 
-		try (final TransactionCommand cmd = app.beginTx()) {
+		try (final Tx tx = app.tx()) {
 			
 			newPage = app.create(Page.class, properties);
 			app.commitTx();
@@ -186,7 +186,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 		final App app  = StructrApp.getInstance(securityContext);
 		
-		try (final TransactionCommand cmd = app.beginTx()) {
+		try (final Tx tx = app.tx()) {
 			
 			final Integer _version = getProperty(Page.version);
 			if (_version == null) {
@@ -221,7 +221,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		
 		final Page _page = this;
 		
-		try (final TransactionCommand cmd = app.beginTx()) {
+		try (final Tx tx = app.tx()) {
 			
 			// create new content element
 			DOMElement element = (DOMElement)StructrApp.getInstance(securityContext).command(CreateNodeCommand.class).execute(
@@ -249,7 +249,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		
 		final App app  = StructrApp.getInstance(securityContext);
 
-		try (final TransactionCommand cmd = app.beginTx()) {
+		try (final Tx tx = app.tx()) {
 			
 			// create new content element
 			org.structr.web.entity.dom.DocumentFragment fragment = (org.structr.web.entity.dom.DocumentFragment)StructrApp.getInstance(securityContext).command(CreateNodeCommand.class).execute(
@@ -280,7 +280,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		
 		final App app  = StructrApp.getInstance(securityContext);
 
-		try (final TransactionCommand cmd = app.beginTx()) {
+		try (final Tx tx = app.tx()) {
 			
 			// create new content element
 			Content content = (Content)StructrApp.getInstance(securityContext).command(CreateNodeCommand.class).execute(
@@ -310,7 +310,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		
 		final App app  = StructrApp.getInstance(securityContext);
 
-		try (final TransactionCommand cmd = app.beginTx()) {
+		try (final Tx tx = app.tx()) {
 			
 			// create new content element
 			org.structr.web.entity.dom.Comment content = (org.structr.web.entity.dom.Comment)StructrApp.getInstance(securityContext).command(CreateNodeCommand.class).execute(
@@ -339,7 +339,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		
 		final App app  = StructrApp.getInstance(securityContext);
 
-		try (final TransactionCommand cmd = app.beginTx()) {
+		try (final Tx tx = app.tx()) {
 			
 			// create new content element
 			Cdata content = (Cdata)StructrApp.getInstance(securityContext).command(CreateNodeCommand.class).execute(
@@ -404,7 +404,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 			final DOMNode domNode = (DOMNode)node;
 			final App app  = StructrApp.getInstance(securityContext);
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 			
 				// step 1: use type-specific import impl.
 				Node importedNode = domNode.doImport(Page.this);
@@ -467,7 +467,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 			final DOMNode domNode = (DOMNode)node;
 			final App app  = StructrApp.getInstance(securityContext);
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 			
 				// step 1: use type-specific adopt impl.
 				Node adoptedNode = domNode.doAdopt(Page.this);

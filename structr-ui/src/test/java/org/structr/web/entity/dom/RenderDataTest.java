@@ -59,7 +59,7 @@ public class RenderDataTest extends DOMTest {
 			
 			assertEquals(7, folders.size());
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 			
 				Folder rootNode   = folders.get(0); rootNode.setProperty(AbstractNode.name, "rootNode");
 				Folder folderA    = folders.get(1); folderA.setProperty(AbstractNode.name, "folderA");
@@ -166,7 +166,7 @@ public class RenderDataTest extends DOMTest {
 		try {
 			final Page doc = (Page)getDocument();
 			
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 			
 				final List<User> users = createTestNodes(User.class, 3);
 

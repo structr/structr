@@ -56,7 +56,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.entity.relationship.NodeHasLocation;
 import org.structr.core.graph.RelationshipInterface;
-import org.structr.core.graph.TransactionCommand;
+import org.structr.core.graph.Tx;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -94,7 +94,7 @@ public class SearchResultsTest extends StructrTest {
 			
 			Result result = null;
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				
 				result = app.nodeQuery(TestOne.class).andName(name).includeDeletedAndHidden().getResult();
 
@@ -105,13 +105,13 @@ public class SearchResultsTest extends StructrTest {
 			// Change name attribute and search again
 			final String name2 = "klppptzoehi gösoiu tzüw0e9hg";
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				
 				node.setProperty(key, name2);
-				app.commitTx();
+				tx.success();
 			}
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				
 				result = app.nodeQuery(TestOne.class).andName(name2).includeDeletedAndHidden().getResult();
 
@@ -143,7 +143,7 @@ public class SearchResultsTest extends StructrTest {
 
 			AbstractNode node = createTestNode(type, props);
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				
 				Result result = app.nodeQuery(type).and(key, date).includeDeletedAndHidden().getResult();
 
@@ -173,13 +173,13 @@ public class SearchResultsTest extends StructrTest {
 			
 			final Result<RelationshipInterface> result;
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				
 				rel.setProperty(key1, val1);
-				app.commitTx();
+				tx.success();
 			}
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				
 				assertTrue(rel.getProperty(key1).equals(val1));
 
@@ -191,10 +191,10 @@ public class SearchResultsTest extends StructrTest {
 
 			final String val2 = "ölllldjöoa8w4rasf";
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				
 				rel.setProperty(key1, val2);
-				app.commitTx();
+				tx.success();
 			}
 
 			assertTrue(result.size() == 1);
@@ -226,7 +226,7 @@ public class SearchResultsTest extends StructrTest {
 
 			AbstractNode node = createTestNode(type, props);
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				
 				Result result = app.nodeQuery(type).location("Hanauer Landstraße", "200", "60314", "Frankfurt", "Germany", 10.0).includeDeletedAndHidden().getResult();
 
@@ -259,8 +259,7 @@ public class SearchResultsTest extends StructrTest {
 			props.put(lon, 8.73923d);
 			props.put(AbstractNode.name, "TestSeven-0");;
 
-			try {
-				app.beginTx();
+			try (final Tx tx = app.tx()) {
 
 				// this will work
 				TestSeven node = app.create(TestSeven.class, props);
@@ -275,11 +274,7 @@ public class SearchResultsTest extends StructrTest {
 				// adding another 
 				TestSeven node3 = app.create(TestSeven.class, props);
 
-				app.commitTx();
-			
-			} finally {
-
-				app.finishTx();
+				tx.success();
 			}
 
 			fail("Expected a FrameworkException (name must_not_be_empty)");
@@ -293,7 +288,7 @@ public class SearchResultsTest extends StructrTest {
 
 	public void test06DistanceSearchOnEmptyDB() {
 
-		try (final TransactionCommand cmd = app.beginTx()) {
+		try (final Tx tx = app.tx()) {
 
 			Result result = app.nodeQuery(TestOne.class).location("Hanauer Landstraße", "200", "60314", "Frankfurt", "Germany", 10.0).includeDeletedAndHidden().getResult();
 
@@ -322,7 +317,7 @@ public class SearchResultsTest extends StructrTest {
 
 			final AbstractNode node = createTestNode(TestOne.class, props);
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				
 				Result result = app.nodeQuery(TestOne.class).andName(name).includeDeletedAndHidden().getResult();
 
@@ -353,7 +348,7 @@ public class SearchResultsTest extends StructrTest {
 
 			final AbstractNode node = createTestNode(TestOne.class, props);
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 
 				Result result = app.nodeQuery(TestOne.class).andName(name).includeDeletedAndHidden().getResult();
 
@@ -383,7 +378,7 @@ public class SearchResultsTest extends StructrTest {
 
 			createTestNode(TestOne.class, props);
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 
 				Result result = app.nodeQuery(TestOne.class).andName(null).includeDeletedAndHidden().getResult();
 
@@ -408,7 +403,7 @@ public class SearchResultsTest extends StructrTest {
 			PropertyMap props = new PropertyMap();
 			AbstractNode node = createTestNode(TestOne.class, props);
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				
 				Result result = app.nodeQuery(TestOne.class).and(TestOne.aString, null).includeDeletedAndHidden().getResult();
 
@@ -434,7 +429,7 @@ public class SearchResultsTest extends StructrTest {
 			PropertyMap props     = new PropertyMap();
 			AbstractNode node = createTestNode(TestOne.class, props);
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				
 				Result result = app.nodeQuery(TestOne.class).and(TestOne.aDate, null).includeDeletedAndHidden().getResult();
 
@@ -460,7 +455,7 @@ public class SearchResultsTest extends StructrTest {
 			PropertyMap props     = new PropertyMap();
 			AbstractNode node = createTestNode(TestOne.class, props);
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				
 				Result result = app.nodeQuery(TestOne.class).and(TestOne.anInt, null).includeDeletedAndHidden().getResult();
 
@@ -486,7 +481,7 @@ public class SearchResultsTest extends StructrTest {
 			PropertyMap props     = new PropertyMap();
 			AbstractNode node = createTestNode(TestOne.class, props);
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 
 				Result result = app.nodeQuery(TestOne.class).and(TestOne.aLong, null).includeDeletedAndHidden().getResult();
 
@@ -512,7 +507,7 @@ public class SearchResultsTest extends StructrTest {
 			PropertyMap props = new PropertyMap();
 			AbstractNode node = createTestNode(TestOne.class, props);
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				
 				Result result = app.nodeQuery(TestOne.class).and(TestOne.aDouble, null).includeDeletedAndHidden().getResult();
 				assertTrue(result.size() == 1);

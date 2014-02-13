@@ -19,11 +19,8 @@
 package org.structr.core.property;
 
 import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.app.StructrApp;
 import org.structr.core.graph.RelationshipInterface;
-import org.structr.core.graph.TransactionCommand;
 
 /**
  *
@@ -50,13 +47,7 @@ public class RelationshipTypeProperty extends AbstractReadOnlyProperty<String> {
 		
 		if (obj instanceof RelationshipInterface) {
 			
-			try (final TransactionCommand cmd = StructrApp.getInstance(securityContext).beginTx()) {
-				
-				return ((RelationshipInterface)obj).getRelType().name();
-				
-			} catch (FrameworkException fex) {
-				// ignore
-			}
+			return ((RelationshipInterface)obj).getRelType().name();
 		}
 		
 		return null;

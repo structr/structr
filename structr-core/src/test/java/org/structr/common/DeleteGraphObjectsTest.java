@@ -40,7 +40,7 @@ import org.structr.core.entity.SixOneOneToOne;
 import org.structr.core.entity.TestSix;
 import org.structr.core.entity.relationship.NodeHasLocation;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.TransactionCommand;
+import org.structr.core.graph.Tx;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -84,25 +84,25 @@ public class DeleteGraphObjectsTest extends StructrTest {
 			props.put(AbstractNode.type, type);
 			props.put(AbstractNode.name, name);
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				
 				node = app.create(NodeInterface.class, props);
-				app.commitTx();
+				tx.success();
 			}
 
 			assertTrue(node != null);
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				uuid = node.getUuid();
 			}
 			
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				
 				app.delete(node);
-				app.commitTx();
+				tx.success();
 			}
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				
 				Result result = app.nodeQuery(NodeInterface.class).uuid(uuid).getResult();
 				
@@ -132,10 +132,10 @@ public class DeleteGraphObjectsTest extends StructrTest {
 			assertNotNull(testOne);
 			assertNotNull(testSix);
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				
 				rel = app.create(testSix, testOne, SixOneOneToOne.class);
-				app.commitTx();
+				tx.success();
 			}
 
 			assertNotNull(rel);
@@ -150,17 +150,18 @@ public class DeleteGraphObjectsTest extends StructrTest {
 			// Relationship still there
 			assertNotNull(rel);
 			
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				
 				app.delete(rel);
-				app.commitTx();
+				tx.success();
 			}
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				
 				String uuid = rel.getUuid();
-				assertNull("UUID of deleted relationship should be null", uuid);
+				fail("Deleted entity should have thrown an exception on access.");
 				
+			} catch (IllegalStateException iex) {
 			}
 			
 		
@@ -292,7 +293,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 			String startNodeId;
 			String endNodeId; 
 		
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 
 				startNodeId = rel.getSourceNode().getUuid();
 				endNodeId   = rel.getTargetNode().getUuid();
@@ -301,7 +302,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 
 			deleteCascade(sourceNode);
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 
 				// Start node should not be found after deletion
 				assertNodeNotFound(startNodeId);
@@ -313,7 +314,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 			// Create another relationship with DELETE_OUTGOING
 			rel = cascadeRel(TestOne.class, TestTwo.class, Relation.SOURCE_TO_TARGET);
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 
 				startNodeId = rel.getSourceNode().getUuid();
 				endNodeId   = rel.getTargetNode().getUuid();
@@ -322,7 +323,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 
 			deleteCascade(targetNode);
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 
 				// End node should not be found after deletion
 				assertNodeNotFound(endNodeId);
@@ -357,7 +358,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 			String startNodeId;
 			String endNodeId; 
 		
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 
 				startNodeId = rel.getSourceNode().getUuid();
 				endNodeId   = rel.getTargetNode().getUuid();
@@ -366,7 +367,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 
 			deleteCascade(sourceNode);
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 
 				// Start node should not be found after deletion
 				assertNodeNotFound(startNodeId);
@@ -378,7 +379,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 			// Create a relationship with DELETE_INCOMING
 			rel = cascadeRel(TestOne.class, TestTwo.class, Relation.TARGET_TO_SOURCE | Relation.SOURCE_TO_TARGET);
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 
 				startNodeId = rel.getSourceNode().getUuid();
 				endNodeId   = rel.getTargetNode().getUuid();
@@ -387,7 +388,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 
 			deleteCascade(targetNode);
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 
 				// End node should not be found after deletion
 				assertNodeNotFound(endNodeId);
@@ -421,7 +422,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 			String startNodeId;
 			String endNodeId; 
 			
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 
 				startNodeId = rel.getSourceNode().getUuid();
 				endNodeId   = rel.getTargetNode().getUuid();
@@ -430,7 +431,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 
 			deleteCascade(sourceNode);
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 
 				// Start node should be deleted
 				assertNodeNotFound(startNodeId);
@@ -441,7 +442,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 
 			rel = cascadeRel(TestOne.class, TestThree.class, Relation.CONSTRAINT_BASED);
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 
 				startNodeId = rel.getSourceNode().getUuid();
 				endNodeId   = rel.getTargetNode().getUuid();
@@ -450,7 +451,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 
 			deleteCascade(sourceNode);
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 
 				// Start node should be deleted
 				assertNodeNotFound(startNodeId);
@@ -461,7 +462,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 
 			rel = cascadeRel(TestOne.class, TestFour.class, Relation.CONSTRAINT_BASED);
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 
 				startNodeId = rel.getSourceNode().getUuid();
 				endNodeId   = rel.getTargetNode().getUuid();
@@ -470,7 +471,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 
 			deleteCascade(sourceNode);
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 
 				// Start node should be deleted
 				assertNodeNotFound(startNodeId);
@@ -492,7 +493,7 @@ public class DeleteGraphObjectsTest extends StructrTest {
 
 	private AbstractRelationship cascadeRel(final Class type1, final Class type2, final int cascadeDeleteFlag) throws FrameworkException {
 
-		try (final TransactionCommand cmd = app.beginTx()) {
+		try (final Tx tx = app.tx()) {
 
 			AbstractNode start       = createTestNode(type1);
 			AbstractNode end         = createTestNode(type2);
@@ -500,26 +501,18 @@ public class DeleteGraphObjectsTest extends StructrTest {
 
 			rel.setProperty(AbstractRelationship.cascadeDelete, cascadeDeleteFlag);
 
-			app.commitTx();
+			tx.success();
 
 			return rel;
-
-		} finally {
-
-			app.finishTx();
 		}
 	}
 
 	private void deleteCascade(final NodeInterface node) throws FrameworkException {
 
-		try {
-			app.beginTx();
+		try (final Tx tx = app.tx()) {
+			
 			app.delete(node);
-			app.commitTx();
-
-		} finally {
-
-			app.finishTx();
+			tx.success();
 		}
 	}
 }

@@ -20,7 +20,6 @@ package org.structr.core.graph;
 
 
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -28,7 +27,6 @@ import org.neo4j.graphdb.GraphDatabaseService;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.logging.Logger;
-import org.neo4j.graphdb.Transaction;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.StructrTransactionListener;
@@ -83,10 +81,6 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 		tx.begin();
 		
 		return this;
-	}
-	
-	public void commitTx() throws FrameworkException {
-		commitTx(true);
 	}
 	
 	public void commitTx(final boolean doValidation) throws FrameworkException {
@@ -149,18 +143,16 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 		}
 	}
 	
-	public void finishTx() {
-		finishTx(true);
-	}
-	
-	public void finishTx(final boolean doCallbacks) {
+	public ModificationQueue finishTx() {
 		
-		final TransactionReference tx = transactions.get();
+		final TransactionReference tx       = transactions.get();
+		ModificationQueue modificationQueue = null;
+		
 		if (tx != null) {
 			
 			if (tx.isToplevel()) {
 
-				final ModificationQueue modificationQueue = queues.get();
+				modificationQueue = queues.get();
 				
 				// cleanup
 				queues.remove();
@@ -174,34 +166,14 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 				} catch (Throwable t) {
 					t.printStackTrace();
 				}
-
-				if (doCallbacks && modificationQueue != null && tx.isSuccessful()) {
-					
-					// FIXME: experimental callback transaction here
-					final GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
-					try (final Transaction callbackTx = graphDb.beginTx()) {
-
-						modificationQueue.doOuterCallbacks(securityContext);
-
-						// notify listeners
-						final List<ModificationEvent> modificationEvents = modificationQueue.getModificationEvents();
-						for (StructrTransactionListener listener : listeners) {
-							listener.transactionCommited(securityContext, modificationEvents);
-						}
-						
-						callbackTx.success();
-					}
-				}
-
-				if (modificationQueue != null) {
-					modificationQueue.clear();
-				}
 				
 			} else {
 				
 				tx.end();
 			}
 		}
+
+		return modificationQueue;
 	}
 	
 	@Override
@@ -363,6 +335,10 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 	
 	public static void removeTransactionListener(final StructrTransactionListener listener) {
 		listeners.remove(listener);
+	}
+	
+	public static Set<StructrTransactionListener> getTransactionListeners() {
+		return listeners;
 	}
 	
 	public static boolean inTransaction() {

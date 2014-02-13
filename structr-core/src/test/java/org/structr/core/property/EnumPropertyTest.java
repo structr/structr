@@ -28,7 +28,7 @@ import org.structr.core.entity.TestEnum;
 import org.structr.core.entity.TestFour;
 import org.structr.core.entity.TestOne;
 import org.structr.core.entity.OneFourOneToOne;
-import org.structr.core.graph.TransactionCommand;
+import org.structr.core.graph.Tx;
 
 /**
  *
@@ -48,7 +48,7 @@ public class EnumPropertyTest extends StructrTest {
 			
 			assertNotNull(testEntity);
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 
 				// check value from database
 				assertEquals(TestEnum.Status1, testEntity.getProperty(TestFour.enumProperty));
@@ -73,7 +73,7 @@ public class EnumPropertyTest extends StructrTest {
 			
 			assertNotNull(testEntity);
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 
 				// check value from database
 				assertEquals(TestEnum.Status1, testEntity.getProperty(key));
@@ -106,13 +106,13 @@ public class EnumPropertyTest extends StructrTest {
 			
 			assertNotNull(testEntity);
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 
 				testEntity.setProperty(key, TestEnum.Status1);
-				app.commitTx();
+				tx.success();
 			}
 			
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 
 				// check value from database
 				assertEquals(TestEnum.Status1, testEntity.getProperty(key));

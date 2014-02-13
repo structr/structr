@@ -48,7 +48,7 @@ public class FrontendTest extends StructrUiTest {
 
 	protected int run(final String testName) {
 
-		try (final TransactionCommand cmd = app.beginTx()) {
+		try (final Tx tx = app.tx()) {
 			
 			createAdminUser();
 			createResourceAccess("_login", UiAuthenticator.NON_AUTH_USER_POST);
@@ -94,7 +94,7 @@ public class FrontendTest extends StructrUiTest {
 		properties.put(User.name, "admin");
 		properties.put(User.password, "admin");
 
-		try (final TransactionCommand cmd = app.beginTx()) {
+		try (final Tx tx = app.tx()) {
 			
 			User user = app.create(User.class, properties);
 			user.setProperty(User.password, "admin");

@@ -26,7 +26,7 @@ import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.fail;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.TestOne;
-import org.structr.core.graph.TransactionCommand;
+import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 
 //~--- classes ----------------------------------------------------------------
@@ -53,8 +53,8 @@ public class GraphComparatorTest extends StructrTest {
 			TestOne a = createTestNode(TestOne.class);
 			TestOne b = createTestNode(TestOne.class);
 			
-			try (final TransactionCommand cmd = app.beginTx()) {
-				
+			try (final Tx tx = app.tx()) {
+
 				GraphObjectComparator comp = new GraphObjectComparator(TestOne.anInt, GraphObjectComparator.ASCENDING);
 
 				try {
@@ -156,7 +156,7 @@ public class GraphComparatorTest extends StructrTest {
 				
 			} catch (NullPointerException e) {}
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				
 				// a: null
 				// b: null
@@ -169,7 +169,7 @@ public class GraphComparatorTest extends StructrTest {
 			// a > b => 1
 			setPropertyTx(a, TestOne.anInt, 0);
 			
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				
 				assertEquals(1, comp.compare(a, b));
 			}
@@ -180,7 +180,7 @@ public class GraphComparatorTest extends StructrTest {
 			setPropertyTx(a, TestOne.anInt, null);
 			setPropertyTx(b, TestOne.anInt, 0);
 			
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				
 				assertEquals(-1, comp.compare(a, b));
 			}
@@ -191,7 +191,7 @@ public class GraphComparatorTest extends StructrTest {
 			setPropertyTx(a, TestOne.anInt, 1);
 			setPropertyTx(b, TestOne.anInt, 2);
 			
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				
 				assertEquals(1, comp.compare(a, b));
 			}
@@ -202,7 +202,7 @@ public class GraphComparatorTest extends StructrTest {
 			setPropertyTx(a, TestOne.anInt, 2);
 			setPropertyTx(b, TestOne.anInt, 1);
 			
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				
 				assertEquals(-1, comp.compare(a, b));
 			}
@@ -218,17 +218,12 @@ public class GraphComparatorTest extends StructrTest {
 		
 	private void setPropertyTx(final GraphObject obj, final PropertyKey key, final Object value) {
 		
-		try {
-		
-			app.beginTx();
+		try (final Tx tx = app.tx()) {
+			
 			obj.setProperty(key, value);
-			app.commitTx();
+			tx.success();
 			
 		} catch (FrameworkException ex) {
-
-		} finally {
-
-			app.finishTx();
 		}
 	}
 }

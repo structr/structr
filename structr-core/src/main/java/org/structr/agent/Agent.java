@@ -28,6 +28,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.app.StructrApp;
+import org.structr.core.graph.Tx;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -53,7 +55,7 @@ public abstract class Agent extends Thread implements StatusInfo {
 	private int maxAgents                      = 4;
 	private int maxQueueSize                   = 10;
 	private final AtomicBoolean suspended      = new AtomicBoolean(false);
-	private final Queue<Task> taskQueue        = new ConcurrentLinkedQueue<Task>();
+	private final Queue<Task> taskQueue        = new ConcurrentLinkedQueue<>();
 
 	//~--- methods --------------------------------------------------------
 
@@ -82,8 +84,11 @@ public abstract class Agent extends Thread implements StatusInfo {
 
 				ReturnValue ret = null;
 
-				try {
+				try (final Tx tx = StructrApp.getInstance().tx()) {
+
 					ret = processTask(currentTask);
+					tx.success();
+					
 				} catch (Throwable t) {
 
 					// someone killed us or the task processing failed..

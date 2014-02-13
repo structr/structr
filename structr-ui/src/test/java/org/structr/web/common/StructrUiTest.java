@@ -287,7 +287,7 @@ public class StructrUiTest extends TestCase {
 		final PropertyMap props = new PropertyMap();
 		props.put(AbstractNode.type, type.getSimpleName());
 
-		try (final TransactionCommand cmd = app.beginTx()) {
+		try (final Tx tx = app.tx()) {
 			
 			List<T> nodes = new LinkedList<>();
 
@@ -303,7 +303,7 @@ public class StructrUiTest extends TestCase {
 
 	protected <T extends NodeInterface> List<T> createTestNodes(final Class<T> type, final int number, final PropertyMap props) throws FrameworkException {
 
-		try (final TransactionCommand cmd = app.beginTx()) {
+		try (final Tx tx = app.tx()) {
 			
 			List<T> nodes = new LinkedList<>();
 
@@ -323,7 +323,7 @@ public class StructrUiTest extends TestCase {
 		final GenericNode startNode = nodes.get(0);
 		final GenericNode endNode   = nodes.get(1);
 
-		try (final TransactionCommand cmd = app.beginTx()) {
+		try (final Tx tx = app.tx()) {
 			
 			List<RelationshipInterface> rels = new LinkedList<>();
 

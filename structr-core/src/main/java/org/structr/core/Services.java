@@ -54,7 +54,7 @@ import org.structr.core.graph.NodeService;
 import org.structr.core.graph.RelationshipFactory;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.SyncCommand;
-import org.structr.core.graph.TransactionCommand;
+import org.structr.core.graph.Tx;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.ConfigurationProvider;
 
@@ -581,9 +581,8 @@ public class Services {
 		// iterate over all nodes
 		while (allNodes.hasNext()) {
 
-			app.beginTx();
+			try (final Tx tx = app.tx(false, false)) {
 
-			try {
 				while (allNodes.hasNext() && (++count % txLimit) != 0) {
 
 					final Node node = allNodes.next();
@@ -607,17 +606,12 @@ public class Services {
 						}
 					}
 				}
-				
-				// no validation but indexing etc.
-				app.commitTx(false);
+
+				tx.success();
 
 			} catch (Throwable t) {
 
 				t.printStackTrace();
-
-			} finally {
-
-				app.finishTx(false);
 			}
 
 			logger.log(Level.INFO, "Migrated {0} of {1} nodes so far.", new Object[] { actualNodeCount, count });
@@ -630,9 +624,8 @@ public class Services {
 		// iterate over all relationships
 		while (allRels.hasNext()) {
 
-			app.beginTx();
+			try (final Tx tx = app.tx(false, false)) {
 
-			try {
 				while (allRels.hasNext() && (++count % txLimit) != 0) {
 
 					final Relationship rel = allRels.next();
@@ -656,16 +649,11 @@ public class Services {
 					}
 				}
 
-				// no validation but indexing etc.
-				app.commitTx(false);
+				tx.success();
 
 			} catch (Throwable t) {
 
 				t.printStackTrace();
-
-			} finally {
-
-				app.finishTx(false);
 			}
 
 			logger.log(Level.INFO, "Migrated {0} of {1} relationships so far.", new Object[] { actualRelCount, count });
@@ -681,7 +669,7 @@ public class Services {
 		
 		if (seedFile.exists()) {
 
-			try (final TransactionCommand tx = StructrApp.getInstance().beginTx()) {
+			try (final Tx tx = StructrApp.getInstance().tx()) {
 
 				final Iterator<Node> allNodes = GlobalGraphOperations.at(graphDb).getAllNodes().iterator();
 				final String idName           = GraphObject.id.dbName();
@@ -703,7 +691,7 @@ public class Services {
 					SyncCommand.importFromFile(graphDb, SecurityContext.getSuperUserInstance(), seedFile.getAbsoluteFile().getAbsolutePath(), false);
 				}
 				
-				tx.commitTx();
+				tx.success();
 				
 			} catch (FrameworkException fex) {
 

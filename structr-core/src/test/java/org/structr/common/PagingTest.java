@@ -53,7 +53,7 @@ import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.TransactionCommand;
+import org.structr.core.graph.Tx;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -88,7 +88,7 @@ public class PagingTest extends StructrTest {
 			// create nodes
 			this.createTestNodes(type, number);
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 
 				Result result = app.nodeQuery(type).getResult();
 
@@ -134,7 +134,7 @@ public class PagingTest extends StructrTest {
 
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				
 
 				int i                           = offset;
@@ -147,10 +147,10 @@ public class PagingTest extends StructrTest {
 
 					node.setProperty(AbstractNode.name, _name);
 				}
-				app.commitTx();
+				tx.success();
 			}
 
-			try (final TransactionCommand cmd = app.beginTx()) {
+			try (final Tx tx = app.tx()) {
 				
 				Result result = app.nodeQuery(type).getResult();
 

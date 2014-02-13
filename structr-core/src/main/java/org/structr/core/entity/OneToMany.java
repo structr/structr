@@ -74,16 +74,7 @@ public abstract class OneToMany<S extends NodeInterface, T extends NodeInterface
 			final Relation<?, T, ?, ?> incomingRel = targetNode.getIncomingRelationship(clazz);
 			if (incomingRel != null && sourceType.isAssignableFrom(incomingRel.getSourceType())) {
 
-				try {
-
-					app.beginTx();
-					app.delete(incomingRel);
-					app.commitTx();
-
-				} finally {
-
-					app.finishTx();
-				}
+				app.delete(incomingRel);
 			}
 		}
 	}
