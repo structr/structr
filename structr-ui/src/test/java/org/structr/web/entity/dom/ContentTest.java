@@ -19,7 +19,6 @@ package org.structr.web.entity.dom;
 
 import static junit.framework.TestCase.fail;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
 import org.structr.web.common.DOMTest;
 import org.w3c.dom.Document;
@@ -63,6 +62,7 @@ public class ContentTest extends DOMTest {
 			NodeList children = div.getChildNodes();
 			assertNotNull(children);
 			assertEquals(2, children.getLength());
+
 			tx.success();
 
 		} catch (FrameworkException fex) {
@@ -73,112 +73,192 @@ public class ContentTest extends DOMTest {
 
 	public void testIsElementContentWhitespace() {
 
-		Content content = getContentNode();
-		assertNotNull(content);
+		try (final Tx tx = app.tx()) {
 
-		// test basic setting of content
-		content.setData("Dies ist ein Test");
-		assertEquals("Dies ist ein Test", content.getData());
+			Content content = getContentNode();
+			assertNotNull(content);
 
-		assertEquals(true, content.isElementContentWhitespace());
+			// test basic setting of content
+			content.setData("Dies ist ein Test");
+			assertEquals("Dies ist ein Test", content.getData());
+
+			assertEquals(true, content.isElementContentWhitespace());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fail("unexpected exception");
+		}
 	}
 
 	public void testGetData() {
 
-		Content content = getContentNode();
-		assertNotNull(content);
+		try (final Tx tx = app.tx()) {
 
-		// test basic setting of content
-		content.setData("Dies ist ein Test");
-		assertEquals("Dies ist ein Test", content.getData());
+			Content content = getContentNode();
+			assertNotNull(content);
+
+			// test basic setting of content
+			content.setData("Dies ist ein Test");
+			assertEquals("Dies ist ein Test", content.getData());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fail("unexpected exception");
+		}
 	}
 
 	public void testSetData() {
 
-		Content content = getContentNode();
-		assertNotNull(content);
+		try (final Tx tx = app.tx()) {
 
-		// test basic setting of content
-		content.setData("Dies ist ein Test");
-		assertEquals("Dies ist ein Test", content.getData());
+			Content content = getContentNode();
+			assertNotNull(content);
 
+			// test basic setting of content
+			content.setData("Dies ist ein Test");
+			assertEquals("Dies ist ein Test", content.getData());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fail("unexpected exception");
+		}
 	}
 
 	public void testGetLength() {
 
-		Content content = getContentNode();
-		assertNotNull(content);
+		try (final Tx tx = app.tx()) {
 
-		// test basic setting of content
-		content.setData("Dies ist ein Test");
-		assertEquals("Dies ist ein Test", content.getData());
+			Content content = getContentNode();
+			assertNotNull(content);
 
-		assertEquals(17, content.getLength());
+			// test basic setting of content
+			content.setData("Dies ist ein Test");
+			assertEquals("Dies ist ein Test", content.getData());
+
+			assertEquals(17, content.getLength());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fail("unexpected exception");
+		}
 	}
 
 	public void testSubstringData() {
 
-		Content content = getContentNode();
-		assertNotNull(content);
+		try (final Tx tx = app.tx()) {
 
-		// test basic setting of content
-		content.setData("Dies ist ein Test");
-		assertEquals("Dies ist ein Test", content.getData());
+			Content content = getContentNode();
+			assertNotNull(content);
 
-		String substringData = content.substringData(5, 3);
-		assertEquals("ist", substringData);
+			// test basic setting of content
+			content.setData("Dies ist ein Test");
+			assertEquals("Dies ist ein Test", content.getData());
+
+			String substringData = content.substringData(5, 3);
+			assertEquals("ist", substringData);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fail("unexpected exception");
+		}
 	}
 
 	public void testAppendData() {
 
-		Content content = getContentNode();
-		assertNotNull(content);
+		try (final Tx tx = app.tx()) {
 
-		// test basic setting of content
-		content.setData("Dies ist");
-		assertEquals("Dies ist", content.getData());
+			Content content = getContentNode();
+			assertNotNull(content);
 
-		content.appendData(" ein Test");
-		assertEquals("Dies ist ein Test", content.getData());
+			// test basic setting of content
+			content.setData("Dies ist");
+			assertEquals("Dies ist", content.getData());
+
+			content.appendData(" ein Test");
+			assertEquals("Dies ist ein Test", content.getData());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fail("unexpected exception");
+		}
 	}
 
 	public void testInsertData() {
 
-		Content content = getContentNode();
-		assertNotNull(content);
+		try (final Tx tx = app.tx()) {
 
-		// test basic setting of content
-		content.setData("Dies ein Test");
-		assertEquals("Dies ein Test", content.getData());
+			Content content = getContentNode();
+			assertNotNull(content);
 
-		content.insertData(5, "ist ");
-		assertEquals("Dies ist ein Test", content.getData());
+			// test basic setting of content
+			content.setData("Dies ein Test");
+			assertEquals("Dies ein Test", content.getData());
+
+			content.insertData(5, "ist ");
+			assertEquals("Dies ist ein Test", content.getData());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fail("unexpected exception");
+		}
 	}
 
 	public void testDeleteData() {
 
-		Content content = getContentNode();
-		assertNotNull(content);
+		try (final Tx tx = app.tx()) {
 
-		// test basic setting of content
-		content.setData("Dies ist ein Test");
-		assertEquals("Dies ist ein Test", content.getData());
+			Content content = getContentNode();
+			assertNotNull(content);
 
-		content.deleteData(5, 4);
-		assertEquals("Dies ein Test", content.getData());
+			// test basic setting of content
+			content.setData("Dies ist ein Test");
+			assertEquals("Dies ist ein Test", content.getData());
+
+			content.deleteData(5, 4);
+			assertEquals("Dies ein Test", content.getData());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fail("unexpected exception");
+		}
 	}
 
 	public void testReplaceData() {
 
-		Content content = getContentNode();
-		assertNotNull(content);
+		try (final Tx tx = app.tx()) {
 
-		// test basic setting of content
-		content.setData("Dies ist ein Test");
-		assertEquals("Dies ist ein Test", content.getData());
+			Content content = getContentNode();
+			assertNotNull(content);
 
-		content.replaceData(5, 3, "war");
-		assertEquals("Dies war ein Test", content.getData());
+			// test basic setting of content
+			content.setData("Dies ist ein Test");
+			assertEquals("Dies ist ein Test", content.getData());
+
+			content.replaceData(5, 3, "war");
+			assertEquals("Dies war ein Test", content.getData());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fail("unexpected exception");
+		}
 	}
 
 	public void testGetWholeText() {
