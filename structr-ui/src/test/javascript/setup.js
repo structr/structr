@@ -62,7 +62,7 @@ exports.baseUrl = 'http://localhost:8875/';
  * 
  * Use png, gif, or jpg
  */
-exports.imageType = 'png';
+exports.imageType = 'jpg';
 
 /**
  * Base directory for docs
