@@ -31,8 +31,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -58,7 +56,6 @@ public class ImportCommand extends AbstractCommand {
 	public void processMessage(WebSocketMessage webSocketData) {
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
-		final App app                         = StructrApp.getInstance(securityContext);
 		Map<String, Object> properties        = webSocketData.getNodeData();
 		final String code                     = (String) properties.get("code");
 		final String address                  = (String) properties.get("address");
@@ -68,8 +65,6 @@ public class ImportCommand extends AbstractCommand {
 		final boolean authVisible             = (Boolean) properties.get("authVisible");
 		
 		try {
-			
-			app.beginTx();
 
 			Importer pageImporter = new Importer(securityContext, code, address, name, timeout, publicVisible, authVisible);
 			boolean parseOk       = pageImporter.parse();
@@ -93,16 +88,11 @@ public class ImportCommand extends AbstractCommand {
 				}
 			}
 
-			app.commitTx();
-
 		} catch (FrameworkException fex) {
 
 			logger.log(Level.WARNING, "Error while importing content", fex);
 			getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
 
-		} finally {
-			
-			app.finishTx();
 		}
 
 	}

@@ -205,14 +205,7 @@ public class TypeResource extends SortableResource {
 			final App app         = StructrApp.getInstance(securityContext);
 			NodeInterface newNode = null;
 
-			try {
-				app.beginTx();
-				newNode = createNode(propertySet);
-				app.commitTx();
-
-			} finally {
-				app.finishTx();
-			}
+			newNode = createNode(propertySet);
 
 			RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_CREATED);
 			if (newNode != null) {
@@ -248,14 +241,7 @@ public class TypeResource extends SortableResource {
 					throw new FrameworkException(422, errorBuffer);
 				}
 
-				try {
-					app.beginTx();
-					newRelationship = app.create(sourceNode, targetNode, entityClass, properties);
-					app.commitTx();
-
-				} finally {
-					app.finishTx();
-				}
+				newRelationship = app.create(sourceNode, targetNode, entityClass, properties);
 
 				RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_CREATED);
 				if (newRelationship != null) {
@@ -293,18 +279,7 @@ public class TypeResource extends SortableResource {
 			final App app                = StructrApp.getInstance(securityContext);
 			final PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, entityClass, propertySet);
 
-			try {
-				app.beginTx();
-				final NodeInterface newNode = app.create(entityClass, properties);
-				app.commitTx();
-				
-				return newNode;
-				
-			} finally {
-				
-				app.finishTx();
-			}
-			
+			return app.create(entityClass, properties);
 		}
 		
 		throw new NotFoundException();

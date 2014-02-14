@@ -91,7 +91,10 @@ public class ManyStartpoint<S extends NodeInterface> extends AbstractEndpoint im
 
 			for (AbstractRelationship rel : targetNode.getIncomingRelationships()) {
 
-				if (rel.getRelType().equals(relation) && rel.getSourceNode().equals(sourceNode)) {
+				final String relTypeName    = rel.getRelType().name();
+				final String desiredRelType = relation.name();
+				
+				if (relTypeName.equals(desiredRelType) && rel.getSourceNode().equals(sourceNode)) {
 
 					app.delete(rel);
 				}

@@ -20,9 +20,7 @@ package org.structr.websocket.command;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.DeleteNodeCommand;
 import org.structr.websocket.message.WebSocketMessage;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -63,19 +61,10 @@ public class DeleteCommand extends AbstractCommand {
 			final App app = StructrApp.getInstance(securityContext);
 
 			try {
-				
-				app.beginTx();
-				
 				app.delete(node);
-
-				app.commitTx();
 				
 			} catch (FrameworkException fex) {
 				logger.log(Level.WARNING, "Unable to delete node", fex);
-			} finally {
-				
-				app.finishTx();
-				
 			}
 
 		} else {

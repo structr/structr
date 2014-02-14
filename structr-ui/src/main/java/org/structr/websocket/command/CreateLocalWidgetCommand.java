@@ -21,7 +21,6 @@ package org.structr.websocket.command;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.SecurityContext;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
@@ -83,9 +82,7 @@ public class CreateLocalWidgetCommand extends AbstractCommand {
 			properties.put(AbstractNode.name, name);
 			properties.put(Widget.source, source);
 
-			app.beginTx();
 			app.create(Widget.class, properties);
-			app.commitTx();
 
 		} catch (Throwable t) {
 
@@ -94,9 +91,6 @@ public class CreateLocalWidgetCommand extends AbstractCommand {
 			// send exception
 			getWebSocket().send(MessageBuilder.status().code(422).message(t.toString()).build(), true);
 
-		} finally {
-
-			app.finishTx();
 		}
 
 	}

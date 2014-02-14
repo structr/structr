@@ -83,19 +83,8 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 		final String type = newRel.getProperty(GraphObject.type);
 		if (type == null || (type != null && !type.equals(relClass.getSimpleName()))) {
 
-			final App app = StructrApp.getInstance();
-
-			try {
-
-				app.beginTx();
-				newRel.unlockReadOnlyPropertiesOnce();
-				newRel.setProperty(GraphObject.type, relClass.getSimpleName());
-				app.commitTx();
-
-			} finally {
-
-				app.finishTx();
-			}
+			newRel.unlockReadOnlyPropertiesOnce();
+			newRel.setProperty(GraphObject.type, relClass.getSimpleName());
 		}
 		
 		newRel.onRelationshipInstantiation();

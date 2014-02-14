@@ -131,24 +131,7 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> implements De
 
 		} else if (createIfNotExisting) {
 
-			try {
-				
-				app.beginTx();
-				
-				final T newNode = app.create(type);
-				app.commitTx();
-				
-				return newNode;
-				
-			} catch (FrameworkException fex) {
-				
-				logger.log(Level.WARNING, "Unable to create node of type {0} for property {1}", new Object[] { type.getSimpleName(), propertyKey.dbName() });
-				
-			} finally {
-				
-				app.finishTx();
-			}
-
+			return app.create(type);
 		}
 
 		return null;

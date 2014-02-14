@@ -54,6 +54,7 @@ import org.structr.core.graph.NodeService;
 import org.structr.core.graph.RelationshipFactory;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.SyncCommand;
+import org.structr.core.graph.Tx;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.ConfigurationProvider;
 
@@ -275,6 +276,18 @@ public class Services {
 			// check for empty database and seed file
 			importSeedFile(properties.getProperty(Services.BASE_PATH));
 		}
+
+		logger.log(Level.INFO, "Registering shutdown hook.");
+
+		// register shutdown hook
+		Runtime.getRuntime().addShutdownHook( new Thread()
+		{
+			@Override
+			public void run() {
+				
+			    shutdown();
+			}
+		});
 		
 		logger.log(Level.INFO, "Initialization complete");
 		
@@ -287,8 +300,11 @@ public class Services {
 
 	public void shutdown() {
 
+		initializationDone = false;
+		
 		logger.log(Level.INFO, "Shutting down service layer");
 		for (Service service : serviceCache.values()) {
+			
 			try {
 
 				if (service instanceof RunnableService) {
@@ -565,25 +581,25 @@ public class Services {
 		final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
 		final NodeFactory nodeFactory          = new NodeFactory(superUserContext);
 		final RelationshipFactory relFactory   = new RelationshipFactory(superUserContext);
-		final Iterator<Node> allNodes          = GlobalGraphOperations.at(graphDb).getAllNodes().iterator();
-		final Iterator<Relationship> allRels   = GlobalGraphOperations.at(graphDb).getAllRelationships().iterator();
 		final App app                          = StructrApp.getInstance();
 		final StringProperty uuidProperty      = new StringProperty("uuid");
 		final int txLimit                      = 2000;
 		
+		boolean hasChanges                     = true;
 		int actualNodeCount                    = 0;
 		int actualRelCount                     = 0;
-		int count                              = 0;
 
 		logger.log(Level.INFO, "Migration of ID properties from uuid to id requested.");
 
-		// iterate over all nodes
-		while (allNodes.hasNext()) {
+		while (hasChanges) {
+			
+			hasChanges = false;
+			
+			try (final Tx tx = app.tx(false, false)) {
 
-			app.beginTx();
-
-			try {
-				while (allNodes.hasNext() && (++count % txLimit) != 0) {
+				// iterate over all nodes, 
+				final Iterator<Node> allNodes = GlobalGraphOperations.at(graphDb).getAllNodes().iterator();
+				while (allNodes.hasNext()) {
 
 					final Node node = allNodes.next();
 
@@ -593,46 +609,48 @@ public class Services {
 						try {
 							final NodeInterface nodeInterface = nodeFactory.instantiate(node);
 							final String uuid = nodeInterface.getProperty(uuidProperty);
-							
+
 							if (uuid != null) {
 
 								nodeInterface.setProperty(GraphObject.id, uuid);
 								nodeInterface.removeProperty(uuidProperty);
 								actualNodeCount++;
+								hasChanges = true;
 							}
 
 						} catch (Throwable t) {
 							t.printStackTrace();
 						}
 					}
+					
+					// break out of loop to allow transaction to commit
+					if (hasChanges && (actualNodeCount % txLimit) == 0) {
+						break;
+					}
 				}
-				
-				// no validation but indexing etc.
-				app.commitTx(false);
+
+				tx.success();
 
 			} catch (Throwable t) {
 
 				t.printStackTrace();
-
-			} finally {
-
-				app.finishTx(false);
 			}
 
-			logger.log(Level.INFO, "Migrated {0} of {1} nodes so far.", new Object[] { actualNodeCount, count });
+			logger.log(Level.INFO, "Migrated {0} nodes so far.", actualNodeCount);
 		}
 
 		logger.log(Level.INFO, "Migrated {0} nodes to new ID property.", actualNodeCount);
 
-		count = 0;
-
 		// iterate over all relationships
-		while (allRels.hasNext()) {
+		hasChanges = true;
+		while (hasChanges) {
+		
+			hasChanges = false;
+			
+			try (final Tx tx = app.tx(false, false)) {
 
-			app.beginTx();
-
-			try {
-				while (allRels.hasNext() && (++count % txLimit) != 0) {
+				final Iterator<Relationship> allRels = GlobalGraphOperations.at(graphDb).getAllRelationships().iterator();
+				while (allRels.hasNext()) {
 
 					final Relationship rel = allRels.next();
 
@@ -647,27 +665,28 @@ public class Services {
 								relInterface.setProperty(GraphObject.id, uuid);
 								relInterface.removeProperty(uuidProperty);
 								actualRelCount++;
+								hasChanges = true;
 							}
 
 						} catch (Throwable t) {
 							t.printStackTrace();
 						}
 					}
+					
+					// break out of loop to allow transaction to commit
+					if (hasChanges && (actualRelCount % txLimit) == 0) {
+						break;
+					}
 				}
 
-				// no validation but indexing etc.
-				app.commitTx(false);
+				tx.success();
 
 			} catch (Throwable t) {
 
 				t.printStackTrace();
-
-			} finally {
-
-				app.finishTx(false);
 			}
 
-			logger.log(Level.INFO, "Migrated {0} of {1} relationships so far.", new Object[] { actualRelCount, count });
+			logger.log(Level.INFO, "Migrated {0} relationships so far.", actualRelCount);
 		}
 
 		logger.log(Level.INFO, "Migrated {0} relationships to new ID property.", actualRelCount);
@@ -680,28 +699,33 @@ public class Services {
 		
 		if (seedFile.exists()) {
 
-			final Iterator<Node> allNodes = GlobalGraphOperations.at(graphDb).getAllNodes().iterator();
-			final String idName           = GraphObject.id.dbName();
-			boolean hasApplicationNodes   = false;
+			try (final Tx tx = StructrApp.getInstance().tx()) {
 
-			while (allNodes.hasNext()) {
+				final Iterator<Node> allNodes = GlobalGraphOperations.at(graphDb).getAllNodes().iterator();
+				final String idName           = GraphObject.id.dbName();
+				boolean hasApplicationNodes   = false;
 
-				if (allNodes.next().hasProperty(idName)) {
-					hasApplicationNodes = true;
+				while (allNodes.hasNext()) {
+
+					if (allNodes.next().hasProperty(idName)) {
+						
+						hasApplicationNodes = true;
+						break;
+					}
 				}
-			}
 
-			if (!hasApplicationNodes) {
+				if (!hasApplicationNodes) {
 
-				logger.log(Level.INFO, "Found initial seed file and no application nodes, applying initial seed..");
+					logger.log(Level.INFO, "Found initial seed file and no application nodes, applying initial seed..");
 
-				try {
 					SyncCommand.importFromFile(graphDb, SecurityContext.getSuperUserInstance(), seedFile.getAbsoluteFile().getAbsolutePath(), false);
-
-				} catch (FrameworkException fex) {
-
-					logger.log(Level.WARNING, "Unable to import initial seed file.", fex);
 				}
+				
+				tx.success();
+				
+			} catch (FrameworkException fex) {
+
+				logger.log(Level.WARNING, "Unable to import initial seed file.", fex);
 			}
 		}
 	}

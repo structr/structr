@@ -82,19 +82,7 @@ public abstract class AbstractUser extends Person implements Principal {
 	}
 
 	private Security createSecurityRelationshipTo(final NodeInterface obj) throws FrameworkException {
-		
-		final App app = StructrApp.getInstance();
-		
-		try {
-			app.beginTx();
-			final Security rel = app.create((Principal)this, obj, Security.class);
-			app.commitTx();
-			
-			return rel;
-			
-		} finally {
-			app.finishTx();
-		}
+		return StructrApp.getInstance().create((Principal)this, obj, Security.class);
 	}
 
 	//~--- get methods ----------------------------------------------------

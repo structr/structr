@@ -50,12 +50,15 @@ import java.util.regex.Pattern;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.neo4j.kernel.DeadlockDetectedException;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.*;
 import org.structr.core.Value;
+import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.graph.NodeFactory;
+import org.structr.core.graph.Tx;
 import org.structr.core.graph.search.SearchCommand;
 import org.structr.rest.serialization.StreamingWriter;
 import org.structr.rest.adapter.FrameworkExceptionGSONAdapter;
@@ -162,28 +165,53 @@ public class JsonRestServlet extends HttpServiceServlet {
 	protected void doDelete(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 
 		SecurityContext securityContext = null;
+		Authenticator authenticator     = null;
+		RestMethodResult result         = null;
+		Resource resource               = null;
 
 		try {
 
-			Authenticator authenticator     = getAuthenticator();
-			securityContext = authenticator.initializeAndExamineRequest(request, response);
+			// isolate request authentication in a transaction
+			try (final Tx tx = StructrApp.getInstance().tx()) {
+				authenticator = getAuthenticator();
+				securityContext = authenticator.initializeAndExamineRequest(request, response);
+				tx.success();
+			}
+
+			final App app = StructrApp.getInstance(securityContext);
 
 //			logRequest("DELETE", request);
 			request.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=utf-8");
 
-			List<Resource> chain            = ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty);
-			Resource resourceConstraint     = ResourceHelper.optimizeNestedResourceChain(chain, defaultIdProperty);
-			String resourceSignature        = resourceConstraint.getResourceSignature();
+			// isolate resource authentication
+			try (final Tx tx = app.tx()) {
 
-			// let authenticator examine request again
-			authenticator.checkResourceAccess(request, resourceSignature, propertyView.get(securityContext));
+				resource = ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty), defaultIdProperty);
+				authenticator.checkResourceAccess(request, resource.getResourceSignature(), propertyView.get(securityContext));
 
-			// do action
-			RestMethodResult result = resourceConstraint.doDelete();
+				tx.success();
+			}
 
-			// commit response
-			result.commitResponse(gson.get(), response);
+			// isolate doDelete
+			boolean retry = true;
+			while (retry) {
+				
+				try (final Tx tx = app.tx()) {
+					result = resource.doDelete();
+					tx.success();
+					retry = false;
+
+				} catch (DeadlockDetectedException ddex) {
+					retry = true;
+				}
+			}
+
+			// isolate write output
+			try (final Tx tx = app.tx()) {
+				result.commitResponse(gson.get(), response);
+				tx.success();
+			}
 
 		} catch (FrameworkException frameworkException) {
 
@@ -241,11 +269,20 @@ public class JsonRestServlet extends HttpServiceServlet {
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 
 		SecurityContext securityContext = null;
+		Authenticator authenticator     = null;
+		Result result                   = null;
+		Resource resource               = null;
 
 		try {
 
-			Authenticator authenticator = getAuthenticator();
-			securityContext = authenticator.initializeAndExamineRequest(request, response);
+			// isolate request authentication in a transaction
+			try (final Tx tx = StructrApp.getInstance().tx()) {
+				authenticator = getAuthenticator();
+				securityContext = authenticator.initializeAndExamineRequest(request, response);
+				tx.success();
+			}
+
+			final App app = StructrApp.getInstance(securityContext);
 
 //			logRequest("GET", request);
 			request.setCharacterEncoding("UTF-8");
@@ -256,11 +293,14 @@ public class JsonRestServlet extends HttpServiceServlet {
 
 			// evaluate constraints and measure query time
 			double queryTimeStart    = System.nanoTime();
-			Resource resource        = ResourceHelper.applyViewTransformation(request, securityContext, ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty), defaultIdProperty), propertyView);
-			String resourceSignature = resource.getResourceSignature();
-			
-			// check access rights for this resource
-			authenticator.checkResourceAccess(request, resourceSignature, propertyView.get(securityContext));
+
+			// isolate resource authentication
+			try (final Tx tx = app.tx()) {
+				
+				resource = ResourceHelper.applyViewTransformation(request, securityContext, ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty), defaultIdProperty), propertyView);
+				authenticator.checkResourceAccess(request, resource.getResourceSignature(), propertyView.get(securityContext));
+				tx.success();
+			}
 			
 			// add sorting & paging
 			String pageSizeParameter = request.getParameter(REQUEST_PARAMETER_PAGE_SIZE);
@@ -281,15 +321,27 @@ public class JsonRestServlet extends HttpServiceServlet {
 				sortKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, sortKeyName);
 			}
 			
-			// do action
-			Result result = resource.doGet(sortKey, sortDescending, pageSize, page, offsetId);
+			// isolate doGet
+			boolean retry = true;
+			while (retry) {
+				
+				try (final Tx tx = app.tx()) {
+					result = resource.doGet(sortKey, sortDescending, pageSize, page, offsetId);
+					tx.success();
+					retry = false;
+
+				} catch (DeadlockDetectedException ddex) {
+					retry = true;
+				}
+			}
+			
 			result.setIsCollection(resource.isCollectionResource());
 			result.setIsPrimitiveArray(resource.isPrimitiveArray());
 			
 			PagingHelper.addPagingParameter(result, pageSize, page);
 
 			// timing..
-			double queryTimeEnd   = System.nanoTime();
+			double queryTimeEnd = System.nanoTime();
 
 			// store property view that will be used to render the results
 			result.setPropertyView(propertyView.get(securityContext));
@@ -305,13 +357,21 @@ public class JsonRestServlet extends HttpServiceServlet {
 
 			if (accept != null && accept.contains("text/html")) {
 				
-				response.setContentType("text/html; charset=utf-8");
-				htmlWriter.get().stream(writer, result, baseUrl);
+				// isolate write output
+				try (final Tx tx = app.tx()) {
+					response.setContentType("text/html; charset=utf-8");
+					htmlWriter.get().stream(writer, result, baseUrl);
+					tx.success();
+				}
 			
 			} else {
 			
-				response.setContentType("application/json; charset=utf-8");
-				jsonWriter.get().stream(writer, result, baseUrl);
+				// isolate write output
+				try (final Tx tx = app.tx()) {
+					response.setContentType("application/json; charset=utf-8");
+					jsonWriter.get().stream(writer, result, baseUrl);
+					tx.success();
+				}
 				
 			}
 
@@ -382,29 +442,52 @@ public class JsonRestServlet extends HttpServiceServlet {
 	protected void doHead(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
 		SecurityContext securityContext = null;
+		Authenticator authenticator     = null;
+		RestMethodResult result         = null;
+		Resource resource               = null;
 
 		try {
 
-			Authenticator authenticator     = getAuthenticator();
-			securityContext = authenticator.initializeAndExamineRequest(request, response);
+			// isolate request authentication in a transaction
+			try (final Tx tx = StructrApp.getInstance().tx()) {
+				authenticator = getAuthenticator();
+				securityContext = authenticator.initializeAndExamineRequest(request, response);
+				tx.success();
+			}
+
+			final App app = StructrApp.getInstance(securityContext);
 
 //			logRequest("HEAD", request);
 			request.setCharacterEncoding("UTF-8");
 			response.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=UTF-8");
 
-			List<Resource> chain      = ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty);
-			Resource resource         = ResourceHelper.optimizeNestedResourceChain(chain, defaultIdProperty);
-			String resourceSignature  = resource.getResourceSignature();
+			// isolate resource authentication
+			try (final Tx tx = app.tx()) {
+				
+				resource = ResourceHelper.applyViewTransformation(request, securityContext, ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty), defaultIdProperty), propertyView);
+				authenticator.checkResourceAccess(request, resource.getResourceSignature(), propertyView.get(securityContext));
+				tx.success();
+			}
 			
-			// check access rights for this resource
-			authenticator.checkResourceAccess(request, resourceSignature, propertyView.get(securityContext));
-			
-			// do action
-			RestMethodResult result = resource.doHead();
+			// isolate doHead
+			boolean retry = true;
+			while (retry) {
+				
+				try (final Tx tx = app.tx()) {
+					result = resource.doHead();
+					tx.success();
 
-			// commit response
-			result.commitResponse(gson.get(), response);
+					} catch (DeadlockDetectedException ddex) {
+						retry = true;
+					}
+				}
+
+			// isolate write output
+			try (final Tx tx = app.tx()) {
+				result.commitResponse(gson.get(), response);
+				tx.success();
+			}
 
 		} catch (FrameworkException frameworkException) {
 
@@ -462,29 +545,52 @@ public class JsonRestServlet extends HttpServiceServlet {
 	protected void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
 		SecurityContext securityContext = null;
+		Authenticator authenticator     = null;
+		RestMethodResult result         = null;
+		Resource resource               = null;
 
 		try {
 
-			Authenticator authenticator     = getAuthenticator();
-			securityContext = authenticator.initializeAndExamineRequest(request, response);
+			// isolate request authentication in a transaction
+			try (final Tx tx = StructrApp.getInstance().tx()) {
+				authenticator = getAuthenticator();
+				securityContext = authenticator.initializeAndExamineRequest(request, response);
+				tx.success();
+			}
+
+			final App app = StructrApp.getInstance(securityContext);
 
 //			logRequest("OPTIONS", request);
 			request.setCharacterEncoding("UTF-8");
 			response.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=UTF-8");
 
-			List<Resource> chain      = ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty);
-			Resource resource         = ResourceHelper.optimizeNestedResourceChain(chain, defaultIdProperty);
-			String resourceSignature  = resource.getResourceSignature();
+			// isolate resource authentication
+			try (final Tx tx = app.tx()) {
+				
+				resource = ResourceHelper.applyViewTransformation(request, securityContext, ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty), defaultIdProperty), propertyView);
+				authenticator.checkResourceAccess(request, resource.getResourceSignature(), propertyView.get(securityContext));
+				tx.success();
+			}
 			
-			// check access rights for this resource
-			authenticator.checkResourceAccess(request, resourceSignature, propertyView.get(securityContext));
-			
-			// do action
-			RestMethodResult result = resource.doOptions();
+			// isolate doOptions
+			boolean retry = true;
+			while (retry) {
+				
+				try (final Tx tx = app.tx()) {
+					result = resource.doOptions();
+					tx.success();
 
-			// commit response
-			result.commitResponse(gson.get(), response);
+					} catch (DeadlockDetectedException ddex) {
+						retry = true;
+					}
+				}
+
+			// isolate write output
+			try (final Tx tx = app.tx()) {
+				result.commitResponse(gson.get(), response);
+				tx.success();
+			}
 
 		} catch (FrameworkException frameworkException) {
 
@@ -542,44 +648,78 @@ public class JsonRestServlet extends HttpServiceServlet {
 	protected void doPost(final HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
 		SecurityContext securityContext = null;
+		Authenticator authenticator     = null;
+		RestMethodResult result         = null;
+		JsonInput propertySet           = null;
+		Resource resource               = null;
 
 		try {
 
-			Authenticator authenticator     = getAuthenticator();
-			securityContext = authenticator.initializeAndExamineRequest(request, response);
+			// isolate request authentication in a transaction
+			try (final Tx tx = StructrApp.getInstance().tx()) {
+				authenticator = getAuthenticator();
+				securityContext = authenticator.initializeAndExamineRequest(request, response);
+				tx.success();
+			}
+
+			final App app = StructrApp.getInstance(securityContext);
 
 //			logRequest("POST", request);
 			request.setCharacterEncoding("UTF-8");
 			response.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=UTF-8");
 
-			final JsonInput propertySet   = gson.get().fromJson(request.getReader(), JsonInput.class);
+			// isolate input parsing (will include read and write operations)
+			try (final Tx tx = app.tx()) {
+				propertySet = gson.get().fromJson(request.getReader(), JsonInput.class);
+				tx.success();
+			}
 
 			if (securityContext != null) {
 
 				// evaluate constraint chain
-				List<Resource> chain            = ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty);
-				Resource resource               = ResourceHelper.optimizeNestedResourceChain(chain, defaultIdProperty);
 				Map<String, Object> properties  = convertPropertySetToMap(propertySet);
-				String resourceSignature        = resource.getResourceSignature();
 
-				// check access rights for this resource
-				authenticator.checkResourceAccess(request, resourceSignature, propertyView.get(securityContext));
+				// isolate resource authentication
+				try (final Tx tx = app.tx()) {
 				
-				// do action
-				RestMethodResult result = resource.doPost(properties);
+					resource = ResourceHelper.applyViewTransformation(request, securityContext, ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty), defaultIdProperty), propertyView);
+					authenticator.checkResourceAccess(request, resource.getResourceSignature(), propertyView.get(securityContext));
+					tx.success();
+				}
+				
+				// isolate doPost
+				boolean retry = true;
+				while (retry) {
+
+					try (final Tx tx = app.tx()) {
+
+						result = resource.doPost(properties);
+						tx.success();
+						retry = false;
+
+					} catch (DeadlockDetectedException ddex) {
+						retry = true;
+					}
+				}
 
 				// set default value for property view
 				propertyView.set(securityContext, defaultPropertyView);
 
-				// commit response
-				result.commitResponse(gson.get(), response);
+				// isolate write output
+				try (final Tx tx = app.tx()) {
+					result.commitResponse(gson.get(), response);
+					tx.success();
+				}
 				
 			} else {
 
-				RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_FORBIDDEN);
-
-				result.commitResponse(gson.get(), response);
+				// isolate write output
+				try (final Tx tx = app.tx()) {
+					result = new RestMethodResult(HttpServletResponse.SC_FORBIDDEN);
+					result.commitResponse(gson.get(), response);
+					tx.success();
+				}
 
 			}
 
@@ -648,40 +788,74 @@ public class JsonRestServlet extends HttpServiceServlet {
 	protected void doPut(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 
 		SecurityContext securityContext = null;
+		Authenticator authenticator     = null;
+		RestMethodResult result         = null;
+		JsonInput propertySet           = null;
+		Resource resource               = null;
 
 		try {
 
-			Authenticator authenticator     = getAuthenticator();
-			securityContext = authenticator.initializeAndExamineRequest(request, response);
+			// isolate request authentication in a transaction
+			try (final Tx tx = StructrApp.getInstance().tx()) {
+				authenticator = getAuthenticator();
+				securityContext = authenticator.initializeAndExamineRequest(request, response);
+				tx.success();
+			}
+
+			final App app = StructrApp.getInstance(securityContext);
 
 //			logRequest("PUT", request);
 			request.setCharacterEncoding("UTF-8");
 			response.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=UTF-8");
 
-			final JsonInput propertySet = gson.get().fromJson(request.getReader(), JsonInput.class);
+			// isolate input parsing (will include read and write operations)
+			try (final Tx tx = app.tx()) {
+				propertySet = gson.get().fromJson(request.getReader(), JsonInput.class);
+				tx.success();
+			}
 
 			if (securityContext != null) {
 
-				// evaluate constraint chain
-				List<Resource> chain	       = ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty);
-				Resource resource	       = ResourceHelper.optimizeNestedResourceChain(chain, defaultIdProperty);
-				String resourceSignature       = resource.getResourceSignature();
 				Map<String, Object> properties = convertPropertySetToMap(propertySet);
 
-				// check access rights for this resource
-				authenticator.checkResourceAccess(request, resourceSignature, propertyView.get(securityContext));
+				// isolate resource authentication
+				try (final Tx tx = app.tx()) {
 				
-				// do action
-				RestMethodResult result = resource.doPut(properties);
+					// evaluate constraint chain
+					resource = ResourceHelper.applyViewTransformation(request, securityContext, ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty), defaultIdProperty), propertyView);
+					authenticator.checkResourceAccess(request, resource.getResourceSignature(), propertyView.get(securityContext));
+					tx.success();
+				}
+				
+				// isolate doPut
+				boolean retry = true;
+				while (retry) {
+					
+					try (final Tx tx = app.tx()) {
+						result = resource.doPut(properties);
+						tx.success();
+						retry = false;
 
-				result.commitResponse(gson.get(), response);
+					} catch (DeadlockDetectedException ddex) {
+						retry = true;
+					}
+				}
+
+				// isolate write output
+				try (final Tx tx = app.tx()) {
+					result.commitResponse(gson.get(), response);
+					tx.success();
+				}
 				
 			} else {
 
-				RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_FORBIDDEN);
-
-				result.commitResponse(gson.get(), response);
+				// isolate write output
+				try (final Tx tx = app.tx()) {
+					result = new RestMethodResult(HttpServletResponse.SC_FORBIDDEN);
+					result.commitResponse(gson.get(), response);
+					tx.success();
+				}
 
 			}
 

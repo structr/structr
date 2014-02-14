@@ -20,6 +20,7 @@ package org.structr.websocket.command;
 
 
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.web.entity.dom.DOMElement;
@@ -58,8 +59,6 @@ public class CreateComponentCommand extends AbstractCommand {
 
 			try {
 
-				app.beginTx();
-
 				DOMElement clonedNode = (DOMElement) node.cloneNode(false);
 				moveChildNodes(node, clonedNode);
 
@@ -74,16 +73,11 @@ public class CreateComponentCommand extends AbstractCommand {
 				app.create(node, clonedNode, Sync.class);
 				app.create(clonedNode, node, Sync.class);
 				
-				app.commitTx();
-
-			} catch (Exception ex) {
+			} catch (FrameworkException ex) {
 
 				// send DOM exception
 				getWebSocket().send(MessageBuilder.status().code(422).message(ex.getMessage()).build(), true);
 
-			} finally {
-
-				app.finishTx();
 			}
 
 		} else {

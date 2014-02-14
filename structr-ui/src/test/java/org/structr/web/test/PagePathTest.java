@@ -20,6 +20,8 @@ package org.structr.web.test;
 
 import static junit.framework.TestCase.assertEquals;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.TransactionCommand;
+import org.structr.core.graph.Tx;
 import org.structr.web.common.StructrUiTest;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.Page;
@@ -35,7 +37,7 @@ public class PagePathTest extends StructrUiTest {
 		
 		final String pageName	= "page-01";
 
-		try {
+		try (final Tx tx = app.tx()) {
 
 			Page page = Page.createNewPage(securityContext, pageName);
 
@@ -89,6 +91,7 @@ public class PagePathTest extends StructrUiTest {
 			assertEquals(h1.getPositionPath(),	"/0/1/2/0");
 			assertEquals(h1_2.getPositionPath(),	"/0/1/2/1");
 			
+			tx.success();
 			
 		} catch (FrameworkException fex) {
 

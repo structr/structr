@@ -18,15 +18,16 @@
  */
 package org.structr.core.property;
 
-import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.fail;
+import static junit.framework.TestCase.assertEquals;
 import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
 import org.structr.core.entity.TestFour;
 import org.structr.core.entity.TestOne;
 import org.structr.core.entity.OneFourOneToOne;
+import org.structr.core.graph.Tx;
 
 /**
  *
@@ -37,6 +38,7 @@ public class DoublePropertyTest extends StructrTest {
 	public void test() {
 		
 		try {
+
 			final Property<Double> instance = TestFour.doubleProperty;
 			final TestFour testEntity        = createTestNode(TestFour.class);
 			
@@ -45,18 +47,17 @@ public class DoublePropertyTest extends StructrTest {
 			// store double in the test entitiy
 			final Double value = 3.141592653589793238;
 
-			try {
-				app.beginTx();
+
+			try (final Tx tx = app.tx()) {
 				instance.setProperty(securityContext, testEntity, value);
-				app.commitTx();
-
-			} finally {
-
-				app.finishTx();
+				tx.success();
 			}
 
-			// check value from database
-			assertEquals(value, instance.getProperty(securityContext, testEntity, true));
+			try (final Tx tx = app.tx()) {
+				
+				// check value from database
+				assertEquals(value, instance.getProperty(securityContext, testEntity, true));
+			}
 			
 		} catch (FrameworkException fex) {
 			
@@ -67,6 +68,7 @@ public class DoublePropertyTest extends StructrTest {
 	public void testSimpleSearchOnNode() {
 		
 		try {
+
 			final PropertyMap properties  = new PropertyMap();
 			final PropertyKey<Double> key = TestFour.doubleProperty;
 			
@@ -76,13 +78,16 @@ public class DoublePropertyTest extends StructrTest {
 			
 			assertNotNull(testEntity);
 
-			// check value from database
-			assertEquals(3.141592653589793238, testEntity.getProperty(key));
-			
-			Result<TestFour> result = app.nodeQuery(TestFour.class).and(key, 3.141592653589793238).getResult();
-			
-			assertEquals(1, result.size());
-			assertEquals(testEntity, result.get(0));
+			try (final Tx tx = app.tx()) {
+
+				// check value from database
+				assertEquals(3.141592653589793238, testEntity.getProperty(key));
+				
+				Result<TestFour> result = app.nodeQuery(TestFour.class).and(key, 3.141592653589793238).getResult();
+
+				assertEquals(1, result.size());
+				assertEquals(testEntity, result.get(0));
+			}
 		
 		} catch (FrameworkException fex) {
 			
@@ -94,8 +99,9 @@ public class DoublePropertyTest extends StructrTest {
 	public void testSimpleSearchOnRelationship() {
 		
 		try {
-			final TestOne testOne        = createTestNode(TestOne.class);
-			final TestFour testFour      = createTestNode(TestFour.class);
+
+			final TestOne testOne      = createTestNode(TestOne.class);
+			final TestFour testFour    = createTestNode(TestFour.class);
 			final Property<Double> key = OneFourOneToOne.doubleProperty;
 			
 			assertNotNull(testOne);
@@ -105,23 +111,22 @@ public class DoublePropertyTest extends StructrTest {
 			
 			assertNotNull(testEntity);
 
-			try {
-				app.beginTx();
+			try (final Tx tx = app.tx()) {
+
 				testEntity.setProperty(key, 3.141592653589793238);
-				app.commitTx();
-
-			} finally {
-
-				app.finishTx();
+				tx.success();
 			}
 			
-			// check value from database
-			assertEquals(3.141592653589793238, testEntity.getProperty(key));
-			
-			Result<OneFourOneToOne> result = app.relationshipQuery(OneFourOneToOne.class).and(key, 3.141592653589793238).getResult();
-			
-			assertEquals(1, result.size());
-			assertEquals(testEntity, result.get(0));
+			try (final Tx tx = app.tx()) {
+
+				// check value from database
+				assertEquals(3.141592653589793238, testEntity.getProperty(key));
+
+				Result<OneFourOneToOne> result = app.relationshipQuery(OneFourOneToOne.class).and(key, 3.141592653589793238).getResult();
+
+				assertEquals(1, result.size());
+				assertEquals(testEntity, result.get(0));
+			}
 		
 		} catch (FrameworkException fex) {
 			

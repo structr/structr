@@ -28,8 +28,6 @@ import org.structr.websocket.StructrWebSocket;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.logging.Logger;
-import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 
 //~--- classes ----------------------------------------------------------------
@@ -57,19 +55,14 @@ public class UploadCommand extends AbstractCommand {
 	public void processMessage(WebSocketMessage webSocketData) {
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
-		final App app = StructrApp.getInstance(securityContext);
 		
 		try {
 
-			app.beginTx();
-			
 			final String name                   = (String) webSocketData.getNodeData().get("name");
 			final String rawData                = (String) webSocketData.getNodeData().get("fileData");
 			org.structr.web.entity.File newFile = FileHelper.createFileBase64(securityContext, rawData, null);
 			
 			newFile.setProperty(AbstractNode.name, name);
-			
-			app.commitTx();
 
 		} catch (Throwable t) {
 
@@ -80,9 +73,6 @@ public class UploadCommand extends AbstractCommand {
 				? msg
 				: "")).build(), true);
 			
-		} finally {
-			
-			app.finishTx();
 		}
 	}
 

@@ -18,10 +18,8 @@
  */
 package org.structr.common;
 
-import org.apache.commons.lang.StringUtils;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.log.ReadLogCommand;
 import org.structr.core.log.WriteLogCommand;
 
@@ -30,7 +28,6 @@ import org.structr.core.log.WriteLogCommand;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;

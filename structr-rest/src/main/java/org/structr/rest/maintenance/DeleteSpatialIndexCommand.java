@@ -33,6 +33,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.NodeService;
 import org.structr.core.graph.NodeServiceCommand;
+import org.structr.core.graph.Tx;
 import org.structr.rest.resource.MaintenanceParameterResource;
 
 
@@ -70,8 +71,7 @@ public class DeleteSpatialIndexCommand extends NodeServiceCommand implements Mai
 
 		final App app = StructrApp.getInstance(securityContext);
 		
-		try {
-			app.beginTx();
+		try (final Tx tx = app.tx()) {
 
 			for (Node node : toDelete) {
 
@@ -93,10 +93,7 @@ public class DeleteSpatialIndexCommand extends NodeServiceCommand implements Mai
 
 			}
 
-			app.commitTx();
-
-		} finally {
-			app.finishTx();
+			tx.success();
 		}
 	}
 

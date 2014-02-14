@@ -48,6 +48,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.Tx;
 import org.structr.module.JarConfigurationProvider;
 import static org.structr.rest.common.StructrRestTest.restUrl;
 import org.structr.rest.entity.TestOne;
@@ -170,16 +171,13 @@ public class StructrRestTest extends TestCase {
 		final App app       = StructrApp.getInstance(securityContext);
 		final List<T> nodes = new LinkedList<>();
 
-		try {
-			app.beginTx();
+		try (final Tx tx = app.tx()) {
+
 			for (int i = 0; i < number; i++) {
 				nodes.add(app.create(type));
 			}
-			app.commitTx();
 
-		} finally {
-
-			app.finishTx();
+			tx.success();
 		}
 		
 		return nodes;
@@ -193,18 +191,14 @@ public class StructrRestTest extends TestCase {
 		final TestOne endNode     = nodes.get(1);
 		final List<T> rels        = new LinkedList<>();
 
-		try {
-			app.beginTx();
+		try (final Tx tx = app.tx()) {
 
 			for (int i = 0; i < number; i++) {
 
 				rels.add((T)app.create(startNode, endNode, relType));
 			}
-			app.commitTx();
 
-		} finally {
-			
-			app.finishTx();
+			tx.success();
 		}
 
 		return rels;

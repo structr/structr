@@ -28,6 +28,9 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.Services;
+import org.structr.core.app.StructrApp;
+import org.structr.core.graph.Tx;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -53,7 +56,7 @@ public abstract class Agent extends Thread implements StatusInfo {
 	private int maxAgents                      = 4;
 	private int maxQueueSize                   = 10;
 	private final AtomicBoolean suspended      = new AtomicBoolean(false);
-	private final Queue<Task> taskQueue        = new ConcurrentLinkedQueue<Task>();
+	private final Queue<Task> taskQueue        = new ConcurrentLinkedQueue<>();
 
 	//~--- methods --------------------------------------------------------
 
@@ -82,14 +85,22 @@ public abstract class Agent extends Thread implements StatusInfo {
 
 				ReturnValue ret = null;
 
-				try {
-					ret = processTask(currentTask);
-				} catch (Throwable t) {
+				// only execute process if Service layer is ready
+				// (and not shutting down right now)
+				if (Services.getInstance().isInitialized()) {
+					
+					try (final Tx tx = StructrApp.getInstance().tx()) {
 
-					// someone killed us or the task processing failed..
-					// Log this!!
-					logger.log(Level.SEVERE, "Processing task {0} failed. Maybe someone killed us?", currentTask.getType());
-					t.printStackTrace();
+						ret = processTask(currentTask);
+						tx.success();
+
+					} catch (Throwable t) {
+
+						// someone killed us or the task processing failed..
+						// Log this!!
+						logger.log(Level.SEVERE, "Processing task {0} failed. Maybe someone killed us?", currentTask.getType());
+						t.printStackTrace();
+					}
 				}
 
 				if (ret != null) {

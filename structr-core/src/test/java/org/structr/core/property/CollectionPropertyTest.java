@@ -27,6 +27,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.TestOne;
 import org.structr.core.entity.TestSix;
+import org.structr.core.graph.Tx;
 
 /**
  *
@@ -35,79 +36,76 @@ import org.structr.core.entity.TestSix;
 public class CollectionPropertyTest extends StructrTest {
 
 	public void testManyToMany() throws Exception {
-		
-		Property<List<TestOne>> instance = TestSix.manyToManyTestOnes;
-		TestSix testSix1  = null;
-		TestSix testSix2  = null;
-		TestOne testOne1  = null;
-		TestOne testOne2  = null;
-		
+
 		try {
-			
+
+			Property<List<TestOne>> instance = TestSix.manyToManyTestOnes;
+			TestSix testSix1  = null;
+			TestSix testSix2  = null;
+			TestOne testOne1  = null;
+			TestOne testOne2  = null;
+
 			testSix1 = createTestNode(TestSix.class);
 			testSix2 = createTestNode(TestSix.class);
-			
+
 			testOne1 = createTestNode(TestOne.class);
 			testOne2 = createTestNode(TestOne.class);
+
+			assertNotNull(testSix1);
+			assertNotNull(testSix2);
+			assertNotNull(testOne1);
+			assertNotNull(testOne2);
+
+			// set two TestOne entities on both TestSix entities
+			List<TestOne> twoTestOnesList = new LinkedList<>();
+			twoTestOnesList.add(testOne1);
+			twoTestOnesList.add(testOne2);
+
+			try (final Tx tx = app.tx()) {
+
+				instance.setProperty(securityContext, testSix1, twoTestOnesList);
+				instance.setProperty(securityContext, testSix2, twoTestOnesList);
+				tx.success();
+			}
+
+			try (final Tx tx = app.tx()) {
+
+				List<TestOne> testOnesFromTestSix1 = instance.getProperty(securityContext, testSix1, true);
+				List<TestOne> testOnesFromTestSix2 = instance.getProperty(securityContext, testSix2, true);
+
+				assertNotNull(testOnesFromTestSix1);
+				assertNotNull(testOnesFromTestSix2);
+
+				// both entities should have the two related nodes
+				assertEquals(2, testOnesFromTestSix1.size());
+				assertEquals(2, testOnesFromTestSix2.size());
+			}
+
+			// create new list with one TestOne entity
+			List<TestOne> oneTestOneList = new LinkedList<>();
+			oneTestOneList.add(testOne1);
+
+			try (final Tx tx = app.tx()) {
+
+				// set list with one TestOne node as related nodes
+				instance.setProperty(securityContext, testSix1, oneTestOneList);
+				tx.success();
+			}
+
+			try (final Tx tx = app.tx()) {
+
+				List<TestOne> oneTestOnesFromTestSix1 = instance.getProperty(securityContext, testSix1, true);
+
+				// entity should have exactly one related node
+				assertNotNull(oneTestOnesFromTestSix1);
+				assertEquals(1, oneTestOnesFromTestSix1.size());
+
+				assertEquals(oneTestOnesFromTestSix1.get(0).getUuid(), testOne1.getUuid());
+			}
 			
 		} catch (FrameworkException fex) {
 			
-			fail("Unable to create test nodes");
 		}
-		
-		assertNotNull(testSix1);
-		assertNotNull(testSix2);
-		assertNotNull(testOne1);
-		assertNotNull(testOne2);
-
-		// set two TestOne entities on both TestSix entities
-		List<TestOne> twoTestOnesList = new LinkedList<>();
-		twoTestOnesList.add(testOne1);
-		twoTestOnesList.add(testOne2);
-
-		try {
-			app.beginTx();
-			instance.setProperty(securityContext, testSix1, twoTestOnesList);
-			instance.setProperty(securityContext, testSix2, twoTestOnesList);
-			app.commitTx();
-
-		} finally {
-
-			app.finishTx();
-		}
-		
-		List<TestOne> testOnesFromTestSix1 = instance.getProperty(securityContext, testSix1, true);
-		List<TestOne> testOnesFromTestSix2 = instance.getProperty(securityContext, testSix2, true);
-
-		assertNotNull(testOnesFromTestSix1);
-		assertNotNull(testOnesFromTestSix2);
-		
-		// both entities should have the two related nodes
-		assertEquals(2, testOnesFromTestSix1.size());
-		assertEquals(2, testOnesFromTestSix2.size());
-		
-		// create new list with one TestOne entity
-		List<TestOne> oneTestOneList = new LinkedList<>();
-		oneTestOneList.add(testOne1);
-
-		try {
-			app.beginTx();
-			// set list with one TestOne node as related nodes
-			instance.setProperty(securityContext, testSix1, oneTestOneList);
-			app.commitTx();
-
-		} finally {
-
-			app.finishTx();
-		}
-
-		List<TestOne> oneTestOnesFromTestSix1 = instance.getProperty(securityContext, testSix1, true);
-		
-		// entity should have exactly one related node
-		assertNotNull(oneTestOnesFromTestSix1);
-		assertEquals(1, oneTestOnesFromTestSix1.size());
-		
-		assertEquals(oneTestOnesFromTestSix1.get(0).getUuid(), testOne1.getUuid());
 		
 	}
 	

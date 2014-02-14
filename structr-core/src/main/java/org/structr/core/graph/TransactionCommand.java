@@ -20,7 +20,6 @@ package org.structr.core.graph;
 
 
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -52,7 +51,7 @@ import org.structr.core.property.PropertyKey;
  * 
  * @author Christian Morgner
  */
-public class TransactionCommand extends NodeServiceCommand {
+public class TransactionCommand extends NodeServiceCommand implements AutoCloseable {
 
 	private static final Logger logger                                  = Logger.getLogger(TransactionCommand.class.getName());
 	private static final Set<StructrTransactionListener> listeners      = new LinkedHashSet<>();
@@ -62,7 +61,7 @@ public class TransactionCommand extends NodeServiceCommand {
 	private static final ThreadLocal<TransactionReference> transactions = new ThreadLocal<>();
 	private static final MultiSemaphore                    semaphore    = new MultiSemaphore();
 
-	public void beginTx() {
+	public TransactionCommand beginTx() {
 		
 		final GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
 		TransactionReference tx            = transactions.get();
@@ -80,10 +79,8 @@ public class TransactionCommand extends NodeServiceCommand {
 		
 		// increase depth
 		tx.begin();
-	}
-	
-	public void commitTx() throws FrameworkException {
-		commitTx(true);
+		
+		return this;
 	}
 	
 	public void commitTx(final boolean doValidation) throws FrameworkException {
@@ -146,18 +143,16 @@ public class TransactionCommand extends NodeServiceCommand {
 		}
 	}
 	
-	public void finishTx() {
-		finishTx(true);
-	}
-	
-	public void finishTx(final boolean doCallbacks) {
+	public ModificationQueue finishTx() {
 		
-		final TransactionReference tx = transactions.get();
+		final TransactionReference tx       = transactions.get();
+		ModificationQueue modificationQueue = null;
+		
 		if (tx != null) {
 			
 			if (tx.isToplevel()) {
 
-				final ModificationQueue modificationQueue = queues.get();
+				modificationQueue = queues.get();
 				
 				// cleanup
 				queues.remove();
@@ -166,25 +161,10 @@ public class TransactionCommand extends NodeServiceCommand {
 				transactions.remove();
 
 				try {
-					tx.finish();
+					tx.close();
 					
 				} catch (Throwable t) {
 					t.printStackTrace();
-				}
-
-				if (doCallbacks && modificationQueue != null && tx.isSuccessful()) {
-					
-					modificationQueue.doOuterCallbacks(securityContext);
-
-					// notify listeners
-					final List<ModificationEvent> modificationEvents = modificationQueue.getModificationEvents();
-					for (StructrTransactionListener listener : listeners) {
-						listener.transactionCommited(securityContext, modificationEvents);
-					}
-				}
-
-				if (modificationQueue != null) {
-					modificationQueue.clear();
 				}
 				
 			} else {
@@ -192,6 +172,13 @@ public class TransactionCommand extends NodeServiceCommand {
 				tx.end();
 			}
 		}
+
+		return modificationQueue;
+	}
+	
+	@Override
+	public void close() throws FrameworkException {
+		finishTx();
 	}
 	
 	public static void postProcess(final String key, final TransactionPostProcess process) {
@@ -348,6 +335,10 @@ public class TransactionCommand extends NodeServiceCommand {
 	
 	public static void removeTransactionListener(final StructrTransactionListener listener) {
 		listeners.remove(listener);
+	}
+	
+	public static Set<StructrTransactionListener> getTransactionListeners() {
+		return listeners;
 	}
 	
 	public static boolean inTransaction() {

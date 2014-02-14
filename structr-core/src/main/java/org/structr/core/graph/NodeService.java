@@ -45,7 +45,7 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.cypher.javacompat.ExecutionEngine;
-import org.neo4j.shell.ShellSettings;
+import org.neo4j.graphdb.Transaction;
 import org.structr.common.StructrConf;
 
 //~--- classes ----------------------------------------------------------------
@@ -132,9 +132,7 @@ public class NodeService implements SingletonService {
 	@Override
 	public void initialize(final StructrConf config) {
 
-		final Map<String, String> neo4jConfiguration = new LinkedHashMap<>();
-		final String basePath                        = config.getProperty(Services.BASE_PATH);
-		final String dbPath                          = config.getProperty(Services.DATABASE_PATH);
+		final String dbPath = config.getProperty(Services.DATABASE_PATH);
 
 		logger.log(Level.INFO, "Initializing database ({0}) ...", dbPath);
 
@@ -146,26 +144,25 @@ public class NodeService implements SingletonService {
 
 		}
 
-		// neo4j remote shell configuration
-		if ("true".equals(config.getProperty(Services.NEO4J_SHELL_ENABLED, "false"))) {
+//		// neo4j remote shell configuration
+//		if ("true".equals(config.getProperty(Services.NEO4J_SHELL_ENABLED, "false"))) {
+//			
+//			// enable neo4j remote shell, thanks Michael :)
+//			neo4jConfiguration.put(ShellSettings.remote_shell_enabled.name(), "true");
+//		}
+		
+
+		final File confFile = new File(dbPath + "/neo4j.conf");
+		if (confFile.exists()) {
+
+			graphDb = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(dbPath).loadPropertiesFromFile(confFile.getAbsolutePath()).newGraphDatabase();
 			
-			// enable neo4j remote shell, thanks Michael :)
-			neo4jConfiguration.put(ShellSettings.remote_shell_enabled.name(), "true");
+		} else {
+			
+			graphDb = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(dbPath).newGraphDatabase();
 		}
 		
-		
-		try {
-
-			graphDb = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(dbPath).setConfig(neo4jConfiguration).loadPropertiesFromFile(dbPath + "/neo4j.conf").newGraphDatabase();
-
-		} catch (Throwable t) {
-
-			logger.log(Level.INFO, "Database config {0}/neo4j.conf not found", dbPath);
-
-			graphDb = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(dbPath).setConfig(neo4jConfiguration).newGraphDatabase();
-
-		}
-
+//		
 		if (graphDb == null) {
 
 			logger.log(Level.SEVERE, "Database could not be started ({0}) ...", dbPath);
@@ -197,62 +194,72 @@ public class NodeService implements SingletonService {
 		logger.log(Level.INFO, "Database ready.");
 		logger.log(Level.FINE, "Initializing UUID index...");
 
-		uuidIndex = graphDb.index().forNodes("uuidAllNodes", LuceneIndexImplementation.EXACT_CONFIG);
-		nodeIndices.put(NodeIndex.uuid, uuidIndex);
+		// index creation transaction
+		try ( final Transaction tx = graphDb.beginTx() ) {
+		
+			uuidIndex = graphDb.index().forNodes("uuidAllNodes", LuceneIndexImplementation.EXACT_CONFIG);
+			nodeIndices.put(NodeIndex.uuid, uuidIndex);
 
-		logger.log(Level.FINE, "UUID index ready.");
-		logger.log(Level.FINE, "Initializing user index...");
+			logger.log(Level.FINE, "UUID index ready.");
+			logger.log(Level.FINE, "Initializing user index...");
 
-		userIndex = graphDb.index().forNodes("nameEmailAllUsers", LuceneIndexImplementation.EXACT_CONFIG);
-		nodeIndices.put(NodeIndex.user, userIndex);
+			userIndex = graphDb.index().forNodes("nameEmailAllUsers", LuceneIndexImplementation.EXACT_CONFIG);
+			nodeIndices.put(NodeIndex.user, userIndex);
 
-		logger.log(Level.FINE, "Node Email index ready.");
-		logger.log(Level.FINE, "Initializing exact email index...");
+			logger.log(Level.FINE, "Node Email index ready.");
+			logger.log(Level.FINE, "Initializing exact email index...");
 
-		caseInsensitiveUserIndex = graphDb.index().forNodes("caseInsensitiveAllUsers", MapUtil.stringMap( "provider", "lucene", "type", "exact", "to_lower_case", "true" ));
-		nodeIndices.put(NodeIndex.caseInsensitiveUser, caseInsensitiveUserIndex);
+			caseInsensitiveUserIndex = graphDb.index().forNodes("caseInsensitiveAllUsers", MapUtil.stringMap( "provider", "lucene", "type", "exact", "to_lower_case", "true" ));
+			nodeIndices.put(NodeIndex.caseInsensitiveUser, caseInsensitiveUserIndex);
 
-		logger.log(Level.FINE, "Node case insensitive node index ready.");
-		logger.log(Level.FINE, "Initializing case insensitive fulltext node index...");
+			logger.log(Level.FINE, "Node case insensitive node index ready.");
+			logger.log(Level.FINE, "Initializing case insensitive fulltext node index...");
 
-		fulltextIndex = graphDb.index().forNodes("fulltextAllNodes", LuceneIndexImplementation.FULLTEXT_CONFIG);
-		nodeIndices.put(NodeIndex.fulltext, fulltextIndex);
+			fulltextIndex = graphDb.index().forNodes("fulltextAllNodes", LuceneIndexImplementation.FULLTEXT_CONFIG);
+			nodeIndices.put(NodeIndex.fulltext, fulltextIndex);
 
-		logger.log(Level.FINE, "Fulltext node index ready.");
-		logger.log(Level.FINE, "Initializing keyword node index...");
+			logger.log(Level.FINE, "Fulltext node index ready.");
+			logger.log(Level.FINE, "Initializing keyword node index...");
 
-		keywordIndex = graphDb.index().forNodes("keywordAllNodes", LuceneIndexImplementation.EXACT_CONFIG);
-		nodeIndices.put(NodeIndex.keyword, keywordIndex);
+			keywordIndex = graphDb.index().forNodes("keywordAllNodes", LuceneIndexImplementation.EXACT_CONFIG);
+			nodeIndices.put(NodeIndex.keyword, keywordIndex);
 
-		logger.log(Level.FINE, "Keyword node index ready.");
-		logger.log(Level.FINE, "Initializing layer index...");
+			logger.log(Level.FINE, "Keyword node index ready.");
+			logger.log(Level.FINE, "Initializing layer index...");
 
-		final Map<String, String> spatialConfig = new HashMap<>();
+			final Map<String, String> spatialConfig = new HashMap<>();
 
-		spatialConfig.put(LayerNodeIndex.LAT_PROPERTY_KEY, Location.latitude.dbName());
-		spatialConfig.put(LayerNodeIndex.LON_PROPERTY_KEY, Location.longitude.dbName());
-		spatialConfig.put(SpatialIndexProvider.GEOMETRY_TYPE, LayerNodeIndex.POINT_PARAMETER);
+			spatialConfig.put(LayerNodeIndex.LAT_PROPERTY_KEY, Location.latitude.dbName());
+			spatialConfig.put(LayerNodeIndex.LON_PROPERTY_KEY, Location.longitude.dbName());
+			spatialConfig.put(SpatialIndexProvider.GEOMETRY_TYPE, LayerNodeIndex.POINT_PARAMETER);
 
-		layerIndex = new LayerNodeIndex("layerIndex", graphDb, spatialConfig);
-		nodeIndices.put(NodeIndex.layer, layerIndex);
+			layerIndex = new LayerNodeIndex("layerIndex", graphDb, spatialConfig);
+			nodeIndices.put(NodeIndex.layer, layerIndex);
 
-		logger.log(Level.FINE, "Layer index ready.");
-		logger.log(Level.FINE, "Initializing node factory...");
+			logger.log(Level.FINE, "Layer index ready.");
+			logger.log(Level.FINE, "Initializing node factory...");
 
-		relUuidIndex = graphDb.index().forRelationships("uuidAllRelationships", LuceneIndexImplementation.EXACT_CONFIG);
-		relIndices.put(RelationshipIndex.rel_uuid, relUuidIndex);
+			relUuidIndex = graphDb.index().forRelationships("uuidAllRelationships", LuceneIndexImplementation.EXACT_CONFIG);
+			relIndices.put(RelationshipIndex.rel_uuid, relUuidIndex);
 
-		logger.log(Level.FINE, "Relationship UUID index ready.");
-		logger.log(Level.FINE, "Initializing relationship index...");
+			logger.log(Level.FINE, "Relationship UUID index ready.");
+			logger.log(Level.FINE, "Initializing relationship index...");
 
-		relFulltextIndex = graphDb.index().forRelationships("fulltextAllRelationships", LuceneIndexImplementation.FULLTEXT_CONFIG);
-		relIndices.put(RelationshipIndex.rel_fulltext, relFulltextIndex);
+			relFulltextIndex = graphDb.index().forRelationships("fulltextAllRelationships", LuceneIndexImplementation.FULLTEXT_CONFIG);
+			relIndices.put(RelationshipIndex.rel_fulltext, relFulltextIndex);
 
-		logger.log(Level.FINE, "Relationship fulltext index ready.");
-		logger.log(Level.FINE, "Initializing keyword relationship index...");
+			logger.log(Level.FINE, "Relationship fulltext index ready.");
+			logger.log(Level.FINE, "Initializing keyword relationship index...");
 
-		relKeywordIndex = graphDb.index().forRelationships("keywordAllRelationships", LuceneIndexImplementation.EXACT_CONFIG);
-		relIndices.put(RelationshipIndex.rel_keyword, relKeywordIndex);
+			relKeywordIndex = graphDb.index().forRelationships("keywordAllRelationships", LuceneIndexImplementation.EXACT_CONFIG);
+			relIndices.put(RelationshipIndex.rel_keyword, relKeywordIndex);
+			
+			tx.success();
+			
+		} catch (Throwable t) {
+			
+			logger.log(Level.WARNING, "Error while initializing indexes.", t);
+		}	
 
 		logger.log(Level.FINE, "Relationship numeric index ready.");
 		logger.log(Level.FINE, "Initializing relationship factory...");

@@ -35,6 +35,7 @@ import java.io.PrintWriter;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.servlet.ServletException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -145,22 +146,16 @@ public class HttpAuthenticator implements Authenticator {
 		if (user != null) {
 
 			final String sessionIdFromRequest = request.getRequestedSessionId();
-			final App app                     = StructrApp.getInstance();
 			final Principal principal         = user;
 
 			try {
 
-				app.beginTx();
 				principal.setProperty(Principal.sessionId, sessionIdFromRequest);
-				app.commitTx();
 
 			} catch (FrameworkException ex) {
 
 				logger.log(Level.SEVERE, null, ex);
 
-			} finally {
-				
-				app.finishTx();
 			}
 
 		}
@@ -172,12 +167,7 @@ public class HttpAuthenticator implements Authenticator {
 	@Override
 	public void doLogout(HttpServletRequest request) {
 
-		final App app = StructrApp.getInstance();
-	
 		try {
-
-			app.beginTx();
-			
 			Principal user = getUser(request, false);
 			if (user != null) {
 
@@ -192,15 +182,10 @@ public class HttpAuthenticator implements Authenticator {
 			
 			request.logout();
 			
-			app.commitTx();
-
-		} catch (Exception ex) {
+		} catch (ServletException | FrameworkException ex) {
 
 			logger.log(Level.WARNING, "Error while logging out user", ex);
 
-		} finally {
-			
-			app.finishTx();
 		}
 	}
 
@@ -276,12 +261,8 @@ public class HttpAuthenticator implements Authenticator {
 
 					if (user != null) {
 
-						final App app  = StructrApp.getInstance();
-
 						try {
-							app.beginTx();
 							user.setProperty(Principal.sessionId, HttpAuthenticator.getSessionId(request));
-							app.commitTx();
 									
 							HtmlServlet.setNoCacheHeaders(response);
 							
@@ -291,7 +272,7 @@ public class HttpAuthenticator implements Authenticator {
 								
 								response.sendRedirect(oauthServer.getReturnUri());
 								
-							} catch (Exception ex) {
+							} catch (IOException ex) {
 								
 								logger.log(Level.SEVERE, "Could not redirect to {0}: {1}", new Object[]{ oauthServer.getReturnUri(), ex });
 								
@@ -303,9 +284,6 @@ public class HttpAuthenticator implements Authenticator {
 
 							logger.log(Level.SEVERE, "Could not set session id for user {0}", user.toString());
 
-						} finally {
-							
-							app.finishTx();
 						}
 					}
 				}
@@ -316,7 +294,7 @@ public class HttpAuthenticator implements Authenticator {
 
 			response.sendRedirect(oauthServer.getErrorUri());
 
-		} catch (Exception ex) {
+		} catch (IOException ex) {
 
 			logger.log(Level.SEVERE, "Could not redirect to {0}: {1}", new Object[]{ oauthServer.getReturnUri(), ex });
 

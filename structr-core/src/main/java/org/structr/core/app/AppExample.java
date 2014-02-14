@@ -21,6 +21,7 @@ package org.structr.core.app;
 import java.util.List;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Person;
+import org.structr.core.graph.Tx;
 
 /**
  *
@@ -32,26 +33,19 @@ public class AppExample {
 		
 		App app = StructrApp.getInstance();
 
-		try {
-
-			app.beginTx();
+		try (final Tx tx = app.tx()) {
 
 			Person chrisi = app.create(Person.class, "chrisi");
 			Person axel   = app.create(Person.class, "axel");
 			
 			chrisi.setProperty(Person.name, "chrisi2");
 
-			app.commitTx();
+			tx.success();
 
 		} catch (FrameworkException fex) {
-
-		} finally {
-
-			app.finishTx();
 		}
 
-
-		try {
+		try (final Tx tx = app.tx()) {
 
 			List<Person> persons = app.get(Person.class);
 			for (Person person : persons) {
@@ -61,5 +55,7 @@ public class AppExample {
 			
 		} catch (FrameworkException fex) {
 		}			
+		
+		app.shutdown();
 	}
 }

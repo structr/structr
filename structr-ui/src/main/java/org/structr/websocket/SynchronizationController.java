@@ -36,9 +36,11 @@ import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.AccessMode;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.StructrApp;
 import org.structr.core.graph.ModificationEvent;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.web.entity.User;
@@ -178,15 +180,21 @@ public class SynchronizationController implements StructrTransactionListener {
 	@Override
 	public void transactionCommited(final SecurityContext securityContext, final List<ModificationEvent> modificationEvents) {
 		
-		for (final ModificationEvent event : modificationEvents) {
-			
-			try {
-				final WebSocketMessage message = getMessageForEvent(securityContext, event);
-				if (message != null) {
-					broadcast(message);
-				}
-				
-			} catch (FrameworkException ignore) {}
+		try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
+
+			for (final ModificationEvent event : modificationEvents) {
+
+				try {
+					final WebSocketMessage message = getMessageForEvent(securityContext, event);
+					if (message != null) {
+						broadcast(message);
+					}
+
+				} catch (FrameworkException ignore) {}
+			}
+
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
 		}
 	}
 	

@@ -65,8 +65,6 @@ public class CreateCommand extends AbstractCommand {
 		Map<String, Object> nodeData = webSocketData.getNodeData();
 
 		try {
-
-			app.beginTx();
 			
 			final PropertyMap properties	= PropertyMap.inputTypeToJavaType(securityContext, nodeData);
 			Class type			= SchemaHelper.getEntityClassForRawType(properties.get(AbstractNode.type));
@@ -91,16 +89,12 @@ public class CreateCommand extends AbstractCommand {
 
 			}
 			
-			app.commitTx();
 			
 		} catch (FrameworkException fex) {
 
 			logger.log(Level.WARNING, "Could not create node.", fex);
 			getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
 
-		} finally {
-
-			app.finishTx();
 		}
 	}
 

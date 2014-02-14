@@ -56,6 +56,7 @@ import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.ConfigurationProvider;
@@ -446,7 +447,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	@Override
 	public T getFirst() throws FrameworkException {
 
-		final Result<T> result = doSearch();
+		final Result<T> result = getResult();
 		if (result.isEmpty()) {
 			
 			return null;

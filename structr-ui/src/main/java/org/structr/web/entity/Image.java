@@ -242,8 +242,6 @@ public class Image extends File {
 		final App app = StructrApp.getInstance(securityContext);
 		
 		try {
-			app.beginTx();
-
 			originalImage.setChecksum(newChecksum);
 
 			Thumbnail thumbnailData = ImageHelper.createThumbnail(originalImage, maxWidth, maxHeight, cropToFit);
@@ -305,15 +303,10 @@ public class Image extends File {
 				logger.log(Level.WARNING, "Could not create thumbnail for image {0} ({1})", new Object[] { getName(), getUuid() });
 			}
 
-			app.commitTx();
-			
 		} catch (FrameworkException fex) {
 
 			logger.log(Level.WARNING, "Unable to create thumbnail", fex);
 
-		} finally {
-			
-			app.finishTx();
 		}
 
 		return thumbnail;
