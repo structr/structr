@@ -58,7 +58,7 @@ casper.test.begin(testName, numberOfTests, function(test) {
 
     });
 
-    casper.wait(100);
+    casper.wait(1000);
 
     casper.then(function() {
         s.moveMousePointerTo(casper, '#pagesTab');
@@ -68,7 +68,7 @@ casper.test.begin(testName, numberOfTests, function(test) {
         this.click('#pagesTab');
     });
 
-    casper.wait(100);
+    casper.wait(1000);
 
     casper.then(function() {
         s.moveMousePointerTo(casper, '#paletteTab');
@@ -78,7 +78,7 @@ casper.test.begin(testName, numberOfTests, function(test) {
         this.click('#paletteTab');
     });
 
-    casper.wait(100);
+    casper.wait(1000);
 
     casper.then(function() {
         s.moveMousePointerTo(casper, '#add_page');
@@ -88,7 +88,7 @@ casper.test.begin(testName, numberOfTests, function(test) {
         this.click('#add_page');
     });
 
-    casper.wait(2000);
+    casper.wait(5000);
 
     sections.push('To add HTML elements to a page, open the "Pages Tree View" slideout on the left and the "HTML Palette" slideout on the right hand side.');
 
@@ -98,7 +98,7 @@ casper.test.begin(testName, numberOfTests, function(test) {
 
     sections.push('Then drag the desired element and drop it onto the target element in the page tree or in the page preview window.');
     
-    casper.wait(2000);
+    casper.wait(10000);
 
     casper.then(function() {
         test.assertEvalEquals(function() {
