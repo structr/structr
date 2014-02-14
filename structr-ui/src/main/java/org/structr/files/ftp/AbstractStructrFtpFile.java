@@ -168,6 +168,7 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 	public boolean setLastModified(final long l) {
 		try (Tx tx = StructrApp.getInstance().tx()) {
 			structrFile.setProperty(AbstractFile.lastModifiedDate, new Date(l));
+			tx.success();
 		} catch (FrameworkException ex) {
 			logger.log(Level.SEVERE, null, ex);
 		}
@@ -182,6 +183,7 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 
 		try (Tx tx = StructrApp.getInstance().tx()) {
 			app.delete(structrFile);
+			tx.success();
 		} catch (FrameworkException ex) {
 			logger.log(Level.SEVERE, null, ex);
 		}
@@ -192,43 +194,52 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 
 	@Override
 	public boolean move(final FtpFile target) {
+		
+		try (Tx tx = StructrApp.getInstance().tx()) {
 
-		logger.log(Level.INFO, "move()");
+			logger.log(Level.INFO, "move()");
 
-		final AbstractStructrFtpFile targetFile = (AbstractStructrFtpFile) target;
-		final String path = targetFile instanceof StructrFtpFile ? "/" : targetFile.getAbsolutePath();
+			final AbstractStructrFtpFile targetFile = (AbstractStructrFtpFile) target;
+			final String path = targetFile instanceof StructrFtpFile ? "/" : targetFile.getAbsolutePath();
 
-		try {
-			if (path.contains("/")) {
+			try {
+				if (path.contains("/")) {
 
-				String newParentPath = StringUtils.substringBeforeLast(path, "/");
-				AbstractFile newParent = FileHelper.getFileByAbsolutePath(newParentPath);
+					String newParentPath = StringUtils.substringBeforeLast(path, "/");
+					AbstractFile newParent = FileHelper.getFileByAbsolutePath(newParentPath);
 
-				if (newParent != null && newParent instanceof Folder) {
+					if (newParent != null && newParent instanceof Folder) {
 
-					Folder newParentFolder = (Folder) newParent;
-					structrFile.setProperty(AbstractFile.parent, newParentFolder);
+						Folder newParentFolder = (Folder) newParent;
+						structrFile.setProperty(AbstractFile.parent, newParentFolder);
 
-				} else {
+					} else {
 
-					// Move to /
-					structrFile.setProperty(AbstractFile.parent, null);
+						// Move to /
+						structrFile.setProperty(AbstractFile.parent, null);
+
+					}
 
 				}
 
+				if (!("/".equals(path))) {
+					final String newName = path.contains("/") ? StringUtils.substringAfterLast(path, "/") : path;
+					structrFile.setProperty(AbstractNode.name, newName);
+				}
+
+			} catch (FrameworkException ex) {
+				logger.log(Level.SEVERE, "Could not move ftp file", ex);
+				return false;
 			}
 
-			if (!("/".equals(path))) {
-				final String newName = path.contains("/") ? StringUtils.substringAfterLast(path, "/") : path;
-				structrFile.setProperty(AbstractNode.name, newName);
-			}
-
+			tx.success();
+			
+			return true;
 		} catch (FrameworkException ex) {
-			logger.log(Level.SEVERE, "Could not move ftp file", ex);
-			return false;
+			logger.log(Level.SEVERE, null, ex);
 		}
-
-		return true;
+		
+		return false;
 	}
 
 	private Principal getOwner() {

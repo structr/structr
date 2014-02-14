@@ -26,7 +26,6 @@ import java.util.logging.Logger;
 import org.apache.ftpserver.ftplet.FtpFile;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
 import org.structr.web.entity.File;
 

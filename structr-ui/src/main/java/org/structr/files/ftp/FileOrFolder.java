@@ -3,18 +3,17 @@
  *
  * This file is part of Structr <http://structr.org>.
  *
- * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
+ * Structr is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Affero General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
  *
- * Structr is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * Structr is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr. If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.files.ftp;
 
@@ -33,26 +32,28 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.Tx;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 
 /**
- * This class is an equivalent to Java's native File class for file and folder creation.
- * 
+ * This class is an equivalent to Java's native File class for file and folder
+ * creation.
+ *
  * It's a thin wrapper, implementing mkdir() and createOutputStream() only.
- * 
+ *
  * @author Axel Morgner
  */
 public class FileOrFolder extends AbstractStructrFtpFile {
 
 	private static final Logger logger = Logger.getLogger(FileOrFolder.class.getName());
-	
+
 	public FileOrFolder(final String newPath, final StructrFtpUser user) {
 		super(newPath, user);
 	}
-	
+
 	@Override
 	public boolean isDirectory() {
 		logger.log(Level.SEVERE, "isDirectory()");
@@ -73,35 +74,44 @@ public class FileOrFolder extends AbstractStructrFtpFile {
 
 	@Override
 	public boolean mkdir() {
-		
-		logger.log(Level.INFO, "mkdir() Folder");
-		
-		AbstractFile existing = FileHelper.getFileByAbsolutePath(newPath);
-		if (existing != null) {
-			logger.log(Level.WARNING, "File {0} already exists.", newPath);
-			return false;
-		}
-		
-		final Folder parentFolder = (Folder) FileHelper.getFileByAbsolutePath(StringUtils.substringBeforeLast(newPath, "/"));
-		final App app             = StructrApp.getInstance();
 
-		try {
-			Folder newFolder = (Folder) StructrApp.getInstance().command(CreateNodeCommand.class).execute(
-				new NodeAttribute(AbstractNode.type, Folder.class.getSimpleName()),
-				new NodeAttribute(AbstractNode.owner, owner.getStructrUser()),
-				new NodeAttribute(AbstractNode.name, getName())
-			);
+		final App app = StructrApp.getInstance();
+		try (final Tx tx = app.tx()) {
 
-			if (parentFolder != null) {
-				newFolder.setProperty(AbstractFile.parent, parentFolder);
+			logger.log(Level.INFO, "mkdir() Folder");
+
+			AbstractFile existing = FileHelper.getFileByAbsolutePath(newPath);
+			if (existing != null) {
+				logger.log(Level.WARNING, "File {0} already exists.", newPath);
+				return false;
 			}
+
+			final Folder parentFolder = (Folder) FileHelper.getFileByAbsolutePath(StringUtils.substringBeforeLast(newPath, "/"));
+
+			try {
+				Folder newFolder = (Folder) StructrApp.getInstance().command(CreateNodeCommand.class).execute(
+					new NodeAttribute(AbstractNode.type, Folder.class.getSimpleName()),
+					new NodeAttribute(AbstractNode.owner, owner.getStructrUser()),
+					new NodeAttribute(AbstractNode.name, getName())
+				);
+
+				if (parentFolder != null) {
+					newFolder.setProperty(AbstractFile.parent, parentFolder);
+				}
+
+			} catch (FrameworkException ex) {
+				logger.log(Level.SEVERE, null, ex);
+				return false;
+			}
+
+			tx.success();
 			
+			return true;
+
 		} catch (FrameworkException ex) {
 			logger.log(Level.SEVERE, null, ex);
 			return false;
 		}
-		
-		return true;
 	}
 
 	@Override
@@ -112,11 +122,11 @@ public class FileOrFolder extends AbstractStructrFtpFile {
 
 	@Override
 	public OutputStream createOutputStream(final long l) throws IOException {
-		
+
 		if (structrFile == null) {
 
 			final Folder parentFolder = (Folder) FileHelper.getFileByAbsolutePath(StringUtils.substringBeforeLast(newPath, "/"));
-			final App app             = StructrApp.getInstance();
+			final App app = StructrApp.getInstance();
 
 			try {
 				structrFile = FileHelper.createFile(SecurityContext.getSuperUserInstance(), new byte[0], null, File.class);
@@ -133,10 +143,9 @@ public class FileOrFolder extends AbstractStructrFtpFile {
 				return null;
 			}
 		}
-		
+
 		return ((File) structrFile).getOutputStream();
 	}
-
 
 	@Override
 	public InputStream createInputStream(long l) throws IOException {

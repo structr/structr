@@ -377,7 +377,6 @@ public class ResourceAccessTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-
 			RestAssured.given()
 				.headers("X-User", name, "X-Password", password)
 				.contentType("application/json; charset=UTF-8").expect().statusCode(200).when().delete("/folder/" + testFolder.getUuid());

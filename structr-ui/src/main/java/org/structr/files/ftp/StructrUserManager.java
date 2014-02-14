@@ -90,7 +90,6 @@ public class StructrUserManager implements UserManager {
 				}
 
 			}
-			tx.success();
 
 			return (String[]) userNames.toArray(new String[userNames.size()]);
 		} catch (FrameworkException fex) {
@@ -113,7 +112,6 @@ public class StructrUserManager implements UserManager {
 	public boolean doesExist(String string) throws FtpException {
 		try (Tx tx = StructrApp.getInstance().tx()) {
 			boolean exists = (getStructrUser(string) != null);
-			tx.success();
 			return exists;
 		} catch (FrameworkException fex) {
 			logger.log(Level.SEVERE, "Unable to determine if user " + string + " exists", fex);
@@ -171,7 +169,6 @@ public class StructrUserManager implements UserManager {
 
 			final org.structr.web.entity.User user = (org.structr.web.entity.User) AuthHelper.getPrincipalForCredential(AbstractUser.name, userName);
 
-			tx.success();
 			return user;
 
 		} catch (FrameworkException fex) {

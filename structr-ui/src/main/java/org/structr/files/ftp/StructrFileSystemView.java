@@ -67,27 +67,34 @@ public class StructrFileSystemView implements FileSystemView {
 
 	@Override
 	public FtpFile getWorkingDirectory() throws FtpException {
+
+		try (Tx tx = StructrApp.getInstance().tx()) {
 //		org.structr.web.entity.User structrUser = (org.structr.web.entity.User) AuthHelper.getPrincipalForCredential(AbstractUser.name, user.getName());
 //		
 //		Folder workingDir = structrUser.getProperty(org.structr.web.entity.User.workingDirectory);
 //		if (workingDir == null) {
 //			workingDir = structrUser.getProperty(org.structr.web.entity.User.homeDirectory);
 //		}
-		AbstractFile structrWorkingDir = FileHelper.getFileByAbsolutePath(workingDir);
-		if (structrWorkingDir == null || structrWorkingDir instanceof File) {
-			return new StructrFtpFolder(null);
-		}
+			AbstractFile structrWorkingDir = FileHelper.getFileByAbsolutePath(workingDir);
+			if (structrWorkingDir == null || structrWorkingDir instanceof File) {
+				return new StructrFtpFolder(null);
+			}
 
-		return new StructrFtpFolder((Folder) structrWorkingDir);
+			return new StructrFtpFolder((Folder) structrWorkingDir);
+		} catch (FrameworkException fex) {
+			logger.log(Level.SEVERE, "Error in changeWorkingDirectory()", fex);
+		}
+		return null;
 	}
 
 	@Override
 	public boolean changeWorkingDirectory(String requestedPath) throws FtpException {
 
-		//final org.structr.web.entity.User structrUser = (org.structr.web.entity.User) AuthHelper.getPrincipalForCredential(AbstractUser.name, user.getName());
-		final StructrFtpFolder newWorkingDirectory = (StructrFtpFolder) getFile(requestedPath);
+		try (Tx tx = StructrApp.getInstance().tx()) {
+			//final org.structr.web.entity.User structrUser = (org.structr.web.entity.User) AuthHelper.getPrincipalForCredential(AbstractUser.name, user.getName());
+			final StructrFtpFolder newWorkingDirectory = (StructrFtpFolder) getFile(requestedPath);
 
-		workingDir = newWorkingDirectory.getAbsolutePath();
+			workingDir = newWorkingDirectory.getAbsolutePath();
 
 //		try {
 //			StructrApp.getInstance().command(TransactionCommand.class).execute(new StructrTransaction() {
@@ -104,8 +111,13 @@ public class StructrFileSystemView implements FileSystemView {
 //			logger.log(Level.SEVERE, null, ex);
 //			return false;
 //		}
-		return true;
+			return true;
 
+		} catch (FrameworkException fex) {
+			logger.log(Level.SEVERE, "Error in changeWorkingDirectory()", fex);
+		}
+
+		return false;
 	}
 
 	@Override

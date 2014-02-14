@@ -64,88 +64,38 @@ public class CreatePageTest extends StructrUiTest {
 		final String h1ClassAttr = "heading";
 		final String divClassAttr = "main";
 
+		Page page = null;
+		Element html = null;
+		Element head = null;
+		Element body = null;
+		Element title = null;
+		Element h1 = null;
+		Element div = null;
+
+		Text titleText = null;
+		Text heading = null;
+		Text bodyContent = null;
+
 		try (final Tx tx = app.tx()) {
 
-			Page page = Page.createNewPage(securityContext, pageName);
+			page = Page.createNewPage(securityContext, pageName);
 
 			if (page != null) {
 
-				Element html = page.createElement("html");
-				Element head = page.createElement("head");
-				Element body = page.createElement("body");
-				Element title = page.createElement("title");
-				Element h1 = page.createElement("h1");
-				Element div = page.createElement("div");
+				html = page.createElement("html");
+				head = page.createElement("head");
+				body = page.createElement("body");
+				title = page.createElement("title");
+				h1 = page.createElement("h1");
+				div = page.createElement("div");
 
-				Text titleText = page.createTextNode(pageTitle);
-				Text heading = page.createTextNode(pageTitle);
-				Text bodyContent = page.createTextNode(bodyText);
+				titleText = page.createTextNode(pageTitle);
+				heading = page.createTextNode(pageTitle);
+				bodyContent = page.createTextNode(bodyText);
 
 				makeNodesPublic(page, html, head, body, title, h1, div, titleText, heading, bodyContent);
 
-				try {
-					// add HTML element to page
-					page.appendChild(html);
-
-					// add HEAD and BODY elements to HTML
-					html.appendChild(head);
-					html.appendChild(body);
-
-					// add TITLE element to HEAD
-					head.appendChild(title);
-
-					// add H1 element to BODY
-					body.appendChild(h1);
-					h1.setAttribute("class", h1ClassAttr);
-
-					// add DIV element
-					body.appendChild(div);
-					div.setAttribute("class", divClassAttr);
-
-					// add text nodes
-					title.appendChild(titleText);
-					h1.appendChild(heading);
-					div.appendChild(bodyContent);
-
-				} catch (DOMException dex) {
-
-					throw new FrameworkException(422, dex.getMessage());
-				}
-			}
-
-			assertTrue(page != null);
-			assertTrue(page instanceof Page);
-
-			try {
-
-				Document doc = Jsoup.connect(baseUri + pageName).get();
-
-				System.out.println(doc.html());
-
-				assertFalse(doc.select("html").isEmpty());
-				assertFalse(doc.select("html > head").isEmpty());
-				assertFalse(doc.select("html > head > title").isEmpty());
-				assertFalse(doc.select("html > body").isEmpty());
-
-				assertEquals(doc.select("html > head > title").first().text(), pageTitle);
-
-				Elements h1 = doc.select("html > body > h1");
-				assertFalse(h1.isEmpty());
-				assertEquals(h1.first().text(), pageTitle);
-				assertEquals(h1.first().attr("class"), h1ClassAttr);
-
-				Elements div = doc.select("html > body > div");
-				assertFalse(div.isEmpty());
-				assertEquals(div.first().text(), bodyText);
-				assertEquals(div.first().attr("class"), divClassAttr);
-
 				tx.success();
-
-			} catch (IOException ioex) {
-
-				logger.log(Level.SEVERE, ioex.toString());
-				fail("Unexpected IOException");
-
 			}
 
 		} catch (FrameworkException ex) {
@@ -154,6 +104,77 @@ public class CreatePageTest extends StructrUiTest {
 
 			logger.log(Level.SEVERE, ex.toString());
 			fail("Unexpected exception");
+
+		}
+
+		try (final Tx tx = app.tx()) {
+			// add HTML element to page
+			page.appendChild(html);
+
+			// add HEAD and BODY elements to HTML
+			html.appendChild(head);
+			html.appendChild(body);
+
+			// add TITLE element to HEAD
+			head.appendChild(title);
+
+			// add H1 element to BODY
+			body.appendChild(h1);
+			h1.setAttribute("class", h1ClassAttr);
+
+			// add DIV element
+			body.appendChild(div);
+			div.setAttribute("class", divClassAttr);
+
+			// add text nodes
+			title.appendChild(titleText);
+			h1.appendChild(heading);
+			div.appendChild(bodyContent);
+
+			tx.success();
+
+		} catch (Exception ex) {
+
+			ex.printStackTrace();
+
+			logger.log(Level.SEVERE, ex.toString());
+			fail("Unexpected Exception");
+		}
+
+		assertTrue(page != null);
+		assertTrue(page instanceof Page);
+
+		try (final Tx tx = app.tx()) {
+
+			Document doc = Jsoup.connect(baseUri + pageName).get();
+
+			System.out.println(doc.html());
+
+			assertFalse(doc.select("html").isEmpty());
+			assertFalse(doc.select("html > head").isEmpty());
+			assertFalse(doc.select("html > head > title").isEmpty());
+			assertFalse(doc.select("html > body").isEmpty());
+
+			assertEquals(doc.select("html > head > title").first().text(), pageTitle);
+
+			Elements h1Elements = doc.select("html > body > h1");
+			assertFalse(h1Elements.isEmpty());
+			assertEquals(h1Elements.first().text(), pageTitle);
+			assertEquals(h1Elements.first().attr("class"), h1ClassAttr);
+
+			Elements divElements = doc.select("html > body > div");
+			assertFalse(divElements.isEmpty());
+			assertEquals(divElements.first().text(), bodyText);
+			assertEquals(divElements.first().attr("class"), divClassAttr);
+
+			tx.success();
+
+		} catch (Exception ex) {
+
+			ex.printStackTrace();
+
+			logger.log(Level.SEVERE, ex.toString());
+			fail("Unexpected Exception");
 
 		}
 
