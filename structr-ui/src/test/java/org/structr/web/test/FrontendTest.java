@@ -52,6 +52,14 @@ public class FrontendTest extends StructrUiTest {
 			
 			createAdminUser();
 			createResourceAccess("_login", UiAuthenticator.NON_AUTH_USER_POST);
+			tx.success();
+			
+			
+		} catch (Exception ex) {
+			logger.log(Level.SEVERE, null, ex);
+		}
+
+		try (final Tx tx = app.tx()) {
 			
 			// Workaround to remove local storage, as phantomjs is pretty buggy here.
 			// Currently, phantomjs doesn't allow localStorage to be modified remotely,

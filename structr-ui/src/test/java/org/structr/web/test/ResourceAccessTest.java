@@ -52,58 +52,114 @@ public class ResourceAccessTest extends StructrUiTest {
 //	}
 	public void test01ResourceAccessGET() {
 
+		Folder testFolder = null;
+		ResourceAccess folderGrant = null;
+
 		try (final Tx tx = app.tx()) {
 
-			Folder testFolder = createTestNodes(Folder.class, 1).get(0);
+			testFolder = createTestNodes(Folder.class, 1).get(0);
 			assertNotNull(testFolder);
 
 			// no resource access node at all => forbidden
 			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().get("/folders");
+			tx.success();
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			logger.log(Level.SEVERE, fex.toString());
+			fail("Unexpected exception");
+		}
 
-			ResourceAccess folderGrant = createResourceAccess("Folder", UiAuthenticator.FORBIDDEN);
+		try (final Tx tx = app.tx()) {
+
+			folderGrant = createResourceAccess("Folder", UiAuthenticator.FORBIDDEN);
+
+			tx.success();
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			logger.log(Level.SEVERE, fex.toString());
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
 
 			// resource access explicetly set to FORBIDDEN => forbidden
 			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().get("/folders");
 
 			// allow GET for authenticated users => access without user/pass should be still forbidden
 			folderGrant.setFlag(UiAuthenticator.AUTH_USER_GET);
+
+			tx.success();
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			logger.log(Level.SEVERE, fex.toString());
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
+
 			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().get("/folders");
 
 			// allow GET for non-authenticated users => access without user/pass should be allowed
 			folderGrant.setFlag(UiAuthenticator.NON_AUTH_USER_GET);
+			tx.success();
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			logger.log(Level.SEVERE, fex.toString());
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
+
 			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(200).when().get("/folders");
 
 			tx.success();
 
-		} catch (FrameworkException ex) {
-
-			ex.printStackTrace();
-
-			logger.log(Level.SEVERE, ex.toString());
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			logger.log(Level.SEVERE, fex.toString());
 			fail("Unexpected exception");
-
 		}
-
 	}
 
 	public void test02ResourceAccessPOST() {
 
+		ResourceAccess folderGrant = null;
 		try (final Tx tx = app.tx()) {
 
 			// no resource access node at all => forbidden
 			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().post("/folders");
 
-			ResourceAccess folderGrant = createResourceAccess("Folder", UiAuthenticator.FORBIDDEN);
+			folderGrant = createResourceAccess("Folder", UiAuthenticator.FORBIDDEN);
 
 			// resource access explicetly set to FORBIDDEN => forbidden
 			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().post("/folders");
 
 			// allow POST for authenticated users => access without user/pass should be still forbidden
 			folderGrant.setFlag(UiAuthenticator.AUTH_USER_POST);
+
+			tx.success();
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			logger.log(Level.SEVERE, fex.toString());
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
+
 			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().post("/folders");
 
 			// allow POST for non-authenticated users => access without user/pass should be allowed
 			folderGrant.setFlag(UiAuthenticator.NON_AUTH_USER_POST);
+
+			tx.success();
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			logger.log(Level.SEVERE, fex.toString());
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
+
 			RestAssured.given().contentType("application/json; charset=UTF-8").body("{'name':'Test01'}").expect().statusCode(201).when().post("/folders");
 
 			tx.success();
@@ -121,19 +177,33 @@ public class ResourceAccessTest extends StructrUiTest {
 
 	public void test03ResourceAccessPUT() {
 
+		final String name = "testuser-01";
+		final String password = "testpassword-01";
+
+		ResourceAccess folderGrant = null;
+		User testUser = null;
+		Folder testFolder = null;
+
 		try (final Tx tx = app.tx()) {
 
-			final String name = "testuser-01";
-			final String password = "testpassword-01";
-			final User testUser = createTestNodes(User.class, 1).get(0);
-			final Folder testFolder = createTestNodes(Folder.class, 1).get(0);
+			testUser = createTestNodes(User.class, 1).get(0);
+			testFolder = createTestNodes(Folder.class, 1).get(0);
 
 			assertNotNull(testFolder);
 
 			// no resource access node at all => forbidden
 			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().put("/folder/" + testFolder.getUuid());
 
-			final ResourceAccess folderGrant = createResourceAccess("Folder", UiAuthenticator.FORBIDDEN);
+			folderGrant = createResourceAccess("Folder", UiAuthenticator.FORBIDDEN);
+
+			tx.success();
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			logger.log(Level.SEVERE, fex.toString());
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
 
 			// resource access explicetly set to FORBIDDEN => forbidden
 			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().put("/folder/" + testFolder.getUuid());
@@ -141,16 +211,43 @@ public class ResourceAccessTest extends StructrUiTest {
 			// allow PUT for authenticated users => access without user/pass should be still forbidden
 			folderGrant.setFlag(UiAuthenticator.AUTH_USER_PUT);
 
+			tx.success();
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			logger.log(Level.SEVERE, fex.toString());
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
+
 			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().put("/folder/" + testFolder.getUuid());
 
 			// allow PUT for non-authenticated users => access is forbidden with 403 because of missing rights for the test object
 			folderGrant.setFlag(UiAuthenticator.NON_AUTH_USER_PUT);
+
+			tx.success();
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			logger.log(Level.SEVERE, fex.toString());
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
 
 			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(403).when().put("/folder/" + testFolder.getUuid());
 
 			// Prepare for next test
 			testUser.setProperty(AbstractNode.name, name);
 			testUser.setProperty(User.password, password);
+
+			tx.success();
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			logger.log(Level.SEVERE, fex.toString());
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
 
 			// test user has no specific rights on the object => still 403
 			RestAssured.given()
@@ -159,6 +256,15 @@ public class ResourceAccessTest extends StructrUiTest {
 
 			// now we give the user ownership and expect a 200
 			testFolder.setProperty(AbstractNode.owner, testUser);
+
+			tx.success();
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			logger.log(Level.SEVERE, fex.toString());
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
 
 			RestAssured.given()
 				.headers("X-User", name, "X-Password", password)
@@ -179,32 +285,81 @@ public class ResourceAccessTest extends StructrUiTest {
 
 	public void test04ResourceAccessDELETE() {
 
+		final String name = "testuser-01";
+		final String password = "testpassword-01";
+		Folder testFolder = null;
+		User testUser = null;
+		ResourceAccess folderGrant = null;
+		
 		try (final Tx tx = app.tx()) {
 
-			final Folder testFolder = createTestNodes(Folder.class, 1).get(0);
+			testFolder = createTestNodes(Folder.class, 1).get(0);
 			assertNotNull(testFolder);
-			final String name = "testuser-01";
-			final String password = "testpassword-01";
-			final User testUser = createTestNodes(User.class, 1).get(0);
+			testUser = createTestNodes(User.class, 1).get(0);
+
+			tx.success();
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			logger.log(Level.SEVERE, fex.toString());
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
 
 			// no resource access node at all => forbidden
 			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().delete("/folder/" + testFolder.getUuid());
 
-			final ResourceAccess folderGrant = createResourceAccess("Folder", UiAuthenticator.FORBIDDEN);
+			folderGrant = createResourceAccess("Folder", UiAuthenticator.FORBIDDEN);
+
+			tx.success();
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			logger.log(Level.SEVERE, fex.toString());
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
 
 			// resource access explicetly set to FORBIDDEN => forbidden
 			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().delete("/folder/" + testFolder.getUuid());
 
 			folderGrant.setFlag(UiAuthenticator.AUTH_USER_DELETE);
 
+			tx.success();
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			logger.log(Level.SEVERE, fex.toString());
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
+
 			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().delete("/folder/" + testFolder.getUuid());
 
 			folderGrant.setFlag(UiAuthenticator.NON_AUTH_USER_DELETE);
+
+			tx.success();
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			logger.log(Level.SEVERE, fex.toString());
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
 
 			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(403).when().delete("/folder/" + testFolder.getUuid());
 
 			testUser.setProperty(AbstractNode.name, name);
 			testUser.setProperty(User.password, password);
+
+			tx.success();
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			logger.log(Level.SEVERE, fex.toString());
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
 
 			// test user has no specific rights on the object => still 403
 			RestAssured.given()
@@ -212,6 +367,16 @@ public class ResourceAccessTest extends StructrUiTest {
 				.contentType("application/json; charset=UTF-8").expect().statusCode(403).when().delete("/folder/" + testFolder.getUuid());
 
 			testFolder.setProperty(AbstractNode.owner, testUser);
+
+			tx.success();
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			logger.log(Level.SEVERE, fex.toString());
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
+
 
 			RestAssured.given()
 				.headers("X-User", name, "X-Password", password)
@@ -236,6 +401,7 @@ public class ResourceAccessTest extends StructrUiTest {
 	 *
 	 * @param signature the name of the new page, defaults to "page" if not
 	 * set
+	 * @param flags
 	 *
 	 * @return the new resource access node
 	 * @throws FrameworkException
@@ -247,12 +413,10 @@ public class ResourceAccessTest extends StructrUiTest {
 
 		properties.put(ResourceAccess.signature, signature);
 		properties.put(ResourceAccess.flags, flags);
-		properties.put(AbstractNode.type, ResourceAccess.class.getSimpleName());
 
-		try (final Tx tx = app.tx()) {
+		try {
 
 			ResourceAccess access = app.create(ResourceAccess.class, properties);
-			tx.success();
 
 			return access;
 
