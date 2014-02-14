@@ -27,10 +27,9 @@ import org.apache.ftpserver.ftplet.AuthorizationRequest;
 import org.apache.ftpserver.ftplet.User;
 import org.apache.ftpserver.usermanager.impl.ConcurrentLoginPermission;
 import org.apache.ftpserver.usermanager.impl.WritePermission;
-import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractUser;
-import org.structr.core.graph.TransactionCommand;
+import org.structr.core.graph.Tx;
 import org.structr.web.entity.Folder;
 
 /**
@@ -49,7 +48,7 @@ public class StructrFtpUser implements User {
 	
 	@Override
 	public String getName() {
-		try {
+		try (Tx tx = StructrApp.getInstance().tx()) {
 			return structrUser.getProperty(org.structr.web.entity.User.name);
 		} catch (Exception fex) { }
 		
@@ -122,7 +121,7 @@ public class StructrFtpUser implements User {
 
 	@Override
 	public boolean getEnabled() {
-		try {
+		try (Tx tx = StructrApp.getInstance().tx()) {
 			return !structrUser.getProperty(org.structr.web.entity.User.blocked);
 		} catch (Exception fex) { }
 		
@@ -131,7 +130,7 @@ public class StructrFtpUser implements User {
 
 	@Override
 	public String getHomeDirectory() {
-		try {
+		try (Tx tx = StructrApp.getInstance().tx()) {
 			return structrUser.getProperty(org.structr.web.entity.User.homeDirectory).getProperty(Folder.name);
 		} catch (Exception fex) { }
 		

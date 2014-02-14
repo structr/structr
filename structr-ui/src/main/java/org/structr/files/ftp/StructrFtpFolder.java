@@ -28,7 +28,7 @@ import org.apache.ftpserver.ftplet.FtpFile;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
 import org.structr.core.app.StructrApp;
-import org.structr.core.graph.TransactionCommand;
+import org.structr.core.graph.Tx;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
@@ -71,17 +71,20 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 
 	@Override
 	public long getLastModified() {
-		try {
+		try (Tx tx = StructrApp.getInstance().tx()) {
 			return structrFile.getProperty(Folder.lastModifiedDate).getTime();
 		} catch (Exception ex) {
 		}
-
 		return 0L;
 	}
 
 	@Override
 	public long getSize() {
-		return listFiles().size();
+		try (Tx tx = StructrApp.getInstance().tx()) {
+			return listFiles().size();
+		} catch (Exception ex) {
+		}
+		return 0L;
 	}
 
 	@Override
@@ -89,73 +92,82 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 
 		List<FtpFile> ftpFiles = new ArrayList();
 
-		String requestedPath = getAbsolutePath();
-		logger.log(Level.INFO, "Children of {0} requested", requestedPath);
+		try (Tx tx = StructrApp.getInstance().tx()) {
 
-		if ("/".equals(requestedPath)) {
-			try {
-				Result<Folder> folders = StructrApp.getInstance().nodeQuery(Folder.class).getResult();
-				logger.log(Level.INFO, "{0} folders found", folders.size());
+			String requestedPath = getAbsolutePath();
+			logger.log(Level.INFO, "Children of {0} requested", requestedPath);
 
-				for (Folder f : folders.getResults()) {
+			if ("/".equals(requestedPath)) {
+				try {
+					Result<Folder> folders = StructrApp.getInstance().nodeQuery(Folder.class).getResult();
+					logger.log(Level.INFO, "{0} folders found", folders.size());
 
-					if (f.getProperty(AbstractFile.parent) != null) {
-						continue;
+					for (Folder f : folders.getResults()) {
+
+						if (f.getProperty(AbstractFile.parent) != null) {
+							continue;
+						}
+
+						FtpFile ftpFile = new StructrFtpFolder(f);
+						logger.log(Level.INFO, "Folder found: {0}", ftpFile.getAbsolutePath());
+
+						ftpFiles.add(ftpFile);
+
 					}
 
-					FtpFile ftpFile = new StructrFtpFolder(f);
-					logger.log(Level.INFO, "Folder found: {0}", ftpFile.getAbsolutePath());
+					Result<File> files = StructrApp.getInstance().nodeQuery(File.class).getResult();
+					logger.log(Level.INFO, "{0} files found", files.size());
 
-					ftpFiles.add(ftpFile);
+					for (File f : files.getResults()) {
 
-				}
+						if (f.getProperty(AbstractFile.parent) != null) {
+							continue;
+						}
 
-				Result<File> files = StructrApp.getInstance().nodeQuery(File.class).getResult();
-				logger.log(Level.INFO, "{0} files found", files.size());
+						logger.log(Level.FINEST, "Structr file found: {0}", f);
 
-				for (File f : files.getResults()) {
+						FtpFile ftpFile = new StructrFtpFile(f);
+						logger.log(Level.FINE, "File found: {0}", ftpFile.getAbsolutePath());
 
-					if (f.getProperty(AbstractFile.parent) != null) {
-						continue;
+						ftpFiles.add(ftpFile);
+
 					}
 
-					logger.log(Level.FINEST, "Structr file found: {0}", f);
+					return ftpFiles;
 
-					FtpFile ftpFile = new StructrFtpFile(f);
-					logger.log(Level.FINE, "File found: {0}", ftpFile.getAbsolutePath());
-
-					ftpFiles.add(ftpFile);
-
+				} catch (FrameworkException ex) {
+					logger.log(Level.SEVERE, null, ex);
 				}
 
-				return ftpFiles;
-			} catch (FrameworkException ex) {
-				logger.log(Level.SEVERE, null, ex);
 			}
 
+			List<Folder> folders = ((Folder) structrFile).getProperty(Folder.folders);
+
+			for (Folder f : folders) {
+
+				FtpFile ftpFile = new StructrFtpFolder(f);
+				logger.log(Level.INFO, "Subfolder found: {0}", ftpFile.getAbsolutePath());
+
+				ftpFiles.add(ftpFile);
+			}
+
+			List<File> files = ((Folder) structrFile).getProperty(Folder.files);
+
+			for (File f : files) {
+
+				FtpFile ftpFile = new StructrFtpFile(f);
+				logger.log(Level.INFO, "File found: {0}", ftpFile.getAbsolutePath());
+
+				ftpFiles.add(ftpFile);
+			}
+
+			return ftpFiles;
+		} catch (FrameworkException fex) {
+			logger.log(Level.SEVERE, "Error in listFiles()", fex);
 		}
 
-		List<Folder> folders = ((Folder) structrFile).getProperty(Folder.folders);
+		return null;
 
-		for (Folder f : folders) {
-
-			FtpFile ftpFile = new StructrFtpFolder(f);
-			logger.log(Level.INFO, "Subfolder found: {0}", ftpFile.getAbsolutePath());
-
-			ftpFiles.add(ftpFile);
-		}
-
-		List<File> files = ((Folder) structrFile).getProperty(Folder.files);
-
-		for (File f : files) {
-
-			FtpFile ftpFile = new StructrFtpFile(f);
-			logger.log(Level.INFO, "File found: {0}", ftpFile.getAbsolutePath());
-
-			ftpFiles.add(ftpFile);
-		}
-
-		return ftpFiles;
 	}
 
 	@Override

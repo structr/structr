@@ -3,18 +3,17 @@
  *
  * This file is part of Structr <http://structr.org>.
  *
- * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
+ * Structr is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Affero General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
  *
- * Structr is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * Structr is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr. If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.files.ftp;
 
@@ -30,6 +29,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractUser;
 import org.structr.core.entity.Principal;
+import org.structr.core.graph.Tx;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
@@ -42,17 +42,16 @@ import org.structr.web.entity.Folder;
 public abstract class AbstractStructrFtpFile implements FtpFile {
 
 	private static final Logger logger = Logger.getLogger(AbstractStructrFtpFile.class.getName());
-	
+
 	protected AbstractFile structrFile;
 
 	protected StructrFtpUser owner;
 	protected String newPath = "/";
-	
 
 	public AbstractStructrFtpFile(final AbstractFile file) {
 		structrFile = file;
 	}
-	
+
 	public AbstractStructrFtpFile(final String path, final StructrFtpUser user) {
 		newPath = path;
 		owner = user;
@@ -60,25 +59,40 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 
 	@Override
 	public String getAbsolutePath() {
-		
+
 		if (structrFile == null) {
 			return newPath;
 		}
-		
-		return FileHelper.getFolderPath(structrFile);
+		try (Tx tx = StructrApp.getInstance().tx()) {
+			String path = FileHelper.getFolderPath(structrFile);
+			return path;
+		} catch (FrameworkException fex) {
+			logger.log(Level.SEVERE, "Error in getName() of abstract ftp file", fex);
+		}
+		return null;
 	}
 
 	@Override
 	public String getName() {
-		String name = structrFile != null ? structrFile.getProperty(File.name) : 
-			(newPath.contains("/") ? StringUtils.substringAfterLast(newPath, "/") : newPath);
-		
-		return name == null ? structrFile.getUuid() : name;
+		try (Tx tx = StructrApp.getInstance().tx()) {
+			String name = structrFile != null ? structrFile.getProperty(File.name)
+				: (newPath.contains("/") ? StringUtils.substringAfterLast(newPath, "/") : newPath);
+
+			return name == null ? structrFile.getUuid() : name;
+		} catch (FrameworkException fex) {
+			logger.log(Level.SEVERE, "Error in getName() of abstract ftp file", fex);
+		}
+		return null;
 	}
 
 	@Override
 	public boolean isHidden() {
-		return structrFile.getProperty(File.hidden);
+		try (Tx tx = StructrApp.getInstance().tx()) {
+			return structrFile.getProperty(File.hidden);
+		} catch (FrameworkException fex) {
+			logger.log(Level.SEVERE, "Error in getName() of abstract ftp file", fex);
+		}
+		return true;
 	}
 
 	@Override
@@ -103,24 +117,35 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 
 	@Override
 	public String getOwnerName() {
-		Principal owner = getOwner();
-		return owner != null ? owner.getProperty(AbstractUser.name) : "";
+		try (Tx tx = StructrApp.getInstance().tx()) {
+			Principal owner = getOwner();
+			return owner != null ? owner.getProperty(AbstractUser.name) : "";
+		} catch (FrameworkException fex) {
+			logger.log(Level.SEVERE, "Error while getting owner name of " + this, fex);
+		}
+		return null;
 	}
 
 	@Override
 	public String getGroupName() {
-		
-		Principal owner = getOwner();
-		
-		if (owner != null) {
-			List<Principal> parents = owner.getParents();
-			if (!parents.isEmpty()) {
-				
-				return parents.get(0).getProperty(AbstractNode.name);
-				
+
+		try (Tx tx = StructrApp.getInstance().tx()) {
+
+			Principal owner = getOwner();
+
+			if (owner != null) {
+				List<Principal> parents = owner.getParents();
+				if (!parents.isEmpty()) {
+
+					return parents.get(0).getProperty(AbstractNode.name);
+
+				}
 			}
+
+		} catch (FrameworkException fex) {
+			logger.log(Level.SEVERE, "Error while getting group name of " + this, fex);
 		}
-		
+
 		return "";
 	}
 
@@ -131,12 +156,17 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 
 	@Override
 	public long getLastModified() {
-		return structrFile.getProperty(AbstractFile.lastModifiedDate).getTime();
+		try (Tx tx = StructrApp.getInstance().tx()) {
+			return structrFile.getProperty(AbstractFile.lastModifiedDate).getTime();
+		} catch (FrameworkException fex) {
+			logger.log(Level.SEVERE, "Error while last modified date of " + this, fex);
+		}
+		return 0L;
 	}
 
 	@Override
 	public boolean setLastModified(final long l) {
-		try {
+		try (Tx tx = StructrApp.getInstance().tx()) {
 			structrFile.setProperty(AbstractFile.lastModifiedDate, new Date(l));
 		} catch (FrameworkException ex) {
 			logger.log(Level.SEVERE, null, ex);
@@ -150,25 +180,23 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 
 		final App app = StructrApp.getInstance();
 
-		try {
+		try (Tx tx = StructrApp.getInstance().tx()) {
 			app.delete(structrFile);
 		} catch (FrameworkException ex) {
 			logger.log(Level.SEVERE, null, ex);
 		}
 
 		return true;
-		
+
 	}
-	
 
 	@Override
 	public boolean move(final FtpFile target) {
-	
+
 		logger.log(Level.INFO, "move()");
-		
+
 		final AbstractStructrFtpFile targetFile = (AbstractStructrFtpFile) target;
-		final String path                       = targetFile instanceof StructrFtpFile ? "/" : targetFile.getAbsolutePath();
-		final App app                           = StructrApp.getInstance();
+		final String path = targetFile instanceof StructrFtpFile ? "/" : targetFile.getAbsolutePath();
 
 		try {
 			if (path.contains("/")) {
@@ -194,7 +222,7 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 				final String newName = path.contains("/") ? StringUtils.substringAfterLast(path, "/") : path;
 				structrFile.setProperty(AbstractNode.name, newName);
 			}
-			
+
 		} catch (FrameworkException ex) {
 			logger.log(Level.SEVERE, "Could not move ftp file", ex);
 			return false;
@@ -202,9 +230,15 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 
 		return true;
 	}
-	
+
 	private Principal getOwner() {
-		return structrFile.getProperty(File.owner);
+		try (Tx tx = StructrApp.getInstance().tx()) {
+			Principal owner = structrFile.getProperty(File.owner);
+			return owner;
+		} catch (FrameworkException fex) {
+			logger.log(Level.SEVERE, "Error while getting owner of " + this, fex);
+		}
+		return null;
 	}
 
 	protected AbstractFile getStructrFile() {

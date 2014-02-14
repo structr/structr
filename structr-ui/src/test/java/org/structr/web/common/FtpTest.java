@@ -3,18 +3,17 @@
  *
  * This file is part of Structr <http://structr.org>.
  *
- * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
+ * Structr is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Affero General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
  *
- * Structr is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * Structr is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr. If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.web.common;
 
@@ -32,6 +31,7 @@ import org.apache.commons.net.ftp.FTPReply;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractUser;
+import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
@@ -40,13 +40,13 @@ import org.structr.web.entity.User;
 
 /**
  * Common class for FTP tests
- * 
+ *
  * @author Axel Morgner
  */
 public class FtpTest extends StructrUiTest {
 	
 	private static final Logger logger = Logger.getLogger(FtpTest.class.getName());
-
+	
 	protected User ftpUser;
 	
 	protected User createFTPUser(final String username, final String password) throws FrameworkException {
@@ -74,7 +74,7 @@ public class FtpTest extends StructrUiTest {
 		
 		return dir;
 	}
-
+	
 	protected File createFTPFile(final String path, final String name) throws FrameworkException {
 		PropertyMap props = new PropertyMap();
 		props.put(File.name, name);
@@ -89,12 +89,12 @@ public class FtpTest extends StructrUiTest {
 				file.setProperty(Folder.parent, parentFolder);
 			}
 		}
-
+		
 		logger.log(Level.INFO, "FTP file {0} created successfully.", file);
 		
 		return file;
 	}
-
+	
 	protected void assertEmptyDirectory(final FTPClient ftp) {
 		
 		FTPFile[] dirs = null;
@@ -109,23 +109,23 @@ public class FtpTest extends StructrUiTest {
 			fail("Unexpected exception: " + ex.getMessage());
 			
 		}
-			
+		
 		assertNotNull(dirs);
 		assertEquals(0, dirs.length);
 		
 	}
-	
+
 	/**
 	 * Creates an FTP client, a backend user and logs this user in.
-	 * 
-	 * @return 
+	 *
+	 * @return
 	 */
 	protected FTPClient setupFTPClient() {
-
+		
 		FTPClient ftp = new FTPClient();
 		
 		try {
-
+			
 			ftp.connect("localhost", ftpPort);
 			logger.log(Level.INFO, "Reply from FTP server:", ftp.getReplyString());
 			
@@ -135,16 +135,20 @@ public class FtpTest extends StructrUiTest {
 			String username = "ftpuser1";
 			String password = "ftpuserpw1";
 			
-			ftpUser = createFTPUser(username, password);
-			
+			try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
+				ftpUser = createFTPUser(username, password);
+				tx.success();
+			} catch (FrameworkException fex) {
+				logger.log(Level.SEVERE, "Unable to create FTP user", fex);
+			}
 			boolean loginSuccess = ftp.login(username, password);
 			logger.log(Level.INFO, "Try to login as " + username + "/" + password + ": ", loginSuccess);
 			assertTrue(loginSuccess);
 			
 			reply = ftp.getReplyCode();
 			assertEquals(FTPReply.USER_LOGGED_IN, reply);
-
-		} catch (IOException | FrameworkException ex) {
+			
+		} catch (IOException ex) {
 			logger.log(Level.SEVERE, "Error in FTP test", ex);
 			fail("Unexpected exception: " + ex.getMessage());
 		}
