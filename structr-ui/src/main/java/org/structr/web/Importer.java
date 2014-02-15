@@ -408,9 +408,13 @@ public class Importer {
 	/**
 	 * Return an eventually existing folder with given name,
 	 * or create a new one.
+	 * 
+	 * Don't create a folder for ".."
 	 */
 	private Folder findOrCreateFolder(final String name) throws FrameworkException {
 
+		if ("..".equals(name)) return null;
+		
 		Folder folder = app.nodeQuery(Folder.class).andName(name).getFirst();
 
 		if (folder != null) {
@@ -547,11 +551,11 @@ public class Importer {
 
 			folder = findOrCreateFolder(part);
 
-			if (parent != null) {
+			if (folder != null && parent != null) {
 				app.create(parent, folder, Folders.class);
+				folder.updateInIndex();
 			}
 
-			folder.updateInIndex();
 		}
 
 		return folder;
