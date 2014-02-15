@@ -1,3 +1,4 @@
 #!/bin/bash
-kill $(ps xa|grep org.structr.Ui|grep java|awk '{print $1}')
+start-stop-daemon --quiet --stop --pidfile structr-ui.pid
+rm structr-ui.pid
 
