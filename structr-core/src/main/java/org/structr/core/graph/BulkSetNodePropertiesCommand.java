@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.lang.StringUtils;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
@@ -55,7 +56,21 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 		final GraphDatabaseService graphDb     = (GraphDatabaseService) arguments.get("graphDb");
 		final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
 		final NodeFactory nodeFactory          = new NodeFactory(superUserContext);
-		String type                            = null;
+		
+		final String type = (String)properties.get("type");
+		if (StringUtils.isBlank(type)) {
+			throw new FrameworkException(422, "Type must not be empty");
+		}
+
+		final Class cls = SchemaHelper.getEntityClassForRawType(type);
+		if (cls == null) {
+
+			throw new FrameworkException(422, "Invalid type " + type);
+		}
+
+		// remove "type" so it won't be set later
+		properties.remove("type");
+		
 		
 		if (graphDb != null) {
 
@@ -63,10 +78,8 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 
 			if (properties.containsKey(AbstractNode.type.dbName())) {
 
-				type = (String) properties.get(AbstractNode.type.dbName());
-
 				try (final Tx tx = StructrApp.getInstance().tx()) {
-					nodes = StructrApp.getInstance(securityContext).nodeQuery(SchemaHelper.getEntityClassForRawType(type)).getResult();
+					nodes = StructrApp.getInstance(securityContext).nodeQuery(cls).getResult();
 				}
 
 				properties.remove(AbstractNode.type.dbName());
@@ -77,8 +90,7 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 					nodes = nodeFactory.instantiateAll(GlobalGraphOperations.at(graphDb).getAllNodes());
 				}
 			}
-
-			final Class cls = StructrApp.getConfiguration().getNodeEntities().get(type);
+			
 			long nodeCount  = bulkGraphOperation(securityContext, nodes.getResults(), 1000, "SetNodeProperties", new BulkGraphOperation<AbstractNode>() {
 
 				@Override

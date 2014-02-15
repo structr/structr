@@ -794,6 +794,23 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	public Predicate<GraphObject> toPredicate() {
 		return new AndPredicate(rootGroup.getSearchAttributes());
 	}
+
+	@Override
+	public Iterator<T> iterator() {
+		
+		try {
+			return getAsList().iterator();
+			
+		} catch (FrameworkException fex) {
+			
+			// there is no way to handle this elegantly with the
+			// current Iterator<> interface, so we just have to
+			// drop the exception here, which is ugly ugly ugly. :(
+			fex.printStackTrace();
+		}
+		
+		return null;
+	}
 	
 	// ----- static methods -----
 	public static String escapeForLucene(String input) {

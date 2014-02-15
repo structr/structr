@@ -32,7 +32,7 @@ import org.structr.core.property.PropertyMap;
  * @author Christian Morgner
  * @param <T>
  */
-public interface Query<T extends GraphObject> {
+public interface Query<T extends GraphObject> extends Iterable<T> {
 
 	public Result<T> getResult() throws FrameworkException;
 	public List<T> getAsList() throws FrameworkException;
