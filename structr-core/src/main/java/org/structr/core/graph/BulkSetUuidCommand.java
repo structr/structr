@@ -18,6 +18,7 @@
  */
 package org.structr.core.graph;
 
+import java.util.LinkedList;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.tooling.GlobalGraphOperations;
 
@@ -35,6 +36,7 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.GraphObject;
+import org.structr.core.app.StructrApp;
 import org.structr.schema.SchemaHelper;
 
 //~--- classes ----------------------------------------------------------------
@@ -67,10 +69,13 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 
 			if (type != null) {
 
-				// final Result<AbstractNode> result = StructrApp.getInstance(securityContext).command(SearchNodeCommand.class).execute(true, false, Search.andExactType(type.getSimpleName()));
-				final Result<AbstractNode> result = nodeFactory.instantiateAll(GlobalGraphOperations.at(graphDb).getAllNodes());
-				final List<AbstractNode> nodes    = result.getResults();
+				final List<AbstractNode> nodes = new LinkedList<>();
 
+				// instantiate all nodes in a single list
+				try (final Tx tx = StructrApp.getInstance().tx()) {
+					nodes.addAll(nodeFactory.bulkInstantiate(GlobalGraphOperations.at(graphDb).getAllNodes()));
+				}
+				
 				logger.log(Level.INFO, "Start setting UUID on all nodes of type {0}", new Object[] { type.getSimpleName() });
 
 				long count = bulkGraphOperation(securityContext, nodes, 1000, "SetNodeProperties", new BulkGraphOperation<AbstractNode>() {
@@ -116,8 +121,12 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 
 		} else if (relType != null) {
 
-			// final Result<AbstractNode> result = StructrApp.getInstance(securityContext).command(SearchNodeCommand.class).execute(true, false, Search.andExactType(type.getSimpleName()));
-			final List<AbstractRelationship> rels = relFactory.instantiate(GlobalGraphOperations.at(graphDb).getAllRelationships());
+			final List<AbstractRelationship> rels = new LinkedList<>();
+
+			// instantiate all rels in a single list
+			try (final Tx tx = StructrApp.getInstance().tx()) {
+				rels.addAll(relFactory.instantiate(GlobalGraphOperations.at(graphDb).getAllRelationships()));
+			}
 
 			logger.log(Level.INFO, "Start setting UUID on all rels of type {0}", new Object[] { relType });
 

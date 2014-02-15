@@ -74,13 +74,17 @@ public class BulkChangeNodePropertyKeyCommand extends NodeServiceCommand impleme
 
 				type = (String) properties.get(AbstractNode.type.dbName());
 
-				nodes = StructrApp.getInstance(securityContext).nodeQuery(SchemaHelper.getEntityClassForRawType(type)).getResult();
+				try (final Tx tx = StructrApp.getInstance().tx()) {
+					nodes = StructrApp.getInstance(securityContext).nodeQuery(SchemaHelper.getEntityClassForRawType(type)).getResult();
+				}
 
 				properties.remove(AbstractNode.type.dbName());
 
 			} else {
 
-				nodes = nodeFactory.instantiateAll(GlobalGraphOperations.at(graphDb).getAllNodes());
+				try (final Tx tx = StructrApp.getInstance().tx()) {
+					nodes = nodeFactory.instantiateAll(GlobalGraphOperations.at(graphDb).getAllNodes());
+				}
 			}
 
 			long nodeCount = bulkGraphOperation(securityContext, nodes.getResults(), 1000, "ChangeNodePropertyKey", new BulkGraphOperation<AbstractNode>() {

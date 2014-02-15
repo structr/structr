@@ -18,8 +18,6 @@
  */
 package org.structr.core.graph;
 
-import org.neo4j.graphdb.GraphDatabaseService;
-
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Transformation;
@@ -34,6 +32,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.structr.common.Permission;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;

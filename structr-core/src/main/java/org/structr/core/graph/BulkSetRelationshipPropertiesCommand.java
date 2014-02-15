@@ -63,13 +63,17 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand imp
 
 			if (properties.containsKey(typeName)) {
 
-				rels = StructrApp.getInstance(securityContext).relationshipQuery(SchemaHelper.getEntityClassForRawType(typeName)).getAsList();
+				try (final Tx tx = StructrApp.getInstance().tx()) {
+					rels = StructrApp.getInstance(securityContext).relationshipQuery(SchemaHelper.getEntityClassForRawType(typeName)).getAsList();
+				}
 				
 				properties.remove(typeName);
 
 			} else {
 
-				rels = (List<AbstractRelationship>) relationshipFactory.instantiate(GlobalGraphOperations.at(graphDb).getAllRelationships());
+				try (final Tx tx = StructrApp.getInstance().tx()) {
+					rels = (List<AbstractRelationship>) relationshipFactory.instantiate(GlobalGraphOperations.at(graphDb).getAllRelationships());
+				}
 			}
 
 			long count = NodeServiceCommand.bulkGraphOperation(securityContext, rels, 1000, "SetRelationshipProperties", new BulkGraphOperation<AbstractRelationship>() {
