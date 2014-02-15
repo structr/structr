@@ -23,6 +23,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+import org.apache.commons.lang.StringUtils;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -272,10 +273,10 @@ public class StructrApp implements App {
 	}
 	
 	public static String getConfigurationValue(final String key) {
-		return Services.getInstance().getConfigurationValue(key, null);
+		return StringUtils.trim(Services.getInstance().getConfigurationValue(key, null));
 	}
 	
 	public static String getConfigurationValue(final String key, final String defaultValue) {
-		return Services.getInstance().getConfigurationValue(key, defaultValue);
+		return StringUtils.trim(Services.getInstance().getConfigurationValue(key, defaultValue));
 	}
 }
