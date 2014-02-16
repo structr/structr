@@ -521,7 +521,7 @@ StructrFile.prototype.append = function() {
     var file = this;
     if (file.parent) {
         var parentFolder = StructrModel.obj(file.parent.id);
-        parentFolder.files.push(file);
+        if (parentFolder) parentFolder.files.push(file);
     }
     StructrModel.expand(_Files.appendFileElement(this, parentFolder), this);
 }
