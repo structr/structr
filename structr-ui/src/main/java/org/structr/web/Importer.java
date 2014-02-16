@@ -3,18 +3,17 @@
  *
  * This file is part of Structr <http://structr.org>.
  *
- * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
+ * Structr is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Affero General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
  *
- * Structr is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * Structr is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr. If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.web;
 
@@ -44,7 +43,6 @@ import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 
 //~--- JDK imports ------------------------------------------------------------
-
 import java.io.IOException;
 import java.io.StringWriter;
 import java.net.MalformedURLException;
@@ -55,6 +53,8 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.lang.WordUtils;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -63,7 +63,6 @@ import org.structr.web.entity.relation.Files;
 import org.structr.web.entity.relation.Folders;
 
 //~--- classes ----------------------------------------------------------------
-
 /**
  * The importer creates a new page by downloading and parsing markup from a URL.
  *
@@ -71,21 +70,19 @@ import org.structr.web.entity.relation.Folders;
  */
 public class Importer {
 
-	private static String[] hrefElements                             = new String[] { "link" };
-	private static String[] ignoreElementNames                       = new String[] { "#declaration", "#comment", "#doctype" };
-	private static String[] srcElements                              = new String[] {
-
+	private static String[] hrefElements = new String[]{"link"};
+	private static String[] ignoreElementNames = new String[]{"#declaration", "#comment", "#doctype"};
+	private static String[] srcElements = new String[]{
 		"img", "script", "audio", "video", "input", "source", "track"
 	};
-	private static final Logger logger                               = Logger.getLogger(Importer.class.getName());
+	private static final Logger logger = Logger.getLogger(Importer.class.getName());
 	private static final Map<String, String> contentTypeForExtension = new HashMap<String, String>();
-	
+
 	private static App app;
 
 	private final static String DATA_META_PREFIX = "data-structr-meta-";
-	
-	//~--- static initializers --------------------------------------------
 
+	//~--- static initializers --------------------------------------------
 	static {
 
 		contentTypeForExtension.put("css", "text/css");
@@ -96,7 +93,6 @@ public class Importer {
 	}
 
 	//~--- fields ---------------------------------------------------------
-
 	private String code;
 	private String address;
 	private boolean authVisible;
@@ -107,7 +103,6 @@ public class Importer {
 	private int timeout;
 
 	//~--- constructors ---------------------------------------------------
-
 //      public static void main(String[] args) throws Exception {
 //              
 //              String css = "background: url(\"/images/common/menu-bg.png\") repeat-x;\nbackground: url('/images/common/menu-bg.png') repeat-x;\nbackground: url(/images/common/menu-bg.png) repeat-x;";
@@ -127,18 +122,17 @@ public class Importer {
 //      }
 	public Importer(final SecurityContext securityContext, final String code, final String address, final String name, final int timeout, final boolean publicVisible, final boolean authVisible) {
 
-		this.code            = code;
-		this.address         = address;
-		this.name            = name;
-		this.timeout         = timeout;
+		this.code = code;
+		this.address = address;
+		this.name = name;
+		this.timeout = timeout;
 		this.securityContext = securityContext;
-		this.publicVisible   = publicVisible;
-		this.authVisible     = authVisible;
+		this.publicVisible = publicVisible;
+		this.authVisible = authVisible;
 
 	}
 
 	//~--- methods --------------------------------------------------------
-
 	public void init() {
 		app = StructrApp.getInstance(securityContext);
 //		searchNode = StructrApp.getInstance(securityContext).command(SearchNodeCommand.class);
@@ -147,42 +141,54 @@ public class Importer {
 	}
 
 	public boolean parse() throws FrameworkException {
-		
+
 		return parse(false);
-		
+
 	}
-	
+
 	public boolean parse(final boolean fragment) throws FrameworkException {
 
 		init();
-		
+
 		if (StringUtils.isNotBlank(code)) {
 
-			logger.log(Level.INFO, "##### Start parsing code for page {0} #####", new Object[] { name });
-			
-			if (fragment) {
-				
-				parsedDocument = Jsoup.parseBodyFragment(code);
-				
-			} else {
-				
-				parsedDocument = Jsoup.parse(code);
-				
-			}
+			logger.log(Level.INFO, "##### Start parsing code for page {0} #####", new Object[]{name});
 
+			if (fragment) {
+
+				parsedDocument = Jsoup.parseBodyFragment(code);
+
+			} else {
+
+				parsedDocument = Jsoup.parse(code);
+
+			}
 
 		} else {
 
-			logger.log(Level.INFO, "##### Start fetching {0} for page {1} #####", new Object[] { address, name });
+			logger.log(Level.INFO, "##### Start fetching {0} for page {1} #####", new Object[]{address, name});
 
 			try {
 
-				parsedDocument = Jsoup.connect(address)
-					.userAgent("Mozilla")
-					.timeout(timeout)
-					.get();
+				DefaultHttpClient client = new DefaultHttpClient();
+				HttpGet get = new HttpGet(address);
+				get.setHeader("User-Agent", "Mozilla");
+				get.setHeader("Connection", "close");
+				
+				// Skip BOM to workaround this Jsoup bug: https://github.com/jhy/jsoup/issues/348
+				code = IOUtils.toString(client.execute(get).getEntity().getContent(), "UTF-8");
+				
+				if (code.charAt(0) == 65279) {
+					code = code.substring(1);
+				}
 
+				parsedDocument = Jsoup.parse(code);
 
+//				parsedDocument = Jsoup.connect(address)
+//					.userAgent("Mozilla")
+//					.timeout(timeout)
+//					.get().normalise();
+				
 			} catch (IOException ioe) {
 
 				throw new FrameworkException(500, "Error while parsing content from " + address);
@@ -199,7 +205,7 @@ public class Importer {
 
 		try {
 			final URL baseUrl = StringUtils.isNotBlank(address) ? new URL(address) : null;
-			
+
 			// AbstractNode page = findOrCreateNode(attrs, "/");
 			Page page = Page.createNewPage(securityContext, name);
 
@@ -209,14 +215,13 @@ public class Importer {
 				page.setProperty(AbstractNode.visibleToAuthenticatedUsers, authVisible);
 				page.setProperty(AbstractNode.visibleToPublicUsers, publicVisible);
 				createChildNodes(parsedDocument, page, page, baseUrl);
-				logger.log(Level.INFO, "##### Finished fetching {0} for page {1} #####", new Object[] { address, name });
+				logger.log(Level.INFO, "##### Finished fetching {0} for page {1} #####", new Object[]{address, name});
 
 				pageId = page.getProperty(GraphObject.id);
 			}
 
 			return pageId;
 
-			
 		} catch (MalformedURLException ex) {
 
 			logger.log(Level.SEVERE, "Could not resolve address " + address, ex);
@@ -240,17 +245,17 @@ public class Importer {
 
 		}
 	}
-	
+
 	// ----- private methods -----
 	private void createChildNodes(final Node startNode, final DOMNode parent, Page page, final URL baseUrl) throws FrameworkException {
 
 		final List<Node> children = startNode.childNodes();
 		for (Node node : children) {
 
-			String tag                = node.nodeName();
-			String type               = CaseHelper.toUpperCamelCase(tag);
-			String content            = null;
-			String id                 = null;
+			String tag = node.nodeName();
+			String type = CaseHelper.toUpperCamelCase(tag);
+			String content = null;
+			String id = null;
 			StringBuilder classString = new StringBuilder();
 
 			if (ArrayUtils.contains(ignoreElementNames, type)) {
@@ -260,7 +265,7 @@ public class Importer {
 
 			if (node instanceof Element) {
 
-				Element el          = ((Element) node);
+				Element el = ((Element) node);
 				Set<String> classes = el.classNames();
 
 				for (String cls : classes) {
@@ -271,10 +276,10 @@ public class Importer {
 				id = el.id();
 
 				String downloadAddressAttr = (ArrayUtils.contains(srcElements, tag)
-							      ? "src"
-							      : ArrayUtils.contains(hrefElements, tag)
-								? "href"
-								: null);
+					? "src"
+					: ArrayUtils.contains(hrefElements, tag)
+					? "href"
+					: null);
 
 				if (baseUrl != null && downloadAddressAttr != null && StringUtils.isNotBlank(node.attr(downloadAddressAttr))) {
 
@@ -289,8 +294,8 @@ public class Importer {
 			// Data and comment nodes: Trim the text and put it into the "content" field without changes
 			if (type.equals("#data") || type.equals("#comment")) {
 
-				type    = "Content";
-				tag     = "";
+				type = "Content";
+				tag = "";
 				content = ((DataNode) node).getWholeData().trim();
 
 				// Don't add content node for whitespace
@@ -305,7 +310,7 @@ public class Importer {
 			if (type.equals("#text")) {
 
 //                              type    = "Content";
-				tag     = "";
+				tag = "";
 				//content = ((TextNode) node).getWholeText();
 				content = ((TextNode) node).text();
 
@@ -360,8 +365,8 @@ public class Importer {
 
 								int l = DATA_META_PREFIX.length();
 
-								String upperCaseKey = WordUtils.capitalize(key.substring(l), new char[] { '-' }).replaceAll("-", "");
-								String camelCaseKey = key.substring(l, l+1).concat(upperCaseKey.substring(1));
+								String upperCaseKey = WordUtils.capitalize(key.substring(l), new char[]{'-'}).replaceAll("-", "");
+								String camelCaseKey = key.substring(l, l + 1).concat(upperCaseKey.substring(1));
 
 								String value = nodeAttr.getValue();
 
@@ -406,15 +411,17 @@ public class Importer {
 	}
 
 	/**
-	 * Return an eventually existing folder with given name,
-	 * or create a new one.
-	 * 
+	 * Return an eventually existing folder with given name, or create a new
+	 * one.
+	 *
 	 * Don't create a folder for ".."
 	 */
 	private Folder findOrCreateFolder(final String name) throws FrameworkException {
 
-		if ("..".equals(name)) return null;
-		
+		if ("..".equals(name)) {
+			return null;
+		}
+
 		Folder folder = app.nodeQuery(Folder.class).andName(name).getFirst();
 
 		if (folder != null) {
@@ -434,7 +441,7 @@ public class Importer {
 		// Create temporary file with new uuid
 		// FIXME: This is much too dangerous!
 		final String relativeFilePath = org.structr.web.entity.File.getDirectoryPath(uuid) + "/" + uuid;
-		final String filePath         = FileHelper.getFilePath(relativeFilePath);
+		final String filePath = FileHelper.getFilePath(relativeFilePath);
 		final java.io.File fileOnDisk = new java.io.File(filePath);
 
 		fileOnDisk.getParentFile().mkdirs();
@@ -452,7 +459,7 @@ public class Importer {
 			// TODO: Add security features like null/integrity/virus checking before copying it to
 			// the files repo
 			FileUtils.copyURLToFile(downloadUrl, fileOnDisk);
-			size	 = fileOnDisk.length();
+			size = fileOnDisk.length();
 			checksum = FileUtils.checksumCRC32(fileOnDisk);
 
 		} catch (IOException ioe) {
@@ -463,14 +470,14 @@ public class Importer {
 
 		}
 
-		contentType     = FileHelper.getContentMimeType(fileOnDisk);
+		contentType = FileHelper.getContentMimeType(fileOnDisk);
 		downloadAddress = StringUtils.substringBefore(downloadAddress, "?");
 
 		final String fileName = (downloadAddress.indexOf("/") > -1)
-					? StringUtils.substringAfterLast(downloadAddress, "/")
-					: downloadAddress;
-		String httpPrefix     = "http://";
-		String path           = StringUtils.substringBefore(((downloadAddress.indexOf(httpPrefix) > -1)
+			? StringUtils.substringAfterLast(downloadAddress, "/")
+			: downloadAddress;
+		String httpPrefix = "http://";
+		String path = StringUtils.substringBefore(((downloadAddress.indexOf(httpPrefix) > -1)
 			? StringUtils.substringAfter(downloadAddress, "http://")
 			: downloadAddress), fileName);
 
@@ -528,8 +535,8 @@ public class Importer {
 	/**
 	 * Create one folder per path item and return the last folder.
 	 *
-	 * F.e.: /a/b/c  => Folder["name":"a"] --HAS_CHILD--> Folder["name":"b"] --HAS_CHILD--> Folder["name":"c"],
-	 * returns Folder["name":"c"]
+	 * F.e.: /a/b/c => Folder["name":"a"] --HAS_CHILD--> Folder["name":"b"]
+	 * --HAS_CHILD--> Folder["name":"c"], returns Folder["name":"c"]
 	 *
 	 * @param path
 	 * @return
@@ -543,7 +550,7 @@ public class Importer {
 		}
 
 		String[] parts = StringUtils.split(path, "/");
-		Folder folder  = null;
+		Folder folder = null;
 
 		for (String part : parts) {
 
@@ -565,11 +572,11 @@ public class Importer {
 	private File createFileNode(final String uuid, final String name, final String contentType, final long size, final long checksum) throws FrameworkException {
 
 		String relativeFilePath = File.getDirectoryPath(uuid) + "/" + uuid;
-		File fileNode           = app.create(File.class, new NodeAttribute(GraphObject.id, uuid),
-						  new NodeAttribute(AbstractNode.name, name), new NodeAttribute(File.relativeFilePath, relativeFilePath),
-						  new NodeAttribute(File.contentType, contentType), new NodeAttribute(AbstractNode.visibleToPublicUsers, publicVisible),
-						  new NodeAttribute(File.size, size), new NodeAttribute(File.checksum, checksum),
-						  new NodeAttribute(AbstractNode.visibleToAuthenticatedUsers, authVisible));
+		File fileNode = app.create(File.class, new NodeAttribute(GraphObject.id, uuid),
+			new NodeAttribute(AbstractNode.name, name), new NodeAttribute(File.relativeFilePath, relativeFilePath),
+			new NodeAttribute(File.contentType, contentType), new NodeAttribute(AbstractNode.visibleToPublicUsers, publicVisible),
+			new NodeAttribute(File.size, size), new NodeAttribute(File.checksum, checksum),
+			new NodeAttribute(AbstractNode.visibleToAuthenticatedUsers, authVisible));
 
 		return fileNode;
 
@@ -578,11 +585,11 @@ public class Importer {
 	private Image createImageNode(final String uuid, final String name, final String contentType, final long size, final long checksum) throws FrameworkException {
 
 		String relativeFilePath = Image.getDirectoryPath(uuid) + "/" + uuid;
-		Image imageNode         = app.create(Image.class, new NodeAttribute(GraphObject.id, uuid),
-						  new NodeAttribute(AbstractNode.name, name), new NodeAttribute(File.relativeFilePath, relativeFilePath),
-						  new NodeAttribute(File.contentType, contentType), new NodeAttribute(AbstractNode.visibleToPublicUsers, publicVisible),
-						  new NodeAttribute(File.size, size), new NodeAttribute(File.checksum, checksum),
-						  new NodeAttribute(AbstractNode.visibleToAuthenticatedUsers, authVisible));
+		Image imageNode = app.create(Image.class, new NodeAttribute(GraphObject.id, uuid),
+			new NodeAttribute(AbstractNode.name, name), new NodeAttribute(File.relativeFilePath, relativeFilePath),
+			new NodeAttribute(File.contentType, contentType), new NodeAttribute(AbstractNode.visibleToPublicUsers, publicVisible),
+			new NodeAttribute(File.size, size), new NodeAttribute(File.checksum, checksum),
+			new NodeAttribute(AbstractNode.visibleToAuthenticatedUsers, authVisible));
 
 		return imageNode;
 
@@ -617,10 +624,9 @@ public class Importer {
 	}
 
 	//~--- get methods ----------------------------------------------------
-
 	private String getNodePath(final Node node) {
 
-		Node n      = node;
+		Node n = node;
 		String path = "";
 
 		while ((n.nodeName() != null) && !n.nodeName().equals("html")) {
@@ -628,7 +634,7 @@ public class Importer {
 			int index = n.siblingIndex();
 
 			path = n.nodeName() + "[" + index + "]" + "/" + path;
-			n    = n.parent();
+			n = n.parent();
 
 		}
 
