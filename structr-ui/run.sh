@@ -1,7 +1,7 @@
 #!/bin/bash
 JAVA=`which java`
 STRUCTR="-cp target/lib/*:target/structr-ui-1.0-SNAPSHOT.jar org.structr.Server"
-STRUCTR_ARGS="-server -d64 -Xms512m -Xmx512m -XX:+UseNUMA -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -Dinstance=structr.com"
+STRUCTR_ARGS="-server -d64 -Xms512m -Xmx512m -XX:+UseNUMA -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -Dinstance=your_instance_name"
 
 BASE_DIR=.
 PIDFILE=$BASE_DIR/structr-ui.pid
