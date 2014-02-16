@@ -18,6 +18,7 @@
  */
 package org.structr.core.graph;
 
+import java.util.LinkedList;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.tooling.GlobalGraphOperations;
 
@@ -63,7 +64,11 @@ public class BulkCopyRelationshipPropertyCommand extends NodeServiceCommand impl
 		
 		if(graphDb != null) {
 
-			List<AbstractRelationship> rels = relFactory.instantiate(GlobalGraphOperations.at(graphDb).getAllRelationships());
+			List<AbstractRelationship> rels = new LinkedList<>();
+			
+			try (final Tx tx = StructrApp.getInstance().tx()) {
+				rels.addAll(relFactory.instantiate(GlobalGraphOperations.at(graphDb).getAllRelationships()));
+			}
 
 			long count = bulkGraphOperation(securityContext, rels, 1000, "CopyRelationshipProperties", new BulkGraphOperation<AbstractRelationship>() {
 

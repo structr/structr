@@ -39,6 +39,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.Command;
 import org.structr.agent.Task;
 import org.structr.core.graph.BulkChangeNodePropertyKeyCommand;
+import org.structr.core.graph.BulkCreateLabelsCommand;
 import org.structr.core.graph.BulkDeleteSoftDeletedNodesCommand;
 import org.structr.core.graph.BulkRebuildIndexCommand;
 import org.structr.core.graph.BulkSetUuidCommand;
@@ -53,7 +54,7 @@ import org.structr.schema.SchemaHelper;
  */
 public class MaintenanceParameterResource extends Resource {
 
-	private static final Map<String, Class> maintenanceCommandMap = new LinkedHashMap<String, Class>();
+	private static final Map<String, Class> maintenanceCommandMap = new LinkedHashMap<>();
 
 	//~--- static initializers --------------------------------------------
 
@@ -61,6 +62,7 @@ public class MaintenanceParameterResource extends Resource {
 
 		maintenanceCommandMap.put("rebuildIndex", BulkRebuildIndexCommand.class);
 		maintenanceCommandMap.put("rebuildIndexForType", BulkRebuildIndexCommand.class);
+		maintenanceCommandMap.put("createLabels", BulkCreateLabelsCommand.class);
 		maintenanceCommandMap.put("clearDatabase", ClearDatabase.class);
 		maintenanceCommandMap.put("fixNodeProperties", BulkFixNodePropertiesCommand.class);
 		maintenanceCommandMap.put("setNodeProperties", BulkSetNodePropertiesCommand.class);

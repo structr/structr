@@ -18,6 +18,7 @@
  */
 package org.structr.core.graph;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -54,7 +55,11 @@ public class BulkFixNodePropertiesCommand extends NodeServiceCommand implements 
 			final Class type = SchemaHelper.getEntityClassForRawType(entityTypeName);
 			if (type != null) {
 				
-				final List<AbstractNode> nodes    = StructrApp.getInstance(securityContext).nodeQuery(type).getAsList();
+				final List<AbstractNode> nodes = new LinkedList<>();
+				
+				try (final Tx tx = StructrApp.getInstance().tx()) {
+					nodes.addAll(StructrApp.getInstance(securityContext).nodeQuery(type).getAsList());
+				}
 
 				if (type != null) {
 

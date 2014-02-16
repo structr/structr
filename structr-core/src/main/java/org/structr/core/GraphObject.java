@@ -31,6 +31,7 @@ import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
+import org.structr.core.property.TypeProperty;
 import org.structr.core.property.UuidProperty;
 
 
@@ -42,7 +43,7 @@ import org.structr.core.property.UuidProperty;
 public interface GraphObject {
 
 	public static final Property<String>  base                        = new StringProperty("base");
-	public static final Property<String>  type                        = new StringProperty("type").readOnly().indexed().writeOnce();
+	public static final Property<String>  type                        = new TypeProperty();
 	public static final Property<String>  id                          = new UuidProperty();
 
 	public static final Property<Date>    createdDate                 = new ISO8601DateProperty("createdDate").indexed().unvalidated().readOnly().writeOnce();

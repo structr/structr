@@ -28,7 +28,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 
 //~--- JDK imports ------------------------------------------------------------
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -38,6 +38,7 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.helpers.Predicate;
 import org.neo4j.helpers.collection.Iterables;
 import org.structr.core.GraphObject;
+import org.structr.core.app.StructrApp;
 import org.structr.schema.SchemaHelper;
 
 //~--- classes ----------------------------------------------------------------
@@ -73,17 +74,23 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 		// final Result<AbstractNode> result = StructrApp.getInstance(securityContext).command(SearchNodeCommand.class).execute(true, false, Search.andExactType(type.getSimpleName()));
 
 		if (mode == null || "nodesOnly".equals(mode)) {
-			final Result<AbstractNode> result = nodeFactory.instantiateAll(Iterables.filter(new NodeIdPredicate(), GlobalGraphOperations.at(graphDb).getAllNodes()));
-			final List<AbstractNode> nodes = new ArrayList<>();
+			
+			final List<AbstractNode> nodes = new LinkedList<>();
 
-			for (AbstractNode node : result.getResults()) {
+			// instantiate all nodes in a single list
+			try (final Tx tx = StructrApp.getInstance().tx()) {
+				
+				final Result<AbstractNode> result = nodeFactory.instantiateAll(Iterables.filter(new NodeIdPredicate(), GlobalGraphOperations.at(graphDb).getAllNodes()));
+				for (AbstractNode node : result.getResults()) {
 
-				if (type == null || node.getClass().equals(type)) {
+					if (type == null || node.getClass().equals(type)) {
 
-					nodes.add(node);
+						nodes.add(node);
+					}
+
 				}
-
 			}
+			
 			if (type == null) {
 
 				logger.log(Level.INFO, "Node type not set or no entity class found. Starting (re-)indexing all nodes");
@@ -123,18 +130,20 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 
 		if (mode == null || "relsOnly".equals(mode)) {
 
-			// final Result<AbstractNode> result = StructrApp.getInstance(securityContext).command(SearchNodeCommand.class).execute(true, false, Search.andExactType(type.getSimpleName()));
-			final List<AbstractRelationship> unfilteredRels = relFactory.instantiate(Iterables.filter(new RelationshipIdPredicate(), GlobalGraphOperations.at(graphDb).getAllRelationships()));
-			final List<AbstractRelationship> rels = new ArrayList();
-			long count                                      = 0;
+			final List<AbstractRelationship> rels = new LinkedList<>();
+			long count                            = 0;
+
+			// instantiate all relationships in a single list
+			try (final Tx tx = StructrApp.getInstance().tx()) {
 			
-			for (AbstractRelationship rel : unfilteredRels) {
+				final List<AbstractRelationship> unfilteredRels = relFactory.instantiate(Iterables.filter(new RelationshipIdPredicate(), GlobalGraphOperations.at(graphDb).getAllRelationships()));
+				for (AbstractRelationship rel : unfilteredRels) {
 
-				if (relType == null || rel.getType().equals(relType)) {
+					if (relType == null || rel.getType().equals(relType)) {
 
-					rels.add(rel);
+						rels.add(rel);
+					}
 				}
-
 			}
 
 			if (relType == null) {
