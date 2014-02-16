@@ -149,7 +149,7 @@ public abstract class NodeServiceCommand extends Command {
 		}
 	}
 	
-	protected String getNextUuid() {
+	public String getNextUuid() {
 		
 		String uuid = null;
 		

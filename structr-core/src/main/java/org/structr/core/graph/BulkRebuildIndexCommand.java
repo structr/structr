@@ -18,6 +18,7 @@
  */
 package org.structr.core.graph;
 
+import java.util.Collections;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.tooling.GlobalGraphOperations;
 
@@ -37,6 +38,7 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.helpers.Predicate;
 import org.neo4j.helpers.collection.Iterables;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.schema.SchemaHelper;
@@ -49,7 +51,7 @@ import org.structr.schema.SchemaHelper;
  *
  * @author Axel Morgner
  */
-public class BulkRebuildIndexCommand extends NodeServiceCommand implements MaintenanceCommand {
+public class BulkRebuildIndexCommand extends NodeServiceCommand implements MaintenanceCommand, TransactionPostProcess {
 
 	private static final Logger logger = Logger.getLogger(BulkRebuildIndexCommand.class.getName());
 	private static final String idName = GraphObject.id.dbName();
@@ -186,6 +188,16 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 
 	}
 
+	// ----- interface TransactionPostProcess -----
+	@Override
+	public boolean execute(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+		
+		execute(Collections.EMPTY_MAP);
+		
+		return true;
+	}
+
+	// ----- nested classes -----
 	private static class NodeIdPredicate implements Predicate<Node> {
 
 		@Override

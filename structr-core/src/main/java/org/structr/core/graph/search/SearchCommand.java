@@ -51,6 +51,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.Result;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.Factory;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
@@ -561,8 +562,10 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 		// create a new search group
 		and();
-		
-		types(type);
+
+		for (final Class subtype : allSubtypes(type)) {
+			orType(subtype);
+		}
 
 		// exit search group
 		parent();
@@ -576,7 +579,9 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		// create a new search group
 		or();
 		
-		types(type);
+		for (final Class subtype : allSubtypes(type)) {
+			orType(subtype);
+		}
 
 		// exit search group
 		parent();
@@ -834,7 +839,80 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 	}
 	
-	// ----- nested classes -----
+	// ----- public static methods -----
+	public static Set<Class> allSubtypes(final Class type) {
+		
+		final ConfigurationProvider configuration                             = StructrApp.getConfiguration();
+		final Map<String, Class<? extends NodeInterface>> nodeEntities        = configuration.getNodeEntities();
+		final Map<String, Class<? extends RelationshipInterface>> relEntities = configuration.getRelationshipEntities();
+		final Set<Class> allSubtypes                                          = new LinkedHashSet<>();
+
+		/* FIXME: how can that work at all???????
+		if (type == null) {
+
+			// no entity class for the given type found, examine interface types and subclasses
+			Set<Class> classesForInterface = configuration.getClassesForInterface(type.getSimpleName());
+
+			if (classesForInterface != null) {
+
+				for (Class clazz : classesForInterface) {
+
+					attrs.addAll(getTypeAndSubtypesInternal(clazz, isExactMatch));
+				}
+
+			}
+
+			return attrs;
+		}
+		*/
+
+		for (Map.Entry<String, Class<? extends NodeInterface>> entity : nodeEntities.entrySet()) {
+
+			Class<? extends NodeInterface> entityClass = entity.getValue();
+
+			if (type.isAssignableFrom(entityClass)) {
+
+				allSubtypes.add(entityClass);
+			}
+		}
+
+		for (Map.Entry<String, Class<? extends RelationshipInterface>> entity : relEntities.entrySet()) {
+
+			Class<? extends RelationshipInterface> entityClass = entity.getValue();
+
+			if (type.isAssignableFrom(entityClass)) {
+
+				allSubtypes.add(entityClass);
+			}
+		}
+		
+		return allSubtypes;
+	}
+	
+	public static Set<Class> typeAndAllSupertypes(final Class type) {
+		
+		final ConfigurationProvider configuration = StructrApp.getConfiguration();
+		final Set<Class> allSupertypes            = new LinkedHashSet<>();
+		
+		Class localType = type;
+
+		while (localType != null && !localType.equals(Object.class)) {
+
+			allSupertypes.add(localType);
+			allSupertypes.addAll(configuration.getInterfacesForType(localType));
+			
+			localType = localType.getSuperclass();
+
+		}
+		
+		// remove base types
+		allSupertypes.remove(RelationshipInterface.class);
+		allSupertypes.remove(AbstractRelationship.class);
+		allSupertypes.remove(NodeInterface.class);
+		allSupertypes.remove(AbstractNode.class);
+		
+		return allSupertypes;
+	}
 	
 	// ----- nested classes -----
 	private class AndPredicate implements Predicate<GraphObject> {
