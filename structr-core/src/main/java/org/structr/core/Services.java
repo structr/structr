@@ -34,6 +34,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
@@ -572,6 +573,7 @@ public class Services {
 	
 	public static void mergeConfiguration(final StructrConf baseConfig, final StructrConf additionalConfig) {
 		baseConfig.putAll(additionalConfig);
+		trim(baseConfig);
 	}
 	
 	
@@ -695,7 +697,7 @@ public class Services {
 	private void importSeedFile(final String basePath) {
 		
 		final GraphDatabaseService graphDb = getService(NodeService.class).getGraphDb();
-		final File seedFile                = new File(basePath + "/" + INITIAL_SEED_FILE);
+		final File seedFile                = new File(trim(basePath) + "/" + INITIAL_SEED_FILE);
 		
 		if (seedFile.exists()) {
 
@@ -729,4 +731,16 @@ public class Services {
 			}
 		}
 	}
+	
+	private static String trim(final String value) {
+		return StringUtils.trim(value);
+	}
+	
+	private static void trim(StructrConf properties) {
+		for (Object k : properties.keySet()) {
+			properties.put(k, trim((String) properties.get(k)));
+		}
+	}
+
+
 }
