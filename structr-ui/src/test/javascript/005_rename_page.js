@@ -69,7 +69,7 @@ casper.test.begin(testName, numberOfTests, function(test) {
         this.click('#add_page');
     });
 
-    casper.wait(2000);
+    casper.wait(3000);
 
     sections.push('You can rename a page by simply clicking on the name on the preview tab. After entering a new name, press return or tab, or click outside the input field.');
 
@@ -81,7 +81,7 @@ casper.test.begin(testName, numberOfTests, function(test) {
         this.click('#previewTabs li:nth-child(2)');
     });
 
-    casper.wait(500, function() {
+    casper.wait(2000, function() {
     });
 
     casper.then(function() {
