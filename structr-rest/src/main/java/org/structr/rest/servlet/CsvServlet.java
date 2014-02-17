@@ -3,18 +3,17 @@
  *
  * This file is part of Structr <http://structr.org>.
  *
- * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
+ * Structr is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Affero General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
  *
- * Structr is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * Structr is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr. If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.rest.servlet;
 
@@ -34,7 +33,6 @@ import org.structr.common.PagingHelper;
 import org.structr.rest.resource.Resource;
 
 //~--- JDK imports ------------------------------------------------------------
-
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
@@ -52,49 +50,36 @@ import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.structr.common.PropertyView;
+import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
-import org.structr.core.entity.AbstractNode;
-import org.structr.rest.ResourceProvider;
+import org.structr.core.graph.Tx;
+import org.structr.rest.RestMethodResult;
 import org.structr.rest.service.HttpServiceServlet;
 
 //~--- classes ----------------------------------------------------------------
-
 /**
- * This servlet produces CSV (comma separated value) lists out of a search result
+ * This servlet produces CSV (comma separated value) lists out of a search
+ * result
  *
  * @author Axel Morgner
  */
 public class CsvServlet extends HttpServiceServlet {
 
 	private static final Logger logger = Logger.getLogger(CsvServlet.class.getName());
-	
+
 	private static final String DELIMITER = ";";
 	private static final String REMOVE_LINE_BREAK_PARAM = "nolinebreaks";
+	private static final String WRITE_BOM = "bom";
 
 	//~--- fields ---------------------------------------------------------
-
 	private Map<Pattern, Class<? extends Resource>> resourceMap = new LinkedHashMap<>();
-	private Value<String> propertyView                          = null;
-	private String defaultPropertyView                          = PropertyView.Public;
-	private PropertyKey defaultIdProperty                       = AbstractNode.id;
-	private ResourceProvider resourceProvider                   = null;
+	private Value<String> propertyView = null;
 
 	private static boolean removeLineBreaks = false;
-
-	//~--- constructors ---------------------------------------------------
-
-	public CsvServlet(final ResourceProvider resourceProvider, final String defaultPropertyView, final PropertyKey<String> idProperty) {
-
-		this.resourceProvider    = resourceProvider;
-		this.defaultPropertyView = defaultPropertyView;
-		this.defaultIdProperty   = idProperty;
-
-	}
+	private static boolean writeBom = false;
 
 	//~--- methods --------------------------------------------------------
-
 	@Override
 	public void init() {
 
@@ -110,11 +95,19 @@ public class CsvServlet extends HttpServiceServlet {
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws UnsupportedEncodingException {
 
 		SecurityContext securityContext = null;
+		Authenticator authenticator = null;
+		Result result = null;
+		Resource resource = null;
 
 		try {
 
-			Authenticator authenticator     = getAuthenticator();
-			securityContext = authenticator.initializeAndExamineRequest(request, response);
+			// isolate request authentication in a transaction
+			try (final Tx tx = StructrApp.getInstance().tx()) {
+				authenticator = getAuthenticator();
+				securityContext = authenticator.initializeAndExamineRequest(request, response);
+				tx.success();
+			}
+			final App app = StructrApp.getInstance(securityContext);
 
 //                      logRequest("GET", request);
 			request.setCharacterEncoding("UTF-8");
@@ -126,88 +119,102 @@ public class CsvServlet extends HttpServiceServlet {
 
 			// evaluate constraints and measure query time
 			double queryTimeStart = System.nanoTime();
-			Resource resource     = ResourceHelper.applyViewTransformation(request, securityContext,
-							ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty),
-								defaultIdProperty), propertyView);
-			String resourceSignature = resource.getResourceSignature();
 
-			// let authenticator examine request again
-			authenticator.checkResourceAccess(request, resourceSignature, propertyView.get(securityContext));
+			// isolate resource authentication
+			try (final Tx tx = app.tx()) {
 
-			// add sorting & paging
-			String pageSizeParameter = request.getParameter(JsonRestServlet.REQUEST_PARAMETER_PAGE_SIZE);
-			String pageParameter     = request.getParameter(JsonRestServlet.REQUEST_PARAMETER_PAGE_NUMBER);
-			String offsetId          = request.getParameter(JsonRestServlet.REQUEST_PARAMETER_OFFSET_ID);
-			String sortOrder         = request.getParameter(JsonRestServlet.REQUEST_PARAMETER_SORT_ORDER);
-			String sortKeyName       = request.getParameter(JsonRestServlet.REQUEST_PARAMETER_SORT_KEY);
-			boolean sortDescending   = (sortOrder != null && "desc".equals(sortOrder.toLowerCase()));
-			int pageSize             = parseInt(pageSizeParameter, NodeFactory.DEFAULT_PAGE_SIZE);
-			int page                 = parseInt(pageParameter, NodeFactory.DEFAULT_PAGE);
-			PropertyKey sortKey      = null;
+				resource = ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty), defaultIdProperty);
+				authenticator.checkResourceAccess(request, resource.getResourceSignature(), propertyView.get(securityContext));
 
-			// set sort key
-			if (sortKeyName != null) {
-
-				Class<? extends GraphObject> type = resource.getEntityClass();
-
-				sortKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, sortKeyName);
-
+				tx.success();
 			}
 
-			// Should line breaks be removed?
-			removeLineBreaks = StringUtils.equals(request.getParameter(REMOVE_LINE_BREAK_PARAM), "1");
-			
-			
-			// do action
-			Result result = resource.doGet(sortKey, sortDescending, pageSize, page, offsetId);
+			try (final Tx tx = app.tx()) {
 
-			result.setIsCollection(resource.isCollectionResource());
-			result.setIsPrimitiveArray(resource.isPrimitiveArray());
+				String resourceSignature = resource.getResourceSignature();
 
-			// Integer rawResultCount = (Integer) Services.getAttribute(NodeFactory.RAW_RESULT_COUNT + Thread.currentThread().getId());
-			PagingHelper.addPagingParameter(result, pageSize, page);
+				// let authenticator examine request again
+				authenticator.checkResourceAccess(request, resourceSignature, propertyView.get(securityContext));
+
+				// add sorting & paging
+				String pageSizeParameter = request.getParameter(JsonRestServlet.REQUEST_PARAMETER_PAGE_SIZE);
+				String pageParameter = request.getParameter(JsonRestServlet.REQUEST_PARAMETER_PAGE_NUMBER);
+				String offsetId = request.getParameter(JsonRestServlet.REQUEST_PARAMETER_OFFSET_ID);
+				String sortOrder = request.getParameter(JsonRestServlet.REQUEST_PARAMETER_SORT_ORDER);
+				String sortKeyName = request.getParameter(JsonRestServlet.REQUEST_PARAMETER_SORT_KEY);
+				boolean sortDescending = (sortOrder != null && "desc".equals(sortOrder.toLowerCase()));
+				int pageSize = parseInt(pageSizeParameter, NodeFactory.DEFAULT_PAGE_SIZE);
+				int page = parseInt(pageParameter, NodeFactory.DEFAULT_PAGE);
+				PropertyKey sortKey = null;
+
+				// set sort key
+				if (sortKeyName != null) {
+
+					Class<? extends GraphObject> type = resource.getEntityClass();
+
+					sortKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, sortKeyName);
+
+				}
+
+				// Should line breaks be removed?
+				removeLineBreaks = StringUtils.equals(request.getParameter(REMOVE_LINE_BREAK_PARAM), "1");
+				
+				// Should a leading BOM be written?
+				writeBom = StringUtils.equals(request.getParameter(WRITE_BOM), "1");
+
+				// do action
+				result = resource.doGet(sortKey, sortDescending, pageSize, page, offsetId);
+
+				result.setIsCollection(resource.isCollectionResource());
+				result.setIsPrimitiveArray(resource.isPrimitiveArray());
+
+				// Integer rawResultCount = (Integer) Services.getAttribute(NodeFactory.RAW_RESULT_COUNT + Thread.currentThread().getId());
+				PagingHelper.addPagingParameter(result, pageSize, page);
 
 			// Services.removeAttribute(NodeFactory.RAW_RESULT_COUNT + Thread.currentThread().getId());
-			// timing..
-			double queryTimeEnd = System.nanoTime();
+				// timing..
+				double queryTimeEnd = System.nanoTime();
 
-			// commit response
-			if (result != null) {
+				// commit response
+				if (result != null) {
 
-				// store property view that will be used to render the results
-				result.setPropertyView(propertyView.get(securityContext));
+					// store property view that will be used to render the results
+					result.setPropertyView(propertyView.get(securityContext));
 
-				// allow resource to modify result set
-				resource.postProcessResultSet(result);
+					// allow resource to modify result set
+					resource.postProcessResultSet(result);
 
-				DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
+					DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 
-				result.setQueryTime(decimalFormat.format((queryTimeEnd - queryTimeStart) / 1000000000.0));
+					result.setQueryTime(decimalFormat.format((queryTimeEnd - queryTimeStart) / 1000000000.0));
 
-				Writer writer = response.getWriter();
+					Writer writer = response.getWriter();
 
-				writeUtf8Bom(writer);
-				
-				// gson.toJson(result, writer);
-				writeCsv(result, writer);
-				response.setStatus(HttpServletResponse.SC_OK);
-				writer.append("\n");    // useful newline
-				writer.flush();
-				writer.close();
-			} else {
+					if (writeBom) {
+						writeUtf8Bom(writer);
+					}
 
-				logger.log(Level.WARNING, "Result was null!");
+					// gson.toJson(result, writer);
+					writeCsv(result, writer);
+					response.setStatus(HttpServletResponse.SC_OK);
+					writer.flush();
+					writer.close();
+				} else {
 
-				int code = HttpServletResponse.SC_NO_CONTENT;
+					logger.log(Level.WARNING, "Result was null!");
 
-				response.setStatus(code);
+					int code = HttpServletResponse.SC_NO_CONTENT;
 
-				Writer writer = response.getWriter();
+					response.setStatus(code);
 
-				// writer.append(jsonError(code, "Result was null!"));
-				writer.flush();
-				writer.close();
+					Writer writer = response.getWriter();
 
+					// writer.append(jsonError(code, "Result was null!"));
+					writer.flush();
+					writer.close();
+
+				}
+				tx.success();
 			}
 		} catch (FrameworkException frameworkException) {
 
@@ -227,7 +234,6 @@ public class CsvServlet extends HttpServiceServlet {
 			response.setStatus(code);
 
 			// response.getWriter().append(jsonError(code, "JsonSyntaxException in GET: " + jsex.getMessage()));
-
 		} catch (JsonParseException jpex) {
 
 			logger.log(Level.WARNING, "JsonParseException in GET", jpex);
@@ -237,7 +243,6 @@ public class CsvServlet extends HttpServiceServlet {
 			response.setStatus(code);
 
 			// response.getWriter().append(jsonError(code, "JsonSyntaxException in GET: " + jpex.getMessage()));
-
 		} catch (Throwable t) {
 
 			logger.log(Level.WARNING, "Exception in GET", t);
@@ -247,23 +252,22 @@ public class CsvServlet extends HttpServiceServlet {
 			response.setStatus(code);
 
 			// response.getWriter().append(jsonError(code, "JsonSyntaxException in GET: " + t.getMessage()));
-
 		}
 
 	}
 
 	private static String escapeForCsv(final Object value) {
-		
+
 		String result = StringUtils.replace(value.toString(), "\"", "\\\"");
-		
+
 		if (!removeLineBreaks) {
 			return StringUtils.replace(StringUtils.replace(result, "\r\n", "\n"), "\r", "\n");
 		}
-		
+
 		return StringUtils.replace(StringUtils.replace(result, "\r\n", ""), "\r", "");
-		
+
 	}
-	
+
 	private void writeUtf8Bom(Writer out) {
 		try {
 			out.write("\ufeff");
@@ -271,7 +275,7 @@ public class CsvServlet extends HttpServiceServlet {
 			logger.log(Level.WARNING, "Unable to write UTF-8 BOM", ex);
 		}
 	}
-	
+
 	/**
 	 * Write list of objects to output
 	 *
@@ -280,12 +284,11 @@ public class CsvServlet extends HttpServiceServlet {
 	 * @throws IOException
 	 */
 	private void writeCsv(final Result result, Writer out) throws IOException {
-		
+
 		writeCsv(result, out, defaultPropertyView);
-		
+
 	}
-	
-	
+
 	/**
 	 * Write list of objects to output
 	 *
@@ -297,7 +300,7 @@ public class CsvServlet extends HttpServiceServlet {
 	public static void writeCsv(final Result result, final Writer out, final String propertyView) throws IOException {
 
 		List<GraphObject> list = result.getResults();
-		boolean headerWritten  = false;
+		boolean headerWritten = false;
 
 		for (GraphObject obj : list) {
 
@@ -317,7 +320,7 @@ public class CsvServlet extends HttpServiceServlet {
 
 					row.deleteCharAt(pos);
 				}
-				
+
 				// append DOS-style line feed as defined in RFC 4180
 				out.append(row).append("\r\n");
 
@@ -335,8 +338,8 @@ public class CsvServlet extends HttpServiceServlet {
 				Object value = obj.getProperty(key);
 
 				row.append("\"").append((value != null
-							 ? escapeForCsv(value)
-							 : "")).append("\"").append(DELIMITER);
+					? escapeForCsv(value)
+					: "")).append("\"").append(DELIMITER);
 
 			}
 
@@ -361,7 +364,6 @@ public class CsvServlet extends HttpServiceServlet {
 		}
 
 		//~--- get methods --------------------------------------------
-
 		@Override
 		public String get(SecurityContext securityContext) {
 
@@ -370,7 +372,6 @@ public class CsvServlet extends HttpServiceServlet {
 		}
 
 		//~--- set methods --------------------------------------------
-
 		@Override
 		public void set(SecurityContext securityContext, String value) {
 
