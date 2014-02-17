@@ -350,7 +350,7 @@ var _Dragndrop = {
                 //console.log('CSS file dropped in <head>, creating <link>');
 
                 tag = 'link';
-                nodeData._html_href = '/${link.name}';
+                nodeData._html_href = '/${link.name}?${link.version}';
                 nodeData._html_type = 'text/css';
                 nodeData._html_rel = 'stylesheet';
                 nodeData._html_media = 'screen';
@@ -361,7 +361,7 @@ var _Dragndrop = {
                 log('JS file dropped in <head>, creating <script>');
 
                 tag = 'script';
-                nodeData._html_src = '/${link.name}';
+                nodeData._html_src = '/${link.name}?${link.version}';
                 nodeData._html_type = 'text/javascript';
             }
 

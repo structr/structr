@@ -176,9 +176,9 @@ public class Image extends File {
 	 *
 	 * Default behaviour is to make the scaled image complete fit inside a rectangle of maxWidth x maxHeight.
 	 *
-	 * @maxWidth
-	 * @maxHeight
-	 * @cropToFit if true, scale down until the shorter edge fits inside the rectangle, and then crop
+	 * @param maxWidth
+	 * @param maxHeight
+	 * @param cropToFit if true, scale down until the shorter edge fits inside the rectangle, and then crop
 	 *
 	 * @return
 	 */
@@ -242,7 +242,7 @@ public class Image extends File {
 		final App app = StructrApp.getInstance(securityContext);
 		
 		try {
-			originalImage.setChecksum(newChecksum);
+			originalImage.setProperty(File.checksum, newChecksum);
 
 			Thumbnail thumbnailData = ImageHelper.createThumbnail(originalImage, maxWidth, maxHeight, cropToFit);
 			if (thumbnailData != null) {
@@ -264,7 +264,7 @@ public class Image extends File {
 
 				}
 
-				if (thumbnail != null) {
+				if (thumbnail != null && data != null) {
 
 					// Create a thumbnail relationship
 					Thumbnails thumbnailRelationship = app.create(originalImage, thumbnail, Thumbnails.class);
@@ -276,7 +276,7 @@ public class Image extends File {
 					// thumbnailRelationships.add(thumbnailRelationship);
 					long size = data.length;
 
-					thumbnail.setSize(size);
+					thumbnail.setProperty(File.size, size);
 					thumbnail.setProperty(name, originalImage.getName() + "_thumb_" + tnWidth + "x" + tnHeight);
 					thumbnail.setProperty(Image.width, tnWidth);
 					thumbnail.setProperty(Image.height, tnHeight);
@@ -300,7 +300,7 @@ public class Image extends File {
 				
 			} else {
 
-				logger.log(Level.WARNING, "Could not create thumbnail for image {0} ({1})", new Object[] { getName(), getUuid() });
+				logger.log(Level.FINE, "Could not create thumbnail for image {0} ({1})", new Object[] { getName(), getUuid() });
 			}
 
 		} catch (FrameworkException fex) {

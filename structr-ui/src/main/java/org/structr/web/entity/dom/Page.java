@@ -17,7 +17,6 @@
  */
 package org.structr.web.entity.dom;
 
-import static groovy.xml.dom.DOMCategory.attributes;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -58,11 +57,9 @@ import org.structr.core.entity.AbstractNode;
 import static org.structr.core.entity.AbstractNode.owner;
 import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.NodeAttribute;
-import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.RelationProperty;
 import org.structr.core.property.StartNodes;
-import org.structr.module.JarConfigurationProvider;
 import org.structr.schema.SchemaHelper;
 import static org.structr.web.entity.Linkable.linkingElements;
 import static org.structr.web.entity.dom.DOMNode.children;
@@ -172,8 +169,6 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	}
 
 	public void increaseVersion() throws FrameworkException {
-
-		final App app = StructrApp.getInstance(securityContext);
 
 		final Integer _version = getProperty(Page.version);
 		if (_version == null) {

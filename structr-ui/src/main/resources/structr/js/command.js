@@ -660,7 +660,7 @@ var Command = {
      * 
      * The server gives no feedback on a CHUNK command.
      */
-    chunk: function(id, chunkId, chunkSize, chunk) {
+    chunk: function(id, chunkId, chunkSize, chunk, chunks) {
         var obj = {};
         obj.command = 'CHUNK';
         obj.id = id;
@@ -668,6 +668,7 @@ var Command = {
         data.chunkId = chunkId;
         data.chunkSize = chunkSize;
         data.chunk = chunk;
+        data.chunks = chunks;
         obj.data = data;
         log('chunk()', obj);
         return sendObj(obj);

@@ -61,6 +61,7 @@ public class ChunkCommand extends AbstractCommand {
 			int sequenceNumber = ((Long) webSocketData.getNodeData().get("chunkId")).intValue();
 			int chunkSize      = ((Long) webSocketData.getNodeData().get("chunkSize")).intValue();
 			Object rawData     = webSocketData.getNodeData().get("chunk");
+			int chunks         = ((Long) webSocketData.getNodeData().get("chunks")).intValue();
 			String uuid        = webSocketData.getId();
 			byte[] data        = null;
 
@@ -81,7 +82,7 @@ public class ChunkCommand extends AbstractCommand {
 
 			final File file = (File) getNode(uuid);
 			
-			if (!getWebSocket().getSecurityContext().isAllowed(file, Permission.write)) {
+			if (!securityContext.isAllowed(file, Permission.write)) {
 
 				logger.log(Level.WARNING, "No write permission for {0} on {1}", new Object[] {getWebSocket().getCurrentUser().toString(), file.toString()});
 				getWebSocket().send(MessageBuilder.status().message("No write permission").code(400).build(), true);
@@ -91,19 +92,23 @@ public class ChunkCommand extends AbstractCommand {
 
 			getWebSocket().handleFileChunk(uuid, sequenceNumber, chunkSize, data);
 			
-			final long size = (long)(sequenceNumber * chunkSize) + data.length;
-			
-			long finalSize = file.getProperty(File.size);
-			logger.log(Level.FINE, "Overall size: {0}, part: {1}", new Object[]{finalSize, size});
-			
-			if (size != finalSize) {
+			if (sequenceNumber+1 == chunks) {
 
-				file.setProperty(File.checksum, FileHelper.getChecksum(file));
+				final long checksum = FileHelper.getChecksum(file);
+				final long size     = FileHelper.getSize(file);
+				
+				file.setProperty(File.checksum, checksum);
+				file.setProperty(File.size, size);
+				file.increaseVersion();
+
+				logger.log(Level.FINE, "File upload finished. Checksum: {0}, size: {1}", new Object[]{ checksum, size });
 
 			}
-			
+
+			final long currentSize = (long)(sequenceNumber * chunkSize) + data.length;
+
 			// This should trigger setting of lastModifiedDate in any case
-			getWebSocket().send(MessageBuilder.status().code(200).message("{\"id\":\"" + file.getUuid() + "\", \"name\":\"" + file.getName() + "\",\"size\":" + size + "}").build(), true);
+			getWebSocket().send(MessageBuilder.status().code(200).message("{\"id\":\"" + file.getUuid() + "\", \"name\":\"" + file.getName() + "\",\"size\":" + currentSize + "}").build(), true);
 
 		} catch (Throwable t) {
 

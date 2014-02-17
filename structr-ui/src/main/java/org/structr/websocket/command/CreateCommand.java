@@ -80,9 +80,9 @@ public class CreateCommand extends AbstractCommand {
 				File fileNode = (File) newNode;
 				String uuid   = newNode.getProperty(GraphObject.id);
 
-				fileNode.setRelativeFilePath(File.getDirectoryPath(uuid) + "/" + uuid);
-				fileNode.setSize(size);
-				fileNode.setContentType(contentType);
+				fileNode.setProperty(File.relativeFilePath, File.getDirectoryPath(uuid) + "/" + uuid);
+				fileNode.setProperty(File.size, size);
+				fileNode.setProperty(File.contentType, contentType);
 				fileNode.setProperty(AbstractNode.name, name);
 				
 				getWebSocket().createFileUploadHandler(fileNode);

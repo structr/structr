@@ -167,9 +167,9 @@ public class FileHelper {
 		throws FrameworkException, IOException {
 
 		FileHelper.writeToFile(file, fileData);
-		file.setContentType(contentType);
-		file.setChecksum(FileHelper.getChecksum(file));
-		file.setSize(FileHelper.getSize(file));
+		file.setProperty(org.structr.web.entity.File.contentType, contentType);
+		file.setProperty(org.structr.web.entity.File.checksum, FileHelper.getChecksum(file));
+		file.setProperty(org.structr.web.entity.File.size, FileHelper.getSize(file));
 
 	}
 
@@ -246,7 +246,7 @@ public class FileHelper {
 			fileNode.setProperty(GraphObject.id, newUuid);
 		}
 
-		fileNode.setRelativeFilePath(org.structr.web.entity.File.getDirectoryPath(id) + "/" + id);
+		fileNode.setProperty(org.structr.web.entity.File.relativeFilePath, org.structr.web.entity.File.getDirectoryPath(id) + "/" + id);
 
 		final String filesPath = Services.getInstance().getConfigurationValue(Services.FILES_PATH);
 

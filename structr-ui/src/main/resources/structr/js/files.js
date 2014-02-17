@@ -401,10 +401,10 @@ var _Files = {
 
         return div;
     },
-    removeImageFromFolder: function(imageId, folderId) {
-        log('removeImageFromFolder', imageId, folderId);
-        _Files.removeFileFromFolder(imageId, folderId, true);
-    },
+//    removeImageFromFolder: function(imageId, folderId) {
+//        log('removeImageFromFolder', imageId, folderId);
+//        _Files.removeFileFromFolder(imageId, folderId, true);
+//    },
     uploadFile: function(file) {
 
         $(fileList).each(function(i, fileObj) {
@@ -452,7 +452,7 @@ var _Files = {
                         var chunk = window.btoa(binaryContent.substring(start, end));
                         // TODO: check if we can send binary data directly
 
-                        Command.chunk(file.id, c, chunkSize, chunk);
+                        Command.chunk(file.id, c, chunkSize, chunk, chunks);
 
                     }
 
@@ -477,7 +477,7 @@ var _Files = {
             var chunk = utf8_to_b64(text.substring(start, end));
             //console.log(chunk);
             // TODO: check if we can send binary data directly
-            Command.chunk(file.id, c, chunkSize, chunk);
+            Command.chunk(file.id, c, chunkSize, chunk, chunks);
         }
     },
     appendEditFileIcon: function(parent, file) {

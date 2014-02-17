@@ -128,23 +128,27 @@ public abstract class ImageHelper extends FileHelper {
 			// read image
 			long start           = System.nanoTime();
 			InputStream in       = originalImage.getInputStream();
+			
+			if (in == null) {
+				logger.log(Level.FINE, "InputStream of original image {0} ({1}) is null", new Object[] { originalImage.getName(), originalImage.getId() });
+				return null;
+			}
+			
 			BufferedImage source = null;
 
 			try {
 
 				source = ImageIO.read(in);
 
-			} catch (Throwable t) {
+			} catch (IOException t) {
 
 				logger.log(Level.WARNING, "Could not read original image {0} ({1})", new Object[] { originalImage.getName(), originalImage.getId() });
+				return null;
 
 			} finally {
-
 				if (in != null) {
-
 					in.close();
 				}
-
 			}
 
 			if (source != null) {
@@ -216,10 +220,8 @@ public abstract class ImageHelper extends FileHelper {
 
 			} else {
 
-				logger.log(Level.WARNING, "Thumbnail could not be created");
-
+				logger.log(Level.FINE, "Thumbnail could not be created");
 				return null;
-
 			}
 
 			long end  = System.nanoTime();
@@ -229,9 +231,9 @@ public abstract class ImageHelper extends FileHelper {
 			tn.setBytes(baos.toByteArray());
 
 			return tn;
-		} catch (Throwable t) {
+		} catch (IOException | FrameworkException t) {
 
-			logger.log(Level.WARNING, "Error creating thumbnail");
+			logger.log(Level.SEVERE, "Error creating thumbnail", t);
 
 		} finally {
 

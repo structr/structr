@@ -38,6 +38,7 @@ import java.io.OutputStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.StringProperty;
@@ -59,9 +60,10 @@ public class File extends AbstractFile implements Linkable {
 	public static final Property<String> url = new StringProperty("url");
 	public static final Property<Long> checksum = new LongProperty("checksum").unvalidated();
 	public static final Property<Integer> cacheForSeconds = new IntProperty("cacheForSeconds");
+	public static final Property<Integer> version = new IntProperty("version").indexed();
 
 	public static final View publicView = new View(File.class, PropertyView.Public, type, name, contentType, size, url, owner);
-	public static final View uiView = new View(File.class, PropertyView.Ui, type, contentType, relativeFilePath, size, url, parent, checksum, cacheForSeconds, owner);
+	public static final View uiView = new View(File.class, PropertyView.Ui, type, contentType, relativeFilePath, size, url, parent, checksum, version, cacheForSeconds, owner);
 
 	@Override
 	public void onNodeDeletion() {
@@ -115,6 +117,7 @@ public class File extends AbstractFile implements Linkable {
 			}
 
 			setProperty(checksum, FileHelper.getChecksum(File.this));
+			setProperty(version, 0);
 
 			long fileSize = FileHelper.getSize(File.this);
 			if (fileSize > 0) {
@@ -129,6 +132,12 @@ public class File extends AbstractFile implements Linkable {
 
 	}
 
+//	@Override
+//	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+//		increaseVersion();
+//		return true;
+//	}
+	
 	public String getUrl() {
 
 		return getProperty(File.url);
@@ -165,24 +174,6 @@ public class File extends AbstractFile implements Linkable {
 
 	}
 
-//	public URL getFileLocation() {
-//
-//		final String filesPath = Services.getInstance().getConfigurationValue(Services.FILES_PATH);
-//		final String urlString = "file://" + filesPath + "/" + getRelativeFilePath();
-//
-//		try {
-//
-//			return new URL(urlString);
-//
-//		} catch (MalformedURLException mue) {
-//
-//			logger.log(Level.SEVERE, "Invalid URL: {0}", urlString);
-//
-//		}
-//
-//		return null;
-//
-//	}
 	public InputStream getInputStream() {
 
 		final String path = getRelativeFilePath();
@@ -190,7 +181,6 @@ public class File extends AbstractFile implements Linkable {
 		if (path != null) {
 
 			final String filePath = FileHelper.getFilePath(path);
-			final App app = StructrApp.getInstance(securityContext);
 
 			FileInputStream fis = null;
 			try {
@@ -203,7 +193,7 @@ public class File extends AbstractFile implements Linkable {
 				return fis;
 
 			} catch (FileNotFoundException e) {
-				logger.log(Level.SEVERE, "File not found: {0}", new Object[]{path});
+				logger.log(Level.FINE, "File not found: {0}", new Object[]{path});
 
 				if (fis != null) {
 
@@ -211,15 +201,13 @@ public class File extends AbstractFile implements Linkable {
 
 						fis.close();
 
-					} catch (IOException ignore) {
-					}
+					} catch (IOException ignore) {}
 
 				}
 			}
 		}
 
 		return null;
-
 	}
 
 	public OutputStream getOutputStream() {
@@ -274,24 +262,16 @@ public class File extends AbstractFile implements Linkable {
 
 	}
 
-	//~--- set methods ----------------------------------------------------
-	public void setRelativeFilePath(final String filePath) throws FrameworkException {
-		setProperty(File.relativeFilePath, filePath);
-	}
+	public void increaseVersion() throws FrameworkException {
 
-	public void setUrl(final String url) throws FrameworkException {
-		setProperty(File.url, url);
-	}
+		final Integer _version = getProperty(File.version);
+		if (_version == null) {
 
-	public void setContentType(final String contentType) throws FrameworkException {
-		setProperty(File.contentType, contentType);
-	}
+			setProperty(File.version, 1);
 
-	public void setSize(final Long size) throws FrameworkException {
-		setProperty(File.size, size);
-	}
+		} else {
 
-	public void setChecksum(final Long checksum) throws FrameworkException {
-		setProperty(File.checksum, checksum);
+			setProperty(File.version, _version + 1);
+		}
 	}
 }
