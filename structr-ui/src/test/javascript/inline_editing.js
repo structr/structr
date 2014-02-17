@@ -65,7 +65,7 @@ casper.test.begin(testName, numberOfTests, function(test) {
 
     });
 
-    casper.wait(100);
+    casper.wait(500);
 
     casper.then(function() {
         s.moveMousePointerTo(casper, '#add_page');
@@ -81,7 +81,7 @@ casper.test.begin(testName, numberOfTests, function(test) {
         });
     });
 
-    casper.wait(1000);
+    casper.wait(2000);
 
 
     sections.push('To edit a text section, click on it in the preview window and directly edit the text in the page. You can add new and even empty lines by simply pressing return. When finished, hit tab, or click outside the text section.');

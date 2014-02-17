@@ -58,7 +58,7 @@ casper.test.begin(testName, numberOfTests, function(test) {
 
     });
 
-    casper.wait(1000);
+    casper.wait(2000);
 
     casper.then(function() {
         s.moveMousePointerTo(casper, '#pagesTab');
@@ -68,7 +68,7 @@ casper.test.begin(testName, numberOfTests, function(test) {
         this.click('#pagesTab');
     });
 
-    casper.wait(1000);
+    casper.wait(2000);
 
     casper.then(function() {
         s.moveMousePointerTo(casper, '#paletteTab');
@@ -78,7 +78,7 @@ casper.test.begin(testName, numberOfTests, function(test) {
         this.click('#paletteTab');
     });
 
-    casper.wait(1000);
+    casper.wait(2000);
 
     casper.then(function() {
         s.moveMousePointerTo(casper, '#add_page');
