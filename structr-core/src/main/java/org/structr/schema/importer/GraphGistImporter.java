@@ -10,22 +10,22 @@ import java.net.URL;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.cypher.javacompat.ExecutionEngine;
-import org.neo4j.cypher.javacompat.ExecutionResult;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
-import org.neo4j.helpers.Predicate;
 import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.kernel.logging.BufferingLogger;
 import org.neo4j.tooling.GlobalGraphOperations;
+import org.structr.common.StructrAndSpatialPredicate;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
@@ -94,18 +94,22 @@ public class GraphGistImporter extends NodeServiceCommand implements Maintenance
 		}
 	}
 	
-	public static void importGist(final String source) throws FrameworkException {
+	public static void importGist(final List<String> sources) throws FrameworkException {
 	
 		final App app                                    = StructrApp.getInstance();
 		final NodeServiceCommand nodeServiceCommand      = app.command(CreateNodeCommand.class);
 		final GraphDatabaseService graphDb               = app.command(GraphDatabaseCommand.class).execute();
 		final ExecutionEngine engine                     = new ExecutionEngine(graphDb, new BufferingLogger());
-		final ExecutionResult result                     = engine.execute(source);
 		final Map<String, Map<String, Class>> properties = new LinkedHashMap<>();
 		final Set<RelationshipTemplate> relationships    = new LinkedHashSet<>();
 		final Map<String, SchemaNode> schemaNodes        = new LinkedHashMap<>();
+
+		// first step: execute cypher queries
+		for (final String source : sources) {
+			engine.execute(source);
+		}
 		
-		// second step: analyze schema
+		// second step: analyze schema of newly created nodes, skip existing ones (structr & spatial)
 		try (final Tx tx = app.tx()) {
 
 			// register transaction post process that rebuilds the index after successful creation
@@ -117,7 +121,7 @@ public class GraphGistImporter extends NodeServiceCommand implements Maintenance
 			// (TODO: maybe look for nodes with unknown labels / types?)
 			
 			// analyze nodes
-			for (final Node node : Iterables.filter(new PropertyContainerIdPredicate(), GlobalGraphOperations.at(graphDb).getAllNodes())) {
+			for (final Node node : Iterables.filter(new StructrAndSpatialPredicate(false, false, true), GlobalGraphOperations.at(graphDb).getAllNodes())) {
 				
 				String primaryType = getType(node);
 				
@@ -145,7 +149,7 @@ public class GraphGistImporter extends NodeServiceCommand implements Maintenance
 			}
 			
 			// analyze relationships
-			for (final Relationship rel : Iterables.filter(new PropertyContainerIdPredicate(), GlobalGraphOperations.at(graphDb).getAllRelationships())) {
+			for (final Relationship rel : Iterables.filter(new StructrAndSpatialPredicate(false, false, true), GlobalGraphOperations.at(graphDb).getAllRelationships())) {
 				
 				final Node startNode          = rel.getStartNode();
 				final Node endNode            = rel.getEndNode();
@@ -214,9 +218,10 @@ public class GraphGistImporter extends NodeServiceCommand implements Maintenance
 		return null;
 	}
 	
-	private static String extractSource(final InputStream source) {
+	private static List<String> extractSource(final InputStream source) {
 
-		final StringBuilder buf = new StringBuilder();
+		final List<String> sources = new LinkedList<>();
+		final StringBuilder buf    = new StringBuilder();
 
 		try (final BufferedReader reader = new BufferedReader(new InputStreamReader(source))) {
 
@@ -228,14 +233,14 @@ public class GraphGistImporter extends NodeServiceCommand implements Maintenance
 
 				final String trimmedLine = line.trim().replaceAll("[\\s]+", "");
 				
-				// exit loop when graph is complete
-				if (!inCypher && "//graph".equals(trimmedLine)) {
-					break;
-				}
-				
 				if (inCypher && "----".equals(trimmedLine)) {
+					
 					inCypher = false;
 					beforeCypher = false;
+					
+					// add cypher statements to list of sources
+					sources.add(buf.toString());
+					buf.setLength(0);
 				}
 
 				if (inCypher) {
@@ -261,7 +266,7 @@ public class GraphGistImporter extends NodeServiceCommand implements Maintenance
 			ioex.printStackTrace();
 		}
 		
-		return buf.toString();
+		return sources;
 	}
 
 	public static class RelationshipTemplate {
@@ -301,16 +306,6 @@ public class GraphGistImporter extends NodeServiceCommand implements Maintenance
 			}
 			
 			return false;
-		}
-	}
-	
-	private static class PropertyContainerIdPredicate implements Predicate<PropertyContainer> {
-
-		private static final String idName = GraphObject.id.dbName();
-		
-		@Override
-		public boolean accept(PropertyContainer container) {
-			return !container.hasProperty(idName) || !(container.getProperty(idName) instanceof String);
 		}
 	}
 }

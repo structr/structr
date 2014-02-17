@@ -24,7 +24,6 @@ import org.neo4j.tooling.GlobalGraphOperations;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -33,7 +32,6 @@ import java.util.logging.Logger;
 import org.apache.commons.lang.StringUtils;
 import org.neo4j.graphdb.Node;
 import org.structr.core.app.StructrApp;
-import org.structr.module.JarConfigurationProvider;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.SchemaHelper;
 

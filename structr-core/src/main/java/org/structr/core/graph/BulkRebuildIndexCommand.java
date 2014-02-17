@@ -34,10 +34,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.helpers.Predicate;
 import org.neo4j.helpers.collection.Iterables;
+import org.structr.common.StructrAndSpatialPredicate;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
@@ -60,13 +58,13 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 	@Override
 	public void execute(Map<String, Object> attributes) throws FrameworkException {
 
-		final String mode = (String) attributes.get("mode");
-		final String entityType = (String) attributes.get("type");
-		final String relType = (String) attributes.get("relType");
-		final GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
+		final String mode                      = (String) attributes.get("mode");
+		final String entityType                = (String) attributes.get("type");
+		final String relType                   = (String) attributes.get("relType");
+		final GraphDatabaseService graphDb     = (GraphDatabaseService) arguments.get("graphDb");
 		final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
-		final NodeFactory nodeFactory = new NodeFactory(superUserContext);
-		final RelationshipFactory relFactory = new RelationshipFactory(superUserContext);
+		final NodeFactory nodeFactory          = new NodeFactory(superUserContext);
+		final RelationshipFactory relFactory   = new RelationshipFactory(superUserContext);
 
 		Class type = null;
 		if (entityType != null) {
@@ -82,7 +80,7 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 			// instantiate all nodes in a single list
 			try (final Tx tx = StructrApp.getInstance().tx()) {
 				
-				final Result<AbstractNode> result = nodeFactory.instantiateAll(Iterables.filter(new NodeIdPredicate(), GlobalGraphOperations.at(graphDb).getAllNodes()));
+				final Result<AbstractNode> result = nodeFactory.instantiateAll(Iterables.filter(new StructrAndSpatialPredicate(true, false, false), GlobalGraphOperations.at(graphDb).getAllNodes()));
 				for (AbstractNode node : result.getResults()) {
 
 					if (type == null || node.getClass().equals(type)) {
@@ -138,7 +136,7 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 			// instantiate all relationships in a single list
 			try (final Tx tx = StructrApp.getInstance().tx()) {
 			
-				final List<AbstractRelationship> unfilteredRels = relFactory.instantiate(Iterables.filter(new RelationshipIdPredicate(), GlobalGraphOperations.at(graphDb).getAllRelationships()));
+				final List<AbstractRelationship> unfilteredRels = relFactory.instantiate(Iterables.filter(new StructrAndSpatialPredicate(true, false, false), GlobalGraphOperations.at(graphDb).getAllRelationships()));
 				for (AbstractRelationship rel : unfilteredRels) {
 
 					if (relType == null || rel.getType().equals(relType)) {
@@ -196,22 +194,4 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 		
 		return true;
 	}
-
-	// ----- nested classes -----
-	private static class NodeIdPredicate implements Predicate<Node> {
-
-		@Override
-		public boolean accept(final Node node) {
-			return node.hasProperty(idName) && node.getProperty(idName) instanceof String;
-		}
-	}
-
-	private static class RelationshipIdPredicate implements Predicate<Relationship> {
-
-		@Override
-		public boolean accept(final Relationship rel) {
-			return rel.hasProperty(idName) && rel.getProperty(idName) instanceof String;
-		}
-	}
-
 }
