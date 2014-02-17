@@ -3,6 +3,8 @@ package org.structr.schema.importer;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URL;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -52,13 +54,22 @@ public class GraphGistImporter extends NodeServiceCommand implements Maintenance
 		
 		final String fileName = (String)attributes.get("file");
 		final String source   = (String)attributes.get("source");
+		final String url      = (String)attributes.get("url");
 		
-		if (fileName == null && source == null) {
-			throw new FrameworkException(422, "Please supply file or source parameter.");
+		if (fileName == null && source == null && url == null) {
+			throw new FrameworkException(422, "Please supply file, url or source parameter.");
 		}
 		
 		if (fileName != null && source != null) {
-			throw new FrameworkException(422, "Please supply only file or source parameter.");
+			throw new FrameworkException(422, "Please supply only one of file, url or source.");
+		}
+		
+		if (fileName != null && url != null) {
+			throw new FrameworkException(422, "Please supply only one of file, url or source.");
+		}
+		
+		if (url != null && source != null) {
+			throw new FrameworkException(422, "Please supply only one of file, url or source.");
 		}
 		
 		if (fileName != null) {
@@ -66,6 +77,26 @@ public class GraphGistImporter extends NodeServiceCommand implements Maintenance
 			final StringBuilder buf = new StringBuilder();
 
 			try (final BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
+
+				String line = reader.readLine();
+				while (line != null) {
+
+					buf.append(line);
+					buf.append("\n");
+					line = reader.readLine();
+				}
+
+			} catch (IOException ioex) {
+				ioex.printStackTrace();
+			}
+
+			GraphGistImporter.importGist(buf.toString());
+			
+		} else if (url != null) {
+
+			final StringBuilder buf = new StringBuilder();
+
+			try (final BufferedReader reader = new BufferedReader(new InputStreamReader(new URL(url).openStream()))) {
 
 				String line = reader.readLine();
 				while (line != null) {
