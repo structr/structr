@@ -23,7 +23,7 @@ import org.structr.web.test.FrontendTest;
 public class DragElementTest extends FrontendTest {
 
 	public void test() {
-		assertEquals(0, run("drag_element"));
+		assertEquals(0, run("007_add_element_to_page"));
 	}
 
 }
