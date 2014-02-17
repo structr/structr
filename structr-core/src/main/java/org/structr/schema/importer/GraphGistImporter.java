@@ -1,8 +1,10 @@
 package org.structr.schema.importer;
 
 import java.io.BufferedReader;
-import java.io.FileReader;
+import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.Iterator;
@@ -72,49 +74,23 @@ public class GraphGistImporter extends NodeServiceCommand implements Maintenance
 			throw new FrameworkException(422, "Please supply only one of file, url or source.");
 		}
 		
-		if (fileName != null) {
+		try {
+			
+			if (fileName != null) {
+			
+				GraphGistImporter.importGist(extractSource(new FileInputStream(fileName)));
 
-			final StringBuilder buf = new StringBuilder();
+			} else if (url != null) {
 
-			try (final BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
+				GraphGistImporter.importGist(extractSource(new URL(url).openStream()));
 
-				String line = reader.readLine();
-				while (line != null) {
+			} else if (source != null) {
 
-					buf.append(line);
-					buf.append("\n");
-					line = reader.readLine();
-				}
-
-			} catch (IOException ioex) {
-				ioex.printStackTrace();
+				GraphGistImporter.importGist(extractSource(new ByteArrayInputStream(source.getBytes())));
 			}
 
-			GraphGistImporter.importGist(buf.toString());
-			
-		} else if (url != null) {
-
-			final StringBuilder buf = new StringBuilder();
-
-			try (final BufferedReader reader = new BufferedReader(new InputStreamReader(new URL(url).openStream()))) {
-
-				String line = reader.readLine();
-				while (line != null) {
-
-					buf.append(line);
-					buf.append("\n");
-					line = reader.readLine();
-				}
-
-			} catch (IOException ioex) {
-				ioex.printStackTrace();
-			}
-
-			GraphGistImporter.importGist(buf.toString());
-			
-		} else if (source != null) {
-			
-			GraphGistImporter.importGist(source);
+		} catch (IOException ioex) {
+			ioex.printStackTrace();
 		}
 	}
 	
@@ -236,6 +212,56 @@ public class GraphGistImporter extends NodeServiceCommand implements Maintenance
 		}
 		
 		return null;
+	}
+	
+	private static String extractSource(final InputStream source) {
+
+		final StringBuilder buf = new StringBuilder();
+
+		try (final BufferedReader reader = new BufferedReader(new InputStreamReader(source))) {
+
+			String line        = reader.readLine();
+			boolean beforeCypher = false;
+			boolean inCypher     = false;
+
+			while (line != null) {
+
+				final String trimmedLine = line.trim().replaceAll("[\\s]+", "");
+				
+				// exit loop when graph is complete
+				if (!inCypher && "//graph".equals(trimmedLine)) {
+					break;
+				}
+				
+				if (inCypher && "----".equals(trimmedLine)) {
+					inCypher = false;
+					beforeCypher = false;
+				}
+
+				if (inCypher) {
+
+					buf.append(line);
+					buf.append("\n");
+				}
+
+				
+				if ("[source,cypher]".equals(trimmedLine)) {
+					beforeCypher = true;
+				}
+
+				if (beforeCypher && "----".equals(trimmedLine)) {
+					inCypher     = true;
+					beforeCypher = false;
+				}
+
+				line = reader.readLine();
+			}
+
+		} catch (IOException ioex) {
+			ioex.printStackTrace();
+		}
+		
+		return buf.toString();
 	}
 
 	public static class RelationshipTemplate {
