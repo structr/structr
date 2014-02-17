@@ -23,7 +23,7 @@ import org.structr.web.test.FrontendTest;
 public class InlineEditingTest extends FrontendTest {
 
 	public void test() {
-		assertEquals(0, run("inline_editing"));
+		assertEquals(0, run("006_inline_editing"));
 	}
 
 }
