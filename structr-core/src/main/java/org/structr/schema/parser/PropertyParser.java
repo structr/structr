@@ -25,6 +25,7 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidPropertySchemaToken;
 import org.structr.core.entity.SchemaNode;
+import org.structr.schema.SchemaHelper;
 import org.structr.schema.SchemaHelper.Type;
 
 /**
@@ -91,7 +92,7 @@ public abstract class PropertyParser {
 		
 		String valueType = getValueType();
 		
-		buf.append("\tpublic static final Property<").append(valueType).append("> ").append(propertyName).append("Property");
+		buf.append("\tpublic static final Property<").append(valueType).append("> ").append(SchemaHelper.cleanPropertyName(propertyName)).append("Property");
 		buf.append(" = new ").append(getPropertyType()).append("(\"").append(propertyName).append("\"");
 		if (dbName != null) {
 			buf.append(", \"").append(dbName).append("\"");
@@ -115,7 +116,7 @@ public abstract class PropertyParser {
 
 			StringBuilder buf = new StringBuilder();
 			buf.append("ValidationHelper.checkPropertyUniquenessError(this, ");
-			buf.append(className).append(".").append(propertyName).append("Property");
+			buf.append(className).append(".").append(SchemaHelper.cleanPropertyName(propertyName)).append("Property");
 			buf.append(", errorBuffer)");
 
 			globalValidators.add(buf.toString());
@@ -132,7 +133,7 @@ public abstract class PropertyParser {
 
 			StringBuilder buf = new StringBuilder();
 			buf.append("ValidationHelper.checkPropertyNotNull(this, ");
-			buf.append(className).append(".").append(propertyName).append("Property");
+			buf.append(className).append(".").append(SchemaHelper.cleanPropertyName(propertyName)).append("Property");
 			buf.append(", errorBuffer)");
 
 			globalValidators.add(buf.toString());

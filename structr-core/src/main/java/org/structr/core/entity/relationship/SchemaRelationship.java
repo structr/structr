@@ -197,14 +197,14 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 
 			if ("1".equals(_targetMultiplicity)) {
 
-				buf.append("\tpublic static final Property<").append(_targetType).append("> ").append(propertyName).append("Property");
+				buf.append("\tpublic static final Property<").append(_targetType).append("> ").append(SchemaHelper.cleanPropertyName(propertyName)).append("Property");
 				buf.append(" = new EndNode<>(\"").append(propertyName).append("\", ").append(_className).append(".class");
 				buf.append(getNotion(_sourceType, _targetNotion));
 				buf.append(");\n");
 				
 			} else {
 				
-				buf.append("\tpublic static final Property<List<").append(_targetType).append(">> ").append(propertyName).append("Property");
+				buf.append("\tpublic static final Property<List<").append(_targetType).append(">> ").append(SchemaHelper.cleanPropertyName(propertyName)).append("Property");
 				buf.append(" = new EndNodes<>(\"").append(propertyName).append("\", ").append(_className).append(".class");
 				buf.append(getNotion(_sourceType, _targetNotion));
 				buf.append(");\n");
@@ -214,14 +214,14 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 			
 			if ("1".equals(_sourceMultiplicity)) {
 
-				buf.append("\tpublic static final Property<").append(_sourceType).append("> ").append(propertyName).append("Property");
+				buf.append("\tpublic static final Property<").append(_sourceType).append("> ").append(SchemaHelper.cleanPropertyName(propertyName)).append("Property");
 				buf.append(" = new StartNode<>(\"").append(propertyName).append("\", ").append(_className).append(".class");
 				buf.append(getNotion(_targetType, _sourceNotion));
 				buf.append(");\n");
 				
 			} else {
 				
-				buf.append("\tpublic static final Property<List<").append(_sourceType).append(">> ").append(propertyName).append("Property");
+				buf.append("\tpublic static final Property<List<").append(_sourceType).append(">> ").append(SchemaHelper.cleanPropertyName(propertyName)).append("Property");
 				buf.append(" = new StartNodes<>(\"").append(propertyName).append("\", ").append(_className).append(".class");
 				buf.append(getNotion(_targetType, _sourceNotion));
 				buf.append(");\n");

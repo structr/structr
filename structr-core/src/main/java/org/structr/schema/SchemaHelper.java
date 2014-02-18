@@ -470,7 +470,7 @@ public class SchemaHelper {
 			views.put(viewName, view);
 		}
 
-		view.add(propertyName + "Property");
+		view.add(SchemaHelper.cleanPropertyName(propertyName) + "Property");
 	}
 
 	public static Iterable<String> getProperties(final PropertyContainer propertyContainer) {
@@ -543,6 +543,10 @@ public class SchemaHelper {
 		src.append("import java.util.Date;\n");
 		src.append("import java.util.List;\n\n");
 
+	}
+
+	public static String cleanPropertyName(final String propertyName) {
+		return propertyName.replaceAll("[^\\w]+", "");
 	}
 
 	// ----- private methods -----
