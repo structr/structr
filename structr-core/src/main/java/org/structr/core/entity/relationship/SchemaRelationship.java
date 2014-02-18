@@ -204,7 +204,7 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 				
 			} else {
 				
-				buf.append("\tpublic static final Property<List<").append(_targetType).append(">> ").append(SchemaHelper.cleanPropertyName(propertyName)).append("Property");
+				buf.append("\tpublic static final Property<java.util.List<").append(_targetType).append(">> ").append(SchemaHelper.cleanPropertyName(propertyName)).append("Property");
 				buf.append(" = new EndNodes<>(\"").append(propertyName).append("\", ").append(_className).append(".class");
 				buf.append(getNotion(_sourceType, _targetNotion));
 				buf.append(");\n");
@@ -221,7 +221,7 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 				
 			} else {
 				
-				buf.append("\tpublic static final Property<List<").append(_sourceType).append(">> ").append(SchemaHelper.cleanPropertyName(propertyName)).append("Property");
+				buf.append("\tpublic static final Property<java.util.List<").append(_sourceType).append(">> ").append(SchemaHelper.cleanPropertyName(propertyName)).append("Property");
 				buf.append(" = new StartNodes<>(\"").append(propertyName).append("\", ").append(_className).append(".class");
 				buf.append(getNotion(_targetType, _sourceNotion));
 				buf.append(");\n");

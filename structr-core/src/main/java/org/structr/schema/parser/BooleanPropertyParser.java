@@ -40,7 +40,7 @@ public class BooleanPropertyParser extends PropertyParser {
 
 	@Override
 	public String getValueType() {
-		return Boolean.class.getSimpleName();
+		return Boolean.class.getName();
 	}
 
 	@Override

@@ -42,6 +42,7 @@ import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
+import org.structr.schema.ReloadSchema;
 
 /**
  *
@@ -106,13 +107,22 @@ public class GraphGistImporter extends NodeServiceCommand implements Maintenance
 
 		// first step: execute cypher queries
 		for (final String source : sources) {
-			engine.execute(source);
+			
+			try {
+				// be very tolerant here, just execute everything
+				engine.execute(source);
+				
+			} catch (Throwable t) {
+				// ignore
+				t.printStackTrace();
+			}
 		}
 		
 		// second step: analyze schema of newly created nodes, skip existing ones (structr & spatial)
 		try (final Tx tx = app.tx()) {
 
 			// register transaction post process that rebuilds the index after successful creation
+			TransactionCommand.postProcess("reloadschema", new ReloadSchema());
 			TransactionCommand.postProcess("gist", app.command(BulkRebuildIndexCommand.class));
 			
 			
@@ -142,9 +152,9 @@ public class GraphGistImporter extends NodeServiceCommand implements Maintenance
 						}
 					}
 					
-					// create ID on imported node
-					node.setProperty(GraphObject.type.dbName(), primaryType);
+					// create ID and type on imported node
 					node.setProperty(GraphObject.id.dbName(), nodeServiceCommand.getNextUuid());
+					node.setProperty(GraphObject.type.dbName(), primaryType);
 				}
 			}
 			
@@ -162,8 +172,16 @@ public class GraphGistImporter extends NodeServiceCommand implements Maintenance
 					relationships.add(new RelationshipTemplate(startNodeType, endNodeType, relationshipType));
 				}
 
-				// create ID on imported relationships
+				// create combined type on imported relationship
+				if (startNodeType != null && endNodeType != null) {
+					
+					final String combinedType = startNodeType.concat(relationshipType).concat(endNodeType); 
+					rel.setProperty(GraphObject.type.dbName(), combinedType);
+				}
+			
+				// create ID on imported relationship
 				rel.setProperty(GraphObject.id.dbName(), nodeServiceCommand.getNextUuid());
+				
 			}
 
 			// create schema nodes
@@ -227,36 +245,56 @@ public class GraphGistImporter extends NodeServiceCommand implements Maintenance
 
 			String line        = reader.readLine();
 			boolean beforeCypher = false;
+			boolean afterCypher  = false;
 			boolean inCypher     = false;
 
 			while (line != null) {
 
 				final String trimmedLine = line.trim().replaceAll("[\\s]+", "");
-				
-				if (inCypher && "----".equals(trimmedLine)) {
+
+				// make sure only "graph" blocks are parsed
+				if (afterCypher) {
 					
-					inCypher = false;
-					beforeCypher = false;
+					if ("//graph".equals(trimmedLine)) {
+						
+						// add cypher statements to list of sources
+						sources.add(buf.toString());
+						buf.setLength(0);
+
+						afterCypher = false;
+					}
 					
-					// add cypher statements to list of sources
-					sources.add(buf.toString());
-					buf.setLength(0);
+					if ("//table".equals(trimmedLine)) {
+						
+						// discard buffer
+						buf.setLength(0);
+						afterCypher = false;
+					}
 				}
 
-				if (inCypher) {
+				if (!afterCypher) {
+					
+					if (inCypher && "----".equals(trimmedLine)) {
 
-					buf.append(line);
-					buf.append("\n");
-				}
+						inCypher = false;
+						beforeCypher = false;
+						afterCypher = true;
+					}
 
-				
-				if ("[source,cypher]".equals(trimmedLine)) {
-					beforeCypher = true;
-				}
+					if (inCypher) {
 
-				if (beforeCypher && "----".equals(trimmedLine)) {
-					inCypher     = true;
-					beforeCypher = false;
+						buf.append(line);
+						buf.append("\n");
+					}
+
+					if ("[source,cypher]".equals(trimmedLine)) {
+						beforeCypher = true;
+					}
+
+					if (beforeCypher && "----".equals(trimmedLine)) {
+						inCypher     = true;
+						beforeCypher = false;
+					}
 				}
 
 				line = reader.readLine();
@@ -295,7 +333,7 @@ public class GraphGistImporter extends NodeServiceCommand implements Maintenance
 		
 		@Override
 		public int hashCode() {
-			return relType.hashCode();
+			return startNodeType.concat(relType).concat(endNodeType).hashCode();
 		}
 		
 		@Override

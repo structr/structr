@@ -539,9 +539,7 @@ public class SchemaHelper {
 		src.append("import org.structr.core.validator.*;\n");
 		src.append("import org.structr.core.property.*;\n");
 		src.append("import org.structr.core.notion.*;\n");
-		src.append("import org.structr.core.entity.*;\n");
-		src.append("import java.util.Date;\n");
-		src.append("import java.util.List;\n\n");
+		src.append("import org.structr.core.entity.*;\n\n");
 
 	}
 

@@ -46,7 +46,7 @@ public class DatePropertyParser extends PropertyParser {
 
 	@Override
 	public String getValueType() {
-		return Date.class.getSimpleName();
+		return Date.class.getName();
 	}
 
 	@Override

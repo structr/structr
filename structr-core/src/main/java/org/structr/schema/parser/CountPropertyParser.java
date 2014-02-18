@@ -44,7 +44,7 @@ public class CountPropertyParser extends PropertyParser {
 
 	@Override
 	public String getValueType() {
-		return Integer.class.getSimpleName();
+		return Integer.class.getName();
 	}
 
 	@Override

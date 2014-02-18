@@ -42,7 +42,7 @@ public class StringPropertyParser extends PropertyParser {
 
 	@Override
 	public String getValueType() {
-		return String.class.getSimpleName();
+		return String.class.getName();
 	}
 
 	@Override

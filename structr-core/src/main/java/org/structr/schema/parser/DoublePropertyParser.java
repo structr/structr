@@ -42,7 +42,7 @@ public class DoublePropertyParser extends NumericalPropertyParser {
 
 	@Override
 	public String getValueType() {
-		return Double.class.getSimpleName();
+		return Double.class.getName();
 	}
 	
 	@Override
