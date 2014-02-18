@@ -53,6 +53,15 @@ var _Schema = {
         main.append('<div class="schema-input-container"><input class="schema-input" id="type-name" type="text" size="20" placeholder="New type"><button id="create-type" class="btn"><img src="icon/add.png"> Add Type</button></div>');
 
         if (true) {
+            $('.schema-input-container').append('<input class="schema-input" id="ggist-url" type="text" size="30" placeholder="Enter a GraphGist raw URL"><button id="gg-import" class="btn">Start Import</button>');
+            $('#gg-import').on('click', function(e) {
+                var btn = $(this);
+                var text = btn.text();
+                btn.attr('disabled', 'disabled').addClass('disabled').html(text + ' <img src="img/al.gif">');
+                e.preventDefault();
+                _Schema.importGraphGist($('#ggist-url').val(), text);
+            });
+
             $('.schema-input-container').append('<button class="btn" id="admin-tools"><img src="icon/wrench.png"> Admin Tools</button>');
             $('#admin-tools').on('click', function() {
                 _Schema.openAdminTools();
@@ -339,7 +348,7 @@ var _Schema = {
                 $.each(data.result, function(i, res) {
 
                     if (sId === res.sourceId && tId === res.targetId) {
-                        radius +=10;
+                        radius += 10;
                         stub += 30;
                         offset += .05;
                     } else {
@@ -399,7 +408,7 @@ var _Schema = {
                             ["Label", {
                                     cssClass: "label multiplicity",
                                     label: res.targetMultiplicity ? res.targetMultiplicity : '*',
-                                    location: .8-offset,
+                                    location: .8 - offset,
                                     id: "targetMultiplicity",
                                     events: {
                                         "click": function(label, evt) {
@@ -742,6 +751,25 @@ var _Schema = {
         if (oldName !== newName) {
             _Schema.putPropertyDefinition(id, JSON.stringify({name: newName}));
         }
+    },
+    importGraphGist: function(graphGistUrl, text) {
+        $.ajax({
+            url: rootUrl + 'maintenance/importGist',
+            type: 'POST',
+            data: JSON.stringify({'url': graphGistUrl}),
+            contentType: 'application/json',
+            statusCode: {
+                200: function() {
+                    var btn = $('#import-ggist');
+                    btn.removeClass('disabled').attr('disabled', null);
+                    btn.html(text + ' <img src="icon/tick.png">');
+                    window.setTimeout(function() {
+                        $('img', btn).fadeOut();
+                        document.location.reload();
+                    }, 1000);
+                }
+            }
+        });
     },
     openAdminTools: function() {
         Structr.dialog('Admin Tools', function() {

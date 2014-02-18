@@ -1402,6 +1402,10 @@ button.add_property {
     text-align: center;
 }
 
+#ggist-url {
+    margin-left: 2em;
+}
+
 .notify {
     border-color: #f50;
 }
