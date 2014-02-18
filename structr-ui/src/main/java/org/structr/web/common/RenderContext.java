@@ -50,7 +50,7 @@ public class RenderContext {
 	
 	private static final Logger logger                   = Logger.getLogger(RenderContext.class.getName());
 	
-	private Map<String, GraphObject> dataObjects = new LinkedHashMap<String, GraphObject>();
+	private Map<String, GraphObject> dataObjects = new LinkedHashMap<>();
 	//private final StringBuilder buffer           = new StringBuilder(8192);
 	private Locale locale                        = Locale.getDefault();
 	private EditMode editMode                    = EditMode.NONE;

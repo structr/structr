@@ -21,9 +21,10 @@ import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertTrue;
 import static junit.framework.TestCase.fail;
 import org.apache.commons.lang3.StringUtils;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.Tx;
-import org.structr.web.common.RenderContext;
 import org.structr.web.common.StructrUiTest;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.NamedNodeMap;
@@ -190,89 +191,91 @@ public class PageTest extends StructrUiTest {
 
 	public void testImportNodesDeep() {
 
-		try {
-			try (final Tx tx = app.tx()) {
+		try (final Tx tx = app.tx()) {
 
-				Page srcPage = Page.createNewPage(securityContext, "srcPage");
+			Page srcPage = Page.createNewPage(securityContext, "srcPage");
 
-				assertTrue(srcPage != null);
-				assertTrue(srcPage instanceof Page);
+			assertTrue(srcPage != null);
+			assertTrue(srcPage instanceof Page);
 
-				Node html = srcPage.createElement("html");
-				Node head = srcPage.createElement("head");
-				Node body = srcPage.createElement("body");
-				Node title = srcPage.createElement("title");
-				Node h1 = srcPage.createElement("h1");
-				Node div = srcPage.createElement("div");
-				Node p = srcPage.createElement("p");
+			Node html = srcPage.createElement("html");
+			Node head = srcPage.createElement("head");
+			Node body = srcPage.createElement("body");
+			Node title = srcPage.createElement("title");
+			Node h1 = srcPage.createElement("h1");
+			Node div = srcPage.createElement("div");
+			Node p = srcPage.createElement("p");
 
-				// add HTML element to page
-				srcPage.appendChild(html);
+			// add HTML element to page
+			srcPage.appendChild(html);
 
-				// add HEAD and BODY elements to HTML
-				html.appendChild(head);
-				html.appendChild(body);
+			// add HEAD and BODY elements to HTML
+			html.appendChild(head);
+			html.appendChild(body);
 
-				// add TITLE element to HEAD
-				head.appendChild(title);
+			// add TITLE element to HEAD
+			head.appendChild(title);
 
-				// add H1 element to BODY
-				body.appendChild(h1);
+			// add H1 element to BODY
+			body.appendChild(h1);
 
-				// add DIV element to BODY
-				body.appendChild(div);
-				div.appendChild(p);
+			// add DIV element to BODY
+			body.appendChild(div);
+			div.appendChild(p);
 
-				// add text element to P
-				p.appendChild(srcPage.createTextNode("First Paragraph"));
+			// add text element to P
+			p.appendChild(srcPage.createTextNode("First Paragraph"));
 
-				Page dstPage = Page.createNewPage(securityContext, "dstPage");
-				assertNotNull(dstPage);
+			Page dstPage = Page.createNewPage(securityContext, "dstPage");
+			assertNotNull(dstPage);
+			
+			// test
+			assertEquals(srcPage, html.getOwnerDocument());
 
-				// test
-				assertEquals(srcPage, html.getOwnerDocument());
+			makePublic(srcPage, dstPage, html, head, body, title, h1, div, p);
 
-				// test import method
-				dstPage.importNode(html, true);
+			// test import method
+			dstPage.importNode(html, true);
 
-				// has parent been removed for the source element?
-				assertNull(html.getParentNode());
+			// has parent been removed for the source element?
+			assertNull(html.getParentNode());
 
-				// same ownerfor all elements?
-				assertEquals(srcPage, html.getOwnerDocument());
-				assertEquals(srcPage, head.getOwnerDocument());
-				assertEquals(srcPage, body.getOwnerDocument());
-				assertEquals(srcPage, title.getOwnerDocument());
-				assertEquals(srcPage, h1.getOwnerDocument());
-				assertEquals(srcPage, div.getOwnerDocument());
-				assertEquals(srcPage, p.getOwnerDocument());
+			// same owner for all elements?
+			assertEquals(srcPage, html.getOwnerDocument());
+			assertEquals(srcPage, head.getOwnerDocument());
+			assertEquals(srcPage, body.getOwnerDocument());
+			assertEquals(srcPage, title.getOwnerDocument());
+			assertEquals(srcPage, h1.getOwnerDocument());
+			assertEquals(srcPage, div.getOwnerDocument());
+			assertEquals(srcPage, p.getOwnerDocument());
 
-				// have parents been kept for all other elements?
-				assertEquals(html, head.getParentNode());
-				assertEquals(html, body.getParentNode());
-				assertEquals(head, title.getParentNode());
-				assertEquals(body, h1.getParentNode());
-				assertEquals(body, div.getParentNode());
-				assertEquals(div, p.getParentNode());
+			// have parents been kept for all other elements?
+			assertEquals(html, head.getParentNode());
+			assertEquals(html, body.getParentNode());
+			assertEquals(head, title.getParentNode());
+			assertEquals(body, h1.getParentNode());
+			assertEquals(body, div.getParentNode());
+			assertEquals(div, p.getParentNode());
+			
+			tx.success();
 
-				RenderContext ctx1 = new RenderContext();
-				RenderContext ctx2 = new RenderContext();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception");
+		}
 
-				srcPage.render(securityContext, ctx1, 0);
-				dstPage.render(securityContext, ctx2, 0);
+		try (final Tx tx = app.tx()) {
+		
+			Document srcDoc = Jsoup.connect(baseUri + "srcPage").get();
+			Document dstDoc = Jsoup.connect(baseUri + "dstPage").get();
 
-				// pages should render exactly identical
-				assertEquals(ctx1.getOutputWriter().toString(), ctx2.getOutputWriter().toString());
+			// pages should render exactly identical
+			assertEquals(srcDoc.outerHtml(), dstDoc.outerHtml());
 
-				tx.success();
+			tx.success();
 
-			} catch (DOMException dex) {
-
-				throw new FrameworkException(422, dex.getMessage());
-			}
-
-		} catch (FrameworkException ex) {
-
+		} catch (Exception ex) {
+			ex.printStackTrace();
 			fail("Unexpected exception");
 		}
 	}

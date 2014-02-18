@@ -18,24 +18,20 @@
 package org.structr.web.entity.dom;
 
 import java.util.List;
-import java.util.Locale;
-import javax.servlet.http.HttpServletRequest;
 import static junit.framework.TestCase.assertEquals;
+import static junit.framework.TestCase.fail;
 import org.jsoup.Jsoup;
-import org.structr.common.error.FrameworkException;
+import org.jsoup.nodes.Document;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 import org.structr.core.graph.CreateRelationshipCommand;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.common.DOMTest;
-import org.structr.web.common.RenderContext;
 import org.w3c.dom.Element;
-import static org.mockito.Mockito.*;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
-import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.entity.User;
 import org.structr.web.entity.relation.RenderNode;
 
@@ -47,6 +43,8 @@ import org.structr.web.entity.relation.RenderNode;
 public class RenderDataTest extends DOMTest {
 
 	public void testRenderFolderTree() {
+		
+		String name = null;
 
 		try (final Tx tx = app.tx()) {
 
@@ -54,6 +52,8 @@ public class RenderDataTest extends DOMTest {
 			final List<File> files = createTestNodes(File.class, 7);
 			final Page doc = (Page) getDocument();
 
+			name = doc.getName();
+			
 			assertEquals(7, folders.size());
 
 			Folder rootNode = folders.get(0);
@@ -101,6 +101,10 @@ public class RenderDataTest extends DOMTest {
 			folderB.treeAppendChild(file5);
 			folderB.treeAppendChild(file6);
 
+			makePublic(rootNode, folderA, folderB, folderC, folderD, folderE, folderF);
+			
+			makePublic(file1, file2, file3, file4, file5, file6, file7);
+			
 			// create dom tree
 			Element html = doc.createElement("html");
 			doc.appendChild(html);
@@ -109,30 +113,43 @@ public class RenderDataTest extends DOMTest {
 
 			final Element div = doc.createElement("div");
 			body.appendChild(div);
-			div.appendChild(doc.createTextNode("${root.name}"));
+			
+			Content rootNameContent = (Content) doc.createTextNode("${root.name}");
+			
+			div.appendChild(rootNameContent);
 
 			final Element ul1 = doc.createElement("ul");
 			div.appendChild(ul1);
 
 			final Element li1 = doc.createElement("li");
 			ul1.appendChild(li1);
-			li1.appendChild(doc.createTextNode("${folders.name}"));
+			
+			Content foldersNameContent = (Content) doc.createTextNode("${folders.name}");
+			li1.appendChild(foldersNameContent);
 
 			final Element li2 = doc.createElement("li");
 			ul1.appendChild(li2);
-			li2.appendChild(doc.createTextNode("${files.name}"));
+			
+			Content filesNameContent = (Content) doc.createTextNode("${files.name}");
+			li2.appendChild(filesNameContent);
 
 			final Element ul2 = doc.createElement("ul");
 			li1.appendChild(ul2);
 
 			final Element li3 = doc.createElement("li");
 			ul2.appendChild(li3);
-			li3.appendChild(doc.createTextNode("${files.name}"));
+			
+			Content files2NameContent = (Content) doc.createTextNode("${files.name}");
+			li3.appendChild(files2NameContent);
 
 			final Element li4 = doc.createElement("li");
 			ul2.appendChild(li4);
-			li4.appendChild(doc.createTextNode("${folders.name}"));
+			
+			Content folders2NameContent = (Content) doc.createTextNode("${folders.name}");
+			li4.appendChild(folders2NameContent);
 
+			makePublic(rootNameContent, foldersNameContent, filesNameContent, files2NameContent, folders2NameContent);
+			
 			// create RENDER_NODE relationship between first ul and rootNode
 			PropertyMap properties = new PropertyMap();
 			//properties.put(LinkedListNode.keyProperty, key);
@@ -145,12 +162,20 @@ public class RenderDataTest extends DOMTest {
 			((DOMElement) li3).setProperty(DOMElement.dataKey, "files");
 			((DOMElement) li4).setProperty(DOMElement.dataKey, "folders");
 
-			RenderContext ctx = new RenderContext(null, null, EditMode.NONE, Locale.GERMAN);
-			doc.render(securityContext, ctx, 0);
+			makePublic(doc, html, body, div, ul1, ul2, li1, li2, li3, li4);
 
-			System.out.println(ctx.getOutputWriter().toString());
+			tx.success();
+			
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception");
+		}
 
-			org.jsoup.nodes.Document parsedDocument = Jsoup.parse(ctx.getOutputWriter().toString());
+		try (final Tx tx = app.tx()) {
+		
+			org.jsoup.nodes.Document parsedDocument = Jsoup.connect(baseUri + name).get();
+			
+			System.out.println(parsedDocument);
 
 			assertEquals("rootNode", parsedDocument.select("html > body > div").get(0).ownText());
 			assertEquals("folderA", parsedDocument.select("html > body > div > ul > li").get(0).ownText());
@@ -169,17 +194,20 @@ public class RenderDataTest extends DOMTest {
 
 			tx.success();
 
-		} catch (FrameworkException fex) {
-
+		} catch (Exception ex) {
+			ex.printStackTrace();
 			fail("unexpected exception");
 		}
 	}
 
 	public void testRenderListFromRestQuery() {
 
+		String name = null;
+		
 		try (final Tx tx = app.tx()) {
 
 			final Page doc = (Page) getDocument();
+			name = doc.getName();
 
 			final List<User> users = createTestNodes(User.class, 3);
 
@@ -218,7 +246,9 @@ public class RenderDataTest extends DOMTest {
 			((DOMElement) p1).setProperty(DOMElement.restQuery, "users?sort=name");
 			((DOMElement) p1).setProperty(DOMElement.dataKey, "user");
 
-			p1.appendChild(doc.createTextNode("${user.name}"));
+			Content userNameContentNode = (Content) doc.createTextNode("${user.name}");
+			
+			p1.appendChild(userNameContentNode);
 
 			Element div = doc.createElement("div");
 			final Element p2 = doc.createElement("p");
@@ -226,7 +256,9 @@ public class RenderDataTest extends DOMTest {
 			((DOMElement) p2).setProperty(DOMElement.restQuery, "files?sort=name");
 			((DOMElement) p2).setProperty(DOMElement.dataKey, "file");
 
-			p2.appendChild(doc.createTextNode("${file.name}"));
+			Content fileNameContentNode = (Content) doc.createTextNode("${file.name}");
+			
+			p2.appendChild(fileNameContentNode);
 
 			doc.appendChild(html);
 			html.appendChild(body);
@@ -235,15 +267,20 @@ public class RenderDataTest extends DOMTest {
 			b.appendChild(p1);
 			div.appendChild(p2);
 
-			HttpServletRequest request = mock(HttpServletRequest.class);
+			makePublic(doc, html, body, div, b, p1, p2, fileNameContentNode, userNameContentNode, nodeA, nodeB, nodeC, nodeD, nodeE, nodeF, user1, user2, user3);
 
-			// test rendered document
-			RenderContext ctx = new RenderContext(request, null, EditMode.NONE, Locale.GERMAN);
-			doc.render(securityContext, ctx, 0);
+			tx.success();
+			
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception");
+		}
 
-			System.out.println(ctx.getOutputWriter().toString());
-
-			org.jsoup.nodes.Document parsedDocument = Jsoup.parse(ctx.getOutputWriter().toString());
+		try (final Tx tx = app.tx()) {
+		
+			Document parsedDocument = Jsoup.connect(baseUri + name).get();
+			
+			System.out.println(parsedDocument.outerHtml());
 
 			assertEquals("user1", parsedDocument.select("html > body > b > p").get(0).ownText());
 			assertEquals("user2", parsedDocument.select("html > body > b > p").get(1).ownText());
@@ -255,10 +292,11 @@ public class RenderDataTest extends DOMTest {
 			assertEquals("fileD", parsedDocument.select("html > body > div > p").get(3).ownText());
 			assertEquals("fileE", parsedDocument.select("html > body > div > p").get(4).ownText());
 			assertEquals("fileF", parsedDocument.select("html > body > div > p").get(5).ownText());
+
 			tx.success();
 
-		} catch (FrameworkException fex) {
-
+		} catch (Exception ex) {
+			ex.printStackTrace();
 			fail("unexpected exception");
 		}
 

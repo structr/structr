@@ -40,6 +40,7 @@ import org.structr.common.PropertyView;
 import org.structr.core.property.PropertyMap;
 import org.structr.common.SecurityContext;
 import org.structr.common.StructrConf;
+import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -56,6 +57,7 @@ import org.structr.rest.servlet.JsonRestServlet;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.servlet.HtmlServlet;
 import org.structr.websocket.servlet.WebSocketServlet;
+import org.w3c.dom.Node;
 
 //~--- classes ----------------------------------------------------------------
 /**
@@ -387,4 +389,11 @@ public class StructrUiTest extends TestCase {
 //	public void testCharset() {
 //		assertTrue(StringUtils.remove(getEncodingInUse().toLowerCase(), "-").equals("utf8"));
 //	}
+	protected void makePublic(final Object... objects) throws FrameworkException {
+
+		for (Object obj : objects) {
+			((GraphObject) obj).setProperty(GraphObject.visibleToPublicUsers, true);
+		}
+
+	}
 }
