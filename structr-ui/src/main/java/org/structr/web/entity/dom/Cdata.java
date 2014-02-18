@@ -33,10 +33,10 @@ public class Cdata extends Content implements CDATASection {
 	@Override
 	public void render(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException {
 
-		renderContext.getBuffer().append(("<!CDATA["));
+		renderContext.getOutputWriter().append(("<!CDATA["));
 		
 		super.render(securityContext, renderContext, depth);
 		
-		renderContext.getBuffer().append("]]>");
+		renderContext.getOutputWriter().append("]]>");
 	}
 }

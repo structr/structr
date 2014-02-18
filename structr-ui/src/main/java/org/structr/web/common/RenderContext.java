@@ -18,10 +18,13 @@
  */
 package org.structr.web.common;
 
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -47,8 +50,8 @@ public class RenderContext {
 	
 	private static final Logger logger                   = Logger.getLogger(RenderContext.class.getName());
 	
-	private Map<String, GraphObject> dataObjects = new LinkedHashMap<String, GraphObject>();
-	private final StringBuilder buffer           = new StringBuilder(8192);
+	private Map<String, GraphObject> dataObjects = new LinkedHashMap<>();
+	//private final StringBuilder buffer           = new StringBuilder(8192);
 	private Locale locale                        = Locale.getDefault();
 	private EditMode editMode                    = EditMode.NONE;
 	private int depth                            = 0;
@@ -225,8 +228,13 @@ public class RenderContext {
 		return searchClass;
 	}
 	
-	public StringBuilder getBuffer() {
-		return buffer;
+	public PrintWriter getOutputWriter() {
+		try {
+			return response.getWriter();
+		} catch (IOException ex) {
+			logger.log(Level.SEVERE, "Could not get output writer", ex);
+		}
+		return null;
 	}
 	
 	public void setInBody(final boolean inBody) {

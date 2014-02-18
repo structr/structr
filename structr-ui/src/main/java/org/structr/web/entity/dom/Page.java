@@ -109,6 +109,11 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		return valid;
 	}
 
+	@Override
+	public boolean flush() {
+		return true;
+	}
+	
 	/**
 	 * Creates a new Page entity with the given name in the database.
 	 *
@@ -580,7 +585,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 		renderContext.setPage(this);
 
-		renderContext.getBuffer().append("<!DOCTYPE html>\n");
+		renderContext.getOutputWriter().append("<!DOCTYPE html>\n");
 
 		// Skip DOCTYPE node
 		DOMNode subNode = (DOMNode) this.getFirstChild().getNextSibling();

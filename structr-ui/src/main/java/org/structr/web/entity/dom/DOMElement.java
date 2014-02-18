@@ -18,6 +18,8 @@
  */
 package org.structr.web.entity.dom;
 
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
@@ -260,9 +262,9 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 	}
 
-	public void openingTag(final SecurityContext securityContext, final StringBuilder buffer, final String tag, final EditMode editMode, final RenderContext renderContext, final int depth) throws FrameworkException {
+	public void openingTag(final SecurityContext securityContext, final PrintWriter out, final String tag, final EditMode editMode, final RenderContext renderContext, final int depth) throws FrameworkException {
 		
-		buffer.append("<").append(tag);
+		out.append("<").append(tag);
 
 		if (EditMode.CONTENT.equals(editMode)) {
 
@@ -272,18 +274,18 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 				if (pageId != null) {
 
-					buffer.append(" data-structr-page=\"").append(pageId).append("\"");
+					out.append(" data-structr-page=\"").append(pageId).append("\"");
 
 				}
 
 			}
 
-			buffer.append(" data-structr-el=\"").append(getUuid()).append("\"");
+			out.append(" data-structr-el=\"").append(getUuid()).append("\"");
 
 		}
 
 		// include arbitrary data-* attributes
-		renderCustomAttributes(buffer, securityContext, renderContext);
+		renderCustomAttributes(out, securityContext, renderContext);
 
 		for (PropertyKey attribute : StructrApp.getConfiguration().getPropertySet(getClass(), PropertyView.Html)) {
 
@@ -299,13 +301,13 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 				String key = attribute.jsonName().substring(PropertyView.Html.length());
 
-				buffer.append(" ").append(key).append("=\"").append(value).append("\"");
+				out.append(" ").append(key).append("=\"").append(value).append("\"");
 
 			}
 
 		}
 
-		buffer.append(">");		
+		out.append(">");		
 	}
 	
 	/**
@@ -321,7 +323,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	@Override
 	public void render(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException {
 		
-		StringBuilder buffer	= renderContext.getBuffer();
+		PrintWriter out	= renderContext.getOutputWriter();
 		double start = System.nanoTime();
 
 		if (isDeleted() || isHidden() || !displayForLocale(renderContext) || !displayForConditions(securityContext, renderContext)) {
@@ -334,17 +336,17 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 		boolean anyChildNodeCreatesNewLine  = false;
 
-		renderStructrAppLib(buffer, securityContext, renderContext, depth);
+		renderStructrAppLib(out, securityContext, renderContext, depth);
 
 		if (depth > 0 && !avoidWhitespace()) {
 
-			buffer.append(indent(depth));
+			out.append(indent(depth));
 
 		}
 
 		if (StringUtils.isNotBlank(_tag)) {
 
-			openingTag(securityContext, buffer, _tag, editMode, renderContext, depth);
+			openingTag(securityContext, out, _tag, editMode, renderContext, depth);
 			
 			try {
 
@@ -496,7 +498,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 				logger.log(Level.SEVERE, "Error while rendering node {0}: {1}", new java.lang.Object[] { getUuid(), t });
 
-				buffer.append("Error while rendering node ").append(getUuid()).append(": ").append(t);
+				out.append("Error while rendering node ").append(getUuid()).append(": ").append(t.getMessage());
 
 			}
 
@@ -506,11 +508,11 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 				// only insert a newline + indentation before the closing tag if any child-element used a newline
 				if (anyChildNodeCreatesNewLine) {
 
-					buffer.append(indent(depth));
+					out.append(indent(depth));
 
 				}
 
-				buffer.append("</").append(_tag).append(">");
+				out.append("</").append(_tag).append(">");
 			}
 
 		}
@@ -519,6 +521,10 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 		logger.log(Level.FINE, "Render node {0} in {1} seconds", new java.lang.Object[] { getUuid(), decimalFormat.format((end - start) / 1000000000.0) });
 		
+		if (flush()) {
+			logger.log(Level.FINE, "Flushing response: {0} ", getTagName());
+			out.flush();
+		}
 
 	}
 
@@ -1282,7 +1288,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	 * @param securityContext
 	 * @param renderContext 
 	 */
-	private void renderCustomAttributes(final StringBuilder buffer, final SecurityContext securityContext, final RenderContext renderContext) throws FrameworkException {
+	private void renderCustomAttributes(final PrintWriter out, final SecurityContext securityContext, final RenderContext renderContext) throws FrameworkException {
 		
 		dbNode = this.getNode();
 		EditMode editMode = renderContext.getEditMode(securityContext.getUser(false));
@@ -1302,7 +1308,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 				
 				if (StringUtils.isNotBlank(value)) {
 					
-					buffer.append(" ").append(key).append("=\"").append(value).append("\"");
+					out.append(" ").append(key).append("=\"").append(value).append("\"");
 					
 				}
 				
@@ -1339,7 +1345,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 				String htmlName = "data-structr-meta-" + CaseHelper.toUnderscore(p.jsonName(), false).replaceAll("_", "-");
 				Object value = getProperty(p);
 				if ((p instanceof BooleanProperty && (boolean)value) || (!(p instanceof BooleanProperty) && value != null && StringUtils.isNotBlank(value.toString()))) {
-					buffer.append(" ").append(htmlName).append("=\"").append(value).append("\"");
+					out.append(" ").append(htmlName).append("=\"").append(value.toString()).append("\"");
 				}
 			}
 
@@ -1363,13 +1369,13 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	 * 
 	 * Make sure it happens only once per page.
 	 * 
-	 * @param buffer 
+	 * @param out 
 	 */
-	private void renderStructrAppLib(final StringBuilder buffer, final SecurityContext securityContext, final RenderContext renderContext, final int depth) throws FrameworkException {
+	private void renderStructrAppLib(final PrintWriter out, final SecurityContext securityContext, final RenderContext renderContext, final int depth) throws FrameworkException {
 		
 		if (!(EditMode.RAW.equals(renderContext.getEditMode(securityContext.getUser(false)))) && !renderContext.appLibRendered() && getProperty(new StringProperty(STRUCTR_ACTION_PROPERTY)) != null) {
 		
-			buffer
+			out
 				.append(indent(depth))
 				.append("<script type=\"text/javascript\" src=\"/structr/js/lib/jquery-2.0.3.min.js\"></script>")
 				.append(indent(depth))

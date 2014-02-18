@@ -68,6 +68,13 @@ public class Img extends DOMElement {
 	}
 
 	@Override
+	public boolean flush() {
+
+		return true;
+
+	}
+
+	@Override
 	public Property[] getHtmlAttributes() {
 
 		return (Property[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlView.properties());

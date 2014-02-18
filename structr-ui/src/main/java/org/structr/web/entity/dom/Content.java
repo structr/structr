@@ -18,6 +18,7 @@
  */
 package org.structr.web.entity.dom;
 
+import java.io.PrintWriter;
 import net.java.textilej.parser.MarkupParser;
 import net.java.textilej.parser.markup.confluence.ConfluenceDialect;
 import net.java.textilej.parser.markup.mediawiki.MediaWikiDialect;
@@ -46,8 +47,6 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.Permission;
-import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
 import org.structr.core.graph.search.SearchCommand;
 import org.structr.web.common.RenderContext.EditMode;
 import static org.structr.web.entity.dom.DOMNode.hideOnDetail;
@@ -180,7 +179,7 @@ public class Content extends DOMNode implements Text {
 		String id            = getUuid();
 		EditMode edit        = renderContext.getEditMode(securityContext.getUser(false));
 		boolean inBody       = renderContext.inBody();
-		StringBuilder buffer = renderContext.getBuffer();
+		PrintWriter out      = renderContext.getOutputWriter();
 		
 		String _contentType = getProperty(contentType);
 
@@ -199,13 +198,13 @@ public class Content extends DOMNode implements Text {
 				
 				// Javascript will only be given some local vars
 				// TODO: Is this neccessary?
-				buffer.append("// data-structr-type='").append(getType()).append("'\n// data-structr-id='").append(id).append("'\n");
+				out.append("// data-structr-type='").append(getType()).append("'\n// data-structr-id='").append(id).append("'\n");
 				
 			} else if ("text/css".equals(_contentType)) {
 				
 				// CSS will only be given some local vars
 				// TODO: Is this neccessary?
-				buffer.append("/* data-structr-type='").append(getType()).append("'*/\n/* data-structr-id='").append(id).append("'*/\n");
+				out.append("/* data-structr-type='").append(getType()).append("'*/\n/* data-structr-id='").append(id).append("'*/\n");
 				
 			} else {
 				
@@ -221,7 +220,7 @@ public class Content extends DOMNode implements Text {
 //					.concat("\" data-structr-type=\"").concat(getType())
 //					.concat("\" data-structr-id=\"").concat(id).concat("\">"));
 				
-				buffer.append("<!--data-structr-id=\"".concat(id)
+				out.append("<!--data-structr-id=\"".concat(id)
 					.concat("\" data-structr-raw-value=\"").concat(getProperty(Content.content).replaceAll("\n", "\\\\n")).concat("\"-->"));
 					//.concat("\" data-structr-raw-value=\"").concat(getProperty(Content.content)).concat("\"-->"));
 				
@@ -270,15 +269,20 @@ public class Content extends DOMNode implements Text {
 				_content = "--- empty ---";
 			}
 			
-			buffer.append(_content);
+			out.append(_content);
 		}
 		
 		if (EditMode.CONTENT.equals(edit) && inBody && !("text/javascript".equals(getProperty(contentType))) && !("text/css".equals(getProperty(contentType)))) {
 
 //			buffer.append("</span>");
-			buffer.append("<!---->");
+			out.append("<!---->");
 		}
 
+	}
+
+	@Override
+	public boolean flush() {
+		return true;
 	}
 
 //	@Override

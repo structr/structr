@@ -25,17 +25,12 @@ import org.structr.web.common.StructrUiTest;
 import org.structr.web.entity.dom.Page;
 
 //~--- JDK imports ------------------------------------------------------------
-import java.io.IOException;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jsoup.select.Elements;
-import org.structr.core.GraphObject;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
-import org.w3c.dom.DOMException;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 import org.w3c.dom.Text;
 
 //~--- classes ----------------------------------------------------------------
@@ -93,7 +88,7 @@ public class CreatePageTest extends StructrUiTest {
 				heading = page.createTextNode(pageTitle);
 				bodyContent = page.createTextNode(bodyText);
 
-				makeNodesPublic(page, html, head, body, title, h1, div, titleText, heading, bodyContent);
+				makePublic(page, html, head, body, title, h1, div, titleText, heading, bodyContent);
 
 				tx.success();
 			}
@@ -180,11 +175,4 @@ public class CreatePageTest extends StructrUiTest {
 
 	}
 
-	private void makeNodesPublic(final Node... nodes) throws FrameworkException {
-
-		for (Node node : nodes) {
-			((GraphObject) node).setProperty(GraphObject.visibleToPublicUsers, true);
-		}
-
-	}
 }

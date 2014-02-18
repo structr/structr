@@ -17,6 +17,7 @@
  */
 package org.structr.web.servlet;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -295,15 +296,11 @@ public class HtmlServlet extends HttpServiceServlet {
 					if (!EditMode.DATA.equals(edit) && !dontCache && notModifiedSince(request, response, rootElement)) {
 
 						out.flush();
+						//response.flushBuffer();
 						out.close();
+						
 
 					} else {
-
-						rootElement.render(securityContext, renderContext, 0);
-
-						String content = renderContext.getBuffer().toString();
-						double end = System.nanoTime();
-						logger.log(Level.FINE, "Content for path {0} in {1} seconds", new Object[]{path, decimalFormat.format((end - setup) / 1000000000.0)});
 
 						String contentType = rootElement.getProperty(Page.contentType);
 
@@ -318,8 +315,28 @@ public class HtmlServlet extends HttpServiceServlet {
 							response.setContentType("text/html;charset=UTF-8");
 						}
 
-						// 3: output content
-						HttpAuthenticator.writeContent(content, response);
+						response.setCharacterEncoding("UTF-8");
+
+						rootElement.render(securityContext, renderContext, 0);
+
+						response.setStatus(HttpServletResponse.SC_OK);
+
+						double end = System.nanoTime();
+						logger.log(Level.FINE, "Content for path {0} in {1} seconds", new Object[]{path, decimalFormat.format((end - setup) / 1000000000.0)});
+
+
+						// 3: finish request
+						try {
+
+							out.flush();
+							//response.flushBuffer();
+							out.close();
+
+						} catch (IllegalStateException ise) {
+
+							logger.log(Level.WARNING, "Could not write to output stream", ise.getMessage());
+
+						}
 
 					}
 
