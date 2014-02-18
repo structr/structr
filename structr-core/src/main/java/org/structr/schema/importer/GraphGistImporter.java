@@ -15,9 +15,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.lang.StringUtils;
 import org.neo4j.cypher.javacompat.ExecutionEngine;
+import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
@@ -25,9 +28,11 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.kernel.logging.BufferingLogger;
 import org.neo4j.tooling.GlobalGraphOperations;
+import org.structr.common.CaseHelper;
 import org.structr.common.StructrAndSpatialPredicate;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
@@ -42,6 +47,7 @@ import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
+import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.ReloadSchema;
 
 /**
@@ -99,6 +105,7 @@ public class GraphGistImporter extends NodeServiceCommand implements Maintenance
 	
 		final App app                                    = StructrApp.getInstance();
 		final NodeServiceCommand nodeServiceCommand      = app.command(CreateNodeCommand.class);
+		final ConfigurationProvider configuration        = Services.getInstance().getConfigurationProvider();
 		final GraphDatabaseService graphDb               = app.command(GraphDatabaseCommand.class).execute();
 		final ExecutionEngine engine                     = new ExecutionEngine(graphDb, new BufferingLogger());
 		final Map<String, Map<String, Class>> properties = new LinkedHashMap<>();
@@ -125,32 +132,27 @@ public class GraphGistImporter extends NodeServiceCommand implements Maintenance
 			TransactionCommand.postProcess("reloadschema", new ReloadSchema());
 			TransactionCommand.postProcess("gist", app.command(BulkRebuildIndexCommand.class));
 			
-			
-			
-			// find all nodes that have no (string) ID property
-			// (TODO: maybe look for nodes with unknown labels / types?)
-			
 			// analyze nodes
 			for (final Node node : Iterables.filter(new StructrAndSpatialPredicate(false, false, true), GlobalGraphOperations.at(graphDb).getAllNodes())) {
+
+				// first step: analyze node properties
+				final Map<String, Class> propertyTypes = new TreeMap<>();
+				for (final String key : node.getPropertyKeys()) {
+
+					final Object value = node.getProperty(key);
+					if (value != null) {
+						
+						propertyTypes.put(key, value.getClass());
+					}
+				}
 				
-				String primaryType = getType(node);
-				
+				// second step: try to infer type or use properties to
+				// identify nodes of the same type
+				final String primaryType = getType(node, propertyTypes);
 				if (primaryType != null && !"ReferenceNode".equals(primaryType)) {
 					
-					for (final String key : node.getPropertyKeys()) {
-
-						final Object value = node.getProperty(key);
-						if (value != null) {
-
-							Map<String, Class> propertyTypes = properties.get(primaryType);
-							if (propertyTypes == null) {
-								propertyTypes = new LinkedHashMap<>();
-								properties.put(primaryType, propertyTypes);
-							}
-
-							propertyTypes.put(key, value.getClass());
-						}
-					}
+					// store propery map
+					properties.put(primaryType, propertyTypes);
 					
 					// create ID and type on imported node
 					node.setProperty(GraphObject.id.dbName(), nodeServiceCommand.getNextUuid());
@@ -163,25 +165,29 @@ public class GraphGistImporter extends NodeServiceCommand implements Maintenance
 				
 				final Node startNode          = rel.getStartNode();
 				final Node endNode            = rel.getEndNode();
-				final String relationshipType = rel.getType().name();
-				final String startNodeType    = getType(startNode);
-				final String endNodeType      = getType(endNode);
-				final Set<String> typeSet     = properties.keySet();
 				
-				if (typeSet.contains(startNodeType) && typeSet.contains(endNodeType)) {
-					relationships.add(new RelationshipTemplate(startNodeType, endNodeType, relationshipType));
-				}
-
-				// create combined type on imported relationship
-				if (startNodeType != null && endNodeType != null) {
+				// make sure node has been successfully identified above
+				if (startNode.hasProperty("type") && endNode.hasProperty("type")) {
 					
-					final String combinedType = startNodeType.concat(relationshipType).concat(endNodeType); 
-					rel.setProperty(GraphObject.type.dbName(), combinedType);
+					final String relationshipType = rel.getType().name();
+					final String startNodeType    = (String)startNode.getProperty("type");
+					final String endNodeType      = (String)endNode.getProperty("type");
+					final Set<String> typeSet     = properties.keySet();
+
+					if (typeSet.contains(startNodeType) && typeSet.contains(endNodeType)) {
+						relationships.add(new RelationshipTemplate(startNodeType, endNodeType, relationshipType));
+					}
+
+					// create combined type on imported relationship
+					if (startNodeType != null && endNodeType != null) {
+
+						final String combinedType = startNodeType.concat(relationshipType).concat(endNodeType); 
+						rel.setProperty(GraphObject.type.dbName(), combinedType);
+					}
+
+					// create ID on imported relationship
+					rel.setProperty(GraphObject.id.dbName(), nodeServiceCommand.getNextUuid());
 				}
-			
-				// create ID on imported relationship
-				rel.setProperty(GraphObject.id.dbName(), nodeServiceCommand.getNextUuid());
-				
 			}
 
 			// create schema nodes
@@ -193,11 +199,31 @@ public class GraphGistImporter extends NodeServiceCommand implements Maintenance
 				
 				// add properties
 				for (final Entry<String, Class> propertyEntry : props.entrySet()) {
-					propertyMap.put(new StringProperty("_".concat(propertyEntry.getKey())), propertyEntry.getValue().getSimpleName());
+					
+					final String propertyName = propertyEntry.getKey();
+					final Class propertyType  = propertyEntry.getValue();
+					
+					// handle array types differently
+					String propertyTypeName = propertyType.getSimpleName();
+					if (propertyType.isArray()) {
+						
+						// remove "[]" from the end and append "Array" to match the appropriate parser
+						propertyTypeName = propertyTypeName.substring(0, propertyTypeName.length() - 2).concat("Array");
+					}
+					
+					propertyMap.put(new StringProperty("_".concat(propertyName)), propertyTypeName);
 				}
 				
 				// set node type which is in "name" property
 				propertyMap.put(AbstractNode.name, type);
+				
+				// check if there is an existing Structr entity with the same type
+				// and make the dynamic class extend the existing class if yes.
+				final Class existingType = configuration.getNodeEntityClass(type);
+				if (existingType != null) {
+					
+					propertyMap.put(SchemaNode.extendsClass, existingType.getName());
+				}
 
 				// create schema node
 				schemaNodes.put(type, app.create(SchemaNode.class, propertyMap));
@@ -224,16 +250,55 @@ public class GraphGistImporter extends NodeServiceCommand implements Maintenance
 		logger.log(Level.INFO, "Graph gist import successful, {0} types imported.", properties.size());
 	}
 	
-	private static String getType(final Node node) {
+	private static String getType(final Node node, final Map<String, Class> properties) {
 		
-		final Iterable<Label> labels = node.getLabels();
-		final Iterator<Label> iterator = labels.iterator();
+		// first try: label
+		final Iterable<Label> labels    = node.getLabels();
+		final Iterator<Label> iterator  = labels.iterator();
 		
 		if (iterator.hasNext()) {
 			return iterator.next().name();
 		}
 		
-		return null;
+		// second try: type attribute
+		if (node.hasProperty("type")) {
+
+			final String type = node.getProperty("type").toString();
+			return type.replaceAll("[\\W]+", "");
+		}
+		
+		// third try: incoming relationships
+		final Set<String> incomingTypes = new LinkedHashSet<>();
+		for (final Relationship incoming : node.getRelationships(Direction.INCOMING)) {
+			incomingTypes.add(incoming.getType().name());
+		}
+		
+		// (if all incoming relationships are of the same type,
+		// it is very likely that this is a type-defining trait)
+		if (incomingTypes.size() == 1) {
+			return CaseHelper.toUpperCamelCase(incomingTypes.iterator().next().toLowerCase());
+		}
+		
+		// forth try: outgoing relationships
+		final Set<String> outgoingTypes = new LinkedHashSet<>();
+		for (final Relationship outgoing : node.getRelationships(Direction.OUTGOING)) {
+			outgoingTypes.add(outgoing.getType().name());
+		}
+		
+		// (if all outgoing relationships are of the same type,
+		// it is very likely that this is a type-defining trait)
+		if (outgoingTypes.size() == 1) {
+			return CaseHelper.toUpperCamelCase(outgoingTypes.iterator().next().toLowerCase());
+		}
+		
+		// fifth try: analyze properties
+		final StringBuilder buf = new StringBuilder("NodeWith");
+		for (final String key : properties.keySet()) {
+			
+			buf.append(StringUtils.capitalize(key));
+		}
+		
+		return buf.toString();
 	}
 	
 	private static List<String> extractSource(final InputStream source) {

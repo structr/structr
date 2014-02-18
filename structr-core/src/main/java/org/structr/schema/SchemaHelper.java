@@ -19,7 +19,6 @@
 package org.structr.schema;
 
 import java.util.Arrays;
-import java.util.EnumMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -50,6 +49,7 @@ import org.structr.schema.parser.EnumPropertyParser;
 import org.structr.schema.parser.IntPropertyParser;
 import org.structr.schema.parser.LongPropertyParser;
 import org.structr.schema.parser.PropertyParser;
+import org.structr.schema.parser.StringArrayPropertyParser;
 import org.structr.schema.parser.StringPropertyParser;
 
 /**
@@ -60,19 +60,23 @@ public class SchemaHelper {
 
 	public enum Type {
 
-		String, Integer, Long, Double, Boolean, Enum, Date, Count
+		String, StringArray, Integer, Long, Double, Boolean, Enum, Date, Count
 	}
 
-	private static final Map<String, String> normalizedEntityNameCache = new LinkedHashMap<>();
-	private static final Map<Type, Class<? extends PropertyParser>> parserMap = new EnumMap<>(Type.class);
+	private static final Map<String, String> normalizedEntityNameCache        = new LinkedHashMap<>();
+	private static final Map<Type, Class<? extends PropertyParser>> parserMap = new LinkedHashMap<>();
 
 	static {
 
-		parserMap.put(Type.String, StringPropertyParser.class);
-		parserMap.put(Type.Integer, IntPropertyParser.class);
-		parserMap.put(Type.Long, LongPropertyParser.class);
-		parserMap.put(Type.Double, DoublePropertyParser.class);
+		// IMPORTANT: parser map must be sorted by type name length 
+		//            because we look up the parsers using "startsWith"!
+		
+		parserMap.put(Type.StringArray, StringArrayPropertyParser.class);
 		parserMap.put(Type.Boolean, BooleanPropertyParser.class);
+		parserMap.put(Type.Integer, IntPropertyParser.class);
+		parserMap.put(Type.String, StringPropertyParser.class);
+		parserMap.put(Type.Double, DoublePropertyParser.class);
+		parserMap.put(Type.Long, LongPropertyParser.class);
 		parserMap.put(Type.Enum, EnumPropertyParser.class);
 		parserMap.put(Type.Date, DatePropertyParser.class);
 		parserMap.put(Type.Count, CountPropertyParser.class);
