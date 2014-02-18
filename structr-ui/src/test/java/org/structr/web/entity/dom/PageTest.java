@@ -22,7 +22,6 @@ import static junit.framework.TestCase.assertTrue;
 import static junit.framework.TestCase.fail;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.StructrUiTest;
@@ -30,7 +29,6 @@ import org.w3c.dom.DOMException;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import scala.collection.parallel.ParSeqLike.Updated;
 
 /**
  *
@@ -264,7 +262,7 @@ public class PageTest extends StructrUiTest {
 				dstPage.render(securityContext, ctx2, 0);
 
 				// pages should render exactly identical
-				assertEquals(ctx1.getBuffer().toString(), ctx2.getBuffer().toString());
+				assertEquals(ctx1.getOutputWriter().toString(), ctx2.getOutputWriter().toString());
 
 				tx.success();
 

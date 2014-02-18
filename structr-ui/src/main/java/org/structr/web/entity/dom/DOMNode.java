@@ -2308,4 +2308,9 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		return allChildNodes;
 	}
 
+	@Override
+	public boolean flush() {
+		return false;
+	}
+
 }

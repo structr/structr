@@ -32,11 +32,11 @@ public class Comment extends Content implements org.w3c.dom.Comment {
 	@Override
 	public void render(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException {
 
-		renderContext.getBuffer().append(("<!--"));
+		renderContext.getOutputWriter().append(("<!--"));
 		
 		super.render(securityContext, renderContext, depth);
 		
-		renderContext.getBuffer().append("-->");
+		renderContext.getOutputWriter().append("-->");
 	}
 	
 }

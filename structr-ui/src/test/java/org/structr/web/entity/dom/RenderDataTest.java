@@ -148,9 +148,9 @@ public class RenderDataTest extends DOMTest {
 			RenderContext ctx = new RenderContext(null, null, EditMode.NONE, Locale.GERMAN);
 			doc.render(securityContext, ctx, 0);
 
-			System.out.println(ctx.getBuffer().toString());
+			System.out.println(ctx.getOutputWriter().toString());
 
-			org.jsoup.nodes.Document parsedDocument = Jsoup.parse(ctx.getBuffer().toString());
+			org.jsoup.nodes.Document parsedDocument = Jsoup.parse(ctx.getOutputWriter().toString());
 
 			assertEquals("rootNode", parsedDocument.select("html > body > div").get(0).ownText());
 			assertEquals("folderA", parsedDocument.select("html > body > div > ul > li").get(0).ownText());
@@ -241,9 +241,9 @@ public class RenderDataTest extends DOMTest {
 			RenderContext ctx = new RenderContext(request, null, EditMode.NONE, Locale.GERMAN);
 			doc.render(securityContext, ctx, 0);
 
-			System.out.println(ctx.getBuffer().toString());
+			System.out.println(ctx.getOutputWriter().toString());
 
-			org.jsoup.nodes.Document parsedDocument = Jsoup.parse(ctx.getBuffer().toString());
+			org.jsoup.nodes.Document parsedDocument = Jsoup.parse(ctx.getOutputWriter().toString());
 
 			assertEquals("user1", parsedDocument.select("html > body > b > p").get(0).ownText());
 			assertEquals("user2", parsedDocument.select("html > body > b > p").get(1).ownText());
