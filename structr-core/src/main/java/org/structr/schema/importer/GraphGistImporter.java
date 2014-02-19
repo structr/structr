@@ -104,15 +104,15 @@ public class GraphGistImporter extends NodeServiceCommand implements Maintenance
 			
 			if (fileName != null) {
 			
-				GraphGistImporter.importGist(extractSource(new FileInputStream(fileName)));
+				GraphGistImporter.importGist(extractSources(new FileInputStream(fileName)));
 
 			} else if (url != null) {
 
-				GraphGistImporter.importGist(extractSource(new URL(url).openStream()));
+				GraphGistImporter.importGist(extractSources(new URL(url).openStream()));
 
 			} else if (source != null) {
 
-				GraphGistImporter.importGist(extractSource(new ByteArrayInputStream(source.getBytes())));
+				GraphGistImporter.importGist(extractSources(new ByteArrayInputStream(source.getBytes())));
 			}
 
 		} catch (IOException ioex) {
@@ -320,16 +320,15 @@ public class GraphGistImporter extends NodeServiceCommand implements Maintenance
 		return buf.toString();
 	}
 	
-	private static List<String> extractSource(final InputStream source) {
+	private static List<String> extractSources(final InputStream source) {
 
 		final List<String> sources = new LinkedList<>();
 		final StringBuilder buf    = new StringBuilder();
 
 		try (final BufferedReader reader = new BufferedReader(new InputStreamReader(source))) {
 
-			String line        = reader.readLine();
+			String line          = reader.readLine();
 			boolean beforeCypher = false;
-			boolean afterCypher  = false;
 			boolean inCypher     = false;
 
 			while (line != null) {
@@ -337,48 +336,31 @@ public class GraphGistImporter extends NodeServiceCommand implements Maintenance
 				final String trimmedLine = line.trim().replaceAll("[\\s]+", "");
 
 				// make sure only "graph" blocks are parsed
-				if (afterCypher) {
-					
-					if ("//graph".equals(trimmedLine)) {
+				if (inCypher && "----".equals(trimmedLine)) {
+
+					inCypher = false;
+					beforeCypher = false;
+
+					if (buf.toString().toUpperCase().contains("CREATE")) {
 						
-						// add cypher statements to list of sources
 						sources.add(buf.toString());
 						buf.setLength(0);
-
-						afterCypher = false;
-					}
-					
-					if ("//table".equals(trimmedLine)) {
-						
-						// discard buffer
-						buf.setLength(0);
-						afterCypher = false;
 					}
 				}
+				
+				if (inCypher) {
 
-				if (!afterCypher) {
-					
-					if (inCypher && "----".equals(trimmedLine)) {
+					buf.append(line);
+					buf.append("\n");
+				}
 
-						inCypher = false;
-						beforeCypher = false;
-						afterCypher = true;
-					}
+				if ("[source,cypher]".equals(trimmedLine)) {
+					beforeCypher = true;
+				}
 
-					if (inCypher) {
-
-						buf.append(line);
-						buf.append("\n");
-					}
-
-					if ("[source,cypher]".equals(trimmedLine)) {
-						beforeCypher = true;
-					}
-
-					if (beforeCypher && "----".equals(trimmedLine)) {
-						inCypher     = true;
-						beforeCypher = false;
-					}
+				if (beforeCypher && "----".equals(trimmedLine)) {
+					inCypher     = true;
+					beforeCypher = false;
 				}
 
 				line = reader.readLine();
