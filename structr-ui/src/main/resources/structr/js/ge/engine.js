@@ -41,13 +41,13 @@ var width = 1000;
 var height = 600;
 var dt = 0.05;
 var drag = 50;
-var initialSpringLength = 200;
-var springForce = 500;
+var initialSpringLength = 20;
+var springForce = 100;
 var springDamping = 100;
 var centerForce = 0;
 var maxMagneticDistance = 1000000;
-var magneticForce = 10000;
-var magneticFactor = 0.95;
+var magneticForce = 50000;
+var magneticFactor = 0.5;
 var numMasses = 100;
 var keys = new Array();
 var centerX = 0;
@@ -79,15 +79,14 @@ function Engine(parent) {
         
     this.initialize = function() {
 	    
-        for (r=128; r<255; r += inc) {
-            for (g=128; g<255; g += inc) {
-                for (b=128; b<255; b += inc) {
-                    if (r !== g !== b) {
-                        colors[count++] = "rgb(" + r + ", " + g + ", " + b + ")";
-                    }
-                }
-            }
-        }
+	colors[ 0] = "#aa0000";
+	colors[ 1] = "#00aa00";
+	colors[ 2] = "#0000ff";
+	colors[ 3] = "#ff8800";
+	colors[ 4] = "#888800";
+	colors[ 4] = "#880088";
+	colors[ 4] = "#008888";
+	colors[ 4] = "#888800";
 
 	this.resizeCanvas();
 	
@@ -366,7 +365,7 @@ function Mass(node, startX, startY) {
     
     masses[masses.length] = this;
     this.nodeId = node.id;
-    this.color = colors[types.indexOf(node.type) * 3];
+    this.color = colors[types.indexOf(node.type)];
     this.typeString = node.type;
     this.x = startX;
     this.y = startY;
@@ -384,9 +383,10 @@ function Mass(node, startX, startY) {
         var fillStyle = this.color;
 	var r = 10;
 	var e = 20;
+	var r2 = r/2;
 
 	// highlight mass element under cursor
-        if(Math.abs(this.x - 10 - mX) < e && Math.abs(this.y - 10 - mY) < e) {
+        if(Math.abs(this.x - r2 - mX) < e && Math.abs(this.y - r2 - mY) < e) {
                 
              if(mouseBtn > 0 && selectX === 0 && selectY === 0) {
                         
@@ -396,16 +396,16 @@ function Mass(node, startX, startY) {
 	     fillStyle = "#ff0000";
         }
 
-        ctx.globalAlpha = 1;
+	ctx.globalAlpha = 0.2;
         ctx.fillStyle = fillStyle;
         ctx.strokeStyle = '#000000';
         ctx.beginPath();
-        ctx.arc(this.x-10, this.y-10, r, 0, 2*Math.PI);
+        ctx.arc(this.x-r2, this.y-r2, r, 0, 2*Math.PI);
         ctx.fill();
         ctx.lineWidth =	 1;
         ctx.stroke();        
         ctx.fillStyle = '#000000';
-	ctx.fillText(this.typeString, this.x-10, this.y-10);
+	ctx.fillText(this.typeString, this.x-r2, this.y-r2);
     }
 
     this.update = function() {
@@ -553,9 +553,11 @@ function Spring(typeString, startNodeId, endNodeId) {
 
         }
 
-	ctx.globalAlpha = 1;
-	ctx.fillStyle = "#000000";
-	ctx.strokeStyle = "#000000";
+	var style = "#000000";
+
+	ctx.globalAlpha = 0.5;
+	ctx.fillStyle = style;
+	ctx.strokeStyle = style;
         this.drawArrow(ax, ay, bx, by);
 	ctx.fillStyle = "#000000";
 	ctx.strokeStyle = "#000000";
