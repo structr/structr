@@ -67,6 +67,7 @@ var selectY = 0;
 var lastX = 0;
 var lastY = 0;
 var backgroundColor = "rgb(255, 255, 255)";
+var alpha = 0.5;
 var headerWidth = 5;
 var headerHeight = 70;
 var canvas;
@@ -153,6 +154,7 @@ function Engine(parent) {
 	ctx.save();
 	ctx.setTransform(1, 0, 0, 1, 0, 0);
 	ctx.fillStyle = backgroundColor;
+	ctx.globalAlpha = 1;
 	ctx.fillRect(0, 0, canvas.width, canvas.height);
 	ctx.restore();
 
@@ -396,7 +398,7 @@ function Mass(node, startX, startY) {
 	     fillStyle = "#ff0000";
         }
 
-	ctx.globalAlpha = 0.2;
+	ctx.globalAlpha = alpha;
         ctx.fillStyle = fillStyle;
         ctx.strokeStyle = '#000000';
         ctx.beginPath();
@@ -555,7 +557,7 @@ function Spring(typeString, startNodeId, endNodeId) {
 
 	var style = "#000000";
 
-	ctx.globalAlpha = 0.5;
+	ctx.globalAlpha = alpha;
 	ctx.fillStyle = style;
 	ctx.strokeStyle = style;
         this.drawArrow(ax, ay, bx, by);
