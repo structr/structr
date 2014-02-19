@@ -267,7 +267,7 @@ public class ValidationHelper {
 		boolean matches = value != null && value.matches(expression);
 		
 		if (!matches) {
-			errorBuffer.add(node.getType(), new MatchToken(key, expression));
+			errorBuffer.add(node.getType(), new MatchToken(key, value, expression));
 		}
 		
 		return matches;
