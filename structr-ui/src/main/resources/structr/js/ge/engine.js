@@ -41,8 +41,10 @@ var width = 1000;
 var height = 600;
 var dt = 0.05;
 var drag = 50;
-var initialLength = 80;
-var centerForce = 1;
+var initialSpringLength = 200;
+var springForce = 500;
+var springDamping = 100;
+var centerForce = 0;
 var maxMagneticDistance = 1000000;
 var magneticForce = 10000;
 var magneticFactor = 0.95;
@@ -65,6 +67,8 @@ var selectY = 0;
 var lastX = 0;
 var lastY = 0;
 var backgroundColor = "rgb(255, 255, 255)";
+var headerWidth = 5;
+var headerHeight = 70;
 var canvas;
     
 function Engine(parent) {
@@ -78,7 +82,7 @@ function Engine(parent) {
         for (r=128; r<255; r += inc) {
             for (g=128; g<255; g += inc) {
                 for (b=128; b<255; b += inc) {
-                    if (r !== 128 && g !== 128 && b !== 128) {
+                    if (r !== g !== b) {
                         colors[count++] = "rgb(" + r + ", " + g + ", " + b + ")";
                     }
                 }
@@ -94,8 +98,8 @@ function Engine(parent) {
             mouseX = e.x;
             mouseY = e.y;
             
-            var mX = ((mouseX - width/2 - canvasOffsetX - 10) / scale);
-            var mY = ((mouseY - height/2 - canvasOffsetY - 75) / scale);
+            var mX = ((mouseX - width/2 - canvasOffsetX - headerWidth) / scale);
+            var mY = ((mouseY - height/2 - canvasOffsetY - headerHeight) / scale);
             
             if(clickedMass !== null) {
                 clickedMass.x = mX;
@@ -114,7 +118,7 @@ function Engine(parent) {
         
         canvas.onmousewheel = function(e) {
             var s = 1 + (e.wheelDelta / 300);
-            if((scale * s) > 0.25 && (scale * s) < 6) {
+            if((scale * s) > 0.1 && (scale * s) < 10) {
                 scale *= s;
     	        ctx.scale(s, s);	
 	    }
@@ -276,9 +280,9 @@ function Engine(parent) {
 
     this.handleMouse = function() {
 
-	var mX = ((mouseX - width/2 - canvasOffsetX - 10) / scale);
-	var mY = ((mouseY - height/2 - canvasOffsetY - 75) / scale);
-		
+        var mX = ((mouseX - width/2 - canvasOffsetX - headerWidth) / scale);
+        var mY = ((mouseY - height/2 - canvasOffsetY - headerHeight) / scale);
+        		
 	// left button
 	if(mouseBtn === 1 && clickedMass === null) {
 	
@@ -374,30 +378,34 @@ function Mass(node, startX, startY) {
 
     this.draw = function() {
 
-	var mX = ((mouseX - width/2 - canvasOffsetX - 10) / scale);
-	var mY = ((mouseY - height/2 - canvasOffsetY - 75) / scale);
-		
+        var mX = ((mouseX - width/2 - canvasOffsetX - headerWidth) / scale);
+        var mY = ((mouseY - height/2 - canvasOffsetY - headerHeight) / scale);
+        		
+        var fillStyle = this.color;
 	var r = 10;
-	var e = 5.5;
+	var e = 20;
 
-        ctx.globalAlpha = 1;
-        ctx.fillStyle = this.color;
-        ctx.strokeStyle = '#000000';
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, r, 0, 2*Math.PI);
-        ctx.fill();
-        ctx.lineWidth =	 1;
-        ctx.stroke();        
-        ctx.fillStyle = '#000000';
-	ctx.fillText(this.typeString, this.x, this.y);
-
-        if(Math.abs(this.x - mX) < e && Math.abs(this.y - mY) < e) {
+	// highlight mass element under cursor
+        if(Math.abs(this.x - 10 - mX) < e && Math.abs(this.y - 10 - mY) < e) {
                 
              if(mouseBtn > 0 && selectX === 0 && selectY === 0) {
                         
                  clickedMass = this;
-             }
+	     }
+		     
+	     fillStyle = "#ff0000";
         }
+
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = fillStyle;
+        ctx.strokeStyle = '#000000';
+        ctx.beginPath();
+        ctx.arc(this.x-10, this.y-10, r, 0, 2*Math.PI);
+        ctx.fill();
+        ctx.lineWidth =	 1;
+        ctx.stroke();        
+        ctx.fillStyle = '#000000';
+	ctx.fillText(this.typeString, this.x-10, this.y-10);
     }
 
     this.update = function() {
@@ -454,7 +462,7 @@ function Spring(typeString, startNodeId, endNodeId) {
     this.endNodeId = endNodeId;
     this.m1 = null;
     this.m2 = null;
-    this.nl = initialLength;
+    this.nl = initialSpringLength;
     
     this.update = function() {
 	    
@@ -468,11 +476,8 @@ function Spring(typeString, startNodeId, endNodeId) {
 		// spring force
 		var dl = this.nl - l;
 
-		var ks = 500;
-		var kd = 50;
-
-		var dF1x = dx * dl * ks * (1 / kd) * dt * dt;
-		var dF1y = dy * dl * ks * (1 / kd) * dt * dt;
+		var dF1x = dx * dl * springForce * (1 / springDamping) * dt * dt;
+		var dF1y = dy * dl * springForce * (1 / springDamping) * dt * dt;
 
 		if (dF1x > 1000 || dF1y > 1000) {
 			dF1x *= 0.1;
@@ -511,14 +516,11 @@ function Spring(typeString, startNodeId, endNodeId) {
 
 	if (this.m1 && this.m2) {
 
-            drawRel(typeString, this.m1.x, this.m1.y, this.m2.x, this.m2.y, 10, 10, 10, 10);
+            this.drawRel(typeString, this.m1.x - 10, this.m1.y - 10, this.m2.x - 10, this.m2.y - 10, 20, 20, 20, 20);
 	}
     }
 
-    function drawRel(type, x1, y1, x2, y2, w1, h1, w2, h2) {
-
-        w1+=14; h1+=6;
-        w2+=14; h2+=6;
+    this.drawRel = function(type, x1, y1, x2, y2, w1, h1, w2, h2) {
 
         var ax, ay, bx, by;
 
@@ -551,17 +553,16 @@ function Spring(typeString, startNodeId, endNodeId) {
 
         }
 
-        ax+=7; ay+=7;
-        bx+=7; by+=7;
-
 	ctx.globalAlpha = 1;
 	ctx.fillStyle = "#000000";
 	ctx.strokeStyle = "#000000";
-        this.drawArrow(ctx, ax, ay, bx, by);
-        this.drawText(ctx, type, bx - (bx - ax) / 2, by - (by - ay) / 2);
+        this.drawArrow(ax, ay, bx, by);
+	ctx.fillStyle = "#000000";
+	ctx.strokeStyle = "#000000";
+        this.drawText(type, bx - (bx - ax) / 2, by - (by - ay) / 2);
     }
 
-    function drawText(ctx, text, x, y) {
+    this.drawText = function(text, x, y) {
 	
         if (text && x && y) {
             ctx.font = "10px sans-serif";
@@ -571,9 +572,9 @@ function Spring(typeString, startNodeId, endNodeId) {
         }
     }
 
-    function drawArrow(ctx, x1, y1, x2, y2) {
+    this.drawArrow = function(x1, y1, x2, y2) {
 	    
-        var size = 10;
+        var size = 6;
         var angle = Math.atan2(y2 - y1, x2 - x1);
         ctx.beginPath();
         ctx.moveTo(x1, y1);
