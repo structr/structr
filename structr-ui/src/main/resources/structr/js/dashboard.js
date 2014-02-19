@@ -18,7 +18,8 @@
  */
 
 var win = $(window);
-var canvas;
+var engine;
+var nodeIds = new Array();
 
 $(document).ready(function() {
     Structr.registerModule('dashboard', _Dashboard);
@@ -36,6 +37,8 @@ var _Dashboard = {
         activeTab = $.cookie('structrActiveTab');
         main.append('<div class="searchBox"><input class="search" name="search" size="20" placeholder="Search"><img class="clearSearchIcon" src="icon/cross_small_grey.png"></div>');
         main.append('<div class="canvas" id="graph"></div>');
+	main.append('<button onlick="start();">Start</button>');
+	main.append('<button onlick="stop();">Stop</button>');
         searchField = $('.search', main);
         searchField.focus();
         searchField.keyup(function(e) {
@@ -60,11 +63,102 @@ var _Dashboard = {
                 _Dashboard.clearSearch();
             }
         });
-        drawGraph();
+
+        engine = new Engine($('#graph'));
+	engine.initialize();
+	
     },
+    
     appendNode: function(node) {
-        graph.renderNode(node.id, 0, [canvas.w / 2, canvas.h / 2]);
+	
+	if (nodeIds.indexOf(node.id) === -1) {
+	
+	    engine.addNode(node);
+	    
+	    window.setTimeout(function() {
+
+		    _Dashboard.loadRelationships(node.id);
+		    
+	    }, 100);
+
+	    nodeIds.push(node.id);
+	    
+	} else {
+	
+	    console.log("ID already present");
+	}
+	
+	// start update loop
+	engine.update();
     },
+    
+    loadRelationships: function(nodeId) {
+
+	$.ajax({
+            url: rootUrl + nodeId + '/out',
+            dataType: "json",
+            success: function(data) {
+
+                if (!data || data.length === 0 || !data.result || !data.result.length) {
+                    return;
+                }
+		
+                var results = data.result;
+                var count = 0, i = 0;
+		
+                while (i < results.length && count < maxRels) {
+                    
+	            var r = results[i++];
+		    
+                    engine.addRelationship(r.relType, r.sourceId, r.targetId);
+                    _Dashboard.loadNode(r.targetId);
+		}
+	    }
+        });
+
+	$.ajax({
+            url: rootUrl + nodeId + '/in',
+            dataType: "json",
+            success: function(data) {
+
+                if (!data || data.length === 0 || !data.result || !data.result.length) {
+                    return;
+                }
+		
+                var results = data.result;
+                var count = 0, i = 0;
+		
+                while (i < results.length && count < maxRels) {
+                    
+	            var r = results[i++];
+		   
+                    engine.addRelationship(r.relType, r.sourceId, r.targetId);
+                    _Dashboard.loadNode(r.sourceId);
+		}
+	    }
+        });
+    },
+	
+    loadNode: function(nodeId) {
+
+	$.ajax({
+
+            url: rootUrl + nodeId + '/ui',
+            dataType: "json",
+            success: function(data) {
+		    
+		    console.log(data);
+		    
+                if (!data || data.length === 0 || !data.result) {
+                    return;
+                }
+		
+                _Dashboard.appendNode(data.result);
+            }                                                                                                                                                       
+        });
+
+    },
+	    
     clearSearch: function() {
         _Dashboard.clearSearchResults();
         $('.clearSearchIcon').hide().off('click');
