@@ -176,23 +176,37 @@ public class PathHelper {
 		return targetPath;
 	}
 
-	public static String getName(final String pathPart) {
+	/**
+	 * Return last part of path after {@link PATH_SEP} or the path if no path separator was found.
+	 * 
+	 * @param path
+	 * @return 
+	 */
+	public static String getName(final String path) {
 
-		if (pathPart.contains(PATH_SEP)) {
+		String cleanedPath = clean(path);
+		
+		if (cleanedPath.contains(PATH_SEP)) {
 
-			return StringUtils.substringAfterLast(pathPart, PATH_SEP);
+			return StringUtils.substringAfterLast(cleanedPath, PATH_SEP);
 
 		} else {
 
-			return pathPart;
+			return cleanedPath;
 
 		}
 	}
 
-	public static String[] getParts(String path) {
+	/**
+	 * Return array of path parts.
+	 * 
+	 * @param path
+	 * @return 
+	 */
+	public static String[] getParts(final String path) {
 
-		path = clean(path);
+		String cleanedPath = clean(path);
 
-		return StringUtils.splitByWholeSeparator(path, PATH_SEP);
+		return StringUtils.splitByWholeSeparator(cleanedPath, PATH_SEP);
 	}
 }

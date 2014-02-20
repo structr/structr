@@ -127,8 +127,7 @@ public class StructrApp implements App {
 	@Override
 	public <T extends GraphObject> T get(final Class<T> type, final String uuid) throws FrameworkException {
 
-		final Query<T> query = command(SearchNodeCommand.class);
-		return query.andType(type).getFirst();
+		return (T) get(uuid);
 	}
 	
 	@Override

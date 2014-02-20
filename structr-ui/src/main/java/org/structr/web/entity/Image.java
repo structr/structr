@@ -68,8 +68,8 @@ public class Image extends File {
 	public static final Property<Boolean> isThumbnail = new BooleanProperty("isThumbnail").indexed().unvalidated().readOnly();
 	public static final ImageDataProperty imageData   = new ImageDataProperty("imageData");
 	
-	public static final org.structr.common.View uiView              = new org.structr.common.View(Image.class, PropertyView.Ui, type, name, contentType, size, relativeFilePath, width, height, tnSmall, tnMid, isThumbnail, owner);
-	public static final org.structr.common.View publicView          = new org.structr.common.View(Image.class, PropertyView.Public, type, name, width, height, tnSmall, tnMid, isThumbnail, owner);
+	public static final org.structr.common.View uiView              = new org.structr.common.View(Image.class, PropertyView.Ui, type, name, contentType, size, relativeFilePath, width, height, tnSmall, tnMid, isThumbnail, owner, parent);
+	public static final org.structr.common.View publicView          = new org.structr.common.View(Image.class, PropertyView.Public, type, name, width, height, tnSmall, tnMid, isThumbnail, owner, parent);
 
 //	@Override
 //	public boolean isValid(ErrorBuffer errorBuffer) {
@@ -254,9 +254,10 @@ public class Image extends File {
 				try {
 
 					data = thumbnailData.getBytes();
+					final String thumbnailName = originalImage.getName() + "_thumb_" + tnWidth + "x" + tnHeight;
 
 					// create thumbnail node
-					thumbnail = ImageHelper.createImage(securityContext, data, "image/" + Thumbnail.FORMAT, Image.class, true);
+					thumbnail = ImageHelper.createImage(securityContext, data, "image/" + Thumbnail.FORMAT, Image.class, thumbnailName, true);
 
 				} catch (IOException ex) {
 
@@ -277,7 +278,6 @@ public class Image extends File {
 					long size = data.length;
 
 					thumbnail.setProperty(File.size, size);
-					thumbnail.setProperty(name, originalImage.getName() + "_thumb_" + tnWidth + "x" + tnHeight);
 					thumbnail.setProperty(Image.width, tnWidth);
 					thumbnail.setProperty(Image.height, tnHeight);
 

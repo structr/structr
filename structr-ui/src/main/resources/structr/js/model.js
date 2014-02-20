@@ -547,11 +547,21 @@ StructrImage.prototype.setProperty = function(key, value, recursive, callback) {
 }
 
 StructrImage.prototype.remove = function() {
-    _Images.removeImageFromFolder(this.id);
+    _Files.removeFileFromFolder(this.id);
 }
 
 StructrImage.prototype.append = function(refNode) {
-    StructrModel.expand(_Images.appendImageElement(this, refNode), this);
+    var image = this;
+    if (image.parent) {
+        var parentFolder = StructrModel.obj(image.parent.id);
+        if (parentFolder) parentFolder.files.push(image);
+    }
+    console.log('Image', image, parentFolder)
+    if (images && images.length) {
+        StructrModel.expand(_Images.appendImageElement(this, parentFolder || refNode), this);
+    } else {
+        StructrModel.expand(_Files.appendFileElement(this, parentFolder || refNode), this);
+    }
 }
 
 

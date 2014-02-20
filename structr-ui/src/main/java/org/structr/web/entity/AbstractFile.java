@@ -20,6 +20,8 @@ package org.structr.web.entity;
 
 
 import java.util.List;
+import org.structr.common.ValidationHelper;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.property.CollectionIdProperty;
 import org.structr.core.property.EndNode;
@@ -48,6 +50,10 @@ public class AbstractFile extends LinkedTreeNode<FileChildren, FileSiblings, Abs
  
 	public static final Property<String> parentId              = new EntityIdProperty("parentId", parent);
 
+	@Override
+	public boolean isValid(ErrorBuffer errorBuffer) {
+		return (super.isValid(errorBuffer) && !ValidationHelper.checkStringNotBlank(this, name, errorBuffer));
+	}
 	
 	@Override
 	public Class<FileChildren> getChildLinkType() {

@@ -65,24 +65,45 @@ public abstract class ImageHelper extends FileHelper {
 	 * Create a new image node from the given image data
 	 *
 	 * @param securityContext
-	 * @param imageData
+	 * @param imageStream
 	 * @param contentType
 	 * @param imageType defaults to Image.class if null
+	 * @param name
 	 * @param markAsThumbnail
 	 * @return
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
-	public static Image createImage(final SecurityContext securityContext, final byte[] imageData, final String contentType, final Class<? extends Image> imageType, final boolean markAsThumbnail)
+	public static Image createImage(final SecurityContext securityContext, final InputStream imageStream, final String contentType, final Class<? extends Image> imageType, final String name, final boolean markAsThumbnail)
+		throws FrameworkException, IOException {
+	
+		return createImage(securityContext, IOUtils.toByteArray(imageStream), contentType, imageType, name, markAsThumbnail);
+		
+	}
+
+	/**
+	 * Create a new image node from the given image data
+	 *
+	 * @param securityContext
+	 * @param imageData
+	 * @param contentType
+	 * @param imageType defaults to Image.class if null
+	 * @param name
+	 * @param markAsThumbnail
+	 * @return
+	 * @throws FrameworkException
+	 * @throws IOException
+	 */
+	public static Image createImage(final SecurityContext securityContext, final byte[] imageData, final String contentType, final Class<? extends Image> imageType, final String name, final boolean markAsThumbnail)
 		throws FrameworkException, IOException {
 
-		CreateNodeCommand<Image> createNodeCommand = StructrApp.getInstance(securityContext).command(CreateNodeCommand.class);
 		PropertyMap props                          = new PropertyMap();
 		
 		props.put(AbstractNode.type, imageType == null ? Image.class.getSimpleName() : imageType.getSimpleName());
 		props.put(Image.isThumbnail, markAsThumbnail);
+		props.put(AbstractNode.name, name);
 		
-		Image newImage = createNodeCommand.execute(props);
+		Image newImage = StructrApp.getInstance(securityContext).create(imageType, props);
 
 		if (imageData != null && imageData.length > 0) {
 			

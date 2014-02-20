@@ -3,18 +3,17 @@
  *
  * This file is part of Structr <http://structr.org>.
  *
- * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
+ * Structr is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Affero General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
  *
- * Structr is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * Structr is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr. If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core.graph;
 
@@ -23,7 +22,6 @@ import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Relation;
 
 //~--- JDK imports ------------------------------------------------------------
-
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -35,7 +33,6 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 
 //~--- classes ----------------------------------------------------------------
-
 /**
  * Deletes a node.
  *
@@ -43,13 +40,11 @@ import org.structr.core.app.StructrApp;
  */
 public class DeleteNodeCommand extends NodeServiceCommand {
 
-	private static final Logger logger            = Logger.getLogger(DeleteNodeCommand.class.getName());
-	
-	
+	private static final Logger logger = Logger.getLogger(DeleteNodeCommand.class.getName());
+
 	private Set<NodeInterface> deletedNodes = new LinkedHashSet<>();
 
 	//~--- methods --------------------------------------------------------
-
 	public void execute(NodeInterface node) {
 
 		doDeleteNode(node);
@@ -59,19 +54,24 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 	private AbstractNode doDeleteNode(final NodeInterface node) {
 
-		if (!deletedNodes.contains(node) && node.getUuid() == null) {
+		try {
+			if (!deletedNodes.contains(node) && node.getUuid() == null) {
 
-			logger.log(Level.WARNING, "Will not delete node which has no UUID, dumping stack.");
-			Thread.dumpStack();
+				logger.log(Level.WARNING, "Will not delete node which has no UUID, dumping stack.");
+				Thread.dumpStack();
 
+				return null;
+			}
+
+		} catch (java.lang.IllegalStateException ise) {
+			logger.log(Level.WARNING, "Trying to delete a node which is already deleted", ise.getMessage());
 			return null;
-
 		}
 
 		deletedNodes.add(node);
-		
+
 		App app = StructrApp.getInstance(securityContext);
-		
+
 		try {
 
 			List<NodeInterface> nodesToCheckAfterDeletion = new LinkedList<>();
@@ -80,7 +80,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 			// by relationships which are marked with DELETE_OUTGOING
 			for (AbstractRelationship rel : node.getOutgoingRelationships()) {
 
-				int cascadeDelete     = rel.cascadeDelete();
+				int cascadeDelete = rel.cascadeDelete();
 				NodeInterface endNode = rel.getTargetNode();
 
 				if ((cascadeDelete & Relation.CONSTRAINT_BASED) == Relation.CONSTRAINT_BASED) {
@@ -101,7 +101,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 			// by relationships which are marked with DELETE_INCOMING
 			for (AbstractRelationship rel : node.getIncomingRelationships()) {
 
-				int cascadeDelete       = rel.cascadeDelete();
+				int cascadeDelete = rel.cascadeDelete();
 				NodeInterface startNode = rel.getSourceNode();
 
 				if ((cascadeDelete & Relation.CONSTRAINT_BASED) == Relation.CONSTRAINT_BASED) {
