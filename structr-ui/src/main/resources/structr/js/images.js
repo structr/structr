@@ -187,7 +187,6 @@ var _Images = {
         
         var parent;
         if (img.parent) {
-            console.log('Image has parent found', img.parent);
             
             var existingParent = Structr.node(img.parent.id);
             

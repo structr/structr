@@ -196,13 +196,10 @@ var _Files = {
     },
     appendFileElement: function(file, add) {
 
-        console.log('Files.appendFileElement', file);
-
         var icon = _Files.getIcon(file);
         var folderId = file.parent ? file.parent.id : null;
 
         var parent = Structr.findParent(folderId, null, null, files);
-        console.log(parent, folderId, isExpanded(folderId));
 
         if (!parent || (parent !== files && !isExpanded(folderId))) {
             return false;
