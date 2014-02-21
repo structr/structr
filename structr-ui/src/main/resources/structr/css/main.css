@@ -1439,6 +1439,10 @@ button.add_property {
     border-color: #f50;
 }
 
+.sliderLabel {
+    padding-top: 10px;
+}
+
 /**
  * Image folders
 */
