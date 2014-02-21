@@ -1035,6 +1035,20 @@ button img {
 
 }
 
+#files .selected, #files .selected:hover {
+    color: #333 ! important;
+	border: 1px solid #a5a5a5;
+    background-color: #81ce25;
+    background: -webkit-gradient(linear, left bottom, left top, from(#73b821), to(#90e629)) no-repeat;
+    background: -moz-linear-gradient(90deg, #73b821, #90e629) no-repeat;
+    filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#90e629', EndColorStr='#73b821', GradientType=0);
+}
+
+.node-helper {
+	width: 16px ! important;
+	height: 16px ! important;
+}
+
 #images h1 {
     visibility: visible;
     color: #333;

@@ -22,6 +22,7 @@ var fileList;
 var chunkSize = 1024 * 64;
 var sizeLimit = 1024 * 1024 * 70;
 var win = $(window);
+var selectedElements = [];
 
 $(document).ready(function() {
     Structr.registerModule('files', _Files);
@@ -48,9 +49,9 @@ var _Files = {
 
         Structr.initPager('File', 1, 25);
         Structr.initPager('Folder', 1, 25);
-        
+
         Structr.makePagesMenuDroppable();
-        
+
     },
     resize: function() {
 
@@ -84,13 +85,14 @@ var _Files = {
         //main.append('<table id="dropArea"><tr><<td class="fit-to-height" id="folders"></td><td class="fit-to-height" id="files"></td></tr></table>');
         folders = $('#folders');
         files = $('#files');
-        
+
         // clear images
-        if (images) images.length = 0;
+        if (images)
+            images.length = 0;
 
         _Files.refreshFolders();
         _Files.refreshFiles();
-        
+
     },
     unload: function() {
         $(main.children('table')).remove();
@@ -233,7 +235,7 @@ var _Files = {
             return;
 
         _Entities.appendAccessControlIcon(div, file);
-        
+
         if (_Files.isArchive(file)) {
             div.append('<img class="unarchive_icon button" src="icon/compress.png">');
             div.children('.unarchive_icon').on('click', function() {
@@ -282,7 +284,7 @@ var _Files = {
 
         div.draggable({
             revert: 'invalid',
-            helper: 'clone',
+            //helper: 'clone',
             //containment: 'document',
             //stack: '.node',
             appendTo: '#main',
@@ -290,12 +292,22 @@ var _Files = {
             start: function(e, ui) {
                 $(this).hide();
                 $(ui)[0].helper.css({
-                   width: files.width() + 'px' 
+                    width: files.width() + 'px'
                 });
+
             },
             stop: function(e, ui) {
                 $(this).show();
                 //$('#pages_').droppable('enable').removeClass('nodeHover');
+            },
+            helper: function(event) {
+                selectedElements = $('.node.selected');
+                if (selectedElements.length > 1) {
+                    selectedElements.removeClass('selected');
+                    return $('<img class="node-helper" src="icon/page_white_stack.png">')
+                            .css("margin-left", event.clientX - $(event.target).offset().left);
+                }
+                return $(this).clone();
             }
         });
 
@@ -303,6 +315,7 @@ var _Files = {
         _Entities.appendEditPropertiesIcon(div, file);
 
         _Entities.setMouseOver(div);
+        _Entities.makeSelectable(div);
 
         return div;
     },
@@ -394,9 +407,24 @@ var _Files = {
                     var nodeData = {};
                     nodeData.id = fileId;
                     addExpandedNode(folderId);
-                    //log('addExpandedNode(folderId)', addExpandedNode(folderId));
-                    Command.appendFile(fileId, folderId);
-                    $(ui.draggable).remove();
+
+                    //selectedElements = $('.node.selected');
+                    console.log(selectedElements);
+                    if (selectedElements.length > 1) {
+                        
+                        $.each(selectedElements, function(i, fileEl) {
+                            //log('addExpandedNode(folderId)', addExpandedNode(folderId));
+                            var fileId = getId(fileEl);
+                            Command.appendFile(fileId, folderId);
+                            Structr.node(folderId).append(Structr.node(fileId));
+                            $(ui.draggable).remove();
+                        });
+                        selectedElements.length = 0;
+                    } else {
+                        //log('addExpandedNode(folderId)', addExpandedNode(folderId));
+                        Command.appendFile(fileId, folderId);
+                        $(ui.draggable).remove();
+                    }
                     //Command.createAndAdd(folderId, nodeData);
                 }
             }
@@ -600,13 +628,13 @@ var _Files = {
 
 
     },
-    isArchive : function(file) {
+    isArchive: function(file) {
         var contentType = file.contentType;
-        var extension = file.name.substring(file.name.lastIndexOf('.')+1);
-        
+        var extension = file.name.substring(file.name.lastIndexOf('.') + 1);
+
         var archiveTypes = ['application/zip', 'application/x-tar', 'application/x-cpio', 'application/x-dump', 'application/x-java-archive'];
         var archiveExtensions = ['zip', 'tar', 'cpio', 'dump', 'jar'];
-        
+
         return isIn(contentType, archiveTypes) || isIn(extension, archiveExtensions);
     }
 };

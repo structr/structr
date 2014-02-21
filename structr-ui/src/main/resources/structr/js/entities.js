@@ -793,6 +793,15 @@ var _Entities = {
             paddingRight: 11 + 'px'
         });
     },
+    makeSelectable: function(el) {
+        var node = $(el).closest('.node');
+        if (!node || !node.children) {
+            return;
+        }
+        node.on('click', function() {
+            $(this).toggleClass('selected');
+        });
+    },
     setMouseOver: function(el, allowClick, syncedNodes) {
         var node = $(el).closest('.node');
         if (!node || !node.children) {
