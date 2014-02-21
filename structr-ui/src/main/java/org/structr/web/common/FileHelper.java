@@ -29,6 +29,8 @@ import org.structr.core.entity.AbstractNode;
 //~--- JDK imports ------------------------------------------------------------
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.List;
 
 import java.util.UUID;
@@ -112,7 +114,54 @@ public class FileHelper {
 	}
 
 	/**
-	 * Create a new file node from the given file data
+	 * Create a new file node from the given input stream
+	 *
+	 * @param securityContext
+	 * @param fileStream
+	 * @param contentType
+	 * @param fileType defaults to File.class if null
+	 * @param name
+	 * @return
+	 * @throws FrameworkException
+	 * @throws IOException
+	 */
+	public static org.structr.web.entity.File createFile(final SecurityContext securityContext, final InputStream fileStream, final String contentType, final Class<? extends org.structr.web.entity.File> fileType, final String name)
+		throws FrameworkException, IOException {
+
+		final byte[] data = IOUtils.toByteArray(fileStream);
+		return createFile(securityContext, data, getContentMimeType(data), fileType, name);
+		
+	}
+	
+	/**
+	 * Create a new file node from the given byte array
+	 *
+	 * @param securityContext
+	 * @param fileData
+	 * @param contentType if null, try to auto-detect content type
+	 * @param fileType defaults to File.class if null
+	 * @param name
+	 * @return
+	 * @throws FrameworkException
+	 * @throws IOException
+	 */
+	public static org.structr.web.entity.File createFile(final SecurityContext securityContext, final byte[] fileData, final String contentType, final Class<? extends org.structr.web.entity.File> fileType, final String name)
+		throws FrameworkException, IOException {
+
+		PropertyMap props = new PropertyMap();
+
+		props.put(AbstractNode.type, fileType == null ? org.structr.web.entity.File.class.getSimpleName() : fileType.getSimpleName());
+		props.put(AbstractNode.name, name);
+
+		org.structr.web.entity.File newFile = StructrApp.getInstance(securityContext).create(fileType, props);
+
+		setFileData(newFile, fileData, contentType);
+
+		return newFile;
+	}
+	
+	/**
+	 * Create a new file node from the given byte array
 	 *
 	 * @param securityContext
 	 * @param fileData
@@ -125,16 +174,7 @@ public class FileHelper {
 	public static org.structr.web.entity.File createFile(final SecurityContext securityContext, final byte[] fileData, final String contentType, final Class<? extends org.structr.web.entity.File> fileType)
 		throws FrameworkException, IOException {
 
-		CreateNodeCommand<org.structr.web.entity.File> createNodeCommand = StructrApp.getInstance(securityContext).command(CreateNodeCommand.class);
-		PropertyMap props = new PropertyMap();
-
-		props.put(AbstractNode.type, fileType == null ? org.structr.web.entity.File.class.getSimpleName() : fileType.getSimpleName());
-
-		org.structr.web.entity.File newFile = createNodeCommand.execute(props);
-
-		setFileData(newFile, fileData, contentType);
-
-		return newFile;
+		return createFile(securityContext, fileData, contentType, fileType, null);
 
 	}
 
@@ -159,7 +199,7 @@ public class FileHelper {
 	 *
 	 * @param file
 	 * @param fileData
-	 * @param contentType
+	 * @param contentType if null, try to auto-detect content type
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
@@ -167,7 +207,7 @@ public class FileHelper {
 		throws FrameworkException, IOException {
 
 		FileHelper.writeToFile(file, fileData);
-		file.setProperty(org.structr.web.entity.File.contentType, contentType);
+		file.setProperty(org.structr.web.entity.File.contentType, contentType != null ? contentType : getContentMimeType(fileData));
 		file.setProperty(org.structr.web.entity.File.checksum, FileHelper.getChecksum(file));
 		file.setProperty(org.structr.web.entity.File.size, FileHelper.getSize(file));
 
@@ -229,6 +269,21 @@ public class FileHelper {
 	 * given file node
 	 *
 	 * @param fileNode
+	 * @param inStream
+	 * @throws FrameworkException
+	 * @throws IOException
+	 */
+	public static void writeToFile(final org.structr.web.entity.File fileNode, final InputStream inStream) throws FrameworkException, IOException {
+
+		writeToFile(fileNode, IOUtils.toByteArray(inStream));
+
+	}
+
+	/**
+	 * Write binary data to a file and reference the file on disk at the
+	 * given file node
+	 *
+	 * @param fileNode
 	 * @param data
 	 * @throws FrameworkException
 	 * @throws IOException
@@ -276,7 +331,7 @@ public class FileHelper {
 
 		} catch (MagicException | MagicMatchNotFoundException | MagicParseException e) {
 
-			logger.log(Level.WARNING, "Could not determine content type");
+			logger.log(Level.FINE, "Could not determine content type", e);
 
 		}
 
@@ -302,9 +357,9 @@ public class FileHelper {
 
 			return match.getMimeType();
 
-		} catch (Exception e) {
+		} catch (MagicParseException | MagicMatchNotFoundException | MagicException e) {
 
-			logger.log(Level.SEVERE, null, e);
+			logger.log(Level.FINE, "Could not determine content type", e);
 
 		}
 

@@ -665,6 +665,14 @@ span.id {
 
 }
 
+#imageFolders .folder {
+	border: 1px solid #ccc;
+	background: #fbf7dc ! important;
+	width: 100%;
+/*	width: 300px ! important;
+	height: 200px;*/
+}
+
 .image div.wrap {
     position: absolute;
     top: 50%;
@@ -710,7 +718,7 @@ span.id {
     margin-right: 3px ! important;
 }
 
-.edit_icon, .add_icon, .delete_icon, .close_icon, .key_icon, .edit_props_icon, .edit_file_icon, .clone_icon, .view_icon, .link_icon, .add_form_icon, .data_icon {
+.edit_icon, .add_icon, .delete_icon, .close_icon, .key_icon, .edit_props_icon, .edit_file_icon, .clone_icon, .view_icon, .link_icon, .add_form_icon, .data_icon, .unarchive_icon {
     display: none;
     cursor: pointer;
     height: 16px;
@@ -747,6 +755,10 @@ span.id {
 
 .delete_icon {
     right: 24px;
+}
+
+.unarchive_icon {
+	right: 84px;
 }
 
 li.page .delete_icon {

@@ -258,6 +258,22 @@ var Command = {
         return sendObj(obj);
     },
     /**
+     * Send an UNARCHIVE command to the server.
+     * 
+     * The server will unarchive the file with the given id
+     * and create files for each archive entry.
+     * 
+     */
+    unarchive: function(id) {
+        var obj = {};
+        obj.command = 'UNARCHIVE';
+        obj.id = id;
+        var data = {};
+        obj.data = data;
+        log('unarchive()', obj);
+        return sendObj(obj);
+    },
+    /**
      * Send an APPEND_USER command to the server.
      * 
      * The server will append the user node with the given id

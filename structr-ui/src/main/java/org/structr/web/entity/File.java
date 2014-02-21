@@ -38,9 +38,6 @@ import java.io.OutputStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
-import org.structr.common.error.ErrorBuffer;
-import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
 import org.structr.core.property.StringProperty;
 import org.structr.web.common.FileHelper;
 

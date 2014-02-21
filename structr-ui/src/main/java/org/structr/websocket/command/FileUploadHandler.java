@@ -31,8 +31,6 @@ import java.nio.channels.FileChannel;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.core.app.StructrApp;
-import org.structr.core.graph.Tx;
 import org.structr.web.common.FileHelper;
 
 //~--- classes ----------------------------------------------------------------

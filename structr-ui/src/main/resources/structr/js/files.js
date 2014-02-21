@@ -195,13 +195,13 @@ var _Files = {
     },
     appendFileElement: function(file, add) {
 
-        log('Files.appendFileElement', file);
+        console.log('Files.appendFileElement', file);
 
         var icon = _Files.getIcon(file);
         var folderId = file.parent ? file.parent.id : null;
 
         var parent = Structr.findParent(folderId, null, null, files);
-        log(parent, folderId, isExpanded(folderId));
+        console.log(parent, folderId, isExpanded(folderId));
 
         if (!parent || (parent !== files && !isExpanded(folderId))) {
             return false;
@@ -235,6 +235,14 @@ var _Files = {
             return;
 
         _Entities.appendAccessControlIcon(div, file);
+        
+        if (_Files.isArchive(file)) {
+            div.append('<img class="unarchive_icon button" src="icon/compress.png">');
+            div.children('.unarchive_icon').on('click', function() {
+                log('unarchive', file.id)
+                Command.unarchive(file.id);
+            });
+        }
 
         div.children('.typeIcon').on('click', function(e) {
             e.stopPropagation();
@@ -593,5 +601,14 @@ var _Files = {
 
 
 
+    },
+    isArchive : function(file) {
+        var contentType = file.contentType;
+        var extension = file.name.substring(file.name.lastIndexOf('.')+1);
+        
+        var archiveTypes = ['application/zip', 'application/x-tar', 'application/x-cpio', 'application/x-dump', 'application/x-java-archive'];
+        var archiveExtensions = ['zip', 'tar', 'cpio', 'dump', 'jar'];
+        
+        return isIn(contentType, archiveTypes) || isIn(extension, archiveExtensions);
     }
 };
