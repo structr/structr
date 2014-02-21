@@ -75,15 +75,15 @@ public class BingGeoCodingProvider extends AbstractGeoCodingProvider {
 			if (street != null && !street.isEmpty()) {
 				urlBuffer.append(encodeURL(street)).append("+");
 			}
+		
+			// postalCode
+			if (postalCode != null && !postalCode.isEmpty()) {
+				urlBuffer.append(encodeURL(postalCode)).append("+");
+			}
 			
 			// city
 			if (city != null && !city.isEmpty()) {
 				urlBuffer.append(encodeURL(city)).append("+");
-			}
-		
-			// postalCode
-			if (postalCode != null && !postalCode.isEmpty()) {
-				urlBuffer.append("&postalCode=").append(encodeURL(postalCode));
 			}
 		
 			/* disabled because the ISO country code is required here which we don't have
