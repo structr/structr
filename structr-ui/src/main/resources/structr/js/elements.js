@@ -135,7 +135,7 @@ var _Elements = {
         });
 
 
-        Command.list('Widget', 1000, 1, 'name', 'asc', function(entity) {
+        Command.list('Widget', true, 1000, 1, 'name', 'asc', function(entity) {
             StructrModel.create(entity, null, false);
             _Widgets.appendWidgetElement(entity, false, widgets);
         });
@@ -413,7 +413,7 @@ var _Elements = {
 
                     var pagesToLink = $('#pagesToLink');
 
-                    Structr.addPager(pagesToLink, 'Page', function(page) {
+                    Structr.addPager(pagesToLink, true, 'Page', function(page) {
 
                         pagesToLink.append('<div class="node page ' + page.id + '_"><img class="typeIcon" src="icon/page.png">'
                                 + '<b title="' + page.name + '" class="name_">' + page.name + '</b></div>');
@@ -446,7 +446,7 @@ var _Elements = {
 
                     var filesToLink = $('#filesToLink');
 
-                    Structr.addPager(filesToLink, 'File', function(file) {
+                    Structr.addPager(filesToLink, true, 'File', function(file) {
 
                         filesToLink.append('<div class="node file ' + file.id + '_"><img class="typeIcon" src="' + _Files.getIcon(file) + '">'
                                 + '<b title="' + file.name + '" class="name_">' + file.name + '</b></div>');
@@ -484,7 +484,7 @@ var _Elements = {
 
                     var imagesToLink = $('#imagesToLink');
 
-                    Structr.addPager(imagesToLink, 'Image', function(image) {
+                    Structr.addPager(imagesToLink, true, 'Image', function(image) {
 
                         imagesToLink.append('<div class="node file ' + image.id + '_"><img class="typeIcon" src="' + _Images.getIcon(image) + '">'
                                 + '<b title="' + image.name + '" class="name_">' + image.name + '</b></div>');

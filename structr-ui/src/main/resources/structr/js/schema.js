@@ -806,11 +806,11 @@ var _Schema = {
             });
         });
 
-        Command.list('SchemaNode', 100, 1, 'name', 'asc', function(n) {
+        Command.list('SchemaNode', true, 100, 1, 'name', 'asc', function(n) {
             $('#node-type-selector').append('<option>' + n.name + '</option>');
         });
 
-        Command.list('SchemaRelationship', 100, 1, 'relationshipType', 'asc', function(r) {
+        Command.list('SchemaRelationship', true, 100, 1, 'relationshipType', 'asc', function(r) {
             $('#rel-type-selector').append('<option>' + r.relationshipType + '</option>');
         });
 

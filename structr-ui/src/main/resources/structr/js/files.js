@@ -79,13 +79,14 @@ var _Files = {
 
         _Files.init();
 
-        log('_Files.onload');
-
         //main.append('<table id="dropArea"><tr><td id="folders"></td><td id="files"></td><td id="images"></td></tr></table>');
         main.append('<div id="dropArea"><div class="fit-to-height" id="folders"></div><div class="fit-to-height" id="files"></div>');
         //main.append('<table id="dropArea"><tr><<td class="fit-to-height" id="folders"></td><td class="fit-to-height" id="files"></td></tr></table>');
         folders = $('#folders');
         files = $('#files');
+        
+        // clear images
+        if (images) images.length = 0;
 
         _Files.refreshFolders();
         _Files.refreshFiles();
@@ -165,7 +166,7 @@ var _Files = {
                 return false;
             });
         }
-        Structr.addPager(files, 'File');
+        Structr.addPager(files, true, 'File');
         _Files.resize();
     },
     refreshFolders: function() {
@@ -176,7 +177,7 @@ var _Files = {
             e.stopPropagation();
             Command.create({'type': 'Folder'});
         });
-        Structr.addPager(folders, 'Folder');
+        Structr.addPager(folders, true, 'Folder');
     },
     getIcon: function(file) {
         var icon = _Files.icon; // default
@@ -224,7 +225,7 @@ var _Files = {
 
             parent.append('<div id="id_' + file.id + '" class="node file">'
                     + '<img class="typeIcon" src="' + icon + '">'
-                    + '<b title="' + file.name + '" class="name_">' + fitStringToSize(file.name, 200) + '</b> <span class="id">' + file.id + '</span>'
+                    + '<b title="' + file.name + '" class="name_">' + fitStringToWidth(file.name, 200) + '</b> <span class="id">' + file.id + '</span>'
                     + '<div class="progress"><div class="bar"><div class="indicator"><span class="part"></span>/<span class="size">' + file.size + '</span></div></div></div>'
                     + '</div>');
             div = Structr.node(file.id);
@@ -329,7 +330,7 @@ var _Files = {
 
         parent.append('<div id="id_' + folder.id + '" structr_type="folder" class="node folder">'
                 + '<img class="typeIcon" src="' + _Files.folder_icon + '">'
-                + '<b title="' + folder.name + '" class="name_">' + fitStringToSize(folder.name, 200) + '</b> <span class="id">' + folder.id + '</span>'
+                + '<b title="' + folder.name + '" class="name_">' + fitStringToWidth(folder.name, 200) + '</b> <span class="id">' + folder.id + '</span>'
                 + '</div>');
 
         var div = Structr.node(folder.id);

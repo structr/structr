@@ -53,7 +53,7 @@ var _UsersAndGroups = {
             e.stopPropagation();
             return Command.create({'type':'Group'});
         });
-        Structr.addPager(groups, 'Group');
+        Structr.addPager(groups, true, 'Group');
     },
 
     refreshUsers : function() {
@@ -63,7 +63,7 @@ var _UsersAndGroups = {
             e.stopPropagation();
             return Command.create({'type':'User'});
         });
-        Structr.addPager(users, 'User');
+        Structr.addPager(users, true, 'User');
     },
 
     deleteUser : function(button, user) {

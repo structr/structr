@@ -46,7 +46,7 @@ var _Images = {
     download_icon : 'icon/basket_put.png',
 	
     init : function() {
-        Structr.initPager('Folder', 1, 100);
+        Structr.initPager('Image', 1, 100);
         Structr.makePagesMenuDroppable();
     },
     resize : function() {
@@ -80,22 +80,22 @@ var _Images = {
         
         _Images.init();
         
-        main.append('<table id="dropArea"><tr><td class="fit-to-height" id="imageFolders"></td></tr></table>');
-        folders = $('#imageFolders');
-        //images = $('#images');
+        main.append('<div id="dropArea"><div class="fit-to-height" id="images"></div></div>');
+        images = $('#images');
         
-        _Images.refreshFolders();
-        //_Images.refreshImages();
+        // clear files and folders
+        if (files) files.length = 0;
+        if (folders) folders.length = 0;
         
-    //_Images.resize();
+        _Images.refreshImages();
+        
+        //_Images.resize();
     },
-
-    unload : function() {
-        $(main.children('table')).remove();
+    unload: function() {
+        $(main.children('#dropArea')).remove();
     },
-	
     refreshImages : function() {
-        
+
         if (window.File && window.FileReader && window.FileList && window.Blob) {
             
             drop = $('#dropArea');
@@ -160,131 +160,21 @@ var _Images = {
                 return false;
             });
         }        
-        Structr.addPager(images, 'Image');
+        Structr.addPager(images, false, 'Image');
         _Images.resize();
-    },
-	
-    refreshFolders : function() {
-        folders.empty();
-        folders.append('<button class="add_folder_icon button"><img title="Add Folder" alt="Add Folder" src="' + _Images.add_folder_icon + '"> Add Folder</button>');
-        $('.add_folder_icon', main).on('click', function(e) {
-            e.stopPropagation();
-            Command.create({'type':'Folder'});
-        });
-        Structr.addPager(folders, 'Folder');
-        //Command.list('Folder')
     },
 
     getIcon : function(file) {
         var icon = viewRootUrl + file.name;
         return icon;
     },
-    appendFolderElement: function(folder) {
 
-        log('appendFolderElement', folder, folder.parent);
-
-        var hasParent = folder.parent && folder.parent.id;
-
-        log(folder.name, 'has parent?', hasParent);
-
-        var parentId, parentFolderElement;
-        if (folder.parent && folder.parent.id) {
-            parentId = folder.parent.id;
-            parentFolderElement = Structr.node(parentId);
-        }
-
-        var parent = parentFolderElement ? parentFolderElement : folders;
-
-        if (!parent)
-            return false;
-
-        parent.append('<div id="id_' + folder.id + '" structr_type="folder" class="node folder">'
-                + '<img class="typeIcon" src="' + _Files.folder_icon + '">'
-                + '<b title="' + folder.name + '" class="name_">' + fitStringToSize(folder.name, 200) + '</b> <span class="id">' + folder.id + '</span>'
-                + '</div>');
-
-        var div = Structr.node(folder.id);
-
-        if (!div || !div.length)
-            return;
-
-        _Entities.appendAccessControlIcon(div, folder);
-
-        var delIcon = div.children('.delete_icon');
-
-        if (parent !== folders) {
-            var newDelIcon = '<img title="Remove folder ' + folder.name + '\' from folder ' + folder.parent.id + '" alt="Remove folder ' + folder.name + '\' from folder ' + folder.parent.id + '" class="delete_icon button" src="' + _Files.delete_folder_icon + '">';
-            if (delIcon && delIcon.length) {
-                delIcon.replaceWith(newDelIcon);
-            } else {
-                div.append(newDelIcon);
-                //delIcon = $('.delete_icon', div);
-            }
-            div.children('.delete_icon').on('click', function(e) {
-                e.stopPropagation();
-                Command.removeChild(folder.id);
-            });
-            //disable($('.delete_icon', parent)[0]);
-
-        } else {
-            newDelIcon = '<img title="Delete folder \'' + folder.name + '\'" alt="Delete folder \'' + folder.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">';
-            if (delIcon && delIcon.length) {
-                delIcon.replaceWith(newDelIcon);
-            } else {
-                div.append(newDelIcon);
-                //delIcon = $('.delete_icon', div);
-            }
-            div.children('.delete_icon').on('click', function(e) {
-                e.stopPropagation();
-                _Entities.deleteNode(this, folder);
-            });
-        }
-
-        var hasChildren = (folder.folders && folder.folders.length) || (folder.files && folder.files.length);
-
-        log(folder.name, 'has children?', hasChildren, 'is expanded?', isExpanded(folder.id));
-
-        _Entities.appendExpandIcon(div, folder, hasChildren);
-
-        div.draggable({
-            revert: 'invalid',
-            //helper: 'clone',
-            //containment: '#main',
-            stack: '.node'
-        });
-
-        div.droppable({
-            accept: '.folder, .file, .image',
-            greedy: true,
-            hoverClass: 'nodeHover',
-            tolerance: 'pointer',
-            drop: function(event, ui) {
-                var self = $(this);
-                var fileId = getId(ui.draggable);
-                var folderId = getId(self);
-                log('fileId, folderId', fileId, folderId);
-                if (!(fileId === folderId)) {
-                    var nodeData = {};
-                    nodeData.id = fileId;
-                    addExpandedNode(folderId);
-                    //log('addExpandedNode(folderId)', addExpandedNode(folderId));
-                    Command.appendFile(fileId, folderId);
-                    $(ui.draggable).remove();
-                    //Command.createAndAdd(folderId, nodeData);
-                }
-            }
-        });
-
-        _Entities.appendEditPropertiesIcon(div, folder);
-        _Entities.setMouseOver(div);
-
-        return div;
-    },
     appendImageElement : function(img) {
         
         log('Images.appendImageElement', img);
         
         //if (!folderId && file.parentFolder) return false;
+        
         
         // suppress images without thumbnails
         if (img.isThumbnail) return false;
@@ -295,13 +185,36 @@ var _Images = {
         
         var tn = '/structr/img/ajax-loader.gif';
         
-        var folderId = img.parent ? img.parent.id : null;
-        var parent = Structr.findParent(folderId, null, null, images);
+        var parent;
+        if (img.parent) {
+            console.log('Image has parent found', img.parent);
+            
+            var existingParent = Structr.node(img.parent.id);
+            
+            if (existingParent) {
+                parent = existingParent;
+            } else {
+                var name = img.parent.name;
+                images.append('<div id="id_' + img.parent.id + '" class="image-folder"><b title="' + name + '" class="name_">' + fitStringToWidth(name, 100, 'name_') + '</b> <span class="id">' + img.parent.id + '</span></div>');
+                parent = $('#id_' + img.parent.id);
+                
+                parent.children('b.name_').on('click', function(e) {
+                    e.stopPropagation();
+                    _Entities.makeNameEditable(parent, 100);
+                });
+                
+            }
+            
+            
+        } else {
+            parent = images;
+        }
+        
             
         //var tn = '/' + img.tnSmall.id;
         parent.append('<div id="id_' + img.id + '" class="node image">'
             + '<div class="wrap"><img class="thumbnail" src="'+ tn + '"></div>'
-            + '<b title="' + img.name + '" class="name_">' + fitStringToSize(img.name, 98) + '</b> <span class="id">' + img.id + '</span>'
+            + '<b title="' + img.name + '" class="name_">' + fitStringToWidth(img.name, 98) + '</b> <span class="id">' + img.id + '</span>'
             + '<div class="progress"><div class="bar"><div class="indicator"><span class="part"></span>/<span class="size">' + img.size + '</span></div></div></div>'
             + '<div class="icons"></div></div>');
         div = Structr.node(img.id);

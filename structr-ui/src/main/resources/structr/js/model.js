@@ -220,7 +220,9 @@ var StructrModel = {
      * Refresh the object's UI representation with
      * the current model value for the given key
      */
-    refreshKey: function(id, key) {
+    refreshKey: function(id, key, width) {
+        
+        var w = width || 200;
 
         var obj = StructrModel.obj(id);
         if (!obj)
@@ -255,7 +257,7 @@ var StructrModel = {
                 } else {
                     log(key, newValue);
                     if (key === 'name') {
-                        attrElement.html(fitStringToSize(newValue, 200));
+                        attrElement.html(fitStringToWidth(newValue, w));
                         attrElement.attr('title', newValue);
                     }
                 }
@@ -289,7 +291,7 @@ var StructrModel = {
 
             blinkGreen(tabNameElement);
 
-            tabNameElement.html(fitStringToSize(newValue, 200));
+            tabNameElement.html(fitStringToWidth(newValue, w));
             tabNameElement.attr('title', newValue);
 
             log('Reload iframe', id, newValue);
@@ -547,7 +549,30 @@ StructrImage.prototype.setProperty = function(key, value, recursive, callback) {
 }
 
 StructrImage.prototype.remove = function() {
-    _Files.removeFileFromFolder(this.id);
+    var file = this;
+    
+    if (file.parent) {
+        
+        var parentFolder = StructrModel.obj(file.parent.id);
+        var parentFolderEl = Structr.node(parentFolder.id);
+
+        parentFolder.files = removeFromArray(parentFolder.files, file);
+        if (!parentFolder.files.length && !parentFolder.folders.length) {
+            _Entities.removeExpandIcon(parentFolderEl);
+            enable(parentFolderEl.children('.delete_icon')[0]);
+        }
+        
+        file.parent = undefined;
+    }
+
+    var fileEl = Structr.node(file.id);
+    if (!fileEl) {
+        return;
+    } else {
+        fileEl.remove();
+    }
+
+    _Files.appendFileElement(this);
 }
 
 StructrImage.prototype.append = function(refNode) {
@@ -556,9 +581,8 @@ StructrImage.prototype.append = function(refNode) {
         var parentFolder = StructrModel.obj(image.parent.id);
         if (parentFolder) parentFolder.files.push(image);
     }
-    console.log('Image', image, parentFolder)
     if (images && images.length) {
-        StructrModel.expand(_Images.appendImageElement(this, parentFolder || refNode), this);
+        StructrModel.expand(_Images.appendImageElement(this, parentFolder), this);
     } else {
         StructrModel.expand(_Files.appendFileElement(this, parentFolder || refNode), this);
     }

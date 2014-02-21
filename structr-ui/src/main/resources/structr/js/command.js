@@ -68,11 +68,12 @@ var Command = {
      * 
      * The optional callback function will be executed for each node in the result set.
      */
-    list: function(type, pageSize, page, sort, order, callback) {
+    list: function(type, rootOnly, pageSize, page, sort, order, callback) {
         var obj = {};
         obj.command = 'LIST';
         var data = {};
         data.type = type;
+        data.rootOnly = rootOnly;
         obj.pageSize = pageSize;
         obj.page = page;
         obj.sort = sort;

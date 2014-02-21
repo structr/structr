@@ -802,7 +802,7 @@ var Structr = {
      * If the optional callback function is given, it will be executed
      * instead of the default action.
      */
-    addPager: function(el, type, callback) {
+    addPager: function(el, rootOnly, type, callback) {
 
         if (!callback) {
             callback = function(entity) {
@@ -835,7 +835,7 @@ var Structr = {
                 $('.node', el).remove();
                 if (isPagesEl)
                     _Pages.clearPreviews();
-                Command.list(type, pageSize[type], page[type], sort, order, callback);
+                Command.list(type, rootOnly, pageSize[type], page[type], sort, order, callback);
             }
         });
 
@@ -846,7 +846,7 @@ var Structr = {
                 $('.node', el).remove();
                 if (isPagesEl)
                     _Pages.clearPreviews();
-                Command.list(type, pageSize[type], page[type], sort, order, callback);
+                Command.list(type, rootOnly, pageSize[type], page[type], sort, order, callback);
             }
         });
 
@@ -859,7 +859,7 @@ var Structr = {
             if (isPagesEl) {
                 _Pages.clearPreviews();
             }
-            Command.list(type, pageSize[type], page[type], sort, order, callback);
+            Command.list(type, rootOnly, pageSize[type], page[type], sort, order, callback);
         });
 
         pageRight.on('click', function() {
@@ -870,9 +870,9 @@ var Structr = {
             if (isPagesEl) {
                 _Pages.clearPreviews();
             }
-            Command.list(type, pageSize[type], page[type], sort, order, callback);
+            Command.list(type, rootOnly, pageSize[type], page[type], sort, order, callback);
         });
-        return Command.list(type, pageSize[type], page[type], sort, order, callback);
+        return Command.list(type, rootOnly, pageSize[type], page[type], sort, order, callback);
     },
     makePagesMenuDroppable: function() {
 

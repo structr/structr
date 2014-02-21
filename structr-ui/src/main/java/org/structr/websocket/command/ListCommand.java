@@ -3,18 +3,17 @@
  *
  * This file is part of Structr <http://structr.org>.
  *
- * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
+ * Structr is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Affero General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
  *
- * Structr is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * Structr is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr. If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.websocket.command;
 
@@ -30,7 +29,6 @@ import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 
 //~--- JDK imports ------------------------------------------------------------
-
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -40,18 +38,17 @@ import org.structr.core.entity.AbstractRelationship;
 import org.structr.schema.SchemaHelper;
 
 //~--- classes ----------------------------------------------------------------
-
 /**
  * Websocket command to retrieve nodes of a given type which are on root level,
  * i.e. not children of another node.
- * 
+ *
  * To get all nodes of a certain type, see the {@link GetCommand}.
- * 
+ *
  * @author Christian Morgner
  * @author Axel Morgner
  */
 public class ListCommand extends AbstractCommand {
-	
+
 	private static final Logger logger = Logger.getLogger(ListCommand.class.getName());
 
 	static {
@@ -63,33 +60,34 @@ public class ListCommand extends AbstractCommand {
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
-		final SecurityContext securityContext  = getWebSocket().getSecurityContext();
-		String rawType                         = (String) webSocketData.getNodeData().get("type");
-		Class type                             = SchemaHelper.getEntityClassForRawType(rawType);
-		
+		final SecurityContext securityContext = getWebSocket().getSecurityContext();
+		final Map<String, Object> properties = webSocketData.getNodeData();
+		final String rawType = (String) properties.get("type");
+		final boolean rootOnly = Boolean.TRUE.equals((Boolean) properties.get("rootOnly"));
+		Class type = SchemaHelper.getEntityClassForRawType(rawType);
+
 		if (type == null) {
 			getWebSocket().send(MessageBuilder.status().code(404).message("Type " + rawType + " not found").build(), true);
 			return;
 		}
 
-		final String sortOrder         = webSocketData.getSortOrder();
-		final String sortKey           = webSocketData.getSortKey();
-		final int pageSize             = webSocketData.getPageSize();
-		final int page                 = webSocketData.getPage();
+		final String sortOrder = webSocketData.getSortOrder();
+		final String sortKey = webSocketData.getSortKey();
+		final int pageSize = webSocketData.getPageSize();
+		final int page = webSocketData.getPage();
 		final PropertyKey sortProperty = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, sortKey);
-		final Query query              = StructrApp.getInstance(securityContext).nodeQuery(type).includeDeletedAndHidden().sort(sortProperty).order("desc".equals(sortOrder));
-		
+		final Query query = StructrApp.getInstance(securityContext).nodeQuery(type).includeDeletedAndHidden().sort(sortProperty).order("desc".equals(sortOrder));
+
 		// for image lists, suppress thumbnails
 		if (type.equals(Image.class)) {
-			
+
 			query.and(Image.isThumbnail, false);
 		}
-		
 
 		try {
 
 			// do search
-			List<AbstractNode> filteredResults     = new LinkedList<>();
+			List<AbstractNode> filteredResults = new LinkedList<>();
 			List<? extends GraphObject> resultList = query.getAsList();
 
 			// determine which of the nodes have a parent
@@ -98,16 +96,19 @@ public class ListCommand extends AbstractCommand {
 				if (obj instanceof AbstractNode) {
 
 					AbstractNode node = (AbstractNode) obj;
-					
+
 					boolean hasParent = false;
-					for (AbstractRelationship rel : node.getIncomingRelationships()) {
-						if ("CONTAINS".equals(rel.getType())) {
-							hasParent = true;
-							break;
+
+					if (rootOnly) {
+						for (AbstractRelationship rel : node.getIncomingRelationships()) {
+							if ("CONTAINS".equals(rel.getType())) {
+								hasParent = true;
+								break;
+							}
 						}
 					}
-					
-					if (!hasParent) {
+
+					if (!rootOnly || !hasParent) {
 						filteredResults.add(node);
 					}
 
@@ -117,14 +118,14 @@ public class ListCommand extends AbstractCommand {
 
 			// save raw result count
 			int resultCountBeforePaging = filteredResults.size();
-			
+
 			// set full result list
 			webSocketData.setResult(PagingHelper.subList(filteredResults, pageSize, page, null));
 			webSocketData.setRawResultCount(resultCountBeforePaging);
 
 			// send only over local connection
 			getWebSocket().send(webSocketData, true);
-			
+
 		} catch (FrameworkException fex) {
 
 			logger.log(Level.WARNING, "Exception occured", fex);
@@ -135,7 +136,6 @@ public class ListCommand extends AbstractCommand {
 	}
 
 	//~--- get methods ----------------------------------------------------
-
 	@Override
 	public String getCommand() {
 
