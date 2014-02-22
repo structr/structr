@@ -82,7 +82,7 @@ var _Widgets = {
             e.stopPropagation();
             Command.create({'type':'Widget'});
         });
-        Structr.addPager(widgets, 'Widget');
+        Structr.addPager(widgets, true, 'Widget');
         _Widgets.resize();
     },
 
@@ -176,7 +176,7 @@ var _Widgets = {
         
             parent.append('<div id="id_' + widget.id + '" class="node widget">'
                 + '<img class="typeIcon" src="'+ icon + '">'
-                + '<b title="' + widget.name + '" class="name_">' + fitStringToSize(widget.name, 200) + '</b> <span class="id">' + widget.id + '</span>'
+                + '<b title="' + widget.name + '" class="name_">' + fitStringToWidth(widget.name, 200) + '</b> <span class="id">' + widget.id + '</span>'
                 + '</div>');
             div = Structr.node(widget.id);
             

@@ -526,7 +526,7 @@ function Mass(node, startX, startY) {
 		this.roundRect(this.x - this.r, this.y - this.r, this.r * 2, this.r * 2, 3 / Math.sqrt(scale));
 
 		var name = this.nameString !== null ? this.nameString + ":" + this.typeString : this.typeString;
-		engine.drawText(name, this.x, this.y - 10, "4px sans-serif");
+		engine.drawText(name, this.x, this.y - 10, 16 / Math.sqrt(scale) + 'px sans-serif');
 
 		ctx.lineWidth = 1;
 	}

@@ -22,6 +22,7 @@ var fileList;
 var chunkSize = 1024 * 64;
 var sizeLimit = 1024 * 1024 * 70;
 var win = $(window);
+var selectedElements = [];
 
 $(document).ready(function() {
     Structr.registerModule('files', _Files);
@@ -48,9 +49,9 @@ var _Files = {
 
         Structr.initPager('File', 1, 25);
         Structr.initPager('Folder', 1, 25);
-        
+
         Structr.makePagesMenuDroppable();
-        
+
     },
     resize: function() {
 
@@ -79,17 +80,19 @@ var _Files = {
 
         _Files.init();
 
-        log('_Files.onload');
-
         //main.append('<table id="dropArea"><tr><td id="folders"></td><td id="files"></td><td id="images"></td></tr></table>');
         main.append('<div id="dropArea"><div class="fit-to-height" id="folders"></div><div class="fit-to-height" id="files"></div>');
         //main.append('<table id="dropArea"><tr><<td class="fit-to-height" id="folders"></td><td class="fit-to-height" id="files"></td></tr></table>');
         folders = $('#folders');
         files = $('#files');
 
+        // clear images
+        if (images)
+            images.length = 0;
+
         _Files.refreshFolders();
         _Files.refreshFiles();
-        
+
     },
     unload: function() {
         $(main.children('table')).remove();
@@ -165,7 +168,7 @@ var _Files = {
                 return false;
             });
         }
-        Structr.addPager(files, 'File');
+        Structr.addPager(files, true, 'File');
         _Files.resize();
     },
     refreshFolders: function() {
@@ -176,7 +179,7 @@ var _Files = {
             e.stopPropagation();
             Command.create({'type': 'Folder'});
         });
-        Structr.addPager(folders, 'Folder');
+        Structr.addPager(folders, true, 'Folder');
     },
     getIcon: function(file) {
         var icon = _Files.icon; // default
@@ -195,13 +198,10 @@ var _Files = {
     },
     appendFileElement: function(file, add) {
 
-        console.log('Files.appendFileElement', file);
-
         var icon = _Files.getIcon(file);
         var folderId = file.parent ? file.parent.id : null;
 
         var parent = Structr.findParent(folderId, null, null, files);
-        console.log(parent, folderId, isExpanded(folderId));
 
         if (!parent || (parent !== files && !isExpanded(folderId))) {
             return false;
@@ -224,7 +224,7 @@ var _Files = {
 
             parent.append('<div id="id_' + file.id + '" class="node file">'
                     + '<img class="typeIcon" src="' + icon + '">'
-                    + '<b title="' + file.name + '" class="name_">' + fitStringToSize(file.name, 200) + '</b> <span class="id">' + file.id + '</span>'
+                    + '<b title="' + file.name + '" class="name_">' + fitStringToWidth(file.name, 200) + '</b> <span class="id">' + file.id + '</span>'
                     + '<div class="progress"><div class="bar"><div class="indicator"><span class="part"></span>/<span class="size">' + file.size + '</span></div></div></div>'
                     + '</div>');
             div = Structr.node(file.id);
@@ -235,7 +235,7 @@ var _Files = {
             return;
 
         _Entities.appendAccessControlIcon(div, file);
-        
+
         if (_Files.isArchive(file)) {
             div.append('<img class="unarchive_icon button" src="icon/compress.png">');
             div.children('.unarchive_icon').on('click', function() {
@@ -284,7 +284,7 @@ var _Files = {
 
         div.draggable({
             revert: 'invalid',
-            helper: 'clone',
+            //helper: 'clone',
             //containment: 'document',
             //stack: '.node',
             appendTo: '#main',
@@ -292,12 +292,22 @@ var _Files = {
             start: function(e, ui) {
                 $(this).hide();
                 $(ui)[0].helper.css({
-                   width: files.width() + 'px' 
+                    width: files.width() + 'px'
                 });
+
             },
             stop: function(e, ui) {
                 $(this).show();
                 //$('#pages_').droppable('enable').removeClass('nodeHover');
+            },
+            helper: function(event) {
+                selectedElements = $('.node.selected');
+                if (selectedElements.length > 1) {
+                    selectedElements.removeClass('selected');
+                    return $('<img class="node-helper" src="icon/page_white_stack.png">')
+                            .css("margin-left", event.clientX - $(event.target).offset().left);
+                }
+                return $(this).clone();
             }
         });
 
@@ -305,6 +315,7 @@ var _Files = {
         _Entities.appendEditPropertiesIcon(div, file);
 
         _Entities.setMouseOver(div);
+        _Entities.makeSelectable(div);
 
         return div;
     },
@@ -329,7 +340,7 @@ var _Files = {
 
         parent.append('<div id="id_' + folder.id + '" structr_type="folder" class="node folder">'
                 + '<img class="typeIcon" src="' + _Files.folder_icon + '">'
-                + '<b title="' + folder.name + '" class="name_">' + fitStringToSize(folder.name, 200) + '</b> <span class="id">' + folder.id + '</span>'
+                + '<b title="' + folder.name + '" class="name_">' + fitStringToWidth(folder.name, 200) + '</b> <span class="id">' + folder.id + '</span>'
                 + '</div>');
 
         var div = Structr.node(folder.id);
@@ -396,9 +407,24 @@ var _Files = {
                     var nodeData = {};
                     nodeData.id = fileId;
                     addExpandedNode(folderId);
-                    //log('addExpandedNode(folderId)', addExpandedNode(folderId));
-                    Command.appendFile(fileId, folderId);
-                    $(ui.draggable).remove();
+
+                    //selectedElements = $('.node.selected');
+                    console.log(selectedElements);
+                    if (selectedElements.length > 1) {
+                        
+                        $.each(selectedElements, function(i, fileEl) {
+                            //log('addExpandedNode(folderId)', addExpandedNode(folderId));
+                            var fileId = getId(fileEl);
+                            Command.appendFile(fileId, folderId);
+                            Structr.node(folderId).append(Structr.node(fileId));
+                            $(ui.draggable).remove();
+                        });
+                        selectedElements.length = 0;
+                    } else {
+                        //log('addExpandedNode(folderId)', addExpandedNode(folderId));
+                        Command.appendFile(fileId, folderId);
+                        $(ui.draggable).remove();
+                    }
                     //Command.createAndAdd(folderId, nodeData);
                 }
             }
@@ -602,13 +628,13 @@ var _Files = {
 
 
     },
-    isArchive : function(file) {
+    isArchive: function(file) {
         var contentType = file.contentType;
-        var extension = file.name.substring(file.name.lastIndexOf('.')+1);
-        
+        var extension = file.name.substring(file.name.lastIndexOf('.') + 1);
+
         var archiveTypes = ['application/zip', 'application/x-tar', 'application/x-cpio', 'application/x-dump', 'application/x-java-archive'];
         var archiveExtensions = ['zip', 'tar', 'cpio', 'dump', 'jar'];
-        
+
         return isIn(contentType, archiveTypes) || isIn(extension, archiveExtensions);
     }
 };

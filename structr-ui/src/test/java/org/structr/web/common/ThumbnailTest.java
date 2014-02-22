@@ -21,7 +21,7 @@ package org.structr.web.common;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.core.graph.TransactionCommand;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.Tx;
 import org.structr.web.common.ImageHelper.Thumbnail;
 import org.structr.web.entity.Image;
@@ -57,6 +57,8 @@ public class ThumbnailTest extends StructrTest {
 			
 			TestImage img = (TestImage) ImageHelper.createFileBase64(securityContext, base64Image, TestImage.class);
 
+			img.setProperty(AbstractNode.name, "test-image.png");
+			
 			assertNotNull(img);
 			assertTrue(img instanceof TestImage);
 

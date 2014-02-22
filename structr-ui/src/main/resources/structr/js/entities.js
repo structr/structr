@@ -793,6 +793,15 @@ var _Entities = {
             paddingRight: 11 + 'px'
         });
     },
+    makeSelectable: function(el) {
+        var node = $(el).closest('.node');
+        if (!node || !node.children) {
+            return;
+        }
+        node.on('click', function() {
+            $(this).toggleClass('selected');
+        });
+    },
     setMouseOver: function(el, allowClick, syncedNodes) {
         var node = $(el).closest('.node');
         if (!node || !node.children) {
@@ -928,7 +937,9 @@ var _Entities = {
         }
 
     },
-    makeNameEditable: function(element) {
+    makeNameEditable: function(element, width) {
+        
+        var w = width || 200;
         //element.off('dblclick');
         element.off('hover');
         var oldName = $.trim(element.children('b.name_').attr('title'));
@@ -944,10 +955,10 @@ var _Entities = {
             var self = $(this);
             var newName = self.val();
             Command.setProperty(getId(element), "name", newName);
-            self.replaceWith('<b title="' + newName + '" class="name_">' + fitStringToSize(newName, 200) + '</b>');
+            self.replaceWith('<b title="' + newName + '" class="name_">' + fitStringToWidth(newName, w) + '</b>');
             $('.name_', element).on('click', function(e) {
                 e.stopPropagation();
-                _Entities.makeNameEditable(element);
+                _Entities.makeNameEditable(element, w);
             });
             _Pages.reloadPreviews();
         });
@@ -957,10 +968,10 @@ var _Entities = {
                 var self = $(this);
                 var newName = self.val();
                 Command.setProperty(getId(element), "name", newName);
-                self.replaceWith('<b title="' + newName + '" class="name_">' + fitStringToSize(newName, 200) + '</b>');
+                self.replaceWith('<b title="' + newName + '" class="name_">' + fitStringToWidth(newName, w) + '</b>');
                 $('.name_', element).on('click', function(e) {
                     e.stopPropagation();
-                    _Entities.makeNameEditable(element);
+                    _Entities.makeNameEditable(element, w);
                 });
                 _Pages.reloadPreviews();
             }
