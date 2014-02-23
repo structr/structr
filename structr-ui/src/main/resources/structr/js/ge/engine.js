@@ -35,7 +35,7 @@ var springLength = 20;
 var springForce = 500;
 var springDamping = 100;
 var enableSprings = true;
-var centerForce = 10;
+var centerForce = 3;
 var maxMagneticDistance = 1000000;
 var magneticForce = 50000;
 var magneticFactor = 0.5;
@@ -54,8 +54,9 @@ var headerWidth = 0;
 var headerHeight = 0;
 var canvas;
 var settings;
-var relBox;
+var nodeBox, relBox;
 var relationshipTypes = {"OWNS": 0, "SECURITY": 0, "PAGE": 0, "undefined": 0};
+var nodeTypes = {};
 var originX;
 var originY;
 var maxDepth = 2;
@@ -81,6 +82,8 @@ function Engine(parent) {
 		+ '<tr><td colspan="2" class="sliderLabel"><label for="drag">Drag</label></td></tr>'
 		+ '<tr><td colspan="2"><div id="drag"></div></td></tr>'
 		+ '</table>'
+		+ '<h3>Node Types</h3>'
+		+ '<ul class="nodeBox"></ul>'
 		+ '<h3>Relationship Types</h3>'
 		+ '<ul class="relBox"></ul>'
 		+ '</div>');
@@ -115,6 +118,7 @@ function Engine(parent) {
 			colors[i] = "#999999";	// default gray
 		}
 
+                nodeBox = $('.nodeBox');
 		relBox = $('.relBox');
 
 		relBox.append('<li><input type="checkbox" id="toggle_undefined">undefined</li>');
@@ -391,12 +395,22 @@ function Engine(parent) {
 
 	this.addNode = function(node) {
 
-		if (!isIn(node.type, types)) {
+		//if (!isIn(node.type, types) && nodeTypes[node.type] === undefined) {
+                if (nodeTypes[node.type] === undefined) {
 
 			types.push(node.type);
 			this.setCenters(100, 100);
 
+                        nodeTypes[node.type] = 1;
+
+                        nodeBox.append('<li><input type="checkbox" id="toggle_node_' + node.type + '" checked>' + node.type + '</li>');
+
 		}
+
+                $('#toggle_node_' + node.type).change(function() {
+
+			nodeTypes[node.type] = $(this).is(":checked") ? 1 : 0; console.log(node.type, nodeTypes[node.type])
+		});
 
 		new Mass(node, 0, 0);
 		
@@ -471,7 +485,7 @@ function Engine(parent) {
 
 /******************************************************************************
  * A mass object.
- */
+ *****************************************************************************/
 function Mass(node, startX, startY) {
 
 	masses[masses.length] = this;
@@ -489,6 +503,8 @@ function Mass(node, startX, startY) {
 	this.r = 10;
 
 	this.draw = function() {
+
+                if (!nodeTypes[this.typeString]) return;
 
 		var fillStyle = this.color;
 		var localAlpha = alpha;
@@ -532,7 +548,9 @@ function Mass(node, startX, startY) {
 	}
 
 	this.update = function() {
-
+ 
+                if (!nodeTypes[this.typeString]) return;
+                
 		var tmpX = this.x;
 		var tmpY = this.y;
 
@@ -597,6 +615,9 @@ function Mass(node, startX, startY) {
 	}
 }
 
+/******************************************************************************
+ * A spring object.
+ *****************************************************************************/
 function Spring(typeString, startNodeId, endNodeId) {
 
 	springs[springs.length] = this;
@@ -664,7 +685,10 @@ function Spring(typeString, startNodeId, endNodeId) {
 
 	this.draw = function() {
 
-		if (this.m1 && this.m2 && enableSprings && relationshipTypes[this.typeString] === 1) {
+                var m1 = this.m1;
+                var m2 = this.m2;
+
+		if (m1 && m2 && nodeTypes[m1.typeString] && nodeTypes[m2.typeString] && enableSprings && relationshipTypes[this.typeString]) {
 
 			this.drawRel(typeString, this.m1.x, this.m1.y, this.m2.x, this.m2.y, (this.m1.r * 2) + 2, (this.m1.r * 2) + 2, (this.m2.r * 2) + 2, (this.m2.r * 2) + 2);
 		}
@@ -703,7 +727,7 @@ function Spring(typeString, startNodeId, endNodeId) {
 
 		}
 
-		var style = "#777777";
+		var style = "#888888";
 
 		if (scale < 1) {
 			style = "#333333";
