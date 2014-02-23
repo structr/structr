@@ -240,11 +240,10 @@ function Graph(element) {
 
 function resizeCanvas() {
     var w = $(window).width() - 48;
-    var h = $(window).height() - $('#header').height() - 72;
-    canvas.parent.width(w);
-    canvas.parent.height(h);
-    canvas.setSize(w + 24, h + 24);
-    graph.redrawRelationships();
+    var h = $(window).height() - $('#header').height() - 56;
+    var g = $('#graph');
+    g.width(w);
+    g.height(h);
 }
 
 function simpleType(combinedType) {

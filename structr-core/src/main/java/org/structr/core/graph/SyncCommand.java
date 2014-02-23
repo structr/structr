@@ -682,8 +682,15 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 										uuidMap.put(uuid, (Node)currentObject);
 									}
 
-									// store object in DB
-									currentObject.setProperty(currentKey, obj);
+									if (currentKey.length() != 0) {
+
+										// store object in DB
+										currentObject.setProperty(currentKey, obj);
+										
+									} else {
+										
+										logger.log(Level.SEVERE, "Invalid property key for value {0}, ignoring", obj);
+									}
 
 									currentKey = null;
 

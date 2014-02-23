@@ -200,13 +200,13 @@ canvas {
     text-align: right;
 }
 
-ul.relBox {
+ul.relBox, ul.nodeBox {
     width: 100%;
     padding: 0;
     margin: 0;
 }
 
-ul.relBox li {
+ul.relBox li, ul.nodeBox li {
     width: 100%;
     list-style-type: none;
     padding: 0;
