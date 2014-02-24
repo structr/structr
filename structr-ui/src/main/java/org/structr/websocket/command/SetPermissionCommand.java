@@ -17,6 +17,7 @@
  */
 package org.structr.websocket.command;
 
+import java.util.Arrays;
 import org.structr.common.error.FrameworkException;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -85,6 +86,11 @@ public class SetPermissionCommand extends AbstractCommand {
 
 			try {
 				setPermission(obj, principal, action, permission, rec);
+				webSocketData.setResult(Arrays.asList(principal));
+			
+				// send only over local connection (no broadcast)
+				getWebSocket().send(webSocketData, true);
+
 
 			} catch (FrameworkException ex) {
 

@@ -18,20 +18,20 @@
  */
 package org.structr.web.entity.html;
 
-import org.structr.web.entity.dom.DOMElement;
 import org.apache.commons.lang.ArrayUtils;
 import org.structr.core.property.Property;
 
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.web.common.HtmlProperty;
+import org.structr.web.entity.LinkSource;
 
 //~--- classes ----------------------------------------------------------------
 
 /**
  * @author Axel Morgner
  */
-public class Img extends DOMElement {
+public class Img extends LinkSource {
 
 	public static final Property<String> _alt         = new HtmlProperty("alt");
 	public static final Property<String> _src         = new HtmlProperty("src");

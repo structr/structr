@@ -40,6 +40,7 @@ import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
 import org.structr.core.property.StringProperty;
 import org.structr.web.common.FileHelper;
+import org.structr.web.property.PathProperty;
 
 //~--- classes ----------------------------------------------------------------
 /**
@@ -58,8 +59,9 @@ public class File extends AbstractFile implements Linkable {
 	public static final Property<Long> checksum = new LongProperty("checksum").unvalidated();
 	public static final Property<Integer> cacheForSeconds = new IntProperty("cacheForSeconds");
 	public static final Property<Integer> version = new IntProperty("version").indexed();
+	public static final Property<String> path = new PathProperty("path").indexed();
 
-	public static final View publicView = new View(File.class, PropertyView.Public, type, name, contentType, size, url, owner);
+	public static final View publicView = new View(File.class, PropertyView.Public, type, name, contentType, size, url, owner, path);
 	public static final View uiView = new View(File.class, PropertyView.Ui, type, contentType, relativeFilePath, size, url, parent, checksum, version, cacheForSeconds, owner);
 
 	@Override
@@ -170,7 +172,12 @@ public class File extends AbstractFile implements Linkable {
 		return getProperty(File.relativeFilePath);
 
 	}
-
+	
+	@Override
+	public String getPath() {
+		return FileHelper.getFolderPath(this);
+	}
+	
 	public InputStream getInputStream() {
 
 		final String path = getRelativeFilePath();

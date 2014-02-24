@@ -698,4 +698,9 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	public Node doImport(Page newPage) throws DOMException {
 		throw new DOMException(DOMException.NOT_SUPPORTED_ERR, NOT_SUPPORTED_ERR_MESSAGE_IMPORT_DOC);
 	}
+
+	@Override
+	public String getPath() {
+		return "/".concat(getProperty(name));
+	}
 }

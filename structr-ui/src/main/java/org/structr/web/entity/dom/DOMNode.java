@@ -77,6 +77,7 @@ import org.structr.core.property.StringProperty;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.common.ThreadLocalMatcher;
+import org.structr.web.entity.Linkable;
 import org.structr.web.entity.PageData;
 import org.structr.web.entity.Renderable;
 import org.structr.web.entity.dom.relationship.DOMChildren;

@@ -17,7 +17,6 @@
  */
 package org.structr.web.servlet;
 
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -60,6 +59,7 @@ import org.structr.rest.service.HttpServiceServlet;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.common.ThreadLocalMatcher;
+import org.structr.web.entity.Linkable;
 import org.structr.web.entity.User;
 import org.structr.web.entity.dom.DOMNode;
 
@@ -136,7 +136,7 @@ public class HtmlServlet extends HttpServiceServlet {
 
 				boolean dontCache = false;
 
-				String path = PathHelper.clean(request.getPathInfo());
+				String path = request.getPathInfo();
 
 				logger.log(Level.FINE, "Path info {0}", path);
 				logger.log(Level.FINE, "Request examined by security context in {0} seconds", decimalFormat.format((System.nanoTime() - start) / 1000000000.0));
@@ -396,8 +396,7 @@ public class HtmlServlet extends HttpServiceServlet {
 	 */
 	private org.structr.web.entity.File findFile(HttpServletRequest request, final String path) throws FrameworkException {
 
-		// FIXME: Take full page path into account
-		List<AbstractNode> entryPoints = findPossibleEntryPoints(request, PathHelper.getName(path));
+		List<Linkable> entryPoints = findPossibleEntryPoints(request, PathHelper.getName(path));
 
 		// If no results were found, try to replace whitespace by '+' or '%20'
 		if (entryPoints.isEmpty()) {
@@ -408,8 +407,8 @@ public class HtmlServlet extends HttpServiceServlet {
 			entryPoints = findPossibleEntryPoints(request, PathHelper.getName(PathHelper.replaceWhitespaceByPercentTwenty(path)));
 		}
 
-		for (AbstractNode node : entryPoints) {
-			if (node instanceof org.structr.web.entity.File) {
+		for (Linkable node : entryPoints) {
+			if (node instanceof org.structr.web.entity.File && (path.equals(node.getPath()) || node.getUuid().equals(PathHelper.clean(path)))) {
 				return (org.structr.web.entity.File) node;
 			}
 		}
@@ -427,10 +426,10 @@ public class HtmlServlet extends HttpServiceServlet {
 	 */
 	private Page findPage(HttpServletRequest request, final String path) throws FrameworkException {
 
-		List<AbstractNode> entryPoints = findPossibleEntryPoints(request, PathHelper.getName(path));
+		List<Linkable> entryPoints = findPossibleEntryPoints(request, PathHelper.getName(path));
 
-		for (AbstractNode node : entryPoints) {
-			if (node instanceof Page) {
+		for (Linkable node : entryPoints) {
+			if (node instanceof Page && path.equals(node.getPath())) {
 				return (Page) node;
 			}
 		}
@@ -559,9 +558,9 @@ public class HtmlServlet extends HttpServiceServlet {
 
 	}
 
-	private List<AbstractNode> findPossibleEntryPointsByUuid(HttpServletRequest request, final String uuid) throws FrameworkException {
+	private List<Linkable> findPossibleEntryPointsByUuid(HttpServletRequest request, final String uuid) throws FrameworkException {
 
-		List<AbstractNode> possibleEntryPoints = (List<AbstractNode>) request.getAttribute(POSSIBLE_ENTRY_POINTS);
+		List<Linkable> possibleEntryPoints = (List<Linkable>) request.getAttribute(POSSIBLE_ENTRY_POINTS);
 
 		if (CollectionUtils.isNotEmpty(possibleEntryPoints)) {
 			return possibleEntryPoints;
@@ -582,15 +581,15 @@ public class HtmlServlet extends HttpServiceServlet {
 			logger.log(Level.FINE, "{0} results", results.size());
 			request.setAttribute(POSSIBLE_ENTRY_POINTS, results.getResults());
 
-			return (List<AbstractNode>) results.getResults();
+			return (List<Linkable>) results.getResults();
 		}
 
 		return Collections.EMPTY_LIST;
 	}
 
-	private List<AbstractNode> findPossibleEntryPointsByName(HttpServletRequest request, final String name) throws FrameworkException {
+	private List<Linkable> findPossibleEntryPointsByName(HttpServletRequest request, final String name) throws FrameworkException {
 
-		List<AbstractNode> possibleEntryPoints = (List<AbstractNode>) request.getAttribute(POSSIBLE_ENTRY_POINTS);
+		List<Linkable> possibleEntryPoints = (List<Linkable>) request.getAttribute(POSSIBLE_ENTRY_POINTS);
 
 		if (CollectionUtils.isNotEmpty(possibleEntryPoints)) {
 			return possibleEntryPoints;
@@ -611,15 +610,15 @@ public class HtmlServlet extends HttpServiceServlet {
 			logger.log(Level.FINE, "{0} results", results.size());
 			request.setAttribute(POSSIBLE_ENTRY_POINTS, results.getResults());
 
-			return (List<AbstractNode>) results.getResults();
+			return (List<Linkable>) results.getResults();
 		}
 
 		return Collections.EMPTY_LIST;
 	}
 
-	private List<AbstractNode> findPossibleEntryPoints(HttpServletRequest request, final String name) throws FrameworkException {
+	private List<Linkable> findPossibleEntryPoints(HttpServletRequest request, final String name) throws FrameworkException {
 
-		List<AbstractNode> possibleEntryPoints = (List<AbstractNode>) request.getAttribute(POSSIBLE_ENTRY_POINTS);
+		List<Linkable> possibleEntryPoints = (List<Linkable>) request.getAttribute(POSSIBLE_ENTRY_POINTS);
 
 		if (CollectionUtils.isNotEmpty(possibleEntryPoints)) {
 			return possibleEntryPoints;

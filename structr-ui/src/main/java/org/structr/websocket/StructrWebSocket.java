@@ -3,18 +3,17 @@
  *
  * This file is part of Structr <http://structr.org>.
  *
- * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
+ * Structr is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Affero General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
  *
- * Structr is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * Structr is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr. If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.websocket;
 
@@ -39,7 +38,6 @@ import com.google.gson.Gson;
 import org.eclipse.jetty.websocket.WebSocket;
 
 //~--- JDK imports ------------------------------------------------------------
-
 import java.io.IOException;
 
 import java.util.LinkedHashMap;
@@ -55,58 +53,53 @@ import org.structr.core.auth.Authenticator;
 import org.structr.core.graph.Tx;
 
 //~--- classes ----------------------------------------------------------------
-
 /**
  *
  * @author Christian Morgner
  */
 public class StructrWebSocket implements WebSocket.OnTextMessage {
 
-	private static final Logger logger                 = Logger.getLogger(StructrWebSocket.class.getName());
+	private static final Logger logger = Logger.getLogger(StructrWebSocket.class.getName());
 	private static final Map<String, Class> commandSet = new LinkedHashMap<>();
 
-
 	//~--- fields ---------------------------------------------------------
-
-	private String callback                          = null;
-	private Connection connection                    = null;
-	private Gson gson                                = null;
-	private PropertyKey idProperty                   = null;
-	private HttpServletRequest request               = null;
-	private SecurityContext securityContext          = null;
+	private String callback = null;
+	private Connection connection = null;
+	private Gson gson = null;
+	private PropertyKey idProperty = null;
+	private HttpServletRequest request = null;
+	private SecurityContext securityContext = null;
 	private SynchronizationController syncController = null;
-	private String token                             = null;
-	private Map<String, FileUploadHandler> uploads   = null;
-	private Authenticator authenticator              = null;
-	private String pagePath                          = null;
+	private String token = null;
+	private Map<String, FileUploadHandler> uploads = null;
+	private Authenticator authenticator = null;
+	private String pagePath = null;
 
 	//~--- constructors ---------------------------------------------------
-
 	public StructrWebSocket(final SynchronizationController syncController, final HttpServletRequest request, final Gson gson, final PropertyKey idProperty, final Authenticator authenticator) {
 
-		this.uploads        = new LinkedHashMap<>();
+		this.uploads = new LinkedHashMap<>();
 		this.syncController = syncController;
-		this.request        = request;
-		this.gson           = gson;
-		this.idProperty     = idProperty;
-		this.authenticator  = authenticator;
+		this.request = request;
+		this.gson = gson;
+		this.idProperty = idProperty;
+		this.authenticator = authenticator;
 
 	}
 
 	//~--- methods --------------------------------------------------------
-
 	@Override
 	public void onOpen(final Connection connection) {
 
 		logger.log(Level.INFO, "New connection with protocol {0}", connection.getProtocol());
 
 		this.connection = connection;
-		this.token      = null;
+		this.token = null;
 
 		syncController.registerClient(this);
-		
+
 		pagePath = this.getRequest().getQueryString();
-		
+
 		connection.setMaxTextMessageSize(1024 * 1024 * 1024);
 		connection.setMaxBinaryMessageSize(1024 * 1024 * 1024);
 
@@ -115,17 +108,29 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 	@Override
 	public void onClose(final int closeCode, final String message) {
 
-		logger.log(Level.INFO, "Connection closed with closeCode {0} and message {1}", new Object[] { closeCode, message });
+		logger.log(Level.INFO, "Connection closed with closeCode {0} and message {1}", new Object[]{closeCode, message});
 
-		this.token      = null;
-		this.connection = null;
+		final App app = StructrApp.getInstance(securityContext);
 
-		syncController.unregisterClient(this);
+		try (final Tx tx = app.tx()) {
 
-		// flush and close open uploads
-		for (FileUploadHandler upload : uploads.values()) {
+			this.token = null;
+			this.connection = null;
 
-			upload.finish();
+			syncController.unregisterClient(this);
+
+			// flush and close open uploads
+			for (FileUploadHandler upload : uploads.values()) {
+
+				upload.finish();
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			logger.log(Level.SEVERE, "Error while closing connection", fex);
+
 		}
 
 		uploads.clear();
@@ -141,14 +146,14 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 		WebSocketMessage webSocketData = gson.fromJson(data, WebSocketMessage.class);
 
 		final App app = StructrApp.getInstance(securityContext);
-		
+
 		try (final Tx tx = app.tx()) {
 
 			this.callback = webSocketData.getCallback();
 
 			String messageToken = webSocketData.getToken();
-			String command      = webSocketData.getCommand();
-			Class type          = commandSet.get(command);
+			String command = webSocketData.getCommand();
+			Class type = commandSet.get(command);
 
 			if (type != null) {
 
@@ -184,7 +189,7 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 				try {
 
 					abstractCommand.processMessage(webSocketData);
-					
+
 					// commit transaction
 					tx.success();
 
@@ -265,7 +270,7 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 	private FileUploadHandler handleExistingFile(final String uuid) {
 
 		FileUploadHandler newHandler = null;
-		
+
 		try {
 
 			File file = (File) StructrApp.getInstance(securityContext).get(uuid);
@@ -273,9 +278,8 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 			if (file != null) {
 
 				newHandler = new FileUploadHandler(file);
-				
+
 				//uploads.put(uuid, newHandler);
-				
 			}
 
 		} catch (FrameworkException ex) {
@@ -283,7 +287,7 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 			logger.log(Level.WARNING, "File not found with id " + uuid, ex);
 
 		}
-		
+
 		return newHandler;
 
 	}
@@ -300,7 +304,7 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 		if (upload != null) {
 
 			upload.handleChunk(sequenceNumber, chunkSize, data);
-			
+
 		}
 
 	}
@@ -317,9 +321,7 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 //		return Base64.encodeBase64URLSafeString(binaryData);
 //
 //	}
-
 	// ----- private methods -----
-	
 	private void authenticateToken(final String messageToken) {
 
 		Principal user = AuthHelper.getPrincipalForSessionId(messageToken);
@@ -333,7 +335,6 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 	}
 
 	// ----- private static methods -----
-	
 	public static void addCommand(final Class command) {
 
 		try {
@@ -391,13 +392,12 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 		return token != null;
 
 	}
-	
+
 	public Authenticator getAuthenticator() {
 		return authenticator;
 	}
 
 	//~--- set methods ----------------------------------------------------
-
 	public void setAuthenticated(final String token, final Principal user) {
 
 		this.token = token;
