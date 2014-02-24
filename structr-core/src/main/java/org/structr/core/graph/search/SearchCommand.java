@@ -328,20 +328,9 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 				if (hasSpatialSource) {
 
-					final int mergedSourcesSize      = mergedSources.size();
-					final int intermediateResultSize = intermediateResultSet.size();
+					// CHM 2014-02-24: preserve sorting of intermediate result, might be sorted by distance which we cannot reproduce easily
+					intermediateResultSet.retainAll(mergedSources);
 
-					if (mergedSourcesSize > intermediateResultSize) {
-
-						// do it the other way round and modify the reference afterwards
-						mergedSources.retainAll(intermediateResultSet);
-						intermediateResultSet = mergedSources;
-						
-					} else {
-
-						intermediateResultSet.retainAll(mergedSources);
-					}
-					
 				} else {
 					
 					intermediateResultSet.addAll(mergedSources);
@@ -381,8 +370,12 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 				}
 			}
 
-			// sort list
-			Collections.sort(finalResult, new GraphObjectComparator(sortKey, sortDescending));
+			// CHM 2014-02-24: sort only if not result of a spatial search!
+			if (distanceSearch == null) {
+				
+				// sort list
+				Collections.sort(finalResult, new GraphObjectComparator(sortKey, sortDescending));
+			}
 			
 			// return paged final result
 			return new Result(PagingHelper.subList(finalResult, pageSize, page, offsetId), resultCount, true, false);
