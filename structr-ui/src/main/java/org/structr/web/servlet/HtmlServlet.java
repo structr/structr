@@ -240,7 +240,7 @@ public class HtmlServlet extends HttpServiceServlet {
 						// clear possible entry points
 						request.removeAttribute(POSSIBLE_ENTRY_POINTS);
 
-						rootElement = findPage(request, PathHelper.clean(StringUtils.substringBeforeLast(path, PathHelper.PATH_SEP)));
+						rootElement = findPage(request, StringUtils.substringBeforeLast(path, PathHelper.PATH_SEP));
 
 						renderContext.setDetailsDataObject(dataNode);
 
