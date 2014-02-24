@@ -329,19 +329,8 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 				if (hasSpatialSource) {
 
-					final int mergedSourcesSize      = mergedSources.size();
-					final int intermediateResultSize = intermediateResultSet.size();
-
-					if (mergedSourcesSize > intermediateResultSize) {
-
-						// do it the other way round and modify the reference afterwards
-						mergedSources.retainAll(intermediateResultSet);
-						intermediateResultSet = mergedSources;
-						
-					} else {
-
-						intermediateResultSet.retainAll(mergedSources);
-					}
+					// CHM 2014-02-24: preserve sorting of intermediate result, might be sorted by distance which we cannot reproduce easily
+					intermediateResultSet.retainAll(mergedSources);
 					
 				} else {
 					
