@@ -637,6 +637,10 @@ span.id {
     padding-right: 4px;
 }
 
+.node.sub {
+    margin-left: 16px ! important;
+}
+
 .group .user, .folder .file, .folder .folder {
     margin: 4px 0 4px 11px;    
 }

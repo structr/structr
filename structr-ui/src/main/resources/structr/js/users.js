@@ -204,9 +204,9 @@ var _UsersAndGroups = {
                 stack: '.node',
                 appendTo: '#main',
                 zIndex: 99,
-                stop : function(e,ui) {
-                    $('#pages_').droppable('enable').removeClass('nodeHover');
-                }
+//                stop : function(e,ui) {
+//                    $('#pages_').droppable('enable').removeClass('nodeHover');
+//                }
             });
 		
         }

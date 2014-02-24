@@ -52,6 +52,7 @@ var _Pages = {
 
         Structr.initPager('Page', 1, 25);
         Structr.initPager('File', 1, 25);
+        Structr.initPager('Folder', 1, 25);
         Structr.initPager('Image', 1, 25);
         
     },

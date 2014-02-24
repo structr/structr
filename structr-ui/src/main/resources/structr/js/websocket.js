@@ -228,22 +228,22 @@ function connect() {
                 StructrModel.callCallback(data.callback, data.data[data.data['key']]);
                 StructrModel.clearCallback(data.callback);
 
-            } else if (command === 'GET' || command === 'UPDATE') { /*********************** GET / UPDATE ************************/
+            } else if (command === 'UPDATE' || command === 'SET_PERMISSION') { /*********************** UPDATE / SET_PERMISSION ************************/
 
                 var obj = StructrModel.obj(data.id);
                 if (!obj) {
                     data.data.id = data.id;
                     obj = StructrModel.create(data.data, null, false);
                 }
-                
+                 
                 obj = StructrModel.update(data);
 
                 StructrModel.callCallback(data.callback, obj);
                 StructrModel.clearCallback(data.callback);
 
-            } else if (command.endsWith('GET_BY_TYPE')) { /*********************** GET_BY_TYPE ************************/
+            } else if (command.endsWith('GET') || command.endsWith('GET_BY_TYPE')) { /*********************** GET_BY_TYPE ************************/
 
-                log('GET_BY_TYPE', data);
+                log(command, data);
 
                 $(result).each(function(i, entity) {
 
@@ -390,7 +390,7 @@ function connect() {
                 }
 
             } else {
-                log('Received unknown command: ' + command);
+                console.log('Received unknown command: ' + command);
 
                 if (sessionValid === false) {
                     log('invalid session');

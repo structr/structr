@@ -737,7 +737,7 @@ var Command = {
         var data = {};
         data.targetId = targetId;
         obj.data = data;
-        log('link()', obj);
+        console.log('link()', obj);
         return sendObj(obj);
     },
     /**

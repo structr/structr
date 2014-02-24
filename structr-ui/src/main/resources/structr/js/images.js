@@ -165,7 +165,7 @@ var _Images = {
     },
 
     getIcon : function(file) {
-        var icon = viewRootUrl + file.name;
+        var icon = file.tnSmall.path;
         return icon;
     },
 

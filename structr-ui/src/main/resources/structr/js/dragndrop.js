@@ -240,7 +240,7 @@ var _Dragndrop = {
                 || tag === 'h1' || tag === 'h2' || tag === 'h3' || tag === 'h4' || tag === 'h5' || tag === 'h5' || tag === 'pre'
                 || tag === 'li' || tag === 'em' || tag === 'title' || tag === 'b' || tag === 'span' || tag === 'th' || tag === 'td' || tag === 'button') {
             if (tag === 'a') {
-                nodeData._html_href = '/${link.name}';
+                nodeData._html_href = '${link.path}';
                 nodeData.childContent = '${parent.link.name}';
             } else if (tag === 'title') {
                 nodeData.childContent = '${page.name}';
@@ -350,7 +350,7 @@ var _Dragndrop = {
                 //console.log('CSS file dropped in <head>, creating <link>');
 
                 tag = 'link';
-                nodeData._html_href = '/${link.name}?${link.version}';
+                nodeData._html_href = '${link.path}?${link.version}';
                 nodeData._html_type = 'text/css';
                 nodeData._html_rel = 'stylesheet';
                 nodeData._html_media = 'screen';
@@ -361,14 +361,14 @@ var _Dragndrop = {
                 log('JS file dropped in <head>, creating <script>');
 
                 tag = 'script';
-                nodeData._html_src = '/${link.name}?${link.version}';
+                nodeData._html_src = '${link.path}?${link.version}';
                 nodeData._html_type = 'text/javascript';
             }
 
         } else {
 
             log('File dropped, creating <a> node', name);
-            nodeData._html_href = '/${link.name}';
+            nodeData._html_href = '${link.path}';
             nodeData._html_title = '${link.name}';
             nodeData.childContent = '${parent.link.name}';
             tag = 'a';
@@ -384,8 +384,9 @@ var _Dragndrop = {
 
         var nodeData = {}, name = source.name, tag;
         log('Image dropped, creating <img> node', name);
-        nodeData._html_src = '/' + name;
-        nodeData.name = name;
+        nodeData._html_src = '${link.path}?${link.version}';
+        nodeData.linkableId = source.id;
+        //nodeData.name = '${link.name}';
         tag = 'img';
 
         Structr.modules['images'].unload();

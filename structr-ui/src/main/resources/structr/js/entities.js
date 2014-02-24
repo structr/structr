@@ -559,7 +559,7 @@ var _Entities = {
                 dialogText.append('<table class="props" id="principals"><thead><tr><th>Name</th><th>Read</th><th>Write</th><th>Delete</th><th>Access Control</th></tr></thead><tbody></tbody></table');
 
                 var tb = $('#principals tbody', dialogText);
-                tb.append('<tr id="new"><td><select id="newPrincipal"><option></option></select></td><td><input id="newRead" type="checkbox" disabled="disabled"></td><td><input id="newRead" type="checkbox" disabled="disabled"></td><td><input id="newRead" type="checkbox" disabled="disabled"></td><td><input id="newRead" type="checkbox" disabled="disabled"></td></tr>');
+                tb.append('<tr id="new"><td><select id="newPrincipal"><option></option></select></td><td><input id="newRead" type="checkbox" disabled="disabled"></td><td><input id="newWrite" type="checkbox" disabled="disabled"></td><td><input id="newDelete" type="checkbox" disabled="disabled"></td><td><input id="newAccessControl" type="checkbox" disabled="disabled"></td></tr>');
                 Command.getByType('User', 1000, 1, 'name', 'asc', function(user) {
                     $('#newPrincipal').append('<option value="' + user.id + '">' + user.name + '</option>');
                 });
@@ -568,7 +568,6 @@ var _Entities = {
                 });
                 $('#newPrincipal').on('change', function() {
                     var sel = $(this);
-                    console.log(sel);
                     var pId = sel[0].value;
                     Command.setPermission(entity.id, pId, 'grant', 'read', false);
                     $('#new', tb).selectedIndex = 0;
@@ -579,13 +578,13 @@ var _Entities = {
 
                 });
 
-                var headers = {};
-                headers['X-StructrSessionToken'] = token;
+//                var headers = {};
+//                headers['X-StructrSessionToken'] = token;
                 $.ajax({
                     url: rootUrl + '/' + entity.id + '/in',
                     dataType: 'json',
                     contentType: 'application/json; charset=utf-8',
-                    headers: headers,
+//                    headers: headers,
                     success: function(data) {
 
                         $(data.result).each(function(i, result) {
@@ -1011,7 +1010,6 @@ function addPrincipal(entity, principal, permissions) {
                 disabled = false;
                 sw.prop('disabled', null);
             }, 200);
-            //console.log('checked elements', $('input:checked', row).length);
             if (!$('input:checked', row).length) {
                 $('#newPrincipal').append('<option value="' + row.attr('id').substring(1) + '">' + $('.name', row).text() + '</option>');
                 row.remove();
