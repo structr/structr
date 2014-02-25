@@ -235,7 +235,7 @@ var Structr = {
         }, 1000);
         log('activated reconnect loop', reconn);
     },
-    init: function() {
+    init: function() { console.log('###################### INit')
 
         token = localStorage.getItem(tokenKey);
         user = localStorage.getItem(userKey);
@@ -253,6 +253,8 @@ var Structr = {
 
         connect();
 
+        // Send initial PING to force re-connect on all pages
+        sendObj({command: 'PING', sessionId: $.cookie('JSESSIONID')});
         window.setInterval(function() {
             sendObj({command: 'PING', sessionId: $.cookie('JSESSIONID')});
         }, 60000);
