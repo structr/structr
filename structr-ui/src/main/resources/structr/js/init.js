@@ -434,7 +434,7 @@ var Structr = {
             left: l + 'px'
         });
         
-        //Structr.resize();
+        Structr.resize();
 
     },
     dialog: function(text, callbackOk, callbackCancel) {
