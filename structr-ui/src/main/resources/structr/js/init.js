@@ -1,4 +1,4 @@
-    /* 
+/* 
  *  Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
  * 
  *  This file is part of structr <http://structr.org>.
@@ -38,6 +38,8 @@ var expandedIdsKey = 'structrTreeExpandedIds_' + port;
 var lastMenuEntryKey = 'structrLastMenuEntry_' + port;
 var pagerDataKey = 'structrPagerData_' + port + '_';
 var autoRefreshDisabledKey = 'structrAutoRefreshDisabled_' + port;
+var dialogDataKey = 'structrDialogData_' + port;
+var dialogHtmlKey = 'structrDialogHtml_' + port;
 
 $(document).ready(function() {
 
@@ -102,7 +104,7 @@ $(document).ready(function() {
         Structr.modules['pages'].onload();
         _Pages.resize();
     });
-    
+
     $('#widgets_').on('click', function(e) {
         e.stopPropagation();
         Structr.clearMain();
@@ -183,6 +185,7 @@ $(document).ready(function() {
     });
 
     Structr.init();
+    Structr.connect();
 
     $(window).keyup(function(e) {
         if (e.keyCode === 27) {
@@ -235,7 +238,9 @@ var Structr = {
         }, 1000);
         log('activated reconnect loop', reconn);
     },
-    init: function() { console.log('###################### INit')
+    init: function() {
+
+        log('###################### Initialize UI ####################')
 
         token = localStorage.getItem(tokenKey);
         user = localStorage.getItem(userKey);
@@ -246,6 +251,15 @@ var Structr = {
         Structr.expanded = JSON.parse(localStorage.getItem(expandedIdsKey));
         log('######## Expanded IDs after reload ##########', Structr.expanded);
 
+        var dialogData = JSON.parse(window.localStorage.getItem(dialogDataKey));
+        log('Dialog data after init', dialogData);
+
+        if (dialogData) {
+            Structr.restoreDialog(dialogData);
+        }
+
+    },
+    connect: function() {
         // make a dummy request to get a sessionId
         if (!sessionId) {
             $.get('/get_session_id');
@@ -383,6 +397,46 @@ var Structr = {
         });
 
     },
+    restoreDialog: function(dialogData) {
+
+        $.blockUI.defaults.overlayCSS.opacity = .6;
+        $.blockUI.defaults.applyPlatformOpacityRules = false;
+
+        // Apply stored dimensions of dialog
+        var dw = dialogData.width;
+        var dh = dialogData.height;
+
+        var l = dialogData.left;
+        var t = dialogData.top;
+
+        $.blockUI({
+            fadeIn: 25,
+            fadeOut: 25,
+            message: dialogBox,
+            css: {
+                cursor: 'default',
+                border: 'none',
+                backgroundColor: 'transparent',
+                width: dw + 'px',
+                height: dh + 'px',
+                top: t + 'px',
+                left: l + 'px'
+            },
+            themedCSS: {
+                width: dw + 'px',
+                height: dh + 'px',
+                top: t + 'px',
+                left: l + 'px'
+            },
+            width: dw + 'px',
+            height: dh + 'px',
+            top: t + 'px',
+            left: l + 'px'
+        });
+        
+        //Structr.resize();
+
+    },
     dialog: function(text, callbackOk, callbackCancel) {
 
         if (browser) {
@@ -392,10 +446,11 @@ var Structr = {
             dialogMeta.empty();
             //dialogBtn.empty();
 
-            if (text)
+            if (text) {
                 dialogTitle.html(text);
+            }
 
-            if (callbackCancel)
+            if (callbackCancel) {
                 dialogCancelButton.on('click', function(e) {
                     e.stopPropagation();
                     callbackCancel();
@@ -409,10 +464,14 @@ var Structr = {
                     //$('#saveProperties').remove();
                     if (searchField)
                         searchField.focus();
+
+                    localStorage.removeItem(dialogDataKey);
+
                 });
+            }
+
             $.blockUI.defaults.overlayCSS.opacity = .6;
             $.blockUI.defaults.applyPlatformOpacityRules = false;
-
 
             var w = $(window).width();
             var h = $(window).height();
@@ -455,6 +514,11 @@ var Structr = {
             });
 
             Structr.resize();
+
+            log('Open dialog', dialog, text, dw, dh, t, l, callbackOk, callbackCancel);
+            var dialogData = {'text': text, 'top': t, 'left': l, 'width': dw, 'height': dh};
+            localStorage.setItem(dialogDataKey, JSON.stringify(dialogData));
+
         }
     },
     resize: function() {
@@ -637,9 +701,10 @@ var Structr = {
         });
     },
     reconnectDialog: function(text) {
-        if (text)
-            $('#tempErrorBox .errorText').html('<img src="icon/error.png"> ' + text);
-        //console.log(callback);
+        if (text) {
+            $('#tempErrorBox .errorText').html('<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAIsSURBVDjLpVNLSJQBEP7+h6uu62vLVAJDW1KQTMrINQ1vPQzq1GOpa9EppGOHLh0kCEKL7JBEhVCHihAsESyJiE4FWShGRmauu7KYiv6Pma+DGoFrBQ7MzGFmPr5vmDFIYj1mr1WYfrHPovA9VVOqbC7e/1rS9ZlrAVDYHig5WB0oPtBI0TNrUiC5yhP9jeF4X8NPcWfopoY48XT39PjjXeF0vWkZqOjd7LJYrmGasHPCCJbHwhS9/F8M4s8baid764Xi0Ilfp5voorpJfn2wwx/r3l77TwZUvR+qajXVn8PnvocYfXYH6k2ioOaCpaIdf11ivDcayyiMVudsOYqFb60gARJYHG9DbqQFmSVNjaO3K2NpAeK90ZCqtgcrjkP9aUCXp0moetDFEeRXnYCKXhm+uTW0CkBFu4JlxzZkFlbASz4CQGQVBFeEwZm8geyiMuRVntzsL3oXV+YMkvjRsydC1U+lhwZsWXgHb+oWVAEzIwvzyVlk5igsi7DymmHlHsFQR50rjl+981Jy1Fw6Gu0ObTtnU+cgs28AKgDiy+Awpj5OACBAhZ/qh2HOo6i+NeA73jUAML4/qWux8mt6NjW1w599CS9xb0mSEqQBEDAtwqALUmBaG5FV3oYPnTHMjAwetlWksyByaukxQg2wQ9FlccaK/OXA3/uAEUDp3rNIDQ1ctSk6kHh1/jRFoaL4M4snEMeD73gQx4M4PsT1IZ5AfYH68tZY7zv/ApRMY9mnuVMvAAAAAElFTkSuQmCC"> ' + text);
+        }
+        $('#tempErrorBox .closeButton').hide();
         $.blockUI.defaults.overlayCSS.opacity = .6;
         $.blockUI.defaults.applyPlatformOpacityRules = false;
         $.blockUI({
@@ -912,7 +977,7 @@ var Structr = {
 
         });
         $('#pages_').removeClass('nodeHover').droppable('enable');
-    }    
+    }
 };
 
 function getElementPath(element) {
@@ -1097,3 +1162,8 @@ function getComponentIdFromIdString(idString) {
 function getComponentId(element) {
     return getComponentIdFromIdString($(element).prop('id')) || undefined;
 }
+
+$(window).unload(function() {
+    // Remove dialog data in case of page reload
+    localStorage.removeItem(dialogDataKey);
+});
