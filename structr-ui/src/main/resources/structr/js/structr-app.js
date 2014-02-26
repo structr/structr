@@ -221,10 +221,11 @@ function StructrApp(baseUrl) {
             var f = s.field(inp);
 
             if (key.contains('.')) {
+                delete s.data[id][key];
                 var prop = key.split('.');
                 var local = prop[0];
                 var related = prop[1];
-                //console.log('related property (key, value)', local, related);
+                //console.log('related property (key, local, value)', key, local, related, f);
                 
                 key = local;
                 s.data[id][local] = {};
@@ -329,7 +330,7 @@ function StructrApp(baseUrl) {
             if (inp) {
                 if (inp.is('select')) {
                     var selection = $(':selected', inp); 
-                    val = selection.val() || selection.text();
+                    val = selection.attr('value');
                 } else {
                     val = rawVal || (inp.val() && inp.val().replace(/<br>/gi, '\n'));
                 }
