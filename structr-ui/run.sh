@@ -15,7 +15,7 @@ if [ ! -d $LOGS_DIR ]; then
         mkdir $LOGS_DIR
 fi
 
-$JAVA $STRUCTR $STRUCTR_ARGS > $SERVER_LOG 2>&1 &
+nohup $JAVA $STRUCTR $STRUCTR_ARGS > $SERVER_LOG 2>&1 &
 echo $! >$PIDFILE
 
 { tail -q -n0 --pid=$! -F $SERVER_LOG 2>/dev/null & } | sed -n '/Initialization complete/q'
