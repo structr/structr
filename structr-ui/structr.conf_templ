@@ -37,7 +37,7 @@ application.keystore.password =
 #
 # Paths
 base.path = .
-database.path = /home/axel/dev/structr/structr-ui/db
+database.path = ./db
 files.path = ./files
 log.database.path = ./logDb.dat
 tmp.path = /tmp
