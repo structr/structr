@@ -110,7 +110,7 @@ input[type="text"]:disabled, input.disabled {
     padding: 0;
     margin: 0;
     float: left;
-	overflow: hidden;
+    overflow: hidden;
 }
 
 .menu ul li {
@@ -625,9 +625,9 @@ span.id {
     padding: 2px 2px 2px 4px;
     margin: 0 0 0 11px;
     /*background-color: #eee;*/
-/*    background: -webkit-gradient(linear, left bottom, left top, from(#ddd), to(#eee)) no-repeat;
-    background: -moz-linear-gradient(90deg, #ddd, #eee) no-repeat;
-    filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#eeeeee', EndColorStr='#dddddd', GradientType=0);*/
+    /*    background: -webkit-gradient(linear, left bottom, left top, from(#ddd), to(#eee)) no-repeat;
+        background: -moz-linear-gradient(90deg, #ddd, #eee) no-repeat;
+        filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#eeeeee', EndColorStr='#dddddd', GradientType=0);*/
     position: relative;
 }
 
@@ -676,11 +676,11 @@ span.id {
 }
 
 #imageFolders .folder {
-	border: 1px solid #ccc;
-	background: #fbf7dc ! important;
-	width: 100%;
-/*	width: 300px ! important;
-	height: 200px;*/
+    border: 1px solid #ccc;
+    background: #fbf7dc ! important;
+    width: 100%;
+    /*	width: 300px ! important;
+            height: 200px;*/
 }
 
 .image div.wrap {
@@ -768,7 +768,7 @@ span.id {
 }
 
 .unarchive_icon {
-	right: 84px;
+    right: 84px;
 }
 
 li.page .delete_icon {
@@ -918,7 +918,13 @@ button img {
 }
 
 #tempErrorBox, #tempInfoBox {
-    padding-bottom: 18px;
+    padding: 18px;
+}
+
+#tempErrorBox .al {
+    vertical-align: middle;
+    margin-left: 4px;
+    margin-top: -4px;    
 }
 
 #dialogBox {
@@ -1041,7 +1047,7 @@ button img {
 
 #files .selected, #files .selected:hover {
     color: #333 ! important;
-	border: 1px solid #a5a5a5;
+    border: 1px solid #a5a5a5;
     background-color: #81ce25;
     background: -webkit-gradient(linear, left bottom, left top, from(#73b821), to(#90e629)) no-repeat;
     background: -moz-linear-gradient(90deg, #73b821, #90e629) no-repeat;
@@ -1049,8 +1055,8 @@ button img {
 }
 
 .node-helper {
-	width: 16px ! important;
-	height: 16px ! important;
+    width: 16px ! important;
+    height: 16px ! important;
 }
 
 #images h1 {
@@ -1413,8 +1419,8 @@ button.add_property {
     background-color: #ffe;
     padding: 1px;
     -webkit-box-shadow: 0 0 5px yellow;
-       -moz-box-shadow: 0 0 5px #888;
-            box-shadow: 0 0 5px #888;
+    -moz-box-shadow: 0 0 5px #888;
+    box-shadow: 0 0 5px #888;
 }
 .schema b:hover {
     margin: 1px 0 1px -1px;

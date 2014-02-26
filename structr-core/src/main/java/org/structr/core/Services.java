@@ -303,7 +303,7 @@ public class Services {
 
 		initializationDone = false;
 		
-		logger.log(Level.INFO, "Shutting down service layer");
+		System.out.println("INFO: Shutting down...");
 		for (Service service : serviceCache.values()) {
 			
 			try {
@@ -320,10 +320,8 @@ public class Services {
 				service.shutdown();
 
 			} catch (Throwable t) {
-
-				logger.log(Level.WARNING, "Failed to shut down {0}: {1}",
-					new Object[] { service.getName(),
-						t.getMessage() });
+				
+				System.out.println("WARNING: Failed to shut down " + service.getName() + ": " + t.getMessage());
 			}
 		}
 
@@ -335,7 +333,8 @@ public class Services {
 		// clear singleton instance
 		singletonInstance = null;
 		
-		logger.log(Level.INFO, "Finished shutdown of service layer");
+		System.out.println("INFO: Shutdown complete");
+
 	}
 
 	/**

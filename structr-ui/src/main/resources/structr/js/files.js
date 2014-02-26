@@ -576,6 +576,9 @@ var _Files = {
 
                 editor.id = file.id;
 
+                dialogBtn.children('#saveFile').remove();
+                dialogBtn.children('#saveAndClose').remove();
+
                 dialogBtn.append('<button id="saveFile" disabled="disabled" class="disabled"> Save </button>');
                 dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="disabled"> Save and close</button>');
 
