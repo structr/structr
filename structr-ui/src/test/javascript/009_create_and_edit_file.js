@@ -73,7 +73,7 @@ casper.test.begin(testName, numberOfTests, function(test) {
         this.click('#files_');
     });
 
-    casper.wait(250);
+    casper.wait(1000);
 
     sections.push('Click the "Add File" icon.');
     
@@ -85,7 +85,7 @@ casper.test.begin(testName, numberOfTests, function(test) {
         this.click('.add_file_icon');
     });
 
-    casper.wait(500);
+    casper.wait(2000);
 
     sections.push('A new file with a random name has been created in the files area. You can also drag and drop a file here from your desktop or from an OS folder to upload it, using the HTML5 Drag & Drop API.');
 
@@ -104,38 +104,38 @@ casper.test.begin(testName, numberOfTests, function(test) {
         s.moveMousePointerTo(casper, '#files .file .edit_file_icon');
     });
 
-    casper.wait(250);
+    casper.wait(1000);
     
     casper.then(function() {
         this.click('#files .file .edit_file_icon');
     });
 
-    casper.wait(250);
+    casper.wait(1000);
 
     casper.then(function() {
         this.click('.CodeMirror-code div:first-child');
     });
     
-    casper.wait(500);
+    casper.wait(1000);
 
     casper.then(function() {
         s.animatedType(this, '.CodeMirror-code div:first-child', false, 'Random text', true);
         //this.sendKeys('.CodeMirror-code div:first-child', 'Random text');
     });
 
-    casper.wait(500);
+    casper.wait(1000);
 
     casper.then(function() {
         s.moveMousePointerTo(casper, '#saveAndClose');
     });
 
-    casper.wait(500);
+    casper.wait(1000);
     
     casper.then(function() {
         this.click('#saveAndClose');
     });
 
-    casper.wait(1000);
+    casper.wait(2000);
 
     casper.then(function() {
         
