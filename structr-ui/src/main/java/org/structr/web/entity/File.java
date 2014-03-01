@@ -62,7 +62,7 @@ public class File extends AbstractFile implements Linkable {
 	public static final Property<String> path = new PathProperty("path").indexed();
 
 	public static final View publicView = new View(File.class, PropertyView.Public, type, name, contentType, size, url, owner, path);
-	public static final View uiView = new View(File.class, PropertyView.Ui, type, contentType, relativeFilePath, size, url, parent, checksum, version, cacheForSeconds, owner);
+	public static final View uiView = new View(File.class, PropertyView.Ui, type, contentType, relativeFilePath, size, url, parent, checksum, version, cacheForSeconds, owner, path);
 
 	@Override
 	public void onNodeDeletion() {
