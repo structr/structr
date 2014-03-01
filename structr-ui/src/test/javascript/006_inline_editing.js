@@ -65,7 +65,7 @@ casper.test.begin(testName, numberOfTests, function(test) {
 
     });
 
-    casper.wait(500);
+    casper.wait(2000);
 
     casper.then(function() {
         s.moveMousePointerTo(casper, '#add_page');
@@ -100,7 +100,7 @@ casper.test.begin(testName, numberOfTests, function(test) {
         s.clickInIframe(this, 'body div:nth-child(2) span');
     });
 
-    casper.wait(1000);
+    casper.wait(2000);
 
     var text = 'Some more text';
     var result = text + 'Initial body text';
@@ -117,7 +117,7 @@ casper.test.begin(testName, numberOfTests, function(test) {
         this.click('iframe');
     });
 
-    casper.wait(1000);
+    casper.wait(2000);
 
     casper.then(function() {
         test.assertEval(function(r) {
