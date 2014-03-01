@@ -353,6 +353,6 @@ var _Images = {
 
     editImage : function (button, image, element) {
         log(image);
-        element.append('<img src="/' + image.id + '"><br><a href="' + image.id + '">Download</a>');
+        element.append('Download links: <a href="' + image.path + '">Path</a>&nbsp;|&nbsp;<a href="/' + image.id + '">UUID</a><br><br><img src="/' + image.id + '">');
     }    
 };

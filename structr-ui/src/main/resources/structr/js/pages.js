@@ -292,11 +292,11 @@ var _Pages = {
 
         Structr.addPager(pages, true, 'Page');
 
-        previewTabs.append('<li id="import_page" title="Import page" class="button"><img class="add_button icon" src="icon/page_white_put.png"></li>');
+        previewTabs.append('<li id="import_page" title="Import Template" class="button"><img class="add_button icon" src="icon/page_white_put.png"></li>');
         $('#import_page', previewTabs).on('click', function(e) {
             e.stopPropagation();
 
-            Structr.dialog('Import Page', function() {
+            Structr.dialog('Import Template', function() {
                 return true;
             }, function() {
                 return true;

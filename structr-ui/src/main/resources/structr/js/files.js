@@ -246,7 +246,7 @@ var _Files = {
 
         div.children('.typeIcon').on('click', function(e) {
             e.stopPropagation();
-            window.open(viewRootUrl + file.name, 'Download ' + file.name);
+            window.open(file.path, 'Download ' + file.name);
         });
         log(folderId, add);
 

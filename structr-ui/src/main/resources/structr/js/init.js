@@ -242,6 +242,8 @@ var Structr = {
 
         log('###################### Initialize UI ####################')
 
+        $('#errorText').empty();
+
         token = localStorage.getItem(tokenKey);
         user = localStorage.getItem(userKey);
         sessionId = $.cookie('JSESSIONID');
@@ -280,8 +282,9 @@ var Structr = {
         main.empty();
 
         $('#logout_').html('Login');
-        if (text)
+        if (text) {
             $('#errorText').html(text);
+        }
         $.blockUI.defaults.overlayCSS.opacity = .6;
         $.blockUI.defaults.applyPlatformOpacityRules = false;
         $.blockUI({
