@@ -75,7 +75,7 @@ casper.test.begin(testName, numberOfTests, function(test) {
         this.click('#add_page');
     });
 
-    casper.wait(1000, function() {
+    casper.wait(5000, function() {
         test.assertEval(function() {
             return $('#errorText').text() === '';
         });
