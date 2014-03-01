@@ -59,6 +59,8 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.BooleanProperty;
+import org.structr.web.entity.LinkSource;
+import org.structr.web.entity.Linkable;
 import org.structr.web.entity.relation.Files;
 import org.structr.web.entity.relation.Folders;
 
@@ -94,13 +96,13 @@ public class Importer {
 
 	//~--- fields ---------------------------------------------------------
 	private String code;
-	private String address;
-	private boolean authVisible;
-	private String name;
+	private final String address;
+	private final boolean authVisible;
+	private final String name;
 	private Document parsedDocument;
-	private boolean publicVisible;
-	private SecurityContext securityContext;
-	private int timeout;
+	private final boolean publicVisible;
+	private final SecurityContext securityContext;
+	private final int timeout;
 
 	//~--- constructors ---------------------------------------------------
 //      public static void main(String[] args) throws Exception {
@@ -174,10 +176,10 @@ public class Importer {
 				HttpGet get = new HttpGet(address);
 				get.setHeader("User-Agent", "Mozilla");
 				get.setHeader("Connection", "close");
-				
+
 				// Skip BOM to workaround this Jsoup bug: https://github.com/jhy/jsoup/issues/348
 				code = IOUtils.toString(client.execute(get).getEntity().getContent(), "UTF-8");
-				
+
 				if (code.charAt(0) == 65279) {
 					code = code.substring(1);
 				}
@@ -188,7 +190,6 @@ public class Importer {
 //					.userAgent("Mozilla")
 //					.timeout(timeout)
 //					.get().normalise();
-				
 			} catch (IOException ioe) {
 
 				throw new FrameworkException(500, "Error while parsing content from " + address);
@@ -249,6 +250,7 @@ public class Importer {
 	// ----- private methods -----
 	private void createChildNodes(final Node startNode, final DOMNode parent, Page page, final URL baseUrl) throws FrameworkException {
 
+		Linkable res = null;
 		final List<Node> children = startNode.childNodes();
 		for (Node node : children) {
 
@@ -276,16 +278,13 @@ public class Importer {
 				id = el.id();
 
 				String downloadAddressAttr = (ArrayUtils.contains(srcElements, tag)
-					? "src"
-					: ArrayUtils.contains(hrefElements, tag)
-					? "href"
-					: null);
+					? "src" : ArrayUtils.contains(hrefElements, tag)
+					? "href" : null);
 
 				if (baseUrl != null && downloadAddressAttr != null && StringUtils.isNotBlank(node.attr(downloadAddressAttr))) {
 
 					String downloadAddress = node.attr(downloadAddressAttr);
-
-					downloadFiles(downloadAddress, baseUrl);
+					res = downloadFile(downloadAddress, baseUrl);
 
 				}
 
@@ -335,6 +334,15 @@ public class Importer {
 
 			if (newNode != null) {
 
+				newNode.setProperty(AbstractNode.visibleToPublicUsers, publicVisible);
+				newNode.setProperty(AbstractNode.visibleToAuthenticatedUsers, authVisible);
+
+				if (res != null) {
+					
+					newNode.setProperty(LinkSource.linkable, res);
+					
+				}
+				
 				// "id" attribute: Put it into the "_html_id" field
 				if (StringUtils.isNotBlank(id)) {
 
@@ -384,7 +392,19 @@ public class Importer {
 
 						} else {
 
-							newNode.setProperty(new StringProperty(PropertyView.Html.concat(nodeAttr.getKey())), nodeAttr.getValue());
+							if ("link".equals(tag) && "href".equals(key)) {
+
+								newNode.setProperty(new StringProperty(PropertyView.Html.concat(key)), "${link.path}?${link.version}");
+
+							} else if ("href".equals(key) || "src".equals(key)) {
+
+								newNode.setProperty(new StringProperty(PropertyView.Html.concat(key)), "${link.path}");
+
+							} else {
+
+								newNode.setProperty(new StringProperty(PropertyView.Html.concat(nodeAttr.getKey())), nodeAttr.getValue());
+							}
+
 						}
 					}
 
@@ -429,11 +449,15 @@ public class Importer {
 			return folder;
 		}
 
-		return (Folder) app.create(Folder.class, new NodeAttribute(AbstractNode.type, Folder.class.getSimpleName()), new NodeAttribute(AbstractNode.name, name));
+		return (Folder) app.create(Folder.class,
+			new NodeAttribute(AbstractNode.name, name),
+			new NodeAttribute(AbstractNode.visibleToPublicUsers, publicVisible),
+			new NodeAttribute(AbstractNode.visibleToAuthenticatedUsers, authVisible)
+		);
 
 	}
 
-	private void downloadFiles(String downloadAddress, final URL baseUrl) {
+	private Linkable downloadFile(String downloadAddress, final URL baseUrl) {
 
 		final String uuid = UUID.randomUUID().toString().replaceAll("[\\-]+", "");
 		String contentType;
@@ -446,28 +470,50 @@ public class Importer {
 
 		fileOnDisk.getParentFile().mkdirs();
 
-		URL downloadUrl = null;
-		long size = 0;
-		long checksum = 0;
+		URL downloadUrl;
+		long size;
+		long checksum;
 
 		try {
 
 			downloadUrl = new URL(baseUrl, downloadAddress);
+			FileUtils.copyURLToFile(downloadUrl, fileOnDisk);
 
 			logger.log(Level.INFO, "Starting download from {0}", downloadUrl);
-
-			// TODO: Add security features like null/integrity/virus checking before copying it to
-			// the files repo
-			FileUtils.copyURLToFile(downloadUrl, fileOnDisk);
-			size = fileOnDisk.length();
-			checksum = FileUtils.checksumCRC32(fileOnDisk);
 
 		} catch (IOException ioe) {
 
 			logger.log(Level.WARNING, "Unable to download from " + downloadAddress, ioe);
 
-			return;
+			try {
+				// Try alternative baseUrl with trailing "/"
+				downloadUrl = new URL(new URL(address.concat("/")), downloadAddress);
+				FileUtils.copyURLToFile(downloadUrl, fileOnDisk);
 
+			} catch (MalformedURLException ex) {
+				logger.log(Level.SEVERE, "Could not resolve address " + address.concat("/"), ex);
+				return null;
+			} catch (IOException ex) {
+				logger.log(Level.WARNING, "Unable to download from " + address.concat("/"), ex);
+				return null;
+			}
+
+			logger.log(Level.INFO, "Starting download from alternative URL {0}", downloadUrl);
+
+		}
+
+		// TODO: Add security features like null/integrity/virus checking before copying it to
+		// the files repo
+		try {
+
+			size = fileOnDisk.length();
+
+			checksum = FileUtils.checksumCRC32(fileOnDisk);
+
+		} catch (IOException ioe) {
+
+			logger.log(Level.WARNING, "Unable to calc checksum of " + fileOnDisk, ioe);
+			return null;
 		}
 
 		contentType = FileHelper.getContentMimeType(fileOnDisk);
@@ -490,7 +536,7 @@ public class Importer {
 
 		try {
 
-			if (!(fileExists(fileName, FileUtils.checksumCRC32(fileOnDisk)))) {
+			if (!(fileExists(fileName, checksum))) {
 
 				File fileNode;
 
@@ -516,19 +562,22 @@ public class Importer {
 
 						processCssFileNode(fileNode, downloadUrl);
 					}
-
 				}
+
+				return fileNode;
 
 			} else {
 
 				fileOnDisk.delete();
 			}
 
-		} catch (Exception fex) {
+		} catch (FrameworkException | IOException fex) {
 
 			logger.log(Level.WARNING, "Could not create file node.", fex);
 
 		}
+
+		return null;
 
 	}
 
@@ -572,10 +621,15 @@ public class Importer {
 	private File createFileNode(final String uuid, final String name, final String contentType, final long size, final long checksum) throws FrameworkException {
 
 		String relativeFilePath = File.getDirectoryPath(uuid) + "/" + uuid;
-		File fileNode = app.create(File.class, new NodeAttribute(GraphObject.id, uuid),
-			new NodeAttribute(AbstractNode.name, name), new NodeAttribute(File.relativeFilePath, relativeFilePath),
-			new NodeAttribute(File.contentType, contentType), new NodeAttribute(AbstractNode.visibleToPublicUsers, publicVisible),
-			new NodeAttribute(File.size, size), new NodeAttribute(File.checksum, checksum),
+		File fileNode = app.create(File.class,
+			new NodeAttribute(GraphObject.id, uuid),
+			new NodeAttribute(AbstractNode.name, name),
+			new NodeAttribute(File.relativeFilePath, relativeFilePath),
+			new NodeAttribute(File.contentType, contentType),
+			new NodeAttribute(File.size, size),
+			new NodeAttribute(File.checksum, checksum),
+			new NodeAttribute(File.version, 1),
+			new NodeAttribute(AbstractNode.visibleToPublicUsers, publicVisible),
 			new NodeAttribute(AbstractNode.visibleToAuthenticatedUsers, authVisible));
 
 		return fileNode;
@@ -585,10 +639,14 @@ public class Importer {
 	private Image createImageNode(final String uuid, final String name, final String contentType, final long size, final long checksum) throws FrameworkException {
 
 		String relativeFilePath = Image.getDirectoryPath(uuid) + "/" + uuid;
-		Image imageNode = app.create(Image.class, new NodeAttribute(GraphObject.id, uuid),
-			new NodeAttribute(AbstractNode.name, name), new NodeAttribute(File.relativeFilePath, relativeFilePath),
-			new NodeAttribute(File.contentType, contentType), new NodeAttribute(AbstractNode.visibleToPublicUsers, publicVisible),
-			new NodeAttribute(File.size, size), new NodeAttribute(File.checksum, checksum),
+		Image imageNode = app.create(Image.class,
+			new NodeAttribute(GraphObject.id, uuid),
+			new NodeAttribute(AbstractNode.name, name),
+			new NodeAttribute(File.relativeFilePath, relativeFilePath),
+			new NodeAttribute(File.contentType, contentType),
+			new NodeAttribute(File.size, size),
+			new NodeAttribute(File.checksum, checksum),
+			new NodeAttribute(AbstractNode.visibleToPublicUsers, publicVisible),
 			new NodeAttribute(AbstractNode.visibleToAuthenticatedUsers, authVisible));
 
 		return imageNode;
@@ -617,28 +675,9 @@ public class Importer {
 			String url = matcher.group(2);
 
 			logger.log(Level.INFO, "Trying to download from URL found in CSS: {0}", url);
-			downloadFiles(url, baseUrl);
+			downloadFile(url, baseUrl);
 
 		}
-
-	}
-
-	//~--- get methods ----------------------------------------------------
-	private String getNodePath(final Node node) {
-
-		Node n = node;
-		String path = "";
-
-		while ((n.nodeName() != null) && !n.nodeName().equals("html")) {
-
-			int index = n.siblingIndex();
-
-			path = n.nodeName() + "[" + index + "]" + "/" + path;
-			n = n.parent();
-
-		}
-
-		return "html/" + path;
 
 	}
 
