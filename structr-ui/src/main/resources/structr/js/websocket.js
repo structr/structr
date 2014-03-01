@@ -72,6 +72,8 @@ function connect() {
 
         ws.onopen = function() {
 
+            log('############### WebSocket onopen ###############');
+
             if ($.unblockUI) {
                 $.unblockUI({
                     fadeOut: 25
@@ -100,7 +102,7 @@ function connect() {
 
         ws.onclose = function() {
 
-            log('############### WebSocket closed ###############', reconn);
+            log('############### WebSocket onclose ###############', reconn);
 
             if (reconn) {
                 log('Automatic reconnect already active');

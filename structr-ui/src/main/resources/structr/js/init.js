@@ -248,6 +248,9 @@ var Structr = {
         log('token', token);
         log('user', user);
 
+        // Send initial PING to force re-connect on all pages
+        sendObj({command: 'PING', sessionId: sessionId});
+
         Structr.expanded = JSON.parse(localStorage.getItem(expandedIdsKey));
         log('######## Expanded IDs after reload ##########', Structr.expanded);
 
@@ -267,8 +270,6 @@ var Structr = {
 
         connect();
 
-        // Send initial PING to force re-connect on all pages
-        sendObj({command: 'PING', sessionId: $.cookie('JSESSIONID')});
         window.setInterval(function() {
             sendObj({command: 'PING', sessionId: $.cookie('JSESSIONID')});
         }, 60000);

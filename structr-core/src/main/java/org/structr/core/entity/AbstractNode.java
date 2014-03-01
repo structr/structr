@@ -18,10 +18,7 @@
  */
 package org.structr.core.entity;
 
-import org.structr.core.property.Property;
-import org.structr.core.property.StringProperty;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.property.BooleanProperty;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
 
@@ -60,8 +57,6 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeService;
 import org.structr.core.graph.RelationshipFactory;
 import org.structr.core.graph.Tx;
-import org.structr.core.property.EntityIdProperty;
-import org.structr.core.property.StartNode;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -74,15 +69,6 @@ import org.structr.core.property.StartNode;
 public abstract class AbstractNode implements NodeInterface, AccessControllable {
 
 	private static final Logger logger = Logger.getLogger(AbstractNode.class.getName());
-
-	// properties
-	public static final Property<String>          name             = new StringProperty("name").indexed();
-	public static final Property<String>          createdBy        = new StringProperty("createdBy").readOnly().writeOnce();
-	public static final Property<Boolean>         deleted          = new BooleanProperty("deleted").indexed();
-	public static final Property<Boolean>         hidden           = new BooleanProperty("hidden").indexed();
-      
-	public static final Property<Principal>       owner            = new StartNode<>("owner", PrincipalOwnsNode.class);
-	public static final Property<String>          ownerId          = new EntityIdProperty("ownerId", owner);
 
 	public static final View defaultView = new View(AbstractNode.class, PropertyView.Public, id, type);
 	
