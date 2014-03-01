@@ -94,7 +94,7 @@ public class FrontendTest extends StructrUiTest {
 	}
 
 	private void makeVideo(final String testName) throws IOException {
-		String[] args = {"/bin/sh", "-c", "cd ../docs/screenshots &&  avconv -y -r 30 -i " + testName + "/%04d.png -qscale 1 " + testName + ".mp4"};
+		String[] args = {"/bin/sh", "-c", "cd ../docs/screenshots &&  avconv -y -r 25 -i " + testName + "/%04d.png -qscale 1 " + testName + ".mp4"};
 		Process proc = Runtime.getRuntime().exec(args);
 		logger.log(Level.INFO, IOUtils.toString(proc.getInputStream()));
 		String warnings = IOUtils.toString(proc.getErrorStream());

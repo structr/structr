@@ -17,7 +17,9 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-var s = require('../setup');
+var s = require('../setup'),
+    login = require('../templates/login'),
+    createPage = require('../templates/createPage');
 
 var testName = '004_create_page';
 var heading = "Create Page", sections = [];
@@ -33,50 +35,15 @@ casper.test.begin(testName, numberOfTests, function(test) {
     casper.thenEvaluate(function() {
         window.localStorage.clear();
     }, {});
+
+    login.init(test, 'admin', 'admin');
     
-    sections.push('Login with username and password.');
-    
-    casper.then(function() {
-        s.animatedType(this, '#usernameField', false, 'admin');
-    });
-
-    casper.then(function() {
-        s.animatedType(this, '#passwordField', false, 'admin');
-    });
-
-    casper.then(function() {
-        s.mousePointer(casper, { left: 600, top: 400 });
-        s.moveMousePointerTo(casper, '#loginButton');
-    });
-
-    casper.then(function() {
-        this.click('#loginButton');
-    });
-
-    casper.waitForSelector('#errorText', function() {
-
-        test.assertEval(function() { return !($('#errorText').text() === 'Wrong username or password!'); });
-
-        test.assertEval(function() { return $('#pages').is(':visible'); });
-
-    });
+    createPage.init(test, 'test-page');
     
     sections.push('If it is not already active, click on the "Pages" menu entry.');
     
     sections.push('Click on the icon with the green plus on the rightmost tab above the preview frame.');
     
-    casper.then(function() {
-        s.moveMousePointerTo(casper, '#add_page');
-    });
-
-    casper.then(function() {
-        this.click('#add_page');
-    });
-
-    casper.wait(5000);
-    
-    // TODO: Add assertion to detect creation of page
-
     sections.push('A new page with a random name has been created. The page is automatically loaded into the preview window.');
 
     casper.then(function() {

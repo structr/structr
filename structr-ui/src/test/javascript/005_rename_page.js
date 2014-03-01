@@ -17,7 +17,9 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-var s = require('../setup');
+var s = require('../setup'),
+    login = require('../templates/login'),
+    createPage = require('../templates/createPage');
 
 var testName = '005_rename_page';
 var heading = "Rename Page", sections = [];
@@ -35,41 +37,10 @@ casper.test.begin(testName, numberOfTests, function(test) {
     }, {});
     
     sections.push('<a href="004_create_page_test.html">Login and create a page.</a>');
+
+    login.init(test, 'admin', 'admin');
     
-    casper.then(function() {
-        s.animatedType(this, '#usernameField', false, 'admin');
-    });
-
-    casper.then(function() {
-        s.animatedType(this, '#passwordField', false, 'admin');
-    });
-
-    casper.then(function() {
-        s.mousePointer(casper, { left: 600, top: 400 });
-        s.moveMousePointerTo(casper, '#loginButton');
-    });
-
-    casper.then(function() {
-        this.click('#loginButton');
-    });
-
-    casper.waitForSelector('#errorText', function() {
-
-        test.assertEval(function() { return !($('#errorText').text() === 'Wrong username or password!'); });
-
-        test.assertEval(function() { return $('#pages').is(':visible'); });
-
-    });
-    
-    casper.then(function() {
-        s.moveMousePointerTo(casper, '#add_page');
-    });
-
-    casper.then(function() {
-        this.click('#add_page');
-    });
-
-    casper.wait(3000);
+    createPage.init(test, 'test-page');
 
     sections.push('You can rename a page by simply clicking on the name on the preview tab. After entering a new name, press return or tab, or click outside the input field.');
 

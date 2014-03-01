@@ -26,7 +26,7 @@ var s = require('../setup'),
 var testName = '010_page_visibility';
 var heading = "Page Visibility", sections = [];
 var desc = "This animation shows how to change the visibility for a page.";
-var numberOfTests = 3;
+var numberOfTests = 4;
 
 s.startRecording(window, casper, testName);
 
@@ -44,7 +44,7 @@ casper.test.begin(testName, numberOfTests, function(test) {
     
     openPagesTreeView.init(test);
     
-    sections.push('Open the Access Control-Tab.');
+    sections.push('Open the Access Control tab.');
     
     casper.then(function() {
         s.moveMousePointerTo(casper, '#pagesTree .page img.button.donthide'); 

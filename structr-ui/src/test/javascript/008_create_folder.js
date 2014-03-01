@@ -17,7 +17,8 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-var s = require('../setup');
+var s = require('../setup'),
+    login = require('../templates/login');
 
 var testName = '008_create_folder';
 var heading = "Create Folder", sections = [];
@@ -33,28 +34,9 @@ casper.test.begin(testName, numberOfTests, function(test) {
     casper.thenEvaluate(function() {
         window.localStorage.clear();
     }, {});
+
+    login.init(test, 'admin', 'admin');
     
-    sections.push('Enter username and password.');
-
-    casper.then(function() {
-        s.animatedType(this, '#usernameField', false, 'admin');
-    });
-
-    casper.then(function() {
-        s.animatedType(this, '#passwordField', false, 'admin');
-    });
-
-    sections.push('Click on the login button.');
-
-    casper.then(function() {
-        s.mousePointer(casper, { left: 600, top: 400 });
-        s.moveMousePointerTo(casper, '#loginButton');
-    });
-
-    casper.then(function() {
-        this.click('#loginButton');
-    });
-
     casper.waitForSelector('#errorText', function() {
 
         test.assertEval(function() { return !($('#errorText').text() === 'Wrong username or password!'); });

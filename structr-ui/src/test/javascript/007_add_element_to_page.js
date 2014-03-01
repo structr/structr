@@ -17,12 +17,15 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-var s = require('../setup');
+var s = require('../setup'),
+    login = require('../templates/login'),
+    createPage = require('../templates/createPage'),
+    openPagesTreeView = require('../templates/openPagesTreeView');
 
 var testName = '007_add_element_to_page';
 var heading = "Add Element to Page", sections = [];
 var desc = "This animation shows how a content element is dragged into a page."
-var numberOfTests = 3;
+var numberOfTests = 4;
 
 s.startRecording(window, casper, testName);
 
@@ -30,45 +33,11 @@ casper.test.begin(testName, numberOfTests, function(test) {
 
     casper.start(s.url);
 
-    casper.then(function() {
-        s.animatedType(this, '#usernameField', false, 'admin');
-    });
+    login.init(test, 'admin', 'admin');
+    
+    createPage.init(test, 'test-page');
 
-    casper.then(function() {
-        s.animatedType(this, '#passwordField', false, 'admin');
-    });
-
-    casper.then(function() {
-        s.mousePointer(casper, { left: 600, top: 400 });
-        s.moveMousePointerTo(casper, '#loginButton');
-    });
-
-    casper.then(function() {
-        this.click('#loginButton');
-    });
-
-    casper.waitForSelector('#errorText', function() {
-
-        test.assertEval(function() {
-            return !($('#errorText').text() === 'Wrong username or password!');
-        });
-        test.assertEval(function() {
-            return $('#pages').is(':visible');
-        });
-
-    });
-
-    casper.wait(2000);
-
-    casper.then(function() {
-        s.moveMousePointerTo(casper, '#pagesTab');
-    });
-
-    casper.then(function() {
-        this.click('#pagesTab');
-    });
-
-    casper.wait(2000);
+    openPagesTreeView.init(test);
 
     casper.then(function() {
         s.moveMousePointerTo(casper, '#paletteTab');
@@ -77,18 +46,6 @@ casper.test.begin(testName, numberOfTests, function(test) {
     casper.then(function() {
         this.click('#paletteTab');
     });
-
-    casper.wait(2000);
-
-    casper.then(function() {
-        s.moveMousePointerTo(casper, '#add_page');
-    });
-
-    casper.then(function() {
-        this.click('#add_page');
-    });
-
-    casper.wait(5000);
 
     sections.push('To add HTML elements to a page, open the "Pages Tree View" slideout on the left and the "HTML Palette" slideout on the right hand side.');
 

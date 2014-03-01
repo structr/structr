@@ -17,7 +17,9 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-var s = require('../setup');
+var s = require('../setup'),
+    login = require('../templates/login'),
+    createPage = require('../templates/createPage');
 
 var testName = '006_inline_editing';
 var heading = "Inline Editing", sections = [];
@@ -36,53 +38,9 @@ casper.test.begin(testName, numberOfTests, function(test) {
 
     sections.push('<a href="004_create_page_test.html">Login and create a page.</a>');
 
-    casper.then(function() {
-        s.animatedType(this, '#usernameField', false, 'admin');
-    });
-
-    casper.then(function() {
-        s.animatedType(this, '#passwordField', false, 'admin');
-    });
-
-    casper.then(function() {
-        s.mousePointer(casper, {left: 600, top: 400});
-        s.moveMousePointerTo(casper, '#loginButton');
-    });
-
-    casper.then(function() {
-        this.click('#loginButton');
-    });
-
-    casper.waitForSelector('#errorText', function() {
-
-        test.assertEval(function() {
-            return !($('#errorText').text() === 'Wrong username or password!');
-        });
-
-        test.assertEval(function() {
-            return $('#pages').is(':visible');
-        });
-
-    });
-
-    casper.wait(2000);
-
-    casper.then(function() {
-        s.moveMousePointerTo(casper, '#add_page');
-    });
-
-    casper.then(function() {
-        this.click('#add_page');
-    });
-
-    casper.wait(5000, function() {
-        test.assertEval(function() {
-            return $('#errorText').text() === '';
-        });
-    });
-
-    casper.wait(2000);
-
+    login.init(test, 'admin', 'admin');
+    
+    createPage.init(test, 'test-page');
 
     sections.push('To edit a text section, click on it in the preview window and directly edit the text in the page. You can add new and even empty lines by simply pressing return. When finished, hit tab, or click outside the text section.');
 

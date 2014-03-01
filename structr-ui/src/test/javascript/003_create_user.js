@@ -17,8 +17,10 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-var s = require('../setup');
-
+var s = require('../setup'),
+    login = require('../templates/login'),
+    createPage = require('../templates/createPage');
+    
 var testName = '003_create_user';
 var heading = "Create User", sections = [];
 var desc = "This animation shows how to create a new user."
@@ -34,36 +36,9 @@ casper.test.begin(testName, numberOfTests, function(test) {
         window.localStorage.clear();
     }, {});
     
-    sections.push('Enter username and password.');
-    
-    casper.then(function() {
-        s.animatedType(this, '#usernameField', false, 'admin');
-    });
-
-    casper.then(function() {
-        s.animatedType(this, '#passwordField', false, 'admin');
-    });
-
-    sections.push('Click on the login button.');
-    
-    casper.then(function() {
-        s.mousePointer(casper, { left: 600, top: 400 });
-        s.moveMousePointerTo(casper, '#loginButton');
-    });
-
-    casper.then(function() {
-        this.click('#loginButton');
-    });
-
-    casper.waitForSelector('#errorText', function() {
-
-        test.assertEval(function() { return !($('#errorText').text() === 'Wrong username or password!'); });
-
-        test.assertEval(function() { return $('#pages').is(':visible'); });
-
-    });
-    
     sections.push('Click on the "Users and Groups" menu entry.');
+
+    login.init(test, 'admin', 'admin');
     
     casper.then(function() {
         s.moveMousePointerTo(casper, '#usersAndGroups_');

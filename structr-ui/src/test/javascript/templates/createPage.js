@@ -21,24 +21,25 @@
     
     // TODO: make sure current active page is pages-tab
     //test.assertEval(function() { return ($('#pages').hasClass('active')); });
-    
-    sections.push('Create ' + (name?'and rename ' : '') + 'the created page.');
+    sections.push('A new page has been created. The page is automatically loaded into the preview window.');
     
     casper.then(function() {
         s.moveMousePointerTo(casper, '#add_page');
     });
+
     casper.then(function() {
         this.click('#add_page');
     });
 
-    casper.wait(5000);
-    
-    // TODO: Add assertion to detect creation of page
+    casper.waitForSelector('#previewTabs li:nth-child(2)', function() {
+        test.assertEval(function() { return $('#previewTabs li:nth-child(2)').length === 1; });
+    });
 
-    if(name) {
+    if (name) {
         casper.then(function() {
             s.moveMousePointerTo(casper, '#previewTabs li:nth-child(2)');
         });
+
         casper.then(function() {
             this.click('#previewTabs li:nth-child(2)');
         });
