@@ -1266,7 +1266,7 @@ button.disabled {
     background: #fff;
     border-radius: 5px;
     border: 1px solid #999;
-    min-height: 600px;
+    /*min-height: 600px;*/
     margin: 12px;
     padding: 12px;
 }

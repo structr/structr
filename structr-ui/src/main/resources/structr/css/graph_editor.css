@@ -1,7 +1,7 @@
 #graph {
     position: relative;
-    padding: 12px;
-    margin: 12px;
+    padding: 12px 12px 18px 12px;
+    margin: 12px;   
     background: #fff;
     border-radius: 5px;
     border: 1px solid #999;
@@ -9,6 +9,7 @@
 
 canvas {
     margin: -12px 0 0 -12px;
+    border-radius: 5px;
 }
 
 .large {
