@@ -23,7 +23,7 @@ var s = require('../setup'),
 var testName = '008_create_folder';
 var heading = "Create Folder", sections = [];
 var desc = "This animation shows how to create a new folder."
-var numberOfTests = 3;
+var numberOfTests = 5;
 
 s.startRecording(window, casper, testName);
 
