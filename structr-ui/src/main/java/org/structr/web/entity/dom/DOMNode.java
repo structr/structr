@@ -1020,7 +1020,6 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		throws FrameworkException {
 
 		final String DEFAULT_VALUE_SEP = "!";
-		String pageId = renderContext.getPageId();
 		String[] parts = refKey.split("[\\.]+");
 		String referenceKey = parts[parts.length - 1];
 		String defaultValue = null;
@@ -1080,15 +1079,6 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 					}
 
-					/*
-					 for (AbstractRelationship rel : ((AbstractNode) _data).getRelationships(org.structr.web.common.RelType.LINK, Direction.OUTGOING)) {
-
-					 _data = rel.getTargetNode();
-
-					 break;
-
-					 }
-					 */
 					continue;
 
 				}
@@ -1196,17 +1186,6 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 						break;
 					}
 
-					/*
-					 for (AbstractRelationship rel : getRelationships(org.structr.web.common.RelType.LINK, Direction.OUTGOING)) {
-
-					 _data = rel.getTargetNode();
-
-					 break;
-
-					 }
-					
-					 continue;
-					 */
 				}
 
 				// special keyword "parent"
@@ -1299,20 +1278,6 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 				}
 
-				//				// special keyword "rest_result"
-//				if ("rest_result".equals(lowerCasePart)) {
-//
-//					HttpServletRequest request = securityContext.getRequest();
-//
-//					if (request != null) {
-//
-//						return StringEscapeUtils.escapeJavaScript(StringUtils.replace(StringUtils.defaultString((String) request.getAttribute(HtmlServlet.REST_RESPONSE)), "\n", ""));
-//					}
-//
-//					return 0;
-//
-//				}
-//				
 			}
 
 		}
@@ -1394,7 +1359,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 					String source = group.substring(2, group.length() - 1);
 
 					// fetch referenced property
-					String partValue = extractFunctions(securityContext, renderContext, source);
+					String partValue = StringUtils.remove(extractFunctions(securityContext, renderContext, source), "\\");
 
 					if (partValue != null) {
 
@@ -1428,8 +1393,6 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 	protected String extractFunctions(SecurityContext securityContext, RenderContext renderContext, String source)
 		throws FrameworkException {
-
-		String pageId = renderContext.getPageId();
 
 		// re-use matcher from previous calls
 		Matcher functionMatcher = threadLocalFunctionMatcher.get();
@@ -1653,6 +1616,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		ArrayList<String> tokens = new ArrayList<>(20);
 		boolean inDoubleQuotes = false;
 		boolean inSingleQuotes = false;
+		boolean ignoreNext     = false;
 		int len = source.length();
 		int level = 0;
 		StringBuilder currentToken = new StringBuilder(len);
@@ -1667,8 +1631,21 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 				currentToken.append(c);
 			}
 
+			if (ignoreNext) {
+				
+				ignoreNext = false;
+				continue;
+				
+			}
+			
 			switch (c) {
 
+				case '\\':
+				
+					ignoreNext = true;
+					
+					break;
+				
 				case '(':
 					level++;
 
