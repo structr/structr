@@ -392,11 +392,11 @@ public class Importer {
 
 						} else {
 
-							if ("link".equals(tag) && "href".equals(key)) {
+							if ("link".equals(tag) && "href".equals(key) && nodeAttr.getValue() == null) {
 
 								newNode.setProperty(new StringProperty(PropertyView.Html.concat(key)), "${link.path}?${link.version}");
 
-							} else if ("href".equals(key) || "src".equals(key)) {
+							} else if (("href".equals(key) || "src".equals(key)) && nodeAttr.getValue() == null) {
 
 								newNode.setProperty(new StringProperty(PropertyView.Html.concat(key)), "${link.path}");
 
