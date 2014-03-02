@@ -1153,7 +1153,21 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 					GraphObject detailsObject = renderContext.getDetailsDataObject();
 
 					if (detailsObject != null) {
-						return renderContext.getDetailsDataObject().getUuid();
+						return detailsObject.getUuid();
+					}
+
+				}
+
+				// details data object
+				if ("current".equals(lowerCasePart)) {
+
+					GraphObject detailsObject = renderContext.getDetailsDataObject();
+
+					if (detailsObject != null) {
+						
+						_data = detailsObject;
+
+						continue;
 					}
 
 				}
