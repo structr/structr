@@ -131,6 +131,11 @@ public class GraphGistImporter extends NodeServiceCommand implements Maintenance
 		final Set<RelationshipTemplate> relationships    = new LinkedHashSet<>();
 		final Map<String, SchemaNode> schemaNodes        = new LinkedHashMap<>();
 
+		// nothing to do
+		if (sources.isEmpty()) {
+			return;
+		}
+		
 		// first step: execute cypher queries
 		for (final String source : sources) {
 			
@@ -320,7 +325,7 @@ public class GraphGistImporter extends NodeServiceCommand implements Maintenance
 		return buf.toString();
 	}
 	
-	private static List<String> extractSources(final InputStream source) {
+	public static List<String> extractSources(final InputStream source) {
 
 		final List<String> sources = new LinkedList<>();
 		final StringBuilder buf    = new StringBuilder();

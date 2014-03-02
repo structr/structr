@@ -17,6 +17,7 @@
  */
 package org.structr.web;
 
+import java.io.ByteArrayInputStream;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.ArrayUtils;
@@ -59,6 +60,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.BooleanProperty;
+import org.structr.schema.importer.GraphGistImporter;
 import org.structr.web.entity.LinkSource;
 import org.structr.web.entity.Linkable;
 import org.structr.web.entity.relation.Files;
@@ -73,12 +75,13 @@ import org.structr.web.entity.relation.Folders;
 public class Importer {
 
 	private static String[] hrefElements = new String[]{"link"};
-	private static String[] ignoreElementNames = new String[]{"#declaration", "#comment", "#doctype"};
+	//private static String[] ignoreElementNames = new String[]{"#declaration", "#comment", "#doctype"};
+	private static String[] ignoreElementNames = new String[]{"#declaration", "#doctype"};
 	private static String[] srcElements = new String[]{
 		"img", "script", "audio", "video", "input", "source", "track"
 	};
 	private static final Logger logger = Logger.getLogger(Importer.class.getName());
-	private static final Map<String, String> contentTypeForExtension = new HashMap<String, String>();
+	private static final Map<String, String> contentTypeForExtension = new HashMap<>();
 
 	private static App app;
 
@@ -95,6 +98,7 @@ public class Importer {
 	}
 
 	//~--- fields ---------------------------------------------------------
+	private StringBuilder commentSource = new StringBuilder();
 	private String code;
 	private final String address;
 	private final boolean authVisible;
@@ -246,6 +250,12 @@ public class Importer {
 
 		}
 	}
+	
+	public void importDataComments() throws FrameworkException {
+		
+		// try to import graph gist from comments
+		GraphGistImporter.importGist(GraphGistImporter.extractSources(new ByteArrayInputStream(commentSource.toString().getBytes())));
+	}
 
 	// ----- private methods -----
 	private void createChildNodes(final Node startNode, final DOMNode parent, Page page, final URL baseUrl) throws FrameworkException {
@@ -256,6 +266,7 @@ public class Importer {
 
 			String tag = node.nodeName();
 			String type = CaseHelper.toUpperCamelCase(tag);
+			String comment = null;
 			String content = null;
 			String id = null;
 			StringBuilder classString = new StringBuilder();
@@ -291,18 +302,20 @@ public class Importer {
 			}
 
 			// Data and comment nodes: Trim the text and put it into the "content" field without changes
-			if (type.equals("#data") || type.equals("#comment")) {
+			if (/*type.equals("#data") || */ type.equals("#comment")) {
 
 				type = "Content";
 				tag = "";
-				content = ((DataNode) node).getWholeData().trim();
+				comment = ((Comment) node).getData();
 
 				// Don't add content node for whitespace
-				if (StringUtils.isBlank(content)) {
+				if (StringUtils.isBlank(comment)) {
 
 					continue;
 				}
-
+				
+				// store for later use
+				commentSource.append(comment).append("\n");
 			}
 
 			// Text-only nodes: Trim the text and put it into the "content" field
@@ -325,7 +338,15 @@ public class Importer {
 			// create node
 			if (StringUtils.isBlank(tag)) {
 
-				newNode = (Content) page.createTextNode(content);
+				// create comment or content node
+				if (!StringUtils.isBlank(comment)) {
+					
+					newNode = (DOMNode) page.createComment(comment);
+					
+				} else {
+					
+					newNode = (Content) page.createTextNode(content);
+				}
 
 			} else {
 

@@ -38,5 +38,4 @@ public class Comment extends Content implements org.w3c.dom.Comment {
 		
 		renderContext.getOutputWriter().append("-->");
 	}
-	
 }

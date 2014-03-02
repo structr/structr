@@ -275,22 +275,23 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	}
 
 	@Override
-	public Comment createComment(String string) {
+	public Comment createComment(String comment) {
 
 		final App app = StructrApp.getInstance(securityContext);
 
 		try {
 
 			// create new content element
-			org.structr.web.entity.dom.Comment content = (org.structr.web.entity.dom.Comment) StructrApp.getInstance(securityContext).command(CreateNodeCommand.class).execute(
-				new NodeAttribute(AbstractNode.type, org.structr.web.entity.dom.Comment.class.getSimpleName())
+			org.structr.web.entity.dom.Comment commentNode = (org.structr.web.entity.dom.Comment) StructrApp.getInstance(securityContext).command(CreateNodeCommand.class).execute(
+				new NodeAttribute(AbstractNode.type, org.structr.web.entity.dom.Comment.class.getSimpleName()),
+				new NodeAttribute(Content.content, comment)
 			);
 
 			// create relationship from ownerDocument to new text element
-			((RelationProperty<DOMNode>) Page.elements).addSingleElement(securityContext, Page.this, content);
+			((RelationProperty<DOMNode>) Page.elements).addSingleElement(securityContext, Page.this, commentNode);
 			//Page.elements.createRelationship(securityContext, Page.this, content);
 
-			return content;
+			return commentNode;
 
 		} catch (FrameworkException fex) {
 
