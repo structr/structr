@@ -62,7 +62,7 @@ var StructrModel = {
 
             obj = new StructrWidget(data);
 
-        } else if (type === 'Content') {
+        } else if (type === 'Content' || type === 'Comment') {
 
             obj = new StructrContent(data);
 

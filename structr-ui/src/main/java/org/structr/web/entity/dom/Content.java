@@ -46,6 +46,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.lang.StringUtils;
 import org.structr.common.Permission;
 import org.structr.core.graph.search.SearchCommand;
 import org.structr.web.common.RenderContext.EditMode;
@@ -65,9 +66,8 @@ public class Content extends DOMNode implements Text {
 	private static final Logger logger                                                   = Logger.getLogger(Content.class.getName());
 	public static final Property<String> contentType                                     = new StringProperty("contentType").indexed();
 	public static final Property<String> content                                         = new StringProperty("content").indexed();
-	public static final Property<Integer> size                                           = new IntProperty("size").indexed();
 	
-	private static final Map<String, Adapter<String, String>> contentConverters          = new LinkedHashMap<String, Adapter<String, String>>();
+	private static final Map<String, Adapter<String, String>> contentConverters          = new LinkedHashMap<>();
 
 	private static final ThreadLocalTracWikiProcessor tracWikiProcessor                  = new ThreadLocalTracWikiProcessor();
 	private static final ThreadLocalTextileProcessor textileProcessor                    = new ThreadLocalTextileProcessor();
@@ -76,10 +76,10 @@ public class Content extends DOMNode implements Text {
 	private static final ThreadLocalConfluenceProcessor confluenceProcessor              = new ThreadLocalConfluenceProcessor();
 
 	public static final org.structr.common.View uiView                                   = new org.structr.common.View(Content.class, PropertyView.Ui,
-		content, contentType, size, parent, pageId, hideOnDetail, hideOnIndex, showForLocales, hideForLocales, showConditions, hideConditions);
+		content, contentType, parent, pageId, hideOnDetail, hideOnIndex, showForLocales, hideForLocales, showConditions, hideConditions);
 
 	public static final org.structr.common.View publicView                               = new org.structr.common.View(Content.class, PropertyView.Public,
-		content, contentType, size, parent, pageId, hideOnDetail, hideOnIndex, showForLocales, hideForLocales, showConditions, hideConditions);
+		content, contentType, parent, pageId, hideOnDetail, hideOnIndex, showForLocales, hideForLocales, showConditions, hideConditions);
 	//~--- static initializers --------------------------------------------
 
 	static {
@@ -219,9 +219,9 @@ public class Content extends DOMNode implements Text {
 //					.concat(getProperty(Content.content))
 //					.concat("\" data-structr-type=\"").concat(getType())
 //					.concat("\" data-structr-id=\"").concat(id).concat("\">"));
-				
+				String cleanedContent = StringUtils.remove(StringUtils.remove(StringUtils.replace(getProperty(Content.content), "\n", "\\\\n"), "<!--"), "-->");
 				out.append("<!--data-structr-id=\"".concat(id)
-					.concat("\" data-structr-raw-value=\"").concat(getProperty(Content.content).replaceAll("\n", "\\\\n")).concat("\"-->"));
+					.concat("\" data-structr-raw-value=\"").concat(cleanedContent).concat("\"-->"));
 					//.concat("\" data-structr-raw-value=\"").concat(getProperty(Content.content)).concat("\"-->"));
 				
 			}

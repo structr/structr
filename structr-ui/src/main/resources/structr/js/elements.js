@@ -53,7 +53,7 @@ var _Elements = {
     elementGroups: [
         {
             'name': 'Root',
-            'elements': ['html', 'content']
+            'elements': ['html', 'content', 'comment']
         },
         {
             'name': 'Metadata',

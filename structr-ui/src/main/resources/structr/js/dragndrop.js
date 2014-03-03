@@ -248,15 +248,15 @@ var _Dragndrop = {
                 nodeData.childContent = 'Initial text for ' + tag;
             }
         }
-        if (target.type === 'Content') {
-            if (tag === 'content') {
-                log('content element dropped on content, doing nothing');
+        if (target.type === 'Content' || target.type === 'Comment') {
+            if (tag === 'content' || tag === 'comment') {
+                log('content element dropped on content or comment, doing nothing');
                 return false;
             }
             log('wrap content', pageId, target.id, tag);
             Command.wrapContent(pageId, target.id, tag);
         } else {
-            Command.createAndAppendDOMNode(pageId, target.id, (tag !== 'content' ? tag : ''), nodeData);
+            Command.createAndAppendDOMNode(pageId, target.id, tag !== 'content' ? tag : '', nodeData);
         }
         return false;
     },

@@ -80,7 +80,7 @@ var _Pages = {
             }
 
             //console.log(offsetLeft, offsetRight, windowWidth, parseInt(previews.css('marginLeft')), parseInt(previews.css('marginRight')));
-            var w = windowWidth - parseInt(previews.css('marginLeft')) - parseInt(previews.css('marginRight')) -15 + 'px';
+            var w = windowWidth - parseInt(previews.css('marginLeft')) - parseInt(previews.css('marginRight')) - 15 + 'px';
 
             previews.css({
                 width: w,
@@ -249,7 +249,7 @@ var _Pages = {
         if (wasOpen) {
             _Pages.resize(0, -rsw);
         }
-            
+
         localStorage.removeItem(activeTabRightKey);
     },
     openLeftSlideOut: function(slideout, tab, callback) {
@@ -352,7 +352,7 @@ var _Pages = {
             //Command.create(entity);
             Command.createSimplePage();
         });
-        
+
         //_Pages.resize(0,0)
 
     },
@@ -489,11 +489,12 @@ var _Pages = {
     clearIframeDroppables: function() {
         var droppablesArray = [];
         var d = $.ui.ddmanager.droppables.default;
-        if (!d) return;
+        if (!d)
+            return;
         d.forEach(function(d) {
-           if (!d.options.iframe) {
-               droppablesArray.push(d);
-           }
+            if (!d.options.iframe) {
+                droppablesArray.push(d);
+            }
         });
         $.ui.ddmanager.droppables.default = droppablesArray;
     },
@@ -605,7 +606,7 @@ var _Pages = {
 
             _Pages.findDroppablesInIframe($(this).contents(), entity.id).each(function(i, element) {
                 var el = $(element);
-                
+
                 _Dragndrop.makeDroppable(el, entity.id);
 
                 var structrId = el.attr('data-structr-el');
@@ -764,7 +765,7 @@ var _Pages = {
             hoverClass: 'nodeHover',
             tolerance: 'pointer',
             drop: function(event, ui) {
-        
+
                 var self = $(this);
                 console.log('dropped onto', self);
                 // Only html elements are allowed, and only if none exists
@@ -895,11 +896,11 @@ var _Pages = {
 
     },
     clearSlideoutsInLocalStorage: function() {
-        
+
         localStorage.setItem('structrActiveTabLeft_8875', 'foo');
         localStorage.setItem('structrActiveTabRight_8875', 'bar');
-        
+
         return localStorage.getItem('structrActiveTabLeft_8875') + ',' + localStorage.getItem('structrActiveTabRight_8875', '');
-        
+
     }
 };

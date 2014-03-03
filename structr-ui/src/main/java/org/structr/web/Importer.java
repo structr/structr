@@ -342,6 +342,7 @@ public class Importer {
 				if (!StringUtils.isBlank(comment)) {
 					
 					newNode = (DOMNode) page.createComment(comment);
+					newNode.setProperty(org.structr.web.entity.dom.Comment.contentType, "text/html");
 					
 				} else {
 					

@@ -82,7 +82,6 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 			if (document != null) {
 
 				final String tagName = (String) nodeData.get("tagName");
-				final App app        = StructrApp.getInstance();
 				
 				nodeData.remove("tagName");
 				
@@ -90,13 +89,17 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 
 					DOMNode newNode;
 
-					if (tagName != null && !tagName.isEmpty()) {
+					if (tagName != null && "comment".equals(tagName)) {
+						
+						newNode = (DOMNode) document.createComment("");
+						
+					} else if (tagName != null && !tagName.isEmpty()) {
 
-						newNode = (DOMNode)document.createElement(tagName);
+						newNode = (DOMNode) document.createElement(tagName);
 
 					} else {
 
-						newNode = (DOMNode)document.createTextNode("#text");
+						newNode = (DOMNode) document.createTextNode("#text");
 					}
 
 					// append new node to parent
