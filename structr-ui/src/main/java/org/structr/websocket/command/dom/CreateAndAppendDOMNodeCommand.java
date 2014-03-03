@@ -91,7 +91,7 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 
 					if (tagName != null && "comment".equals(tagName)) {
 						
-						newNode = (DOMNode) document.createComment("");
+						newNode = (DOMNode) document.createComment("#comment");
 						
 					} else if (tagName != null && !tagName.isEmpty()) {
 
