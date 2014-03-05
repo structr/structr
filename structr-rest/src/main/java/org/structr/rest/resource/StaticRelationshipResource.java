@@ -33,6 +33,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.neo4j.graphdb.Node;
 import org.neo4j.helpers.Predicate;
+import org.neo4j.helpers.Predicates;
 import org.neo4j.helpers.collection.Iterables;
 
 import org.structr.core.property.PropertyKey;
@@ -95,43 +96,42 @@ public class StaticRelationshipResource extends SortableResource {
 
 				if (sourceEntity instanceof NodeInterface) {
 					
+					final NodeInterface source      = (NodeInterface)sourceEntity;
+					final Node sourceNode           = source.getNode();
+					final Class relationshipType    = typeResource.entityClass;
+					final Relation relation         = AbstractNode.getRelationshipForType(relationshipType);
+					final Class destNodeType        = relation.getOtherType(typedIdResource.getEntityClass());
+					final Set<GraphObject> set      = new LinkedHashSet<>();
+
+					typeResource.collectSearchAttributes(typeResource.query);
+					final Predicate predicate = Predicates.and(typeResource.query.toPredicate(), new OtherNodeTypeRelationFilter(securityContext, sourceNode, destNodeType));
+
 					if (!typeResource.isNode) {
 
-						final NodeInterface source      = (NodeInterface)sourceEntity;
-						final Node sourceNode           = source.getNode();
-						final Class relationshipType    = typeResource.entityClass;
-						final Relation relation         = AbstractNode.getRelationshipForType(relationshipType);
-						final Class destNodeType        = relation.getOtherType(typedIdResource.getEntityClass());
-						final Set partialResult         = new LinkedHashSet<>(typeResource.doGet(sortKey, sortDescending, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE, null).getResults());
-
-						// filter list according to end node type
-						final Set<GraphObject> set = Iterables.toSet(Iterables.filter(new OtherNodeTypeRelationFilter(securityContext, sourceNode, destNodeType), source.getRelationships(relationshipType)));
-
-						// intersect partial result with result list
-						set.retainAll(partialResult);
-
-						final List<GraphObject> finalResult = new LinkedList<>(set);
-
-						// sort after merge
-						applyDefaultSorting(finalResult, sortKey, sortDescending);
-
-						// return result
-						return new Result(PagingHelper.subList(finalResult, pageSize, page, offsetId), finalResult.size(), isCollectionResource(), isPrimitiveArray());
+						set.addAll(Iterables.toSet(Iterables.filter(predicate, source.getRelationships(relationshipType))));
 
 					} else {
+
+						// FIXME: not implemented yet, how?
+						// set.addAll(Iterables.toSet(Iterables.filter(predicate, source.getRelationships(relationshipType))));
 						
-						// what here?
 					}
+
+					final List<GraphObject> finalResult = new LinkedList<>(set);
+
+					// sort after merge
+					applyDefaultSorting(finalResult, sortKey, sortDescending);
+
+					// return result
+					return new Result(PagingHelper.subList(finalResult, pageSize, page, offsetId), finalResult.size(), isCollectionResource(), isPrimitiveArray());
 				}
 				
 			} else {
-//			
-//			// second try: property key
-//			if (propertyKey != null) {
 
 				Query query = typeResource.query;
 				if (query == null) {
 					
+					// query object might not be instantiated here
 					query = StructrApp.getInstance(securityContext).nodeQuery();
 				}
 				

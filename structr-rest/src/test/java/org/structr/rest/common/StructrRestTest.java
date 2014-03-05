@@ -210,11 +210,11 @@ public class StructrRestTest extends TestCase {
 		return rels;
 	}
 	
-	protected String concat(String... parts) {
+	protected String concat(Object... parts) {
 
 		StringBuilder buf = new StringBuilder();
 		
-		for (String part : parts) {
+		for (Object part : parts) {
 			buf.append(part);
 		}
 		

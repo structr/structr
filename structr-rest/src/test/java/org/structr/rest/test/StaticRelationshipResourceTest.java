@@ -20,14 +20,19 @@ package org.structr.rest.test;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
+import java.util.LinkedList;
+import java.util.List;
 import org.structr.rest.common.StructrRestTest;
 import static org.hamcrest.Matchers.*;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 
 /**
  *
  * @author Christian Morgner
  */
-public class AdvancedRelatedNodeSearchTest extends StructrRestTest {
+public class StaticRelationshipResourceTest extends StructrRestTest {
 
 	public void testStaticRelationshipResourceFilter() {
 		
@@ -98,5 +103,98 @@ public class AdvancedRelatedNodeSearchTest extends StructrRestTest {
 
 			.when()
 				.get(concat("/test_sixs/", test03, "/testEights?anInt=[14 TO 18]"));
+	}
+	
+	public void testRelationships() {
+		
+		final List<String> testSevens = new LinkedList<>();
+		final List<String> testSixs   = new LinkedList<>();
+		final App app                 = StructrApp.getInstance();
+		
+		try {
+			app.beginTx();
+
+			for (int i=0; i<1000; i++) {
+				testSixs.add(createEntity("/test_sixs", concat("{ name: test", i, ", aString: string", i, ", anInt: ", i, " }")));
+			}
+
+			for (int i=0; i<10; i++) {
+				testSevens.add(createEntity("/test_sevens", concat("{ name: test, testSixIds: [", testSixs.get(i), "], aString: string", i, ", anInt: ", i, " }")));
+			}
+		
+			app.commitTx();
+			
+		} catch (FrameworkException fex) {
+			
+			fail("Unexpected exception.");
+			
+		} finally {
+			
+			app.finishTx();
+		}
+
+		RestAssured
+		    
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			
+			.expect()
+				.statusCode(200)
+
+				.body("result",	      hasSize(1))
+
+			.when()
+				.get(concat("/test_sevens/", testSevens.get(0), "/seven_six_one_to_manies"));
+		
+		// test the "filtered relationship" way
+		RestAssured
+		    
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			
+			.expect()
+				.statusCode(200)
+
+				.body("result",	      hasSize(1))
+				.body("result[0].id", equalTo(testSixs.get(0)))
+
+			.when()
+				.get(concat("/test_sevens/", testSevens.get(0), "/test_sixs"));
+
+		// test the "property" way
+		RestAssured
+		    
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			
+			.expect()
+				.statusCode(200)
+
+				.body("result",	      hasSize(1))
+				.body("result[0].id", equalTo(testSixs.get(0)))
+
+			.when()
+				.get(concat("/test_sevens/", testSevens.get(0), "/testSixs"));
+		
+		
+		
 	}
 }
