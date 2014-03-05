@@ -202,7 +202,7 @@ var _Elements = {
                 var sourceEl = $(ui.draggable);
                 var sourceId = getId(sourceEl);
                 var obj = StructrModel.obj(sourceId);
-                if (obj.syncedNodes && obj.syncedNodes.length || sourceEl.parent().attr('id') === 'componentsArea') {
+                if (obj && obj.syncedNodes && obj.syncedNodes.length || sourceEl.parent().attr('id') === 'componentsArea') {
                     log('component dropped on components area, aborting');
                     return false;
                 }

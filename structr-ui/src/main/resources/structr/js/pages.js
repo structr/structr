@@ -934,67 +934,90 @@ var _Pages = {
 
     },
     displayDataBinding: function(id) {
-//        dataBindingSlideout.children('#data-binding').remove();
-//        dataBindingSlideout.append('<div id="data-binding"></div>');
-//        _Entities.queryDialog(Structr.node(id), $('#data-binding'));
+        dataBindingSlideout.children('#data-binding-inputs').remove();
+        dataBindingSlideout.append('<div class="inner" id="data-binding-inputs"></div>');
+        
+        var el = $('#data-binding-inputs');
+        
+        var entity = StructrModel.obj(id);
+        
+        el.append('<div id="data-tabs"><ul><li class="active" id="tab-rest">REST Query</li><li id="tab-cypher">Cypher Query</li><li id="tab-xpath">XPath Query</li></ul>'
+                + '<div id="content-tab-rest"></div><div id="content-tab-cypher"></div><div id="content-tab-xpath"></div></div>');
+
+        _Entities.appendTextarea($('#content-tab-rest'), entity, 'restQuery', 'REST Query', '');
+        _Entities.appendTextarea($('#content-tab-cypher'), entity, 'cypherQuery', 'Cypher Query', '');
+        _Entities.appendTextarea($('#content-tab-xpath'), entity, 'xpathQuery', 'XPath Query', '');
+
+        _Entities.activateTabs('#data-tabs', '#content-tab-rest');
+        
+        _Entities.appendInput(el, entity, 'dataKey', 'Data Key', 'Query results are mapped to this key and can be accessed by ${<i>&lt;dataKey&gt;.&lt;propertyKey&gt;</i>}');
+        
+        
     },
     reloadDataBindingWizard: function() {
-        dataBindingSlideout.children('.inner').remove();
-        dataBindingSlideout.append('<div class="inner"><select id="type-selector"><option>--- Select type ---</option></select><div id="data-wizard-attributes"></div></div>');
+        dataBindingSlideout.children('#wizard').remove();
+        dataBindingSlideout.prepend('<div class="inner" id="wizard"><select id="type-selector"><option>--- Select type ---</option></select><div id="data-wizard-attributes"></div></div>');
         // Command.list(type, rootOnly, pageSize, page, sort, order, callback) {
-        Command.list('SchemaNode', false, 1000, 1, 'name', 'asc', function(typeNode) {
-            $('#type-selector').append('<option value="' + typeNode.id + '">' + typeNode.name + '</option>')
-        });
-        
         var selectedType = localStorage.getItem(selectedTypeKey);
-        
-        console.log(selectedType)
+        Command.list('SchemaNode', false, 1000, 1, 'name', 'asc', function(typeNode) {
+            $('#type-selector').append('<option ' + (typeNode.id === selectedType ? 'selected' : '') + ' value="' + typeNode.id + '">' + typeNode.name + '</option>')
+        });
+
+        $('#data-wizard-attributes').empty();
         if (selectedType) {
-            $('#type-selector').val(selectedType);
+            _Pages.showTypeData(selectedType);
         }
-        
+
         $('#type-selector').on('change', function() {
             $('#data-wizard-attributes').empty();
             var id = $(this).children(':selected').attr('value');
+            _Pages.showTypeData(id);
+        });
+
+    },
+    showTypeData: function(id) {
+
+        Command.get(id, function(t) {
+
             localStorage.setItem(selectedTypeKey, id);
-            
-            Command.get(id, function(t) {
 
-                $('#data-wizard-attributes').prepend('<div class="data-binding-type draggable">:' + t.name + '</div>');
-                $('.data-binding-type').draggable({
-                    iframeFix: true,
-                    revert: 'invalid',
-                    containment: 'body',
-                    helper: 'clone',
-                    appendTo: '#main',
-                    stack: '.node',
-                    zIndex: 99
-                });
+            $('#data-wizard-attributes').append('<div class="clear">&nbsp;</div><p>You can drag and drop the type box onto a block in a page.'
+                + 'The type will be bound to the block which will loop over the result set.</p>');
 
-                $('#data-wizard-attributes').append('<p>The following attributes were found for ' + t.name + ':</p>');
-
-                $.each(Object.keys(t), function(i, key) {
-
-                    if (key.startsWith('_')) {
-
-                        var typeKey = t.name.toLowerCase();
-
-                        $('#data-wizard-attributes').append('<div class="draggable data-binding-attribute ' + key + '">' + typeKey + '.' + key.substring(1) + '</div>');
-                        $('#data-wizard-attributes').children('.draggable.' + key).draggable({
-                            iframeFix: true,
-                            revert: 'invalid',
-                            containment: 'body',
-                            helper: 'clone',
-                            appendTo: '#main',
-                            stack: '.node',
-                            zIndex: 99
-                        });
-                    }
-                });
-
-                $('#data-wizard-attributes').append('<div class="clear">&nbsp;</div><p>Drag and drop these elements onto the page for data binding.</p>');
-
+            $('#data-wizard-attributes').append('<div class="data-binding-type draggable">:' + t.name + '</div>');
+            $('.data-binding-type').draggable({
+                iframeFix: true,
+                revert: 'invalid',
+                containment: 'body',
+                helper: 'clone',
+                appendTo: '#main',
+                stack: '.node',
+                zIndex: 99
             });
+
+            $('#data-wizard-attributes').append('<p>The following attributes were found for ' + t.name + ':</p>');
+
+            $.each(Object.keys(t), function(i, key) {
+
+                if (key.startsWith('_')) {
+
+                    var typeKey = t.name.toLowerCase();
+
+                    $('#data-wizard-attributes').append('<div class="draggable data-binding-attribute ' + key + '">' + typeKey + '.' + key.substring(1) + '</div>');
+                    $('#data-wizard-attributes').children('.draggable.' + key).draggable({
+                        iframeFix: true,
+                        revert: 'invalid',
+                        containment: 'body',
+                        helper: 'clone',
+                        appendTo: '#main',
+                        stack: '.node',
+                        zIndex: 99
+                    });
+                }
+            });
+
+            $('#data-wizard-attributes').append('<div class="clear">&nbsp;</div><p>Drag and drop these elements onto the page for data binding.</p>');
+
         });
 
     }

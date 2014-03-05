@@ -612,7 +612,7 @@ var _Entities = {
         }
     },
     appendTextarea: function(el, entity, key, label, desc) {
-        el.append('<div><h3>' + label + '</h3><p>' + desc + '</p><textarea cols="60" rows="4" id="' + key + '_">' + (entity[key] ? entity[key] : '') + '</textarea></div>');
+        el.append('<div><h3>' + label + '</h3><p>' + desc + '</p><textarea class="query-text" id="' + key + '_">' + (entity[key] ? entity[key] : '') + '</textarea></div>');
         el.append('<div><button id="apply_' + key + '">Save</button></div>');
         var btn = $('#apply_' + key, el);
         btn.on('click', function() {
