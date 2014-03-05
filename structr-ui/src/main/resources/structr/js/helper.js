@@ -459,3 +459,7 @@ function getNonCommentSiblings(el) {
         s = s.nextSibling;
     }
 }
+
+function pluralize(name) {
+    return name.endsWith('y') ? name.substring(0, name.length - 1) + 'ies' : (name.endsWith('s') ? name : name + 's');
+}

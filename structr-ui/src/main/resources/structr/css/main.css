@@ -154,6 +154,7 @@ img.disabled {
 }
 
 #pages,
+#dataBinding,
 #widgets,
 #remoteWidgets,
 #propertyDefinitions,
@@ -233,26 +234,37 @@ img.disabled {
 
 #pagesTab {
     right: -72px;
+    width: 100px;
     top: 60px;
+}
+
+#dataBindingTab {
+    right: -61px;
+    width: 78px;
+    top: 176px;
 }
 
 #widgetsTab {
     left: -44px;
+    width: 48px;
     top: 60px;
 }
 
 #paletteTab {
     left: -60px;
+    width: 80px;
     top: 148px;
 }
 
 #componentsTab {
     left: -79px;
+    width: 118px;
     top: 271px;
 }
 
 #elementsTab {
     left: -72px;
+    width: 104px;
     top: 406px;
 }
 
@@ -1489,4 +1501,22 @@ button.add_property {
 
 .image-folder:hover b {
     color: #000;
+}
+
+/**
+ * Data Binding Wizard slideout
+ */
+#dataBinding .inner {
+    margin: 16px 0 0 36px;
+}
+
+#dataBinding .draggable {
+    border-radius: 3px;
+}
+
+.data-binding-type {
+    padding: 12px;
+    margin-top: 24px;
+    float: none ! important;
+    width: 200px;
 }

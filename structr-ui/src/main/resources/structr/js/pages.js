@@ -18,7 +18,7 @@
  */
 
 var pages, shadowPage;
-var previews, previewTabs, controls, activeTab, activeTabLeft, activeTabRight, paletteSlideout, elementsSlideout, componentsSlideout, widgetsSlideout, pagesSlideout;
+var previews, previewTabs, controls, activeTab, activeTabLeft, activeTabRight, paletteSlideout, elementsSlideout, componentsSlideout, widgetsSlideout, pagesSlideout, dataBindingSlideout;
 var lsw, rsw;
 var components, elements;
 var selStart, selEnd;
@@ -28,6 +28,7 @@ var textBeforeEditing;
 var activeTabKey = 'structrActiveTab_' + port;
 var activeTabRightKey = 'structrActiveTabRight_' + port;
 var activeTabLeftKey = 'structrActiveTabLeft_' + port;
+var selectedTypeKey = 'structrSelectedType_' + port;
 
 var win = $(window);
 
@@ -47,19 +48,18 @@ var _Pages = {
     delete_icon: 'icon/page_delete.png',
     clone_icon: 'icon/page_copy.png',
     autoRefresh: [],
-    
     init: function() {
 
         Structr.initPager('Page', 1, 25);
         Structr.initPager('File', 1, 25);
         Structr.initPager('Folder', 1, 25);
         Structr.initPager('Image', 1, 25);
-        
+
     },
     resize: function(offsetLeft, offsetRight) {
 
         var windowWidth = win.width(), windowHeight = win.height();
-        var headerOffsetHeight = 100,  previewOffset = 22;
+        var headerOffsetHeight = 100, previewOffset = 22;
 
         $('.ver-scrollable').css({
             height: windowHeight - headerOffsetHeight + 'px'
@@ -100,7 +100,6 @@ var _Pages = {
         }
 
     },
-            
     onload: function() {
 
         _Pages.init();
@@ -112,25 +111,31 @@ var _Pages = {
 
         log('onload');
 
-        main.prepend('<div id="pages" class="slideOut slideOutLeft"><div class="compTab" id="pagesTab">Pages Tree View</div></div><div id="previews"></div>'
+        main.prepend(
+                '<div id="pages" class="slideOut slideOutLeft"><div class="compTab" id="pagesTab">Pages Tree View</div></div>'
+                + '<div id="dataBinding" class="slideOut slideOutLeft"><div class="compTab" id="dataBindingTab">Data Binding</div></div>'
+                + '<div id="previews"></div>'
                 + '<div id="widgetsSlideout" class="slideOut slideOutRight"><div class="compTab" id="widgetsTab">Widgets</div></div>'
                 + '<div id="palette" class="slideOut slideOutRight"><div class="compTab" id="paletteTab">HTML Palette</div></div>'
                 + '<div id="components" class="slideOut slideOutRight"><div class="compTab" id="componentsTab">Shared Components</div></div>'
                 + '<div id="elements" class="slideOut slideOutRight"><div class="compTab" id="elementsTab">Unused Elements</div></div>');
 
-        previews        = $('#previews');
-        pagesSlideout   = $('#pages');
+        pagesSlideout = $('#pages');
+        dataBindingSlideout = $('#dataBinding');
 
-        widgetsSlideout     = $('#widgetsSlideout');
-        paletteSlideout     = $('#palette');
-        componentsSlideout  = $('#components');
-        elementsSlideout    = $('#elements');
+        previews = $('#previews');
+
+        widgetsSlideout = $('#widgetsSlideout');
+        paletteSlideout = $('#palette');
+        componentsSlideout = $('#components');
+        elementsSlideout = $('#elements');
 
         lsw = pagesSlideout.width() + 12;
         rsw = widgetsSlideout.width() + 12;
 
         $('#pagesTab').on('click', function() {
             if (pagesSlideout.position().left === -lsw) {
+                _Pages.closeLeftSlideOuts([dataBindingSlideout]);
                 _Pages.openLeftSlideOut(pagesSlideout, this);
             } else {
                 _Pages.closeLeftSlideOuts([pagesSlideout]);
@@ -139,10 +144,22 @@ var _Pages = {
             tolerance: 'touch',
             over: function(e, ui) {
                 if (pagesSlideout.position().left === -lsw) {
+                    _Pages.closeLeftSlideOuts([dataBindingSlideout]);
                     _Pages.openLeftSlideOut(pagesSlideout, this);
                 } else {
                     _Pages.closeLeftSlideOuts([pagesSlideout]);
                 }
+            }
+        });
+
+        $('#dataBindingTab').on('click', function() {
+            if (dataBindingSlideout.position().left === -lsw) {
+                _Pages.closeLeftSlideOuts([pagesSlideout]);
+                _Pages.openLeftSlideOut(dataBindingSlideout, this, function() {
+                    _Pages.reloadDataBindingWizard();
+                });
+            } else {
+                _Pages.closeLeftSlideOuts([dataBindingSlideout]);
             }
         });
 
@@ -234,9 +251,9 @@ var _Pages = {
         }
         _Pages.resize(0, rsw);
     },
-    closeSlideOuts: function(slideout) {
+    closeSlideOuts: function(slideouts) {
         var wasOpen = false;
-        slideout.forEach(function(w) {
+        slideouts.forEach(function(w) {
             var s = $(w);
             var l = s.position().left;
             if (l !== $(window).width()) {
@@ -263,17 +280,21 @@ var _Pages = {
         }
         _Pages.resize(lsw, 0);
     },
-    closeLeftSlideOuts: function(slideout) {
-        slideout.forEach(function(w) {
+    closeLeftSlideOuts: function(slideouts) {
+        var wasOpen = false;
+        slideouts.forEach(function(w) {
             var s = $(w);
             var l = s.position().left;
-            if (l !== $(window).width()) {
+            if (l === 0) {
+                wasOpen = true;
                 s.animate({left: '-=' + lsw + 'px'}, {duration: 100}).zIndex(2);
                 $('.compTab.active', s).removeClass('active');
             }
         });
+        if (wasOpen) {
+            _Pages.resize(-lsw, 0);
+        }
         localStorage.removeItem(activeTabLeftKey);
-        _Pages.resize(-lsw, 0);
     },
     clearPreviews: function() {
 
@@ -597,6 +618,8 @@ var _Pages = {
                         //		+ '.structr-element-container-active { display; inline-block; border: 1px dotted #e5e5e5; margin: -1px; padding: -1px; min-height: 10px; min-width: 10px; }\n'
                         //		+ '.structr-element-container { }\n'
                         + '.structr-element-container-active:hover { -moz-box-shadow: 0 0 5px #888; -webkit-box-shadow: 0 0 5px #888; box-shadow: 0 0 5px #888; }\n'
+                        + '.structr-element-container-selected { -moz-box-shadow: 0 0 8px #860; -webkit-box-shadow: 0 0 8px #860; box-shadow: 0 0 8px #860; }\n'
+                        + '.structr-element-container-selected:hover { -moz-box-shadow: 0 0 10px #750; -webkit-box-shadow: 0 0 10px #750; box-shadow: 0 0 10px #750; }\n'
                         + '.nodeHover { -moz-box-shadow: 0 0 5px #888; -webkit-box-shadow: 0 0 5px #888; box-shadow: 0 0 5px #888; }\n'
                         + '.structr-editable-area { color: #222; background-color: #ffe; padding: 1px; margin: -1px; -moz-box-shadow: 0 0 5px #888; -webkit-box-shadow: 0 0 5px yellow; box-shadow: 0 0 5px #888; }\n'
                         + '.structr-editable-area-active { background-color: #ffe; border: 1px solid orange ! important; color: #333; margin: -1px; padding: 1px; }\n'
@@ -640,6 +663,13 @@ var _Pages = {
                     var offsetTop = -30;
                     var offsetLeft = 0;
                     el.on({
+                        click: function(e) {
+                            e.stopPropagation();
+                            var self = $(this);
+                            self.closest('body').find('.structr-element-container-selected').removeClass('structr-element-container-selected');
+                            self.toggleClass('structr-element-container-selected');
+                            _Pages.displayDataBinding(structrId);
+                        },
                         mouseover: function(e) {
                             e.stopPropagation();
                             var self = $(this);
@@ -901,6 +931,71 @@ var _Pages = {
         localStorage.setItem('structrActiveTabRight_8875', 'bar');
 
         return localStorage.getItem('structrActiveTabLeft_8875') + ',' + localStorage.getItem('structrActiveTabRight_8875', '');
+
+    },
+    displayDataBinding: function(id) {
+//        dataBindingSlideout.children('#data-binding').remove();
+//        dataBindingSlideout.append('<div id="data-binding"></div>');
+//        _Entities.queryDialog(Structr.node(id), $('#data-binding'));
+    },
+    reloadDataBindingWizard: function() {
+        dataBindingSlideout.children('.inner').remove();
+        dataBindingSlideout.append('<div class="inner"><select id="type-selector"><option>--- Select type ---</option></select><div id="data-wizard-attributes"></div></div>');
+        // Command.list(type, rootOnly, pageSize, page, sort, order, callback) {
+        Command.list('SchemaNode', false, 1000, 1, 'name', 'asc', function(typeNode) {
+            $('#type-selector').append('<option value="' + typeNode.id + '">' + typeNode.name + '</option>')
+        });
+        
+        var selectedType = localStorage.getItem(selectedTypeKey);
+        
+        console.log(selectedType)
+        if (selectedType) {
+            $('#type-selector').val(selectedType);
+        }
+        
+        $('#type-selector').on('change', function() {
+            $('#data-wizard-attributes').empty();
+            var id = $(this).children(':selected').attr('value');
+            localStorage.setItem(selectedTypeKey, id);
+            
+            Command.get(id, function(t) {
+
+                $('#data-wizard-attributes').prepend('<div class="data-binding-type draggable">:' + t.name + '</div>');
+                $('.data-binding-type').draggable({
+                    iframeFix: true,
+                    revert: 'invalid',
+                    containment: 'body',
+                    helper: 'clone',
+                    appendTo: '#main',
+                    stack: '.node',
+                    zIndex: 99
+                });
+
+                $('#data-wizard-attributes').append('<p>The following attributes were found for ' + t.name + ':</p>');
+
+                $.each(Object.keys(t), function(i, key) {
+
+                    if (key.startsWith('_')) {
+
+                        var typeKey = t.name.toLowerCase();
+
+                        $('#data-wizard-attributes').append('<div class="draggable data-binding-attribute ' + key + '">' + typeKey + '.' + key.substring(1) + '</div>');
+                        $('#data-wizard-attributes').children('.draggable.' + key).draggable({
+                            iframeFix: true,
+                            revert: 'invalid',
+                            containment: 'body',
+                            helper: 'clone',
+                            appendTo: '#main',
+                            stack: '.node',
+                            zIndex: 99
+                        });
+                    }
+                });
+
+                $('#data-wizard-attributes').append('<div class="clear">&nbsp;</div><p>Drag and drop these elements onto the page for data binding.</p>');
+
+            });
+        });
 
     }
 };

@@ -874,10 +874,6 @@ var _Schema = {
     }
 };
 
-function pluralize(name) {
-    return name.endsWith('y') ? name.substring(0, name.length - 1) + 'ies' : (name.endsWith('s') ? name : name + 's');
-}
-
 var typeOptions = '<select class="property-type"><option value="">--Select type--</option>'
         + '<option value="String">String</option>'
         + '<option value="Integer">Integer</option>'

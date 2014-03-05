@@ -298,6 +298,7 @@ var Structr = {
             }
         });
         Structr.activateMenuEntry('logout');
+        $('#usernameField').focus();
     },
     doLogin: function(username, password) {
         log('doLogin ' + username + ' with ' + password);
@@ -1006,14 +1007,6 @@ function swapFgBg(el) {
 
 function isImage(contentType) {
     return (contentType && contentType.indexOf('image') > -1);
-}
-
-function plural(type) {
-    if (type.substring(type.length - 1, type.length) === 'y') {
-        return type.substring(0, type.length - 1) + 'ies';
-    } else {
-        return type + 's';
-    }
 }
 
 function addExpandedNode(id) {

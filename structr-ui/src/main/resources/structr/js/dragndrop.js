@@ -35,7 +35,7 @@ var _Dragndrop = {
         el.droppable({
             iframeFix: true,
             iframe: iframe,
-            accept: '.node, .element, .content, .image, .file, .widget',
+            accept: '.node, .element, .content, .image, .file, .widget, .data-binding-attribute, .data-binding-type',
             greedy: true,
             hoverClass: 'nodeHover',
             //appendTo: 'body',
@@ -63,9 +63,9 @@ var _Dragndrop = {
                 }
 
 
-                log('dropped onto', self, targetId, getId(sortParent));
+                console.log('dropped onto', self, targetId, getId(sortParent));
                 if (targetId === getId(sortParent)) {
-                    log('target id == sortParent id', targetId, getId(sortParent));
+                    console.log('target id == sortParent id', targetId, getId(sortParent));
                     return false;
                 }
 
@@ -92,7 +92,7 @@ var _Dragndrop = {
                     target = { id: targetId };
                 }
 
-
+                log(source, target, pageId, tag);
                 if (_Dragndrop.dropAction(source, target, pageId, tag)) {
                     $(ui.draggable).remove();
                     sortParent = undefined;
@@ -162,7 +162,7 @@ var _Dragndrop = {
      */
     dropAction: function(source, target, pageId, tag) {
 
-        log('dropAction', source, target, pageId, tag);
+        console.log('dropAction', source, target, pageId, tag);
 
         if (source && pageId && source.pageId && pageId !== source.pageId) {
 
@@ -210,8 +210,21 @@ var _Dragndrop = {
         }
 
         if (!source && tag) {
-
-            return _Dragndrop.htmlElementFromPaletteDropped(tag, target, pageId);
+            
+            if (tag.indexOf('.') !== -1) { console.log(target)
+                var firstContentId = target.children[0].id;
+                console.log('some serious fun here:', firstContentId);
+                Command.setProperty(firstContentId, 'content', '${' + tag + '}');
+            } else if (tag.indexOf(':') !== -1) {
+                console.log('type dropped:', target);
+                var type = tag.substring(1);
+                Command.setProperty(target.id, 'restQuery', pluralize(type.toLowerCase()));
+                Command.setProperty(target.id, 'dataKey', type.toLowerCase(), false, function() {
+                    _Pages.reloadPreviews();
+                });
+            } else {
+                return _Dragndrop.htmlElementFromPaletteDropped(tag, target, pageId);
+            }
 
         } else {
 
