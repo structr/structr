@@ -941,14 +941,14 @@ var _Pages = {
         
         var entity = StructrModel.obj(id);
         
-        el.append('<div id="data-tabs"><ul><li class="active" id="tab-rest">REST Query</li><li id="tab-cypher">Cypher Query</li><li id="tab-xpath">XPath Query</li></ul>'
-                + '<div id="content-tab-rest"></div><div id="content-tab-cypher"></div><div id="content-tab-xpath"></div></div>');
+        el.append('<div id="data-binding-tabs" class="data-tabs"><ul><li class="active" id="tab-binding-rest">REST Query</li><li id="tab-binding-cypher">Cypher Query</li><li id="tab-binding-xpath">XPath Query</li></ul>'
+                + '<div id="content-tab-binding-rest"></div><div id="content-tab-binding-cypher"></div><div id="content-tab-binding-xpath"></div></div>');
 
-        _Entities.appendTextarea($('#content-tab-rest'), entity, 'restQuery', 'REST Query', '');
-        _Entities.appendTextarea($('#content-tab-cypher'), entity, 'cypherQuery', 'Cypher Query', '');
-        _Entities.appendTextarea($('#content-tab-xpath'), entity, 'xpathQuery', 'XPath Query', '');
+        _Entities.appendTextarea($('#content-tab-binding-rest'), entity, 'restQuery', 'REST Query', '');
+        _Entities.appendTextarea($('#content-tab-binding-cypher'), entity, 'cypherQuery', 'Cypher Query', '');
+        _Entities.appendTextarea($('#content-tab-binding-xpath'), entity, 'xpathQuery', 'XPath Query', '');
 
-        _Entities.activateTabs('#data-tabs', '#content-tab-rest');
+        _Entities.activateTabs('#data-binding-tabs', '#content-tab-binding-rest');
         
         _Entities.appendInput(el, entity, 'dataKey', 'Data Key', 'Query results are mapped to this key and can be accessed by ${<i>&lt;dataKey&gt;.&lt;propertyKey&gt;</i>}');
         
@@ -995,7 +995,7 @@ var _Pages = {
                 zIndex: 99
             });
 
-            $('#data-wizard-attributes').append('<p>The following attributes were found for ' + t.name + ':</p>');
+            $('#data-wizard-attributes').append('<p>The following local properties were found for ' + t.name + ':</p>');
 
             $.each(Object.keys(t), function(i, key) {
 

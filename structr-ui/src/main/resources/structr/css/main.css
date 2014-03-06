@@ -450,14 +450,14 @@ ul#previewTabs {
     height: 25px;
 }
 
-#data-tabs, #data-tabs ul, #tabs, #tabs ul {
+.data-tabs, .data-tabs ul, #tabs, #tabs ul {
     background: none;
     border: none;
     padding: 0;
     margin: 0;
 }
 
-#previewTabs li, #tabs li, .compTab, #data-tabs li {
+#previewTabs li, #tabs li, .compTab, .data-tabs li {
     vertical-align: middle;
     line-height: 1.5em;
     border-radius: 5px;
@@ -480,30 +480,30 @@ ul#previewTabs {
     height: 22px;
 }
 
-#previewTabs li, #tabs li, #data-tabs li {
+#previewTabs li, #tabs li, .data-tabs li {
     position: relative;
     z-index: 1;
 }
 
-#data-tabs {
+.data-tabs {
     margin-top: 20px;
 }
 
-#data-tabs ul {
+.data-tabs ul {
     overflow: hidden;
 }
 
-#data-tabs > div {
+.data-tabs > div {
     padding: 0;
     display: none;
     border-top: 1px solid #a5a5a5;
 }
 
-#data-tabs button {
+.data-tabs button {
     margin: 6px 0 0 0;
 }
 
-#data-tabs li, #tabs li {
+.data-tabs li, #tabs li {
     font-size: 1em;
 }
 
@@ -529,7 +529,7 @@ ul#previewTabs {
     margin: 0;
 }
 
-#previewTabs li:hover, #tabs li:hover, .compTabs:hover, #data-tabs li:hover {
+#previewTabs li:hover, #tabs li:hover, .compTabs:hover, .data-tabs li:hover {
     color: #333 ! important;
     background-color: #e3e3e3;
     background: -webkit-gradient(linear, left bottom, left top, from(#ddd), to(#eee)) no-repeat;
@@ -537,7 +537,7 @@ ul#previewTabs {
     filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#eeeeee', EndColorStr='#dddddd', GradientType=0);
 }
 
-#previewTabs li.active, #tabs li.active, .compTab.active, #data-tabs li.active {
+#previewTabs li.active, #tabs li.active, .compTab.active, .data-tabs li.active {
     color: #333 ! important;
     background-color: #81ce25;
     background: -webkit-gradient(linear, left bottom, left top, from(#73b821), to(#90e629)) no-repeat;
@@ -1530,7 +1530,7 @@ button.add_property {
     border: 1px solid #ccc;
 }
 
-#data-tabs {
+#data-binding-tabs {
     width: 96%;
 }
 
