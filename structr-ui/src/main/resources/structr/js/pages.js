@@ -632,15 +632,15 @@ var _Pages = {
 
                 _Dragndrop.makeDroppable(el, entity.id);
 
-                var structrId = el.attr('data-structr-el');
+                var structrId = el.attr('data-structr-id');
                 if (structrId) {
 
                     $('.move_icon', el).on('mousedown', function(e) {
                         e.stopPropagation();
                         var self = $(this);
-                        var element = self.closest('[data-structr-el]');
+                        var element = self.closest('[data-structr-id]');
                         log(element);
-                        var entity = Structr.entity(structrId, element.prop('data-structr-el'));
+                        var entity = Structr.entity(structrId, element.prop('data-structr-id'));
                         entity.type = element.prop('data-structr_type');
                         entity.name = element.prop('data-structr_name');
                         log('move', entity);
@@ -650,12 +650,12 @@ var _Pages = {
                     $('.delete_icon', el).on('click', function(e) {
                         e.stopPropagation();
                         var self = $(this);
-                        var element = self.closest('[data-structr-el]');
-                        var entity = Structr.entity(structrId, element.prop('data-structr-el'));
+                        var element = self.closest('[data-structr-id]');
+                        var entity = Structr.entity(structrId, element.prop('data-structr-id'));
                         entity.type = element.prop('data-structr_type');
                         entity.name = element.prop('data-structr_name');
                         log('delete', entity);
-                        var parentId = element.prop('data-structr-el');
+                        var parentId = element.prop('data-structr-id');
 
                         Command.removeSourceFromTarget(entity.id, parentId);
                         _Entities.deleteNode(this, entity);
@@ -666,9 +666,15 @@ var _Pages = {
                         click: function(e) {
                             e.stopPropagation();
                             var self = $(this);
+                            var selected = self.hasClass('structr-element-container-selected');
                             self.closest('body').find('.structr-element-container-selected').removeClass('structr-element-container-selected');
-                            self.toggleClass('structr-element-container-selected');
+                            if (!selected) self.toggleClass('structr-element-container-selected');
                             _Pages.displayDataBinding(structrId);
+                            _Pages.expandTreeNode(structrId);
+                            var treeEl = Structr.node(structrId);
+                            $('#pages').find('.nodeSelected').removeClass('nodeSelected');
+                            if (!selected) treeEl.toggleClass('nodeSelected');
+
                         },
                         mouseover: function(e) {
                             e.stopPropagation();
@@ -866,14 +872,14 @@ var _Pages = {
 
     },
     findDroppablesInIframe: function(iframeDocument, id) {
-        var droppables = iframeDocument.find('[data-structr-el]');
+        var droppables = iframeDocument.find('[data-structr-id]');
         if (droppables.length === 0) {
             //iframeDocument.append('<html structr_element_id="' + entity.id + '">dummy element</html>');
             var html = iframeDocument.find('html');
-            html.attr('data-structr-el', id);
+            html.attr('data-structr-id', id);
             html.addClass('structr-element-container');
         }
-        droppables = iframeDocument.find('[data-structr-el]');
+        droppables = iframeDocument.find('[data-structr-id]');
         return droppables;
     },
     appendElementElement: function(entity, refNode, refNodeIsParent) {
@@ -936,11 +942,11 @@ var _Pages = {
     displayDataBinding: function(id) {
         dataBindingSlideout.children('#data-binding-inputs').remove();
         dataBindingSlideout.append('<div class="inner" id="data-binding-inputs"></div>');
-        
+
         var el = $('#data-binding-inputs');
-        
+
         var entity = StructrModel.obj(id);
-        
+
         el.append('<div id="data-binding-tabs" class="data-tabs"><ul><li class="active" id="tab-binding-rest">REST Query</li><li id="tab-binding-cypher">Cypher Query</li><li id="tab-binding-xpath">XPath Query</li></ul>'
                 + '<div id="content-tab-binding-rest"></div><div id="content-tab-binding-cypher"></div><div id="content-tab-binding-xpath"></div></div>');
 
@@ -949,10 +955,10 @@ var _Pages = {
         _Entities.appendTextarea($('#content-tab-binding-xpath'), entity, 'xpathQuery', 'XPath Query', '');
 
         _Entities.activateTabs('#data-binding-tabs', '#content-tab-binding-rest');
-        
+
         _Entities.appendInput(el, entity, 'dataKey', 'Data Key', 'Query results are mapped to this key and can be accessed by ${<i>&lt;dataKey&gt;.&lt;propertyKey&gt;</i>}');
-        
-        
+
+
     },
     reloadDataBindingWizard: function() {
         dataBindingSlideout.children('#wizard').remove();
@@ -979,10 +985,11 @@ var _Pages = {
 
         Command.get(id, function(t) {
 
+            var typeKey = t.name.toLowerCase();
             localStorage.setItem(selectedTypeKey, id);
 
             $('#data-wizard-attributes').append('<div class="clear">&nbsp;</div><p>You can drag and drop the type box onto a block in a page.'
-                + 'The type will be bound to the block which will loop over the result set.</p>');
+                    + 'The type will be bound to the block which will loop over the result set.</p>');
 
             $('#data-wizard-attributes').append('<div class="data-binding-type draggable">:' + t.name + '</div>');
             $('.data-binding-type').draggable({
@@ -995,16 +1002,17 @@ var _Pages = {
                 zIndex: 99
             });
 
-            $('#data-wizard-attributes').append('<p>The following local properties were found for ' + t.name + ':</p>');
+            $('#data-wizard-attributes').append('<h3>Custom Properties</h3><div class="custom"></div><div class="clear">&nbsp;</div><h3>System Properties</h3><div class="system"></div>');
+            var key;
+            var el = $('#data-wizard-attributes .custom');
+            
+            $.each(t.relatedTo, function(i, endNode) {
+                
+                _Schema.getPropertyName(t.name, 'AUTHOR', true, function(key) {
+                    console.log(t.name, key)
 
-            $.each(Object.keys(t), function(i, key) {
-
-                if (key.startsWith('_')) {
-
-                    var typeKey = t.name.toLowerCase();
-
-                    $('#data-wizard-attributes').append('<div class="draggable data-binding-attribute ' + key + '">' + typeKey + '.' + key.substring(1) + '</div>');
-                    $('#data-wizard-attributes').children('.draggable.' + key).draggable({
+                    el.append('<div class="draggable data-binding-attribute ' + key + '">' + typeKey + '.' + key + '</div>');
+                    el.children('.draggable.' + key).draggable({
                         iframeFix: true,
                         revert: 'invalid',
                         containment: 'body',
@@ -1013,12 +1021,52 @@ var _Pages = {
                         stack: '.node',
                         zIndex: 99
                     });
+                });
+                
+                
+            });
+            
+            $.each(Object.keys(t), function(i, key) {
+
+                console.log('Property key: ', key);
+
+                if (key.startsWith('_')) {
+                    
+                    key = key.substring(1);
+                    el = $('#data-wizard-attributes .custom');
+
+                } else {
+                    
+                    el = $('#data-wizard-attributes .system');
                 }
+
+                el.append('<div class="draggable data-binding-attribute ' + key + '">' + typeKey + '.' + key + '</div>');
+                el.children('.draggable.' + key).draggable({
+                    iframeFix: true,
+                    revert: 'invalid',
+                    containment: 'body',
+                    helper: 'clone',
+                    appendTo: '#main',
+                    stack: '.node',
+                    zIndex: 99
+                });
             });
 
             $('#data-wizard-attributes').append('<div class="clear">&nbsp;</div><p>Drag and drop these elements onto the page for data binding.</p>');
 
         });
 
+    },
+    expandTreeNode: function(id) {
+        var el;
+        Command.get(id, function(obj) {
+            if (obj.parent) {
+                _Pages.expandTreeNode(obj.parent.id);
+            }
+            el = Structr.node(id);
+            if (el) {
+                _Entities.ensureExpanded(el);
+            }
+        });
     }
 };

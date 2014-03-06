@@ -831,6 +831,11 @@ img.button {
     border: 1px solid #aaa;
 }
 
+.nodeSelected {
+    background-color: #fffcdd ! important;
+    border: 1px solid #ca0;
+}
+
 #images .node, #images .nodeActive {
     background-color: #fafafa ! important;
     border: 1px solid #eee;

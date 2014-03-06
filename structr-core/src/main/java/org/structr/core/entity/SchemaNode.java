@@ -56,6 +56,10 @@ public class SchemaNode extends AbstractSchemaNode implements Schema {
 		name, extendsClass, relatedTo, relatedFrom
 	);
 	
+	public static final View uiView = new View(SchemaNode.class, PropertyView.Ui,
+		name, extendsClass, relatedTo, relatedFrom
+	);
+
 	private Set<String> dynamicViews = new LinkedHashSet<>();
 	
 	@Override

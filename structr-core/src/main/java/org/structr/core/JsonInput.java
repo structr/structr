@@ -34,7 +34,7 @@ public class JsonInput implements Map<String, Object> {
 	private Map<String, Object> attributes = null;
 
 	public JsonInput() {
-		this.attributes = new LinkedHashMap<String, Object>();
+		this.attributes = new LinkedHashMap<>();
 	}
 
 	/**
@@ -57,7 +57,7 @@ public class JsonInput implements Map<String, Object> {
 
 		StringBuilder builder = new StringBuilder();
 
-		for(Entry<String, Object> entry : attributes.entrySet()) {
+		for (Entry<String, Object> entry : attributes.entrySet()) {
 
 			builder.append(entry.getKey()).append(" = '").append(entry.getValue()).append("', ");
 		}

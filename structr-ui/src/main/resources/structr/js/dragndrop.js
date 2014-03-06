@@ -59,7 +59,7 @@ var _Dragndrop = {
                 var targetId = getId(self);
 
                 if (!targetId) {
-                    targetId = self.attr('data-structr-el');
+                    targetId = self.attr('data-structr-id');
                 }
 
 
