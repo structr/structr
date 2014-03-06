@@ -668,12 +668,14 @@ var _Pages = {
                             var self = $(this);
                             var selected = self.hasClass('structr-element-container-selected');
                             self.closest('body').find('.structr-element-container-selected').removeClass('structr-element-container-selected');
-                            if (!selected) self.toggleClass('structr-element-container-selected');
+                            if (!selected)
+                                self.toggleClass('structr-element-container-selected');
                             _Pages.displayDataBinding(structrId);
                             _Pages.expandTreeNode(structrId);
                             var treeEl = Structr.node(structrId);
                             $('#pages').find('.nodeSelected').removeClass('nodeSelected');
-                            if (!selected) treeEl.toggleClass('nodeSelected');
+                            if (!selected)
+                                treeEl.toggleClass('nodeSelected');
 
                         },
                         mouseover: function(e) {
@@ -1003,43 +1005,80 @@ var _Pages = {
             });
 
             $('#data-wizard-attributes').append('<h3>Custom Properties</h3><div class="custom"></div><div class="clear">&nbsp;</div><h3>System Properties</h3><div class="system"></div>');
-            var key;
-            var el = $('#data-wizard-attributes .custom');
-            
+
+            var subkey = 'name';
+
             $.each(t.relatedTo, function(i, endNode) {
                 
-                _Schema.getPropertyName(t.name, 'AUTHOR', true, function(key) {
-                    console.log(t.name, key)
 
-                    el.append('<div class="draggable data-binding-attribute ' + key + '">' + typeKey + '.' + key + '</div>');
-                    el.children('.draggable.' + key).draggable({
-                        iframeFix: true,
-                        revert: 'invalid',
-                        containment: 'body',
-                        helper: 'clone',
-                        appendTo: '#main',
-                        stack: '.node',
-                        zIndex: 99
-                    });
+                $.ajax({
+                    url: rootUrl + '/schema_relationships?sourceId=' + id + '&targetId=' + endNode.id,
+                    type: 'GET',
+                    contentType: 'application/json',
+                    statusCode: {
+                        200: function(data) {
+                            _Schema.getPropertyName(t.name, data.result[0].relationshipType, true, function(key, isCollection) {
+                                
+                                console.log('key', key)
+                                
+                                $('#data-wizard-attributes .custom').append('<div class="draggable data-binding-attribute ' + key + '" collection="' + isCollection + '" subkey="' + subkey + '">' + typeKey + '.' + key + '</div>');
+                                $('#data-wizard-attributes .custom').children('.' + key).draggable({
+                                    iframeFix: true,
+                                    revert: 'invalid',
+                                    containment: 'body',
+                                    helper: 'clone',
+                                    appendTo: '#main',
+                                    stack: '.node',
+                                    zIndex: 99
+                                }).on('click', function() {
+                                    console.log('expand')
+                                });
+                            });
+                        }
+                    }
                 });
-                
-                
             });
-            
+
+            $.each(t.relatedFrom, function(i, startNode) {
+
+                $.ajax({
+                    url: rootUrl + '/schema_relationships?sourceId=' + startNode.id + '&targetId=' + id,
+                    type: 'GET',
+                    contentType: 'application/json',
+                    statusCode: {
+                        200: function(data) {
+                            _Schema.getPropertyName(t.name, data.result[0].relationshipType, false, function(key, isCollection) {
+                                
+                                console.log('key', key)
+                                
+                                $('#data-wizard-attributes .custom').append('<div class="draggable data-binding-attribute ' + key + '" collection="' + isCollection + '" subkey="' + subkey + '">' + typeKey + '.' + key + '</div>');
+                                $('#data-wizard-attributes .custom').children('.draggable.' + key).draggable({
+                                    iframeFix: true,
+                                    revert: 'invalid',
+                                    containment: 'body',
+                                    helper: 'clone',
+                                    appendTo: '#main',
+                                    stack: '.node',
+                                    zIndex: 99
+                                });
+                            });
+                        }
+                    }
+                });
+            });
+
             $.each(Object.keys(t), function(i, key) {
-
-                console.log('Property key: ', key);
-
+                var type = 'system';
                 if (key.startsWith('_')) {
-                    
+
                     key = key.substring(1);
-                    el = $('#data-wizard-attributes .custom');
+                    type = 'custom'
 
-                } else {
-                    
-                    el = $('#data-wizard-attributes .system');
+                } else if (key === 'relatedTo' || key === 'relatedFrom') {
+                    // do nothing
+                    return;
                 }
-
+                var el = $('#data-wizard-attributes .' + type);
                 el.append('<div class="draggable data-binding-attribute ' + key + '">' + typeKey + '.' + key + '</div>');
                 el.children('.draggable.' + key).draggable({
                     iframeFix: true,

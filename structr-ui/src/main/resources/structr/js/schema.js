@@ -862,7 +862,7 @@ var _Schema = {
                         if (obj.relatedType && obj.relationshipType) {
                             if (obj.relationshipType === relationshipType && ((simpleClassName.startsWith('EndNode') && out)
                                     || (simpleClassName.startsWith('StartNode') && !out))) {
-                                callback(key);
+                                callback(key, obj.isCollection);
                             }
 
                         }
