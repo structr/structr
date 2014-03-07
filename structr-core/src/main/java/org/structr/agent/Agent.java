@@ -88,18 +88,35 @@ public abstract class Agent extends Thread implements StatusInfo {
 				// only execute process if Service layer is ready
 				// (and not shutting down right now)
 				if (Services.getInstance().isInitialized()) {
-					
-					try (final Tx tx = StructrApp.getInstance().tx()) {
 
-						ret = processTask(currentTask);
-						tx.success();
+					if (createEnclosingTransaction()) {
 
-					} catch (Throwable t) {
+						try (final Tx tx = StructrApp.getInstance().tx()) {
 
-						// someone killed us or the task processing failed..
-						// Log this!!
-						logger.log(Level.SEVERE, "Processing task {0} failed. Maybe someone killed us?", currentTask.getType());
-						t.printStackTrace();
+							ret = processTask(currentTask);
+							tx.success();
+
+						} catch (Throwable t) {
+
+							// someone killed us or the task processing failed..
+							// Log this!!
+							logger.log(Level.SEVERE, "Processing task {0} failed. Maybe someone killed us?", currentTask.getType());
+							t.printStackTrace();
+						}
+						
+					} else {
+
+						try {
+
+							ret = processTask(currentTask);
+
+						} catch (Throwable t) {
+
+							// someone killed us or the task processing failed..
+							// Log this!!
+							logger.log(Level.SEVERE, "Processing task {0} failed. Maybe someone killed us?", currentTask.getType());
+							t.printStackTrace();
+						}
 					}
 				}
 
@@ -244,7 +261,9 @@ public abstract class Agent extends Thread implements StatusInfo {
 	 */
 	public abstract ReturnValue processTask(Task task) throws Throwable;
 
-	//~--- get methods ----------------------------------------------------
+	public boolean createEnclosingTransaction() {
+		return true;
+	}
 
 	public final Task getCurrentTask() {
 		return (currentTask);

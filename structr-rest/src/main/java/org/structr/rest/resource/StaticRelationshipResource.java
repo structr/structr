@@ -529,6 +529,10 @@ public class StaticRelationshipResource extends SortableResource {
 				return number.byteValue();
 				
 			}
+			
+		} else if (value instanceof List) {
+			
+			return value;
 		}
 
 		// fallback
