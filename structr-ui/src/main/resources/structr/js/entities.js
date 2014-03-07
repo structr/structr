@@ -147,7 +147,7 @@ var _Entities = {
         _Entities.appendBooleanSwitch($('#hideIndexMode', t), entity, 'hideOnIndex', ['Hidden in index mode', 'Visible in index mode'], 'if URL does not end with an ID');
         _Entities.appendBooleanSwitch($('#hideDetailsMode', t), entity, 'hideOnDetail', ['Hidden in details mode', 'Visible in details mode'], 'if URL ends with an ID.');
 
-        el.append('<div id="data-tabs"><ul><li class="active" id="tab-rest">REST Query</li><li id="tab-cypher">Cypher Query</li><li id="tab-xpath">XPath Query</li></ul>'
+        el.append('<div id="data-tabs" class="data-tabs"><ul><li class="active" id="tab-rest">REST Query</li><li id="tab-cypher">Cypher Query</li><li id="tab-xpath">XPath Query</li></ul>'
                 + '<div id="content-tab-rest"></div><div id="content-tab-cypher"></div><div id="content-tab-xpath"></div></div>');
 
         _Entities.appendTextarea($('#content-tab-rest'), entity, 'restQuery', 'REST Query', '');
@@ -612,7 +612,10 @@ var _Entities = {
         }
     },
     appendTextarea: function(el, entity, key, label, desc) {
-        el.append('<div><h3>' + label + '</h3><p>' + desc + '</p><textarea cols="60" rows="4" id="' + key + '_">' + (entity[key] ? entity[key] : '') + '</textarea></div>');
+        if (!el || !entity) {
+            return false;
+        }
+        el.append('<div><h3>' + label + '</h3><p>' + desc + '</p><textarea class="query-text" id="' + key + '_">' + (entity[key] ? entity[key] : '') + '</textarea></div>');
         el.append('<div><button id="apply_' + key + '">Save</button></div>');
         var btn = $('#apply_' + key, el);
         btn.on('click', function() {
@@ -623,6 +626,9 @@ var _Entities = {
         });
     },
     appendInput: function(el, entity, key, label, desc) {
+        if (!el || !entity) {
+            return false;
+        }
         el.append('<div><h3>' + label + '</h3><p>' + desc + '</p><input type="text" id="' + key + '_" value="' + (entity[key] ? entity[key] : '') + '"><button id="save_' + key + '">Save</button></div>');
         var btn = $('#save_' + key, el);
         btn.on('click', function() {
@@ -633,6 +639,9 @@ var _Entities = {
         });
     },
     appendBooleanSwitch: function(el, entity, key, label, desc, recElementId) {
+        if (!el || !entity) {
+            return false;
+        }
         el.append('<div class="' + entity.id + '_"><button class="switch inactive ' + key + '_"></button>' + desc + '</div>');
         var sw = $('.' + key + '_', el);
         _Entities.changeBooleanAttribute(sw, entity[key], label[0], label[1]);

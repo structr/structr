@@ -280,7 +280,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 			}
 
-			out.append(" data-structr-el=\"").append(getUuid()).append("\"");
+			out.append(" data-structr-id=\"").append(getUuid()).append("\"");
 
 		}
 

@@ -60,8 +60,8 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 	private static final Logger logger                      = Logger.getLogger(SchemaRelationship.class.getName());
 	private static final Pattern ValidKeyPattern            = Pattern.compile("[a-zA-Z_]+");
 	
-	public static final Property<String> sourceId           = new SourceId("sourceId");
-	public static final Property<String> targetId           = new TargetId("targetId");
+	public static final Property<String> sourceId           = new SourceId("sourceId").passivelyIndexed();
+	public static final Property<String> targetId           = new TargetId("targetId").passivelyIndexed();
 	public static final Property<String> relationshipType   = new StringProperty("relationshipType");
 	public static final Property<String> sourceMultiplicity = new StringProperty("sourceMultiplicity");
 	public static final Property<String> targetMultiplicity = new StringProperty("targetMultiplicity");

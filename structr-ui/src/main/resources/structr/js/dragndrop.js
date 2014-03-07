@@ -41,31 +41,36 @@ var _Dragndrop = {
             //appendTo: 'body',
             //tolerance: 'pointer',
             drop: function(e, ui) {
-                
+
                 log('drop event', e, ui);
-                
+
                 e.preventDefault();
                 e.stopPropagation();
 
-                var self = $(this);
+                var self = $(this), related;
                 //if (el.sortable) el.sortable('refresh');
 
                 var sourceId = getId(ui.draggable) || getComponentId(ui.draggable);
 
                 if (!sourceId) {
-                    tag = $(ui.draggable).text();
+                    var d = $(ui.draggable);
+                    tag = d.text();
+                    if (d.attr('subkey')) {
+                        related = {};
+                        related.subKey = d.attr('subkey');
+                        related.isCollection = (d.attr('collection') === 'true');
+                    }
                 }
 
                 var targetId = getId(self);
 
                 if (!targetId) {
-                    targetId = self.attr('data-structr-el');
+                    targetId = self.attr('data-structr-id');
                 }
 
-
-                console.log('dropped onto', self, targetId, getId(sortParent));
+                log('dropped onto', self, targetId, getId(sortParent));
                 if (targetId === getId(sortParent)) {
-                    console.log('target id == sortParent id', targetId, getId(sortParent));
+                    log('target id == sortParent id', targetId, getId(sortParent));
                     return false;
                 }
 
@@ -77,7 +82,7 @@ var _Dragndrop = {
                 var target = StructrModel.obj(targetId);
 
                 var page = self.closest('.page')[0];
-                
+
                 if (!page) {
                     page = self.closest('[data-structr-page]')[0];
                 }
@@ -89,11 +94,11 @@ var _Dragndrop = {
 
                 if (!target) {
                     // synthetize target with id only
-                    target = { id: targetId };
+                    target = {id: targetId};
                 }
 
-                log(source, target, pageId, tag);
-                if (_Dragndrop.dropAction(source, target, pageId, tag)) {
+                log(source, target, pageId, tag, related);
+                if (_Dragndrop.dropAction(source, target, pageId, tag, related)) {
                     $(ui.draggable).remove();
                     sortParent = undefined;
                 }
@@ -160,9 +165,9 @@ var _Dragndrop = {
      * is undefined. This is the case if an element was dragged from the
      * HTML elements palette.
      */
-    dropAction: function(source, target, pageId, tag) {
+    dropAction: function(source, target, pageId, tag, related) {
 
-        console.log('dropAction', source, target, pageId, tag);
+        log('dropAction', source, target, pageId, tag, related);
 
         if (source && pageId && source.pageId && pageId !== source.pageId) {
 
@@ -210,18 +215,34 @@ var _Dragndrop = {
         }
 
         if (!source && tag) {
-            
-            if (tag.indexOf('.') !== -1) { console.log(target)
+
+            if (tag.indexOf('.') !== -1) {
                 var firstContentId = target.children[0].id;
-                console.log('some serious fun here:', firstContentId);
-                Command.setProperty(firstContentId, 'content', '${' + tag + '}');
+                if (related) {
+                    var key = tag.substring(tag.indexOf('.')+1);
+                    log('tag, key, subkey', tag, key, related.subKey)
+                    if (related.isCollection) {
+                        Command.setProperty(firstContentId, 'content', '${' + key + '.' + related.subKey + '}');
+                        Command.setProperty(target.id, 'dataKey', key, false, function() {
+                            _Pages.reloadPreviews();
+                        });
+                    } else {
+                        Command.setProperty(firstContentId, 'content', '${' + tag + '.' + related.subKey + '}');
+                    }
+                } else {
+                    Command.setProperty(firstContentId, 'content', '${' + tag + '}');
+                }
+
             } else if (tag.indexOf(':') !== -1) {
-                console.log('type dropped:', target);
+
                 var type = tag.substring(1);
+
                 Command.setProperty(target.id, 'restQuery', pluralize(type.toLowerCase()));
+
                 Command.setProperty(target.id, 'dataKey', type.toLowerCase(), false, function() {
                     _Pages.reloadPreviews();
                 });
+
             } else {
                 return _Dragndrop.htmlElementFromPaletteDropped(tag, target, pageId);
             }
@@ -229,16 +250,16 @@ var _Dragndrop = {
         } else {
 
             tag = target.tag;
-            
-            
+
+
             if (source && target && source.id && target.id) {
-            
+
                 sorting = false;
                 log('appendChild', source, target);
                 Command.appendChild(source.id, target.id);
 
                 return true;
-                
+
             } else {
                 log('unknown drag\'n drop  situation', source, target);
             }
