@@ -61,7 +61,7 @@ public class FileUploadHandler {
 			FileChannel channel;
 			try {
 				
-				channel = getChannel();
+				channel = getChannel(false);
 				this.size = channel.size();
 				updateSize(this.size);
 				
@@ -78,7 +78,7 @@ public class FileUploadHandler {
 
 	public void handleChunk(int sequenceNumber, int chunkSize, byte[] data, int chunks) throws IOException {
 
-		FileChannel channel = getChannel();
+		FileChannel channel = getChannel(sequenceNumber > 0);
 
 		if (channel != null) {
 			
@@ -128,7 +128,7 @@ public class FileUploadHandler {
 
 		try {
 
-			FileChannel channel = getChannel();
+			FileChannel channel = getChannel(false);
 
 			if (channel != null && channel.isOpen()) {
 
@@ -152,7 +152,7 @@ public class FileUploadHandler {
 	//~--- get methods ----------------------------------------------------
 
 	// ----- private methods -----
-	private FileChannel getChannel() throws IOException {
+	private FileChannel getChannel(final boolean append) throws IOException {
 
 		if (this.privateFileChannel == null) {
 
@@ -170,7 +170,7 @@ public class FileUploadHandler {
 
 				fileOnDisk.getParentFile().mkdirs();
 
-				this.privateFileChannel = new FileOutputStream(fileOnDisk).getChannel();
+				this.privateFileChannel = new FileOutputStream(fileOnDisk, append).getChannel();
 
 			}
 
