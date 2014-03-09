@@ -146,8 +146,14 @@ public class StructrWebSocket implements WebSocketListener {
 	@Override
 	public void onWebSocketText(final String data) {
 
+		if (data == null) {
+			logger.log(Level.WARNING, "Empty text message received.");
+			return;
+		}
+
 		logger.log(Level.FINE, "############################################################ RECEIVED \n{0}", data.substring(0, Math.min(data.length(), 1000)));
 
+		
 		// parse web socket data from JSON
 		WebSocketMessage webSocketData = gson.fromJson(data, WebSocketMessage.class);
 
@@ -249,7 +255,7 @@ public class StructrWebSocket implements WebSocketListener {
 				session.getRemote().sendString(msg);
 				
 			} catch (Throwable t) {
-				logger.log(Level.SEVERE, "Unable to send websocket message to remote client", t);
+				logger.log(Level.WARNING, "Unable to send websocket message to remote client");
 			}
 			
 		} else {
