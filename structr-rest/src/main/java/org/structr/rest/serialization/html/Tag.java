@@ -23,6 +23,7 @@ import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import org.apache.commons.lang.StringUtils;
 import org.structr.rest.serialization.html.attr.Context;
 import org.structr.rest.serialization.html.attr.Css;
 import org.structr.rest.serialization.html.attr.Id;
@@ -33,13 +34,13 @@ import org.structr.rest.serialization.html.attr.Id;
  */
 public abstract class Tag {
 
-	private List<Attr> attrs   = new LinkedList<Attr>();
-	private List<Tag> children = new LinkedList<Tag>();
+	private final List<Attr> attrs   = new LinkedList<>();
+	private final List<Tag> children = new LinkedList<>();
 	private boolean empty      = false;
 	private boolean newline    = false;
 	private String text        = null;
 	private String tag         = null;
-	private String indent      = "  ";
+	private String indent      = "";
 	private Tag parent         = null;
 	
 	Tag(final Tag parent, final String tagName) {
@@ -55,7 +56,7 @@ public abstract class Tag {
 		this.parent  = parent;
 		this.tag     = tagName;
 		this.empty   = isEmpty;
-		this.newline = newline;
+		this.newline = StringUtils.isNotEmpty(indent) && newline;
 	}
 	
 	public Tag block(String tagName) {
