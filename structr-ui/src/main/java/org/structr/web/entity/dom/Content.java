@@ -18,7 +18,6 @@
  */
 package org.structr.web.entity.dom;
 
-import java.io.PrintWriter;
 import net.java.textilej.parser.MarkupParser;
 import net.java.textilej.parser.markup.confluence.ConfluenceDialect;
 import net.java.textilej.parser.markup.mediawiki.MediaWikiDialect;
@@ -37,7 +36,6 @@ import org.structr.core.Adapter;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.web.common.RenderContext;
-import org.structr.core.property.IntProperty;
 import org.structr.core.property.StringProperty;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -179,7 +177,7 @@ public class Content extends DOMNode implements Text {
 		String id            = getUuid();
 		EditMode edit        = renderContext.getEditMode(securityContext.getUser(false));
 		boolean inBody       = renderContext.inBody();
-		PrintWriter out      = renderContext.getOutputWriter();
+		StringBuilder out    = renderContext.getBuffer();
 		
 		String _contentType = getProperty(contentType);
 

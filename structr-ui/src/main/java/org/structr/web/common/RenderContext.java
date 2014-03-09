@@ -19,7 +19,6 @@
 package org.structr.web.common;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -70,6 +69,7 @@ public class RenderContext {
 	private HttpServletResponse response         = null;
 	private ResourceProvider resourceProvider    = null;
 	private Result result                        = null;
+	private StringBuilder buffer                 = new StringBuilder(8192);
 	
 	public enum EditMode {
 	
@@ -228,13 +228,14 @@ public class RenderContext {
 		return searchClass;
 	}
 	
-	public PrintWriter getOutputWriter() {
-		try {
-			return response.getWriter();
-		} catch (IOException ex) {
-			logger.log(Level.SEVERE, "Could not get output writer", ex);
-		}
-		return null;
+	public StringBuilder getBuffer() {
+		return buffer;
+//		try {
+//			return response.getWriter();
+//		} catch (IOException ex) {
+//			logger.log(Level.SEVERE, "Could not get output writer", ex);
+//		}
+//		return null;
 	}
 	
 	public void setInBody(final boolean inBody) {

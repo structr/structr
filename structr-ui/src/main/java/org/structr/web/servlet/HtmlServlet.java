@@ -19,18 +19,12 @@ package org.structr.web.servlet;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PrintWriter;
-
-import org.apache.commons.compress.utils.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 
 import org.structr.common.*;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.*;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.web.auth.HttpAuthenticator;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.File;
@@ -42,13 +36,19 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
+import javax.servlet.AsyncContext;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.WriteListener;
 import javax.servlet.http.HttpServlet;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang.LocaleUtils;
 import org.apache.commons.lang.time.DateUtils;
+import org.eclipse.jetty.servlets.gzip.AbstractCompressedStream;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
@@ -92,7 +92,6 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 	// non-static fields
 	private DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
-	private SearchNodeCommand searchNodesAsSuperuser;
 
 	private final StructrHttpServiceConfig config = new StructrHttpServiceConfig();
 
@@ -100,13 +99,8 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	public StructrHttpServiceConfig getConfig() {
 		return config;
 	}
-	
-	public HtmlServlet() {
-	}
 
-	@Override
-	public void init() {
-		searchNodesAsSuperuser = StructrApp.getInstance().command(SearchNodeCommand.class);
+	public HtmlServlet() {
 	}
 
 	@Override
@@ -118,11 +112,12 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 		double start = System.nanoTime();
 
-		SecurityContext securityContext = null;
-		Authenticator authenticator = null;
-		App app = null;
+		SecurityContext securityContext;
+		Authenticator authenticator;
+		App app;
 
 		try {
+
 			// isolate request authentication in a transaction
 			try (final Tx tx = StructrApp.getInstance().tx()) {
 				authenticator = config.getAuthenticator();
@@ -296,19 +291,29 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 				if (securityContext.isVisible(rootElement)) {
 
-					PrintWriter out = response.getWriter();
-
+					//PrintWriter out = response.getWriter();
 					double setup = System.nanoTime();
 					logger.log(Level.FINE, "Setup time: {0} seconds", decimalFormat.format((setup - start) / 1000000000.0));
 
 					if (!EditMode.DATA.equals(edit) && !dontCache && notModifiedSince(request, response, rootElement)) {
 
+						ServletOutputStream out = response.getOutputStream();
 						out.flush();
 						//response.flushBuffer();
 						out.close();
-						
 
 					} else {
+
+						response.setCharacterEncoding("UTF-8");
+
+						rootElement.render(securityContext, renderContext, 0);
+						String content = renderContext.getBuffer().toString();
+
+						AsyncContext async = request.startAsync();
+						ServletOutputStream out = response.getOutputStream();
+
+						WriteListener wl = new StructrWriteListener(IOUtils.toInputStream(content, "UTF-8"), async, out);
+						out.setWriteListener(wl);
 
 						String contentType = rootElement.getProperty(Page.contentType);
 
@@ -323,29 +328,23 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 							response.setContentType("text/html;charset=UTF-8");
 						}
 
-						response.setCharacterEncoding("UTF-8");
-
-						rootElement.render(securityContext, renderContext, 0);
-
 						response.setStatus(HttpServletResponse.SC_OK);
 
 						double end = System.nanoTime();
 						logger.log(Level.FINE, "Content for path {0} in {1} seconds", new Object[]{path, decimalFormat.format((end - setup) / 1000000000.0)});
 
-
 						// 3: finish request
-						try {
-
-							out.flush();
-							//response.flushBuffer();
-							out.close();
-
-						} catch (IllegalStateException ise) {
-
-							logger.log(Level.WARNING, "Could not write to output stream", ise.getMessage());
-
-						}
-
+//						try {
+//
+//							out.flush();
+//							//response.flushBuffer();
+//							out.close();
+//
+//						} catch (IllegalStateException ise) {
+//
+//							logger.log(Level.WARNING, "Could not write to output stream", ise.getMessage());
+//
+//						}
 					}
 
 				} else {
@@ -728,7 +727,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 		}
 
-		OutputStream out = response.getOutputStream();
+		ServletOutputStream out = response.getOutputStream();
 
 		if (!EditMode.DATA.equals(edit) && notModifiedSince(request, response, file)) {
 
@@ -741,6 +740,9 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 			InputStream in = file.getInputStream();
 			String contentType = file.getContentType();
 
+			AsyncContext async = request.startAsync();
+			out.setWriteListener(new StructrWriteListener(in, async, out));
+
 			if (contentType != null) {
 
 				response.setContentType(contentType);
@@ -751,31 +753,33 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 				response.setContentType("application/octet-stream");
 			}
 
-			try {
+			response.setStatus(HttpServletResponse.SC_OK);
 
-				IOUtils.copy(in, out);
-
-			} catch (Throwable t) {
-
-			} finally {
-
-				if (out != null) {
-
-					try {
-						// 3: output content
-						out.flush();
-						out.close();
-
-					} catch (Throwable t) {
-					}
-				}
-
-				if (in != null) {
-					in.close();
-				}
-
-				response.setStatus(HttpServletResponse.SC_OK);
-			}
+//			try {
+//
+//				IOUtils.copy(in, out);
+//
+//			} catch (Throwable t) {
+//
+//			} finally {
+//
+//				if (out != null) {
+//
+//					try {
+//						// 3: output content
+//						out.flush();
+//						out.close();
+//
+//					} catch (Throwable t) {
+//					}
+//				}
+//
+//				if (in != null) {
+//					in.close();
+//				}
+//
+//				response.setStatus(HttpServletResponse.SC_OK);
+//			}
 		}
 	}
 

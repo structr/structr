@@ -23,7 +23,6 @@ import com.google.gson.GsonBuilder;
 import org.structr.websocket.WebSocketDataGSONAdapter;
 import org.structr.websocket.message.WebSocketMessage;
 import java.util.logging.Logger;
-import javax.servlet.ServletException;
 import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.rest.service.HttpServiceServlet;
@@ -43,40 +42,14 @@ public class WebSocketServlet extends org.eclipse.jetty.websocket.servlet.WebSoc
 
 	private static final Logger logger           = Logger.getLogger(WebSocketServlet.class.getName());
 	
-	private final StructrHttpServiceConfig config = new StructrHttpServiceConfig();
+	private static final int MAX_TEXT_MESSAGE_SIZE = 1024 * 1024;
 	
-	//private StructrWebSocketServerFactory factory;
+	private final StructrHttpServiceConfig config = new StructrHttpServiceConfig();
 
 	@Override
 	public StructrHttpServiceConfig getConfig() {
 		return config;
 	}
-	
-//	@Override
-//	public void init() throws ServletException {
-//
-//		super.init();
-//		//factory = new StructrWebSocketServerFactory(syncController, gson, config.getDefaultIdProperty(), config.getAuthenticator());
-//		
-//	}
-	
-//	
-//	
-//	@Override
-//	protected void doGet(final HttpServletRequest request, HttpServletResponse response) throws IOException {
-//
-//		// accept connection
-//		if (!factory.acceptWebSocket(request, response)) {
-//
-//			logger.log(Level.INFO, "Request rejected.");
-//			response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
-//
-//		} else {
-//
-//			logger.log(Level.INFO, "Request accepted.");
-//
-//		}
-//	}
 
 	@Override
 	public void configure(final WebSocketServletFactory factory) {
@@ -92,13 +65,15 @@ public class WebSocketServlet extends org.eclipse.jetty.websocket.servlet.WebSoc
 		// register (Structr) transaction listener
 		TransactionCommand.registerTransactionListener(syncController);
 		
-		//factory.getPolicy().setIdleTimeout(10000);
+		factory.getPolicy().setIdleTimeout(61000);
 		factory.setCreator(new StructrWebSocketCreator(syncController, gson, config.getDefaultIdProperty(), config.getAuthenticator()));
 		factory.register(StructrWebSocket.class);
 		
 		// Disable compression (experimental features)
 		factory.getExtensionFactory().unregister("x-webkit-deflate-frame");
 		factory.getExtensionFactory().unregister("permessage-deflate");
+		
+		factory.getPolicy().setMaxTextMessageSize(MAX_TEXT_MESSAGE_SIZE);
 
 	}
 }

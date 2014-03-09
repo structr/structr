@@ -51,7 +51,7 @@ import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
-import org.eclipse.jetty.servlets.GzipFilter;
+import org.eclipse.jetty.servlets.AsyncGzipFilter;
 import org.eclipse.jetty.util.resource.JarResource;
 import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.util.resource.ResourceCollection;
@@ -112,7 +112,7 @@ public class HttpService implements RunnableService {
 
 		logger.log(Level.INFO, "Starting {0} (host={1}:{2}, maxIdleTime={3}, requestHeaderSize={4})", new Object[]{applicationName, host, String.valueOf(httpPort), String.valueOf(maxIdleTime), String.valueOf(requestHeaderSize)});
 		logger.log(Level.INFO, "Base path {0}", basePath);
-		logger.log(Level.INFO, "{0} started at http://{1}:{2}{3}", new Object[]{applicationName, String.valueOf(host), String.valueOf(httpPort), restUrl});
+		logger.log(Level.INFO, "{0} started at http://{1}:{2}", new Object[]{applicationName, String.valueOf(host), String.valueOf(httpPort)});
 
 		try {
 			server.start();
@@ -254,13 +254,13 @@ public class HttpService implements RunnableService {
 		servletContext.addServlet("org.eclipse.jetty.servlet.DefaultServlet", "/");
 		servletContext.setInitParameter("org.eclipse.jetty.servlet.Default.dirAllowed", "false");
 
-		if (enableGzipCompression) {
-
-			FilterHolder gzipFilter = new FilterHolder(GzipFilter.class);
-			gzipFilter.setInitParameter("mimeTypes", "text/html,text/plain,text/css,text/javascript,application/json");
-			servletContext.addFilter(gzipFilter, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
-
-		}
+//		if (enableGzipCompression) {
+//
+//			FilterHolder gzipFilter = new FilterHolder(AsyncGzipFilter.class);
+//			gzipFilter.setInitParameter("mimeTypes", "text/html,text/plain,text/css,text/javascript,application/json");
+//			servletContext.addFilter(gzipFilter, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
+//
+//		}
 
 		if (enableRewriteFilter) {
 
@@ -371,7 +371,7 @@ public class HttpService implements RunnableService {
 			httpConfig = new HttpConfiguration();
 			httpConfig.setSecureScheme("https");
 			httpConfig.setSecurePort(httpsPort);
-			httpConfig.setOutputBufferSize(32768);
+			//httpConfig.setOutputBufferSize(8192);
 			httpConfig.setRequestHeaderSize(requestHeaderSize);
 
 			ServerConnector httpConnector = new ServerConnector(server, new HttpConnectionFactory(httpConfig));

@@ -586,7 +586,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 		renderContext.setPage(this);
 
-		renderContext.getOutputWriter().append("<!DOCTYPE html>\n");
+		renderContext.getBuffer().append("<!DOCTYPE html>\n");
 
 		// Skip DOCTYPE node
 		DOMNode subNode = (DOMNode) this.getFirstChild().getNextSibling();

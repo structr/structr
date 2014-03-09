@@ -63,7 +63,7 @@ public class Html extends DOMElement {
 	);
 
 	@Override
-	public void openingTag(final SecurityContext securityContext, final PrintWriter out, final String tag, final RenderContext.EditMode editMode, final RenderContext renderContext, final int depth) throws FrameworkException {
+	public void openingTag(final SecurityContext securityContext, final StringBuilder out, final String tag, final RenderContext.EditMode editMode, final RenderContext renderContext, final int depth) throws FrameworkException {
 		
 		String custTag = getProperty(_customOpeningTag);
 		
