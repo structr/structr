@@ -31,7 +31,6 @@ import org.structr.core.entity.Principal;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.io.IOException;
-import java.io.PrintWriter;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -42,8 +41,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import org.structr.common.AccessMode;
 import org.structr.common.PathHelper;
-import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Person;
 import org.structr.core.property.PropertyKey;
