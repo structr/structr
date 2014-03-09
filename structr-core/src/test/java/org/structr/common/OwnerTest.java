@@ -35,8 +35,6 @@
 *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 package org.structr.common;
 
 import org.structr.common.error.FrameworkException;
@@ -45,8 +43,6 @@ import org.structr.core.entity.TestOne;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.fail;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.helpers.collection.Iterables;

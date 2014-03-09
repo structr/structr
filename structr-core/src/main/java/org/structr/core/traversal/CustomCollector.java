@@ -24,12 +24,12 @@ import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.traversal.Evaluation;
 import org.neo4j.graphdb.traversal.Evaluator;
 import org.neo4j.graphdb.traversal.TraversalDescription;
-import org.neo4j.kernel.Traversal;
-import org.neo4j.kernel.Uniqueness;
+import org.neo4j.graphdb.traversal.Uniqueness;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.SecurityContext;
 import org.structr.core.Predicate;
 import org.structr.core.Value;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 
 /**
@@ -40,9 +40,9 @@ import org.structr.core.entity.AbstractNode;
  */
 public abstract class CustomCollector<T extends AbstractNode> implements TraverserInterface<T>, Value<TraverserInterface<T>> {
 
-	private List<RelationshipType> relTypes = new LinkedList<RelationshipType>();
-	private List<Predicate> predicates = new LinkedList<Predicate>();
-	private List<Direction> directions = new LinkedList<Direction>();
+	private final List<RelationshipType> relTypes = new LinkedList<>();
+	private final List<Predicate> predicates = new LinkedList<>();
+	private final List<Direction> directions = new LinkedList<>();
 
 	public abstract Uniqueness getUniqueness();
 	public abstract List<Evaluator> getEvaluators();
@@ -63,24 +63,23 @@ public abstract class CustomCollector<T extends AbstractNode> implements Travers
 	@Override
 	public TraversalDescription getTraversalDescription(final SecurityContext securityContext) {
 
-		TraversalDescription description = Traversal
-			.description()
+		TraversalDescription description = StructrApp.getInstance(securityContext).getGraphDatabaseService().traversalDescription()
 			.breadthFirst()
 			.uniqueness(getUniqueness());
 
 		// set evaluators
-		for(Evaluator evaluator : getEvaluators()) {
+		for (Evaluator evaluator : getEvaluators()) {
 			description = description.evaluator(evaluator);
 		}
 		
 		// add predicates as evaluators
-		for(final Predicate<Node> predicate : predicates) {
+		for (final Predicate<Node> predicate : predicates) {
 			description = description.evaluator(new Evaluator() {
 
 				@Override
 				public Evaluation evaluate(Path path) {
 					Node endNode = path.endNode();
-					if(predicate.evaluate(securityContext, endNode)) {
+					if (predicate.evaluate(securityContext, endNode)) {
 						return Evaluation.EXCLUDE_AND_PRUNE;
 					}
 					
@@ -91,7 +90,7 @@ public abstract class CustomCollector<T extends AbstractNode> implements Travers
 		
 		// set rel type and direction
 		int numRels = relTypes.size();
-		for(int i=0; i<numRels; i++) {
+		for (int i=0; i<numRels; i++) {
 			RelationshipType relType = relTypes.get(i);
 			Direction direction = directions.get(i);
 			description = description.relationships(relType, direction);
@@ -112,7 +111,7 @@ public abstract class CustomCollector<T extends AbstractNode> implements Travers
 	// ----- protected methods -----
 	protected boolean hasPropertyValue(Relationship rel, PropertyKey propertyKey, Object propertyValue) {
 		
-		if(rel != null && rel.hasProperty(propertyKey.dbName())) {
+		if (rel != null && rel.hasProperty(propertyKey.dbName())) {
 			
 			Object value = rel.getProperty(propertyKey.dbName());
 			return value.equals(propertyValue);
@@ -123,7 +122,7 @@ public abstract class CustomCollector<T extends AbstractNode> implements Travers
 
 	protected boolean hasPropertyValue(Node node, PropertyKey propertyKey, Object propertyValue) {
 		
-		if(node != null && node.hasProperty(propertyKey.dbName())) {
+		if (node != null && node.hasProperty(propertyKey.dbName())) {
 			
 			Object value = node.getProperty(propertyKey.dbName());
 			return value.equals(propertyValue);

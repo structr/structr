@@ -22,8 +22,8 @@ package org.structr.common;
 import org.structr.common.error.FrameworkException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.fail;
+
+
 import org.structr.core.GraphObject;
 import org.structr.core.entity.TestOne;
 import org.structr.core.graph.Tx;

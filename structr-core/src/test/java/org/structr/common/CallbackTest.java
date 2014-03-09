@@ -20,7 +20,7 @@ package org.structr.common;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import static junit.framework.Assert.assertEquals;
+
 import static junit.framework.Assert.assertTrue;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.TestEight;

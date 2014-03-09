@@ -128,7 +128,7 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 				
 				if (!(source instanceof Boolean)) {
 					
-					logger.log(Level.SEVERE, "Wrong database type for {0}. Expected: {1}, found: {2}", new Object[]{dbName, Boolean.class.getName(), source.getClass().getName()});
+					logger.log(Level.WARNING, "Wrong database type for {0}. Expected: {1}, found: {2}", new Object[]{dbName, Boolean.class.getName(), source.getClass().getName()});
 					
 					return (Boolean) fixDatabaseProperty(source);
 					

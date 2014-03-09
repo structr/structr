@@ -32,9 +32,6 @@ import org.structr.core.entity.TestTwo;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import static junit.framework.Assert.assertTrue;
-import static junit.framework.Assert.fail;
-import static junit.framework.TestCase.assertNotNull;
 import org.structr.core.Result;
 import org.structr.core.entity.SixOneOneToOne;
 import org.structr.core.entity.TestSix;

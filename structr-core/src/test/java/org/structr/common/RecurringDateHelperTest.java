@@ -21,7 +21,7 @@ package org.structr.common;
 import java.util.Date;
 import java.util.logging.Logger;
 import java.util.Calendar;
-import static junit.framework.Assert.assertEquals;
+
 
 /**
  *

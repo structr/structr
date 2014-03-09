@@ -21,13 +21,8 @@ package org.structr.common;
 
 import org.structr.core.property.PropertyKey;
 import org.structr.common.error.FrameworkException;
-
-//~--- JDK imports ------------------------------------------------------------
-
-
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import static junit.framework.Assert.assertTrue;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.GenericNode;
 import org.structr.core.entity.relationship.NodeHasLocation;

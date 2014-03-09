@@ -35,28 +35,19 @@
 *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 package org.structr.common;
 
 import org.structr.core.property.PropertyKey;
-
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.TestOne;
-
-//~--- JDK imports ------------------------------------------------------------
-
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertTrue;
-import static junit.framework.Assert.fail;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 
