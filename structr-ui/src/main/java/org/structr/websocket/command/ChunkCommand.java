@@ -18,6 +18,7 @@
  */
 package org.structr.websocket.command;
 
+import java.io.IOException;
 import org.apache.commons.codec.binary.Base64;
 
 import org.structr.websocket.message.MessageBuilder;
@@ -29,6 +30,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
 import org.structr.websocket.StructrWebSocket;
@@ -90,10 +92,10 @@ public class ChunkCommand extends AbstractCommand {
 				
 			}
 
-			getWebSocket().handleFileChunk(uuid, sequenceNumber, chunkSize, data);
+			getWebSocket().handleFileChunk(uuid, sequenceNumber, chunkSize, data, chunks);
 			
 			if (sequenceNumber+1 == chunks) {
-
+				
 				final long checksum = FileHelper.getChecksum(file);
 				final long size     = FileHelper.getSize(file);
 				
@@ -101,6 +103,8 @@ public class ChunkCommand extends AbstractCommand {
 				file.setProperty(File.size, size);
 				file.increaseVersion();
 
+				getWebSocket().removeFileUploadHandler(uuid);
+				
 				logger.log(Level.FINE, "File upload finished. Checksum: {0}, size: {1}", new Object[]{ checksum, size });
 
 			}
@@ -110,9 +114,9 @@ public class ChunkCommand extends AbstractCommand {
 			// This should trigger setting of lastModifiedDate in any case
 			getWebSocket().send(MessageBuilder.status().code(200).message("{\"id\":\"" + file.getUuid() + "\", \"name\":\"" + file.getName() + "\",\"size\":" + currentSize + "}").build(), true);
 
-		} catch (Throwable t) {
+		} catch (IOException | FrameworkException ex) {
 
-			String msg = t.toString();
+			String msg = ex.toString();
 
 			// return error message
 			getWebSocket().send(MessageBuilder.status().code(400).message("Could not process chunk data: ".concat((msg != null)

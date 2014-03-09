@@ -57,6 +57,7 @@ import org.structr.core.graph.Tx;
 /**
  *
  * @author Christian Morgner
+ * @author Axel Morgner
  */
 
 public class StructrWebSocket implements WebSocketListener {
@@ -108,9 +109,6 @@ public class StructrWebSocket implements WebSocketListener {
 
 		pagePath = request.getQueryString();
 
-		//connection.setMaxTextMessageSize(1024 * 1024 * 1024);
-		//connection.setMaxBinaryMessageSize(1024 * 1024 * 1024);
-
 	}
 
 	@Override
@@ -134,6 +132,7 @@ public class StructrWebSocket implements WebSocketListener {
 			}
 
 			tx.success();
+			uploads.clear();
 
 		} catch (FrameworkException fex) {
 
@@ -141,7 +140,6 @@ public class StructrWebSocket implements WebSocketListener {
 
 		}
 
-		uploads.clear();
 
 	}
 
@@ -201,12 +199,12 @@ public class StructrWebSocket implements WebSocketListener {
 					// commit transaction
 					tx.success();
 
-				} catch (Throwable t) {
+				} catch (FrameworkException fex) {
 
-					t.printStackTrace(System.out);
+					fex.printStackTrace(System.out);
 
 					// send 400 Bad Request
-					send(MessageBuilder.status().code(400).message(t.getMessage()).build(), true);
+					send(MessageBuilder.status().code(400).message(fex.getMessage()).build(), true);
 
 				}
 
@@ -250,8 +248,8 @@ public class StructrWebSocket implements WebSocketListener {
 				
 				session.getRemote().sendString(msg);
 				
-			} catch (IOException ex) {
-				logger.log(Level.SEVERE, null, ex);
+			} catch (Throwable t) {
+				logger.log(Level.SEVERE, "Unable to send websocket message to remote client", t);
 			}
 			
 		} else {
@@ -267,6 +265,12 @@ public class StructrWebSocket implements WebSocketListener {
 
 		uploads.put(uuid, new FileUploadHandler(file));
 
+	}
+
+	public void removeFileUploadHandler(final String uuid) {
+		
+		uploads.remove(uuid);
+		
 	}
 
 	private FileUploadHandler handleExistingFile(final String uuid) {
@@ -294,7 +298,7 @@ public class StructrWebSocket implements WebSocketListener {
 
 	}
 
-	public void handleFileChunk(String uuid, int sequenceNumber, int chunkSize, byte[] data) throws IOException {
+	public void handleFileChunk(final String uuid, final int sequenceNumber, final int chunkSize, final byte[] data, final int chunks) throws IOException {
 
 		FileUploadHandler upload = uploads.get(uuid);
 
@@ -305,25 +309,12 @@ public class StructrWebSocket implements WebSocketListener {
 
 		if (upload != null) {
 
-			upload.handleChunk(sequenceNumber, chunkSize, data);
+			upload.handleChunk(sequenceNumber, chunkSize, data, chunks);
 
 		}
 
 	}
 
-	// ----- public static methods -----
-//	public static String secureRandomString() {
-//
-//		byte[] binaryData = new byte[SessionIdLength];
-//
-//		// create random data
-//		secureRandom.nextBytes(binaryData);
-//
-//		// return random data encoded in Base64
-//		return Base64.encodeBase64URLSafeString(binaryData);
-//
-//	}
-	// ----- private methods -----
 	private void authenticateToken(final String messageToken) {
 
 		Principal user = AuthHelper.getPrincipalForSessionId(messageToken);
@@ -336,7 +327,6 @@ public class StructrWebSocket implements WebSocketListener {
 
 	}
 
-	// ----- private static methods -----
 	public static void addCommand(final Class command) {
 
 		try {
@@ -418,7 +408,7 @@ public class StructrWebSocket implements WebSocketListener {
 
 	@Override
 	public void onWebSocketBinary(final byte[] bytes, int i, int i1) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override

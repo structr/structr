@@ -76,28 +76,29 @@ public class FileUploadHandler {
 
 	//~--- methods --------------------------------------------------------
 
-	public void handleChunk(int sequenceNumber, int chunkSize, byte[] data) throws IOException {
+	public void handleChunk(int sequenceNumber, int chunkSize, byte[] data, int chunks) throws IOException {
 
 		FileChannel channel = getChannel();
 
 		if (channel != null) {
-
+			
 			channel.position(sequenceNumber * chunkSize);
 			channel.write(ByteBuffer.wrap(data));
 
 			if (this.size == null) {
 				
 				this.size = channel.size();
+				
+			}
+			
+			// finish upload
+			if (sequenceNumber + 1 == chunks) {
+				
+				finish();
 				updateSize(this.size);
 				
 			}
 			
-			// file size reached? upload finished
-			if (channel.position() == this.size) {
-
-				finish();
-			}
-
 		}
 
 	}
@@ -134,13 +135,15 @@ public class FileUploadHandler {
 				channel.force(true);
 				channel.close();
 				
+				this.privateFileChannel = null;
+				
 				file.increaseVersion();
 
 			}
 
-		} catch (Throwable t) {
+		} catch (IOException | FrameworkException e) {
 
-			logger.log(Level.WARNING, "Unable to finish file upload", t);
+			logger.log(Level.WARNING, "Unable to finish file upload", e);
 
 		}
 

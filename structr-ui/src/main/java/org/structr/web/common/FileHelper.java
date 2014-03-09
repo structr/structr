@@ -30,7 +30,6 @@ import org.structr.core.entity.AbstractNode;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.List;
 
 import java.util.UUID;
@@ -44,17 +43,15 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.common.PathHelper;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
-import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.LinkedTreeNode;
-import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.property.PropertyMap;
 import org.structr.util.Base64;
 import org.structr.web.entity.AbstractFile;
 
 //~--- classes ----------------------------------------------------------------
 /**
- * File Utility class.
+ * File utility class.
  *
  * @author Axel Morgner
  */
@@ -63,7 +60,6 @@ public class FileHelper {
 	private static final String UNKNOWN_MIME_TYPE = "application/octet-stream";
 	private static final Logger logger = Logger.getLogger(FileHelper.class.getName());
 
-	//~--- methods --------------------------------------------------------
 	//~--- methods --------------------------------------------------------
 	/**
 	 * Transform an existing file into the target class.
@@ -230,8 +226,8 @@ public class FileHelper {
 	//~--- inner classes --------------------------------------------------
 	public static class Base64URIData {
 
-		private String contentType;
-		private String data;
+		private final String contentType;
+		private final String data;
 
 		//~--- constructors -------------------------------------------
 		public Base64URIData(final String rawData) {
@@ -294,7 +290,6 @@ public class FileHelper {
 		if (id == null) {
 
 			final String newUuid = UUID.randomUUID().toString().replaceAll("[\\-]+", "");
-			final App app = StructrApp.getInstance(fileNode.getSecurityContext());
 			id = newUuid;
 
 			fileNode.unlockReadOnlyPropertiesOnce();
@@ -383,7 +378,7 @@ public class FileHelper {
 
 			return new String[]{match.getMimeType(), match.getExtension()};
 
-		} catch (Exception e) {
+		} catch (MagicParseException | MagicMatchNotFoundException | MagicException e) {
 
 			logger.log(Level.SEVERE, null, e);
 
@@ -411,7 +406,7 @@ public class FileHelper {
 
 			return new String[]{match.getMimeType(), match.getExtension()};
 
-		} catch (Exception e) {
+		} catch (MagicParseException | MagicMatchNotFoundException | MagicException e) {
 
 			logger.log(Level.SEVERE, null, e);
 
@@ -444,7 +439,7 @@ public class FileHelper {
 
 				return checksum;
 
-			} catch (Exception ex) {
+			} catch (IOException ex) {
 
 				logger.log(Level.WARNING, "Could not calculate checksum of file {0}", filePath);
 
@@ -551,9 +546,9 @@ public class FileHelper {
 		try {
 			return StructrApp.getInstance().get(AbstractFile.class, uuid);
 
-		} catch (Throwable t) {
+		} catch (FrameworkException fex) {
 
-			logger.log(Level.WARNING, "Unable to load file by UUID {0}: {1}", new Object[]{uuid, t.getMessage()});
+			logger.log(Level.WARNING, "Unable to load file by UUID {0}: {1}", new Object[]{uuid, fex.getMessage()});
 		}
 
 		return null;
@@ -566,9 +561,9 @@ public class FileHelper {
 		try {
 			return StructrApp.getInstance().nodeQuery(AbstractFile.class).andName(name).getFirst();
 
-		} catch (Throwable t) {
+		} catch (FrameworkException fex) {
 
-			logger.log(Level.WARNING, "Unable to load file by name {0}: {1}", new Object[]{name, t.getMessage()});
+			logger.log(Level.WARNING, "Unable to load file by name {0}: {1}", new Object[]{name, fex.getMessage()});
 		}
 
 		return null;
