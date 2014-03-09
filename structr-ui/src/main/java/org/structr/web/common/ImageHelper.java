@@ -21,7 +21,7 @@ package org.structr.web.common;
 import com.mortennobel.imagescaling.ResampleOp;
 
 import org.apache.commons.io.output.ByteArrayOutputStream;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.web.entity.Image;

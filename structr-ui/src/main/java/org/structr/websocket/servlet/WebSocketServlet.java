@@ -20,27 +20,16 @@ package org.structr.websocket.servlet;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-
-import org.eclipse.jetty.websocket.WebSocket;
-import org.eclipse.jetty.websocket.WebSocketFactory;
-import org.eclipse.jetty.websocket.WebSocketFactory.Acceptor;
-
-import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.WebSocketDataGSONAdapter;
 import org.structr.websocket.message.WebSocketMessage;
-
-//~--- JDK imports ------------------------------------------------------------
-
-import java.io.IOException;
-
-import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import org.structr.core.GraphObject;
+import javax.servlet.ServletException;
+import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.rest.service.HttpServiceServlet;
+import org.structr.rest.service.StructrHttpServiceConfig;
+import org.structr.websocket.StructrWebSocket;
+import org.structr.websocket.StructrWebSocketCreator;
 import org.structr.websocket.SynchronizationController;
 
 //~--- classes ----------------------------------------------------------------
@@ -48,69 +37,68 @@ import org.structr.websocket.SynchronizationController;
 /**
  *
  * @author Christian Morgner
+ * @author Axel Morgner
  */
-public class WebSocketServlet extends HttpServiceServlet {
+public class WebSocketServlet extends org.eclipse.jetty.websocket.servlet.WebSocketServlet implements HttpServiceServlet {
 
 	private static final Logger logger           = Logger.getLogger(WebSocketServlet.class.getName());
-	private static final String STRUCTR_PROTOCOL = "structr";
-	private static WebSocketFactory factory      = null;
+	
+	private final StructrHttpServiceConfig config = new StructrHttpServiceConfig();
+	
+	//private StructrWebSocketServerFactory factory;
 
 	@Override
-	public void init() {
+	public StructrHttpServiceConfig getConfig() {
+		return config;
+	}
+	
+//	@Override
+//	public void init() throws ServletException {
+//
+//		super.init();
+//		//factory = new StructrWebSocketServerFactory(syncController, gson, config.getDefaultIdProperty(), config.getAuthenticator());
+//		
+//	}
+	
+//	
+//	
+//	@Override
+//	protected void doGet(final HttpServletRequest request, HttpServletResponse response) throws IOException {
+//
+//		// accept connection
+//		if (!factory.acceptWebSocket(request, response)) {
+//
+//			logger.log(Level.INFO, "Request rejected.");
+//			response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
+//
+//		} else {
+//
+//			logger.log(Level.INFO, "Request accepted.");
+//
+//		}
+//	}
 
+	@Override
+	public void configure(final WebSocketServletFactory factory) {
+		
 		// create GSON serializer
 		final Gson gson = new GsonBuilder()
 			.setPrettyPrinting()
-			.registerTypeAdapter(WebSocketMessage.class, new WebSocketDataGSONAdapter(GraphObject.id, outputNestingDepth))
+			.registerTypeAdapter(WebSocketMessage.class, new WebSocketDataGSONAdapter(config.getDefaultIdProperty(), config.getOutputNestingDepth()))
 			.create();
 		
 		final SynchronizationController syncController = new SynchronizationController(gson);
 		
 		// register (Structr) transaction listener
 		TransactionCommand.registerTransactionListener(syncController);
+		
+		//factory.getPolicy().setIdleTimeout(10000);
+		factory.setCreator(new StructrWebSocketCreator(syncController, gson, config.getDefaultIdProperty(), config.getAuthenticator()));
+		factory.register(StructrWebSocket.class);
+		
+		// Disable compression (experimental features)
+		factory.getExtensionFactory().unregister("x-webkit-deflate-frame");
+		factory.getExtensionFactory().unregister("permessage-deflate");
 
-		// create web socket factory
-		factory = new WebSocketFactory(new Acceptor() {
-
-			@Override
-			public WebSocket doWebSocketConnect(final HttpServletRequest request, final String protocol) {
-
-				if (STRUCTR_PROTOCOL.equals(protocol)) {
-
-					return new StructrWebSocket(syncController, request, gson, GraphObject.id, getAuthenticator());
-
-				} else {
-
-					logger.log(Level.INFO, "Protocol {0} not accepted", protocol);
-
-				}
-
-				return null;
-			}
-			
-			@Override
-			public boolean checkOrigin(final HttpServletRequest request, final String origin) {
-
-				// TODO: check origin
-				return true;
-			}
-
-		});
-	}
-
-	@Override
-	protected void doGet(final HttpServletRequest request, HttpServletResponse response) throws IOException {
-
-		// accept connection
-		if (!factory.acceptWebSocket(request, response)) {
-
-			logger.log(Level.INFO, "Request rejected.");
-			response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
-
-		} else {
-
-			logger.log(Level.INFO, "Request accepted.");
-
-		}
 	}
 }

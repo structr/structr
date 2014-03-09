@@ -35,7 +35,6 @@ import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
 import com.google.gson.Gson;
-import org.eclipse.jetty.websocket.WebSocket;
 
 //~--- JDK imports ------------------------------------------------------------
 import java.io.IOException;
@@ -46,6 +45,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
+import org.eclipse.jetty.websocket.api.Session;
+import org.eclipse.jetty.websocket.api.WebSocketListener;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -57,14 +58,15 @@ import org.structr.core.graph.Tx;
  *
  * @author Christian Morgner
  */
-public class StructrWebSocket implements WebSocket.OnTextMessage {
+
+public class StructrWebSocket implements WebSocketListener {
 
 	private static final Logger logger = Logger.getLogger(StructrWebSocket.class.getName());
 	private static final Map<String, Class> commandSet = new LinkedHashMap<>();
 
 	//~--- fields ---------------------------------------------------------
 	private String callback = null;
-	private Connection connection = null;
+	private Session session = null;
 	private Gson gson = null;
 	private PropertyKey idProperty = null;
 	private HttpServletRequest request = null;
@@ -76,11 +78,13 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 	private String pagePath = null;
 
 	//~--- constructors ---------------------------------------------------
-	public StructrWebSocket(final SynchronizationController syncController, final HttpServletRequest request, final Gson gson, final PropertyKey idProperty, final Authenticator authenticator) {
+	
+	public StructrWebSocket() {}
+
+	public StructrWebSocket(final SynchronizationController syncController, final Gson gson, final PropertyKey idProperty, final Authenticator authenticator) {
 
 		this.uploads = new LinkedHashMap<>();
 		this.syncController = syncController;
-		this.request = request;
 		this.gson = gson;
 		this.idProperty = idProperty;
 		this.authenticator = authenticator;
@@ -88,25 +92,29 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 	}
 
 	//~--- methods --------------------------------------------------------
+	public void setRequest(final HttpServletRequest request) {
+		this.request = request;
+	}
+	
 	@Override
-	public void onOpen(final Connection connection) {
+	public void onWebSocketConnect(final Session session) {
 
-		logger.log(Level.INFO, "New connection with protocol {0}", connection.getProtocol());
+		logger.log(Level.INFO, "New connection with protocol {0}", session.getProtocolVersion());
 
-		this.connection = connection;
+		this.session = session;
 		this.token = null;
-
+		
 		syncController.registerClient(this);
 
-		pagePath = this.getRequest().getQueryString();
+		pagePath = request.getQueryString();
 
-		connection.setMaxTextMessageSize(1024 * 1024 * 1024);
-		connection.setMaxBinaryMessageSize(1024 * 1024 * 1024);
+		//connection.setMaxTextMessageSize(1024 * 1024 * 1024);
+		//connection.setMaxBinaryMessageSize(1024 * 1024 * 1024);
 
 	}
 
 	@Override
-	public void onClose(final int closeCode, final String message) {
+	public void onWebSocketClose(final int closeCode, final String message) {
 
 		logger.log(Level.INFO, "Connection closed with closeCode {0} and message {1}", new Object[]{closeCode, message});
 
@@ -115,7 +123,7 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 		try (final Tx tx = app.tx()) {
 
 			this.token = null;
-			this.connection = null;
+			this.session = null;
 
 			syncController.unregisterClient(this);
 
@@ -138,7 +146,7 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 	}
 
 	@Override
-	public void onMessage(final String data) {
+	public void onWebSocketText(final String data) {
 
 		logger.log(Level.FINE, "############################################################ RECEIVED \n{0}", data.substring(0, Math.min(data.length(), 1000)));
 
@@ -175,7 +183,7 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 				AbstractCommand abstractCommand = (AbstractCommand) type.newInstance();
 
 				abstractCommand.setWebSocket(this);
-				abstractCommand.setConnection(connection);
+				abstractCommand.setSession(session);
 				abstractCommand.setIdProperty(idProperty);
 
 				// store authenticated-Flag in webSocketData
@@ -232,29 +240,23 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 
 		// set callback
 		message.setCallback(callback);
+		if (isAuthenticated() || "STATUS".equals(message.getCommand())) {
+			
+			String msg = gson.toJson(message, WebSocketMessage.class);
+			
+			logger.log(Level.FINE, "############################################################ SENDING \n{0}", msg);
 
-		try {
-
-			if (isAuthenticated() || "STATUS".equals(message.getCommand())) {
-
-				String msg = gson.toJson(message, WebSocketMessage.class);
-
-				// if ("STATUS".equals(message.getCommand())) {
-				logger.log(Level.FINE, "############################################################ SENDING \n{0}", msg);
-
-				// }
-				connection.sendMessage(msg);
-
-			} else {
-
-				logger.log(Level.WARNING, "NOT sending message to unauthenticated client.");
+			try {
+				
+				session.getRemote().sendString(msg);
+				
+			} catch (IOException ex) {
+				logger.log(Level.SEVERE, null, ex);
 			}
-
-		} catch (IOException t) {
-
-			logger.log(Level.WARNING, "Error sending message to client.", t);
-			//t.printStackTrace();
-
+			
+		} else {
+			
+			logger.log(Level.WARNING, "NOT sending message to unauthenticated client.");
 		}
 	}
 
@@ -351,9 +353,9 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 
 	}
 
-	public Connection getConnection() {
+	public Session getSession() {
 
-		return connection;
+		return session;
 
 	}
 
@@ -412,6 +414,16 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 
 		}
 
+	}
+
+	@Override
+	public void onWebSocketBinary(final byte[] bytes, int i, int i1) {
+		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+	}
+
+	@Override
+	public void onWebSocketError(final Throwable t) {
+		logger.log(Level.SEVERE, "Exception in WebSocket occured", t);
 	}
 
 }

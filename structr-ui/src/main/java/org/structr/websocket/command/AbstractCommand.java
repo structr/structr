@@ -18,8 +18,6 @@
  */
 package org.structr.websocket.command;
 
-import org.eclipse.jetty.websocket.WebSocket.Connection;
-
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
@@ -31,6 +29,7 @@ import org.structr.websocket.message.WebSocketMessage;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.eclipse.jetty.websocket.api.Session;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -55,7 +54,7 @@ public abstract class AbstractCommand {
 
 	//~--- fields ---------------------------------------------------------
 
-	private Connection connection          = null;
+	private Session session                = null;
 	private PropertyKey<String> idProperty = null;
 	private StructrWebSocket webSocket     = null;
 
@@ -67,8 +66,8 @@ public abstract class AbstractCommand {
 
 	public abstract String getCommand();
 
-	public Connection getConnection() {
-		return connection;
+	public Session getSession() {
+		return session;
 	}
 
 	public PropertyKey<String> getIdProperty() {
@@ -230,8 +229,8 @@ public abstract class AbstractCommand {
 	
 	//~--- set methods ----------------------------------------------------
 
-	public void setConnection(final Connection connection) {
-		this.connection = connection;
+	public void setSession(final Session session) {
+		this.session = session;
 	}
 
 	public void setIdProperty(final PropertyKey<String> idProperty) {

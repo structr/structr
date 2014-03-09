@@ -21,7 +21,7 @@ package org.structr.web.converter;
 import net.sf.jmimemagic.Magic;
 import net.sf.jmimemagic.MagicMatch;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import org.structr.web.common.ImageHelper;
 import org.structr.common.KeyAndClass;

@@ -31,6 +31,7 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -40,10 +41,9 @@ import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.IOUtils;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.rest.service.HttpServiceServlet;
+import org.structr.rest.service.StructrHttpServiceConfig;
 import org.structr.web.auth.HttpAuthenticator;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.Image;
@@ -54,7 +54,7 @@ import org.structr.web.entity.Image;
  *
  * @author Axel Morgner
  */
-public class UploadServlet extends HttpServiceServlet {
+public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 
 	private static final Logger logger = Logger.getLogger(UploadServlet.class.getName());
 
@@ -65,11 +65,17 @@ public class UploadServlet extends HttpServiceServlet {
 	// non-static fields
 	private ServletFileUpload uploader = null;
 	private File filesDir              = null;
-
+	private final StructrHttpServiceConfig config = new StructrHttpServiceConfig();
 
 	public UploadServlet() { }
 
 	//~--- methods --------------------------------------------------------
+
+	@Override
+	public StructrHttpServiceConfig getConfig() {
+		return config;
+	}
+	
 	@Override
 	public void init() {
 
@@ -98,7 +104,7 @@ public class UploadServlet extends HttpServiceServlet {
 
 		try {
 
-			final SecurityContext securityContext = getAuthenticator().initializeAndExamineRequest(request, response);
+			final SecurityContext securityContext = getConfig().getAuthenticator().initializeAndExamineRequest(request, response);
 
 			// Ensure access mode is frontend
 			securityContext.setAccessMode(AccessMode.Frontend);

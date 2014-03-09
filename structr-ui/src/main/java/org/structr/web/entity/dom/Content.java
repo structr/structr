@@ -46,7 +46,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.common.Permission;
 import org.structr.core.graph.search.SearchCommand;
 import org.structr.web.common.RenderContext.EditMode;

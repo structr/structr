@@ -40,7 +40,7 @@ import net.sf.jmimemagic.MagicException;
 import net.sf.jmimemagic.MagicMatchNotFoundException;
 import net.sf.jmimemagic.MagicParseException;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.common.PathHelper;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;

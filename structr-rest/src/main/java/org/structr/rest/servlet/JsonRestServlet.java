@@ -48,6 +48,7 @@ import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.neo4j.kernel.DeadlockDetectedException;
@@ -65,7 +66,9 @@ import org.structr.rest.adapter.FrameworkExceptionGSONAdapter;
 import org.structr.rest.adapter.ResultGSONAdapter;
 import org.structr.rest.serialization.StreamingHtmlWriter;
 import org.structr.rest.serialization.StreamingJsonWriter;
+import org.structr.rest.service.HttpService;
 import org.structr.rest.service.HttpServiceServlet;
+import org.structr.rest.service.StructrHttpServiceConfig;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -76,7 +79,7 @@ import org.structr.rest.service.HttpServiceServlet;
  *
  * @author Christian Morgner
  */
-public class JsonRestServlet extends HttpServiceServlet {
+public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 	public static final int DEFAULT_VALUE_PAGE_SIZE                     = 20;
 	public static final String DEFAULT_VALUE_SORT_ORDER                 = "asc";
@@ -117,7 +120,15 @@ public class JsonRestServlet extends HttpServiceServlet {
 	private ThreadLocalJsonWriter jsonWriter                    = null;
 	private ThreadLocalHtmlWriter htmlWriter                    = null;
 	private Writer logWriter                                    = null;
-	
+	private final StructrHttpServiceConfig config = new StructrHttpServiceConfig();
+
+	//~--- methods --------------------------------------------------------
+
+	@Override
+	public StructrHttpServiceConfig getConfig() {
+		return config;
+	}
+		
 	@Override
 	public void init() {
 		
@@ -133,13 +144,13 @@ public class JsonRestServlet extends HttpServiceServlet {
 		
 		
 		// inject resources
-		resourceMap.putAll(resourceProvider.getResources());
+		resourceMap.putAll(config.getResourceProvider().getResources());
 
 		// initialize variables
-		this.propertyView   = new ThreadLocalPropertyView();
-		this.gson           = new ThreadLocalGson(outputNestingDepth);
-		this.jsonWriter     = new ThreadLocalJsonWriter(propertyView, indentJson, outputNestingDepth);
-		this.htmlWriter     = new ThreadLocalHtmlWriter(propertyView, indentJson, outputNestingDepth);
+		this.propertyView       = new ThreadLocalPropertyView();
+		this.gson               = new ThreadLocalGson(config.getOutputNestingDepth());
+		this.jsonWriter         = new ThreadLocalJsonWriter(propertyView, indentJson, config.getOutputNestingDepth());
+		this.htmlWriter         = new ThreadLocalHtmlWriter(propertyView, indentJson, config.getOutputNestingDepth());
 
 	}
 
@@ -173,7 +184,7 @@ public class JsonRestServlet extends HttpServiceServlet {
 
 			// isolate request authentication in a transaction
 			try (final Tx tx = StructrApp.getInstance().tx()) {
-				authenticator = getAuthenticator();
+				authenticator = config.getAuthenticator();
 				securityContext = authenticator.initializeAndExamineRequest(request, response);
 				tx.success();
 			}
@@ -187,7 +198,7 @@ public class JsonRestServlet extends HttpServiceServlet {
 			// isolate resource authentication
 			try (final Tx tx = app.tx()) {
 
-				resource = ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty), defaultIdProperty);
+				resource = ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, config.getDefaultIdProperty()), config.getDefaultIdProperty());
 				authenticator.checkResourceAccess(request, resource.getResourceSignature(), propertyView.get(securityContext));
 
 				tx.success();
@@ -277,7 +288,7 @@ public class JsonRestServlet extends HttpServiceServlet {
 
 			// isolate request authentication in a transaction
 			try (final Tx tx = StructrApp.getInstance().tx()) {
-				authenticator = getAuthenticator();
+				authenticator = config.getAuthenticator();
 				securityContext = authenticator.initializeAndExamineRequest(request, response);
 				tx.success();
 			}
@@ -289,7 +300,7 @@ public class JsonRestServlet extends HttpServiceServlet {
 			response.setCharacterEncoding("UTF-8");
 
 			// set default value for property view
-			propertyView.set(securityContext, defaultPropertyView);
+			propertyView.set(securityContext, config.getDefaultPropertyView());
 
 			// evaluate constraints and measure query time
 			double queryTimeStart    = System.nanoTime();
@@ -297,7 +308,10 @@ public class JsonRestServlet extends HttpServiceServlet {
 			// isolate resource authentication
 			try (final Tx tx = app.tx()) {
 				
-				resource = ResourceHelper.applyViewTransformation(request, securityContext, ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty), defaultIdProperty), propertyView);
+				resource = ResourceHelper.applyViewTransformation(request, securityContext,
+					ResourceHelper.optimizeNestedResourceChain(
+						ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView,
+							config.getDefaultIdProperty()), config.getDefaultIdProperty()), propertyView);
 				authenticator.checkResourceAccess(request, resource.getResourceSignature(), propertyView.get(securityContext));
 				tx.success();
 			}
@@ -309,8 +323,8 @@ public class JsonRestServlet extends HttpServiceServlet {
 			String sortOrder         = request.getParameter(REQUEST_PARAMETER_SORT_ORDER);
 			String sortKeyName       = request.getParameter(REQUEST_PARAMETER_SORT_KEY);
 			boolean sortDescending   = (sortOrder != null && "desc".equals(sortOrder.toLowerCase()));
-			int pageSize		 = parseInt(pageSizeParameter, NodeFactory.DEFAULT_PAGE_SIZE);
-			int page                 = parseInt(pageParameter, NodeFactory.DEFAULT_PAGE);
+			int pageSize		 = HttpService.parseInt(pageSizeParameter, NodeFactory.DEFAULT_PAGE_SIZE);
+			int page                 = HttpService.parseInt(pageParameter, NodeFactory.DEFAULT_PAGE);
 			String baseUrl           = request.getRequestURI();
 			PropertyKey sortKey      = null;
 
@@ -450,7 +464,7 @@ public class JsonRestServlet extends HttpServiceServlet {
 
 			// isolate request authentication in a transaction
 			try (final Tx tx = StructrApp.getInstance().tx()) {
-				authenticator = getAuthenticator();
+				authenticator = config.getAuthenticator();
 				securityContext = authenticator.initializeAndExamineRequest(request, response);
 				tx.success();
 			}
@@ -465,7 +479,9 @@ public class JsonRestServlet extends HttpServiceServlet {
 			// isolate resource authentication
 			try (final Tx tx = app.tx()) {
 				
-				resource = ResourceHelper.applyViewTransformation(request, securityContext, ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty), defaultIdProperty), propertyView);
+				resource = ResourceHelper.applyViewTransformation(request, securityContext,
+					ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView,
+						config.getDefaultIdProperty()), config.getDefaultIdProperty()), propertyView);
 				authenticator.checkResourceAccess(request, resource.getResourceSignature(), propertyView.get(securityContext));
 				tx.success();
 			}
@@ -553,7 +569,7 @@ public class JsonRestServlet extends HttpServiceServlet {
 
 			// isolate request authentication in a transaction
 			try (final Tx tx = StructrApp.getInstance().tx()) {
-				authenticator = getAuthenticator();
+				authenticator = config.getAuthenticator();
 				securityContext = authenticator.initializeAndExamineRequest(request, response);
 				tx.success();
 			}
@@ -568,7 +584,9 @@ public class JsonRestServlet extends HttpServiceServlet {
 			// isolate resource authentication
 			try (final Tx tx = app.tx()) {
 				
-				resource = ResourceHelper.applyViewTransformation(request, securityContext, ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty), defaultIdProperty), propertyView);
+				resource = ResourceHelper.applyViewTransformation(request, securityContext,
+					ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView,
+						config.getDefaultIdProperty()), config.getDefaultIdProperty()), propertyView);
 				authenticator.checkResourceAccess(request, resource.getResourceSignature(), propertyView.get(securityContext));
 				tx.success();
 			}
@@ -657,7 +675,7 @@ public class JsonRestServlet extends HttpServiceServlet {
 
 			// isolate request authentication in a transaction
 			try (final Tx tx = StructrApp.getInstance().tx()) {
-				authenticator = getAuthenticator();
+				authenticator = config.getAuthenticator();
 				securityContext = authenticator.initializeAndExamineRequest(request, response);
 				tx.success();
 			}
@@ -683,7 +701,9 @@ public class JsonRestServlet extends HttpServiceServlet {
 				// isolate resource authentication
 				try (final Tx tx = app.tx()) {
 				
-					resource = ResourceHelper.applyViewTransformation(request, securityContext, ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty), defaultIdProperty), propertyView);
+					resource = ResourceHelper.applyViewTransformation(request, securityContext,
+						ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView,
+							config.getDefaultIdProperty()), config.getDefaultIdProperty()), propertyView);
 					authenticator.checkResourceAccess(request, resource.getResourceSignature(), propertyView.get(securityContext));
 					tx.success();
 				}
@@ -704,7 +724,7 @@ public class JsonRestServlet extends HttpServiceServlet {
 				}
 
 				// set default value for property view
-				propertyView.set(securityContext, defaultPropertyView);
+				propertyView.set(securityContext, config.getDefaultPropertyView());
 
 				// isolate write output
 				try (final Tx tx = app.tx()) {
@@ -797,7 +817,7 @@ public class JsonRestServlet extends HttpServiceServlet {
 
 			// isolate request authentication in a transaction
 			try (final Tx tx = StructrApp.getInstance().tx()) {
-				authenticator = getAuthenticator();
+				authenticator = config.getAuthenticator();
 				securityContext = authenticator.initializeAndExamineRequest(request, response);
 				tx.success();
 			}
@@ -823,7 +843,9 @@ public class JsonRestServlet extends HttpServiceServlet {
 				try (final Tx tx = app.tx()) {
 				
 					// evaluate constraint chain
-					resource = ResourceHelper.applyViewTransformation(request, securityContext, ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView, defaultIdProperty), defaultIdProperty), propertyView);
+					resource = ResourceHelper.applyViewTransformation(request, securityContext,
+						ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView,
+							config.getDefaultIdProperty()), config.getDefaultIdProperty()), propertyView);
 					authenticator.checkResourceAccess(request, resource.getResourceSignature(), propertyView.get(securityContext));
 					tx.success();
 				}
@@ -965,7 +987,7 @@ public class JsonRestServlet extends HttpServiceServlet {
 
 		@Override
 		protected String initialValue() {
-			return defaultPropertyView;
+			return config.getDefaultPropertyView();
 		}
 
 		@Override
@@ -990,8 +1012,8 @@ public class JsonRestServlet extends HttpServiceServlet {
 		@Override
 		protected Gson initialValue() {
 			
-			JsonInputGSONAdapter jsonInputAdapter = new JsonInputGSONAdapter(propertyView, defaultIdProperty);
-			ResultGSONAdapter resultGsonAdapter   = new ResultGSONAdapter(propertyView, defaultIdProperty, outputNestingDepth);
+			JsonInputGSONAdapter jsonInputAdapter = new JsonInputGSONAdapter(propertyView, config.getDefaultIdProperty());
+			ResultGSONAdapter resultGsonAdapter   = new ResultGSONAdapter(propertyView, config.getDefaultIdProperty(), outputNestingDepth);
 
 			// create GSON serializer
 			return new GsonBuilder()

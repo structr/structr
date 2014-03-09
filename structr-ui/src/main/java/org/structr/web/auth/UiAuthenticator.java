@@ -33,10 +33,8 @@ import org.structr.core.entity.ResourceAccess;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.common.AccessMode;
-import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
 import org.structr.core.auth.exception.UnauthorizedException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Person;
@@ -94,7 +92,7 @@ public class UiAuthenticator extends HttpAuthenticator {
 	 * @throws FrameworkException 
 	 */
 	@Override
-	public SecurityContext initializeAndExamineRequest(HttpServletRequest request, HttpServletResponse response) throws FrameworkException {
+	public SecurityContext initializeAndExamineRequest(final HttpServletRequest request, final HttpServletResponse response) throws FrameworkException {
 
 		SecurityContext securityContext;
 		
@@ -151,7 +149,7 @@ public class UiAuthenticator extends HttpAuthenticator {
 	}
 
 	@Override
-	public void checkResourceAccess(HttpServletRequest request, String rawResourceSignature, String propertyView)
+	public void checkResourceAccess(final HttpServletRequest request, final String rawResourceSignature, final String propertyView)
 		throws FrameworkException {
 		
 		ResourceAccess resourceAccess = ResourceAccess.findGrant(rawResourceSignature);
@@ -262,13 +260,19 @@ public class UiAuthenticator extends HttpAuthenticator {
 	}
 	
 	@Override
-	public Principal doLogin(HttpServletRequest request,String emailOrUsername, String password) throws AuthenticationException {
+	public Principal doLogin(final HttpServletRequest request, final String emailOrUsername, final String password) throws AuthenticationException {
 
 		Principal user = AuthHelper.getPrincipalForPassword(Person.eMail, emailOrUsername, password);
 
 		if (user != null) {
 
-			final String sessionIdFromRequest = request.getRequestedSessionId();
+			
+			String sessionIdFromRequest = null;
+			try {
+				sessionIdFromRequest = request.getRequestedSessionId();
+			} catch (UnsupportedOperationException uoe) {
+				// ignore
+			}
 			
 			// Websocket connects don't have a session
 			if (sessionIdFromRequest != null) {
@@ -289,7 +293,7 @@ public class UiAuthenticator extends HttpAuthenticator {
 	//~--- get methods ----------------------------------------------------
 
 	@Override
-	public Principal getUser(HttpServletRequest request, final boolean tryLogin) throws FrameworkException {
+	public Principal getUser(final HttpServletRequest request, final boolean tryLogin) throws FrameworkException {
 
 		// First, check session (JSESSIONID cookie)
 		Principal user = checkSessionAuthentication(request);

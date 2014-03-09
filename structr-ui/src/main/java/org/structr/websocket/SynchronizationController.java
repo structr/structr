@@ -19,22 +19,20 @@
 package org.structr.websocket;
 
 import com.google.gson.Gson;
+import java.io.IOException;
 
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.StructrTransactionListener;
 import org.structr.core.entity.AbstractNode;
 import org.structr.websocket.message.WebSocketMessage;
-
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.eclipse.jetty.util.URIUtil;
-
-import org.eclipse.jetty.websocket.WebSocket.Connection;
+import org.eclipse.jetty.websocket.api.Session;
 import org.neo4j.graphdb.RelationshipType;
 import org.structr.common.AccessMode;
-
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.ModificationEvent;
@@ -102,11 +100,11 @@ public class SynchronizationController implements StructrTransactionListener {
 					continue;
 				}
 				
-				Connection socketConnection = socket.getConnection();
+				Session session = socket.getSession();
 
 				webSocketData.setCallback(socket.getCallback());
 
-				if ((socketConnection != null)) { //&& socket.isAuthenticated()) {
+				if ((session != null)) { //&& socket.isAuthenticated()) {
 
 					List<? extends GraphObject> result = webSocketData.getResult();
 
@@ -142,15 +140,15 @@ public class SynchronizationController implements StructrTransactionListener {
 
 					try {
 
-						socketConnection.sendMessage(message);
+						session.getRemote().sendString(message);
 
 					} catch (org.eclipse.jetty.io.EofException eof) {
 
 						logger.log(Level.FINE, "EofException irgnored, may occour on SSL connections.", eof);
 
-					} catch (Throwable t) {
+					} catch (IOException e) {
 
-						logger.log(Level.WARNING, "Error sending message to client.", t);
+						logger.log(Level.WARNING, "Error sending message to client.", e);
 
 					}
 

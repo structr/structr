@@ -20,8 +20,8 @@ package org.structr.web;
 import java.io.ByteArrayInputStream;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.*;
@@ -250,9 +250,9 @@ public class Importer {
 
 		}
 	}
-	
+
 	public void importDataComments() throws FrameworkException {
-		
+
 		// try to import graph gist from comments
 		GraphGistImporter.importGist(GraphGistImporter.extractSources(new ByteArrayInputStream(commentSource.toString().getBytes())));
 	}
@@ -302,9 +302,8 @@ public class Importer {
 			}
 
 			// Data and comment nodes: Trim the text and put it into the "content" field without changes
-			if (/*type.equals("#data") || */ type.equals("#comment")) {
+			if (/*type.equals("#data") || */type.equals("#comment")) {
 
-				type = "Content";
 				tag = "";
 				comment = ((Comment) node).getData();
 
@@ -313,12 +312,22 @@ public class Importer {
 
 					continue;
 				}
-				
+
 				// store for later use
 				commentSource.append(comment).append("\n");
-			}
 
-			// Text-only nodes: Trim the text and put it into the "content" field
+			} else if (type.equals("#data")) {
+
+				tag = "";
+				content = ((DataNode) node).getWholeData();
+
+				// Don't add content node for whitespace
+				if (StringUtils.isBlank(content)) {
+
+					continue;
+				}
+
+			} else // Text-only nodes: Trim the text and put it into the "content" field
 			if (type.equals("#text")) {
 
 //                              type    = "Content";
@@ -340,12 +349,12 @@ public class Importer {
 
 				// create comment or content node
 				if (!StringUtils.isBlank(comment)) {
-					
+
 					newNode = (DOMNode) page.createComment(comment);
 					newNode.setProperty(org.structr.web.entity.dom.Comment.contentType, "text/html");
-					
+
 				} else {
-					
+
 					newNode = (Content) page.createTextNode(content);
 				}
 
@@ -360,11 +369,11 @@ public class Importer {
 				newNode.setProperty(AbstractNode.visibleToAuthenticatedUsers, authVisible);
 
 				if (res != null) {
-					
+
 					newNode.setProperty(LinkSource.linkable, res);
-					
+
 				}
-				
+
 				// "id" attribute: Put it into the "_html_id" field
 				if (StringUtils.isNotBlank(id)) {
 
@@ -386,10 +395,19 @@ public class Importer {
 						// convert data-* attributes to local camel case properties on the node,
 						// but don't convert data-structr-* attributes as they are internal
 						if (key.startsWith("data-")) {
+							String value = nodeAttr.getValue();
 
 							if (!key.startsWith(DATA_META_PREFIX)) {
 
-								newNode.setProperty(new StringProperty(nodeAttr.getKey()), nodeAttr.getValue());
+								if (value != null) {
+									if (value.equalsIgnoreCase("true")) {
+										newNode.setProperty(new BooleanProperty(key), true);
+									} else if (value.equalsIgnoreCase("false")) {
+										newNode.setProperty(new BooleanProperty(key), false);
+									} else {
+										newNode.setProperty(new StringProperty(key), nodeAttr.getValue());
+									}
+								}
 
 							} else {
 
@@ -397,8 +415,6 @@ public class Importer {
 
 								String upperCaseKey = WordUtils.capitalize(key.substring(l), new char[]{'-'}).replaceAll("-", "");
 								String camelCaseKey = key.substring(l, l + 1).concat(upperCaseKey.substring(1));
-
-								String value = nodeAttr.getValue();
 
 								if (value != null) {
 									if (value.equalsIgnoreCase("true")) {

@@ -47,7 +47,6 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.GenericNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.core.log.ReadLogCommand;
 import org.structr.core.log.WriteLogCommand;
 import org.structr.files.ftp.FtpService;
@@ -57,7 +56,6 @@ import org.structr.rest.servlet.JsonRestServlet;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.servlet.HtmlServlet;
 import org.structr.websocket.servlet.WebSocketServlet;
-import org.w3c.dom.Node;
 
 //~--- classes ----------------------------------------------------------------
 /**

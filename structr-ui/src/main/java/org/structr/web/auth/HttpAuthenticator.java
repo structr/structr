@@ -19,7 +19,7 @@
 package org.structr.web.auth;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;

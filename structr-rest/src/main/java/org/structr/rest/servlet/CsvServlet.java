@@ -47,6 +47,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
+import javax.servlet.http.HttpServlet;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -54,8 +55,10 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.graph.Tx;
-import org.structr.rest.RestMethodResult;
+import org.structr.core.property.Property;
+import static org.structr.rest.service.HttpService.parseInt;
 import org.structr.rest.service.HttpServiceServlet;
+import org.structr.rest.service.StructrHttpServiceConfig;
 
 //~--- classes ----------------------------------------------------------------
 /**
@@ -64,7 +67,7 @@ import org.structr.rest.service.HttpServiceServlet;
  *
  * @author Axel Morgner
  */
-public class CsvServlet extends HttpServiceServlet {
+public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 
 	private static final Logger logger = Logger.getLogger(CsvServlet.class.getName());
 
@@ -79,16 +82,28 @@ public class CsvServlet extends HttpServiceServlet {
 	private static boolean removeLineBreaks = false;
 	private static boolean writeBom = false;
 
+	private Property<String> defaultIdProperty;
+	private String defaultPropertyView;
+	private final StructrHttpServiceConfig config = new StructrHttpServiceConfig();
+
+
 	//~--- methods --------------------------------------------------------
+
+	@Override
+	public StructrHttpServiceConfig getConfig() {
+		return config;
+	}
+	
 	@Override
 	public void init() {
 
 		// inject resources
-		resourceMap.putAll(resourceProvider.getResources());
+		resourceMap.putAll(config.getResourceProvider().getResources());
 
 		// initialize variables
-		this.propertyView = new ThreadLocalPropertyView();
-
+		this.propertyView        = new ThreadLocalPropertyView();
+		this.defaultPropertyView = config.getDefaultPropertyView();
+		this.defaultIdProperty   = config.getDefaultIdProperty();
 	}
 
 	@Override
@@ -103,7 +118,7 @@ public class CsvServlet extends HttpServiceServlet {
 
 			// isolate request authentication in a transaction
 			try (final Tx tx = StructrApp.getInstance().tx()) {
-				authenticator = getAuthenticator();
+				authenticator = config.getAuthenticator();
 				securityContext = authenticator.initializeAndExamineRequest(request, response);
 				tx.success();
 			}

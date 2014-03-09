@@ -23,7 +23,7 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 
 import org.apache.commons.compress.utils.IOUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import org.structr.common.*;
 import org.structr.common.SecurityContext;
@@ -42,6 +42,7 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
+import javax.servlet.http.HttpServlet;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -56,6 +57,7 @@ import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
 import org.structr.rest.ResourceProvider;
 import org.structr.rest.service.HttpServiceServlet;
+import org.structr.rest.service.StructrHttpServiceConfig;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.common.ThreadLocalMatcher;
@@ -70,7 +72,7 @@ import org.structr.web.entity.dom.DOMNode;
  * @author Christian Morgner
  * @author Axel Morgner
  */
-public class HtmlServlet extends HttpServiceServlet {
+public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 	private static final Logger logger = Logger.getLogger(HtmlServlet.class.getName());
 
@@ -90,14 +92,20 @@ public class HtmlServlet extends HttpServiceServlet {
 
 	// non-static fields
 	private DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
-	private SearchNodeCommand searchNodesAsSuperuser = null;
+	private SearchNodeCommand searchNodesAsSuperuser;
 
+	private final StructrHttpServiceConfig config = new StructrHttpServiceConfig();
+
+	@Override
+	public StructrHttpServiceConfig getConfig() {
+		return config;
+	}
+	
 	public HtmlServlet() {
 	}
 
 	@Override
 	public void init() {
-
 		searchNodesAsSuperuser = StructrApp.getInstance().command(SearchNodeCommand.class);
 	}
 
@@ -117,7 +125,7 @@ public class HtmlServlet extends HttpServiceServlet {
 		try {
 			// isolate request authentication in a transaction
 			try (final Tx tx = StructrApp.getInstance().tx()) {
-				authenticator = getAuthenticator();
+				authenticator = config.getAuthenticator();
 				securityContext = authenticator.initializeAndExamineRequest(request, response);
 				tx.success();
 			}
@@ -156,7 +164,7 @@ public class HtmlServlet extends HttpServiceServlet {
 
 				RenderContext renderContext = RenderContext.getInstance(request, response, getEffectiveLocale(request));
 
-				renderContext.setResourceProvider(resourceProvider);
+				renderContext.setResourceProvider(config.getResourceProvider());
 
 				EditMode edit = renderContext.getEditMode(user);
 
@@ -708,7 +716,7 @@ public class HtmlServlet extends HttpServiceServlet {
 	}
 
 	public void setResourceProvider(final ResourceProvider resourceProvider) {
-		this.resourceProvider = resourceProvider;
+		config.setResourceProvider(resourceProvider);
 	}
 
 	private void streamFile(SecurityContext securityContext, final org.structr.web.entity.File file, HttpServletRequest request, HttpServletResponse response, final EditMode edit) throws IOException {

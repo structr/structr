@@ -20,7 +20,7 @@ package org.structr.web.entity;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
