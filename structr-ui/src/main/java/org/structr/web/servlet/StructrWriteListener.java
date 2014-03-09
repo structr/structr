@@ -58,10 +58,16 @@ public class StructrWriteListener implements WriteListener {
 
 			// If we are at EOF then complete
 			if (len < 0) {
-				content.close();
+//				out.flush();
+//				
+//				try {
+//					out.close();
+//				} catch (Throwable t) {
+//					// ignore
+//					logger.log(Level.WARNING, "Could not close servlet output stream");
+//				}
+//				content.close();
 				async.complete();
-				out.flush();
-				out.close();
 				return;
 			}
 

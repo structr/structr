@@ -309,12 +309,6 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 						rootElement.render(securityContext, renderContext, 0);
 						String content = renderContext.getBuffer().toString();
 
-						AsyncContext async = request.startAsync();
-						ServletOutputStream out = response.getOutputStream();
-
-						WriteListener wl = new StructrWriteListener(IOUtils.toInputStream(content, "UTF-8"), async, out);
-						out.setWriteListener(wl);
-
 						String contentType = rootElement.getProperty(Page.contentType);
 
 						if (contentType != null && contentType.equals("text/html")) {
@@ -327,6 +321,12 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 							// Default
 							response.setContentType("text/html;charset=UTF-8");
 						}
+
+
+						AsyncContext async = request.startAsync();
+						ServletOutputStream out = response.getOutputStream();
+
+						out.setWriteListener(new StructrWriteListener(IOUtils.toInputStream(content, "UTF-8"), async, out));
 
 						response.setStatus(HttpServletResponse.SC_OK);
 
@@ -740,9 +740,6 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 			InputStream in = file.getInputStream();
 			String contentType = file.getContentType();
 
-			AsyncContext async = request.startAsync();
-			out.setWriteListener(new StructrWriteListener(in, async, out));
-
 			if (contentType != null) {
 
 				response.setContentType(contentType);
@@ -754,6 +751,9 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 			}
 
 			response.setStatus(HttpServletResponse.SC_OK);
+
+			AsyncContext async = request.startAsync();
+			out.setWriteListener(new StructrWriteListener(in, async, out));
 
 //			try {
 //

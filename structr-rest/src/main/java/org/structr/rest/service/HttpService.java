@@ -254,19 +254,19 @@ public class HttpService implements RunnableService {
 		servletContext.addServlet("org.eclipse.jetty.servlet.DefaultServlet", "/");
 		servletContext.setInitParameter("org.eclipse.jetty.servlet.Default.dirAllowed", "false");
 
-//		if (enableGzipCompression) {
-//
-//			FilterHolder gzipFilter = new FilterHolder(AsyncGzipFilter.class);
-//			gzipFilter.setInitParameter("mimeTypes", "text/html,text/plain,text/css,text/javascript,application/json");
-//			servletContext.addFilter(gzipFilter, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
-//
-//		}
-
 		if (enableRewriteFilter) {
 
 			FilterHolder rewriteFilter = new FilterHolder(UrlRewriteFilter.class);
 			rewriteFilter.setInitParameter("confPath", "urlrewrite.xml");
 			servletContext.addFilter(rewriteFilter, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
+		}
+
+		if (enableGzipCompression) {
+
+			FilterHolder gzipFilter = new FilterHolder(AsyncGzipFilter.class);
+			gzipFilter.setInitParameter("mimeTypes", "text/html,text/plain,text/css,text/javascript,application/json");
+			servletContext.addFilter(gzipFilter, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
+
 		}
 
 		contexts.addHandler(servletContext);
@@ -371,7 +371,7 @@ public class HttpService implements RunnableService {
 			httpConfig = new HttpConfiguration();
 			httpConfig.setSecureScheme("https");
 			httpConfig.setSecurePort(httpsPort);
-			//httpConfig.setOutputBufferSize(8192);
+			httpConfig.setOutputBufferSize(64*1024);
 			httpConfig.setRequestHeaderSize(requestHeaderSize);
 
 			ServerConnector httpConnector = new ServerConnector(server, new HttpConnectionFactory(httpConfig));
