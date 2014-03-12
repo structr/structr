@@ -265,6 +265,10 @@ public class HttpService implements RunnableService {
 
 			FilterHolder gzipFilter = new FilterHolder(AsyncGzipFilter.class);
 			gzipFilter.setInitParameter("mimeTypes", "text/html,text/plain,text/css,text/javascript,application/json");
+			gzipFilter.setInitParameter("bufferSize", "32768");
+			gzipFilter.setInitParameter("minGzipSize", "256");
+			gzipFilter.setInitParameter("deflateCompressionLevel", "9");
+			gzipFilter.setInitParameter("methods", "GET,POST");
 			servletContext.addFilter(gzipFilter, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
 
 		}
@@ -371,7 +375,7 @@ public class HttpService implements RunnableService {
 			httpConfig = new HttpConfiguration();
 			httpConfig.setSecureScheme("https");
 			httpConfig.setSecurePort(httpsPort);
-			httpConfig.setOutputBufferSize(64*1024);
+			//httpConfig.setOutputBufferSize(8192);
 			httpConfig.setRequestHeaderSize(requestHeaderSize);
 
 			ServerConnector httpConnector = new ServerConnector(server, new HttpConnectionFactory(httpConfig));

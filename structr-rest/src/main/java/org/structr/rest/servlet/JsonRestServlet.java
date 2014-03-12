@@ -384,6 +384,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 				try (final Tx tx = app.tx()) {
 					response.setContentType("application/json; charset=utf-8");
 					jsonWriter.get().stream(writer, result, baseUrl);
+					writer.append("\n");    // useful newline
 					tx.success();
 				}
 				
@@ -398,7 +399,6 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 				response.setStatus(HttpServletResponse.SC_OK);
 			}
 
-			writer.append("\n");    // useful newline
 
 		} catch (FrameworkException frameworkException) {
 
