@@ -32,15 +32,24 @@ import org.structr.core.property.PropertyKey;
 public class StructrWebSocketCreator implements WebSocketCreator {
 	
 	private static final String STRUCTR_PROTOCOL = "structr";
-	private final StructrWebSocket webSocket;
+	
+	private SynchronizationController syncController = null;
+	private Gson gson                                = null;
+	private PropertyKey idProperty                   = null;
+	private Authenticator authenticator              = null;
 
 	public StructrWebSocketCreator(final SynchronizationController syncController, final Gson gson, final PropertyKey idProperty, final Authenticator authenticator) {
-		this.webSocket = new StructrWebSocket(syncController, gson, idProperty, authenticator);
+		
+		this.syncController = syncController;
+		this.gson           = gson;
+		this.idProperty     = idProperty;
+		this.authenticator  = authenticator;
 	}
 
 	@Override
 	public Object createWebSocket(ServletUpgradeRequest request, ServletUpgradeResponse response) {
 
+		StructrWebSocket webSocket = new StructrWebSocket(syncController, gson, idProperty, authenticator);
 		webSocket.setRequest(request.getHttpServletRequest());
 		
 		for (String subprotocol : request.getSubProtocols()) {
