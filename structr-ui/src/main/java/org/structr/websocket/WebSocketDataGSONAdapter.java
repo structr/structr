@@ -347,8 +347,10 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 			}
 
 			if (root.has("sessionId")) {
-
-				webSocketData.setSessionId(root.getAsJsonPrimitive("sessionId").getAsString());
+				JsonPrimitive sessionId = root.getAsJsonPrimitive("sessionId");
+				if (sessionId != null) {
+					webSocketData.setSessionId(sessionId.getAsString());
+				}
 			}
 
 			if (root.has("token")) {

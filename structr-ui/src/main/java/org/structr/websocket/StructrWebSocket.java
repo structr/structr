@@ -419,7 +419,7 @@ public class StructrWebSocket implements WebSocketListener {
 
 	@Override
 	public void onWebSocketError(final Throwable t) {
-		logger.log(Level.SEVERE, "Exception in WebSocket occured", t);
+		logger.log(Level.FINE, "Error in StructrWebSocket occured", t);
 	}
 
 }
