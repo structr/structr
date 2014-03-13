@@ -32,9 +32,9 @@ import javax.servlet.WriteListener;
  * 
  * @author Axel Morgner
  */
-public class FifoBuffer extends InputStream implements WriteListener, Appendable {
+public class AsyncBuffer extends InputStream implements WriteListener, Appendable {
 
-	private static final Logger logger = Logger.getLogger(FifoBuffer.class.getName());
+	private static final Logger logger = Logger.getLogger(AsyncBuffer.class.getName());
 
 	private static final int COPY_BUFFER_SIZE = 4096;
 	private byte[] buffer = new byte[COPY_BUFFER_SIZE];
@@ -45,9 +45,14 @@ public class FifoBuffer extends InputStream implements WriteListener, Appendable
 	private AsyncContext async;
 	private ServletOutputStream out;
 
+	private boolean completed = false;
+	
 	public void prepare(final AsyncContext async, final ServletOutputStream out) {
+
 		this.async = async;
 		this.out = out;
+		
+		out.setWriteListener(this);
 	}
 
 	public void flush() {
@@ -55,33 +60,44 @@ public class FifoBuffer extends InputStream implements WriteListener, Appendable
 		try {
 			
 			content = new ByteArrayInputStream(sb.toString().getBytes("UTF-8"));
+			sb.delete(0, sb.length());
+			onWritePossible();
 
 		} catch (IOException ex) {
 
-			Logger.getLogger(FifoBuffer.class.getName()).log(Level.SEVERE, null, ex);
+			Logger.getLogger(AsyncBuffer.class.getName()).log(Level.SEVERE, null, ex);
 
 		}
 
 	}
 
+	public void finish() {
+	
+		flush();
+		completed = true;
+		async.complete();
+		
+	}
+	
 	@Override
 	public void onWritePossible() throws IOException {
 
-		// while we are able to write without blocking
+		// Write to client if buffer is filled and client is ready
 		while (out.isReady()) {
 
-			// Read content into the output buffer
 			int len = content.read(buffer);
 
-			// EOF?
 			if (len < 0) {
-				async.complete();
 				return;
 			}
 
-			// write out the copy buffer.  
-			out.write(buffer, 0, len);
+			if (!completed && len > 0) {
+				// write out the copy buffer.  
+				out.write(buffer, 0, len);
+			}
+
 		}
+
 	}
 
 	@Override
@@ -96,19 +112,19 @@ public class FifoBuffer extends InputStream implements WriteListener, Appendable
 	}
 
 	@Override
-	public FifoBuffer append(CharSequence csq) {
+	public AsyncBuffer append(CharSequence csq) {
 		sb.append(csq);
 		return this;
 	}
 
 	@Override
-	public FifoBuffer append(CharSequence csq, int start, int end) {
+	public AsyncBuffer append(CharSequence csq, int start, int end) {
 		sb.append(csq, start, end);
 		return this;
 	}
 
 	@Override
-	public FifoBuffer append(char c) {
+	public AsyncBuffer append(char c) {
 		sb.append(c);
 		return this;
 	}

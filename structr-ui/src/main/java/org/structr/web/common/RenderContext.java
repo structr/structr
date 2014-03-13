@@ -68,7 +68,7 @@ public class RenderContext {
 	private HttpServletResponse response         = null;
 	private ResourceProvider resourceProvider    = null;
 	private Result result                        = null;
-	private FifoBuffer buffer                    = new FifoBuffer();
+	private AsyncBuffer buffer                    = new AsyncBuffer();
 	
 	public enum EditMode {
 	
@@ -227,7 +227,7 @@ public class RenderContext {
 		return searchClass;
 	}
 	
-	public FifoBuffer getBuffer() {
+	public AsyncBuffer getBuffer() {
 		return buffer;
 //		try {
 //			return response.getWriter();

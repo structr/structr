@@ -64,7 +64,6 @@ public class StructrWriteListener implements WriteListener {
 
 			// write out the copy buffer.  
 			out.write(buffer, 0, len);
-			out.flush();
 		}
 	}
 

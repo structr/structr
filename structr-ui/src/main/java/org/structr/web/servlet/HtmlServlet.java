@@ -55,7 +55,7 @@ import org.structr.core.graph.Tx;
 import org.structr.rest.ResourceProvider;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
-import org.structr.web.common.FifoBuffer;
+import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.common.ThreadLocalMatcher;
@@ -320,12 +320,12 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 						AsyncContext async = request.startAsync();
 						ServletOutputStream out = response.getOutputStream();
 
-						FifoBuffer buffer = renderContext.getBuffer();
+						AsyncBuffer buffer = renderContext.getBuffer();
 						buffer.prepare(async, out);
 						//StructrWriteListener writeListener = new StructrWriteListener(buffer, async, out);
-						out.setWriteListener(buffer);
-
+						
 						rootElement.render(securityContext, renderContext, 0);
+						buffer.finish();
 
 //						final DOMNode root = rootElement;
 //						new Thread() {
