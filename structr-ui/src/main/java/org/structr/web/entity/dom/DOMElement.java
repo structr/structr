@@ -82,6 +82,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.rest.resource.Resource;
 import org.structr.rest.servlet.JsonRestServlet;
 import org.structr.rest.servlet.ResourceHelper;
+import org.structr.web.common.FifoBuffer;
 import org.structr.web.entity.html.Body;
 import org.structr.web.common.GraphDataSource;
 import org.structr.web.common.RenderContext.EditMode;
@@ -262,7 +263,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 	}
 
-	public void openingTag(final SecurityContext securityContext, final StringBuilder out, final String tag, final EditMode editMode, final RenderContext renderContext, final int depth) throws FrameworkException {
+	public void openingTag(final SecurityContext securityContext, final FifoBuffer out, final String tag, final EditMode editMode, final RenderContext renderContext, final int depth) throws FrameworkException {
 		
 		out.append("<").append(tag);
 
@@ -323,7 +324,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	@Override
 	public void render(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException {
 		
-		StringBuilder out	= renderContext.getBuffer();
+		FifoBuffer out	= renderContext.getBuffer();
 		double start = System.nanoTime();
 
 		if (isDeleted() || isHidden() || !displayForLocale(renderContext) || !displayForConditions(securityContext, renderContext)) {
@@ -521,10 +522,10 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 		logger.log(Level.FINE, "Render node {0} in {1} seconds", new java.lang.Object[] { getUuid(), decimalFormat.format((end - start) / 1000000000.0) });
 		
-//		if (flush()) {
-//			logger.log(Level.FINE, "Flushing response: {0} ", getTagName());
-//			out.flush();
-//		}
+		if (flush()) {
+			logger.log(Level.FINE, "Flushing response: {0} ", getTagName());
+			out.flush();
+		}
 
 	}
 
@@ -1288,7 +1289,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	 * @param securityContext
 	 * @param renderContext 
 	 */
-	private void renderCustomAttributes(final StringBuilder out, final SecurityContext securityContext, final RenderContext renderContext) throws FrameworkException {
+	private void renderCustomAttributes(final FifoBuffer out, final SecurityContext securityContext, final RenderContext renderContext) throws FrameworkException {
 		
 		dbNode = this.getNode();
 		EditMode editMode = renderContext.getEditMode(securityContext.getUser(false));
@@ -1371,7 +1372,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	 * 
 	 * @param out 
 	 */
-	private void renderStructrAppLib(final StringBuilder out, final SecurityContext securityContext, final RenderContext renderContext, final int depth) throws FrameworkException {
+	private void renderStructrAppLib(final FifoBuffer out, final SecurityContext securityContext, final RenderContext renderContext, final int depth) throws FrameworkException {
 		
 		if (!(EditMode.RAW.equals(renderContext.getEditMode(securityContext.getUser(false)))) && !renderContext.appLibRendered() && getProperty(new StringProperty(STRUCTR_ACTION_PROPERTY)) != null) {
 		

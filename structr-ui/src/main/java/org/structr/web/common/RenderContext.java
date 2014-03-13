@@ -18,12 +18,10 @@
  */
 package org.structr.web.common;
 
-import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -36,6 +34,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.rest.ResourceProvider;
 import org.structr.web.entity.Component;
 import org.structr.web.entity.dom.Page;
+import org.structr.web.servlet.HtmlServlet;
 
 /**
  * Holds information about the context in which a resource is rendered,
@@ -69,7 +68,7 @@ public class RenderContext {
 	private HttpServletResponse response         = null;
 	private ResourceProvider resourceProvider    = null;
 	private Result result                        = null;
-	private StringBuilder buffer                 = new StringBuilder(8192);
+	private FifoBuffer buffer                    = new FifoBuffer();
 	
 	public enum EditMode {
 	
@@ -228,7 +227,7 @@ public class RenderContext {
 		return searchClass;
 	}
 	
-	public StringBuilder getBuffer() {
+	public FifoBuffer getBuffer() {
 		return buffer;
 //		try {
 //			return response.getWriter();

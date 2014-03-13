@@ -18,7 +18,6 @@
  */
 package org.structr.web.entity.html;
 
-import java.io.PrintWriter;
 import org.structr.web.entity.dom.DOMElement;
 import org.apache.commons.lang.ArrayUtils;
 
@@ -29,6 +28,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.property.StringProperty;
+import org.structr.web.common.FifoBuffer;
 import org.structr.web.common.HtmlProperty;
 import org.structr.web.common.RenderContext;
 
@@ -63,7 +63,7 @@ public class Html extends DOMElement {
 	);
 
 	@Override
-	public void openingTag(final SecurityContext securityContext, final StringBuilder out, final String tag, final RenderContext.EditMode editMode, final RenderContext renderContext, final int depth) throws FrameworkException {
+	public void openingTag(final SecurityContext securityContext, final FifoBuffer out, final String tag, final RenderContext.EditMode editMode, final RenderContext renderContext, final int depth) throws FrameworkException {
 		
 		String custTag = getProperty(_customOpeningTag);
 		

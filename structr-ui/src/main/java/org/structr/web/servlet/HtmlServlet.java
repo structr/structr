@@ -38,17 +38,14 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import javax.servlet.AsyncContext;
 import javax.servlet.ServletOutputStream;
-import javax.servlet.WriteListener;
 import javax.servlet.http.HttpServlet;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang.LocaleUtils;
 import org.apache.commons.lang.time.DateUtils;
-import org.eclipse.jetty.servlets.gzip.AbstractCompressedStream;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
@@ -58,6 +55,7 @@ import org.structr.core.graph.Tx;
 import org.structr.rest.ResourceProvider;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
+import org.structr.web.common.FifoBuffer;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.common.ThreadLocalMatcher;
@@ -306,9 +304,6 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 						response.setCharacterEncoding("UTF-8");
 
-						rootElement.render(securityContext, renderContext, 0);
-						String content = renderContext.getBuffer().toString();
-
 						String contentType = rootElement.getProperty(Page.contentType);
 
 						if (contentType != null && contentType.equals("text/html")) {
@@ -322,11 +317,26 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 							response.setContentType("text/html;charset=UTF-8");
 						}
 
-
 						AsyncContext async = request.startAsync();
 						ServletOutputStream out = response.getOutputStream();
 
-						out.setWriteListener(new StructrWriteListener(IOUtils.toInputStream(content, "UTF-8"), async, out));
+						FifoBuffer buffer = renderContext.getBuffer();
+						buffer.prepare(async, out);
+						//StructrWriteListener writeListener = new StructrWriteListener(buffer, async, out);
+						out.setWriteListener(buffer);
+
+						rootElement.render(securityContext, renderContext, 0);
+
+//						final DOMNode root = rootElement;
+//						new Thread() {
+//							public void run() {
+//								try {
+//									root.render(securityContext, renderContext, 0);
+//								} catch (FrameworkException ex) {
+//									Logger.getLogger(HtmlServlet.class.getName()).log(Level.SEVERE, null, ex);
+//								}
+//							}
+//						}.start();
 
 						response.setStatus(HttpServletResponse.SC_OK);
 
@@ -807,4 +817,5 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		return locale;
 
 	}
+
 }

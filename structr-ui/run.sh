@@ -1,7 +1,7 @@
 #!/bin/bash
 JAVA=`which java`
 STRUCTR="-cp target/lib/*:target/structr-ui-1.0-SNAPSHOT.jar org.structr.Server"
-STRUCTR_ARGS="-server -d64 -Xms512m -Xmx512m -XX:+UseNUMA -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -Dinstance=your_instance_name"
+STRUCTR_ARGS="-server -d64 -Xms2g -Xmx2g -XX:+UseNUMA -XX:+UseG1GC -Dinstance=your_instance_name"
 
 STRUCTR_CONF=`find . -name structr.conf`
 echo "Starting Structr with config file $STRUCTR_CONF"
