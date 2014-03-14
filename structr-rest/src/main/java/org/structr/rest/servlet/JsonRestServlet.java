@@ -261,10 +261,10 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 		} finally {
 
 			try {
-				response.getWriter().flush();
+				//response.getWriter().flush();
 				response.getWriter().close();
 				
-			} catch (Throwable t) {
+			} catch (IOException t) {
 				
 				logger.log(Level.WARNING, "Unable to flush and close response: {0}", t.getMessage());
 			}
@@ -437,7 +437,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 		} finally {
 
 			try {
-				response.getWriter().flush();
+				//response.getWriter().flush();
 				response.getWriter().close();
 				
 			} catch (Throwable t) {
@@ -647,7 +647,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 		} finally {
 
 			try {
-				response.getWriter().flush();
+				//response.getWriter().flush();
 				response.getWriter().close();
 				
 			} catch (Throwable t) {
@@ -789,7 +789,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 		} finally {
 
 			try {
-				response.getWriter().flush();
+				//response.getWriter().flush();
 				response.getWriter().close();
 				
 			} catch (Throwable t) {
@@ -918,7 +918,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 		} finally {
 
 			try {
-				response.getWriter().flush();
+				//response.getWriter().flush();
 				response.getWriter().close();
 				
 			} catch (Throwable t) {

@@ -3,22 +3,23 @@
  *
  * This file is part of Structr <http://structr.org>.
  *
- * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
+ * Structr is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Affero General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
  *
- * Structr is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * Structr is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr. If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.rest;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonIOException;
+import java.io.IOException;
 import java.io.Writer;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -32,8 +33,8 @@ import org.structr.core.GraphObject;
 import org.structr.core.Result;
 
 /**
- * Encapsulates the result of a REST HTTP method call, i.e.
- * headers, response code etc.
+ * Encapsulates the result of a REST HTTP method call, i.e. headers, response
+ * code etc.
  *
  * @author Christian Morgner
  */
@@ -47,12 +48,12 @@ public class RestMethodResult {
 	private boolean serializeSingleObjectAsCollection = false;
 
 	public RestMethodResult(int responseCode) {
-		headers = new LinkedHashMap<String, String>();
+		headers = new LinkedHashMap<>();
 		this.responseCode = responseCode;
 	}
 
 	public RestMethodResult(int responseCode, final boolean serializeSingleObjectAsCollection) {
-		headers = new LinkedHashMap<String, String>();
+		headers = new LinkedHashMap<>();
 		this.responseCode = responseCode;
 		this.serializeSingleObjectAsCollection = serializeSingleObjectAsCollection;
 	}
@@ -63,8 +64,8 @@ public class RestMethodResult {
 
 	public void addContent(final GraphObject graphObject) {
 
-		if(this.content == null) {
-			this.content = new LinkedList<GraphObject>();
+		if (this.content == null) {
+			this.content = new LinkedList<>();
 		}
 
 		this.content.add(graphObject);
@@ -73,7 +74,7 @@ public class RestMethodResult {
 	public void commitResponse(final Gson gson, final HttpServletResponse response) {
 
 		// set headers
-		for(Entry<String, String> header : headers.entrySet()) {
+		for (Entry<String, String> header : headers.entrySet()) {
 			response.setHeader(header.getKey(), header.getValue());
 		}
 
@@ -83,7 +84,7 @@ public class RestMethodResult {
 		try {
 
 			Writer writer = response.getWriter();
-			if(content != null) {
+			if (content != null) {
 
 				// create result set
 				Result result = new Result(this.content, this.content.size(), this.content.size() > 1 || serializeSingleObjectAsCollection, false);
@@ -92,17 +93,14 @@ public class RestMethodResult {
 				gson.toJson(result, writer);
 			}
 
-
-			writer.flush();
-			writer.close();
-
-
-		} catch(Throwable t) {
+			//writer.flush();
+			//writer.close();
+		} catch (JsonIOException | IOException t) {
 
 			logger.log(Level.WARNING, "Unable to commit HttpServletResponse", t);
 		}
 	}
-	
+
 	public Map<String, String> getHeaders() {
 		return headers;
 	}
