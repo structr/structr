@@ -238,7 +238,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 			int code = HttpServletResponse.SC_BAD_REQUEST;
 
 			response.setStatus(code);
-			response.getWriter().append(jsonError(code, "JsonSyntaxException in DELETE: " + jsex.getMessage()));
+			response.getWriter().append(RestMethodResult.jsonError(code, "JsonSyntaxException in DELETE: " + jsex.getMessage()));
 
 		} catch (JsonParseException jpex) {
 
@@ -247,7 +247,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 			int code = HttpServletResponse.SC_BAD_REQUEST;
 
 			response.setStatus(code);
-			response.getWriter().append(jsonError(code, "JsonSyntaxException in DELETE: " + jpex.getMessage()));
+			response.getWriter().append(RestMethodResult.jsonError(code, "JsonSyntaxException in DELETE: " + jpex.getMessage()));
 
 		} catch (Throwable t) {
 
@@ -256,7 +256,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 			int code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 
 			response.setStatus(code);
-			response.getWriter().append(jsonError(code, "JsonSyntaxException in DELETE: " + t.getMessage()));
+			response.getWriter().append(RestMethodResult.jsonError(code, "JsonSyntaxException in DELETE: " + t.getMessage()));
 			
 		} finally {
 
@@ -414,7 +414,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 			int code = HttpServletResponse.SC_BAD_REQUEST;
 
 			response.setStatus(code);
-			response.getWriter().append(jsonError(code, "Json syntax exception in GET: " + jsex.getMessage()));
+			response.getWriter().append(RestMethodResult.jsonError(code, "Json syntax exception in GET: " + jsex.getMessage()));
 
 		} catch (JsonParseException jpex) {
 
@@ -423,7 +423,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 			int code = HttpServletResponse.SC_BAD_REQUEST;
 
 			response.setStatus(code);
-			response.getWriter().append(jsonError(code, "Parser exception in GET: " + jpex.getMessage()));
+			response.getWriter().append(RestMethodResult.jsonError(code, "Parser exception in GET: " + jpex.getMessage()));
 
 		} catch (Throwable t) {
 
@@ -432,7 +432,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 			int code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 
 			response.setStatus(code);
-			response.getWriter().append(jsonError(code, "Exception in GET: " + t.getMessage()));
+			response.getWriter().append(RestMethodResult.jsonError(code, "Exception in GET: " + t.getMessage()));
 			
 		} finally {
 
@@ -519,7 +519,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 			int code = HttpServletResponse.SC_BAD_REQUEST;
 
 			response.setStatus(code);
-			response.getWriter().append(jsonError(code, "JsonSyntaxException in HEAD: " + jsex.getMessage()));
+			response.getWriter().append(RestMethodResult.jsonError(code, "JsonSyntaxException in HEAD: " + jsex.getMessage()));
 
 		} catch (JsonParseException jpex) {
 
@@ -528,7 +528,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 			int code = HttpServletResponse.SC_BAD_REQUEST;
 
 			response.setStatus(code);
-			response.getWriter().append(jsonError(code, "JsonSyntaxException in HEAD: " + jpex.getMessage()));
+			response.getWriter().append(RestMethodResult.jsonError(code, "JsonSyntaxException in HEAD: " + jpex.getMessage()));
 
 		} catch (Throwable t) {
 
@@ -537,7 +537,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 			int code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 
 			response.setStatus(code);
-			response.getWriter().append(jsonError(code, "JsonSyntaxException in HEAD: " + t.getMessage()));
+			response.getWriter().append(RestMethodResult.jsonError(code, "JsonSyntaxException in HEAD: " + t.getMessage()));
 			
 		} finally {
 
@@ -624,7 +624,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 			int code = HttpServletResponse.SC_BAD_REQUEST;
 
 			response.setStatus(code);
-			response.getWriter().append(jsonError(code, "JsonSyntaxException in OPTIONS: " + jsex.getMessage()));
+			response.getWriter().append(RestMethodResult.jsonError(code, "JsonSyntaxException in OPTIONS: " + jsex.getMessage()));
 
 		} catch (JsonParseException jpex) {
 
@@ -633,7 +633,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 			int code = HttpServletResponse.SC_BAD_REQUEST;
 
 			response.setStatus(code);
-			response.getWriter().append(jsonError(code, "JsonSyntaxException in OPTIONS: " + jpex.getMessage()));
+			response.getWriter().append(RestMethodResult.jsonError(code, "JsonSyntaxException in OPTIONS: " + jpex.getMessage()));
 
 		} catch (Throwable t) {
 
@@ -642,7 +642,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 			int code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 
 			response.setStatus(code);
-			response.getWriter().append(jsonError(code, "JsonSyntaxException in OPTIONS: " + t.getMessage()));
+			response.getWriter().append(RestMethodResult.jsonError(code, "JsonSyntaxException in OPTIONS: " + t.getMessage()));
 			
 		} finally {
 
@@ -757,7 +757,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 			int code = HttpServletResponse.SC_BAD_REQUEST;
 
 			response.setStatus(code);
-			response.getWriter().append(jsonError(code, "JsonSyntaxException in POST: " + jsex.getMessage()));
+			response.getWriter().append(RestMethodResult.jsonError(code, "JsonSyntaxException in POST: " + jsex.getMessage()));
 
 		} catch (JsonParseException jpex) {
 
@@ -766,7 +766,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 			int code = HttpServletResponse.SC_BAD_REQUEST;
 
 			response.setStatus(code);
-			response.getWriter().append(jsonError(code, "JsonParseException in POST: " + jpex.getMessage()));
+			response.getWriter().append(RestMethodResult.jsonError(code, "JsonParseException in POST: " + jpex.getMessage()));
 
 		} catch (UnsupportedOperationException uoe) {
 
@@ -775,7 +775,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 			int code = HttpServletResponse.SC_BAD_REQUEST;
 
 			response.setStatus(code);
-			response.getWriter().append(jsonError(code, "POST not supported: " + uoe.getMessage()));
+			response.getWriter().append(RestMethodResult.jsonError(code, "POST not supported: " + uoe.getMessage()));
 
 		} catch (Throwable t) {
 
@@ -784,7 +784,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 			int code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 
 			response.setStatus(code);
-			response.getWriter().append(jsonError(code, "JsonSyntaxException in POST: " + t.getMessage()));
+			response.getWriter().append(RestMethodResult.jsonError(code, "JsonSyntaxException in POST: " + t.getMessage()));
 			
 		} finally {
 
@@ -895,7 +895,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 			int code = HttpServletResponse.SC_BAD_REQUEST;
 
 			response.setStatus(code);
-			response.getWriter().append(jsonError(code, "JsonSyntaxException in PUT: " + jsex.getMessage()));
+			response.getWriter().append(RestMethodResult.jsonError(code, "JsonSyntaxException in PUT: " + jsex.getMessage()));
 
 		} catch (JsonParseException jpex) {
 
@@ -904,7 +904,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 			int code = HttpServletResponse.SC_BAD_REQUEST;
 
 			response.setStatus(code);
-			response.getWriter().append(jsonError(code, "JsonSyntaxException in PUT: " + jpex.getMessage()));
+			response.getWriter().append(RestMethodResult.jsonError(code, "JsonSyntaxException in PUT: " + jpex.getMessage()));
 
 		} catch (Throwable t) {
 
@@ -913,7 +913,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 			int code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 
 			response.setStatus(code);
-			response.getWriter().append(jsonError(code, "JsonSyntaxException in PUT: " + t.getMessage()));
+			response.getWriter().append(RestMethodResult.jsonError(code, "JsonSyntaxException in PUT: " + t.getMessage()));
 			
 		} finally {
 
@@ -943,34 +943,12 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 		int code = HttpServletResponse.SC_METHOD_NOT_ALLOWED;
 
 		response.setStatus(code);
-		response.getWriter().append(jsonError(code, "TRACE method not allowed"));
+		response.getWriter().append(RestMethodResult.jsonError(code, "TRACE method not allowed"));
 	}
 
 	// </editor-fold>
 	
 	// <editor-fold defaultstate="collapsed" desc="private methods">
-
-	private String jsonError(final int code, final String message) {
-
-		StringBuilder buf = new StringBuilder(100);
-
-		buf.append("{\n");
-		buf.append("  \"code\" : ").append(code);
-
-		if (message != null) {
-
-			buf.append(",\n  \"error\" : \"").append(StringUtils.replace(message, "\"", "\\\"")).append("\"\n");
-
-		} else {
-
-			buf.append("\n");
-
-		}
-
-		buf.append("}\n");
-
-		return buf.toString();
-	}
 
 	private Map<String, Object> convertPropertySetToMap(JsonInput propertySet) {
 		

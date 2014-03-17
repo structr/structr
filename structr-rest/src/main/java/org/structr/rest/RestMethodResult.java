@@ -19,6 +19,7 @@ package org.structr.rest;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonIOException;
+import com.google.gson.JsonPrimitive;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.LinkedHashMap;
@@ -103,7 +104,7 @@ public class RestMethodResult {
 
 			if (StringUtils.isNotEmpty(message)) {
 				
-				writer.append(message);
+				writer.append(jsonMessage(responseCode, message));
 
 			}
 			
@@ -118,4 +119,39 @@ public class RestMethodResult {
 	public Map<String, String> getHeaders() {
 		return headers;
 	}
+	
+	public static String jsonError(final int code, final String message) {
+		
+		return jsonMessage(code, message, "error");
+
+	}
+
+	public static String jsonMessage(final int code, final String message) {
+		
+		return jsonMessage(code, message, "message");
+
+	}
+
+	public static String jsonMessage(final int code, final String message, final String messageKey) {
+
+		StringBuilder buf = new StringBuilder(100);
+
+		buf.append("{\n");
+		buf.append("  \"code\" : ").append(code);
+
+		if (message != null) {
+
+			buf.append(",\n  \"").append(messageKey).append("\" : \"").append(org.apache.commons.lang.StringUtils.replace(message, "\"", "\\\"")).append("\"\n");
+
+		} else {
+
+			buf.append("\n");
+
+		}
+
+		buf.append("}\n");
+
+		return buf.toString();
+	}
+	
 }
