@@ -29,6 +29,7 @@ import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletResponse;
+import org.parboiled.common.StringUtils;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
 
@@ -42,19 +43,26 @@ public class RestMethodResult {
 
 	private static final Logger logger = Logger.getLogger(RestMethodResult.class.getName());
 
-	private List<GraphObject> content = null;
-	private Map<String, String> headers = null;
-	private int responseCode = 0;
+	private List<GraphObject> content                 = null;
+	private Map<String, String> headers               = null;
+	private int responseCode                          = 0;
+	private String message                            = null;
 	private boolean serializeSingleObjectAsCollection = false;
 
-	public RestMethodResult(int responseCode) {
-		headers = new LinkedHashMap<>();
+	public RestMethodResult(final int responseCode) {
+		this.headers      = new LinkedHashMap<>();
 		this.responseCode = responseCode;
 	}
 
-	public RestMethodResult(int responseCode, final boolean serializeSingleObjectAsCollection) {
-		headers = new LinkedHashMap<>();
+	public RestMethodResult(final int responseCode, final String message) {
+		headers           = new LinkedHashMap<>();
+		this.message      = message;
 		this.responseCode = responseCode;
+	}
+
+	public RestMethodResult(final int responseCode, final boolean serializeSingleObjectAsCollection) {
+		this.headers                           = new LinkedHashMap<>();
+		this.responseCode                      = responseCode;
 		this.serializeSingleObjectAsCollection = serializeSingleObjectAsCollection;
 	}
 
@@ -93,6 +101,12 @@ public class RestMethodResult {
 				gson.toJson(result, writer);
 			}
 
+			if (StringUtils.isNotEmpty(message)) {
+				
+				writer.append(message);
+
+			}
+			
 			//writer.flush();
 			//writer.close();
 		} catch (JsonIOException | IOException t) {
