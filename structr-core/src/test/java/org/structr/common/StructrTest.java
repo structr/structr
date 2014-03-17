@@ -148,11 +148,11 @@ public class StructrTest extends TestCase {
 
 	}
 
-	protected List<NodeInterface> createTestNodes(final Class type, final int number, final long delay) throws FrameworkException {
-
+	protected <T extends AbstractNode> List<T> createTestNodes(final Class<T> type, final int number, final long delay) throws FrameworkException {
+		
 		try (final Tx tx = app.tx()) {
 
-			List<NodeInterface> nodes = new LinkedList<>();
+			List<T> nodes = new LinkedList<>();
 
 			for (int i = 0; i < number; i++) {
 
@@ -175,7 +175,7 @@ public class StructrTest extends TestCase {
 		return null;
 	}
 
-	protected List<NodeInterface> createTestNodes(final Class type, final int number) throws FrameworkException {
+	protected <T extends AbstractNode> List<T> createTestNodes(final Class<T> type, final int number) throws FrameworkException {
 		
 		return createTestNodes(type, number, 0);
 
@@ -202,7 +202,7 @@ public class StructrTest extends TestCase {
 
 	protected <T extends Relation> List<T> createTestRelationships(final Class<T> relType, final int number) throws FrameworkException {
 
-		List<NodeInterface> nodes     = createTestNodes(GenericNode.class, 2);
+		List<GenericNode> nodes     = createTestNodes(GenericNode.class, 2);
 		final NodeInterface startNode = nodes.get(0);
 		final NodeInterface endNode   = nodes.get(1);
 
