@@ -33,10 +33,6 @@
     </properties>
     <repositories>
         <repository>
-            <id>apache</id>
-            <url>https://repository.apache.org/content/groups/public/</url>
-        </repository>
-        <repository>
             <id>neo4j-releases</id>
             <url>http://m2.neo4j.org/content/repositories/releases</url>
         </repository>
