@@ -1,25 +1,25 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core.property;
 
+import java.text.SimpleDateFormat;
 import org.apache.commons.lang.StringUtils;
-import org.apache.lucene.search.SortField;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.DateFormatToken;
@@ -45,10 +45,12 @@ import java.util.Date;
  * @author Axel Morgner
  */
 public class ISO8601DateProperty extends DateProperty {
+	
+	public static final String PATTERN = "yyyy-MM-dd'T'HH:mm:ssZ";
 
 	public ISO8601DateProperty(String name) {
 
-		super(name, "yyyy-MM-dd'T'HH:mm:ssZ");
+		super(name, PATTERN);
 
 	}
 
@@ -120,7 +122,7 @@ public class ISO8601DateProperty extends DateProperty {
 		@Override
 		public Date convert(String source) throws FrameworkException {
 
-			if (source != null) {
+			if (StringUtils.isNotBlank(source)) {
 
 				try {
 
@@ -130,7 +132,8 @@ public class ISO8601DateProperty extends DateProperty {
 						source = StringUtils.replace(source, "Z", "+0000");
 					}
 
-					return dateFormat.parse(source);
+					return new SimpleDateFormat(pattern).parse(source);
+					
 				} catch (Throwable t) {
 
 					throw new FrameworkException(declaringClass.getSimpleName(), new DateFormatToken(ISO8601DateProperty.this));
@@ -148,22 +151,11 @@ public class ISO8601DateProperty extends DateProperty {
 
 			if (source != null) {
 
-				return dateFormat.format(source);
+				return new SimpleDateFormat(pattern).format(source);
 			}
 
 			return null;
 
 		}
-
-		//~--- get methods --------------------------------------------
-
-		@Override
-		public Integer getSortType() {
-
-			return SortField.LONG;
-
-		}
-
 	}
-
 }

@@ -1,33 +1,26 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
 package org.structr.common;
 
-import org.structr.core.entity.ResourceAccess;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
-import org.structr.core.Services;
 import org.structr.core.auth.Authenticator;
-import org.structr.core.auth.AuthenticatorCommand;
-import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.entity.*;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
@@ -38,12 +31,14 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-import javax.servlet.ServletConfig;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import org.neo4j.graphdb.Node;
+import org.structr.core.graph.NodeInterface;
+import org.structr.schema.SchemaHelper;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -57,19 +52,22 @@ import org.neo4j.graphdb.Node;
 public class SecurityContext {
 
 	private static final Logger logger                   = Logger.getLogger(SecurityContext.class.getName());
-	private static final Map<String, Long> resourceFlags = new LinkedHashMap<String, Long>();
+	private static final Map<String, Long> resourceFlags = new LinkedHashMap<>();
+	private static final Pattern customViewPattern       = Pattern.compile(".*properties=([a-zA-Z_,]+)");
 
 	//~--- fields ---------------------------------------------------------
 
-	private Map<Long, AbstractNode> cache = null;
-	private AccessMode accessMode         = AccessMode.Frontend;
-	private Map<String, Object> attrs     = null;
-	private Authenticator authenticator   = null;
-	private Principal cachedUser          = null;
-	private HttpServletRequest request    = null;
-	private HttpServletResponse response  = null;
+	private Map<Long, NodeInterface> cache = new ConcurrentHashMap<>();
+	private AccessMode accessMode          = AccessMode.Frontend;
+	private Map<String, Object> attrs      = Collections.synchronizedMap(new LinkedHashMap<String, Object>());
+	private Authenticator authenticator    = null;
+	private Principal cachedUser           = null;
+	private HttpServletRequest request     = null;
+	private Set<String> customView         = null;
 
 	//~--- constructors ---------------------------------------------------
+
+	private SecurityContext() {}
 
 	/*
 	 * Alternative constructor for stateful context, e.g. WebSocket
@@ -78,44 +76,75 @@ public class SecurityContext {
 
 		this.cachedUser = user;
 		this.accessMode = accessMode;
-
-		cache = new ConcurrentHashMap<Long, AbstractNode>();
 	}
 
-	private SecurityContext(ServletConfig config, HttpServletRequest request, HttpServletResponse response, AccessMode accessMode) {
+	/*
+	 * Alternative constructor for stateful context, e.g. WebSocket
+	 */
+	private SecurityContext(Principal user, HttpServletRequest request, AccessMode accessMode) {
 
-		this.attrs      = Collections.synchronizedMap(new LinkedHashMap<String, Object>());
+		this.cachedUser = user;
 		this.accessMode = accessMode;
 		this.request    = request;
-		this.response   = response;
 
-		// the authenticator does not have a security context
-		try {
+		initRequestBasedCache(request);
+	}
 
-			this.authenticator = (Authenticator) Services.command(null, AuthenticatorCommand.class).execute(config);
+	private SecurityContext(HttpServletRequest request) {
 
-		} catch (Throwable t) {
+		this.request    = request;
 
-			logger.log(Level.SEVERE, "Could not instantiate security context!");
-		}
-
-		// TEST: request-based caching
-		if (request != null && request.getServletContext() != null) {
-			cache = (Map<Long, AbstractNode>)request.getServletContext().getAttribute("NODE_CACHE");
-		}
+		initRequestBasedCache(request);
 		
-		if (cache == null) {
-
-			cache = new ConcurrentHashMap<Long, AbstractNode>();
+		// check for custom view attributes
+		if (request != null) {
 			
-			if (request != null && request.getServletContext() != null) {
-				request.getServletContext().setAttribute("NODE_CACHE", cache);
-			}
+			try {
+				final String contentType = request.getContentType();
+				if (contentType != null && contentType.startsWith("application/json;")) {
+
+					customView = new LinkedHashSet<>();
+
+					final Matcher matcher = customViewPattern.matcher(contentType);
+					if (matcher.matches()) {
+
+						final String properties = matcher.group(1);
+						final String[] parts    = properties.split("[,]+");
+						for (final String part : parts) {
+							
+							final String p = part.trim();
+							if (p.length() > 0) {
+								
+								customView.add(p);
+							}
+						}
+					}
+				}
+				
+			} catch (Throwable ignore) { }
 		}
 	}
 
 	//~--- methods --------------------------------------------------------
 
+	private void initRequestBasedCache(HttpServletRequest request) {
+
+		// request-based caching
+		if (request != null && request.getServletContext() != null) {
+			cache = (Map<Long, NodeInterface>)request.getServletContext().getAttribute("NODE_CACHE");
+		}
+		
+		if (cache == null) {
+
+			cache = new ConcurrentHashMap<>();
+			
+			if (request != null && request.getServletContext() != null) {
+				request.getServletContext().setAttribute("NODE_CACHE", cache);
+			}
+		}
+
+	}
+	
 	/**
 	 * Call this method after the request this context was
 	 * created for is finished and the resources can be freed.
@@ -127,46 +156,22 @@ public class SecurityContext {
 		}
 	}
 	
-	public AbstractNode lookup(Node node) {
-		return cache.get(node.getId());
+	public NodeInterface lookup(final long id) {
+		return cache.get(id);
 	}
 	
-	public void store(AbstractNode node) {
+	public void store(final long id, final NodeInterface node) {
 		
 		Node dbNode = node.getNode();
 		if (dbNode != null) {
 			
-			cache.put(dbNode.getId(), node);
+			cache.put(id, node);
 		}
 	}
 	
-	public void initializeAndExamineRequest(HttpServletRequest request, HttpServletResponse response) throws FrameworkException {
-
-		this.authenticator.initializeAndExamineRequest(this, request, response);
-
-	}
-
-	public void examineRequest(HttpServletRequest request, String resourceSignature, ResourceAccess resourceAccess, String propertyView) throws FrameworkException {
-
-		this.authenticator.examineRequest(this, request, resourceSignature, resourceAccess, propertyView);
-
-	}
-
-	public Principal doLogin(String emailOrUsername, String password) throws AuthenticationException {
-
-		return authenticator.doLogin(this, request, response, emailOrUsername, password);
-
-	}
-
-	public void doLogout() {
-
-		authenticator.doLogout(this, request, response);
-
-	}
-
 	public static void clearResourceFlag(final String resource, long flag) {
 
-		String name     = EntityContext.normalizeEntityName(resource);
+		String name     = SchemaHelper.normalizeEntityName(resource);
 		Long flagObject = resourceFlags.get(name);
 		long flags      = 0;
 
@@ -208,8 +213,8 @@ public class SecurityContext {
 
 	//~--- get methods ----------------------------------------------------
 
-	public static SecurityContext getSuperUserInstance(HttpServletRequest request, HttpServletResponse response) {
-		return new SuperUserSecurityContext(request, response);
+	public static SecurityContext getSuperUserInstance(HttpServletRequest request) {
+		return new SuperUserSecurityContext(request);
 	}
 	
 	public static SecurityContext getSuperUserInstance() {
@@ -217,13 +222,13 @@ public class SecurityContext {
 
 	}
 
-	public static SecurityContext getInstance(ServletConfig config, HttpServletRequest request, HttpServletResponse response, AccessMode accessMode) {
-		return new SecurityContext(config, request, response, accessMode);
+	public static SecurityContext getInstance(Principal user, AccessMode accessMode) throws FrameworkException {
+		return new SecurityContext(user, accessMode);
 
 	}
 
-	public static SecurityContext getInstance(Principal user, AccessMode accessMode) throws FrameworkException {
-		return new SecurityContext(user, accessMode);
+	public static SecurityContext getInstance(Principal user, HttpServletRequest request, AccessMode accessMode) throws FrameworkException {
+		return new SecurityContext(user, request, accessMode);
 
 	}
 
@@ -253,10 +258,20 @@ public class SecurityContext {
 			return null;
 			
 		}
+		
+		if (authenticator.hasExaminedRequest()) {
+			
+			// If the authenticator has already examined the request,
+			// we assume that we will not get new information.
+			// Otherwise, the cachedUser would have been != null
+			// and we would not land here.
+			return null;
+			
+		}
 
 		try {
 
-			cachedUser = authenticator.getUser(this, request, response, tryLogin);
+			cachedUser = authenticator.getUser(request, tryLogin);
 
 		} catch (Throwable t) {
 
@@ -270,7 +285,7 @@ public class SecurityContext {
 
 	public AccessMode getAccessMode() {
 
-		return (accessMode);
+		return accessMode;
 
 	}
 
@@ -299,7 +314,7 @@ public class SecurityContext {
 
 	public static long getResourceFlags(String resource) {
 
-		String name     = EntityContext.normalizeEntityName(resource);
+		String name     = SchemaHelper.normalizeEntityName(resource);
 		Long flagObject = resourceFlags.get(name);
 		long flags      = 0;
 
@@ -325,7 +340,7 @@ public class SecurityContext {
 
 		Principal user = getUser(false);
 
-		return ((user != null) && (user instanceof SuperUser));
+		return ((user != null) && (user instanceof SuperUser || user.getProperty(Principal.isAdmin)));
 
 	}
 
@@ -347,13 +362,15 @@ public class SecurityContext {
 
 			return false;
 		}
-
+		
+		Principal owner = node.getOwnerNode();
+		
 		// owner is always allowed to do anything with its nodes
-		if (user.equals(node) || user.equals(node.getOwnerNode())) {
+		if (user.equals(node) || user.equals(owner) || user.getParents().contains(owner)) {
 
 			return true;
 		}
-
+		
 		boolean isAllowed = false;
 
 		switch (accessMode) {
@@ -369,8 +386,6 @@ public class SecurityContext {
 				break;
 
 		}
-
-		logger.log(Level.FINEST, "Returning {0} for user {1}, access mode {2}, node {3}, permission {4}", new Object[] { isAllowed, user.getProperty(AbstractNode.name), accessMode, node, permission });
 
 		return isAllowed;
 
@@ -393,7 +408,7 @@ public class SecurityContext {
 
 	}
 
-	public boolean isReadable(final AbstractNode node, final boolean includeDeletedAndHidden, final boolean publicOnly) {
+	public boolean isReadable(final NodeInterface node, final boolean includeDeletedAndHidden, final boolean publicOnly) {
 
 		/**
 		 * The if-clauses in the following lines have been split
@@ -459,7 +474,7 @@ public class SecurityContext {
 			return true;
 		}
 
-		// users with scanEntity permissions may see the node
+		// users with read permissions may see the node
 		if (isAllowedInBackend(node, Permission.read)) {
 
 			return true;
@@ -500,6 +515,18 @@ public class SecurityContext {
 		// Fetch already logged-in user, if present (don't try to login)
 		Principal user = getUser(false);
 		
+		if (user != null) {
+
+			Principal owner = node.getOwnerNode();
+
+			// owner is always allowed to do anything with its nodes
+			if (user.equals(node) || user.equals(owner) || user.getParents().contains(owner)) {
+
+				return true;
+			}
+		
+		}
+
 		// Public nodes are visible to non-auth users only
 		if (node.isVisibleToPublicUsers() && user == null) {
 
@@ -513,6 +540,11 @@ public class SecurityContext {
 
 				return true;
 			}
+		}
+		
+		if (isAllowedInFrontend(node, Permission.read)) {
+
+			return true;
 		}
 
 		return false;
@@ -530,15 +562,8 @@ public class SecurityContext {
 	private boolean isAllowedInFrontend(AccessControllable node, Permission permission) {
 
                 Principal user = getUser(false);
-		switch (permission) {
 
-			case read :
-				return isVisibleInFrontend(node);    // scanEntity permission in frontend is equivalent to visibility here
-
-			default :
-				return node.isGranted(permission, user);
-
-		}
+		return node.isGranted(permission, user);
 	}
 
 	//~--- set methods ----------------------------------------------------
@@ -551,7 +576,7 @@ public class SecurityContext {
 
 	public static void setResourceFlag(final String resource, long flag) {
 
-		String name     = EntityContext.normalizeEntityName(resource);
+		String name     = SchemaHelper.normalizeEntityName(resource);
 		Long flagObject = resourceFlags.get(name);
 		long flags      = 0;
 
@@ -578,28 +603,30 @@ public class SecurityContext {
 
 	}
 
-	public void setUser(final Principal user) {
-
-		this.cachedUser = user;
-
-	}
-
 	public Authenticator getAuthenticator() {
 		return authenticator;
 	}
 	
-	//~--- inner classes --------------------------------------------------
+	public void setAuthenticator(final Authenticator authenticator) {
+		this.authenticator = authenticator;
+	}
 
+	public boolean hasCustomView() {
+		return customView != null;
+	}
+	
+	public Set<String> getCustomView() {
+		return customView;
+	}
+	
 	// ----- nested classes -----
 	private static class SuperUserSecurityContext extends SecurityContext {
-
-		public SuperUserSecurityContext(HttpServletRequest request, HttpServletResponse response) {
-			super(null, request, response, null);
+		
+		public SuperUserSecurityContext(HttpServletRequest request) {
+			super(request);
 		}
 		
 		public SuperUserSecurityContext() {
-
-			super(null, null, null, null);
 		}
 
 		//~--- get methods --------------------------------------------
@@ -626,6 +653,12 @@ public class SecurityContext {
 		}
 
 		@Override
+		public boolean isReadable(final NodeInterface node, final boolean includeDeletedAndHidden, final boolean publicOnly) {
+		
+			return true;
+		}
+		
+		@Override
 		public boolean isAllowed(AccessControllable node, Permission permission) {
 
 			return true;
@@ -645,16 +678,7 @@ public class SecurityContext {
 			return true;
 
 		}
-	
-		@Override
-		public AbstractNode lookup(Node node) {
-			return null;
-		}
 		
-		@Override
-		public void store(AbstractNode node) {
-		}
-
 	}
 
 }

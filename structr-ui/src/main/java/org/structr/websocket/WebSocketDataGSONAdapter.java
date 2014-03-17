@@ -1,30 +1,28 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
 package org.structr.websocket;
 
 import com.google.gson.*;
 
 import org.structr.common.PropertyView;
 import org.structr.core.GraphObject;
-import org.structr.core.GraphObjectGSONAdapter;
+import org.structr.rest.GraphObjectGSONAdapter;
 import org.structr.core.Value;
 import org.structr.core.StaticValue;
 import org.structr.websocket.message.WebSocketMessage;
@@ -39,6 +37,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.error.FrameworkException;
+import org.structr.rest.JsonInputGSONAdapter;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -50,14 +49,12 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 
 	private static final Logger logger                   = Logger.getLogger(WebSocketDataGSONAdapter.class.getName());
 	private GraphObjectGSONAdapter graphObjectSerializer = null;
-	private Value<String> propertyView                   = new StaticValue<String>(PropertyView.Public);
+	private Value<String> propertyView                   = new StaticValue<>(PropertyView.Public);
 
 	//~--- constructors ---------------------------------------------------
 
-	public WebSocketDataGSONAdapter(PropertyKey idProperty) {
-
-		graphObjectSerializer = new GraphObjectGSONAdapter(propertyView, idProperty);
-
+	public WebSocketDataGSONAdapter(final PropertyKey idProperty, final int outputNestingDepth) {
+		graphObjectSerializer = new GraphObjectGSONAdapter(propertyView, idProperty, outputNestingDepth);
 	}
 
 	//~--- methods --------------------------------------------------------
@@ -403,7 +400,10 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 
 				for (Entry<String, JsonElement> entry : nodeData.entrySet()) {
 
-					webSocketData.setNodeData(entry.getKey(), entry.getValue().getAsString());
+					JsonElement obj = entry.getValue();
+					webSocketData.setNodeData(entry.getKey(),
+						(obj instanceof JsonNull ? null : 
+						(obj instanceof JsonPrimitive ? JsonInputGSONAdapter.fromPrimitive(obj.getAsJsonPrimitive()) : obj.getAsString())));
 				}
 
 			}
@@ -412,7 +412,8 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 
 				for (Entry<String, JsonElement> entry : relData.entrySet()) {
 
-					webSocketData.setRelData(entry.getKey(), entry.getValue().getAsString());
+					JsonElement obj = entry.getValue();
+					webSocketData.setRelData(entry.getKey(), obj instanceof JsonNull ? null : obj.getAsString());
 				}
 
 			}

@@ -1,23 +1,21 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
 package org.structr.common;
 
 
@@ -27,13 +25,13 @@ import org.structr.common.error.FrameworkException;
 //~--- JDK imports ------------------------------------------------------------
 
 
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.graphdb.Relationship;
+import static junit.framework.Assert.assertTrue;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.graph.StructrTransaction;
+import org.structr.core.entity.GenericNode;
+import org.structr.core.entity.relationship.NodeHasLocation;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 
@@ -64,49 +62,56 @@ public class ModifyGraphObjectsTest extends StructrTest {
 
 		try {
 
-			AbstractNode node;
 			final PropertyMap props = new PropertyMap();
-			String type             = "UnknownTestType";
-			String name             = "GenericNode-name";
+			final String type       = "UnknownTestType";
+			final String name       = "GenericNode-name";
+			
+			NodeInterface node      = null;
 
 			props.put(AbstractNode.type, type);
 			props.put(AbstractNode.name, name);
 
-			node = (AbstractNode) transactionCommand.execute(new StructrTransaction() {
+			try {
+				app.beginTx();
+				node = app.create(GenericNode.class, props);
+				app.commitTx();
 
-				@Override
-				public Object execute() throws FrameworkException {
+			} finally {
 
-					// Create node with a type which has no entity class => should result in a node of type 'GenericNode'
-					return (AbstractNode) createNodeCommand.execute(props);
-				}
-
-			});
+				app.finishTx();
+			}
 
 			// Check defaults
-			assertTrue(node.getProperty(AbstractNode.type).equals(type));
+			assertEquals(GenericNode.class.getSimpleName(), node.getProperty(AbstractNode.type));
 			assertTrue(node.getProperty(AbstractNode.name).equals(name));
 			assertTrue(!node.getProperty(AbstractNode.hidden));
 			assertTrue(!node.getProperty(AbstractNode.deleted));
 			assertTrue(!node.getProperty(AbstractNode.visibleToAuthenticatedUsers));
 			assertTrue(!node.getProperty(AbstractNode.visibleToPublicUsers));
 
-			name = "GenericNode-name-äöüß";
+			final String name2 = "GenericNode-name-äöüß";
 
-			// Modify values
-			node.setProperty(AbstractNode.name, name);
-			assertTrue(node.getProperty(AbstractNode.name).equals(name));
-			node.setProperty(AbstractNode.hidden, true);
+			try {
+				app.beginTx();
+
+				// Modify values
+				node.setProperty(AbstractNode.name, name2);
+				node.setProperty(AbstractNode.hidden, true);
+				node.setProperty(AbstractNode.deleted, true);
+				node.setProperty(AbstractNode.visibleToAuthenticatedUsers, true);
+				node.setProperty(AbstractNode.visibleToPublicUsers, true);
+
+				app.commitTx();
+
+			} finally {
+
+				app.finishTx();
+			}
+
+			assertTrue(node.getProperty(AbstractNode.name).equals(name2));
 			assertTrue(node.getProperty(AbstractNode.hidden));
-			node.setProperty(AbstractNode.hidden, false);
-			assertFalse(node.getProperty(AbstractNode.hidden));
-			node.setProperty(AbstractNode.deleted, true);
 			assertTrue(node.getProperty(AbstractNode.deleted));
-			node.setProperty(AbstractNode.deleted, false);
-			assertFalse(node.getProperty(AbstractNode.deleted));
-			node.setProperty(AbstractNode.visibleToAuthenticatedUsers, true);
 			assertTrue(node.getProperty(AbstractNode.visibleToAuthenticatedUsers));
-			node.setProperty(AbstractNode.visibleToPublicUsers, true);
 			assertTrue(node.getProperty(AbstractNode.visibleToPublicUsers));
 
 		} catch (FrameworkException ex) {
@@ -125,13 +130,19 @@ public class ModifyGraphObjectsTest extends StructrTest {
 
 		try {
 
-			AbstractRelationship rel = ((List<AbstractRelationship>) createTestRelationships(RelType.IS_AT, 1)).get(0);
+			final NodeHasLocation rel = (createTestRelationships(NodeHasLocation.class, 1)).get(0);
+			final PropertyKey key1         = new StringProperty("jghsdkhgshdhgsdjkfgh");
+			final String val1              = "54354354546806849870";
 
-			PropertyKey key1 = new StringProperty("jghsdkhgshdhgsdjkfgh");
-			String val1      = "54354354546806849870";
+			try {
+				app.beginTx();
+				rel.setProperty(key1, val1);
+				app.commitTx();
 
-			// Modify values
-			rel.setProperty(key1, val1);
+			} finally {
+
+				app.finishTx();
+			}
 			
 			assertTrue("Expected relationship to have a value for key '" + key1.dbName() + "'", rel.getRelationship().hasProperty(key1.dbName()));
 			
@@ -140,10 +151,20 @@ public class ModifyGraphObjectsTest extends StructrTest {
 			Object vrfy1 = rel.getProperty(key1);
 			assertEquals(val1, vrfy1);
 			
-			val1 = "öljkhöohü8osdfhoödhi";
-			rel.setProperty(key1, val1);
+			final String val2 = "öljkhöohü8osdfhoödhi";
+
+			try {
+				app.beginTx();
+				rel.setProperty(key1, val2);
+				app.commitTx();
+			
+			} finally {
+
+				app.finishTx();
+			}
+
 			Object vrfy2 = rel.getProperty(key1);
-			assertEquals(val1, vrfy2);
+			assertEquals(val2, vrfy2);
 			
 
 		} catch (FrameworkException ex) {

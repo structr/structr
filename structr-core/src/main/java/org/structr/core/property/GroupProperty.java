@@ -1,40 +1,42 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core.property;
 
 import org.structr.core.graph.search.SearchAttributeGroup;
 import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.Search;
-import org.structr.core.graph.search.SearchOperator;
-import org.structr.core.graph.search.TextualSearchAttribute;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.servlet.http.HttpServletRequest;
+import org.apache.lucene.search.BooleanClause.Occur;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.ReadOnlyPropertyToken;
-import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.PropertyGroup;
+import org.structr.core.app.Query;
+import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.graph.NodeService.NodeIndex;
+import org.structr.core.graph.NodeService.RelationshipIndex;
+import org.structr.core.graph.search.PropertySearchAttribute;
 
 /**
  * A property that combines other properties in a nested object.
@@ -46,7 +48,7 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 	private static final Logger logger = Logger.getLogger(GroupProperty.class.getName());
 	
 	// indicates whether this group property is 
-	protected Map<String, PropertyKey> propertyKeys    = new LinkedHashMap<String, PropertyKey>();
+	protected Map<String, PropertyKey> propertyKeys    = new LinkedHashMap<>();
 	protected Class<? extends GraphObject> entityClass = null;
 	protected Property<Boolean> nullValuesOnlyProperty = null;
 	
@@ -56,14 +58,75 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 		
 		for (PropertyKey key : properties) {
 			propertyKeys.put(key.jsonName(), key);
+			key.dbName(name.concat(".").concat(key.dbName()));
 		}
 		
 		this.nullValuesOnlyProperty = new BooleanProperty(name.concat(".").concat("nullValuesOnly"));
 		this.entityClass            = entityClass;
 
 		// register in entity context
-		EntityContext.registerProperty(entityClass, nullValuesOnlyProperty);
-		EntityContext.registerPropertyGroup(entityClass, this, this);	
+		// FIXME: StructrApp.getConfiguration().registerProperty(entityClass, nullValuesOnlyProperty);
+		StructrApp.getConfiguration().registerPropertyGroup(entityClass, this, this);	
+	}
+	
+	@Override
+	public GroupProperty indexed() {
+		
+		for (PropertyKey key : propertyKeys.values()) {
+			key.indexed();
+		}
+		
+		return (GroupProperty)super.indexed();
+	}
+	
+	@Override
+	public GroupProperty indexed(NodeIndex nodeIndex) {
+		
+		for (PropertyKey key : propertyKeys.values()) {
+			key.indexed(nodeIndex);
+		}
+		
+		return (GroupProperty)super.indexed(nodeIndex);
+	}
+	
+	@Override
+	public GroupProperty indexed(RelationshipIndex relIndex) {
+		
+		for (PropertyKey key : propertyKeys.values()) {
+			key.indexed(relIndex);
+		}
+		
+		return (GroupProperty)super.indexed(relIndex);
+	}
+	
+	@Override
+	public GroupProperty passivelyIndexed() {
+		
+		for (PropertyKey key : propertyKeys.values()) {
+			key.passivelyIndexed();
+		}
+		
+		return (GroupProperty)super.passivelyIndexed();
+	}
+	
+	@Override
+	public GroupProperty passivelyIndexed(NodeIndex nodeIndex) {
+		
+		for (PropertyKey key : propertyKeys.values()) {
+			key.passivelyIndexed(nodeIndex);
+		}
+		
+		return (GroupProperty)super.passivelyIndexed(nodeIndex);
+	}
+	
+	@Override
+	public GroupProperty passivelyIndexed(RelationshipIndex relIndex) {
+		
+		for (PropertyKey key : propertyKeys.values()) {
+			key.passivelyIndexed(relIndex);
+		}
+		
+		return (GroupProperty)super.passivelyIndexed(relIndex);
 	}
 	
 	@Override
@@ -87,34 +150,22 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(SearchOperator op, PropertyMap searchValues, boolean exactMatch) {
+	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occur occur, PropertyMap searchValues, boolean exactMatch, Query query) {
 		
-		SearchAttributeGroup group = new SearchAttributeGroup(op);
+		SearchAttributeGroup group = new SearchAttributeGroup(occur);
 		
 		for (PropertyKey key : propertyKeys.values()) {
 			
-			Object value = searchValues.get(key);
+			Object value = searchValues.get(new GenericProperty(key.jsonName()));
 			if (value != null) {
 				
-				group.add( new TextualSearchAttribute(new GroupPropertyWrapper(key), value.toString(), SearchOperator.AND) );
+				group.add(new PropertySearchAttribute(key, value.toString(), Occur.MUST, exactMatch));
 			}
 		}
 		
 		return group;
 	}
 
-	@Override
-	public void registerSearchableProperties(Set<PropertyKey> searchableProperties) {
-
-		searchableProperties.add(this);
-		
-		// add grouped properties as well
-		for (PropertyKey groupKey : propertyKeys.values()) {
-			
-			searchableProperties.add(new GroupPropertyWrapper(groupKey));
-		}
-	}
-	
 	/**
 	 * Returns the nested group property for the given name. The PropertyKey returned by
 	 * this method can be used to get and/or set the property value in a PropertyMap that
@@ -149,7 +200,7 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 			throw new IllegalArgumentException("GroupProperty " + dbName + " does not contain grouped property " + name + "!");
 		}
 		
-		return new GroupPropertyWrapper((propertyKeys.get(name)));
+		return new GenericProperty(propertyKeys.get(name).dbName());
 	}
 	
 	private class InputConverter extends PropertyConverter<Map<String, Object>, PropertyMap> {
@@ -183,40 +234,12 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 
 		for (PropertyKey key : propertyKeys.values()) {
 
-			Object value = source.getProperty(new GroupPropertyWrapper(key));
+			Object value = source.getProperty(key);
 			
-			PropertyConverter converter = key.inputConverter(securityContext);
-			if (converter != null) {
-				
-				try {
-					Object convertedValue = converter.revert(value);
-					groupedProperties.put(key, convertedValue);
+			groupedProperties.put(key, value);
+			if (value != null) {
 
-					if (convertedValue != null) {
-						nullValuesOnly = false;
-					}
-					
-					
-				} catch(Throwable t) {
-					
-					t.printStackTrace();
-					
-					logger.log(Level.WARNING, "Unable to convert grouped property {0} on type {1}: {2}", new Object[] {
-						key.dbName(),
-						source.getClass().getSimpleName(),
-						t.getMessage()
-						
-					});
-				}
-				
-				
-			} else {
-				
-				groupedProperties.put(key, value);
-
-				if (value != null) {
-					nullValuesOnly = false;
-				}
+				nullValuesOnly = false;
 			}
 
 		}
@@ -245,20 +268,19 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 		// set properties
 		for (PropertyKey key : propertyKeys.values()) {
 			
-			PropertyKey groupPropertyKey = new GroupPropertyWrapper(key);
-			Object value = source.get(key);
+			Object value = source.get(new GenericProperty(key.jsonName()));
 
-			PropertyConverter converter = groupPropertyKey.inputConverter(securityContext);
+			PropertyConverter converter = key.inputConverter(securityContext);
 			if (converter != null) {
 				
 				try {
 					Object convertedValue = converter.convert(value);
-					destination.setProperty(groupPropertyKey, convertedValue);
+					destination.setProperty(key, convertedValue);
 					
 				} catch(FrameworkException fex) {
 					
 					logger.log(Level.WARNING, "Unable to convert grouped property {0} on type {1}: {2}", new Object[] {
-						groupPropertyKey.dbName(),
+						key.dbName(),
 						source.getClass().getSimpleName(),
 						fex.getMessage()
 						
@@ -268,7 +290,7 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 				
 			} else {
 				
-				destination.setProperty(groupPropertyKey, value);
+				destination.setProperty(key, value);
 			}
 			
 		}
@@ -278,9 +300,14 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 	public Object fixDatabaseProperty(Object value) {
 		return null;
 	}
-	
+
 	@Override
 	public PropertyMap getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+		return getProperty(securityContext, obj, applyConverter, null);
+	}
+
+	@Override
+	public PropertyMap getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final org.neo4j.helpers.Predicate<GraphObject> predicate) {
 		return getGroupedProperties(securityContext, obj);
 	}
 	
@@ -298,113 +325,61 @@ public class GroupProperty extends Property<PropertyMap> implements PropertyGrou
 	public boolean isCollection() {
 		return false;
 	}
+
+	@Override
+	public Integer getSortType() {
+		return null;
+	}
 	
-	/**
-	 * Acts as a wrapper for property keys to prefix their name with
-	 * the name of the surrounding property group.
-	 */
-	private class GroupPropertyWrapper extends AbstractPrimitiveProperty {
-
-		private PropertyKey wrappedKey = null;
+	@Override
+	public void setDeclaringClass(Class declaringClass) {
 		
-		public GroupPropertyWrapper(PropertyKey keyToWrap) {
-			
-			super(GroupProperty.this.jsonName.concat(".").concat(keyToWrap.jsonName()),
-			      GroupProperty.this.dbName.concat(".").concat(keyToWrap.jsonName()),
-			      keyToWrap.defaultValue()
-			);
-			
-			this.wrappedKey = keyToWrap;
+		for (PropertyKey key : propertyKeys.values()) {
+
+			key.setDeclaringClass(declaringClass);
 		}
+	}
+
+	@Override
+	public void index(GraphObject entity, Object value) {
+
+		for (PropertyKey key : propertyKeys.values()) {
+
+			key.index(entity, entity.getPropertyForIndexing(key));
+		}
+	}
 		
-		@Override
-		public String toString() {
-			return "(".concat(jsonName()).concat("|").concat(dbName()).concat(")");
-		}
-		
-		@Override
-		public String typeName() {
-			return wrappedKey.typeName();
-		}
-		
-		@Override
-		public Class relatedType() {
-			return wrappedKey.relatedType();
-		}
+	@Override
+	public void extractSearchableAttribute(SecurityContext securityContext, HttpServletRequest request, final Query query) throws FrameworkException {
 
-		@Override
-		public Object defaultValue() {
-			return wrappedKey.defaultValue();
-		}
+		 for (PropertyKey propertyKey : propertyKeys.values()) {
 
-		@Override
-		public PropertyConverter databaseConverter(SecurityContext securityContext) {
-			return databaseConverter(securityContext, null);
-		}
+			if (propertyKey instanceof Property) {
 
-		@Override
-		public PropertyConverter databaseConverter(SecurityContext securityContext, GraphObject entity) {
-			return wrappedKey.databaseConverter(securityContext, entity);
-		}
+				Property key = (Property)propertyKey;
 
-		@Override
-		public PropertyConverter inputConverter(SecurityContext securityContext) {
-			return wrappedKey.inputConverter(securityContext);
-		}
+				// use dbName for searching in group properties..
+				String searchValue = request.getParameter(key.dbName());
+				if (searchValue != null) {
 
-		@Override
-		public void setDeclaringClass(Class declaringClass) {
-			wrappedKey.setDeclaringClass(declaringClass);
-		}
-		
-		@Override
-		public Class<? extends GraphObject> getDeclaringClass() {
-			return wrappedKey.getDeclaringClass();
-		}
+					if (!query.isExactSearch()) {
 
-		@Override
-		public SearchAttribute getSearchAttribute(SearchOperator op, Object searchValue, boolean exactMatch) {
-		
-			// return empty string on null value here to enable searching for empty values
-			String searchString = searchValue != null ? searchValue.toString() : "";
-			String search       = exactMatch ? Search.exactMatch(searchString) : searchString;
+						// no quotes allowed in loose search queries!
+						searchValue = removeQuotes(searchValue);
 
-			return new TextualSearchAttribute(this, search, op);
-		}
+						query.and(this, searchValue.toLowerCase(), false);
 
-		@Override
-		public void registerSearchableProperties(Set searchableProperties) {
-			wrappedKey.registerSearchableProperties(searchableProperties);
-		}
+					} else {
 
-		@Override
-		public boolean isSystemProperty() {
-			return wrappedKey.isSystemProperty();
-		}
-
-		@Override
-		public boolean isReadOnlyProperty() {
-			return wrappedKey.isReadOnlyProperty();
-		}
-
-		@Override
-		public boolean isWriteOnceProperty() {
-			return wrappedKey.isWriteOnceProperty();
-		}
-
-		@Override
-		public Object fixDatabaseProperty(Object value) {
-			
-			if (wrappedKey instanceof Property) {
-				return ((Property)wrappedKey).fixDatabaseProperty(value);
+						key.determineSearchType(securityContext, searchValue, query);
+					}
+				}
 			}
-			
-			return null;
 		}
+	}
 
-		@Override
-		public boolean isCollection() {
-			return false;
-		}
+	@Override
+	public Object getValueForEmptyFields() {
+		return null;
 	}
 }

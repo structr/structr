@@ -1,34 +1,37 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core.property;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.SortField;
 import org.apache.lucene.util.NumericUtils;
+import org.neo4j.index.lucene.ValueContext;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.DateFormatToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.app.Query;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.graph.search.DateSearchAttribute;
+import org.structr.core.graph.search.SearchAttribute;
 
 /**
 * A property that stores and retrieves a simple string-based Date with
@@ -39,19 +42,36 @@ import org.structr.core.converter.PropertyConverter;
  */
 public class DateProperty extends AbstractPrimitiveProperty<Date> {
 	
-	private static final Logger logger = Logger.getLogger(DateProperty.class.getName());
+	public static final String DATE_EMPTY_FIELD_VALUE = NumericUtils.longToPrefixCoded(Long.MIN_VALUE);
 	
-	protected SimpleDateFormat dateFormat = null;
+	protected String pattern = null;
 	
 	public DateProperty(String name, String pattern) {
 		super(name);
 		
-		dateFormat = new SimpleDateFormat(pattern);
+		this.pattern = pattern;
 	}
 	
+	public DateProperty(String name, String dbName, String pattern) {
+		super(name, dbName);
+		
+		this.pattern = pattern;
+	}
+
+	public DateProperty(String name, String dbName, Date defaultValue, String pattern) {
+		super(name, dbName, defaultValue);
+		
+		this.pattern = pattern;
+	}
+
 	@Override
 	public String typeName() {
 		return "Date";
+	}
+
+	@Override
+	public Integer getSortType() {
+		return SortField.LONG;
 	}
 	
 	@Override
@@ -91,7 +111,7 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 			
 			try {
 				
-				return dateFormat.parse(value.toString()).getTime();
+				return new SimpleDateFormat(pattern).parse(value.toString()).getTime();
 				
 			} catch (Throwable t) {
 			}
@@ -142,7 +162,7 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 			if (source != null) {
 
 				try {
-					return dateFormat.parse(source);
+					return new SimpleDateFormat(pattern).parse(source);
 
 				} catch(Throwable t) {
 
@@ -159,34 +179,27 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 		public String revert(Date source) throws FrameworkException {
 
 			if (source != null) {
-				return dateFormat.format(source);
+				return new SimpleDateFormat(pattern).format(source);
 			}
 			
 			return null;
 		}
 		
-		@Override
-		public Integer getSortType() {
-			return SortField.LONG;
-		}
-		
+	}
+
+	@Override
+	public SearchAttribute getSearchAttribute(SecurityContext securityContext, BooleanClause.Occur occur, Date searchValue, boolean exactMatch, Query query) {
+		return new DateSearchAttribute(this, searchValue, occur, exactMatch);
+	}
+
+	@Override
+	public void index(GraphObject entity, Object value) {
+		super.index(entity, value != null ? ValueContext.numeric((Number)value) : value);
 	}
 	
+	@Override
+	public String getValueForEmptyFields() {
+		return DATE_EMPTY_FIELD_VALUE;
+	}
 	
-//	@Override
-//	public Object getSearchValue(Date source) {
-//
-//		return source;// == null ? null : source.getTime();
-////		if (source == null) {
-////			return "";
-////		}
-////		
-////		long t = source.getTime();
-////		
-////		String prefixCoded = NumericUtils.longToPrefixCoded(t);
-////		
-////		logger.log(Level.INFO, "Search value for date {0}: {1}, prefixCoded: {2}", new Object[]{source, t, prefixCoded});
-////		
-////		return prefixCoded;
-//	}
 }

@@ -1,20 +1,20 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core.converter;
 
@@ -33,31 +33,15 @@ public abstract class PropertyConverter<S, T> {
 
 	protected SecurityContext securityContext = null;
 	protected GraphObject currentObject       = null;
-	protected boolean sortFinalResults        = false;
 	protected boolean rawMode                 = false;
-	protected Integer sortType                = null;
 
 	public PropertyConverter(SecurityContext securityContext) {
-		this(securityContext, null, null);
+		this(securityContext, null);
 	}
 
 	public PropertyConverter(SecurityContext securityContext, GraphObject currentObject) {
-		this(securityContext, currentObject, null);
-	}
-
-	public PropertyConverter(SecurityContext securityContext, GraphObject currentObject, boolean sortFinalResults) {
-		this(securityContext, currentObject, null, sortFinalResults);
-	}
-
-	public PropertyConverter(SecurityContext securityContext, GraphObject currentObject, Integer sortType) {
-		this(securityContext, currentObject, sortType, false);
-	}
-
-	public PropertyConverter(SecurityContext securityContext, GraphObject currentObject, Integer sortType, boolean sortFinalResults) {
 		this.securityContext = securityContext;
 		this.currentObject = currentObject;
-		this.sortType = sortType;
-		this.sortFinalResults = sortFinalResults;
 	}
 	
 	/**
@@ -109,13 +93,5 @@ public abstract class PropertyConverter<S, T> {
 	
 	public boolean getRawMode() {
 		return rawMode;
-	}
-	
-	public Integer getSortType() {
-		return sortType;
-	}
-	
-	public boolean sortFinalResults() {
-		return sortFinalResults;
 	}
 }

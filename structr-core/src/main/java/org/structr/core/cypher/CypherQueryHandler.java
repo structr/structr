@@ -1,20 +1,20 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core.cypher;
 
@@ -30,10 +30,10 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Value;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.NodeFactory;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipFactory;
+import org.structr.core.graph.RelationshipInterface;
 
 /**
  * Abstract base class for Cypher queries. Extend this class and implement the
@@ -46,8 +46,8 @@ public abstract class CypherQueryHandler implements Value<CypherQueryHandler> {
 
 	private static final Logger logger = Logger.getLogger(CypherQueryHandler.class.getName());
 	
-	protected RelationshipFactory relFactory  = new RelationshipFactory();
-	protected NodeFactory nodeFactory;
+	protected RelationshipFactory relFactory  = null;
+	protected NodeFactory nodeFactory         = null;
 	protected SecurityContext securityContext = null;
 	protected String query                    = null;
 	
@@ -71,6 +71,7 @@ public abstract class CypherQueryHandler implements Value<CypherQueryHandler> {
 	public void setSecurityContext(SecurityContext securityContext) {
 		this.securityContext = securityContext;
 		this.nodeFactory     = new NodeFactory(securityContext);
+		this.relFactory      = new RelationshipFactory(securityContext);
 	}
 	
 	// ----- interface Value<CypherQueryHandler> -----
@@ -104,12 +105,12 @@ public abstract class CypherQueryHandler implements Value<CypherQueryHandler> {
 		return (Relationship)row.get(columnName);
 	}
 	
-	protected AbstractNode getAsAbstractNode(Map<String, Object> row, String columnName) throws FrameworkException {
-		return nodeFactory.instantiateNode((Node)row.get(columnName));
+	protected NodeInterface getAsAbstractNode(Map<String, Object> row, String columnName) throws FrameworkException {
+		return nodeFactory.instantiate((Node)row.get(columnName));
 	}
 	
-	protected AbstractRelationship getAsAbstractRelationship(Map<String, Object> row, String columnName) throws FrameworkException {
-		return relFactory.instantiateRelationship(securityContext, (Relationship)row.get(columnName));
+	protected RelationshipInterface getAsAbstractRelationship(Map<String, Object> row, String columnName) throws FrameworkException {
+		return relFactory.instantiate((Relationship)row.get(columnName));
 	}
 	
 	protected GraphObject getAsGraphObject(Map<String, Object> row, String columnName) {
@@ -120,12 +121,12 @@ public abstract class CypherQueryHandler implements Value<CypherQueryHandler> {
 			
 			if (obj instanceof Node) {
 				
-				return nodeFactory.instantiateNode((Node)obj);
+				return nodeFactory.instantiate((Node)obj);
 			}
 			
 			if (obj instanceof Relationship) {
 				
-				return relFactory.instantiateRelationship(securityContext, (Relationship)obj);
+				return relFactory.instantiate((Relationship)obj);
 			}
 
 		} catch(Throwable ignore) {

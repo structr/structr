@@ -1,20 +1,20 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core.graph;
 
@@ -26,15 +26,15 @@ import org.structr.core.property.PropertyKey;
  *
  * @author Christian Morgner
  */
-public class NodeAttribute {
+public class NodeAttribute<T> {
 
-	private PropertyKey key = null;
-	private Object value = null;
+	private PropertyKey<T> key = null;
+	private T value            = null;
 
 	public NodeAttribute() {
 	}
 
-	public NodeAttribute(final PropertyKey key, final Object value) {
+	public NodeAttribute(final PropertyKey<T> key, final T value) {
 		this.key = key;
 		this.value = value;
 	}
@@ -42,28 +42,28 @@ public class NodeAttribute {
 	/**
 	 * @return the key
 	 */
-	public PropertyKey getKey() {
+	public PropertyKey<T> getKey() {
 		return key;
 	}
 
 	/**
 	 * @param key the key to set
 	 */
-	public void setKey(final PropertyKey key) {
+	public void setKey(final PropertyKey<T> key) {
 		this.key = key;
 	}
         
 	/**
 	 * @return the value
 	 */
-	public Object getValue() {
+	public T getValue() {
 		return value;
 	}
 
 	/**
 	 * @param value the value to set
 	 */
-	public void setValue(final Object value) {
+	public void setValue(final T value) {
 		this.value = value;
 	}
 
@@ -73,7 +73,7 @@ public class NodeAttribute {
 		StringBuilder buf = new StringBuilder();
 
 		buf.append("NodeAttribute('");
-		buf.append(key.dbName());
+		buf.append(key != null ? key.dbName() : "[null]");
 		buf.append("', '");
 		buf.append(value);
 		buf.append("')");
@@ -83,7 +83,12 @@ public class NodeAttribute {
 
 	@Override
 	public int hashCode() {
-		return key.hashCode();
+		
+		if (key != null) {
+			return key.hashCode();
+		}
+		
+		return super.hashCode();
 	}
 
 	@Override

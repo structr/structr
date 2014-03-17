@@ -6,14 +6,25 @@
     <parent>
         <groupId>org.structr</groupId>
         <artifactId>structr</artifactId>
-        <version>0.7</version>
+        <version>0.9.1-SNAPSHOT</version>
     </parent>
 
     <groupId>org.structr</groupId>
     <artifactId>structr-ui</artifactId>
     <packaging>jar</packaging>
-    <version>0.7</version>
+    <version>0.9.1-SNAPSHOT</version>
     <name>structr-ui</name>
+    <description>Structr is an open source framework based on the popular Neo4j graph database.</description>
+    <developers>
+        <developer>
+            <name>Axel Morgner</name>
+            <email>am@structr.org</email>
+        </developer>
+        <developer>
+            <name>Christian Morgner</name>
+            <email>cm@structr.org</email>
+        </developer>
+    </developers>
     <url>http://structr.org</url>
 
     <properties>
@@ -33,7 +44,16 @@
             <id>neo4j-snapshots</id>
             <url>http://m2.neo4j.org/content/repositories/snapshots</url>
         </repository>
-<!--         <repository>
+        <repository>
+            <id>google-diff-patch-match</id>
+            <name>google-diff-patch-match</name>
+            <url>http://google-diff-match-patch.googlecode.com/svn/trunk/maven/</url>
+        </repository>
+        <repository>
+            <id>jodd</id>
+            <url>http://repo1.maven.org/maven2/org/jodd/</url>
+        </repository>
+        <repository>
             <id>snapshots.maven.structr.org</id>
             <url>http://maven.structr.org/artifactory/snapshot</url>
         </repository>
@@ -41,20 +61,11 @@
             <id>releases.maven.structr.org</id>
             <url>http://maven.structr.org/artifactory/release</url>
         </repository>
- -->        <repository>
-            <id>jboss</id>
-            <url>https://repository.jboss.org/nexus/content/repositories/releases</url>
-        </repository>
-        <repository>
-            <id>google-diff-patch-match</id>
-            <name>google-diff-patch-match</name>
-            <url>http://google-diff-match-patch.googlecode.com/svn/trunk/maven/</url>
-        </repository>
     </repositories>
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>structr-server</artifactId>
+            <artifactId>structr-rest</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -66,12 +77,6 @@
             <optional>false</optional>
         </dependency>
         <dependency>
-            <artifactId>urlrewritefilter</artifactId>
-            <groupId>org.tuckey</groupId>
-            <type>jar</type>
-            <version>3.2.0</version>
-        </dependency>
-        <dependency>
             <groupId>diff_match_patch</groupId>
             <artifactId>diff_match_patch</artifactId>
             <version>current</version>
@@ -79,7 +84,7 @@
         <dependency>
             <groupId>org.pegdown</groupId>
             <artifactId>pegdown</artifactId>
-            <version>1.1.0</version>
+            <version>1.4.1</version>
         </dependency>
         <dependency>
             <groupId>net.java</groupId>
@@ -97,11 +102,6 @@
             <version>1.9-ea04</version>
         </dependency>
         <dependency>
-            <groupId>org.neo4j</groupId>
-            <artifactId>neo4j-rest-graphdb</artifactId>
-            <version>1.9</version>
-        </dependency>
-        <dependency>
             <groupId>com.flagstone</groupId>
             <artifactId>transform</artifactId>
             <version>3.0.2</version>
@@ -109,7 +109,12 @@
         <dependency>
             <groupId>org.jsoup</groupId>
             <artifactId>jsoup</artifactId>
-            <version>1.7.1</version>
+            <version>1.7.3</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jodd</groupId>
+            <artifactId>jodd-lagarto</artifactId>
+            <version>3.4.5</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -122,14 +127,46 @@
             <version>2.6</version>
         </dependency>
         <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <version>1.8</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-httpclient</groupId>
+            <artifactId>commons-httpclient</artifactId>
+            <version>3.1</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-net</groupId>
+            <artifactId>commons-net</artifactId>
+            <version>3.3</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>commons-fileupload</groupId>
+            <artifactId>commons-fileupload</artifactId>
+            <version>1.3</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-all</artifactId>
             <version>1.9.5</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.oltu</groupId>
-            <artifactId>oltu-oauth2-client</artifactId>
-            <version>0.31-SNAPSHOT</version>
+            <groupId>org.apache.oltu.oauth2</groupId>
+            <artifactId>org.apache.oltu.oauth2.client</artifactId>
+            <version>0.31</version>
+        </dependency>
+        <dependency>
+            <groupId>org.twitter4j</groupId>
+            <artifactId>twitter4j-core</artifactId>
+            <version>3.0.5</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.ftpserver</groupId>
+            <artifactId>ftpserver-core</artifactId>
+            <version>1.0.6</version>
         </dependency>
     </dependencies>
     <build>
@@ -138,6 +175,11 @@
                 <directory>src/main/resources</directory>
             </resource>
         </resources>
+        <testResources>
+            <testResource>
+                <directory>src/main/resources</directory>
+            </testResource>
+        </testResources>
         <plugins>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
@@ -147,7 +189,6 @@
                     <executable>java</executable>
                     <arguments>
                         <argument>-server</argument>
-                        <argument>-d64</argument>
                         <argument>-Dfile.encoding=utf-8</argument>
                         <argument>-XX:+UseNUMA</argument>
                         <argument>-Xms1g</argument>
@@ -160,11 +201,21 @@
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.16</version>
+                <configuration>
+                    <forkCount>1</forkCount>
+                    <reuseForks>false</reuseForks>
+                    <argLine>-Xmx1024m -XX:MaxPermSize=256m</argLine>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>2.3.2</version>
                 <configuration>
-                    <source>1.6</source>
-                    <target>1.6</target>
+                    <source>1.7</source>
+                    <target>1.7</target>
                     <debug>true</debug>
                 </configuration>
             </plugin>
@@ -216,6 +267,100 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.vafer</groupId>
+                <artifactId>jdeb</artifactId>
+                <version>1.0.1</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jdeb</goal>
+                        </goals>
+                        <configuration>
+                            <timestamped>true</timestamped>
+                            <controlDir>${basedir}/src/main/deb/control</controlDir>
+                            <dataSet>
+                                <data>
+                                    <src>${project.build.directory}/${project.build.finalName}.jar</src>
+                                    <type>file</type>
+                                    <dst>structr-ui.jar</dst>
+                                    <mapper>
+                                        <type>perm</type>
+                                        <prefix>/usr/lib/${project.artifactId}/</prefix>
+                                    </mapper>
+                                </data>
+
+                                <data>
+                                    <src>${project.build.directory}/lib</src>
+                                    <type>directory</type>
+                                    <mapper>
+                                        <type>perm</type>
+                                        <prefix>/usr/lib/${project.artifactId}/lib</prefix>
+                                        <filemode>755</filemode>
+                                    </mapper>
+                                </data>
+
+                                <data>
+                                    <src>${basedir}/seed.zip</src>
+                                    <type>file</type>
+                                    <mapper>
+                                        <type>perm</type>
+                                        <prefix>/usr/lib/${project.artifactId}/</prefix>
+                                        <filemode>755</filemode>
+                                    </mapper>
+                                </data>
+
+                                <data>
+                                    <src>${basedir}/src/main/deb/bin</src>
+                                    <type>directory</type>
+                                    <mapper>
+                                        <type>perm</type>
+                                        <prefix>/usr/lib/${project.artifactId}/bin</prefix>
+                                        <filemode>755</filemode>
+                                    </mapper>
+                                </data>
+
+                                <data>
+                                    <src>${basedir}/src/main/deb/init.d</src>
+                                    <type>directory</type>
+                                    <mapper>
+                                        <type>perm</type>
+                                        <prefix>/etc/init.d</prefix>
+                                        <filemode>755</filemode>
+                                    </mapper>
+                                </data>
+                            </dataSet>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>2.2.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.9.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
         <finalName>${project.artifactId}-${project.version}</finalName>
         <!-- Added to make m2e happy, thanks to http://stackoverflow.com/questions/8706017/maven-dependency-plugin-goals-copy-dependencies-unpack-is-not-supported-b -->
@@ -250,13 +395,42 @@
             </plugins>
         </pluginManagement>
     </build>
+    <profiles>
+        <profile>
+            <id>release-sign-artifacts</id>
+            <activation>
+                <property>
+                    <name>performRelease</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.4</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
     <licenses>
         <license>
             <name>GNU General Public License, Version 3</name>
             <url>http://www.gnu.org/licenses/agpl-3.0-standalone.html</url>
             <comments>
-                Copyright (C) 2010-2013 Axel Morgner, structr &lt;structr@structr.org&gt;
+                Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt), structr &lt;structr@structr.org&gt;
 
                 This file is part of structr &lt;http://structr.org&gt;.
 
@@ -277,6 +451,21 @@
     </licenses>
 
     <scm>
-        <url>https://github.com/structr/structr/tree/master/structr/structr-ui</url>
+        <url>https://github.com/structr/structr</url>
+        <connection>scm:git:git@github.com:structr/structr.git</connection>
     </scm>
+
+    <distributionManagement>
+        <repository>
+            <id>sonatype-nexus-staging</id>
+            <name>Maven Central Staging</name>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+        </repository>
+        <snapshotRepository>
+            <id>sonatype-nexus-snapshots</id>
+            <name>Maven Central Snapshots</name>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
+
 </project>

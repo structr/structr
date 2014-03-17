@@ -1,26 +1,25 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core.converter;
 
 import org.structr.core.property.PropertyKey;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -28,7 +27,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
-import org.structr.core.property.EntityProperty;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.RelationProperty;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -37,14 +39,14 @@ import org.structr.core.property.EntityProperty;
  * 
  * @author Christian Morgner
  */
-public class RelatedNodePropertyMapper extends PropertyConverter {
+public class RelatedNodePropertyMapper<T extends NodeInterface> extends PropertyConverter {
 
 	private static final Logger logger = Logger.getLogger(RelatedNodePropertyMapper.class.getName());
 
-	private EntityProperty<? extends AbstractNode> sourceKey = null;
-	private PropertyKey targetKey         = null;
+	private PropertyKey<T> sourceKey  = null;
+	private PropertyKey targetKey = null;
 	
-	public RelatedNodePropertyMapper(SecurityContext securityContext, GraphObject currentObject, EntityProperty<? extends AbstractNode> sourceKey, PropertyKey targetKey) {
+	public RelatedNodePropertyMapper(SecurityContext securityContext, GraphObject currentObject, PropertyKey<T> sourceKey, PropertyKey targetKey) {
 		
 		super(securityContext, currentObject);
 		
@@ -57,7 +59,7 @@ public class RelatedNodePropertyMapper extends PropertyConverter {
 	@Override
 	public Object convert(Object source) {
 
-		AbstractNode relatedNode = getRelatedNode(true);
+		NodeInterface relatedNode = getRelatedNode(true);
 		if (relatedNode != null) {
 
 			try {
@@ -76,7 +78,7 @@ public class RelatedNodePropertyMapper extends PropertyConverter {
 	@Override
 	public Object revert(Object source) {
 
-		AbstractNode relatedNode = getRelatedNode(false);
+		NodeInterface relatedNode = getRelatedNode(false);
 		if (relatedNode != null) {
 
 			return relatedNode.getProperty(targetKey);
@@ -87,23 +89,43 @@ public class RelatedNodePropertyMapper extends PropertyConverter {
 
 	//~--- get methods ----------------------------------------------------
 
-	private AbstractNode getRelatedNode(boolean add) {
+	private NodeInterface getRelatedNode(boolean add) {
 
-		AbstractNode relatedNode = null;
+		T relatedNode = null;
 
-		if ((currentObject != null) && (currentObject instanceof AbstractNode)) {
+		if ((currentObject != null) && (currentObject instanceof NodeInterface)) {
 
-			AbstractNode localNode = (AbstractNode) currentObject;
+			NodeInterface localNode = (NodeInterface) currentObject;
 			relatedNode = localNode.getProperty(sourceKey);
 			
-			if (relatedNode == null && add) {
-				
-				try {
-					relatedNode = sourceKey.createRelatedNode(securityContext, localNode);
+			if (relatedNode == null && add && sourceKey instanceof RelationProperty) {
+
+				final RelationProperty relationProperty = (RelationProperty)sourceKey;
+				final App app                           = StructrApp.getInstance();
+				final Class<T> relatedType              = relationProperty.getTargetType();
+
+				if (relatedType != null) {
 					
-				} catch (FrameworkException fex) {
+					try {
+						app.beginTx();
+
+						relatedNode = app.create(relatedType);
+						relationProperty.addSingleElement(securityContext, localNode, relatedNode);
+
+						app.commitTx();
+
+					} catch (FrameworkException fex) {
+
+						fex.printStackTrace();
+
+					} finally {
+
+						app.finishTx();
+					}
 					
-					logger.log(Level.WARNING, "Unable to create related node from property {0}", sourceKey);
+				} else {
+					
+					logger.log(Level.SEVERE, "Related type was null for {0}", currentObject);
 				}
 			}
 		}

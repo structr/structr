@@ -1,26 +1,23 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
 package org.structr.websocket.command;
 
-import org.apache.commons.lang.StringUtils;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.websocket.message.MessageBuilder;
@@ -31,12 +28,10 @@ import org.structr.websocket.message.WebSocketMessage;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.Permission;
-import org.structr.common.SecurityContext;
-import org.structr.core.Services;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.websocket.StructrWebSocket;
 
 //~--- classes ----------------------------------------------------------------
@@ -61,11 +56,11 @@ public class SetPermissionCommand extends AbstractCommand {
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
-		AbstractNode obj   = getNode(webSocketData.getId());
-		String recString   = (String) webSocketData.getNodeData().get("recursive");
-		String principalId = (String) webSocketData.getNodeData().get("principalId");
-		String permission  = (String) webSocketData.getNodeData().get("permission");
-		String action      = (String) webSocketData.getNodeData().get("action");
+		AbstractNode obj	= getNode(webSocketData.getId());
+		boolean rec		= (Boolean) webSocketData.getNodeData().get("recursive");
+		String principalId	= (String) webSocketData.getNodeData().get("principalId");
+		String permission	= (String) webSocketData.getNodeData().get("permission");
+		String action		= (String) webSocketData.getNodeData().get("action");
 		
 		if (principalId == null) {
 
@@ -84,10 +79,6 @@ public class SetPermissionCommand extends AbstractCommand {
 		}
 
 		webSocketData.getNodeData().remove("recursive");
-
-		boolean rec = StringUtils.isNotBlank(recString)
-			      ? Boolean.parseBoolean(recString)
-			      : false;
 
 		if (obj != null) {
 
@@ -132,28 +123,26 @@ public class SetPermissionCommand extends AbstractCommand {
 
 	private void setPermission(final AbstractNode obj, final Principal principal, final String action, final String permission, final boolean rec) throws FrameworkException {
 
-		Services.command(getWebSocket().getSecurityContext(), TransactionCommand.class).execute(new StructrTransaction() {
+		final App app = StructrApp.getInstance(getWebSocket().getSecurityContext());
 		
-			@Override
-			public Object execute() throws FrameworkException {
-				
-				if ("grant".equals(action)) {
+		try {
+			app.beginTx();
 
+			switch (action) {
+				case "grant":
 					principal.grant(Permission.valueOf(permission), obj);
-
-				} else if ("revoke".equals(action)) {
-
+					break;
+				case "revoke":
 					principal.revoke(Permission.valueOf(permission), obj);
+					break;
+			}
 
-				}
-				
-				return null;
+			app.commitTx();
 
-			};
-		
-		});
-		
-		
+		} finally {
+
+			app.finishTx();
+		}
 	}
 
 }

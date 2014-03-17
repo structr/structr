@@ -1,24 +1,24 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.rest.adapter;
 
-import org.structr.core.GraphObjectGSONAdapter;
+import org.structr.rest.GraphObjectGSONAdapter;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
@@ -49,8 +49,8 @@ public class ResultGSONAdapter implements JsonSerializer<Result>, JsonDeserializ
 	private DecimalFormat decimalFormat                   = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 	private GraphObjectGSONAdapter graphObjectGsonAdapter = null;
 
-	public ResultGSONAdapter(Value<String> propertyView, PropertyKey idProperty) {
-		this.graphObjectGsonAdapter = new GraphObjectGSONAdapter(propertyView, idProperty);
+	public ResultGSONAdapter(Value<String> propertyView, PropertyKey idProperty, final int outputNestingDepth) {
+		this.graphObjectGsonAdapter = new GraphObjectGSONAdapter(propertyView, idProperty, outputNestingDepth);
 	}
 
 	@Override
@@ -70,6 +70,7 @@ public class ResultGSONAdapter implements JsonSerializer<Result>, JsonDeserializ
 		String searchString = src.getSearchString();
 		String sortKey = src.getSortKey();
 		String sortOrder = src.getSortOrder();
+		GraphObject metaData = src.getMetaData();
 
 		if(page != null) {
 			result.add("page", new JsonPrimitive(page));
@@ -101,7 +102,7 @@ public class ResultGSONAdapter implements JsonSerializer<Result>, JsonDeserializ
 
 				JsonArray resultArray = new JsonArray();
 				for(GraphObject graphObject : results) {
-					Object value = graphObject.getProperty(AbstractNode.uuid);	// FIXME: UUID key hard-coded, use variable in Result here!
+					Object value = graphObject.getProperty(GraphObject.id);	// FIXME: UUID key hard-coded, use variable in Result here!
 					if(value != null) {
 						resultArray.add(new JsonPrimitive(value.toString()));
 					}
@@ -112,6 +113,7 @@ public class ResultGSONAdapter implements JsonSerializer<Result>, JsonDeserializ
 
 			} else {
 
+				// FIXME: do we need this check, or does it cause trouble?
 				if (results.size() > 1 && !src.isCollection()){
 					throw new IllegalStateException(src.getClass().getSimpleName() + " is not a collection resource, but result set has size " + results.size());
 				}
@@ -160,6 +162,15 @@ public class ResultGSONAdapter implements JsonSerializer<Result>, JsonDeserializ
 
 		if(sortOrder != null) {
 			result.add("sort_order", new JsonPrimitive(sortOrder));
+		}
+		
+		if (metaData != null) {
+
+			JsonElement element = graphObjectGsonAdapter.serialize(metaData, System.currentTimeMillis());
+			if (element != null) {
+
+				result.add("meta_data", element);
+			}
 		}
 		
 		result.add("serialization_time", new JsonPrimitive(decimalFormat.format((System.nanoTime() - t0) / 1000000000.0)));

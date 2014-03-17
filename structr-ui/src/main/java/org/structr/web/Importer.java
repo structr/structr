@@ -1,24 +1,21 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
-
 package org.structr.web;
 
 import org.apache.commons.io.FileUtils;
@@ -32,29 +29,14 @@ import org.jsoup.nodes.*;
 import org.structr.common.CaseHelper;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
-import org.structr.common.Path;
 import org.structr.common.PropertyView;
-import org.structr.web.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Result;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.Image;
-import org.structr.core.graph.CreateNodeCommand;
-import org.structr.core.graph.CreateRelationshipCommand;
-import org.structr.core.graph.NewIndexNodeCommand;
 import org.structr.core.graph.NodeAttribute;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
-import org.structr.core.graph.search.Search;
-import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.SearchNodeCommand;
-import org.structr.core.property.GenericProperty;
-import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
@@ -65,15 +47,21 @@ import org.structr.web.entity.dom.Page;
 
 import java.io.IOException;
 import java.io.StringWriter;
-
 import java.net.MalformedURLException;
 import java.net.URL;
-
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.apache.commons.lang.WordUtils;
+import org.jsoup.Connection;
+import org.structr.core.GraphObject;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
+import org.structr.core.property.BooleanProperty;
+import org.structr.web.entity.relation.Files;
+import org.structr.web.entity.relation.Folders;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -92,11 +80,11 @@ public class Importer {
 	};
 	private static final Logger logger                               = Logger.getLogger(Importer.class.getName());
 	private static final Map<String, String> contentTypeForExtension = new HashMap<String, String>();
-	private static CreateNodeCommand createNode;
-	private static CreateRelationshipCommand createRel;
-	private static NewIndexNodeCommand indexNode;
-	private static SearchNodeCommand searchNode;
+	
+	private static App app;
 
+	private final static String DATA_META_PREFIX = "data-structr-meta-";
+	
 	//~--- static initializers --------------------------------------------
 
 	static {
@@ -153,22 +141,35 @@ public class Importer {
 	//~--- methods --------------------------------------------------------
 
 	public void init() {
-
-		searchNode = Services.command(securityContext, SearchNodeCommand.class);
-		createNode = Services.command(securityContext, CreateNodeCommand.class);
-		createRel  = Services.command(securityContext, CreateRelationshipCommand.class);
-		indexNode  = Services.command(securityContext, NewIndexNodeCommand.class);
-
+		app = StructrApp.getInstance(securityContext);
+//		searchNode = StructrApp.getInstance(securityContext).command(SearchNodeCommand.class);
+//		createNode = StructrApp.getInstance(securityContext).command(CreateNodeCommand.class);
+//		createRel  = StructrApp.getInstance(securityContext).command(CreateRelationshipCommand.class);
 	}
 
 	public boolean parse() throws FrameworkException {
+		
+		return parse(false);
+		
+	}
+	
+	public boolean parse(final boolean fragment) throws FrameworkException {
 
 		init();
 		
 		if (StringUtils.isNotBlank(code)) {
 
 			logger.log(Level.INFO, "##### Start parsing code for page {0} #####", new Object[] { name });
-			parsedDocument = Jsoup.parse(code);
+			
+			if (fragment) {
+				
+				parsedDocument = Jsoup.parseBodyFragment(code);
+				
+			} else {
+				
+				parsedDocument = Jsoup.parse(code);
+				
+			}
 
 
 		} else {
@@ -177,7 +178,10 @@ public class Importer {
 
 			try {
 
-				parsedDocument = Jsoup.parse(new URL(address), timeout);
+				parsedDocument = Jsoup.connect(address)
+					.userAgent("Mozilla")
+					.timeout(timeout)
+					.get();
 
 
 			} catch (IOException ioe) {
@@ -194,49 +198,76 @@ public class Importer {
 
 	public String readPage() throws FrameworkException {
 
+		
+
 		try {
-			
 			final URL baseUrl = StringUtils.isNotBlank(address) ? new URL(address) : null;
+			
+			app.beginTx();
 
-			return Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<String>() {
+			// AbstractNode page = findOrCreateNode(attrs, "/");
+			Page page = Page.createNewPage(securityContext, name);
 
-				@Override
-				public String execute() throws FrameworkException {
+			String pageId = null;
+			if (page != null) {
 
-					// AbstractNode page = findOrCreateNode(attrs, "/");
-					Page page = Page.createNewPage(securityContext, name);
+				page.setProperty(AbstractNode.visibleToAuthenticatedUsers, authVisible);
+				page.setProperty(AbstractNode.visibleToPublicUsers, publicVisible);
+				createChildNodes(parsedDocument, page, page, baseUrl);
+				logger.log(Level.INFO, "##### Finished fetching {0} for page {1} #####", new Object[] { address, name });
 
-					if (page != null) {
+				pageId = page.getProperty(GraphObject.id);
+			}
 
-						page.setVisibleToAuthenticatedUsers(authVisible);
-						page.setVisibleToPublicUsers(publicVisible);
-						createChildNodes(parsedDocument, page, page, baseUrl);
-						logger.log(Level.INFO, "##### Finished fetching {0} for page {1} #####", new Object[] { address, name });
+			app.commitTx();
 
-						return page.getProperty(AbstractNode.uuid);
+			return pageId;
 
-					}
-
-					return null;
-				}
-
-			});
-
+			
 		} catch (MalformedURLException ex) {
 
 			logger.log(Level.SEVERE, "Could not resolve address " + address, ex);
 
+		} finally {
+			
+			app.finishTx();
 		}
 
 		return null;
 
 	}
 
-	public void createChildNodes(final Node startNode, final DOMNode parent, Page page, final URL baseUrl) throws FrameworkException {
+	public void createChildNodes(final DOMNode parent, final Page page, final String baseUrl) throws FrameworkException {
 
-		List<Node> children = startNode.childNodes();
-		int localIndex      = 0;
+		try {
+			
+			app.beginTx();
 
+			try {
+
+				createChildNodes(parsedDocument.body(), parent, page, new URL(baseUrl));
+
+			} catch (MalformedURLException ex) {
+
+				logger.log(Level.WARNING, "Could not read URL {1}, calling method without base URL", baseUrl);
+
+				createChildNodes(parsedDocument.body(), parent, page, null);
+
+			}
+			
+			app.commitTx();
+			
+		} finally {
+			
+			app.finishTx();
+		}
+
+	}
+	
+	// ----- private methods -----
+	private void createChildNodes(final Node startNode, final DOMNode parent, Page page, final URL baseUrl) throws FrameworkException {
+
+		final List<Node> children = startNode.childNodes();
 		for (Node node : children) {
 
 			String tag                = node.nodeName();
@@ -298,10 +329,11 @@ public class Importer {
 
 //                              type    = "Content";
 				tag     = "";
-				content = ((TextNode) node).toString().trim();
+				//content = ((TextNode) node).getWholeText();
+				content = ((TextNode) node).text();
 
-				// Don't add content node for whitespace
-				if (StringUtils.isBlank(content)) {
+				// Add content node for whitespace within <p> elements only
+				if (!("p".equals(startNode.nodeName().toLowerCase())) && StringUtils.isWhitespace(content)) {
 
 					continue;
 				}
@@ -313,147 +345,78 @@ public class Importer {
 			if (StringUtils.isBlank(tag)) {
 
 				newNode = (Content) page.createTextNode(content);
+
 			} else {
 
 				newNode = (org.structr.web.entity.dom.DOMElement) page.createElement(tag);
 			}
 
-			// "id" attribute: Put it into the "_html_id" field
-			if (StringUtils.isNotBlank(id)) {
+			if (newNode != null) {
 
-				newNode.setProperty(DOMElement._id, id);
-			}
+				// "id" attribute: Put it into the "_html_id" field
+				if (StringUtils.isNotBlank(id)) {
 
-			if (StringUtils.isNotBlank(classString.toString())) {
-
-				newNode.setProperty(DOMElement._class, StringUtils.trim(classString.toString()));
-			}
-
-			for (Attribute nodeAttr : node.attributes()) {
-
-				String key = nodeAttr.getKey();
-
-				// Don't add text attribute as _html_text because the text is already contained in the 'content' attribute
-				if (!key.equals("text")) {
-
-					newNode.setProperty(new StringProperty(PropertyView.Html.concat(nodeAttr.getKey())), nodeAttr.getValue());
+					newNode.setProperty(DOMElement._id, id);
 				}
 
-			}
+				if (StringUtils.isNotBlank(classString.toString())) {
 
-			parent.appendChild(newNode);
+					newNode.setProperty(DOMElement._class, StringUtils.trim(classString.toString()));
+				}
 
-			// Link new node to its parent node
-			// linkNodes(parent, newNode, page, localIndex);
-			// Step down and process child nodes
-			createChildNodes(node, newNode, page, baseUrl);
+				for (Attribute nodeAttr : node.attributes()) {
 
-			// Count up position index
-			localIndex++;
+					String key = nodeAttr.getKey();
 
-		}
+					// Don't add text attribute as _html_text because the text is already contained in the 'content' attribute
+					if (!key.equals("text")) {
 
-	}
+						// convert data-* attributes to local camel case properties on the node,
+						// but don't convert data-structr-* attributes as they are internal
+						if (key.startsWith("data-")) {
 
-	/**
-	 * Find an existing node where the following matches:
-	 *
-	 * <ul>
-	 * <li>attributes
-	 * <li>parent node id
-	 * </ul>
-	 *
-	 * @param attrs
-	 * @param parentNodeId
-	 * @return
-	 * @throws FrameworkException
-	 */
-	private DOMNode findExistingNode(final List<NodeAttribute> attrs, final String nodePath) throws FrameworkException {
+							if (!key.startsWith(DATA_META_PREFIX)) {
 
-		List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
+								newNode.setProperty(new StringProperty(nodeAttr.getKey()), nodeAttr.getValue());
 
-		for (NodeAttribute attr : attrs) {
+							} else {
 
-			PropertyKey key = attr.getKey();
-			String value    = attr.getValue().toString();
+								int l = DATA_META_PREFIX.length();
 
-			// Exclude data attribute because it may contain code with special characters, too
-			if (!key.equals(DOMElement._data)) {
+								String upperCaseKey = WordUtils.capitalize(key.substring(l), new char[] { '-' }).replaceAll("-", "");
+								String camelCaseKey = key.substring(l, l+1).concat(upperCaseKey.substring(1));
 
-				searchAttrs.add(Search.andExactProperty(key, value));
-			}
+								String value = nodeAttr.getValue();
 
-		}
+								if (value != null) {
+									if (value.equalsIgnoreCase("true")) {
+										newNode.setProperty(new BooleanProperty(camelCaseKey), true);
+									} else if (value.equalsIgnoreCase("false")) {
+										newNode.setProperty(new BooleanProperty(camelCaseKey), false);
+									} else {
+										newNode.setProperty(new StringProperty(camelCaseKey), nodeAttr.getValue());
+									}
+								}
 
-		Result<DOMNode> result = searchNode.execute(searchAttrs);
+							}
 
-		if (result.size() > 1) {
+						} else {
 
-			logger.log(Level.WARNING, "More than one node found.");
-		}
+							newNode.setProperty(new StringProperty(PropertyView.Html.concat(nodeAttr.getKey())), nodeAttr.getValue());
+						}
+					}
 
-		if (result.isEmpty()) {
+				}
 
-			return null;
-		}
+				parent.appendChild(newNode);
 
-		for (DOMNode foundNode : result.getResults()) {
-
-			String foundNodePath = foundNode.getProperty(DOMElement.path);
-
-			logger.log(Level.INFO, "Found a node with path {0}", foundNodePath);
-
-			if (foundNodePath != null && foundNodePath.equals(nodePath)) {
-
-				logger.log(Level.INFO, "MATCH!");
-
-				// First match wins
-				return foundNode;
+				// Link new node to its parent node
+				// linkNodes(parent, newNode, page, localIndex);
+				// Step down and process child nodes
+				createChildNodes(node, newNode, page, baseUrl);
 
 			}
-
 		}
-
-		logger.log(Level.INFO, "Does not match expected path {0}", nodePath);
-
-		return null;
-
-	}
-
-	private DOMNode findOrCreateNode(final List<NodeAttribute> attributes, final String nodePath) throws FrameworkException {
-
-		DOMNode node = findExistingNode(attributes, nodePath);
-
-		if (node != null) {
-
-			return node;
-		}
-
-		node = (DOMNode) createNode.execute(attributes);
-
-		node.setProperty(DOMElement.path, nodePath);
-
-		if (node != null) {
-
-			logger.log(Level.INFO, "Created node with name {0}, type {1}", new Object[] { node.getName(), node.getType() });
-		} else {
-
-			logger.log(Level.WARNING, "Could not create node");
-		}
-
-		return node;
-
-	}
-
-	private AbstractRelationship linkNodes(AbstractNode startNode, AbstractNode endNode, String pageId, int index) throws FrameworkException {
-
-		AbstractRelationship rel   = (AbstractRelationship) createRel.execute(startNode, endNode, RelType.CONTAINS);
-		PropertyKey pageIdProperty = new GenericProperty(pageId);
-
-		rel.setProperty(pageIdProperty, index);
-
-		return rel;
-
 	}
 
 	/**
@@ -461,15 +424,7 @@ public class Importer {
 	 */
 	private boolean fileExists(final String name, final long checksum) throws FrameworkException {
 
-		List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
-
-		searchAttrs.add(Search.andExactProperty(AbstractNode.name, name));
-		searchAttrs.add(Search.andExactProperty(File.checksum, checksum));
-		searchAttrs.add(Search.andExactTypeAndSubtypes(File.class.getSimpleName()));
-
-		Result files = searchNode.execute(searchAttrs);
-
-		return !files.isEmpty();
+		return app.nodeQuery(File.class).andName(name).and(File.checksum, checksum).getFirst() != null;
 
 	}
 
@@ -479,19 +434,14 @@ public class Importer {
 	 */
 	private Folder findOrCreateFolder(final String name) throws FrameworkException {
 
-		List<SearchAttribute> searchAttrs = new LinkedList<SearchAttribute>();
+		Folder folder = app.nodeQuery(Folder.class).andName(name).getFirst();
 
-		searchAttrs.add(Search.andExactProperty(AbstractNode.name, name));
-		searchAttrs.add(Search.andExactType(Folder.class.getSimpleName()));
+		if (folder != null) {
 
-		Result folders = searchNode.execute(searchAttrs);
-
-		if (!folders.isEmpty()) {
-
-			return (Folder) folders.get(0);
+			return folder;
 		}
 
-		return (Folder) createNode.execute(new NodeAttribute(AbstractNode.type, Folder.class.getSimpleName()), new NodeAttribute(AbstractNode.name, name));
+		return (Folder) app.create(Folder.class, new NodeAttribute(AbstractNode.type, Folder.class.getSimpleName()), new NodeAttribute(AbstractNode.name, name));
 
 	}
 
@@ -502,13 +452,15 @@ public class Importer {
 
 		// Create temporary file with new uuid
 		// FIXME: This is much too dangerous!
-		String relativeFilePath = org.structr.web.entity.File.getDirectoryPath(uuid) + "/" + uuid;
-		String filePath         = Services.getFilePath(Path.Files, relativeFilePath);
-		java.io.File fileOnDisk = new java.io.File(filePath);
+		final String relativeFilePath = org.structr.web.entity.File.getDirectoryPath(uuid) + "/" + uuid;
+		final String filePath         = FileHelper.getFilePath(relativeFilePath);
+		final java.io.File fileOnDisk = new java.io.File(filePath);
 
 		fileOnDisk.getParentFile().mkdirs();
 
 		URL downloadUrl = null;
+		long size = 0;
+		long checksum = 0;
 
 		try {
 
@@ -519,6 +471,8 @@ public class Importer {
 			// TODO: Add security features like null/integrity/virus checking before copying it to
 			// the files repo
 			FileUtils.copyURLToFile(downloadUrl, fileOnDisk);
+			size	 = fileOnDisk.length();
+			checksum = FileUtils.checksumCRC32(fileOnDisk);
 
 		} catch (IOException ioe) {
 
@@ -554,10 +508,10 @@ public class Importer {
 
 				if (ImageHelper.isImageType(fileName)) {
 
-					fileNode = createImageNode(uuid, fileName, ct);
+					fileNode = createImageNode(uuid, fileName, ct, size, checksum);
 				} else {
 
-					fileNode = createFileNode(uuid, fileName, ct);
+					fileNode = createFileNode(uuid, fileName, ct, size, checksum);
 				}
 
 				if (fileNode != null) {
@@ -566,7 +520,8 @@ public class Importer {
 
 					if (parent != null) {
 
-						createRel.execute(parent, fileNode, RelType.CONTAINS);
+						app.create(parent, fileNode, Files.class);
+						//createRel.execute(parent, fileNode, Folders.class);
 					}
 
 					if (contentType.equals("text/css")) {
@@ -616,43 +571,37 @@ public class Importer {
 			folder = findOrCreateFolder(part);
 
 			if (parent != null) {
-
-				createRel.execute(parent, folder, RelType.CONTAINS);
+				app.create(parent, folder, Folders.class);
 			}
 
-			indexNode.updateNode(folder);
-
+			folder.updateInIndex();
 		}
 
 		return folder;
 
 	}
 
-	private File createFileNode(final String uuid, final String name, final String contentType) throws FrameworkException {
+	private File createFileNode(final String uuid, final String name, final String contentType, final long size, final long checksum) throws FrameworkException {
 
 		String relativeFilePath = File.getDirectoryPath(uuid) + "/" + uuid;
-		File fileNode           = (File) createNode.execute(new NodeAttribute(AbstractNode.uuid, uuid), new NodeAttribute(AbstractNode.type, File.class.getSimpleName()),
+		File fileNode           = app.create(File.class, new NodeAttribute(GraphObject.id, uuid),
 						  new NodeAttribute(AbstractNode.name, name), new NodeAttribute(File.relativeFilePath, relativeFilePath),
 						  new NodeAttribute(File.contentType, contentType), new NodeAttribute(AbstractNode.visibleToPublicUsers, publicVisible),
+						  new NodeAttribute(File.size, size), new NodeAttribute(File.checksum, checksum),
 						  new NodeAttribute(AbstractNode.visibleToAuthenticatedUsers, authVisible));
-
-//              fileNode.getChecksum();
-//		indexNode.addNode(fileNode);
 
 		return fileNode;
 
 	}
 
-	private Image createImageNode(final String uuid, final String name, final String contentType) throws FrameworkException {
+	private Image createImageNode(final String uuid, final String name, final String contentType, final long size, final long checksum) throws FrameworkException {
 
 		String relativeFilePath = Image.getDirectoryPath(uuid) + "/" + uuid;
-		Image imageNode         = (Image) createNode.execute(new NodeAttribute(AbstractNode.uuid, uuid), new NodeAttribute(AbstractNode.type, Image.class.getSimpleName()),
+		Image imageNode         = app.create(Image.class, new NodeAttribute(GraphObject.id, uuid),
 						  new NodeAttribute(AbstractNode.name, name), new NodeAttribute(File.relativeFilePath, relativeFilePath),
 						  new NodeAttribute(File.contentType, contentType), new NodeAttribute(AbstractNode.visibleToPublicUsers, publicVisible),
+						  new NodeAttribute(File.size, size), new NodeAttribute(File.checksum, checksum),
 						  new NodeAttribute(AbstractNode.visibleToAuthenticatedUsers, authVisible));
-
-//              imageNode.getChecksum();
-//		indexNode.addNode(imageNode);
 
 		return imageNode;
 
@@ -679,7 +628,7 @@ public class Importer {
 
 			String url = matcher.group(2);
 
-			logger.log(Level.INFO, "Trying to download form URL found in CSS: {0}", url);
+			logger.log(Level.INFO, "Trying to download from URL found in CSS: {0}", url);
 			downloadFiles(url, baseUrl);
 
 		}

@@ -5,17 +5,56 @@
     <parent>
         <groupId>org.structr</groupId>
         <artifactId>structr</artifactId>
-        <version>0.7</version>
+        <version>0.9.1-SNAPSHOT</version>
     </parent>
 
     <groupId>org.structr</groupId>
     <artifactId>structr-simple-example-archetype</artifactId>
-    <version>0.7</version>
+    <version>0.9.1-SNAPSHOT</version>
     <packaging>maven-archetype</packaging>
     <url>http://structr.org</url>
     <name>structr-simple-example-archetype</name>
+    <description>Structr is an open source framework based on the popular Neo4j graph database.</description>
+    <developers>
+        <developer>
+            <name>Axel Morgner</name>
+            <email>am@structr.org</email>
+        </developer>
+        <developer>
+            <name>Christian Morgner</name>
+            <email>cm@structr.org</email>
+        </developer>
+    </developers>
 
     <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>2.2.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.9.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
         <extensions>
             <extension>
                 <groupId>org.apache.maven.archetype</groupId>
@@ -23,7 +62,6 @@
                 <version>2.2</version>
             </extension>
         </extensions>
-
         <pluginManagement>
             <plugins>
                 <plugin>
@@ -33,17 +71,45 @@
             </plugins>
         </pluginManagement>
     </build>
-
+    <profiles>
+        <profile>
+            <id>release-sign-artifacts</id>
+            <activation>
+                <property>
+                    <name>performRelease</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.4</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
     <distributionManagement>
         <repository>
-            <id>releases.maven.structr.org</id>
-            <name>maven.structr.org-releases</name>
-            <url>http://maven.structr.org/artifactory/release</url>
+            <id>sonatype-nexus-staging</id>
+            <name>Maven Central Staging</name>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
         </repository>
         <snapshotRepository>
-            <id>snapshots.maven.structr.org</id>
-            <name>maven.structr.org-snapshots</name>
-            <url>http://maven.structr.org/artifactory/snapshot</url>
+            <id>sonatype-nexus-snapshots</id>
+            <name>Maven Central Snapshots</name>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
         </snapshotRepository>
     </distributionManagement>
 	

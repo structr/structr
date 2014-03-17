@@ -1,0 +1,44 @@
+.clear {
+    clear: both;
+}
+
+#dropArea {
+    border: 1px dashed #a5a5a5;
+    background-color: #e7e7e7;
+    border-radius: .25em;
+    padding: 1em;
+}
+
+#dropArea:hover {
+    border: 1px dashed #999;
+    background-color: #f3f3f3;
+    border-radius: .25em;
+    padding: 1em;
+}
+
+.editField {
+	border: 1px solid #a5a5a5;
+	border-radius: .25em;
+	padding: .25em;
+}
+
+#searchResults {
+	position: absolute;
+	border: 1px solid #a5a5a5;
+}
+
+.res {
+	padding: .5em;
+	border-bottom: 1px solid #e7e7e7;
+	background: #fff;
+}
+
+.res:hover {
+	cursor: pointer;
+	background: #f7f7f7;
+}
+
+.createButton {
+	display: block;
+	margin: 1em 0;
+}

@@ -1,20 +1,20 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.rest.resource;
 
@@ -32,9 +32,10 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.StringProperty;
 import org.structr.core.*;
+import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.PropertyDefinition;
-import org.structr.core.module.ModuleService;
+import org.structr.schema.SchemaHelper;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;
 import org.structr.rest.exception.IllegalPathException;
@@ -65,22 +66,21 @@ public class SchemaResource extends Resource {
 	@Override
 	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
 		
-		List<GraphObjectMap> resultList = new LinkedList<GraphObjectMap>();
+		List<GraphObjectMap> resultList = new LinkedList<>();
 		
 		// extract types from ModuleService
-		ModuleService moduleService = (ModuleService)Services.getService(ModuleService.class);
-		for (String rawType : moduleService.getCachedNodeEntityTypes()) {
+		for (String rawType : StructrApp.getConfiguration().getNodeEntities().keySet()) {
 			
 			// create & add schema information
-			Class type               = EntityContext.getEntityClassForRawType(rawType);
+			Class type            = SchemaHelper.getEntityClassForRawType(rawType);
 			GraphObjectMap schema = new GraphObjectMap();
 			resultList.add(schema);
 			
 			if (type == null) {
 				
-				if (PropertyDefinition.exists(rawType)) {
-					type = PropertyDefinition.nodeExtender.getType(rawType);
-				}
+//				if (PropertyDefinition.exists(rawType)) {
+//					type = PropertyDefinition.nodeExtender.getType(rawType);
+//				}
 			}
 			
 			if (type != null) {
@@ -92,14 +92,14 @@ public class SchemaResource extends Resource {
 				schema.setProperty(new LongProperty("flags"), SecurityContext.getResourceFlags(rawType));
 
 				// list property sets for all views
-				Set<String> propertyViews              = new LinkedHashSet<String>(EntityContext.getPropertyViews());
+				Set<String> propertyViews              = new LinkedHashSet<>(StructrApp.getConfiguration().getPropertyViews());
 				Map<String, Map<String, Object>> views = new TreeMap();
 				schema.setProperty(new StringProperty("views"), views);
 
 				for (String view : propertyViews) {
 
-					Set<PropertyKey> properties              = new LinkedHashSet<PropertyKey>(EntityContext.getPropertySet(type, view));
-					Map<String, Object> propertyConverterMap = new TreeMap<String, Object>();
+					Set<PropertyKey> properties              = new LinkedHashSet<>(StructrApp.getConfiguration().getPropertySet(type, view));
+					Map<String, Object> propertyConverterMap = new TreeMap<>();
 
 					// augment property set with properties from PropertyDefinition
 					if (PropertyDefinition.exists(type.getSimpleName())) {
@@ -127,8 +127,8 @@ public class SchemaResource extends Resource {
 							propProperties.put("className", property.getClass().getName());
 							propProperties.put("defaultValue", property.defaultValue());
 
-							propProperties.put("readOnly", property.isReadOnlyProperty());
-							propProperties.put("system", property.isSystemProperty());
+							propProperties.put("readOnly", property.isReadOnly());
+							propProperties.put("system", property.isUnvalidated());
 
 							PropertyConverter databaseConverter = property.databaseConverter(securityContext, null);
 							PropertyConverter inputConverter    = property.inputConverter(securityContext);
@@ -163,11 +163,6 @@ public class SchemaResource extends Resource {
 
 	@Override
 	public RestMethodResult doHead() throws FrameworkException {
-		throw new IllegalMethodException();
-	}
-
-	@Override
-	public RestMethodResult doOptions() throws FrameworkException {
 		throw new IllegalMethodException();
 	}
 

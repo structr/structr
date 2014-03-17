@@ -1,32 +1,32 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.web.entity.dom;
 
 
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.apache.commons.lang.StringUtils;
 import org.structr.common.PropertyView;
-import org.structr.web.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.web.entity.Linkable;
-import org.structr.core.graph.NodeService;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
@@ -53,17 +53,21 @@ import org.w3c.dom.Text;
 //~--- JDK imports ------------------------------------------------------------
 
 
-import javax.servlet.http.HttpServletRequest;
-import org.neo4j.graphdb.Direction;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.core.Predicate;
 import org.structr.core.Services;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import static org.structr.core.entity.AbstractNode.owner;
 import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.NodeAttribute;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
-import org.structr.core.property.CollectionProperty;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.property.RelationProperty;
+import org.structr.core.property.StartNodes;
+import static org.structr.web.entity.Linkable.linkingElements;
+import static org.structr.web.entity.dom.DOMNode.children;
+import org.structr.web.entity.relation.PageLink;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -74,26 +78,25 @@ import org.structr.core.property.PropertyMap;
  * @author Christian Morgner
  */
 public class Page extends DOMNode implements Linkable, Document, DOMImplementation {
-
-	public static final Property<Integer> version                           = new IntProperty("version");
-	public static final Property<Integer> position                          = new IntProperty("position");
-	public static final Property<String> contentType                        = new StringProperty("contentType");
-	public static final Property<Integer> cacheForSeconds                   = new IntProperty("cacheForSeconds");
-	public static final CollectionProperty<DOMNode> elements                = new CollectionProperty<DOMNode>("elements", DOMNode.class, RelType.PAGE, Direction.INCOMING, true);
 	
-	public static final org.structr.common.View uiView                      = new org.structr.common.View(Page.class, PropertyView.Ui, contentType, owner, cacheForSeconds, version, position);
-	public static final org.structr.common.View publicView                  = new org.structr.common.View(Page.class, PropertyView.Public, linkingElements, contentType, owner, cacheForSeconds, version);
+	private static final Logger logger                          = Logger.getLogger(Page.class.getName());
+
+	public static final Property<Integer>       version         = new IntProperty("version").indexed();
+	public static final Property<Integer>       position        = new IntProperty("position").indexed();
+	public static final Property<String>        contentType     = new StringProperty("contentType").indexed();
+	public static final Property<Integer>       cacheForSeconds = new IntProperty("cacheForSeconds");
+	public static final Property<List<DOMNode>> elements        = new StartNodes<>("elements", PageLink.class);
+	
+	public static final org.structr.common.View publicView = new org.structr.common.View(Page.class, PropertyView.Public,
+		children, linkingElements, contentType, owner, cacheForSeconds, version
+	);
+	
+	public static final org.structr.common.View uiView = new org.structr.common.View(Page.class, PropertyView.Ui,
+		children, linkingElements, contentType, owner, cacheForSeconds, version, position
+	);
 
 	private Html5DocumentType docTypeNode                                   = null;
 	
-	//~--- static initializers --------------------------------------------
-
-	static {
-
-		EntityContext.registerSearchablePropertySet(Page.class, NodeService.NodeIndex.fulltext.name(), uiView.properties());
-		EntityContext.registerSearchablePropertySet(Page.class, NodeService.NodeIndex.keyword.name(), uiView.properties());
-
-	}
 
 	public Page() {
 		
@@ -101,6 +104,17 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	}
 	
 	//~--- methods --------------------------------------------------------
+
+	@Override
+	public boolean isValid(ErrorBuffer errorBuffer) {
+		
+		boolean valid = true;
+		
+		valid &= nonEmpty(AbstractNode.name, errorBuffer);
+		valid &= super.isValid(errorBuffer);
+		
+		return valid;
+	}
 
 	/**
 	 * Creates a new Page entity with the given name in the database.
@@ -113,24 +127,25 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	 */
 	public static Page createNewPage(SecurityContext securityContext, String name) throws FrameworkException {
 		
-		final CreateNodeCommand cmd  = Services.command(securityContext, CreateNodeCommand.class);
+		final App app                = StructrApp.getInstance(securityContext);
 		final PropertyMap properties = new PropertyMap();
 
 		properties.put(AbstractNode.name, name != null ? name : "page");
 		properties.put(AbstractNode.type, Page.class.getSimpleName());
-		properties.put(AbstractNode.visibleToPublicUsers, true);
 		properties.put(Page.contentType, "text/html");
-	
-		Page newPage = Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<Page>() {
-
-			@Override
-			public Page execute() throws FrameworkException {
-
-				return (Page)cmd.execute(properties);
-			}		
-		});
 		
-		//newPage.appendChild(newPage.createD)
+		Page newPage = null;
+
+		try {
+			
+			app.beginTx();
+			newPage = app.create(Page.class, properties);
+			app.commitTx();
+			
+		} finally {
+			
+			app.finishTx();
+		}
 		
 		return newPage;
 	}
@@ -174,47 +189,72 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 	public void increaseVersion() throws FrameworkException {
 
-		Integer _version = getProperty(Page.version);
+		final App app  = StructrApp.getInstance(securityContext);
+		
+		try {
 
-		if (_version == null) {
-
-			setProperty(Page.version, 1);
+			app.beginTx();
 			
-		} else {
+			final Integer _version = getProperty(Page.version);
+			if (_version == null) {
 
-			setProperty(Page.version, _version + 1);
+				setProperty(Page.version, 1);
+
+			} else {
+
+				setProperty(Page.version, _version + 1);
+			}
+
+			app.commitTx();
+			
+		} finally {
+			
+			app.finishTx();
 		}
-
 	}
 
 	@Override
 	public Element createElement(final String tag) throws DOMException {
 
-		final String elementType = EntityContext.normalizeEntityName(tag);
+		final String elementType = StringUtils.capitalize(tag);
+		final App app  = StructrApp.getInstance(securityContext);
+		
+		String c = Content.class.getSimpleName();
+		
+		// Avoid creating an (invalid) 'Content' DOMElement
+		if (elementType == null || c.equals(elementType)) {
+			
+			logger.log(Level.WARNING, "Blocked attempt to create a DOMElement of type {0}", c);
+			
+			return null;
+			
+		}
+		
+		final Page _page = this;
 		
 		try {
-			return Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<DOMElement>() {
+			app.beginTx();
 
-				@Override
-				public DOMElement execute() throws FrameworkException {
-					
-					// create new content element
-					DOMElement element = (DOMElement)Services.command(securityContext, CreateNodeCommand.class).execute(
-						new NodeAttribute(AbstractNode.type, elementType),
-						new NodeAttribute(DOMElement.tag, tag)
-					);
-					
-					// create relationship from ownerDocument to new text element
-					Page.elements.createRelationship(securityContext, Page.this, element);
-					
-					return element;
-				}
-			});
+			// create new content element
+			DOMElement element = (DOMElement)StructrApp.getInstance(securityContext).command(CreateNodeCommand.class).execute(
+				new NodeAttribute(AbstractNode.type, elementType),
+				new NodeAttribute(DOMElement.tag, tag)
+			);
+
+			element.doAdopt(_page);
+
+			app.commitTx();
+			
+			return element;
 			
 		} catch (FrameworkException fex) {
 			
 			// FIXME: what to do with the exception here?
 			fex.printStackTrace();
+			
+		} finally {
+			
+			app.finishTx();
 		}
 		
 		return null;
@@ -222,30 +262,35 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 	@Override
 	public DocumentFragment createDocumentFragment() {
+		
+		final App app  = StructrApp.getInstance(securityContext);
 
 		try {
-			return Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<DocumentFragment>() {
 
-				@Override
-				public DocumentFragment execute() throws FrameworkException {
-					
-					// create new content element
-					org.structr.web.entity.dom.DocumentFragment fragment = (org.structr.web.entity.dom.DocumentFragment)Services.command(securityContext, CreateNodeCommand.class).execute(
-						new NodeAttribute(AbstractNode.type,
-						org.structr.web.entity.dom.DocumentFragment.class.getSimpleName())
-					);
-					
-					// create relationship from ownerDocument to new text element
-					Page.elements.createRelationship(securityContext, Page.this, fragment);
-					
-					return fragment;
-				}
-			});
+			app.beginTx();
+			
+			// create new content element
+			org.structr.web.entity.dom.DocumentFragment fragment = (org.structr.web.entity.dom.DocumentFragment)StructrApp.getInstance(securityContext).command(CreateNodeCommand.class).execute(
+				new NodeAttribute(AbstractNode.type,
+				org.structr.web.entity.dom.DocumentFragment.class.getSimpleName())
+			);
+
+			// create relationship from ownerDocument to new text element
+			((RelationProperty<DOMNode>)Page.elements).addSingleElement(securityContext, Page.this, fragment);
+			// Page.elements.createRelationship(securityContext, Page.this, fragment);
+
+			app.commitTx();
+			
+			return fragment;
 			
 		} catch (FrameworkException fex) {
 			
 			// FIXME: what to do with the exception here?
 			fex.printStackTrace();
+			
+		} finally {
+			
+			app.finishTx();
 		}
 		
 		return null;
@@ -254,31 +299,35 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 	@Override
 	public Text createTextNode(final String text) {
+		
+		final App app  = StructrApp.getInstance(securityContext);
 
 		try {
-			return Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<Content>() {
+			app.beginTx();
+			
 
-				@Override
-				public Content execute() throws FrameworkException {
-					
-					// create new content element
-					Content content = (Content)Services.command(securityContext, CreateNodeCommand.class).execute(
-						new NodeAttribute(AbstractNode.type, Content.class.getSimpleName()),
-						new NodeAttribute(Content.content,   text),
-						new NodeAttribute(AbstractNode.visibleToPublicUsers, true)
-					);
-					
-					// create relationship from ownerDocument to new text element
-					Page.elements.createRelationship(securityContext, Page.this, content);
-					
-					return content;
-				}
-			});
+			// create new content element
+			Content content = (Content)StructrApp.getInstance(securityContext).command(CreateNodeCommand.class).execute(
+				new NodeAttribute(AbstractNode.type, Content.class.getSimpleName()),
+				new NodeAttribute(Content.content,   text)
+			);
+
+			// create relationship from ownerDocument to new text element
+			((RelationProperty<DOMNode>)Page.elements).addSingleElement(securityContext, Page.this, content);
+			//Page.elements.createRelationship(securityContext, Page.this, content);
+
+			app.commitTx();
+			
+			return content;
 			
 		} catch (FrameworkException fex) {
 			
 			// FIXME: what to do with the exception here?
 			fex.printStackTrace();
+			
+		} finally {
+			
+			app.finishTx();
 		}
 		
 		return null;
@@ -286,29 +335,34 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 	@Override
 	public Comment createComment(String string) {
+		
+		final App app  = StructrApp.getInstance(securityContext);
 
 		try {
-			return Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<Comment>() {
+			app.beginTx();
 
-				@Override
-				public org.structr.web.entity.dom.Comment execute() throws FrameworkException {
-					
-					// create new content element
-					org.structr.web.entity.dom.Comment content = (org.structr.web.entity.dom.Comment)Services.command(securityContext, CreateNodeCommand.class).execute(
-						new NodeAttribute(AbstractNode.type, org.structr.web.entity.dom.Comment.class.getSimpleName())
-					);
-					
-					// create relationship from ownerDocument to new text element
-					Page.elements.createRelationship(securityContext, Page.this, content);
-					
-					return content;
-				}
-			});
+
+			// create new content element
+			org.structr.web.entity.dom.Comment content = (org.structr.web.entity.dom.Comment)StructrApp.getInstance(securityContext).command(CreateNodeCommand.class).execute(
+				new NodeAttribute(AbstractNode.type, org.structr.web.entity.dom.Comment.class.getSimpleName())
+			);
+
+			// create relationship from ownerDocument to new text element
+			((RelationProperty<DOMNode>)Page.elements).addSingleElement(securityContext, Page.this, content);
+			//Page.elements.createRelationship(securityContext, Page.this, content);
+
+			app.commitTx();
+			
+			return content;
 			
 		} catch (FrameworkException fex) {
 			
 			// FIXME: what to do with the exception here?
 			fex.printStackTrace();
+			
+		} finally {
+			
+			app.finishTx();
 		}
 		
 		return null;
@@ -316,29 +370,33 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 	@Override
 	public CDATASection createCDATASection(String string) throws DOMException {
+		
+		final App app  = StructrApp.getInstance(securityContext);
 
 		try {
-			return Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<Cdata>() {
+			app.beginTx();
+			
+			// create new content element
+			Cdata content = (Cdata)StructrApp.getInstance(securityContext).command(CreateNodeCommand.class).execute(
+				new NodeAttribute(AbstractNode.type, Cdata.class.getSimpleName())
+			);
 
-				@Override
-				public Cdata execute() throws FrameworkException {
-					
-					// create new content element
-					Cdata content = (Cdata)Services.command(securityContext, CreateNodeCommand.class).execute(
-						new NodeAttribute(AbstractNode.type, Cdata.class.getSimpleName())
-					);
-					
-					// create relationship from ownerDocument to new text element
-					Page.elements.createRelationship(securityContext, Page.this, content);
-					
-					return content;
-				}
-			});
+			// create relationship from ownerDocument to new text element
+			((RelationProperty<DOMNode>)Page.elements).addSingleElement(securityContext, Page.this, content);
+			//Page.elements.createRelationship(securityContext, Page.this, content);
+
+			app.commitTx();
+			
+			return content;
 			
 		} catch (FrameworkException fex) {
 			
 			// FIXME: what to do with the exception here?
 			fex.printStackTrace();
+			
+		} finally {
+			
+			app.finishTx();
 		}
 		
 		return null;
@@ -383,54 +441,60 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		if (node instanceof DOMNode) {
 	
 			final DOMNode domNode = (DOMNode)node;
+			final App app  = StructrApp.getInstance(securityContext);
 
 			try {
 
-				return Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<Node>() {
+				app.beginTx();
 
-					@Override
-					public Node execute() throws FrameworkException {
 
-						// step 1: use type-specific import impl.
-						Node importedNode = domNode.doImport(Page.this);
+				// step 1: use type-specific import impl.
+				Node importedNode = domNode.doImport(Page.this);
 
-						// step 2: do recursive import?
-						if (deep && domNode.hasChildNodes()) {
+				// step 2: do recursive import?
+				if (deep && domNode.hasChildNodes()) {
 
-							// FIXME: is it really a good idea to do the
-							// recursion inside of a transaction?
+					// FIXME: is it really a good idea to do the
+					// recursion inside of a transaction?
 
-							Node child = domNode.getFirstChild();
-							while (child != null) {
+					Node child = domNode.getFirstChild();
 
-								// do not remove parent for child nodes
-								importNode(child, deep, false);
-								child = child.getNextSibling();
-							}
-							
-						}
+					while (child != null) {
 
-						// step 3: remove node from its current parent
-						// (Note that this step needs to be done last in
-						// (order for the child to be able to find its
-						// siblings.)
-						if (removeParentFromSourceNode) {
+						// do not remove parent for child nodes
+						importNode(child, deep, false);
+						child = child.getNextSibling();
 
-							// only do this for the actual source node, do not remove
-							// child nodes from its parents
-							Node _parent = domNode.getParentNode();
-							if (_parent != null) {
-								_parent.removeChild(domNode);
-							}
-						}
-						
-						return importedNode;
+						logger.log(Level.INFO, "sibling is {0}", child);
 					}
-				});
+
+				}
+
+				// step 3: remove node from its current parent
+				// (Note that this step needs to be done last in
+				// (order for the child to be able to find its
+				// siblings.)
+				if (removeParentFromSourceNode) {
+
+					// only do this for the actual source node, do not remove
+					// child nodes from its parents
+					Node _parent = domNode.getParentNode();
+					if (_parent != null) {
+						_parent.removeChild(domNode);
+					}
+				}
+
+				app.commitTx();
+				
+				return importedNode;
 
 			} catch (FrameworkException fex) {
 
 				throw new DOMException(DOMException.INVALID_STATE_ERR, fex.getMessage());
+			
+			} finally {
+
+				app.finishTx();
 			}
 		}
 		
@@ -447,55 +511,58 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		if (node instanceof DOMNode) {
 	
 			final DOMNode domNode = (DOMNode)node;
+			final App app  = StructrApp.getInstance(securityContext);
 
 			try {
 
-				return Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<Node>() {
+				app.beginTx();
 
-					@Override
-					public Node execute() throws FrameworkException {
 
-						// step 1: use type-specific adopt impl.
-						Node adoptedNode = domNode.doAdopt(Page.this);
+				// step 1: use type-specific adopt impl.
+				Node adoptedNode = domNode.doAdopt(Page.this);
 
-						// step 2: do recursive import?
-						if (domNode.hasChildNodes()) {
+				// step 2: do recursive import?
+				if (domNode.hasChildNodes()) {
 
-							// FIXME: is it really a good idea to do the
-							// recursion inside of a transaction?
+					// FIXME: is it really a good idea to do the
+					// recursion inside of a transaction?
 
-							Node child = domNode.getFirstChild();
-							while (child != null) {
+					Node child = domNode.getFirstChild();
+					while (child != null) {
 
-								// do not remove parent for child nodes
-								adoptNode(child, false);
-								child = child.getNextSibling();
-							}
-							
-						}
-						
-						// step 3: remove node from its current parent
-						
-						// (Note that this step needs to be done last in
-						// (order for the child to be able to find its
-						// siblings.)
-						if (removeParentFromSourceNode) {
-
-							// only do this for the actual source node, do not remove
-							// child nodes from its parents
-							Node _parent = domNode.getParentNode();
-							if (_parent != null) {
-								_parent.removeChild(domNode);
-							}
-						}
-
-						return adoptedNode;
+						// do not remove parent for child nodes
+						adoptNode(child, false);
+						child = child.getNextSibling();
 					}
-				});
+
+				}
+
+				// step 3: remove node from its current parent
+
+				// (Note that this step needs to be done last in
+				// (order for the child to be able to find its
+				// siblings.)
+				if (removeParentFromSourceNode) {
+
+					// only do this for the actual source node, do not remove
+					// child nodes from its parents
+					Node _parent = domNode.getParentNode();
+					if (_parent != null) {
+						_parent.removeChild(domNode);
+					}
+				}
+
+				app.commitTx();
+				
+				return adoptedNode;
 
 			} catch (FrameworkException fex) {
 
 				throw new DOMException(DOMException.INVALID_STATE_ERR, fex.getMessage());
+			
+			} finally {
+
+				app.finishTx();
 			}
 		}
 		
@@ -524,6 +591,12 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 		throw new UnsupportedOperationException("Not supported yet.");
 
+	}
+
+	@Override
+	public String toString() {
+		
+		return getClass().getSimpleName() + " " + getName() + " [" + getUuid() + "] (" + getTextContent() + ")";
 	}
 
 	//~--- get methods ----------------------------------------------------
@@ -620,22 +693,24 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	@Override
 	public void render(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException {
 
-		HttpServletRequest request = securityContext.getRequest();
-		
 		renderContext.setPage(this);
 		
-		renderContext.getBuffer().append("<!DOCTYPE html>");
-
-		// recursively render children
-		for (AbstractRelationship rel : getChildRelationships()) {
-
-			DOMNode subNode = (DOMNode)rel.getEndNode();
-
+		renderContext.getBuffer().append("<!DOCTYPE html>\n");
+		
+		// Skip DOCTYPE node
+		DOMNode subNode = (DOMNode) this.getFirstChild().getNextSibling();
+		
+		while (subNode != null) {
+			
 			if (subNode.isNotDeleted() && securityContext.isVisible(subNode)) {
 
 				subNode.render(securityContext, renderContext, depth);
 			}
+			
+			subNode = (DOMNode) subNode.getNextSibling();
+			
 		}
+
 	}
 
 	@Override

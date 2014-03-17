@@ -1,23 +1,21 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
 package org.structr.web.common;
 
 import org.structr.core.property.PropertyMap;
@@ -26,23 +24,11 @@ import junit.framework.TestCase;
 import org.apache.commons.io.FileUtils;
 
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.RelationshipType;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.log.ReadLogCommand;
-import org.structr.core.log.WriteLogCommand;
-import org.structr.core.graph.CreateNodeCommand;
-import org.structr.core.graph.CreateRelationshipCommand;
-import org.structr.core.graph.DeleteNodeCommand;
-import org.structr.core.graph.FindNodeCommand;
 import org.structr.core.graph.GraphDatabaseCommand;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
-import org.structr.core.graph.search.SearchNodeCommand;
-import org.structr.core.graph.search.SearchRelationshipCommand;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -52,44 +38,45 @@ import java.io.IOException;
 import java.net.URL;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
-import org.structr.core.graph.DeleteRelationshipCommand;
+import org.structr.common.StructrConf;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.GenericNode;
+import org.structr.core.entity.Relation;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.log.ReadLogCommand;
+import org.structr.core.log.WriteLogCommand;
+import org.structr.module.JarConfigurationProvider;
+import org.structr.rest.service.HttpService;
 
 //~--- classes ----------------------------------------------------------------
 
 /**
  * Base class for all structr tests
- *
- * All tests are executed in superuser context
+
+ All tests are executed in superuser config
  *
  * @author Axel Morgner
  */
 public class StructrTest extends TestCase {
 
-	private static final Logger logger = Logger.getLogger(StructrTest.class.getName());
+	//private static final Logger logger = Logger.getLogger(StructrTest.class.getName());
 
 	//~--- fields ---------------------------------------------------------
 
-	protected Map<String, String> context = new ConcurrentHashMap<String, String>(20, 0.9f, 8);
-	protected CreateNodeCommand createNodeCommand;
-	protected CreateRelationshipCommand createRelationshipCommand;
-	protected DeleteNodeCommand deleteNodeCommand;
-	protected DeleteRelationshipCommand deleteRelationshipCommand;
-	protected FindNodeCommand findNodeCommand;
-	protected GraphDatabaseCommand graphDbCommand;
+	protected StructrConf config                 = new StructrConf();
+	protected GraphDatabaseCommand graphDbCommand = null;
+	protected SecurityContext securityContext     = null;
 	protected ReadLogCommand readLogCommand;
-	protected SearchNodeCommand searchNodeCommand;
-	protected SearchRelationshipCommand searchRelationshipCommand;
-	protected SecurityContext securityContext;
-	protected TransactionCommand transactionCommand;
 	protected WriteLogCommand writeLogCommand;
+
+	protected App app = null;
 
 	//~--- methods --------------------------------------------------------
 
@@ -101,12 +88,51 @@ public class StructrTest extends TestCase {
 	}
 
 	@Override
+	protected void setUp() throws Exception {
+
+		Date now       = new Date();
+		long timestamp = now.getTime();
+
+		config.setProperty(Services.CONFIGURATION, JarConfigurationProvider.class.getName());
+		config.setProperty(Services.CONFIGURED_SERVICES, "ModuleService NodeService LogService");
+		config.setProperty(Services.TMP_PATH, "/tmp/");
+		config.setProperty(Services.BASE_PATH, "/tmp/structr-test-" + timestamp);
+		config.setProperty(Services.DATABASE_PATH, "/tmp/structr-test-" + timestamp + "/db");
+		config.setProperty(Services.FILES_PATH, "/tmp/structr-test-" + timestamp + "/files");
+		config.setProperty(Services.LOG_DATABASE_PATH, "/tmp/structr-test-" + timestamp + "/logDb.dat");
+		config.setProperty(Services.TCP_PORT, "13465");
+		config.setProperty(Services.SERVER_IP, "127.0.0.1");
+		config.setProperty(Services.UDP_PORT, "13466");
+		config.setProperty(Services.SUPERUSER_USERNAME, "superadmin");
+		config.setProperty(Services.SUPERUSER_PASSWORD, "sehrgeheim");
+		config.setProperty(HttpService.APPLICATION_TITLE, "structr unit test app" + timestamp);
+		
+		final Services services = Services.getInstance(config);
+
+		// wait for service layer to be initialized
+		do {
+			try { Thread.sleep(100); } catch(Throwable t) {}
+			
+		} while(!services.isInitialized());
+
+		securityContext           = SecurityContext.getSuperUserInstance();
+		
+		app = StructrApp.getInstance(securityContext);
+		
+		graphDbCommand            = app.command(GraphDatabaseCommand.class);
+		writeLogCommand           = app.command(WriteLogCommand.class);
+		readLogCommand            = app.command(ReadLogCommand.class);
+		
+	}
+
+	@Override
 	protected void tearDown() throws Exception {
 
-		Services.shutdown();
+		// shutdown
+		Services.getInstance().shutdown();
 
 		try {
-			File testDir = new File(context.get(Services.BASE_PATH));
+			final File testDir = new File(config.getProperty(Services.BASE_PATH));
 
 			if (testDir.isDirectory()) {
 
@@ -133,7 +159,7 @@ public class StructrTest extends TestCase {
 	 */
 	private static List<Class> findClasses(File directory, String packageName) throws ClassNotFoundException {
 
-		List<Class> classes = new ArrayList<Class>();
+		List<Class> classes = new ArrayList<>();
 
 		if (!directory.exists()) {
 
@@ -161,126 +187,119 @@ public class StructrTest extends TestCase {
 
 	}
 
-	protected List<AbstractNode> createTestNodes(final String type, final int number) throws FrameworkException {
+	protected List<NodeInterface> createTestNodes(final Class type, final int number, final long delay) throws FrameworkException {
 
-		final PropertyMap props = new PropertyMap();
-		props.put(AbstractNode.type, type);
+		try {
+			app.beginTx();
 
-		return transactionCommand.execute(new StructrTransaction<List<AbstractNode>>() {
+			List<NodeInterface> nodes = new LinkedList<>();
 
-			@Override
-			public List<AbstractNode> execute() throws FrameworkException {
+			for (int i = 0; i < number; i++) {
 
-				List<AbstractNode> nodes = new LinkedList<AbstractNode>();
+				nodes.add(app.create(type));
 
-				for (int i = 0; i < number; i++) {
-
-					nodes.add(createNodeCommand.execute(props));
-				}
-
-				return nodes;
-
+				try {
+					Thread.sleep(delay);
+				} catch (InterruptedException ex) {}
 			}
 
-		});
+			app.commitTx();
+
+			return nodes;
+
+		} finally {
+			app.finishTx();
+		}
+	}
+
+	protected List<NodeInterface> createTestNodes(final Class type, final int number) throws FrameworkException {
+		
+		return createTestNodes(type, number, 0);
 
 	}
 
 	protected <T extends AbstractNode> T createTestNode(final Class<T> type) throws FrameworkException {
-		return (T)createTestNode(type.getSimpleName(), new PropertyMap());
+		return (T)createTestNode(type, new PropertyMap());
 	}
 
-	protected AbstractNode createTestNode(final String type) throws FrameworkException {
-		return createTestNode(type, new PropertyMap());
+	protected <T extends AbstractNode> T createTestNode(final Class<T> type, final PropertyMap props) throws FrameworkException {
+
+		props.put(AbstractNode.type, type.getSimpleName());
+
+		try {
+			app.beginTx();
+
+			final T newNode = app.create(type, props);
+
+			app.commitTx();
+
+			return newNode;
+
+		} finally {
+			app.finishTx();
+		}
+
 	}
 
-	protected AbstractNode createTestNode(final String type, final PropertyMap props) throws FrameworkException {
+	protected <T extends Relation> List<T> createTestRelationships(final Class<T> relType, final int number) throws FrameworkException {
 
-		props.put(AbstractNode.type, type);
+		List<NodeInterface> nodes     = createTestNodes(GenericNode.class, 2);
+		final NodeInterface startNode = nodes.get(0);
+		final NodeInterface endNode   = nodes.get(1);
 
-		return transactionCommand.execute(new StructrTransaction<AbstractNode>() {
+		try {
+			app.beginTx();
 
-			@Override
-			public AbstractNode execute() throws FrameworkException {
+			List<T> rels = new LinkedList<>();
 
-				return createNodeCommand.execute(props);
+			for (int i = 0; i < number; i++) {
 
+				rels.add((T)app.create(startNode, endNode, relType));
 			}
 
-		});
+			app.commitTx();
+
+			return rels;
+
+		} finally {
+			app.finishTx();
+		}
 
 	}
 
-	protected List<AbstractRelationship> createTestRelationships(final RelationshipType relType, final int number) throws FrameworkException {
+	protected <T extends Relation> T createTestRelationship(final AbstractNode startNode, final AbstractNode endNode, final Class<T> relType) throws FrameworkException {
 
-		List<AbstractNode> nodes     = createTestNodes("UnknownTestType", 2);
-		final AbstractNode startNode = nodes.get(0);
-		final AbstractNode endNode   = nodes.get(1);
+		try {
+			app.beginTx();
 
-		return transactionCommand.execute(new StructrTransaction<List<AbstractRelationship>>() {
+			final T rel = (T)app.create(startNode, endNode, relType);
 
-			@Override
-			public List<AbstractRelationship> execute() throws FrameworkException {
+			app.commitTx();
 
-				List<AbstractRelationship> rels = new LinkedList<AbstractRelationship>();
-
-				for (int i = 0; i < number; i++) {
-
-					rels.add(createRelationshipCommand.execute(startNode, endNode, relType));
-				}
-
-				return rels;
-
-			}
-
-		});
-
-	}
-
-	protected AbstractRelationship createTestRelationship(final AbstractNode startNode, final AbstractNode endNode, final RelType relType) throws FrameworkException {
-
-		return transactionCommand.execute(new StructrTransaction<AbstractRelationship>() {
-
-			@Override
-			public AbstractRelationship execute() throws FrameworkException {
-
-				return createRelationshipCommand.execute(startNode, endNode, relType);
-
-			}
-
-		});
-
+			return rel;
+	
+		} finally {
+			app.finishTx();
+		}
 	}
 
 	protected void assertNodeExists(final String nodeId) throws FrameworkException {
-
-		AbstractNode node = null;
-
-		try {
-
-			node = (AbstractNode) findNodeCommand.execute(nodeId);
-
-		} catch (Throwable t) {}
-
-		assertTrue(node != null);
+		assertNotNull(app.get(nodeId));
 
 	}
 
-	protected void assertNodeNotFound(final String nodeId) {
-
-		try {
-
-			findNodeCommand.execute(nodeId);
-			fail("Node exists!");
-
-		} catch (FrameworkException fe) {}
-
+	protected void assertNodeNotFound(final String nodeId) throws FrameworkException {
+		assertNull(app.get(nodeId));
 	}
 
+	protected <T> List<T> toList(T... elements) {
+		return Arrays.asList(elements);
+	}
+	
 	//~--- get methods ----------------------------------------------------
 
 	/**
-	 * Get classes in given package and subpackages, accessible from the context class loader
+	 * Get classes in given package and subpackages, accessible from the config class loader
 	 *
 	 * @param packageName The base package
 	 * @return The classes
@@ -295,7 +314,7 @@ public class StructrTest extends TestCase {
 
 		String path                = packageName.replace('.', '/');
 		Enumeration<URL> resources = classLoader.getResources(path);
-		List<File> dirs            = new ArrayList<File>();
+		List<File> dirs            = new ArrayList<>();
 
 		while (resources.hasMoreElements()) {
 
@@ -305,7 +324,7 @@ public class StructrTest extends TestCase {
 
 		}
 
-		List<Class> classList = new ArrayList<Class>();
+		List<Class> classList = new ArrayList<>();
 
 		for (File directory : dirs) {
 
@@ -313,51 +332,6 @@ public class StructrTest extends TestCase {
 		}
 
 		return classList;
-
-	}
-
-	//~--- set methods ----------------------------------------------------
-
-	@Override
-	protected void setUp() throws Exception {
-
-
-		Date now       = new Date();
-		long timestamp = now.getTime();
-
-		context.put(Services.CONFIGURED_SERVICES, "ModuleService NodeService LogService");
-		context.put(Services.APPLICATION_TITLE, "structr unit test app" + timestamp);
-		context.put(Services.TMP_PATH, "/tmp/");
-		context.put(Services.BASE_PATH, "/tmp/structr-test-" + timestamp);
-		context.put(Services.DATABASE_PATH, "/tmp/structr-test-" + timestamp + "/db");
-		context.put(Services.FILES_PATH, "/tmp/structr-test-" + timestamp + "/files");
-		context.put(Services.LOG_DATABASE_PATH, "/tmp/structr-test-" + timestamp + "/logDb.dat");
-		context.put(Services.TCP_PORT, "13465");
-		context.put(Services.SERVER_IP, "127.0.0.1");
-		context.put(Services.UDP_PORT, "13466");
-		context.put(Services.SUPERUSER_USERNAME, "superadmin");
-		context.put(Services.SUPERUSER_PASSWORD, "sehrgeheim");
-		
-		Services.initialize(context);
-
-		securityContext           = SecurityContext.getSuperUserInstance();
-		createNodeCommand         = Services.command(securityContext, CreateNodeCommand.class);
-		createRelationshipCommand = Services.command(securityContext, CreateRelationshipCommand.class);
-		deleteNodeCommand         = Services.command(securityContext, DeleteNodeCommand.class);
-		deleteRelationshipCommand = Services.command(securityContext, DeleteRelationshipCommand.class);
-		transactionCommand        = Services.command(securityContext, TransactionCommand.class);
-		graphDbCommand            = Services.command(securityContext, GraphDatabaseCommand.class);
-		findNodeCommand           = Services.command(securityContext, FindNodeCommand.class);
-		searchNodeCommand         = Services.command(securityContext, SearchNodeCommand.class);
-		searchRelationshipCommand = Services.command(securityContext, SearchRelationshipCommand.class);
-		writeLogCommand           = Services.command(securityContext, WriteLogCommand.class);
-		readLogCommand            = Services.command(securityContext, ReadLogCommand.class);
-
-		// wait for service layer to be initialized
-		do {
-			try { Thread.sleep(10); } catch(Throwable t) {}
-			
-		} while(!Services.isInitialized());
 
 	}
 

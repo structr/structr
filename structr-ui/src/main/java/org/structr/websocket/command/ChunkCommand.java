@@ -1,23 +1,21 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
 package org.structr.websocket.command;
 
 import org.apache.commons.codec.binary.Base64;
@@ -31,7 +29,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
-import org.structr.core.entity.AbstractNode;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
+import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
 import org.structr.websocket.StructrWebSocket;
 
@@ -56,12 +56,13 @@ public class ChunkCommand extends AbstractCommand {
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
-		SecurityContext securityContext = getWebSocket().getSecurityContext();
+		final SecurityContext securityContext = getWebSocket().getSecurityContext();
+		final App app = StructrApp.getInstance(securityContext);
 		
 		try {
 
-			int sequenceNumber = Integer.parseInt((String) webSocketData.getNodeData().get("chunkId"));
-			int chunkSize      = Integer.parseInt((String) webSocketData.getNodeData().get("chunkSize"));
+			int sequenceNumber = ((Long) webSocketData.getNodeData().get("chunkId")).intValue();
+			int chunkSize      = ((Long) webSocketData.getNodeData().get("chunkSize")).intValue();
 			Object rawData     = webSocketData.getNodeData().get("chunk");
 			String uuid        = webSocketData.getId();
 			byte[] data        = null;
@@ -81,7 +82,7 @@ public class ChunkCommand extends AbstractCommand {
 
 			}
 
-			File file = (File) getNode(uuid);
+			final File file = (File) getNode(uuid);
 			
 			if (!getWebSocket().getSecurityContext().isAllowed(file, Permission.write)) {
 
@@ -90,21 +91,29 @@ public class ChunkCommand extends AbstractCommand {
 				return;
 				
 			}
-			
-			long size = (long)(sequenceNumber * chunkSize) + data.length;
-			
-			// Set proper size
-			file.setProperty(File.size, size);
-			
-			//long partSize = (long)(sequenceNumber * chunkSize) + chunkSize;
-			
+
 			getWebSocket().handleFileChunk(uuid, sequenceNumber, chunkSize, data);
 			
-			// This should trigger setting of lastModifiedDate in any case
-			file.setChecksum(0L);
-//			file.getChecksum();
+			final long size = (long)(sequenceNumber * chunkSize) + data.length;
 			
-			getWebSocket().send(MessageBuilder.status().code(200).message(size + " bytes of " + file.getName() + " successfully saved.").build(), true);
+			long finalSize = file.getProperty(File.size);
+			logger.log(Level.FINE, "Overall size: {0}, part: {1}", new Object[]{finalSize, size});
+			
+			if (size != finalSize) {
+
+				try {
+					app.beginTx();
+					file.setProperty(File.checksum, FileHelper.getChecksum(file));
+					app.commitTx();
+
+				} finally {
+
+					app.finishTx();
+				}
+			}
+			
+			// This should trigger setting of lastModifiedDate in any case
+			getWebSocket().send(MessageBuilder.status().code(200).message("{\"id\":\"" + file.getUuid() + "\", \"name\":\"" + file.getName() + "\",\"size\":" + size + "}").build(), true);
 
 		} catch (Throwable t) {
 

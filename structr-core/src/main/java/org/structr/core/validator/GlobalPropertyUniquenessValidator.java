@@ -1,44 +1,34 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core.validator;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;
-import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UniqueToken;
 import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.SearchNodeCommand;
-import org.structr.core.graph.search.SearchOperator;
-import org.structr.core.graph.search.TextualSearchAttribute;
-
-//~--- JDK imports ------------------------------------------------------------
-
-import java.util.LinkedList;
-import java.util.List;
 import java.util.logging.Logger;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.Result;
+import org.structr.core.app.StructrApp;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -48,16 +38,17 @@ import org.structr.core.Result;
  *
  * @author Christian Morgner
  */
-public class GlobalPropertyUniquenessValidator implements PropertyValidator<String> {
+public class GlobalPropertyUniquenessValidator<T> implements PropertyValidator<T> {
 
 	private static final Logger logger = Logger.getLogger(GlobalPropertyUniquenessValidator.class.getName());
 
 	//~--- get methods ----------------------------------------------------
 
 	@Override
-	public boolean isValid(SecurityContext securityContext, GraphObject object, PropertyKey key, String value, ErrorBuffer errorBuffer) {
+	public boolean isValid(SecurityContext securityContext, GraphObject object, PropertyKey<T> key, T value, ErrorBuffer errorBuffer) {
 
-		if ((value == null) || ((value != null) && (value.toString().length() == 0))) {
+		// FIXME: changed isEmpty to != null
+		if (value == null) {
 
 			errorBuffer.add(object.getType(), new EmptyPropertyToken(key));
 
@@ -65,43 +56,51 @@ public class GlobalPropertyUniquenessValidator implements PropertyValidator<Stri
 
 		}
 
-		if ((key != null) && (value != null)) {
+		if (key != null && value != null) {
 
-			// String type = EntityContext.GLOBAL_UNIQUENESS;
-			boolean nodeExists               = false;
-			List<SearchAttribute> attributes = new LinkedList<SearchAttribute>();
-			String id                        = null;
-
-			attributes.add(new TextualSearchAttribute(key, value, SearchOperator.AND));
-
-			Result resultList = null;
+			String id			= null;
+			GraphObject existingNode	= null;
 
 			try {
 
-				resultList = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(attributes);
-				nodeExists = !resultList.isEmpty();
+				// UUID is globally unique
+				if (key.equals(GraphObject.id)) {
+					
+					
+					//return true; // trust uniqueness
+					existingNode = StructrApp.getInstance().get(value.toString());
+					//existingNode = StructrApp.getInstance().nodeQuery(AbstractNode.class).and(key, value).getFirst();
+					
+				} else {
+					
+					existingNode = StructrApp.getInstance().nodeQuery(AbstractNode.class).and(key, value).getFirst();
+				}
 
 			} catch (FrameworkException fex) {
 
 				// handle error
 			}
 
-			if (nodeExists) {
+			if (existingNode != null) {
 
-				id = ((AbstractNode) resultList.get(0)).getUuid();
+				GraphObject foundNode = existingNode;
+				if (foundNode.getId() != object.getId()) {
 
-				errorBuffer.add(object.getType(), new UniqueToken(id, key, value));
+					id = foundNode.getUuid();
 
-				return false;
+					errorBuffer.add(object.getType(), new UniqueToken(id, key, value));
 
-			} else {
-
-				return true;
+					return false;
+				}
 			}
 		}
 
-		return false;
+		return true;
 
 	}
-
+	
+	@Override
+	public boolean requiresSynchronization() {
+		return true;
+	}
 }

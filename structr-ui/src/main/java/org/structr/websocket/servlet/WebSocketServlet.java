@@ -1,23 +1,21 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
 package org.structr.websocket.servlet;
 
 import com.google.gson.Gson;
@@ -38,15 +36,11 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.servlet.ServletConfig;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.Services;
-import org.structr.core.graph.NodeService;
-import org.structr.rest.ResourceProvider;
+import org.structr.core.GraphObject;
+import org.structr.core.graph.TransactionCommand;
+import org.structr.rest.service.HttpServiceServlet;
 import org.structr.websocket.SynchronizationController;
 
 //~--- classes ----------------------------------------------------------------
@@ -55,46 +49,25 @@ import org.structr.websocket.SynchronizationController;
  *
  * @author Christian Morgner
  */
-public class WebSocketServlet extends HttpServlet {
+public class WebSocketServlet extends HttpServiceServlet {
 
-	private static final String STRUCTR_PROTOCOL              = "structr";
-	private static ServletConfig config                       = null;
-	private static WebSocketFactory factory                   = null;
-	private static final Logger logger                        = Logger.getLogger(WebSocketServlet.class.getName());
-
-	private SynchronizationController syncController          = null;
-	private PropertyKey idProperty                            = null;
-	private ResourceProvider resourceProvider                 = null;
-	
-	public WebSocketServlet(final PropertyKey idProperty) {
-		this.idProperty = idProperty;
-	}
-
-	public WebSocketServlet(final ResourceProvider resourceProvider) {
-		this.resourceProvider    = resourceProvider;
-	}
-
-	public WebSocketServlet(final ResourceProvider resourceProvider, final PropertyKey idProperty) {
-		this.idProperty = idProperty;
-		this.resourceProvider    = resourceProvider;
-	}
-
-	//~--- methods --------------------------------------------------------
+	private static final Logger logger           = Logger.getLogger(WebSocketServlet.class.getName());
+	private static final String STRUCTR_PROTOCOL = "structr";
+	private static WebSocketFactory factory      = null;
 
 	@Override
 	public void init() {
 
-		// servlet config
-		config = this.getServletConfig();
-
 		// create GSON serializer
-		final Gson gson = new GsonBuilder().setPrettyPrinting().registerTypeAdapter(WebSocketMessage.class, new WebSocketDataGSONAdapter(idProperty)).create();
-
-		syncController = new SynchronizationController(gson);
-		syncController.setResourceProvider(resourceProvider);
-
-		GraphDatabaseService graphDb = Services.getService(NodeService.class).getGraphDb();
-		graphDb.registerTransactionEventHandler(syncController);
+		final Gson gson = new GsonBuilder()
+			.setPrettyPrinting()
+			.registerTypeAdapter(WebSocketMessage.class, new WebSocketDataGSONAdapter(GraphObject.id, outputNestingDepth))
+			.create();
+		
+		final SynchronizationController syncController = new SynchronizationController(gson);
+		
+		// register (Structr) transaction listener
+		TransactionCommand.registerTransactionListener(syncController);
 
 		// create web socket factory
 		factory = new WebSocketFactory(new Acceptor() {
@@ -104,7 +77,7 @@ public class WebSocketServlet extends HttpServlet {
 
 				if (STRUCTR_PROTOCOL.equals(protocol)) {
 
-					return new StructrWebSocket(syncController, config, request, gson, idProperty);
+					return new StructrWebSocket(syncController, request, gson, GraphObject.id, getAuthenticator());
 
 				} else {
 
@@ -114,6 +87,7 @@ public class WebSocketServlet extends HttpServlet {
 
 				return null;
 			}
+			
 			@Override
 			public boolean checkOrigin(final HttpServletRequest request, final String origin) {
 
@@ -122,13 +96,6 @@ public class WebSocketServlet extends HttpServlet {
 			}
 
 		});
-	}
-
-	@Override
-	public void destroy() {
-		
-		GraphDatabaseService graphDb = Services.getService(NodeService.class).getGraphDb();
-		graphDb.unregisterTransactionEventHandler(syncController);
 	}
 
 	@Override
@@ -146,9 +113,4 @@ public class WebSocketServlet extends HttpServlet {
 
 		}
 	}
-
-	public void setResourceProvider(final ResourceProvider resourceProvider) {
-		this.resourceProvider = resourceProvider;
-	}
-	
 }

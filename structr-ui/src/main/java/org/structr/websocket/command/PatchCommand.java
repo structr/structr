@@ -1,23 +1,21 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
 package org.structr.websocket.command;
 
 import name.fraser.neil.plaintext.diff_match_patch;
@@ -34,6 +32,8 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.websocket.StructrWebSocket;
 
 //~--- classes ----------------------------------------------------------------
@@ -55,7 +55,7 @@ public class PatchCommand extends AbstractCommand {
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
-		AbstractNode node              = getNode(webSocketData.getId());
+		final AbstractNode node        = getNode(webSocketData.getId());
 		Map<String, Object> properties = webSocketData.getNodeData();
 		String patch                   = (String) properties.get("patch");
 
@@ -64,17 +64,22 @@ public class PatchCommand extends AbstractCommand {
 			diff_match_patch dmp      = new diff_match_patch();
 			String oldText            = node.getProperty(Content.content);
 			LinkedList<Patch> patches = (LinkedList<Patch>) dmp.patch_fromText(patch);
-			Object[] results          = dmp.patch_apply(patches, oldText);
+			final Object[] results    = dmp.patch_apply(patches, oldText);
+			final App app             = StructrApp.getInstance(getWebSocket().getSecurityContext());
 
 			try {
-
+				app.beginTx();
 				node.setProperty(Content.content, results[0].toString());
-
+				app.commitTx();
+				
 			} catch (Throwable t) {
 
 				logger.log(Level.WARNING, "Could not apply patch {0}", patch);
 				getWebSocket().send(MessageBuilder.status().code(400).message("Could not apply patch. " + t.getMessage()).build(), true);
 
+			} finally {
+				
+				app.finishTx();
 			}
 
 		} else {

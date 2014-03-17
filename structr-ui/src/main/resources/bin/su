@@ -1,6 +1,15 @@
 #!/bin/bash
 
-STRUCTR_CONF=`find ../../../.. -name structr.conf`
+echo "Setting superuser context."
+
+STRUCTR_CONF=`find .. -name structr.conf`
+
+if [ -z "$STRUCTR_CONF" ]
+then
+	STRUCTR_CONF=`find ../../../.. -name structr.conf`
+fi
+
+echo "Using $STRUCTR_CONF as main configuration file."
 
 PATH=$PATH:.
 

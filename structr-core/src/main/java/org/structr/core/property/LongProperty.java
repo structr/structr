@@ -1,31 +1,36 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core.property;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.apache.commons.lang.StringUtils;
+import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.SortField;
 import org.apache.lucene.util.NumericUtils;
+import org.neo4j.index.lucene.ValueContext;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.PropertyValidator;
+import org.structr.core.app.Query;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.graph.search.LongSearchAttribute;
+import org.structr.core.graph.search.SearchAttribute;
 
 /**
  * A property that stores and retrieves a simple Long value.
@@ -34,15 +39,40 @@ import org.structr.core.converter.PropertyConverter;
  */
 public class LongProperty extends AbstractPrimitiveProperty<Long> {
 	
-	private static final Logger logger = Logger.getLogger(LongProperty.class.getName());
-	
+	public static final String LONG_EMPTY_FIELD_VALUE = NumericUtils.longToPrefixCoded(Long.MIN_VALUE);
+
 	public LongProperty(String name) {
-		super(name);
+		this(name, name, null);
+	}
+
+	public LongProperty(final String jsonName, final String dbName) {
+		this(jsonName, dbName, null);
 	}
 	
+	public LongProperty(String name, final PropertyValidator<Long>... validators) {
+		this(name, name, null, validators);
+	}		
+
+	public LongProperty(String name, Long defaultValue, PropertyValidator<Long>... validators) {
+		this(name, name, defaultValue, validators);
+	}
+	
+	public LongProperty(String jsonName, String dbName, Long defaultValue, PropertyValidator<Long>... validators) {
+		super(jsonName, dbName, defaultValue);
+		
+		for (PropertyValidator<Long> validator : validators) {
+			addValidator(validator);
+		}
+	}
+		
 	@Override
 	public String typeName() {
 		return "Long";
+	}
+
+	@Override
+	public Integer getSortType() {
+		return SortField.LONG;
 	}
 	
 	@Override
@@ -57,25 +87,13 @@ public class LongProperty extends AbstractPrimitiveProperty<Long> {
 
 	@Override
 	public PropertyConverter<?, Long> inputConverter(SecurityContext securityContext) {
-		return new InputConverter(securityContext, SortField.LONG);
+		return new InputConverter(securityContext);
 	}
 	
 	protected class InputConverter extends PropertyConverter<Object, Long> {
 
 		public InputConverter(SecurityContext securityContext) {
-			this(securityContext, null, false);
-		}
-		
-		public InputConverter(SecurityContext securityContext, Integer sortKey) {
-			this(securityContext, sortKey, false);
-		}
-		
-		public InputConverter(SecurityContext securityContext, boolean sortFinalResults) {
-			this(securityContext, null, sortFinalResults);
-		}
-		
-		public InputConverter(SecurityContext securityContext, Integer sortKey, boolean sortFinalResults) {
-			super(securityContext, null, sortKey, sortFinalResults);
+			super(securityContext);
 		}
 		
 		@Override
@@ -86,19 +104,17 @@ public class LongProperty extends AbstractPrimitiveProperty<Long> {
 		@Override
 		public Long convert(Object source) {
 			
-			// FIXME: be more strict when dealing with "wrong" input types
-			if (source != null) {
-				
-				if (source instanceof Number) {
+			if (source == null) return null;
+			
+			if (source instanceof Number) {
 
-					return ((Number)source).longValue();
-					
-				}
-				
-				if (source instanceof String) {
-					
-					return Long.parseLong(source.toString());
-				}
+				return ((Number)source).longValue();
+
+			}
+
+			if (source instanceof String && StringUtils.isNotBlank((String) source)) {
+
+				return Long.parseLong(source.toString());
 			}
 			
 			return null;
@@ -131,18 +147,20 @@ public class LongProperty extends AbstractPrimitiveProperty<Long> {
 		return null;
 	}
 	
-//	@Override
-//	public Object getSearchValue(Long source) {
-//
-//		return source;
-////		if (source == null) {
-////			return "";
-////		}
-////		
-////		String prefixCoded = NumericUtils.longToPrefixCoded(source);
-////		
-////		logger.log(Level.INFO, "Search value for long {0}, prefixCoded: {1}", new Object[]{source, prefixCoded});
-////		
-////		return prefixCoded;
-//	}
+	@Override
+	public SearchAttribute getSearchAttribute(SecurityContext securityContext, BooleanClause.Occur occur, Long searchValue, boolean exactMatch, final Query query) {
+		return new LongSearchAttribute(this, searchValue, occur, exactMatch);
+	}
+
+	@Override
+	public void index(GraphObject entity, Object value) {
+		super.index(entity, value != null ? ValueContext.numeric((Number)value) : value);
+	}
+
+	@Override
+	public String getValueForEmptyFields() {
+		return LONG_EMPTY_FIELD_VALUE;
+	}
+	
+	
 }

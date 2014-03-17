@@ -1,30 +1,26 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
 package org.structr.websocket.command;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
 import org.structr.core.auth.Authenticator;
-import org.structr.core.auth.AuthenticatorCommand;
 import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.entity.Principal;
 import org.structr.websocket.StructrWebSocket;
@@ -35,6 +31,8 @@ import org.structr.websocket.message.WebSocketMessage;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 
 //~--- classes ----------------------------------------------------------------
@@ -48,6 +46,7 @@ public class LoginCommand extends AbstractCommand {
 	private static final Logger logger = Logger.getLogger(LoginCommand.class.getName());
 	
 	static {
+		
 		StructrWebSocket.addCommand(LoginCommand.class);
 
 	}
@@ -57,24 +56,22 @@ public class LoginCommand extends AbstractCommand {
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
-		SecurityContext securityContext = SecurityContext.getSuperUserInstance();
-		String username                 = (String) webSocketData.getNodeData().get("username");
-		String password                 = (String) webSocketData.getNodeData().get("password");
-		Principal user                       = null;
+		final String username                 = (String) webSocketData.getNodeData().get("username");
+		final String password                 = (String) webSocketData.getNodeData().get("password");
+		Principal user                        = null;
 
 		if ((username != null) && (password != null)) {
 
 			try {
 
 				StructrWebSocket socket = this.getWebSocket();
-				Authenticator auth      = (Authenticator) Services.command(securityContext, AuthenticatorCommand.class).execute(socket.getConfig());
+				Authenticator auth      = socket.getAuthenticator();
 
-				user = auth.doLogin(securityContext, socket.getRequest(), null, username, password);
+				user = auth.doLogin(socket.getRequest(), username, password);
 
 				if (user != null) {
 
-					String sessionId = webSocketData.getSessionId();
-					
+					final String sessionId = webSocketData.getSessionId();
 					if (sessionId == null) {
 						
 						logger.log(Level.INFO, "Could not login {0}: No sessionId found", new Object[] { username, password });
@@ -82,8 +79,19 @@ public class LoginCommand extends AbstractCommand {
 						
 					}
 
-					// store token in user
-					user.setProperty(Principal.sessionId, sessionId);
+					final Principal principal = user;
+					final App app             = StructrApp.getInstance();
+					
+					try {
+						
+						app.beginTx();
+						principal.setProperty(Principal.sessionId, sessionId);
+						app.commitTx();
+
+					} finally {
+
+						app.finishTx();
+					}
 
 					// store token in response data
 					webSocketData.getNodeData().clear();
@@ -104,9 +112,9 @@ public class LoginCommand extends AbstractCommand {
 				getWebSocket().send(MessageBuilder.status().code(403).build(), true);
 
 			} catch (FrameworkException fex) {
+				
 				logger.log(Level.WARNING, "Unable to execute command", fex);
 			}
-
 		}
 	}
 

@@ -1,12 +1,12 @@
 @charset "UTF-8";
 
 .resourceBox {
-    /*height: 600px;*/
     overflow: auto;
     border: 1px solid #999 ! important;
     background: #fff ! important;
     font-family: Arial, Helvetica, Sans-serif ! important;
     font-size: 8pt;
+    position: relative;
 }
 
 .resourceBox table {
@@ -47,22 +47,11 @@
 
 .resourceBox td.save.active:hover, .resourceBox .delete:hover, .resourceBox .edit:hover {
     cursor: pointer;
-    /*text-decoration: underline;*/
 }
 
 .resourceBox td.save.active {
     font-weight: bold;
     color: #f33;
-}
-
-.resourceBox td input[type=text] {
-    margin: 0;
-    border: 1px solid #a5a5a5;
-    /*border: none;*/
-}
-
-.resourceBox button {
-    /*margin: 12px 0 0 0;*/
 }
 
 #resourceTabs {
@@ -75,7 +64,9 @@
 
 #resourceTabs li.ui-corner-top {
     font-weight: bold;
-    border: 1px solid #999;
+    border-top: 1px solid #999;
+    border-left: 1px solid #999;
+    border-right: 1px solid #999;
     background-color: #e9e9e9;
     background: -webkit-gradient(linear, left bottom, left top, from(#e3e3e3), to(#f7f7f7)) no-repeat;
     background: -moz-linear-gradient(90deg, #e3e3e3, #f7f7f7) no-repeat;
@@ -198,7 +189,6 @@ input.readonly {
 }
 
 table.props input.readonly {
-    /*color: #666 ! important;*/
     border: none;
     background-color: transparent ! important;
 }
@@ -248,41 +238,22 @@ img.thumbnail {
     margin: auto;
 }
 
-.dialogTextWrapper {
-    overflow: auto;
-}
-
-.dialogText {
-}
-
 #dialogBox .dialogText .props {
-    width: 100%;
     height: 100%;
 }
 
 
 #dialogBox .dialogText div.img {
     clear: both;
-    /*height: 492px;*/
-}
-
-#dialogBox .dialogText div.wrap,
-#dialogBox .dialogText .node div.wrap {
 }
 
 #dialogBox .dialogText {
-/*    min-width: 600px;
-    min-height: 100px;
-    height: 660px;*/
     position: relative;
-    /*float: left;*/
 }
 
 #dialogBox .dialogText .thumbnailZoom {
     max-width: 776px;
     max-height: 480px;
-/*    margin-top: 0;
-    margin-left: -50%;*/
 }
 
 .dialogTitle span.id {
@@ -315,6 +286,7 @@ img.thumbnail {
 
 .searchResults {
     margin-top: 42px;
+    overflow-y: auto;
 }
 
 h2.searchResultsTitle {
@@ -361,4 +333,9 @@ h2.searchResultsTitle {
 .dialogText .searchResultGroup {
     position: absolute;
     top: 42px;
+}
+
+img.loader {
+    vertical-align: middle;
+    margin-right: 12px;
 }

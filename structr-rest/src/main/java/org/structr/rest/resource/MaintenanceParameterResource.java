@@ -1,23 +1,21 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
 package org.structr.rest.resource;
 
 import org.structr.core.graph.BulkCopyRelationshipPropertyCommand;
@@ -26,7 +24,6 @@ import org.structr.core.graph.BulkFixNodePropertiesCommand;
 import org.structr.core.Result;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.agent.RebuildIndexTask;
 import org.structr.core.graph.BulkSetNodePropertiesCommand;
 import org.structr.core.graph.ClearDatabase;
 import org.structr.rest.RestMethodResult;
@@ -40,11 +37,13 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.Command;
-import org.structr.core.agent.Task;
+import org.structr.agent.Task;
+import org.structr.core.graph.BulkChangeNodePropertyKeyCommand;
 import org.structr.core.graph.BulkDeleteSoftDeletedNodesCommand;
 import org.structr.core.graph.BulkRebuildIndexCommand;
 import org.structr.core.graph.BulkSetUuidCommand;
 import org.structr.core.graph.SyncCommand;
+import org.structr.schema.SchemaHelper;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -60,11 +59,12 @@ public class MaintenanceParameterResource extends Resource {
 
 	static {
 
-		maintenanceCommandMap.put("rebuildIndex", RebuildIndexTask.class);
+		maintenanceCommandMap.put("rebuildIndex", BulkRebuildIndexCommand.class);
 		maintenanceCommandMap.put("rebuildIndexForType", BulkRebuildIndexCommand.class);
 		maintenanceCommandMap.put("clearDatabase", ClearDatabase.class);
 		maintenanceCommandMap.put("fixNodeProperties", BulkFixNodePropertiesCommand.class);
 		maintenanceCommandMap.put("setNodeProperties", BulkSetNodePropertiesCommand.class);
+		maintenanceCommandMap.put("changeNodePropertyKey", BulkChangeNodePropertyKeyCommand.class);
 		maintenanceCommandMap.put("setRelationshipProperties", BulkSetRelationshipPropertiesCommand.class);
 		maintenanceCommandMap.put("copyRelationshipProperties", BulkCopyRelationshipPropertyCommand.class);
 		maintenanceCommandMap.put("deleteSoftDeletedNodes", BulkDeleteSoftDeletedNodesCommand.class);
@@ -116,11 +116,6 @@ public class MaintenanceParameterResource extends Resource {
 	}
 
 	@Override
-	public RestMethodResult doOptions() throws FrameworkException {
-		throw new NotAllowedException();
-	}
-
-	@Override
 	public Resource tryCombineWith(Resource next) throws FrameworkException {
 		return null;
 	}
@@ -148,7 +143,7 @@ public class MaintenanceParameterResource extends Resource {
 
         @Override
         public String getResourceSignature() {
-                return getUriPart();
+                return SchemaHelper.normalizeEntityName(getUriPart());
         }
 	
 	public static void registerMaintenanceTask(String key, Class<? extends Task> task) {

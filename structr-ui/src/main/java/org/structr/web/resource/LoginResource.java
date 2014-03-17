@@ -1,25 +1,23 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package org.structr.web.resource;
 
-import org.apache.commons.codec.binary.Base64;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -31,13 +29,13 @@ import org.structr.rest.resource.Resource;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.security.SecureRandom;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringUtils;
+import org.structr.core.entity.Principal;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.User;
@@ -75,14 +73,14 @@ public class LoginResource extends Resource {
 		PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, User.class, propertySet);
 
 		String name          = properties.get(User.name);
-		String email         = properties.get(User.email);
+		String email         = properties.get(User.eMail);
 		String password      = properties.get(User.password);
 		
 		String emailOrUsername = StringUtils.isNotEmpty(email) ? email : name;
 		
 		if (StringUtils.isNotEmpty(emailOrUsername) && StringUtils.isNotEmpty(password)) {
 			
-			User user = (User) securityContext.doLogin(emailOrUsername, password);
+			Principal user = (Principal) securityContext.getAuthenticator().doLogin(securityContext.getRequest(), emailOrUsername, password);
 
 			if (user != null) {
 				

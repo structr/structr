@@ -1,28 +1,24 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
 package org.structr.common;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -33,6 +29,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.entity.GenericNode;
+import org.structr.core.entity.relationship.NodeHasLocation;
+import org.structr.core.graph.NodeInterface;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -69,10 +68,10 @@ public class PerformanceTest extends StructrTest {
 
 		try {
 
-			int number               = 1000;
-			long t0                  = System.nanoTime();
-			List<AbstractNode> nodes = createTestNodes("UnknownTestType", number);
-			long t1                  = System.nanoTime();
+			int number                = 1000;
+			long t0                   = System.nanoTime();
+			List<NodeInterface> nodes = createTestNodes(GenericNode.class, number);
+			long t1                   = System.nanoTime();
 
 			assertTrue(nodes.size() == number);
 
@@ -81,7 +80,7 @@ public class PerformanceTest extends StructrTest {
 			Double rate                 = number / ((t1 - t0) / 1000000000.0);
 
 			logger.log(Level.INFO, "Created {0} nodes in {1} seconds ({2} per s)", new Object[] { number, decimalFormat.format(time), decimalFormat.format(rate) });
-			assertTrue(rate > 50);
+			assertTrue(rate > 10);
 
 		} catch (FrameworkException ex) {
 
@@ -109,7 +108,7 @@ public class PerformanceTest extends StructrTest {
 
 			int number                      = 1000;
 			long t0                         = System.nanoTime();
-			List<AbstractRelationship> rels = createTestRelationships(RelType.IS_AT, number);
+			List<NodeHasLocation> rels = createTestRelationships(NodeHasLocation.class, number);
 			long t1                         = System.nanoTime();
 
 			assertTrue(rels.size() == number);

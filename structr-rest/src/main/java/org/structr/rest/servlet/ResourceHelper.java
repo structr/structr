@@ -1,23 +1,21 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
 package org.structr.rest.servlet;
 
 import org.apache.commons.lang.StringUtils;
@@ -29,7 +27,6 @@ import org.structr.core.property.PropertyKey;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NoResultsException;
 import org.structr.rest.exception.NotFoundException;
-import org.structr.rest.resource.RelationshipFollowingResource;
 import org.structr.rest.resource.Resource;
 import org.structr.rest.resource.ViewFilterResource;
 
@@ -39,14 +36,16 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
-import org.structr.core.EntityContext;
+import org.structr.core.Services;
 import org.structr.core.ViewTransformation;
+import org.structr.core.app.StructrApp;
 import org.structr.rest.resource.TransformationResource;
 
 //~--- classes ----------------------------------------------------------------
@@ -73,11 +72,9 @@ public class ResourceHelper {
 	 * @return
 	 * @throws FrameworkException 
 	 */
-	public static List<Resource> parsePath(final SecurityContext securityContext, final HttpServletRequest request, final Map<Pattern, Class<? extends Resource>> resourceMap,
-		final Value<String> propertyView, final PropertyKey defaultIdProperty)
-		throws FrameworkException {
+	public static List<Resource> parsePath(final SecurityContext securityContext, final HttpServletRequest request, final Map<Pattern, Class<? extends Resource>> resourceMap, final Value<String> propertyView, final PropertyKey defaultIdProperty) throws FrameworkException {
 
-		String path = request.getPathInfo();
+		final String path = request.getPathInfo();
 
 		// intercept empty path and send 204 No Content
 		if (!StringUtils.isNotBlank(path)) {
@@ -86,69 +83,85 @@ public class ResourceHelper {
 		}
 
 		// 1.: split request path into URI parts
-		String[] pathParts = path.split("[/]+");
+		final String[] pathParts = path.split("[/]+");
 
 		// 2.: create container for resource constraints
-		List<Resource> resourceChain = new ArrayList<Resource>(pathParts.length);
+		final Set<String> propertyViews    = Services.getInstance().getConfigurationProvider().getPropertyViews();
+		final List<Resource> resourceChain = new ArrayList<>(pathParts.length);
 
 		// 3.: try to assign resource constraints for each URI part
 		for (int i = 0; i < pathParts.length; i++) {
 
 			// eliminate empty strings
-			String part = pathParts[i].trim();
+			final String part = pathParts[i].trim();
 
 			if (part.length() > 0) {
 
 				boolean found = false;
+				
+				// check views first
+				if (propertyViews.contains(part)) {
+				
+					Resource resource = new ViewFilterResource();
+					resource.checkAndConfigure(part, securityContext, request);
+					resource.configureIdProperty(defaultIdProperty);
+					resource.configurePropertyView(propertyView);
+					
+					resourceChain.add(resource);
+					
+					// mark this part as successfully parsed
+					found = true;
+					
+				} else {
 
-				// look for matching pattern
-				for (Map.Entry<Pattern, Class<? extends Resource>> entry : resourceMap.entrySet()) {
+					// look for matching pattern
+					for (Map.Entry<Pattern, Class<? extends Resource>> entry : resourceMap.entrySet()) {
 
-					Pattern pattern = entry.getKey();
-					Matcher matcher = pattern.matcher(pathParts[i]);
+						Pattern pattern = entry.getKey();
+						Matcher matcher = pattern.matcher(pathParts[i]);
 
-					if (matcher.matches()) {
+						if (matcher.matches()) {
 
-						Class<? extends Resource> type = entry.getValue();
-						Resource resource              = null;
+							Class<? extends Resource> type = entry.getValue();
+							Resource resource              = null;
 
-						try {
+							try {
 
-							// instantiate resource constraint
-							resource = type.newInstance();
-						} catch (Throwable t) {
+								// instantiate resource constraint
+								resource = type.newInstance();
+							} catch (Throwable t) {
 
-							logger.log(Level.WARNING, "Error instantiating resource class", t);
-
-						}
-
-						if (resource != null) {
-
-							// set security context
-							resource.setSecurityContext(securityContext);
-
-							if (resource.checkAndConfigure(part, securityContext, request)) {
-
-								logger.log(Level.FINE, "{0} matched, adding resource of type {1} for part {2}", new Object[] { matcher.pattern(), type.getName(),
-									part });
-
-								// allow constraint to modify context
-								resource.configurePropertyView(propertyView);
-								resource.configureIdProperty(defaultIdProperty);
-
-								// add constraint and go on
-								resourceChain.add(resource);
-
-								found = true;
-
-								// first match wins, so choose priority wisely ;)
-								break;
+								logger.log(Level.WARNING, "Error instantiating resource class", t);
 
 							}
+
+							if (resource != null) {
+
+								// set security context
+								resource.setSecurityContext(securityContext);
+
+								if (resource.checkAndConfigure(part, securityContext, request)) {
+
+									logger.log(Level.FINE, "{0} matched, adding resource of type {1} for part {2}", new Object[] { matcher.pattern(), type.getName(),
+										part });
+
+									// allow constraint to modify context
+									resource.configurePropertyView(propertyView);
+									resource.configureIdProperty(defaultIdProperty);
+
+									// add constraint and go on
+									resourceChain.add(resource);
+
+									found = true;
+
+									// first match wins, so choose priority wisely ;)
+									break;
+
+								}
+							}
+
 						}
-
 					}
-
 				}
 
 				if (!found) {
@@ -179,14 +192,9 @@ public class ResourceHelper {
 
 		do {
 
-			StringBuilder chain = new StringBuilder();
-
 			for (Iterator<Resource> it = resourceChain.iterator(); it.hasNext(); ) {
 
 				Resource constr = it.next();
-
-				chain.append(constr.getClass().getSimpleName());
-				chain.append(", ");
 
 				if (constr instanceof ViewFilterResource) {
 
@@ -220,11 +228,6 @@ public class ResourceHelper {
 						// signal success
 						found = true;
 
-						if (combinedConstraint instanceof RelationshipFollowingResource) {
-
-							break;
-						}
-
 					}
 
 				}
@@ -236,28 +239,24 @@ public class ResourceHelper {
 
 		} while (found);
 
-		StringBuilder chain = new StringBuilder();
-
-		for (Resource constr : resourceChain) {
-
-			chain.append(constr.getClass().getSimpleName());
-			chain.append(", ");
-
-		}
-
 		if (resourceChain.size() == 1) {
 
-			Resource finalConstraint = resourceChain.get(0);
+			Resource finalResource = resourceChain.get(0);
 
 			if (view != null) {
 
-				finalConstraint = finalConstraint.tryCombineWith(view);
+				finalResource = finalResource.tryCombineWith(view);
+			}
+			
+			if (finalResource == null) {
+				// fall back to original resource
+				finalResource = resourceChain.get(0);
 			}
 
 			// inform final constraint about the configured ID property
-			finalConstraint.configureIdProperty(defaultIdProperty);
+			finalResource.configureIdProperty(defaultIdProperty);
 
-			return finalConstraint;
+			return finalResource;
 
 		}
 
@@ -283,7 +282,7 @@ public class ResourceHelper {
 		Class type = finalResource.getEntityClass();
 		if (type != null) {
 			
-			ViewTransformation transformation = EntityContext.getViewTransformation(type, propertyView.get(securityContext));
+			ViewTransformation transformation = StructrApp.getConfiguration().getViewTransformation(type, propertyView.get(securityContext));
 			if (transformation != null) {
 				
 				transformedResource = transformedResource.tryCombineWith(new TransformationResource(securityContext, transformation));

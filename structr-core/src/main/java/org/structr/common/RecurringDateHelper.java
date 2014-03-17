@@ -1,24 +1,21 @@
-/*
- *  Copyright (C) 2013 Axel Morgner
+/**
+ * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
- *  This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- *  structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- *  structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
-
 package org.structr.common;
 
 import java.util.Calendar;
@@ -92,7 +89,16 @@ public class RecurringDateHelper {
 
 	public static List<Appointment> generateAppointments(final Date startDate, final Date endDate, final String weekdays, final String startTimeString, final String endTimeString) {
 
+                
 		List<Appointment> appointments = new LinkedList();
+		//check if a Date is empty
+		if(	startDate == null || startDate.getTime() == 0 || 
+			endDate == null || endDate.getTime() == 0 ||
+			weekdays == null || weekdays.equals("") || 
+			startTimeString == null || startTimeString.equals("") || 
+			endTimeString == null || endTimeString.equals(""))
+			return appointments;
+		
 		String[] wd      = StringUtils.split(weekdays, ",");
 		Date start       = dateFromDateAndTimeString(startDate, wd[0], startTimeString);
 		Calendar cal     = GregorianCalendar.getInstance();
@@ -153,39 +159,40 @@ public class RecurringDateHelper {
 	}
 
 	private static int getDayOfWeek(final String shortWeekday) {
+		
+		if (shortWeekday != null && !shortWeekday.equals(""))
+			try {
+				ShortWeekday wd = ShortWeekday.valueOf(shortWeekday);
 
-		try {
-			ShortWeekday wd = ShortWeekday.valueOf(shortWeekday);
+				switch (wd) {
 
-			switch (wd) {
+					case Mo :
+						return Calendar.MONDAY;
 
-				case Mo :
-					return Calendar.MONDAY;
+					case Di :
+						return Calendar.TUESDAY;
 
-				case Di :
-					return Calendar.TUESDAY;
+					case Mi :
+						return Calendar.WEDNESDAY;
 
-				case Mi :
-					return Calendar.WEDNESDAY;
+					case Do :
+						return Calendar.THURSDAY;
 
-				case Do :
-					return Calendar.THURSDAY;
+					case Fr :
+						return Calendar.FRIDAY;
 
-				case Fr :
-					return Calendar.FRIDAY;
+					case Sa :
+						return Calendar.SATURDAY;
 
-				case Sa :
-					return Calendar.SATURDAY;
+					case So :
+						return Calendar.SUNDAY;
 
-				case So :
-					return Calendar.SUNDAY;
+				}
 
+			} catch (Throwable t) {
+
+				logger.log(Level.WARNING, "Unable to parse day of week for string {0}", shortWeekday);
 			}
-			
-		} catch (Throwable t) {
-			
-			logger.log(Level.WARNING, "Unable to parse day of week for string {0}", shortWeekday);
-		}
 
 		return 0;
 

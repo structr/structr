@@ -1,51 +1,36 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
 package org.structr.rest.servlet;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSyntaxException;
 
 import org.apache.commons.lang.StringUtils;
 
-import org.structr.common.AccessMode;
-import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
-import org.structr.core.JsonInput;
-import org.structr.core.JsonInputGSONAdapter;
 import org.structr.core.Result;
 import org.structr.core.Value;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.RelationshipMapping;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.property.PropertyKey;
-import org.structr.rest.ResourceProvider;
-import org.structr.rest.adapter.FrameworkExceptionGSONAdapter;
-import org.structr.rest.adapter.ResultGSONAdapter;
-import org.structr.rest.resource.NamedRelationResource;
-import org.structr.rest.resource.PagingHelper;
+import org.structr.common.PagingHelper;
 import org.structr.rest.resource.Resource;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -65,10 +50,14 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.structr.core.entity.ResourceAccess;
+import org.structr.common.PropertyView;
+import org.structr.core.app.StructrApp;
+import org.structr.core.auth.Authenticator;
+import org.structr.core.entity.AbstractNode;
+import org.structr.rest.ResourceProvider;
+import org.structr.rest.service.HttpServiceServlet;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -77,21 +66,22 @@ import org.structr.core.entity.ResourceAccess;
  *
  * @author Axel Morgner
  */
-public class CsvServlet extends HttpServlet {
+public class CsvServlet extends HttpServiceServlet {
 
 	private static final Logger logger = Logger.getLogger(CsvServlet.class.getName());
+	
+	private static final String DELIMITER = ";";
+	private static final String REMOVE_LINE_BREAK_PARAM = "nolinebreaks";
 
 	//~--- fields ---------------------------------------------------------
 
-	private Gson gson                                           = null;
-	private JsonInputGSONAdapter jsonInputAdapter               = null;
-	private Writer logWriter                                    = null;
+	private Map<Pattern, Class<? extends Resource>> resourceMap = new LinkedHashMap<>();
 	private Value<String> propertyView                          = null;
-	private Map<Pattern, Class<? extends Resource>> resourceMap = new LinkedHashMap<Pattern, Class<? extends Resource>>();
 	private String defaultPropertyView                          = PropertyView.Public;
-	private PropertyKey defaultIdProperty                       = AbstractNode.uuid;
+	private PropertyKey defaultIdProperty                       = AbstractNode.id;
 	private ResourceProvider resourceProvider                   = null;
-	private ResultGSONAdapter resultGsonAdapter                 = null;
+
+	private static boolean removeLineBreaks = false;
 
 	//~--- constructors ---------------------------------------------------
 
@@ -108,38 +98,28 @@ public class CsvServlet extends HttpServlet {
 	@Override
 	public void init() {
 
-		// initialize internal resources with exact matching from EntityContext
-		for (RelationshipMapping relMapping : EntityContext.getNamedRelations()) {
-
-			resourceMap.put(Pattern.compile(relMapping.getName()), NamedRelationResource.class);
-		}
-
 		// inject resources
 		resourceMap.putAll(resourceProvider.getResources());
 
 		// initialize variables
 		this.propertyView = new ThreadLocalPropertyView();
 
-		// initialize adapters
-		this.resultGsonAdapter = new ResultGSONAdapter(propertyView, defaultIdProperty);
-		this.jsonInputAdapter  = new JsonInputGSONAdapter(propertyView, defaultIdProperty);
-
-		// create GSON serializer
-		this.gson = new GsonBuilder().setPrettyPrinting().serializeNulls().registerTypeHierarchyAdapter(FrameworkException.class,
-			new FrameworkExceptionGSONAdapter()).registerTypeAdapter(JsonInput.class, jsonInputAdapter).registerTypeAdapter(Result.class, resultGsonAdapter).create();
 	}
 
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws UnsupportedEncodingException {
 
+		SecurityContext securityContext = null;
+
 		try {
+
+			Authenticator authenticator     = getAuthenticator();
+			securityContext = authenticator.initializeAndExamineRequest(request, response);
 
 //                      logRequest("GET", request);
 			request.setCharacterEncoding("UTF-8");
 			response.setCharacterEncoding("UTF-8");
 			response.setContentType("text/csv; charset=utf-8");
-
-			SecurityContext securityContext = getSecurityContext(request, response);
 
 			// set default value for property view
 			propertyView.set(securityContext, defaultPropertyView);
@@ -152,7 +132,7 @@ public class CsvServlet extends HttpServlet {
 			String resourceSignature = resource.getResourceSignature();
 
 			// let authenticator examine request again
-			securityContext.examineRequest(request, resourceSignature, ResourceAccess.findGrant(resourceSignature), propertyView.get(securityContext));
+			authenticator.checkResourceAccess(request, resourceSignature, propertyView.get(securityContext));
 
 			// add sorting & paging
 			String pageSizeParameter = request.getParameter(JsonRestServlet.REQUEST_PARAMETER_PAGE_SIZE);
@@ -170,10 +150,14 @@ public class CsvServlet extends HttpServlet {
 
 				Class<? extends GraphObject> type = resource.getEntityClass();
 
-				sortKey = EntityContext.getPropertyKeyForDatabaseName(type, sortKeyName);
+				sortKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, sortKeyName);
 
 			}
 
+			// Should line breaks be removed?
+			removeLineBreaks = StringUtils.equals(request.getParameter(REMOVE_LINE_BREAK_PARAM), "1");
+			
+			
 			// do action
 			Result result = resource.doGet(sortKey, sortDescending, pageSize, page, offsetId);
 
@@ -202,6 +186,8 @@ public class CsvServlet extends HttpServlet {
 
 				Writer writer = response.getWriter();
 
+				writeUtf8Bom(writer);
+				
 				// gson.toJson(result, writer);
 				writeCsv(result, writer);
 				response.setStatus(HttpServletResponse.SC_OK);
@@ -266,31 +252,26 @@ public class CsvServlet extends HttpServlet {
 
 	}
 
-	/**
-	 * Tries to parse the given String to an int value, returning
-	 * defaultValue on error.
-	 *
-	 * @param value the source String to parse
-	 * @param defaultValue the default value that will be returned when parsing fails
-	 * @return the parsed value or the given default value when parsing fails
-	 */
-	private int parseInt(String value, int defaultValue) {
-
-		if (value == null) {
-
-			return defaultValue;
+	private static String escapeForCsv(final Object value) {
+		
+		String result = StringUtils.replace(value.toString(), "\"", "\\\"");
+		
+		if (!removeLineBreaks) {
+			return StringUtils.replace(StringUtils.replace(result, "\r\n", "\n"), "\r", "\n");
 		}
-
-		try {
-
-			return Integer.parseInt(value);
-
-		} catch (Throwable ignore) {}
-
-		return defaultValue;
-
+		
+		return StringUtils.replace(StringUtils.replace(result, "\r\n", ""), "\r", "");
+		
 	}
-
+	
+	private void writeUtf8Bom(Writer out) {
+		try {
+			out.write("\ufeff");
+		} catch (IOException ex) {
+			logger.log(Level.WARNING, "Unable to write UTF-8 BOM", ex);
+		}
+	}
+	
 	/**
 	 * Write list of objects to output
 	 *
@@ -299,6 +280,21 @@ public class CsvServlet extends HttpServlet {
 	 * @throws IOException
 	 */
 	private void writeCsv(final Result result, Writer out) throws IOException {
+		
+		writeCsv(result, out, defaultPropertyView);
+		
+	}
+	
+	
+	/**
+	 * Write list of objects to output
+	 *
+	 * @param result
+	 * @param out
+	 * @param propertyView
+	 * @throws IOException
+	 */
+	public static void writeCsv(final Result result, final Writer out, final String propertyView) throws IOException {
 
 		List<GraphObject> list = result.getResults();
 		boolean headerWritten  = false;
@@ -310,14 +306,20 @@ public class CsvServlet extends HttpServlet {
 
 				StringBuilder row = new StringBuilder();
 
-				for (PropertyKey key : obj.getPropertyKeys(defaultPropertyView)) {
+				for (PropertyKey key : obj.getPropertyKeys(propertyView)) {
 
-					row.append("\"").append(key.dbName()).append("\",");
+					row.append("\"").append(key.dbName()).append("\"").append(DELIMITER);
 				}
 
 				// remove last ,
-				row.deleteCharAt(row.lastIndexOf(","));
-				out.append(row).append("\n");
+				int pos = row.lastIndexOf(DELIMITER);
+				if (pos >= 0) {
+
+					row.deleteCharAt(pos);
+				}
+				
+				// append DOS-style line feed as defined in RFC 4180
+				out.append(row).append("\r\n");
 
 				// flush each line
 				out.flush();
@@ -328,50 +330,25 @@ public class CsvServlet extends HttpServlet {
 
 			StringBuilder row = new StringBuilder();
 
-			for (PropertyKey key : obj.getPropertyKeys(defaultPropertyView)) {
+			for (PropertyKey key : obj.getPropertyKeys(propertyView)) {
 
 				Object value = obj.getProperty(key);
 
 				row.append("\"").append((value != null
-							 ? StringUtils.replace(value.toString(), "\"", "\\\"")    // escaping for CSV
-							 : "")).append("\",");
+							 ? escapeForCsv(value)
+							 : "")).append("\"").append(DELIMITER);
 
 			}
 
 			// remove last ,
-			row.deleteCharAt(row.lastIndexOf(","));
-			out.append(row).append("\n");
+			row.deleteCharAt(row.lastIndexOf(DELIMITER));
+			out.append(row).append("\r\n");
 
 			// flush each line
 			out.flush();
 		}
 
 	}
-
-	//~--- get methods ----------------------------------------------------
-
-	private SecurityContext getSecurityContext(HttpServletRequest request, HttpServletResponse response) {
-
-		SecurityContext securityContext = null;
-
-		try {
-
-			securityContext = SecurityContext.getInstance(this.getServletConfig(), request, response, AccessMode.Backend);
-
-			// let module-specific authenticator examine the request first
-			securityContext.initializeAndExamineRequest(request, response);
-
-		} catch (FrameworkException ex) {
-
-			logger.log(Level.SEVERE, null, ex);
-
-		}
-
-		return securityContext;
-
-	}
-
-	//~--- inner classes --------------------------------------------------
 
 	// <editor-fold defaultstate="collapsed" desc="nested classes">
 	private class ThreadLocalPropertyView extends ThreadLocal<String> implements Value<String> {

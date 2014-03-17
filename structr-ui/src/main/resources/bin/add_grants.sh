@@ -63,18 +63,10 @@ post resource_access '{"signature":"_schema/PropertyDefinition","flags":255}'
 post resource_access '{"signature":"_schema/Post","flags":255}'
 post resource_access '{"signature":"_schema/Comment","flags":255}'
 post resource_access '{"signature":"_schema/ResourceAccess","flags":255}'
-post resource_access '{"signature":"_schema/Principal","flags":255}'
-
-
-# Principals don't show up in structr UI
-post resource_access '{"signature":"Principal","flags":255}'
-post resource_access '{"signature":"Principal/_All","flags":255}'
-post resource_access '{"signature":"Principal/_Html","flags":255}'
-post resource_access '{"signature":"Principal/_Public","flags":255}'
-post resource_access '{"signature":"Principal/_Protected","flags":255}'
-post resource_access '{"signature":"Principal/_Ui","flags":255}'
-post resource_access '{"signature":"Principal/Id","flags":255}'
-
+post resource_access '{"signature":"_schema/Person","flags":255}'
+post resource_access '{"signature":"_schema/Widget","flags":255}'
+post resource_access '{"signature":"_schema/SchemaNode","flags":255}'
+post resource_access '{"signature":"_schema/SchemaRelationship","flags":255}'
 
 
 ################################################
@@ -94,7 +86,14 @@ post resource_access '{"signature":"Principal/Id","flags":255}'
 #
 ################################################
 
-
+post resource_access '{"signature":"Person","flags":255, "position":'$ELEM_POS', "visibleToPublicUsers":true}'
+((ELEM_POS++))
+post resource_access '{"signature":"Person/_All","flags":255}'
+post resource_access '{"signature":"Person/_Html","flags":255}'
+post resource_access '{"signature":"Person/_Public","flags":255}'
+post resource_access '{"signature":"Person/_Protected","flags":255}'
+post resource_access '{"signature":"Person/_Ui","flags":255}'
+post resource_access '{"signature":"Person/Id","flags":255}'
 
 post resource_access '{"signature":"User","flags":255, "position":'$ELEM_POS', "visibleToPublicUsers":true}'
 ((ELEM_POS++))
@@ -210,3 +209,30 @@ post resource_access '{"signature":"MailTemplate/_Public","flags":255}'
 post resource_access '{"signature":"MailTemplate/_Protected","flags":255}'
 post resource_access '{"signature":"MailTemplate/_Ui","flags":255}'
 post resource_access '{"signature":"MailTemplate/Id","flags":255}'
+
+post resource_access '{"signature":"Widget","flags":1023, "position":'$ELEM_POS', "visibleToPublicUsers":true}'
+((ELEM_POS++))
+post resource_access '{"signature":"Widget/_All","flags":1023}'
+post resource_access '{"signature":"Widget/_Html","flags":1023}'
+post resource_access '{"signature":"Widget/_Public","flags":1023}'
+post resource_access '{"signature":"Widget/_Protected","flags":1023}'
+post resource_access '{"signature":"Widget/_Ui","flags":1023}'
+post resource_access '{"signature":"Widget/Id","flags":1023}'
+
+post resource_access '{"signature":"SchemaNode","flags":255, "position":'$ELEM_POS', "visibleToPublicUsers":true}'
+((ELEM_POS++))
+post resource_access '{"signature":"SchemaNode/_All","flags":1023}'
+post resource_access '{"signature":"SchemaNode/_Html","flags":1023}'
+post resource_access '{"signature":"SchemaNode/_Public","flags":1023}'
+post resource_access '{"signature":"SchemaNode/_Protected","flags":1023}'
+post resource_access '{"signature":"SchemaNode/_Ui","flags":1023}'
+post resource_access '{"signature":"SchemaNode/Id","flags":1023}'
+
+post resource_access '{"signature":"SchemaRelationship","flags":255, "position":'$ELEM_POS', "visibleToPublicUsers":true}'
+((ELEM_POS++))
+post resource_access '{"signature":"SchemaRelationship/_All","flags":1023}'
+post resource_access '{"signature":"SchemaRelationship/_Html","flags":1023}'
+post resource_access '{"signature":"SchemaRelationship/_Public","flags":1023}'
+post resource_access '{"signature":"SchemaRelationship/_Protected","flags":1023}'
+post resource_access '{"signature":"SchemaRelationship/_Ui","flags":1023}'
+post resource_access '{"signature":"SchemaRelationship/Id","flags":1023}'

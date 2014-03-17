@@ -1,49 +1,37 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
 package org.structr.core.auth;
 
 import org.apache.commons.codec.digest.DigestUtils;
 
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
-import org.structr.core.graph.search.Search;
-import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.SearchNodeCommand;
-
-//~--- JDK imports ------------------------------------------------------------
-
-import java.util.LinkedList;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang.StringUtils;
-import org.structr.core.Result;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Person;
-import org.structr.core.graph.search.SearchAttributeGroup;
-import org.structr.core.graph.search.SearchOperator;
+import org.structr.core.app.App;
+import org.structr.core.app.Query;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractUser;
 import org.structr.core.property.PropertyKey;
 
 //~--- classes ----------------------------------------------------------------
@@ -61,54 +49,47 @@ public class AuthHelper {
 	//~--- get methods ----------------------------------------------------
 
 	/**
-	 * Find a {@link Principal} for the given email address
+	 * Find a {@link Principal} for the given credential
 	 * 
-	 * @param securityContext
-	 * @param email
+	 * @param key
+	 * @param value
 	 * @return 
 	 */
-	public static Principal getPrincipalForEmail(final String email) {
+	public static Principal getPrincipalForCredential(final PropertyKey key, final String value) {
 		
-		Principal principal = null;
-		
-		Result result = Result.EMPTY_RESULT;
+		final App app = StructrApp.getInstance();
+		final Query<Principal> query = app.nodeQuery(Principal.class).and(key, value);
+
 		try {
+			return query.getFirst();
 			
-			result = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(
-				Search.andExactTypeAndSubtypes(Principal.class.getSimpleName()),
-				Search.andExactProperty(Person.email, email));
-
-		} catch (FrameworkException ex) {
+		} catch (FrameworkException fex) {
 			
-			logger.log(Level.WARNING, "Could not search for person", ex);
-
+			logger.log(Level.WARNING, "Error while searching for principal", fex);
 		}
-
-		if (!result.isEmpty()) {
-
-			principal = (Principal) result.get(0);
-
-		}
-
-		return principal;
+		
+		return null;
 	}
 	
 	/**
 	 * Find a {@link Principal} with matching password and given key or name
 	 * 
-	 * @param securityContext
 	 * @param key
 	 * @param value
 	 * @param password
 	 * @return
 	 * @throws AuthenticationException 
 	 */
-	public static Principal getPrincipalForPassword(final PropertyKey key, final String value, final String password) throws AuthenticationException {
+	public static Principal getPrincipalForPassword(final PropertyKey<String> key, final String value, final String password) throws AuthenticationException {
 
 		String errorMsg = null;
 		Principal principal  = null;
 
-		if (Services.getSuperuserUsername().equals(value) && Services.getSuperuserPassword().equals(password)) {
+		// FIXME: this might be slow, because the the property file needs to be read each time
+		final String superuserName = StructrApp.getConfigurationValue(Services.SUPERUSER_USERNAME);
+		final String superUserPwd  = StructrApp.getConfigurationValue(Services.SUPERUSER_PASSWORD);
+		
+		if (superuserName.equals(value) && superUserPwd.equals(password)) {
 
 			logger.log(Level.INFO, "############# Authenticated as superadmin! ############");
 
@@ -117,33 +98,20 @@ public class AuthHelper {
 		} else {
 
 			try {
-
-				SearchNodeCommand searchNode = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class);
-				List<SearchAttribute> attrs  = new LinkedList<SearchAttribute>();
-
-				attrs.add(Search.andExactTypeAndSubtypes(Principal.class.getSimpleName()));
-				SearchAttributeGroup group = new SearchAttributeGroup(SearchOperator.AND);
-				group.add(Search.orExactProperty(key, value));
-				group.add(Search.orExactProperty(AbstractNode.name, value));
-				attrs.add(group);
-
-				Result userList = searchNode.execute(attrs);
 				
-				if (!userList.isEmpty()) {
-					principal = (Principal) userList.get(0);
-				}
-
+				principal = StructrApp.getInstance().nodeQuery(Principal.class).and().or(key, value).or(AbstractUser.name, value).getFirst();
+				
 				if (principal == null) {
 
-					logger.log(Level.INFO, "No user found for {0} {1}", new Object[]{ key.dbName(), value });
+					logger.log(Level.INFO, "No principal found for {0} {1}", new Object[]{ key.dbName(), value });
 
 					errorMsg = STANDARD_ERROR_MSG;
 
 				} else {
 
-					if (principal.isBlocked()) {
+					if (principal.getProperty(Principal.blocked)) {
 
-						logger.log(Level.INFO, "User {0} is blocked", principal);
+						logger.log(Level.INFO, "Principal {0} is blocked", principal);
 
 						errorMsg = STANDARD_ERROR_MSG;
 
@@ -153,12 +121,23 @@ public class AuthHelper {
 
 						logger.log(Level.INFO, "Empty password for principal {0}", principal);
 
-						errorMsg = "Empty password, should not ever happen down here!";
+						errorMsg = "Empty password, should never happen here!";
 
 					} else {
 
-						String encryptedPasswordValue = DigestUtils.sha512Hex(password);
-						String pw                     = principal.getEncryptedPassword();
+						String salt			= principal.getProperty(Principal.salt);
+						String encryptedPasswordValue;
+						
+						if (salt != null) {
+							
+							encryptedPasswordValue	= getHash(password, salt);
+						} else {
+							
+							encryptedPasswordValue	= getSimpleHash(password);
+							
+						}
+						
+						String pw			= principal.getEncryptedPassword();
 
 						if (pw == null || !encryptedPasswordValue.equals(pw)) {
 
@@ -196,36 +175,25 @@ public class AuthHelper {
 	 * @return 
 	 */
 	public static Principal getPrincipalForSessionId(final String sessionId) {
+		return getPrincipalForCredential(Principal.sessionId, sessionId);
+	}
 
-		Principal user              = null;
-		List<SearchAttribute> attrs = new LinkedList<SearchAttribute>();
-
-		attrs.add(Search.andExactProperty(Principal.sessionId, sessionId));
-		attrs.add(Search.andExactTypeAndSubtypes(Principal.class.getSimpleName()));
-
-		try {
-
-			// we need to search with a super user security context here..
-			Result results = Services.command(SecurityContext.getSuperUserInstance(), SearchNodeCommand.class).execute(attrs);
-
-			if (!results.isEmpty()) {
-
-				user = (Principal) results.get(0);
-
-				if ((user != null) && sessionId.equals(user.getProperty(Principal.sessionId))) {
-
-					return user;
-				}
-
-			}
-		} catch (FrameworkException fex) {
-
-			logger.log(Level.WARNING, "Error while executing SearchNodeCommand", fex);
-
+	public static String getHash(final String password, final String salt) {
+		
+		if (StringUtils.isEmpty(salt)) {
+			
+			return getSimpleHash(password);
+			
 		}
-
-		return user;
-
+		
+		return DigestUtils.sha512Hex(DigestUtils.sha512Hex(password).concat(salt));
+		
+	}
+	
+	public static String getSimpleHash(final String password) {
+		
+		return DigestUtils.sha512Hex(password);
+		
 	}
 
 }

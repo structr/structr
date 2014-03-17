@@ -1,29 +1,28 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
 package org.structr.common;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Properties;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.mail.Email;
 import org.apache.commons.mail.EmailException;
@@ -45,10 +44,6 @@ import org.structr.core.Services;
 public abstract class MailHelper {
 
 	private static final String charset      = "UTF-8";
-	private static final String smtpHost     = Services.getSmtpHost();
-	private static final String smtpPort     = Services.getSmtpPort();
-	private static final String smtpUser     = Services.getSmtpUser();
-	private static final String smtpPassword = Services.getSmtpPassword();
 
 	//~--- constructors ---------------------------------------------------
 
@@ -84,6 +79,13 @@ public abstract class MailHelper {
 	private static void setup(final Email mail, final String to, final String toName, final String from, final String fromName, final String cc, final String bcc, final String bounce, final String subject)
 		throws EmailException {
 
+		// FIXME: this might be slow if the config file is read each time
+		final Properties config   = Services.getInstance().getCurrentConfig();
+		final String smtpHost     = config.getProperty(Services.SMTP_HOST);
+		final String smtpPort     = config.getProperty(Services.SMTP_PORT);
+		final String smtpUser     = config.getProperty(Services.SMTP_USER);
+		final String smtpPassword = config.getProperty(Services.SMTP_PASSWORD);
+		
 		mail.setCharset(charset);
 		mail.setHostName(smtpHost);
 		mail.setSmtpPort(Integer.parseInt(smtpPort));
@@ -125,8 +127,8 @@ public abstract class MailHelper {
 	 */
 	public static String replacePlaceHoldersInTemplate(final String template, final Map<String, String> replacementMap) {
 		
-		List<String> toReplace = new ArrayList<String>();
-		List<String> replaceBy = new ArrayList<String>();
+		List<String> toReplace = new ArrayList<>();
+		List<String> replaceBy = new ArrayList<>();
 		
 		for (Entry<String, String> property : replacementMap.entrySet()) {
 			

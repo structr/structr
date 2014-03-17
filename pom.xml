@@ -1,17 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+    <parent>
+        <groupId>org.sonatype.oss</groupId>
+        <artifactId>oss-parent</artifactId>
+        <version>7</version>
+    </parent>
+
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.structr</groupId>
     <artifactId>structr</artifactId>
     <packaging>pom</packaging>
-    <version>0.7</version>
+    <version>0.9.1-SNAPSHOT</version>
     <name>structr</name>
     <url>http://structr.org</url>
+    <description>Structr is an open source framework based on the popular Neo4j graph database.</description>
+    <developers>
+        <developer>
+            <name>Axel Morgner</name>
+            <email>am@structr.org</email>
+        </developer>
+        <developer>
+            <name>Christian Morgner</name>
+            <email>cm@structr.org</email>
+        </developer>
+    </developers>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <netbeans.hint.license>structr-gpl30</netbeans.hint.license>
-        <structr.version>0.7</structr.version>
+        <structr.version>0.9.1-SNAPSHOT</structr.version>
     </properties>
 
     <modules>
@@ -21,7 +39,6 @@
         <module>structr-core</module>
         <module>structr-rest</module>
         <module>structr-ui</module>
-        <module>structr-server</module>
     </modules>
 
     <build>
@@ -58,22 +75,69 @@
                     <argLine>-Duser.timezone=Europe/Berlin</argLine>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>2.2.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.9.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
-        <extensions>
-            <extension>
-                <groupId>org.apache.maven.wagon</groupId>
-                <artifactId>wagon-ftp</artifactId>
-                <version>2.2</version>
-            </extension>
-        </extensions>
     </build>
-
+    <profiles>
+        <profile>
+            <id>release-sign-artifacts</id>
+            <activation>
+                <property>
+                    <name>performRelease</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.4</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
     <licenses>
         <license>
             <name>GNU General Public License, Version 3</name>
             <url>http://www.gnu.org/licenses/gpl-3.0-standalone.html</url>
             <comments>
-                Copyright (C) 2010-2013 Axel Morgner, structr &lt;structr@structr.org&gt;
+                Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt), structr &lt;structr@structr.org&gt;
 
                 This file is part of structr &lt;http://structr.org&gt;.
 
@@ -94,18 +158,19 @@
     </licenses>
 
     <scm>
-        <url>https://github.com/structr/structr/tree/master/structr</url>
+        <url>https://github.com/structr/structr</url>
+        <connection>scm:git:git@github.com:structr/structr.git</connection>
     </scm>
     <distributionManagement>
         <repository>
-            <id>releases.maven.structr.org</id>
-            <name>maven.structr.org-releases</name>
-            <url>http://maven.structr.org/artifactory/release</url>
+            <id>sonatype-nexus-staging</id>
+            <name>Maven Central Staging</name>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
         </repository>
         <snapshotRepository>
-            <id>snapshots.maven.structr.org</id>
-            <name>maven.structr.org-snapshots</name>
-            <url>http://maven.structr.org/artifactory/snapshot</url>
+            <id>sonatype-nexus-snapshots</id>
+            <name>Maven Central Snapshots</name>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
         </snapshotRepository>
     </distributionManagement>
 </project>

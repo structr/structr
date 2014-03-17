@@ -1,91 +1,142 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package org.structr;
 
-import java.util.HashMap;
-import java.util.Map;
-import org.eclipse.jetty.servlet.ServletHolder;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.structr.common.PropertyView;
-import org.structr.core.entity.AbstractNode;
+import org.structr.common.StructrConf;
+import org.structr.core.Services;
+import org.structr.module.JarConfigurationProvider;
+import org.structr.rest.service.HttpService;
 import org.structr.rest.servlet.CsvServlet;
-import org.structr.server.DefaultResourceProvider;
-import org.structr.server.Structr;
+import org.structr.rest.servlet.JsonRestServlet;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.common.UiResourceProvider;
+import org.structr.web.entity.User;
 import org.structr.web.servlet.HtmlServlet;
+import org.structr.web.servlet.UploadServlet;
 import org.structr.websocket.servlet.WebSocketServlet;
 
 /**
  *
  * @author Christian Morgner
+ * @author Axel Morgner
  */
-public class Ui implements org.structr.server.StructrServer {
+public class Ui {
 
 	public static void main(String[] args) {
 
 		try {
 
-			// HTML Servlet
-			HtmlServlet htmlServlet = new HtmlServlet();
-			ServletHolder htmlServletHolder = new ServletHolder(htmlServlet);
-			Map<String, String> htmlInitParams = new HashMap<String, String>();
-
-			htmlInitParams.put("Authenticator", "org.structr.web.auth.HttpAuthenticator");
-			htmlServletHolder.setInitParameters(htmlInitParams);
-			htmlServletHolder.setInitOrder(1);
+			final StructrConf config = Services.getBaseConfiguration();
 			
-			// CSV Servlet
-			CsvServlet csvServlet     = new CsvServlet(DefaultResourceProvider.class.newInstance(), PropertyView.All, AbstractNode.uuid);
-			ServletHolder csvServletHolder    = new ServletHolder(csvServlet);
-			Map<String, String> servletParams = new HashMap<String, String>();
+			config.setProperty(Services.BASE_PATH, "./");
+			config.setProperty(Services.CONFIGURED_SERVICES, "NodeService LogService FtpService HttpService");
+			config.setProperty(Services.CONFIGURATION, JarConfigurationProvider.class.getName());
+			config.setProperty(HttpService.APPLICATION_TITLE, "Structr UI");
 
-			servletParams.put("Authenticator", "org.structr.web.auth.HttpAuthenticator");
-			csvServletHolder.setInitParameters(servletParams);
-			csvServletHolder.setInitOrder(2);
+			// Add this class to config so HttpService can derive the jar file containing the static resources from it
+			config.setProperty(HttpService.MAIN_CLASS, Ui.class.getName());
 
-			// WebSocket Servlet
-			WebSocketServlet wsServlet = new WebSocketServlet(AbstractNode.uuid);
-			ServletHolder wsServletHolder = new ServletHolder(wsServlet);
-			Map<String, String> wsInitParams = new HashMap<String, String>();
+			// Configure servlets
+			config.setProperty(HttpService.SERVLETS, "JsonRestServlet WebSocketServlet CsvServlet HtmlServlet");
+			
+			config.setProperty("JsonRestServlet.class", JsonRestServlet.class.getName());
+			config.setProperty("JsonRestServlet.path", "/structr/rest/*");
+			config.setProperty("JsonRestServlet.resourceprovider", UiResourceProvider.class.getName());
+			config.setProperty("JsonRestServlet.authenticator", UiAuthenticator.class.getName());
+			config.setProperty("JsonRestServlet.user.class", User.class.getName());
+			config.setProperty("JsonRestServlet.user.autocreate", "false");
+			config.setProperty("JsonRestServlet.defaultview", PropertyView.Public);
+			config.setProperty("JsonRestServlet.outputdepth", "3");
+			
+			config.setProperty("WebSocketServlet.class", WebSocketServlet.class.getName());
+			config.setProperty("WebSocketServlet.path", "/structr/ws/*");
+			config.setProperty("WebSocketServlet.resourceprovider", UiResourceProvider.class.getName());
+			config.setProperty("WebSocketServlet.authenticator", UiAuthenticator.class.getName());
+			config.setProperty("WebSocketServlet.user.class", User.class.getName());
+			config.setProperty("WebSocketServlet.user.autocreate", "false");
+			config.setProperty("WebSocketServlet.defaultview", PropertyView.Public);
 
-			wsInitParams.put("Authenticator", "org.structr.web.auth.UiAuthenticator");
-			wsInitParams.put("IdProperty", "uuid");
-			wsServletHolder.setInitParameters(wsInitParams);
-			wsServletHolder.setInitOrder(3);
+			config.setProperty("CsvServlet.class", CsvServlet.class.getName());
+			config.setProperty("CsvServlet.path", "/structr/csv/*");
+			config.setProperty("CsvServlet.resourceprovider", UiResourceProvider.class.getName());
+			config.setProperty("CsvServlet.authenticator", UiAuthenticator.class.getName());
+			config.setProperty("CsvServlet.user.class", User.class.getName());
+			config.setProperty("CsvServlet.user.autocreate", "false");
+			config.setProperty("CsvServlet.defaultview", PropertyView.Public);
+			config.setProperty("CsvServlet.outputdepth", "3");
 
-			Structr.createServer(Ui.class, "structr UI", 8082)
+			config.setProperty("UploadServlet.class", UploadServlet.class.getName());
+			config.setProperty("UploadServlet.path", "/structr/upload");
+			config.setProperty("UploadServlet.resourceprovider", UiResourceProvider.class.getName());
+			config.setProperty("UploadServlet.authenticator", UiAuthenticator.class.getName());
+			config.setProperty("UploadServlet.user.class", User.class.getName());
+			config.setProperty("UploadServlet.user.autocreate", "false");
+			config.setProperty("UploadServlet.defaultview", PropertyView.Public);
+			config.setProperty("UploadServlet.outputdepth", "3");
+
+			config.setProperty("HtmlServlet.class", HtmlServlet.class.getName());
+			config.setProperty("HtmlServlet.path", "/structr/html/*");
+			config.setProperty("HtmlServlet.resourceprovider", UiResourceProvider.class.getName());
+			config.setProperty("HtmlServlet.authenticator", UiAuthenticator.class.getName());
+			config.setProperty("HtmlServlet.user.class", User.class.getName());
+			config.setProperty("HtmlServlet.user.autocreate", "false");
+			config.setProperty("HtmlServlet.defaultview", PropertyView.Public);
+			config.setProperty("HtmlServlet.outputdepth", "3");
+
+			// Configure resource handlers
+			config.setProperty(HttpService.RESOURCE_HANDLERS, "StructrUiHandler");
+			
+			config.setProperty("StructrUiHandler.contextPath", "/structr");
+			config.setProperty("StructrUiHandler.resourceBase", "src/main/resources/structr");
+			config.setProperty("StructrUiHandler.directoriesListed", Boolean.toString(false));
+			config.setProperty("StructrUiHandler.welcomeFiles", "index.html");
+
+			// let structr.conf override defaults
+			// read structr.conf
+			final String configFileName = "structr.conf";
+			
+			try {
+				final FileInputStream fis    = new FileInputStream(configFileName);
+				final Properties structrConf = new Properties();
+				structrConf.load(fis);
+				fis.close();
 				
-				.addServlet("/structr/html/*", htmlServletHolder)
-				.addServlet("/structr/ws/*", wsServletHolder)
-				.addServlet("/structr/csv/*", csvServletHolder)
-			    
-				.addResourceHandler("/structr", "src/main/resources/structr", true, new String[] { "index.html"})
-			    
-				.enableRewriteFilter()
-				//.logRequests(true)
+				Logger.getLogger(Ui.class.getName()).log(Level.INFO, "Read {0} entries from {1}", new Object[] { structrConf.size(), configFileName });
 				
-				.resourceProvider(UiResourceProvider.class)
-				.authenticator(UiAuthenticator.class)
-				
-			    
-				.start(true);
+				config.putAll(structrConf);
+
+			} catch (IOException ignore) { }
+			
+			
+			final Services services = Services.getInstance(config);
+
+			// wait for service layer to be initialized
+			do {
+				try { Thread.sleep(100); } catch (Throwable t) {}
+
+			} while (!services.isInitialized());
 
 		} catch(Throwable t) {
 

@@ -20,8 +20,9 @@
 var images, folders, drop;
 var fileList;
 var chunkSize = 1024*64;
-var sizeLimit = 1024*1024*42;
+var sizeLimit = 1024*1024*70;
 var win = $(window);
+var timeout, attempts = 0, maxRetry = 10;
 
 $(document).ready(function() {
     Structr.registerModule('images', _Images);
@@ -45,8 +46,8 @@ var _Images = {
     download_icon : 'icon/basket_put.png',
 	
     init : function() {
-    //defaultPageSize = 25;
-    //defaultPage = 1;
+        Structr.initPager('Image', 1, 100);
+        Structr.makePagesMenuDroppable();
     },
     resize : function() {
 
@@ -79,16 +80,14 @@ var _Images = {
         
         _Images.init();
         
-        if (palette) palette.remove();
-
         //main.append('<table id="dropArea"><tr><td id="folders"></td><td id="images"></td></tr></table>');
-        main.append('<table id="dropArea"><tr><td id="images"></td></tr></table>');
+        main.append('<table id="dropArea"><tr><td class="fit-to-height" id="images"></td></tr></table>');
         //folders = $('#folders');
         images = $('#images');
         
         //_Images.refreshFolders();
         _Images.refreshImages();
-
+        
     //_Images.resize();
     },
 
@@ -97,7 +96,7 @@ var _Images = {
     },
 	
     refreshImages : function() {
-        _Images.resize();
+        //_Images.resize();
         images.empty();
         images.append('<h1>Images</h1>');
         
@@ -156,25 +155,7 @@ var _Images = {
                     
                 } else {
                     
-                    var dialogMsg = $('#dialogMsg');
-
-                    dialog.empty();
-                    dialogMsg.empty();
-
-                    dialog.append('<table class="props"></table>');
-                    
-                    $(filesToUpload).each(function(i, fileToUpload) {
-                        $('.props', dialog).append('<tr><td>' + fileToUpload.name + '</td><td>' + fileToUpload.size + ' bytes</td></tr>');
-                    });
-
-                    Structr.dialog('Uploading Files', function() {
-                        return true;
-                    }, function() {
-                        return true;
-                    });
-                    
                     $(filesToUpload).each(function(i, file) {
-                        log(file);
                         if (file) Command.createFile(file);
                     });
 
@@ -184,21 +165,18 @@ var _Images = {
             });
         }        
         Structr.addPager(images, 'Image');
+        _Images.resize();
     },
 	
-    refreshFolders : function() {
-        folders.empty();
-        folders.append('<button class="add_folder_icon button"><img title="Add Folder" alt="Add Folder" src="' + _Images.add_folder_icon + '"> Add Folder</button>');
-        if (Structr.addPager(folders, 'Folder')) {
-
-            $('.add_folder_icon', main).on('click', function(e) {
-                e.stopPropagation();
-                var entity = {};
-                entity.type = 'Folder';
-                Command.create(entity);
-            });
-        }
-    },
+//    refreshFolders : function() {
+//        folders.empty();
+//        folders.append('<button class="add_folder_icon button"><img title="Add Folder" alt="Add Folder" src="' + _Images.add_folder_icon + '"> Add Folder</button>');
+//        $('.add_folder_icon', main).on('click', function(e) {
+//            e.stopPropagation();
+//            Command.create({'type':'Folder'});
+//        });
+//        Structr.addPager(folders, 'Folder');
+//    },
 
     getIcon : function(file) {
         var icon = viewRootUrl + file.name;
@@ -219,13 +197,17 @@ var _Images = {
         div = Structr.node(img.id);
         
         var tn = '/structr/img/ajax-loader.gif';
+        
+        if (!images) return;
             
         //var tn = '/' + img.tnSmall.id;
         images.append('<div id="id_' + img.id + '" class="node image">'
             + '<div class="wrap"><img class="thumbnail" src="'+ tn + '"></div>'
             + '<b title="' + img.name + '" class="name_">' + fitStringToSize(img.name, 98) + '</b> <span class="id">' + img.id + '</span>'
+            + '<div class="progress"><div class="bar"><div class="indicator"><span class="part"></span>/<span class="size">' + img.size + '</span></div></div></div>'
             + '<div class="icons"></div></div>');
         div = Structr.node(img.id);
+        if (!div || !div.length) return;
             
         var tnSmall = img.tnSmall;
         if (tnSmall) {
@@ -235,6 +217,8 @@ var _Images = {
         }
         
         var iconArea = $('.icons', div);
+
+        _Entities.appendAccessControlIcon(iconArea, img);
 
         delIcon = $('.delete_icon', div);
 
@@ -254,13 +238,17 @@ var _Images = {
             revert: 'invalid',
             helper: 'clone',
             //containment: '#main',
-            stack: 'div',
-            stop : function(e,ui) {
-                $('#pages_').removeClass('nodeHover').droppable('enable');
+            appendTo: '#main',
+            zIndex: 2,
+            start: function(e, ui) {
+                //$(this).hide();
+            },
+            stop: function(e, ui) {
+                $(this).show();
+                $('#pages_').droppable('enable').removeClass('nodeHover');
             }
         });
 
-        _Entities.appendAccessControlIcon(iconArea, img);
         _Entities.appendEditPropertiesIcon(iconArea, img);
         _Images.appendEditFileIcon(iconArea, img);      
 
@@ -271,7 +259,7 @@ var _Images = {
 
     showThumbnails : function(img, el) {
         $('.thumbnail', el).attr('src', '/' + img.tnSmall.id);
-        $('.thumbnail', el).on('mouseenter', function(e) {
+        $('.thumbnail', el).on('mousedown', function(e) {
             e.stopPropagation();
             $('.thumbnailZoom', images).remove();
             images.append('<img class="thumbnailZoom" src="/' + img.tnMid.id + '">');
@@ -287,7 +275,7 @@ var _Images = {
                 }).show();
             });
             
-            tnZoom.on('mouseleave', function(e) {
+            tnZoom.on('mouseup', function(e) {
                 e.stopPropagation();
                 $('.thumbnailZoom', images).remove();
             });
@@ -308,19 +296,24 @@ var _Images = {
 
     reloadThumbnail : function(id, el) {
         // wait 1 sec. and try again
-        window.setTimeout(function() {
-            headers = {
-                'X-StructrSessionToken' : token
-            };
-            _Crud.crudRead('Image', id, function(img) {
-                var tn = img.tnSmall;
-                if (!tn) {
-                    _Images.reloadThumbnail(id, el);
-                } else {
-                    _Images.showThumbnails(img, el);
-                }
-            });
-        }, 5000);
+        timeout = window.setTimeout(function() {
+            if (attempts >= maxRetry) {
+                window.clearTimeout(timeout);
+            } else {
+                attempts++;
+                headers = {
+                    'X-StructrSessionToken' : token
+                };
+                _Crud.crudRead('Image', id, function(img) {
+                    var tn = img.tnSmall;
+                    if (!tn) {
+                        _Images.reloadThumbnail(id, el);
+                    } else {
+                        _Images.showThumbnails(img, el);
+                    }
+                });
+            }
+        }, 1000);
     },
 
     appendFolderElement : function(folder, folderId, hasChildren) {
@@ -372,6 +365,8 @@ var _Images = {
             div = $('#_' + folder.id);
         }
         
+        if (!div || !div.length) return;
+        
         delIcon = $('.delete_icon', div);
         
         if (folderId) {
@@ -402,7 +397,7 @@ var _Images = {
             });
 		
         }
-        
+
         _Entities.appendExpandIcon(div, folder, hasChildren);
         
         div.draggable({
@@ -422,7 +417,7 @@ var _Images = {
                 var fileId = getId(ui.draggable);
                 var folderId = getId(self);
                 log('fileId, folderId', fileId, folderId);
-                if (!(fileId == folderId)) {
+                if (!(fileId === folderId)) {
                     var nodeData = {};
                     nodeData.id = fileId;
                     addExpandedNode(folderId);
@@ -479,6 +474,8 @@ var _Images = {
             parentElement = files;
             cls = 'file';
         }
+        
+        if (!parentElement) return;
 
         var folder = Structr.node(folderId);
         var file = Structr.node(fileId, folderId);
@@ -486,7 +483,7 @@ var _Images = {
         log(file, folder);
         
         _Entities.resetMouseOverState(file);
-        
+
         parentElement.append(file);
         
         $('.delete_icon', file).replaceWith('<img title="Delete ' + cls + ' ' + fileId + '" '
@@ -532,7 +529,7 @@ var _Images = {
 
             log(file);
 
-            if (fileObj.name == file.name) {
+            if (fileObj.name === file.name) {
      
                 log(fileObj);
                 log('Uploading chunks for file ' + file.id);

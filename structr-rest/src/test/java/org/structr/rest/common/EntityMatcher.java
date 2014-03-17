@@ -1,20 +1,20 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.rest.common;
 
@@ -28,8 +28,7 @@ import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.PropertyView;
-import org.structr.core.property.StringProperty;
-import org.structr.core.EntityContext;
+import org.structr.core.app.StructrApp;
 
 /**
  *
@@ -37,7 +36,7 @@ import org.structr.core.EntityContext;
  */
 public class EntityMatcher extends BaseMatcher {
 
-	private Map<String, Object> entityValues = new LinkedHashMap<String, Object>();
+	private Map<String, Object> entityValues = new LinkedHashMap<>();
 
 	public EntityMatcher(Class type) {
 		this(type, PropertyView.Public);
@@ -49,13 +48,9 @@ public class EntityMatcher extends BaseMatcher {
 	
 	public EntityMatcher(Class type, String view, Map<String, Object> values) {
 
-		Set<PropertyKey> propertyView = new LinkedHashSet<PropertyKey>(EntityContext.getPropertySet(type, view));
-		
-		// FIXME: this is due to the uuid/id mess in core!
-		propertyView.add(new StringProperty("id"));
-		propertyView.remove(new StringProperty("uuid"));
-		
+		Set<PropertyKey> propertyView = new LinkedHashSet<>(StructrApp.getConfiguration().getPropertySet(type, view));
 		for (PropertyKey key : propertyView) {
+			
 			entityValues.put(key.jsonName(), values.get(key.jsonName()));
 		}
 	}

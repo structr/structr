@@ -1,20 +1,20 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.websocket.command.dom;
 
@@ -22,9 +22,11 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.property.PropertyKey;
 import org.structr.web.entity.dom.DOMNode;
@@ -52,11 +54,13 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
-		Map<String, Object> nodeData = webSocketData.getNodeData();
-		String parentId              = (String) nodeData.get("parentId");
-		nodeData.remove("parentId");
-		String pageId                = webSocketData.getPageId();
+		final Map<String, Object> nodeData = webSocketData.getNodeData();
+		final String parentId              = (String) nodeData.get("parentId");
+		final String childContent          = (String) nodeData.get("childContent");
+		final String pageId                = webSocketData.getPageId();
 		
+		nodeData.remove("parentId");
+
 		if (pageId != null) {
 
 			// check for parent ID before creating any nodes
@@ -67,22 +71,25 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 			}
 
 			// check if parent node with given ID exists
-			DOMNode parentNode = getDOMNode(parentId);
+			final DOMNode parentNode = getDOMNode(parentId);
 			if (parentNode == null) {
 		
 				getWebSocket().send(MessageBuilder.status().code(404).message("Parent node not found").build(), true);		
 				return;
 			}
 			
-			Document document = getPage(pageId);
+			final Document document = getPage(pageId);
 			if (document != null) {
 
-				String tagName  = (String) nodeData.get("tagName");
+				final String tagName = (String) nodeData.get("tagName");
+				final App app        = StructrApp.getInstance();
+				
 				nodeData.remove("tagName");
 				
-				DOMNode newNode = null;
-				
 				try {
+					app.beginTx();
+
+					DOMNode newNode;
 
 					if (tagName != null && !tagName.isEmpty()) {
 
@@ -97,42 +104,64 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 					if (newNode != null) {
 
 						parentNode.appendChild(newNode);
-						
+
 						for (Entry entry : nodeData.entrySet()) {
 
 							String key = (String) entry.getKey();
 							Object val = entry.getValue();
 
-							PropertyKey propertyKey = EntityContext.getPropertyKeyForDatabaseName(newNode.getClass(), key);
+							PropertyKey propertyKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(newNode.getClass(), key);
 							if (propertyKey != null) {
 
 								try {
 									Object convertedValue = val;
-									
+
 									PropertyConverter inputConverter = propertyKey.inputConverter(SecurityContext.getSuperUserInstance());
 									if (inputConverter != null) {
-										
+
 										convertedValue = inputConverter.convert(val);
 									}
-									
+
 									//newNode.unlockReadOnlyPropertiesOnce();
 									newNode.setProperty(propertyKey, convertedValue);
-									
+
 								} catch (FrameworkException fex) {
 
 									logger.log(Level.WARNING, "Unable to set node property {0} of node {1} to {2}: {3}", new Object[] { propertyKey, newNode.getUuid(), val, fex.getMessage() } );
-									
+
 								}
 							}
 
 						}
-						
+
+						// create a child text node if content is given
+						if (StringUtils.isNotBlank(childContent)) {
+
+							DOMNode childNode = (DOMNode)document.createTextNode(childContent);
+
+							if (newNode != null) {
+
+								newNode.appendChild(childNode);
+
+							}
+
+						}
+
 					}
+					app.commitTx();
 					
 				} catch (DOMException dex) {
 						
 					// send DOM exception
 					getWebSocket().send(MessageBuilder.status().code(422).message(dex.getMessage()).build(), true);		
+					
+				} catch (FrameworkException ex) {
+					
+					Logger.getLogger(CreateAndAppendDOMNodeCommand.class.getName()).log(Level.SEVERE, null, ex);
+					
+				} finally {
+					
+					app.finishTx();
 				}
 				
 			} else {

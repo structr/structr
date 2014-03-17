@@ -1,20 +1,20 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core.property;
 
@@ -22,6 +22,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.ValueToken;
 import org.structr.core.GraphObject;
+import org.structr.core.PropertyValidator;
 import org.structr.core.converter.PropertyConverter;
 
 /**
@@ -33,24 +34,33 @@ public class EnumProperty<T extends Enum> extends AbstractPrimitiveProperty<T> {
 	
 	private Class<T> enumType = null;
 	
-	public EnumProperty(String name, Class<T> enumType) {
-		this(name, enumType, null);
+	public EnumProperty(String name, Class<T> enumType, final PropertyValidator<T>... validators) {
+		this(name, enumType, null, validators);
 	}
 	
-	public EnumProperty(String name, Class<T> enumType, T defaultValue) {
-		this(name, name, enumType, defaultValue);
+	public EnumProperty(String name, Class<T> enumType, T defaultValue, final PropertyValidator<T>... validators) {
+		this(name, name, enumType, defaultValue, validators);
 	}
 	
-	public EnumProperty(String jsonName, String dbName, Class<T> enumType, T defaultValue) {
+	public EnumProperty(String jsonName, String dbName, Class<T> enumType, T defaultValue, final PropertyValidator<T>... validators) {
 		
 		super(jsonName, dbName, defaultValue);
 		
 		this.enumType = enumType;
+		
+		for (final PropertyValidator<T> validator : validators) {
+			addValidator(validator);
+		}
 	}
 	
 	@Override
 	public String typeName() {
 		return "String";
+	}
+
+	@Override
+	public Integer getSortType() {
+		return null;
 	}
 	
 	@Override

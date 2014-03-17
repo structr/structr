@@ -1,20 +1,20 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core.graph;
 
@@ -22,7 +22,6 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.tooling.GlobalGraphOperations;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -31,7 +30,8 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
-import org.structr.core.EntityContext;
+import org.structr.core.GraphObject;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.property.PropertyKey;
 
@@ -50,7 +50,7 @@ public class BulkCopyRelationshipPropertyCommand extends NodeServiceCommand impl
 	public void execute(final Map<String, Object> map) throws FrameworkException {
 
 		final GraphDatabaseService graphDb   = (GraphDatabaseService)arguments.get("graphDb");
-		final RelationshipFactory relFactory = (RelationshipFactory)arguments.get("relationshipFactory");
+		final RelationshipFactory relFactory = new RelationshipFactory(securityContext);
 
 		final String sourceKey = (String)map.get("sourceKey");
 		final String destKey   = (String)map.get("destKey");
@@ -63,7 +63,7 @@ public class BulkCopyRelationshipPropertyCommand extends NodeServiceCommand impl
 		
 		if(graphDb != null) {
 
-			List<AbstractRelationship> rels = relFactory.instantiateRelationships(securityContext, GlobalGraphOperations.at(graphDb).getAllRelationships());
+			List<AbstractRelationship> rels = relFactory.instantiate(GlobalGraphOperations.at(graphDb).getAllRelationships());
 
 			long count = bulkGraphOperation(securityContext, rels, 1000, "CopyRelationshipProperties", new BulkGraphOperation<AbstractRelationship>() {
 
@@ -71,11 +71,11 @@ public class BulkCopyRelationshipPropertyCommand extends NodeServiceCommand impl
 				public void handleGraphObject(SecurityContext securityContext, AbstractRelationship rel) {
 
 					// Treat only "our" rels
-					if(rel.getProperty(AbstractNode.uuid) != null) {
+					if(rel.getProperty(GraphObject.id) != null) {
 
-						Class type = rel.getClass();
-						PropertyKey destPropertyKey   = EntityContext.getPropertyKeyForDatabaseName(type, destKey);
-						PropertyKey sourcePropertyKey = EntityContext.getPropertyKeyForDatabaseName(type, sourceKey);
+						Class type                    = rel.getClass();
+						PropertyKey destPropertyKey   = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, destKey);
+						PropertyKey sourcePropertyKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, sourceKey);
 						
 						try {
 							// copy properties

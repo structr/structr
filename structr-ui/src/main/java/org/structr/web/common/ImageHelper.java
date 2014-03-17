@@ -1,37 +1,30 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
 package org.structr.web.common;
 
-import org.structr.core.property.PropertyMap;
 import com.mortennobel.imagescaling.ResampleOp;
 
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang.StringUtils;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
-import org.structr.core.entity.AbstractNode;
-import org.structr.web.entity.File;
 import org.structr.web.entity.Image;
-import org.structr.core.graph.CreateNodeCommand;
 import org.structr.util.Base64;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -46,7 +39,14 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.imageio.ImageIO;
+import org.apache.commons.io.IOUtils;
 import org.structr.common.SecurityContext;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.CreateNodeCommand;
+import org.structr.core.property.PropertyMap;
+import static org.structr.web.common.FileHelper.setFileData;
+import org.structr.web.entity.File;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -54,7 +54,7 @@ import org.structr.common.SecurityContext;
  *
  * @author Axel Morgner
  */
-public abstract class ImageHelper {
+public abstract class ImageHelper extends FileHelper {
 
 	private static final Logger logger = Logger.getLogger(ImageHelper.class.getName());
 	//private static Thumbnail tn        = new Thumbnail();
@@ -62,56 +62,12 @@ public abstract class ImageHelper {
 	//~--- methods --------------------------------------------------------
 
 	/**
-	 * Create a new image node from image data encoded in base64 format
-	 *
-	 * @param securityContext
-	 * @param rawData
-	 * @param imageType
-	 * @return
-	 * @throws FrameworkException
-	 * @throws IOException
-	 */
-	public static Image createImageBase64(final SecurityContext securityContext, final String rawData, final Class<? extends Image> imageType) throws FrameworkException, IOException {
-
-		Base64URIData uriData = new Base64URIData(rawData);
-
-		return createImage(securityContext, uriData.getBinaryData(), uriData.getContentType(), imageType);
-
-	}
-
-	public static void decodeAndWriteToFile(final File fileNode, final String rawData) throws FrameworkException, IOException {
-
-		Base64URIData uriData = new Base64URIData(rawData);
-
-		FileHelper.writeToFile(fileNode, uriData.getBinaryData());
-		fileNode.setContentType(uriData.getContentType());
-
-	}
-
-	/**
 	 * Create a new image node from the given image data
 	 *
 	 * @param securityContext
 	 * @param imageData
 	 * @param contentType
-	 * @param imageType
-	 * @return
-	 * @throws FrameworkException
-	 * @throws IOException
-	 */
-	public static Image createImage(final SecurityContext securityContext, final byte[] imageData, final String contentType, final Class<? extends Image> imageType)
-		throws FrameworkException, IOException {
-		
-		return createImage(securityContext, imageData, contentType, imageType, false);
-	}
-	
-	/**
-	 * Create a new image node from the given image data
-	 *
-	 * @param securityContext
-	 * @param imageData
-	 * @param contentType
-	 * @param imageType
+	 * @param imageType defaults to Image.class if null
 	 * @param markAsThumbnail
 	 * @return
 	 * @throws FrameworkException
@@ -120,23 +76,40 @@ public abstract class ImageHelper {
 	public static Image createImage(final SecurityContext securityContext, final byte[] imageData, final String contentType, final Class<? extends Image> imageType, final boolean markAsThumbnail)
 		throws FrameworkException, IOException {
 
-		CreateNodeCommand<Image> createNodeCommand = Services.command(securityContext, CreateNodeCommand.class);
+		CreateNodeCommand<Image> createNodeCommand = StructrApp.getInstance(securityContext).command(CreateNodeCommand.class);
 		PropertyMap props                          = new PropertyMap();
-
-		props.put(AbstractNode.type, imageType.getSimpleName());
-		props.put(File.contentType, contentType);
+		
+		props.put(AbstractNode.type, imageType == null ? Image.class.getSimpleName() : imageType.getSimpleName());
 		props.put(Image.isThumbnail, markAsThumbnail);
-
+		
 		Image newImage = createNodeCommand.execute(props);
 
-		FileHelper.writeToFile(newImage, imageData);
-		newImage.setChecksum(FileHelper.getChecksum(newImage));
-		newImage.setSize(FileHelper.getSize(newImage));
-
+		if (imageData != null && imageData.length > 0) {
+			
+			setFileData(newImage, imageData, contentType);
+			
+		}
+		
 		return newImage;
 
 	}
 
+	/**
+	 * Write image data to the given image node and set checksum and size.
+	 * 
+	 * @param img
+	 * @param imageData
+	 * @param contentType
+	 * @throws FrameworkException
+	 * @throws IOException 
+	 */
+	public static void setImageData(final Image img, final byte[] imageData, final String contentType)
+		throws FrameworkException, IOException {
+
+		setFileData(img, imageData, contentType);
+		
+	}
+	
 	public static Thumbnail createThumbnail(final Image originalImage, final int maxWidth, final int maxHeight) {
 
 		return createThumbnail(originalImage, maxWidth, maxHeight, false);
@@ -180,8 +153,8 @@ public abstract class ImageHelper {
 				int sourceHeight = source.getHeight();
 
 				// Update image dimensions
-				originalImage.setWidth(sourceWidth);
-				originalImage.setHeight(sourceHeight);
+				originalImage.setProperty(Image.width, sourceWidth);
+				originalImage.setProperty(Image.height, sourceHeight);
 
 				// float aspectRatio = sourceWidth/sourceHeight;
 				float scaleX = 1.0f * sourceWidth / maxWidth;
@@ -343,6 +316,19 @@ public abstract class ImageHelper {
 
 	//~--- get methods ----------------------------------------------------
 
+	public static String getBase64String(final File file) {
+		
+		try {
+
+			return Base64.encodeToString(IOUtils.toByteArray(file.getInputStream()), false);
+
+		} catch (IOException ex) {
+			logger.log(Level.SEVERE, "Could not get base64 string from file ", ex);
+		}
+
+		return null;
+	}
+	
 	/**
 	 * Check if url points to an image by extension
 	 *

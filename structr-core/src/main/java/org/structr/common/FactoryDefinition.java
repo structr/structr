@@ -1,20 +1,20 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.common;
 
@@ -37,13 +37,13 @@ public interface FactoryDefinition {
 	 * @return an uninitialized instance of a generic relationship
 	 */
 	public AbstractRelationship createGenericRelationship();
-	public String getGenericRelationshiType();
+	public Class getGenericRelationshipType();
 	
 	/**
 	 * @return an uninitialized instance of a generic node
 	 */
 	public AbstractNode createGenericNode();
-	public String getGenericNodeType();
+	public Class getGenericNodeType();
 	
 	/**
 	 * Indicates whether the given class is a generic type according to
@@ -62,5 +62,15 @@ public interface FactoryDefinition {
 	 * @param node
 	 * @return the entity name as returned by Class.getSimpleName()
 	 */
-	public String determineNodeType(Node node);
+	public Class determineNodeType(Node node);
+	
+	/**
+	 * Returns an entity name for the given relationship. A relationship type
+	 * can be defined by the relationship's surroundings or by a given type
+	 * property. Its up to the user of Structr to specify this.
+	 * 
+	 * @param relationship
+	 * @return the entity name as returned by Class.getSimpleName()
+	 */
+	public Class determineRelationshipType(Relationship relationship);
 }

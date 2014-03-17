@@ -6,21 +6,32 @@
     <parent>
         <groupId>org.structr</groupId>
         <artifactId>structr</artifactId>
-        <version>0.7</version>
+        <version>0.9.1-SNAPSHOT</version>
     </parent>
 
     <groupId>org.structr</groupId>
     <artifactId>structr-core</artifactId>
     <packaging>jar</packaging>
-    <version>0.7</version>
+    <version>0.9.1-SNAPSHOT</version>
     <name>structr-core</name>
+    <description>Structr is an open source framework based on the popular Neo4j graph database.</description>
+    <developers>
+        <developer>
+            <name>Axel Morgner</name>
+            <email>am@structr.org</email>
+        </developer>
+        <developer>
+            <name>Christian Morgner</name>
+            <email>cm@structr.org</email>
+        </developer>
+    </developers>
     <url>http://structr.org</url>
 
     <properties>
         <netbeans.hint.license>structr-gpl30</netbeans.hint.license>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <structr.version>0.7</structr.version>
-        <neo4j.version>1.9</neo4j.version>
+        <structr.version>0.9.1-SNAPSHOT</structr.version>
+        <neo4j.version>1.9.5</neo4j.version>
     </properties>
 
     <repositories>
@@ -41,18 +52,49 @@
             <url>http://m2.neo4j.org/content/repositories/snapshots</url>
         </repository>
         <repository>
-            <id>wordrak</id>
-            <url>http://wordrak.github.com/repo/</url>
+            <id>neo4j-contrib-releases</id>
+            <url>https://raw.github.com/neo4j-contrib/m2/master/releases</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>neo4j-contrib-snapshots</id>
+            <url>https://raw.github.com/neo4j-contrib/m2/master/snapshots</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
         </repository>
     </repositories>	
     <dependencies>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>3.8.2</version>
+            <version>4.11</version>
             <type>jar</type>
             <scope>test</scope>
             <optional>false</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>1.7.5</version>
+        </dependency>		<!--
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-jdk14</artifactId>
+			<version>1.7.5</version>
+		</dependency>-->
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-access</artifactId>
+            <version>1.0.13</version>
         </dependency>
         <dependency>
             <groupId>org.neo4j</groupId>
@@ -67,7 +109,7 @@
         <dependency>
             <groupId>org.neo4j</groupId>
             <artifactId>neo4j-spatial</artifactId>
-            <version>0.11-neo4j-1.9</version>
+            <version>0.11-neo4j-${neo4j.version}</version>
             <exclusions>
             </exclusions>
         </dependency>
@@ -87,17 +129,17 @@
             <version>1.5</version>
             <type>jar</type>
             <exclusions>
-                 <!--Sail support not needed--> 
+                <!--Sail support not needed--> 
                 <exclusion>
                     <groupId>com.tinkerpop.blueprints</groupId>
                     <artifactId>blueprints-sail-graph</artifactId>
                 </exclusion>
-                 <!--Maven support in groovy not needed--> 
+                <!--Maven support in groovy not needed--> 
                 <exclusion>
                     <groupId>org.codehaus.groovy.maven</groupId>
                     <artifactId>gmaven-plugin</artifactId>
                 </exclusion>
-                 <!--"readline" not needed - we only expose gremlin through webadmin--> 
+                <!--"readline" not needed - we only expose gremlin through webadmin--> 
                 <exclusion>
                     <groupId>jline</groupId>
                     <artifactId>jline</artifactId>
@@ -179,10 +221,11 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>2.3.2</version>
                 <configuration>
-                    <source>1.6</source>
-                    <target>1.6</target>
+                    <source>1.7</source>
+                    <target>1.7</target>
                     <encoding>${project.build.sourceEncoding}</encoding>
                     <debug>true</debug>
+                    <showDeprecation>true</showDeprecation>
                 </configuration>
             </plugin>
             <plugin>
@@ -192,6 +235,32 @@
                 <configuration>
                     <encoding>${project.build.sourceEncoding}</encoding>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>2.2.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.9.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
         <resources>
@@ -209,13 +278,41 @@
             </resource>
         </resources>
     </build>
-
+    <profiles>
+        <profile>
+            <id>release-sign-artifacts</id>
+            <activation>
+                <property>
+                    <name>performRelease</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.4</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
     <licenses>
         <license>
             <name>GNU General Public License, Version 3</name>
             <url>http://www.gnu.org/licenses/gpl-3.0-standalone.html</url>
             <comments>
-                Copyright (C) 2010-2013 Axel Morgner, structr &lt;structr@structr.org&gt;
+                Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt), structr &lt;structr@structr.org&gt;
 
                 This file is part of structr &lt;http://structr.org&gt;.
 
@@ -236,7 +333,21 @@
     </licenses>
 
     <scm>
-        <url>https://github.com/structr/structr/tree/master/structr/structr-core</url>
+        <url>https://github.com/structr/structr</url>
+        <connection>scm:git:git@github.com:structr/structr.git</connection>
     </scm>
+
+    <distributionManagement>
+        <repository>
+            <id>sonatype-nexus-staging</id>
+            <name>Maven Central Staging</name>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+        </repository>
+        <snapshotRepository>
+            <id>sonatype-nexus-snapshots</id>
+            <name>Maven Central Snapshots</name>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
 
 </project>

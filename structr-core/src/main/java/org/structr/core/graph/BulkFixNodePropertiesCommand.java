@@ -1,20 +1,20 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core.graph;
 
@@ -28,13 +28,10 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.EntityContext;
-import org.structr.core.Result;
-import org.structr.core.Services;
+import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.search.Search;
-import org.structr.core.graph.search.SearchNodeCommand;
+import org.structr.schema.SchemaHelper;
 
 /**
  * Tries to fix properties in the database that have been stored there with the
@@ -49,16 +46,15 @@ public class BulkFixNodePropertiesCommand extends NodeServiceCommand implements 
 	@Override
 	public void execute(Map<String, Object> attributes) throws FrameworkException {
 
-		final String propertyName      = (String)attributes.get("name");
-		final String entityTypeName    = (String)attributes.get("type");
+		final String propertyName   = (String)attributes.get("name");
+		final String entityTypeName = (String)attributes.get("type");
 
 		if (entityTypeName != null) {
 
-			final Class type = EntityContext.getEntityClassForRawType(entityTypeName);
+			final Class type = SchemaHelper.getEntityClassForRawType(entityTypeName);
 			if (type != null) {
 				
-				final Result<AbstractNode> result = Services.command(securityContext, SearchNodeCommand.class).execute(true, false, Search.andExactType(type.getSimpleName()));
-				final List<AbstractNode> nodes    = result.getResults();
+				final List<AbstractNode> nodes    = StructrApp.getInstance(securityContext).nodeQuery(type).getAsList();
 
 				if (type != null) {
 
@@ -119,7 +115,7 @@ public class BulkFixNodePropertiesCommand extends NodeServiceCommand implements 
 
 							if (propertyName != null) {
 								
-								PropertyKey key = EntityContext.getPropertyKeyForDatabaseName(type, propertyName);
+								PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, propertyName);
 								if (key != null) {
 									
 									// needs type cast to Property to use fixDatabaseProperty method

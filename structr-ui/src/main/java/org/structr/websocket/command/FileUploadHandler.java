@@ -1,28 +1,24 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
 package org.structr.websocket.command;
 
-import org.structr.common.Path;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
 import org.structr.web.entity.File;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -35,6 +31,7 @@ import java.nio.channels.FileChannel;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.web.common.FileHelper;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -61,17 +58,17 @@ public class FileUploadHandler {
 
 		if (this.size == null) {
 
-			this.size = file.getSize();
-
+			FileChannel channel;
 			try {
-
-				file.setSize(this.size);
-
-			} catch (FrameworkException ex) {
-
-				logger.log(Level.WARNING, "Could not set size", ex);
-
+				
+				channel = getChannel();
+				this.size = channel.size();
+				updateSize(this.size);
+				
+			} catch (IOException ex) {
+				logger.log(Level.SEVERE, "Could not access file", ex);
 			}
+			
 
 		}
 
@@ -88,6 +85,13 @@ public class FileUploadHandler {
 			channel.position(sequenceNumber * chunkSize);
 			channel.write(ByteBuffer.wrap(data));
 
+			if (this.size == null) {
+				
+				this.size = channel.size();
+				updateSize(this.size);
+				
+			}
+			
 			// file size reached? upload finished
 			if (channel.position() == this.size) {
 
@@ -98,6 +102,24 @@ public class FileUploadHandler {
 
 	}
 
+	private void updateSize(final Long size) {
+		
+		if (size == null) {
+			return;
+		}
+
+		try {
+
+			file.setSize(size);
+
+		} catch (FrameworkException ex) {
+
+			logger.log(Level.WARNING, "Could not set size to " + size, ex);
+
+		}
+		
+	}
+	
 	/**
 	 * Called when the WebSocket connection is closed
 	 */
@@ -138,7 +160,7 @@ public class FileUploadHandler {
 					throw new IOException("Security violation: File path contains ..");
 				}
 
-				String filePath         = Services.getFilePath(Path.Files, relativeFilePath);
+				String filePath         = FileHelper.getFilePath(relativeFilePath);
 				java.io.File fileOnDisk = new java.io.File(filePath);
 
 				fileOnDisk.getParentFile().mkdirs();

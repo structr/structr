@@ -1,23 +1,21 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
 package org.structr.web.entity.dom;
 
 import net.java.textilej.parser.MarkupParser;
@@ -25,21 +23,21 @@ import net.java.textilej.parser.markup.confluence.ConfluenceDialect;
 import net.java.textilej.parser.markup.mediawiki.MediaWikiDialect;
 import net.java.textilej.parser.markup.textile.TextileDialect;
 import net.java.textilej.parser.markup.trac.TracWikiDialect;
-
-import org.apache.commons.lang.StringEscapeUtils;
-
+import org.w3c.dom.DOMException;
+import org.w3c.dom.Document;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.Text;
 import org.pegdown.PegDownProcessor;
-
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Adapter;
-import org.structr.core.EntityContext;
-import org.structr.core.graph.NodeService;
-import org.structr.core.graph.search.Search;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.web.common.RenderContext;
+import org.structr.core.property.IntProperty;
+import org.structr.core.property.StringProperty;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -48,19 +46,12 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.Permission;
-import org.structr.core.GraphObject;
-
-import org.structr.core.Services;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
-import org.structr.core.property.IntProperty;
-import org.structr.core.property.StringProperty;
-import org.w3c.dom.DOMException;
-import org.w3c.dom.Document;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.Text;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
+import org.structr.core.graph.search.SearchCommand;
+import org.structr.web.common.RenderContext.EditMode;
+import static org.structr.web.entity.dom.DOMNode.hideOnDetail;
+import static org.structr.web.entity.dom.DOMNode.hideOnIndex;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -73,10 +64,10 @@ import org.w3c.dom.Text;
 public class Content extends DOMNode implements Text {
 
 	private static final Logger logger                                                   = Logger.getLogger(Content.class.getName());
-	public static final Property<String> contentType                                     = new StringProperty("contentType");
-	public static final Property<String> content                                         = new StringProperty("content");
-	public static final Property<Integer> size                                           = new IntProperty("size");
-
+	public static final Property<String> contentType                                     = new StringProperty("contentType").indexed();
+	public static final Property<String> content                                         = new StringProperty("content").indexed();
+	public static final Property<Integer> size                                           = new IntProperty("size").indexed();
+	
 	private static final Map<String, Adapter<String, String>> contentConverters          = new LinkedHashMap<String, Adapter<String, String>>();
 
 	private static final ThreadLocalTracWikiProcessor tracWikiProcessor                  = new ThreadLocalTracWikiProcessor();
@@ -85,14 +76,14 @@ public class Content extends DOMNode implements Text {
 	private static final ThreadLocalMediaWikiProcessor mediaWikiProcessor                = new ThreadLocalMediaWikiProcessor();
 	private static final ThreadLocalConfluenceProcessor confluenceProcessor              = new ThreadLocalConfluenceProcessor();
 
-	public static final org.structr.common.View uiView                                   = new org.structr.common.View(Content.class, PropertyView.Ui, content, contentType, size, parent, pageId);
-	public static final org.structr.common.View publicView                               = new org.structr.common.View(Content.class, PropertyView.Public, content, contentType, size, parent, pageId);
+	public static final org.structr.common.View uiView                                   = new org.structr.common.View(Content.class, PropertyView.Ui,
+		content, contentType, size, parent, pageId, hideOnDetail, hideOnIndex, showForLocales, hideForLocales, showConditions, hideConditions);
+
+	public static final org.structr.common.View publicView                               = new org.structr.common.View(Content.class, PropertyView.Public,
+		content, contentType, size, parent, pageId, hideOnDetail, hideOnIndex, showForLocales, hideForLocales, showConditions, hideConditions);
 	//~--- static initializers --------------------------------------------
 
 	static {
-
-		EntityContext.registerSearchablePropertySet(Content.class, NodeService.NodeIndex.fulltext.name(), uiView.properties());
-		EntityContext.registerSearchablePropertySet(Content.class, NodeService.NodeIndex.keyword.name(), uiView.properties());
 
 		contentConverters.put("text/markdown", new Adapter<String, String>() {
 
@@ -144,16 +135,16 @@ public class Content extends DOMNode implements Text {
 			}
 
 		});
-		contentConverters.put("text/plain", new Adapter<String, String>() {
-
-			@Override
-			public String adapt(String s) throws FrameworkException {
-
-				return StringEscapeUtils.escapeHtml(s);
-
-			}
-
-		});
+//		contentConverters.put("text/plain", new Adapter<String, String>() {
+//
+//			@Override
+//			public String adapt(String s) throws FrameworkException {
+//
+//				return StringEscapeUtils.escapeHtml(s);
+//
+//			}
+//
+//		});
 
 	}
 
@@ -170,104 +161,152 @@ public class Content extends DOMNode implements Text {
 			String value = getProperty(Content.content);
 			if (value != null) {
 
-				return Search.escapeForLucene(value);
+				return SearchCommand.escapeForLucene(value);
 			}
 
 		}
 
-		return getProperty(key);
+		return super.getPropertyForIndexing(key);
 
 	}
 
 	@Override
 	public void render(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException {
+	
+		if (isDeleted() || isHidden() || !displayForLocale(renderContext) || !displayForConditions(securityContext, renderContext)) {
+			return;
+		}
 
 		String id            = getUuid();
-		boolean edit         = renderContext.getEdit();
+		EditMode edit        = renderContext.getEditMode(securityContext.getUser(false));
 		boolean inBody       = renderContext.inBody();
 		StringBuilder buffer = renderContext.getBuffer();
+		
+		String _contentType = getProperty(contentType);
 
 		// fetch content with variable replacement
 		String _content = getPropertyWithVariableReplacement(securityContext, renderContext, Content.content);
+		
+		if (!(EditMode.RAW.equals(edit)) && (_contentType == null || ("text/plain".equals(_contentType)))) {
 
-		if (edit && inBody && securityContext.isAllowed(this, Permission.write)) {
+			_content = escapeForHtml(_content);
 
-			if ("text/javascript".equals(getProperty(contentType))) {
+		}
+
+		if (EditMode.CONTENT.equals(edit) && inBody && securityContext.isAllowed(this, Permission.write)) {
+
+			if ("text/javascript".equals(_contentType)) {
 				
 				// Javascript will only be given some local vars
 				// TODO: Is this neccessary?
-				buffer.append("var dataStructrType='").append(getType()).append("', dataStructrId='").append(id).append("';\n\n");
+				buffer.append("// data-structr-type='").append(getType()).append("'\n// data-structr-id='").append(id).append("'\n");
+				
+			} else if ("text/css".equals(_contentType)) {
+				
+				// CSS will only be given some local vars
+				// TODO: Is this neccessary?
+				buffer.append("/* data-structr-type='").append(getType()).append("'*/\n/* data-structr-id='").append(id).append("'*/\n");
 				
 			} else {
 				
-				// In edit mode, add an artificial 'span' tag around content nodes within body to make them editable
-				buffer.append("<span data-structr-raw-value=\"").append(getProperty(Content.content)).append("\" data-structr-type=\"").append(getType()).append("\" data-structr-id=\"").append(id).append("\">");
+//				// In edit mode, add an artificial 'span' tag around content nodes within body to make them editable
+//				buffer.append("<span data-structr-raw-value=\"").append(getProperty(Content.content))
+//					//.append("\" data-structr-content-type=\"").append(StringUtils.defaultString(getProperty(Content.contentType), ""))
+//					.append("\" data-structr-type=\"").append(getType())
+//					.append("\" data-structr-id=\"").append(id).append("\">");
+				
+//				int l = buffer.length();
+//				buffer.replace(l-1, l, " data-structr-raw-value=\""
+//					.concat(getProperty(Content.content))
+//					.concat("\" data-structr-type=\"").concat(getType())
+//					.concat("\" data-structr-id=\"").concat(id).concat("\">"));
+				
+				buffer.append("<!--data-structr-id=\"".concat(id)
+					.concat("\" data-structr-raw-value=\"").concat(getProperty(Content.content).replaceAll("\n", "\\\\n")).concat("\"-->"));
+					//.concat("\" data-structr-raw-value=\"").concat(getProperty(Content.content)).concat("\"-->"));
+				
 			}
 			
 		}
 
-		// examine content type and apply converter
-		String _contentType = getProperty(Content.contentType);
+		// No contentType-specific rendering in DATA edit mode
+		//if (!edit.equals(EditMode.DATA)) {
+			
+			// examine content type and apply converter
 
-		if (_contentType != null) {
+			if (_contentType != null) {
 
-			Adapter<String, String> converter = contentConverters.get(_contentType);
+				Adapter<String, String> converter = contentConverters.get(_contentType);
 
-			if (converter != null) {
+				if (converter != null) {
 
-				try {
+					try {
 
-					// apply adapter
-					_content = converter.adapt(_content);
-				} catch (FrameworkException fex) {
+						// apply adapter
+						_content = converter.adapt(_content);
+					} catch (FrameworkException fex) {
 
-					logger.log(Level.WARNING, "Unable to convert content: {0}", fex.getMessage());
+						logger.log(Level.WARNING, "Unable to convert content: {0}", fex.getMessage());
+
+					}
 
 				}
 
 			}
 
-		}
+			// replace newlines with <br /> for rendering
+			if (((_contentType == null) || _contentType.equals("text/plain")) && (_content != null) && !_content.isEmpty()) {
 
-		// replace newlines with <br /> for rendering
-		if (((_contentType == null) || _contentType.equals("text/plain")) && (_content != null) && !_content.isEmpty()) {
-
-			_content = _content.replaceAll("[\\n]{1}", "<br>");
-		}
+				_content = _content.replaceAll("[\\n]{1}", "<br>");
+			}
+		//}
 
 		if (_content != null) {
 
 			//buffer.append(indent(depth, true)).append(_content);
+			
+			// insert whitespace to make element clickable
+			if (EditMode.CONTENT.equals(edit) && _content.length() == 0) {
+				_content = "--- empty ---";
+			}
+			
 			buffer.append(_content);
 		}
 		
-		if (edit && inBody && !("text/javascript".equals(getProperty(contentType)))) {
+		if (EditMode.CONTENT.equals(edit) && inBody && !("text/javascript".equals(getProperty(contentType))) && !("text/css".equals(getProperty(contentType)))) {
 
-			buffer.append("</span>");
+//			buffer.append("</span>");
+			buffer.append("<!---->");
 		}
 
 	}
 
-	@Override
-	protected Object getEditModeValue(final SecurityContext securityContext, final RenderContext renderContext, final GraphObject dataObject, final PropertyKey referenceKeyProperty, final Object defaultValue) {
-
-		Object value = dataObject.getProperty(EntityContext.getPropertyKeyForJSONName(dataObject.getClass(), referenceKeyProperty.jsonName()));
-		
-		if (renderContext.getEdit() && renderContext.inBody() && securityContext.isAllowed((AbstractNode) dataObject, Permission.write) && !referenceKeyProperty.isReadOnlyProperty()) {
-
-			String editModeValue = "<span data-structr-type=\"" + referenceKeyProperty.typeName() + "\" data-structr-id=\"" + dataObject.getUuid() + "\" data-structr-key=\"" + referenceKeyProperty.jsonName() + "\">" + value + "</span>";
-
-			logger.log(Level.INFO, "Edit mode value: {0}", editModeValue);
-
-			return editModeValue;
-			
-		} else {
-
-			return value != null ? value : defaultValue;
-
-		}
-		
-	}
+//	@Override
+//	protected Object getEditModeValue(final SecurityContext securityContext, final RenderContext renderContext, final GraphObject dataObject, final PropertyKey referenceKeyProperty, final Object defaultValue) {
+//
+//		Object value      = dataObject.getProperty(StructrApp.getConfiguration().getPropertyKeyForJSONName(dataObject.getClass(), referenceKeyProperty.jsonName()));
+//		boolean canWrite  = dataObject instanceof AbstractNode ? securityContext.isAllowed((AbstractNode) dataObject, Permission.write) : true;
+//
+//		if (getProperty(Content.editable) && EditMode.DATA.equals(renderContext.getEditMode(securityContext.getUser(false))) && renderContext.inBody() && canWrite && !referenceKeyProperty.isReadOnly()) {
+//
+//			String editModeValue = "<span data-structr-type=\"" + referenceKeyProperty.typeName()
+//				+ "\" data-structr-id=\"" + dataObject.getUuid()
+////				+ "\" data-structr-content-type=\"" + StringUtils.defaultString(dataObject.getProperty(Content.contentType), "")
+////				+ "\" data-structr-visible-to-authenticated-users=\"" + dataObject.getProperty(AbstractNode.visibleToAuthenticatedUsers)
+////				+ "\" data-structr-visible-to-public-users=\"" + dataObject.getProperty(AbstractNode.visibleToPublicUsers)
+//				+ "\" data-structr-key=\"" + referenceKeyProperty.jsonName() + "\">" + value + "</span>";
+//
+//			logger.log(Level.FINEST, "Edit mode value: {0}", editModeValue);
+//
+//			return editModeValue;
+//			
+//		} else {
+//
+//			return value != null ? value : defaultValue;
+//
+//		}
+//		
+//	}
 
 	// ----- interface org.w3c.dom.Text -----
 	
@@ -296,30 +335,31 @@ public class Content extends DOMNode implements Text {
 				
 				if (document != null && parent != null) {
 					
+					final App app = StructrApp.getInstance(securityContext);
 					try {
+						app.beginTx();
 
-						return Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction<Text>() {
+						// first part goes into existing text element
+						setProperty(content, firstPart);
 
-							@Override
-							public Text execute() throws FrameworkException {
+						// second part goes into new text element
+						Text newNode = document.createTextNode(secondPart);
 
-								// first part goes into existing text element
-								setProperty(content, firstPart);
-								
-								// second part goes into new text element
-								Text newNode = document.createTextNode(secondPart);
-								
-								// make new node a child of old parent
-								parent.appendChild(newNode);
-								
-								return newNode;
-							}
-						});
+						// make new node a child of old parent
+						parent.appendChild(newNode);
+
+						app.commitTx();
+						
+						return newNode;
 
 					} catch (FrameworkException fex) {
 			
 						throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());			
-					}					
+						
+					} finally {
+						
+						app.finishTx();
+					}
 					
 				} else {
 						
@@ -365,17 +405,23 @@ public class Content extends DOMNode implements Text {
 	}
 
 	@Override
-	public void setData(String data) throws DOMException {
+	public void setData(final String data) throws DOMException {
 		
 		checkWriteAccess();
 		
+		final App app = StructrApp.getInstance(securityContext);
 		try {
-			
+			app.beginTx();
 			setProperty(content, data);
+			app.commitTx();
 			
 		} catch (FrameworkException fex) {
 			
 			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());
+			
+		} finally {
+			
+			app.finishTx();
 		}
 	}
 
@@ -415,115 +461,123 @@ public class Content extends DOMNode implements Text {
 	}
 
 	@Override
-	public void appendData(String data) throws DOMException {
+	public void appendData(final String data) throws DOMException {
 		
 		checkWriteAccess();
-		
-		String text = getProperty(content);
-		
-		// set content to concatenated text and data
+
+		final App app = StructrApp.getInstance(securityContext);
 		try {
-			
+			app.beginTx();
+			String text = getProperty(content);
 			setProperty(content, text.concat(data));
+			app.commitTx();
 			
 		} catch (FrameworkException fex) {
 			
 			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());
+			
+		} finally {
+			
+			app.finishTx();
 		}
 	}
 
 	@Override
-	public void insertData(int offset, String data) throws DOMException {
+	public void insertData(final int offset, final String data) throws DOMException {
 		
 		checkWriteAccess();
-		
-		String text = getProperty(content);
 
-		String leftPart  = text.substring(0, offset);
-		String rightPart = text.substring(offset);
-
-		StringBuilder buf = new StringBuilder(text.length() + data.length() + 1);
-		buf.append(leftPart);
-		buf.append(data);
-		buf.append(rightPart);
-		
-		// finally, set content to concatenated left, data and right parts
+		final App app = StructrApp.getInstance(securityContext);
 		try {
-			
+			app.beginTx();
+
+			String text = getProperty(content);
+
+			String leftPart  = text.substring(0, offset);
+			String rightPart = text.substring(offset);
+
+			StringBuilder buf = new StringBuilder(text.length() + data.length() + 1);
+			buf.append(leftPart);
+			buf.append(data);
+			buf.append(rightPart);
+
+			// finally, set content to concatenated left, data and right parts
 			setProperty(content, buf.toString());
+
+			app.commitTx();
 			
 		} catch (FrameworkException fex) {
 			
 			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());
-		}		
+			
+		} finally {
+			
+			app.finishTx();
+		}
 	}
 
 	@Override
-	public void deleteData(int offset, int count) throws DOMException {
+	public void deleteData(final int offset, final int count) throws DOMException {
 		
 		checkWriteAccess();
 		
-		String text = getProperty(content);
-		
-		String leftPart  = text.substring(0, offset);
-		String rightPart = text.substring(offset + count);
-		
 		// finally, set content to concatenated left and right parts
+		final App app = StructrApp.getInstance(securityContext);
 		try {
-			
+			app.beginTx();
+
+			String text = getProperty(content);
+
+			String leftPart  = text.substring(0, offset);
+			String rightPart = text.substring(offset + count);
+
 			setProperty(content, leftPart.concat(rightPart));
 			
+			app.commitTx();
+			
 		} catch (FrameworkException fex) {
 			
 			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());
+			
+		} finally {
+			
+			app.finishTx();
 		}
 	}
 
 	@Override
-	public void replaceData(int offset, int count, String data) throws DOMException {
+	public void replaceData(final int offset, final int count, final String data) throws DOMException {
 		
 		checkWriteAccess();
-		
-		String text = getProperty(content);
-		
-		String leftPart  = text.substring(0, offset);
-		String rightPart = text.substring(offset + count);
-		
-		StringBuilder buf = new StringBuilder(leftPart.length() + data.length() + rightPart.length());
-		buf.append(leftPart);
-		buf.append(data);
-		buf.append(rightPart);
 
 		// finally, set content to concatenated left and right parts
+		final App app = StructrApp.getInstance(securityContext);
 		try {
-			
+			app.beginTx();
+
+			String text = getProperty(content);
+
+			String leftPart  = text.substring(0, offset);
+			String rightPart = text.substring(offset + count);
+
+			StringBuilder buf = new StringBuilder(leftPart.length() + data.length() + rightPart.length());
+			buf.append(leftPart);
+			buf.append(data);
+			buf.append(rightPart);
+
 			setProperty(content, buf.toString());
+			
+			app.commitTx();
 			
 		} catch (FrameworkException fex) {
 			
 			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());
+			
+		} finally {
+			
+			app.finishTx();
 		}
 	}
-
-//	@Override
-//	protected String getEditModeValue(final GraphObject dataObject, final PropertyKey referenceKeyProperty, final Object value) {
-//		
-//		String editModeValue;
-//		if ("text/javascript".equals(getProperty(contentType))) {
-//
-//			editModeValue = "var data-structr-type='" + referenceKeyProperty.typeName() + "', data-structr-id='" + dataObject.getUuid() + "', data-structr-key='" + referenceKeyProperty.jsonName() + "'\n" + value;
-//			
-//		} else {
-//
-//			editModeValue = "<span data-structr-type=\"" + referenceKeyProperty.typeName() + "\" data-structr-id=\"" + dataObject.getUuid() + "\" data-structr-key=\"" + referenceKeyProperty.jsonName() + "\">" + value + "</span>";
-//		}
-//		
-//		logger.log(Level.INFO, "Edit mode value: {0}", editModeValue);
-//		
-//		return editModeValue;
-//		
-//		
-//	}
 	
 	// ----- interface org.w3c.dom.Node -----
 	@Override

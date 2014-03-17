@@ -1,20 +1,20 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.rest.test.property;
 
@@ -59,6 +59,7 @@ public class LongPropertyRestTest extends StructrRestTest {
 		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'longProperty' : 2147483647001 } ").expect().statusCode(201).when().post("/test_threes");
 		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'longProperty' : 1365151420000 } ").expect().statusCode(201).when().post("/test_threes");
 		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'longProperty' : 2147483647003 } ").expect().statusCode(201).when().post("/test_threes");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'name'         : 'test' } ").expect().statusCode(201).when().post("/test_threes");
 		
 		// test for three elements
 		RestAssured.given()
@@ -70,7 +71,7 @@ public class LongPropertyRestTest extends StructrRestTest {
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 		.expect()
 			.statusCode(200)
-			.body("result_count", equalTo(3))
+			.body("result_count", equalTo(4))
 		.when()
 			.get("/test_threes");
 		
@@ -88,6 +89,20 @@ public class LongPropertyRestTest extends StructrRestTest {
 		.when()
 			.get("/test_threes?longProperty=1365151420000");
 		
+		// test empty value
+		RestAssured.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+		.expect()
+			.statusCode(200)
+			.body("result_count", equalTo(1))
+			.body("result[0].name", equalTo("test"))
+		.when()
+			.get("/test_threes?longProperty=");
 	
 	}
 
@@ -156,8 +171,34 @@ public class LongPropertyRestTest extends StructrRestTest {
 			.get("/test_threes?longProperty=[1364985296000 TO 1365285599000]");
 	
 	}	
-	
 
+	public void testRangeSearch4() {
+
+		long base = 12345678000L;
+		
+		for (int i=0; i<20; i++) {
+			
+			long val = base * (i - 10);
+			
+			RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'longProperty' : " + val + " } ").expect().statusCode(201).when().post("/test_threes");
+		}
+		
+		// test range query
+		RestAssured.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+		.expect()
+			.statusCode(200)
+			.body("result_count", equalTo(11))
+		.when()
+			.get("/test_threes?longProperty=[" + (base * -5) + " TO " + base * 5 + "]");
+	
+	}	
+	
 	public void testRangeSearchLargeInterval1() {
 
 		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'longProperty' : 2147483647001 } ").expect().statusCode(201).when().post("/test_threes");

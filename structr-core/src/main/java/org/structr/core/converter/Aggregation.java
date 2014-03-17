@@ -1,23 +1,24 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core.converter;
 
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -25,10 +26,10 @@ import java.util.Map;
 import java.util.Set;
 import org.structr.common.SecurityContext;
 import org.structr.core.Value;
-import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.Notion;
 import org.structr.core.property.AggregatorProperty;
-import org.structr.core.property.CollectionProperty;
+import org.structr.core.property.Property;
 
 /**
  * Encapsulates a sorted collection of related nodes of different types, to be
@@ -38,16 +39,13 @@ import org.structr.core.property.CollectionProperty;
  */
 public class Aggregation implements Value<Aggregation> {
 
-	private Set<CollectionProperty<? extends AbstractNode>> aggregationProperties = new LinkedHashSet<CollectionProperty<? extends AbstractNode>>();
-	private Map<Class, Notion> notions                                            = new LinkedHashMap<Class, Notion>();
-	private Comparator<AbstractNode> comparator                                   = null;
+	private Set<Property> aggregationProperties  = new LinkedHashSet<>();
+	private Map<Class, Notion> notions           = new LinkedHashMap<>();
+	private Comparator<NodeInterface> comparator = null;
 
-	public Aggregation(Comparator<AbstractNode> comparator, CollectionProperty<? extends AbstractNode>... properties) {
+	public Aggregation(Comparator<NodeInterface> comparator, Property... properties) {
 		
-		for(CollectionProperty<? extends AbstractNode> property : properties) {
-			this.aggregationProperties.add(property);
-		}
-		
+		this.aggregationProperties.addAll(Arrays.asList(properties));
 		this.comparator = comparator;
 	}
 
@@ -59,11 +57,11 @@ public class Aggregation implements Value<Aggregation> {
 		return notions.get(type);
 	}
 	
-	public Comparator<AbstractNode> getComparator() {
+	public Comparator<NodeInterface> getComparator() {
 		return comparator;
 	}
 
-	public Set<CollectionProperty<? extends AbstractNode>> getAggregationProperties() {
+	public Set<Property> getAggregationProperties() {
 		return aggregationProperties;
 	}
 

@@ -1,33 +1,31 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.web.entity.dom;
 
 
+import java.util.LinkedList;
 import java.util.List;
-import org.structr.web.common.RelType;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
-import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
+import org.structr.core.GraphObject;
+import org.structr.core.entity.relationship.AbstractChildren;
 import org.structr.web.common.DOMTest;
-import org.structr.web.entity.relation.ChildrenRelationship;
+import org.structr.web.entity.dom.relationship.DOMChildren;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -40,7 +38,7 @@ import org.w3c.dom.Text;
  * @author Christian Morgner
  */
 public class DOMNodeTest extends DOMTest {
-/*
+
 	public void testAppendChild() {
 		
 		Page document = (Page)getDocument();
@@ -61,19 +59,19 @@ public class DOMNodeTest extends DOMTest {
 		div.appendChild(content1);
 		
 		// check for correct relationship management
-		List<AbstractRelationship> divRels = div.getOutgoingRelationships(RelType.CONTAINS);
+		List<DOMChildren> divRels = toList(div.getOutgoingRelationships(DOMChildren.class));
 		assertEquals(1, divRels.size());
-		assertEquals(Integer.valueOf(0), divRels.get(0).getProperty(ChildrenRelationship.position));
+		assertEquals(Integer.valueOf(0), divRels.get(0).getProperty(AbstractChildren.position));
 		
 		
 		// second step
 		div.appendChild(content2);
 		
 		// check for correct relationship management
-		divRels = div.getOutgoingRelationships(RelType.CONTAINS);
+		divRels = toList(div.getOutgoingRelationships(DOMChildren.class));
 		assertEquals(2, divRels.size());
-		assertEquals(Integer.valueOf(0), divRels.get(0).getProperty(ChildrenRelationship.position));
-		assertEquals(Integer.valueOf(1), divRels.get(1).getProperty(ChildrenRelationship.position));
+		assertEquals(Integer.valueOf(0), divRels.get(0).getProperty(AbstractChildren.position));
+		assertEquals(Integer.valueOf(1), divRels.get(1).getProperty(AbstractChildren.position));
 		
 		
 		// third step: test removal of old parent when appending an existing node
@@ -257,7 +255,7 @@ public class DOMNodeTest extends DOMTest {
 		assertEquals(test2, test1.getNextSibling());
 		assertNull(test5.getNextSibling());
 	}
-*/
+
 	public void testAppendChildErrors() {
 		
 		
@@ -331,7 +329,7 @@ public class DOMNodeTest extends DOMTest {
 			assertEquals(DOMException.HIERARCHY_REQUEST_ERR, dex.code);
 		}
 	}
-/*	
+
 	public void testReplaceChild() {
 		
 		Document document = getDocument();
@@ -342,7 +340,7 @@ public class DOMNodeTest extends DOMTest {
 		Text test3 = document.createTextNode("test3");
 		Text test4 = document.createTextNode("test4");
 		Text test5 = document.createTextNode("test5");
-		Text test6 = document.createTextNode("test5");
+		Text test6 = document.createTextNode("test6");
 		assertNotNull(test1);
 		assertNotNull(test2);
 		assertNotNull(test3);
@@ -392,7 +390,7 @@ public class DOMNodeTest extends DOMTest {
 		Text test3 = document.createTextNode("test3");
 		Text test4 = document.createTextNode("test4");
 		Text test5 = document.createTextNode("test5");
-		Text test6 = document.createTextNode("test5");
+		Text test6 = document.createTextNode("test6");
 		assertNotNull(test1);
 		assertNotNull(test2);
 		assertNotNull(test3);
@@ -683,34 +681,32 @@ public class DOMNodeTest extends DOMTest {
 		assertNotNull(p3);
 
 		try {
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+			app.beginTx();
 
-				@Override
-				public Object execute() throws FrameworkException {
-
-					div.appendChild(test0);
-					div.appendChild(p0);
-					div.appendChild(test1);
-					div.appendChild(test2);
-					div.appendChild(p1);
-					div.appendChild(test3);
-					div.appendChild(test4);
-					div.appendChild(test5);
-					div.appendChild(p2);
-					div.appendChild(test6);
-					div.appendChild(test7);
-					div.appendChild(test8);
-					div.appendChild(test9);
-					div.appendChild(p3);
-
-					return null;
-				}
-
-			});
+			div.appendChild(test0);
+			div.appendChild(p0);
+			div.appendChild(test1);
+			div.appendChild(test2);
+			div.appendChild(p1);
+			div.appendChild(test3);
+			div.appendChild(test4);
+			div.appendChild(test5);
+			div.appendChild(p2);
+			div.appendChild(test6);
+			div.appendChild(test7);
+			div.appendChild(test8);
+			div.appendChild(test9);
+			div.appendChild(p3);
+			
+			app.commitTx();
 			
 		} catch (FrameworkException fex) {
 			
 			fail("unexpected exception");
+			
+		} finally {
+			
+			app.finishTx();
 		}
 		
 		// normalize 
@@ -731,4 +727,20 @@ public class DOMNodeTest extends DOMTest {
 		assertEquals("test6test7test8test9", children.item(6).getNodeValue());
 		assertEquals(p3,                     children.item(7));
 	}
-*/}
+
+
+	private <T extends GraphObject> List<T> toList(final Iterable<T> it) {
+
+		List<T> list = new LinkedList();
+
+		for (T obj : it) {
+			
+			list.add(obj);
+			
+		}
+
+		return list;
+	}
+
+}
+

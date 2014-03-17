@@ -1,23 +1,21 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
 package org.structr.core.notion;
 
 import java.util.*;
@@ -26,11 +24,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.PropertiesNotFoundToken;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.CreateNodeCommand;
-import org.structr.core.graph.NodeAttribute;
-import org.structr.core.graph.search.Search;
-import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.SearchNodeCommand;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -38,6 +31,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.error.TypeToken;
 import org.structr.core.*;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
 
 //~--- classes ----------------------------------------------------------------
@@ -47,7 +43,7 @@ import org.structr.core.property.PropertyMap;
  *
  * @author Christian Morgner
  */
-public class TypeAndValueDeserializationStrategy implements DeserializationStrategy {
+public class TypeAndValueDeserializationStrategy<S, T extends NodeInterface> implements DeserializationStrategy<S, T> {
 
 	private static final Logger logger = Logger.getLogger(TypeAndValueDeserializationStrategy.class.getName());
 
@@ -67,18 +63,17 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 	//~--- methods --------------------------------------------------------
 
 	@Override
-	public GraphObject deserialize(SecurityContext securityContext, Class type, Object source)
-		throws FrameworkException {
-
-		List<SearchAttribute> attrs = new LinkedList();
-
-		attrs.add(Search.andExactTypeAndSubtypes(type.getSimpleName()));
+	public T deserialize(final SecurityContext securityContext, Class<T> type, S source) throws FrameworkException {
 
 		// TODO: check why this doesn't work for setProperty with plain uuid..
+
+		final App app = StructrApp.getInstance(securityContext);
+		
+		Result<T> result = Result.EMPTY_RESULT;
 		
 		
 		// create and fill input map with source object
-		Map<String, Object> sourceMap = new LinkedHashMap<String, Object>();
+		Map<String, Object> sourceMap = new LinkedHashMap<>();
 		sourceMap.put(propertyKey.jsonName(), source);
 
 		// try to convert input type to java type in order to create object correctly
@@ -93,8 +88,7 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 				Object value = ((JsonInput)convertedSource).getAttributes().get(propertyKey.jsonName());
 				if (value != null) {
 					
-					String stringValue = value.toString();
-					attrs.add(Search.andExactProperty(propertyKey, stringValue));
+					result = app.nodeQuery(type).and(propertyKey, value.toString()).getResult();
 				}
 
 			} else if (convertedSource instanceof GraphObject) {
@@ -102,27 +96,24 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 				GraphObject obj = (GraphObject)convertedSource;
 				if (propertyKey != null) {
 					
-					attrs.add(Search.andExactProperty(propertyKey, obj.getProperty(propertyKey)));
+					result = app.nodeQuery(type).and(propertyKey, obj.getProperty(propertyKey)).getResult();
 					
 				} else {
 					
-					// fetch property key for "uuid", may be different for AbstractNode and AbstractRelationship!
-					PropertyKey<String> idProperty = EntityContext.getPropertyKeyForDatabaseName(obj.getClass(), AbstractNode.uuid.dbName());
-					attrs.add(Search.andExactUuid(obj.getProperty(idProperty)));
-					
+					// fetch property key for "id", may be different for AbstractNode and AbstractRelationship!
+					PropertyKey<String> idProperty = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(obj.getClass(), GraphObject.id.dbName());
+					result = new Result(app.get(obj.getProperty(idProperty)), false);
 				}
-				
 				
 			} else {
 
-				attrs.add(Search.andExactProperty(propertyKey, convertedSource));
+				result = app.nodeQuery(type).and(propertyKey, convertedSource).getResult();
 
 			}
 		}
 
 
 		// just check for existance
-		Result result = Services.command(securityContext, SearchNodeCommand.class).execute(attrs);
 		int resultCount = result.size();
 
 		switch (resultCount) {
@@ -131,13 +122,10 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 				if ((convertedSource != null) && createIfNotExisting) {
 
 					// create node and return it
-					AbstractNode newNode = Services.command(securityContext, CreateNodeCommand.class).execute(
-								   new NodeAttribute(AbstractNode.type, type.getSimpleName()),
-								   new NodeAttribute(propertyKey, convertedSource)
-							       );
+					T newNode = app.create(type);
 
 					if (newNode != null) {
-
+						newNode.setProperty(propertyKey, convertedSource);
 						return newNode;
 					}
 					
@@ -152,7 +140,8 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 				break;
 
 			case 1 :
-				GraphObject obj = result.get(0);
+				
+				T obj = result.get(0);
 				//if(!type.getSimpleName().equals(node.getType())) {
 				if (!type.isAssignableFrom(obj.getClass())) {
 					throw new FrameworkException("base", new TypeToken(propertyKey, type.getSimpleName()));
@@ -162,7 +151,7 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 
 		if (convertedSource != null) {
 
-			Map<PropertyKey, Object> attributes = new LinkedHashMap<PropertyKey, Object>();
+			Map<PropertyKey, Object> attributes = new LinkedHashMap<>();
 
 			attributes.put(propertyKey,       convertedSource);
 			attributes.put(AbstractNode.type, type.getSimpleName());
@@ -172,4 +161,5 @@ public class TypeAndValueDeserializationStrategy implements DeserializationStrat
 		
 		return null;
 	}
+
 }

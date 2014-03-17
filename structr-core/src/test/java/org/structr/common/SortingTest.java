@@ -1,20 +1,20 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 /*
 *  Copyright (C) 2010-2013 Axel Morgner
@@ -40,24 +40,24 @@
 package org.structr.common;
 
 import org.structr.core.property.PropertyKey;
-import org.apache.lucene.search.SortField;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.TestOne;
-import org.structr.core.graph.search.Search;
-import org.structr.core.graph.search.SearchAttribute;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.Collections;
 import java.util.Date;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertTrue;
+import static junit.framework.Assert.fail;
+import org.structr.core.graph.NodeInterface;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -85,34 +85,37 @@ public class SortingTest extends StructrTest {
 
 		try {
 
-			boolean includeDeletedAndHidden = false;
-			boolean publicOnly              = false;
-			String type                     = TestOne.class.getSimpleName();
+			Class type                      = TestOne.class;
 			int number                      = 4; // no more than 89 to avoid sort order TestOne-10, TestOne-100 ...
-			List<AbstractNode> nodes        = this.createTestNodes(type, number);
-			int offset                      = 10;
-			int i                           = offset;
-			String name;
+			final List<NodeInterface> nodes = this.createTestNodes(type, number);
+			final int offset                = 10;
 
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
 
-			for (AbstractNode node : nodes) {
+			try {
+				app.beginTx();
+				int i = offset;
+				String name;
 
-				//System.out.println("Node ID: " + node.getNodeId());
-				
-				name = "TestOne-" + i;
+				for (NodeInterface node : nodes) {
 
-				i++;
+					//System.out.println("Node ID: " + node.getNodeId());
 
-				node.setName(name);
+					name = "TestOne-" + i;
 
+					i++;
+
+					node.setProperty(AbstractNode.name, name);
+
+				}
+				app.commitTx();
+
+			} finally {
+
+				app.finishTx();
 			}
 
-			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
-
-			searchAttributes.add(Search.andExactTypeAndSubtypes(type));
-
-			Result result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes);
+			Result result = app.nodeQuery(type).getResult();
 
 			assertEquals(number, result.size());
 
@@ -121,17 +124,12 @@ public class SortingTest extends StructrTest {
 			int pageSize        = 10;
 			int page            = 1;
 
-			result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page);
+			result = app.nodeQuery(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getResult();
 
-//                      for (GraphObject obj : result.getResults()) {
-//                              
-//                              System.out.println(obj.getProperty(AbstractNode.name));
-//                              
-//                      }
 			logger.log(Level.INFO, "Raw result size: {0}, expected: {1}", new Object[] { result.getRawResultCount(), number });
-			assertTrue(result.getRawResultCount() == number);
+			assertEquals(number, (int) result.getRawResultCount());
 			logger.log(Level.INFO, "Result size: {0}, expected: {1}", new Object[] { result.size(), Math.min(number, pageSize) });
-			assertTrue(result.size() == Math.min(number, pageSize));
+			assertEquals(Math.min(number, pageSize), result.size());
 
 			for (int j = 0; j < Math.min(result.size(), pageSize); j++) {
 
@@ -156,32 +154,35 @@ public class SortingTest extends StructrTest {
 
 		try {
 
-			boolean includeDeletedAndHidden = false;
-			boolean publicOnly              = false;
-			String type                     = TestOne.class.getSimpleName();
+			Class type                      = TestOne.class;
 			int number                      = 43;
-			List<AbstractNode> nodes        = this.createTestNodes(type, number);
-			int offset                      = 10;
-			int i                           = offset;
-			String name;
+			final List<NodeInterface> nodes = this.createTestNodes(type, number);
+			final int offset                = 10;
 
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
 
-			for (AbstractNode node : nodes) {
+			try {
+				app.beginTx();
+				int i = offset;
+				String name;
 
-				name = Integer.toString(i);
+				for (NodeInterface node : nodes) {
 
-				i++;
+					name = Integer.toString(i);
 
-				node.setName(name);
+					i++;
 
+					node.setProperty(AbstractNode.name, name);
+
+				}
+				app.commitTx();
+
+			} finally {
+
+				app.finishTx();
 			}
 
-			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
-
-			searchAttributes.add(Search.andType(type));
-
-			Result result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes);
+			Result result = app.nodeQuery(type).getResult();
 
 			assertEquals(number, result.size());
 
@@ -190,7 +191,7 @@ public class SortingTest extends StructrTest {
 			int pageSize        = 10;
 			int page            = 1;
 
-			result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page);
+			result = app.nodeQuery(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getResult();
 
 //                      for (GraphObject obj : result.getResults()) {
 //                              
@@ -225,40 +226,40 @@ public class SortingTest extends StructrTest {
 
 		try {
 
-			boolean includeDeletedAndHidden = false;
-			boolean publicOnly              = false;
-			String type                     = TestOne.class.getSimpleName();
+			Class type                      = TestOne.class;
 			int number                      = 97;
-			List<AbstractNode> nodes        = this.createTestNodes(type, number);
-			int offset                      = 10;
-			int i                           = offset;
-			String name;
+			final List<NodeInterface> nodes = this.createTestNodes(type, number);
+			final int offset                = 10;
 
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
 
-			for (AbstractNode node : nodes) {
+			try {
+				app.beginTx();
+				int i = offset;
+				String name;
 
-				name = Integer.toString(i);
+				for (NodeInterface node : nodes) {
 
-				i++;
+					name = Integer.toString(i);
 
-//                              try {
-//                                      Thread.sleep(1000L);
-//                              } catch (InterruptedException ex) {
-//                              }
-				node.setName("TestOne-" + name);
+					i++;
 
-				node.setProperty(TestOne.aDate, new Date());
+					node.setProperty(AbstractNode.name, "TestOne-" + name);
 
-				// System.out.println(node.getProperty(AbstractNode.name) + ", " + node.getProperty(TestOne.Key.aDate) + " (set: " + timestamp + ")");
+					node.setProperty(TestOne.aDate, new Date());
 
+					// slow down execution speed to make sure distinct changes fall in different milliseconds
+					try { Thread.sleep(2); } catch (Throwable t) {}
+
+				}
+				app.commitTx();
+
+			} finally {
+
+				app.finishTx();
 			}
 
-			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
-
-			searchAttributes.add(Search.andType(type));
-
-			Result result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes);
+			Result result = app.nodeQuery(type).getResult();
 
 			assertEquals(number, result.size());
 
@@ -267,7 +268,7 @@ public class SortingTest extends StructrTest {
 			int pageSize        = 10;
 			int page            = 1;
 
-			result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page, null, SortField.LONG);
+			result = app.nodeQuery(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getResult();
 
 //                      for (GraphObject obj : result.getResults()) {
 //
@@ -301,36 +302,37 @@ public class SortingTest extends StructrTest {
 
 		try {
 
-			boolean includeDeletedAndHidden = false;
-			boolean publicOnly              = false;
-			String type                     = TestOne.class.getSimpleName();
+			Class type                      = TestOne.class;
 			int number                      = 131;
-			List<AbstractNode> nodes        = this.createTestNodes(type, number);
-			String name;
-			int offset = 10;
-			int i      = offset;
+			final List<NodeInterface> nodes = this.createTestNodes(type, number);
+			final int offset                = 10;
 
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
 
-			for (AbstractNode node : nodes) {
+			try {
+				app.beginTx();
+				int i = offset;
+				String name;
 
-				name = Integer.toString(i);
+				for (NodeInterface node : nodes) {
 
-				i++;
+					name = Integer.toString(i);
 
-//                              try {
-//                                      Thread.sleep(1000L);
-//                              } catch (InterruptedException ex) {
-//                              }
-				node.setName(name);
+					i++;
 
+					node.setProperty(AbstractNode.name, name);
+
+					// slow down execution speed to make sure distinct changes fall in different milliseconds
+					try { Thread.sleep(2); } catch (Throwable t) {}
+				}
+				app.commitTx();
+
+			} finally {
+
+				app.finishTx();
 			}
 
-			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
-
-			searchAttributes.add(Search.andType(type));
-
-			Result result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes);
+			Result result = app.nodeQuery(type).getResult();
 
 			assertEquals(number, result.size());
 
@@ -339,12 +341,8 @@ public class SortingTest extends StructrTest {
 			int pageSize        = 10;
 			int page            = 1;
 
-			result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page, null, SortField.LONG);
+			result = app.nodeQuery(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getResult();
 
-//                      for (GraphObject obj : result.getResults()) {
-//
-//                              System.out.println(obj.getProperty(AbstractNode.name) + ", " + obj.getDateProperty(AbstractNode.lastModifiedDate));
-//                      }
 			logger.log(Level.INFO, "Raw result size: {0}, expected: {1}", new Object[] { result.getRawResultCount(), number });
 			assertTrue(result.getRawResultCount() == number);
 			logger.log(Level.INFO, "Result size: {0}, expected: {1}", new Object[] { result.size(), pageSize });
@@ -373,36 +371,35 @@ public class SortingTest extends StructrTest {
 
 		try {
 
-			boolean includeDeletedAndHidden = false;
-			boolean publicOnly              = false;
-			String type                     = TestOne.class.getSimpleName();
+			Class type                      = TestOne.class;
 			int number                      = 61;
-			List<AbstractNode> nodes        = this.createTestNodes(type, number);
-			PropertyKey key                 = TestOne.anInt;
-			int offset                      = 10;
-			int i                           = offset;
+			final List<NodeInterface> nodes = this.createTestNodes(type, number);
+			final PropertyKey key           = TestOne.anInt;
+			final int offset                = 10;
 
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
 
-			for (AbstractNode node : nodes) {
+			try {
+				app.beginTx();
 
-				node.setName(Integer.toString(i));
+				int i = offset;
 
-//                              try {
-//                                      Thread.sleep(1000L);
-//                              } catch (InterruptedException ex) {
-//                              }
-				node.setProperty(key, i);
+				for (NodeInterface node : nodes) {
 
-				i++;
+					node.setProperty(AbstractNode.name, Integer.toString(i));
+					node.setProperty(key, i);
 
+					i++;
+				}
+				app.commitTx();
+
+			} finally {
+
+				app.finishTx();
 			}
 
-			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
 
-			searchAttributes.add(Search.andType(type));
-
-			Result result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes);
+			Result result = app.nodeQuery(type).getResult();
 
 			assertEquals(number, result.size());
 
@@ -411,7 +408,7 @@ public class SortingTest extends StructrTest {
 			int pageSize        = 5;
 			int page            = 1;
 
-			result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page, null);//, SortField.INT);
+			result = app.nodeQuery(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getResult();
 
 //                      for (GraphObject obj : result.getResults()) {
 //
@@ -441,73 +438,73 @@ public class SortingTest extends StructrTest {
 
 	}
 
-	public void test06SortByLong() {
+	public void test06SortByDateWitNullValues() {
 
 		try {
 
-			boolean includeDeletedAndHidden = false;
-			boolean publicOnly              = false;
-			String type                     = TestOne.class.getSimpleName();
-			int number                      = 43;
-			List<AbstractNode> nodes        = this.createTestNodes(type, number);
-			PropertyKey key                 = TestOne.aLong;
-			long offset                     = 10;
-			long i                          = offset;
+			Class type                      = TestOne.class;
+			int number                      = 20;
+			final List<NodeInterface> nodes = this.createTestNodes(type, number);
+			final int offset                = 10;
 
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
 
-			for (AbstractNode node : nodes) {
+			int i = offset;
+			String name;
 
-				node.setName(Long.toString(i));
+			try {
+				app.beginTx();
+				for (NodeInterface node : nodes) {
 
-//                              try {
-//                                      Thread.sleep(1000L);
-//                              } catch (InterruptedException ex) {
-//                              }
-				node.setProperty(key, i);
+					name = Integer.toString(i);
 
-				i++;
+					i++;
 
-				System.out.println(node.getProperty(AbstractNode.name) + ": " + node.getProperty(key));
+					node.setProperty(AbstractNode.name, "TestOne-" + name);
 
+					if ((i % 2) != 0) {
+						node.setProperty(TestOne.aDate, new Date());
+						System.out.println("TestOne-" + name + ": indexed with date");
+					} else {
+						node.setProperty(TestOne.aDate, null);
+						System.out.println("TestOne-" + name + ": null date");
+					}
+
+					// slow down execution speed to make sure distinct changes fall in different milliseconds
+					try { Thread.sleep(2); } catch (Throwable t) {}
+
+				}
+
+				app.commitTx();
+
+			} finally {
+
+				app.finishTx();
 			}
 
-			List<SearchAttribute> searchAttributes = new LinkedList<SearchAttribute>();
-			searchAttributes.add(Search.andType(type));
-
-			// searchAttributes.add(Search.orExactProperty(TestOne.Key.aLong, "10"));
-			Result<AbstractNode> result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes);
+			Result result = app.nodeQuery(type).getResult();
 
 			assertEquals(number, result.size());
 
-			PropertyKey sortKey = key;
-			boolean sortDesc    = false;
-			int pageSize        = 20;
+			PropertyKey sortKey = TestOne.aDate;
+			boolean sortDesc    = true;
+			int pageSize        = 10;
 			int page            = 1;
 
-			result = searchNodeCommand.execute(includeDeletedAndHidden, publicOnly, searchAttributes, sortKey, sortDesc, pageSize, page, null);//, SortField.LONG);
-
-			for (AbstractNode obj : result.getResults()) {
-
-				System.out.println(obj.getProperty(AbstractNode.name) + ": " + obj.getProperty(key));
-			}
+			result = app.nodeQuery(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getResult();
 
 			logger.log(Level.INFO, "Raw result size: {0}, expected: {1}", new Object[] { result.getRawResultCount(), number });
 			assertTrue(result.getRawResultCount() == number);
 			logger.log(Level.INFO, "Result size: {0}, expected: {1}", new Object[] { result.size(), pageSize });
+			assertTrue(result.size() == Math.min(number, pageSize));
 
-			if (result.size() >= pageSize) {
+			for (int j = 0; j < Math.min(result.size(), pageSize); j++) {
 
-				assertTrue(result.size() == pageSize);
-			}
+				String expectedName = "TestOne-" + (30 - (j+1)*2);
+				String gotName     = result.get(j).getProperty(AbstractNode.name);
 
-			for (int j = 0; j < pageSize; j++) {
-
-				long expectedNumber = offset + j;
-				long gotNumber      = (Long) result.get(j).getProperty(key);
-
-				System.out.println("expected: " + expectedNumber + ", got: " + gotNumber);
-				assertEquals(expectedNumber, gotNumber);
+				System.out.println(j + ": " +  expectedName + ", got: " + gotName);
+				assertEquals(expectedName, gotName);
 
 			}
 

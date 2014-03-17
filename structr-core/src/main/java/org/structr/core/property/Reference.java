@@ -1,33 +1,35 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core.property;
 
 import java.util.List;
-import java.util.Set;
+import javax.servlet.http.HttpServletRequest;
+import org.apache.lucene.search.BooleanClause.Occur;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
+import org.structr.core.app.Query;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.graph.NodeService;
 import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.SearchOperator;
 
 /**
  * Contains information about a related node property. This class can be used together
@@ -67,13 +69,13 @@ public class Reference<T> implements PropertyKey<T> {
 			switch (referenceType) {
 
 				case StartNode:
-					return relationship.getStartNode();
+					return relationship.getSourceNode();
 
 				case Relationship:
 					return relationship;
 
 				case EndNode:
-					return relationship.getEndNode();
+					return relationship.getTargetNode();
 			}
 		}
 		
@@ -92,6 +94,16 @@ public class Reference<T> implements PropertyKey<T> {
 	}
 	
 	@Override
+	public void dbName(String dbName) {
+		propertyKey.dbName(dbName);
+	}
+
+	@Override
+	public void jsonName(String jsonName) {
+		propertyKey.jsonName(jsonName);
+	}
+	
+	@Override
 	public String typeName() {
 		return propertyKey.typeName();
 	}
@@ -99,6 +111,11 @@ public class Reference<T> implements PropertyKey<T> {
 	@Override
 	public T defaultValue() {
 		return propertyKey.defaultValue();
+	}
+
+	@Override
+	public Integer getSortType() {
+		return propertyKey.getSortType();
 	}
 
 	@Override
@@ -122,18 +139,38 @@ public class Reference<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public boolean isSystemProperty() {
-		return propertyKey.isSystemProperty();
+	public boolean isUnvalidated() {
+		return propertyKey.isUnvalidated();
 	}
 
 	@Override
-	public boolean isReadOnlyProperty() {
-		return propertyKey.isReadOnlyProperty();
+	public boolean isReadOnly() {
+		return propertyKey.isReadOnly();
 	}
 
 	@Override
-	public boolean isWriteOnceProperty() {
-		return propertyKey.isWriteOnceProperty();
+	public boolean isWriteOnce() {
+		return propertyKey.isWriteOnce();
+	}
+
+	@Override
+	public boolean isIndexed() {
+		return propertyKey.isIndexed();
+	}
+
+	@Override
+	public boolean isPassivelyIndexed() {
+		return propertyKey.isPassivelyIndexed();
+	}
+
+	@Override
+	public boolean isSearchable() {
+		return propertyKey.isSearchable();
+	}
+
+	@Override
+	public boolean isIndexedWhenEmpty() {
+		return propertyKey.isIndexedWhenEmpty();
 	}
 
 	@Override
@@ -142,7 +179,7 @@ public class Reference<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public void setDeclaringClass(Class<? extends GraphObject> declaringClass) {
+	public void setDeclaringClass(Class declaringClass) {
 	}
 	
 	@Override
@@ -152,6 +189,11 @@ public class Reference<T> implements PropertyKey<T> {
 
 	@Override
 	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+		return getProperty(securityContext, obj, applyConverter, null);
+	}
+
+	@Override
+	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final org.neo4j.helpers.Predicate<GraphObject> predicate) {
 		return propertyKey.getProperty(securityContext, obj, applyConverter);
 	}
 
@@ -161,18 +203,8 @@ public class Reference<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(SearchOperator op, T searchValue, boolean exactMatch) {
-		return propertyKey.getSearchAttribute(op, searchValue, exactMatch);
-	}
-
-	@Override
-	public Object getSearchValue(T source) {
-		return propertyKey.getSearchValue(source);
-	}
-
-	@Override
-	public void registerSearchableProperties(Set<PropertyKey> searchableProperties) {
-		propertyKey.registerSearchableProperties(searchableProperties);
+	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occur occur, T searchValue, boolean exactMatch, final Query query) {
+		return propertyKey.getSearchAttribute(securityContext, occur, searchValue, exactMatch, query);
 	}
 
 	@Override
@@ -187,5 +219,70 @@ public class Reference<T> implements PropertyKey<T> {
 	@Override
 	public List<PropertyValidator<T>> getValidators() {
 		return propertyKey.getValidators();
+	}
+	
+	@Override
+	public boolean requiresSynchronization() {
+		return false;
+	}
+	
+	@Override
+	public String getSynchronizationKey() {
+		return null;
+	}
+
+	@Override
+	public void index(GraphObject entity, Object value) {
+		propertyKey.index(entity, value);
+	}
+
+	@Override
+	public void extractSearchableAttribute(SecurityContext securityContext, HttpServletRequest request, final Query query) throws FrameworkException {
+		propertyKey.extractSearchableAttribute(securityContext, request, query);
+	}
+
+	@Override
+	public T convertSearchValue(SecurityContext securityContext, String requestParameter) throws FrameworkException {
+		return propertyKey.convertSearchValue(securityContext, requestParameter);
+	}
+
+	@Override
+	public Property<T> indexed() {
+		return propertyKey.indexed();
+	}
+
+	@Override
+	public Property<T> indexed(NodeService.NodeIndex nodeIndex) {
+		return propertyKey.indexed(nodeIndex);
+	}
+
+	@Override
+	public Property<T> indexed(NodeService.RelationshipIndex relIndex) {
+		return propertyKey.indexed(relIndex);
+	}
+
+	@Override
+	public Property<T> passivelyIndexed() {
+		return propertyKey.passivelyIndexed();
+	}
+
+	@Override
+	public Property<T> passivelyIndexed(NodeService.NodeIndex nodeIndex) {
+		return propertyKey.passivelyIndexed(nodeIndex);
+	}
+
+	@Override
+	public Property<T> passivelyIndexed(NodeService.RelationshipIndex relIndex) {
+		return propertyKey.passivelyIndexed(relIndex);
+	}
+
+	@Override
+	public Property<T> indexedWhenEmpty() {
+		return propertyKey.indexedWhenEmpty();
+	}
+
+	@Override
+	public int getProcessingOrderPosition() {
+		return 0;
 	}
 }

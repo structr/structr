@@ -1,26 +1,27 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core.entity;
 
-import org.structr.core.TestRelType;
-import org.structr.core.property.CollectionProperty;
-import org.structr.core.property.EntityProperty;
+import java.util.List;
+import org.structr.core.property.EndNodes;
+import org.structr.core.property.Property;
+import org.structr.core.property.EndNode;
 
 /**
  *
@@ -28,9 +29,15 @@ import org.structr.core.property.EntityProperty;
  */
 public class TestSix extends AbstractNode {
 	
-	public static final CollectionProperty<TestOne> manyToManyTestOnes = new CollectionProperty<TestOne>("manyToManyTestOnes", TestOne.class, TestRelType.MANY_TO_MANY, false);
-	public static final CollectionProperty<TestOne> oneToManyTestOnes  = new CollectionProperty<TestOne>("oneToManyTestOnes",  TestOne.class, TestRelType.ONE_TO_MANY,  true);
+	public static final Property<List<TestOne>>   manyToManyTestOnes                   = new EndNodes<>("manyToManyTestOnes", SixOneManyToMany.class);
+	public static final Property<List<TestOne>>   oneToManyTestOnes                    = new EndNodes<>("oneToManyTestOnes",  SixOneOneToMany.class);
+	                 
+	public static final Property<TestThree>       oneToOneTestThree                    = new EndNode<>("oneToOneTestThree",    SixThreeOneToOne.class);
+	public static final Property<List<TestThree>> oneToManyTestThrees                  = new EndNodes<>("oneToManyTestThrees", SixThreeOneToMany.class);
+	      
+	public static final Property<List<TestThree>> oneToManyTestThreesCascadeOut        = new EndNodes<>("oneToManyTestThreesCascadeOut",       SixThreeOneToManyCascadeOutgoing.class);
+	public static final Property<List<TestThree>> oneToManyTestThreesCascadeIn         = new EndNodes<>("oneToManyTestThreesCascadeIn",        SixThreeOneToManyCascadeIncoming.class);
+	public static final Property<List<TestThree>> oneToManyTestThreesCascadeBoth       = new EndNodes<>("oneToManyTestThreesCascadeBoth",      SixThreeOneToManyCascadeBoth.class);
 	
-	public static final EntityProperty<TestThree>   oneToOneTestThree  = new EntityProperty<TestThree>("oneToOneTestThree",  TestThree.class, TestRelType.ONE_TO_ONE,  false);
-	public static final EntityProperty<TestThree>   manyToOneTestThree = new EntityProperty<TestThree>("manyToOneTestThree", TestThree.class, TestRelType.MANY_TO_ONE, true);
+	public static final Property<List<TestNine>>  oneToManyTestNinesCascadeConstraint  = new EndNodes<>("oneToManyTestNinesCascadeConstraint", SixNineOneToManyCascadeConstraint.class);
 }

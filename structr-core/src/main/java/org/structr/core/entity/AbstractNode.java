@@ -1,30 +1,27 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
 package org.structr.core.entity;
 
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.BooleanProperty;
-import org.structr.core.graph.SetOwnerCommand;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
 
@@ -33,26 +30,17 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
 
 import org.structr.common.*;
-import org.structr.common.AccessControllable;
 import org.structr.common.GraphObjectComparator;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.PropertyView;
-import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
-import org.structr.common.UuidCreationTransformation;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.NullArgumentToken;
 import org.structr.common.error.ReadOnlyPropertyToken;
-import org.structr.core.EntityContext;
-import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.Services;
 import org.structr.core.graph.NodeRelationshipStatisticsCommand;
-import org.structr.core.graph.NodeRelationshipsCommand;
-import org.structr.core.graph.NodeService.NodeIndex;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -61,8 +49,18 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.neo4j.graphdb.PropertyContainer;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.index.Index;
+import org.structr.core.GraphObject;
+import org.structr.core.IterableAdapter;
+import org.structr.core.Ownership;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.relationship.PrincipalOwnsNode;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.NodeService;
+import org.structr.core.graph.RelationshipFactory;
 import org.structr.core.property.EntityIdProperty;
-import org.structr.core.property.EntityProperty;
+import org.structr.core.property.StartNode;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -72,48 +70,33 @@ import org.structr.core.property.EntityProperty;
  * @author Axel Morgner
  * @author Christian Morgner
  */
-public abstract class AbstractNode implements GraphObject, Comparable<AbstractNode>, AccessControllable {
+public abstract class AbstractNode implements NodeInterface, AccessControllable {
 
 	private static final Logger logger = Logger.getLogger(AbstractNode.class.getName());
 
 	// properties
-	public static final Property<String>          name                        = new StringProperty("name");
-	public static final Property<String>          createdBy                   = new StringProperty("createdBy").systemProperty().readOnly().writeOnce();
-	public static final Property<Boolean>         deleted                     = new BooleanProperty("deleted");
-	public static final Property<Boolean>         hidden                      = new BooleanProperty("hidden");
+	public static final Property<String>          name             = new StringProperty("name").indexed();
+	public static final Property<String>          createdBy        = new StringProperty("createdBy").readOnly().writeOnce();
+	public static final Property<Boolean>         deleted          = new BooleanProperty("deleted").indexed();
+	public static final Property<Boolean>         hidden           = new BooleanProperty("hidden").indexed();
+      
+	public static final Property<Principal>       owner            = new StartNode<>("owner", PrincipalOwnsNode.class);
+	public static final Property<String>          ownerId          = new EntityIdProperty("ownerId", owner);
 
-	public static final EntityProperty<Principal> owner                       = new EntityProperty<Principal>("owner", Principal.class, RelType.OWNS, Direction.INCOMING, true);
-	public static final Property<String>          ownerId                     = new EntityIdProperty("ownerId", owner);
-
-	public static final View defaultView = new View(AbstractNode.class, PropertyView.Public, uuid, type);
+	public static final View defaultView = new View(AbstractNode.class, PropertyView.Public, id, type);
 	
 	public static final View uiView = new View(AbstractNode.class, PropertyView.Ui,
-		uuid, name, owner, type, createdBy, deleted, hidden, createdDate, lastModifiedDate, visibleToPublicUsers, visibleToAuthenticatedUsers, visibilityStartDate, visibilityEndDate
+		id, name, owner, type, createdBy, deleted, hidden, createdDate, lastModifiedDate, visibleToPublicUsers, visibleToAuthenticatedUsers, visibilityStartDate, visibilityEndDate
 	);
 	
-	//~--- static initializers --------------------------------------------
-
-	static {
-
-		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.fulltext.name(), name, type, createdDate, lastModifiedDate, hidden, deleted);
-		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.keyword.name(),  uuid, name, type, createdDate, lastModifiedDate, hidden, deleted);
-		
-		EntityContext.registerSearchablePropertySet(AbstractNode.class, NodeIndex.uuid.name(), uuid);
-
-		// register transformation for automatic uuid creation
-		EntityContext.registerEntityCreationTransformation(AbstractNode.class, new UuidCreationTransformation());
-	}
-
-	//~--- fields ---------------------------------------------------------
-
 	protected PropertyMap cachedConvertedProperties  = new PropertyMap();
 	protected PropertyMap cachedRawProperties        = new PropertyMap();
 	protected Principal cachedOwnerNode              = null;
-	protected Class entityType                      = getClass();
+	protected Class entityType                       = getClass();
 
 	// request parameters
-	protected SecurityContext securityContext                     = null;
-	private boolean readOnlyPropertiesUnlocked                    = false;
+	protected SecurityContext securityContext        = null;
+	private boolean readOnlyPropertiesUnlocked       = false;
 
 	// reference to database node
 	protected String cachedUuid = null;
@@ -130,22 +113,27 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	}
 
 	//~--- methods --------------------------------------------------------
-	
+
+	@Override
 	public void onNodeCreation() {
 	}
 
+	@Override
 	public void onNodeInstantiation() {
 	}
 	
+	@Override
 	public void onNodeDeletion() {
 	}
 	
+	@Override
 	public final void init(final SecurityContext securityContext, final Node dbNode) {
 
 		this.dbNode          = dbNode;
 		this.securityContext = securityContext;
 	}
 
+	@Override
 	public void setSecurityContext(SecurityContext securityContext) {
 		this.securityContext = securityContext;
 	}
@@ -184,7 +172,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	}
 
 	@Override
-	public int compareTo(final AbstractNode node) {
+	public int compareTo(final NodeInterface node) {
 
 		if(node == null) {
 			return -1;
@@ -226,8 +214,8 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 			String type = dbNode.hasProperty(AbstractNode.type.dbName())
 				      ? (String) dbNode.getProperty(AbstractNode.type.dbName())
 				      : "<AbstractNode>";
-			String id   = dbNode.hasProperty(AbstractNode.uuid.dbName())
-				      ? (String) dbNode.getProperty(AbstractNode.uuid.dbName())
+			String id   = dbNode.hasProperty(GraphObject.id.dbName())
+				      ? (String) dbNode.getProperty(GraphObject.id.dbName())
 				      : Long.toString(dbNode.getId());
 
 			return name + " (" + type + "," + id + ")";
@@ -244,7 +232,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * Can be used to permit the setting of a read-only
 	 * property once. The lock will be restored automatically
 	 * after the next setProperty operation. This method exists
-	 * to prevent automatic set methods from setting a scanEntity-only
+	 * to prevent automatic set methods from setting a read-only
 	 * property while allowing a manual set method to override this
 	 * default behaviour.
 	 */
@@ -269,13 +257,13 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 			}
 
 			// check for read-only properties
-			if (key.isReadOnlyProperty()) {
+			if (key.isReadOnly()) {
 
 				// allow super user to set read-only properties
 				if (readOnlyPropertiesUnlocked || securityContext.isSuperUser()) {
 
 					// permit write operation once and
-					// lock scanEntity-only properties again
+					// lock read-only properties again
 					readOnlyPropertiesUnlocked = false;
 				} else {
 
@@ -284,19 +272,10 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 			}
 
-			Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+			dbNode.removeProperty(key.dbName());
 
-				@Override
-				public Object execute() throws FrameworkException {
-
-					dbNode.removeProperty(key.dbName());
-
-					return null;
-
-				}
-
-			});
-
+			// remove from index
+			removeFromIndex(key);
 		}
 
 	}
@@ -305,16 +284,12 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	@Override
 	public PropertyKey getDefaultSortKey() {
-
-		return null;
-
+		return AbstractNode.name;
 	}
 
 	@Override
 	public String getDefaultSortOrder() {
-
 		return GraphObjectComparator.ASCENDING;
-
 	}
 
 	@Override
@@ -332,6 +307,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 *
 	 * If name is null, return node id as fallback
 	 */
+	@Override
 	public String getName() {
 		
 		String name = getProperty(AbstractNode.name);
@@ -360,7 +336,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	@Override
 	public String getUuid() {
 
-		return getProperty(AbstractNode.uuid);
+		return getProperty(GraphObject.id);
 
 	}
 
@@ -420,7 +396,25 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 */
 	@Override
 	public Iterable<PropertyKey> getPropertyKeys(final String propertyView) {
-		return EntityContext.getPropertySet(this.getClass(), propertyView);
+		
+		// check for custom view in content-type field
+		if (securityContext != null && securityContext.hasCustomView()) {
+			
+			final Set<PropertyKey> keys  = new LinkedHashSet<>(StructrApp.getConfiguration().getPropertySet(entityType, propertyView));
+			final Set<String> customView = securityContext.getCustomView();
+			
+			for (Iterator<PropertyKey> it = keys.iterator(); it.hasNext();) {
+				if (!customView.contains(it.next().jsonName())) {
+					
+					it.remove();
+				}
+			}
+			
+			return keys;
+		}
+		
+		// this is the default if no application/json; properties=[...] content-type header is present on the request
+		return StructrApp.getConfiguration().getPropertySet(entityType, propertyView);
 	}
 
 	/**
@@ -434,17 +428,13 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 */
 	@Override
 	public Object getPropertyForIndexing(final PropertyKey key) {
-
-		Object rawValue = getProperty(key, false);
 		
-		if (rawValue != null) {
-			
-			return rawValue;
-			
+		Object value = getProperty(key, false, null);
+		if (value != null) {
+			return value;
 		}
 		
 		return getProperty(key);
-
 	}
 
 	/**
@@ -456,17 +446,22 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 */
 	@Override
 	public <T> T getProperty(final PropertyKey<T> key) {
-		return getProperty(key, true);
+		return getProperty(key, true, null);
+	}
+
+	@Override
+	public <T> T getProperty(final PropertyKey<T> key, final org.neo4j.helpers.Predicate<GraphObject> predicate) {
+		return getProperty(key, true, predicate);
 	}
 	
-	private <T> T getProperty(final PropertyKey<T> key, boolean applyConverter) {
+	private <T> T getProperty(final PropertyKey<T> key, boolean applyConverter, final org.neo4j.helpers.Predicate<GraphObject> predicate) {
 
 		// early null check, this should not happen...
 		if (key == null || key.dbName() == null) {
 			return null;
 		}
 		
-		return key.getProperty(securityContext, this, applyConverter);
+		return key.getProperty(securityContext, this, applyConverter, predicate);
 	}
 
 	public String getPropertyMD5(final PropertyKey key) {
@@ -497,7 +492,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	public List<String> getStringListProperty(final PropertyKey<List<String>> key) {
 
 		Object propertyValue = getProperty(key);
-		List<String> result  = new LinkedList<String>();
+		List<String> result  = new LinkedList<>();
 
 		if (propertyValue == null) {
 
@@ -562,37 +557,40 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * @return the property value for the given key as a Comparable
 	 */
 	@Override
-	public Comparable getComparableProperty(final PropertyKey<? extends Comparable> key) {
+	public <T> Comparable getComparableProperty(final PropertyKey<T> key) {
 
-		Object propertyValue = getProperty(key);
-		
-		// check property converter
-		PropertyConverter converter = key.databaseConverter(securityContext, this);
-		if (converter != null) {
+		if (key != null) {
+			
+			final T propertyValue = getProperty(key);
 
-			try {
-				return converter.convertForSorting(propertyValue);
+			// check property converter
+			PropertyConverter<T, ?> converter = key.databaseConverter(securityContext, this);
+			if (converter != null) {
 
-			} catch(Throwable t) {
-				
-				t.printStackTrace();
-				
-				logger.log(Level.WARNING, "Unable to convert property {0} of type {1}: {2}", new Object[] {
-					key.dbName(),
-					getClass().getSimpleName(),
-					t.getMessage()
-				});
+				try {
+					return converter.convertForSorting(propertyValue);
+
+				} catch(Throwable t) {
+
+					t.printStackTrace();
+
+					logger.log(Level.WARNING, "Unable to convert property {0} of type {1}: {2}", new Object[] {
+						key.dbName(),
+						getClass().getSimpleName(),
+						t.getMessage()
+					});
+				}
 			}
-		}
-		
-		// conversion failed, may the property value itself is comparable
-		if(propertyValue instanceof Comparable) {
-			return (Comparable)propertyValue;
-		}
-		
-		// last try: convertFromInput to String to make comparable
-		if(propertyValue != null) {
-			return propertyValue.toString();
+
+			// conversion failed, may the property value itself is comparable
+			if(propertyValue instanceof Comparable) {
+				return (Comparable)propertyValue;
+			}
+
+			// last try: convertFromInput to String to make comparable
+			if(propertyValue != null) {
+				return propertyValue.toString();
+			}
 		}
 		
 		return null;
@@ -610,33 +608,13 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	/**
 	 * Returns a list of related nodes for which a modification propagation is configured
-	 * via the relationship.
+	 * via the relationship. Override this method to return a set of nodes that should
+	 * receive propagated modifications.
 	 * 
-	 * @return a list of nodes to which modifications should be propagated
+	 * @return a set of nodes to which modifications should be propagated
 	 */
 	public Set<AbstractNode> getNodesForModificationPropagation() {
-		
-		Set<AbstractNode> propagationNodes = new LinkedHashSet<AbstractNode>();
-		
-		// iterate over incoming relationships
-		for (AbstractRelationship rel : getIncomingRelationships()) {
-			
-			if (rel.propagatesModifications(Direction.INCOMING)) {
-				
-				propagationNodes.add(rel.getStartNode());
-			}
-		}
-		
-		// iterate over outgoing relationships
-		for (AbstractRelationship rel : getOutgoingRelationships()) {
-			
-			if (rel.propagatesModifications(Direction.OUTGOING)) {
-				
-				propagationNodes.add(rel.getEndNode());
-			}
-		}
-		
-		return propagationNodes;
+		return null;
 	}
 
 	/**
@@ -644,6 +622,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 *
 	 * @return the database node
 	 */
+	@Override
 	public Node getNode() {
 
 		return dbNode;
@@ -658,18 +637,18 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * @return incoming security relationship
 	 */
 	@Override
-	public SecurityRelationship getSecurityRelationship(final Principal p) {
+	public Security getSecurityRelationship(final Principal p) {
 
 		if (p == null) {
 
 			return null;
 		}
-
-		for (AbstractRelationship r : getRelationships(RelType.SECURITY, Direction.INCOMING)) {
+		
+		for (Security r : getIncomingRelationships(Security.class)) {
 			
-			if (r.getStartNode().equals(p)) {
+			if (r.getSourceNode().equals(p)) {
 				
-				return (SecurityRelationship) r;
+				return r;
 				
 			}
 		}
@@ -678,25 +657,76 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	}
 
-	/**
-	 * Return all relationships of given type and direction
-	 *
-	 * @return list with relationships
-	 */
-	public List<AbstractRelationship> getRelationships(RelationshipType type, Direction dir) {
+	@Override
+	public <R extends AbstractRelationship> Iterable<R> getRelationships() {
+		return new IterableAdapter<>(dbNode.getRelationships(), new RelationshipFactory<R>(securityContext));
+	}
 
-		try {
+	@Override
+	public <A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> Iterable<R> getRelationships(final Class<R> type) {
+		
+		final RelationshipFactory<R> factory = new RelationshipFactory<>(securityContext);
+		final R template                     = getRelationshipForType(type);
+		final Direction direction            = template.getDirectionForType(entityType);
+		final RelationshipType relType       = template;
 
-			return (List<AbstractRelationship>) Services.command(securityContext, NodeRelationshipsCommand.class).execute(this, type, dir);
-
-		} catch (FrameworkException fex) {
-
-			logger.log(Level.WARNING, "Unable to get relationships", fex);
-
+		return new IterableAdapter<>(dbNode.getRelationships(relType, direction), factory);
+	}
+	
+	@Override
+	public <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, OneStartpoint<A>, T>> R getIncomingRelationship(final Class<R> type) {
+		
+		final RelationshipFactory<R> factory = new RelationshipFactory<>(securityContext);
+		final R template                     = getRelationshipForType(type);
+		final Relationship relationship      = template.getSource().getRawSource(securityContext, dbNode, null);
+		
+		if (relationship != null) {
+			return factory.adapt(relationship);
 		}
-
+		
 		return null;
-
+	}
+	
+	@Override
+	public <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, ManyStartpoint<A>, T>> Iterable<R> getIncomingRelationships(final Class<R> type) {
+		
+		final RelationshipFactory<R> factory = new RelationshipFactory<>(securityContext);
+		final R template                     = getRelationshipForType(type);
+		
+		return new IterableAdapter<>(template.getSource().getRawSource(securityContext, dbNode, null), factory);
+	}
+	
+	@Override
+	public <A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, OneEndpoint<B>>> R getOutgoingRelationship(final Class<R> type) {
+		
+		final RelationshipFactory<R> factory = new RelationshipFactory<>(securityContext);
+		final R template                     = getRelationshipForType(type);
+		final Relationship relationship      = template.getTarget().getRawSource(securityContext, dbNode, null);
+		
+		if (relationship != null) {
+			return factory.adapt(relationship);
+		}
+		
+		return null;
+	}
+	
+	@Override
+	public <A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, ManyEndpoint<B>>> Iterable<R> getOutgoingRelationships(final Class<R> type) {
+		
+		final RelationshipFactory<R> factory = new RelationshipFactory<>(securityContext);
+		final R template                     = getRelationshipForType(type);
+		
+		return new IterableAdapter<>(template.getTarget().getRawSource(securityContext, dbNode, null), factory);
+	}
+	
+	@Override
+	public <R extends AbstractRelationship> Iterable<R> getIncomingRelationships() {
+		return new IterableAdapter<>(dbNode.getRelationships(Direction.INCOMING), new RelationshipFactory<R>(securityContext));
+	}
+	
+	@Override
+	public <R extends AbstractRelationship> Iterable<R> getOutgoingRelationships() {
+		return new IterableAdapter<>(dbNode.getRelationships(Direction.OUTGOING), new RelationshipFactory<R>(securityContext));
 	}
 
 	/**
@@ -704,86 +734,8 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 *
 	 * @return number of relationships
 	 */
-	public Map<RelationshipType, Long> getRelationshipInfo(Direction dir) {
-
-		try {
-
-			return (Map<RelationshipType, Long>) Services.command(securityContext, NodeRelationshipStatisticsCommand.class).execute(this, dir);
-
-		} catch (FrameworkException fex) {
-
-			logger.log(Level.WARNING, "Unable to get relationship info", fex);
-
-		}
-
-		return null;
-
-	}
-
-	/**
-	 * Convenience method to get all relationships of this node
-	 *
-	 * @return
-	 */
-	public List<AbstractRelationship> getRelationships() {
-
-		return getRelationships(null, Direction.BOTH);
-
-	}
-
-	/**
-	 * Convenience method to get all relationships of this node of given direction
-	 *
-	 * @return
-	 */
-	public List<AbstractRelationship> getRelationships(final Direction dir) {
-
-		return getRelationships(null, dir);
-
-	}
-
-	/**
-	 * Convenience method to get all incoming relationships of this node
-	 *
-	 * @return
-	 */
-	public List<AbstractRelationship> getIncomingRelationships() {
-
-		return getRelationships(null, Direction.INCOMING);
-
-	}
-
-	/**
-	 * Convenience method to get all outgoing relationships of this node
-	 *
-	 * @return
-	 */
-	public List<AbstractRelationship> getOutgoingRelationships() {
-
-		return getRelationships(null, Direction.OUTGOING);
-
-	}
-
-	/**
-	 * Convenience method to get all incoming relationships of this node of given type
-	 *
-	 * @return
-	 */
-	public List<AbstractRelationship> getIncomingRelationships(final RelationshipType type) {
-
-		return getRelationships(type, Direction.INCOMING);
-
-	}
-	
-	/**
-	 * Convenience method to get all outgoing relationships of this node of given type
-	 *
-	 * @return
-	 */
-	public List<AbstractRelationship> getOutgoingRelationships(final RelationshipType type) {
-
-		return getRelationships(type, Direction.OUTGOING);
-
+	public Map<RelationshipType, Long> getRelationshipInfo(Direction dir) throws FrameworkException {
+		return StructrApp.getInstance(securityContext).command(NodeRelationshipStatisticsCommand.class).execute(this, dir);
 	}
 
 	/**
@@ -796,33 +748,15 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 		if (cachedOwnerNode == null) {
 
-			for (AbstractRelationship s : getRelationships(RelType.OWNS, Direction.INCOMING)) {
-
-				AbstractNode n = s.getStartNode();
+			final Ownership ownership = getIncomingRelationship(PrincipalOwnsNode.class);
+			if (ownership != null) {
 				
-				if (n == null) {
-					
-					logger.log(Level.WARNING, "Could not determine owner node!");
-					
-					return null;
-				}
-
-				if (n instanceof Principal) {
-
-					cachedOwnerNode = (Principal) n;
-
-					break;
-
-				}
-
-				logger.log(Level.SEVERE, "Owner node is not a user: {0}[{1}]", new Object[] { n.getName(), n.getId() });
-
+				Principal principal = ownership.getSourceNode();
+				cachedOwnerNode = (Principal) principal;
 			}
-
 		}
 
 		return cachedOwnerNode;
-
 	}
 
 	/**
@@ -840,15 +774,15 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * Return a list with the connected principals (user, group, role)
 	 * @return
 	 */
-	public List<AbstractNode> getSecurityPrincipals() {
+	public List<Principal> getSecurityPrincipals() {
 
-		List<AbstractNode> principalList = new LinkedList<AbstractNode>();
+		List<Principal> principalList = new LinkedList<>();
 
 		// check any security relationships
-		for (AbstractRelationship r : getRelationships(RelType.SECURITY, Direction.INCOMING)) {
+		for (Security r : getIncomingRelationships(Security.class)) {
 
 			// check security properties
-			AbstractNode principalNode = r.getEndNode();
+			Principal principalNode = r.getSourceNode();
 
 			principalList.add(principalNode);
 		}
@@ -864,12 +798,16 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	 * @param dir
 	 * @return
 	 */
-	public boolean hasRelationship(final RelationshipType type, final Direction dir) {
+	public <A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target> boolean hasRelationship(final Class<? extends Relation<A, B, S, T>> type) {
+		return this.getRelationships(type).iterator().hasNext();
+	}
 
-		List<AbstractRelationship> rels = this.getRelationships(type, dir);
+	public <A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> boolean hasIncomingRelationships(final Class<R> type) {
+		return getRelationshipForType(type).getSource().hasElements(securityContext, dbNode, null);
+	}
 
-		return ((rels != null) && !(rels.isEmpty()));
-
+	public <A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> boolean hasOutgoingRelationships(final Class<R> type) {
+		return getRelationshipForType(type).getTarget().hasElements(securityContext, dbNode, null);
 	}
 
 	// ----- interface AccessControllable -----
@@ -899,7 +837,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 			return true;
 		}
 
-		SecurityRelationship r = getSecurityRelationship(principal);
+		Security r = getSecurityRelationship(principal);
 
 		if ((r != null) && r.isAllowed(permission)) {
 
@@ -921,17 +859,17 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	}
 
 	@Override
-	public boolean beforeCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 		return isValid(errorBuffer);
 	}
 
 	@Override
-	public boolean beforeModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 		return isValid(errorBuffer);
 	}
 
 	@Override
-	public boolean beforeDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
+	public boolean onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
 		return true;
 	}
 	
@@ -944,7 +882,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	}
 
 	@Override
-	public void afterDeletion(SecurityContext securityContext) {
+	public void afterDeletion(SecurityContext securityContext, PropertyMap properties) {
 	}
 
 	@Override
@@ -962,12 +900,13 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	@Override
 	public void propagatedModification(SecurityContext securityContext) {
 	}
-	
+
+	@Override
 	public boolean isValid(ErrorBuffer errorBuffer) {
 
 		boolean error = false;
 
-		error |= ValidationHelper.checkStringNotBlank(this, uuid, errorBuffer);
+		error |= ValidationHelper.checkStringNotBlank(this, id, errorBuffer);
 		error |= ValidationHelper.checkStringNotBlank(this, type, errorBuffer);
 
 		return !error;
@@ -1029,6 +968,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 
 	}
 
+	@Override
 	public boolean isDeleted() {
 
 		return getDeleted();
@@ -1053,67 +993,6 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	}
 
 	//~--- set methods ----------------------------------------------------
-
-	public void setCreatedBy(final String createdBy) throws FrameworkException {
-
-		setProperty(AbstractNode.createdBy, createdBy);
-
-	}
-
-	public void setCreatedDate(final Date date) throws FrameworkException {
-
-		setProperty(AbstractNode.createdDate, date);
-
-	}
-
-	public void setVisibilityStartDate(final Date date) throws FrameworkException {
-
-		setProperty(AbstractNode.visibilityStartDate, date);
-
-	}
-
-	public void setVisibilityEndDate(final Date date) throws FrameworkException {
-
-		setProperty(AbstractNode.visibilityEndDate, date);
-
-	}
-
-	public void setVisibleToPublicUsers(final boolean publicFlag) throws FrameworkException {
-
-		setProperty(AbstractNode.visibleToPublicUsers, publicFlag);
-
-	}
-
-	public void setVisibleToAuthenticatedUsers(final boolean flag) throws FrameworkException {
-
-		setProperty(AbstractNode.visibleToAuthenticatedUsers, flag);
-
-	}
-
-//
-	public void setHidden(final boolean hidden) throws FrameworkException {
-
-		setProperty(AbstractNode.hidden, hidden);
-
-	}
-
-	public void setDeleted(final boolean deleted) throws FrameworkException {
-
-		setProperty(AbstractNode.deleted, deleted);
-
-	}
-
-	public void setType(final String type) throws FrameworkException {
-
-		setProperty(AbstractNode.type, type);
-
-	}
-
-	public void setName(final String name) throws FrameworkException {
-
-		setProperty(AbstractNode.name, name);
-
-	}
 
 	/**
 	 * Split String value and set as String[] property in database backend
@@ -1149,11 +1028,9 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 	}
 
 	/**
-	 * Set a property in database backend
-	 *
-	 * Set property only if value has changed
-	 *
-	 * Update index only if updateIndex is true
+	 * Set a property in database backend. This method needs to be wrappend into
+	 * a StructrTransaction, otherwise Neo4j will throw a NotInTransactionException!
+	 * Set property only if value has changed.
 	 *
 	 * @param key
 	 * @param convertedValue
@@ -1186,7 +1063,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		}
 
 	}
-
+	
 	private <T> void setPropertyInternal(final PropertyKey<T> key, final T value) throws FrameworkException {
 
 		if (key == null) {
@@ -1198,7 +1075,7 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		}
 		
 		// check for read-only properties
-		if (key.isReadOnlyProperty() || (key.isWriteOnceProperty() && (dbNode != null) && dbNode.hasProperty(key.dbName()))) {
+		if (key.isReadOnly() || (key.isWriteOnce() && (dbNode != null) && dbNode.hasProperty(key.dbName()))) {
 
 			if (readOnlyPropertiesUnlocked || securityContext.isSuperUser()) {
 
@@ -1216,17 +1093,75 @@ public abstract class AbstractNode implements GraphObject, Comparable<AbstractNo
 		key.setProperty(securityContext, this, value);
 	}
 
-	public void setOwner(final AbstractNode owner) {
+	@Override
+	public void addToIndex() {
 
-		try {
-
-			Services.command(securityContext, SetOwnerCommand.class).execute(this, owner);
-
-		} catch (FrameworkException fex) {
-
-			logger.log(Level.WARNING, "Unable to set owner node", fex);
-
+		for (PropertyKey key : StructrApp.getConfiguration().getPropertySet(entityType, PropertyView.All)) {
+			
+			if (key.isIndexed()) {
+				
+				key.index(this, this.getPropertyForIndexing(key));
+			}
 		}
+	}
+	
+	@Override
+	public void updateInIndex() {
+		
+		removeFromIndex();
+		addToIndex();
+	}
+	
+	@Override
+	public void removeFromIndex() {
+		
+		for (Index<Node> index : Services.getInstance().getService(NodeService.class).getNodeIndices()) {
+			
+			synchronized (index) {
+				
+				index.remove(dbNode);
+			}
+		}
+	}
+	
+	public void removeFromIndex(PropertyKey key) {
+		
+		for (Index<Node> index : Services.getInstance().getService(NodeService.class).getNodeIndices()) {
+			
+			synchronized (index) {
+				
+				index.remove(dbNode, key.dbName());
+			}
+		}
+	}
+	
+	@Override
+	public void indexPassiveProperties() {
+		
+		for (PropertyKey key : StructrApp.getConfiguration().getPropertySet(entityType, PropertyView.All)) {
+			
+			if (key.isPassivelyIndexed()) {
+				
+				key.index(this, this.getPropertyForIndexing(key));
+			}
+		}
+	}
+	
+	public static <A extends NodeInterface, B extends NodeInterface, R extends Relation<A, B, ?, ?>> R getRelationshipForType(final Class<R> type) {
+		
+		try {
+			
+			return type.newInstance();
+			
+		} catch (Throwable t) {
 
+			// TODO: throw meaningful exception here,
+			// should be a RuntimeException that indicates
+			// wrong use of Relationships etc.
+			
+			t.printStackTrace();
+		}
+		
+		return null;
 	}
 }

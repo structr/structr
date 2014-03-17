@@ -1,23 +1,21 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
 package org.structr.core.graph;
 
 import org.neo4j.cypher.javacompat.ExecutionEngine;
@@ -27,15 +25,16 @@ import org.neo4j.graphdb.Relationship;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.logging.Logger;
+import org.structr.core.GraphObjectMap;
+import org.structr.core.property.GenericProperty;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -67,12 +66,11 @@ public class CypherQueryCommand extends NodeServiceCommand {
 	
 	public List<GraphObject> execute(String query, Map<String, Object> parameters, boolean includeHiddenAndDeleted, boolean publicOnly) throws FrameworkException {
 
-		RelationshipFactory relFactory  = (RelationshipFactory) arguments.get("relationshipFactory");
 		ExecutionEngine     engine      = (ExecutionEngine) arguments.get("cypherExecutionEngine");
-		//GraphDatabaseService graphDb    = (GraphDatabaseService) arguments.get("graphDb");
+		RelationshipFactory relFactory  = new RelationshipFactory(securityContext);
 		NodeFactory nodeFactory         = new NodeFactory(securityContext);
 
-		List<GraphObject> resultList = new LinkedList<GraphObject>();
+		List<GraphObject> resultList = new LinkedList<>();
 		ExecutionResult result       = null;
 
 		if (parameters != null) {
@@ -86,26 +84,40 @@ public class CypherQueryCommand extends NodeServiceCommand {
 
 		for (Map<String, Object> row : result) {
 
-			for (Object o : row.values()) {
+			GraphObjectMap dummyObject = null;
+			
+			for (Entry<String, Object> entry : row.entrySet()) {
+				
+				String key   = entry.getKey();
+				Object value = entry.getValue();
+			
+				if (value instanceof Node) {
 
-				if (o instanceof Node) {
-
-					AbstractNode node = nodeFactory.instantiateNode((Node) o, includeHiddenAndDeleted, publicOnly);
+					NodeInterface node = nodeFactory.instantiate((Node) value, includeHiddenAndDeleted, publicOnly);
 
 					if (node != null) {
 
 						resultList.add(node);
 					}
 
-				} else if (o instanceof Relationship) {
+				} else if (value instanceof Relationship) {
 
-					AbstractRelationship rel = relFactory.instantiateRelationship(securityContext, (Relationship) o);
+					RelationshipInterface rel = relFactory.instantiate((Relationship) value);
 
 					if (rel != null) {
 
 						resultList.add(rel);
 					}
 
+				} else {
+					
+					if (dummyObject == null) {
+						
+						dummyObject = new GraphObjectMap();
+						resultList.add(dummyObject);
+					}
+						
+					dummyObject.setProperty(new GenericProperty(key), value);
 				}
 
 			}

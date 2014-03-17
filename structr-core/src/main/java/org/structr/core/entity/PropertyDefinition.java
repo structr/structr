@@ -1,45 +1,53 @@
+/**
+ * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package org.structr.core.entity;
 
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.DynamicRelationshipType;
-import org.neo4j.graphdb.RelationshipType;
+import javax.servlet.http.HttpServletRequest;
+import org.apache.lucene.search.BooleanClause.Occur;
+import org.neo4j.helpers.Predicate;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.ValidationHelper;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
-import org.structr.core.Result;
-import org.structr.core.Services;
+import org.structr.core.app.Query;
+import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.experimental.NodeExtender;
-import org.structr.core.graph.NodeService.NodeIndex;
-import org.structr.core.graph.search.Search;
+import org.structr.core.graph.NodeService;
 import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.SearchNodeCommand;
-import org.structr.core.graph.search.SearchOperator;
-import org.structr.core.notion.Notion;
-import org.structr.core.notion.PropertySetNotion;
-import org.structr.core.property.AbstractRelationProperty;
 import org.structr.core.property.BooleanProperty;
-import org.structr.core.property.CollectionProperty;
 import org.structr.core.property.DoubleProperty;
-import org.structr.core.property.EntityProperty;
 import org.structr.core.property.ISO8601DateProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 
 /**
@@ -47,38 +55,45 @@ import org.structr.core.property.StringProperty;
  * @author Christian Morgner
  */
 
-public class PropertyDefinition extends AbstractNode implements PropertyKey {
+public class PropertyDefinition<T> extends AbstractNode implements PropertyKey<T> {
 	
 	private static final Logger logger = Logger.getLogger(PropertyDefinition.class.getName());
 
-	public static final NodeExtender nodeExtender = new NodeExtender(GenericNode.class, "org.structr.core.entity.dynamic");
+	// public static final NodeExtender nodeExtender = new NodeExtender(GenericNode.class, "org.structr.core.entity.dynamic");
 	
-	public static final Property<String>               validationExpression   = new StringProperty("validationExpression");
-	public static final Property<String>               validationErrorMessage = new StringProperty("validationErrorMessage");
-	public static final Property<String>               kind                   = new StringProperty("kind");
-	public static final Property<String>               dataType               = new StringProperty("dataType");
-	public static final Property<String>               relKind                = new StringProperty("relKind");
-	public static final Property<String>               relType                = new StringProperty("relType");
-	public static final Property<Boolean>              incoming               = new BooleanProperty("incoming");
+	public static final Property<String>               validationExpression     = new StringProperty("validationExpression");
+	public static final Property<String>               validationErrorMessage   = new StringProperty("validationErrorMessage");
+	public static final Property<String>               kind                     = new StringProperty("kind").indexed();
+	public static final Property<String>               dataType                 = new StringProperty("dataType").indexed();
+	public static final Property<String>               defaultValue             = new StringProperty("defaultValue");
 
-	public static final Property<Boolean>              systemProperty         = new BooleanProperty("systemProperty");
-	public static final Property<Boolean>              readOnlyProperty       = new BooleanProperty("readOnlyProperty");
-	public static final Property<Boolean>              writeOnceProperty      = new BooleanProperty("writeOnceProperty");
+	public static final Property<String>               relKind                  = new StringProperty("relKind").indexed();
+	public static final Property<String>               relType                  = new StringProperty("relType").indexed();
+	public static final Property<Boolean>              incoming                 = new BooleanProperty("incoming");
+  
+	public static final Property<Boolean>              systemProperty           = new BooleanProperty("systemProperty");
+	public static final Property<Boolean>              readOnlyProperty         = new BooleanProperty("readOnlyProperty");
+	public static final Property<Boolean>              writeOnceProperty        = new BooleanProperty("writeOnceProperty");
+	public static final Property<Boolean>              indexedProperty          = new BooleanProperty("indexedProperty");
+	public static final Property<Boolean>              passivelyIndexedProperty = new BooleanProperty("passivelyIndexedProperty");
+	public static final Property<Boolean>              searchableProperty       = new BooleanProperty("searchableProperty");
+	public static final Property<Boolean>              indexedWhenEmptyProperty = new BooleanProperty("indexedWhenEmptyProperty");
 	
 	public static final org.structr.common.View publicView = new org.structr.common.View(PropertyDefinition.class, PropertyView.Public,
-	    name, dataType, kind, relKind, relType, incoming, validationExpression, validationErrorMessage, systemProperty, readOnlyProperty, writeOnceProperty
+		name, dataType, defaultValue, kind, relKind, relType, incoming, validationExpression, validationErrorMessage,
+		systemProperty, readOnlyProperty, writeOnceProperty, indexedProperty, passivelyIndexedProperty, searchableProperty, indexedWhenEmptyProperty
 	);
 	
 	public static final org.structr.common.View uiView = new org.structr.common.View(PropertyDefinition.class, PropertyView.Ui,
-	    name, dataType, kind, relKind, relType, incoming, validationExpression, validationErrorMessage, systemProperty, readOnlyProperty, writeOnceProperty
+	    name, dataType, defaultValue, kind, relKind, relType, incoming, validationExpression, validationErrorMessage, systemProperty, readOnlyProperty, writeOnceProperty, indexedProperty, passivelyIndexedProperty, searchableProperty, indexedWhenEmptyProperty
 	);
 	
 	// ----- private members -----
-	private static final Map<String, Map<String, PropertyDefinition>> dynamicTypes = new ConcurrentHashMap<String, Map<String, PropertyDefinition>>();
-	private static final Map<String, Class<? extends PropertyKey>> delegateMap     = new LinkedHashMap<String, Class<? extends PropertyKey>>();
-	private List<PropertyValidator> validators                                     = new LinkedList<PropertyValidator>();
+	private static final Map<String, Map<String, PropertyDefinition>> dynamicTypes = new ConcurrentHashMap<>();
+	private static final Map<String, Class<? extends PropertyKey>> delegateMap     = new LinkedHashMap<>();
+	private List<PropertyValidator> validators                                     = new LinkedList<>();
 	private Class declaringClass                                                   = null;
-	private PropertyKey delegate                                                   = null;
+	private PropertyKey<T> delegate                                                = null;
 
 	// ----- static initializer -----
 	static {
@@ -89,11 +104,8 @@ public class PropertyDefinition extends AbstractNode implements PropertyKey {
 		delegateMap.put("Double",     DoubleProperty.class);
 		delegateMap.put("Boolean",    BooleanProperty.class);
 		delegateMap.put("Date",       ISO8601DateProperty.class);
-		delegateMap.put("Collection", CollectionProperty.class);
-		delegateMap.put("Entity",     EntityProperty.class);
-		
-		EntityContext.registerSearchablePropertySet(PropertyDefinition.class, NodeIndex.keyword.name(), dataType, kind, relKind, relType);
-		EntityContext.registerSearchablePropertySet(PropertyDefinition.class, NodeIndex.fulltext.name(), dataType, kind, relKind, relType);
+//		delegateMap.put("Collection", EndNodes.class);
+//		delegateMap.put("Entity",     End.class);
 	}
 	
 	public static void clearPropertyDefinitions() {
@@ -154,18 +166,24 @@ public class PropertyDefinition extends AbstractNode implements PropertyKey {
 	}
 	
 	@Override
-	public void afterCreation(SecurityContext securityContext) {
+	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+
 		clearPropertyDefinitions();
+		return true;
 	}
 
 	@Override
-	public void afterModification(SecurityContext securityContext) {
+	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+
 		clearPropertyDefinitions();
+		return true;
 	}
 
 	@Override
-	public void afterDeletion(SecurityContext securityContext) {
+	public boolean onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap removedProperties) throws FrameworkException{
+
 		clearPropertyDefinitions();
+		return true;
 	}
 	
 	@Override
@@ -204,12 +222,26 @@ public class PropertyDefinition extends AbstractNode implements PropertyKey {
 	}
 
 	@Override
+	public void jsonName(String jsonName) {
+	}
+
+	@Override
+	public void dbName(String dbName) {
+	}
+
+	@Override
 	public String typeName() {
 		
 		if (delegate != null) {
 			return delegate.typeName();
 		}
 		
+		return null;
+	}
+
+	@Override
+	public Integer getSortType() {
+		// TODO: make sorting of dynamic properties possible!
 		return null;
 	}
 
@@ -224,7 +256,7 @@ public class PropertyDefinition extends AbstractNode implements PropertyKey {
 	}
 
 	@Override
-	public Object defaultValue() {
+	public T defaultValue() {
 		return null;
 	}
 	
@@ -266,35 +298,17 @@ public class PropertyDefinition extends AbstractNode implements PropertyKey {
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(SearchOperator op, Object searchValue, boolean exactMatch) {
+	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occur occur, T searchValue, boolean exactMatch, final Query query) {
 		
 		if (delegate != null) {
-			return delegate.getSearchAttribute(op, searchValue, exactMatch);
+			return delegate.getSearchAttribute(securityContext, occur, searchValue, exactMatch, query);
 		}
 		
 		return null;
 	}
 
 	@Override
-	public void registerSearchableProperties(Set searchableProperties) {
-		
-		if (delegate != null) {
-			delegate.registerSearchableProperties(searchableProperties);
-		}
-	}
-
-	@Override
-	public Object getSearchValue(Object source) {
-		
-		if (delegate != null) {
-			return delegate.getSearchValue(source);
-		}
-		
-		return null;
-	}
-
-	@Override
-	public Object getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
 		
 		if (delegate != null) {
 			return delegate.getProperty(securityContext, obj, applyConverter);
@@ -304,7 +318,17 @@ public class PropertyDefinition extends AbstractNode implements PropertyKey {
 	}
 
 	@Override
-	public void setProperty(SecurityContext securityContext, GraphObject obj, Object value) throws FrameworkException {
+	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
+		
+		if (delegate != null) {
+			return delegate.getProperty(securityContext, obj, applyConverter, predicate);
+		}
+		
+		return null;
+	}
+
+	@Override
+	public void setProperty(SecurityContext securityContext, GraphObject obj, T value) throws FrameworkException {
 		
 		if (delegate != null) {
 			delegate.setProperty(securityContext, obj, value);
@@ -316,18 +340,38 @@ public class PropertyDefinition extends AbstractNode implements PropertyKey {
 	}
 
 	@Override
-	public boolean isSystemProperty() {
+	public boolean isUnvalidated() {
 		return getProperty(PropertyDefinition.systemProperty);
 	}
 
 	@Override
-	public boolean isReadOnlyProperty() {
+	public boolean isReadOnly() {
 		return getProperty(PropertyDefinition.readOnlyProperty);
 	}
 
 	@Override
-	public boolean isWriteOnceProperty() {
+	public boolean isWriteOnce() {
 		return getProperty(PropertyDefinition.writeOnceProperty);
+	}
+
+	@Override
+	public boolean isIndexed() {
+		return getProperty(PropertyDefinition.indexedProperty);
+	}
+
+	@Override
+	public boolean isPassivelyIndexed() {
+		return getProperty(PropertyDefinition.passivelyIndexedProperty);
+	}
+
+	@Override
+	public boolean isSearchable() {
+		return getProperty(PropertyDefinition.searchableProperty);
+	}
+
+	@Override
+	public boolean isIndexedWhenEmpty() {
+		return getProperty(PropertyDefinition.indexedWhenEmptyProperty);
 	}
 
 	@Override
@@ -342,7 +386,8 @@ public class PropertyDefinition extends AbstractNode implements PropertyKey {
 	
 	// ----- private methods -----
 	private void initialize() {
-		
+	
+		/*
 		if (delegate == null) {
 			
 			String _kind        = super.getProperty(PropertyDefinition.kind);
@@ -363,7 +408,7 @@ public class PropertyDefinition extends AbstractNode implements PropertyKey {
 				
 				if (keyClass != null) {
 
-					if (AbstractRelationProperty.class.isAssignableFrom(keyClass)) {
+					if (EndNodes.class.isAssignableFrom(keyClass) || End.class.isAssignableFrom(keyClass)) {
 					
 						try {
 
@@ -383,7 +428,7 @@ public class PropertyDefinition extends AbstractNode implements PropertyKey {
 							           );
 
 							// register property
-							EntityContext.registerProperty(dataClass, delegate);
+							// StructrApp.getConfiguration().registerProperty(dataClass, delegate);
 
 						} catch (Throwable t) {
 
@@ -398,7 +443,7 @@ public class PropertyDefinition extends AbstractNode implements PropertyKey {
 							delegate = keyClass.getConstructor(String.class).newInstance(_name);
 
 							// register property
-							EntityContext.registerProperty(dataClass, delegate);
+							// StructrApp.getConfiguration().registerProperty(dataClass, delegate);
 
 						} catch (Throwable t) {
 
@@ -410,6 +455,7 @@ public class PropertyDefinition extends AbstractNode implements PropertyKey {
 				delegate.setDeclaringClass(dataClass);
 			}
 		}
+		*/
 	}
 
 	// ----- static methods -----
@@ -418,13 +464,9 @@ public class PropertyDefinition extends AbstractNode implements PropertyKey {
 		if (dynamicTypes.isEmpty()) {
 			
 			try {
-				SecurityContext securityContext = SecurityContext.getSuperUserInstance();
-
-				Result<PropertyDefinition> propertyDefinitions = Services.command(securityContext, SearchNodeCommand.class).execute(
-					Search.andExactType(PropertyDefinition.class.getSimpleName())
-				);
-
-				for (PropertyDefinition def : propertyDefinitions.getResults()) {
+				final List<PropertyDefinition> propertyDefinitions = StructrApp.getInstance().nodeQuery(PropertyDefinition.class).getAsList();
+				for (PropertyDefinition def : propertyDefinitions) {
+					
 					getPropertyDefinitionsForKind(def.getProperty(PropertyDefinition.kind)).put(def.dbName(), def);
 				}
 
@@ -440,7 +482,7 @@ public class PropertyDefinition extends AbstractNode implements PropertyKey {
 		Map<String, PropertyDefinition> definitionsForKind = dynamicTypes.get(kind);
 		if (definitionsForKind == null) {
 			
-			definitionsForKind = new ConcurrentHashMap<String, PropertyDefinition>();
+			definitionsForKind = new ConcurrentHashMap<>();
 			dynamicTypes.put(kind, definitionsForKind);
 		}
 		
@@ -456,5 +498,115 @@ public class PropertyDefinition extends AbstractNode implements PropertyKey {
 	public List getValidators() {
 		return validators;
 	}
+	
+	@Override
+	public boolean requiresSynchronization() {
+		return false;
+	}
+	
+	@Override
+	public String getSynchronizationKey() {
+		return null;
+	}
 
+	@Override
+	public void index(GraphObject entity, Object value) {
+		
+		if (delegate != null) {
+			delegate.index(entity, value);
+		}
+	}
+
+	@Override
+	public void extractSearchableAttribute(SecurityContext securityContext, HttpServletRequest request, final Query query) throws FrameworkException {
+		
+		if (delegate != null) {
+			delegate.extractSearchableAttribute(securityContext, request, query);
+		}
+	}
+
+	@Override
+	public T convertSearchValue(SecurityContext securityContext, String requestParameter) throws FrameworkException {
+		
+		if (delegate != null) {
+			return delegate.convertSearchValue(securityContext, requestParameter);
+		}
+		
+		return null;
+	}
+
+	@Override
+	public Property<T> indexed() {
+		
+		if (delegate != null) {
+			return delegate.indexed();
+		}
+		
+		return null;
+	}
+
+	@Override
+	public Property<T> indexed(NodeService.NodeIndex nodeIndex) {
+		
+		if (delegate != null) {
+			return delegate.indexed(nodeIndex);
+		}
+		
+		return null;
+	}
+
+	@Override
+	public Property<T> indexed(NodeService.RelationshipIndex relIndex) {
+		
+		if (delegate != null) {
+			return delegate.indexed(relIndex);
+		}
+		
+		return null;
+	}
+
+	@Override
+	public Property<T> passivelyIndexed() {
+		
+		if (delegate != null) {
+			return delegate.passivelyIndexed();
+		}
+		
+		return null;
+	}
+
+	@Override
+	public Property<T> passivelyIndexed(NodeService.NodeIndex nodeIndex) {
+		
+		if (delegate != null) {
+			return delegate.passivelyIndexed(nodeIndex);
+		}
+		
+		return null;
+	}
+
+	@Override
+	public Property<T> passivelyIndexed(NodeService.RelationshipIndex relIndex) {
+		
+		if (delegate != null) {
+			return delegate.passivelyIndexed(relIndex);
+		}
+		
+		return null;
+	}
+
+	@Override
+	public Property<T> indexedWhenEmpty() {
+		
+		if (delegate != null) {
+			return delegate.indexedWhenEmpty();
+		}
+		
+		return null;
+	}
+	
+	@Override
+	public int getProcessingOrderPosition() {
+		return 0;
+	}
 }

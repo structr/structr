@@ -1,49 +1,43 @@
-/*
- *  Copyright (C) 2013 Axel Morgner
+/**
+ * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
- *  This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- *  structr is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- *  structr is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
-
 package org.structr.common;
 
 import java.util.Iterator;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertNull;
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
+import static junit.framework.TestCase.assertNotNull;
 
 import org.neo4j.cypher.javacompat.ExecutionEngine;
 import org.neo4j.cypher.javacompat.ExecutionResult;
-import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.Transaction;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.TestRelType;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.graph.search.Search;
+import org.structr.core.GraphObject;
+import org.structr.core.entity.SixOneOneToOne;
+import org.structr.core.entity.TestOne;
+import org.structr.core.entity.TestSix;
 
 /**
  *
@@ -64,12 +58,22 @@ public class CypherNotInTransactionTest extends StructrTest {
 
 		try {
 
-			List<AbstractNode> testNodes = this.createTestNodes("UnknownTestType", 2);
+			final TestSix testSix = this.createTestNode(TestSix.class);
+			final TestOne testOne = this.createTestNode(TestOne.class);
+			SixOneOneToOne rel            = null;
 
-			assertNotNull(testNodes);
-			assertTrue(testNodes.size() == 2);
+			assertNotNull(testSix);
+			assertNotNull(testOne);
+			
+			try {
+				app.beginTx();
+				rel = app.create(testSix, testOne, SixOneOneToOne.class);
+				app.commitTx();
 
-			AbstractRelationship rel = createRelationshipCommand.execute(testNodes.get(0), testNodes.get(1), TestRelType.ONE_TO_ONE);
+			} finally {
+
+				app.finishTx();
+			}
 
 			assertNotNull(rel);
 
@@ -107,18 +111,28 @@ public class CypherNotInTransactionTest extends StructrTest {
 	}
 
 	/**
-	 * This test passes with Neo4j 1.8, but fails with 1.9.M02-M05
+	 * This test passes with Neo4j 1.8, but fails with 1.9.M02-1.9.5
 	 */
 //	public void test02DeleteRelationshipAfterLookupWithCypherNotInTransaction() {
 //
 //		try {
 //
-//			List<AbstractNode> testNodes = this.createTestNodes("UnknownTestType", 2);
+//			final NodeInterface testNode1 = this.createTestNode(TestSix.class);
+//			final NodeInterface testNode2 = this.createTestNode(TestOne.class);
+//			SixOneOneToOne rel            = null;
 //
-//			assertNotNull(testNodes);
-//			assertTrue(testNodes.size() == 2);
+//			assertNotNull(testNode1);
+//			assertNotNull(testNode2);
 //
-//			AbstractRelationship rel = createRelationshipCommand.execute(testNodes.get(0), testNodes.get(1), TestRelType.ONE_TO_ONE);
+//			try {
+//				app.beginTx();
+//				rel = app.create(testNode1, testNode2, SixOneOneToOne.class);
+//				app.commitTx();
+//
+//			} finally {
+//
+//				app.finishTx();
+//			}
 //
 //			assertNotNull(rel);
 //
@@ -160,20 +174,19 @@ public class CypherNotInTransactionTest extends StructrTest {
 //	}
 
 	/**
-	 * This test passes with Neo4j 1.8, but fails with 1.9.M02-M05
+	 * This test passes with Neo4j 1.8, but fails with 1.9.M02-1.9.5
 	 */
 //	public void test03DeleteNodeAfterLookupWithCypherNotInTransaction() {
 //
 //		try {
 //
-//			List<AbstractNode> testNodes = this.createTestNodes("UnknownTestType", 1);
+//			AbstractNode testNode = this.createTestNode(TestSix.class);
 //
-//			assertNotNull(testNodes);
-//			assertTrue(testNodes.size() == 1);
+//			assertNotNull(testNode);
 //
 //			GraphDatabaseService graphDb      = graphDbCommand.execute();
 //			ExecutionEngine engine            = new ExecutionEngine(graphDb);
-//			ExecutionResult result            = engine.execute("start n = node:keywordAllNodes(type = 'UnknownTestType') return n");
+//			ExecutionResult result            = engine.execute("start n = node:keywordAllNodes(type = 'TestSix') return n");
 //
 //			final Iterator<Node> nodes = result.columnAs("n");
 //			
@@ -194,7 +207,7 @@ public class CypherNotInTransactionTest extends StructrTest {
 //
 //			try {
 //
-//				testNodes.get(0).getUuid();
+//				testNode.getUuid();
 //				fail("Should have raised an org.neo4j.graphdb.NotFoundException");
 //
 //			} catch (org.neo4j.graphdb.NotFoundException e) {}
@@ -212,12 +225,22 @@ public class CypherNotInTransactionTest extends StructrTest {
 
 		try {
 
-			List<AbstractNode> testNodes = this.createTestNodes("UnknownTestType", 2);
+			final TestOne testOne  = createTestNode(TestOne.class);
+			final TestSix testSix  = createTestNode(TestSix.class);
+			SixOneOneToOne rel     = null;
 
-			assertNotNull(testNodes);
-			assertTrue(testNodes.size() == 2);
+			assertNotNull(testOne);
+			assertNotNull(testSix);
 
-			AbstractRelationship rel = createRelationshipCommand.execute(testNodes.get(0), testNodes.get(1), TestRelType.ONE_TO_ONE);
+			try {
+				app.beginTx();
+				rel = app.create(testSix, testOne, SixOneOneToOne.class);
+				app.commitTx();
+
+			} finally {
+
+				app.finishTx();
+			}
 
 			assertNotNull(rel);
 
@@ -227,7 +250,7 @@ public class CypherNotInTransactionTest extends StructrTest {
 
 			try {
 
-				testNodes.get(0).getRelationships(Direction.BOTH).get(0).getRelationship().delete();
+				testOne.getRelationships().iterator().next().getRelationship().delete();
 				tx.success();
 
 			} finally {
@@ -252,27 +275,35 @@ public class CypherNotInTransactionTest extends StructrTest {
 
 		try {
 
-			List<AbstractNode> testNodes = this.createTestNodes("UnknownTestType", 2);
+			final TestOne testOne  = createTestNode(TestOne.class);
+			final TestSix testSix  = createTestNode(TestSix.class);
+			SixOneOneToOne rel     = null;
 
-			assertNotNull(testNodes);
-			assertTrue(testNodes.size() == 2);
+			assertNotNull(testOne);
+			assertNotNull(testSix);
 
-			AbstractRelationship rel = createRelationshipCommand.execute(testNodes.get(0), testNodes.get(1), TestRelType.ONE_TO_ONE);
+			try {
+				app.beginTx();
+				rel = app.create(testSix, testOne, SixOneOneToOne.class);
+				app.commitTx();
+
+			} finally {
+
+				app.finishTx();
+			}
 
 			assertNotNull(rel);
 
-			GraphDatabaseService graphDb      = graphDbCommand.execute();
+			GraphDatabaseService graphDb = graphDbCommand.execute();
+			GraphObject  searchRes       = app.get(testSix.getUuid());
 			
-			List<AbstractNode> searchRes = searchNodeCommand.execute(Search.andExactUuid(testNodes.get(0).getUuid())).getResults();
+			assertNotNull(searchRes);
 			
-			assertTrue(searchRes.size() == 1);
-			
-			
-			Transaction tx                    = graphDb.beginTx();
+			Transaction tx = graphDb.beginTx();
 
 			try {
 
-				searchRes.get(0).getRelationships(Direction.BOTH).get(0).getRelationship().delete();
+				testSix.getRelationships().iterator().next().getRelationship().delete();
 				tx.success();
 
 			} finally {

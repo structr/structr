@@ -1,36 +1,40 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core.property;
 
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.TypeToken;
-import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
+import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
+import org.structr.schema.SchemaHelper;
 
 /**
  * A container for properties and their values that is used for input/output and database
@@ -38,82 +42,114 @@ import org.structr.core.entity.AbstractNode;
  * 
  * @author Christian Morgner
  */
-public class PropertyMap implements Map<PropertyKey, Object> {
+public class PropertyMap {
 	
 	private static final Logger logger = Logger.getLogger(PropertyMap.class.getName());
 	
-	protected Map<PropertyKey, Object> properties = new LinkedHashMap<PropertyKey, Object>();
+	protected Map<PropertyKey, Object> properties = new LinkedHashMap<>();
 
-	public PropertyMap() {}
-	
-	public PropertyMap(Map<PropertyKey, Object> source) {
-		properties.putAll(source);
+	public PropertyMap() {
 	}
 	
-	@Override
+	public PropertyMap(PropertyMap source) {
+		
+		for (Entry<PropertyKey, Object> entry : source.entrySet()) {
+			properties.put(entry.getKey(), entry.getValue());
+		}
+	}
+	
 	public int size() {
 		return properties.size();
 	}
 
-	@Override
 	public boolean isEmpty() {
 		return properties.isEmpty();
 	}
 
-	@Override
-	public boolean containsKey(Object key) {
+	public <T> boolean containsKey(PropertyKey<T> key) {
 		return properties.containsKey(key);
 	}
 
-	@Override
 	public boolean containsValue(Object value) {
 		return properties.containsValue(value);
-	}
-
-	@Override
-	public Object get(Object key) {
-		return properties.get(key);
 	}
 
 	public <T> T get(PropertyKey<T> key) {
 		return (T)properties.get(key);
 	}
 
-	@Override
-	public Object put(PropertyKey key, Object value) {
-		return properties.put(key, value);
+	public <T> T put(PropertyKey<T> key, T value) {
+		return (T)properties.put(key, value);
 	}
 
-	@Override
-	public Object remove(Object key) {
-		return properties.remove(key);
+	public <T> T remove(PropertyKey<T> key) {
+		return (T)properties.remove(key);
 	}
 
-	@Override
-	public void putAll(Map<? extends PropertyKey, ? extends Object> m) {
-		properties.putAll(m);
-	}
-
-	@Override
 	public void clear() {
 		properties.clear();
 	}
 
-	@Override
 	public Set<PropertyKey> keySet() {
 		return properties.keySet();
 	}
 
-	@Override
 	public Collection<Object> values() {
 		return properties.values();
 	}
 
-	@Override
 	public Set<Entry<PropertyKey, Object>> entrySet() {
 		return properties.entrySet();
 	}
 	
+	public Map<PropertyKey, Object> getRawMap() {
+		return properties;
+	}
+	
+	/**
+	 * Calculates a hash code for the contents of this PropertyMap. 
+	 * 
+	 * @param comparableKeys the set of property keys to use for hash code calculation, or null to use the whole keySet
+	 * @param includeSystemProperties whether to include system properties in the calculatio9n
+	 * @return 
+	 */
+	public int contentHashCode(Set<PropertyKey> comparableKeys, boolean includeSystemProperties) {
+		
+		Map<PropertyKey, Object> sortedMap = new TreeMap<>(new PropertyKeyComparator());
+		int hashCode                       = 42;
+		
+		sortedMap.putAll(properties);
+		
+		if (comparableKeys == null) {
+
+			// calculate hash code for all properties in this map
+			for (Entry<PropertyKey, Object> entry : sortedMap.entrySet()) {
+
+				if (includeSystemProperties || !entry.getKey().isUnvalidated()) {
+
+					hashCode ^= entry.hashCode();
+				}
+			}
+
+		} else {
+			
+			for (Entry<PropertyKey, Object> entry : sortedMap.entrySet()) {
+
+				PropertyKey key = entry.getKey();
+				
+				if (comparableKeys.contains(key)) {
+
+					if (includeSystemProperties || !key.isUnvalidated()) {
+
+						hashCode ^= entry.hashCode();
+					}
+				}
+			}
+		}
+		
+		
+		return hashCode;
+	}
 	
 	// ----- static methods -----
 	public static PropertyMap javaTypeToDatabaseType(SecurityContext securityContext, GraphObject entity, Map<String, Object> source) throws FrameworkException {
@@ -130,7 +166,7 @@ public class PropertyMap implements Map<PropertyKey, Object> {
 
 				if (key != null) {
 
-					PropertyKey propertyKey     = EntityContext.getPropertyKeyForDatabaseName(entity.getClass(), key);
+					PropertyKey propertyKey     = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(entity.getClass(), key);
 					PropertyConverter converter = propertyKey.databaseConverter(securityContext, entity);
 
 					if (converter != null) {
@@ -171,7 +207,7 @@ public class PropertyMap implements Map<PropertyKey, Object> {
 
 				if (key != null) {
 
-					PropertyKey propertyKey     = EntityContext.getPropertyKeyForDatabaseName(entityType, key);
+					PropertyKey propertyKey     = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(entityType, key);
 					PropertyConverter converter = propertyKey.databaseConverter(securityContext, entity);
 
 					if (converter != null) {
@@ -205,7 +241,7 @@ public class PropertyMap implements Map<PropertyKey, Object> {
 			Object typeName = source.get(AbstractNode.type.jsonName());
 			if (typeName != null) {
 
-				Class<? extends GraphObject> type = EntityContext.getEntityClassForRawType(typeName.toString());
+				Class<? extends GraphObject> type = SchemaHelper.getEntityClassForRawType(typeName.toString());
 				if (type != null) {
 
 					return inputTypeToJavaType(securityContext, type, source);
@@ -237,7 +273,7 @@ public class PropertyMap implements Map<PropertyKey, Object> {
 
 				if (key != null) {
 
-					PropertyKey propertyKey     = EntityContext.getPropertyKeyForJSONName(entity, key);
+					PropertyKey propertyKey     = StructrApp.getConfiguration().getPropertyKeyForJSONName(entity, key);
 					PropertyConverter converter = propertyKey.inputConverter(securityContext);
 
 					if (converter != null) {
@@ -266,7 +302,7 @@ public class PropertyMap implements Map<PropertyKey, Object> {
 	
 	public static Map<String, Object> javaTypeToInputType(SecurityContext securityContext, Class<? extends GraphObject> entity, PropertyMap properties) throws FrameworkException {
 		
-		Map<String, Object> inputTypedProperties = new LinkedHashMap<String, Object>();
+		Map<String, Object> inputTypedProperties = new LinkedHashMap<>();
 		
 		for(Entry<PropertyKey, Object> entry : properties.entrySet()) {
 			
@@ -300,7 +336,7 @@ public class PropertyMap implements Map<PropertyKey, Object> {
 		PropertyMap map = new PropertyMap();
 
 		logger.log(Level.SEVERE, "Using fallback property set conversion without type safety!");
-		Thread.dumpStack();
+		//Thread.dumpStack();
 
 		if (source != null) {
 			
@@ -318,5 +354,13 @@ public class PropertyMap implements Map<PropertyKey, Object> {
 		}
 		
 		return map;
+	}
+	
+	private static class PropertyKeyComparator implements Comparator<PropertyKey> {
+
+		@Override
+		public int compare(PropertyKey o1, PropertyKey o2) {
+			return o1.jsonName().compareTo(o2.jsonName());
+		}
 	}
 }

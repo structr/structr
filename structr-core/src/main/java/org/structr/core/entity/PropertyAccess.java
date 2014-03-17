@@ -1,20 +1,20 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.core.entity;
 
@@ -27,8 +27,6 @@ import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.property.LongProperty;
-import org.structr.core.EntityContext;
-import org.structr.core.graph.NodeService;
 import org.structr.core.property.IntProperty;
 
 /**
@@ -53,8 +51,8 @@ public class PropertyAccess extends AbstractNode {
 	private Long cachedFlags     = null;
 	private Integer cachedPosition = null;
 	
-	public static final Property<Long>                      flags           = new LongProperty("flags");
-	public static final Property<Integer>                   position        = new IntProperty("position");
+	public static final Property<Long>    flags    = new LongProperty("flags").indexed();
+	public static final Property<Integer> position = new IntProperty("position").indexed();
 
 	public static final View uiView = new View(PropertyAccess.class, PropertyView.Ui,
 		flags, position
@@ -63,16 +61,6 @@ public class PropertyAccess extends AbstractNode {
 	public static final View publicView = new View(PropertyAccess.class, PropertyView.Public,
 		flags
 	);
-	
-	static {
-
-		EntityContext.registerSearchablePropertySet(PropertyAccess.class, NodeService.NodeIndex.fulltext.name(), publicView.properties());
-		EntityContext.registerSearchablePropertySet(PropertyAccess.class, NodeService.NodeIndex.keyword.name(),  publicView.properties());
-	}
-
-	//~--- constant enums -------------------------------------------------
-
-	//~--- methods --------------------------------------------------------
 
 	@Override
 	public String toString() {
@@ -133,12 +121,12 @@ public class PropertyAccess extends AbstractNode {
 	}
 
 	@Override
-	public boolean beforeCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) {
+	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) {
 		return isValid(errorBuffer);
 	}
 	
 	@Override
-	public boolean beforeModification(SecurityContext securityContext, ErrorBuffer errorBuffer) {
+	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer) {
 		return isValid(errorBuffer);
 	}
 	

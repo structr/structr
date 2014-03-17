@@ -1,23 +1,21 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
 package org.structr.websocket;
 
 import org.structr.websocket.command.FileUploadHandler;
@@ -27,10 +25,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 
 import org.structr.core.property.PropertyKey;
-import org.structr.core.graph.GetNodeByIdCommand;
-import org.structr.core.Services;
 import org.structr.core.auth.AuthHelper;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 
 import org.structr.web.entity.File;
@@ -52,8 +47,10 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.servlet.ServletConfig;
 import javax.servlet.http.HttpServletRequest;
+import org.structr.core.GraphObject;
+import org.structr.core.app.StructrApp;
+import org.structr.core.auth.Authenticator;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -64,13 +61,12 @@ import javax.servlet.http.HttpServletRequest;
 public class StructrWebSocket implements WebSocket.OnTextMessage {
 
 	private static final Logger logger                 = Logger.getLogger(StructrWebSocket.class.getName());
-	private static final Map<String, Class> commandSet = new LinkedHashMap<String, Class>();
+	private static final Map<String, Class> commandSet = new LinkedHashMap<>();
 
 
 	//~--- fields ---------------------------------------------------------
 
 	private String callback                          = null;
-	private ServletConfig config                     = null;
 	private Connection connection                    = null;
 	private Gson gson                                = null;
 	private PropertyKey idProperty                   = null;
@@ -79,18 +75,19 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 	private SynchronizationController syncController = null;
 	private String token                             = null;
 	private Map<String, FileUploadHandler> uploads   = null;
-	private String pagePath                           = null;
+	private Authenticator authenticator              = null;
+	private String pagePath                          = null;
 
 	//~--- constructors ---------------------------------------------------
 
-	public StructrWebSocket(final SynchronizationController syncController, final ServletConfig config, final HttpServletRequest request, final Gson gson, final PropertyKey idProperty) {
+	public StructrWebSocket(final SynchronizationController syncController, final HttpServletRequest request, final Gson gson, final PropertyKey idProperty, final Authenticator authenticator) {
 
-		this.uploads        = new LinkedHashMap<String, FileUploadHandler>();
+		this.uploads        = new LinkedHashMap<>();
 		this.syncController = syncController;
-		this.config         = config;
 		this.request        = request;
 		this.gson           = gson;
 		this.idProperty     = idProperty;
+		this.authenticator  = authenticator;
 
 	}
 
@@ -252,7 +249,7 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 	// ----- file handling -----
 	public void createFileUploadHandler(File file) {
 
-		String uuid = file.getProperty(AbstractNode.uuid);
+		String uuid = file.getProperty(GraphObject.id);
 
 		uploads.put(uuid, new FileUploadHandler(file));
 
@@ -260,13 +257,11 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 
 	private FileUploadHandler handleExistingFile(final String uuid) {
 
-		GetNodeByIdCommand getNode = Services.command(getSecurityContext(), GetNodeByIdCommand.class);
-
 		FileUploadHandler newHandler = null;
 		
 		try {
 
-			File file = (File) getNode.execute(uuid);
+			File file = (File) StructrApp.getInstance(securityContext).get(uuid);
 
 			if (file != null) {
 
@@ -348,14 +343,6 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 
 	}
 
-	//~--- get methods ----------------------------------------------------
-
-	public ServletConfig getConfig() {
-
-		return config;
-
-	}
-
 	public Connection getConnection() {
 
 		return connection;
@@ -396,6 +383,10 @@ public class StructrWebSocket implements WebSocket.OnTextMessage {
 
 		return token != null;
 
+	}
+	
+	public Authenticator getAuthenticator() {
+		return authenticator;
 	}
 
 	//~--- set methods ----------------------------------------------------

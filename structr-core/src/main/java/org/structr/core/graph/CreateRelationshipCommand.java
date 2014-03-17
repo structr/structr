@@ -1,52 +1,46 @@
 /**
- * Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ * Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
- * This file is part of structr <http://structr.org>.
+ * This file is part of Structr <http://structr.org>.
  *
- * structr is free software: you can redistribute it and/or modify
+ * Structr is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
- * structr is distributed in the hope that it will be useful,
+ * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
 package org.structr.core.graph;
 
-import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.RelationshipType;
-
-import org.structr.common.RelType;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.EntityContext;
 import org.structr.core.GraphObject;
-import org.structr.core.Services;
 import org.structr.core.Transformation;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.Date;
-import java.util.List;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.Relation;
+import org.structr.core.entity.Source;
+import org.structr.core.entity.Target;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 
 //~--- classes ----------------------------------------------------------------
 
 /**
- * Creates a relationship between two AbstractNode instances. The execute
+ * Creates a relationship between two NodeInterface instances. The execute
  * method of this command takes the following parameters.
  *
  * @param startNode the start node
@@ -57,152 +51,97 @@ import org.structr.core.property.PropertyMap;
  *
  * @author cmorgner
  */
-public class CreateRelationshipCommand<T extends AbstractRelationship> extends NodeServiceCommand {
+public class CreateRelationshipCommand extends NodeServiceCommand {
 
 	private static final Logger logger = Logger.getLogger(CreateRelationshipCommand.class.getName());
 
 	//~--- methods --------------------------------------------------------
 
-	public T execute(final AbstractNode fromNode, final AbstractNode toNode, final RelationshipType relType) throws FrameworkException {
-		return createRelationship(fromNode, toNode, relType, null, false);
+	public <A extends NodeInterface, B extends NodeInterface, R extends Relation<A, B, ?, ?>> R execute(final A fromNode, final B toNode, final Class<R> relType) throws FrameworkException {
+		return createRelationship(fromNode, toNode, relType, null);
 	}
 
-	public T execute(final AbstractNode fromNode, final AbstractNode toNode, final String relType) throws FrameworkException {
-		return createRelationship(fromNode, toNode, getRelationshipTypeFor(relType), null, false);
+	public <A extends NodeInterface, B extends NodeInterface, R extends Relation<A, B, ?, ?>> R execute(final A fromNode, final B toNode, final Class<R> relType, final PropertyMap properties) throws FrameworkException {
+		return createRelationship(fromNode, toNode, relType, properties);
 	}
 
-	public T execute(final AbstractNode fromNode, final AbstractNode toNode, final RelationshipType relType, boolean checkDuplicates) throws FrameworkException {
-		return createRelationship(fromNode, toNode, relType, null, checkDuplicates);
-	}
+	private synchronized <A extends NodeInterface, B extends NodeInterface, R extends Relation<A, B, ?, ?>> R createRelationship(final A fromNode, final B toNode, final Class<R> relType, final PropertyMap properties) throws FrameworkException {
 
-	public T execute(final AbstractNode fromNode, final AbstractNode toNode, final String relType, boolean checkDuplicates) throws FrameworkException {
-		return createRelationship(fromNode, toNode, getRelationshipTypeFor(relType), null, checkDuplicates);
-	}
+		final RelationshipFactory<R> factory = new RelationshipFactory(securityContext);
+		final R template                     = instantiate(relType);
+		final Node startNode                 = fromNode.getNode();
+		final Node endNode                   = toNode.getNode();
+		final Relationship rel               = startNode.createRelationshipTo(endNode, template);
+		final R newRel                       = factory.instantiate(rel);
+		final Date now                       = new Date();
 
-	public T execute(final AbstractNode fromNode, final AbstractNode toNode, final RelationshipType relType, final PropertyMap properties, boolean checkDuplicates) throws FrameworkException {
-		return createRelationship(fromNode, toNode, relType, properties, checkDuplicates);
-	}
+		// logger.log(Level.INFO, "CREATING relationship {0}-[{1}]->{2}", new Object[] {  fromNode.getType(), newRel.getRelType(), toNode.getType() } );
 
-	public T execute(final AbstractNode fromNode, final AbstractNode toNode, final String relType, final PropertyMap properties, boolean checkDuplicates) throws FrameworkException {
-		return createRelationship(fromNode, toNode, getRelationshipTypeFor(relType), properties, checkDuplicates);
-	}
-	
-	private synchronized T createRelationship(final AbstractNode fromNode, final AbstractNode toNode, final RelationshipType relType, final PropertyMap properties, final boolean checkDuplicates)
-		throws FrameworkException {
+		if (newRel != null) {
 
-		return (T) Services.command(securityContext, TransactionCommand.class).execute(new StructrTransaction() {
+			newRel.unlockReadOnlyPropertiesOnce();
+			newRel.setProperty(GraphObject.type, relType.getSimpleName());
 
-			@Override
-			public Object execute() throws FrameworkException {
+			// set UUID
+			newRel.unlockReadOnlyPropertiesOnce();
+			newRel.setProperty(GraphObject.id, getNextUuid());
 
-				if (checkDuplicates) {
+			// set created date
+			newRel.unlockReadOnlyPropertiesOnce();
+			newRel.setProperty(AbstractRelationship.createdDate, now);
 
-					List<AbstractRelationship> incomingRels = toNode.getIncomingRelationships();
+			// set last modified date
+			newRel.unlockReadOnlyPropertiesOnce();
+			newRel.setProperty(AbstractRelationship.lastModifiedDate, now);
 
-					for (AbstractRelationship rel : incomingRels) {
+			// Try to get the cascading delete flag from the domain specific relationship type
+			newRel.unlockReadOnlyPropertiesOnce();
+			newRel.setProperty(AbstractRelationship.cascadeDelete, factory.instantiate(rel).getCascadingDeleteFlag());
 
-                                                // Duplicate check:
-                                                // First, check if relType and start node are equal
-						if (rel.getRelType().equals(relType) && rel.getStartNode().equals(fromNode)) {
+			// notify transaction handler
+			TransactionCommand.relationshipCreated(newRel);
 
-                                                        // At least one property of new rel has to be different to the tested existing node
-							PropertyMap relProps = rel.getProperties();
-							boolean propsEqual   = true;
+			if (properties != null) {
 
-							for (Entry<PropertyKey, Object> entry : properties.entrySet()) {
+				for (Entry<PropertyKey, Object> entry : properties.entrySet()) {
 
-								PropertyKey key = entry.getKey();
-								Object val      = entry.getValue();
+					PropertyKey key = entry.getKey();
 
-								if (!relProps.containsKey(key) || !relProps.get(key).equals(val)) {
-
-									propsEqual = false;
-
-									break;
-
-								}
-
-							}
-
-							if (propsEqual) {
-
-								// logger.log(Level.WARNING, "Creation of duplicate relationship was blocked");
-
-								return null;
-
-							}
-
-						}
-
+					// on creation, writing of read-only properties should be possible
+					if (key.isReadOnly() || key.isWriteOnce()) {
+						newRel.unlockReadOnlyPropertiesOnce();
 					}
 
+					newRel.setProperty(entry.getKey(), entry.getValue());
 				}
 
-
-				
-				RelationshipFactory<T> relationshipFactory = new RelationshipFactory<T>(securityContext);
-				Node startNode                             = fromNode.getNode();
-				Node endNode                               = toNode.getNode();
-				Relationship rel                           = startNode.createRelationshipTo(endNode, relType);
-				T newRel                                   = relationshipFactory.instantiateRelationship(securityContext, rel);
-
-				if (newRel != null) {
-
-					TransactionCommand.relationshipCreated(newRel);
-					
-					newRel.unlockReadOnlyPropertiesOnce();
-					newRel.setProperty(AbstractRelationship.createdDate, new Date());
-
-					if (properties != null && !properties.isEmpty()) {
-
-						for (Entry<PropertyKey, Object> entry : properties.entrySet()) {
-							
-							PropertyKey key = entry.getKey();
-							
-							// on creation, writing of read-only properties should be possible
-							if (key.isReadOnlyProperty() || key.isWriteOnceProperty()) {
-								newRel.unlockReadOnlyPropertiesOnce();
-							}
-							
-							newRel.setProperty(entry.getKey(), entry.getValue());
-						}
-
-					}
-
-					// notify relationship of its creation
-					newRel.onRelationshipInstantiation();
-
-					// iterate post creation transformations
-					for (Transformation<GraphObject> transformation : EntityContext.getEntityCreationTransformations(newRel.getClass())) {
-
-						transformation.apply(securityContext, newRel);
-
-					}
-
-				}
-
-				return newRel;
 			}
 
-		});
-	}
+			// notify relationship of its creation
+			newRel.onRelationshipCreation();
 
-	//~--- get methods ----------------------------------------------------
+			// iterate post creation transformations
+			for (Transformation<GraphObject> transformation : StructrApp.getConfiguration().getEntityCreationTransformations(newRel.getClass())) {
 
-	private RelationshipType getRelationshipTypeFor(final String relTypeString) {
+				transformation.apply(securityContext, newRel);
 
-		RelationshipType relType = null;
-
-		try {
-			relType = RelType.valueOf(relTypeString);
-		} catch (Exception ignore) {}
-
-		if (relType == null) {
-
-			relType = DynamicRelationshipType.withName(relTypeString);
+			}
 
 		}
 
-		return relType;
+		return newRel;
+	}
+
+	private <T extends Relation> T instantiate(final Class<T> type) {
+		
+		try {
+			
+			return type.newInstance();
+			
+		} catch(Throwable t) {
+			
+		}
+		
+		return null;
 	}
 }
