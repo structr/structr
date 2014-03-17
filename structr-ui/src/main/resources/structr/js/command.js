@@ -342,6 +342,23 @@ var Command = {
         return sendObj(obj, callback);
     },
     /**
+     * Send a SAVE_PAGE command to the server.
+     * 
+     * The server will modify the existing page based on the differences
+     * to the original page.
+     * 
+     */
+    savePage: function(source, id, callback) {
+        var obj = {};
+        obj.command = 'SAVE_PAGE';
+        obj.id = id;
+        var data = {};
+        data.source = source;
+        obj.data = data;
+        log('savePage()', obj);
+        return sendObj(obj, callback);
+    },
+    /**
      * Send a REPLACE_WIDGET command to the server.
      * 
      * The server will create nodes from the given source and
