@@ -3,18 +3,17 @@
  *
  * This file is part of Structr <http://structr.org>.
  *
- * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
+ * Structr is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Affero General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
  *
- * Structr is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * Structr is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr. If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.module;
 
@@ -24,7 +23,6 @@ import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.GenericNode;
 
 //~--- JDK imports ------------------------------------------------------------
-
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -66,47 +64,46 @@ import org.structr.core.property.PropertyKey;
 import org.structr.schema.ConfigurationProvider;
 
 //~--- classes ----------------------------------------------------------------
-
 /**
  * The module service main class.
- * 
+ *
  * @author Christian Morgner
  */
 public class JarConfigurationProvider implements ConfigurationProvider {
 
-	private static final Logger logger                                                             = Logger.getLogger(JarConfigurationProvider.class.getName());
-	
-	public static final String DYNAMIC_TYPES_PACKAGE                                               = "org.structr.dynamic";
-	
+	private static final Logger logger = Logger.getLogger(JarConfigurationProvider.class.getName());
+
+	public static final String DYNAMIC_TYPES_PACKAGE = "org.structr.dynamic";
+
 	private final Map<String, Class<? extends RelationshipInterface>> relationshipEntityClassCache = new ConcurrentHashMap<>(10, 0.9f, 8);
-	private final Map<String, Class<? extends NodeInterface>> nodeEntityClassCache                 = new ConcurrentHashMap(100, 0.9f, 8);
-	private final Map<String, Class<? extends Agent>> agentClassCache	                       = new ConcurrentHashMap<>(10, 0.9f, 8);
-	private final Set<String> nodeEntityPackages				                       = new LinkedHashSet<>();
-	private final Set<String> relationshipPackages				                       = new LinkedHashSet<>();
-	private final Map<String, Class> combinedTypeRelationClassCache		                       = new ConcurrentHashMap<>(10, 0.9f, 8);
-	private final Map<String, Set<Class>> interfaceCache			                       = new ConcurrentHashMap<>(10, 0.9f, 8);
-	private final Set<String> agentPackages					                       = new LinkedHashSet<>();
-	private final String fileSep						                       = System.getProperty("file.separator");
-	private final String fileSepEscaped					                       = fileSep.replaceAll("\\\\", "\\\\\\\\");	// ....
-	private final String pathSep						                       = System.getProperty("path.separator");
-	private final String testClassesDir					                       = fileSep.concat("test-classes");
-	private final String classesDir						                       = fileSep.concat("classes");
-	 
-	private final Map<String, Map<String, Set<PropertyKey>>> globalPropertyViewMap                 = new LinkedHashMap<>();
-	private final Map<String, Map<PropertyKey, Set<PropertyValidator>>> globalValidatorMap         = new LinkedHashMap<>();
-	private final Map<String, Map<String, PropertyKey>> globalClassDBNamePropertyMap               = new LinkedHashMap<>();
-	private final Map<String, Map<String, PropertyKey>> globalClassJSNamePropertyMap               = new LinkedHashMap<>();
-	private final Map<String, Map<String, PropertyGroup>> globalAggregatedPropertyGroupMap         = new LinkedHashMap<>();
-	private final Map<String, Map<String, PropertyGroup>> globalPropertyGroupMap                   = new LinkedHashMap<>();
-	private final Map<String, Map<String, ViewTransformation>> viewTransformations                 = new LinkedHashMap<>();
-	private final Map<String, Set<Transformation<GraphObject>>> globalTransformationMap            = new LinkedHashMap<>();
-	private final Map<String, Set<Method>> exportedMethodMap                                       = new LinkedHashMap<>();
-	private final Map<Class, Set<Class>> interfaceMap                                              = new LinkedHashMap<>();
-	private final Map<String, Class> reverseInterfaceMap                                           = new LinkedHashMap<>();
-	private final Set<PropertyKey> globalKnownPropertyKeys                                         = new LinkedHashSet<>();
-	private final Set<String> dynamicViews                                                         = new LinkedHashSet<>();
-        
-	private FactoryDefinition factoryDefinition                                                    = new DefaultFactoryDefinition();
+	private final Map<String, Class<? extends NodeInterface>> nodeEntityClassCache = new ConcurrentHashMap(100, 0.9f, 8);
+	private final Map<String, Class<? extends Agent>> agentClassCache = new ConcurrentHashMap<>(10, 0.9f, 8);
+	private final Set<String> nodeEntityPackages = new LinkedHashSet<>();
+	private final Set<String> relationshipPackages = new LinkedHashSet<>();
+	private final Map<String, Class> combinedTypeRelationClassCache = new ConcurrentHashMap<>(10, 0.9f, 8);
+	private final Map<String, Set<Class>> interfaceCache = new ConcurrentHashMap<>(10, 0.9f, 8);
+	private final Set<String> agentPackages = new LinkedHashSet<>();
+	private final String fileSep = System.getProperty("file.separator");
+	private final String fileSepEscaped = fileSep.replaceAll("\\\\", "\\\\\\\\");	// ....
+	private final String pathSep = System.getProperty("path.separator");
+	private final String testClassesDir = fileSep.concat("test-classes");
+	private final String classesDir = fileSep.concat("classes");
+
+	private final Map<String, Map<String, Set<PropertyKey>>> globalPropertyViewMap = new LinkedHashMap<>();
+	private final Map<String, Map<PropertyKey, Set<PropertyValidator>>> globalValidatorMap = new LinkedHashMap<>();
+	private final Map<String, Map<String, PropertyKey>> globalClassDBNamePropertyMap = new LinkedHashMap<>();
+	private final Map<String, Map<String, PropertyKey>> globalClassJSNamePropertyMap = new LinkedHashMap<>();
+	private final Map<String, Map<String, PropertyGroup>> globalAggregatedPropertyGroupMap = new LinkedHashMap<>();
+	private final Map<String, Map<String, PropertyGroup>> globalPropertyGroupMap = new LinkedHashMap<>();
+	private final Map<String, Map<String, ViewTransformation>> viewTransformations = new LinkedHashMap<>();
+	private final Map<String, Set<Transformation<GraphObject>>> globalTransformationMap = new LinkedHashMap<>();
+	private final Map<String, Set<Method>> exportedMethodMap = new LinkedHashMap<>();
+	private final Map<Class, Set<Class>> interfaceMap = new LinkedHashMap<>();
+	private final Map<String, Class> reverseInterfaceMap = new LinkedHashMap<>();
+	private final Set<PropertyKey> globalKnownPropertyKeys = new LinkedHashSet<>();
+	private final Set<String> dynamicViews = new LinkedHashSet<>();
+
+	private FactoryDefinition factoryDefinition = new DefaultFactoryDefinition();
 
 	// ----- interface Configuration -----
 	@Override
@@ -118,11 +115,11 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	public void shutdown() {
 
 		/* do not clear caches
-		nodeEntityClassCache.clear();
-		combinedTypeRelationClassCache.clear();
-		relationshipEntityClassCache.clear();
-		agentClassCache.clear();
-		*/
+		 nodeEntityClassCache.clear();
+		 combinedTypeRelationClassCache.clear();
+		 relationshipEntityClassCache.clear();
+		 agentClassCache.clear();
+		 */
 	}
 
 	@Override
@@ -274,7 +271,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		return agentClass;
 
 	}
-	
+
 	@Override
 	public Map<String, Class> getInterfaces() {
 		return reverseInterfaceMap;
@@ -284,110 +281,108 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	public void setRelationClassForCombinedType(final String combinedType, final Class clazz) {
 		combinedTypeRelationClassCache.put(combinedType, clazz);
 	}
-	
+
 	@Override
 	public void setRelationClassForCombinedType(final String sourceType, final String relType, final String targetType, final Class clazz) {
 		combinedTypeRelationClassCache.put(getCombinedType(sourceType, relType, targetType), clazz);
 	}
 
 	public Class getRelationClassForCombinedType(final String combinedType) {
-		
+
 		Class cachedRelationClass = combinedTypeRelationClassCache.get(combinedType);
-		
+
 		if (cachedRelationClass != null) {
 			return cachedRelationClass;
 		}
-		
+
 		return null;
 	}
-		
+
 	@Override
 	public Class getRelationClassForCombinedType(final String sourceTypeName, final String relType, final String targetTypeName) {
-		
+
 		if (sourceTypeName == null || relType == null || targetTypeName == null) {
 			return null;
 		}
-		
-		String combinedType =
-			
-			sourceTypeName
+
+		String combinedType
+			= sourceTypeName
 			.concat(DefaultFactoryDefinition.COMBINED_RELATIONSHIP_KEY_SEP)
 			.concat(relType)
 			.concat(DefaultFactoryDefinition.COMBINED_RELATIONSHIP_KEY_SEP)
 			.concat(targetTypeName);
-		
+
 		Class cachedRelationClass = getRelationClassForCombinedType(combinedType);
-		
+
 		if (cachedRelationClass != null) {
 			return cachedRelationClass;
 		}
-		
+
 		return findNearestMatchingRelationClass(sourceTypeName, relType, targetTypeName);
-	}
-	
-	/**
-	 * Return a list of all relation entity classes filtered by relationship type.
-	 * 
-	 * @param relType
-	 * @return 
-	 */
-	private List<Class<? extends RelationshipInterface>> getRelationClassCanditatesForRelType(final String relType) {
-		
-		List<Class<? extends RelationshipInterface>> candidates = new ArrayList();
-		
-		for (final Class<? extends RelationshipInterface> candidate : getRelationshipEntities().values()) {
-			
-			Relation rel = instantiate(candidate);
-			
-			if (rel.name().equals(relType)) {
-				candidates.add(candidate);
-			}
-			
-		}
-		
-		return candidates;
-		
 	}
 
 	/**
-	 * Find the most specialized relation class matching the given parameters.
-	 * 
-	 * If no direct match is found (source and target type are equal),
-	 * we count the levels of inheritance, including interfaces.
-	 * 
+	 * Return a list of all relation entity classes filtered by relationship
+	 * type.
+	 *
+	 * @param relType
+	 * @return
+	 */
+	private List<Class<? extends RelationshipInterface>> getRelationClassCanditatesForRelType(final String relType) {
+
+		List<Class<? extends RelationshipInterface>> candidates = new ArrayList();
+
+		for (final Class<? extends RelationshipInterface> candidate : getRelationshipEntities().values()) {
+
+			Relation rel = instantiate(candidate);
+
+			if (rel.name().equals(relType)) {
+				candidates.add(candidate);
+			}
+
+		}
+
+		return candidates;
+
+	}
+
+	/**
+	 * Find the most specialized relation class matching the given
+	 * parameters.
+	 *
+	 * If no direct match is found (source and target type are equal), we
+	 * count the levels of inheritance, including interfaces.
+	 *
 	 * @param sourceTypeName
 	 * @param relType
 	 * @param targetTypeName
 	 * @param rel
 	 * @param candidate
-	 * @return 
+	 * @return
 	 */
 	private Class findNearestMatchingRelationClass(final String sourceTypeName, final String relType, final String targetTypeName) {
 
 		//System.out.println("###### Find nearest matching relation class for " + sourceTypeName + " " + relType + " " + targetTypeName);
-		
 		Map<Integer, Class> candidates = new TreeMap<>();
 		Class sourceType = getNodeEntityClass(sourceTypeName);
 		Class targetType = getNodeEntityClass(targetTypeName);
-		
+
 		for (final Class candidate : getRelationClassCanditatesForRelType(relType)) {
-			
+
 			Relation rel = instantiate(candidate);
-			
+
 			//System.out.println("? " + candidate.getSimpleName() + " for [" + sourceTypeName + " " + relType + " " + targetTypeName + "]");
-			
 			int distance = getDistance(rel.getSourceType(), sourceType, -1) + getDistance(rel.getTargetType(), targetType, -1);
-			
+
 			if (distance >= 2000) {
-				
-				candidates.put(distance-2000, candidate);
+
+				candidates.put(distance - 2000, candidate);
 				//System.out.println("\n=========================== Found " + candidate.getSimpleName() + " for " + sourceTypeName + " " + relType + " " + targetTypeName + " at distance " + (distance-2000));
-				
+
 			} else {
 				//System.out.println(" no match.");	
 			}
-			
-			
+
 		}
 
 		if (candidates.isEmpty()) {
@@ -399,75 +394,68 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 			Entry<Integer, Class> candidateEntry = candidates.entrySet().iterator().next();
 			Class c = candidateEntry.getValue();
-			
+
 			//System.out.println("########### Final nearest relation class : " + c.getSimpleName() + " <" + candidateEntry.getKey() + ">############################################\n\n");
-			
 			combinedTypeRelationClassCache.put(getCombinedType(sourceTypeName, relType, targetTypeName), c);
-			
+
 			return c;
 		}
 	}
-	
+
 	private int getDistance(final Class candidateType, final Class type, int distance) {
 
 		if (distance >= 1000) {
 			return distance;
 		}
-		
+
 		distance++;
-		
+
 		// Just in case...
 		if (type == null) {
 			return Integer.MIN_VALUE;
 		}
 
 		//System.out.print(".");
-
 		// Abort if type is Object.class here
 		if (type.equals(Object.class)) {
 			return Integer.MIN_VALUE;
 		}
 
 		//System.out.print(".");
-		
 		//System.out.print(candidateType.getSimpleName() + "<" + distance + ">");
-		
 		//System.out.print(".");
-		
 		// Check direct equality
 		if (type.equals(candidateType)) {
 			//System.out.print("MATCH<" + distance + ">!");
-			return distance+1000;
+			return distance + 1000;
 		}
-		
+
 		// Abort here if type is NodeInterface.
 		if (type.equals(NodeInterface.class)) {
 			return Integer.MIN_VALUE;
 		}
 
 		//System.out.print(".");
-		
 		// Relation candidate's source and target types must be superclasses or interfaces of the given relationship
 		if (!(candidateType.isAssignableFrom(type))) {
 			return Integer.MIN_VALUE;
 		}
-		
-		//System.out.print(".");
 
+		//System.out.print(".");
 		distance++;
-		
+
 		// Test source's interfaces against target class
 		Class[] interfaces = type.getInterfaces();
 		for (Class iface : interfaces) {
 			//System.out.print("." + iface.getSimpleName() + "<" + distance + ">" + "(SI).");
 			if (iface.equals(candidateType)) {
 				//System.out.print("MATCH<" + distance + ">!");
-				return distance+1000;
+				return distance + 1000;
 			}
 		}
-		
+
 		distance++;
-		
+
 		Class superClass = type.getSuperclass();
 		if (superClass != null) {
 			//System.out.println("." + superClass.getSimpleName() + "<" + distance + ">");
@@ -479,29 +467,27 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 		return distance;
 	}
-	
-	
-	
+
 	@Override
 	public Set<Method> getAnnotatedMethods(Class entityType, Class annotationType) {
-		
-		Set<Method> methods    = new LinkedHashSet<>();
+
+		Set<Method> methods = new LinkedHashSet<>();
 		Set<Class<?>> allTypes = getAllTypes(entityType);
-		
+
 		for (Class<?> type : allTypes) {
-			
+
 			for (Method method : type.getDeclaredMethods()) {
-				
+
 				if (method.getAnnotation(annotationType) != null) {
-				
+
 					methods.add(method);
 				}
 			}
 		}
-		
+
 		return methods;
 	}
-	
+
 	@Override
 	public void unregisterEntityType(final String typeName) {
 
@@ -510,8 +496,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 		relationshipEntityClassCache.remove(typeName);
 		relationshipPackages.remove(JarConfigurationProvider.DYNAMIC_TYPES_PACKAGE + typeName);
-		
-		
+
 	}
 
 	@Override
@@ -519,137 +504,132 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 		// moved here from scanEntity, no reason to have this in a separate
 		// method requiring two different calls instead of one
-		int modifiers = type.getModifiers();
-		if (!Modifier.isAbstract(modifiers) && !Modifier.isInterface(modifiers)) {
-			
-			String simpleName = type.getSimpleName();
-			String fullName   = type.getName();
+		String simpleName = type.getSimpleName();
+		String fullName = type.getName();
 
-			if (AbstractNode.class.isAssignableFrom(type)) {
-				nodeEntityClassCache.put(simpleName, type);
-				nodeEntityPackages.add(fullName.substring(0, fullName.lastIndexOf(".")));
-				globalPropertyViewMap.remove(type.getName());
-			}
-			
-			if (AbstractRelationship.class.isAssignableFrom(type)) {
-
-				relationshipEntityClassCache.put(simpleName, type);
-				relationshipPackages.add(fullName.substring(0, fullName.lastIndexOf(".")));
-				globalPropertyViewMap.remove(type.getName());
-			}
-
-			for (Class interfaceClass : type.getInterfaces()) {
-
-				String interfaceName           = interfaceClass.getSimpleName();
-				Set<Class> classesForInterface = interfaceCache.get(interfaceName);
-
-				if (classesForInterface == null) {
-
-					classesForInterface = new LinkedHashSet<>();
-
-					interfaceCache.put(interfaceName, classesForInterface);
-
-				}
-
-				classesForInterface.add(type);
-
-			}
-
-			try {
-				
-				Object entity                         = type.newInstance();
-				Map<Field, PropertyKey> allProperties = getFieldValuesOfType(PropertyKey.class, entity);
-				Map<Field, View> views                = getFieldValuesOfType(View.class, entity);
-				Class entityType                      = entity.getClass();
-
-				for (Map.Entry<Field, PropertyKey> entry : allProperties.entrySet()) {
-
-					PropertyKey propertyKey = entry.getValue();
-					Field field             = entry.getKey();
-					Class declaringClass    = field.getDeclaringClass();
-
-					if (declaringClass != null) {
-
-						propertyKey.setDeclaringClass(declaringClass);
-						registerProperty(declaringClass, propertyKey);
-
-					}
-
-					registerProperty(entityType, propertyKey);
-				}
-
-				for (Map.Entry<Field, View> entry : views.entrySet()) {
-
-					Field field = entry.getKey();
-					View view   = entry.getValue();
-
-					for (PropertyKey propertyKey : view.properties()) {
-
-						// register field in view for entity class and declaring superclass
-						registerPropertySet(field.getDeclaringClass(), view.name(), propertyKey);
-						registerPropertySet(entityType, view.name(), propertyKey);
-					}
-				}
-				
-			} catch (Throwable t) {
-//				ignore
-//				t.printStackTrace();
-//				logger.log(Level.WARNING, "Unable to instantiate {0}: {1}", new Object[] { type, t.getMessage() } );
-			}
+		if (AbstractNode.class.isAssignableFrom(type)) {
+			nodeEntityClassCache.put(simpleName, type);
+			nodeEntityPackages.add(fullName.substring(0, fullName.lastIndexOf(".")));
+			globalPropertyViewMap.remove(type.getName());
 		}
-		
+
+		if (AbstractRelationship.class.isAssignableFrom(type)) {
+
+			relationshipEntityClassCache.put(simpleName, type);
+			relationshipPackages.add(fullName.substring(0, fullName.lastIndexOf(".")));
+			globalPropertyViewMap.remove(type.getName());
+		}
+
+		for (Class interfaceClass : type.getInterfaces()) {
+
+			String interfaceName = interfaceClass.getSimpleName();
+			Set<Class> classesForInterface = interfaceCache.get(interfaceName);
+
+			if (classesForInterface == null) {
+
+				classesForInterface = new LinkedHashSet<>();
+
+				interfaceCache.put(interfaceName, classesForInterface);
+
+			}
+
+			classesForInterface.add(type);
+
+		}
+
+		try {
+
+			Map<Field, PropertyKey> allProperties = getFieldValuesOfType(PropertyKey.class, type);
+			Map<Field, View> views = getFieldValuesOfType(View.class, type);
+
+			for (Map.Entry<Field, PropertyKey> entry : allProperties.entrySet()) {
+
+				PropertyKey propertyKey = entry.getValue();
+				Field field = entry.getKey();
+				Class declaringClass = field.getDeclaringClass();
+
+				if (declaringClass != null) {
+
+					propertyKey.setDeclaringClass(declaringClass);
+					registerProperty(declaringClass, propertyKey);
+
+				}
+
+				registerProperty(type, propertyKey);
+			}
+
+			for (Map.Entry<Field, View> entry : views.entrySet()) {
+
+				Field field = entry.getKey();
+				View view = entry.getValue();
+
+				for (PropertyKey propertyKey : view.properties()) {
+
+					// register field in view for entity class and declaring superclass
+					registerPropertySet(field.getDeclaringClass(), view.name(), propertyKey);
+					registerPropertySet(type, view.name(), propertyKey);
+				}
+			}
+
+		} catch (Throwable t) {
+			logger.log(Level.SEVERE, "Unable to register type {0}: {1}", new Object[]{type, t.getMessage()});
+			t.printStackTrace();
+		}
+
 		Set<Method> typeMethods = exportedMethodMap.get(type.getName());
 		if (typeMethods == null) {
 			typeMethods = new LinkedHashSet<>();
 			exportedMethodMap.put(type.getName(), typeMethods);
 		}
-		
+
 		typeMethods.addAll(getAnnotatedMethods(type, Export.class));
-		
+
 		// extract interfaces for later use
 		getInterfacesForType(type);
 	}
-	
+
 	/**
-	 * Register a transformation that will be applied to every newly created entity of a given type.
-	 * 
-	 * @param type the type of the entities for which the transformation should be applied
+	 * Register a transformation that will be applied to every newly created
+	 * entity of a given type.
+	 *
+	 * @param type the type of the entities for which the transformation
+	 * should be applied
 	 * @param transformation the transformation to apply on every entity
 	 */
 	@Override
 	public void registerEntityCreationTransformation(Class type, Transformation<GraphObject> transformation) {
-		
+
 		final Set<Transformation<GraphObject>> transformations = getEntityCreationTransformationsForType(type);
 		if (!transformations.contains(transformation)) {
-			
+
 			transformations.add(transformation);
 		}
 	}
 
 	@Override
 	public Set<Class> getInterfacesForType(Class type) {
-		
+
 		Set<Class> interfaces = interfaceMap.get(type);
-		if(interfaces == null) {
-			
+		if (interfaces == null) {
+
 			interfaces = new LinkedHashSet<>();
 			interfaceMap.put(type, interfaces);
-			
-			for(Class iface : type.getInterfaces()) {
+
+			for (Class iface : type.getInterfaces()) {
 
 				reverseInterfaceMap.put(iface.getSimpleName(), iface);
 				interfaces.add(iface);
 			}
 		}
-		
+
 		return interfaces;
 	}
-	
+
 	@Override
 	public Set<Method> getExportedMethodsForType(Class type) {
 		return exportedMethodMap.get(type.getName());
 	}
-	
+
 	@Override
 	public boolean isKnownProperty(final PropertyKey key) {
 		return globalKnownPropertyKeys.contains(key);
@@ -659,25 +639,30 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	public FactoryDefinition getFactoryDefinition() {
 		return factoryDefinition;
 	}
-	
+
 	@Override
 	public void registerFactoryDefinition(FactoryDefinition factory) {
 		factoryDefinition = factory;
 	}
-	
+
 	/**
-	 * Registers a property group for the given key of the given entity type. A property group can be
-	 * used to combine a set of properties into an object. {@see PropertyGroup}
-	 * 
-	 * @param type the type of the entities for which the property group should be registered
-	 * @param key the property key under which the property group should be visible
+	 * Registers a property group for the given key of the given entity
+	 * type. A property group can be used to combine a set of properties
+	 * into an object. {
+	 *
+	 * @see PropertyGroup}
+	 *
+	 * @param type the type of the entities for which the property group
+	 * should be registered
+	 * @param key the property key under which the property group should be
+	 * visible
 	 * @param propertyGroup the property group
 	 */
 	@Override
 	public void registerPropertyGroup(Class type, PropertyKey key, PropertyGroup propertyGroup) {
 		getPropertyGroupMapForType(type).put(key.dbName(), propertyGroup);
 	}
-	
+
 	@Override
 	public void registerConvertedProperty(PropertyKey propertyKey) {
 		globalKnownPropertyKeys.add(propertyKey);
@@ -687,7 +672,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	public synchronized Set<Transformation<GraphObject>> getEntityCreationTransformations(Class type) {
 
 		Set<Transformation<GraphObject>> transformations = new TreeSet<>();
-		Class localType                                  = type;
+		Class localType = type;
 
 		// collect for all superclasses
 		while (localType != null && !localType.equals(Object.class)) {
@@ -710,21 +695,21 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	public PropertyGroup getPropertyGroup(Class type, String key) {
 
 		PropertyGroup group = getAggregatedPropertyGroupMapForType(type).get(key);
-		if(group == null) {
-			
-			Class localType     = type;
+		if (group == null) {
 
-			while(group == null && localType != null && !localType.equals(Object.class)) {
+			Class localType = type;
+
+			while (group == null && localType != null && !localType.equals(Object.class)) {
 
 				group = getPropertyGroupMapForType(localType).get(key);
 
-				if(group == null) {
+				if (group == null) {
 
 					// try interfaces as well
-					for(Class interfaceClass : getInterfacesForType(localType)) {
+					for (Class interfaceClass : getInterfacesForType(localType)) {
 
 						group = getPropertyGroupMapForType(interfaceClass).get(key);
-						if(group != null) {
+						if (group != null) {
 							break;
 						}
 					}
@@ -732,10 +717,10 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 				localType = localType.getSuperclass();
 			}
-			
+
 			getAggregatedPropertyGroupMapForType(type).put(key, group);
 		}
-		
+
 		return group;
 	}
 
@@ -743,7 +728,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	public void registerViewTransformation(Class type, String view, ViewTransformation transformation) {
 		getViewTransformationMapForType(type).put(view, transformation);
 	}
-	
+
 	@Override
 	public ViewTransformation getViewTransformation(Class type, String view) {
 		return getViewTransformationMapForType(type).get(view);
@@ -753,52 +738,56 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	public Set<String> getPropertyViews() {
 
 		Set<String> views = new LinkedHashSet<>();
-		
+
 		// add all existing views
 		for (Map<String, Set<PropertyKey>> view : globalPropertyViewMap.values()) {
 			views.addAll(view.keySet());
 		}
-		
+
 		// merge dynamic views in as well
 		views.addAll(dynamicViews);
-		
+
 		return Collections.unmodifiableSet(views);
 	}
-	
+
 	@Override
 	public void registerDynamicViews(final Set<String> dynamicViews) {
 		this.dynamicViews.clear();
 		this.dynamicViews.addAll(dynamicViews);
 	}
-	
+
 	@Override
 	public Set<PropertyKey> getPropertySet(Class type, String propertyView) {
 
 		Map<String, Set<PropertyKey>> propertyViewMap = getPropertyViewMapForType(type);
-		Set<PropertyKey> properties                   = propertyViewMap.get(propertyView);
+		Set<PropertyKey> properties = propertyViewMap.get(propertyView);
 
 		if (properties == null) {
 			properties = new LinkedHashSet<>();
 		}
-		
+
 		// read-only
 		return Collections.unmodifiableSet(properties);
 	}
 
 	/**
-	 * Registers the given set of property keys for the view with name <code>propertyView</code>
-	 * and the given prefix of entities with the given type.
-	 * 
-	 * @param type the type of the entities for which the view will be registered
-	 * @param propertyView the name of the property view for which the property set will be registered
-	 * @param propertySet the set of property keys to register for the given view
+	 * Registers the given set of property keys for the view with name
+	 * <code>propertyView</code> and the given prefix of entities with the
+	 * given type.
+	 *
+	 * @param type the type of the entities for which the view will be
+	 * registered
+	 * @param propertyView the name of the property view for which the
+	 * property set will be registered
+	 * @param propertySet the set of property keys to register for the given
+	 * view
 	 */
 	@Override
 	public void registerPropertySet(Class type, String propertyView, PropertyKey... propertySet) {
 
 		Map<String, Set<PropertyKey>> propertyViewMap = getPropertyViewMapForType(type);
-		Set<PropertyKey> properties                   = propertyViewMap.get(propertyView);
-		
+		Set<PropertyKey> properties = propertyViewMap.get(propertyView);
+
 		if (properties == null) {
 			properties = new LinkedHashSet<>();
 			propertyViewMap.put(propertyView, properties);
@@ -812,15 +801,15 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	public PropertyKey getPropertyKeyForDatabaseName(Class type, String dbName) {
 		return getPropertyKeyForDatabaseName(type, dbName, true);
 	}
-	
+
 	@Override
 	public PropertyKey getPropertyKeyForDatabaseName(Class type, String dbName, boolean createGeneric) {
 
 		Map<String, PropertyKey> classDBNamePropertyMap = getClassDBNamePropertyMapForType(type);
-		PropertyKey key                                 = classDBNamePropertyMap.get(dbName);
-		
+		PropertyKey key = classDBNamePropertyMap.get(dbName);
+
 		if (key == null) {
-			
+
 			// first try: uuid
 			if (GraphObject.id.dbName().equals(dbName)) {
 				return GraphObject.id;
@@ -830,15 +819,15 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 				key = new GenericProperty(dbName);
 			}
 		}
-		
+
 		return key;
 	}
-	
+
 	@Override
 	public PropertyKey getPropertyKeyForJSONName(Class type, String jsonName) {
 		return getPropertyKeyForJSONName(type, jsonName, true);
 	}
-	
+
 	@Override
 	public PropertyKey getPropertyKeyForJSONName(Class type, String jsonName, boolean createIfNotFound) {
 
@@ -847,50 +836,50 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		}
 
 		Map<String, PropertyKey> classJSNamePropertyMap = getClassJSNamePropertyMapForType(type);
-		PropertyKey key                                 = classJSNamePropertyMap.get(jsonName);
-		
+		PropertyKey key = classJSNamePropertyMap.get(jsonName);
+
 		if (key == null) {
-			
+
 			// first try: uuid
 			if (GraphObject.id.dbName().equals(jsonName)) {
-				
+
 				return GraphObject.id;
 			}
 
 			if (createIfNotFound) {
-				
+
 				key = new GenericProperty(jsonName);
 			}
 		}
-		
+
 		return key;
 	}
 
 	@Override
 	public Set<PropertyValidator> getPropertyValidators(final SecurityContext securityContext, Class type, PropertyKey propertyKey) {
 
-		Set<PropertyValidator> validators                     = new LinkedHashSet<>();
+		Set<PropertyValidator> validators = new LinkedHashSet<>();
 		Map<PropertyKey, Set<PropertyValidator>> validatorMap = null;
-		Class localType                                       = type;
+		Class localType = type;
 
 		// try all superclasses
 		while (localType != null && !localType.equals(Object.class)) {
 
 			validatorMap = getPropertyValidatorMapForType(localType);
-			
+
 			Set<PropertyValidator> classValidators = validatorMap.get(propertyKey);
-			if(classValidators != null) {
+			if (classValidators != null) {
 				validators.addAll(validatorMap.get(propertyKey));
 			}
 
 			// try converters from interfaces as well
-			for(Class interfaceClass : getInterfacesForType(localType)) {
+			for (Class interfaceClass : getInterfacesForType(localType)) {
 				Set<PropertyValidator> interfaceValidators = getPropertyValidatorMapForType(interfaceClass).get(propertyKey);
-				if(interfaceValidators != null) {
+				if (interfaceValidators != null) {
 					validators.addAll(interfaceValidators);
 				}
 			}
-			
+
 //                      logger.log(Level.INFO, "Validator class {0} found for type {1}", new Object[] { clazz != null ? clazz.getSimpleName() : "null", localType } );
 			// one level up :)
 			localType = localType.getSuperclass();
@@ -899,7 +888,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 		return validators;
 	}
-	
+
 	// ----- private methods -----
 	private void scanResources() {
 
@@ -923,7 +912,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 			if (module != null) {
 
 				importResource(module);
-				
+
 			} else {
 
 				logger.log(Level.WARNING, "Module was null!");
@@ -931,7 +920,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 		} catch (IOException ioex) {
 
-			logger.log(Level.WARNING, "Error loading module {0}: {1}", new Object[] { resourceName, ioex });
+			logger.log(Level.WARNING, "Error loading module {0}: {1}", new Object[]{resourceName, ioex});
 			ioex.printStackTrace();
 
 		}
@@ -940,10 +929,10 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 	private void importResource(Module module) throws IOException {
 
-		final Set<String> classes                 = module.getClasses();
+		final Set<String> classes = module.getClasses();
 
 		for (final String name : classes) {
-			
+
 			String className = StringUtils.removeStart(name, ".");
 
 			logger.log(Level.FINE, "Instantiating class {0} ", className);
@@ -952,42 +941,41 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 				// instantiate class..
 				Class clazz = Class.forName(className);
+				int modifiers = clazz.getModifiers();
 
-				logger.log(Level.FINE, "Class {0} instantiated: {1}", new Object[] { className, clazz });
+				logger.log(Level.FINE, "Class {0} instantiated: {1}", new Object[]{className, clazz});
 
-				if (!Modifier.isAbstract(clazz.getModifiers())) {
+				// register node entity classes
+				if (NodeInterface.class.isAssignableFrom(clazz)) {
 
-					// register node entity classes
-					if (AbstractNode.class.isAssignableFrom(clazz)) {
-
-						registerEntityType(clazz);
-					}
-
-					// register entity classes
-					if (AbstractRelationship.class.isAssignableFrom(clazz)) {
-
-						registerEntityType(clazz);
-					}
-
-					// register services
-					if (Service.class.isAssignableFrom(clazz)) {
-
-						Services.getInstance().registerServiceClass(clazz);
-					}
-
-					// register agents
-					if (Agent.class.isAssignableFrom(clazz)) {
-
-						String simpleName = clazz.getSimpleName();
-						String fullName   = clazz.getName();
-
-						agentClassCache.put(simpleName, clazz);
-						agentPackages.add(fullName.substring(0, fullName.lastIndexOf(".")));
-
-					}
+					registerEntityType(clazz);
 				}
-				
-			} catch (Throwable t) {}
+
+				// register entity classes
+				if (AbstractRelationship.class.isAssignableFrom(clazz) && !(Modifier.isAbstract(modifiers))) {
+
+					registerEntityType(clazz);
+				}
+
+				// register services
+				if (Service.class.isAssignableFrom(clazz) && !(Modifier.isAbstract(modifiers))) {
+
+					Services.getInstance().registerServiceClass(clazz);
+				}
+
+				// register agents
+				if (Agent.class.isAssignableFrom(clazz) && !(Modifier.isAbstract(modifiers))) {
+
+					String simpleName = clazz.getSimpleName();
+					String fullName = clazz.getName();
+
+					agentClassCache.put(simpleName, clazz);
+					agentPackages.add(fullName.substring(0, fullName.lastIndexOf(".")));
+
+				}
+
+			} catch (Throwable t) {
+			}
 
 		}
 
@@ -996,7 +984,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	private Module loadResource(String resource) throws IOException {
 
 		// create module
-		DefaultModule ret   = new DefaultModule(resource);
+		DefaultModule ret = new DefaultModule(resource);
 		Set<String> classes = ret.getClasses();
 
 		if (resource.endsWith(".jar") || resource.endsWith(".war")) {
@@ -1011,15 +999,15 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 			// handle other entries as potential page and/or entity classes
 			// .. to be extended
 			// (entries that end with "/" are directories)
-			for (Enumeration<? extends ZipEntry> entries = zipFile.entries(); entries.hasMoreElements(); ) {
+			for (Enumeration<? extends ZipEntry> entries = zipFile.entries(); entries.hasMoreElements();) {
 
-				ZipEntry entry   = entries.nextElement();
+				ZipEntry entry = entries.nextElement();
 				String entryName = entry.getName();
 
 				if (entryName.endsWith(".class")) {
 
 					String fileEntry = entry.getName().replaceAll("[/]+", ".");
-					
+
 					// add class entry to Module
 					classes.add(fileEntry.substring(0, fileEntry.length() - 6));
 
@@ -1046,20 +1034,20 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		if (dir == null) {
 			return;
 		}
-		
+
 		int prefixLen = prefix.length();
-		File[] files  = dir.listFiles();
+		File[] files = dir.listFiles();
 
 		if (files == null) {
 			return;
 		}
-		
+
 		for (File file : files) {
 
 			if (file.isDirectory()) {
 
 				addClassesRecursively(file, prefix, classes);
-				
+
 			} else {
 
 				try {
@@ -1069,15 +1057,14 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 					fileEntry = fileEntry.substring(0, fileEntry.length() - 6);
 					fileEntry = fileEntry.substring(fileEntry.indexOf(prefix) + prefixLen);
 					fileEntry = fileEntry.replaceAll("[".concat(fileSepEscaped).concat("]+"), ".");
-					
+
 					if (fileEntry.startsWith(".")) {
 						fileEntry = fileEntry.substring(1);
 					}
-					
+
 					classes.add(fileEntry);
 
 				} catch (Throwable t) {
-
 					// ignore
 					t.printStackTrace();
 				}
@@ -1089,22 +1076,22 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	}
 
 	private Relation instantiate(final Class clazz) {
-		
+
 		try {
-			
+
 			return (Relation) clazz.newInstance();
-			
+
 		} catch (Throwable t) {
-			
+			// ignore
+			t.printStackTrace();
 		}
-		
+
 		return null;
 	}
 
 	private String getCombinedType(final String sourceType, final String relType, final String targetType) {
-		
-		return
-			sourceType
+
+		return sourceType
 			.concat(DefaultFactoryDefinition.COMBINED_RELATIONSHIP_KEY_SEP)
 			.concat(relType)
 			.concat(DefaultFactoryDefinition.COMBINED_RELATIONSHIP_KEY_SEP)
@@ -1112,16 +1099,17 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	}
 
 	/**
-	 * Scans the class path and returns a Set containing all structr modules.
+	 * Scans the class path and returns a Set containing all structr
+	 * modules.
 	 *
 	 * @return a Set of active module names
 	 */
 	private Set<String> getResourcesToScan() {
 
-		String classPath	= System.getProperty("java.class.path");
-		Set<String> modules	= new LinkedHashSet<>();
-		Pattern pattern		= Pattern.compile(".*(structr).*(war|jar)");
-		Matcher matcher		= pattern.matcher("");
+		String classPath = System.getProperty("java.class.path");
+		Set<String> modules = new LinkedHashSet<>();
+		Pattern pattern = Pattern.compile(".*(structr).*(war|jar)");
+		Matcher matcher = pattern.matcher("");
 
 		for (String jarPath : classPath.split("[".concat(pathSep).concat("]+"))) {
 
@@ -1130,7 +1118,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 			if (lowerPath.endsWith(classesDir) || lowerPath.endsWith(testClassesDir)) {
 
 				modules.add(jarPath);
-				
+
 			} else {
 
 				String moduleName = lowerPath.substring(lowerPath.lastIndexOf(pathSep) + 1);
@@ -1159,54 +1147,57 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 		return modules;
 	}
-	
-	private <T> Map<Field, T> getFieldValuesOfType(Class<T> entityType, Object entity) {
-		
-		Map<Field, T> fields   = new LinkedHashMap<>();
-		Set<Class<?>> allTypes = getAllTypes(entity.getClass());
-		
+
+	private <T> Map<Field, T> getFieldValuesOfType(Class<T> fieldType, Class entityType) {
+
+		Map<Field, T> fields = new LinkedHashMap<>();
+		Set<Class<?>> allTypes = getAllTypes(entityType);
+
 		for (Class<?> type : allTypes) {
-			
+
 			for (Field field : type.getDeclaredFields()) {
 
-				if (entityType.isAssignableFrom(field.getType())) {
+				if (fieldType.isAssignableFrom(field.getType())) {
 
 					try {
-						fields.put(field, (T)field.get(entity));
+						fields.put(field, (T) field.get(null));
 
-					} catch(Throwable t) { }
+					} catch (Throwable t) {
+						// ignore
+						t.printStackTrace();
+					}
 				}
 			}
 		}
-		
+
 		return fields;
 	}
-	
+
 	private Set<Class<?>> getAllTypes(Class<?> type) {
 
 		Set<Class<?>> types = new LinkedHashSet<>();
-		Class localType     = type;
-			
+		Class localType = type;
+
 		do {
-			
+
 			collectAllInterfaces(localType, types);
 			types.add(localType);
-			
+
 			localType = localType.getSuperclass();
 
-		} while (!localType.equals(Object.class));
-		
+		} while (localType != null && !localType.equals(Object.class));
+
 		return types;
 	}
-	
+
 	private void collectAllInterfaces(Class<?> type, Set<Class<?>> interfaces) {
 
 		if (interfaces.contains(type)) {
 			return;
 		}
-		
+
 		for (Class iface : type.getInterfaces()) {
-			
+
 			collectAllInterfaces(iface, interfaces);
 			interfaces.add(iface);
 		}
@@ -1305,8 +1296,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	private Set<Transformation<GraphObject>> getEntityCreationTransformationsForType(Class type) {
 
 		final String name = type.getName();
-		
-		
+
 		Set<Transformation<GraphObject>> transformations = globalTransformationMap.get(name);
 		if (transformations == null) {
 
@@ -1317,42 +1307,42 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 		return transformations;
 	}
-	
+
 	private Map<String, ViewTransformation> getViewTransformationMapForType(Class type) {
-		
+
 		Map<String, ViewTransformation> viewTransformationMap = viewTransformations.get(type.getName());
-		if(viewTransformationMap == null) {
+		if (viewTransformationMap == null) {
 			viewTransformationMap = new LinkedHashMap<>();
 			viewTransformations.put(type.getName(), viewTransformationMap);
 		}
-		
+
 		return viewTransformationMap;
 	}
-	
+
 	private void registerProperty(Class type, PropertyKey propertyKey) {
-		
-		getClassDBNamePropertyMapForType(type).put(propertyKey.dbName(),   propertyKey);
+
+		getClassDBNamePropertyMapForType(type).put(propertyKey.dbName(), propertyKey);
 		getClassJSNamePropertyMapForType(type).put(propertyKey.jsonName(), propertyKey);
-		
+
 		registerPropertySet(type, PropertyView.All, propertyKey);
-		
+
 		// inform property key of its registration
 		propertyKey.registrationCallback(type);
 	}
-	
+
 	private String denormalizeEntityName(String normalizedEntityName) {
-		
+
 		StringBuilder buf = new StringBuilder();
-		
+
 		for (char c : normalizedEntityName.toCharArray()) {
-			
+
 			if (Character.isUpperCase(c) && buf.length() > 0) {
 				buf.append("_");
 			}
-			
+
 			buf.append(Character.toLowerCase(c));
 		}
-		
+
 		return buf.toString();
 	}
 }
