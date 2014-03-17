@@ -113,7 +113,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	private static final Map<String, HtmlProperty> htmlProperties              = new LRUMap(200);	// use LURMap here to avoid infinite growing
 	private static final List<GraphDataSource<List<GraphObject>>> listSources  = new LinkedList<>();
 	
-	private DecimalFormat decimalFormat                           = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));	
+	private final DecimalFormat decimalFormat                     = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));	
 	
 	public static final Property<Integer> version                 = new IntProperty("version").indexed();
 	public static final Property<String> tag                      = new StringProperty("tag").indexed();
@@ -127,77 +127,63 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 //	public static final Property<Boolean> hideOnEdit              = new BooleanProperty("hideOnEdit");
 //	public static final Property<Boolean> hideOnNonEdit           = new BooleanProperty("hideOnNonEdit");
 
-	public static final Property<String> _title                   = new HtmlProperty("title").indexed();
-	public static final Property<String> _tabindex                = new HtmlProperty("tabindex");
-	public static final Property<String> _style                   = new HtmlProperty("style");
-	public static final Property<String> _spellcheck              = new HtmlProperty("spellcheck");
-	public static final Property<String> _onwaiting               = new HtmlProperty("onwaiting");
-	public static final Property<String> _onvolumechange          = new HtmlProperty("onvolumechange");
-	public static final Property<String> _ontimeupdate            = new HtmlProperty("ontimeupdate");
-	public static final Property<String> _onsuspend               = new HtmlProperty("onsuspend");
-	public static final Property<String> _onsubmit                = new HtmlProperty("onsubmit");
-	public static final Property<String> _onstalled               = new HtmlProperty("onstalled");
-	public static final Property<String> _onshow                  = new HtmlProperty("onshow");
-	public static final Property<String> _onselect                = new HtmlProperty("onselect");
-	public static final Property<String> _onseeking               = new HtmlProperty("onseeking");
-	public static final Property<String> _onseeked                = new HtmlProperty("onseeked");
-	public static final Property<String> _onscroll                = new HtmlProperty("onscroll");
-	public static final Property<String> _onreset                 = new HtmlProperty("onreset");
-	public static final Property<String> _onreadystatechange      = new HtmlProperty("onreadystatechange");
-	public static final Property<String> _onratechange            = new HtmlProperty("onratechange");
-	public static final Property<String> _onprogress              = new HtmlProperty("onprogress");
-	public static final Property<String> _onplaying               = new HtmlProperty("onplaying");
-	public static final Property<String> _onplay                  = new HtmlProperty("onplay");
-	public static final Property<String> _onpause                 = new HtmlProperty("onpause");
-	public static final Property<String> _onmousewheel            = new HtmlProperty("onmousewheel");
-	public static final Property<String> _onmouseup               = new HtmlProperty("onmouseup");
-	public static final Property<String> _onmouseover             = new HtmlProperty("onmouseover");
-	public static final Property<String> _onmouseout              = new HtmlProperty("onmouseout");
-	public static final Property<String> _onmousemove             = new HtmlProperty("onmousemove");
-	public static final Property<String> _onmousedown             = new HtmlProperty("onmousedown");
-	public static final Property<String> _onloadstart             = new HtmlProperty("onloadstart");
-	public static final Property<String> _onloadedmetadata        = new HtmlProperty("onloadedmetadata");
-	public static final Property<String> _onloadeddata            = new HtmlProperty("onloadeddata");
-	public static final Property<String> _onload                  = new HtmlProperty("onload");
-	public static final Property<String> _onkeyup                 = new HtmlProperty("onkeyup");
-	public static final Property<String> _onkeypress              = new HtmlProperty("onkeypress");
-	public static final Property<String> _onkeydown               = new HtmlProperty("onkeydown");
-	public static final Property<String> _oninvalid               = new HtmlProperty("oninvalid");
-	public static final Property<String> _oninput                 = new HtmlProperty("oninput");
-	public static final Property<String> _onfocus                 = new HtmlProperty("onfocus");
-	public static final Property<String> _onerror                 = new HtmlProperty("onerror");
-	public static final Property<String> _onended                 = new HtmlProperty("onended");
-	public static final Property<String> _onemptied               = new HtmlProperty("onemptied");
-	public static final Property<String> _ondurationchange        = new HtmlProperty("ondurationchange");
-	public static final Property<String> _ondrop                  = new HtmlProperty("ondrop");
-	public static final Property<String> _ondragstart             = new HtmlProperty("ondragstart");
-	public static final Property<String> _ondragover              = new HtmlProperty("ondragover");
-	public static final Property<String> _ondragleave             = new HtmlProperty("ondragleave");
-	public static final Property<String> _ondragenter             = new HtmlProperty("ondragenter");
-	public static final Property<String> _ondragend               = new HtmlProperty("ondragend");
-	public static final Property<String> _ondrag                  = new HtmlProperty("ondrag");
-	public static final Property<String> _ondblclick              = new HtmlProperty("ondblclick");
-	public static final Property<String> _oncontextmenu           = new HtmlProperty("oncontextmenu");
-	public static final Property<String> _onclick                 = new HtmlProperty("onclick");
-	public static final Property<String> _onchange                = new HtmlProperty("onchange");
-	public static final Property<String> _oncanplaythrough        = new HtmlProperty("oncanplaythrough");
-	public static final Property<String> _oncanplay               = new HtmlProperty("oncanplay");
-	public static final Property<String> _onblur                  = new HtmlProperty("onblur");
- 
 	// Event-handler attributes
 	public static final Property<String> _onabort                 = new HtmlProperty("onabort");
-	public static final Property<String> _lang                    = new HtmlProperty("lang");
-	public static final Property<String> _id                      = new HtmlProperty("id");
-	public static final Property<String> _hidden                  = new HtmlProperty("hidden");
-	public static final Property<String> _dropzone                = new HtmlProperty("dropzone");
-	public static final Property<String> _draggable               = new HtmlProperty("draggable");
-	public static final Property<String> _dir                     = new HtmlProperty("dir");
+	public static final Property<String> _onblur                  = new HtmlProperty("onblur");
+	public static final Property<String> _oncanplay               = new HtmlProperty("oncanplay");
+	public static final Property<String> _oncanplaythrough        = new HtmlProperty("oncanplaythrough");
+	public static final Property<String> _onchange                = new HtmlProperty("onchange");
+	public static final Property<String> _onclick                 = new HtmlProperty("onclick");
+	public static final Property<String> _oncontextmenu           = new HtmlProperty("oncontextmenu");
+	public static final Property<String> _ondblclick              = new HtmlProperty("ondblclick");
+	public static final Property<String> _ondrag                  = new HtmlProperty("ondrag");
+	public static final Property<String> _ondragend               = new HtmlProperty("ondragend");
+	public static final Property<String> _ondragenter             = new HtmlProperty("ondragenter");
+	public static final Property<String> _ondragleave             = new HtmlProperty("ondragleave");
+	public static final Property<String> _ondragover              = new HtmlProperty("ondragover");
+	public static final Property<String> _ondragstart             = new HtmlProperty("ondragstart");
+	public static final Property<String> _ondrop                  = new HtmlProperty("ondrop");
+	public static final Property<String> _ondurationchange        = new HtmlProperty("ondurationchange");
+	public static final Property<String> _onemptied               = new HtmlProperty("onemptied");
+	public static final Property<String> _onended                 = new HtmlProperty("onended");
+	public static final Property<String> _onerror                 = new HtmlProperty("onerror");
+	public static final Property<String> _onfocus                 = new HtmlProperty("onfocus");
+	public static final Property<String> _oninput                 = new HtmlProperty("oninput");
+	public static final Property<String> _oninvalid               = new HtmlProperty("oninvalid");
+	public static final Property<String> _onkeydown               = new HtmlProperty("onkeydown");
+	public static final Property<String> _onkeypress              = new HtmlProperty("onkeypress");
+	public static final Property<String> _onkeyup                 = new HtmlProperty("onkeyup");
+	public static final Property<String> _onload                  = new HtmlProperty("onload");
+	public static final Property<String> _onloadeddata            = new HtmlProperty("onloadeddata");
+	public static final Property<String> _onloadedmetadata        = new HtmlProperty("onloadedmetadata");
+	public static final Property<String> _onloadstart             = new HtmlProperty("onloadstart");
+	public static final Property<String> _onmousedown             = new HtmlProperty("onmousedown");
+	public static final Property<String> _onmousemove             = new HtmlProperty("onmousemove");
+	public static final Property<String> _onmouseout              = new HtmlProperty("onmouseout");
+	public static final Property<String> _onmouseover             = new HtmlProperty("onmouseover");
+	public static final Property<String> _onmouseup               = new HtmlProperty("onmouseup");
+	public static final Property<String> _onmousewheel            = new HtmlProperty("onmousewheel");
+	public static final Property<String> _onpause                 = new HtmlProperty("onpause");
+	public static final Property<String> _onplay                  = new HtmlProperty("onplay");
+	public static final Property<String> _onplaying               = new HtmlProperty("onplaying");
+	public static final Property<String> _onprogress              = new HtmlProperty("onprogress");
+	public static final Property<String> _onratechange            = new HtmlProperty("onratechange");
+	public static final Property<String> _onreadystatechange      = new HtmlProperty("onreadystatechange");
+	public static final Property<String> _onreset                 = new HtmlProperty("onreset");
+	public static final Property<String> _onscroll                = new HtmlProperty("onscroll");
+	public static final Property<String> _onseeked                = new HtmlProperty("onseeked");
+	public static final Property<String> _onseeking               = new HtmlProperty("onseeking");
+	public static final Property<String> _onselect                = new HtmlProperty("onselect");
+	public static final Property<String> _onshow                  = new HtmlProperty("onshow");
+	public static final Property<String> _onstalled               = new HtmlProperty("onstalled");
+	public static final Property<String> _onsubmit                = new HtmlProperty("onsubmit");
+	public static final Property<String> _onsuspend               = new HtmlProperty("onsuspend");
+	public static final Property<String> _ontimeupdate            = new HtmlProperty("ontimeupdate");
+	public static final Property<String> _onvolumechange          = new HtmlProperty("onvolumechange");
+	public static final Property<String> _onwaiting               = new HtmlProperty("onwaiting");
 
 	// needed for Importer
 	public static final Property<String> _data                    = new HtmlProperty("data").indexed();
-	public static final Property<String> _contextmenu             = new HtmlProperty("contextmenu");
-	public static final Property<String> _contenteditable         = new HtmlProperty("contenteditable");
-	public static final Property<String> _class                   = new HtmlProperty("class").indexed();
 
 	// Edit-mode attributes
 	public static final Property<Boolean> _reload		= new BooleanProperty("data-structr-reload");
@@ -208,11 +194,27 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	public static final Property<String> _fieldName		= new StringProperty("data-structr-name");
 	public static final Property<String> _hide		= new StringProperty("data-structr-hide");
 	public static final Property<String> _rawValue		= new StringProperty("data-structr-raw-value");
-	public static final Property<String> _container		= new StringProperty("data-structr-container");
 	
 	// Core attributes
 	public static final Property<String> _accesskey               = new HtmlProperty("accesskey").indexed();
+	public static final Property<String> _class                   = new HtmlProperty("class").indexed();
+	public static final Property<String> _contenteditable         = new HtmlProperty("contenteditable");
+	public static final Property<String> _contextmenu             = new HtmlProperty("contextmenu");
+	public static final Property<String> _dir                     = new HtmlProperty("dir");
+	public static final Property<String> _draggable               = new HtmlProperty("draggable");
+	public static final Property<String> _dropzone                = new HtmlProperty("dropzone");
+	public static final Property<String> _hidden                  = new HtmlProperty("hidden");
+	public static final Property<String> _id                      = new HtmlProperty("id");
+	public static final Property<String> _lang                    = new HtmlProperty("lang");
+	public static final Property<String> _spellcheck              = new HtmlProperty("spellcheck");
+	public static final Property<String> _style                   = new HtmlProperty("style");
+	public static final Property<String> _tabindex                = new HtmlProperty("tabindex");
+	public static final Property<String> _title                   = new HtmlProperty("title").indexed();
+	public static final Property<String> _translate               = new HtmlProperty("translate");
 	
+	// The role attribute, see http://www.w3.org/TR/role-attribute/
+	public static final Property<String> _role                    = new HtmlProperty("role");
+
 	public static final org.structr.common.View publicView        = new org.structr.common.View(DOMElement.class, PropertyView.Public,
 										name, tag, pageId, path, parent, children, restQuery, cypherQuery, xpathQuery, partialUpdateKey, dataKey, syncedNodes
 	);
@@ -221,23 +223,23 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 										restQuery, cypherQuery, xpathQuery, partialUpdateKey, dataKey, syncedNodes,
 										renderDetails, hideOnIndex, hideOnDetail, showForLocales, hideForLocales, showConditions, hideConditions,
 										_accesskey, _class, _contenteditable, _contextmenu, _dir, _draggable, _dropzone, _hidden, _id, _lang, _spellcheck, _style,
-										_tabindex, _title, _onabort, _onblur, _oncanplay, _oncanplaythrough, _onchange, _onclick, _oncontextmenu, _ondblclick,
+										_tabindex, _title, _translate, _onabort, _onblur, _oncanplay, _oncanplaythrough, _onchange, _onclick, _oncontextmenu, _ondblclick,
 										_ondrag, _ondragend, _ondragenter, _ondragleave, _ondragover, _ondragstart, _ondrop, _ondurationchange, _onemptied,
 										_onended, _onerror, _onfocus, _oninput, _oninvalid, _onkeydown, _onkeypress, _onkeyup, _onload, _onloadeddata,
 										_onloadedmetadata, _onloadstart, _onmousedown, _onmousemove, _onmouseout, _onmouseover, _onmouseup, _onmousewheel,
 										_onpause, _onplay, _onplaying, _onprogress, _onratechange, _onreadystatechange, _onreset, _onscroll, _onseeked,
 										_onseeking, _onselect, _onshow, _onstalled, _onsubmit, _onsuspend, _ontimeupdate, _onvolumechange, _onwaiting,
-										_reload, _confirm, _action, _attributes, _attr, _fieldName, _hide, _rawValue, _container
+										_reload, _confirm, _action, _attributes, _attr, _fieldName, _hide, _rawValue, _role
 	);
 	
 	public static final org.structr.common.View htmlView          = new org.structr.common.View(DOMElement.class, PropertyView.Html, _accesskey, _class, _contenteditable, _contextmenu, _dir,
-										_draggable, _dropzone, _hidden, _id, _lang, _spellcheck, _style, _tabindex, _title, _onabort, _onblur, _oncanplay,
+										_draggable, _dropzone, _hidden, _id, _lang, _spellcheck, _style, _tabindex, _title, _translate, _onabort, _onblur, _oncanplay,
 										_oncanplaythrough, _onchange, _onclick, _oncontextmenu, _ondblclick, _ondrag, _ondragend, _ondragenter, _ondragleave,
 										_ondragover, _ondragstart, _ondrop, _ondurationchange, _onemptied, _onended, _onerror, _onfocus, _oninput, _oninvalid,
 										_onkeydown, _onkeypress, _onkeyup, _onload, _onloadeddata, _onloadedmetadata, _onloadstart, _onmousedown, _onmousemove,
 										_onmouseout, _onmouseover, _onmouseup, _onmousewheel, _onpause, _onplay, _onplaying, _onprogress, _onratechange,
 										_onreadystatechange, _onreset, _onscroll, _onseeked, _onseeking, _onselect, _onshow, _onstalled, _onsubmit, _onsuspend,
-										_ontimeupdate, _onvolumechange, _onwaiting
+										_ontimeupdate, _onvolumechange, _onwaiting, _role
 	);
 
 	static {
