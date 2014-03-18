@@ -728,7 +728,11 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 				// isolate write output
 				try (final Tx tx = app.tx()) {
-					result.commitResponse(gson.get(), response);
+					
+					if (result != null) {
+						result.commitResponse(gson.get(), response);
+					}
+					
 					tx.success();
 				}
 				
