@@ -269,7 +269,7 @@ public class Importer {
 	public void importDataComments() throws FrameworkException {
 
 		// try to import graph gist from comments
-		GraphGistImporter.importGist(GraphGistImporter.extractSources(new ByteArrayInputStream(commentSource.toString().getBytes())));
+		GraphGistImporter.importCypher(GraphGistImporter.extractSources(new ByteArrayInputStream(commentSource.toString().getBytes())));
 	}
 
 	// ----- private methods -----

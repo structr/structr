@@ -35,9 +35,11 @@ public class TestBulkCommands extends StructrTest {
 			final GraphDatabaseService graphDb = app.getGraphDatabaseService();
 			final Set<Label> expectedLabels    = new LinkedHashSet<>();
 			
-			expectedLabels.add(DynamicLabel.label("Group"));
 			expectedLabels.add(DynamicLabel.label("Principal"));
+			expectedLabels.add(DynamicLabel.label("Person"));
+			expectedLabels.add(DynamicLabel.label("Group"));
 			expectedLabels.add(DynamicLabel.label("AccessControllable"));
+			expectedLabels.add(DynamicLabel.label("AbstractUser"));
 			
 			// intentionally create raw Neo4j transaction and create nodes in there
 			try (Transaction tx = graphDb.beginTx()) {
@@ -77,7 +79,7 @@ public class TestBulkCommands extends StructrTest {
 
 					final Set<Label> labels = Iterables.toSet(group.getNode().getLabels());
 					
-					assertEquals(3, labels.size());
+					assertEquals(5, labels.size());
 					assertTrue(expectedLabels.containsAll(labels));
 				}
 				
