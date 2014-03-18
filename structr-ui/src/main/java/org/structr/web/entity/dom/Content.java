@@ -146,10 +146,26 @@ public class Content extends DOMNode implements Text {
 
 	}
 
-	//~--- methods --------------------------------------------------------
+	@Override
+	public boolean contentEquals(DOMNode otherNode) {
 
-
-	//~--- get methods ----------------------------------------------------
+		if (otherNode instanceof Content) {
+			
+			final String content1 = getTextContent();
+			final String content2 = ((Content)otherNode).getTextContent();
+			
+			if (content1 == null && content2 == null) {
+				return true;
+			}
+			
+			if (content1 != null && content2 != null) {
+				
+				return content1.equals(content2);
+			}
+		}
+		
+		return false;
+	}
 
 	@Override
 	public java.lang.Object getPropertyForIndexing(final PropertyKey key) {

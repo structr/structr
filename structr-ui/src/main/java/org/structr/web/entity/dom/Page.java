@@ -98,6 +98,12 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	}
 
 	//~--- methods --------------------------------------------------------
+
+	@Override
+	public boolean contentEquals(DOMNode otherNode) {
+		return false;
+	}
+
 	@Override
 	public boolean isValid(ErrorBuffer errorBuffer) {
 

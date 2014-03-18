@@ -18,8 +18,6 @@
  */
 package org.structr.web.entity.dom;
 
-import java.io.IOException;
-import java.io.PrintWriter;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
@@ -251,7 +249,38 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		listSources.add(new NodeGraphDataSource());
 		listSources.add(new RestDataSource());
 	}
-	//~--- methods --------------------------------------------------------
+
+	@Override
+	public boolean contentEquals(DOMNode otherNode) {
+
+		if (otherNode instanceof DOMElement) {
+
+			final DOMElement otherElement = (DOMElement)otherNode;
+			
+			if (getProperty(DOMElement.tag).equals(otherNode.getProperty(DOMElement.tag))) {
+
+				boolean equal = true;
+				
+				for (final Property key : htmlView.properties()) {
+
+					final Object value1 = this.getProperty(key);
+					final Object value2 = otherElement.getProperty(key);
+
+					if (value1 == null && value2 == null) {
+						continue;
+					}
+
+					if (value1 != null && value2 != null) {
+						equal &= value1.equals(value2);
+					}
+				}
+
+				return equal;
+			}
+		}
+		
+		return false;
+	}
 
 	public boolean avoidWhitespace() {
 
@@ -269,22 +298,26 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		
 		out.append("<").append(tag);
 
-		if (EditMode.CONTENT.equals(editMode)) {
+		switch (editMode) {
+			
+			case CONTENT:
 
-			if (depth == 0) {
+				if (depth == 0) {
 
-				String pageId = renderContext.getPageId();
+					String pageId = renderContext.getPageId();
 
-				if (pageId != null) {
+					if (pageId != null) {
 
-					out.append(" data-structr-page=\"").append(pageId).append("\"");
-
+						out.append(" data-structr-page=\"").append(pageId).append("\"");
+					}
 				}
-
-			}
-
-			out.append(" data-structr-id=\"").append(getUuid()).append("\"");
-
+				
+				out.append(" data-structr-id=\"").append(getUuid()).append("\"");
+				break;
+				
+			case RAW:
+				out.append(" data-hash=\"").append(getIdHash()).append("\"");
+				break;
 		}
 
 		// include arbitrary data-* attributes

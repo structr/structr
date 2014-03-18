@@ -46,6 +46,7 @@ import org.structr.core.graph.BulkSetUuidCommand;
 import org.structr.core.graph.SyncCommand;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.importer.GraphGistImporter;
+import org.structr.schema.importer.RDFImporter;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -62,6 +63,7 @@ public class MaintenanceParameterResource extends Resource {
 	static {
 
 		maintenanceCommandMap.put("importGist", GraphGistImporter.class);
+		maintenanceCommandMap.put("importRdf", RDFImporter.class);
 		maintenanceCommandMap.put("rebuildIndex", BulkRebuildIndexCommand.class);
 		maintenanceCommandMap.put("rebuildIndexForType", BulkRebuildIndexCommand.class);
 		maintenanceCommandMap.put("createLabels", BulkCreateLabelsCommand.class);

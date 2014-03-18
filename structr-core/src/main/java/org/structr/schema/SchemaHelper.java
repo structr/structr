@@ -38,6 +38,7 @@ import org.structr.common.error.InvalidPropertySchemaToken;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.DynamicResourceAccess;
+import org.structr.core.entity.ResourceAccess;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.relationship.SchemaRelationship;
 import org.structr.core.graph.NodeAttribute;
@@ -237,7 +238,7 @@ public class SchemaHelper {
 		final App app = StructrApp.getInstance();
 		try {
 
-			DynamicResourceAccess grant = app.nodeQuery(DynamicResourceAccess.class).and(DynamicResourceAccess.signature, signature).getFirst();
+			ResourceAccess grant = app.nodeQuery(ResourceAccess.class).and(ResourceAccess.signature, signature).getFirst();
 			long flagsValue = 255;
 
 			// set value from grant flags
@@ -271,7 +272,7 @@ public class SchemaHelper {
 				// Caution: this means that the SchemaNode is the 
 				// primary source for resource access flag values
 				// of dynamic nodes
-				grant.setProperty(DynamicResourceAccess.flags, flagsValue);
+				grant.setProperty(ResourceAccess.flags, flagsValue);
 			}
 
 		} catch (Throwable t) {
@@ -282,55 +283,6 @@ public class SchemaHelper {
 		return grants;
 
 	}
-
-//	public static void updateGrants(final List<DynamicResourceAccess> grants, final String signature, final Long flags) {
-//
-//		final App app = StructrApp.getInstance();
-//		
-//		long flagsValue = 255;
-//
-//		// set value from grant flags
-//		if (flags != null) {
-//			flagsValue = flags.longValue();
-//		}
-//		
-//		try {
-//			app.beginTx();
-//			
-//			for (DynamicResourceAccess grant : grants) {
-//				
-//				final String oldSignature = grant.getProperty(DynamicResourceAccess.signature);
-//				
-//				if (oldSignature.startsWith("_schema/")) {
-//					
-//					grant.setProperty(DynamicResourceAccess.signature, "_schema/" + signature);
-//					
-//				} else if (oldSignature.endsWith("/_Ui")) {
-//					
-//					grant.setProperty(DynamicResourceAccess.signature, signature + "/_Ui");
-//					
-//				} else {
-//					
-//					grant.setProperty(DynamicResourceAccess.signature, signature);
-//					
-//				}
-//				
-//				grant.setProperty(DynamicResourceAccess.flags, flagsValue);
-//				
-//			}
-//			
-//			app.commitTx();
-//
-//		} catch (Throwable t) {
-//
-//			t.printStackTrace();
-//
-//		} finally {
-//
-//			app.finishTx();
-//		}
-//
-//	}
 
 	public static void removeAllDynamicGrants() {
 

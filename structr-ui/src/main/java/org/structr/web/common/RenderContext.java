@@ -34,7 +34,6 @@ import org.structr.core.property.PropertyKey;
 import org.structr.rest.ResourceProvider;
 import org.structr.web.entity.Component;
 import org.structr.web.entity.dom.Page;
-import org.structr.web.servlet.HtmlServlet;
 
 /**
  * Holds information about the context in which a resource is rendered,
@@ -68,7 +67,7 @@ public class RenderContext {
 	private HttpServletResponse response         = null;
 	private ResourceProvider resourceProvider    = null;
 	private Result result                        = null;
-	private AsyncBuffer buffer                    = new AsyncBuffer();
+	private AsyncBuffer buffer                   = new AsyncBuffer();
 	
 	public enum EditMode {
 	
@@ -227,14 +226,12 @@ public class RenderContext {
 		return searchClass;
 	}
 	
+	public void setBuffer(final AsyncBuffer buffer) {
+		this.buffer = buffer;
+	}
+	
 	public AsyncBuffer getBuffer() {
 		return buffer;
-//		try {
-//			return response.getWriter();
-//		} catch (IOException ex) {
-//			logger.log(Level.SEVERE, "Could not get output writer", ex);
-//		}
-//		return null;
 	}
 	
 	public void setInBody(final boolean inBody) {

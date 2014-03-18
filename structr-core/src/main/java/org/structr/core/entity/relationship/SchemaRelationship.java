@@ -235,26 +235,30 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 		
 		String propertyName = "";
 		
-		final String _sourceType         = getSchemaNodeSourceType();
-		final String _targetType         = getSchemaNodeTargetType();
+		final String _sourceType          = getSchemaNodeSourceType();
+		final String _targetType          = getSchemaNodeTargetType();
+		final String relationshipTypeName = getProperty(SchemaRelationship.relationshipType);
 
 		if (outgoing) {
 
 			final String _targetJsonName     = getProperty(targetJsonName);
 
 			if (_targetJsonName != null) {
+				
+				// FIXME: no automatic creation?
 				propertyName = _targetJsonName;
+				
 			} else {
 
 				final String _targetMultiplicity = getProperty(targetMultiplicity);
 
 				if ("1".equals(_targetMultiplicity)) {
 
-					propertyName = CaseHelper.toLowerCamelCase(_targetType);
+					propertyName = CaseHelper.toLowerCamelCase(relationshipTypeName) + CaseHelper.toUpperCamelCase(_targetType);
 
 				} else {
 
-					propertyName = CaseHelper.plural(CaseHelper.toLowerCamelCase(_targetType));
+					propertyName = CaseHelper.plural(CaseHelper.toLowerCamelCase(relationshipTypeName) + CaseHelper.toUpperCamelCase(_targetType));
 				}
 			}
 			
@@ -270,11 +274,11 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 
 				if ("1".equals(_sourceMultiplicity)) {
 
-					propertyName = CaseHelper.toLowerCamelCase(_sourceType);
+					propertyName = CaseHelper.toLowerCamelCase(_sourceType) + CaseHelper.toUpperCamelCase(relationshipTypeName);
 
 				} else {
 
-					propertyName = CaseHelper.plural(CaseHelper.toLowerCamelCase(_sourceType));
+					propertyName = CaseHelper.plural(CaseHelper.toLowerCamelCase(_sourceType) + CaseHelper.toUpperCamelCase(relationshipTypeName));
 				}
 			}
 		}

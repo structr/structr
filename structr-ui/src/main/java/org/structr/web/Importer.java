@@ -251,10 +251,25 @@ public class Importer {
 		}
 	}
 
+	public void createChildNodesWithHtml(final DOMNode parent, final Page page, final String baseUrl) throws FrameworkException {
+
+		try {
+
+			createChildNodes(parsedDocument, parent, page, new URL(baseUrl));
+
+		} catch (MalformedURLException ex) {
+
+			logger.log(Level.WARNING, "Could not read URL {1}, calling method without base URL", baseUrl);
+
+			createChildNodes(parsedDocument, parent, page, null);
+
+		}
+	}
+
 	public void importDataComments() throws FrameworkException {
 
 		// try to import graph gist from comments
-		GraphGistImporter.importGist(GraphGistImporter.extractSources(new ByteArrayInputStream(commentSource.toString().getBytes())));
+		GraphGistImporter.importCypher(GraphGistImporter.extractSources(new ByteArrayInputStream(commentSource.toString().getBytes())));
 	}
 
 	// ----- private methods -----
