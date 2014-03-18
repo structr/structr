@@ -195,7 +195,7 @@ var _Entities = {
             contentType: contentType,
             success: function(data) {
                 text = data;
-                var div = dialog.append('<div class="editor"></div>');
+                dialog.append('<div class="editor"></div>');
                 var contentBox = $('.editor', dialog);
                 editor = CodeMirror(contentBox.get(0), {
                     value: unescapeTags(text),
@@ -237,24 +237,30 @@ var _Entities = {
                         saveAndClose.prop("disabled", false).removeClass('disabled');
                     }
 
+                    Command.savePage(text2, entity.id, function() {
+                            dialogSaveButton.prop("disabled", true).addClass('disabled');
+                            saveAndClose.prop("disabled", true).addClass('disabled');
+                            dialogMsg.html('<div class="infoBox success">New nodes created from source.</div>');
+                            $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
+                    });
 
-                    var parent = entity.parent;
-                    if (parent) {
-                        Command.removeChild(entity.id);
-                        Command.appendWidget(text2, entity.parent.id, entity.pageId, null, null, function() {
-                            dialogSaveButton.prop("disabled", true).addClass('disabled');
-                            saveAndClose.prop("disabled", true).addClass('disabled');
-                            dialogMsg.html('<div class="infoBox success">New nodes created from source.</div>');
-                            $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
-                        });
-                    } else {
-                        Command.replaceWidget(text2, entity.id, entity.parent ? entity.parent.id : undefined, entity.pageId, function() {
-                            dialogSaveButton.prop("disabled", true).addClass('disabled');
-                            saveAndClose.prop("disabled", true).addClass('disabled');
-                            dialogMsg.html('<div class="infoBox success">New nodes created from source.</div>');
-                            $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
-                        });
-                    }
+//                    var parent = entity.parent;
+//                    if (parent) {
+//                        Command.removeChild(entity.id);
+//                        Command.appendWidget(text2, entity.parent.id, entity.pageId, null, null, function() {
+//                            dialogSaveButton.prop("disabled", true).addClass('disabled');
+//                            saveAndClose.prop("disabled", true).addClass('disabled');
+//                            dialogMsg.html('<div class="infoBox success">New nodes created from source.</div>');
+//                            $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
+//                        });
+//                    } else {
+//                        Command.replaceWidget(text2, entity.id, entity.parent ? entity.parent.id : undefined, entity.pageId, function() {
+//                            dialogSaveButton.prop("disabled", true).addClass('disabled');
+//                            saveAndClose.prop("disabled", true).addClass('disabled');
+//                            dialogMsg.html('<div class="infoBox success">New nodes created from source.</div>');
+//                            $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
+//                        });
+//                    }
                 });
 
                 saveAndClose.on('click', function(e) {

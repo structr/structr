@@ -584,6 +584,7 @@ var _Pages = {
         });
 
         _Entities.appendEditPropertiesIcon(div, entity);
+        _Entities.appendEditSourceIcon(div, entity);
         _Entities.setMouseOver(div);
 
         var tab = _Pages.addTab(entity);
