@@ -1164,7 +1164,6 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 					} catch (Throwable t) {
 						// ignore
-						t.printStackTrace();
 					}
 				}
 			}
