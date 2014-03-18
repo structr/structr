@@ -26,7 +26,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -34,20 +33,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.commons.lang.StringUtils;
 import org.neo4j.cypher.javacompat.ExecutionEngine;
-import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.kernel.logging.BufferingLogger;
 import org.neo4j.tooling.GlobalGraphOperations;
-import org.structr.common.CaseHelper;
 import org.structr.common.StructrAndSpatialPredicate;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -122,14 +116,19 @@ public class GraphGistImporter extends NodeServiceCommand implements Maintenance
 	
 	public static void importGist(final List<String> sources) throws FrameworkException {
 	
-		final App app                                    = StructrApp.getInstance();
-		final NodeServiceCommand nodeServiceCommand      = app.command(CreateNodeCommand.class);
-		final ConfigurationProvider configuration        = Services.getInstance().getConfigurationProvider();
-		final GraphDatabaseService graphDb               = app.command(GraphDatabaseCommand.class).execute();
-		final ExecutionEngine engine                     = new ExecutionEngine(graphDb, new BufferingLogger());
-		final Map<String, Map<String, Class>> properties = new LinkedHashMap<>();
-		final Set<RelationshipTemplate> relationships    = new LinkedHashSet<>();
-		final Map<String, SchemaNode> schemaNodes        = new LinkedHashMap<>();
+		final App app                                     = StructrApp.getInstance();
+		final NodeServiceCommand nodeServiceCommand       = app.command(CreateNodeCommand.class);
+		final ConfigurationProvider configuration         = Services.getInstance().getConfigurationProvider();
+		final GraphDatabaseService graphDb                = app.command(GraphDatabaseCommand.class).execute();
+		final ExecutionEngine engine                      = new ExecutionEngine(graphDb, new BufferingLogger());
+		final Set<NodeInfo> nodeTypes                     = new LinkedHashSet<>();
+		final Map<Long, TypeInfo> nodeTypeInfoMap         = new LinkedHashMap<>();
+		final Set<RelationshipInfo> relationships         = new LinkedHashSet<>();
+		final Map<String, SchemaNode> schemaNodes         = new LinkedHashMap<>();
+		final Map<NodeInfo, List<Node>> nodeMap           = new LinkedHashMap<>();
+		final Map<String, List<TypeInfo>> typeInfoTypeMap = new LinkedHashMap<>();
+		final List<TypeInfo> reducedTypeInfos             = new LinkedList<>();
+		final List<TypeInfo> typeInfos                    = new LinkedList<>();
 
 		// nothing to do
 		if (sources.isEmpty()) {
@@ -159,28 +158,51 @@ public class GraphGistImporter extends NodeServiceCommand implements Maintenance
 			// analyze nodes
 			for (final Node node : Iterables.filter(new StructrAndSpatialPredicate(false, false, true), GlobalGraphOperations.at(graphDb).getAllNodes())) {
 
-				// first step: analyze node properties
-				final Map<String, Class> propertyTypes = new TreeMap<>();
-				for (final String key : node.getPropertyKeys()) {
-
-					final Object value = node.getProperty(key);
-					if (value != null) {
-						
-						propertyTypes.put(key, value.getClass());
-					}
+				final NodeInfo nodeInfo = new NodeInfo(node);
+				
+				// extract node info and set UUID
+				nodeTypes.add(nodeInfo);
+				
+				List<Node> nodes = nodeMap.get(nodeInfo);
+				if (nodes == null) {
+					nodes = new LinkedList<>();
+					nodeMap.put(nodeInfo, nodes);
 				}
 				
-				// second step: try to infer type or use properties to
-				// identify nodes of the same type
-				final String primaryType = getType(node, propertyTypes);
-				if (primaryType != null && !"ReferenceNode".equals(primaryType)) {
+				nodes.add(node);
+			}
+			
+			// nodeTypes now contains all existing node types and their property sets
+			identifyCommonBaseClasses(nodeTypes, nodeMap, typeInfos);
+
+			// group type infos by type
+			collectTypeInfos(typeInfos, typeInfoTypeMap);
+			
+			// reduce type infos with more than one type 
+			reduceTypeInfos(typeInfoTypeMap, reducedTypeInfos);
+			
+			// intersect property sets of type infos
+			intersectPropertySets(reducedTypeInfos);
+			
+			// set type and ID on newly created nodes
+			final Map<String, TypeInfo> reducedTypeInfoMap = new LinkedHashMap<>();
+			for (final TypeInfo info : reducedTypeInfos) {
+				
+				final String type = info.getPrimaryType();
+
+				// map TypeInfo to type for later use
+				reducedTypeInfoMap.put(type, info);
+				
+				System.out.println("#######################################");
+				System.out.println(info);
+				
+				for (final Node node : info.getNodes()) {
 					
-					// store propery map
-					properties.put(primaryType, propertyTypes);
-					
-					// create ID and type on imported node
 					node.setProperty(GraphObject.id.dbName(), nodeServiceCommand.getNextUuid());
-					node.setProperty(GraphObject.type.dbName(), primaryType);
+					node.setProperty(GraphObject.type.dbName(), type);
+					
+					// store type info for imported node
+					nodeTypeInfoMap.put(node.getId(), info);
 				}
 			}
 			
@@ -193,14 +215,13 @@ public class GraphGistImporter extends NodeServiceCommand implements Maintenance
 				// make sure node has been successfully identified above
 				if (startNode.hasProperty("type") && endNode.hasProperty("type")) {
 					
+					final TypeInfo startTypeInfo  = nodeTypeInfoMap.get(startNode.getId());
+					final TypeInfo endTypeInfo    = nodeTypeInfoMap.get(endNode.getId());
 					final String relationshipType = rel.getType().name();
-					final String startNodeType    = (String)startNode.getProperty("type");
-					final String endNodeType      = (String)endNode.getProperty("type");
-					final Set<String> typeSet     = properties.keySet();
+					final String startNodeType    = startTypeInfo.getPrimaryType();
+					final String endNodeType      = endTypeInfo.getPrimaryType();
 
-					if (typeSet.contains(startNodeType) && typeSet.contains(endNodeType)) {
-						relationships.add(new RelationshipTemplate(startNodeType, endNodeType, relationshipType));
-					}
+					relationships.add(new RelationshipInfo(startNodeType, endNodeType, relationshipType));
 
 					// create combined type on imported relationship
 					if (startNodeType != null && endNodeType != null) {
@@ -214,50 +235,81 @@ public class GraphGistImporter extends NodeServiceCommand implements Maintenance
 				}
 			}
 
-			// create schema nodes
-			for (final Entry<String, Map<String, Class>> typeEntry : properties.entrySet()) {
+			// group relationships by type
+			final Map<String, List<RelationshipInfo>> relTypeInfoMap = new LinkedHashMap<>();
+			for (final RelationshipInfo relInfo : relationships) {
 				
-				final String type              = typeEntry.getKey();
-				final Map<String, Class> props = typeEntry.getValue();
-				final PropertyMap propertyMap  = new PropertyMap();
+				final String relType         = relInfo.getRelType();
+				List<RelationshipInfo> infos = relTypeInfoMap.get(relType);
 				
-				// add properties
-				for (final Entry<String, Class> propertyEntry : props.entrySet()) {
+				if (infos == null) {
 					
-					final String propertyName = propertyEntry.getKey();
-					final Class propertyType  = propertyEntry.getValue();
-					
-					// handle array types differently
-					String propertyTypeName = propertyType.getSimpleName();
-					if (propertyType.isArray()) {
-						
-						// remove "[]" from the end and append "Array" to match the appropriate parser
-						propertyTypeName = propertyTypeName.substring(0, propertyTypeName.length() - 2).concat("Array");
-					}
-					
-					propertyMap.put(new StringProperty("_".concat(propertyName)), propertyTypeName);
+					infos = new LinkedList<>();
+					relTypeInfoMap.put(relType, infos);
 				}
 				
-				// set node type which is in "name" property
-				propertyMap.put(AbstractNode.name, type);
-				
-				// check if there is an existing Structr entity with the same type
-				// and make the dynamic class extend the existing class if yes.
-				final Class existingType = configuration.getNodeEntityClass(type);
-				if (existingType != null) {
-					
-					propertyMap.put(SchemaNode.extendsClass, existingType.getName());
-				}
+				infos.add(relInfo);
+			}
 
-				// create schema node
-				schemaNodes.put(type, app.create(SchemaNode.class, propertyMap));
+			// reduce relationship infos into one
+			final List<RelationshipInfo> reducedRelationshipInfos = new LinkedList<>();
+			for (final List<RelationshipInfo> infos : relTypeInfoMap.values()) {
+				
+				reducedRelationshipInfos.addAll(reduceNodeTypes(infos, reducedTypeInfoMap));
+			}
+			
+			// create schema nodes
+			for (final TypeInfo typeInfo : reducedTypeInfos) {
+				
+				final String type = typeInfo.getPrimaryType();
+				if (!"ReferenceNode".equals(type)) {
+
+					final Map<String, Class> props = typeInfo.getPropertySet();
+					final PropertyMap propertyMap  = new PropertyMap();
+
+					// add properties
+					for (final Entry<String, Class> propertyEntry : props.entrySet()) {
+
+						final String propertyName = propertyEntry.getKey();
+						final Class propertyType  = propertyEntry.getValue();
+
+						// handle array types differently
+						String propertyTypeName = propertyType.getSimpleName();
+						if (propertyType.isArray()) {
+
+							// remove "[]" from the end and append "Array" to match the appropriate parser
+							propertyTypeName = propertyTypeName.substring(0, propertyTypeName.length() - 2).concat("Array");
+						}
+
+						propertyMap.put(new StringProperty("_".concat(propertyName)), propertyTypeName);
+					}
+
+					// set node type which is in "name" property
+					propertyMap.put(AbstractNode.name, type);
+
+					// check if there is an existing Structr entity with the same type
+					// and make the dynamic class extend the existing class if yes.
+					final Class existingType = configuration.getNodeEntityClass(type);
+					if (existingType != null) {
+
+						propertyMap.put(SchemaNode.extendsClass, existingType.getName());
+						
+					} else if (!typeInfo.getOtherTypes().isEmpty()) {
+
+						// only the first supertype is supported
+						propertyMap.put(SchemaNode.extendsClass, typeInfo.getSuperclass(reducedTypeInfoMap));
+					}
+
+					// create schema node
+					schemaNodes.put(type, app.create(SchemaNode.class, propertyMap));
+				}
 			}
 			
 			// create relationships
-			for (final RelationshipTemplate template : relationships) {
+			for (final RelationshipInfo template : reducedRelationshipInfos) {
 				
 				final SchemaNode startNode    = schemaNodes.get(template.getStartNodeType());
-				final SchemaNode endNode     = schemaNodes.get(template.getEndNodeType());
+				final SchemaNode endNode      = schemaNodes.get(template.getEndNodeType());
 				final String relationshipType = template.getRelType();
 				final PropertyMap propertyMap = new PropertyMap();
 				
@@ -267,62 +319,12 @@ public class GraphGistImporter extends NodeServiceCommand implements Maintenance
 				
 				app.create(startNode, endNode, SchemaRelationship.class, propertyMap);
 			}
-
+			
+			
 			tx.success();
 		}
 		
-		logger.log(Level.INFO, "Graph gist import successful, {0} types imported.", properties.size());
-	}
-	
-	private static String getType(final Node node, final Map<String, Class> properties) {
-		
-		// first try: label
-		final Iterable<Label> labels    = node.getLabels();
-		final Iterator<Label> iterator  = labels.iterator();
-		
-		if (iterator.hasNext()) {
-			return iterator.next().name();
-		}
-		
-		// second try: type attribute
-		if (node.hasProperty("type")) {
-
-			final String type = node.getProperty("type").toString();
-			return type.replaceAll("[\\W]+", "");
-		}
-		
-		// third try: incoming relationships
-		final Set<String> incomingTypes = new LinkedHashSet<>();
-		for (final Relationship incoming : node.getRelationships(Direction.INCOMING)) {
-			incomingTypes.add(incoming.getType().name());
-		}
-		
-		// (if all incoming relationships are of the same type,
-		// it is very likely that this is a type-defining trait)
-		if (incomingTypes.size() == 1) {
-			return CaseHelper.toUpperCamelCase(incomingTypes.iterator().next().toLowerCase());
-		}
-		
-		// forth try: outgoing relationships
-		final Set<String> outgoingTypes = new LinkedHashSet<>();
-		for (final Relationship outgoing : node.getRelationships(Direction.OUTGOING)) {
-			outgoingTypes.add(outgoing.getType().name());
-		}
-		
-		// (if all outgoing relationships are of the same type,
-		// it is very likely that this is a type-defining trait)
-		if (outgoingTypes.size() == 1) {
-			return CaseHelper.toUpperCamelCase(outgoingTypes.iterator().next().toLowerCase());
-		}
-		
-		// fifth try: analyze properties
-		final StringBuilder buf = new StringBuilder("NodeWith");
-		for (final String key : properties.keySet()) {
-			
-			buf.append(StringUtils.capitalize(key));
-		}
-		
-		return buf.toString();
+		logger.log(Level.INFO, "Graph gist import successful, {0} types imported.", typeInfos.size());
 	}
 	
 	public static List<String> extractSources(final InputStream source) {
@@ -377,44 +379,227 @@ public class GraphGistImporter extends NodeServiceCommand implements Maintenance
 		
 		return sources;
 	}
-
-	public static class RelationshipTemplate {
+	
+	// ----- private static methods -----
+	private static void identifyCommonBaseClasses(final Set<NodeInfo> nodeTypes, final Map<NodeInfo, List<Node>> nodeMap, final List<TypeInfo> typeInfos) {
 		
-		private String startNodeType = null;
-		private String endNodeType   = null;
-		private String relType       = null;
-		
-		public RelationshipTemplate(final String startNodeType, final String endNodeType, final String relType) {
-			this.startNodeType = startNodeType;
-			this.endNodeType   = endNodeType;
-			this.relType       = relType;
-		}
+		// next we need to identify common base classes, which can be found by
+		// finding all NodeInfo entries that share at least one type
 
-		public String getStartNodeType() {
-			return startNodeType;
-		}
+		for (final NodeInfo nodeInfo : nodeTypes) {
 
-		public String getEndNodeType() {
-			return endNodeType;
-		}
+			final Set<String> allTypes = nodeInfo.getTypes();
+			for (final String type : allTypes) {
 
-		public String getRelType() {
-			return relType;
-		}
-		
-		@Override
-		public int hashCode() {
-			return startNodeType.concat(relType).concat(endNodeType).hashCode();
-		}
-		
-		@Override
-		public boolean equals(final Object o) {
-			
-			if (o instanceof RelationshipTemplate) {
-				return ((RelationshipTemplate)o).hashCode() == hashCode();
+				final TypeInfo typeInfo = new TypeInfo(type, allTypes, nodeMap.get(nodeInfo));
+				typeInfos.add(typeInfo);
+				typeInfo.registerPropertySet(nodeInfo.getProperties());
 			}
-			
-			return false;
 		}
+
+	}
+	
+	private static void collectTypeInfos(final List<TypeInfo> typeInfos, final Map<String, List<TypeInfo>> typeInfoTypeMap) {
+
+		// collect type infos by type (to detect multiples)
+		for (final TypeInfo info : typeInfos) {
+
+			final String type       = info.getPrimaryType();
+			List<TypeInfo> typeInfo = typeInfoTypeMap.get(type);
+
+			if (typeInfo == null) {
+
+				typeInfo = new LinkedList<>();
+				typeInfoTypeMap.put(type, typeInfo);
+			}
+
+			typeInfo.add(info);
+		}
+
+	}
+	
+	private static void reduceTypeInfos(final Map<String, List<TypeInfo>> typeInfoTypeMap, final List<TypeInfo> reducedTypeInfos) {
+		
+		for (final Entry<String, List<TypeInfo>> entry : typeInfoTypeMap.entrySet()) {
+
+			final List<TypeInfo> listOfTypeInfosWithSamePrimaryType = entry.getValue();
+			TypeInfo firstTypeInfo                                  = null;
+
+			for (final TypeInfo typeInfo : listOfTypeInfosWithSamePrimaryType) {
+
+				if (firstTypeInfo == null) {
+
+					firstTypeInfo = typeInfo;
+
+				} else {
+
+					firstTypeInfo.intersectPropertySets(typeInfo.getPropertySet());
+
+					// "save" node references for later use
+					firstTypeInfo.getNodes().addAll(typeInfo.getNodes());
+				}
+			}
+
+			// firstTypeInfo now contains the intersection of all type infos of a given type
+			reducedTypeInfos.add(firstTypeInfo);
+			
+			// set hierarchy level
+			firstTypeInfo.setHierarchyLevel(listOfTypeInfosWithSamePrimaryType.size());
+		}
+
+	}
+
+	private static void intersectPropertySets(final List<TypeInfo> reducedTypeInfos) {
+		
+		// substract property set from type info with more than one
+		// occurrence from type infos with the given superclass
+		for (final TypeInfo info : reducedTypeInfos) {
+
+			if (info.getHierarchyLevel() > 1) {
+
+				final Set<String> supertypeKeySet = info.getPropertySet().keySet();
+
+				for (final TypeInfo subType : reducedTypeInfos) {
+
+					final Set<String> subtypeKeySet = subType.getPropertySet().keySet();
+
+					// only substract property set if it is a true subtype (and not the same :))
+//					if ( subType.getUsages() == 1 && subType.hasSuperclass(info.getPrimaryType())) {
+					if (subType.getHierarchyLevel() < info.getHierarchyLevel() && subType.hasSuperclass(info.getPrimaryType())) {
+
+						subtypeKeySet.removeAll(supertypeKeySet);
+					}
+
+				}
+			}
+		}
+	}
+	
+	private static List<RelationshipInfo> reduceNodeTypes(final List<RelationshipInfo> sourceList, Map<String, TypeInfo> typeInfos) {
+		
+		final List<RelationshipInfo> reducedList = new LinkedList<>();
+		final Set<String> startNodeTypes         = new LinkedHashSet<>();
+		final Set<String> endNodeTypes           = new LinkedHashSet<>();
+		String relType                           = null;
+
+		for (final RelationshipInfo info : sourceList) {
+
+			startNodeTypes.add(info.getStartNodeType());
+			endNodeTypes.add(info.getEndNodeType());
+			
+			// set relType on first hit (should all be the same!)
+			if (relType == null) {
+				relType = info.getRelType();
+			}
+		}
+		
+		int startTypeCount     = startNodeTypes.size();
+		int endTypeCount       = endNodeTypes.size();
+		String commonStartType = null;
+		String commonEndType   = null;
+
+		if (startTypeCount == 1) {
+
+			commonStartType = startNodeTypes.iterator().next();
+
+		} else {						
+
+			commonStartType = reduceTypeToCommonSupertype(startNodeTypes, typeInfos);
+		}
+
+		if (endTypeCount == 1) {
+
+			commonEndType = endNodeTypes.iterator().next();
+
+		} else {
+			
+			commonEndType = reduceTypeToCommonSupertype(endNodeTypes, typeInfos);
+		}
+
+		if (commonStartType != null && commonEndType != null) {
+
+			System.out.println("Common start type found: " + commonStartType);
+			System.out.println("Common end type found: " + commonEndType);
+			
+			reducedList.add(new RelationshipInfo(commonStartType, commonEndType, relType));
+		}
+
+		return reducedList;
+	}
+	
+	private static String reduceTypeToCommonSupertype(final Set<String> types, final Map<String, TypeInfo> typeInfos) {
+		
+		// the idea here is to build a list of lists which contains all the superclasses of each type. For
+		// the following example, we consider the following type hierarchy:
+		//  Type0 -> Super1 -> Super2
+		//  Type1 -> Super3 -> Super2
+		//  Type2 -> Super2 -> Super4
+
+		// Super2 Super2 Super4
+		// Super1 Super3 Super2
+		// Type0  Type1  Type2
+
+		// We can see that there is a common base class to all of the types if there is a type that is found
+		// in every column of the list of sets, i.e. there is one type that is found in every set. We can
+		// identify that by intersecting all the sets with each other.
+		
+		// build list of types
+		final List<Set<String>> listOfSetsOfTypes = new LinkedList<>();
+		
+		// iterate types
+		for (String type : types) {
+			
+			final Set<String> listOfTypes = new LinkedHashSet<>();
+			String currentType            = type;
+			
+			listOfSetsOfTypes.add(listOfTypes);
+			
+			while (currentType != null) {
+				
+				// insert at the front of the list
+				listOfTypes.add(currentType);
+
+				// fetch type info
+				final TypeInfo typeInfo = typeInfos.get(currentType);
+				if (typeInfo != null) {
+
+					currentType = typeInfo.getSuperclass(typeInfos);
+					
+				} else {
+					
+					// no type info => exit loop
+					currentType = null;
+				}
+			}
+		}
+
+		// try to find a common element in all the sets
+		final Set<String> intersection = new LinkedHashSet<>();
+		boolean first                  = true;
+		
+		for (final Set<String> set : listOfSetsOfTypes) {
+		
+			if (first) {
+				
+				// first iteration: fill intersection with first elements
+				first = false;
+				intersection.addAll(set);
+				
+			} else {
+				
+				// intersect
+				intersection.retainAll(set);
+			}
+		}
+		
+		if (!intersection.isEmpty()) {
+			
+			// return first element, because we cannot decide (yet)
+			// which of the multiple common base classes we want
+			
+			return intersection.iterator().next();
+		}
+		
+		return null;
 	}
 }

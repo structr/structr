@@ -143,6 +143,9 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	public static final Property<Page> ownerDocument = new EndNode<>("ownerDocument", PageLink.class);
 	public static final Property<String> pageId = new EntityIdProperty("pageId", ownerDocument);
 
+	public static final Property<String> dataStructrIdProperty = new StringProperty("data-structr-id");
+	public static final Property<String> dataHashProperty = new StringProperty("data-hash");
+
 	protected static final Map<String, Function<String, String>> functions = new LinkedHashMap<>();
 	private static Set<Page> resultPages = new HashSet<>();
 
@@ -793,6 +796,39 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		});
 	}
 
+	public abstract boolean contentEquals(final DOMNode otherNode);
+
+	public String getIdHash() {
+		
+		final String uuid = getUuid();
+		
+		// TODO: create ID hash
+		return uuid;
+	}
+	
+	public int idHashCode() {
+		
+		final String dataHash = getProperty(DOMNode.dataHashProperty);
+		final String dataId   = getProperty(DOMNode.dataStructrIdProperty);
+		
+		if (dataHash != null) {
+			return dataHash.hashCode();
+		}
+		
+		if (dataId != null) {
+			return dataId.hashCode();
+		}
+		
+		// fallback: node ID hash code
+		return hashCode();
+	}
+	
+	public boolean isSameNode(DOMNode otherNode) {
+	
+		// (uuid or id hash or content?)
+		return idHashCode() == otherNode.idHashCode();
+	}
+	
 	/**
 	 * This method will be called by the DOM logic when this node gets a new
 	 * child. Override this method if you need to set properties on the
@@ -2198,7 +2234,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		}
 
 	}
-
+	
 	// ----- interface DOMAdoptable -----
 	@Override
 	public Node doAdopt(final Page _page) throws DOMException {
@@ -2218,6 +2254,40 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		}
 
 		return this;
+	}
+
+	@Override
+	public boolean flush() {
+		return false;
+	}
+
+	// ----- static methods -----
+	private static String getFromUrl(final String requestUrl) throws IOException {
+
+		DefaultHttpClient client = new DefaultHttpClient();
+		HttpGet get = new HttpGet(requestUrl);
+
+		get.setHeader("Connection", "close");
+
+		return IOUtils.toString(client.execute(get).getEntity().getContent(), "UTF-8");
+
+	}
+
+	public static Set<DOMNode> getAllChildNodes(final DOMNode node) {
+
+		Set<DOMNode> allChildNodes = new HashSet();
+
+		DOMNode n = (DOMNode) node.getFirstChild();
+
+		while (n != null) {
+
+			allChildNodes.add(n);
+			allChildNodes.addAll(getAllChildNodes(n));
+			n = (DOMNode) n.getNextSibling();
+
+		}
+
+		return allChildNodes;
 	}
 
 	// ----- nested classes -----
@@ -2263,45 +2333,4 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			return false;
 		}
 	}
-
-	private static String getFromUrl(final String requestUrl) throws IOException {
-
-		DefaultHttpClient client = new DefaultHttpClient();
-		HttpGet get = new HttpGet(requestUrl);
-
-		get.setHeader("Connection", "close");
-
-		return IOUtils.toString(client.execute(get).getEntity().getContent(), "UTF-8");
-
-	}
-
-//	private static String getFromUrl2(final String requestUrl) throws IOException {
-//		
-//		HttpRequest httpRequest = HttpRequest.get(requestUrl);
-//		HttpResponse response = httpRequest.send();
-//		return response.body();
-//		
-//	}
-	public static Set<DOMNode> getAllChildNodes(final DOMNode node) {
-
-		Set<DOMNode> allChildNodes = new HashSet();
-
-		DOMNode n = (DOMNode) node.getFirstChild();
-
-		while (n != null) {
-
-			allChildNodes.add(n);
-			allChildNodes.addAll(getAllChildNodes(n));
-			n = (DOMNode) n.getNextSibling();
-
-		}
-
-		return allChildNodes;
-	}
-
-	@Override
-	public boolean flush() {
-		return false;
-	}
-
 }
