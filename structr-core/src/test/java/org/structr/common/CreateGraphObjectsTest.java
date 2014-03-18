@@ -149,10 +149,10 @@ public class CreateGraphObjectsTest extends StructrTest {
 
 		try {
 
-			final List<NodeInterface> nodes = createTestNodes(GenericNode.class, 2);
-			final NodeInterface startNode   = nodes.get(0);
-			final NodeInterface endNode     = nodes.get(1);
-			NodeHasLocation rel        = null;
+			final List<GenericNode> nodes = createTestNodes(GenericNode.class, 2);
+			final NodeInterface startNode = nodes.get(0);
+			final NodeInterface endNode   = nodes.get(1);
+			NodeHasLocation rel           = null;
 			
 			assertTrue(startNode != null);
 			assertTrue(endNode != null);
@@ -318,7 +318,7 @@ public class CreateGraphObjectsTest extends StructrTest {
 
 					logger.log(Level.INFO, "Creating relationship of type {0}", type);
 
-					List<NodeInterface> nodes      = createTestNodes(GenericNode.class, 2);
+					List<GenericNode> nodes        = createTestNodes(GenericNode.class, 2);
 					final NodeInterface startNode  = nodes.get(0);
 					final NodeInterface endNode    = nodes.get(1);
 					final RelationshipType relType = RelType.IS_AT;

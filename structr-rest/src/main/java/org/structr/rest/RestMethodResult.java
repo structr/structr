@@ -19,6 +19,7 @@ package org.structr.rest;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonIOException;
+import com.google.gson.JsonPrimitive;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.LinkedHashMap;
@@ -29,6 +30,7 @@ import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletResponse;
+import org.parboiled.common.StringUtils;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
 
@@ -42,19 +44,26 @@ public class RestMethodResult {
 
 	private static final Logger logger = Logger.getLogger(RestMethodResult.class.getName());
 
-	private List<GraphObject> content = null;
-	private Map<String, String> headers = null;
-	private int responseCode = 0;
+	private List<GraphObject> content                 = null;
+	private Map<String, String> headers               = null;
+	private int responseCode                          = 0;
+	private String message                            = null;
 	private boolean serializeSingleObjectAsCollection = false;
 
-	public RestMethodResult(int responseCode) {
-		headers = new LinkedHashMap<>();
+	public RestMethodResult(final int responseCode) {
+		this.headers      = new LinkedHashMap<>();
 		this.responseCode = responseCode;
 	}
 
-	public RestMethodResult(int responseCode, final boolean serializeSingleObjectAsCollection) {
-		headers = new LinkedHashMap<>();
+	public RestMethodResult(final int responseCode, final String message) {
+		headers           = new LinkedHashMap<>();
+		this.message      = message;
 		this.responseCode = responseCode;
+	}
+
+	public RestMethodResult(final int responseCode, final boolean serializeSingleObjectAsCollection) {
+		this.headers                           = new LinkedHashMap<>();
+		this.responseCode                      = responseCode;
 		this.serializeSingleObjectAsCollection = serializeSingleObjectAsCollection;
 	}
 
@@ -93,6 +102,12 @@ public class RestMethodResult {
 				gson.toJson(result, writer);
 			}
 
+			if (StringUtils.isNotEmpty(message)) {
+				
+				writer.append(jsonMessage(responseCode, message));
+
+			}
+			
 			//writer.flush();
 			//writer.close();
 		} catch (JsonIOException | IOException t) {
@@ -104,4 +119,39 @@ public class RestMethodResult {
 	public Map<String, String> getHeaders() {
 		return headers;
 	}
+	
+	public static String jsonError(final int code, final String message) {
+		
+		return jsonMessage(code, message, "error");
+
+	}
+
+	public static String jsonMessage(final int code, final String message) {
+		
+		return jsonMessage(code, message, "message");
+
+	}
+
+	public static String jsonMessage(final int code, final String message, final String messageKey) {
+
+		StringBuilder buf = new StringBuilder(100);
+
+		buf.append("{\n");
+		buf.append("  \"code\" : ").append(code);
+
+		if (message != null) {
+
+			buf.append(",\n  \"").append(messageKey).append("\" : \"").append(org.apache.commons.lang.StringUtils.replace(message, "\"", "\\\"")).append("\"\n");
+
+		} else {
+
+			buf.append("\n");
+
+		}
+
+		buf.append("}\n");
+
+		return buf.toString();
+	}
+	
 }

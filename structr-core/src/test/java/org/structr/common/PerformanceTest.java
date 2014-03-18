@@ -70,7 +70,7 @@ public class PerformanceTest extends StructrTest {
 
 			int number                = 1000;
 			long t0                   = System.nanoTime();
-			List<NodeInterface> nodes = createTestNodes(GenericNode.class, number);
+			List<GenericNode> nodes   = createTestNodes(GenericNode.class, number);
 			long t1                   = System.nanoTime();
 
 			assertTrue(nodes.size() == number);

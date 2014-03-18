@@ -80,7 +80,7 @@ public class AccessControlTest extends StructrTest {
 
 		try {
 
-			List<NodeInterface> users = createTestNodes(User.class, 1);
+			List<User> users = createTestNodes(User.class, 1);
 			User user = (User) users.get(0);
 			
 			// Create node with user context
@@ -111,7 +111,7 @@ public class AccessControlTest extends StructrTest {
 
 		try {
 
-			List<NodeInterface> users = createTestNodes(User.class, 1);
+			List<User> users = createTestNodes(User.class, 1);
 			User user = (User) users.get(0);
 			
 			PropertyMap props = new PropertyMap();
@@ -145,7 +145,7 @@ public class AccessControlTest extends StructrTest {
 
 		try {
 
-			List<NodeInterface> users = createTestNodes(User.class, 1);
+			List<User> users = createTestNodes(User.class, 1);
 			User user = (User) users.get(0);
 			
 			PropertyMap props = new PropertyMap();
@@ -182,7 +182,7 @@ public class AccessControlTest extends StructrTest {
 
 		try {
 
-			List<NodeInterface> users = createTestNodes(User.class, 2);
+			List<User> users = createTestNodes(User.class, 2);
 			User user1 = (User) users.get(0);
 			User user2 = (User) users.get(1);
 
@@ -220,7 +220,7 @@ public class AccessControlTest extends StructrTest {
 
 		try {
 
-			List<NodeInterface> users = createTestNodes(User.class, 2);
+			List<User> users = createTestNodes(User.class, 2);
 			User user1 = (User) users.get(0);
 			User user2 = (User) users.get(1);
 			
@@ -259,7 +259,7 @@ public class AccessControlTest extends StructrTest {
 
 		try {
 
-			List<NodeInterface> users = createTestNodes(User.class, 2);
+			List<User> users = createTestNodes(User.class, 2);
 			User user1 = (User) users.get(0);
 			User user2 = (User) users.get(1);
 			Result result = null;
@@ -312,7 +312,7 @@ public class AccessControlTest extends StructrTest {
 
 		try {
 
-			final List<NodeInterface> persons = createTestNodes(Person.class, 1);
+			final List<Person> persons = createTestNodes(Person.class, 1);
 			final Class type = TestOne.class;
 			final List<NodeInterface> nodes = createTestNodes(type, 10);
 
@@ -350,7 +350,7 @@ public class AccessControlTest extends StructrTest {
 
 		try {
 
-			final List<NodeInterface> persons = createTestNodes(Person.class, 1);
+			final List<Person> persons = createTestNodes(Person.class, 1);
 			final Class type = TestOne.class;
 			final List<NodeInterface> nodes = createTestNodes(type, 10);
 

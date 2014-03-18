@@ -87,7 +87,7 @@ public class OwnerTest extends StructrTest {
 			final App superUserApp = StructrApp.getInstance();
 			try (final Tx tx = app.tx()) {
 
-				List<NodeInterface> users = createTestNodes(User.class, 2);
+				List<User> users = createTestNodes(User.class, 2);
 				user1 = (User) users.get(0);
 				user1.setProperty(AbstractNode.name, "user1");
 				
@@ -159,10 +159,10 @@ public class OwnerTest extends StructrTest {
 		
 		try (final Tx tx = app.tx()) {
 
-			List<NodeInterface> users = createTestNodes(User.class, 2);
+			List<User> users = createTestNodes(User.class, 2);
 			User user1 = (User) users.get(0);
 
-			List<NodeInterface> groups = createTestNodes(Group.class, 1);
+			List<Group> groups = createTestNodes(Group.class, 1);
 			Group group1 = (Group) groups.get(0);
 			
 			TestOne t1 = createTestNode(TestOne.class);
