@@ -1419,7 +1419,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		
 			out
 				.append(indent(depth))
-				.append("<script type=\"text/javascript\" src=\"/structr/js/lib/jquery-2.0.3.min.js\"></script>")
+				.append("<script>if (!window.jQuery) { document.write('<script src=\"/structr/js/lib/jquery-1.11.0.min.js\"><\\/script>'); }</script>")
 				.append(indent(depth))
 				.append("<script type=\"text/javascript\" src=\"/structr/js/lib/jquery-ui-1.10.3.custom.min.js\"></script>")
 				.append(indent(depth))
