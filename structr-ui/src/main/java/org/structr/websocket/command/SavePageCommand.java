@@ -18,8 +18,15 @@
 package org.structr.websocket.command;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.GraphMergeHelper;
+import org.structr.common.SecurityContext;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
+import org.structr.web.Importer;
+import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
@@ -33,6 +40,7 @@ public class SavePageCommand extends AbstractCommand {
 
 	private static final Logger logger = Logger.getLogger(SavePageCommand.class.getName());
 
+	
 	static {
 
 		StructrWebSocket.addCommand(SavePageCommand.class);
@@ -41,19 +49,47 @@ public class SavePageCommand extends AbstractCommand {
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
-		String pageId                = webSocketData.getId();
-		Map<String, Object> nodeData = webSocketData.getNodeData();
-		String newSource             = (String) nodeData.get("source");
+		final String pageId                   = webSocketData.getId();
+		final Map<String, Object> nodeData    = webSocketData.getNodeData();
+		final String newSource                = (String) nodeData.get("source");
+		final SecurityContext securityContext = getWebSocket().getSecurityContext();
+		final App app                         = StructrApp.getInstance(securityContext);
 
 		Page page = getPage(pageId);
 		if (page != null) {
 
 			try {
 				logger.log(Level.INFO, newSource);
+				
+				Importer imp = new Importer(securityContext, newSource, null, "imported-page", 5000, false, false);
+					
+				boolean parseOk = imp.parse();
+				
+				if (parseOk) {
+					
+					final Page newPage = imp.readPage();
+					logger.log(Level.INFO, "New page created: ", newPage);
+					
+					Set<DOMNode> origDomNodes = DOMNode.getAllChildNodes(page);
+					Set<DOMNode> newDomNodes = DOMNode.getAllChildNodes(newPage);
+					
+					origDomNodes.add(page);
+					
+					newPage.setProperty(DOMNode.dataHashProperty, page.getUuid());
+					newDomNodes.add(newPage);
+					
+					GraphMergeHelper.merge(origDomNodes, newDomNodes, DOMNode.dataHashProperty);
+					
+					
+				} else {
+					getWebSocket().send(MessageBuilder.status().code(422).message("Unable to parse\n" + newSource).build(), true);
+				}
+				
 
 			} catch (Throwable t) {
 
 				logger.log(Level.WARNING, t.toString());
+				t.printStackTrace();
 
 				// send exception
 				getWebSocket().send(MessageBuilder.status().code(422).message(t.toString()).build(), true);

@@ -74,7 +74,7 @@ public class ImportCommand extends AbstractCommand {
 				logger.log(Level.INFO, "Sucessfully parsed {0}", address);
 				getWebSocket().send(MessageBuilder.status().code(200).message("Sucessfully parsed address " + address).build(), true);
 
-				String pageId                  = pageImporter.readPage();
+				String pageId                  = pageImporter.readPage().getUuid();
 				Map<String, Object> resultData = new HashMap();
 
 				if (pageId != null) {
