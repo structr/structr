@@ -53,7 +53,6 @@ public class TwitterAuthClient extends StructrOAuthClient {
 		super.init(authorizationLocation, tokenLocation, clientId, clientSecret, redirectUri, tokenResponseClass);
 
 		ConfigurationBuilder cb = new ConfigurationBuilder();
-		cb.setUseSSL(true);
 		cb.setOAuthAuthorizationURL(authorizationLocation);
 		cb.setOAuthAccessTokenURL(tokenLocation);
 
@@ -71,8 +70,7 @@ public class TwitterAuthClient extends StructrOAuthClient {
 	 * Use with {@literal response.setRedirect(request.getLocationUri());}
 	 * 
 	 * @param request
-	 * @return
-	 * @throws OAuthSystemException 
+	 * @return 
 	 */
 	@Override
 	public String getEndUserAuthorizationRequestUri(final HttpServletRequest request) {

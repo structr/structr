@@ -235,9 +235,9 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 		
 		String propertyName = "";
 		
+		final String relationshipTypeName = getProperty(SchemaRelationship.relationshipType).toLowerCase();
 		final String _sourceType          = getSchemaNodeSourceType();
 		final String _targetType          = getSchemaNodeTargetType();
-		final String relationshipTypeName = getProperty(SchemaRelationship.relationshipType);
 
 		if (outgoing) {
 
