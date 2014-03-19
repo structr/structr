@@ -31,6 +31,21 @@ public class TypeInfo {
 	}
 	
 	@Override
+	public int hashCode() {
+		return primaryType.hashCode();
+	}
+	
+	@Override
+	public boolean equals(Object other) {
+		
+		if (other instanceof TypeInfo) {
+			return ((TypeInfo)other).hashCode() == hashCode();
+		}
+		
+		return false;
+	};
+	
+	@Override
 	public String toString() {
 		return primaryType + "(" + hierarchyLevel + ") " + propertySet.keySet();
 	}

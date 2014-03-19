@@ -4,6 +4,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -171,6 +173,9 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 			
 			// intersect property sets of type infos
 			intersectPropertySets(reducedTypeInfos);
+			
+			// sort type infos
+			Collections.sort(reducedTypeInfos, new HierarchyComparator(false));
 			
 			// set type and ID on newly created nodes
 			final Map<String, TypeInfo> reducedTypeInfoMap = new LinkedHashMap<>();
@@ -471,25 +476,23 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 		// identify that by intersecting all the sets with each other.
 		
 		// build list of types
-		final List<Set<String>> listOfSetsOfTypes = new LinkedList<>();
+		final List<Set<TypeInfo>> listOfSetsOfTypes = new LinkedList<>();
 		
 		// iterate types
 		for (String type : types) {
 			
-			final Set<String> listOfTypes = new LinkedHashSet<>();
-			String currentType            = type;
+			final Set<TypeInfo> listOfTypes = new LinkedHashSet<>();
+			String currentType              = type;
 			
 			listOfSetsOfTypes.add(listOfTypes);
 			
 			while (currentType != null) {
 				
-				// insert at the front of the list
-				listOfTypes.add(currentType);
-
 				// fetch type info
 				final TypeInfo typeInfo = typeInfos.get(currentType);
 				if (typeInfo != null) {
-
+	
+					listOfTypes.add(typeInfo);
 					currentType = typeInfo.getSuperclass(typeInfos);
 					
 				} else {
@@ -501,10 +504,10 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 		}
 
 		// try to find a common element in all the sets
-		final Set<String> intersection = new LinkedHashSet<>();
-		boolean first                  = true;
+		final Set<TypeInfo> intersection = new LinkedHashSet<>();
+		boolean first                    = true;
 		
-		for (final Set<String> set : listOfSetsOfTypes) {
+		for (final Set<TypeInfo> set : listOfSetsOfTypes) {
 		
 			if (first) {
 				
@@ -520,13 +523,39 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 		}
 		
 		if (!intersection.isEmpty()) {
+		
+			final List<TypeInfo> typeInfoList = new LinkedList<>(intersection);
+			
+			// sort list according to type hierarchy
+			Collections.sort(typeInfoList, new HierarchyComparator(false));
 			
 			// return first element, because we cannot decide (yet)
 			// which of the multiple common base classes we want
 			
-			return intersection.iterator().next();
+			return typeInfoList.get(0).getPrimaryType();
 		}
 		
 		return null;
+	}
+	
+	static class HierarchyComparator implements Comparator<TypeInfo> {
+
+		private boolean reverse = false;
+		
+		public HierarchyComparator(final boolean reverse) {
+			this.reverse = reverse;
+		}
+		
+		@Override
+		public int compare(TypeInfo o1, TypeInfo o2) {
+			
+			if (reverse) {
+				 
+				return Integer.valueOf(o1.getHierarchyLevel()).compareTo(Integer.valueOf(o2.getHierarchyLevel()));
+			} else {
+	
+				return Integer.valueOf(o2.getHierarchyLevel()).compareTo(Integer.valueOf(o1.getHierarchyLevel()));
+			}
+		}
 	}
 }
