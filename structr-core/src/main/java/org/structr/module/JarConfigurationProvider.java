@@ -1157,10 +1157,20 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 			for (Field field : type.getDeclaredFields()) {
 
-				if (fieldType.isAssignableFrom(field.getType())) {
+				// only use static fields, because field.get(null) will throw a NPE on non-static fields
+				if (fieldType.isAssignableFrom(field.getType()) && Modifier.isStatic(field.getModifiers())) {
 
 					try {
-						fields.put(field, (T) field.get(null));
+						
+						// ensure access
+						field.setAccessible(true);
+						
+						// fetch value
+						final T value = (T) field.get(null);
+						if (value != null) {
+
+							fields.put(field, value);
+						}
 
 					} catch (Throwable t) {
 						// ignore
