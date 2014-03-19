@@ -35,6 +35,7 @@ import org.structr.core.property.StringProperty;
 import org.structr.core.validator.SimpleRegexValidator;
 import org.structr.core.validator.TypeUniquenessValidator;
 import org.structr.core.entity.relationship.Groups;
+import org.structr.core.validator.SimpleNonEmptyValueValidator;
 import org.structr.web.entity.relation.UserHomeDir;
 import org.structr.web.entity.relation.UserImage;
 import org.structr.web.entity.relation.UserWorkDir;
@@ -72,6 +73,7 @@ public class User extends AbstractUser {
 	static {
 		
 		User.eMail.addValidator(new TypeUniquenessValidator(User.class));
+		User.name.addValidator(new SimpleNonEmptyValueValidator());
 		User.name.addValidator(new TypeUniquenessValidator(User.class));
 		User.eMail.addValidator(new SimpleRegexValidator("[A-Za-z0-9!#$%&'*+-/=?^_`{|}~]+@[A-Za-z0-9-]+(.[A-Za-z0-9-]+)*"));
 	}
