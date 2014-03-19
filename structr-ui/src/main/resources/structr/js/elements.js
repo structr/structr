@@ -17,7 +17,7 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-var elements;
+var elements, dropBlocked;
 
 var _Elements = {
     icon: 'icon/brick.png',
@@ -108,6 +108,9 @@ var _Elements = {
 
         widgets.droppable({
             drop: function(e, ui) {
+                e.preventDefault();
+                e.stopPropagation();
+                dropBlocked = true;
                 var sourceEl = $(ui.draggable);
                 if (sourceEl.parent().attr('id') === 'widgets') {
                     log('widget dropped on widget area, aborting');
@@ -128,8 +131,6 @@ var _Elements = {
                         }
                     }
                 });
-
-
             }
 
         });
@@ -160,6 +161,15 @@ var _Elements = {
         paletteSlideout.find(':not(.compTab)').remove();
         paletteSlideout.append('<div class="ver-scrollable" id="paletteArea"></div>')
         palette = $('#paletteArea', paletteSlideout);
+        
+        palette.droppable({
+            drop: function(e, ui) {
+                e.preventDefault();
+                e.stopPropagation();
+                dropBlocked = true;
+                return false;
+            }
+        });
 
         if (!$('.draggable', palette).length) {
 
@@ -199,14 +209,20 @@ var _Elements = {
             drop: function(e, ui) {
                 e.preventDefault();
                 e.stopPropagation();
+                dropBlocked = true;
                 var sourceEl = $(ui.draggable);
                 var sourceId = getId(sourceEl);
+                if (!sourceId) return false;
                 var obj = StructrModel.obj(sourceId);
+                if (obj.type === 'Content' || obj.type === 'Comment') {
+                    return false;
+                }
                 if (obj && obj.syncedNodes && obj.syncedNodes.length || sourceEl.parent().attr('id') === 'componentsArea') {
                     log('component dropped on components area, aborting');
                     return false;
                 }
                 Command.createComponent(sourceId);
+
             }
 
         });

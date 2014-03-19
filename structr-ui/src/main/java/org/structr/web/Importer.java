@@ -139,7 +139,7 @@ public class Importer {
 	}
 
 	//~--- methods --------------------------------------------------------
-	public void init() {
+	private void init() {
 		app = StructrApp.getInstance(securityContext);
 //		searchNode = StructrApp.getInstance(securityContext).command(SearchNodeCommand.class);
 //		createNode = StructrApp.getInstance(securityContext).command(CreateNodeCommand.class);
@@ -206,7 +206,7 @@ public class Importer {
 
 	}
 
-	public String readPage() throws FrameworkException {
+	public Page readPage() throws FrameworkException {
 
 		try {
 			final URL baseUrl = StringUtils.isNotBlank(address) ? new URL(address) : null;
@@ -214,7 +214,6 @@ public class Importer {
 			// AbstractNode page = findOrCreateNode(attrs, "/");
 			Page page = Page.createNewPage(securityContext, name);
 
-			String pageId = null;
 			if (page != null) {
 
 				page.setProperty(AbstractNode.visibleToAuthenticatedUsers, authVisible);
@@ -222,10 +221,9 @@ public class Importer {
 				createChildNodes(parsedDocument, page, page, baseUrl);
 				logger.log(Level.INFO, "##### Finished fetching {0} for page {1} #####", new Object[]{address, name});
 
-				pageId = page.getProperty(GraphObject.id);
 			}
-
-			return pageId;
+			
+			return page;
 
 		} catch (MalformedURLException ex) {
 

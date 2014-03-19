@@ -799,36 +799,36 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	public abstract boolean contentEquals(final DOMNode otherNode);
 
 	public String getIdHash() {
-		
+
 		final String uuid = getUuid();
-		
+
 		// TODO: create ID hash
 		return uuid;
 	}
-	
+
 	public int idHashCode() {
-		
+
 		final String dataHash = getProperty(DOMNode.dataHashProperty);
-		final String dataId   = getProperty(DOMNode.dataStructrIdProperty);
-		
+		final String dataId = getProperty(DOMNode.dataStructrIdProperty);
+
 		if (dataHash != null) {
 			return dataHash.hashCode();
 		}
-		
+
 		if (dataId != null) {
 			return dataId.hashCode();
 		}
-		
+
 		// fallback: node ID hash code
 		return hashCode();
 	}
-	
+
 	public boolean isSameNode(DOMNode otherNode) {
-	
+
 		// (uuid or id hash or content?)
 		return idHashCode() == otherNode.idHashCode();
 	}
-	
+
 	/**
 	 * This method will be called by the DOM logic when this node gets a new
 	 * child. Override this method if you need to set properties on the
@@ -1199,7 +1199,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 					GraphObject detailsObject = renderContext.getDetailsDataObject();
 
 					if (detailsObject != null) {
-						
+
 						_data = detailsObject;
 
 						continue;
@@ -1665,7 +1665,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		ArrayList<String> tokens = new ArrayList<>(20);
 		boolean inDoubleQuotes = false;
 		boolean inSingleQuotes = false;
-		boolean ignoreNext     = false;
+		boolean ignoreNext = false;
 		int len = source.length();
 		int level = 0;
 		StringBuilder currentToken = new StringBuilder(len);
@@ -1681,20 +1681,20 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			}
 
 			if (ignoreNext) {
-				
+
 				ignoreNext = false;
 				continue;
-				
+
 			}
-			
+
 			switch (c) {
 
 				case '\\':
-				
+
 					ignoreNext = true;
-					
+
 					break;
-				
+
 				case '(':
 					level++;
 
@@ -2234,7 +2234,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		}
 
 	}
-	
+
 	// ----- interface DOMAdoptable -----
 	@Override
 	public Node doAdopt(final Page _page) throws DOMException {
@@ -2277,13 +2277,20 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 		Set<DOMNode> allChildNodes = new HashSet();
 
-		DOMNode n = (DOMNode) node.getFirstChild();
+		Node n = node.getFirstChild();
 
 		while (n != null) {
 
-			allChildNodes.add(n);
-			allChildNodes.addAll(getAllChildNodes(n));
-			n = (DOMNode) n.getNextSibling();
+			if (n instanceof DOMNode) {
+
+				DOMNode domNode = (DOMNode) n;
+
+				allChildNodes.add(domNode);
+				allChildNodes.addAll(getAllChildNodes(domNode));
+
+			}
+
+			n = n.getNextSibling();
 
 		}
 
