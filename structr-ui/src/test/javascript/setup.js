@@ -410,7 +410,7 @@ exports.animateHtml = function(testName, heading, sections) {
         html += '<section>' + s + '</section>';
     });
 
-    html += '<img width="' + w + '" height="' + h + '" id="anim"><script type="text/javascript">'
+    html += '<img width="' + w + '" height="' + h + '" id="anim"><script>'
 
     html += '\n'
             + 'var t; var anim = document.getElementById("anim");\n'

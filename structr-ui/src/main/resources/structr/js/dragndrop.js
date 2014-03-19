@@ -402,7 +402,6 @@ var _Dragndrop = {
 
                 tag = 'script';
                 nodeData._html_src = '${link.path}?${link.version}';
-                nodeData._html_type = 'text/javascript';
             }
 
         } else {
