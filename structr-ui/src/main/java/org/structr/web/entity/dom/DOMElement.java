@@ -281,6 +281,12 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		
 		return false;
 	}
+	
+	@Override
+	public void updateFrom(final DOMNode source) throws FrameworkException {
+
+		// do nothing yet
+	}
 
 	public boolean avoidWhitespace() {
 

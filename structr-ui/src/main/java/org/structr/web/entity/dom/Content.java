@@ -166,6 +166,31 @@ public class Content extends DOMNode implements Text {
 		
 		return false;
 	}
+	
+	@Override
+	public void updateFrom(final DOMNode source) throws FrameworkException {
+
+		// will throw a ClassCastException here (which is desired behaviour)
+		final Content contentSource = (Content)source;
+		
+		this.setProperty(Content.content, contentSource.getProperty(Content.content));
+	}
+
+	@Override
+	public String getIdHash() {
+
+		final DOMNode _parent = getProperty(DOMNode.parent);
+		if (_parent != null) {
+
+			String dataHash = _parent.getProperty(DOMNode.dataHashProperty);
+			if (dataHash == null) {
+				dataHash = _parent.getIdHash();
+			}
+			return dataHash + "Content";
+		} 
+		
+		return super.getIdHash();
+	}
 
 	@Override
 	public java.lang.Object getPropertyForIndexing(final PropertyKey key) {

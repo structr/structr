@@ -70,13 +70,13 @@ public class DocumentFragment extends DOMNode implements org.w3c.dom.DocumentFra
 	}
 
 	@Override
-	public boolean isSameNode(DOMNode otherNode) {
-		return false;
-	}
-
-	@Override
 	public boolean contentEquals(DOMNode otherNode) {
 		return false;
+	}
+	
+	@Override
+	public void updateFrom(final DOMNode source) throws FrameworkException {
+		// do nothing
 	}
 
 	// ----- interface Renderable -----

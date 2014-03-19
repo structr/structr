@@ -1,7 +1,7 @@
 package org.structr.web.diff;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.web.entity.dom.DOMNode;
+import org.structr.core.app.App;
 import org.structr.web.entity.dom.Page;
 
 /**
@@ -10,6 +10,6 @@ import org.structr.web.entity.dom.Page;
  */
 public interface InvertibleModificationOperation {
 
-	public void apply(Page page, final DOMNode node) throws FrameworkException;
+	public void apply(final App app, final Page page) throws FrameworkException;
 	public InvertibleModificationOperation revert();
 }

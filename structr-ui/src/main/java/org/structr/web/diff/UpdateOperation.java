@@ -1,6 +1,7 @@
 package org.structr.web.diff;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.App;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 
@@ -40,7 +41,8 @@ public class UpdateOperation implements InvertibleModificationOperation {
 
 	// ----- interface InvertibleModificationOperation -----
 	@Override
-	public void apply(Page page, DOMNode node) throws FrameworkException {
+	public void apply(final App app, final Page page) throws FrameworkException {
+		existingNode.updateFrom(newNode);
 	}
 
 	@Override

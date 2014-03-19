@@ -797,36 +797,13 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	}
 
 	public abstract boolean contentEquals(final DOMNode otherNode);
+	public abstract void updateFrom(final DOMNode source) throws FrameworkException;
 
 	public String getIdHash() {
 
 		final String uuid = getUuid();
 
-		// TODO: create ID hash
-		return uuid;
-	}
-
-	public int idHashCode() {
-
-		final String dataHash = getProperty(DOMNode.dataHashProperty);
-		final String dataId = getProperty(DOMNode.dataStructrIdProperty);
-
-		if (dataHash != null) {
-			return dataHash.hashCode();
-		}
-
-		if (dataId != null) {
-			return dataId.hashCode();
-		}
-
-		// fallback: node ID hash code
-		return hashCode();
-	}
-
-	public boolean isSameNode(DOMNode otherNode) {
-
-		// (uuid or id hash or content?)
-		return idHashCode() == otherNode.idHashCode();
+		return Integer.toHexString(uuid.hashCode());
 	}
 
 	/**

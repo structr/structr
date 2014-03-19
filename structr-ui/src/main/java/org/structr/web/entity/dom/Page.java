@@ -103,6 +103,11 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	public boolean contentEquals(DOMNode otherNode) {
 		return false;
 	}
+	
+	@Override
+	public void updateFrom(final DOMNode source) throws FrameworkException {
+		// do nothing
+	}
 
 	@Override
 	public boolean isValid(ErrorBuffer errorBuffer) {

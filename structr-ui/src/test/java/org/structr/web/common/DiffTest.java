@@ -1,5 +1,7 @@
 package org.structr.web.common;
 
+import java.io.IOException;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -12,6 +14,7 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.web.Importer;
 import org.structr.web.diff.CreateOperation;
+import org.structr.web.diff.DeleteOperation;
 import org.structr.web.diff.InvertibleModificationOperation;
 import org.structr.web.diff.MoveOperation;
 import org.structr.web.diff.UpdateOperation;
@@ -31,13 +34,8 @@ public class DiffTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final Page sourcePage   = createTestPage();
-			final RenderContext ctx = new RenderContext(null, null, RenderContext.EditMode.RAW, Locale.GERMAN);
-			final TestBuffer buffer = new TestBuffer();
-			ctx.setBuffer(buffer);
-			sourcePage.render(securityContext, ctx, 0);
-			
-			// extract source
-			final String sourceHtml   = buffer.getBuffer().toString();
+
+			final String sourceHtml   = renderPage(sourcePage);
 			final String modifiedHtml = modifyHtml(sourceHtml);
 			
 			System.out.println("###############################################################################################");
@@ -55,8 +53,23 @@ public class DiffTest extends StructrUiTest {
 			System.out.println("#############################");
 			print(modifiedPage, 0, 0);
 			
+			final List<InvertibleModificationOperation> changeSet = diff(sourcePage, modifiedPage);
 			
-			diff(sourcePage, modifiedPage);
+			System.out.println("Changes:");
+			for (final InvertibleModificationOperation op : changeSet) {
+
+				System.out.println(op.toString());
+
+				// execute operation
+				op.apply(app, sourcePage);
+			}
+			
+			final String updatedHtml = renderPage(sourcePage);
+			System.out.println("###############################################################################################");
+			System.out.println("Updated HTML:");
+			System.out.println(updatedHtml);
+			System.out.println("#############################");
+			print(sourcePage, 0, 0);
 			
 		} catch (Throwable t) {
 			
@@ -64,80 +77,122 @@ public class DiffTest extends StructrUiTest {
 		}
 	}
 	
-	private void diff(final Page sourcePage, final Page modifiedPage) {
-		
-		final Map<String, DOMNode> nodesFromSourcePage        = collectNodes(sourcePage);
-		final Map<String, DOMNode> nodesFromModifiedPage      = collectNodes(modifiedPage);
+	private List<InvertibleModificationOperation> diff(final Page sourcePage, final Page modifiedPage) {
+
 		final List<InvertibleModificationOperation> changeSet = new LinkedList<>();
+		final Map<String, DOMNode> indexMappedExistingNodes   = new LinkedHashMap<>();
+		final Map<String, DOMNode> hashMappedExistingNodes    = new LinkedHashMap<>();
+		final Map<String, DOMNode> indexMappedNewNodes        = new LinkedHashMap<>();
+		final Map<String, DOMNode> hashMappedNewNodes         = new LinkedHashMap<>();
+		
+		collectNodes(sourcePage, indexMappedExistingNodes, hashMappedExistingNodes);
+		collectNodes(modifiedPage, indexMappedNewNodes, hashMappedNewNodes);
+		
+		// iterate over existing nodes and try to find deleted ones
+		for (final Iterator<Entry<String, DOMNode>> it = indexMappedExistingNodes.entrySet().iterator(); it.hasNext();) {
+			
+			final Entry<String, DOMNode> existingNodeEntry = it.next();
+			final String treeIndex                         = existingNodeEntry.getKey();
+			final DOMNode existingNode                     = existingNodeEntry.getValue();
+			final String existingHash                      = existingNode.getIdHash();
+			
+			// check for deleted nodes ignoring Page nodes
+			if (!hashMappedNewNodes.containsKey(existingHash) && !(existingNode instanceof Page)) {
+				
+				changeSet.add(new DeleteOperation(treeIndex, existingNode));
+				
+				// remove node from change set
+				//it.remove();
+			}
+		}
+
+		// iterate over new nodes and try to find new ones
+		for (final Iterator<Entry<String, DOMNode>> it = indexMappedNewNodes.entrySet().iterator(); it.hasNext();) {
+			
+			final Entry<String, DOMNode> newNodeEntry = it.next();
+			final String treeIndex                    = newNodeEntry.getKey();
+			final DOMNode newNode                     = newNodeEntry.getValue();
+			
+			// if newNode is a content element, do not rely on local hash property
+			String newHash = newNode.getProperty(DOMNode.dataHashProperty);
+			if (newHash == null) {
+				newHash = newNode.getIdHash();
+			}
+			
+			// check for deleted nodes ignoring Page nodes
+			if (!hashMappedExistingNodes.containsKey(newHash) && !(newNode instanceof Page)) {
+				
+				changeSet.add(new CreateOperation(treeIndex, null, newNode));
+				
+				// remove node from change set
+				// it.remove();
+			}
+		}
 
 		// compare all new nodes with all existing nodes
-		for (final Entry<String, DOMNode> newNodeEntry : nodesFromModifiedPage.entrySet()) {
+		for (final Entry<String, DOMNode> newNodeEntry : indexMappedNewNodes.entrySet()) {
 			
 			final String newTreeIndex = newNodeEntry.getKey();
 			final DOMNode newNode     = newNodeEntry.getValue();
 
-			for (final Entry<String, DOMNode> existingNodeEntry : nodesFromSourcePage.entrySet()) {
+			for (final Entry<String, DOMNode> existingNodeEntry : indexMappedExistingNodes.entrySet()) {
 
 				final String existingTreeIndex = existingNodeEntry.getKey();
 				final DOMNode existingNode     = existingNodeEntry.getValue();
 				int equalityBitmask            = 0;
-				
+
 				if (newTreeIndex.equals(existingTreeIndex)) {
 					equalityBitmask |= 1;
 				}
-				
-				if (newNode.isSameNode(existingNode)) {
+
+				if (newNode.getIdHash().equals(existingNode.getIdHash())) {
 					equalityBitmask |= 2;
 				}
-				
+
 				if (newNode.contentEquals(existingNode)) {
 					equalityBitmask |= 4;
 				}
-				
-				System.out.println(existingTreeIndex + " / " + newTreeIndex + ": " + equalityBitmask);
+
+				// System.out.println(existingTreeIndex + " / " + newTreeIndex + ": " + equalityBitmask);
 
 				switch (equalityBitmask) {
-					
+
 					case 7:	// same tree index (1), same node (2), same content (4) => node is completely unmodified
 						break;
-					
+
 					case 6:	// same content (2), same node (4), NOT same tree index => node has moved
 						changeSet.add(new MoveOperation(existingTreeIndex, newTreeIndex, existingNode));
 						break;
-						
+
 					case 5:	// same tree index (1), NOT same node, same content (5) => node was deleted and restored, maybe the identification information was lost
 						// TODO: how to handle this?
 						break;
-						
+
 					case 4:	// NOT same tree index, NOT same node, same content (4) => different node, content is equal by chance?
 						// TODO: what to do here?
 						break;
-						
+
 					case 3:	// same tree index, same node, NOT same content => node was modified but not moved
 						changeSet.add(new UpdateOperation(existingTreeIndex, existingNode, newNode));
 						break;
-						
+
 					case 2:	// NOT same tree index, same node (2), NOT same content => node was moved and changed
-						
+
 						// FIXME: order is important here?
 						changeSet.add(new UpdateOperation(existingTreeIndex, existingNode, newNode));
 						changeSet.add(new MoveOperation(existingTreeIndex, newTreeIndex, existingNode));
 						break;
-						
-					case 1:	// same tree index (1), NOT same node, NOT same content => different node, probably new?
-						changeSet.add(new CreateOperation(newTreeIndex, newNode));
+
+					case 1:	// same tree index (1), NOT same node, NOT same content => ignore
 						break;
-						
+
 					case 0:	// NOT same tree index, NOT same node, NOT same content => ignore
 						break;
 				}
-			}			
+			}
 		}
 		
-		System.out.println("Changes:");
-		for (final InvertibleModificationOperation op : changeSet) {
-			System.out.println(op.toString());
-		}
+		return changeSet;
 	}
 
 	
@@ -155,6 +210,17 @@ public class DiffTest extends StructrUiTest {
 		
 		return modifiedHtml.toString();
 
+	}
+
+	private String renderPage(final Page page) throws FrameworkException {
+		
+		final RenderContext ctx = new RenderContext(null, null, RenderContext.EditMode.RAW, Locale.GERMAN);
+		final TestBuffer buffer = new TestBuffer();
+		ctx.setBuffer(buffer);
+		page.render(securityContext, ctx, 0);
+
+		// extract source
+		return buffer.getBuffer().toString();
 	}
 	
 	private Page createTestPage() throws FrameworkException {
@@ -207,25 +273,28 @@ public class DiffTest extends StructrUiTest {
 		return page;
 	}
 	
-	private Map<String, DOMNode> collectNodes(final Page page) {
-		
-		final Map<String, DOMNode> nodes = new LinkedHashMap<>();
-		
-		collectNodes(page, nodes, 0, 0);
-		
-		return nodes;
+	private void collectNodes(final Page page, final Map<String, DOMNode> indexMappedNodes, final Map<String, DOMNode> hashMappedNodes) {
+		collectNodes(page, indexMappedNodes, hashMappedNodes, 0, 0);
 	}
 	
-	private void collectNodes(final DOMNode node, final Map<String, DOMNode> nodes, final int depth, final int currentPosition) {
+	private void collectNodes(final DOMNode node, final Map<String, DOMNode> indexMappedNodes, final Map<String, DOMNode> hashMappedNodes, final int depth, final int currentPosition) {
 		
 		int position = currentPosition;
+
+		// store node with its tree index
+		indexMappedNodes.put("[" + depth + ":" + currentPosition + "]", node);
 		
-		// dont compare pages
-		nodes.put("[" + depth + ":" + currentPosition + "]", node);
+		// store node with its data hash
+		String dataHash = node.getProperty(DOMNode.dataHashProperty);
+		if (dataHash == null) {
+			dataHash = node.getIdHash();
+		}
+		
+		hashMappedNodes.put(dataHash, node);
 
 		// recurse
 		for (final DOMChildren childRel : node.getChildRelationships()) {
-			collectNodes(childRel.getTargetNode(), nodes, depth+1, position++);
+			collectNodes(childRel.getTargetNode(), indexMappedNodes, hashMappedNodes, depth+1, position++);
 		}
 	}
 	
@@ -280,6 +349,14 @@ public class DiffTest extends StructrUiTest {
 		
 		public StringBuilder getBuffer() {
 			return buf;
+		}
+
+		@Override
+		public void flush() {
+		}
+
+		@Override
+		public void onWritePossible() throws IOException {
 		}
 	}
 }
