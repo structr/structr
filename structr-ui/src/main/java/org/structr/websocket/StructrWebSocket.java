@@ -210,7 +210,7 @@ public class StructrWebSocket implements WebSocketListener {
 					fex.printStackTrace(System.out);
 
 					// send 400 Bad Request
-					send(MessageBuilder.status().code(400).message(fex.getMessage()).build(), true);
+					send(MessageBuilder.status().code(400).message(fex.toString()).build(), true);
 
 				}
 
