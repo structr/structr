@@ -1193,6 +1193,15 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 				}
 
+				// special keyword "element"
+				if ("element".equals(lowerCasePart)) {
+
+					_data = this;
+
+					continue;
+
+				}
+
 				// special keyword "ownerDocument", works only on root level
 				if ("page".equals(lowerCasePart)) {
 
