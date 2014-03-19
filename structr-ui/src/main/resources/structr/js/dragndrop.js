@@ -42,8 +42,14 @@ var _Dragndrop = {
             //tolerance: 'pointer',
             drop: function(e, ui) {
 
-                log('drop event', e, ui);
+                log('Drop event', e, ui);
 
+                if (dropBlocked) {
+                    console.log('Drop in iframe was blocked');
+                    dropBlocked = false;
+                    return false;
+                }
+                
                 e.preventDefault();
                 e.stopPropagation();
 

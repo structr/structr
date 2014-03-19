@@ -88,13 +88,13 @@ var _Pages = {
             });
 
             $('.previewBox', previews).css({
-                //width: w,
+                width: w,
                 height: windowHeight - (headerOffsetHeight + previewOffset) + 'px'
             });
 
             var iframes = $('.previewBox', previews).find('iframe');
             iframes.css({
-                width: $('.previewBox', previews).width() + 'px',
+                width: w,//$('.previewBox', previews).width() + 'px',
                 height: windowHeight - (headerOffsetHeight + previewOffset) + 'px'
             });
         }
@@ -589,7 +589,7 @@ var _Pages = {
 
         var tab = _Pages.addTab(entity);
 
-        previews.append('<div class="previewBox"><iframe name="foo" id="preview_'
+        previews.append('<div class="previewBox"><iframe id="preview_'
                 + entity.id + '"></iframe></div><div style="clear: both"></div>');
 
         _Pages.resetTab(tab, entity.name);
@@ -806,7 +806,7 @@ var _Pages = {
             drop: function(event, ui) {
 
                 var self = $(this);
-                console.log('dropped onto', self);
+                log('dropped onto', self);
                 // Only html elements are allowed, and only if none exists
 
                 if (getId(self) === getId(sortParent))
@@ -822,7 +822,7 @@ var _Pages = {
 
                 var contentId = getId(ui.draggable);
                 var elementId = getId(self);
-                console.log('elementId', elementId);
+                log('elementId', elementId);
 
                 var source = StructrModel.obj(contentId);
                 var target = StructrModel.obj(elementId);
@@ -932,14 +932,6 @@ var _Pages = {
             log("box,w,h", box, w, h);
 
         });
-
-    },
-    clearSlideoutsInLocalStorage: function() {
-
-        localStorage.setItem('structrActiveTabLeft_8875', 'foo');
-        localStorage.setItem('structrActiveTabRight_8875', 'bar');
-
-        return localStorage.getItem('structrActiveTabLeft_8875') + ',' + localStorage.getItem('structrActiveTabRight_8875', '');
 
     },
     displayDataBinding: function(id) {
