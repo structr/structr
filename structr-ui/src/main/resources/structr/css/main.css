@@ -1207,7 +1207,7 @@ button.enabled, button.active {
 }
 
 .node .linkable {
-    margin-left: 12px;
+    margin-left: 24px;
     cursor: pointer;
 }
 
