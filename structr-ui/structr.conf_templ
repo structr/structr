@@ -21,19 +21,23 @@ application.title = Structr UI
 application.host = 0.0.0.0
 #
 # Listener port for HTTP access REST and web service
-application.http.port  = 8082
+application.http.port = 8082
 #
 # URL base path of REST server
 application.rest.path = /structr/rest
 #
 # Listener port of built-in FTP server
-application.ftp.port   = 8022
+application.ftp.port = 8022
 #
 # HTTPS settings
-application.https.port = 8083
-application.https.enabled = false
-application.keystore.path =
-application.keystore.password =
+# run this command to create a selfsigned certificate:
+# 'keytool -genkey -keyalg RSA -alias selfsigned -keystore [KEYSTORE_FILE] -storepass [KEYSTORE_PASSWORD] -validity 360 -keysize 2048'
+#
+# application.https.enabled = true
+# application.https.port = 8083
+# application.keystore.path = [KEYSTORE_FILE]
+# application.keystore.password = [KEYSTORE_PASSWORD]
+#
 #
 # Paths
 base.path = .

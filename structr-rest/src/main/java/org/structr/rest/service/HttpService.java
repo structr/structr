@@ -217,7 +217,7 @@ public class HttpService implements RunnableService {
 		boolean enableHttps = parseBoolean(finalConfig.getProperty(APPLICATION_HTTPS_ENABLED), false);
 		boolean enableGzipCompression = true; //
 		boolean logRequests = false; //
-		int httpsPort = parseInt(finalConfig.getProperty(APPLICATION_HTTP_PORT), 8083);
+		int httpsPort = parseInt(finalConfig.getProperty(APPLICATION_HTTPS_PORT), 8083);
 
 		// get current base path
 		basePath = System.getProperty("home", basePath);
@@ -390,7 +390,6 @@ public class HttpService implements RunnableService {
 			logger.log(Level.WARNING, "Unable to configure HTTP server port, please make sure that {0} and {1} are set correctly in structr.conf.", new Object[]{APPLICATION_HOST, APPLICATION_HTTP_PORT});
 		}
 
-		// HTTPs can be disabled
 		if (enableHttps) {
 
 			if (httpsPort > -1 && keyStorePath != null && !keyStorePath.isEmpty() && keyStorePassword != null) {
