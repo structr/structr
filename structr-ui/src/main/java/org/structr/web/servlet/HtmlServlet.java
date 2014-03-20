@@ -399,6 +399,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		
 		if (errorPage != null) {
 			
+			response.setStatus(HttpServletResponse.SC_NOT_FOUND);
 			return errorPage;
 			
 		} else {
