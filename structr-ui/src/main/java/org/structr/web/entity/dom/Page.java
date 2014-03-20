@@ -76,18 +76,19 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 	private static final Logger logger = Logger.getLogger(Page.class.getName());
 
-	public static final Property<Integer> version = new IntProperty("version").indexed();
-	public static final Property<Integer> position = new IntProperty("position").indexed();
-	public static final Property<String> contentType = new StringProperty("contentType").indexed();
-	public static final Property<Integer> cacheForSeconds = new IntProperty("cacheForSeconds");
-	public static final Property<List<DOMNode>> elements = new StartNodes<>("elements", PageLink.class);
+	public static final Property<Integer> version          = new IntProperty("version").indexed();
+	public static final Property<Integer> position         = new IntProperty("position").indexed();
+	public static final Property<String> contentType       = new StringProperty("contentType").indexed();
+	public static final Property<Integer> cacheForSeconds  = new IntProperty("cacheForSeconds");
+	public static final Property<String> showOnErrorCodes  = new StringProperty("showOnErrorCodes").indexed();
+	public static final Property<List<DOMNode>> elements   = new StartNodes<>("elements", PageLink.class);
 
 	public static final org.structr.common.View publicView = new org.structr.common.View(Page.class, PropertyView.Public,
-		children, linkingElements, contentType, owner, cacheForSeconds, version
+		children, linkingElements, contentType, owner, cacheForSeconds, version, showOnErrorCodes
 	);
 
 	public static final org.structr.common.View uiView = new org.structr.common.View(Page.class, PropertyView.Ui,
-		children, linkingElements, contentType, owner, cacheForSeconds, version, position
+		children, linkingElements, contentType, owner, cacheForSeconds, version, position, showOnErrorCodes
 	);
 
 	private Html5DocumentType docTypeNode = null;

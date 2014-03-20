@@ -271,11 +271,9 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 					} else {
 
-						HttpAuthenticator.writeNotFound(response);
+						rootElement = notFound(response, securityContext);
 
 					}
-
-					return;
 
 				}
 
@@ -287,6 +285,12 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 				}
 
+				if (!securityContext.isVisible(rootElement)) {
+					
+					rootElement = notFound(response, securityContext);
+					
+				}
+				
 				if (securityContext.isVisible(rootElement)) {
 
 					//PrintWriter out = response.getWriter();
@@ -359,7 +363,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 				} else {
 
-					response.sendError(HttpServletResponse.SC_NOT_FOUND);
+					notFound(response, securityContext);
 
 				}
 
@@ -373,6 +377,38 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 			logger.log(Level.SEVERE, "Exception while processing request", t);
 			HttpAuthenticator.writeInternalServerError(response);
 		}
+	}
+	
+	
+	/**
+	 * Handle 404 Not Found
+	 * 
+	 * First, search the first page which handles the 404.
+	 * 
+	 * If none found, issue the container's 404 error.
+	 * 
+	 * @param response
+	 * @param securityContext
+	 * @param renderContext
+	 * @throws IOException
+	 * @throws FrameworkException 
+	 */
+	private Page notFound(final HttpServletResponse response, final SecurityContext securityContext) throws IOException, FrameworkException {
+		
+		final Page errorPage = StructrApp.getInstance(securityContext).nodeQuery(Page.class).and(Page.showOnErrorCodes, "404", false).getFirst();
+		
+		if (errorPage != null) {
+			
+			return errorPage;
+			
+		} else {
+			
+			response.sendError(HttpServletResponse.SC_NOT_FOUND);
+			
+		}
+		
+		return null;
+		
 	}
 
 	/**
