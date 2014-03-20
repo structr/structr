@@ -507,6 +507,16 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	
 	@Override
 	public org.structr.core.app.Query<T> exact(final boolean exact) {
+
+		if (!exact) {
+		
+			for (final SearchAttribute attr : rootGroup.getSearchAttributes()) {
+				
+				attr.setExactMatch(false);
+
+			}
+		}
+		
 		this.exactSearch = exact;
 		return this;
 	}
@@ -658,6 +668,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	@Override
 	public <P> org.structr.core.app.Query<T> and(final PropertyKey<P> key, final P value, final boolean exact) {
 		
+		exact(exact);
 		currentGroup.getSearchAttributes().add(key.getSearchAttribute(securityContext, BooleanClause.Occur.MUST, value, exact, this));
 		
 		return this;
@@ -698,6 +709,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	@Override
 	public <P> org.structr.core.app.Query<T> or(final PropertyKey<P> key, P value, final boolean exact) {
 		
+		exact(exact);
 		currentGroup.getSearchAttributes().add(key.getSearchAttribute(securityContext, BooleanClause.Occur.SHOULD, value, exact, this));
 		
 		return this;
