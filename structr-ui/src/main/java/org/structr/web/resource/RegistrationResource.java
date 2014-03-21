@@ -33,7 +33,6 @@ import org.structr.rest.resource.Resource;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
@@ -53,7 +52,6 @@ import org.structr.core.entity.Principal;
 import org.structr.core.property.PropertyMap;
 import org.structr.rest.service.HttpService;
 import org.structr.web.entity.User;
-import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.mail.MailTemplate;
 import org.structr.web.servlet.HtmlServlet;
 
@@ -118,7 +116,6 @@ public class RegistrationResource extends Resource {
 		
 		if (propertySet.containsKey(User.eMail.jsonName())) {
 			
-			SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
 			final Principal user;
 			
 			final String emailString  = (String) propertySet.get(User.eMail.jsonName());

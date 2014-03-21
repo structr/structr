@@ -79,7 +79,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	public static final String POSSIBLE_ENTRY_POINTS = "possibleEntryPoints";
 	public static final String REQUEST_CONTAINS_UUID_IDENTIFIER = "request_contains_uuids";
 
-	public static final String CONFIRM_REGISTRATION_PAGE = "confirm_registration";
+	public static final String CONFIRM_REGISTRATION_PAGE = "/confirm_registration";
 	public static final String GET_SESSION_ID_PAGE = "get_session_id";
 	public static final String CONFIRM_KEY_KEY = "key";
 	public static final String TARGET_PAGE_KEY = "target";
