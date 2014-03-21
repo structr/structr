@@ -263,11 +263,11 @@ public class RegistrationResource extends Resource {
 				query.and(MailTemplate.locale, localeString);
 			}
 			
-			List<MailTemplate> templates = query.getAsList();
-			if (!templates.isEmpty()) {
+			MailTemplate template = query.getFirst();
+			if (template != null) {
 				
-				Content content = templates.get(0).getProperty(MailTemplate.text);
-				return content != null ? content.getProperty(Content.content) : defaultValue;
+				final String text = template.getProperty(MailTemplate.text);
+				return text != null ? text : defaultValue;
 				
 			} else {
 				

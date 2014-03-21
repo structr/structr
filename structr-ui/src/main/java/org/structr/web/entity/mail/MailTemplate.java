@@ -30,8 +30,6 @@ import org.structr.common.error.UniqueToken;
 import org.structr.core.Result;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.notion.PropertySetNotion;
-import org.structr.core.property.EndNode;
 
 //~--- JDK imports ------------------------------------------------------------
 
@@ -51,7 +49,7 @@ public class MailTemplate extends AbstractNode {
 	
 	private static final Logger logger = Logger.getLogger(MailTemplate.class.getName());
 
-	public static final Property<Content> text   = new EndNode<>("text", TemplateText.class, new PropertySetNotion(true, id, name));
+	public static final Property<String>  text   = new StringProperty("text").indexed();
 	public static final Property<String>  locale = new StringProperty("locale").indexed();
 	
 	public static final org.structr.common.View uiView = new org.structr.common.View(MailTemplate.class, PropertyView.Ui,
@@ -93,22 +91,6 @@ public class MailTemplate extends AbstractNode {
 		
 
 		return !hasError;
-
-	}
-
-	@Override
-	public Object getPropertyForIndexing(final PropertyKey key) {
-
-		if (key.equals(text)) {
-			
-			Content content = getProperty(text);
-			
-			if (content != null) {
-				return content.getProperty(Content.content);
-			}
-		}
-		
-		return super.getPropertyForIndexing(key);
 
 	}
 
