@@ -83,8 +83,11 @@ function StructrApp(baseUrl) {
     /**
      * Bind 'click' event to all Structr buttons
      */
-    $(buttonSelector).on('click', function() {
+    $(buttonSelector).on('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
         var btn = $(this);
+        disableButton(btn);
         s.btnLabel = s.btnLabel || btn.text();
         var a = btn.attr('data-structr-action').split(':');
         var action = a[0], type = a[1];
@@ -103,14 +106,12 @@ function StructrApp(baseUrl) {
                 var val = $('[data-structr-name="' + key + '"]').val();
                 s.data[id][key] = val ? val.parseIfJSON() : val;
             });
-            s.create(type, s.data[id], reload);
+            s.create(type, s.data[id], reload, function() {enableButton(btn)}, function() {enableButton(btn)});
 
         } else if (action === 'edit') {
-            
-            s.editAction(btn, id, attrs, reload);
+            s.editAction(btn, id, attrs, reload, function() {enableButton(btn)}, function() {enableButton(btn)});
             
         } else if (action === 'cancel-edit') {
-            
             s.cancelEditAction(btn, id, attrs, reload);
             
         } else if (action === 'delete') {
@@ -120,7 +121,7 @@ function StructrApp(baseUrl) {
             s.delete(id, btn.attr('data-structr-confirm') === 'true', reload, f ? f.val : undefined);
 
         } else {
-            s.customAction(id, type, action, s.data[id], reload);
+            s.customAction(id, type, action, s.data[id], reload, function() {enableButton(btn)}, function() {enableButton(btn)});
         }
     });
     
@@ -206,11 +207,12 @@ function StructrApp(baseUrl) {
             
             
         });
-        $('<button data-structr-action="save" data-structr-id="' + id + '" class="structr-button">Save</button>').insertBefore(btn);
+        $('<button data-structr-action="save" data-structr-id="' + id + '">Save</button>').insertBefore(btn);
         $('button[data-structr-action="save"][data-structr-id="' + id + '"]', container).on('click', function() {
             s.saveAction(btn, id, attrs, reload);
         });
         btn.text('Cancel').attr('data-structr-action', 'cancel-edit');
+        enableButton(btn); // 
     },
     
     this.saveAction = function(btn, id, attrs, reload) {
@@ -279,6 +281,7 @@ function StructrApp(baseUrl) {
             // clear data
             $('button[data-structr-id="' + id + '"][data-structr-action="save"]').remove();
             btn.text(s.btnLabel).attr('data-structr-action', 'edit');
+            enableButton(btn);
             
             //hide non edit elements and show edit elements
             s.hideNonEdit(container);
@@ -349,14 +352,14 @@ function StructrApp(baseUrl) {
         });
     },
 
-    this.create = function(type, data, reload) {
+    this.create = function(type, data, reload, successCallback, errorCallback) {
         //console.log('Create', type, data, reload);
-        s.request('POST', structrRestUrl + type.toUnderscore(), data, reload, 'Successfully created new ' + type, 'Could not create ' + type);
+        s.request('POST', structrRestUrl + type.toUnderscore(), data, reload, 'Successfully created new ' + type, 'Could not create ' + type, successCallback, errorCallback);
     };
 
-    this.customAction = function(id, type, action, data, reload) {
+    this.customAction = function(id, type, action, data, reload, successCallback, errorCallback) {
         //console.log('Create', type, data, reload);
-        s.request('POST', structrRestUrl + type.toUnderscore() + '/' + id + '/' + action, data, reload, 'Successfully execute custom action ' + action, 'Could not execute custom action ' + type);
+        s.request('POST', structrRestUrl + type.toUnderscore() + '/' + id + '/' + action, data, reload, 'Successfully execute custom action ' + action, 'Could not execute custom action ' + type, successCallback, errorCallback);
     };
 
     this.request = function(method, url, data, reload, successMsg, errorMsg, onSuccess, onError) {
@@ -374,9 +377,10 @@ function StructrApp(baseUrl) {
                         window.setTimeout(function() {
                             window.location.reload();
                         }, 200);
-                    }
-                    if (onSuccess) {
-                        onSuccess(data);
+                    } else {
+                        if (onSuccess) {
+                            onSuccess(data);
+                        }
                     }
                 },
                 201: function(data) {
@@ -385,9 +389,10 @@ function StructrApp(baseUrl) {
                         window.setTimeout(function() {
                             window.location.reload();
                         }, 200);
-                    }
-                    if (onSuccess) {
-                        onSuccess();
+                    } else {
+                        if (onSuccess) {
+                            onSuccess();
+                        }
                     }
                 },
                 400: function(data, status, xhr) {
@@ -621,7 +626,7 @@ function StructrApp(baseUrl) {
         }
 
         //(p.length ? p : inp).after('<button class="saveButton" id="save_' + id + '_' + key + '">Save</button>');
-        inp.after('<button class="saveButton" id="save_' + id + '_' + key + '">Save</button>');
+        inp.after('<button class="save-button" id="save_' + id + '_' + key + '">Save</button>');
         $('#save_' + id + '_' + key).on('click', function() {
             var btn = $(this), inp = btn.prev();
             //console.log('append save button', btn, inp);
@@ -813,4 +818,16 @@ function select(id, key, val, options) {
         s += '<option ' + (o === val ? 'selected' : '') + '>' + o + '</option>';
     });
     return s + '</select>';
+}
+
+function enableButton(btn) {
+  btn.removeClass('disabled');
+  btn.removeAttr('disabled');
+  console.log('button enabled', btn);
+}
+
+function disableButton(btn) {
+  btn.addClass('disabled');
+  btn.attr('disabled', 'disabled');
+  console.log('button disabled', btn);
 }
