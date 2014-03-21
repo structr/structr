@@ -823,11 +823,9 @@ function select(id, key, val, options) {
 function enableButton(btn) {
   btn.removeClass('disabled');
   btn.removeAttr('disabled');
-  console.log('button enabled', btn);
 }
 
 function disableButton(btn) {
   btn.addClass('disabled');
   btn.attr('disabled', 'disabled');
-  console.log('button disabled', btn);
 }
