@@ -9,25 +9,15 @@ import org.structr.web.entity.dom.Page;
  *
  * @author Christian Morgner
  */
-public class MoveOperation implements InvertibleModificationOperation {
+public class MoveOperation extends InvertibleModificationOperation {
 
-	private String originalTreeIndex = null;
-	private String newTreeIndex      = null;
-	private DOMNode originalNode     = null;
+	private DOMNode originalNode = null;
+	private String newTreeIndex  = null;
 	
-	public MoveOperation(final String originalTreeIndex, final String newTreeIndex, final DOMNode originalNode) {
-		
-		this.originalTreeIndex = originalTreeIndex;
-		this.newTreeIndex      = newTreeIndex;
-		this.originalNode      = originalNode;
-	}
+	public MoveOperation(final DOMNode originalNode, final String newTreeIndex) {
 
-	public String getOriginalTreeIndex() {
-		return originalTreeIndex;
-	}
-
-	public String getNewTreeIndex() {
-		return newTreeIndex;
+		this.newTreeIndex = newTreeIndex;
+		this.originalNode = originalNode;
 	}
 
 	public DOMNode getOriginalNode() {
@@ -36,12 +26,21 @@ public class MoveOperation implements InvertibleModificationOperation {
 
 	@Override
 	public String toString() {
-		return "Move " + originalNode + " from " + originalTreeIndex + " to " + newTreeIndex;
+		return "Move " + originalNode.getIdHashOrProperty() + " to " + newTreeIndex;
 	}
 	
 	// ----- interface InvertibleModificationOperation -----
 	@Override
 	public void apply(final App app, final Page page) throws FrameworkException {
+		
+		final InsertPosition insertPosition = findInsertPosition(page, newTreeIndex);
+		if (insertPosition != null) {
+			
+			final DOMNode parent  = insertPosition.getParent();
+			final DOMNode sibling = insertPosition.getSibling();
+			
+			parent.insertBefore(originalNode, sibling);
+		}
 	}
 
 	@Override

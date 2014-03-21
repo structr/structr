@@ -806,6 +806,17 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		return Integer.toHexString(uuid.hashCode());
 	}
 
+	public String getIdHashOrProperty() {
+
+		String idHash = getProperty(DOMNode.dataHashProperty);
+		if (idHash == null) {
+			
+			idHash = getIdHash();
+		}
+		
+		return idHash;
+	}
+
 	/**
 	 * This method will be called by the DOM logic when this node gets a new
 	 * child. Override this method if you need to set properties on the

@@ -9,34 +9,23 @@ import org.structr.web.entity.dom.Page;
  *
  * @author Christian Morgner
  */
-public class DeleteOperation implements InvertibleModificationOperation {
+public class DeleteOperation extends InvertibleModificationOperation {
 
-	private String treeIndex     = null;
 	private DOMNode existingNode = null;
 	
-	public DeleteOperation(final String treeIndex, final DOMNode existingNode) {
-		
-		this.treeIndex    = treeIndex;
+	public DeleteOperation(final DOMNode existingNode) {
 		this.existingNode = existingNode;
-	}
-
-	public String getTreeIndex() {
-		return treeIndex;
-	}
-
-	public DOMNode getExistingNode() {
-		return existingNode;
 	}
 
 	@Override
 	public String toString() {
-		return "Delete " + existingNode + " at " + treeIndex;
+		return "Delete " + existingNode.getIdHash();
 	}
 
 	// ----- interface InvertibleModificationOperation -----
 	@Override
 	public void apply(final App app, final Page page) throws FrameworkException {
-		
+		app.delete(existingNode);
 	}
 
 	@Override

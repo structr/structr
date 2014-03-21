@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeAttribute;
@@ -31,6 +33,8 @@ public class DiffTest extends StructrUiTest {
 
 	public void testDiff() {
 		
+		Logger.getLogger("org.structr").setLevel(Level.OFF);
+		
 		try (final Tx tx = app.tx()) {
 
 			final Page sourcePage   = createTestPage();
@@ -42,7 +46,6 @@ public class DiffTest extends StructrUiTest {
 			System.out.println("Original HTML:");
 			System.out.println(sourceHtml);
 			System.out.println("#############################");
-			print(sourcePage, 0, 0);
 			
 			System.out.println("###############################################################################################");
 			System.out.println("Modified HTML:");
@@ -51,7 +54,6 @@ public class DiffTest extends StructrUiTest {
 			// parse page from modified source
 			final Page modifiedPage = parsePage(modifiedHtml);
 			System.out.println("#############################");
-			print(modifiedPage, 0, 0);
 			
 			final List<InvertibleModificationOperation> changeSet = diff(sourcePage, modifiedPage);
 			
@@ -69,7 +71,6 @@ public class DiffTest extends StructrUiTest {
 			System.out.println("Updated HTML:");
 			System.out.println(updatedHtml);
 			System.out.println("#############################");
-			print(sourcePage, 0, 0);
 			
 		} catch (Throwable t) {
 			
@@ -89,20 +90,16 @@ public class DiffTest extends StructrUiTest {
 		collectNodes(modifiedPage, indexMappedNewNodes, hashMappedNewNodes);
 		
 		// iterate over existing nodes and try to find deleted ones
-		for (final Iterator<Entry<String, DOMNode>> it = indexMappedExistingNodes.entrySet().iterator(); it.hasNext();) {
+		for (final Iterator<Entry<String, DOMNode>> it = hashMappedExistingNodes.entrySet().iterator(); it.hasNext();) {
 			
 			final Entry<String, DOMNode> existingNodeEntry = it.next();
-			final String treeIndex                         = existingNodeEntry.getKey();
 			final DOMNode existingNode                     = existingNodeEntry.getValue();
 			final String existingHash                      = existingNode.getIdHash();
 			
 			// check for deleted nodes ignoring Page nodes
 			if (!hashMappedNewNodes.containsKey(existingHash) && !(existingNode instanceof Page)) {
 				
-				changeSet.add(new DeleteOperation(treeIndex, existingNode));
-				
-				// remove node from change set
-				//it.remove();
+				changeSet.add(new DeleteOperation(existingNode));
 			}
 		}
 
@@ -110,7 +107,7 @@ public class DiffTest extends StructrUiTest {
 		for (final Iterator<Entry<String, DOMNode>> it = indexMappedNewNodes.entrySet().iterator(); it.hasNext();) {
 			
 			final Entry<String, DOMNode> newNodeEntry = it.next();
-			final String treeIndex                    = newNodeEntry.getKey();
+			final String newTreeIndex                 = newNodeEntry.getKey();
 			final DOMNode newNode                     = newNodeEntry.getValue();
 			
 			// if newNode is a content element, do not rely on local hash property
@@ -122,10 +119,7 @@ public class DiffTest extends StructrUiTest {
 			// check for deleted nodes ignoring Page nodes
 			if (!hashMappedExistingNodes.containsKey(newHash) && !(newNode instanceof Page)) {
 				
-				changeSet.add(new CreateOperation(treeIndex, null, newNode));
-				
-				// remove node from change set
-				// it.remove();
+				changeSet.add(new CreateOperation(newNode, newTreeIndex));
 			}
 		}
 
@@ -140,7 +134,7 @@ public class DiffTest extends StructrUiTest {
 				final String existingTreeIndex = existingNodeEntry.getKey();
 				final DOMNode existingNode     = existingNodeEntry.getValue();
 				int equalityBitmask            = 0;
-
+				
 				if (newTreeIndex.equals(existingTreeIndex)) {
 					equalityBitmask |= 1;
 				}
@@ -161,7 +155,7 @@ public class DiffTest extends StructrUiTest {
 						break;
 
 					case 6:	// same content (2), same node (4), NOT same tree index => node has moved
-						changeSet.add(new MoveOperation(existingTreeIndex, newTreeIndex, existingNode));
+						changeSet.add(new MoveOperation(existingNode, newTreeIndex));
 						break;
 
 					case 5:	// same tree index (1), NOT same node, same content (5) => node was deleted and restored, maybe the identification information was lost
@@ -173,14 +167,14 @@ public class DiffTest extends StructrUiTest {
 						break;
 
 					case 3:	// same tree index, same node, NOT same content => node was modified but not moved
-						changeSet.add(new UpdateOperation(existingTreeIndex, existingNode, newNode));
+						changeSet.add(new UpdateOperation(existingNode, newNode));
 						break;
 
 					case 2:	// NOT same tree index, same node (2), NOT same content => node was moved and changed
 
 						// FIXME: order is important here?
-						changeSet.add(new UpdateOperation(existingTreeIndex, existingNode, newNode));
-						changeSet.add(new MoveOperation(existingTreeIndex, newTreeIndex, existingNode));
+						changeSet.add(new UpdateOperation(existingNode, newNode));
+						changeSet.add(new MoveOperation(existingNode, newTreeIndex));
 						break;
 
 					case 1:	// same tree index (1), NOT same node, NOT same content => ignore
@@ -194,7 +188,6 @@ public class DiffTest extends StructrUiTest {
 		
 		return changeSet;
 	}
-
 	
 	private String modifyHtml(final String sourceHtml) {
 
@@ -207,6 +200,12 @@ public class DiffTest extends StructrUiTest {
 		final int delEnd   = modifiedHtml.indexOf("</h3>");
 		
 		modifiedHtml.replace(delStart, delEnd+5, "");
+
+		final int moveStart = modifiedHtml.indexOf("<h1");
+		final int moveEnd   = modifiedHtml.indexOf("</h1>");
+
+		modifiedHtml.insert(moveStart, "<div>");
+		modifiedHtml.insert(moveEnd, "</div>");
 		
 		return modifiedHtml.toString();
 
@@ -274,15 +273,30 @@ public class DiffTest extends StructrUiTest {
 	}
 	
 	private void collectNodes(final Page page, final Map<String, DOMNode> indexMappedNodes, final Map<String, DOMNode> hashMappedNodes) {
-		collectNodes(page, indexMappedNodes, hashMappedNodes, 0, 0);
+		
+		collectNodes(page, indexMappedNodes, hashMappedNodes, 0, new LinkedHashMap<Integer, Integer>());
 	}
 	
-	private void collectNodes(final DOMNode node, final Map<String, DOMNode> indexMappedNodes, final Map<String, DOMNode> hashMappedNodes, final int depth, final int currentPosition) {
+	private void collectNodes(final DOMNode node, final Map<String, DOMNode> indexMappedNodes, final Map<String, DOMNode> hashMappedNodes, final int depth, final Map<Integer, Integer> childIndexMap) {
 		
-		int position = currentPosition;
+		Integer pos  = childIndexMap.get(depth);
+		if (pos == null) {
+			
+			pos = 0;
+		}
+		
+		int position = pos;
+		childIndexMap.put(depth, ++position);
 
 		// store node with its tree index
-		indexMappedNodes.put("[" + depth + ":" + currentPosition + "]", node);
+		final String hash = "[" + depth + ":" + position + "]";
+		indexMappedNodes.put(hash, node);
+
+		// output
+		for (int i=0; i<depth; i++) {
+			System.out.print("    ");
+		}
+		System.out.println(node.getProperty(GraphObject.type) + hash);
 		
 		// store node with its data hash
 		String dataHash = node.getProperty(DOMNode.dataHashProperty);
@@ -294,8 +308,10 @@ public class DiffTest extends StructrUiTest {
 
 		// recurse
 		for (final DOMChildren childRel : node.getChildRelationships()) {
-			collectNodes(childRel.getTargetNode(), indexMappedNodes, hashMappedNodes, depth+1, position++);
+			
+			collectNodes(childRel.getTargetNode(), indexMappedNodes, hashMappedNodes, depth+1, childIndexMap);
 		}
+		
 	}
 	
 	private Page parsePage(final String source) throws FrameworkException {
@@ -318,23 +334,6 @@ public class DiffTest extends StructrUiTest {
 		}
 		
 		return page;
-	}
-	
-	private void print(final DOMNode node, final int depth, final int currentPosition) {
-		
-		int position = currentPosition;
-		
-		for (int i=0; i<depth; i++) {
-			
-			System.out.print("    ");
-		}
-		
-		System.out.println(node.getProperty(GraphObject.type) + "[" + depth + ":" + currentPosition + "]");
-		
-		for (final DOMChildren childRel : node.getChildRelationships()) {
-			
-			print(childRel.getTargetNode(), depth+1, position++);
-		}
 	}
 	
 	private static class TestBuffer extends AsyncBuffer {

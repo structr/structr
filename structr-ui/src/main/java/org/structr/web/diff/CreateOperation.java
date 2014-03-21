@@ -9,35 +9,47 @@ import org.structr.web.entity.dom.Page;
  *
  * @author Christian Morgner
  */
-public class CreateOperation implements InvertibleModificationOperation {
+public class CreateOperation extends InvertibleModificationOperation {
 
-	private String treeIndex = null;
-	private DOMNode parent   = null;
-	private DOMNode newNode  = null;
+	private String newTreeIndex = null;
+	private DOMNode newNode     = null;
 	
-	public CreateOperation(final String treeIndex, final DOMNode parent, final DOMNode newNode) {
+	public CreateOperation(final DOMNode newNode, final String newTreeIndex) {
 		
-		this.treeIndex = treeIndex;
-		this.newNode   = newNode;
-		this.parent    = parent;
-	}
-
-	public String getInsertIndex() {
-		return treeIndex;
-	}
-
-	public DOMNode getNewNode() {
-		return newNode;
+		this.newTreeIndex = newTreeIndex;
+		this.newNode      = newNode;
 	}
 
 	@Override
 	public String toString() {
-		return "Create " + newNode + " at " + treeIndex;
+		
+		return "Create " + newNode.getIdHashOrProperty() + " at " + newTreeIndex;
 	}
 
 	// ----- interface InvertibleModificationOperation -----
 	@Override
 	public void apply(final App app, final Page page) throws FrameworkException {
+		
+		final InsertPosition insertPosition = findInsertPosition(page, newTreeIndex);
+		if (insertPosition != null) {
+			
+			final DOMNode parent  = insertPosition.getParent();
+			final DOMNode sibling = insertPosition.getSibling();
+
+			if (sibling != null) {
+				
+				System.out.println("Inserting at " + parent.getIdHashOrProperty() + " before " + sibling.getIdHashOrProperty());
+				
+			} else {
+				
+				System.out.println("Inserting at " + parent.getIdHashOrProperty());
+			}
+			
+			page.adoptNode(newNode);
+			
+			parent.insertBefore(newNode, sibling);
+			
+		}
 	}
 
 	@Override

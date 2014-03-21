@@ -433,14 +433,9 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 			final DOMNode domNode = (DOMNode) node;
 
-			// step 1: use type-specific adopt impl.
-			Node adoptedNode = domNode.doAdopt(Page.this);
-
 			// step 2: do recursive import?
 			if (domNode.hasChildNodes()) {
 
-					// FIXME: is it really a good idea to do the
-				// recursion inside of a transaction?
 				Node child = domNode.getFirstChild();
 				while (child != null) {
 
@@ -451,19 +446,22 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 			}
 
-				// step 3: remove node from its current parent
+			// step 3: remove node from its current parent
 			// (Note that this step needs to be done last in
 			// (order for the child to be able to find its
 			// siblings.)
 			if (removeParentFromSourceNode) {
 
-					// only do this for the actual source node, do not remove
+				// only do this for the actual source node, do not remove
 				// child nodes from its parents
 				Node _parent = domNode.getParentNode();
 				if (_parent != null) {
 					_parent.removeChild(domNode);
 				}
 			}
+
+			// step 1: use type-specific adopt impl.
+			Node adoptedNode = domNode.doAdopt(Page.this);
 
 			return adoptedNode;
 
