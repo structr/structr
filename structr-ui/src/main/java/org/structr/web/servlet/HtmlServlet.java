@@ -711,26 +711,29 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		// add some caching directives to header
 		// see http://weblogs.java.net/blog/2007/08/08/expires-http-header-magic-number-yslow
 		DateFormat httpDateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
+		httpDateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+
+		response.setHeader("Date", httpDateFormat.format(new Date()));
+
 		Calendar cal = new GregorianCalendar();
 		Integer seconds = node.getProperty(Page.cacheForSeconds);
 
 		if (seconds != null) {
 
 			cal.add(Calendar.SECOND, seconds);
-			response.addHeader("Cache-Control", "public, max-age=" + seconds + ", s-maxage=" + seconds + ", must-revalidate, proxy-revalidate");
-			httpDateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
-			response.addHeader("Expires", httpDateFormat.format(cal.getTime()));
+			response.setHeader("Cache-Control", "max-age=" + seconds + ", s-maxage=" + seconds + ", must-revalidate, proxy-revalidate");
+			response.setHeader("Expires", httpDateFormat.format(cal.getTime()));
 
 		} else {
 
-			response.addHeader("Cache-Control", "public, must-revalidate, proxy-revalidate");
+			response.setHeader("Cache-Control", "must-revalidate, proxy-revalidate");
 
 		}
 
 		if (lastModified != null) {
 
 			Date roundedLastModified = DateUtils.round(lastModified, Calendar.SECOND);
-			response.addHeader("Last-Modified", httpDateFormat.format(roundedLastModified));
+			response.setHeader("Last-Modified", httpDateFormat.format(roundedLastModified));
 
 			String ifModifiedSince = request.getHeader("If-Modified-Since");
 
