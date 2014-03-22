@@ -111,17 +111,23 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		double start = System.nanoTime();
 
 		SecurityContext securityContext;
-		Authenticator authenticator;
+		Authenticator auth = config.getAuthenticator();
 		App app;
 
 		try {
+			String path = request.getPathInfo();
+
+			// check for registration (has its own tx because of write access
+			if (checkRegistration(auth, request, response, path)) {
+				return;
+			}
 
 			// isolate request authentication in a transaction
 			try (final Tx tx = StructrApp.getInstance().tx()) {
-				authenticator = config.getAuthenticator();
-				securityContext = authenticator.initializeAndExamineRequest(request, response);
+				securityContext = auth.initializeAndExamineRequest(request, response);
 				tx.success();
 			}
+			
 
 			app = StructrApp.getInstance(securityContext);
 
@@ -136,8 +142,6 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 				response.setCharacterEncoding("UTF-8");
 
 				boolean dontCache = false;
-
-				String path = request.getPathInfo();
 
 				logger.log(Level.FINE, "Path info {0}", path);
 				logger.log(Level.FINE, "Request examined by security context in {0} seconds", decimalFormat.format((System.nanoTime() - start) / 1000000000.0));
@@ -176,11 +180,6 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 					// check if request was solely intended to obtain a session id
 					if (checkGetSessionId(request, response, path)) {
-						return;
-					}
-
-					// check for registration, isolate request authentication in a transaction
-					if (checkRegistration(securityContext, request, response, path)) {
 						return;
 					}
 
@@ -370,6 +369,8 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 					notFound(response, securityContext);
 
 				}
+
+				tx.success();
 
 			} catch (FrameworkException fex) {
 				logger.log(Level.SEVERE, "Exception while processing request", fex);
@@ -562,7 +563,6 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	 * confirmation, usually triggered by a user clicking on a confirmation
 	 * link in an e-mail.
 	 *
-	 * @param securityContext
 	 * @param request
 	 * @param response
 	 * @param path
@@ -570,7 +570,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
-	private boolean checkRegistration(final SecurityContext securityContext, final HttpServletRequest request, final HttpServletResponse response, final String path) throws FrameworkException, IOException {
+	private boolean checkRegistration(final Authenticator auth, final HttpServletRequest request, final HttpServletResponse response, final String path) throws FrameworkException, IOException {
 
 		logger.log(Level.FINE, "Checking registration ...");
 
@@ -587,17 +587,28 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 		if (CONFIRM_REGISTRATION_PAGE.equals(path)) {
 
-			Result<Principal> results = StructrApp.getInstance().nodeQuery(Principal.class).and(User.confirmationKey, key).getResult();;
+			final App app = StructrApp.getInstance();
+			
+			Result<Principal> results;
+			try (final Tx tx = app.tx()) {
+
+				results = app.nodeQuery(Principal.class).and(User.confirmationKey, key).getResult();;
+			}
+			
 			if (!results.isEmpty()) {
 
 				final Principal user = results.get(0);
-				final App app = StructrApp.getInstance(securityContext);
 
 				try (final Tx tx = app.tx()) {
 
 					// Clear confirmation key and set session id
 					user.setProperty(User.confirmationKey, null);
-					user.setProperty(Principal.sessionId, request.getSession().getId());
+					
+					if (auth.getUserAutoLogin()){
+						
+						user.setProperty(Principal.sessionId, request.getSession().getId());
+
+					}
 
 					tx.success();
 
@@ -606,9 +617,6 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 						response.sendRedirect("/" + targetPage);
 						return true;
 					}
-
-				} catch (FrameworkException fex) {
-					logger.log(Level.WARNING, "Could not register user {0}", user);
 				}
 
 			} else {

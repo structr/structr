@@ -43,6 +43,7 @@ public class StructrHttpServiceConfig {
 	private Class authenticatorClass                  = null;
 	private Class userClass                           = null;
 	private boolean userAutoCreate                    = false;
+	private boolean userAutoLogin                     = false;
 	private int outputNestingDepth                    = 3;
 
 	public Property<String> getDefaultIdProperty() {
@@ -71,6 +72,7 @@ public class StructrHttpServiceConfig {
 		final String authenticatorKeyName    = servletName.concat(".authenticator");
 		final String userClassKeyName        = servletName.concat(".user.class");
 		final String userAutoCreateKeyName   = servletName.concat(".user.autocreate");
+		final String userAutoLoginKeyName    = servletName.concat(".user.autologin");
 		final String defaultPropertyKeyName  = servletName.concat(".defaultview");
 		final String nestingDepthKeyName     = servletName.concat(".outputdepth");
 		
@@ -78,6 +80,7 @@ public class StructrHttpServiceConfig {
 		final String authenticatorValue      = properties.getProperty(authenticatorKeyName);
 		final String userClassValue          = properties.getProperty(userClassKeyName);
 		final String userAutoCreateValue     = properties.getProperty(userAutoCreateKeyName);
+		final String userAutoLoginValue      = properties.getProperty(userAutoLoginKeyName);
 		final String defaultPropertyKeyValue = properties.getProperty(defaultPropertyKeyName);
 		final String outputDepthValue        = properties.getProperty(nestingDepthKeyName);
 		
@@ -129,6 +132,10 @@ public class StructrHttpServiceConfig {
 			userAutoCreate = HttpService.parseBoolean(userAutoCreateValue, false);
 		}
 		
+		if (userAutoLoginValue != null) {
+			userAutoLogin = HttpService.parseBoolean(userAutoLoginValue, false);
+		}
+
 		if (defaultPropertyKeyValue != null) {
 			this.defaultPropertyView = defaultPropertyKeyValue;
 		}
@@ -145,6 +152,7 @@ public class StructrHttpServiceConfig {
 		try {
 			authenticator = (Authenticator) authenticatorClass.newInstance();
 			authenticator.setUserAutoCreate(userAutoCreate, userClass);
+			authenticator.setUserAutoLogin(userAutoLogin, userClass);
 
 		} catch (Throwable t) {
 

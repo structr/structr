@@ -59,6 +59,7 @@ public class HttpAuthenticator implements Authenticator {
 	
 	protected boolean examined = false;
 	protected static boolean userAutoCreate;
+	protected static boolean userAutoLogin;
 	protected static Class   userClass;
 
 	//~--- methods --------------------------------------------------------
@@ -72,11 +73,18 @@ public class HttpAuthenticator implements Authenticator {
 
 	@Override
 	public void setUserAutoCreate(final boolean userAutoCreate, final Class userClass) {
-		
-		HttpAuthenticator.userAutoCreate	= userAutoCreate;
-		HttpAuthenticator.userClass		= userClass;
-		
+
+		HttpAuthenticator.userAutoCreate = userAutoCreate;
+		HttpAuthenticator.userClass      = userClass;
 	}
+	
+	@Override
+	public void setUserAutoLogin(boolean userAutoLogin, Class userClass) {
+
+		HttpAuthenticator.userAutoLogin = userAutoLogin;
+		HttpAuthenticator.userClass     = userClass;
+	}
+
 
 	/**
 	 * Examine request and try to find a user.
@@ -478,16 +486,17 @@ public class HttpAuthenticator implements Authenticator {
 	
 	@Override
 	public boolean getUserAutoCreate() {
-		
 		return userAutoCreate;
+	}
 
+	@Override
+	public boolean getUserAutoLogin() {
+		return userAutoLogin;
 	}
 	
 	@Override
 	public Class getUserClass() {
-		
 		return userClass;
-		
 	}
 
 }
