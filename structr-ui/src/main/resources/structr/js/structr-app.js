@@ -120,7 +120,7 @@ function StructrApp(baseUrl) {
                 var f = s.field($('[data-structr-attr="name"]', container));
                 //console.log(f);
                 //container.find('[data-structr-attr="name"]').val(); console.log(id, container, name)
-                s.delete(id, btn.attr('data-structr-confirm') === 'true', reload, f ? f.val : undefined);
+                s.del(id, btn.attr('data-structr-confirm') === 'true', reload, f ? f.val : undefined);
 
             } else {
                 s.customAction(id, type, action, s.data[id], reload, function() {enableButton(btn)}, function() {enableButton(btn)});
@@ -200,7 +200,7 @@ function StructrApp(baseUrl) {
                         // ISO8601 Format: 'yyyy-MM-dd"T"HH:mm:ssZ'
                         separator: 'T',
                         dateFormat: 'yy-mm-dd',
-                        timeFormat: 'HH:mm:ssz',
+                        timeFormat: 'HH:mm:ssz'
                     });
                     self.datetimepicker('show');
                     self.off('mouseup');
@@ -253,14 +253,6 @@ function StructrApp(baseUrl) {
         //console.log('PUT', structrRestUrl + id, s.data[id]);
         s.request('PUT', structrRestUrl + id, s.data[id], false, 'Successfully updated ' + id, 'Could not update ' + id, function() {
             s.cancelEditAction(btn, id, attrs, reload);
-        }, function(data) {
-            if (data && data.status === 404) {
-                // TODO: handle related properties more flexible
-//                var response = JSON.parse(data.responseText);
-//                Object.keys(response.errors).forEach(function(type) {
-//                });
-            }
-            
         });
     },
     
@@ -539,7 +531,7 @@ function StructrApp(baseUrl) {
 
     };
 
-    this.delete = function(id, conf, reload, name) {
+    this.del = function(id, conf, reload, name) {
         //console.log('Delete', id, conf, reload);
         var sure = true;
         if (conf) {
