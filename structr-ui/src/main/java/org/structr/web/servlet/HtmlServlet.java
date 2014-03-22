@@ -286,11 +286,11 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 				}
 
 				if (!securityContext.isVisible(rootElement)) {
-					
+
 					rootElement = notFound(response, securityContext);
-					
+
 				}
-				
+
 				if (securityContext.isVisible(rootElement)) {
 
 					//PrintWriter out = response.getWriter();
@@ -321,13 +321,18 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 							response.setContentType("text/html;charset=UTF-8");
 						}
 
+						response.setHeader("Strict-Transport-Security", "max-age=60");
+						response.setHeader("X-Content-Type-Options", "nosniff");
+						response.setHeader("X-Frame-Options", "SAMEORIGIN");
+						response.setHeader("X-XSS-Protection", "1; mode=block");
+
 						AsyncContext async = request.startAsync();
 						ServletOutputStream out = response.getOutputStream();
 
 						AsyncBuffer buffer = renderContext.getBuffer();
 						buffer.prepare(async, out);
 						//StructrWriteListener writeListener = new StructrWriteListener(buffer, async, out);
-						
+
 						rootElement.render(securityContext, renderContext, 0);
 						buffer.finish();
 
@@ -341,7 +346,6 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 //								}
 //							}
 //						}.start();
-
 						response.setStatus(HttpServletResponse.SC_OK);
 
 						double end = System.nanoTime();
@@ -378,38 +382,37 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 			HttpAuthenticator.writeInternalServerError(response);
 		}
 	}
-	
-	
+
 	/**
 	 * Handle 404 Not Found
-	 * 
+	 *
 	 * First, search the first page which handles the 404.
-	 * 
+	 *
 	 * If none found, issue the container's 404 error.
-	 * 
+	 *
 	 * @param response
 	 * @param securityContext
 	 * @param renderContext
 	 * @throws IOException
-	 * @throws FrameworkException 
+	 * @throws FrameworkException
 	 */
 	private Page notFound(final HttpServletResponse response, final SecurityContext securityContext) throws IOException, FrameworkException {
-		
+
 		final Page errorPage = StructrApp.getInstance(securityContext).nodeQuery(Page.class).and(Page.showOnErrorCodes, "404", false).getFirst();
-		
+
 		if (errorPage != null) {
-			
+
 			response.setStatus(HttpServletResponse.SC_NOT_FOUND);
 			return errorPage;
-			
+
 		} else {
-			
+
 			response.sendError(HttpServletResponse.SC_NOT_FOUND);
-			
+
 		}
-		
+
 		return null;
-		
+
 	}
 
 	/**
@@ -697,7 +700,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	//~--- set methods ----------------------------------------------------
 	public static void setNoCacheHeaders(final HttpServletResponse response) {
 
-		response.setHeader("Cache-Control", "private, max-age=0, no-cache, no-store, must-revalidate"); // HTTP 1.1.
+		response.setHeader("Cache-Control", "private, max-age=0, s-maxage=0, no-cache, no-store, must-revalidate"); // HTTP 1.1.
 		response.setHeader("Pragma", "no-cache, no-store"); // HTTP 1.0.
 		response.setDateHeader("Expires", 0);
 
@@ -725,8 +728,13 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 			response.setHeader("Expires", httpDateFormat.format(cal.getTime()));
 
 		} else {
-
-			response.setHeader("Cache-Control", "must-revalidate, proxy-revalidate");
+			
+			if (node.getProperty(AbstractNode.visibleToPublicUsers)) {
+				response.setHeader("Cache-Control", "must-revalidate, proxy-revalidate");
+			} else {
+				response.setHeader("Cache-Control", "private, no-cache, no-store, max-age=0, s-maxage=0, must-revalidate, proxy-revalidate");
+			}
+			
 
 		}
 
@@ -750,6 +758,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 						notModified = true;
 
 						response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
+						response.setHeader("Vary", "Accept-Encoding");
 
 					}
 
