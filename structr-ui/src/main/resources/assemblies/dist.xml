@@ -44,6 +44,11 @@
 	</fileSets>
 	<files>
 		<file>
+			<source>structr.conf_templ</source>
+			<outputDirectory>/</outputDirectory>
+			<filtered>true</filtered>
+		</file>
+		<file>
 			<source>src/main/resources/bin/start</source>
 			<outputDirectory>/bin</outputDirectory>
 			<filtered>true</filtered>

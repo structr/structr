@@ -201,7 +201,7 @@
 						<argument>-Xmx1g</argument>
 						<argument>-classpath</argument>
 						<argument>target/lib/*:target/${project.artifactId}-${project.version}.jar</argument>
-						<argument>org.structr.Ui</argument>
+						<argument>org.structr.Server</argument>
 					</arguments>
 				</configuration>
 			</plugin>
