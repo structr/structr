@@ -173,10 +173,11 @@ function cleanText(input) {
 }
 
 /**
- * Expand literal \n to newline
+ * Expand literal '\n' to newline,
+ * which is encoded as '\\n' in HTML attribute values.
  */
 function expandNewline(text) {
-    var output = text.replace(/\\n/g, '<br>');
+    var output = text.replace(/\\\\n/g, '<br>');
     return output;
 }
 
