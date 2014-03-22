@@ -297,7 +297,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 					double setup = System.nanoTime();
 					logger.log(Level.FINE, "Setup time: {0} seconds", decimalFormat.format((setup - start) / 1000000000.0));
 
-					if (!EditMode.DATA.equals(edit) && !dontCache && notModifiedSince(request, response, rootElement)) {
+					if (!EditMode.DATA.equals(edit) && !dontCache && notModifiedSince(request, response, rootElement, dontCache)) {
 
 						ServletOutputStream out = response.getOutputStream();
 						out.flush();
@@ -706,7 +706,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 	}
 
-	private static boolean notModifiedSince(final HttpServletRequest request, HttpServletResponse response, final AbstractNode node) {
+	private static boolean notModifiedSince(final HttpServletRequest request, HttpServletResponse response, final AbstractNode node, final boolean dontCache) {
 
 		boolean notModified = false;
 		final Date lastModified = node.getLastModifiedDate();
@@ -721,20 +721,19 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		Calendar cal = new GregorianCalendar();
 		Integer seconds = node.getProperty(Page.cacheForSeconds);
 
-		if (seconds != null) {
+		if (!dontCache && seconds != null) {
 
 			cal.add(Calendar.SECOND, seconds);
-			response.setHeader("Cache-Control", "max-age=" + seconds + ", s-maxage=" + seconds + ", must-revalidate, proxy-revalidate");
+			response.setHeader("Cache-Control", "max-age=" + seconds + ", s-maxage=" + seconds + "");
 			response.setHeader("Expires", httpDateFormat.format(cal.getTime()));
 
 		} else {
 			
-			if (node.getProperty(AbstractNode.visibleToPublicUsers)) {
-				response.setHeader("Cache-Control", "must-revalidate, proxy-revalidate");
+			if (!dontCache) {
+				response.setHeader("Cache-Control", "no-cache, must-revalidate, proxy-revalidate");
 			} else {
 				response.setHeader("Cache-Control", "private, no-cache, no-store, max-age=0, s-maxage=0, must-revalidate, proxy-revalidate");
 			}
-			
 
 		}
 
@@ -788,7 +787,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 		ServletOutputStream out = response.getOutputStream();
 
-		if (!EditMode.DATA.equals(edit) && notModifiedSince(request, response, file)) {
+		if (!EditMode.DATA.equals(edit) && notModifiedSince(request, response, file, false)) {
 
 			out.flush();
 			out.close();
