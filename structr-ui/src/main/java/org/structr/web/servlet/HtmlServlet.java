@@ -593,14 +593,22 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 				final Principal user = results.get(0);
 				final App app = StructrApp.getInstance(securityContext);
 
-				// Clear confirmation key and set session id
-				user.setProperty(User.confirmationKey, null);
-				user.setProperty(Principal.sessionId, request.getSession().getId());
+				try (final Tx tx = app.tx()) {
 
-				// Redirect to target page
-				if (StringUtils.isNotBlank(targetPage)) {
-					response.sendRedirect("/" + targetPage);
-					return true;
+					// Clear confirmation key and set session id
+					user.setProperty(User.confirmationKey, null);
+					user.setProperty(Principal.sessionId, request.getSession().getId());
+
+					tx.success();
+
+					// Redirect to target page
+					if (StringUtils.isNotBlank(targetPage)) {
+						response.sendRedirect("/" + targetPage);
+						return true;
+					}
+
+				} catch (FrameworkException fex) {
+					logger.log(Level.WARNING, "Could not register user {0}", user);
 				}
 
 			} else {
@@ -728,7 +736,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 			response.setHeader("Expires", httpDateFormat.format(cal.getTime()));
 
 		} else {
-			
+
 			if (!dontCache) {
 				response.setHeader("Cache-Control", "no-cache, must-revalidate, proxy-revalidate");
 			} else {
