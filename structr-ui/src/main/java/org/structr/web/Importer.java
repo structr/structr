@@ -59,8 +59,14 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.Tx;
 import org.structr.core.property.BooleanProperty;
 import org.structr.schema.importer.GraphGistImporter;
+import org.structr.web.diff.CreateOperation;
+import org.structr.web.diff.DeleteOperation;
+import org.structr.web.diff.InvertibleModificationOperation;
+import org.structr.web.diff.MoveOperation;
+import org.structr.web.diff.UpdateOperation;
 import org.structr.web.entity.LinkSource;
 import org.structr.web.entity.Linkable;
 import org.structr.web.entity.relation.Files;
@@ -269,7 +275,168 @@ public class Importer {
 		// try to import graph gist from comments
 		GraphGistImporter.importCypher(GraphGistImporter.extractSources(new ByteArrayInputStream(commentSource.toString().getBytes())));
 	}
+	
+	// ----- public static methods -----
+	public static Page parsePageFromSource(final SecurityContext securityContext, final String source, final String name) throws FrameworkException {
 
+		final Importer importer = new Importer(securityContext, source, null, "source", 0, true, true);
+		final App localAppCtx   = StructrApp.getInstance(securityContext);
+		Page page               = null;
+		
+		try (final Tx tx = localAppCtx.tx()) {
+			
+			page   = localAppCtx.create(Page.class, new NodeAttribute<>(Page.name, name));
+			
+			if (importer.parse()) {
+				
+				importer.createChildNodesWithHtml(page, page, "");
+			}
+			
+			tx.success();
+			
+		}
+		
+		return page;
+	}
+	
+	public static List<InvertibleModificationOperation> diffPages(final Page sourcePage, final Page modifiedPage) {
+
+		final List<InvertibleModificationOperation> changeSet = new LinkedList<>();
+		final Map<String, DOMNode> indexMappedExistingNodes   = new LinkedHashMap<>();
+		final Map<String, DOMNode> hashMappedExistingNodes    = new LinkedHashMap<>();
+		final Map<DOMNode, Integer> depthMappedExistingNodes  = new LinkedHashMap<>();
+		final Map<String, DOMNode> indexMappedNewNodes        = new LinkedHashMap<>();
+		final Map<String, DOMNode> hashMappedNewNodes         = new LinkedHashMap<>();
+		final Map<DOMNode, Integer> depthMappedNewNodes       = new LinkedHashMap<>();
+		
+		InvertibleModificationOperation.collectNodes(sourcePage, indexMappedExistingNodes, hashMappedExistingNodes, depthMappedExistingNodes);
+		InvertibleModificationOperation.collectNodes(modifiedPage, indexMappedNewNodes, hashMappedNewNodes, depthMappedNewNodes);
+		
+		// iterate over existing nodes and try to find deleted ones
+		for (final Iterator<Map.Entry<String, DOMNode>> it = hashMappedExistingNodes.entrySet().iterator(); it.hasNext();) {
+			
+			final Map.Entry<String, DOMNode> existingNodeEntry = it.next();
+			final DOMNode existingNode                     = existingNodeEntry.getValue();
+			final String existingHash                      = existingNode.getIdHash();
+			
+			// check for deleted nodes ignoring Page nodes
+			if (!hashMappedNewNodes.containsKey(existingHash) && !(existingNode instanceof Page)) {
+				
+				changeSet.add(new DeleteOperation(hashMappedExistingNodes, existingNode));
+			}
+		}
+
+		// iterate over new nodes and try to find new ones
+		for (final Iterator<Map.Entry<String, DOMNode>> it = indexMappedNewNodes.entrySet().iterator(); it.hasNext();) {
+			
+			final Map.Entry<String, DOMNode> newNodeEntry = it.next();
+			final DOMNode newNode                     = newNodeEntry.getValue();
+			
+			// if newNode is a content element, do not rely on local hash property
+			String newHash = newNode.getProperty(DOMNode.dataHashProperty);
+			if (newHash == null) {
+				newHash = newNode.getIdHash();
+			}
+			
+			// check for deleted nodes ignoring Page nodes
+			if (!hashMappedExistingNodes.containsKey(newHash) && !(newNode instanceof Page)) {
+
+				final DOMNode newParent  = newNode.getProperty(DOMNode.parent);
+				
+				changeSet.add(new CreateOperation(hashMappedExistingNodes, getHashOrNull(newParent), getSiblingHashes(newNode), newNode, depthMappedNewNodes.get(newNode)));
+			}
+		}
+
+		// compare all new nodes with all existing nodes
+		for (final Map.Entry<String, DOMNode> newNodeEntry : indexMappedNewNodes.entrySet()) {
+			
+			final String newTreeIndex = newNodeEntry.getKey();
+			final DOMNode newNode     = newNodeEntry.getValue();
+
+			for (final Map.Entry<String, DOMNode> existingNodeEntry : indexMappedExistingNodes.entrySet()) {
+
+				final String existingTreeIndex = existingNodeEntry.getKey();
+				final DOMNode existingNode     = existingNodeEntry.getValue();
+				DOMNode newParent              = null;
+				int equalityBitmask            = 0;
+				
+				if (newTreeIndex.equals(existingTreeIndex)) {
+					equalityBitmask |= 1;
+				}
+
+				if (newNode.getIdHashOrProperty().equals(existingNode.getIdHash())) {
+					equalityBitmask |= 2;
+				}
+
+				if (newNode.contentEquals(existingNode)) {
+					equalityBitmask |= 4;
+				}
+
+				switch (equalityBitmask) {
+
+					case 7:	// same tree index (1), same node (2), same content (4) => node is completely unmodified
+						break;
+
+					case 6:	// same content (2), same node (4), NOT same tree index => node has moved
+						newParent  = newNode.getProperty(DOMNode.parent);
+						changeSet.add(new MoveOperation(hashMappedExistingNodes, getHashOrNull(newParent), getSiblingHashes(newNode), newNode, existingNode));
+						break;
+
+					case 5:	// same tree index (1), NOT same node, same content (5) => node was deleted and restored, maybe the identification information was lost
+						// TODO: how to handle this?
+						break;
+
+					case 4:	// NOT same tree index, NOT same node, same content (4) => different node, content is equal by chance?
+						// TODO: what to do here?
+						break;
+
+					case 3:	// same tree index, same node, NOT same content => node was modified but not moved
+						changeSet.add(new UpdateOperation(hashMappedExistingNodes, existingNode, newNode));
+						break;
+
+					case 2:	// NOT same tree index, same node (2), NOT same content => node was moved and changed
+
+						// FIXME: order is important here?
+						newParent  = newNode.getProperty(DOMNode.parent);
+						changeSet.add(new UpdateOperation(hashMappedExistingNodes, existingNode, newNode));
+						changeSet.add(new MoveOperation(hashMappedExistingNodes, getHashOrNull(newParent), getSiblingHashes(newNode), newNode, existingNode));
+						break;
+
+					case 1:	// same tree index (1), NOT same node, NOT same content => ignore
+						break;
+
+					case 0:	// NOT same tree index, NOT same node, NOT same content => ignore
+						break;
+				}
+			}
+		}
+		
+		return changeSet;
+	}
+	
+	private static List<String> getSiblingHashes(final DOMNode node) {
+		
+		final List<String> siblingHashes = new LinkedList<>();
+		DOMNode nextSibling = node.getProperty(DOMNode.nextSibling);
+		
+		while (nextSibling != null) {
+			
+			siblingHashes.add(nextSibling.getIdHashOrProperty());
+			nextSibling = nextSibling.getProperty(DOMNode.nextSibling);
+		}
+
+		return siblingHashes;
+	}
+
+	private static String getHashOrNull(final DOMNode node) {
+		
+		if (node != null) {
+			return node.getIdHashOrProperty();
+		}
+		
+		return null;
+	}
+	
 	// ----- private methods -----
 	private void createChildNodes(final Node startNode, final DOMNode parent, Page page, final URL baseUrl) throws FrameworkException {
 

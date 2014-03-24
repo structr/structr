@@ -1,6 +1,7 @@
 package org.structr.web.diff;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
@@ -12,17 +13,50 @@ import org.structr.web.entity.dom.relationship.DOMChildren;
  *
  * @author Christian Morgner
  */
-public abstract class InvertibleModificationOperation {
+public abstract class InvertibleModificationOperation implements Comparable<InvertibleModificationOperation> {
 
-	public abstract void apply(final App app, final Page page) throws FrameworkException;
-	public abstract InvertibleModificationOperation revert();
+	protected Map<String, DOMNode> hashMappedExistingNodes = new LinkedHashMap<>();
 	
-	protected InsertPosition findInsertPosition(final Page page, final String treeIndex) {
-		
-		return collectNodes(page, 0, new LinkedHashMap<Integer, Integer>(), treeIndex);
+	public abstract void apply(final App app, final Page sourcePage, final Page newPage) throws FrameworkException;
+	public abstract InvertibleModificationOperation revert();
+	public abstract Integer getPosition();
+
+	public InvertibleModificationOperation(final Map<String, DOMNode> hashMappedExistingNodes) {
+		this.hashMappedExistingNodes = hashMappedExistingNodes;
 	}
 	
-	private InsertPosition collectNodes(final DOMNode node, final int depth, final Map<Integer, Integer> childIndexMap, final String treeIndex) {
+	protected InsertPosition findInsertPosition(final Page sourcePage, final String parentHash, final List<String> siblingHashes, final DOMNode newNode) {
+
+		DOMNode newParent  = hashMappedExistingNodes.get(parentHash);
+		DOMNode newSibling = null;
+
+		// we need to check the whole list of siblings here because
+		// when inserting the first element of a list of elements,
+		// the "next sibling" element is not there yet, so we have
+		// to use the one after 
+		for (final String siblingHash : siblingHashes) {
+			
+			newSibling = hashMappedExistingNodes.get(siblingHash);
+			if (newSibling != null) {
+				break;
+			}
+		}
+
+		if (newParent == null) {
+
+			// new parent did not exist in source document, what do?
+			System.out.println("TODO: new parent not found in source document.");
+		}
+
+		return new InsertPosition(newParent, newSibling);
+	}
+	
+	public static void collectNodes(final Page page, final Map<String, DOMNode> indexMappedNodes, final Map<String, DOMNode> hashMappedNodes, final Map<DOMNode, Integer> depthMap) {
+		
+		collectNodes(page, indexMappedNodes, hashMappedNodes, depthMap, 0, new LinkedHashMap<Integer, Integer>());
+	}
+	
+	private static void collectNodes(final DOMNode node, final Map<String, DOMNode> indexMappedNodes, final Map<String, DOMNode> hashMappedNodes, final Map<DOMNode, Integer> depthMap, final int depth, final Map<Integer, Integer> childIndexMap) {
 		
 		Integer pos  = childIndexMap.get(depth);
 		if (pos == null) {
@@ -34,21 +68,29 @@ public abstract class InvertibleModificationOperation {
 		childIndexMap.put(depth, ++position);
 
 		// store node with its tree index
-		if (treeIndex.equals("[" + depth + ":" + position + "]")) {
-			return new InsertPosition((DOMNode)node.getParentNode(), (DOMNode)node.getNextSibling());
+		final String hash = "[" + depth + ":" + position + "]";
+		indexMappedNodes.put(hash, node);
+
+		// store node with its data hash
+		String dataHash = node.getProperty(DOMNode.dataHashProperty);
+		if (dataHash == null) {
+			dataHash = node.getIdHash();
 		}
 		
+		hashMappedNodes.put(dataHash, node);
+		depthMap.put(node, depth);
+
 		// recurse
 		for (final DOMChildren childRel : node.getChildRelationships()) {
 			
-			final InsertPosition insertPosition = collectNodes(childRel.getTargetNode(), depth+1, childIndexMap, treeIndex);
-			if (insertPosition != null) {
-				
-				return insertPosition;
-			}
+			collectNodes(childRel.getTargetNode(), indexMappedNodes, hashMappedNodes, depthMap, depth+1, childIndexMap);
 		}
 		
-		return null;
+	}
+	
+	@Override
+	public int compareTo(final InvertibleModificationOperation op) {
+		return getPosition().compareTo(op.getPosition());
 	}
 	
 	protected static class InsertPosition {

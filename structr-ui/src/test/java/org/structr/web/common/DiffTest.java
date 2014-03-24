@@ -1,29 +1,13 @@
 package org.structr.web.common;
 
 import java.io.IOException;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
-import java.util.Map.Entry;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
-import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.web.Importer;
-import org.structr.web.diff.CreateOperation;
-import org.structr.web.diff.DeleteOperation;
 import org.structr.web.diff.InvertibleModificationOperation;
-import org.structr.web.diff.MoveOperation;
-import org.structr.web.diff.UpdateOperation;
-import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.dom.relationship.DOMChildren;
-import org.w3c.dom.Node;
 
 /**
  *
@@ -31,309 +15,479 @@ import org.w3c.dom.Node;
  */
 public class DiffTest extends StructrUiTest {
 
-	public void testDiff() {
+	public void testReplaceContent() {
+
+		final String result1 = testDiff("<html><head><title>Title</title></head><body>Test</body></html>", new org.neo4j.helpers.Function<String, String>() {
+
+			@Override
+			public String apply(String from) {
+				return from.replace("Test", "Wurst");
+			}
+		});
+
+		assertEquals(
+			"<!DOCTYPE html>\n" +
+			"<html>\n" +
+			"  <head>\n" +
+			"    <title>Title</title>\n" +
+			"  </head>\n" +
+			"  <body>Wurst</body>\n" +
+			"</html>",
+			result1
+		);
+	}
+
+	public void testInsertHeading() {
+
+		final String result1 = testDiff("<html><head><title>Title</title></head><body>Test</body></html>", new org.neo4j.helpers.Function<String, String>() {
+
+			@Override
+			public String apply(String from) {
+				return from.replace("Test", "<h1>Title text</h1>");
+			}
+		});
 		
-		Logger.getLogger("org.structr").setLevel(Level.OFF);
+		assertEquals(
+			"<!DOCTYPE html>\n" +
+			"<html>\n" +
+			"  <head>\n" +
+			"    <title>Title</title>\n" +
+			"  </head>\n" +
+			"  <body>\n" +
+			"    <h1>Title text</h1>\n" +
+			"  </body>\n" +
+			"</html>",
+			result1
+		);
+	}
+
+	public void testInsertDivBranch() {
+
+		final String result1 = testDiff("<html><head><title>Title</title></head><body>Test</body></html>", new org.neo4j.helpers.Function<String, String>() {
+
+			@Override
+			public String apply(String from) {
+				return from.replace("Test", "<div><h1>Title text</h1></div>");
+			}
+		});
+		
+		assertEquals(
+			"<!DOCTYPE html>\n" +
+			"<html>\n" +
+			"  <head>\n" +
+			"    <title>Title</title>\n" +
+			"  </head>\n" +
+			"  <body>\n" +
+			"    <div>\n" +
+			"      <h1>Title text</h1>\n" +
+			"    </div>\n" +
+			"  </body>\n" +
+			"</html>",
+			result1
+		);
+	}
+
+	public void testInsertDivBranch2() {
+
+		final String result1 = testDiff("<html><head><title>Title</title></head><body>Test</body></html>", new org.neo4j.helpers.Function<String, String>() {
+
+			@Override
+			public String apply(String from) {
+				return from.replace("Test", "<div><div><h1>Title text</h1><p>paragraph</p></div></div>");
+			}
+		});
+		
+		assertEquals(
+			"<!DOCTYPE html>\n" +
+			"<html>\n" +
+			"  <head>\n" +
+			"    <title>Title</title>\n" +
+			"  </head>\n" +
+			"  <body>\n" +
+			"    <div>\n" +
+			"      <div>\n" +
+			"        <h1>Title text</h1>\n" +
+			"        <p>paragraph</p>\n" +
+			"      </div>\n" +
+			"    </div>\n" +
+			"  </body>\n" +
+			"</html>",
+			result1
+		);
+	}
+
+	public void testInsertMultipleTextNodes() {
+
+		final String result1 = testDiff("<html><head><title>Title</title></head><body>Test</body></html>", new org.neo4j.helpers.Function<String, String>() {
+
+			@Override
+			public String apply(String from) {
+				return from.replace("Test", "Test<b>bold</b>between<i>italic</i>Text");
+			}
+		});
+		
+		System.out.println(result1);
+		
+		assertEquals(
+			"<!DOCTYPE html>\n" +
+			"<html>\n" +
+			"  <head>\n" +
+			"    <title>Title</title>\n" +
+			"  </head>\n" +
+			"  <body>Test<b>bold</b>between<i>italic</i>Text</body>\n" +
+			"</html>",
+			result1
+		);
+	}
+
+	public void testModifyMultipleTextNodes2() {
+
+		final String result1 = testDiff("<html><head><title>Title</title></head><body>Test<b>bold</b>between<i>italic</i>Text</body></html>", new org.neo4j.helpers.Function<String, String>() {
+
+			@Override
+			public String apply(String from) {
+				
+				String mod = from;
+				
+				mod = mod.replace("bold", "BOLD");
+				mod = mod.replace("between", "BETWEEN");
+				mod = mod.replace("italic", "ITALIC");
+				mod = mod.replace("Text", "abcdef");
+				
+				return mod;
+			}
+		});
+
+		System.out.println(result1);
+		
+		assertEquals(
+			"<!DOCTYPE html>\n" +
+			"<html>\n" +
+			"  <head>\n" +
+			"    <title>Title</title>\n" +
+			"  </head>\n" +
+			"  <body>Test<b>BOLD</b>BETWEEN<i>ITALIC</i>abcdef</body>\n" +
+			"</html>",
+			result1
+		);
+	}
+
+	public void testReparentOneLevel() {
+
+		final String result1 = testDiff("<html><head><title>Title</title></head><body><h1>Title text</h1></body></html>", new org.neo4j.helpers.Function<String, String>() {
+
+			@Override
+			public String apply(String from) {
+				
+				final StringBuilder buf = new StringBuilder(from);
+				
+				int startPos = buf.indexOf("<h1");
+				int endPos   = buf.indexOf("</h1>") + 5;
+				
+				// insert from back to front, otherwise insert position changes
+				buf.insert(endPos, "</div>");
+				buf.insert(startPos, "<div>");
+				
+				return buf.toString();
+			}
+		});
+
+		System.out.println(result1);
+		
+		assertEquals(
+			"<!DOCTYPE html>\n" +
+			"<html>\n" +
+			"  <head>\n" +
+			"    <title>Title</title>\n" +
+			"  </head>\n" +
+			"  <body>\n" + 
+			"    <div>\n" +
+			"      <h1>Title text</h1>\n" +
+			"    </div>\n" +
+			"  </body>\n" +
+			"</html>",
+			result1
+		);
+	}
+
+	public void testReparentTwoLevels() {
+
+		final String result1 = testDiff("<html><head><title>Title</title></head><body><h1>Title text</h1></body></html>", new org.neo4j.helpers.Function<String, String>() {
+
+			@Override
+			public String apply(String from) {
+				
+				final StringBuilder buf = new StringBuilder(from);
+				
+				int startPos = buf.indexOf("<h1");
+				int endPos   = buf.indexOf("</h1>") + 5;
+				
+				// insert from back to front, otherwise insert position changes
+				buf.insert(endPos, "</div></div>");
+				buf.insert(startPos, "<div><div>");
+				
+				return buf.toString();
+			}
+		});
+
+		System.out.println(result1);
+		
+		assertEquals(
+			"<!DOCTYPE html>\n" +
+			"<html>\n" +
+			"  <head>\n" +
+			"    <title>Title</title>\n" +
+			"  </head>\n" +
+			"  <body>\n" + 
+			"    <div>\n" +
+			"      <div>\n" +
+			"        <h1>Title text</h1>\n" +
+			"      </div>\n" +
+			"    </div>\n" +
+			"  </body>\n" +
+			"</html>",
+			result1
+		);
+	}
+
+	public void testReparentThreeLevels() {
+
+		final String result1 = testDiff("<html><head><title>Title</title></head><body><h1>Title text</h1></body></html>", new org.neo4j.helpers.Function<String, String>() {
+
+			@Override
+			public String apply(String from) {
+				
+				final StringBuilder buf = new StringBuilder(from);
+				
+				int startPos = buf.indexOf("<h1");
+				int endPos   = buf.indexOf("</h1>") + 5;
+
+				// insert from back to front, otherwise insert position changes
+				buf.insert(endPos, "</div></div></div>");
+				buf.insert(startPos, "<div><div><div>");
+				
+				return buf.toString();
+			}
+		});
+
+		System.out.println(result1);
+		
+		assertEquals(
+			"<!DOCTYPE html>\n" +
+			"<html>\n" +
+			"  <head>\n" +
+			"    <title>Title</title>\n" +
+			"  </head>\n" +
+			"  <body>\n" + 
+			"    <div>\n" +
+			"      <div>\n" +
+			"        <div>\n" +
+			"          <h1>Title text</h1>\n" +
+			"        </div>\n" +
+			"      </div>\n" +
+			"    </div>\n" +
+			"  </body>\n" +
+			"</html>",
+			result1
+		);
+	}
+
+	public void testMove() {
+
+		final String result1 = testDiff("<html><head><title>Title</title></head><body><h1>Title text</h1><div><h2>subtitle</h2></div></body></html>", new org.neo4j.helpers.Function<String, String>() {
+
+			@Override
+			public String apply(String from) {
+				
+				final StringBuilder buf = new StringBuilder(from);
+				
+				int startPos = buf.indexOf("<h1");
+				int endPos   = buf.indexOf("</h1>") + 5;
+
+				// cut out <h1> block
+				final String toMove = buf.substring(startPos, endPos);
+				buf.replace(startPos, endPos, "");
+				
+				// insert after <h2>
+				int insertPos = buf.indexOf("</h2>") + 5;
+				
+				// insert from back to front, otherwise insert position changes
+				buf.insert(insertPos, toMove);
+				
+				return buf.toString();
+			}
+		});
+
+		System.out.println(result1);
+		
+		assertEquals(
+			"<!DOCTYPE html>\n" +
+			"<html>\n" +
+			"  <head>\n" +
+			"    <title>Title</title>\n" +
+			"  </head>\n" +
+			"  <body>\n" + 
+			"    <div>\n" +
+			"      <h2>subtitle</h2>\n" +
+			"      <h1>Title text</h1>\n" +
+			"    </div>\n" +
+			"  </body>\n" +
+			"</html>",
+			result1
+		);
+	}
+
+	public void testCutAndPaste() {
+
+		final StringBuilder clipboard = new StringBuilder();
+		
+		final String result1 = testDiff("<html><head><title>Title</title></head><body><div><h2>one</h2></div><div><h2>two</h2></div><div><h2>three</h2></div><div><h2>four</h2></div></body></html>", new org.neo4j.helpers.Function<String, String>() {
+
+			@Override
+			public String apply(String from) {
+				
+				final StringBuilder buf = new StringBuilder(from);
+				
+				// cut the first two div/h2 blocks and store them for later
+				for (int i=0; i<2; i++) {
+					
+					int startPos = buf.indexOf("<div");
+					int endPos   = buf.indexOf("</div>") + 6;
+
+					// cut out <h1> block
+					clipboard.append(buf.substring(startPos, endPos));
+					buf.replace(startPos, endPos, "");
+				}
+				
+				return buf.toString();
+			}
+		});
+		
+		assertEquals(
+			"<!DOCTYPE html>\n" +
+			"<html>\n" +
+			"  <head>\n" +
+			"    <title>Title</title>\n" +
+			"  </head>\n" +
+			"  <body>\n" + 
+			"    <div>\n" +
+			"      <h2>three</h2>\n" +
+			"    </div>\n" +
+			"    <div>\n" +
+			"      <h2>four</h2>\n" +
+			"    </div>\n" +
+			"  </body>\n" +
+			"</html>",
+			result1
+		);
+		
+		// remove data-hash=... from clipboard buffer
+		int pos = -1;
+		do {
+			pos = clipboard.indexOf(" data-hash");
+			if (pos != -1) {
+				
+				clipboard.replace(pos, pos+21, "");
+			}
+			
+			
+		} while (pos != -1);
+		
+		final String result2 = testDiff(result1, new org.neo4j.helpers.Function<String, String>() {
+
+			@Override
+			public String apply(String from) {
+				
+				final StringBuilder buf = new StringBuilder(from);
+				
+				final int insertPos = buf.indexOf("<div");
+				buf.insert(insertPos, clipboard.toString());
+				
+				return buf.toString();
+			}
+		});
+
+		assertEquals(
+			"<!DOCTYPE html>\n" +
+			"<html>\n" +
+			"  <head>\n" +
+			"    <title>Title</title>\n" +
+			"  </head>\n" +
+			"  <body>\n" + 
+			"    <div>\n" +
+			"      <h2>one</h2>\n" +
+			"    </div>\n" +
+			"    <div>\n" +
+			"      <h2>two</h2>\n" +
+			"    </div>\n" +
+			"    <div>\n" +
+			"      <h2>three</h2>\n" +
+			"    </div>\n" +
+			"    <div>\n" +
+			"      <h2>four</h2>\n" +
+			"    </div>\n" +
+			"  </body>\n" +
+			"</html>",
+			result2
+		);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	private String testDiff(final String source, final org.neo4j.helpers.Function<String, String> modifier) {
+
+		StringBuilder buf = new StringBuilder();
 		
 		try (final Tx tx = app.tx()) {
 
-			final Page sourcePage   = createTestPage();
-
-			final String sourceHtml   = renderPage(sourcePage);
-			final String modifiedHtml = modifyHtml(sourceHtml);
-			
-			System.out.println("###############################################################################################");
-			System.out.println("Original HTML:");
-			System.out.println(sourceHtml);
-			System.out.println("#############################");
-			
-			System.out.println("###############################################################################################");
-			System.out.println("Modified HTML:");
-			System.out.println(modifiedHtml);
+			final Page sourcePage     = Importer.parsePageFromSource(securityContext, source, "test");
+			final String sourceHtml   = renderPage(sourcePage, RenderContext.EditMode.RAW);
+			final String modifiedHtml = modifier.apply(sourceHtml);
 			
 			// parse page from modified source
-			final Page modifiedPage = parsePage(modifiedHtml);
-			System.out.println("#############################");
+			final Page modifiedPage = Importer.parsePageFromSource(securityContext, modifiedHtml, "Test");
 			
-			final List<InvertibleModificationOperation> changeSet = diff(sourcePage, modifiedPage);
+			final List<InvertibleModificationOperation> changeSet = Importer.diffPages(sourcePage, modifiedPage);
 			
-			System.out.println("Changes:");
 			for (final InvertibleModificationOperation op : changeSet) {
 
-				System.out.println(op.toString());
-
+				System.out.println(op);
+				
 				// execute operation
-				op.apply(app, sourcePage);
+				op.apply(app, sourcePage, modifiedPage);
+				
+				System.out.println(renderPage(sourcePage, RenderContext.EditMode.NONE));
 			}
 			
-			final String updatedHtml = renderPage(sourcePage);
-			System.out.println("###############################################################################################");
-			System.out.println("Updated HTML:");
-			System.out.println(updatedHtml);
-			System.out.println("#############################");
+			buf.append(renderPage(sourcePage, RenderContext.EditMode.NONE));
 			
 		} catch (Throwable t) {
 			
 			t.printStackTrace();
 		}
+		
+		return buf.toString();
 	}
 	
-	private List<InvertibleModificationOperation> diff(final Page sourcePage, final Page modifiedPage) {
-
-		final List<InvertibleModificationOperation> changeSet = new LinkedList<>();
-		final Map<String, DOMNode> indexMappedExistingNodes   = new LinkedHashMap<>();
-		final Map<String, DOMNode> hashMappedExistingNodes    = new LinkedHashMap<>();
-		final Map<String, DOMNode> indexMappedNewNodes        = new LinkedHashMap<>();
-		final Map<String, DOMNode> hashMappedNewNodes         = new LinkedHashMap<>();
+	private String renderPage(final Page page, final RenderContext.EditMode editMode) throws FrameworkException {
 		
-		collectNodes(sourcePage, indexMappedExistingNodes, hashMappedExistingNodes);
-		collectNodes(modifiedPage, indexMappedNewNodes, hashMappedNewNodes);
-		
-		// iterate over existing nodes and try to find deleted ones
-		for (final Iterator<Entry<String, DOMNode>> it = hashMappedExistingNodes.entrySet().iterator(); it.hasNext();) {
-			
-			final Entry<String, DOMNode> existingNodeEntry = it.next();
-			final DOMNode existingNode                     = existingNodeEntry.getValue();
-			final String existingHash                      = existingNode.getIdHash();
-			
-			// check for deleted nodes ignoring Page nodes
-			if (!hashMappedNewNodes.containsKey(existingHash) && !(existingNode instanceof Page)) {
-				
-				changeSet.add(new DeleteOperation(existingNode));
-			}
-		}
-
-		// iterate over new nodes and try to find new ones
-		for (final Iterator<Entry<String, DOMNode>> it = indexMappedNewNodes.entrySet().iterator(); it.hasNext();) {
-			
-			final Entry<String, DOMNode> newNodeEntry = it.next();
-			final String newTreeIndex                 = newNodeEntry.getKey();
-			final DOMNode newNode                     = newNodeEntry.getValue();
-			
-			// if newNode is a content element, do not rely on local hash property
-			String newHash = newNode.getProperty(DOMNode.dataHashProperty);
-			if (newHash == null) {
-				newHash = newNode.getIdHash();
-			}
-			
-			// check for deleted nodes ignoring Page nodes
-			if (!hashMappedExistingNodes.containsKey(newHash) && !(newNode instanceof Page)) {
-				
-				changeSet.add(new CreateOperation(newNode, newTreeIndex));
-			}
-		}
-
-		// compare all new nodes with all existing nodes
-		for (final Entry<String, DOMNode> newNodeEntry : indexMappedNewNodes.entrySet()) {
-			
-			final String newTreeIndex = newNodeEntry.getKey();
-			final DOMNode newNode     = newNodeEntry.getValue();
-
-			for (final Entry<String, DOMNode> existingNodeEntry : indexMappedExistingNodes.entrySet()) {
-
-				final String existingTreeIndex = existingNodeEntry.getKey();
-				final DOMNode existingNode     = existingNodeEntry.getValue();
-				int equalityBitmask            = 0;
-				
-				if (newTreeIndex.equals(existingTreeIndex)) {
-					equalityBitmask |= 1;
-				}
-
-				if (newNode.getIdHash().equals(existingNode.getIdHash())) {
-					equalityBitmask |= 2;
-				}
-
-				if (newNode.contentEquals(existingNode)) {
-					equalityBitmask |= 4;
-				}
-
-				// System.out.println(existingTreeIndex + " / " + newTreeIndex + ": " + equalityBitmask);
-
-				switch (equalityBitmask) {
-
-					case 7:	// same tree index (1), same node (2), same content (4) => node is completely unmodified
-						break;
-
-					case 6:	// same content (2), same node (4), NOT same tree index => node has moved
-						changeSet.add(new MoveOperation(existingNode, newTreeIndex));
-						break;
-
-					case 5:	// same tree index (1), NOT same node, same content (5) => node was deleted and restored, maybe the identification information was lost
-						// TODO: how to handle this?
-						break;
-
-					case 4:	// NOT same tree index, NOT same node, same content (4) => different node, content is equal by chance?
-						// TODO: what to do here?
-						break;
-
-					case 3:	// same tree index, same node, NOT same content => node was modified but not moved
-						changeSet.add(new UpdateOperation(existingNode, newNode));
-						break;
-
-					case 2:	// NOT same tree index, same node (2), NOT same content => node was moved and changed
-
-						// FIXME: order is important here?
-						changeSet.add(new UpdateOperation(existingNode, newNode));
-						changeSet.add(new MoveOperation(existingNode, newTreeIndex));
-						break;
-
-					case 1:	// same tree index (1), NOT same node, NOT same content => ignore
-						break;
-
-					case 0:	// NOT same tree index, NOT same node, NOT same content => ignore
-						break;
-				}
-			}
-		}
-		
-		return changeSet;
-	}
-	
-	private String modifyHtml(final String sourceHtml) {
-
-		final StringBuilder modifiedHtml = new StringBuilder(sourceHtml.replace("Initial", "Modified"));
-		final int insertPosition         = modifiedHtml.indexOf("</body>");
-		
-		modifiedHtml.insert(insertPosition, "<div><h3>Another paragraph with title</h3><p>This is the paragraph text</p></div>\n");
-
-		final int delStart = modifiedHtml.indexOf("<h3");
-		final int delEnd   = modifiedHtml.indexOf("</h3>");
-		
-		modifiedHtml.replace(delStart, delEnd+5, "");
-
-		final int moveStart = modifiedHtml.indexOf("<h1");
-		final int moveEnd   = modifiedHtml.indexOf("</h1>");
-
-		modifiedHtml.insert(moveStart, "<div>");
-		modifiedHtml.insert(moveEnd, "</div>");
-		
-		return modifiedHtml.toString();
-
-	}
-
-	private String renderPage(final Page page) throws FrameworkException {
-		
-		final RenderContext ctx = new RenderContext(null, null, RenderContext.EditMode.RAW, Locale.GERMAN);
+		final RenderContext ctx = new RenderContext(null, null, editMode, Locale.GERMAN);
 		final TestBuffer buffer = new TestBuffer();
 		ctx.setBuffer(buffer);
 		page.render(securityContext, ctx, 0);
 
 		// extract source
 		return buffer.getBuffer().toString();
-	}
-	
-	private Page createTestPage() throws FrameworkException {
-		
-		final Page page = app.create(Page.class, new NodeAttribute(Page.name, "Test"));
-		
-		Node html = page.createElement("html");
-		Node head = page.createElement("head");
-		Node title = page.createElement("title");
-		Node titleText = page.createTextNode("${capitalize(page.name)}");
-		
-		page.appendChild(html);
-		html.appendChild(head);
-		head.appendChild(title);
-		title.appendChild(titleText);
-		
-		Node body = page.createElement("body");
-		html.appendChild(body);
-
-		{
-			Node h1 = page.createElement("h1");
-			body.appendChild(h1);
-
-			Node h1Text = page.createTextNode("${capitalize(page.name)}");
-			h1.appendChild(h1Text);
-		}
-
-		{
-			Node h2 = page.createElement("h2");
-			body.appendChild(h2);
-
-			Node h2Text = page.createTextNode("H2Text");
-			h2.appendChild(h2Text);
-		}
-
-		{
-			Node h3 = page.createElement("h3");
-			body.appendChild(h3);
-
-			Node h3Text = page.createTextNode("H3Text");
-			h3.appendChild(h3Text);
-		}
-		
-		Node div = page.createElement("div");
-		body.appendChild(div);
-		
-		Node divText = page.createTextNode("Initial body text");
-		div.appendChild(divText);
-		
-		return page;
-	}
-	
-	private void collectNodes(final Page page, final Map<String, DOMNode> indexMappedNodes, final Map<String, DOMNode> hashMappedNodes) {
-		
-		collectNodes(page, indexMappedNodes, hashMappedNodes, 0, new LinkedHashMap<Integer, Integer>());
-	}
-	
-	private void collectNodes(final DOMNode node, final Map<String, DOMNode> indexMappedNodes, final Map<String, DOMNode> hashMappedNodes, final int depth, final Map<Integer, Integer> childIndexMap) {
-		
-		Integer pos  = childIndexMap.get(depth);
-		if (pos == null) {
-			
-			pos = 0;
-		}
-		
-		int position = pos;
-		childIndexMap.put(depth, ++position);
-
-		// store node with its tree index
-		final String hash = "[" + depth + ":" + position + "]";
-		indexMappedNodes.put(hash, node);
-
-		// output
-		for (int i=0; i<depth; i++) {
-			System.out.print("    ");
-		}
-		System.out.println(node.getProperty(GraphObject.type) + hash);
-		
-		// store node with its data hash
-		String dataHash = node.getProperty(DOMNode.dataHashProperty);
-		if (dataHash == null) {
-			dataHash = node.getIdHash();
-		}
-		
-		hashMappedNodes.put(dataHash, node);
-
-		// recurse
-		for (final DOMChildren childRel : node.getChildRelationships()) {
-			
-			collectNodes(childRel.getTargetNode(), indexMappedNodes, hashMappedNodes, depth+1, childIndexMap);
-		}
-		
-	}
-	
-	private Page parsePage(final String source) throws FrameworkException {
-
-		final Importer importer = new Importer(securityContext, source, null, "source", 0, true, true);
-		
-		Page page  = null;
-		
-		try (final Tx tx = app.tx()) {
-			
-			page   = app.create(Page.class, new NodeAttribute<>(Page.name, "Test"));
-			
-			if (importer.parse()) {
-				
-				importer.createChildNodesWithHtml(page, page, "");
-			}
-			
-			tx.success();
-			
-		}
-		
-		return page;
 	}
 	
 	private static class TestBuffer extends AsyncBuffer {
@@ -359,98 +513,3 @@ public class DiffTest extends StructrUiTest {
 		}
 	}
 }
-
-
-
-/*
-		// first step: detect nodes that have changed.
-		for (final Entry<String, DOMNode> entry : nodesFromSourcePage.entrySet()) {
-			
-			final String sourceIndex = entry.getKey();
-			final DOMNode sourceNode = entry.getValue();
-			
-			if (nodesFromModifiedPage.containsKey(sourceIndex)) {
-				
-				// check equality
-				final DOMNode targetNode = nodesFromModifiedPage.get(sourceIndex);
-				if (sourceNode.isSameNode(targetNode)) {
-					
-					modifiedNodes.add(sourceIndex);
-					
-				} else {
-					
-				}
-				
-			} else {
-				
-				deletedNodes.add(sourceIndex);
-			}
-		}
-
-		for (final Entry<String, DOMNode> entry : nodesFromModifiedPage.entrySet()) {
-			
-			final String targetIndex = entry.getKey();
-			final DOMNode targetNode = entry.getValue();
-			
-			if (nodesFromSourcePage.containsKey(targetIndex)) {
-				
-				// check equality
-				final DOMNode sourceNode = nodesFromModifiedPage.get(targetIndex);
-				if (!sourceNode.isSameNode(targetNode)) {
-					
-					modifiedNodes.add(targetIndex);
-				}
-				
-			} else {
-				
-				additionalNodes.add(targetIndex);
-			}
-		}
-		
-		// additionalNodes contains all node indexes that are not present
-		// in the source page, but we don't know where exactly the new
-		// nodes were added to the page, so we check all additional nodes
-		// for equality with existing nodes
-		for (final Entry<String, DOMNode> entry : nodesFromSourcePage.entrySet()) {
-			
-			final String existingNodePosition = entry.getKey();
-			final DOMNode existingNode        = entry.getValue();
-			
-			// iterate over additional nodes
-			for (final String newNodePosition : additionalNodes) {
-				
-				final DOMNode newNode = nodesFromModifiedPage.get(newNodePosition);
-				
-				if (existingNode.isSameNode(newNode)) {
-					
-					// this node was moved from existingNodePosition to newNodePosition
-					changeSet.add(new MoveOperation(existingNodePosition, newNodePosition, existingNode));
-					
-				} else {
-					
-					// this node was inserted at newNodePosition
-					changeSet.add(new InsertOperation(newNodePosition, newNode));
-					
-				}
-			}
-			
-			// iterate over deleted nodes
-			for (final String deleteNodePosition : additionalNodes) {
-				
-				final DOMNode newNode = nodesFromModifiedPage.get(deleteNodePosition);
-				
-				if (existingNode.isSameNode(newNode)) {
-					
-					// this node was moved from existingNodePosition to newNodePosition
-					changeSet.add(new MoveOperation(existingNodePosition, deleteNodePosition, existingNode));
-					
-				} else {
-					
-					// this node was inserted at newNodePosition
-					changeSet.add(new InsertOperation(deleteNodePosition, newNode));
-					
-				}
-			}
-		}
-
- */
