@@ -778,6 +778,7 @@ var _Schema = {
 
         dialogText.append('<table id="admin-tools-table">');
         $('#admin-tools-table').append('<tr><td><button id="rebuild-index">Rebuild Index</button></td><td><label for"rebuild-index">Rebuild database index for all nodes and relationships</label></td></tr>');
+        $('#admin-tools-table').append('<tr><td><button id="clear-schema">Clear Schema</button></td><td><label for"clear-schema">Delete all schema nodes and relationships of dynamic schema</label></td></tr>');
         $('#admin-tools-table').append('<tr><td><select id="node-type-selector"><option value="">-- Select Node Type --</option></select><!--select id="rel-type-selector"><option>-- Select Relationship Type --</option></select--><button id="add-uuids">Add UUIDs</button></td><td><label for"setUuid">Add UUIDs to all nodes of the selected type</label></td></tr>');
         $('#admin-tools-table').append('</table>');
 
@@ -804,6 +805,50 @@ var _Schema = {
                     }
                 }
             });
+        });
+
+        $('#clear-schema').on('click', function(e) {
+
+            Structr.confirmation('<h3>Delete schema?</h3><p>This will remove all dynamic schema information, but not your other data.</p><p>&nbsp;</p>',
+                    function() {
+                        $.unblockUI({
+                            fadeOut: 25
+                        });
+
+                        var btn = $(this);
+                        var text = btn.text();
+                        btn.attr('disabled', 'disabled').addClass('disabled').html(text + ' <img src="img/al.gif">');
+                        e.preventDefault();
+                        $.ajax({
+                            url: rootUrl + 'schema_relationships',
+                            type: 'DELETE',
+                            data: {},
+                            contentType: 'application/json',
+                            statusCode: {
+                                200: function() {
+                                    _Schema.reload();
+                                    $.ajax({
+                                        url: rootUrl + 'schema_nodes',
+                                        type: 'DELETE',
+                                        data: {},
+                                        contentType: 'application/json',
+                                        statusCode: {
+                                            200: function() {
+                                                _Schema.reload();
+                                                var btn = $('#clear-schema');
+                                                btn.removeClass('disabled').attr('disabled', null);
+                                                btn.html(text + ' <img src="icon/tick.png">');
+                                                window.setTimeout(function() {
+                                                    $('img', btn).fadeOut();
+                                                }, 1000);
+                                            }
+                                        }
+                                    });
+
+                                }
+                            }
+                        });
+                    });
         });
 
         Command.list('SchemaNode', true, 100, 1, 'name', 'asc', function(n) {

@@ -298,7 +298,10 @@ function Engine(parent) {
 			
 			if (hoverMass) {
 				
-				_Dashboard.loadRelationships(hoverMass.nodeId, 0);
+				//_Dashboard.loadRelationships(hoverMass.nodeId, 0);
+                                _Crud.loadTypeDefinition(hoverMass.typeString, function() {
+                                    _Crud.crudEdit(hoverMass.nodeId, hoverMass.typeString);
+                                });
 			}
 		});
 
