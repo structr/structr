@@ -1421,13 +1421,13 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 				.append(indent(depth))
 				.append("<script>if (!window.jQuery) { document.write('<script src=\"/structr/js/lib/jquery-1.11.0.min.js\"><\\/script>'); }</script>")
 				.append(indent(depth))
-				.append("<script type=\"text/javascript\" src=\"/structr/js/lib/jquery-ui-1.10.3.custom.min.js\"></script>")
+				.append("<script>if (!window.jQuery.ui) { document.write('<script src=\"/structr/js/lib/jquery-ui-1.10.3.custom.min.js\"><\\/script>'); }</script>")
 				.append(indent(depth))
-				.append("<script type=\"text/javascript\" src=\"/structr/js/lib/jquery-ui-timepicker-addon.min.js\"></script>")
+				.append("<script>if (!window.jQuery.ui.timepicker) { document.write('<script src=\"/structr/js/lib/jquery-ui-timepicker-addon.min.js\"><\\/script>'); }</script>")
 				.append(indent(depth))
-				.append("<script type=\"text/javascript\" src=\"/structr/js/structr-app.js\"></script>")
+				.append("<script>if (!window.StructrApp) { document.write('<script src=\"/structr/js/structr-app.min.js\"><\\/script>'); }</script>")
 				.append(indent(depth))
-				.append("<link rel=\"stylesheet\" type=\"text/css\" href=\"/structr/css/jquery-ui-1.10.3.custom.css\">");
+				.append("<link rel=\"stylesheet\" type=\"text/css\" href=\"/structr/css/jquery-ui-1.10.3.custom.min.css\">");
 			
 			renderContext.setAppLibRendered(true);
 		

@@ -417,6 +417,106 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			}
 
 		});
+		functions.put("lt", new Function<String, String>() {
+
+			@Override
+			public String apply(String[] s) {
+
+				String result = "";
+
+				if (s != null && s.length == 2) {
+
+					try {
+
+						result = (Double.parseDouble(s[0]) < Double.parseDouble(s[1])) ? "true" : "false";
+
+					} catch (Throwable t) {
+
+						return t.getMessage();
+
+					}
+
+				}
+
+				return result;
+
+			}
+		});
+		functions.put("gt", new Function<String, String>() {
+
+			@Override
+			public String apply(String[] s) {
+
+				String result = "";
+
+				if (s != null && s.length == 2) {
+
+					try {
+
+						result = (Double.parseDouble(s[0]) > Double.parseDouble(s[1])) ? "true" : "false";
+
+					} catch (Throwable t) {
+
+						return t.getMessage();
+
+					}
+
+				}
+
+				return result;
+
+			}
+		});
+		functions.put("lte", new Function<String, String>() {
+
+			@Override
+			public String apply(String[] s) {
+
+				String result = "";
+
+				if (s != null && s.length == 2) {
+
+					try {
+
+						result = (Double.parseDouble(s[0]) <= Double.parseDouble(s[1])) ? "true" : "false";
+
+					} catch (Throwable t) {
+
+						return t.getMessage();
+
+					}
+
+				}
+
+				return result;
+
+			}
+		});
+		functions.put("gte", new Function<String, String>() {
+
+			@Override
+			public String apply(String[] s) {
+
+				String result = "";
+
+				if (s != null && s.length == 2) {
+
+					try {
+
+						result = (Double.parseDouble(s[0]) >= Double.parseDouble(s[1])) ? "true" : "false";
+
+					} catch (Throwable t) {
+
+						return t.getMessage();
+
+					}
+
+				}
+
+				return result;
+
+			}
+		});
 		functions.put("subt", new Function<String, String>() {
 
 			@Override

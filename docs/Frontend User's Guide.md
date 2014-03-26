@@ -35,28 +35,16 @@ This section describes how to download, install and start Structr UI.
 
 ### Download
 
-The easiest way is to download a distribution file directly from the Maven build server. It is available at URLs of the following form, where ```<version>``` has to be replaced by the version number:
-
-	http://maven.structr.org/artifactory/release/org/structr/structr-ui/<version>/structr-ui-<version>-dist.tar.gz
-
-For example, the distribution file of release 0.7.1 can be downloaded here: <http://maven.structr.org/artifactory/release/org/structr/structr-ui/0.7.1/structr-ui-0.7.1-dist.tar.gz>
-
-Another way is to clone Structr from GitHub:
+Clone Structr from GitHub:
 
 	$ git clone https://github.com/structr/structr.git
 
-
 ### Installation and Start
 
-If you have downloaded the distribution file for version ```<version>```, extract it with ```tar``` and run the main class ```org.structr.Ui```
-
-	$ tar xvf structr-ui-<version>-dist.tar.gz
-	$ cd structr-ui-<version>
-	$ java -cp lib/*:structr-ui-<version>.jar org.structr.Ui
-
-Or if you cloned the source code repo, go to the ```structr/structr-ui``` directory and use Maven to build and run Structr:
+Go to the ```structr/structr-ui``` directory and use Maven to build and run Structr:
 
 	$ cd structr/structr-ui
+        $ cp structr.conf_templ structr.conf
 	$ mvn exec:exec
 	
 After that, a Structr instance should be up and running on port 8082.

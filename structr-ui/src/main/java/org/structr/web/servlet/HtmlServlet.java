@@ -79,7 +79,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	public static final String POSSIBLE_ENTRY_POINTS = "possibleEntryPoints";
 	public static final String REQUEST_CONTAINS_UUID_IDENTIFIER = "request_contains_uuids";
 
-	public static final String CONFIRM_REGISTRATION_PAGE = "confirm_registration";
+	public static final String CONFIRM_REGISTRATION_PAGE = "/confirm_registration";
 	public static final String GET_SESSION_ID_PAGE = "get_session_id";
 	public static final String CONFIRM_KEY_KEY = "key";
 	public static final String TARGET_PAGE_KEY = "target";
@@ -111,17 +111,23 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		double start = System.nanoTime();
 
 		SecurityContext securityContext;
-		Authenticator authenticator;
+		Authenticator auth = config.getAuthenticator();
 		App app;
 
 		try {
+			String path = request.getPathInfo();
+
+			// check for registration (has its own tx because of write access
+			if (checkRegistration(auth, request, response, path)) {
+				return;
+			}
 
 			// isolate request authentication in a transaction
 			try (final Tx tx = StructrApp.getInstance().tx()) {
-				authenticator = config.getAuthenticator();
-				securityContext = authenticator.initializeAndExamineRequest(request, response);
+				securityContext = auth.initializeAndExamineRequest(request, response);
 				tx.success();
 			}
+			
 
 			app = StructrApp.getInstance(securityContext);
 
@@ -136,8 +142,6 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 				response.setCharacterEncoding("UTF-8");
 
 				boolean dontCache = false;
-
-				String path = request.getPathInfo();
 
 				logger.log(Level.FINE, "Path info {0}", path);
 				logger.log(Level.FINE, "Request examined by security context in {0} seconds", decimalFormat.format((System.nanoTime() - start) / 1000000000.0));
@@ -176,11 +180,6 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 					// check if request was solely intended to obtain a session id
 					if (checkGetSessionId(request, response, path)) {
-						return;
-					}
-
-					// check for registration, isolate request authentication in a transaction
-					if (checkRegistration(securityContext, request, response, path)) {
 						return;
 					}
 
@@ -286,18 +285,18 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 				}
 
 				if (!securityContext.isVisible(rootElement)) {
-					
+
 					rootElement = notFound(response, securityContext);
-					
+
 				}
-				
+
 				if (securityContext.isVisible(rootElement)) {
 
 					//PrintWriter out = response.getWriter();
 					double setup = System.nanoTime();
 					logger.log(Level.FINE, "Setup time: {0} seconds", decimalFormat.format((setup - start) / 1000000000.0));
 
-					if (!EditMode.DATA.equals(edit) && !dontCache && notModifiedSince(request, response, rootElement)) {
+					if (!EditMode.DATA.equals(edit) && !dontCache && notModifiedSince(request, response, rootElement, dontCache)) {
 
 						ServletOutputStream out = response.getOutputStream();
 						out.flush();
@@ -321,13 +320,18 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 							response.setContentType("text/html;charset=UTF-8");
 						}
 
+						response.setHeader("Strict-Transport-Security", "max-age=60");
+						response.setHeader("X-Content-Type-Options", "nosniff");
+						response.setHeader("X-Frame-Options", "SAMEORIGIN");
+						response.setHeader("X-XSS-Protection", "1; mode=block");
+
 						AsyncContext async = request.startAsync();
 						ServletOutputStream out = response.getOutputStream();
 
 						AsyncBuffer buffer = renderContext.getBuffer();
 						buffer.prepare(async, out);
 						//StructrWriteListener writeListener = new StructrWriteListener(buffer, async, out);
-						
+
 						rootElement.render(securityContext, renderContext, 0);
 						buffer.finish();
 
@@ -341,7 +345,6 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 //								}
 //							}
 //						}.start();
-
 						response.setStatus(HttpServletResponse.SC_OK);
 
 						double end = System.nanoTime();
@@ -367,6 +370,8 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 				}
 
+				tx.success();
+
 			} catch (FrameworkException fex) {
 				logger.log(Level.SEVERE, "Exception while processing request", fex);
 			}
@@ -378,38 +383,37 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 			HttpAuthenticator.writeInternalServerError(response);
 		}
 	}
-	
-	
+
 	/**
 	 * Handle 404 Not Found
-	 * 
+	 *
 	 * First, search the first page which handles the 404.
-	 * 
+	 *
 	 * If none found, issue the container's 404 error.
-	 * 
+	 *
 	 * @param response
 	 * @param securityContext
 	 * @param renderContext
 	 * @throws IOException
-	 * @throws FrameworkException 
+	 * @throws FrameworkException
 	 */
 	private Page notFound(final HttpServletResponse response, final SecurityContext securityContext) throws IOException, FrameworkException {
-		
+
 		final Page errorPage = StructrApp.getInstance(securityContext).nodeQuery(Page.class).and(Page.showOnErrorCodes, "404", false).getFirst();
-		
+
 		if (errorPage != null) {
-			
+
 			response.setStatus(HttpServletResponse.SC_NOT_FOUND);
 			return errorPage;
-			
+
 		} else {
-			
+
 			response.sendError(HttpServletResponse.SC_NOT_FOUND);
-			
+
 		}
-		
+
 		return null;
-		
+
 	}
 
 	/**
@@ -559,7 +563,6 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	 * confirmation, usually triggered by a user clicking on a confirmation
 	 * link in an e-mail.
 	 *
-	 * @param securityContext
 	 * @param request
 	 * @param response
 	 * @param path
@@ -567,7 +570,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
-	private boolean checkRegistration(final SecurityContext securityContext, final HttpServletRequest request, final HttpServletResponse response, final String path) throws FrameworkException, IOException {
+	private boolean checkRegistration(final Authenticator auth, final HttpServletRequest request, final HttpServletResponse response, final String path) throws FrameworkException, IOException {
 
 		logger.log(Level.FINE, "Checking registration ...");
 
@@ -584,20 +587,36 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 		if (CONFIRM_REGISTRATION_PAGE.equals(path)) {
 
-			Result<Principal> results = StructrApp.getInstance().nodeQuery(Principal.class).and(User.confirmationKey, key).getResult();;
+			final App app = StructrApp.getInstance();
+			
+			Result<Principal> results;
+			try (final Tx tx = app.tx()) {
+
+				results = app.nodeQuery(Principal.class).and(User.confirmationKey, key).getResult();;
+			}
+			
 			if (!results.isEmpty()) {
 
 				final Principal user = results.get(0);
-				final App app = StructrApp.getInstance(securityContext);
 
-				// Clear confirmation key and set session id
-				user.setProperty(User.confirmationKey, null);
-				user.setProperty(Principal.sessionId, request.getSession().getId());
+				try (final Tx tx = app.tx()) {
 
-				// Redirect to target page
-				if (StringUtils.isNotBlank(targetPage)) {
-					response.sendRedirect("/" + targetPage);
-					return true;
+					// Clear confirmation key and set session id
+					user.setProperty(User.confirmationKey, null);
+					
+					if (auth.getUserAutoLogin()){
+						
+						user.setProperty(Principal.sessionId, request.getSession().getId());
+
+					}
+
+					tx.success();
+
+					// Redirect to target page
+					if (StringUtils.isNotBlank(targetPage)) {
+						response.sendRedirect("/" + targetPage);
+						return true;
+					}
 				}
 
 			} else {
@@ -697,13 +716,13 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	//~--- set methods ----------------------------------------------------
 	public static void setNoCacheHeaders(final HttpServletResponse response) {
 
-		response.setHeader("Cache-Control", "private, max-age=0, no-cache, no-store, must-revalidate"); // HTTP 1.1.
+		response.setHeader("Cache-Control", "private, max-age=0, s-maxage=0, no-cache, no-store, must-revalidate"); // HTTP 1.1.
 		response.setHeader("Pragma", "no-cache, no-store"); // HTTP 1.0.
 		response.setDateHeader("Expires", 0);
 
 	}
 
-	private static boolean notModifiedSince(final HttpServletRequest request, HttpServletResponse response, final AbstractNode node) {
+	private static boolean notModifiedSince(final HttpServletRequest request, HttpServletResponse response, final AbstractNode node, final boolean dontCache) {
 
 		boolean notModified = false;
 		final Date lastModified = node.getLastModifiedDate();
@@ -711,26 +730,33 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		// add some caching directives to header
 		// see http://weblogs.java.net/blog/2007/08/08/expires-http-header-magic-number-yslow
 		DateFormat httpDateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
+		httpDateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+
+		response.setHeader("Date", httpDateFormat.format(new Date()));
+
 		Calendar cal = new GregorianCalendar();
 		Integer seconds = node.getProperty(Page.cacheForSeconds);
 
-		if (seconds != null) {
+		if (!dontCache && seconds != null) {
 
 			cal.add(Calendar.SECOND, seconds);
-			response.addHeader("Cache-Control", "public, max-age=" + seconds + ", s-maxage=" + seconds + ", must-revalidate, proxy-revalidate");
-			httpDateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
-			response.addHeader("Expires", httpDateFormat.format(cal.getTime()));
+			response.setHeader("Cache-Control", "max-age=" + seconds + ", s-maxage=" + seconds + "");
+			response.setHeader("Expires", httpDateFormat.format(cal.getTime()));
 
 		} else {
 
-			response.addHeader("Cache-Control", "public, must-revalidate, proxy-revalidate");
+			if (!dontCache) {
+				response.setHeader("Cache-Control", "no-cache, must-revalidate, proxy-revalidate");
+			} else {
+				response.setHeader("Cache-Control", "private, no-cache, no-store, max-age=0, s-maxage=0, must-revalidate, proxy-revalidate");
+			}
 
 		}
 
 		if (lastModified != null) {
 
 			Date roundedLastModified = DateUtils.round(lastModified, Calendar.SECOND);
-			response.addHeader("Last-Modified", httpDateFormat.format(roundedLastModified));
+			response.setHeader("Last-Modified", httpDateFormat.format(roundedLastModified));
 
 			String ifModifiedSince = request.getHeader("If-Modified-Since");
 
@@ -747,6 +773,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 						notModified = true;
 
 						response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
+						response.setHeader("Vary", "Accept-Encoding");
 
 					}
 
@@ -776,7 +803,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 		ServletOutputStream out = response.getOutputStream();
 
-		if (!EditMode.DATA.equals(edit) && notModifiedSince(request, response, file)) {
+		if (!EditMode.DATA.equals(edit) && notModifiedSince(request, response, file, false)) {
 
 			out.flush();
 			out.close();

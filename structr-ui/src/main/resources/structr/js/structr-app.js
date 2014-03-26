@@ -29,6 +29,7 @@ var altKey = false, ctrlKey = false, shiftKey = false, eKey = false;
 $(function() {
 
     var s = new StructrApp(structrRestUrl);
+    s.activateButtons(buttonSelector);
     $(document).trigger('structr-ready');
     s.hideNonEdit();
     
@@ -83,48 +84,50 @@ function StructrApp(baseUrl) {
     /**
      * Bind 'click' event to all Structr buttons
      */
-    $(buttonSelector).on('click', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        var btn = $(this);
-        disableButton(btn);
-        s.btnLabel = s.btnLabel || btn.text();
-        var a = btn.attr('data-structr-action').split(':');
-        var action = a[0], type = a[1];
-        var reload = btn.attr('data-structr-reload') === 'true';
-        var attrString = btn.attr('data-structr-attributes');
-        var attrs = (attrString ? attrString.split(',') : []).map(function(s) {
-            return s.trim();
-        });
-        var id = btn.attr('data-structr-id');
-        var container = $('[data-structr-id="' + id + '"]');
-
-        if (action === 'create') {
-
-            $.each(attrs, function(i, key) {
-                if (!s.data[id]) s.data[id] = {};
-                var val = $('[data-structr-name="' + key + '"]').val();
-                s.data[id][key] = val ? val.parseIfJSON() : val;
+    this.activateButtons = function(sel) {
+        $(sel).on('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            var btn = $(this);
+            disableButton(btn);
+            s.btnLabel = s.btnLabel || btn.text();
+            var a = btn.attr('data-structr-action').split(':');
+            var action = a[0], type = a[1];
+            var reload = btn.attr('data-structr-reload') === 'true';
+            var attrString = btn.attr('data-structr-attributes');
+            var attrs = (attrString ? attrString.split(',') : []).map(function(s) {
+                return s.trim();
             });
-            s.create(type, s.data[id], reload, function() {enableButton(btn)}, function() {enableButton(btn)});
+            var id = btn.attr('data-structr-id');
+            var container = $('[data-structr-id="' + id + '"]');
 
-        } else if (action === 'edit') {
-            s.editAction(btn, id, attrs, reload, function() {enableButton(btn)}, function() {enableButton(btn)});
-            
-        } else if (action === 'cancel-edit') {
-            s.cancelEditAction(btn, id, attrs, reload);
-            
-        } else if (action === 'delete') {
-            var f = s.field($('[data-structr-attr="name"]', container));
-            //console.log(f);
-            //container.find('[data-structr-attr="name"]').val(); console.log(id, container, name)
-            s.delete(id, btn.attr('data-structr-confirm') === 'true', reload, f ? f.val : undefined);
+            if (action === 'create') {
 
-        } else {
-            s.customAction(id, type, action, s.data[id], reload, function() {enableButton(btn)}, function() {enableButton(btn)});
-        }
-    });
-    
+                $.each(attrs, function(i, key) {
+                    if (!s.data[id]) s.data[id] = {};
+                    var val = $('[data-structr-name="' + key + '"]').val();
+                    s.data[id][key] = val ? val.parseIfJSON() : val;
+                });
+                s.create(type, s.data[id], reload, function() {enableButton(btn)}, function() {enableButton(btn)});
+
+            } else if (action === 'edit') {
+                s.editAction(btn, id, attrs, reload, function() {enableButton(btn)}, function() {enableButton(btn)});
+
+            } else if (action === 'cancel-edit') {
+                s.cancelEditAction(btn, id, attrs, reload);
+
+            } else if (action === 'delete') {
+                var f = s.field($('[data-structr-attr="name"]', container));
+                //console.log(f);
+                //container.find('[data-structr-attr="name"]').val(); console.log(id, container, name)
+                s.del(id, btn.attr('data-structr-confirm') === 'true', reload, f ? f.val : undefined);
+
+            } else {
+                s.customAction(id, type, action, s.data[id], reload, function() {enableButton(btn)}, function() {enableButton(btn)});
+            }
+        });
+    },
+
     this.editAction = function(btn, id, attrs, reload) {
         var container = $('[data-structr-id="' + id + '"]');
         
@@ -197,7 +200,7 @@ function StructrApp(baseUrl) {
                         // ISO8601 Format: 'yyyy-MM-dd"T"HH:mm:ssZ'
                         separator: 'T',
                         dateFormat: 'yy-mm-dd',
-                        timeFormat: 'HH:mm:ssz',
+                        timeFormat: 'HH:mm:ssz'
                     });
                     self.datetimepicker('show');
                     self.off('mouseup');
@@ -250,14 +253,6 @@ function StructrApp(baseUrl) {
         //console.log('PUT', structrRestUrl + id, s.data[id]);
         s.request('PUT', structrRestUrl + id, s.data[id], false, 'Successfully updated ' + id, 'Could not update ' + id, function() {
             s.cancelEditAction(btn, id, attrs, reload);
-        }, function(data) {
-            if (data && data.status === 404) {
-                // TODO: handle related properties more flexible
-//                var response = JSON.parse(data.responseText);
-//                Object.keys(response.errors).forEach(function(type) {
-//                });
-            }
-            
         });
     },
     
@@ -536,7 +531,7 @@ function StructrApp(baseUrl) {
 
     };
 
-    this.delete = function(id, conf, reload, name) {
+    this.del = function(id, conf, reload, name) {
         //console.log('Delete', id, conf, reload);
         var sure = true;
         if (conf) {
@@ -823,11 +818,9 @@ function select(id, key, val, options) {
 function enableButton(btn) {
   btn.removeClass('disabled');
   btn.removeAttr('disabled');
-  console.log('button enabled', btn);
 }
 
 function disableButton(btn) {
   btn.addClass('disabled');
   btn.attr('disabled', 'disabled');
-  console.log('button disabled', btn);
 }

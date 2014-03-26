@@ -701,22 +701,22 @@ var _Crud = {
         var table = $('table', typeNode);
         return table;
     },
-    crudEdit: function(id) {
-        var type = _Crud.type;
+    crudEdit: function(id, type) {
+        var t = type || _Crud.type; console.log(t);
         $.ajax({
-            url: rootUrl + id + '/' + _Crud.view[type],
+            url: rootUrl + id + (_Crud.view[t] ? '/' + _Crud.view[t] : ''),
             type: 'GET',
             dataType: 'json',
             contentType: 'application/json; charset=utf-8',
             //async: false,
             success: function(data) {
                 //console.log('type', type);
-                _Crud.dialog('Edit ' + type + ' ' + id, function() {
+                _Crud.dialog('Edit ' + t + ' ' + id, function() {
                     //console.log('ok')
                 }, function() {
                     //console.log('cancel')
                 });
-                _Crud.showDetails(data.result, false, type);
+                _Crud.showDetails(data.result, false, t);
                 //_Crud.populateForm($('#entityForm'), data.result);
             }
         });

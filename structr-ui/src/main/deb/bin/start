@@ -14,7 +14,7 @@ fi
 
 echo -n "        Starting structr server $DISPLAY_NAME: "
 
-java -cp lib/*:structr-ui.jar -server -d64 -Xms1g -Xmx1g -XX:+UseNUMA org.structr.Ui >>$LOG_FILE 2>&1 & echo $! >$PID_FILE
+java -cp lib/*:structr-ui.jar -server -d64 -Xms1g -Xmx1g -XX:+UseNUMA org.structr.Server >>$LOG_FILE 2>&1 & echo $! >$PID_FILE
 
 sleep 1
 

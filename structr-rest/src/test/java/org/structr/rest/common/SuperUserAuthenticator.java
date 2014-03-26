@@ -76,5 +76,13 @@ public class SuperUserAuthenticator implements Authenticator {
 	public Class getUserClass() {
 		return null;
 	}
+
+	@Override
+	public void setUserAutoLogin(boolean userAutoLogin, Class userClass) {}
+
+	@Override
+	public boolean getUserAutoLogin() {
+		return false;
+	}
 	
 }
