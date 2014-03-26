@@ -186,7 +186,8 @@ public class Content extends DOMNode implements Text {
 			if (dataHash == null) {
 				dataHash = _parent.getIdHash();
 			}
-			return dataHash + "Content";
+			
+			return dataHash + "Content" + treeGetChildPosition(this);
 		} 
 		
 		return super.getIdHash();

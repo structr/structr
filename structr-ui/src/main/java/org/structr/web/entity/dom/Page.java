@@ -17,9 +17,12 @@
  */
 package org.structr.web.entity.dom;
 
+import java.io.FileInputStream;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
@@ -50,6 +53,7 @@ import org.w3c.dom.Text;
 
 //~--- JDK imports ------------------------------------------------------------
 import org.structr.common.error.ErrorBuffer;
+import org.structr.core.Export;
 import org.structr.core.Predicate;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -57,10 +61,13 @@ import org.structr.core.entity.AbstractNode;
 import static org.structr.core.entity.AbstractNode.owner;
 import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.RelationProperty;
 import org.structr.core.property.StartNodes;
 import org.structr.schema.SchemaHelper;
+import org.structr.web.Importer;
+import org.structr.web.diff.InvertibleModificationOperation;
 import static org.structr.web.entity.Linkable.linkingElements;
 import static org.structr.web.entity.dom.DOMNode.children;
 import org.structr.web.entity.relation.PageLink;
@@ -434,14 +441,9 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 			final DOMNode domNode = (DOMNode) node;
 
-			// step 1: use type-specific adopt impl.
-			Node adoptedNode = domNode.doAdopt(Page.this);
-
 			// step 2: do recursive import?
 			if (domNode.hasChildNodes()) {
 
-					// FIXME: is it really a good idea to do the
-				// recursion inside of a transaction?
 				Node child = domNode.getFirstChild();
 				while (child != null) {
 
@@ -452,19 +454,22 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 			}
 
-				// step 3: remove node from its current parent
+			// step 3: remove node from its current parent
 			// (Note that this step needs to be done last in
 			// (order for the child to be able to find its
 			// siblings.)
 			if (removeParentFromSourceNode) {
 
-					// only do this for the actual source node, do not remove
+				// only do this for the actual source node, do not remove
 				// child nodes from its parents
 				Node _parent = domNode.getParentNode();
 				if (_parent != null) {
 					_parent.removeChild(domNode);
 				}
 			}
+
+			// step 1: use type-specific adopt impl.
+			Node adoptedNode = domNode.doAdopt(Page.this);
 
 			return adoptedNode;
 
@@ -715,5 +720,42 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	@Override
 	public String getPath() {
 		return "/".concat(getProperty(name));
+	}
+	
+	// ----- diff methods -----
+	@Export
+	public void diff(final String file) throws FrameworkException {
+		
+		final App app = StructrApp.getInstance(securityContext);
+		
+		try (final Tx tx = app.tx()) {
+			
+			final String source                                   = IOUtils.toString(new FileInputStream(file));
+			final List<InvertibleModificationOperation> changeSet = new LinkedList<>();
+			final Page diffPage                                   = Importer.parsePageFromSource(securityContext, source, this.getProperty(Page.name) + "diff");
+			
+			// build change set
+			changeSet.addAll(Importer.diffPages(this, diffPage));
+
+			for (final InvertibleModificationOperation op : changeSet) {
+				
+				System.out.println(op);
+				
+				op.apply(app, this, diffPage);
+			}
+			
+			// delete remaining children
+			for (final DOMNode child : diffPage.getProperty(Page.elements)) {
+				app.delete(child);
+			}
+			
+			// delete imported page
+			app.delete(diffPage);
+			
+			tx.success();
+			
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
 	}
 }

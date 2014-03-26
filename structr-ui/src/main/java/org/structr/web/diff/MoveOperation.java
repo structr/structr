@@ -1,51 +1,92 @@
 package org.structr.web.diff;
 
+import java.util.List;
+import java.util.Map;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
+import org.structr.web.entity.dom.Content;
+import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
+import org.structr.web.entity.dom.relationship.DOMChildren;
+import org.w3c.dom.Node;
 
 /**
  *
  * @author Christian Morgner
  */
-public class MoveOperation implements InvertibleModificationOperation {
+public class MoveOperation extends InvertibleModificationOperation {
 
-	private String originalTreeIndex = null;
-	private String newTreeIndex      = null;
-	private DOMNode originalNode     = null;
+	private List<String> siblingHashes = null;
+	private DOMNode originalNode       = null;
+	private String parentHash          = null;
+	private DOMNode newNode            = null;
 	
-	public MoveOperation(final String originalTreeIndex, final String newTreeIndex, final DOMNode originalNode) {
+	public MoveOperation(final Map<String, DOMNode> hashMappedExistingNodes, final String parentHash, final List<String> siblingHashes, final DOMNode newNode, final DOMNode originalNode) {
 		
-		this.originalTreeIndex = originalTreeIndex;
-		this.newTreeIndex      = newTreeIndex;
-		this.originalNode      = originalNode;
-	}
-
-	public String getOriginalTreeIndex() {
-		return originalTreeIndex;
-	}
-
-	public String getNewTreeIndex() {
-		return newTreeIndex;
-	}
-
-	public DOMNode getOriginalNode() {
-		return originalNode;
+		super(hashMappedExistingNodes);
+		
+		this.siblingHashes = siblingHashes;
+		this.originalNode  = originalNode;
+		this.parentHash    = parentHash;
+		this.newNode       = newNode;
 	}
 
 	@Override
 	public String toString() {
-		return "Move " + originalNode + " from " + originalTreeIndex + " to " + newTreeIndex;
+		
+		if (originalNode instanceof Content) {
+			
+			return "Move Content(" + originalNode.getIdHashOrProperty() + ")";
+
+		} else {
+			
+			return "Move " + originalNode.getProperty(DOMElement.tag) + "(" + originalNode.getIdHashOrProperty() + ")";
+		}
 	}
 	
 	// ----- interface InvertibleModificationOperation -----
 	@Override
-	public void apply(final App app, final Page page) throws FrameworkException {
+	public void apply(final App app, final Page sourcePage, final Page newPage) throws FrameworkException {
+		
+		final InsertPosition insertPosition = findInsertPosition(sourcePage, parentHash, siblingHashes, newNode);
+		if (insertPosition != null) {
+			
+			final DOMNode parent       = insertPosition.getParent();
+			final DOMNode sibling      = insertPosition.getSibling();
+			final Node originalSibling = originalNode.getNextSibling();
+
+			if (!parent.equals(originalNode.getParentNode())) {
+
+				if (sibling != null && sibling.equals(originalSibling)) {
+					
+					// nothing to be done
+					return;
+				}
+				
+				if (sibling == null && originalSibling == null) {
+					return;
+				}
+				
+				parent.insertBefore(originalNode, sibling);
+
+				// remove children
+				for (final DOMChildren childRel : newNode.getChildRelationships()) {
+					app.delete(childRel);
+				}
+			}
+		}
 	}
 
 	@Override
 	public InvertibleModificationOperation revert() {
 		return null;
+	}
+
+	@Override
+	public Integer getPosition() {
+		
+		// move operations should go after Delete and Create but before Update
+		return 300;
 	}
 }
