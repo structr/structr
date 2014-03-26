@@ -120,7 +120,17 @@ var _Schema = {
                 instance.bind('connectionDetached', function(info) {
                     //console.log('Rel ID:', info.connection.getParameter('id'));
                     //console.log('Target ID:', getIdFromIdString(info.targetId));
-                    _Schema.detach(info.connection.getParameter('id'));
+                    Structr.confirmation('<h3>Delete schema relationship?</h3>',
+                            function() {
+                                $.unblockUI({
+                                    fadeOut: 25
+                                });
+                                _Schema.detach(info.connection.getParameter('id'));
+                                _Schema.reload();
+                            });
+                    _Schema.reload();
+
+
                 });
             });
         });
@@ -192,7 +202,13 @@ var _Schema = {
                     });
 
                     node.children('.icon').on('click', function() {
-                        _Schema.deleteNode(res.id);
+                        Structr.confirmation('<h3>Delete schema node?</h3><p>This will delete all incoming and outgoing schema relatinships as well, but no data will be removed.</p>',
+                                function() {
+                                    $.unblockUI({
+                                        fadeOut: 25
+                                    });
+                                    _Schema.deleteNode(res.id);
+                                });
                     });
 
                     var storedPosition = _Schema.getPosition(id);
