@@ -17,16 +17,16 @@
  */
 package org.structr.websocket.command;
 
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.common.GraphMergeHelper;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.web.Importer;
-import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.diff.InvertibleModificationOperation;
 import org.structr.web.entity.dom.Page;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
@@ -40,7 +40,6 @@ public class SavePageCommand extends AbstractCommand {
 
 	private static final Logger logger = Logger.getLogger(SavePageCommand.class.getName());
 
-	
 	static {
 
 		StructrWebSocket.addCommand(SavePageCommand.class);
@@ -49,40 +48,32 @@ public class SavePageCommand extends AbstractCommand {
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
-		final String pageId                   = webSocketData.getId();
-		final Map<String, Object> nodeData    = webSocketData.getNodeData();
-		final String newSource                = (String) nodeData.get("source");
+		final String pageId = webSocketData.getId();
+		final Map<String, Object> nodeData = webSocketData.getNodeData();
+		final String modifiedHtml = (String) nodeData.get("source");
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
-		final App app                         = StructrApp.getInstance(securityContext);
-
-		Page page = getPage(pageId);
-		if (page != null) {
+		final App app = StructrApp.getInstance(securityContext);
+		
+		Page modifiedPage = null;
+		
+		Page sourcePage = getPage(pageId);
+		if (sourcePage != null) {
 
 			try {
-				logger.log(Level.INFO, newSource);
-				
-				Importer imp = new Importer(securityContext, newSource, null, "imported-page", 5000, false, false);
-					
-				boolean parseOk = imp.parse();
-				
-				if (parseOk) {
-					
-					final Page newPage = imp.readPage();
-					logger.log(Level.INFO, "New page created: ", newPage);
-					
-					Set<DOMNode> origDomNodes = DOMNode.getAllChildNodes(page);
-					Set<DOMNode> newDomNodes = DOMNode.getAllChildNodes(newPage);
-					
-					origDomNodes.add(page);
-					
-					newPage.setProperty(DOMNode.dataHashProperty, page.getUuid());
-					newDomNodes.add(newPage);
-					
-					GraphMergeHelper.merge(origDomNodes, newDomNodes, DOMNode.dataHashProperty);
-					
-					
-				} else {
-					getWebSocket().send(MessageBuilder.status().code(422).message("Unable to parse\n" + newSource).build(), true);
+				logger.log(Level.INFO, modifiedHtml);
+
+				// parse page from modified source
+				modifiedPage = Importer.parsePageFromSource(securityContext, modifiedHtml, "Test");
+
+				final List<InvertibleModificationOperation> changeSet = Importer.diffPages(sourcePage, modifiedPage);
+
+				for (final InvertibleModificationOperation op : changeSet) {
+
+					System.out.println(op);
+
+					// execute operation
+					op.apply(app, sourcePage, modifiedPage);
+
 				}
 				
 
@@ -93,6 +84,15 @@ public class SavePageCommand extends AbstractCommand {
 
 				// send exception
 				getWebSocket().send(MessageBuilder.status().code(422).message(t.toString()).build(), true);
+			}
+				
+			try {
+
+				app.delete(modifiedPage);
+
+			} catch (FrameworkException ex) {
+				
+				ex.printStackTrace();
 			}
 
 		} else {
