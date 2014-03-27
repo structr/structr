@@ -910,10 +910,10 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 		String idHash = getProperty(DOMNode.dataHashProperty);
 		if (idHash == null) {
-			
+
 			idHash = getIdHash();
 		}
-		
+
 		return idHash;
 	}
 
