@@ -19,14 +19,9 @@
 var debug = true;
 var wsRoot = '/structr/ws';
 var reconn, loggedIn;
-var token = '';
 var rawResultCount = [], pageCount = [];
 
 function connect() {
-
-    if (token) {
-        loggedIn = true;
-    }
 
     try {
 

@@ -18,7 +18,6 @@
  */
 
 var ws;
-//var token;
 var loggedIn = false;
 var user;
 var reconn;
@@ -31,7 +30,6 @@ var pageSize = 25;
 var sort = 'name';
 var order = 'asc';
 
-//var tokenKey = 'structrSessionToken_' + port;
 var userKey = 'structrUser_' + port;
 
 var footer = $('#footer');
@@ -39,10 +37,6 @@ var footer = $('#footer');
 function connect() {
 
     log('################ Global connect() ################');
-
-//    if (token) {
-//        loggedIn = true;
-//    }
 
     try {
 
@@ -416,7 +410,6 @@ function connect() {
 
                 if (sessionValid === false) {
                     log('invalid session');
-                    localStorage.removeItem(tokenKey);
                     localStorage.removeItem(userKey);
                     clearMain();
 
@@ -432,10 +425,6 @@ function connect() {
 }
 
 function sendObj(obj, callback) {
-
-//    if (token) {
-//        obj.token = token;
-//    }
 
     if (callback) {
         obj.callback = uuid.v4();

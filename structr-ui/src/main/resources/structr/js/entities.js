@@ -584,13 +584,10 @@ var _Entities = {
 
                 });
 
-//                var headers = {};
-//                headers['X-StructrSessionToken'] = token;
                 $.ajax({
                     url: rootUrl + '/' + entity.id + '/in',
                     dataType: 'json',
                     contentType: 'application/json; charset=utf-8',
-//                    headers: headers,
                     success: function(data) {
 
                         $(data.result).each(function(i, result) {
@@ -673,13 +670,10 @@ var _Entities = {
         var selectElement = $('#' + key + 'Select');
         selectElement.append('<option></option>')
 
-        var headers = {};
-        headers['X-StructrSessionToken'] = token;
         $.ajax({
             url: rootUrl + type + '/ui?pageSize=100',
             dataType: 'json',
             contentType: 'application/json; charset=utf-8',
-            headers: headers,
             success: function(data) {
                 $(data.result).each(function(i, result) {
 

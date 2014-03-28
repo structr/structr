@@ -538,8 +538,6 @@ var _Files = {
         //debug = true;
         var url = viewRootUrl + file.id + '?edit=1';
         log('editContent', button, file, element, url);
-        var headers = {};
-        headers['X-StructrSessionToken'] = token;
         var text;
 
         var contentType = file.contentType;
@@ -561,7 +559,6 @@ var _Files = {
             //async: false,
             dataType: dataType,
             contentType: contentType,
-            headers: headers,
             success: function(data) {
                 text = data;
                 if (isDisabled(button))

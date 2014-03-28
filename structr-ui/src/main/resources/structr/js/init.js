@@ -247,10 +247,8 @@ var Structr = {
 
         $('#errorText').empty();
 
-        //token = localStorage.getItem(tokenKey);
         user = localStorage.getItem(userKey);
         sessionId = $.cookie('JSESSIONID');
-        //log('token', token);
         log('user', user);
 
         // Send initial PING to force re-connect on all pages
@@ -1128,17 +1126,12 @@ function enable(button, func) {
 
 function setPosition(parentId, nodeUrl, pos) {
     var toPut = '{ "' + parentId + '" : ' + pos + ' }';
-    //console.log(toPut);
-//    var headers = {
-//        'X-StructrSessionToken': token
-//    };
     $.ajax({
         url: nodeUrl + '/in',
         type: 'PUT',
         async: false,
         dataType: 'json',
         contentType: 'application/json; charset=utf-8',
-        //headers: headers,
         data: toPut,
         success: function(data) {
             //appendElement(parentId, elementId, data);
