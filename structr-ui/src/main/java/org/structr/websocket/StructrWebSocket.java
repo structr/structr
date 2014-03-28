@@ -17,41 +17,32 @@
  */
 package org.structr.websocket;
 
-import org.structr.websocket.command.FileUploadHandler;
-
-import org.structr.common.AccessMode;
-import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-
-import org.structr.core.property.PropertyKey;
-import org.structr.core.auth.AuthHelper;
-import org.structr.core.entity.Principal;
-
-import org.structr.web.entity.File;
-
-import org.structr.websocket.command.AbstractCommand;
-import org.structr.websocket.command.LoginCommand;
-import org.structr.websocket.message.MessageBuilder;
-import org.structr.websocket.message.WebSocketMessage;
-
 import com.google.gson.Gson;
-
-//~--- JDK imports ------------------------------------------------------------
 import java.io.IOException;
-
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import javax.servlet.http.HttpServletRequest;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.WebSocketListener;
+import org.structr.common.AccessMode;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.auth.AuthHelper;
 import org.structr.core.auth.Authenticator;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
+import org.structr.web.entity.File;
+import org.structr.websocket.command.AbstractCommand;
+import org.structr.websocket.command.FileUploadHandler;
+import org.structr.websocket.command.LoginCommand;
+import org.structr.websocket.message.MessageBuilder;
+import org.structr.websocket.message.WebSocketMessage;
 
 //~--- classes ----------------------------------------------------------------
 /**
@@ -68,18 +59,18 @@ public class StructrWebSocket implements WebSocketListener {
 	//~--- fields ---------------------------------------------------------
 	private String callback = null;
 	private Session session = null;
+	private String sessionId = null;
 	private Gson gson = null;
 	private PropertyKey idProperty = null;
 	private HttpServletRequest request = null;
 	private SecurityContext securityContext = null;
 	private SynchronizationController syncController = null;
-	private String token = null;
 	private Map<String, FileUploadHandler> uploads = null;
 	private Authenticator authenticator = null;
 	private String pagePath = null;
 
 	//~--- constructors ---------------------------------------------------
-	
+
 	public StructrWebSocket() {}
 
 	public StructrWebSocket(final SynchronizationController syncController, final Gson gson, final PropertyKey idProperty, final Authenticator authenticator) {
@@ -96,15 +87,14 @@ public class StructrWebSocket implements WebSocketListener {
 	public void setRequest(final HttpServletRequest request) {
 		this.request = request;
 	}
-	
+
 	@Override
 	public void onWebSocketConnect(final Session session) {
 
 		logger.log(Level.INFO, "New connection with protocol {0}", session.getProtocolVersion());
 
 		this.session = session;
-		this.token = null;
-		
+
 		syncController.registerClient(this);
 
 		pagePath = request.getQueryString();
@@ -120,7 +110,6 @@ public class StructrWebSocket implements WebSocketListener {
 
 		try (final Tx tx = app.tx()) {
 
-			this.token = null;
 			this.session = null;
 
 			syncController.unregisterClient(this);
@@ -153,9 +142,9 @@ public class StructrWebSocket implements WebSocketListener {
 
 		logger.log(Level.FINE, "############################################################ RECEIVED \n{0}", data.substring(0, Math.min(data.length(), 1000)));
 
-		
+
 		// parse web socket data from JSON
-		WebSocketMessage webSocketData = gson.fromJson(data, WebSocketMessage.class);
+		final WebSocketMessage webSocketData = gson.fromJson(data, WebSocketMessage.class);
 
 		final App app = StructrApp.getInstance(securityContext);
 
@@ -163,19 +152,20 @@ public class StructrWebSocket implements WebSocketListener {
 
 			this.callback = webSocketData.getCallback();
 
-			String messageToken = webSocketData.getToken();
-			String command = webSocketData.getCommand();
-			Class type = commandSet.get(command);
+			final String command = webSocketData.getCommand();
+			final Class type = commandSet.get(command);
+
+			final String sessionIdFromMessage = webSocketData.getSessionId();
 
 			if (type != null) {
 
-				if (!isAuthenticated() && (messageToken != null)) {
+				if (sessionIdFromMessage != null) {
 
-					// try to authenticated this connection by token
-					authenticateToken(messageToken);
+					// try to authenticated this connection by sessionId
+					authenticate(sessionIdFromMessage);
 				}
 
-				// we only permit LOGIN commands if token authentication was not successful
+				// we only permit LOGIN commands if authentication based on sessionId was not successful
 				if (!isAuthenticated() && !type.equals(LoginCommand.class)) {
 
 					// send 401 Authentication Required
@@ -193,9 +183,6 @@ public class StructrWebSocket implements WebSocketListener {
 				// store authenticated-Flag in webSocketData
 				// so the command can access it
 				webSocketData.setSessionValid(isAuthenticated());
-
-				// clear token (no tokens in broadcast!!)
-				webSocketData.setToken(null);
 
 				// process message
 				try {
@@ -231,35 +218,35 @@ public class StructrWebSocket implements WebSocketListener {
 
 	}
 
-	public void send(final WebSocketMessage message, final boolean clearToken) {
+	public void send(final WebSocketMessage message, final boolean clearSessionId) {
 
 		// return session status to client
 		message.setSessionValid(isAuthenticated());
 
 		// whether to clear the token (all command except LOGIN (for now) should absolutely do this!)
-		if (clearToken) {
+		if (clearSessionId) {
 
-			message.setToken(null);
+			message.setSessionId(null);
 		}
 
 		// set callback
 		message.setCallback(callback);
 		if (isAuthenticated() || "STATUS".equals(message.getCommand())) {
-			
+
 			String msg = gson.toJson(message, WebSocketMessage.class);
-			
+
 			logger.log(Level.FINE, "############################################################ SENDING \n{0}", msg);
 
 			try {
-				
+
 				session.getRemote().sendString(msg);
-				
+
 			} catch (Throwable t) {
 				logger.log(Level.WARNING, "Unable to send websocket message to remote client");
 			}
-			
+
 		} else {
-			
+
 			logger.log(Level.WARNING, "NOT sending message to unauthenticated client.");
 		}
 	}
@@ -274,9 +261,9 @@ public class StructrWebSocket implements WebSocketListener {
 	}
 
 	public void removeFileUploadHandler(final String uuid) {
-		
+
 		uploads.remove(uuid);
-		
+
 	}
 
 	private FileUploadHandler handleExistingFile(final String uuid) {
@@ -321,14 +308,13 @@ public class StructrWebSocket implements WebSocketListener {
 
 	}
 
-	private void authenticateToken(final String messageToken) {
+	private void authenticate(final String sessionId) {
 
-		Principal user = AuthHelper.getPrincipalForSessionId(messageToken);
+		Principal user = AuthHelper.getPrincipalForSessionId(sessionId);
 
 		if (user != null) {
 
-			// TODO: session timeout!
-			this.setAuthenticated(messageToken, user);
+			this.setAuthenticated(sessionId, user);
 		}
 
 	}
@@ -363,7 +349,7 @@ public class StructrWebSocket implements WebSocketListener {
 
 	public Principal getCurrentUser() {
 
-		return AuthHelper.getPrincipalForSessionId(token);
+		return (securityContext == null ? null : securityContext.getUser(false));
 
 	}
 
@@ -387,7 +373,7 @@ public class StructrWebSocket implements WebSocketListener {
 
 	public boolean isAuthenticated() {
 
-		return token != null;
+		return getCurrentUser() != null;
 
 	}
 
@@ -396,9 +382,9 @@ public class StructrWebSocket implements WebSocketListener {
 	}
 
 	//~--- set methods ----------------------------------------------------
-	public void setAuthenticated(final String token, final Principal user) {
+	public void setAuthenticated(final String sessionId, final Principal user) {
 
-		this.token = token;
+		this.sessionId = sessionId;
 
 		try {
 

@@ -25,7 +25,7 @@ var wsRoot = '/structr/ws';
 
 var header, main, footer;
 var debug = false;
-var token, sessionId;
+var sessionId;
 var lastMenuEntry, activeTab;
 var dmp;
 var editorCursor;
@@ -233,6 +233,9 @@ var Structr = {
     reconnect: function() {
 
         log('activating reconnect loop');
+        
+        localStorage.removeItem(userKey);
+        user.length = 0;
         reconn = window.setInterval(function() {
             connect();
         }, 1000);
@@ -244,10 +247,10 @@ var Structr = {
 
         $('#errorText').empty();
 
-        token = localStorage.getItem(tokenKey);
+        //token = localStorage.getItem(tokenKey);
         user = localStorage.getItem(userKey);
         sessionId = $.cookie('JSESSIONID');
-        log('token', token);
+        //log('token', token);
         log('user', user);
 
         // Send initial PING to force re-connect on all pages
@@ -273,7 +276,7 @@ var Structr = {
         connect();
 
         window.setInterval(function() {
-            sendObj({command: 'PING', sessionId: $.cookie('JSESSIONID')});
+            sendObj({command: 'PING', sessionId: sessionId});
         }, 60000);
 
     },
@@ -304,7 +307,7 @@ var Structr = {
         log('doLogin ' + username + ' with ' + password);
         var obj = {};
         obj.command = 'LOGIN';
-        obj.sessionId = $.cookie('JSESSIONID');
+        obj.sessionId = sessionId;
         var data = {};
         data.username = username;
         data.password = password;
@@ -317,10 +320,16 @@ var Structr = {
     },
     doLogout: function(text) {
         log('doLogout ' + user);
-        if (send('{ "command":"LOGOUT", "data" : { "username" : "' + user + '" } }')) {
-            localStorage.removeItem(tokenKey);
+        var obj = {};
+        obj.command = 'LOGOUT';
+        obj.sessionId = sessionId;
+        var data = {};
+        data.username = user;
+        obj.data = data;
+        if (sendObj(obj)) {
             localStorage.removeItem(userKey);
             $.cookie('JSESSIONID', null);
+            sessionId.lenght = 0;
             Structr.clearMain();
             Structr.login(text);
             return true;
@@ -1120,16 +1129,16 @@ function enable(button, func) {
 function setPosition(parentId, nodeUrl, pos) {
     var toPut = '{ "' + parentId + '" : ' + pos + ' }';
     //console.log(toPut);
-    var headers = {
-        'X-StructrSessionToken': token
-    };
+//    var headers = {
+//        'X-StructrSessionToken': token
+//    };
     $.ajax({
         url: nodeUrl + '/in',
         type: 'PUT',
         async: false,
         dataType: 'json',
         contentType: 'application/json; charset=utf-8',
-        headers: headers,
+        //headers: headers,
         data: toPut,
         success: function(data) {
             //appendElement(parentId, elementId, data);
@@ -1163,4 +1172,5 @@ function getComponentId(element) {
 $(window).unload(function() {
     // Remove dialog data in case of page reload
     localStorage.removeItem(dialogDataKey);
+    localStorage.removeItem(userKey);
 });

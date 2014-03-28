@@ -18,7 +18,7 @@
  */
 
 var ws;
-var token;
+//var token;
 var loggedIn = false;
 var user;
 var reconn;
@@ -31,18 +31,18 @@ var pageSize = 25;
 var sort = 'name';
 var order = 'asc';
 
-var tokenKey = 'structrSessionToken_' + port;
+//var tokenKey = 'structrSessionToken_' + port;
 var userKey = 'structrUser_' + port;
 
 var footer = $('#footer');
 
 function connect() {
-    
+
     log('################ Global connect() ################');
 
-    if (token) {
-        loggedIn = true;
-    }
+//    if (token) {
+//        loggedIn = true;
+//    }
 
     try {
 
@@ -83,21 +83,21 @@ function connect() {
             log('de-activating reconnect loop', reconn);
             window.clearInterval(reconn);
             reconn = undefined;
-            
+
             Structr.init();
 
-            log('logged in? ' + loggedIn);
-            if (!loggedIn) {
-                //log('no');
-                $('#logout_').html('Login');
-                Structr.login();
-            } else {
-                log('Current user: ' + user);
-                $('#logout_').html(' Logout <span class="username">' + (user ? user : '') + '</span>');
-
-                Structr.loadInitialModule();
-
-            }
+//            log('logged in? ' + loggedIn);
+//            if (!loggedIn) {
+//                //log('no');
+//                $('#logout_').html('Login');
+//                Structr.login();
+//            } else {
+//                log('Current user: ' + user);
+//                $('#logout_').html(' Logout <span class="username">' + (user ? user : '') + '</span>');
+//
+//                Structr.loadInitialModule();
+//
+//            }
         }
 
         ws.onclose = function() {
@@ -138,34 +138,40 @@ function connect() {
 
             log('####################################### ', command, ' #########################################');
 
-            if (command === 'LOGIN') { /*********************** LOGIN ************************/
-                token = data.token;
+            if (command === 'LOGIN' || (command === 'STATUS' && code === 200)) { /*********************** LOGIN ************************/
+
                 user = data.data.username;
-                log('token', token);
+
+                if (!sessionValid) {
+                    localStorage.removeItem(userKey);
+                    Structr.clearMain();
+                    Structr.login();
+                }
 
                 if (sessionValid) {
-                    localStorage.setItem(tokenKey, token);
-                    localStorage.setItem(userKey, user);
-                    $.unblockUI({
-                        fadeOut: 25
-                    });
-                    $('#logout_').html('Logout <span class="username">' + user + '</span>');
 
-                    Structr.loadInitialModule();
+                    var oldUser = localStorage.getItem(userKey);
 
-                } else {
-                    localStorage.removeItem(tokenKey);
-                    localStorage.removeItem(userKey);
-                    clearMain();
+                    // user has changed - refresh UI
+                    if (!oldUser || (oldUser && (oldUser !== user))) {
 
-                    Structr.login();
+                        Structr.clearMain();
+                        localStorage.setItem(userKey, user);
+
+                        $.unblockUI({
+                            fadeOut: 25
+                        });
+
+                        $('#logout_').html('Logout <span class="username">' + user + '</span>');
+                        Structr.loadInitialModule();
+                        
+                    }
                 }
 
             } else if (command === 'LOGOUT') { /*********************** LOGOUT ************************/
 
-                localStorage.removeItem(tokenKey);
                 localStorage.removeItem(userKey);
-                clearMain();
+                Structr.clearMain();
                 Structr.login();
 
             } else if (command === 'STATUS') { /*********************** STATUS ************************/
@@ -175,6 +181,8 @@ function connect() {
                     Structr.login('Wrong username or password!');
                 } else if (code === 401) {
                     Structr.login('Session invalid');
+                } else if (code === 200) {
+                    // do nothing
                 } else {
 
                     var msgClass;
@@ -249,7 +257,7 @@ function connect() {
                     data.data.id = data.id;
                     obj = StructrModel.create(data.data, null, false);
                 }
-                 
+
                 obj = StructrModel.update(data);
 
                 StructrModel.callCallback(data.callback, obj);
@@ -267,7 +275,7 @@ function connect() {
                     StructrModel.callCallback(data.callback, entity);
 
                 });
-                
+
                 StructrModel.clearCallback(data.callback);
 
             } else if (command.endsWith('CHILDREN')) { /*********************** CHILDREN ************************/
@@ -299,9 +307,9 @@ function connect() {
                 $(result).each(function(i, entity) {
 
                     StructrModel.callCallback(data.callback, entity);
-                    
+
                 });
-                
+
                 StructrModel.clearCallback(data.callback);
 
             } else if (command.startsWith('LIST_COMPONENTS')) { /*********************** LIST_COMPONENTS ************************/
@@ -319,7 +327,7 @@ function connect() {
             } else if (command.startsWith('LIST')) { /*********************** LIST ************************/
 
                 log('LIST', result, data);
-                
+
                 rawResultCount[type] = data.rawResultCount;
                 pageCount[type] = Math.max(1, Math.ceil(rawResultCount[type] / pageSize[type]));
                 Structr.updatePager(type, dialog.is(':visible') ? dialog : undefined);
@@ -332,7 +340,7 @@ function connect() {
                     StructrModel.callCallback(data.callback, entity);
 
                 });
-                
+
                 StructrModel.clearCallback(data.callback);
 
             } else if (command === 'DELETE') { /*********************** DELETE ************************/
@@ -357,24 +365,24 @@ function connect() {
             } else if (command === 'CREATE' || command === 'ADD' || command === 'IMPORT') { /*********************** CREATE, ADD, IMPORT ************************/
 
                 $(result).each(function(i, entity) {
-                    
+
                     if (command === 'CREATE' && (entity.type === 'Page' || entity.type === 'Folder' || entity.type === 'File' || entity.type === 'Image' || entity.type === 'User' || entity.type === 'Group' || entity.type === 'PropertyDefinition' || entity.type === 'Widget')) {
                         StructrModel.create(entity);
                     } else {
-                        
+
                         if (!entity.parent && shadowPage && entity.pageId === shadowPage.id) {
-                            
+
                             StructrModel.create(entity, null, false);
                             var el = _Pages.appendElementElement(entity, components, true);
 
                             if (isExpanded(entity.id)) {
                                 _Entities.ensureExpanded(el);
                             }
-                            
+
                             var synced = entity.syncedNodes;
-                            
+
                             if (synced && synced.length) {
-                            
+
                                 // Change icon
                                 $.each(entity.syncedNodes, function(i, id) {
                                     var el = Structr.node(id);
@@ -383,7 +391,7 @@ function connect() {
                                         _Entities.removeExpandIcon(el);
                                     }
                                 });
-                                
+
                             }
                         }
                     }
@@ -425,9 +433,9 @@ function connect() {
 
 function sendObj(obj, callback) {
 
-    if (token) {
-        obj.token = token;
-    }
+//    if (token) {
+//        obj.token = token;
+//    }
 
     if (callback) {
         obj.callback = uuid.v4();

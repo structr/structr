@@ -18,15 +18,12 @@
  */
 package org.structr.websocket.message;
 
-import org.structr.core.GraphObject;
-
-//~--- JDK imports ------------------------------------------------------------
-
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.structr.core.GraphObject;
 import org.structr.core.property.PropertyKey;
 
 //~--- classes ----------------------------------------------------------------
@@ -60,7 +57,6 @@ public class WebSocketMessage {
 	private boolean sessionValid                = false;
 	private String sortKey                      = null;
 	private String sortOrder                    = null;
-	private String token                        = null;
 	private String view                         = null;
 	private Set<String> nodesWithChildren       = null;
 
@@ -91,7 +87,6 @@ public class WebSocketMessage {
 		newCopy.sessionValid       = this.sessionValid;
 		newCopy.sortKey            = this.sortKey;
 		newCopy.sortOrder          = this.sortOrder;
-		newCopy.token              = this.token;
 		newCopy.view               = this.view;
 		newCopy.chunkSize          = this.chunkSize;
 		newCopy.nodesWithChildren  = this.nodesWithChildren;
@@ -161,10 +156,6 @@ public class WebSocketMessage {
 		return sortOrder;
 	}
 
-	public String getToken() {
-		return token;
-	}
-
 	public String getMessage() {
 		return message;
 	}
@@ -192,7 +183,7 @@ public class WebSocketMessage {
 	public String getSessionId() {
 		return sessionId;
 	}
-	
+
 	public boolean isSessionValid() {
 		return sessionValid;
 	}
@@ -271,14 +262,10 @@ public class WebSocketMessage {
 		this.sortOrder = sortOrder;
 	}
 
-	public void setToken(final String token) {
-		this.token = token;
-	}
-
 	public void setSessionId(final String sessionId) {
 		this.sessionId = sessionId;
 	}
-	
+
 	public void setSessionValid(final boolean sessionValid) {
 		this.sessionValid = sessionValid;
 	}
@@ -294,7 +281,7 @@ public class WebSocketMessage {
 	public void setModifiedProperties(final Set<PropertyKey> modifiedProperties) {
 		this.modifiedProperties = modifiedProperties;
 	}
-	
+
 	public void setRemovedProperties(final Set<PropertyKey> removedProperties) {
 		this.removedProperties = removedProperties;
 	}
