@@ -16,13 +16,33 @@ if [ -e $PID_FILE ]; then
 	
 fi
 
+echo
+
 if [ ! -e "logs" ]; then
+
+	echo "        Creating logs directory..."
 
 	mkdir logs
 
 fi
+
+
+if [ ! -e "structr" ]; then
+
+	echo "        Unarchiving static resources..."
+
+        jar -xf structr-*.jar structr
+
+fi
 	
-echo 
+if [ ! -f "structr.conf" ]; then
+
+	echo "        Creating structr.conf from template file..."
+
+        cat structr.conf_templ | sed 's/src\/main\/resources\///' > structr.conf
+
+fi
+
 echo -n "        Starting structr server $DISPLAY_NAME: "
 
 java $RUN_OPTS $JAVA_OPTS $MAIN_CLASS >$LOG_FILE 2>&1 & echo $! >$PID_FILE

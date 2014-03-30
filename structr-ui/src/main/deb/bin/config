@@ -3,7 +3,7 @@
 # configuration options for ${project.build.finalName}
 #
 
-RUN_OPTS="-cp lib/*"
+RUN_OPTS="-cp lib/*:structr-ui.jar"
 JAVA_OPTS="-server -d64 -Xms1g -Xmx1g -XX:+UseNUMA"
 MAIN_CLASS="org.structr.Server"
 DISPLAY_NAME="structr-ui"

@@ -1,20 +1,53 @@
 #!/bin/bash
 
 cd /usr/lib/structr-ui
-PID_FILE='/var/run/structr-ui.pid'
-LOG_FILE='/var/log/structr-ui.log'
+
+. bin/config
 
 if [ -e $PID_FILE ]; then
 
-	echo "Structr is already running."
-
-	exit 1
+	echo
+	echo "        ERROR: server already running."
+	echo
+	echo "        Please stop any running instances before starting a"
+	echo "        new one. (Remove $PID_FILE if this message appears"
+	echo "        even if no server is running.)"
+	echo 
 	
+	exit 0
+	
+fi
+
+echo
+
+if [ ! -e "logs" ]; then
+
+	echo "        Creating logs directory..."
+
+	mkdir logs
+
+fi
+
+
+if [ ! -e "structr" ]; then
+
+	echo "        Unarchiving static resources..."
+
+        jar -xf structr-*.jar structr
+
+fi
+	
+if [ ! -f "structr.conf" ]; then
+
+	echo "        Creating structr.conf from template file..."
+
+        cat structr.conf_templ | sed 's/src\/main\/resources\///' > structr.conf
+
 fi
 
 echo -n "        Starting structr server $DISPLAY_NAME: "
 
-java -cp lib/*:structr-ui.jar -server -d64 -Xms1g -Xmx1g -XX:+UseNUMA org.structr.Server >>$LOG_FILE 2>&1 & echo $! >$PID_FILE
+java $RUN_OPTS $JAVA_OPTS $MAIN_CLASS >$LOG_FILE 2>&1 & echo $! >$PID_FILE
 
 sleep 1
 

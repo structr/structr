@@ -46,17 +46,18 @@
 		<file>
 			<source>structr.conf_templ</source>
 			<outputDirectory>/</outputDirectory>
-			<filtered>true</filtered>
+		</file>
+		<file>
+			<source>seed.zip</source>
+			<outputDirectory>/</outputDirectory>
 		</file>
 		<file>
 			<source>src/main/resources/bin/start</source>
 			<outputDirectory>/bin</outputDirectory>
-			<filtered>true</filtered>
 		</file>
 		<file>
 			<source>src/main/resources/bin/stop</source>
 			<outputDirectory>/bin</outputDirectory>
-			<filtered>true</filtered>
 		</file>
 		<file>
 			<source>src/main/resources/bin/config</source>
