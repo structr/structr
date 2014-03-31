@@ -209,7 +209,7 @@ var _Entities = {
                 dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="disabled"> Save and close</button>');
 
                 dialogSaveButton = $('#saveFile', dialogBtn);
-                var saveAndClose = $('#saveAndClose', dialogBtn);
+                saveAndClose = $('#saveAndClose', dialogBtn);
 
                 editor.on('change', function(cm, change) {
 

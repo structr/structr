@@ -30,7 +30,7 @@ var lastMenuEntry, activeTab;
 var dmp;
 var editorCursor;
 var dialog, isMax = false;
-var dialogBox, dialogMsg, dialogBtn, dialogTitle, dialogMeta, dialogText, dialogCancelButton, dialogSaveButton, loginButton;
+var dialogBox, dialogMsg, dialogBtn, dialogTitle, dialogMeta, dialogText, dialogCancelButton, dialogSaveButton, saveAndClose, loginButton;
 var dialogId;
 var page = {};
 var pageSize = {};
@@ -41,7 +41,7 @@ var autoRefreshDisabledKey = 'structrAutoRefreshDisabled_' + port;
 var dialogDataKey = 'structrDialogData_' + port;
 var dialogHtmlKey = 'structrDialogHtml_' + port;
 
-$(document).ready(function() {
+$(function() {
 
     if (urlParam('debug')) {
         debug = true;
@@ -65,8 +65,6 @@ $(document).ready(function() {
     dialogCancelButton = $('.closeButton', dialogBtn);
     dialogSaveButton = $('.save', dialogBox);
     loginButton = $('#loginButton');
-
-    dmp = new diff_match_patch();
 
     $('#import_json').on('click', function(e) {
         e.stopPropagation();
@@ -187,6 +185,13 @@ $(document).ready(function() {
     Structr.init();
     Structr.connect();
 
+    // This hack prevents FF from closing WS connections on ESC
+    $(window).keydown(function(e) {
+        if (e.keyCode === 27) {
+            e.preventDefault();
+        }
+    });
+
     $(window).keyup(function(e) {
         if (e.keyCode === 27) {
             if (dialogSaveButton.length && dialogSaveButton.is(':visible') && !dialogSaveButton.prop('disabled')) {
@@ -194,14 +199,24 @@ $(document).ready(function() {
                 if (saveBeforeExit) {
                     dialogSaveButton.click();
                     setTimeout(function() {
-                        dialogSaveButton.remove();
-                        saveAndClose.remove();
-                        dialogCancelButton.click();
-                    }, 500);
+                        if (dialogSaveButton && dialogSaveButton.length && dialogSaveButton.is(':visible') && !dialogSaveButton.prop('disabled')) {
+                            dialogSaveButton.remove();
+                        }
+                        if (saveAndClose && saveAndClose.length && saveAndClose.is(':visible') && !saveAndClose.prop('disabled')) {
+                            saveAndClose.remove();
+                        }
+                        if (dialogCancelButton && dialogCancelButton.length && dialogCancelButton.is(':visible') && !dialogCancelButton.prop('disabled')) {
+                          dialogCancelButton.click();
+                        }
+                        return false;
+                    }, 1000);
                 }
             }
-            dialogCancelButton.click();
+            if (dialogCancelButton.length && dialogCancelButton.is(':visible') && !dialogCancelButton.prop('disabled')) {
+                dialogCancelButton.click();
+            }
         }
+        return false;
     });
 
     $(window).on('keydown', function(e) {
@@ -215,6 +230,8 @@ $(document).ready(function() {
     $(window).on('resize', function() {
         Structr.resize();
     });
+
+    dmp = new diff_match_patch();
 
 });
 
@@ -243,7 +260,7 @@ var Structr = {
     },
     init: function() {
 
-        log('###################### Initialize UI ####################')
+        log('###################### Initialize UI ####################');
 
         $('#errorText').empty();
 
