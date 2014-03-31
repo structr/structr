@@ -293,7 +293,23 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	@Override
 	public void updateFrom(final DOMNode source) throws FrameworkException {
 
-		// do nothing yet
+		if (source instanceof DOMElement) {
+
+			final DOMElement otherElement = (DOMElement)source;
+
+			for (final Property key : htmlView.properties()) {
+
+				final Object value1 = this.getProperty(key);
+				final Object value2 = otherElement.getProperty(key);
+
+				if (value1 == null && value2 == null) {
+					continue;
+				}
+
+				// copy attributes
+				this.setProperty(key, otherElement.getProperty(key));
+			}
+		}
 	}
 
 	public boolean avoidWhitespace() {
@@ -374,7 +390,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	public void render(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException {
 
 		Result localResult = renderContext.getResult();
-		
+
 		AsyncBuffer out	= renderContext.getBuffer();
 		double start = System.nanoTime();
 
@@ -461,11 +477,11 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 							if (newResult != null) {
 								localResult = newResult;
 							}
-							
+
 							// fetch (optional) list of external data elements
 							List<GraphObject> listData = ((DOMElement) subNode).checkListSources(securityContext, renderContext);
-							
-							
+
+
 
 							PropertyKey propertyKey = null;
 
