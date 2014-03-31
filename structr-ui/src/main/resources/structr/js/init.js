@@ -222,8 +222,9 @@ $(function() {
     $(window).on('keydown', function(e) {
         if (e.ctrlKey && (e.which === 83)) {
             e.preventDefault();
-            dialogSaveButton.click();
-            return false;
+            if (dialogSaveButton && dialogSaveButton.length && dialogSaveButton.is(':visible') && !dialogSaveButton.prop('disabled')) {
+                dialogSaveButton.click();
+            }
         }
     });
 
@@ -678,7 +679,7 @@ var Structr = {
                     errorText += attr + ' ';
                     //console.log(attr, Object.keys(response.errors[err][attr]));
                     $.each(response.errors[err][attr], function(k, cond) {
-                        console.log(cond);
+                        //console.log(cond);
                         if (typeof cond === 'Object') {
                             $.each(Object.keys(cond), function(l, key) {
                                 errorText += key + ' ' + cond[key];

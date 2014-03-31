@@ -125,7 +125,7 @@ function connect() {
 
             log('####################################### ', command, ' #########################################');
 
-            if (command === 'LOGIN' || (command === 'STATUS' && code === 200)) { /*********************** LOGIN ************************/
+            if (command === 'LOGIN' || code === 100) { /*********************** LOGIN or repsonse to PING ************************/
 
                 user = data.data.username;
 
@@ -151,7 +151,6 @@ function connect() {
 
                         $('#logout_').html('Logout <span class="username">' + user + '</span>');
                         Structr.loadInitialModule();
-
                     }
                 }
 
@@ -168,8 +167,6 @@ function connect() {
                     Structr.login('Wrong username or password!');
                 } else if (code === 401) {
                     Structr.login('Session invalid');
-                } else if (code === 200) {
-                    // do nothing
                 } else {
 
                     var msgClass;

@@ -409,7 +409,6 @@ var _Files = {
                     addExpandedNode(folderId);
 
                     //selectedElements = $('.node.selected');
-                    console.log(selectedElements);
                     if (selectedElements.length > 1) {
                         
                         $.each(selectedElements, function(i, fileEl) {
@@ -580,7 +579,7 @@ var _Files = {
                 dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="disabled"> Save and close</button>');
 
                 dialogSaveButton = $('#saveFile', dialogBtn);
-                var saveAndClose = $('#saveAndClose', dialogBtn);
+                saveAndClose = $('#saveAndClose', dialogBtn);
 
                 text1 = text;
 
@@ -598,6 +597,7 @@ var _Files = {
                 });
 
                 $('button#saveFile', dialogBtn).on('click', function(e) {
+                    e.preventDefault();
                     e.stopPropagation();
                     var newText = editor.getValue();
                     if (text1 === newText) {

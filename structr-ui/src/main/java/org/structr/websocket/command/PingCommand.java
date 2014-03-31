@@ -47,7 +47,7 @@ public class PingCommand extends AbstractCommand {
 
 		logger.log(Level.FINE, "PING received from session {0}", webSocketData.getSessionId());
 
-		getWebSocket().send(MessageBuilder.status().data("username", getWebSocket().getCurrentUser().getProperty(AbstractNode.name)).code(200).build(), true);
+		getWebSocket().send(MessageBuilder.status().data("username", getWebSocket().getCurrentUser().getProperty(AbstractNode.name)).code(100).build(), true);
 	}
 
 	//~--- get methods ----------------------------------------------------
