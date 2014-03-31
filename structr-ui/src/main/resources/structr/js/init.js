@@ -25,12 +25,12 @@ var wsRoot = '/structr/ws';
 
 var header, main, footer;
 var debug = false;
-var token, sessionId;
+var sessionId;
 var lastMenuEntry, activeTab;
 var dmp;
 var editorCursor;
 var dialog, isMax = false;
-var dialogBox, dialogMsg, dialogBtn, dialogTitle, dialogMeta, dialogText, dialogCancelButton, dialogSaveButton, loginButton;
+var dialogBox, dialogMsg, dialogBtn, dialogTitle, dialogMeta, dialogText, dialogCancelButton, dialogSaveButton, saveAndClose, loginButton;
 var dialogId;
 var page = {};
 var pageSize = {};
@@ -41,7 +41,7 @@ var autoRefreshDisabledKey = 'structrAutoRefreshDisabled_' + port;
 var dialogDataKey = 'structrDialogData_' + port;
 var dialogHtmlKey = 'structrDialogHtml_' + port;
 
-$(document).ready(function() {
+$(function() {
 
     if (urlParam('debug')) {
         debug = true;
@@ -65,8 +65,6 @@ $(document).ready(function() {
     dialogCancelButton = $('.closeButton', dialogBtn);
     dialogSaveButton = $('.save', dialogBox);
     loginButton = $('#loginButton');
-
-    dmp = new diff_match_patch();
 
     $('#import_json').on('click', function(e) {
         e.stopPropagation();
@@ -187,6 +185,13 @@ $(document).ready(function() {
     Structr.init();
     Structr.connect();
 
+    // This hack prevents FF from closing WS connections on ESC
+    $(window).keydown(function(e) {
+        if (e.keyCode === 27) {
+            e.preventDefault();
+        }
+    });
+
     $(window).keyup(function(e) {
         if (e.keyCode === 27) {
             if (dialogSaveButton.length && dialogSaveButton.is(':visible') && !dialogSaveButton.prop('disabled')) {
@@ -194,27 +199,40 @@ $(document).ready(function() {
                 if (saveBeforeExit) {
                     dialogSaveButton.click();
                     setTimeout(function() {
-                        dialogSaveButton.remove();
-                        saveAndClose.remove();
-                        dialogCancelButton.click();
-                    }, 500);
+                        if (dialogSaveButton && dialogSaveButton.length && dialogSaveButton.is(':visible') && !dialogSaveButton.prop('disabled')) {
+                            dialogSaveButton.remove();
+                        }
+                        if (saveAndClose && saveAndClose.length && saveAndClose.is(':visible') && !saveAndClose.prop('disabled')) {
+                            saveAndClose.remove();
+                        }
+                        if (dialogCancelButton && dialogCancelButton.length && dialogCancelButton.is(':visible') && !dialogCancelButton.prop('disabled')) {
+                          dialogCancelButton.click();
+                        }
+                        return false;
+                    }, 1000);
                 }
             }
-            dialogCancelButton.click();
+            if (dialogCancelButton.length && dialogCancelButton.is(':visible') && !dialogCancelButton.prop('disabled')) {
+                dialogCancelButton.click();
+            }
         }
+        return false;
     });
 
     $(window).on('keydown', function(e) {
         if (e.ctrlKey && (e.which === 83)) {
             e.preventDefault();
-            dialogSaveButton.click();
-            return false;
+            if (dialogSaveButton && dialogSaveButton.length && dialogSaveButton.is(':visible') && !dialogSaveButton.prop('disabled')) {
+                dialogSaveButton.click();
+            }
         }
     });
 
     $(window).on('resize', function() {
         Structr.resize();
     });
+
+    dmp = new diff_match_patch();
 
 });
 
@@ -233,6 +251,9 @@ var Structr = {
     reconnect: function() {
 
         log('activating reconnect loop');
+        
+        localStorage.removeItem(userKey);
+        user.length = 0;
         reconn = window.setInterval(function() {
             connect();
         }, 1000);
@@ -240,14 +261,12 @@ var Structr = {
     },
     init: function() {
 
-        log('###################### Initialize UI ####################')
+        log('###################### Initialize UI ####################');
 
         $('#errorText').empty();
 
-        token = localStorage.getItem(tokenKey);
         user = localStorage.getItem(userKey);
         sessionId = $.cookie('JSESSIONID');
-        log('token', token);
         log('user', user);
 
         // Send initial PING to force re-connect on all pages
@@ -273,7 +292,7 @@ var Structr = {
         connect();
 
         window.setInterval(function() {
-            sendObj({command: 'PING', sessionId: $.cookie('JSESSIONID')});
+            sendObj({command: 'PING', sessionId: sessionId});
         }, 60000);
 
     },
@@ -304,7 +323,7 @@ var Structr = {
         log('doLogin ' + username + ' with ' + password);
         var obj = {};
         obj.command = 'LOGIN';
-        obj.sessionId = $.cookie('JSESSIONID');
+        obj.sessionId = sessionId;
         var data = {};
         data.username = username;
         data.password = password;
@@ -317,10 +336,16 @@ var Structr = {
     },
     doLogout: function(text) {
         log('doLogout ' + user);
-        if (send('{ "command":"LOGOUT", "data" : { "username" : "' + user + '" } }')) {
-            localStorage.removeItem(tokenKey);
+        var obj = {};
+        obj.command = 'LOGOUT';
+        obj.sessionId = sessionId;
+        var data = {};
+        data.username = user;
+        obj.data = data;
+        if (sendObj(obj)) {
             localStorage.removeItem(userKey);
             $.cookie('JSESSIONID', null);
+            sessionId.lenght = 0;
             Structr.clearMain();
             Structr.login(text);
             return true;
@@ -654,7 +679,7 @@ var Structr = {
                     errorText += attr + ' ';
                     //console.log(attr, Object.keys(response.errors[err][attr]));
                     $.each(response.errors[err][attr], function(k, cond) {
-                        console.log(cond);
+                        //console.log(cond);
                         if (typeof cond === 'Object') {
                             $.each(Object.keys(cond), function(l, key) {
                                 errorText += key + ' ' + cond[key];
@@ -1119,17 +1144,12 @@ function enable(button, func) {
 
 function setPosition(parentId, nodeUrl, pos) {
     var toPut = '{ "' + parentId + '" : ' + pos + ' }';
-    //console.log(toPut);
-    var headers = {
-        'X-StructrSessionToken': token
-    };
     $.ajax({
         url: nodeUrl + '/in',
         type: 'PUT',
         async: false,
         dataType: 'json',
         contentType: 'application/json; charset=utf-8',
-        headers: headers,
         data: toPut,
         success: function(data) {
             //appendElement(parentId, elementId, data);
@@ -1163,4 +1183,5 @@ function getComponentId(element) {
 $(window).unload(function() {
     // Remove dialog data in case of page reload
     localStorage.removeItem(dialogDataKey);
+    localStorage.removeItem(userKey);
 });

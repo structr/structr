@@ -311,9 +311,6 @@ var _Images = {
                 window.clearTimeout(timeout);
             } else {
                 attempts++;
-                headers = {
-                    'X-StructrSessionToken' : token
-                };
                 _Crud.crudRead('Image', id, function(img) {
                     var tn = img.tnSmall;
                     if (!tn) {
@@ -336,8 +333,6 @@ var _Images = {
         
         $(parent.children('.edit_file_icon')).on('click', function(e) {
             e.stopPropagation();
-            var self = $(this);
-            //var text = self.parent().find('.file').text();
             Structr.dialog('Edit ' + file.name, function() {
                 log('content saved')
             }, function() {

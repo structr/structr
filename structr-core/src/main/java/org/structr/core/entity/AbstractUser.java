@@ -20,11 +20,11 @@ package org.structr.core.entity;
 
 import java.util.LinkedList;
 import java.util.List;
-import org.structr.common.Permission;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.lang.ArrayUtils;
+import org.structr.common.Permission;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import static org.structr.core.entity.Principal.password;
 import org.structr.core.entity.relationship.Groups;
@@ -41,7 +41,7 @@ import org.structr.core.property.PropertyKey;
 public abstract class AbstractUser extends Person implements Principal {
 
 	private static final Logger logger = Logger.getLogger(AbstractUser.class.getName());
-	
+
 	@Override
 	public void grant(Permission permission, AbstractNode obj) {
 
@@ -85,6 +85,26 @@ public abstract class AbstractUser extends Person implements Principal {
 		return StructrApp.getInstance().create((Principal)this, obj, Security.class);
 	}
 
+	@Override
+	public void addSessionId(final String sessionId) {
+
+		try {
+			setProperty(Principal.sessionIds, (String[]) ArrayUtils.add(getProperty(Principal.sessionIds), sessionId));
+		} catch (FrameworkException ex) {
+			logger.log(Level.SEVERE, "Could not add sessionId " + sessionId + " to array of sessionIds", ex);
+		}
+	}
+
+	@Override
+	public void removeSessionId(final String sessionId) {
+
+		try {
+			setProperty(Principal.sessionIds, (String[]) ArrayUtils.removeElement(getProperty(Principal.sessionIds), sessionId));
+		} catch (FrameworkException ex) {
+			logger.log(Level.SEVERE, "Could not add sessionId " + sessionId + " to array of sessionIds", ex);
+		}
+	}
+
 	//~--- get methods ----------------------------------------------------
 
 	@Override
@@ -126,7 +146,7 @@ public abstract class AbstractUser extends Person implements Principal {
 		if (password.equals(key)) {
 
 			return "";
-			
+
 		}
 
 		return super.getPropertyForIndexing(key);
@@ -141,13 +161,13 @@ public abstract class AbstractUser extends Person implements Principal {
 	public <T> T getProperty(final PropertyKey<T> key) {
 
 		if (password.equals(key)) {
-			
+
 			return null;
-			
+
 		} else {
-			
+
 			return super.getProperty(key);
-			
+
 		}
 
 	}

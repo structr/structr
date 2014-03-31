@@ -17,18 +17,17 @@
  */
 package org.structr.websocket.command;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.auth.AuthHelper;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.exception.AuthenticationException;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
-
-//~--- JDK imports ------------------------------------------------------------
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.structr.core.entity.AbstractNode;
 
 //~--- classes ----------------------------------------------------------------
 /**
@@ -51,7 +50,7 @@ public class LoginCommand extends AbstractCommand {
 
 		final String username = (String) webSocketData.getNodeData().get("username");
 		final String password = (String) webSocketData.getNodeData().get("password");
-		Principal user = null;
+		Principal user;
 
 		if ((username != null) && (password != null)) {
 
@@ -72,13 +71,14 @@ public class LoginCommand extends AbstractCommand {
 
 					}
 
-					final Principal principal = user;
+					// Clear possible existing sessions
+					AuthHelper.clearSession(sessionId);
 
-					principal.setProperty(Principal.sessionId, sessionId);
+					user.addSessionId(sessionId);
 
 					// store token in response data
 					webSocketData.getNodeData().clear();
-					webSocketData.setToken(sessionId);
+					webSocketData.setSessionId(sessionId);
 					webSocketData.getNodeData().put("username", user.getProperty(AbstractNode.name));
 
 					// authenticate socket

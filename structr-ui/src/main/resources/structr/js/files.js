@@ -409,7 +409,6 @@ var _Files = {
                     addExpandedNode(folderId);
 
                     //selectedElements = $('.node.selected');
-                    console.log(selectedElements);
                     if (selectedElements.length > 1) {
                         
                         $.each(selectedElements, function(i, fileEl) {
@@ -538,8 +537,6 @@ var _Files = {
         //debug = true;
         var url = viewRootUrl + file.id + '?edit=1';
         log('editContent', button, file, element, url);
-        var headers = {};
-        headers['X-StructrSessionToken'] = token;
         var text;
 
         var contentType = file.contentType;
@@ -561,7 +558,6 @@ var _Files = {
             //async: false,
             dataType: dataType,
             contentType: contentType,
-            headers: headers,
             success: function(data) {
                 text = data;
                 if (isDisabled(button))
@@ -583,7 +579,7 @@ var _Files = {
                 dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="disabled"> Save and close</button>');
 
                 dialogSaveButton = $('#saveFile', dialogBtn);
-                var saveAndClose = $('#saveAndClose', dialogBtn);
+                saveAndClose = $('#saveAndClose', dialogBtn);
 
                 text1 = text;
 
@@ -601,6 +597,7 @@ var _Files = {
                 });
 
                 $('button#saveFile', dialogBtn).on('click', function(e) {
+                    e.preventDefault();
                     e.stopPropagation();
                     var newText = editor.getValue();
                     if (text1 === newText) {

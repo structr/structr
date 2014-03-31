@@ -18,26 +18,23 @@
  */
 package org.structr.websocket.command;
 
-import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
-import org.structr.websocket.StructrWebSocket;
-import org.structr.websocket.message.WebSocketMessage;
-
-//~--- JDK imports ------------------------------------------------------------
-
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.eclipse.jetty.websocket.api.Session;
-import org.structr.core.property.PropertyKey;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.Widget;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.dom.ShadowDocument;
+import org.structr.websocket.StructrWebSocket;
+import org.structr.websocket.message.WebSocketMessage;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -79,45 +76,46 @@ public abstract class AbstractCommand {
 	}
 
 	public Page getPage(final String id) {
-		
+
 		AbstractNode node = getNode(id);
-		
+
 		if (node != null && node instanceof Page) {
-			
+
 			return (Page) node;
 		}
-		
+
 		return null;
 	}
 
 	public DOMNode getDOMNode(final String id) {
-		
+
 		AbstractNode node = getNode(id);
-		
+
 		if (node != null && node instanceof DOMNode) {
-			
+
 			return (DOMNode) node;
 		}
-		
+
 		return null;
 	}
 
 	public Widget getWidget(final String id) {
-		
+
 		AbstractNode node = getNode(id);
-		
+
 		if (node != null && node instanceof Widget) {
-			
+
 			return (Widget) node;
 		}
-		
+
 		return null;
 	}
-	
+
 	/**
 	 * Returns the node to which the uuid parameter
 	 * of this command refers to.
 	 *
+	 * @param id
 	 * @return the node
 	 */
 	public AbstractNode getNode(final String id) {
@@ -140,10 +138,11 @@ public abstract class AbstractCommand {
 	 * Returns the relationship to which the uuid parameter
 	 * of this command refers to.
 	 *
+	 * @param id
 	 * @return the node
 	 */
 	public AbstractRelationship getRelationship(final String id) {
-	
+
 		if (id == null) {
 			return null;
 		}
@@ -178,39 +177,39 @@ public abstract class AbstractCommand {
 
 	/**
 	 * Make child nodes of the source nodes child nodes of the target node.
-	 * 
+	 *
 	 * @param sourceNode
-	 * @param targetNode 
+	 * @param targetNode
 	 */
 	protected void moveChildNodes(final DOMNode sourceNode, final DOMNode targetNode) {
-		
+
 		DOMNode child = (DOMNode) sourceNode.getFirstChild();
-		
+
 		while (child != null) {
-			
+
 			DOMNode next = (DOMNode) child.getNextSibling();
-			
+
 			targetNode.appendChild(child);
-			
+
 			child = next;
-			
+
 		}
-		
+
 	}
 	/**
 	 * Search for a hidden page named __ShadowDocument__ of type {@see ShadowDocument.class}.
-	 * 
+	 *
 	 * If found, return it, if not, create it.
 	 * The shadow page is the DOM document all reusable components are connected to.
 	 * It is necessary to comply with DOM standards.
-	 * 
+	 *
 	 * @return
-	 * @throws FrameworkException 
+	 * @throws FrameworkException
 	 */
 	protected ShadowDocument getOrCreateHiddenDocument() throws FrameworkException {
-		
+
 		final App app = StructrApp.getInstance();
-		
+
 		ShadowDocument doc = app.nodeQuery(ShadowDocument.class).getFirst();
 		if (doc == null) {
 
@@ -222,11 +221,11 @@ public abstract class AbstractCommand {
 
 			doc = app.create(ShadowDocument.class, properties);
 		}
-		
+
 		return doc;
-		
+
 	}
-	
+
 	//~--- set methods ----------------------------------------------------
 
 	public void setSession(final Session session) {

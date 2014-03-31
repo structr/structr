@@ -17,11 +17,10 @@
  */
 package org.structr.websocket.command;
 
-import org.structr.common.error.FrameworkException;
-import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
+import org.structr.core.auth.AuthHelper;
 import org.structr.core.entity.Principal;
 import org.structr.websocket.StructrWebSocket;
+import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
 /**
@@ -39,22 +38,21 @@ public class LogoutCommand extends AbstractCommand {
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
-		final App app = StructrApp.getInstance(getWebSocket().getSecurityContext());
 		final Principal user = getWebSocket().getCurrentUser();
 
 		if (user != null) {
 
-			try {
+			final String sessionId = webSocketData.getSessionId();
+			if (sessionId != null) {
 
-				user.setProperty(Principal.sessionId, null);
-
-			} catch (FrameworkException fex) {
-
-				fex.printStackTrace();
+				AuthHelper.clearSession(sessionId);
+				user.removeSessionId(sessionId);
 
 			}
 
 			getWebSocket().setAuthenticated(null, null);
+
+			getWebSocket().send(MessageBuilder.status().code(401).build(), true);
 		}
 	}
 

@@ -1322,14 +1322,15 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 				}
 
-				// special keyword "link", works only on root level
+				// special keyword "link"
 				if ("link".equals(lowerCasePart)) {
 
 					ResourceLink rel = getOutgoingRelationship(ResourceLink.class);
 
 					if (rel != null) {
 						_data = rel.getTargetNode();
-						break;
+						
+						continue;
 					}
 
 				}

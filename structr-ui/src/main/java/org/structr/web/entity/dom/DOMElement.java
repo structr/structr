@@ -373,6 +373,8 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	@Override
 	public void render(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException {
 
+		Result localResult = renderContext.getResult();
+		
 		AsyncBuffer out	= renderContext.getBuffer();
 		double start = System.nanoTime();
 
@@ -454,8 +456,16 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 							GraphObject currentDataNode = renderContext.getDataObject();
 
+							// Store query result of this level
+							final Result newResult = renderContext.getResult();
+							if (newResult != null) {
+								localResult = newResult;
+							}
+							
 							// fetch (optional) list of external data elements
 							List<GraphObject> listData = ((DOMElement) subNode).checkListSources(securityContext, renderContext);
+							
+							
 
 							PropertyKey propertyKey = null;
 
@@ -574,6 +584,11 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		if (flush()) {
 			logger.log(Level.FINE, "Flushing response: {0} ", getTagName());
 			out.flush();
+		}
+
+		// Set result for this level again, if there was any
+		if (localResult != null) {
+			renderContext.setResult(localResult);
 		}
 
 	}

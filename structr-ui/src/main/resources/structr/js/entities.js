@@ -209,7 +209,7 @@ var _Entities = {
                 dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="disabled"> Save and close</button>');
 
                 dialogSaveButton = $('#saveFile', dialogBtn);
-                var saveAndClose = $('#saveAndClose', dialogBtn);
+                saveAndClose = $('#saveAndClose', dialogBtn);
 
                 editor.on('change', function(cm, change) {
 
@@ -584,13 +584,10 @@ var _Entities = {
 
                 });
 
-//                var headers = {};
-//                headers['X-StructrSessionToken'] = token;
                 $.ajax({
                     url: rootUrl + '/' + entity.id + '/in',
                     dataType: 'json',
                     contentType: 'application/json; charset=utf-8',
-//                    headers: headers,
                     success: function(data) {
 
                         $(data.result).each(function(i, result) {
@@ -673,13 +670,10 @@ var _Entities = {
         var selectElement = $('#' + key + 'Select');
         selectElement.append('<option></option>')
 
-        var headers = {};
-        headers['X-StructrSessionToken'] = token;
         $.ajax({
             url: rootUrl + type + '/ui?pageSize=100',
             dataType: 'json',
             contentType: 'application/json; charset=utf-8',
-            headers: headers,
             success: function(data) {
                 $(data.result).each(function(i, result) {
 

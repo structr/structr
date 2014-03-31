@@ -323,6 +323,16 @@
 								</data>
 
 								<data>
+									<src>${basedir}/structr.conf_templ</src>
+									<type>file</type>
+									<mapper>
+										<type>perm</type>
+										<prefix>/usr/lib/${project.artifactId}/</prefix>
+										<filemode>640</filemode>
+									</mapper>
+								</data>
+
+                                                                <data>
 									<src>${basedir}/src/main/deb/bin</src>
 									<type>directory</type>
 									<mapper>

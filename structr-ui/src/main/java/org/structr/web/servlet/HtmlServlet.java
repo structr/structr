@@ -19,49 +19,58 @@ package org.structr.web.servlet;
 
 import java.io.IOException;
 import java.io.InputStream;
-
-import org.structr.common.*;
-import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.*;
-import org.structr.core.entity.AbstractNode;
-import org.structr.web.auth.HttpAuthenticator;
-import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.File;
-
-//~--- JDK imports ------------------------------------------------------------
-import java.text.*;
-
-import java.util.*;
+import java.text.DateFormat;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.List;
+import java.util.Locale;
+import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import javax.servlet.AsyncContext;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServlet;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang.LocaleUtils;
 import org.apache.commons.lang.time.DateUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.structr.common.AccessMode;
+import org.structr.common.GraphObjectComparator;
+import org.structr.common.PathHelper;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
+import org.structr.core.Result;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
+import org.structr.core.auth.AuthHelper;
 import org.structr.core.auth.Authenticator;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
 import org.structr.rest.ResourceProvider;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
+import org.structr.web.auth.HttpAuthenticator;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.common.ThreadLocalMatcher;
+import org.structr.web.entity.File;
 import org.structr.web.entity.Linkable;
 import org.structr.web.entity.User;
 import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.entity.dom.Page;
 
 //~--- classes ----------------------------------------------------------------
 /**
@@ -127,7 +136,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 				securityContext = auth.initializeAndExamineRequest(request, response);
 				tx.success();
 			}
-			
+
 
 			app = StructrApp.getInstance(securityContext);
 
@@ -588,13 +597,13 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		if (CONFIRM_REGISTRATION_PAGE.equals(path)) {
 
 			final App app = StructrApp.getInstance();
-			
+
 			Result<Principal> results;
 			try (final Tx tx = app.tx()) {
 
 				results = app.nodeQuery(Principal.class).and(User.confirmationKey, key).getResult();;
 			}
-			
+
 			if (!results.isEmpty()) {
 
 				final Principal user = results.get(0);
@@ -603,10 +612,14 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 					// Clear confirmation key and set session id
 					user.setProperty(User.confirmationKey, null);
-					
+
 					if (auth.getUserAutoLogin()){
-						
-						user.setProperty(Principal.sessionId, request.getSession().getId());
+
+						// Clear possible existing sessions
+						final String sessionId = request.getSession().getId();
+						AuthHelper.clearSession(sessionId);
+
+						user.addSessionId(sessionId);
 
 					}
 
