@@ -21,11 +21,11 @@ public class MoveOperation extends InvertibleModificationOperation {
 	private DOMNode originalNode       = null;
 	private String parentHash          = null;
 	private DOMNode newNode            = null;
-	
+
 	public MoveOperation(final Map<String, DOMNode> hashMappedExistingNodes, final String parentHash, final List<String> siblingHashes, final DOMNode newNode, final DOMNode originalNode) {
-		
+
 		super(hashMappedExistingNodes);
-		
+
 		this.siblingHashes = siblingHashes;
 		this.originalNode  = originalNode;
 		this.parentHash    = parentHash;
@@ -34,46 +34,43 @@ public class MoveOperation extends InvertibleModificationOperation {
 
 	@Override
 	public String toString() {
-		
+
 		if (originalNode instanceof Content) {
-			
+
 			return "Move Content(" + originalNode.getIdHashOrProperty() + ")";
 
 		} else {
-			
+
 			return "Move " + originalNode.getProperty(DOMElement.tag) + "(" + originalNode.getIdHashOrProperty() + ")";
 		}
 	}
-	
+
 	// ----- interface InvertibleModificationOperation -----
 	@Override
 	public void apply(final App app, final Page sourcePage, final Page newPage) throws FrameworkException {
-		
+
 		final InsertPosition insertPosition = findInsertPosition(sourcePage, parentHash, siblingHashes, newNode);
 		if (insertPosition != null) {
-			
+
 			final DOMNode parent       = insertPosition.getParent();
 			final DOMNode sibling      = insertPosition.getSibling();
 			final Node originalSibling = originalNode.getNextSibling();
 
-			if (!parent.equals(originalNode.getParentNode())) {
+			if (sibling != null && sibling.equals(originalSibling)) {
 
-				if (sibling != null && sibling.equals(originalSibling)) {
-					
-					// nothing to be done
-					return;
-				}
-				
-				if (sibling == null && originalSibling == null) {
-					return;
-				}
-				
-				parent.insertBefore(originalNode, sibling);
+				// nothing to be done
+				return;
+			}
 
-				// remove children
-				for (final DOMChildren childRel : newNode.getChildRelationships()) {
-					app.delete(childRel);
-				}
+			if (sibling == null && originalSibling == null) {
+				return;
+			}
+
+			parent.insertBefore(originalNode, sibling);
+
+			// remove children
+			for (final DOMChildren childRel : newNode.getChildRelationships()) {
+				app.delete(childRel);
 			}
 		}
 	}
@@ -85,7 +82,7 @@ public class MoveOperation extends InvertibleModificationOperation {
 
 	@Override
 	public Integer getPosition() {
-		
+
 		// move operations should go after Delete and Create but before Update
 		return 300;
 	}

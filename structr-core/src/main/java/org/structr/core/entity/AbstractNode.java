@@ -71,11 +71,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	private static final Logger logger = Logger.getLogger(AbstractNode.class.getName());
 
 	public static final View defaultView = new View(AbstractNode.class, PropertyView.Public, id, type);
-	
+
 	public static final View uiView = new View(AbstractNode.class, PropertyView.Ui,
 		id, name, owner, type, createdBy, deleted, hidden, createdDate, lastModifiedDate, visibleToPublicUsers, visibleToAuthenticatedUsers, visibilityStartDate, visibilityEndDate
 	);
-	
+
 	protected PropertyMap cachedConvertedProperties  = new PropertyMap();
 	protected PropertyMap cachedRawProperties        = new PropertyMap();
 	protected Principal cachedOwnerNode              = null;
@@ -108,11 +108,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	@Override
 	public void onNodeInstantiation() {
 	}
-	
+
 	@Override
 	public void onNodeDeletion() {
 	}
-	
+
 	@Override
 	public final void init(final SecurityContext securityContext, final Node dbNode) {
 
@@ -124,11 +124,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	public void setSecurityContext(SecurityContext securityContext) {
 		this.securityContext = securityContext;
 	}
-	
+
 	public SecurityContext getSecurityContext() {
 		return securityContext;
 	}
-	
+
 	@Override
 	public boolean equals(final Object o) {
 
@@ -164,21 +164,21 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		if(node == null) {
 			return -1;
 		}
-		
-		
+
+
 		String name = getName();
-		
+
 		if(name == null) {
 			return -1;
 		}
-		
-		
+
+
 		String nodeName = node.getName();
-		
+
 		if(nodeName == null) {
 			return -1;
 		}
-		
+
 		return name.compareTo(nodeName);
 	}
 
@@ -283,7 +283,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	public String getType() {
 		return getProperty(AbstractNode.type);
 	}
-	
+
 	@Override
 	public PropertyContainer getPropertyContainer() {
 		return dbNode;
@@ -296,7 +296,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	 */
 	@Override
 	public String getName() {
-		
+
 		String name = getProperty(AbstractNode.name);
 		if (name == null) {
 			name = getNodeId().toString();
@@ -341,7 +341,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 	/**
 	 * Indicates whether this node is visible to public users.
-	 * 
+	 *
 	 * @return whether this node is visible to public users
 	 */
 	public boolean getVisibleToPublicUsers() {
@@ -350,7 +350,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 	/**
 	 * Indicates whether this node is visible to authenticated users.
-	 * 
+	 *
 	 * @return whether this node is visible to authenticated users
 	 */
 	public boolean getVisibleToAuthenticatedUsers() {
@@ -359,7 +359,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 	/**
 	 * Indicates whether this node is hidden.
-	 * 
+	 *
 	 * @return whether this node is hidden
 	 */
 	public boolean getHidden() {
@@ -368,7 +368,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 	/**
 	 * Indicates whether this node is deleted.
-	 * 
+	 *
 	 * @return whether this node is deleted
 	 */
 	public boolean getDeleted() {
@@ -383,23 +383,23 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	 */
 	@Override
 	public Iterable<PropertyKey> getPropertyKeys(final String propertyView) {
-		
+
 		// check for custom view in content-type field
 		if (securityContext != null && securityContext.hasCustomView()) {
-			
+
 			final Set<PropertyKey> keys  = new LinkedHashSet<>(StructrApp.getConfiguration().getPropertySet(entityType, propertyView));
 			final Set<String> customView = securityContext.getCustomView();
-			
+
 			for (Iterator<PropertyKey> it = keys.iterator(); it.hasNext();) {
 				if (!customView.contains(it.next().jsonName())) {
-					
+
 					it.remove();
 				}
 			}
-			
+
 			return keys;
 		}
-		
+
 		// this is the default if no application/json; properties=[...] content-type header is present on the request
 		return StructrApp.getConfiguration().getPropertySet(entityType, propertyView);
 	}
@@ -415,19 +415,19 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	 */
 	@Override
 	public Object getPropertyForIndexing(final PropertyKey key) {
-		
+
 		Object value = getProperty(key, false, null);
 		if (value != null) {
 			return value;
 		}
-		
+
 		return getProperty(key);
 	}
 
 	/**
 	 * Returns the (converted, validated, transformed, etc.) property for the given
 	 * property key.
-	 * 
+	 *
 	 * @param propertyKey the property key to retrieve the value for
 	 * @return the converted, validated, transformed property value
 	 */
@@ -440,14 +440,14 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	public <T> T getProperty(final PropertyKey<T> key, final org.neo4j.helpers.Predicate<GraphObject> predicate) {
 		return getProperty(key, true, predicate);
 	}
-	
+
 	private <T> T getProperty(final PropertyKey<T> key, boolean applyConverter, final org.neo4j.helpers.Predicate<GraphObject> predicate) {
 
 		// early null check, this should not happen...
 		if (key == null || key.dbName() == null) {
 			return null;
 		}
-		
+
 		return key.getProperty(securityContext, this, applyConverter, predicate);
 	}
 
@@ -472,7 +472,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	/**
 	 * Returns the property value for the given key as a List of Strings,
 	 * split on [\r\n].
-	 * 
+	 *
 	 * @param key the property key to retrieve the value for
 	 * @return the property value for the given key as a List of Strings
 	 */
@@ -506,7 +506,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 	/**
 	 * Returns the property value for the given key as an Array of Strings.
-	 * 
+	 *
 	 * @param key the property key to retrieve the value for
 	 * @return the property value for the given key as an Array of Strings
 	 */
@@ -539,7 +539,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 	/**
 	 * Returns the property value for the given key as a Comparable
-	 * 
+	 *
 	 * @param key the property key to retrieve the value for
 	 * @return the property value for the given key as a Comparable
 	 */
@@ -547,7 +547,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	public <T> Comparable getComparableProperty(final PropertyKey<T> key) {
 
 		if (key != null) {
-			
+
 			final T propertyValue = getProperty(key);
 
 			// check property converter
@@ -579,13 +579,13 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 				return propertyValue.toString();
 			}
 		}
-		
+
 		return null;
 	}
 
 	/**
 	 * Returns the property value for the given key as a Iterable
-	 * 
+	 *
 	 * @param key the property key to retrieve the value for
 	 * @return the property value for the given key as a Iterable
 	 */
@@ -597,7 +597,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	 * Returns a list of related nodes for which a modification propagation is configured
 	 * via the relationship. Override this method to return a set of nodes that should
 	 * receive propagated modifications.
-	 * 
+	 *
 	 * @return a set of nodes to which modifications should be propagated
 	 */
 	public Set<AbstractNode> getNodesForModificationPropagation() {
@@ -620,7 +620,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	 * Return the (cached) incoming relationship between this node and the
 	 * given principal which holds the security information.
 	 *
-	 * @param principal
+	 * @param p
 	 * @return incoming security relationship
 	 */
 	@Override
@@ -630,16 +630,16 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 			return null;
 		}
-		
+
 		for (Security r : getIncomingRelationships(Security.class)) {
-			
-			if (r.getSourceNode().equals(p)) {
-				
+
+			if (p.equals(r.getSourceNode())) {
+
 				return r;
-				
+
 			}
 		}
-		
+
 		return null;
 
 	}
@@ -651,7 +651,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 	@Override
 	public <A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> Iterable<R> getRelationships(final Class<R> type) {
-		
+
 		final RelationshipFactory<R> factory = new RelationshipFactory<>(securityContext);
 		final R template                     = getRelationshipForType(type);
 		final Direction direction            = template.getDirectionForType(entityType);
@@ -659,58 +659,58 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 		return new IterableAdapter<>(dbNode.getRelationships(relType, direction), factory);
 	}
-	
+
 	@Override
 	public <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, OneStartpoint<A>, T>> R getIncomingRelationship(final Class<R> type) {
-		
+
 		final RelationshipFactory<R> factory = new RelationshipFactory<>(securityContext);
 		final R template                     = getRelationshipForType(type);
 		final Relationship relationship      = template.getSource().getRawSource(securityContext, dbNode, null);
-		
+
 		if (relationship != null) {
 			return factory.adapt(relationship);
 		}
-		
+
 		return null;
 	}
-	
+
 	@Override
 	public <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, ManyStartpoint<A>, T>> Iterable<R> getIncomingRelationships(final Class<R> type) {
-		
+
 		final RelationshipFactory<R> factory = new RelationshipFactory<>(securityContext);
 		final R template                     = getRelationshipForType(type);
-		
+
 		return new IterableAdapter<>(template.getSource().getRawSource(securityContext, dbNode, null), factory);
 	}
-	
+
 	@Override
 	public <A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, OneEndpoint<B>>> R getOutgoingRelationship(final Class<R> type) {
-		
+
 		final RelationshipFactory<R> factory = new RelationshipFactory<>(securityContext);
 		final R template                     = getRelationshipForType(type);
 		final Relationship relationship      = template.getTarget().getRawSource(securityContext, dbNode, null);
-		
+
 		if (relationship != null) {
 			return factory.adapt(relationship);
 		}
-		
+
 		return null;
 	}
-	
+
 	@Override
 	public <A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, ManyEndpoint<B>>> Iterable<R> getOutgoingRelationships(final Class<R> type) {
-		
+
 		final RelationshipFactory<R> factory = new RelationshipFactory<>(securityContext);
 		final R template                     = getRelationshipForType(type);
-		
+
 		return new IterableAdapter<>(template.getTarget().getRawSource(securityContext, dbNode, null), factory);
 	}
-	
+
 	@Override
 	public <R extends AbstractRelationship> Iterable<R> getIncomingRelationships() {
 		return new IterableAdapter<>(dbNode.getRelationships(Direction.INCOMING), new RelationshipFactory<R>(securityContext));
 	}
-	
+
 	@Override
 	public <R extends AbstractRelationship> Iterable<R> getOutgoingRelationships() {
 		return new IterableAdapter<>(dbNode.getRelationships(Direction.OUTGOING), new RelationshipFactory<R>(securityContext));
@@ -737,7 +737,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 			final Ownership ownership = getIncomingRelationship(PrincipalOwnsNode.class);
 			if (ownership != null) {
-				
+
 				Principal principal = ownership.getSourceNode();
 				cachedOwnerNode = (Principal) principal;
 			}
@@ -748,7 +748,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 	/**
 	 * Returns the database ID of the owner node of this node.
-	 * 
+	 *
 	 * @return the database ID of the owner node of this node
 	 */
 	public Long getOwnerId() {
@@ -859,7 +859,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	public boolean onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
 		return true;
 	}
-	
+
 	@Override
 	public void afterCreation(SecurityContext securityContext) {
 	}
@@ -875,15 +875,15 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	@Override
 	public void ownerModified(SecurityContext securityContext) {
 	}
-	
+
 	@Override
 	public void securityModified(SecurityContext securityContext) {
 	}
-	
+
 	@Override
 	public void locationModified(SecurityContext securityContext) {
 	}
-	
+
 	@Override
 	public void propagatedModification(SecurityContext securityContext) {
 	}
@@ -927,12 +927,12 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		return getHidden();
 
 	}
-	
+
 	@Override
 	public Date getVisibilityStartDate() {
 		return getProperty(visibilityStartDate);
 	}
-	
+
 	@Override
 	public Date getVisibilityEndDate() {
 		return getProperty(visibilityEndDate);
@@ -942,7 +942,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	public Date getCreatedDate() {
 		return getProperty(createdDate);
 	}
-	
+
 	@Override
 	public Date getLastModifiedDate() {
 		return getProperty(lastModifiedDate);
@@ -998,15 +998,15 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 	/**
 	 * Store a non-persistent value in this entity.
-	 * 
+	 *
 	 * @param key
-	 * @param value 
+	 * @param value
 	 */
 	public void setTemporaryProperty(final PropertyKey key, Object value) {
 		cachedConvertedProperties.put(key, value);
 		cachedRawProperties.put(key, value);
 	}
-	
+
 	/**
 	 * Retrieve a previously stored non-persistent value from this entity.
 	 */
@@ -1050,7 +1050,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		}
 
 	}
-	
+
 	private <T> void setPropertyInternal(final PropertyKey<T> key, final T value) throws FrameworkException {
 
 		if (key == null) {
@@ -1060,7 +1060,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			throw new FrameworkException(getClass().getSimpleName(), new NullArgumentToken(base));
 
 		}
-		
+
 		// check for read-only properties
 		if (key.isReadOnly() || (key.isWriteOnce() && (dbNode != null) && dbNode.hasProperty(key.dbName()))) {
 
@@ -1069,7 +1069,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 				// permit write operation once and
 				// lock read-only properties again
 				readOnlyPropertiesUnlocked = false;
-				
+
 			} else {
 
 				throw new FrameworkException(getClass().getSimpleName(), new ReadOnlyPropertyToken(key));
@@ -1084,71 +1084,71 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	public void addToIndex() {
 
 		for (PropertyKey key : StructrApp.getConfiguration().getPropertySet(entityType, PropertyView.All)) {
-			
+
 			if (key.isIndexed()) {
-				
+
 				key.index(this, this.getPropertyForIndexing(key));
 			}
 		}
 	}
-	
+
 	@Override
 	public void updateInIndex() {
-		
+
 		removeFromIndex();
 		addToIndex();
 	}
-	
+
 	@Override
 	public void removeFromIndex() {
-		
+
 		for (Index<Node> index : Services.getInstance().getService(NodeService.class).getNodeIndices()) {
-			
+
 			synchronized (index) {
-				
+
 				index.remove(dbNode);
 			}
 		}
 	}
-	
+
 	public void removeFromIndex(PropertyKey key) {
-		
+
 		for (Index<Node> index : Services.getInstance().getService(NodeService.class).getNodeIndices()) {
-			
+
 			synchronized (index) {
-				
+
 				index.remove(dbNode, key.dbName());
 			}
 		}
 	}
-	
+
 	@Override
 	public void indexPassiveProperties() {
-		
+
 		for (PropertyKey key : StructrApp.getConfiguration().getPropertySet(entityType, PropertyView.All)) {
-			
+
 			if (key.isPassivelyIndexed()) {
-				
+
 				key.index(this, this.getPropertyForIndexing(key));
 			}
 		}
 	}
-	
+
 	public static <A extends NodeInterface, B extends NodeInterface, R extends Relation<A, B, ?, ?>> R getRelationshipForType(final Class<R> type) {
-		
+
 		try {
-			
+
 			return type.newInstance();
-			
+
 		} catch (Throwable t) {
 
 			// TODO: throw meaningful exception here,
 			// should be a RuntimeException that indicates
 			// wrong use of Relationships etc.
-			
+
 			t.printStackTrace();
 		}
-		
+
 		return null;
 	}
 }

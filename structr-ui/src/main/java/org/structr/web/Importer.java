@@ -116,7 +116,7 @@ public class Importer {
 
 	//~--- constructors ---------------------------------------------------
 //      public static void main(String[] args) throws Exception {
-//              
+//
 //              String css = "background: url(\"/images/common/menu-bg.png\") repeat-x;\nbackground: url('/images/common/menu-bg.png') repeat-x;\nbackground: url(/images/common/menu-bg.png) repeat-x;";
 //
 //              Pattern pattern = Pattern.compile("(url\\(['|\"]?)([^'|\"|)]*)");
@@ -130,7 +130,7 @@ public class Importer {
 //
 //
 //              }
-//              
+//
 //      }
 	public Importer(final SecurityContext securityContext, final String code, final String address, final String name, final int timeout, final boolean publicVisible, final boolean authVisible) {
 
@@ -228,7 +228,7 @@ public class Importer {
 				logger.log(Level.INFO, "##### Finished fetching {0} for page {1} #####", new Object[]{address, name});
 
 			}
-			
+
 			return page;
 
 		} catch (MalformedURLException ex) {
@@ -275,30 +275,30 @@ public class Importer {
 		// try to import graph gist from comments
 		GraphGistImporter.importCypher(GraphGistImporter.extractSources(new ByteArrayInputStream(commentSource.toString().getBytes())));
 	}
-	
+
 	// ----- public static methods -----
 	public static Page parsePageFromSource(final SecurityContext securityContext, final String source, final String name) throws FrameworkException {
 
 		final Importer importer = new Importer(securityContext, source, null, "source", 0, true, true);
 		final App localAppCtx   = StructrApp.getInstance(securityContext);
 		Page page               = null;
-		
+
 		try (final Tx tx = localAppCtx.tx()) {
-			
+
 			page   = localAppCtx.create(Page.class, new NodeAttribute<>(Page.name, name));
-			
+
 			if (importer.parse()) {
-				
+
 				importer.createChildNodesWithHtml(page, page, "");
 			}
-			
+
 			tx.success();
-			
+
 		}
-		
+
 		return page;
 	}
-	
+
 	public static List<InvertibleModificationOperation> diffPages(final Page sourcePage, final Page modifiedPage) {
 
 		final List<InvertibleModificationOperation> changeSet = new LinkedList<>();
@@ -308,48 +308,48 @@ public class Importer {
 		final Map<String, DOMNode> indexMappedNewNodes        = new LinkedHashMap<>();
 		final Map<String, DOMNode> hashMappedNewNodes         = new LinkedHashMap<>();
 		final Map<DOMNode, Integer> depthMappedNewNodes       = new LinkedHashMap<>();
-		
+
 		InvertibleModificationOperation.collectNodes(sourcePage, indexMappedExistingNodes, hashMappedExistingNodes, depthMappedExistingNodes);
 		InvertibleModificationOperation.collectNodes(modifiedPage, indexMappedNewNodes, hashMappedNewNodes, depthMappedNewNodes);
-		
+
 		// iterate over existing nodes and try to find deleted ones
 		for (final Iterator<Map.Entry<String, DOMNode>> it = hashMappedExistingNodes.entrySet().iterator(); it.hasNext();) {
-			
+
 			final Map.Entry<String, DOMNode> existingNodeEntry = it.next();
 			final DOMNode existingNode                     = existingNodeEntry.getValue();
 			final String existingHash                      = existingNode.getIdHash();
-			
+
 			// check for deleted nodes ignoring Page nodes
 			if (!hashMappedNewNodes.containsKey(existingHash) && !(existingNode instanceof Page)) {
-				
+
 				changeSet.add(new DeleteOperation(hashMappedExistingNodes, existingNode));
 			}
 		}
 
 		// iterate over new nodes and try to find new ones
 		for (final Iterator<Map.Entry<String, DOMNode>> it = indexMappedNewNodes.entrySet().iterator(); it.hasNext();) {
-			
+
 			final Map.Entry<String, DOMNode> newNodeEntry = it.next();
 			final DOMNode newNode                     = newNodeEntry.getValue();
-			
+
 			// if newNode is a content element, do not rely on local hash property
 			String newHash = newNode.getProperty(DOMNode.dataHashProperty);
 			if (newHash == null) {
 				newHash = newNode.getIdHash();
 			}
-			
+
 			// check for deleted nodes ignoring Page nodes
 			if (!hashMappedExistingNodes.containsKey(newHash) && !(newNode instanceof Page)) {
 
 				final DOMNode newParent  = newNode.getProperty(DOMNode.parent);
-				
+
 				changeSet.add(new CreateOperation(hashMappedExistingNodes, getHashOrNull(newParent), getSiblingHashes(newNode), newNode, depthMappedNewNodes.get(newNode)));
 			}
 		}
 
 		// compare all new nodes with all existing nodes
 		for (final Map.Entry<String, DOMNode> newNodeEntry : indexMappedNewNodes.entrySet()) {
-			
+
 			final String newTreeIndex = newNodeEntry.getKey();
 			final DOMNode newNode     = newNodeEntry.getValue();
 
@@ -359,7 +359,7 @@ public class Importer {
 				final DOMNode existingNode     = existingNodeEntry.getValue();
 				DOMNode newParent              = null;
 				int equalityBitmask            = 0;
-				
+
 				if (newTreeIndex.equals(existingTreeIndex)) {
 					equalityBitmask |= 1;
 				}
@@ -370,6 +370,12 @@ public class Importer {
 
 				if (newNode.contentEquals(existingNode)) {
 					equalityBitmask |= 4;
+				}
+
+				if (equalityBitmask > 0) {
+
+					// just to be able to set a breakpoint here..
+					int i = 0;
 				}
 
 				switch (equalityBitmask) {
@@ -390,8 +396,10 @@ public class Importer {
 						// TODO: what to do here?
 						break;
 
-					case 3:	// same tree index, same node, NOT same content => node was modified but not moved
-						changeSet.add(new UpdateOperation(hashMappedExistingNodes, existingNode, newNode));
+					case 3: // same tree index, same node, NOT same content => node was modified but not moved
+						if (!(existingNode instanceof DOMElement)) {
+							changeSet.add(new UpdateOperation(hashMappedExistingNodes, existingNode, newNode));
+						}
 						break;
 
 					case 2:	// NOT same tree index, same node (2), NOT same content => node was moved and changed
@@ -410,17 +418,17 @@ public class Importer {
 				}
 			}
 		}
-		
+
 		return changeSet;
 	}
-	
+
 	private static List<String> getSiblingHashes(final DOMNode node) {
-		
+
 		final List<String> siblingHashes = new LinkedList<>();
 		DOMNode nextSibling = node.getProperty(DOMNode.nextSibling);
-		
+
 		while (nextSibling != null) {
-			
+
 			siblingHashes.add(nextSibling.getIdHashOrProperty());
 			nextSibling = nextSibling.getProperty(DOMNode.nextSibling);
 		}
@@ -429,14 +437,14 @@ public class Importer {
 	}
 
 	private static String getHashOrNull(final DOMNode node) {
-		
+
 		if (node != null) {
 			return node.getIdHashOrProperty();
 		}
-		
+
 		return null;
 	}
-	
+
 	// ----- private methods -----
 	private void createChildNodes(final Node startNode, final DOMNode parent, Page page, final URL baseUrl) throws FrameworkException {
 

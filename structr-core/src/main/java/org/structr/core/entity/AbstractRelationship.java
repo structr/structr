@@ -63,7 +63,7 @@ import org.structr.core.property.TargetId;
 
 /**
  * Abstract base class for all relationship entities in structr.
- * 
+ *
  * @author Axel Morgner
  */
 public abstract class AbstractRelationship<S extends NodeInterface, T extends NodeInterface> implements Comparable<AbstractRelationship>, RelationshipInterface {
@@ -74,11 +74,11 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	public static final Property<String>  relType       = new RelationshipTypeProperty("relType");
 	public static final SourceId          sourceId      = new SourceId("sourceId");
 	public static final TargetId          targetId      = new TargetId("targetId");
-	
+
 	public static final View defauftView = new View(AbstractRelationship.class, PropertyView.Public,
 		id, type, relType, sourceId, targetId
 	);
-	
+
 	public static final View uiView = new View(AbstractRelationship.class, PropertyView.Ui,
 		id, type, relType, sourceId, targetId
 	);
@@ -86,7 +86,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	private boolean readOnlyPropertiesUnlocked = false;
 	private String cachedEndNodeId             = null;
 	private String cachedStartNodeId           = null;
-	
+
 	protected SecurityContext securityContext  = null;
 	protected Relationship dbRelationship      = null;
 	protected PropertyMap properties           = null;
@@ -155,7 +155,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	@Override
 	public void onRelationshipCreation() {
 	}
-	
+
 	/**
 	 * Called when a relationship of this combinedType is instatiated. Please note that
 	 * a relationship can (and will) be instantiated several times during a
@@ -192,7 +192,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	public void setSecurityContext(final SecurityContext securityContext) {
 		this.securityContext = securityContext;
 	}
-	
+
 	@Override
 	public void unlockReadOnlyPropertiesOnce() {
 
@@ -253,14 +253,14 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	 * in the given direction. Overwrite this method and return true for
 	 * the desired direction to enable a callback on non-local node
 	 * modification.
-	 * 
+	 *
 	 * @param direction the direction for which the propagation should is to be returned
 	 * @return the propagation status for the given direction
 	 */
 	public boolean propagatesModifications(Direction direction) {
 		return false;
 	}
-	
+
 	//~--- get methods ----------------------------------------------------
 
 	@Override
@@ -283,14 +283,14 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 		return getInternalId();
 
 	}
-	
+
 	@Override
 	public String getUuid() {
 
 		return getProperty(AbstractRelationship.id);
 
 	}
-	
+
 	public long getRelationshipId() {
 
 		return getInternalId();
@@ -371,7 +371,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 				return propertyValue.toString();
 			}
 		}
-		
+
 		return null;
 	}
 
@@ -394,11 +394,11 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 			NodeFactory<T> nodeFactory = new NodeFactory<>(SecurityContext.getSuperUserInstance());
 			return nodeFactory.instantiate(dbRelationship.getEndNode());
-			
+
 		} catch (FrameworkException t) {
 			// ignore FrameworkException but let NotInTransactionException pass
 		}
-		
+
 		return null;
 	}
 
@@ -409,11 +409,11 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 			NodeFactory<S> nodeFactory = new NodeFactory<>(SecurityContext.getSuperUserInstance());
 			return nodeFactory.instantiate(dbRelationship.getStartNode());
-			
+
 		} catch (FrameworkException t) {
 			// ignore FrameworkException but let NotInTransactionException pass
 		}
-		
+
 		return null;
 	}
 
@@ -423,12 +423,12 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 		try {
 
 			NodeFactory nodeFactory = new NodeFactory(SecurityContext.getSuperUserInstance());
-			return (NodeInterface) nodeFactory.instantiate(dbRelationship.getOtherNode(node.getNode()));
-			
+			return (NodeInterface)nodeFactory.instantiate(dbRelationship.getOtherNode(node.getNode()));
+
 		} catch (FrameworkException t) {
 			// ignore FrameworkException but let NotInTransactionException pass
 		}
-		
+
 		return null;
 	}
 
@@ -464,12 +464,12 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	 */
 	@Override
 	public Object getPropertyForIndexing(final PropertyKey key) {
-		
+
 		Object value = getProperty(key, false, null);
 		if (value != null) {
 			return value;
 		}
-		
+
 		return getProperty(key);
 	}
 
@@ -503,7 +503,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 		return null;
 	}
-	
+
 	@Override
 	public PropertyContainer getPropertyContainer() {
 		return dbRelationship;
@@ -540,7 +540,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	public boolean onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
 		return true;
 	}
-	
+
 	@Override
 	public void afterCreation(SecurityContext securityContext) {
 	}
@@ -556,11 +556,11 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	@Override
 	public void ownerModified(SecurityContext securityContext) {
 	}
-	
+
 	@Override
 	public void securityModified(SecurityContext securityContext) {
 	}
-	
+
 	@Override
 	public void locationModified(SecurityContext securityContext) {
 	}
@@ -568,7 +568,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	@Override
 	public void propagatedModification(SecurityContext securityContext) {
 	}
-	
+
 	public boolean isValid(ErrorBuffer errorBuffer) {
 
 		boolean error = false;
@@ -602,14 +602,14 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 				// permit write operation once and
 				// lock read-only properties again
 				readOnlyPropertiesUnlocked = false;
-				
+
 			} else {
 
 				throw new FrameworkException(getClass().getSimpleName(), new ReadOnlyPropertyToken(key));
 			}
 
 		}
-		
+
 		key.setProperty(securityContext, this, value);
 	}
 
@@ -617,55 +617,55 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	public void addToIndex() {
 
 		for (PropertyKey key : StructrApp.getConfiguration().getPropertySet(entityType, PropertyView.All)) {
-			
+
 			if (key.isIndexed()) {
-				
+
 				key.index(this, this.getPropertyForIndexing(key));
 			}
 		}
 	}
-	
+
 	@Override
 	public void updateInIndex() {
-		
+
 		removeFromIndex();
 		addToIndex();
 	}
-	
+
 	@Override
 	public void removeFromIndex() {
-		
+
 		for (Index<Relationship> index : Services.getInstance().getService(NodeService.class).getRelationshipIndices()) {
-			
+
 			synchronized (index) {
-				
+
 				index.remove(dbRelationship);
 			}
 		}
 	}
-	
+
 	public void removeFromIndex(PropertyKey key) {
-		
+
 		for (Index<Relationship> index : Services.getInstance().getService(NodeService.class).getRelationshipIndices()) {
-			
+
 			synchronized (index) {
-				
+
 				index.remove(dbRelationship, key.dbName());
 			}
 		}
 	}
-	
+
 	@Override
 	public void indexPassiveProperties() {
 
 		for (PropertyKey key : StructrApp.getConfiguration().getPropertySet(entityType, PropertyView.All)) {
-			
+
 			if (key.isPassivelyIndexed()) {
-				
+
 				key.index(this, this.getPropertyForIndexing(key));
 			}
 		}
-		
+
 	}
 
 	@Override
@@ -677,7 +677,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 		}
 
 		final App app = StructrApp.getInstance(securityContext);
-		
+
 		final NodeInterface newStartNode = (NodeInterface)app.get(startNodeId);
 		final NodeInterface endNode      = getTargetNode();
 		final Class relationType         = getClass();
@@ -721,30 +721,30 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 		// create new relationship and store here
 		app.create(startNode, newTargetNode, relationType, _props);
 	}
-	
+
 	// ----- protected methods -----
 	protected Direction getDirectionForType(final Class<S> sourceType, final Class<T> targetType, final Class<? extends NodeInterface> type) {
 
 		if (sourceType.equals(type) && targetType.equals(type)) {
 			return Direction.BOTH;
 		}
-		
+
 		if (sourceType.equals(type)) {
 			return Direction.OUTGOING;
 		}
-		
+
 		if (targetType.equals(type)) {
 			return Direction.INCOMING;
 		}
-		
+
 		if (sourceType.isAssignableFrom(type)) {
 			return Direction.OUTGOING;
 		}
-		
+
 		if (targetType.isAssignableFrom(type)) {
 			return Direction.INCOMING;
 		}
-		
+
 		return Direction.BOTH;
 	}
 }

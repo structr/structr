@@ -89,6 +89,7 @@ import org.structr.web.common.UiResourceProvider;
 import org.structr.web.entity.dom.relationship.DOMChildren;
 import org.structr.web.entity.relation.RenderNode;
 import org.structr.web.entity.relation.Sync;
+import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -254,33 +255,39 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	@Override
 	public boolean contentEquals(DOMNode otherNode) {
 
-		if (otherNode instanceof DOMElement) {
-
-			final DOMElement otherElement = (DOMElement)otherNode;
-
-			if (getProperty(DOMElement.tag).equals(otherNode.getProperty(DOMElement.tag))) {
-
-				boolean equal = true;
-
-				for (final Property key : htmlView.properties()) {
-
-					final Object value1 = this.getProperty(key);
-					final Object value2 = otherElement.getProperty(key);
-
-					if (value1 == null && value2 == null) {
-						continue;
-					}
-
-					if (value1 != null && value2 != null) {
-						equal &= value1.equals(value2);
-					}
-				}
-
-				return equal;
-			}
-		}
-
+		// two elements can not have the same content
 		return false;
+
+//
+//		if (otherNode instanceof DOMElement) {
+//
+//			return false;
+//
+//			final DOMElement otherElement = (DOMElement)otherNode;
+//
+//			if (getProperty(DOMElement.tag).equals(otherNode.getProperty(DOMElement.tag))) {
+//
+//				boolean equal = true;
+//
+//				for (final Property key : htmlView.properties()) {
+//
+//					final Object value1 = this.getProperty(key);
+//					final Object value2 = otherElement.getProperty(key);
+//
+//					if (value1 == null && value2 == null) {
+//						continue;
+//					}
+//
+//					if (value1 != null && value2 != null) {
+//						equal &= value1.equals(value2);
+//					}
+//				}
+//
+//				return equal;
+//			}
+//		}
+//
+//		return false;
 	}
 
 	@Override
@@ -738,8 +745,6 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	@Override
 	public void setAttribute(final String name, final String value) throws DOMException {
 
-		final App app = StructrApp.getInstance(securityContext);
-
 		try {
 			HtmlProperty htmlProperty = findOrCreateAttributeKey(name);
 			if (htmlProperty != null) {
@@ -756,8 +761,6 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 	@Override
 	public void removeAttribute(final String name) throws DOMException {
-
-		final App app = StructrApp.getInstance(securityContext);
 
 		try {
 			HtmlProperty htmlProperty = findOrCreateAttributeKey(name);
@@ -1234,11 +1237,16 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 			String xpathQuery = referenceNode.getProperty(DOMElement.xpathQuery);
 			if (xpathQuery != null) {
 
-				XPathFactory factory            = XPathFactory.newInstance();
-				XPath xpath                     = factory.newXPath();
+				final XPathFactory factory = XPathFactory.newInstance();
+				final XPath xpath = factory.newXPath();
+				Document document = ((DOMNode)referenceNode).getOwnerDocument();
 
 				try {
-					Object result = xpath.evaluate(xpathQuery, ((DOMNode)referenceNode).getOwnerDocument(), XPathConstants.NODESET);
+
+					// FIXME: this code works only with absolute xpath queries because
+					//        the xpath parser implementation is stupid (comparing object
+					//        equality using ==).
+					Object result = xpath.evaluate(xpathQuery, document, XPathConstants.NODESET);
 					List<GraphObject> results = new LinkedList<>();
 
 					if (result instanceof NodeList) {
