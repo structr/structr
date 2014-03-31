@@ -238,10 +238,19 @@ var _Entities = {
                     }
 
                     Command.savePage(text2, entity.id, function() {
-                            dialogSaveButton.prop("disabled", true).addClass('disabled');
-                            saveAndClose.prop("disabled", true).addClass('disabled');
-                            dialogMsg.html('<div class="infoBox success">New nodes created from source.</div>');
-                            $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
+                        $.ajax({
+                            url: url,
+                            contentType: contentType,
+                            success: function(data) {
+                                editor.setValue(unescapeTags(data));
+                            }
+                        });
+
+                        dialogSaveButton.prop("disabled", true).addClass('disabled');
+                        saveAndClose.prop("disabled", true).addClass('disabled');
+                        dialogMsg.html('<div class="infoBox success">Page source saved and rebuilt DOM tree.</div>');
+                        $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
+
                     });
 
 //                    var parent = entity.parent;
@@ -946,7 +955,7 @@ var _Entities = {
 
     },
     makeNameEditable: function(element, width) {
-        
+
         var w = width || 200;
         //element.off('dblclick');
         element.off('hover');
