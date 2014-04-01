@@ -257,37 +257,6 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 		// two elements can not have the same content
 		return false;
-
-//
-//		if (otherNode instanceof DOMElement) {
-//
-//			return false;
-//
-//			final DOMElement otherElement = (DOMElement)otherNode;
-//
-//			if (getProperty(DOMElement.tag).equals(otherNode.getProperty(DOMElement.tag))) {
-//
-//				boolean equal = true;
-//
-//				for (final Property key : htmlView.properties()) {
-//
-//					final Object value1 = this.getProperty(key);
-//					final Object value2 = otherElement.getProperty(key);
-//
-//					if (value1 == null && value2 == null) {
-//						continue;
-//					}
-//
-//					if (value1 != null && value2 != null) {
-//						equal &= value1.equals(value2);
-//					}
-//				}
-//
-//				return equal;
-//			}
-//		}
-//
-//		return false;
 	}
 
 	@Override

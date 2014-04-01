@@ -372,12 +372,6 @@ public class Importer {
 					equalityBitmask |= 4;
 				}
 
-				if (equalityBitmask > 0) {
-
-					// just to be able to set a breakpoint here..
-					int i = 0;
-				}
-
 				switch (equalityBitmask) {
 
 					case 7:	// same tree index (1), same node (2), same content (4) => node is completely unmodified
@@ -397,9 +391,9 @@ public class Importer {
 						break;
 
 					case 3: // same tree index, same node, NOT same content => node was modified but not moved
-						if (!(existingNode instanceof DOMElement)) {
+//						if (!(existingNode instanceof DOMElement)) {
 							changeSet.add(new UpdateOperation(hashMappedExistingNodes, existingNode, newNode));
-						}
+//						}
 						break;
 
 					case 2:	// NOT same tree index, same node (2), NOT same content => node was moved and changed
