@@ -253,7 +253,7 @@ var Structr = {
         log('activating reconnect loop');
         
         localStorage.removeItem(userKey);
-        user.length = 0;
+        user = undefined;
         reconn = window.setInterval(function() {
             connect();
         }, 1000);
