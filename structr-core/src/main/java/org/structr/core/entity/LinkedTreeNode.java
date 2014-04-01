@@ -76,6 +76,13 @@ public abstract class LinkedTreeNode<R extends AbstractChildren<T, T>, S extends
 		List<R> rels = treeGetChildRelationships();
 		int position = 0;
 
+		// when there are no child rels, this is an append operation
+		if (rels.isEmpty()) {
+
+			treeAppendChild(newChild);
+			return;
+		}
+
 		for (R rel : rels) {
 
 			T node = rel.getTargetNode();
@@ -103,6 +110,13 @@ public abstract class LinkedTreeNode<R extends AbstractChildren<T, T>, S extends
 
 		List<R> rels = treeGetChildRelationships();
 		int position = 0;
+
+		// when there are no child rels, this is an append operation
+		if (rels.isEmpty()) {
+
+			treeAppendChild(newChild);
+			return;
+		}
 
 		for (R rel : rels) {
 

@@ -126,8 +126,6 @@ public class DiffTest extends StructrUiTest {
 			}
 		});
 
-		System.out.println(result1);
-
 		assertEquals(
 			"<!DOCTYPE html>\n" +
 			"<html>\n" +
@@ -157,8 +155,6 @@ public class DiffTest extends StructrUiTest {
 				return mod;
 			}
 		});
-
-		System.out.println(result1);
 
 		assertEquals(
 			"<!DOCTYPE html>\n" +
@@ -191,8 +187,6 @@ public class DiffTest extends StructrUiTest {
 				return buf.toString();
 			}
 		});
-
-		System.out.println(result1);
 
 		assertEquals(
 			"<!DOCTYPE html>\n" +
@@ -229,8 +223,6 @@ public class DiffTest extends StructrUiTest {
 				return buf.toString();
 			}
 		});
-
-		System.out.println(result1);
 
 		assertEquals(
 			"<!DOCTYPE html>\n" +
@@ -270,8 +262,6 @@ public class DiffTest extends StructrUiTest {
 			}
 		});
 
-		System.out.println(result1);
-
 		assertEquals(
 			"<!DOCTYPE html>\n" +
 			"<html>\n" +
@@ -299,8 +289,6 @@ public class DiffTest extends StructrUiTest {
 			@Override
 			public String apply(String from) {
 
-				System.out.println(from);
-
 				final StringBuilder buf = new StringBuilder(from);
 
 				int startPos = buf.indexOf("<h1");
@@ -319,8 +307,6 @@ public class DiffTest extends StructrUiTest {
 				return buf.toString();
 			}
 		});
-
-		System.out.println(result1);
 
 
 		assertEquals(
@@ -456,8 +442,6 @@ public class DiffTest extends StructrUiTest {
 				int insert = buf.indexOf("</h2>") + 20;
 
 				buf.insert(insert, clipboard.toString());
-
-				System.out.println(buf.toString());
 
 				return buf.toString();
 			}

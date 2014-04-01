@@ -8,7 +8,6 @@ import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.dom.relationship.DOMChildren;
 import org.w3c.dom.Node;
 
 /**
@@ -67,11 +66,6 @@ public class MoveOperation extends InvertibleModificationOperation {
 			}
 
 			parent.insertBefore(originalNode, sibling);
-
-			// remove children
-			for (final DOMChildren childRel : newNode.getChildRelationships()) {
-				app.delete(childRel);
-			}
 		}
 	}
 
