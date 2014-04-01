@@ -278,6 +278,9 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 				// copy attributes
 				this.setProperty(key, otherElement.getProperty(key));
 			}
+
+			// overwrite tag with value from source node
+			this.setProperty(DOMElement.tag, otherElement.getProperty(DOMElement.tag));
 		}
 	}
 
