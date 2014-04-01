@@ -223,7 +223,11 @@ var _Entities = {
                         dialogSaveButton.prop("disabled", false).removeClass('disabled');
                         saveAndClose.prop("disabled", false).removeClass('disabled');
                     }
+
+                    $('.CodeMirror-code .cm-attribute:contains("data-hash")').addClass('data-hash').next().addClass('data-hash');
                 });
+
+                $('.CodeMirror-code .cm-attribute:contains("data-hash")').addClass('data-hash').next().addClass('data-hash');
 
                 dialogSaveButton.on('click', function(e) {
                     e.stopPropagation();

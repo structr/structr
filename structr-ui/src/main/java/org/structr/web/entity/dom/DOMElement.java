@@ -297,6 +297,30 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 		out.append("<").append(tag);
 
+		for (PropertyKey attribute : StructrApp.getConfiguration().getPropertySet(getClass(), PropertyView.Html)) {
+
+			String value = getPropertyWithVariableReplacement(securityContext, renderContext, attribute);
+
+			if (!(EditMode.RAW.equals(editMode))) {
+
+				value = escapeForHtmlAttributes(value);
+
+			}
+
+			if (value != null) {
+
+				String key = attribute.jsonName().substring(PropertyView.Html.length());
+
+				out.append(" ").append(key).append("=\"").append(value).append("\"");
+
+			}
+
+		}
+
+		// include arbitrary data-* attributes
+		renderCustomAttributes(out, securityContext, renderContext);
+
+		// include special mode attributes
 		switch (editMode) {
 
 			case CONTENT:
@@ -317,29 +341,6 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 			case RAW:
 				out.append(" data-hash=\"").append(getIdHash()).append("\"");
 				break;
-		}
-
-		// include arbitrary data-* attributes
-		renderCustomAttributes(out, securityContext, renderContext);
-
-		for (PropertyKey attribute : StructrApp.getConfiguration().getPropertySet(getClass(), PropertyView.Html)) {
-
-			String value = getPropertyWithVariableReplacement(securityContext, renderContext, attribute);
-
-			if (!(EditMode.RAW.equals(editMode))) {
-
-				value = escapeForHtmlAttributes(value);
-
-			}
-
-			if (value != null) {
-
-				String key = attribute.jsonName().substring(PropertyView.Html.length());
-
-				out.append(" ").append(key).append("=\"").append(value).append("\"");
-
-			}
-
 		}
 
 		out.append(">");

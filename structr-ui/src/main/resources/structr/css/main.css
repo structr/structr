@@ -1542,3 +1542,8 @@ button.add_property {
 #data-binding-inputs {
     margin-top: 48px ! important;
 }
+
+/* Special highlighting for data-hash attribute in internal editor */
+.data-hash {
+    color: #ccc ! important;
+}
