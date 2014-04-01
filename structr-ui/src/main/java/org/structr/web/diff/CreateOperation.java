@@ -20,11 +20,11 @@ public class CreateOperation extends InvertibleModificationOperation {
 	private String parentHash          = null;
 	private DOMNode newNode            = null;
 	private int depth                  = 0;
-	
+
 	public CreateOperation(final Map<String, DOMNode> hashMappedExistingNodes, final String parentHash, final List<String> siblingHashes, final DOMNode newNode, final int depth) {
-		
+
 		super(hashMappedExistingNodes);
-		
+
 		this.siblingHashes = siblingHashes;
 		this.parentHash  = parentHash;
 		this.newNode     = newNode;
@@ -33,13 +33,13 @@ public class CreateOperation extends InvertibleModificationOperation {
 
 	@Override
 	public String toString() {
-		
+
 		if (newNode instanceof Content) {
-			
+
 			return "Create Content(" + newNode.getIdHashOrProperty() + ")";
 
 		} else {
-			
+
 			return "Create " + newNode.getProperty(DOMElement.tag) + "(" + newNode.getIdHashOrProperty() + ")";
 		}
 	}
@@ -47,22 +47,22 @@ public class CreateOperation extends InvertibleModificationOperation {
 	// ----- interface InvertibleModificationOperation -----
 	@Override
 	public void apply(final App app, final Page sourcePage, final Page newPage) throws FrameworkException {
-		
+
 		final InsertPosition insertPosition = findInsertPosition(sourcePage, parentHash, siblingHashes, newNode);
 		if (insertPosition != null) {
-			
+
 			final DOMNode parent  = insertPosition.getParent();
 			final DOMNode sibling = insertPosition.getSibling();
 
 			if (parent != null) {
-				
+
 				sourcePage.adoptNode(newNode);
 				parent.insertBefore(newNode, sibling);
 
 				// make existing node known to other operations
 				hashMappedExistingNodes.put(newNode.getIdHashOrProperty(), newNode);
 
-				// remove children
+				// remove children of new node so that existing nodes can be moved later
 				for (final DOMChildren childRel : newNode.getChildRelationships()) {
 					app.delete(childRel);
 				}
@@ -77,7 +77,7 @@ public class CreateOperation extends InvertibleModificationOperation {
 
 	@Override
 	public Integer getPosition() {
-		
+
 		// create perations should go after Delete but before Move
 		return 200 + depth;
 	}

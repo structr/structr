@@ -74,10 +74,16 @@ public abstract class LinkedTreeNode<R extends AbstractChildren<T, T>, S extends
 	public void treeInsertBefore(final T newChild, final T refChild) throws FrameworkException {
 
 		List<R> rels = treeGetChildRelationships();
+		boolean found = false;
 		int position = 0;
 
 		// when there are no child rels, this is an append operation
 		if (rels.isEmpty()) {
+
+			// we have no children, but the ref child is non-null => can't be ours.. :)
+			if (refChild != null) {
+				throw new FrameworkException(404, "Referenced child is not a child of parent node.");
+			}
 
 			treeAppendChild(newChild);
 			return;
@@ -94,12 +100,19 @@ public abstract class LinkedTreeNode<R extends AbstractChildren<T, T>, S extends
 
 				linkNodes(getChildLinkType(), (T) LinkedTreeNode.this, newChild, properties);
 
+				found = true;
+
 				position++;
 			}
 
 			rel.setProperty(positionProperty, position);
 
 			position++;
+		}
+
+		// if child is not found, raise an exception
+		if (!found) {
+			throw new FrameworkException(404, "Referenced child is not a child of parent node.");
 		}
 
 		// insert new node in linked list
@@ -275,8 +288,6 @@ public abstract class LinkedTreeNode<R extends AbstractChildren<T, T>, S extends
 		int position = 0;
 
 		for (R childRel : childRels) {
-
-			childRel.removeProperty(positionProperty);
 			childRel.setProperty(positionProperty, position++);
 		}
 	}

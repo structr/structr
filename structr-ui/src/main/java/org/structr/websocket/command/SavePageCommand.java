@@ -53,14 +53,13 @@ public class SavePageCommand extends AbstractCommand {
 		final String modifiedHtml = (String) nodeData.get("source");
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 		final App app = StructrApp.getInstance(securityContext);
-		
+
 		Page modifiedPage = null;
-		
+
 		Page sourcePage = getPage(pageId);
 		if (sourcePage != null) {
 
 			try {
-				logger.log(Level.INFO, modifiedHtml);
 
 				// parse page from modified source
 				modifiedPage = Importer.parsePageFromSource(securityContext, modifiedHtml, "Test");
@@ -69,13 +68,11 @@ public class SavePageCommand extends AbstractCommand {
 
 				for (final InvertibleModificationOperation op : changeSet) {
 
-					System.out.println(op);
-
 					// execute operation
 					op.apply(app, sourcePage, modifiedPage);
 
 				}
-				
+
 
 			} catch (Throwable t) {
 
@@ -85,13 +82,13 @@ public class SavePageCommand extends AbstractCommand {
 				// send exception
 				getWebSocket().send(MessageBuilder.status().code(422).message(t.toString()).build(), true);
 			}
-				
+
 			try {
 
 				app.delete(modifiedPage);
 
 			} catch (FrameworkException ex) {
-				
+
 				ex.printStackTrace();
 			}
 

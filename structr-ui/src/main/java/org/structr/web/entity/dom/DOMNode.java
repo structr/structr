@@ -1329,7 +1329,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 					if (rel != null) {
 						_data = rel.getTargetNode();
-						
+
 						continue;
 					}
 
@@ -1958,51 +1958,59 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		checkHierarchy(newChild);
 		checkHierarchy(refChild);
 
-		try {
+		if (newChild instanceof DocumentFragment) {
 
-			if (newChild instanceof DocumentFragment) {
+			// When inserting document fragments, we must take
+			// care of the special case that the nodes already
+			// have a NEXT_LIST_ENTRY relationship coming from
+			// the document fragment, so we must first remove
+			// the node from the document fragment and then
+			// add it to the new parent.
+			DocumentFragment fragment = (DocumentFragment)newChild;
+			Node currentChild = fragment.getFirstChild();
 
-				// When inserting document fragments, we must take
-				// care of the special case that the nodes already
-				// have a NEXT_LIST_ENTRY relationship coming from
-				// the document fragment, so we must first remove
-				// the node from the document fragment and then
-				// add it to the new parent.
-				DocumentFragment fragment = (DocumentFragment) newChild;
-				Node currentChild = fragment.getFirstChild();
+			while (currentChild != null) {
 
-				while (currentChild != null) {
+				// save next child in fragment list for later use
+				Node savedNextChild = currentChild.getNextSibling();
 
-					// save next child in fragment list for later use
-					Node savedNextChild = currentChild.getNextSibling();
+				// remove child from document fragment
+				fragment.removeChild(currentChild);
 
-					// remove child from document fragment
-					fragment.removeChild(currentChild);
+				// insert child into new parent
+				insertBefore(currentChild, refChild);
 
-					// insert child into new parent
-					insertBefore(currentChild, refChild);
-
-					// next
-					currentChild = savedNextChild;
-				}
-
-			} else {
-
-				Node _parent = newChild.getParentNode();
-				if (_parent != null) {
-
-					_parent.removeChild(newChild);
-				}
-
-				treeInsertBefore((DOMNode) newChild, (DOMNode) refChild);
-
-				// allow parent to set properties in new child
-				handleNewChild(newChild);
+				// next
+				currentChild = savedNextChild;
 			}
 
-		} catch (FrameworkException fex) {
+		} else {
 
-			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());
+			Node _parent = newChild.getParentNode();
+			if (_parent != null) {
+
+				_parent.removeChild(newChild);
+			}
+
+			try {
+
+				// do actual tree insertion here
+				treeInsertBefore((DOMNode)newChild, (DOMNode)refChild);
+
+			} catch (FrameworkException frex) {
+
+				if (frex.getStatus() == 404) {
+
+					throw new DOMException(DOMException.NOT_FOUND_ERR, frex.getMessage());
+
+				} else {
+
+					throw new DOMException(DOMException.INVALID_STATE_ERR, frex.getMessage());
+				}
+			}
+
+			// allow parent to set properties in new child
+			handleNewChild(newChild);
 		}
 
 		return refChild;
@@ -2019,56 +2027,62 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		checkHierarchy(newChild);
 		checkHierarchy(oldChild);
 
-		try {
+		if (newChild instanceof DocumentFragment) {
 
-			if (newChild instanceof DocumentFragment) {
+			// When inserting document fragments, we must take
+			// care of the special case that the nodes already
+			// have a NEXT_LIST_ENTRY relationship coming from
+			// the document fragment, so we must first remove
+			// the node from the document fragment and then
+			// add it to the new parent.
+			// replace indirectly using insertBefore and remove
+			DocumentFragment fragment = (DocumentFragment)newChild;
+			Node currentChild = fragment.getFirstChild();
 
-				// When inserting document fragments, we must take
-				// care of the special case that the nodes already
-				// have a NEXT_LIST_ENTRY relationship coming from
-				// the document fragment, so we must first remove
-				// the node from the document fragment and then
-				// add it to the new parent.
-				// replace indirectly using insertBefore and remove
-				DocumentFragment fragment = (DocumentFragment) newChild;
-				Node currentChild = fragment.getFirstChild();
+			while (currentChild != null) {
 
-				while (currentChild != null) {
+				// save next child in fragment list for later use
+				Node savedNextChild = currentChild.getNextSibling();
 
-					// save next child in fragment list for later use
-					Node savedNextChild = currentChild.getNextSibling();
+				// remove child from document fragment
+				fragment.removeChild(currentChild);
 
-					// remove child from document fragment
-					fragment.removeChild(currentChild);
+				// add child to new parent
+				insertBefore(currentChild, oldChild);
 
-					// add child to new parent
-					insertBefore(currentChild, oldChild);
-
-					// next
-					currentChild = savedNextChild;
-				}
-
-				// finally, remove reference element
-				removeChild(oldChild);
-
-			} else {
-
-				Node _parent = newChild.getParentNode();
-				if (_parent != null && _parent instanceof DOMNode) {
-
-					_parent.removeChild(newChild);
-				}
-
-				// replace directly
-				treeReplaceChild((DOMNode) newChild, (DOMNode) oldChild);
-
-				// allow parent to set properties in new child
-				handleNewChild(newChild);
+				// next
+				currentChild = savedNextChild;
 			}
 
-		} catch (FrameworkException fex) {
+			// finally, remove reference element
+			removeChild(oldChild);
 
-			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());
+		} else {
+
+			Node _parent = newChild.getParentNode();
+			if (_parent != null && _parent instanceof DOMNode) {
+
+				_parent.removeChild(newChild);
+			}
+
+			try {
+				// replace directly
+				treeReplaceChild((DOMNode)newChild, (DOMNode)oldChild);
+
+			} catch (FrameworkException frex) {
+
+				if (frex.getStatus() == 404) {
+
+					throw new DOMException(DOMException.NOT_FOUND_ERR, frex.getMessage());
+
+				} else {
+
+					throw new DOMException(DOMException.INVALID_STATE_ERR, frex.getMessage());
+				}
+			}
+
+			// allow parent to set properties in new child
+			handleNewChild(newChild);
 		}
 
 		return oldChild;

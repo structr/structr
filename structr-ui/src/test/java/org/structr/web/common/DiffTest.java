@@ -523,9 +523,9 @@ public class DiffTest extends StructrUiTest {
 
 				String modified = from;
 
-				modified = modified.replace(" class=\"test\"", "class=\"foo\"");
-				modified = modified.replace(" id=\"one\"", "id=\"two\"");
-				modified = modified.replace(" id=\"three\"", "class=\"test\"");
+				modified = modified.replace(" class=\"test\"", " class=\"foo\"");
+				modified = modified.replace(" id=\"one\"", " id=\"two\"");
+				modified = modified.replace(" id=\"three\"", " class=\"test\"");
 
 				return modified;
 			}
@@ -556,6 +556,133 @@ public class DiffTest extends StructrUiTest {
 		);
 	}
 
+	public void testBlockMoveUp() {
+
+		final String result1 = testDiff("<html><head><title>Title</title></head><body><div>Text<h2>one</h2><p>two</p></div></body></html>", new org.neo4j.helpers.Function<String, String>() {
+
+			@Override
+			public String apply(String from) {
+
+				final StringBuilder clipboard = new StringBuilder();
+				final StringBuilder buf = new StringBuilder(from);
+
+				int cutStart = buf.indexOf("<h2");
+				int cutEnd = buf.indexOf("</p>") + 9;
+
+				// cut out <h1> block
+				clipboard.append(buf.substring(cutStart, cutEnd));
+				buf.replace(cutStart, cutEnd, "");
+
+				int insert = buf.indexOf("<div");
+				buf.insert(insert, clipboard.toString());
+
+				return buf.toString();
+			}
+		});
+
+		System.out.println(result1);
+
+		assertEquals(
+			"<!DOCTYPE html>\n"
+			+ "<html>\n"
+			+ "  <head>\n"
+			+ "    <title>Title</title>\n"
+			+ "  </head>\n"
+			+ "  <body>\n"
+			+ "    <h2>one</h2>\n"
+			+ "    <p>two</p>\n"
+			+ "    <div>Text </div>\n"
+			+ "  </body>\n"
+			+ "</html>",
+			result1
+		);
+	}
+
+	public void testBlockMoveDown() {
+
+		final String result1 = testDiff("<html><head><title>Title</title></head><body><div>Text<h2>one</h2><div><p>two</p></div></div></body></html>", new org.neo4j.helpers.Function<String, String>() {
+
+			@Override
+			public String apply(String from) {
+
+				final StringBuilder clipboard = new StringBuilder();
+				final StringBuilder buf = new StringBuilder(from);
+
+				int cutStart = buf.indexOf("<h2");
+				int cutEnd = buf.indexOf("</h2>") + 5;
+
+				// cut out <h1> block
+				clipboard.append(buf.substring(cutStart, cutEnd));
+				buf.replace(cutStart, cutEnd, "");
+
+				int insert = buf.indexOf("<p ");
+
+				buf.insert(insert, clipboard.toString());
+
+				System.out.println(buf.toString());
+
+				return buf.toString();
+			}
+		});
+
+		System.out.println(result1);
+
+		assertEquals(
+			"<!DOCTYPE html>\n"
+			+ "<html>\n"
+			+ "  <head>\n"
+			+ "    <title>Title</title>\n"
+			+ "  </head>\n"
+			+ "  <body>\n"
+			+ "    <div>Text \n"
+			+ "      <div>\n"
+			+ "        <h2>one</h2>\n"
+			+ "        <p>two</p>\n"
+			+ "      </div>\n"
+			+ "    </div>\n"
+			+ "  </body>\n"
+			+ "</html>",
+			result1
+		);
+	}
+
+	public void testSurroundBlock() {
+
+		final String result1 = testDiff("<html><head><title>Title</title></head><body><h1>title</h1><p>text</p></body></html>", new org.neo4j.helpers.Function<String, String>() {
+
+			@Override
+			public String apply(String from) {
+
+				final StringBuilder buf = new StringBuilder(from);
+
+				int insertStart = buf.indexOf("<h1");
+				int insertEnd = buf.indexOf("</p>") + 4;
+
+				buf.insert(insertEnd, "</div>");
+				buf.insert(insertStart, "<div>");
+
+				return buf.toString();
+			}
+		});
+
+		System.out.println(result1);
+
+		assertEquals(
+			"<!DOCTYPE html>\n"
+			+ "<html>\n"
+			+ "  <head>\n"
+			+ "    <title>Title</title>\n"
+			+ "  </head>\n"
+			+ "  <body>\n"
+			+ "    <div>\n"
+			+ "      <h1>title</h1>\n"
+			+ "      <p>text</p>\n"
+			+ "    </div>\n"
+			+ "  </body>\n"
+			+ "</html>",
+			result1
+		);
+	}
 
 
 
@@ -588,8 +715,8 @@ public class DiffTest extends StructrUiTest {
 				// execute operation
 				op.apply(app, sourcePage, modifiedPage);
 
-//				System.out.println("############################################################################################");
-//				System.out.println(renderPage(sourcePage, RenderContext.EditMode.NONE));
+				System.out.println("############################################################################################");
+				System.out.println(renderPage(sourcePage, RenderContext.EditMode.NONE));
 			}
 
 			buf.append(renderPage(sourcePage, RenderContext.EditMode.NONE));
