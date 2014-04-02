@@ -990,6 +990,8 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 					}
 
+					app.delete(modifiedPage);
+					
 					tx.success();
 					
 				} catch (FrameworkException fex) {
