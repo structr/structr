@@ -27,7 +27,7 @@ application.http.port = 8082
 application.rest.path = /structr/rest
 #
 # Listener port of built-in FTP server
-application.ftp.port = 8022
+application.ftp.port = 8021
 #
 # HTTPS settings
 # run this command to create a selfsigned certificate:
