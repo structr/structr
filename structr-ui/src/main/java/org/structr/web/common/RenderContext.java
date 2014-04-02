@@ -92,32 +92,7 @@ public class RenderContext {
 
 		String editString = StringUtils.defaultString(request.getParameter("edit"));
 		
-		EditMode edit;
-
-		switch (editString) {
-			
-			case "1" :
-				
-				edit = EditMode.DATA;
-				break;
-			
-			case "2" :
-				
-				edit = EditMode.CONTENT;
-				break;
-				
-			case "3" :
-				
-				edit = EditMode.RAW;
-				break;
-
-			default :
-				
-				edit = EditMode.NONE;
-			
-		}
-		
-		return new RenderContext(request, response, edit, locale);
+		return new RenderContext(request, response, editMode(editString), locale);
 
 	}
 	
@@ -176,6 +151,41 @@ public class RenderContext {
 	 */
 	public EditMode getEditMode(final Principal user) {
 		return user == null ? EditMode.NONE : editMode;
+	}
+	
+	public void setEditMode(final EditMode edit) {
+		this.editMode = edit;
+	}
+	
+	public static EditMode editMode(final String editString) {
+
+		EditMode edit;
+
+		switch (editString) {
+			
+			case "1" :
+				
+				edit = EditMode.DATA;
+				break;
+			
+			case "2" :
+				
+				edit = EditMode.CONTENT;
+				break;
+				
+			case "3" :
+				
+				edit = EditMode.RAW;
+				break;
+
+			default :
+				
+				edit = EditMode.NONE;
+			
+		}
+		
+		return edit;
+		
 	}
 	
 	public Locale getLocale() {

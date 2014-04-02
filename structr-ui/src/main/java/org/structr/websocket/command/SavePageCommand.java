@@ -62,7 +62,7 @@ public class SavePageCommand extends AbstractCommand {
 			try {
 
 				// parse page from modified source
-				modifiedPage = Importer.parsePageFromSource(securityContext, modifiedHtml, "Test");
+				modifiedPage = Importer.parsePageFromSource(securityContext, modifiedHtml, "__SavePageCommand_Temporary_Page__");
 
 				final List<InvertibleModificationOperation> changeSet = Importer.diffPages(sourcePage, modifiedPage);
 

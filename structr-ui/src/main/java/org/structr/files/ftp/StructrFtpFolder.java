@@ -27,11 +27,13 @@ import java.util.logging.Logger;
 import org.apache.ftpserver.ftplet.FtpFile;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
+import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
+import org.structr.web.entity.dom.Page;
 
 /**
  *
@@ -91,15 +93,17 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 	public List<FtpFile> listFiles() {
 
 		List<FtpFile> ftpFiles = new ArrayList();
+		
+		final App app = StructrApp.getInstance();
 
-		try (Tx tx = StructrApp.getInstance().tx()) {
+		try (Tx tx = app.tx()) {
 
 			String requestedPath = getAbsolutePath();
 			logger.log(Level.INFO, "Children of {0} requested", requestedPath);
 
 			if ("/".equals(requestedPath)) {
 				try {
-					Result<Folder> folders = StructrApp.getInstance().nodeQuery(Folder.class).getResult();
+					Result<Folder> folders = app.nodeQuery(Folder.class).getResult();
 					logger.log(Level.INFO, "{0} folders found", folders.size());
 
 					for (Folder f : folders.getResults()) {
@@ -115,7 +119,7 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 
 					}
 
-					Result<File> files = StructrApp.getInstance().nodeQuery(File.class).getResult();
+					Result<File> files = app.nodeQuery(File.class).getResult();
 					logger.log(Level.INFO, "{0} files found", files.size());
 
 					for (File f : files.getResults()) {
@@ -130,6 +134,17 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 						logger.log(Level.FINE, "File found: {0}", ftpFile.getAbsolutePath());
 
 						ftpFiles.add(ftpFile);
+
+					}
+
+					Result<Page> pages = app.nodeQuery(Page.class).getResult();
+					logger.log(Level.INFO, "{0} pages found", pages.size());
+
+					for (Page p : pages.getResults()) {
+
+						logger.log(Level.FINEST, "Structr page found: {0}", p);
+
+						ftpFiles.add(p);
 
 					}
 

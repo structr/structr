@@ -735,7 +735,7 @@ public class DiffTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final Page sourcePage     = Importer.parsePageFromSource(securityContext, source, "test");
-			final String sourceHtml   = renderPage(sourcePage, RenderContext.EditMode.RAW);
+			final String sourceHtml   = sourcePage.getContent(RenderContext.EditMode.RAW);
 			final String modifiedHtml = modifier.apply(sourceHtml);
 
 			// parse page from modified source
@@ -751,10 +751,10 @@ public class DiffTest extends StructrUiTest {
 				op.apply(app, sourcePage, modifiedPage);
 
 				System.out.println("############################################################################################");
-				System.out.println(renderPage(sourcePage, RenderContext.EditMode.NONE));
+				System.out.println(sourcePage.getContent(RenderContext.EditMode.NONE));
 			}
 
-			buf.append(renderPage(sourcePage, RenderContext.EditMode.NONE));
+			buf.append(sourcePage.getContent(RenderContext.EditMode.NONE));
 
 		} catch (Throwable t) {
 
@@ -764,37 +764,4 @@ public class DiffTest extends StructrUiTest {
 		return buf.toString();
 	}
 
-	private String renderPage(final Page page, final RenderContext.EditMode editMode) throws FrameworkException {
-
-		final RenderContext ctx = new RenderContext(null, null, editMode, Locale.GERMAN);
-		final TestBuffer buffer = new TestBuffer();
-		ctx.setBuffer(buffer);
-		page.render(securityContext, ctx, 0);
-
-		// extract source
-		return buffer.getBuffer().toString();
-	}
-
-	private static class TestBuffer extends AsyncBuffer {
-
-		private StringBuilder buf = new StringBuilder();
-
-		@Override
-		public AsyncBuffer append(final String s) {
-			buf.append(s);
-			return this;
-		}
-
-		public StringBuilder getBuffer() {
-			return buf;
-		}
-
-		@Override
-		public void flush() {
-		}
-
-		@Override
-		public void onWritePossible() throws IOException {
-		}
-	}
 }

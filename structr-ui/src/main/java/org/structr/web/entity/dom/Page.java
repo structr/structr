@@ -17,23 +17,53 @@
  */
 package org.structr.web.entity.dom;
 
+import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.ftpserver.ftplet.FtpFile;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.web.entity.Linkable;
+import org.structr.core.Export;
+import org.structr.core.Predicate;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractUser;
+import org.structr.core.entity.Principal;
+import org.structr.core.graph.CreateNodeCommand;
+import org.structr.core.graph.NodeAttribute;
+import static org.structr.core.graph.NodeInterface.owner;
+import org.structr.core.graph.Tx;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
+import org.structr.core.property.PropertyMap;
+import org.structr.core.property.RelationProperty;
+import org.structr.core.property.StartNodes;
 import org.structr.core.property.StringProperty;
+import org.structr.schema.SchemaHelper;
+import org.structr.web.Importer;
 import org.structr.web.common.RenderContext;
+import org.structr.web.common.StringRenderBuffer;
+import org.structr.web.diff.InvertibleModificationOperation;
+import org.structr.web.entity.File;
+import org.structr.web.entity.Linkable;
+import static org.structr.web.entity.Linkable.linkingElements;
+import static org.structr.web.entity.dom.DOMNode.children;
 import org.structr.web.entity.html.Html;
-
+import org.structr.web.entity.relation.PageLink;
 import org.w3c.dom.Attr;
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.Comment;
@@ -51,27 +81,6 @@ import org.w3c.dom.NodeList;
 import org.w3c.dom.ProcessingInstruction;
 import org.w3c.dom.Text;
 
-//~--- JDK imports ------------------------------------------------------------
-import org.structr.common.error.ErrorBuffer;
-import org.structr.core.Export;
-import org.structr.core.Predicate;
-import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import static org.structr.core.entity.AbstractNode.owner;
-import org.structr.core.graph.CreateNodeCommand;
-import org.structr.core.graph.NodeAttribute;
-import org.structr.core.graph.Tx;
-import org.structr.core.property.PropertyMap;
-import org.structr.core.property.RelationProperty;
-import org.structr.core.property.StartNodes;
-import org.structr.schema.SchemaHelper;
-import org.structr.web.Importer;
-import org.structr.web.diff.InvertibleModificationOperation;
-import static org.structr.web.entity.Linkable.linkingElements;
-import static org.structr.web.entity.dom.DOMNode.children;
-import org.structr.web.entity.relation.PageLink;
-
 //~--- classes ----------------------------------------------------------------
 /**
  * Represents a ownerDocument resource
@@ -79,16 +88,16 @@ import org.structr.web.entity.relation.PageLink;
  * @author Axel Morgner
  * @author Christian Morgner
  */
-public class Page extends DOMNode implements Linkable, Document, DOMImplementation {
+public class Page extends DOMNode implements Linkable, Document, DOMImplementation, FtpFile {
 
 	private static final Logger logger = Logger.getLogger(Page.class.getName());
 
-	public static final Property<Integer> version          = new IntProperty("version").indexed();
-	public static final Property<Integer> position         = new IntProperty("position").indexed();
-	public static final Property<String> contentType       = new StringProperty("contentType").indexed();
-	public static final Property<Integer> cacheForSeconds  = new IntProperty("cacheForSeconds");
-	public static final Property<String> showOnErrorCodes  = new StringProperty("showOnErrorCodes").indexed();
-	public static final Property<List<DOMNode>> elements   = new StartNodes<>("elements", PageLink.class);
+	public static final Property<Integer> version = new IntProperty("version").indexed();
+	public static final Property<Integer> position = new IntProperty("position").indexed();
+	public static final Property<String> contentType = new StringProperty("contentType").indexed();
+	public static final Property<Integer> cacheForSeconds = new IntProperty("cacheForSeconds");
+	public static final Property<String> showOnErrorCodes = new StringProperty("showOnErrorCodes").indexed();
+	public static final Property<List<DOMNode>> elements = new StartNodes<>("elements", PageLink.class);
 
 	public static final org.structr.common.View publicView = new org.structr.common.View(Page.class, PropertyView.Public,
 		children, linkingElements, contentType, owner, cacheForSeconds, version, showOnErrorCodes
@@ -106,7 +115,6 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	}
 
 	//~--- methods --------------------------------------------------------
-
 	@Override
 	public boolean contentEquals(DOMNode otherNode) {
 		return false;
@@ -230,7 +238,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 			final Class entityClass = SchemaHelper.getEntityClassForRawType(elementType);
 			if (entityClass != null) {
 
-				element = (DOMElement)app.create(entityClass, new NodeAttribute(DOMElement.tag, tag));
+				element = (DOMElement) app.create(entityClass, new NodeAttribute(DOMElement.tag, tag));
 				element.doAdopt(_page);
 
 				return element;
@@ -513,6 +521,25 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		return getClass().getSimpleName() + " " + getName() + " [" + getUuid() + "] (" + getTextContent() + ")";
 	}
 
+	/**
+	 * Return the content of this page depending on edit mode
+	 *
+	 * @param editMode
+	 * @return
+	 * @throws FrameworkException
+	 */
+	public String getContent(final RenderContext.EditMode editMode) throws FrameworkException {
+
+		final RenderContext ctx = new RenderContext(null, null, editMode, Locale.GERMAN);
+		final StringRenderBuffer buffer = new StringRenderBuffer();
+		ctx.setBuffer(buffer);
+		render(securityContext, ctx, 0);
+
+		// extract source
+		return buffer.getBuffer().toString();
+
+	}
+
 	//~--- get methods ----------------------------------------------------
 	@Override
 	public short getNodeType() {
@@ -735,9 +762,9 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 		try (final Tx tx = app.tx()) {
 
-			final String source                                   = IOUtils.toString(new FileInputStream(file));
+			final String source = IOUtils.toString(new FileInputStream(file));
 			final List<InvertibleModificationOperation> changeSet = new LinkedList<>();
-			final Page diffPage                                   = Importer.parsePageFromSource(securityContext, source, this.getProperty(Page.name) + "diff");
+			final Page diffPage = Importer.parsePageFromSource(securityContext, source, this.getProperty(Page.name) + "diff");
 
 			// build change set
 			changeSet.addAll(Importer.diffPages(this, diffPage));
@@ -763,4 +790,228 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 			t.printStackTrace();
 		}
 	}
+
+	// ----- interface FtpFile -----
+	@Override
+	public String getAbsolutePath() {
+		try (Tx tx = StructrApp.getInstance().tx()) {
+			String path = getName();
+			return path;
+		} catch (FrameworkException fex) {
+			logger.log(Level.SEVERE, "Error in getName() of abstract ftp file", fex);
+		}
+		return null;
+	}
+
+	@Override
+	public boolean isDirectory() {
+		return false;
+	}
+
+	@Override
+	public boolean isFile() {
+		return true;
+	}
+
+	@Override
+	public boolean doesExist() {
+		return true;
+	}
+
+	@Override
+	public boolean isReadable() {
+		return true;
+	}
+
+	@Override
+	public boolean isWritable() {
+		return true;
+	}
+
+	@Override
+	public boolean isRemovable() {
+		return true;
+	}
+
+	private Principal getOwner() {
+		try (Tx tx = StructrApp.getInstance().tx()) {
+			Principal owner = getProperty(File.owner);
+			return owner;
+		} catch (FrameworkException fex) {
+			logger.log(Level.SEVERE, "Error while getting owner of " + this, fex);
+		}
+		return null;
+	}
+
+	@Override
+	public String getOwnerName() {
+		try (Tx tx = StructrApp.getInstance().tx()) {
+			Principal owner = getOwner();
+			return owner != null ? owner.getProperty(AbstractUser.name) : "";
+		} catch (FrameworkException fex) {
+			logger.log(Level.SEVERE, "Error while getting owner name of " + this, fex);
+		}
+		return null;
+	}
+
+	@Override
+	public String getGroupName() {
+		try (Tx tx = StructrApp.getInstance().tx()) {
+
+			Principal owner = getOwner();
+
+			if (owner != null) {
+				List<Principal> parents = owner.getParents();
+				if (!parents.isEmpty()) {
+
+					return parents.get(0).getProperty(AbstractNode.name);
+
+				}
+			}
+
+		} catch (FrameworkException fex) {
+			logger.log(Level.SEVERE, "Error while getting group name of " + this, fex);
+		}
+
+		return "";
+	}
+
+	@Override
+	public int getLinkCount() {
+		return 1;
+	}
+
+	@Override
+	public long getLastModified() {
+		try (Tx tx = StructrApp.getInstance().tx()) {
+			return getProperty(lastModifiedDate).getTime();
+		} catch (FrameworkException fex) {
+			logger.log(Level.SEVERE, "Error while last modified date of " + this, fex);
+		}
+		return 0L;
+	}
+
+	@Override
+	public boolean setLastModified(long time) {
+		try (Tx tx = StructrApp.getInstance().tx()) {
+			setProperty(lastModifiedDate, new Date(time));
+			tx.success();
+		} catch (FrameworkException ex) {
+			logger.log(Level.SEVERE, null, ex);
+		}
+
+		return true;
+	}
+
+	@Override
+	public long getSize() {
+		try (Tx tx = StructrApp.getInstance().tx()) {
+			return getContent(RenderContext.EditMode.RAW).length();
+		} catch (FrameworkException fex) {
+			logger.log(Level.SEVERE, "Error while last modified date of " + this, fex);
+		}
+		return 0L;
+	}
+
+	@Override
+	public String getName() {
+		try (Tx tx = StructrApp.getInstance().tx()) {
+			return getProperty(name);
+		} catch (FrameworkException fex) {
+			logger.log(Level.SEVERE, "Error in getName() of page", fex);
+		}
+		return null;
+	}
+
+	@Override
+	public boolean isHidden() {
+		try (Tx tx = StructrApp.getInstance().tx()) {
+			return getProperty(hidden);
+		} catch (FrameworkException fex) {
+			logger.log(Level.SEVERE, "Error in isHidden() of page", fex);
+		}
+		return true;
+	}
+
+	@Override
+	public boolean mkdir() {
+		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+	}
+
+	@Override
+	public boolean delete() {
+		final App app = StructrApp.getInstance();
+
+		try (Tx tx = StructrApp.getInstance().tx()) {
+			app.delete(this);
+			tx.success();
+		} catch (FrameworkException ex) {
+			logger.log(Level.SEVERE, null, ex);
+		}
+
+		return true;
+	}
+
+	@Override
+	public boolean move(FtpFile destination) {
+		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+	}
+
+	@Override
+	public List<FtpFile> listFiles() {
+		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+	}
+
+	@Override
+	public OutputStream createOutputStream(long offset) throws IOException {
+
+		final Page origPage = this;
+
+		OutputStream out = new ByteArrayOutputStream() {
+
+			@Override
+			public void flush() throws IOException {
+
+
+				final String source = toString();
+
+				final App app = StructrApp.getInstance();
+				try (Tx tx = app.tx()) {
+
+					// parse page from modified source
+					Page modifiedPage = Importer.parsePageFromSource(securityContext, source, "__FTP_Temporary_Page__");
+
+					final List<InvertibleModificationOperation> changeSet = Importer.diffPages(origPage, modifiedPage);
+
+					for (final InvertibleModificationOperation op : changeSet) {
+
+						// execute operation
+						op.apply(app, origPage, modifiedPage);
+
+					}
+
+					tx.success();
+					
+				} catch (FrameworkException fex) {
+					fex.printStackTrace();
+				}
+
+				super.flush();
+
+			}
+
+		};
+
+		return out;
+	}
+
+	@Override
+	public InputStream createInputStream(long offset) throws IOException {
+		try (Tx tx = StructrApp.getInstance().tx()) {
+			return new ByteArrayInputStream(getContent(RenderContext.EditMode.RAW).getBytes("UTF-8"));
+		} catch (FrameworkException fex) {
+		}
+		return null;
+	}
+
 }

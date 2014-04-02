@@ -90,7 +90,7 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 		try (Tx tx = StructrApp.getInstance().tx()) {
 			return structrFile.getProperty(File.hidden);
 		} catch (FrameworkException fex) {
-			logger.log(Level.SEVERE, "Error in getName() of abstract ftp file", fex);
+			logger.log(Level.SEVERE, "Error in isHidden() of abstract ftp file", fex);
 		}
 		return true;
 	}

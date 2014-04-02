@@ -24,6 +24,7 @@ import org.apache.ftpserver.ftplet.FileSystemView;
 import org.apache.ftpserver.ftplet.FtpException;
 import org.apache.ftpserver.ftplet.FtpFile;
 import org.apache.ftpserver.ftplet.User;
+import org.structr.common.PathHelper;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.AuthHelper;
@@ -33,6 +34,7 @@ import org.structr.web.common.FileHelper;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
+import org.structr.web.entity.dom.Page;
 
 /**
  *
@@ -168,6 +170,12 @@ public class StructrFileSystemView implements FileSystemView {
 				} else {
 					return new StructrFtpFile((File) file);
 				}
+			}
+			
+			// Look up a page by its name
+			Page page = StructrApp.getInstance().nodeQuery(Page.class).andName(PathHelper.getName(requestedPath)).getFirst();
+			if (page != null) {
+				return page;
 			}
 
 //		List<FtpFile> files = cur.listFiles();
