@@ -335,6 +335,10 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		for (final Class<? extends RelationshipInterface> candidate : getRelationshipEntities().values()) {
 
 			Relation rel = instantiate(candidate);
+			
+			if (rel == null) {
+				continue;
+			}
 
 			if (rel.name().equals(relType)) {
 				candidates.add(candidate);
@@ -1083,7 +1087,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 		} catch (Throwable t) {
 			// ignore
-			t.printStackTrace();
+			//t.printStackTrace();
 		}
 
 		return null;
