@@ -450,7 +450,7 @@ public class Importer {
 
 			// clean tag, remove non-word characters
 			if (tag != null) {
-				tag = tag.replaceAll("[^a-zA-Z#]+", "");
+				tag = tag.replaceAll("[^a-zA-Z0-9#]+", "");
 			}
 
 			String type = CaseHelper.toUpperCamelCase(tag);
