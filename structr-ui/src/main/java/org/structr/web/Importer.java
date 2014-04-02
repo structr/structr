@@ -447,6 +447,12 @@ public class Importer {
 		for (Node node : children) {
 
 			String tag = node.nodeName();
+
+			// clean tag, remove non-word characters
+			if (tag != null) {
+				tag = tag.replaceAll("[^a-zA-Z#]+", "");
+			}
+
 			String type = CaseHelper.toUpperCamelCase(tag);
 			String comment = null;
 			String content = null;

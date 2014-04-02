@@ -111,7 +111,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	public boolean contentEquals(DOMNode otherNode) {
 		return false;
 	}
-	
+
 	@Override
 	public void updateFrom(final DOMNode source) throws FrameworkException {
 		// do nothing
@@ -132,7 +132,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	public boolean flush() {
 		return true;
 	}
-	
+
 	/**
 	 * Creates a new Page entity with the given name in the database.
 	 *
@@ -227,9 +227,14 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		// create new content element
 		DOMElement element;
 		try {
-			element = (DOMElement) app.create(SchemaHelper.getEntityClassForRawType(elementType), new NodeAttribute(DOMElement.tag, tag));
-			element.doAdopt(_page);
-			return element;
+			final Class entityClass = SchemaHelper.getEntityClassForRawType(elementType);
+			if (entityClass != null) {
+
+				element = (DOMElement)app.create(entityClass, new NodeAttribute(DOMElement.tag, tag));
+				element.doAdopt(_page);
+
+				return element;
+			}
 
 		} catch (FrameworkException ex) {
 			logger.log(Level.SEVERE, null, ex);
@@ -721,39 +726,39 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	public String getPath() {
 		return "/".concat(getProperty(name));
 	}
-	
+
 	// ----- diff methods -----
 	@Export
 	public void diff(final String file) throws FrameworkException {
-		
+
 		final App app = StructrApp.getInstance(securityContext);
-		
+
 		try (final Tx tx = app.tx()) {
-			
+
 			final String source                                   = IOUtils.toString(new FileInputStream(file));
 			final List<InvertibleModificationOperation> changeSet = new LinkedList<>();
 			final Page diffPage                                   = Importer.parsePageFromSource(securityContext, source, this.getProperty(Page.name) + "diff");
-			
+
 			// build change set
 			changeSet.addAll(Importer.diffPages(this, diffPage));
 
 			for (final InvertibleModificationOperation op : changeSet) {
-				
+
 				System.out.println(op);
-				
+
 				op.apply(app, this, diffPage);
 			}
-			
+
 			// delete remaining children
 			for (final DOMNode child : diffPage.getProperty(Page.elements)) {
 				app.delete(child);
 			}
-			
+
 			// delete imported page
 			app.delete(diffPage);
-			
+
 			tx.success();
-			
+
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}
