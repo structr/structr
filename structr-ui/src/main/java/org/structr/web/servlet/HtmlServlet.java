@@ -61,7 +61,7 @@ import org.structr.core.graph.Tx;
 import org.structr.rest.ResourceProvider;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
-import org.structr.web.auth.HttpAuthenticator;
+import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
@@ -272,7 +272,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 						try {
 
-							HttpAuthenticator.writeUnauthorized(response);
+							UiAuthenticator.writeUnauthorized(response);
 
 						} catch (IllegalStateException ise) {
 						}
@@ -389,7 +389,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 			t.printStackTrace();
 			logger.log(Level.SEVERE, "Exception while processing request", t);
-			HttpAuthenticator.writeInternalServerError(response);
+			UiAuthenticator.writeInternalServerError(response);
 		}
 	}
 

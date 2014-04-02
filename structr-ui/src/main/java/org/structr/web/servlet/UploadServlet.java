@@ -44,7 +44,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
-import org.structr.web.auth.HttpAuthenticator;
+import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.Image;
 
@@ -159,7 +159,7 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 
 			t.printStackTrace();
 			logger.log(Level.SEVERE, "Exception while processing request", t);
-			HttpAuthenticator.writeInternalServerError(response);
+			UiAuthenticator.writeInternalServerError(response);
 		}
 	}
 }
