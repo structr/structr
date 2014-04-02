@@ -207,6 +207,11 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 					
 					final TypeInfo startTypeInfo  = nodeTypeInfoMap.get(startNode.getId());
 					final TypeInfo endTypeInfo    = nodeTypeInfoMap.get(endNode.getId());
+					
+					if (startTypeInfo == null || endTypeInfo == null) {
+						continue;
+					}
+					
 					final String relationshipType = rel.getType().name();
 					final String startNodeType    = startTypeInfo.getPrimaryType();
 					final String endNodeType      = endTypeInfo.getPrimaryType();
