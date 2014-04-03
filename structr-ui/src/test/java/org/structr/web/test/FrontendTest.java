@@ -19,9 +19,6 @@ package org.structr.web.test;
 
 import java.io.IOException;
 import java.util.logging.Level;
-import org.structr.web.common.StructrUiTest;
-
-//~--- JDK imports ------------------------------------------------------------
 import java.util.logging.Logger;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -29,6 +26,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.auth.UiAuthenticator;
+import org.structr.web.common.StructrUiTest;
 import org.structr.web.entity.User;
 import static org.structr.web.test.ResourceAccessTest.createResourceAccess;
 
@@ -60,8 +58,8 @@ public class FrontendTest extends StructrUiTest {
 			// Workaround to remove local storage, as phantomjs is pretty buggy here.
 			// Currently, phantomjs doesn't allow localStorage to be modified remotely,
 			// and the --local-storage-path parameter is ignored.
-			//String[] args = {"/bin/sh", "-c", "cd src/test/javascript ; PATH=$PATH:./bin/`uname`/ casperjs/bin/casperjs --local-storage-path=" + basePath + " --fail-fast test " + testName+ ".js"};
-			String[] args = {"/bin/sh", "-c", "rm ~/.qws/share/data/Ofi\\ Labs/PhantomJS/* ; cd src/test/javascript ; PATH=$PATH:./bin/`uname`/ casperjs/bin/casperjs --web-security=no --fail-fast test " + testName + ".js"};
+			String[] args = {"/bin/sh", "-c", "rm ~/.qws/share/data/Ofi\\ Labs/PhantomJS/* ; cd src/test/javascript ; PATH=$PATH:./bin/`uname`/ casperjs/bin/casperjs --local-storage-path=" + basePath + " test " + testName + ".js"};
+			//String[] args = {"/bin/sh", "-c", "rm ~/.qws/share/data/Ofi\\ Labs/PhantomJS/* ; cd src/test/javascript ; PATH=$PATH:./bin/`uname`/ casperjs/bin/casperjs --debug test " + testName + ".js"};
 
 			Process proc = Runtime.getRuntime().exec(args);
 			logger.log(Level.INFO, IOUtils.toString(proc.getInputStream()));
@@ -109,11 +107,12 @@ public class FrontendTest extends StructrUiTest {
 
 		properties.put(User.name, "admin");
 		properties.put(User.password, "admin");
+		properties.put(User.isAdmin, true);
 
 		try (final Tx tx = app.tx()) {
 
 			User user = app.create(User.class, properties);
-			user.setProperty(User.password, "admin");
+			//user.setProperty(User.password, "admin");
 			tx.success();
 
 		} catch (Throwable t) {

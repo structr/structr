@@ -72,7 +72,7 @@ exports.docsDir = '../../../../docs';
 /**
  * Set to true to enable debug logging
  */
-exports.debug = false;
+exports.debug = true;
 
 /**
  * The input field with the given selector will be filled

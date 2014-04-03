@@ -217,7 +217,7 @@
 				<configuration>
 					<forkCount>1</forkCount>
 					<reuseForks>false</reuseForks>
-					<argLine>-Xmx1024m -XX:MaxPermSize=256m</argLine>
+					<argLine>-server -Xmx512m -XX:MaxPermSize=128m -XX:+UseNUMA -Dfile.encoding=utf-8</argLine>
 				</configuration>
 			</plugin>
 			<plugin>

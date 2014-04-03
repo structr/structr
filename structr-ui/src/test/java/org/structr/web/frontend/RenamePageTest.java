@@ -23,7 +23,7 @@ import org.structr.web.test.FrontendTest;
 public class RenamePageTest extends FrontendTest {
 
 	public void test() {
-		//assertEquals(0, run("005_rename_page"));
+		assertEquals(0, run("005_rename_page"));
 	}
 
 }

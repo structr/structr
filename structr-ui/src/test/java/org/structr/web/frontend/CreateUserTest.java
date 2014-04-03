@@ -23,7 +23,7 @@ import org.structr.web.test.FrontendTest;
 public class CreateUserTest extends FrontendTest {
 
 	public void test() {
-		//assertEquals(0, run("003_create_user"));
+		assertEquals(0, run("003_create_user"));
 	}
 
 }
