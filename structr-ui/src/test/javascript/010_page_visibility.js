@@ -22,7 +22,6 @@ var s = require('../setup'),
     createPage = require('../templates/createPage'),
     openPagesTreeView = require('../templates/openPagesTreeView');
 
-
 var testName = '010_page_visibility';
 var heading = "Page Visibility", sections = [];
 var desc = "This animation shows how to change the visibility for a page.";
@@ -103,7 +102,7 @@ casper.test.begin(testName, numberOfTests, function(test) {
         this.click('#logout_');
     });
     
-    casper.wait(500);
+    casper.wait(1000);
     
     casper.thenOpen(s.baseUrl+'visible');
     casper.waitForSelector('body h1', function() {

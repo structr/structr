@@ -45,6 +45,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -85,6 +86,10 @@ public class StructrTest extends TestCase {
 		GraphDatabaseService graphDb = graphDbCommand.execute();
 
 		assertTrue(graphDb != null);
+
+		System.out.println("\n######################################################################################");
+		System.out.println("######                           Executing Test "+ getClass().getSimpleName());
+		System.out.println("######################################################################################");
 	}
 
 	@Override

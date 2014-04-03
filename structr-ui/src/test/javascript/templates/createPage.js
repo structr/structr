@@ -17,7 +17,7 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-;exports.init = function(test, name){
+;exports.init = function(test, name) {
     
     // TODO: make sure current active page is pages-tab
     //test.assertEval(function() { return ($('#pages').hasClass('active')); });
@@ -31,11 +31,11 @@
         this.click('#add_page');
     });
 
-    casper.waitForSelector('#previewTabs li:nth-child(2)', function() {
-        test.assertEval(function() { return $('#previewTabs li:nth-child(2)').length === 1; });
-    });
+    casper.wait(2000);
+    //casper.waitForSelector('#previewTabs li:nth-child(2)');
 
     if (name) {
+
         casper.then(function() {
             s.moveMousePointerTo(casper, '#previewTabs li:nth-child(2)');
         });
@@ -44,7 +44,7 @@
             this.click('#previewTabs li:nth-child(2)');
         });
 
-        casper.wait(500);
+        casper.wait(2000);
 
         casper.then(function() {
             s.animatedType(this, '#previewTabs li:nth-child(2) .new-name', false, name, true);

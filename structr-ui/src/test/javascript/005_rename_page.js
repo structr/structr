@@ -52,8 +52,7 @@ casper.test.begin(testName, numberOfTests, function(test) {
         this.click('#previewTabs li:nth-child(2)');
     });
 
-    casper.wait(2000, function() {
-    });
+    casper.wait(2000);
 
     casper.then(function() {
         s.animatedType(this, '#previewTabs li:nth-child(2) .new-name', false, 'renamed-page', true);
