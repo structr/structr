@@ -47,12 +47,8 @@ casper.test.begin(testName, numberOfTests, function(test) {
     sections.push('A new page with a random name has been created. The page is automatically loaded into the preview window.');
 
     casper.then(function() {
-        
         s.animateHtml(testName, heading, sections);
-
-        test.done();
         this.exit();
-        
     });
 
     casper.run();

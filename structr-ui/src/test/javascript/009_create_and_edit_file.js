@@ -112,12 +112,8 @@ casper.test.begin(testName, numberOfTests, function(test) {
     casper.wait(2000);
 
     casper.then(function() {
-        
         s.animateHtml(testName, heading, sections);
-
-        test.done();
         this.exit();
-        
     });
 
     casper.run();

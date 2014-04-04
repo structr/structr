@@ -71,12 +71,8 @@ casper.test.begin(testName, numberOfTests, function(test) {
     sections.push('A new user with a random name has been created in the users area.');
 
     casper.then(function() {
-        
         s.animateHtml(testName, heading, sections);
-
-        test.done();
         this.exit();
-        
     });
 
     casper.run();
