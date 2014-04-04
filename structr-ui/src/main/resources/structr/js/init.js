@@ -262,7 +262,7 @@ var Structr = {
 
         $('#errorText').empty();
 
-        user = localStorage.getItem(userKey);
+        //user = localStorage.getItem(userKey);
         sessionId = $.cookie('JSESSIONID');
         log('user', user);
 
