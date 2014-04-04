@@ -396,7 +396,6 @@ var StructrModel = {
     },
             
     callCallback: function(callback, entity) {
-
         log('Calling callback', callback, 'on entity', entity);
         var callbackFunction = StructrModel.callbacks[callback];
         if (callback && callbackFunction) {

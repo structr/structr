@@ -241,6 +241,7 @@ function connect() {
             } else if (command === 'UPDATE' || command === 'SET_PERMISSION') { /*********************** UPDATE / SET_PERMISSION ************************/
 
                 var obj = StructrModel.obj(data.id);
+                
                 if (!obj) {
                     data.data.id = data.id;
                     obj = StructrModel.create(data.data, null, false);
@@ -248,8 +249,9 @@ function connect() {
 
                 obj = StructrModel.update(data);
 
-                StructrModel.callCallback(data.callback, obj);
-                StructrModel.clearCallback(data.callback);
+                if (StructrModel.callCallback(data.callback, obj)) {
+                    StructrModel.clearCallback(data.callback);
+                }
 
             } else if (command.endsWith('GET') || command.endsWith('GET_BY_TYPE')) { /*********************** GET_BY_TYPE ************************/
 

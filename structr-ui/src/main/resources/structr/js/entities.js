@@ -663,9 +663,13 @@ var _Entities = {
         _Entities.changeBooleanAttribute(sw, entity[key], label[0], label[1]);
         sw.on('click', function(e) {
             e.stopPropagation();
-            entity.setProperty(key, sw.hasClass('inactive'), $(recElementId, el).is(':checked'), function() {
+            entity.setProperty(key, sw.hasClass('inactive'), $(recElementId, el).is(':checked'), function(obj) {
+                if (obj.id !== entity.id) {
+                    return false;
+                }
                 _Entities.changeBooleanAttribute(sw, entity[key], label[0], label[1]);
                 blinkGreen(sw);
+                return true;
             });
         });
     },
