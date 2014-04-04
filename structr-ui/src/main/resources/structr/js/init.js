@@ -25,7 +25,7 @@ var wsRoot = '/structr/ws';
 
 var header, main, footer;
 var debug = false;
-var sessionId;
+var sessionId, user;
 var lastMenuEntry, activeTab;
 var dmp;
 var editorCursor;
@@ -290,7 +290,7 @@ var Structr = {
 
         window.setInterval(function() {
             sendObj({command: 'PING', sessionId: sessionId});
-        }, 60000);
+        }, 5000);
 
     },
     login: function(text) {
@@ -1178,7 +1178,7 @@ function getComponentId(element) {
 }
 
 $(window).unload(function() {
+    log('########################################### unload #####################################################');
     // Remove dialog data in case of page reload
     localStorage.removeItem(dialogDataKey);
-    localStorage.removeItem(userKey);
 });

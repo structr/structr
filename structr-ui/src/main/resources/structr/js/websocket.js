@@ -41,6 +41,7 @@ function connect() {
     try {
 
         ws = null;
+        localStorage.removeItem(userKey);
 
         var isEnc = (window.location.protocol === 'https:');
         var host = document.location.host;
@@ -128,8 +129,9 @@ function connect() {
             if (command === 'LOGIN' || code === 100) { /*********************** LOGIN or repsonse to PING ************************/
 
                 user = data.data.username;
-                
-                log(command, code, user, localStorage.getItem(userKey));
+                var oldUser = localStorage.getItem(userKey);
+
+                log(command, code, 'user: ', user, ', oldUser: ', oldUser);
 
                 if (!sessionValid) {
                     localStorage.removeItem(userKey);
@@ -138,13 +140,11 @@ function connect() {
                 }
 
                 if (sessionValid) {
-                    
-                    var oldUser = localStorage.getItem(userKey);
 
                     // user has changed - refresh UI
                     if (!oldUser || (oldUser && (oldUser !== user))) {
                         
-                        log(command, code, oldUser, user);
+                        log(command, code, 'user: ', user, ', oldUser: ', oldUser);
 
                         Structr.clearMain();
                         localStorage.setItem(userKey, user);
@@ -451,17 +451,13 @@ function send(text) {
     return sendObj(obj);
 }
 
-function log(messages) {
+function log() {
     if (debug) {
-        console.log(messages);
-        $.each(Array.prototype.slice.apply(messages), function(i, msg) {
-            if (footer) {
-                var div = $('#log', footer);
-                div.append('<p>' + msg + '</p>');
-                footer.scrollTop(div.height());
-            }
-
-        });
+        console.log(arguments);
+        var msg = Array.prototype.slice.call(arguments).join(' ');
+        var div = $('#log', footer);
+        div.append(msg + '<br>');
+        footer.scrollTop(div.height());
     }
 }
 
