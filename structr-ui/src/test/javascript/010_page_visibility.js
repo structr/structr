@@ -53,7 +53,7 @@ casper.test.begin(testName, numberOfTests, function(test) {
         this.click('#pagesTree .page img.button.donthide');
     });
     
-    casper.wait(500);
+    casper.wait(2000);
     
     sections.push('Apply visibility switches recursively.');
     
@@ -64,7 +64,7 @@ casper.test.begin(testName, numberOfTests, function(test) {
         this.click('#recursive');
     });
     
-    casper.wait(200);
+    casper.wait(5000);
     
     sections.push('Change the visibility for public/auth users.');
     
@@ -82,7 +82,7 @@ casper.test.begin(testName, numberOfTests, function(test) {
         this.click('#dialogBox .visibleToAuthenticatedUsers_');
     });
     
-    casper.wait(200);
+    casper.wait(1000);
     
     casper.then(function() {
         s.moveMousePointerTo(casper, '#dialogBox .dialogBtn .closeButton'); 
@@ -91,7 +91,7 @@ casper.test.begin(testName, numberOfTests, function(test) {
         this.click('#dialogBox .dialogBtn .closeButton');
     });
     
-    casper.wait(500);
+    casper.wait(2000);
     
     sections.push ('Logout and open the created page.');
     
@@ -102,7 +102,7 @@ casper.test.begin(testName, numberOfTests, function(test) {
         this.click('#logout_');
     });
     
-    casper.wait(1000);
+    casper.wait(2000);
     
     casper.thenOpen(s.baseUrl+'visible');
     casper.waitForSelector('body h1', function() {
