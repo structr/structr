@@ -398,17 +398,20 @@ var StructrModel = {
     callCallback: function(callback, entity) {
 
         log('Calling callback', callback, 'on entity', entity);
-
-        if (callback && StructrModel.callbacks[callback]) {
+        var callbackFunction = StructrModel.callbacks[callback];
+        if (callback && callbackFunction) {
+            log(callback, callbackFunction.toString());
             StructrModel.callbacks[callback](entity);
         }
 
     },
             
     clearCallback : function(callback) {
-
-        removeFromArray(StructrModel.callbacks, callback);
-        
+        if (callback && StructrModel.callbacks[callback]) {
+            delete StructrModel.callbacks[callback];
+            callback = undefined;
+            delete callback;
+        }
     }
 
 }
