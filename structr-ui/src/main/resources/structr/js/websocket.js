@@ -129,7 +129,7 @@ function connect() {
 
                 user = data.data.username;
 
-                if (!sessionValid) {
+                if (!sessionValid) {                    
                     localStorage.removeItem(userKey);
                     Structr.clearMain();
                     Structr.login();
@@ -141,6 +141,9 @@ function connect() {
 
                     // user has changed - refresh UI
                     if (!oldUser || (oldUser && (oldUser !== user))) {
+
+                        console.log('########### UI Refresh, user has changed! #########', oldUser, user);
+                        alert('User has changed, refreshing UI');
 
                         Structr.clearMain();
                         localStorage.setItem(userKey, user);
