@@ -18,7 +18,7 @@
  */
 
 var pages, shadowPage;
-var previews, previewTabs, controls, activeTab, activeTabLeft, activeTabRight, paletteSlideout, elementsSlideout, componentsSlideout, widgetsSlideout, pagesSlideout;
+var previews, previewTabs, controls, activeTab, activeTabLeft, activeTabRight, paletteSlideout, elementsSlideout, componentsSlideout, widgetsSlideout, pagesSlideout, dataBindingSlideout;
 var lsw, rsw;
 var components, elements;
 var selStart, selEnd;
@@ -28,6 +28,7 @@ var textBeforeEditing;
 var activeTabKey = 'structrActiveTab_' + port;
 var activeTabRightKey = 'structrActiveTabRight_' + port;
 var activeTabLeftKey = 'structrActiveTabLeft_' + port;
+var selectedTypeKey = 'structrSelectedType_' + port;
 
 var win = $(window);
 
@@ -47,18 +48,18 @@ var _Pages = {
     delete_icon: 'icon/page_delete.png',
     clone_icon: 'icon/page_copy.png',
     autoRefresh: [],
-    
     init: function() {
 
         Structr.initPager('Page', 1, 25);
         Structr.initPager('File', 1, 25);
+        Structr.initPager('Folder', 1, 25);
         Structr.initPager('Image', 1, 25);
-        
+
     },
     resize: function(offsetLeft, offsetRight) {
 
         var windowWidth = win.width(), windowHeight = win.height();
-        var headerOffsetHeight = 100,  previewOffset = 22;
+        var headerOffsetHeight = 100, previewOffset = 22;
 
         $('.ver-scrollable').css({
             height: windowHeight - headerOffsetHeight + 'px'
@@ -79,7 +80,7 @@ var _Pages = {
             }
 
             //console.log(offsetLeft, offsetRight, windowWidth, parseInt(previews.css('marginLeft')), parseInt(previews.css('marginRight')));
-            var w = windowWidth - parseInt(previews.css('marginLeft')) - parseInt(previews.css('marginRight')) -15 + 'px';
+            var w = windowWidth - parseInt(previews.css('marginLeft')) - parseInt(previews.css('marginRight')) - 15 + 'px';
 
             previews.css({
                 width: w,
@@ -87,19 +88,18 @@ var _Pages = {
             });
 
             $('.previewBox', previews).css({
-                //width: w,
+                width: w,
                 height: windowHeight - (headerOffsetHeight + previewOffset) + 'px'
             });
 
             var iframes = $('.previewBox', previews).find('iframe');
             iframes.css({
-                width: $('.previewBox', previews).width() + 'px',
+                width: w,//$('.previewBox', previews).width() + 'px',
                 height: windowHeight - (headerOffsetHeight + previewOffset) + 'px'
             });
         }
 
     },
-            
     onload: function() {
 
         _Pages.init();
@@ -111,25 +111,31 @@ var _Pages = {
 
         log('onload');
 
-        main.prepend('<div id="pages" class="slideOut slideOutLeft"><div class="compTab" id="pagesTab">Pages Tree View</div></div><div id="previews"></div>'
+        main.prepend(
+                '<div id="pages" class="slideOut slideOutLeft"><div class="compTab" id="pagesTab">Pages Tree View</div></div>'
+                + '<div id="dataBinding" class="slideOut slideOutLeft"><div class="compTab" id="dataBindingTab">Data Binding</div></div>'
+                + '<div id="previews"></div>'
                 + '<div id="widgetsSlideout" class="slideOut slideOutRight"><div class="compTab" id="widgetsTab">Widgets</div></div>'
                 + '<div id="palette" class="slideOut slideOutRight"><div class="compTab" id="paletteTab">HTML Palette</div></div>'
                 + '<div id="components" class="slideOut slideOutRight"><div class="compTab" id="componentsTab">Shared Components</div></div>'
                 + '<div id="elements" class="slideOut slideOutRight"><div class="compTab" id="elementsTab">Unused Elements</div></div>');
 
-        previews        = $('#previews');
-        pagesSlideout   = $('#pages');
+        pagesSlideout = $('#pages');
+        dataBindingSlideout = $('#dataBinding');
 
-        widgetsSlideout     = $('#widgetsSlideout');
-        paletteSlideout     = $('#palette');
-        componentsSlideout  = $('#components');
-        elementsSlideout    = $('#elements');
+        previews = $('#previews');
+
+        widgetsSlideout = $('#widgetsSlideout');
+        paletteSlideout = $('#palette');
+        componentsSlideout = $('#components');
+        elementsSlideout = $('#elements');
 
         lsw = pagesSlideout.width() + 12;
         rsw = widgetsSlideout.width() + 12;
 
         $('#pagesTab').on('click', function() {
             if (pagesSlideout.position().left === -lsw) {
+                _Pages.closeLeftSlideOuts([dataBindingSlideout]);
                 _Pages.openLeftSlideOut(pagesSlideout, this);
             } else {
                 _Pages.closeLeftSlideOuts([pagesSlideout]);
@@ -138,10 +144,22 @@ var _Pages = {
             tolerance: 'touch',
             over: function(e, ui) {
                 if (pagesSlideout.position().left === -lsw) {
+                    _Pages.closeLeftSlideOuts([dataBindingSlideout]);
                     _Pages.openLeftSlideOut(pagesSlideout, this);
                 } else {
                     _Pages.closeLeftSlideOuts([pagesSlideout]);
                 }
+            }
+        });
+
+        $('#dataBindingTab').on('click', function() {
+            if (dataBindingSlideout.position().left === -lsw) {
+                _Pages.closeLeftSlideOuts([pagesSlideout]);
+                _Pages.openLeftSlideOut(dataBindingSlideout, this, function() {
+                    _Pages.reloadDataBindingWizard();
+                });
+            } else {
+                _Pages.closeLeftSlideOuts([dataBindingSlideout]);
             }
         });
 
@@ -233,9 +251,9 @@ var _Pages = {
         }
         _Pages.resize(0, rsw);
     },
-    closeSlideOuts: function(slideout) {
+    closeSlideOuts: function(slideouts) {
         var wasOpen = false;
-        slideout.forEach(function(w) {
+        slideouts.forEach(function(w) {
             var s = $(w);
             var l = s.position().left;
             if (l !== $(window).width()) {
@@ -248,7 +266,7 @@ var _Pages = {
         if (wasOpen) {
             _Pages.resize(0, -rsw);
         }
-            
+
         localStorage.removeItem(activeTabRightKey);
     },
     openLeftSlideOut: function(slideout, tab, callback) {
@@ -262,17 +280,21 @@ var _Pages = {
         }
         _Pages.resize(lsw, 0);
     },
-    closeLeftSlideOuts: function(slideout) {
-        slideout.forEach(function(w) {
+    closeLeftSlideOuts: function(slideouts) {
+        var wasOpen = false;
+        slideouts.forEach(function(w) {
             var s = $(w);
             var l = s.position().left;
-            if (l !== $(window).width()) {
+            if (l === 0) {
+                wasOpen = true;
                 s.animate({left: '-=' + lsw + 'px'}, {duration: 100}).zIndex(2);
                 $('.compTab.active', s).removeClass('active');
             }
         });
+        if (wasOpen) {
+            _Pages.resize(-lsw, 0);
+        }
         localStorage.removeItem(activeTabLeftKey);
-        _Pages.resize(-lsw, 0);
     },
     clearPreviews: function() {
 
@@ -289,13 +311,13 @@ var _Pages = {
         pagesSlideout.append('<div class="ver-scrollable" id="pagesTree"></div>')
         pages = $('#pagesTree', pagesSlideout);
 
-        Structr.addPager(pages, 'Page');
+        Structr.addPager(pages, true, 'Page');
 
-        previewTabs.append('<li id="import_page" title="Import page" class="button"><img class="add_button icon" src="icon/page_white_put.png"></li>');
+        previewTabs.append('<li id="import_page" title="Import Template" class="button"><img class="add_button icon" src="icon/page_white_put.png"></li>');
         $('#import_page', previewTabs).on('click', function(e) {
             e.stopPropagation();
 
-            Structr.dialog('Import Page', function() {
+            Structr.dialog('Import Template', function() {
                 return true;
             }, function() {
                 return true;
@@ -351,7 +373,7 @@ var _Pages = {
             //Command.create(entity);
             Command.createSimplePage();
         });
-        
+
         //_Pages.resize(0,0)
 
     },
@@ -360,7 +382,7 @@ var _Pages = {
 
         var tab = $('#show_' + entity.id, previews);
 
-        tab.append('<img class="typeIcon" src="icon/page.png"> <b title="' + entity.name + '" class="name_">' + fitStringToSize(entity.name, 200) + '</b>');
+        tab.append('<img class="typeIcon" src="icon/page.png"> <b title="' + entity.name + '" class="name_">' + fitStringToWidth(entity.name, 200) + '</b>');
         tab.append('<input title="Auto-refresh page on changes" alt="Auto-refresh page on changes" class="auto-refresh" type="checkbox"' + (localStorage.getItem(autoRefreshDisabledKey + entity.id) ? '' : ' checked="checked"') + '>');
         tab.append('<img title="Delete page \'' + entity.name + '\'" alt="Delete page \'' + entity.name + '\'" class="delete_icon button" src="' + Structr.delete_icon + '">');
         tab.append('<img class="view_icon button" title="View ' + entity.name + ' in new window" alt="View ' + entity.name + ' in new window" src="icon/eye.png">');
@@ -488,11 +510,12 @@ var _Pages = {
     clearIframeDroppables: function() {
         var droppablesArray = [];
         var d = $.ui.ddmanager.droppables.default;
-        if (!d) return;
+        if (!d)
+            return;
         d.forEach(function(d) {
-           if (!d.options.iframe) {
-               droppablesArray.push(d);
-           }
+            if (!d.options.iframe) {
+                droppablesArray.push(d);
+            }
         });
         $.ui.ddmanager.droppables.default = droppablesArray;
     },
@@ -549,7 +572,7 @@ var _Pages = {
         });
 
         div.append('<img class="typeIcon" src="icon/page.png">'
-                + '<b title="' + entity.name + '" class="name_">' + fitStringToSize(entity.name, 200) + '</b> <span class="id">' + entity.id + '</span>');
+                + '<b title="' + entity.name + '" class="name_">' + fitStringToWidth(entity.name, 200) + '</b> <span class="id">' + entity.id + '</span>');
 
         _Entities.appendExpandIcon(div, entity, hasChildren);
         _Entities.appendAccessControlIcon(div, entity);
@@ -561,11 +584,12 @@ var _Pages = {
         });
 
         _Entities.appendEditPropertiesIcon(div, entity);
+        _Entities.appendEditSourceIcon(div, entity);
         _Entities.setMouseOver(div);
 
         var tab = _Pages.addTab(entity);
 
-        previews.append('<div class="previewBox"><iframe name="foo" id="preview_'
+        previews.append('<div class="previewBox"><iframe id="preview_'
                 + entity.id + '"></iframe></div><div style="clear: both"></div>');
 
         _Pages.resetTab(tab, entity.name);
@@ -595,6 +619,8 @@ var _Pages = {
                         //		+ '.structr-element-container-active { display; inline-block; border: 1px dotted #e5e5e5; margin: -1px; padding: -1px; min-height: 10px; min-width: 10px; }\n'
                         //		+ '.structr-element-container { }\n'
                         + '.structr-element-container-active:hover { -moz-box-shadow: 0 0 5px #888; -webkit-box-shadow: 0 0 5px #888; box-shadow: 0 0 5px #888; }\n'
+                        + '.structr-element-container-selected { -moz-box-shadow: 0 0 8px #860; -webkit-box-shadow: 0 0 8px #860; box-shadow: 0 0 8px #860; }\n'
+                        + '.structr-element-container-selected:hover { -moz-box-shadow: 0 0 10px #750; -webkit-box-shadow: 0 0 10px #750; box-shadow: 0 0 10px #750; }\n'
                         + '.nodeHover { -moz-box-shadow: 0 0 5px #888; -webkit-box-shadow: 0 0 5px #888; box-shadow: 0 0 5px #888; }\n'
                         + '.structr-editable-area { color: #222; background-color: #ffe; padding: 1px; margin: -1px; -moz-box-shadow: 0 0 5px #888; -webkit-box-shadow: 0 0 5px yellow; box-shadow: 0 0 5px #888; }\n'
                         + '.structr-editable-area-active { background-color: #ffe; border: 1px solid orange ! important; color: #333; margin: -1px; padding: 1px; }\n'
@@ -604,18 +630,18 @@ var _Pages = {
 
             _Pages.findDroppablesInIframe($(this).contents(), entity.id).each(function(i, element) {
                 var el = $(element);
-                
+
                 _Dragndrop.makeDroppable(el, entity.id);
 
-                var structrId = el.attr('data-structr-el');
+                var structrId = el.attr('data-structr-id');
                 if (structrId) {
 
                     $('.move_icon', el).on('mousedown', function(e) {
                         e.stopPropagation();
                         var self = $(this);
-                        var element = self.closest('[data-structr-el]');
+                        var element = self.closest('[data-structr-id]');
                         log(element);
-                        var entity = Structr.entity(structrId, element.prop('data-structr-el'));
+                        var entity = Structr.entity(structrId, element.prop('data-structr-id'));
                         entity.type = element.prop('data-structr_type');
                         entity.name = element.prop('data-structr_name');
                         log('move', entity);
@@ -625,12 +651,12 @@ var _Pages = {
                     $('.delete_icon', el).on('click', function(e) {
                         e.stopPropagation();
                         var self = $(this);
-                        var element = self.closest('[data-structr-el]');
-                        var entity = Structr.entity(structrId, element.prop('data-structr-el'));
+                        var element = self.closest('[data-structr-id]');
+                        var entity = Structr.entity(structrId, element.prop('data-structr-id'));
                         entity.type = element.prop('data-structr_type');
                         entity.name = element.prop('data-structr_name');
                         log('delete', entity);
-                        var parentId = element.prop('data-structr-el');
+                        var parentId = element.prop('data-structr-id');
 
                         Command.removeSourceFromTarget(entity.id, parentId);
                         _Entities.deleteNode(this, entity);
@@ -638,6 +664,21 @@ var _Pages = {
                     var offsetTop = -30;
                     var offsetLeft = 0;
                     el.on({
+                        click: function(e) {
+                            e.stopPropagation();
+                            var self = $(this);
+                            var selected = self.hasClass('structr-element-container-selected');
+                            self.closest('body').find('.structr-element-container-selected').removeClass('structr-element-container-selected');
+                            if (!selected)
+                                self.toggleClass('structr-element-container-selected');
+                            _Pages.displayDataBinding(structrId);
+                            _Pages.expandTreeNode(structrId);
+                            var treeEl = Structr.node(structrId);
+                            $('#pages').find('.nodeSelected').removeClass('nodeSelected');
+                            if (!selected)
+                                treeEl.toggleClass('nodeSelected');
+
+                        },
                         mouseover: function(e) {
                             e.stopPropagation();
                             var self = $(this);
@@ -763,9 +804,9 @@ var _Pages = {
             hoverClass: 'nodeHover',
             tolerance: 'pointer',
             drop: function(event, ui) {
-        
+
                 var self = $(this);
-                console.log('dropped onto', self);
+                log('dropped onto', self);
                 // Only html elements are allowed, and only if none exists
 
                 if (getId(self) === getId(sortParent))
@@ -781,7 +822,7 @@ var _Pages = {
 
                 var contentId = getId(ui.draggable);
                 var elementId = getId(self);
-                console.log('elementId', elementId);
+                log('elementId', elementId);
 
                 var source = StructrModel.obj(contentId);
                 var target = StructrModel.obj(elementId);
@@ -834,14 +875,14 @@ var _Pages = {
 
     },
     findDroppablesInIframe: function(iframeDocument, id) {
-        var droppables = iframeDocument.find('[data-structr-el]');
+        var droppables = iframeDocument.find('[data-structr-id]');
         if (droppables.length === 0) {
             //iframeDocument.append('<html structr_element_id="' + entity.id + '">dummy element</html>');
             var html = iframeDocument.find('html');
-            html.attr('data-structr-el', id);
+            html.attr('data-structr-id', id);
             html.addClass('structr-element-container');
         }
-        droppables = iframeDocument.find('[data-structr-el]');
+        droppables = iframeDocument.find('[data-structr-id]');
         return droppables;
     },
     appendElementElement: function(entity, refNode, refNodeIsParent) {
@@ -893,12 +934,171 @@ var _Pages = {
         });
 
     },
-    clearSlideoutsInLocalStorage: function() {
-        
-        localStorage.setItem('structrActiveTabLeft_8875', 'foo');
-        localStorage.setItem('structrActiveTabRight_8875', 'bar');
-        
-        return localStorage.getItem('structrActiveTabLeft_8875') + ',' + localStorage.getItem('structrActiveTabRight_8875', '');
-        
+    displayDataBinding: function(id) {
+        dataBindingSlideout.children('#data-binding-inputs').remove();
+        dataBindingSlideout.append('<div class="inner" id="data-binding-inputs"></div>');
+
+        var el = $('#data-binding-inputs');
+
+        var entity = StructrModel.obj(id);
+
+        el.append('<div id="data-binding-tabs" class="data-tabs"><ul><li class="active" id="tab-binding-rest">REST Query</li><li id="tab-binding-cypher">Cypher Query</li><li id="tab-binding-xpath">XPath Query</li></ul>'
+                + '<div id="content-tab-binding-rest"></div><div id="content-tab-binding-cypher"></div><div id="content-tab-binding-xpath"></div></div>');
+
+        _Entities.appendTextarea($('#content-tab-binding-rest'), entity, 'restQuery', 'REST Query', '');
+        _Entities.appendTextarea($('#content-tab-binding-cypher'), entity, 'cypherQuery', 'Cypher Query', '');
+        _Entities.appendTextarea($('#content-tab-binding-xpath'), entity, 'xpathQuery', 'XPath Query', '');
+
+        _Entities.activateTabs('#data-binding-tabs', '#content-tab-binding-rest');
+
+        _Entities.appendInput(el, entity, 'dataKey', 'Data Key', 'Query results are mapped to this key and can be accessed by ${<i>&lt;dataKey&gt;.&lt;propertyKey&gt;</i>}');
+
+
+    },
+    reloadDataBindingWizard: function() {
+        dataBindingSlideout.children('#wizard').remove();
+        dataBindingSlideout.prepend('<div class="inner" id="wizard"><select id="type-selector"><option>--- Select type ---</option></select><div id="data-wizard-attributes"></div></div>');
+        // Command.list(type, rootOnly, pageSize, page, sort, order, callback) {
+        var selectedType = localStorage.getItem(selectedTypeKey);
+        Command.list('SchemaNode', false, 1000, 1, 'name', 'asc', function(typeNode) {
+            $('#type-selector').append('<option ' + (typeNode.id === selectedType ? 'selected' : '') + ' value="' + typeNode.id + '">' + typeNode.name + '</option>')
+        });
+
+        $('#data-wizard-attributes').empty();
+        if (selectedType) {
+            _Pages.showTypeData(selectedType);
+        }
+
+        $('#type-selector').on('change', function() {
+            $('#data-wizard-attributes').empty();
+            var id = $(this).children(':selected').attr('value');
+            _Pages.showTypeData(id);
+        });
+
+    },
+    showTypeData: function(id) {
+
+        Command.get(id, function(t) {
+
+            var typeKey = t.name.toLowerCase();
+            localStorage.setItem(selectedTypeKey, id);
+
+            $('#data-wizard-attributes').append('<div class="clear">&nbsp;</div><p>You can drag and drop the type box onto a block in a page.'
+                    + 'The type will be bound to the block which will loop over the result set.</p>');
+
+            $('#data-wizard-attributes').append('<div class="data-binding-type draggable">:' + t.name + '</div>');
+            $('.data-binding-type').draggable({
+                iframeFix: true,
+                revert: 'invalid',
+                containment: 'body',
+                helper: 'clone',
+                appendTo: '#main',
+                stack: '.node',
+                zIndex: 99
+            });
+
+            $('#data-wizard-attributes').append('<h3>Custom Properties</h3><div class="custom"></div><div class="clear">&nbsp;</div><h3>System Properties</h3><div class="system"></div>');
+
+            var subkey = 'name';
+
+            $.each(t.relatedTo, function(i, endNode) {
+                
+
+                $.ajax({
+                    url: rootUrl + '/schema_relationships?sourceId=' + id + '&targetId=' + endNode.id,
+                    type: 'GET',
+                    contentType: 'application/json',
+                    statusCode: {
+                        200: function(data) {
+                            _Schema.getPropertyName(t.name, data.result[0].relationshipType, true, function(key, isCollection) {
+                                
+                                console.log('key', key)
+                                
+                                $('#data-wizard-attributes .custom').append('<div class="draggable data-binding-attribute ' + key + '" collection="' + isCollection + '" subkey="' + subkey + '">' + typeKey + '.' + key + '</div>');
+                                $('#data-wizard-attributes .custom').children('.' + key).draggable({
+                                    iframeFix: true,
+                                    revert: 'invalid',
+                                    containment: 'body',
+                                    helper: 'clone',
+                                    appendTo: '#main',
+                                    stack: '.node',
+                                    zIndex: 99
+                                }).on('click', function() {
+                                    console.log('expand')
+                                });
+                            });
+                        }
+                    }
+                });
+            });
+
+            $.each(t.relatedFrom, function(i, startNode) {
+
+                $.ajax({
+                    url: rootUrl + '/schema_relationships?sourceId=' + startNode.id + '&targetId=' + id,
+                    type: 'GET',
+                    contentType: 'application/json',
+                    statusCode: {
+                        200: function(data) {
+                            _Schema.getPropertyName(t.name, data.result[0].relationshipType, false, function(key, isCollection) {
+                                
+                                console.log('key', key)
+                                
+                                $('#data-wizard-attributes .custom').append('<div class="draggable data-binding-attribute ' + key + '" collection="' + isCollection + '" subkey="' + subkey + '">' + typeKey + '.' + key + '</div>');
+                                $('#data-wizard-attributes .custom').children('.draggable.' + key).draggable({
+                                    iframeFix: true,
+                                    revert: 'invalid',
+                                    containment: 'body',
+                                    helper: 'clone',
+                                    appendTo: '#main',
+                                    stack: '.node',
+                                    zIndex: 99
+                                });
+                            });
+                        }
+                    }
+                });
+            });
+
+            $.each(Object.keys(t), function(i, key) {
+                var type = 'system';
+                if (key.startsWith('_')) {
+
+                    key = key.substring(1);
+                    type = 'custom'
+
+                } else if (key === 'relatedTo' || key === 'relatedFrom') {
+                    // do nothing
+                    return;
+                }
+                var el = $('#data-wizard-attributes .' + type);
+                el.append('<div class="draggable data-binding-attribute ' + key + '">' + typeKey + '.' + key + '</div>');
+                el.children('.draggable.' + key).draggable({
+                    iframeFix: true,
+                    revert: 'invalid',
+                    containment: 'body',
+                    helper: 'clone',
+                    appendTo: '#main',
+                    stack: '.node',
+                    zIndex: 99
+                });
+            });
+
+            $('#data-wizard-attributes').append('<div class="clear">&nbsp;</div><p>Drag and drop these elements onto the page for data binding.</p>');
+
+        });
+
+    },
+    expandTreeNode: function(id) {
+        var el;
+        Command.get(id, function(obj) {
+            if (obj.parent) {
+                _Pages.expandTreeNode(obj.parent.id);
+            }
+            el = Structr.node(id);
+            if (el) {
+                _Entities.ensureExpanded(el);
+            }
+        });
     }
 };

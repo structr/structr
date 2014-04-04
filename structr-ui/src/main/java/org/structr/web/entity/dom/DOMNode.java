@@ -3,18 +3,17 @@
  *
  * This file is part of Structr <http://structr.org>.
  *
- * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
+ * Structr is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Affero General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
  *
- * Structr is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * Structr is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr. If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.web.entity.dom;
 
@@ -44,7 +43,7 @@ import java.util.regex.Matcher;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.jsoup.Jsoup;
@@ -143,6 +142,9 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 	public static final Property<Page> ownerDocument = new EndNode<>("ownerDocument", PageLink.class);
 	public static final Property<String> pageId = new EntityIdProperty("pageId", ownerDocument);
+
+	public static final Property<String> dataStructrIdProperty = new StringProperty("data-structr-id");
+	public static final Property<String> dataHashProperty = new StringProperty("data-hash");
 
 	protected static final Map<String, Function<String, String>> functions = new LinkedHashMap<>();
 	private static Set<Page> resultPages = new HashSet<>();
@@ -415,6 +417,106 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			}
 
 		});
+		functions.put("lt", new Function<String, String>() {
+
+			@Override
+			public String apply(String[] s) {
+
+				String result = "";
+
+				if (s != null && s.length == 2) {
+
+					try {
+
+						result = (Double.parseDouble(s[0]) < Double.parseDouble(s[1])) ? "true" : "false";
+
+					} catch (Throwable t) {
+
+						return t.getMessage();
+
+					}
+
+				}
+
+				return result;
+
+			}
+		});
+		functions.put("gt", new Function<String, String>() {
+
+			@Override
+			public String apply(String[] s) {
+
+				String result = "";
+
+				if (s != null && s.length == 2) {
+
+					try {
+
+						result = (Double.parseDouble(s[0]) > Double.parseDouble(s[1])) ? "true" : "false";
+
+					} catch (Throwable t) {
+
+						return t.getMessage();
+
+					}
+
+				}
+
+				return result;
+
+			}
+		});
+		functions.put("lte", new Function<String, String>() {
+
+			@Override
+			public String apply(String[] s) {
+
+				String result = "";
+
+				if (s != null && s.length == 2) {
+
+					try {
+
+						result = (Double.parseDouble(s[0]) <= Double.parseDouble(s[1])) ? "true" : "false";
+
+					} catch (Throwable t) {
+
+						return t.getMessage();
+
+					}
+
+				}
+
+				return result;
+
+			}
+		});
+		functions.put("gte", new Function<String, String>() {
+
+			@Override
+			public String apply(String[] s) {
+
+				String result = "";
+
+				if (s != null && s.length == 2) {
+
+					try {
+
+						result = (Double.parseDouble(s[0]) >= Double.parseDouble(s[1])) ? "true" : "false";
+
+					} catch (Throwable t) {
+
+						return t.getMessage();
+
+					}
+
+				}
+
+				return result;
+
+			}
+		});
 		functions.put("subt", new Function<String, String>() {
 
 			@Override
@@ -666,7 +768,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 				if (b == null || b.length == 0) {
 					return "";
 				}
-				
+
 				return b[0].equals("true") ? "false" : "true";
 			}
 
@@ -792,6 +894,27 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			}
 
 		});
+	}
+
+	public abstract boolean contentEquals(final DOMNode otherNode);
+	public abstract void updateFrom(final DOMNode source) throws FrameworkException;
+
+	public String getIdHash() {
+
+		final String uuid = getUuid();
+
+		return Integer.toHexString(uuid.hashCode());
+	}
+
+	public String getIdHashOrProperty() {
+
+		String idHash = getProperty(DOMNode.dataHashProperty);
+		if (idHash == null) {
+
+			idHash = getIdHash();
+		}
+
+		return idHash;
 	}
 
 	/**
@@ -1020,7 +1143,6 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		throws FrameworkException {
 
 		final String DEFAULT_VALUE_SEP = "!";
-		String pageId = renderContext.getPageId();
 		String[] parts = refKey.split("[\\.]+");
 		String referenceKey = parts[parts.length - 1];
 		String defaultValue = null;
@@ -1080,15 +1202,6 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 					}
 
-					/*
-					 for (AbstractRelationship rel : ((AbstractNode) _data).getRelationships(org.structr.web.common.RelType.LINK, Direction.OUTGOING)) {
-
-					 _data = rel.getTargetNode();
-
-					 break;
-
-					 }
-					 */
 					continue;
 
 				}
@@ -1159,19 +1272,42 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 				// details data object id
 				if ("id".equals(lowerCasePart)) {
-					
+
 					GraphObject detailsObject = renderContext.getDetailsDataObject();
-					
+
 					if (detailsObject != null) {
-						return renderContext.getDetailsDataObject().getUuid();
+						return detailsObject.getUuid();
 					}
-					
+
+				}
+
+				// details data object
+				if ("current".equals(lowerCasePart)) {
+
+					GraphObject detailsObject = renderContext.getDetailsDataObject();
+
+					if (detailsObject != null) {
+
+						_data = detailsObject;
+
+						continue;
+					}
+
 				}
 
 				// special keyword "this"
 				if ("this".equals(lowerCasePart)) {
 
 					_data = renderContext.getDataObject();
+
+					continue;
+
+				}
+
+				// special keyword "element"
+				if ("element".equals(lowerCasePart)) {
+
+					_data = this;
 
 					continue;
 
@@ -1186,27 +1322,17 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 				}
 
-				// special keyword "link", works only on root level
+				// special keyword "link"
 				if ("link".equals(lowerCasePart)) {
 
 					ResourceLink rel = getOutgoingRelationship(ResourceLink.class);
 
 					if (rel != null) {
 						_data = rel.getTargetNode();
-						break;
+
+						continue;
 					}
 
-					/*
-					 for (AbstractRelationship rel : getRelationships(org.structr.web.common.RelType.LINK, Direction.OUTGOING)) {
-
-					 _data = rel.getTargetNode();
-
-					 break;
-
-					 }
-					
-					 continue;
-					 */
 				}
 
 				// special keyword "parent"
@@ -1275,9 +1401,9 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 				if ("page_count".equals(lowerCasePart)) {
 
 					Result result = renderContext.getResult();
-					
+
 					Integer pageCount = result.getPageCount();
-					
+
 					if (pageCount != null) {
 						return pageCount;
 					} else {
@@ -1299,20 +1425,6 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 				}
 
-				//				// special keyword "rest_result"
-//				if ("rest_result".equals(lowerCasePart)) {
-//
-//					HttpServletRequest request = securityContext.getRequest();
-//
-//					if (request != null) {
-//
-//						return StringEscapeUtils.escapeJavaScript(StringUtils.replace(StringUtils.defaultString((String) request.getAttribute(HtmlServlet.REST_RESPONSE)), "\n", ""));
-//					}
-//
-//					return 0;
-//
-//				}
-//				
 			}
 
 		}
@@ -1394,7 +1506,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 					String source = group.substring(2, group.length() - 1);
 
 					// fetch referenced property
-					String partValue = extractFunctions(securityContext, renderContext, source);
+					String partValue = StringUtils.remove(extractFunctions(securityContext, renderContext, source), "\\");
 
 					if (partValue != null) {
 
@@ -1428,8 +1540,6 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 	protected String extractFunctions(SecurityContext securityContext, RenderContext renderContext, String source)
 		throws FrameworkException {
-
-		String pageId = renderContext.getPageId();
 
 		// re-use matcher from previous calls
 		Matcher functionMatcher = threadLocalFunctionMatcher.get();
@@ -1653,6 +1763,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		ArrayList<String> tokens = new ArrayList<>(20);
 		boolean inDoubleQuotes = false;
 		boolean inSingleQuotes = false;
+		boolean ignoreNext = false;
 		int len = source.length();
 		int level = 0;
 		StringBuilder currentToken = new StringBuilder(len);
@@ -1667,7 +1778,20 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 				currentToken.append(c);
 			}
 
+			if (ignoreNext) {
+
+				ignoreNext = false;
+				continue;
+
+			}
+
 			switch (c) {
+
+				case '\\':
+
+					ignoreNext = true;
+
+					break;
 
 				case '(':
 					level++;
@@ -1834,51 +1958,59 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		checkHierarchy(newChild);
 		checkHierarchy(refChild);
 
-		try {
+		if (newChild instanceof DocumentFragment) {
 
-			if (newChild instanceof DocumentFragment) {
+			// When inserting document fragments, we must take
+			// care of the special case that the nodes already
+			// have a NEXT_LIST_ENTRY relationship coming from
+			// the document fragment, so we must first remove
+			// the node from the document fragment and then
+			// add it to the new parent.
+			DocumentFragment fragment = (DocumentFragment)newChild;
+			Node currentChild = fragment.getFirstChild();
 
-				// When inserting document fragments, we must take
-				// care of the special case that the nodes already
-				// have a NEXT_LIST_ENTRY relationship coming from
-				// the document fragment, so we must first remove
-				// the node from the document fragment and then
-				// add it to the new parent.
-				DocumentFragment fragment = (DocumentFragment) newChild;
-				Node currentChild = fragment.getFirstChild();
+			while (currentChild != null) {
 
-				while (currentChild != null) {
+				// save next child in fragment list for later use
+				Node savedNextChild = currentChild.getNextSibling();
 
-					// save next child in fragment list for later use
-					Node savedNextChild = currentChild.getNextSibling();
+				// remove child from document fragment
+				fragment.removeChild(currentChild);
 
-					// remove child from document fragment
-					fragment.removeChild(currentChild);
+				// insert child into new parent
+				insertBefore(currentChild, refChild);
 
-					// insert child into new parent
-					insertBefore(currentChild, refChild);
-
-					// next
-					currentChild = savedNextChild;
-				}
-
-			} else {
-
-				Node _parent = newChild.getParentNode();
-				if (_parent != null) {
-
-					_parent.removeChild(newChild);
-				}
-
-				treeInsertBefore((DOMNode) newChild, (DOMNode) refChild);
-
-				// allow parent to set properties in new child
-				handleNewChild(newChild);
+				// next
+				currentChild = savedNextChild;
 			}
 
-		} catch (FrameworkException fex) {
+		} else {
 
-			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());
+			Node _parent = newChild.getParentNode();
+			if (_parent != null) {
+
+				_parent.removeChild(newChild);
+			}
+
+			try {
+
+				// do actual tree insertion here
+				treeInsertBefore((DOMNode)newChild, (DOMNode)refChild);
+
+			} catch (FrameworkException frex) {
+
+				if (frex.getStatus() == 404) {
+
+					throw new DOMException(DOMException.NOT_FOUND_ERR, frex.getMessage());
+
+				} else {
+
+					throw new DOMException(DOMException.INVALID_STATE_ERR, frex.getMessage());
+				}
+			}
+
+			// allow parent to set properties in new child
+			handleNewChild(newChild);
 		}
 
 		return refChild;
@@ -1895,56 +2027,62 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		checkHierarchy(newChild);
 		checkHierarchy(oldChild);
 
-		try {
+		if (newChild instanceof DocumentFragment) {
 
-			if (newChild instanceof DocumentFragment) {
+			// When inserting document fragments, we must take
+			// care of the special case that the nodes already
+			// have a NEXT_LIST_ENTRY relationship coming from
+			// the document fragment, so we must first remove
+			// the node from the document fragment and then
+			// add it to the new parent.
+			// replace indirectly using insertBefore and remove
+			DocumentFragment fragment = (DocumentFragment)newChild;
+			Node currentChild = fragment.getFirstChild();
 
-				// When inserting document fragments, we must take
-				// care of the special case that the nodes already
-				// have a NEXT_LIST_ENTRY relationship coming from
-				// the document fragment, so we must first remove
-				// the node from the document fragment and then
-				// add it to the new parent.
-				// replace indirectly using insertBefore and remove
-				DocumentFragment fragment = (DocumentFragment) newChild;
-				Node currentChild = fragment.getFirstChild();
+			while (currentChild != null) {
 
-				while (currentChild != null) {
+				// save next child in fragment list for later use
+				Node savedNextChild = currentChild.getNextSibling();
 
-					// save next child in fragment list for later use
-					Node savedNextChild = currentChild.getNextSibling();
+				// remove child from document fragment
+				fragment.removeChild(currentChild);
 
-					// remove child from document fragment
-					fragment.removeChild(currentChild);
+				// add child to new parent
+				insertBefore(currentChild, oldChild);
 
-					// add child to new parent
-					insertBefore(currentChild, oldChild);
-
-					// next
-					currentChild = savedNextChild;
-				}
-
-				// finally, remove reference element
-				removeChild(oldChild);
-
-			} else {
-
-				Node _parent = newChild.getParentNode();
-				if (_parent != null && _parent instanceof DOMNode) {
-
-					_parent.removeChild(newChild);
-				}
-
-				// replace directly
-				treeReplaceChild((DOMNode) newChild, (DOMNode) oldChild);
-
-				// allow parent to set properties in new child
-				handleNewChild(newChild);
+				// next
+				currentChild = savedNextChild;
 			}
 
-		} catch (FrameworkException fex) {
+			// finally, remove reference element
+			removeChild(oldChild);
 
-			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());
+		} else {
+
+			Node _parent = newChild.getParentNode();
+			if (_parent != null && _parent instanceof DOMNode) {
+
+				_parent.removeChild(newChild);
+			}
+
+			try {
+				// replace directly
+				treeReplaceChild((DOMNode)newChild, (DOMNode)oldChild);
+
+			} catch (FrameworkException frex) {
+
+				if (frex.getStatus() == 404) {
+
+					throw new DOMException(DOMException.NOT_FOUND_ERR, frex.getMessage());
+
+				} else {
+
+					throw new DOMException(DOMException.INVALID_STATE_ERR, frex.getMessage());
+				}
+			}
+
+			// allow parent to set properties in new child
+			handleNewChild(newChild);
 		}
 
 		return oldChild;
@@ -2061,9 +2199,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			final App app = StructrApp.getInstance(securityContext);
 
 			try {
-				app.beginTx();
 				DOMNode node = app.create(getClass(), properties);
-				app.commitTx();
 
 				return node;
 
@@ -2071,9 +2207,6 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 				throw new DOMException(DOMException.INVALID_STATE_ERR, ex.toString());
 
-			} finally {
-
-				app.finishTx();
 			}
 
 		}
@@ -2162,70 +2295,56 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	@Override
 	public final void normalize() {
 
-		final App app = StructrApp.getInstance(securityContext);
+		Document document = getOwnerDocument();
+		if (document != null) {
 
-		try {
+			// merge adjacent text nodes until there is only one left
+			Node child = getFirstChild();
+			while (child != null) {
 
-			Document document = getOwnerDocument();
-			if (document != null) {
+				if (child instanceof Text) {
 
-				// merge adjacent text nodes until there is only one left
-				Node child = getFirstChild();
-				while (child != null) {
+					Node next = child.getNextSibling();
+					if (next != null && next instanceof Text) {
 
-					if (child instanceof Text) {
+						String text1 = child.getNodeValue();
+						String text2 = next.getNodeValue();
 
-						Node next = child.getNextSibling();
-						if (next != null && next instanceof Text) {
+						// create new text node
+						Text newText = document.createTextNode(text1.concat(text2));
 
-							String text1 = child.getNodeValue();
-							String text2 = next.getNodeValue();
+						removeChild(child);
+						insertBefore(newText, next);
+						removeChild(next);
 
-							// create new text node
-							Text newText = document.createTextNode(text1.concat(text2));
-
-							removeChild(child);
-							insertBefore(newText, next);
-							removeChild(next);
-
-							child = newText;
-
-						} else {
-
-							// advance to next node
-							child = next;
-						}
+						child = newText;
 
 					} else {
 
 						// advance to next node
-						child = child.getNextSibling();
-
+						child = next;
 					}
-				}
 
-				// recursively normalize child nodes
-				if (hasChildNodes()) {
+				} else {
 
-					Node currentChild = getFirstChild();
-					while (currentChild != null) {
+					// advance to next node
+					child = child.getNextSibling();
 
-						currentChild.normalize();
-						currentChild = currentChild.getNextSibling();
-					}
 				}
 			}
 
-			app.commitTx();
+			// recursively normalize child nodes
+			if (hasChildNodes()) {
 
-		} catch (FrameworkException fex) {
+				Node currentChild = getFirstChild();
+				while (currentChild != null) {
 
-			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.getMessage());
-
-		} finally {
-
-			app.finishTx();
+					currentChild.normalize();
+					currentChild = currentChild.getNextSibling();
+				}
+			}
 		}
+
 	}
 
 	// ----- interface DOMAdoptable -----
@@ -2237,22 +2356,57 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			final App app = StructrApp.getInstance(securityContext);
 
 			try {
-
-				app.beginTx();
 				setProperty(ownerDocument, _page);
-				app.commitTx();
 
 			} catch (FrameworkException fex) {
 
 				throw new DOMException(DOMException.INVALID_STATE_ERR, fex.getMessage());
 
-			} finally {
-
-				app.finishTx();
 			}
 		}
 
 		return this;
+	}
+
+	@Override
+	public boolean flush() {
+		return false;
+	}
+
+	// ----- static methods -----
+	private static String getFromUrl(final String requestUrl) throws IOException {
+
+		DefaultHttpClient client = new DefaultHttpClient();
+		HttpGet get = new HttpGet(requestUrl);
+
+		get.setHeader("Connection", "close");
+
+		return IOUtils.toString(client.execute(get).getEntity().getContent(), "UTF-8");
+
+	}
+
+	public static Set<DOMNode> getAllChildNodes(final DOMNode node) {
+
+		Set<DOMNode> allChildNodes = new HashSet();
+
+		Node n = node.getFirstChild();
+
+		while (n != null) {
+
+			if (n instanceof DOMNode) {
+
+				DOMNode domNode = (DOMNode) n;
+
+				allChildNodes.add(domNode);
+				allChildNodes.addAll(getAllChildNodes(domNode));
+
+			}
+
+			n = n.getNextSibling();
+
+		}
+
+		return allChildNodes;
 	}
 
 	// ----- nested classes -----
@@ -2298,40 +2452,4 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			return false;
 		}
 	}
-
-	private static String getFromUrl(final String requestUrl) throws IOException {
-
-		DefaultHttpClient client = new DefaultHttpClient();
-		HttpGet get = new HttpGet(requestUrl);
-
-		get.setHeader("Connection", "close");
-
-		return IOUtils.toString(client.execute(get).getEntity().getContent(), "UTF-8");
-
-	}
-
-//	private static String getFromUrl2(final String requestUrl) throws IOException {
-//		
-//		HttpRequest httpRequest = HttpRequest.get(requestUrl);
-//		HttpResponse response = httpRequest.send();
-//		return response.body();
-//		
-//	}
-	public static Set<DOMNode> getAllChildNodes(final DOMNode node) {
-
-		Set<DOMNode> allChildNodes = new HashSet();
-
-		DOMNode n = (DOMNode) node.getFirstChild();
-
-		while (n != null) {
-
-			allChildNodes.add(n);
-			allChildNodes.addAll(getAllChildNodes(n));
-			n = (DOMNode) n.getNextSibling();
-
-		}
-
-		return allChildNodes;
-	}
-
 }

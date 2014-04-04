@@ -60,8 +60,8 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 	private static final Logger logger                      = Logger.getLogger(SchemaRelationship.class.getName());
 	private static final Pattern ValidKeyPattern            = Pattern.compile("[a-zA-Z_]+");
 	
-	public static final Property<String> sourceId           = new SourceId("sourceId");
-	public static final Property<String> targetId           = new TargetId("targetId");
+	public static final Property<String> sourceId           = new SourceId("sourceId").passivelyIndexed();
+	public static final Property<String> targetId           = new TargetId("targetId").passivelyIndexed();
 	public static final Property<String> relationshipType   = new StringProperty("relationshipType");
 	public static final Property<String> sourceMultiplicity = new StringProperty("sourceMultiplicity");
 	public static final Property<String> targetMultiplicity = new StringProperty("targetMultiplicity");
@@ -197,14 +197,14 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 
 			if ("1".equals(_targetMultiplicity)) {
 
-				buf.append("\tpublic static final Property<").append(_targetType).append("> ").append(propertyName).append("Property");
+				buf.append("\tpublic static final Property<").append(_targetType).append("> ").append(SchemaHelper.cleanPropertyName(propertyName)).append("Property");
 				buf.append(" = new EndNode<>(\"").append(propertyName).append("\", ").append(_className).append(".class");
 				buf.append(getNotion(_sourceType, _targetNotion));
 				buf.append(");\n");
 				
 			} else {
 				
-				buf.append("\tpublic static final Property<List<").append(_targetType).append(">> ").append(propertyName).append("Property");
+				buf.append("\tpublic static final Property<java.util.List<").append(_targetType).append(">> ").append(SchemaHelper.cleanPropertyName(propertyName)).append("Property");
 				buf.append(" = new EndNodes<>(\"").append(propertyName).append("\", ").append(_className).append(".class");
 				buf.append(getNotion(_sourceType, _targetNotion));
 				buf.append(");\n");
@@ -214,14 +214,14 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 			
 			if ("1".equals(_sourceMultiplicity)) {
 
-				buf.append("\tpublic static final Property<").append(_sourceType).append("> ").append(propertyName).append("Property");
+				buf.append("\tpublic static final Property<").append(_sourceType).append("> ").append(SchemaHelper.cleanPropertyName(propertyName)).append("Property");
 				buf.append(" = new StartNode<>(\"").append(propertyName).append("\", ").append(_className).append(".class");
 				buf.append(getNotion(_targetType, _sourceNotion));
 				buf.append(");\n");
 				
 			} else {
 				
-				buf.append("\tpublic static final Property<List<").append(_sourceType).append(">> ").append(propertyName).append("Property");
+				buf.append("\tpublic static final Property<java.util.List<").append(_sourceType).append(">> ").append(SchemaHelper.cleanPropertyName(propertyName)).append("Property");
 				buf.append(" = new StartNodes<>(\"").append(propertyName).append("\", ").append(_className).append(".class");
 				buf.append(getNotion(_targetType, _sourceNotion));
 				buf.append(");\n");
@@ -235,26 +235,30 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 		
 		String propertyName = "";
 		
-		final String _sourceType         = getSchemaNodeSourceType();
-		final String _targetType         = getSchemaNodeTargetType();
+		final String relationshipTypeName = getProperty(SchemaRelationship.relationshipType).toLowerCase();
+		final String _sourceType          = getSchemaNodeSourceType();
+		final String _targetType          = getSchemaNodeTargetType();
 
 		if (outgoing) {
 
 			final String _targetJsonName     = getProperty(targetJsonName);
 
 			if (_targetJsonName != null) {
+				
+				// FIXME: no automatic creation?
 				propertyName = _targetJsonName;
+				
 			} else {
 
 				final String _targetMultiplicity = getProperty(targetMultiplicity);
 
 				if ("1".equals(_targetMultiplicity)) {
 
-					propertyName = CaseHelper.toLowerCamelCase(_targetType);
+					propertyName = CaseHelper.toLowerCamelCase(relationshipTypeName) + CaseHelper.toUpperCamelCase(_targetType);
 
 				} else {
 
-					propertyName = CaseHelper.plural(CaseHelper.toLowerCamelCase(_targetType));
+					propertyName = CaseHelper.plural(CaseHelper.toLowerCamelCase(relationshipTypeName) + CaseHelper.toUpperCamelCase(_targetType));
 				}
 			}
 			
@@ -270,11 +274,11 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 
 				if ("1".equals(_sourceMultiplicity)) {
 
-					propertyName = CaseHelper.toLowerCamelCase(_sourceType);
+					propertyName = CaseHelper.toLowerCamelCase(_sourceType) + CaseHelper.toUpperCamelCase(relationshipTypeName);
 
 				} else {
 
-					propertyName = CaseHelper.plural(CaseHelper.toLowerCamelCase(_sourceType));
+					propertyName = CaseHelper.plural(CaseHelper.toLowerCamelCase(_sourceType) + CaseHelper.toUpperCamelCase(relationshipTypeName));
 				}
 			}
 		}
@@ -319,7 +323,7 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 		
 		// source and target id properties
 		src.append("\tpublic static final Property<String> sourceIdProperty = new SourceId(\"sourceId\");\n");
-		src.append("\tpublic static final Property<String> targetIdProperty = new SourceId(\"targetId\");\n");
+		src.append("\tpublic static final Property<String> targetIdProperty = new TargetId(\"targetId\");\n");
 
 		// add sourceId and targetId to view properties
 		SchemaHelper.addPropertyToView(PropertyView.Public, "sourceId", viewProperties);

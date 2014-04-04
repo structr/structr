@@ -36,7 +36,6 @@ import org.structr.core.Adapter;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.web.common.RenderContext;
-import org.structr.core.property.IntProperty;
 import org.structr.core.property.StringProperty;
 
 //~--- JDK imports ------------------------------------------------------------
@@ -45,10 +44,10 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.common.Permission;
-import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
 import org.structr.core.graph.search.SearchCommand;
+import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext.EditMode;
 import static org.structr.web.entity.dom.DOMNode.hideOnDetail;
 import static org.structr.web.entity.dom.DOMNode.hideOnIndex;
@@ -66,9 +65,8 @@ public class Content extends DOMNode implements Text {
 	private static final Logger logger                                                   = Logger.getLogger(Content.class.getName());
 	public static final Property<String> contentType                                     = new StringProperty("contentType").indexed();
 	public static final Property<String> content                                         = new StringProperty("content").indexed();
-	public static final Property<Integer> size                                           = new IntProperty("size").indexed();
-	
-	private static final Map<String, Adapter<String, String>> contentConverters          = new LinkedHashMap<String, Adapter<String, String>>();
+
+	private static final Map<String, Adapter<String, String>> contentConverters          = new LinkedHashMap<>();
 
 	private static final ThreadLocalTracWikiProcessor tracWikiProcessor                  = new ThreadLocalTracWikiProcessor();
 	private static final ThreadLocalTextileProcessor textileProcessor                    = new ThreadLocalTextileProcessor();
@@ -77,10 +75,10 @@ public class Content extends DOMNode implements Text {
 	private static final ThreadLocalConfluenceProcessor confluenceProcessor              = new ThreadLocalConfluenceProcessor();
 
 	public static final org.structr.common.View uiView                                   = new org.structr.common.View(Content.class, PropertyView.Ui,
-		content, contentType, size, parent, pageId, hideOnDetail, hideOnIndex, showForLocales, hideForLocales, showConditions, hideConditions);
+		content, contentType, parent, pageId, hideOnDetail, hideOnIndex, showForLocales, hideForLocales, showConditions, hideConditions);
 
 	public static final org.structr.common.View publicView                               = new org.structr.common.View(Content.class, PropertyView.Public,
-		content, contentType, size, parent, pageId, hideOnDetail, hideOnIndex, showForLocales, hideForLocales, showConditions, hideConditions);
+		content, contentType, parent, pageId, hideOnDetail, hideOnIndex, showForLocales, hideForLocales, showConditions, hideConditions);
 	//~--- static initializers --------------------------------------------
 
 	static {
@@ -90,8 +88,11 @@ public class Content extends DOMNode implements Text {
 			@Override
 			public String adapt(String s) throws FrameworkException {
 
-				return pegDownProcessor.get().markdownToHtml(s);
+				if (s != null) {
+					return pegDownProcessor.get().markdownToHtml(s);
+				}
 
+				return "";
 			}
 
 		});
@@ -100,7 +101,11 @@ public class Content extends DOMNode implements Text {
 			@Override
 			public String adapt(String s) throws FrameworkException {
 
-				return textileProcessor.get().parseToHtml(s);
+				if (s != null) {
+					return textileProcessor.get().parseToHtml(s);
+				}
+
+				return "";
 
 			}
 
@@ -110,8 +115,11 @@ public class Content extends DOMNode implements Text {
 			@Override
 			public String adapt(String s) throws FrameworkException {
 
-				return mediaWikiProcessor.get().parseToHtml(s);
+				if (s != null) {
+					return mediaWikiProcessor.get().parseToHtml(s);
+				}
 
+				return "";
 			}
 
 		});
@@ -120,7 +128,11 @@ public class Content extends DOMNode implements Text {
 			@Override
 			public String adapt(String s) throws FrameworkException {
 
-				return tracWikiProcessor.get().parseToHtml(s);
+				if (s != null) {
+					return tracWikiProcessor.get().parseToHtml(s);
+				}
+
+				return "";
 
 			}
 
@@ -130,7 +142,11 @@ public class Content extends DOMNode implements Text {
 			@Override
 			public String adapt(String s) throws FrameworkException {
 
-				return confluenceProcessor.get().parseToHtml(s);
+				if (s != null) {
+					return confluenceProcessor.get().parseToHtml(s);
+				}
+
+				return "";
 
 			}
 
@@ -148,10 +164,52 @@ public class Content extends DOMNode implements Text {
 
 	}
 
-	//~--- methods --------------------------------------------------------
+	@Override
+	public boolean contentEquals(DOMNode otherNode) {
 
+		if (otherNode instanceof Content) {
 
-	//~--- get methods ----------------------------------------------------
+			final String content1 = getTextContent();
+			final String content2 = ((Content)otherNode).getTextContent();
+
+			if (content1 == null && content2 == null) {
+				return true;
+			}
+
+			if (content1 != null && content2 != null) {
+
+				return content1.equals(content2);
+			}
+		}
+
+		return false;
+	}
+
+	@Override
+	public void updateFrom(final DOMNode source) throws FrameworkException {
+
+		// will throw a ClassCastException here (which is desired behaviour)
+		final Content contentSource = (Content)source;
+
+		this.setProperty(Content.content, contentSource.getProperty(Content.content));
+	}
+
+	@Override
+	public String getIdHash() {
+
+		final DOMNode _parent = getProperty(DOMNode.parent);
+		if (_parent != null) {
+
+			String dataHash = _parent.getProperty(DOMNode.dataHashProperty);
+			if (dataHash == null) {
+				dataHash = _parent.getIdHash();
+			}
+
+			return dataHash + "Content" + treeGetChildPosition(this);
+		}
+
+		return super.getIdHash();
+	}
 
 	@Override
 	public java.lang.Object getPropertyForIndexing(final PropertyKey key) {
@@ -172,7 +230,7 @@ public class Content extends DOMNode implements Text {
 
 	@Override
 	public void render(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException {
-	
+
 		if (isDeleted() || isHidden() || !displayForLocale(renderContext) || !displayForConditions(securityContext, renderContext)) {
 			return;
 		}
@@ -180,13 +238,13 @@ public class Content extends DOMNode implements Text {
 		String id            = getUuid();
 		EditMode edit        = renderContext.getEditMode(securityContext.getUser(false));
 		boolean inBody       = renderContext.inBody();
-		StringBuilder buffer = renderContext.getBuffer();
-		
+		AsyncBuffer out       = renderContext.getBuffer();
+
 		String _contentType = getProperty(contentType);
 
 		// fetch content with variable replacement
 		String _content = getPropertyWithVariableReplacement(securityContext, renderContext, Content.content);
-		
+
 		if (!(EditMode.RAW.equals(edit)) && (_contentType == null || ("text/plain".equals(_contentType)))) {
 
 			_content = escapeForHtml(_content);
@@ -196,42 +254,42 @@ public class Content extends DOMNode implements Text {
 		if (EditMode.CONTENT.equals(edit) && inBody && securityContext.isAllowed(this, Permission.write)) {
 
 			if ("text/javascript".equals(_contentType)) {
-				
+
 				// Javascript will only be given some local vars
 				// TODO: Is this neccessary?
-				buffer.append("// data-structr-type='").append(getType()).append("'\n// data-structr-id='").append(id).append("'\n");
-				
+				out.append("// data-structr-type='").append(getType()).append("'\n// data-structr-id='").append(id).append("'\n");
+
 			} else if ("text/css".equals(_contentType)) {
-				
+
 				// CSS will only be given some local vars
 				// TODO: Is this neccessary?
-				buffer.append("/* data-structr-type='").append(getType()).append("'*/\n/* data-structr-id='").append(id).append("'*/\n");
-				
+				out.append("/* data-structr-type='").append(getType()).append("'*/\n/* data-structr-id='").append(id).append("'*/\n");
+
 			} else {
-				
+
 //				// In edit mode, add an artificial 'span' tag around content nodes within body to make them editable
 //				buffer.append("<span data-structr-raw-value=\"").append(getProperty(Content.content))
 //					//.append("\" data-structr-content-type=\"").append(StringUtils.defaultString(getProperty(Content.contentType), ""))
 //					.append("\" data-structr-type=\"").append(getType())
 //					.append("\" data-structr-id=\"").append(id).append("\">");
-				
+
 //				int l = buffer.length();
 //				buffer.replace(l-1, l, " data-structr-raw-value=\""
 //					.concat(getProperty(Content.content))
 //					.concat("\" data-structr-type=\"").concat(getType())
 //					.concat("\" data-structr-id=\"").concat(id).concat("\">"));
-				
-				buffer.append("<!--data-structr-id=\"".concat(id)
-					.concat("\" data-structr-raw-value=\"").concat(getProperty(Content.content).replaceAll("\n", "\\\\n")).concat("\"-->"));
+				String cleanedContent = StringUtils.remove(StringUtils.remove(StringUtils.replace(getProperty(Content.content), "\n", "\\\\n"), "<!--"), "-->");
+				out.append("<!--data-structr-id=\"".concat(id)
+					.concat("\" data-structr-raw-value=\"").concat(cleanedContent).concat("\"-->"));
 					//.concat("\" data-structr-raw-value=\"").concat(getProperty(Content.content)).concat("\"-->"));
-				
+
 			}
-			
+
 		}
 
 		// No contentType-specific rendering in DATA edit mode
 		//if (!edit.equals(EditMode.DATA)) {
-			
+
 			// examine content type and apply converter
 
 			if (_contentType != null) {
@@ -264,21 +322,26 @@ public class Content extends DOMNode implements Text {
 		if (_content != null) {
 
 			//buffer.append(indent(depth, true)).append(_content);
-			
+
 			// insert whitespace to make element clickable
 			if (EditMode.CONTENT.equals(edit) && _content.length() == 0) {
 				_content = "--- empty ---";
 			}
-			
-			buffer.append(_content);
+
+			out.append(_content);
 		}
-		
+
 		if (EditMode.CONTENT.equals(edit) && inBody && !("text/javascript".equals(getProperty(contentType))) && !("text/css".equals(getProperty(contentType)))) {
 
 //			buffer.append("</span>");
-			buffer.append("<!---->");
+			out.append("<!---->");
 		}
 
+	}
+
+	@Override
+	public boolean flush() {
+		return true;
 	}
 
 //	@Override
@@ -299,45 +362,43 @@ public class Content extends DOMNode implements Text {
 //			logger.log(Level.FINEST, "Edit mode value: {0}", editModeValue);
 //
 //			return editModeValue;
-//			
+//
 //		} else {
 //
 //			return value != null ? value : defaultValue;
 //
 //		}
-//		
+//
 //	}
 
 	// ----- interface org.w3c.dom.Text -----
-	
+
 	@Override
 	public Text splitText(int offset) throws DOMException {
 
 		checkWriteAccess();
-		
+
 		String text = getProperty(content);
-		
+
 		if (text != null) {
 
 			int len = text.length();
-			
+
 			if (offset < 0 || offset > len) {
-				
+
 				throw new DOMException(DOMException.INDEX_SIZE_ERR, INDEX_SIZE_ERR_MESSAGE);
-				
+
 			} else {
-				
+
 				final String firstPart  = text.substring(0, offset);
 				final String secondPart = text.substring(offset);
-				
+
 				final Document document  = getOwnerDocument();
 				final Node parent        = getParentNode();
-				
+
 				if (document != null && parent != null) {
-					
-					final App app = StructrApp.getInstance(securityContext);
+
 					try {
-						app.beginTx();
 
 						// first part goes into existing text element
 						setProperty(content, firstPart);
@@ -348,41 +409,37 @@ public class Content extends DOMNode implements Text {
 						// make new node a child of old parent
 						parent.appendChild(newNode);
 
-						app.commitTx();
-						
+
 						return newNode;
 
 					} catch (FrameworkException fex) {
-			
-						throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());			
-						
-					} finally {
-						
-						app.finishTx();
+
+						throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());
+
 					}
-					
+
 				} else {
-						
+
 					throw new DOMException(DOMException.INVALID_STATE_ERR, CANNOT_SPLIT_TEXT_WITHOUT_PARENT);
 				}
 			}
 		}
-		
-		throw new DOMException(DOMException.INDEX_SIZE_ERR, INDEX_SIZE_ERR_MESSAGE);		
+
+		throw new DOMException(DOMException.INDEX_SIZE_ERR, INDEX_SIZE_ERR_MESSAGE);
 	}
 
 	@Override
 	public boolean isElementContentWhitespace() {
-		
+
 		checkReadAccess();
-		
+
 		String text = getProperty(content);
-		
+
 		if (text != null) {
-		
+
 			return !text.matches("[\\S]*");
 		}
-		
+
 		return false;
 	}
 
@@ -398,98 +455,83 @@ public class Content extends DOMNode implements Text {
 
 	@Override
 	public String getData() throws DOMException {
-		
+
 		checkReadAccess();
-		
+
 		return getProperty(content);
 	}
 
 	@Override
 	public void setData(final String data) throws DOMException {
-		
+
 		checkWriteAccess();
-		
-		final App app = StructrApp.getInstance(securityContext);
 		try {
-			app.beginTx();
 			setProperty(content, data);
-			app.commitTx();
-			
+
 		} catch (FrameworkException fex) {
-			
+
 			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());
-			
-		} finally {
-			
-			app.finishTx();
+
 		}
 	}
 
 	@Override
 	public int getLength() {
-		
+
 		String text = getProperty(content);
-		
+
 		if (text != null) {
-			
+
 			return text.length();
 		}
-		
+
 		return 0;
 	}
 
 	@Override
 	public String substringData(int offset, int count) throws DOMException {
-		
+
 		checkReadAccess();
 
 		String text = getProperty(content);
-		
+
 		if (text != null) {
 
 			try {
-				
+
 				return text.substring(offset, offset + count);
-				
+
 			} catch (IndexOutOfBoundsException iobex) {
-				
+
 				throw new DOMException(DOMException.INDEX_SIZE_ERR, INDEX_SIZE_ERR_MESSAGE);
 			}
 		}
-		
+
 		return "";
 	}
 
 	@Override
 	public void appendData(final String data) throws DOMException {
-		
+
 		checkWriteAccess();
 
-		final App app = StructrApp.getInstance(securityContext);
 		try {
-			app.beginTx();
 			String text = getProperty(content);
 			setProperty(content, text.concat(data));
-			app.commitTx();
-			
+
 		} catch (FrameworkException fex) {
-			
+
 			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());
-			
-		} finally {
-			
-			app.finishTx();
+
 		}
 	}
 
 	@Override
 	public void insertData(final int offset, final String data) throws DOMException {
-		
+
 		checkWriteAccess();
 
-		final App app = StructrApp.getInstance(securityContext);
 		try {
-			app.beginTx();
 
 			String text = getProperty(content);
 
@@ -504,27 +546,21 @@ public class Content extends DOMNode implements Text {
 			// finally, set content to concatenated left, data and right parts
 			setProperty(content, buf.toString());
 
-			app.commitTx();
-			
+
 		} catch (FrameworkException fex) {
-			
+
 			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());
-			
-		} finally {
-			
-			app.finishTx();
+
 		}
 	}
 
 	@Override
 	public void deleteData(final int offset, final int count) throws DOMException {
-		
+
 		checkWriteAccess();
-		
+
 		// finally, set content to concatenated left and right parts
-		final App app = StructrApp.getInstance(securityContext);
 		try {
-			app.beginTx();
 
 			String text = getProperty(content);
 
@@ -532,28 +568,21 @@ public class Content extends DOMNode implements Text {
 			String rightPart = text.substring(offset + count);
 
 			setProperty(content, leftPart.concat(rightPart));
-			
-			app.commitTx();
-			
+
 		} catch (FrameworkException fex) {
-			
+
 			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());
-			
-		} finally {
-			
-			app.finishTx();
+
 		}
 	}
 
 	@Override
 	public void replaceData(final int offset, final int count, final String data) throws DOMException {
-		
+
 		checkWriteAccess();
 
 		// finally, set content to concatenated left and right parts
-		final App app = StructrApp.getInstance(securityContext);
 		try {
-			app.beginTx();
 
 			String text = getProperty(content);
 
@@ -566,19 +595,14 @@ public class Content extends DOMNode implements Text {
 			buf.append(rightPart);
 
 			setProperty(content, buf.toString());
-			
-			app.commitTx();
-			
+
 		} catch (FrameworkException fex) {
-			
+
 			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());
-			
-		} finally {
-			
-			app.finishTx();
+
 		}
 	}
-	
+
 	// ----- interface org.w3c.dom.Node -----
 	@Override
 	public String getTextContent() throws DOMException {
@@ -628,7 +652,7 @@ public class Content extends DOMNode implements Text {
 	// ----- interface DOMImportable -----
 	@Override
 	public Node doImport(Page newPage) throws DOMException {
-		
+
 		// for #text elements, importing is basically a clone operation
 		return newPage.createTextNode(getData());
 	}

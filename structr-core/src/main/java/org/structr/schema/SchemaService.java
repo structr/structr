@@ -33,6 +33,7 @@ import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.relationship.SchemaRelationship;
+import org.structr.core.graph.Tx;
 import org.structr.schema.compiler.NodeExtender;
 
 /**
@@ -56,7 +57,7 @@ public class SchemaService implements Service {
 		final NodeExtender nodeExtender = new NodeExtender();
 		boolean success                 = true;
 
-		try {
+		try (final Tx tx = StructrApp.getInstance().tx()) {
 			// collect node classes
 			for (final SchemaNode schemaNode : StructrApp.getInstance().nodeQuery(SchemaNode.class).getAsList()) {
 				nodeExtender.addClass(schemaNode.getClassName(), schemaNode.getSource(errorBuffer));

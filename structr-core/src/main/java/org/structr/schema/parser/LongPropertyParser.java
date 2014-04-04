@@ -42,7 +42,7 @@ public class LongPropertyParser extends NumericalPropertyParser {
 
 	@Override
 	public String getValueType() {
-		return Long.class.getSimpleName();
+		return Long.class.getName();
 	}
 	
 	@Override

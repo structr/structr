@@ -3,18 +3,17 @@
  *
  * This file is part of Structr <http://structr.org>.
  *
- * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
+ * Structr is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Affero General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
  *
- * Structr is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * Structr is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr. If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.rest.service;
 
@@ -22,9 +21,6 @@ import ch.qos.logback.access.jetty.RequestLogImpl;
 import ch.qos.logback.access.servlet.TeeFilter;
 import java.io.File;
 import java.io.IOException;
-import java.lang.management.ManagementFactory;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -40,19 +36,22 @@ import org.apache.commons.lang.StringUtils;
 import org.eclipse.jetty.server.Authentication.User;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Handler;
+import org.eclipse.jetty.server.HttpConfiguration;
+import org.eclipse.jetty.server.HttpConnectionFactory;
+import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.server.SslConnectionFactory;
 import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.handler.DefaultHandler;
 import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.server.handler.RequestLogHandler;
 import org.eclipse.jetty.server.handler.ResourceHandler;
-import org.eclipse.jetty.server.nio.SelectChannelConnector;
-import org.eclipse.jetty.server.ssl.SslSelectChannelConnector;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
-import org.eclipse.jetty.servlets.GzipFilter;
+import org.eclipse.jetty.servlets.AsyncGzipFilter;
 import org.eclipse.jetty.util.resource.JarResource;
 import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.util.resource.ResourceCollection;
@@ -105,12 +104,15 @@ public class HttpService implements RunnableService {
 	private int maxIdleTime = 30000;
 	private int requestHeaderSize = 8192;
 
+	private HttpConfiguration httpConfig;
+	private HttpConfiguration httpsConfig;
+
 	@Override
 	public void startService() {
 
 		logger.log(Level.INFO, "Starting {0} (host={1}:{2}, maxIdleTime={3}, requestHeaderSize={4})", new Object[]{applicationName, host, String.valueOf(httpPort), String.valueOf(maxIdleTime), String.valueOf(requestHeaderSize)});
 		logger.log(Level.INFO, "Base path {0}", basePath);
-		logger.log(Level.INFO, "{0} started at http://{1}:{2}{3}", new Object[]{applicationName, String.valueOf(host), String.valueOf(httpPort), restUrl});
+		logger.log(Level.INFO, "{0} started at http://{1}:{2}", new Object[]{applicationName, String.valueOf(host), String.valueOf(httpPort)});
 
 		try {
 			server.start();
@@ -173,15 +175,15 @@ public class HttpService implements RunnableService {
 
 		Class mainClass = null;
 		if (mainClassName != null) {
-			
-			logger.log(Level.INFO, "Running main class {0}", new Object[]{ mainClassName });
-			
+
+			logger.log(Level.INFO, "Running main class {0}", new Object[]{mainClassName});
+
 			try {
 				mainClass = Class.forName(mainClassName);
 			} catch (ClassNotFoundException ex) {
 				logger.log(Level.WARNING, "Did not found class for main class from config " + mainClassName, ex);
 			}
-			
+
 		}
 
 		String sourceJarName = (mainClass != null ? mainClass : getClass()).getProtectionDomain().getCodeSource().getLocation().toString();
@@ -199,12 +201,12 @@ public class HttpService implements RunnableService {
 		}
 
 		// load configuration from properties file
-		applicationName = finalConfig.getProperty(APPLICATION_TITLE);
-		host = finalConfig.getProperty(APPLICATION_HOST);
-		basePath = finalConfig.getProperty(Services.BASE_PATH);
-		httpPort = HttpServiceServlet.parseInt(finalConfig.getProperty(APPLICATION_HTTP_PORT), 8082);
-		maxIdleTime = HttpServiceServlet.parseInt(System.getProperty("maxIdleTime"), 30000);
-		requestHeaderSize = HttpServiceServlet.parseInt(System.getProperty("requestHeaderSize"), 8192);
+		applicationName   = finalConfig.getProperty(APPLICATION_TITLE);
+		host              = finalConfig.getProperty(APPLICATION_HOST);
+		basePath          = finalConfig.getProperty(Services.BASE_PATH);
+		httpPort          = parseInt(finalConfig.getProperty(APPLICATION_HTTP_PORT), 8082);
+		maxIdleTime       = parseInt(System.getProperty("maxIdleTime"), 30000);
+		requestHeaderSize = parseInt(System.getProperty("requestHeaderSize"), 8192);
 
 		// other properties
 		String keyStorePath = finalConfig.getProperty(APPLICATION_KEYSTORE_PATH);
@@ -212,10 +214,10 @@ public class HttpService implements RunnableService {
 		String contextPath = System.getProperty("contextPath", "/");
 		String logPrefix = "structr";
 		boolean enableRewriteFilter = true; // configurationFile.getProperty(Services.
-		boolean enableHttps = HttpServiceServlet.parseBoolean(finalConfig.getProperty(APPLICATION_HTTPS_ENABLED), false);
+		boolean enableHttps = parseBoolean(finalConfig.getProperty(APPLICATION_HTTPS_ENABLED), false);
 		boolean enableGzipCompression = true; //
 		boolean logRequests = false; //
-		int httpsPort = HttpServiceServlet.parseInt(finalConfig.getProperty(APPLICATION_HTTP_PORT), 8083);
+		int httpsPort = parseInt(finalConfig.getProperty(APPLICATION_HTTPS_PORT), 8083);
 
 		// get current base path
 		basePath = System.getProperty("home", basePath);
@@ -252,19 +254,23 @@ public class HttpService implements RunnableService {
 		servletContext.addServlet("org.eclipse.jetty.servlet.DefaultServlet", "/");
 		servletContext.setInitParameter("org.eclipse.jetty.servlet.Default.dirAllowed", "false");
 
-		if (enableGzipCompression) {
-
-			FilterHolder gzipFilter = new FilterHolder(GzipFilter.class);
-			gzipFilter.setInitParameter("mimeTypes", "text/html,text/plain,text/css,text/javascript,application/json");
-			servletContext.addFilter(gzipFilter, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
-
-		}
-
 		if (enableRewriteFilter) {
 
 			FilterHolder rewriteFilter = new FilterHolder(UrlRewriteFilter.class);
 			rewriteFilter.setInitParameter("confPath", "urlrewrite.xml");
 			servletContext.addFilter(rewriteFilter, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
+		}
+
+		if (enableGzipCompression) {
+
+			FilterHolder gzipFilter = new FilterHolder(AsyncGzipFilter.class);
+			gzipFilter.setInitParameter("mimeTypes", "text/html,text/plain,text/css,text/javascript,application/json");
+			gzipFilter.setInitParameter("bufferSize", "32768");
+			gzipFilter.setInitParameter("minGzipSize", "256");
+			gzipFilter.setInitParameter("deflateCompressionLevel", "9");
+			gzipFilter.setInitParameter("methods", "GET,POST");
+			servletContext.addFilter(gzipFilter, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
+
 		}
 
 		contexts.addHandler(servletContext);
@@ -364,26 +370,48 @@ public class HttpService implements RunnableService {
 
 		contexts.addHandler(servletContext);
 
-		// HTTPs can be disabled
+		if (host != null && !host.isEmpty() && httpPort > -1) {
+
+			httpConfig = new HttpConfiguration();
+			httpConfig.setSecureScheme("https");
+			httpConfig.setSecurePort(httpsPort);
+			//httpConfig.setOutputBufferSize(8192);
+			httpConfig.setRequestHeaderSize(requestHeaderSize);
+
+			ServerConnector httpConnector = new ServerConnector(server, new HttpConnectionFactory(httpConfig));
+
+			httpConnector.setHost(host);
+			httpConnector.setPort(httpPort);
+
+			connectors.add(httpConnector);
+
+		} else {
+
+			logger.log(Level.WARNING, "Unable to configure HTTP server port, please make sure that {0} and {1} are set correctly in structr.conf.", new Object[]{APPLICATION_HOST, APPLICATION_HTTP_PORT});
+		}
+
 		if (enableHttps) {
 
 			if (httpsPort > -1 && keyStorePath != null && !keyStorePath.isEmpty() && keyStorePassword != null) {
 
-				// setup HTTP connector
-				SslSelectChannelConnector httpsConnector = null;
-				SslContextFactory factory = new SslContextFactory(keyStorePath);
+				httpsConfig = new HttpConfiguration(httpConfig);
+				httpsConfig.addCustomizer(new SecureRequestCustomizer());
 
-				factory.setKeyStorePassword(keyStorePassword);
+				SslContextFactory sslContextFactory = new SslContextFactory();
+				sslContextFactory.setKeyStorePath(keyStorePath);
+				sslContextFactory.setKeyStorePassword(keyStorePassword);
 
-				httpsConnector = new SslSelectChannelConnector(factory);
+				ServerConnector https = new ServerConnector(server,
+					new SslConnectionFactory(sslContextFactory, "http/1.1"),
+					new HttpConnectionFactory(httpsConfig));
 
-				httpsConnector.setHost(host);
+				https.setPort(httpsPort);
+				https.setIdleTimeout(500000);
 
-				httpsConnector.setPort(httpsPort);
-				httpsConnector.setMaxIdleTime(maxIdleTime);
-				httpsConnector.setRequestHeaderSize(requestHeaderSize);
+				https.setHost(host);
+				https.setPort(httpsPort);
 
-				connectors.add(httpsConnector);
+				connectors.add(https);
 
 			} else {
 
@@ -393,22 +421,6 @@ public class HttpService implements RunnableService {
 					APPLICATION_KEYSTORE_PASSWORD
 				});
 			}
-		}
-
-		if (host != null && !host.isEmpty() && httpPort > -1) {
-
-			SelectChannelConnector httpConnector = new SelectChannelConnector();
-
-			httpConnector.setHost(host);
-			httpConnector.setPort(httpPort);
-			httpConnector.setMaxIdleTime(maxIdleTime);
-			httpConnector.setRequestHeaderSize(requestHeaderSize);
-
-			connectors.add(httpConnector);
-
-		} else {
-
-			logger.log(Level.WARNING, "Unable to configure HTTP server port, please make sure that {0} and {1} are set correctly in structr.conf.", new Object[]{APPLICATION_HOST, APPLICATION_HTTP_PORT});
 		}
 
 		if (!connectors.isEmpty()) {
@@ -421,7 +433,7 @@ public class HttpService implements RunnableService {
 			System.exit(0);
 		}
 
-		server.setGracefulShutdown(1000);
+		server.setStopTimeout(1000);
 		server.setStopAtShutdown(true);
 	}
 
@@ -450,6 +462,36 @@ public class HttpService implements RunnableService {
 
 	public Set<ResourceProvider> getResourceProviders() {
 		return resourceProviders;
+	}
+
+	/**
+	 * Tries to parse the given String to an int value, returning
+	 * defaultValue on error.
+	 *
+	 * @param value the source String to parse
+	 * @param defaultValue the default value that will be returned when parsing fails
+	 * @return the parsed value or the given default value when parsing fails
+	 */
+	public static int parseInt(String value, int defaultValue) {
+
+		if (value == null) {
+
+			return defaultValue;
+
+		}
+
+		try {
+			return Integer.parseInt(value);
+		} catch (NumberFormatException ignore) {}
+
+		return defaultValue;
+	}
+
+	public static boolean parseBoolean(Object source, boolean defaultValue) {
+		
+		try { return Boolean.parseBoolean(source.toString()); } catch(Throwable ignore) {}
+		
+		return defaultValue;
 	}
 
 	// ----- private methods -----
@@ -553,7 +595,7 @@ public class HttpService implements RunnableService {
 						if (servletPath != null) {
 
 							final HttpServiceServlet servlet = (HttpServiceServlet) Class.forName(servletClassName).newInstance();
-							servlet.initializeFromProperties(properties, servletName, resourceProviders);
+							servlet.getConfig().initializeFromProperties(properties, servletName, resourceProviders);
 
 							if (servletPath.endsWith("*")) {
 

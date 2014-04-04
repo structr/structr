@@ -22,13 +22,11 @@ package org.structr.common;
 import org.structr.common.error.FrameworkException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.fail;
+
+
 import org.structr.core.GraphObject;
-import org.structr.core.Services;
 import org.structr.core.entity.TestOne;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
+import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 
 //~--- classes ----------------------------------------------------------------
@@ -55,63 +53,66 @@ public class GraphComparatorTest extends StructrTest {
 			TestOne a = createTestNode(TestOne.class);
 			TestOne b = createTestNode(TestOne.class);
 			
-			GraphObjectComparator comp = new GraphObjectComparator(TestOne.anInt, GraphObjectComparator.ASCENDING);
+			try (final Tx tx = app.tx()) {
 
-			try {
-				comp.compare(null, null);
-				fail("Should have raised an NullPointerException");
-				
-			} catch (NullPointerException e) {}
+				GraphObjectComparator comp = new GraphObjectComparator(TestOne.anInt, GraphObjectComparator.ASCENDING);
 
-			try {
-				comp.compare(a, null);
-				fail("Should have raised an NullPointerException");
-				
-			} catch (NullPointerException e) {}
+				try {
+					comp.compare(null, null);
+					fail("Should have raised an NullPointerException");
 
-			try {
-				comp.compare(null, b);
-				fail("Should have raised an NullPointerException");
-				
-			} catch (NullPointerException e) {}
+				} catch (NullPointerException e) {}
 
-			try {
-				comp.compare(null, b);
-				fail("Should have raised an NullPointerException");
-				
-			} catch (NullPointerException e) {}
+				try {
+					comp.compare(a, null);
+					fail("Should have raised an NullPointerException");
 
-			// a: null
-			// b: null
-			// a == b => 0
-			assertEquals(0, comp.compare(a, b));
+				} catch (NullPointerException e) {}
 
-			// a: 0
-			// b: null
-			// a < b => -1
-			setPropertyTx(a, TestOne.anInt, 0);
-			assertEquals(-1, comp.compare(a, b));
+				try {
+					comp.compare(null, b);
+					fail("Should have raised an NullPointerException");
 
-			// a: null
-			// b: 0
-			// a > b => 1
-			setPropertyTx(a, TestOne.anInt, null);
-			setPropertyTx(b, TestOne.anInt, 0);
-			assertEquals(1, comp.compare(a, b));
-			
-			// a: 1
-			// b: 2
-			// a < b => -1
-			setPropertyTx(a, TestOne.anInt, 1);
-			setPropertyTx(b, TestOne.anInt, 2);
-			assertEquals(-1, comp.compare(a, b));
+				} catch (NullPointerException e) {}
 
-			// a: 2
-			// b: 1
-			// a > b => 1
-			setPropertyTx(a, TestOne.anInt, 2);
-			setPropertyTx(b, TestOne.anInt, 1);
-			assertEquals(1, comp.compare(a, b));
+				try {
+					comp.compare(null, b);
+					fail("Should have raised an NullPointerException");
+
+				} catch (NullPointerException e) {}
+
+				// a: null
+				// b: null
+				// a == b => 0
+				assertEquals(0, comp.compare(a, b));
+
+				// a: 0
+				// b: null
+				// a < b => -1
+				setPropertyTx(a, TestOne.anInt, 0);
+				assertEquals(-1, comp.compare(a, b));
+
+				// a: null
+				// b: 0
+				// a > b => 1
+				setPropertyTx(a, TestOne.anInt, null);
+				setPropertyTx(b, TestOne.anInt, 0);
+				assertEquals(1, comp.compare(a, b));
+
+				// a: 1
+				// b: 2
+				// a < b => -1
+				setPropertyTx(a, TestOne.anInt, 1);
+				setPropertyTx(b, TestOne.anInt, 2);
+				assertEquals(-1, comp.compare(a, b));
+
+				// a: 2
+				// b: 1
+				// a > b => 1
+				setPropertyTx(a, TestOne.anInt, 2);
+				setPropertyTx(b, TestOne.anInt, 1);
+				assertEquals(1, comp.compare(a, b));
+			}
 
 		} catch (FrameworkException ex) {
 
@@ -155,37 +156,56 @@ public class GraphComparatorTest extends StructrTest {
 				
 			} catch (NullPointerException e) {}
 
-			// a: null
-			// b: null
-			// a == b => 0
-			assertEquals(0, comp.compare(a, b));
+			try (final Tx tx = app.tx()) {
+				
+				// a: null
+				// b: null
+				// a == b => 0
+				assertEquals(0, comp.compare(a, b));
+			}
 
 			// a: 0
 			// b: null
 			// a > b => 1
 			setPropertyTx(a, TestOne.anInt, 0);
-			assertEquals(1, comp.compare(a, b));
+			
+			try (final Tx tx = app.tx()) {
+				
+				assertEquals(1, comp.compare(a, b));
+			}
 
 			// a: null
 			// b: 0
 			// a < b => -1
 			setPropertyTx(a, TestOne.anInt, null);
 			setPropertyTx(b, TestOne.anInt, 0);
-			assertEquals(-1, comp.compare(a, b));
+			
+			try (final Tx tx = app.tx()) {
+				
+				assertEquals(-1, comp.compare(a, b));
+			}
 			
 			// a: 1
 			// b: 2
 			// a > b => 1
 			setPropertyTx(a, TestOne.anInt, 1);
 			setPropertyTx(b, TestOne.anInt, 2);
-			assertEquals(1, comp.compare(a, b));
+			
+			try (final Tx tx = app.tx()) {
+				
+				assertEquals(1, comp.compare(a, b));
+			}
 
 			// a: 2
 			// b: 1
 			// a < b => -1
 			setPropertyTx(a, TestOne.anInt, 2);
 			setPropertyTx(b, TestOne.anInt, 1);
-			assertEquals(-1, comp.compare(a, b));
+			
+			try (final Tx tx = app.tx()) {
+				
+				assertEquals(-1, comp.compare(a, b));
+			}
 
 		} catch (FrameworkException ex) {
 
@@ -198,17 +218,12 @@ public class GraphComparatorTest extends StructrTest {
 		
 	private void setPropertyTx(final GraphObject obj, final PropertyKey key, final Object value) {
 		
-		try {
-		
-			app.beginTx();
+		try (final Tx tx = app.tx()) {
+			
 			obj.setProperty(key, value);
-			app.commitTx();
+			tx.success();
 			
 		} catch (FrameworkException ex) {
-
-		} finally {
-
-			app.finishTx();
 		}
 	}
 }

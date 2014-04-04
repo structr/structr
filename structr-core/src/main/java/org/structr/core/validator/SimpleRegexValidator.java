@@ -42,11 +42,11 @@ public class SimpleRegexValidator implements PropertyValidator<String> {
 	@Override
 	public boolean isValid(SecurityContext securityContext, GraphObject object, PropertyKey<String> key, String value, ErrorBuffer errorBuffer) {
 
-		if(value != null && pattern.matcher(value).matches()) {
+		if (value != null && pattern.matcher(value).matches()) {
 			return true;
 		}
 
-		errorBuffer.add(object.getType(), new MatchToken(key, this.pattern.pattern()));
+		errorBuffer.add(object.getType(), new MatchToken(key, value, this.pattern.pattern()));
 		return false;
 	}
 	

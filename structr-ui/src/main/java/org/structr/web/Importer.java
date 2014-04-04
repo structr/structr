@@ -3,25 +3,25 @@
  *
  * This file is part of Structr <http://structr.org>.
  *
- * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
+ * Structr is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Affero General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
  *
- * Structr is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * Structr is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr. If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.web;
 
+import java.io.ByteArrayInputStream;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.*;
@@ -44,7 +44,6 @@ import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 
 //~--- JDK imports ------------------------------------------------------------
-
 import java.io.IOException;
 import java.io.StringWriter;
 import java.net.MalformedURLException;
@@ -55,16 +54,25 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.lang.WordUtils;
-import org.jsoup.Connection;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.Tx;
 import org.structr.core.property.BooleanProperty;
+import org.structr.schema.importer.GraphGistImporter;
+import org.structr.web.diff.CreateOperation;
+import org.structr.web.diff.DeleteOperation;
+import org.structr.web.diff.InvertibleModificationOperation;
+import org.structr.web.diff.MoveOperation;
+import org.structr.web.diff.UpdateOperation;
+import org.structr.web.entity.LinkSource;
+import org.structr.web.entity.Linkable;
 import org.structr.web.entity.relation.Files;
 import org.structr.web.entity.relation.Folders;
 
 //~--- classes ----------------------------------------------------------------
-
 /**
  * The importer creates a new page by downloading and parsing markup from a URL.
  *
@@ -72,21 +80,20 @@ import org.structr.web.entity.relation.Folders;
  */
 public class Importer {
 
-	private static String[] hrefElements                             = new String[] { "link" };
-	private static String[] ignoreElementNames                       = new String[] { "#declaration", "#comment", "#doctype" };
-	private static String[] srcElements                              = new String[] {
-
+	private static String[] hrefElements = new String[]{"link"};
+	//private static String[] ignoreElementNames = new String[]{"#declaration", "#comment", "#doctype"};
+	private static String[] ignoreElementNames = new String[]{"#declaration", "#doctype"};
+	private static String[] srcElements = new String[]{
 		"img", "script", "audio", "video", "input", "source", "track"
 	};
-	private static final Logger logger                               = Logger.getLogger(Importer.class.getName());
-	private static final Map<String, String> contentTypeForExtension = new HashMap<String, String>();
-	
+	private static final Logger logger = Logger.getLogger(Importer.class.getName());
+	private static final Map<String, String> contentTypeForExtension = new HashMap<>();
+
 	private static App app;
 
 	private final static String DATA_META_PREFIX = "data-structr-meta-";
-	
-	//~--- static initializers --------------------------------------------
 
+	//~--- static initializers --------------------------------------------
 	static {
 
 		contentTypeForExtension.put("css", "text/css");
@@ -97,20 +104,19 @@ public class Importer {
 	}
 
 	//~--- fields ---------------------------------------------------------
-
+	private StringBuilder commentSource = new StringBuilder();
 	private String code;
-	private String address;
-	private boolean authVisible;
-	private String name;
+	private final String address;
+	private final boolean authVisible;
+	private final String name;
 	private Document parsedDocument;
-	private boolean publicVisible;
-	private SecurityContext securityContext;
-	private int timeout;
+	private final boolean publicVisible;
+	private final SecurityContext securityContext;
+	private final int timeout;
 
 	//~--- constructors ---------------------------------------------------
-
 //      public static void main(String[] args) throws Exception {
-//              
+//
 //              String css = "background: url(\"/images/common/menu-bg.png\") repeat-x;\nbackground: url('/images/common/menu-bg.png') repeat-x;\nbackground: url(/images/common/menu-bg.png) repeat-x;";
 //
 //              Pattern pattern = Pattern.compile("(url\\(['|\"]?)([^'|\"|)]*)");
@@ -124,23 +130,22 @@ public class Importer {
 //
 //
 //              }
-//              
+//
 //      }
 	public Importer(final SecurityContext securityContext, final String code, final String address, final String name, final int timeout, final boolean publicVisible, final boolean authVisible) {
 
-		this.code            = code;
-		this.address         = address;
-		this.name            = name;
-		this.timeout         = timeout;
+		this.code = code;
+		this.address = address;
+		this.name = name;
+		this.timeout = timeout;
 		this.securityContext = securityContext;
-		this.publicVisible   = publicVisible;
-		this.authVisible     = authVisible;
+		this.publicVisible = publicVisible;
+		this.authVisible = authVisible;
 
 	}
 
 	//~--- methods --------------------------------------------------------
-
-	public void init() {
+	private void init() {
 		app = StructrApp.getInstance(securityContext);
 //		searchNode = StructrApp.getInstance(securityContext).command(SearchNodeCommand.class);
 //		createNode = StructrApp.getInstance(securityContext).command(CreateNodeCommand.class);
@@ -148,42 +153,53 @@ public class Importer {
 	}
 
 	public boolean parse() throws FrameworkException {
-		
+
 		return parse(false);
-		
+
 	}
-	
+
 	public boolean parse(final boolean fragment) throws FrameworkException {
 
 		init();
-		
+
 		if (StringUtils.isNotBlank(code)) {
 
-			logger.log(Level.INFO, "##### Start parsing code for page {0} #####", new Object[] { name });
-			
-			if (fragment) {
-				
-				parsedDocument = Jsoup.parseBodyFragment(code);
-				
-			} else {
-				
-				parsedDocument = Jsoup.parse(code);
-				
-			}
+			logger.log(Level.INFO, "##### Start parsing code for page {0} #####", new Object[]{name});
 
+			if (fragment) {
+
+				parsedDocument = Jsoup.parseBodyFragment(code);
+
+			} else {
+
+				parsedDocument = Jsoup.parse(code);
+
+			}
 
 		} else {
 
-			logger.log(Level.INFO, "##### Start fetching {0} for page {1} #####", new Object[] { address, name });
+			logger.log(Level.INFO, "##### Start fetching {0} for page {1} #####", new Object[]{address, name});
 
 			try {
 
-				parsedDocument = Jsoup.connect(address)
-					.userAgent("Mozilla")
-					.timeout(timeout)
-					.get();
+				DefaultHttpClient client = new DefaultHttpClient();
+				HttpGet get = new HttpGet(address);
+				get.setHeader("User-Agent", "Mozilla");
+				get.setHeader("Connection", "close");
 
+				// Skip BOM to workaround this Jsoup bug: https://github.com/jhy/jsoup/issues/348
+				code = IOUtils.toString(client.execute(get).getEntity().getContent(), "UTF-8");
 
+				if (code.charAt(0) == 65279) {
+					code = code.substring(1);
+				}
+
+				parsedDocument = Jsoup.parse(code);
+
+//				parsedDocument = Jsoup.connect(address)
+//					.userAgent("Mozilla")
+//					.timeout(timeout)
+//					.get().normalise();
 			} catch (IOException ioe) {
 
 				throw new FrameworkException(500, "Error while parsing content from " + address);
@@ -196,43 +212,30 @@ public class Importer {
 
 	}
 
-	public String readPage() throws FrameworkException {
-
-		
+	public Page readPage() throws FrameworkException {
 
 		try {
 			final URL baseUrl = StringUtils.isNotBlank(address) ? new URL(address) : null;
-			
-			app.beginTx();
 
 			// AbstractNode page = findOrCreateNode(attrs, "/");
 			Page page = Page.createNewPage(securityContext, name);
 
-			String pageId = null;
 			if (page != null) {
 
 				page.setProperty(AbstractNode.visibleToAuthenticatedUsers, authVisible);
 				page.setProperty(AbstractNode.visibleToPublicUsers, publicVisible);
 				createChildNodes(parsedDocument, page, page, baseUrl);
-				logger.log(Level.INFO, "##### Finished fetching {0} for page {1} #####", new Object[] { address, name });
+				logger.log(Level.INFO, "##### Finished fetching {0} for page {1} #####", new Object[]{address, name});
 
-				pageId = page.getProperty(GraphObject.id);
 			}
 
-			app.commitTx();
+			return page;
 
-			return pageId;
-
-			
 		} catch (MalformedURLException ex) {
 
 			logger.log(Level.SEVERE, "Could not resolve address " + address, ex);
 
-		} finally {
-			
-			app.finishTx();
 		}
-
 		return null;
 
 	}
@@ -240,40 +243,220 @@ public class Importer {
 	public void createChildNodes(final DOMNode parent, final Page page, final String baseUrl) throws FrameworkException {
 
 		try {
-			
-			app.beginTx();
 
-			try {
+			createChildNodes(parsedDocument.body(), parent, page, new URL(baseUrl));
 
-				createChildNodes(parsedDocument.body(), parent, page, new URL(baseUrl));
+		} catch (MalformedURLException ex) {
 
-			} catch (MalformedURLException ex) {
+			logger.log(Level.WARNING, "Could not read URL {1}, calling method without base URL", baseUrl);
 
-				logger.log(Level.WARNING, "Could not read URL {1}, calling method without base URL", baseUrl);
+			createChildNodes(parsedDocument.body(), parent, page, null);
 
-				createChildNodes(parsedDocument.body(), parent, page, null);
+		}
+	}
 
+	public void createChildNodesWithHtml(final DOMNode parent, final Page page, final String baseUrl) throws FrameworkException {
+
+		try {
+
+			createChildNodes(parsedDocument, parent, page, new URL(baseUrl));
+
+		} catch (MalformedURLException ex) {
+
+			logger.log(Level.WARNING, "Could not read URL {1}, calling method without base URL", baseUrl);
+
+			createChildNodes(parsedDocument, parent, page, null);
+
+		}
+	}
+
+	public void importDataComments() throws FrameworkException {
+
+		// try to import graph gist from comments
+		GraphGistImporter.importCypher(GraphGistImporter.extractSources(new ByteArrayInputStream(commentSource.toString().getBytes())));
+	}
+
+	// ----- public static methods -----
+	public static Page parsePageFromSource(final SecurityContext securityContext, final String source, final String name) throws FrameworkException {
+
+		final Importer importer = new Importer(securityContext, source, null, "source", 0, true, true);
+		final App localAppCtx   = StructrApp.getInstance(securityContext);
+		Page page               = null;
+
+		try (final Tx tx = localAppCtx.tx()) {
+
+			page   = localAppCtx.create(Page.class, new NodeAttribute<>(Page.name, name));
+
+			if (importer.parse()) {
+
+				importer.createChildNodesWithHtml(page, page, "");
 			}
-			
-			app.commitTx();
-			
-		} finally {
-			
-			app.finishTx();
+
+			tx.success();
+
 		}
 
+		return page;
 	}
-	
+
+	public static List<InvertibleModificationOperation> diffPages(final Page sourcePage, final Page modifiedPage) {
+
+		final List<InvertibleModificationOperation> changeSet = new LinkedList<>();
+		final Map<String, DOMNode> indexMappedExistingNodes   = new LinkedHashMap<>();
+		final Map<String, DOMNode> hashMappedExistingNodes    = new LinkedHashMap<>();
+		final Map<DOMNode, Integer> depthMappedExistingNodes  = new LinkedHashMap<>();
+		final Map<String, DOMNode> indexMappedNewNodes        = new LinkedHashMap<>();
+		final Map<String, DOMNode> hashMappedNewNodes         = new LinkedHashMap<>();
+		final Map<DOMNode, Integer> depthMappedNewNodes       = new LinkedHashMap<>();
+
+		InvertibleModificationOperation.collectNodes(sourcePage, indexMappedExistingNodes, hashMappedExistingNodes, depthMappedExistingNodes);
+		InvertibleModificationOperation.collectNodes(modifiedPage, indexMappedNewNodes, hashMappedNewNodes, depthMappedNewNodes);
+
+		// iterate over existing nodes and try to find deleted ones
+		for (final Iterator<Map.Entry<String, DOMNode>> it = hashMappedExistingNodes.entrySet().iterator(); it.hasNext();) {
+
+			final Map.Entry<String, DOMNode> existingNodeEntry = it.next();
+			final DOMNode existingNode                     = existingNodeEntry.getValue();
+			final String existingHash                      = existingNode.getIdHash();
+
+			// check for deleted nodes ignoring Page nodes
+			if (!hashMappedNewNodes.containsKey(existingHash) && !(existingNode instanceof Page)) {
+
+				changeSet.add(new DeleteOperation(hashMappedExistingNodes, existingNode));
+			}
+		}
+
+		// iterate over new nodes and try to find new ones
+		for (final Iterator<Map.Entry<String, DOMNode>> it = indexMappedNewNodes.entrySet().iterator(); it.hasNext();) {
+
+			final Map.Entry<String, DOMNode> newNodeEntry = it.next();
+			final DOMNode newNode                     = newNodeEntry.getValue();
+
+			// if newNode is a content element, do not rely on local hash property
+			String newHash = newNode.getProperty(DOMNode.dataHashProperty);
+			if (newHash == null) {
+				newHash = newNode.getIdHash();
+			}
+
+			// check for deleted nodes ignoring Page nodes
+			if (!hashMappedExistingNodes.containsKey(newHash) && !(newNode instanceof Page)) {
+
+				final DOMNode newParent  = newNode.getProperty(DOMNode.parent);
+
+				changeSet.add(new CreateOperation(hashMappedExistingNodes, getHashOrNull(newParent), getSiblingHashes(newNode), newNode, depthMappedNewNodes.get(newNode)));
+			}
+		}
+
+		// compare all new nodes with all existing nodes
+		for (final Map.Entry<String, DOMNode> newNodeEntry : indexMappedNewNodes.entrySet()) {
+
+			final String newTreeIndex = newNodeEntry.getKey();
+			final DOMNode newNode     = newNodeEntry.getValue();
+
+			for (final Map.Entry<String, DOMNode> existingNodeEntry : indexMappedExistingNodes.entrySet()) {
+
+				final String existingTreeIndex = existingNodeEntry.getKey();
+				final DOMNode existingNode     = existingNodeEntry.getValue();
+				DOMNode newParent              = null;
+				int equalityBitmask            = 0;
+
+				if (newTreeIndex.equals(existingTreeIndex)) {
+					equalityBitmask |= 1;
+				}
+
+				if (newNode.getIdHashOrProperty().equals(existingNode.getIdHash())) {
+					equalityBitmask |= 2;
+				}
+
+				if (newNode.contentEquals(existingNode)) {
+					equalityBitmask |= 4;
+				}
+
+				switch (equalityBitmask) {
+
+					case 7:	// same tree index (1), same node (2), same content (4) => node is completely unmodified
+						break;
+
+					case 6:	// same content (2), same node (4), NOT same tree index => node has moved
+						newParent  = newNode.getProperty(DOMNode.parent);
+						changeSet.add(new MoveOperation(hashMappedExistingNodes, getHashOrNull(newParent), getSiblingHashes(newNode), newNode, existingNode));
+						break;
+
+					case 5:	// same tree index (1), NOT same node, same content (5) => node was deleted and restored, maybe the identification information was lost
+						// TODO: how to handle this?
+						break;
+
+					case 4:	// NOT same tree index, NOT same node, same content (4) => different node, content is equal by chance?
+						// TODO: what to do here?
+						break;
+
+					case 3: // same tree index, same node, NOT same content => node was modified but not moved
+//						if (!(existingNode instanceof DOMElement)) {
+							changeSet.add(new UpdateOperation(hashMappedExistingNodes, existingNode, newNode));
+//						}
+						break;
+
+					case 2:	// NOT same tree index, same node (2), NOT same content => node was moved and changed
+
+						// FIXME: order is important here?
+						newParent  = newNode.getProperty(DOMNode.parent);
+						changeSet.add(new UpdateOperation(hashMappedExistingNodes, existingNode, newNode));
+						changeSet.add(new MoveOperation(hashMappedExistingNodes, getHashOrNull(newParent), getSiblingHashes(newNode), newNode, existingNode));
+						break;
+
+					case 1:	// same tree index (1), NOT same node, NOT same content => ignore
+						break;
+
+					case 0:	// NOT same tree index, NOT same node, NOT same content => ignore
+						break;
+				}
+			}
+		}
+
+		return changeSet;
+	}
+
+	private static List<String> getSiblingHashes(final DOMNode node) {
+
+		final List<String> siblingHashes = new LinkedList<>();
+		DOMNode nextSibling = node.getProperty(DOMNode.nextSibling);
+
+		while (nextSibling != null) {
+
+			siblingHashes.add(nextSibling.getIdHashOrProperty());
+			nextSibling = nextSibling.getProperty(DOMNode.nextSibling);
+		}
+
+		return siblingHashes;
+	}
+
+	private static String getHashOrNull(final DOMNode node) {
+
+		if (node != null) {
+			return node.getIdHashOrProperty();
+		}
+
+		return null;
+	}
+
 	// ----- private methods -----
 	private void createChildNodes(final Node startNode, final DOMNode parent, Page page, final URL baseUrl) throws FrameworkException {
 
+		Linkable res = null;
 		final List<Node> children = startNode.childNodes();
 		for (Node node : children) {
 
-			String tag                = node.nodeName();
-			String type               = CaseHelper.toUpperCamelCase(tag);
-			String content            = null;
-			String id                 = null;
+			String tag = node.nodeName();
+
+			// clean tag, remove non-word characters
+			if (tag != null) {
+				tag = tag.replaceAll("[^a-zA-Z0-9#]+", "");
+			}
+
+			String type = CaseHelper.toUpperCamelCase(tag);
+			String comment = null;
+			String content = null;
+			String id = null;
 			StringBuilder classString = new StringBuilder();
 
 			if (ArrayUtils.contains(ignoreElementNames, type)) {
@@ -283,7 +466,7 @@ public class Importer {
 
 			if (node instanceof Element) {
 
-				Element el          = ((Element) node);
+				Element el = ((Element) node);
 				Set<String> classes = el.classNames();
 
 				for (String cls : classes) {
@@ -294,27 +477,37 @@ public class Importer {
 				id = el.id();
 
 				String downloadAddressAttr = (ArrayUtils.contains(srcElements, tag)
-							      ? "src"
-							      : ArrayUtils.contains(hrefElements, tag)
-								? "href"
-								: null);
+					? "src" : ArrayUtils.contains(hrefElements, tag)
+					? "href" : null);
 
 				if (baseUrl != null && downloadAddressAttr != null && StringUtils.isNotBlank(node.attr(downloadAddressAttr))) {
 
 					String downloadAddress = node.attr(downloadAddressAttr);
-
-					downloadFiles(downloadAddress, baseUrl);
+					res = downloadFile(downloadAddress, baseUrl);
 
 				}
 
 			}
 
 			// Data and comment nodes: Trim the text and put it into the "content" field without changes
-			if (type.equals("#data") || type.equals("#comment")) {
+			if (/*type.equals("#data") || */type.equals("#comment")) {
 
-				type    = "Content";
-				tag     = "";
-				content = ((DataNode) node).getWholeData().trim();
+				tag = "";
+				comment = ((Comment) node).getData();
+
+				// Don't add content node for whitespace
+				if (StringUtils.isBlank(comment)) {
+
+					continue;
+				}
+
+				// store for later use
+				commentSource.append(comment).append("\n");
+
+			} else if (type.equals("#data")) {
+
+				tag = "";
+				content = ((DataNode) node).getWholeData();
 
 				// Don't add content node for whitespace
 				if (StringUtils.isBlank(content)) {
@@ -322,13 +515,11 @@ public class Importer {
 					continue;
 				}
 
-			}
-
-			// Text-only nodes: Trim the text and put it into the "content" field
+			} else // Text-only nodes: Trim the text and put it into the "content" field
 			if (type.equals("#text")) {
 
 //                              type    = "Content";
-				tag     = "";
+				tag = "";
 				//content = ((TextNode) node).getWholeText();
 				content = ((TextNode) node).text();
 
@@ -344,7 +535,16 @@ public class Importer {
 			// create node
 			if (StringUtils.isBlank(tag)) {
 
-				newNode = (Content) page.createTextNode(content);
+				// create comment or content node
+				if (!StringUtils.isBlank(comment)) {
+
+					newNode = (DOMNode) page.createComment(comment);
+					newNode.setProperty(org.structr.web.entity.dom.Comment.contentType, "text/html");
+
+				} else {
+
+					newNode = (Content) page.createTextNode(content);
+				}
 
 			} else {
 
@@ -352,6 +552,15 @@ public class Importer {
 			}
 
 			if (newNode != null) {
+
+				newNode.setProperty(AbstractNode.visibleToPublicUsers, publicVisible);
+				newNode.setProperty(AbstractNode.visibleToAuthenticatedUsers, authVisible);
+
+				if (res != null) {
+
+					newNode.setProperty(LinkSource.linkable, res);
+
+				}
 
 				// "id" attribute: Put it into the "_html_id" field
 				if (StringUtils.isNotBlank(id)) {
@@ -374,19 +583,26 @@ public class Importer {
 						// convert data-* attributes to local camel case properties on the node,
 						// but don't convert data-structr-* attributes as they are internal
 						if (key.startsWith("data-")) {
+							String value = nodeAttr.getValue();
 
 							if (!key.startsWith(DATA_META_PREFIX)) {
 
-								newNode.setProperty(new StringProperty(nodeAttr.getKey()), nodeAttr.getValue());
+								if (value != null) {
+									if (value.equalsIgnoreCase("true")) {
+										newNode.setProperty(new BooleanProperty(key), true);
+									} else if (value.equalsIgnoreCase("false")) {
+										newNode.setProperty(new BooleanProperty(key), false);
+									} else {
+										newNode.setProperty(new StringProperty(key), nodeAttr.getValue());
+									}
+								}
 
 							} else {
 
 								int l = DATA_META_PREFIX.length();
 
-								String upperCaseKey = WordUtils.capitalize(key.substring(l), new char[] { '-' }).replaceAll("-", "");
-								String camelCaseKey = key.substring(l, l+1).concat(upperCaseKey.substring(1));
-
-								String value = nodeAttr.getValue();
+								String upperCaseKey = WordUtils.capitalize(key.substring(l), new char[]{'-'}).replaceAll("-", "");
+								String camelCaseKey = key.substring(l, l + 1).concat(upperCaseKey.substring(1));
 
 								if (value != null) {
 									if (value.equalsIgnoreCase("true")) {
@@ -402,7 +618,19 @@ public class Importer {
 
 						} else {
 
-							newNode.setProperty(new StringProperty(PropertyView.Html.concat(nodeAttr.getKey())), nodeAttr.getValue());
+							if ("link".equals(tag) && "href".equals(key) && nodeAttr.getValue() == null) {
+
+								newNode.setProperty(new StringProperty(PropertyView.Html.concat(key)), "${link.path}?${link.version}");
+
+							} else if (("href".equals(key) || "src".equals(key)) && nodeAttr.getValue() == null) {
+
+								newNode.setProperty(new StringProperty(PropertyView.Html.concat(key)), "${link.path}");
+
+							} else {
+
+								newNode.setProperty(new StringProperty(PropertyView.Html.concat(nodeAttr.getKey())), nodeAttr.getValue());
+							}
+
 						}
 					}
 
@@ -429,10 +657,16 @@ public class Importer {
 	}
 
 	/**
-	 * Return an eventually existing folder with given name,
-	 * or create a new one.
+	 * Return an eventually existing folder with given name, or create a new
+	 * one.
+	 *
+	 * Don't create a folder for ".."
 	 */
 	private Folder findOrCreateFolder(final String name) throws FrameworkException {
+
+		if ("..".equals(name)) {
+			return null;
+		}
 
 		Folder folder = app.nodeQuery(Folder.class).andName(name).getFirst();
 
@@ -441,11 +675,15 @@ public class Importer {
 			return folder;
 		}
 
-		return (Folder) app.create(Folder.class, new NodeAttribute(AbstractNode.type, Folder.class.getSimpleName()), new NodeAttribute(AbstractNode.name, name));
+		return (Folder) app.create(Folder.class,
+			new NodeAttribute(AbstractNode.name, name),
+			new NodeAttribute(AbstractNode.visibleToPublicUsers, publicVisible),
+			new NodeAttribute(AbstractNode.visibleToAuthenticatedUsers, authVisible)
+		);
 
 	}
 
-	private void downloadFiles(String downloadAddress, final URL baseUrl) {
+	private Linkable downloadFile(String downloadAddress, final URL baseUrl) {
 
 		final String uuid = UUID.randomUUID().toString().replaceAll("[\\-]+", "");
 		String contentType;
@@ -453,43 +691,65 @@ public class Importer {
 		// Create temporary file with new uuid
 		// FIXME: This is much too dangerous!
 		final String relativeFilePath = org.structr.web.entity.File.getDirectoryPath(uuid) + "/" + uuid;
-		final String filePath         = FileHelper.getFilePath(relativeFilePath);
+		final String filePath = FileHelper.getFilePath(relativeFilePath);
 		final java.io.File fileOnDisk = new java.io.File(filePath);
 
 		fileOnDisk.getParentFile().mkdirs();
 
-		URL downloadUrl = null;
-		long size = 0;
-		long checksum = 0;
+		URL downloadUrl;
+		long size;
+		long checksum;
 
 		try {
 
 			downloadUrl = new URL(baseUrl, downloadAddress);
+			FileUtils.copyURLToFile(downloadUrl, fileOnDisk);
 
 			logger.log(Level.INFO, "Starting download from {0}", downloadUrl);
-
-			// TODO: Add security features like null/integrity/virus checking before copying it to
-			// the files repo
-			FileUtils.copyURLToFile(downloadUrl, fileOnDisk);
-			size	 = fileOnDisk.length();
-			checksum = FileUtils.checksumCRC32(fileOnDisk);
 
 		} catch (IOException ioe) {
 
 			logger.log(Level.WARNING, "Unable to download from " + downloadAddress, ioe);
 
-			return;
+			try {
+				// Try alternative baseUrl with trailing "/"
+				downloadUrl = new URL(new URL(address.concat("/")), downloadAddress);
+				FileUtils.copyURLToFile(downloadUrl, fileOnDisk);
+
+			} catch (MalformedURLException ex) {
+				logger.log(Level.SEVERE, "Could not resolve address " + address.concat("/"), ex);
+				return null;
+			} catch (IOException ex) {
+				logger.log(Level.WARNING, "Unable to download from " + address.concat("/"), ex);
+				return null;
+			}
+
+			logger.log(Level.INFO, "Starting download from alternative URL {0}", downloadUrl);
 
 		}
 
-		contentType     = FileHelper.getContentMimeType(fileOnDisk);
+		// TODO: Add security features like null/integrity/virus checking before copying it to
+		// the files repo
+		try {
+
+			size = fileOnDisk.length();
+
+			checksum = FileUtils.checksumCRC32(fileOnDisk);
+
+		} catch (IOException ioe) {
+
+			logger.log(Level.WARNING, "Unable to calc checksum of " + fileOnDisk, ioe);
+			return null;
+		}
+
+		contentType = FileHelper.getContentMimeType(fileOnDisk);
 		downloadAddress = StringUtils.substringBefore(downloadAddress, "?");
 
 		final String fileName = (downloadAddress.indexOf("/") > -1)
-					? StringUtils.substringAfterLast(downloadAddress, "/")
-					: downloadAddress;
-		String httpPrefix     = "http://";
-		String path           = StringUtils.substringBefore(((downloadAddress.indexOf(httpPrefix) > -1)
+			? StringUtils.substringAfterLast(downloadAddress, "/")
+			: downloadAddress;
+		String httpPrefix = "http://";
+		String path = StringUtils.substringBefore(((downloadAddress.indexOf(httpPrefix) > -1)
 			? StringUtils.substringAfter(downloadAddress, "http://")
 			: downloadAddress), fileName);
 
@@ -502,7 +762,7 @@ public class Importer {
 
 		try {
 
-			if (!(fileExists(fileName, FileUtils.checksumCRC32(fileOnDisk)))) {
+			if (!(fileExists(fileName, checksum))) {
 
 				File fileNode;
 
@@ -528,27 +788,30 @@ public class Importer {
 
 						processCssFileNode(fileNode, downloadUrl);
 					}
-
 				}
+
+				return fileNode;
 
 			} else {
 
 				fileOnDisk.delete();
 			}
 
-		} catch (Exception fex) {
+		} catch (FrameworkException | IOException fex) {
 
 			logger.log(Level.WARNING, "Could not create file node.", fex);
 
 		}
+
+		return null;
 
 	}
 
 	/**
 	 * Create one folder per path item and return the last folder.
 	 *
-	 * F.e.: /a/b/c  => Folder["name":"a"] --HAS_CHILD--> Folder["name":"b"] --HAS_CHILD--> Folder["name":"c"],
-	 * returns Folder["name":"c"]
+	 * F.e.: /a/b/c => Folder["name":"a"] --HAS_CHILD--> Folder["name":"b"]
+	 * --HAS_CHILD--> Folder["name":"c"], returns Folder["name":"c"]
 	 *
 	 * @param path
 	 * @return
@@ -562,7 +825,7 @@ public class Importer {
 		}
 
 		String[] parts = StringUtils.split(path, "/");
-		Folder folder  = null;
+		Folder folder = null;
 
 		for (String part : parts) {
 
@@ -570,11 +833,11 @@ public class Importer {
 
 			folder = findOrCreateFolder(part);
 
-			if (parent != null) {
+			if (folder != null && parent != null) {
 				app.create(parent, folder, Folders.class);
+				folder.updateInIndex();
 			}
 
-			folder.updateInIndex();
 		}
 
 		return folder;
@@ -584,11 +847,16 @@ public class Importer {
 	private File createFileNode(final String uuid, final String name, final String contentType, final long size, final long checksum) throws FrameworkException {
 
 		String relativeFilePath = File.getDirectoryPath(uuid) + "/" + uuid;
-		File fileNode           = app.create(File.class, new NodeAttribute(GraphObject.id, uuid),
-						  new NodeAttribute(AbstractNode.name, name), new NodeAttribute(File.relativeFilePath, relativeFilePath),
-						  new NodeAttribute(File.contentType, contentType), new NodeAttribute(AbstractNode.visibleToPublicUsers, publicVisible),
-						  new NodeAttribute(File.size, size), new NodeAttribute(File.checksum, checksum),
-						  new NodeAttribute(AbstractNode.visibleToAuthenticatedUsers, authVisible));
+		File fileNode = app.create(File.class,
+			new NodeAttribute(GraphObject.id, uuid),
+			new NodeAttribute(AbstractNode.name, name),
+			new NodeAttribute(File.relativeFilePath, relativeFilePath),
+			new NodeAttribute(File.contentType, contentType),
+			new NodeAttribute(File.size, size),
+			new NodeAttribute(File.checksum, checksum),
+			new NodeAttribute(File.version, 1),
+			new NodeAttribute(AbstractNode.visibleToPublicUsers, publicVisible),
+			new NodeAttribute(AbstractNode.visibleToAuthenticatedUsers, authVisible));
 
 		return fileNode;
 
@@ -597,11 +865,15 @@ public class Importer {
 	private Image createImageNode(final String uuid, final String name, final String contentType, final long size, final long checksum) throws FrameworkException {
 
 		String relativeFilePath = Image.getDirectoryPath(uuid) + "/" + uuid;
-		Image imageNode         = app.create(Image.class, new NodeAttribute(GraphObject.id, uuid),
-						  new NodeAttribute(AbstractNode.name, name), new NodeAttribute(File.relativeFilePath, relativeFilePath),
-						  new NodeAttribute(File.contentType, contentType), new NodeAttribute(AbstractNode.visibleToPublicUsers, publicVisible),
-						  new NodeAttribute(File.size, size), new NodeAttribute(File.checksum, checksum),
-						  new NodeAttribute(AbstractNode.visibleToAuthenticatedUsers, authVisible));
+		Image imageNode = app.create(Image.class,
+			new NodeAttribute(GraphObject.id, uuid),
+			new NodeAttribute(AbstractNode.name, name),
+			new NodeAttribute(File.relativeFilePath, relativeFilePath),
+			new NodeAttribute(File.contentType, contentType),
+			new NodeAttribute(File.size, size),
+			new NodeAttribute(File.checksum, checksum),
+			new NodeAttribute(AbstractNode.visibleToPublicUsers, publicVisible),
+			new NodeAttribute(AbstractNode.visibleToAuthenticatedUsers, authVisible));
 
 		return imageNode;
 
@@ -629,29 +901,9 @@ public class Importer {
 			String url = matcher.group(2);
 
 			logger.log(Level.INFO, "Trying to download from URL found in CSS: {0}", url);
-			downloadFiles(url, baseUrl);
+			downloadFile(url, baseUrl);
 
 		}
-
-	}
-
-	//~--- get methods ----------------------------------------------------
-
-	private String getNodePath(final Node node) {
-
-		Node n      = node;
-		String path = "";
-
-		while ((n.nodeName() != null) && !n.nodeName().equals("html")) {
-
-			int index = n.siblingIndex();
-
-			path = n.nodeName() + "[" + index + "]" + "/" + path;
-			n    = n.parent();
-
-		}
-
-		return "html/" + path;
 
 	}
 

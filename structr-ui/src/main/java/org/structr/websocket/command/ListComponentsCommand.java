@@ -68,7 +68,7 @@ public class ListComponentsCommand extends AbstractCommand {
 		try {
 
 			// get shadow document
-			Result result                      = StructrApp.getInstance(securityContext).nodeQuery(ShadowDocument.class).getResult();
+			Result result                      = StructrApp.getInstance(securityContext).nodeQuery(ShadowDocument.class).includeDeletedAndHidden().getResult();
 			List<AbstractNode> filteredResults = new LinkedList();
 			List<AbstractNode> resultList      = result.getResults();
 

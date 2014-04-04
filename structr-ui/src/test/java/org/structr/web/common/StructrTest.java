@@ -50,6 +50,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.GenericNode;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.log.ReadLogCommand;
 import org.structr.core.log.WriteLogCommand;
 import org.structr.module.JarConfigurationProvider;
@@ -189,27 +190,19 @@ public class StructrTest extends TestCase {
 
 	protected List<NodeInterface> createTestNodes(final Class type, final int number, final long delay) throws FrameworkException {
 
-		try {
-			app.beginTx();
+		List<NodeInterface> nodes = new LinkedList<>();
 
-			List<NodeInterface> nodes = new LinkedList<>();
+		for (int i = 0; i < number; i++) {
 
-			for (int i = 0; i < number; i++) {
+			nodes.add(app.create(type));
 
-				nodes.add(app.create(type));
-
-				try {
-					Thread.sleep(delay);
-				} catch (InterruptedException ex) {}
-			}
-
-			app.commitTx();
-
-			return nodes;
-
-		} finally {
-			app.finishTx();
+			try {
+				Thread.sleep(delay);
+			} catch (InterruptedException ex) {}
 		}
+
+
+		return nodes;
 	}
 
 	protected List<NodeInterface> createTestNodes(final Class type, final int number) throws FrameworkException {
@@ -225,19 +218,7 @@ public class StructrTest extends TestCase {
 	protected <T extends AbstractNode> T createTestNode(final Class<T> type, final PropertyMap props) throws FrameworkException {
 
 		props.put(AbstractNode.type, type.getSimpleName());
-
-		try {
-			app.beginTx();
-
-			final T newNode = app.create(type, props);
-
-			app.commitTx();
-
-			return newNode;
-
-		} finally {
-			app.finishTx();
-		}
+		return app.create(type, props);
 
 	}
 
@@ -247,40 +228,21 @@ public class StructrTest extends TestCase {
 		final NodeInterface startNode = nodes.get(0);
 		final NodeInterface endNode   = nodes.get(1);
 
-		try {
-			app.beginTx();
+		List<T> rels = new LinkedList<>();
 
-			List<T> rels = new LinkedList<>();
+		for (int i = 0; i < number; i++) {
 
-			for (int i = 0; i < number; i++) {
-
-				rels.add((T)app.create(startNode, endNode, relType));
-			}
-
-			app.commitTx();
-
-			return rels;
-
-		} finally {
-			app.finishTx();
+			rels.add((T)app.create(startNode, endNode, relType));
 		}
+
+		return rels;
 
 	}
 
 	protected <T extends Relation> T createTestRelationship(final AbstractNode startNode, final AbstractNode endNode, final Class<T> relType) throws FrameworkException {
 
-		try {
-			app.beginTx();
+		return (T)app.create(startNode, endNode, relType);
 
-			final T rel = (T)app.create(startNode, endNode, relType);
-
-			app.commitTx();
-
-			return rel;
-	
-		} finally {
-			app.finishTx();
-		}
 	}
 
 	protected void assertNodeExists(final String nodeId) throws FrameworkException {

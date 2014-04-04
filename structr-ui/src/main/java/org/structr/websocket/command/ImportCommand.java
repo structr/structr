@@ -31,8 +31,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -58,7 +56,6 @@ public class ImportCommand extends AbstractCommand {
 	public void processMessage(WebSocketMessage webSocketData) {
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
-		final App app                         = StructrApp.getInstance(securityContext);
 		Map<String, Object> properties        = webSocketData.getNodeData();
 		final String code                     = (String) properties.get("code");
 		final String address                  = (String) properties.get("address");
@@ -68,8 +65,6 @@ public class ImportCommand extends AbstractCommand {
 		final boolean authVisible             = (Boolean) properties.get("authVisible");
 		
 		try {
-			
-			app.beginTx();
 
 			Importer pageImporter = new Importer(securityContext, code, address, name, timeout, publicVisible, authVisible);
 			boolean parseOk       = pageImporter.parse();
@@ -79,7 +74,7 @@ public class ImportCommand extends AbstractCommand {
 				logger.log(Level.INFO, "Sucessfully parsed {0}", address);
 				getWebSocket().send(MessageBuilder.status().code(200).message("Sucessfully parsed address " + address).build(), true);
 
-				String pageId                  = pageImporter.readPage();
+				String pageId                  = pageImporter.readPage().getUuid();
 				Map<String, Object> resultData = new HashMap();
 
 				if (pageId != null) {
@@ -87,22 +82,20 @@ public class ImportCommand extends AbstractCommand {
 					resultData.put("id", pageId);
 					getWebSocket().send(MessageBuilder.status().code(200).message("Sucessfully created page " + name).data(resultData).build(), true);
 
+					// try to import graph gist source code from HTML comment
+					pageImporter.importDataComments();
+					
 				} else {
 
 					getWebSocket().send(MessageBuilder.status().code(400).message("Error while creating page " + name).data(resultData).build(), true);
 				}
 			}
 
-			app.commitTx();
-
 		} catch (FrameworkException fex) {
 
 			logger.log(Level.WARNING, "Error while importing content", fex);
 			getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
 
-		} finally {
-			
-			app.finishTx();
 		}
 
 	}

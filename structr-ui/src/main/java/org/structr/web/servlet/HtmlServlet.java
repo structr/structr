@@ -3,422 +3,514 @@
  *
  * This file is part of Structr <http://structr.org>.
  *
- * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
+ * Structr is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Affero General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
  *
- * Structr is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * Structr is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr. If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.web.servlet;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PrintWriter;
-
-
-import org.apache.commons.compress.utils.IOUtils;
-import org.apache.commons.lang.StringUtils;
-
-
-
-import org.structr.common.*;
-import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.*;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.search.SearchNodeCommand;
-import org.structr.web.auth.HttpAuthenticator;
-import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.File;
-
-//~--- JDK imports ------------------------------------------------------------
-
-import java.text.*;
-
-import java.util.*;
+import java.text.DateFormat;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.List;
+import java.util.Locale;
+import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
-
+import javax.servlet.AsyncContext;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.LocaleUtils;
 import org.apache.commons.lang.time.DateUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.structr.common.AccessMode;
+import org.structr.common.GraphObjectComparator;
+import org.structr.common.PathHelper;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
+import org.structr.core.Result;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
+import org.structr.core.auth.AuthHelper;
+import org.structr.core.auth.Authenticator;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
+import org.structr.core.graph.Tx;
 import org.structr.rest.ResourceProvider;
 import org.structr.rest.service.HttpServiceServlet;
+import org.structr.rest.service.StructrHttpServiceConfig;
+import org.structr.web.auth.UiAuthenticator;
+import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.common.ThreadLocalMatcher;
+import org.structr.web.entity.File;
+import org.structr.web.entity.Linkable;
 import org.structr.web.entity.User;
 import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.entity.dom.Page;
 
 //~--- classes ----------------------------------------------------------------
-
 /**
  * Main servlet for content rendering.
  *
  * @author Christian Morgner
  * @author Axel Morgner
  */
-public class HtmlServlet extends HttpServiceServlet {
+public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
-	private static final Logger logger                          = Logger.getLogger(HtmlServlet.class.getName());
-	
-	public static final String REST_RESPONSE	                    = "restResponse";
-	public static final String REDIRECT                         = "redirect";
-	public static final String POSSIBLE_ENTRY_POINTS            = "possibleEntryPoints";
+	private static final Logger logger = Logger.getLogger(HtmlServlet.class.getName());
+
+	public static final String REST_RESPONSE = "restResponse";
+	public static final String REDIRECT = "redirect";
+	public static final String POSSIBLE_ENTRY_POINTS = "possibleEntryPoints";
 	public static final String REQUEST_CONTAINS_UUID_IDENTIFIER = "request_contains_uuids";
-	
-	public static final String CONFIRM_REGISTRATION_PAGE        = "confirm_registration";
-	public static final String GET_SESSION_ID_PAGE              = "get_session_id";
-	public static final String CONFIRM_KEY_KEY                  = "key";
-	public static final String TARGET_PAGE_KEY                  = "target";
-	public static final String ERROR_PAGE_KEY                   = "onerror";
-	public static final String LOCALE_KEY                       = "locale";
-	
+
+	public static final String CONFIRM_REGISTRATION_PAGE = "/confirm_registration";
+	public static final String GET_SESSION_ID_PAGE = "get_session_id";
+	public static final String CONFIRM_KEY_KEY = "key";
+	public static final String TARGET_PAGE_KEY = "target";
+	public static final String ERROR_PAGE_KEY = "onerror";
+	public static final String LOCALE_KEY = "locale";
+
 	private static final ThreadLocalMatcher threadLocalUUIDMatcher = new ThreadLocalMatcher("[a-zA-Z0-9]{32}");
 
 	// non-static fields
-	private DecimalFormat decimalFormat              = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
-	private SearchNodeCommand searchNodesAsSuperuser = null;
+	private DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 
-	public HtmlServlet() {}
-	
+	private final StructrHttpServiceConfig config = new StructrHttpServiceConfig();
+
 	@Override
-	public void init() {
-		
-		 searchNodesAsSuperuser = StructrApp.getInstance().command(SearchNodeCommand.class);
+	public StructrHttpServiceConfig getConfig() {
+		return config;
+	}
+
+	public HtmlServlet() {
 	}
 
 	@Override
-	public void destroy() {}
+	public void destroy() {
+	}
 
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) {
 
-		double start	= System.nanoTime();
+		double start = System.nanoTime();
+
+		SecurityContext securityContext;
+		Authenticator auth = config.getAuthenticator();
+		App app;
 
 		try {
+			String path = request.getPathInfo();
 
-			SecurityContext securityContext = getAuthenticator().initializeAndExamineRequest(request, response);
-			
-			// Ensure access mode is frontend
-			securityContext.setAccessMode(AccessMode.Frontend);
-			
-			request.setCharacterEncoding("UTF-8");
-
-			// Important: Set character encoding before calling response.getWriter() !!, see Servlet Spec 5.4
-			response.setCharacterEncoding("UTF-8");
-
-			boolean dontCache = false;
-			
-			String path = PathHelper.clean(request.getPathInfo());
-
-			logger.log(Level.FINE, "Path info {0}", path);
-			logger.log(Level.FINE, "Request examined by security context in {0} seconds", decimalFormat.format((System.nanoTime() - start) / 1000000000.0));
-			
-			// don't continue on redirects
-			if (response.getStatus() == 302) {
+			// check for registration (has its own tx because of write access
+			if (checkRegistration(auth, request, response, path)) {
 				return;
 			}
-			
-			Principal user = securityContext.getUser(false);
-			if (user != null) {
-				
-				// Don't cache if a user is logged in
-				dontCache = true;
-				
+
+			// isolate request authentication in a transaction
+			try (final Tx tx = StructrApp.getInstance().tx()) {
+				securityContext = auth.initializeAndExamineRequest(request, response);
+				tx.success();
 			}
-			
-			RenderContext renderContext = RenderContext.getInstance(request, response, getEffectiveLocale(request));
-			
-			renderContext.setResourceProvider(resourceProvider);
-			
-			EditMode edit = renderContext.getEditMode(user);
-			
-			DOMNode rootElement               = null;
-			AbstractNode dataNode             = null;
-			
-			
-			String[] uriParts = PathHelper.getParts(path);
-			if ((uriParts == null) || (uriParts.length == 0)) {
 
-				// find a visible page
-				rootElement = findIndexPage(securityContext);
 
-				logger.log(Level.FINE, "No path supplied, trying to find index page");
+			app = StructrApp.getInstance(securityContext);
 
-			} else {
-				
-				// check if request was solely intended to obtain a session id
-				if (checkGetSessionId(request, response, path)) {
+			try (final Tx tx = app.tx()) {
+
+				// Ensure access mode is frontend
+				securityContext.setAccessMode(AccessMode.Frontend);
+
+				request.setCharacterEncoding("UTF-8");
+
+				// Important: Set character encoding before calling response.getWriter() !!, see Servlet Spec 5.4
+				response.setCharacterEncoding("UTF-8");
+
+				boolean dontCache = false;
+
+				logger.log(Level.FINE, "Path info {0}", path);
+				logger.log(Level.FINE, "Request examined by security context in {0} seconds", decimalFormat.format((System.nanoTime() - start) / 1000000000.0));
+
+				// don't continue on redirects
+				if (response.getStatus() == 302) {
 					return;
 				}
 
-				// check for registration
-				if (checkRegistration(securityContext, request, response, path)) {
-					return;
-				}
-				
-				if (rootElement == null) {
-					
-					rootElement = findPage(request, path);
-					
-				} else {
+				Principal user = securityContext.getUser(false);
+				if (user != null) {
+
+					// Don't cache if a user is logged in
 					dontCache = true;
-				}
-			}
-
-			if (rootElement == null) { // No page found
-
-				// Look for a file
-				org.structr.web.entity.File file = findFile(request, path);
-				if (file != null) {
-
-					logger.log(Level.FINE, "File found in {0} seconds", decimalFormat.format((System.nanoTime() - start) / 1000000000.0));
-
-					streamFile(securityContext, file, request, response, edit);
-					return;
 
 				}
 
-				// store remaining path parts in request
-				Matcher matcher                 = threadLocalUUIDMatcher.get();
-				boolean requestUriContainsUuids = false;
+				RenderContext renderContext = RenderContext.getInstance(request, response, getEffectiveLocale(request));
 
-				for (int i = 0; i < uriParts.length; i++) {
+				renderContext.setResourceProvider(config.getResourceProvider());
 
-					request.setAttribute(uriParts[i], i);
-					matcher.reset(uriParts[i]);
+				EditMode edit = renderContext.getEditMode(user);
 
-					// set to "true" if part matches UUID pattern
-					requestUriContainsUuids |= matcher.matches();
+				DOMNode rootElement = null;
+				AbstractNode dataNode = null;
 
-				}
+				String[] uriParts = PathHelper.getParts(path);
+				if ((uriParts == null) || (uriParts.length == 0)) {
 
+					// find a visible page
+					rootElement = findIndexPage(securityContext);
 
-				if (!requestUriContainsUuids) {
-
-					// Try to find a data node by name
-					dataNode = findFirstNodeByPath(request, path);
+					logger.log(Level.FINE, "No path supplied, trying to find index page");
 
 				} else {
 
-					AbstractNode n = (AbstractNode) StructrApp.getInstance(securityContext).get(PathHelper.getName(path));
-					if (n != null) {
-						dataNode = n;
+					// check if request was solely intended to obtain a session id
+					if (checkGetSessionId(request, response, path)) {
+						return;
 					}
 
+					if (rootElement == null) {
+
+						rootElement = findPage(request, path);
+
+					} else {
+						dontCache = true;
+					}
 				}
 
-				if (dataNode != null) {
+				if (rootElement == null) { // No page found
 
-					// Last path part matches a data node
-					// Remove last path part and try again searching for a page
+					// Look for a file
+					org.structr.web.entity.File file = findFile(request, path);
+					if (file != null) {
 
-					// clear possible entry points
-					request.removeAttribute(POSSIBLE_ENTRY_POINTS);
+						logger.log(Level.FINE, "File found in {0} seconds", decimalFormat.format((System.nanoTime() - start) / 1000000000.0));
 
-					rootElement = findPage(request, PathHelper.clean(StringUtils.substringBeforeLast(path, PathHelper.PATH_SEP)));
+						streamFile(securityContext, file, request, response, edit);
+						return;
 
-					renderContext.setDetailsDataObject(dataNode);
-					
-					// Start rendering on data node
-					if (rootElement == null && dataNode instanceof DOMNode) {
-						
-						rootElement = ((DOMNode) dataNode);
-						
-						
 					}
 
-				}
+					// store remaining path parts in request
+					Matcher matcher = threadLocalUUIDMatcher.get();
+					boolean requestUriContainsUuids = false;
 
-			}
+					for (int i = 0; i < uriParts.length; i++) {
 
-			// Still nothing found, do error handling
-			if (rootElement == null) {
-				
-				// Check if security context has set an 401 status
-				if (response.getStatus() == HttpServletResponse.SC_UNAUTHORIZED) {
+						request.setAttribute(uriParts[i], i);
+						matcher.reset(uriParts[i]);
 
-					try {
-						
-						HttpAuthenticator.writeUnauthorized(response);
-						
-					} catch (IllegalStateException ise) {}
+						// set to "true" if part matches UUID pattern
+						requestUriContainsUuids |= matcher.matches();
 
-				} else {
+					}
 
-					HttpAuthenticator.writeNotFound(response);
+					if (!requestUriContainsUuids) {
 
-				}
-				
-				return;
-				
-			}
-			
-			logger.log(Level.FINE, "Page found in {0} seconds", decimalFormat.format((System.nanoTime() - start) / 1000000000.0));
-			
-			if (EditMode.DATA.equals(edit) || dontCache) {
-
-				setNoCacheHeaders(response);
-				
-			}
-
-			if (securityContext.isVisible(rootElement)) {
-				
-				PrintWriter out            = response.getWriter();
-				
-				double setup     = System.nanoTime();
-				logger.log(Level.FINE, "Setup time: {0} seconds", decimalFormat.format((setup - start) / 1000000000.0));
-
-				if (!EditMode.DATA.equals(edit) && !dontCache && notModifiedSince(request, response, rootElement)) {
-
-					out.flush();
-					out.close();
-
-				} else {
-					
-					rootElement.render(securityContext, renderContext, 0);
-
-					String content = renderContext.getBuffer().toString();
-					double end     = System.nanoTime();
-					logger.log(Level.FINE, "Content for path {0} in {1} seconds", new Object[] { path, decimalFormat.format((end - setup) / 1000000000.0)});
-
-					String contentType = rootElement.getProperty(Page.contentType);
-
-					if (contentType != null && contentType.equals("text/html")) {
-
-						contentType = contentType.concat(";charset=UTF-8");
-						response.setContentType(contentType);
+						// Try to find a data node by name
+						dataNode = findFirstNodeByPath(request, path);
 
 					} else {
 
-						// Default
-						response.setContentType("text/html;charset=UTF-8");
+						AbstractNode n = (AbstractNode) StructrApp.getInstance(securityContext).get(PathHelper.getName(path));
+						if (n != null) {
+							dataNode = n;
+						}
+
 					}
 
-					// 3: output content
-					HttpAuthenticator.writeContent(content, response);
+					if (dataNode != null) {
+
+						// Last path part matches a data node
+						// Remove last path part and try again searching for a page
+						// clear possible entry points
+						request.removeAttribute(POSSIBLE_ENTRY_POINTS);
+
+						rootElement = findPage(request, StringUtils.substringBeforeLast(path, PathHelper.PATH_SEP));
+
+						renderContext.setDetailsDataObject(dataNode);
+
+						// Start rendering on data node
+						if (rootElement == null && dataNode instanceof DOMNode) {
+
+							rootElement = ((DOMNode) dataNode);
+
+						}
+
+					}
 
 				}
 
-			} else {
+				// Still nothing found, do error handling
+				if (rootElement == null) {
 
-				response.sendError(HttpServletResponse.SC_NOT_FOUND);
-				
+					// Check if security context has set an 401 status
+					if (response.getStatus() == HttpServletResponse.SC_UNAUTHORIZED) {
+
+						try {
+
+							UiAuthenticator.writeUnauthorized(response);
+
+						} catch (IllegalStateException ise) {
+						}
+
+					} else {
+
+						rootElement = notFound(response, securityContext);
+
+					}
+
+				}
+
+				logger.log(Level.FINE, "Page found in {0} seconds", decimalFormat.format((System.nanoTime() - start) / 1000000000.0));
+
+				if (EditMode.DATA.equals(edit) || dontCache) {
+
+					setNoCacheHeaders(response);
+
+				}
+
+				if (!securityContext.isVisible(rootElement)) {
+
+					rootElement = notFound(response, securityContext);
+
+				}
+
+				if (securityContext.isVisible(rootElement)) {
+
+					//PrintWriter out = response.getWriter();
+					double setup = System.nanoTime();
+					logger.log(Level.FINE, "Setup time: {0} seconds", decimalFormat.format((setup - start) / 1000000000.0));
+
+					if (!EditMode.DATA.equals(edit) && !dontCache && notModifiedSince(request, response, rootElement, dontCache)) {
+
+						ServletOutputStream out = response.getOutputStream();
+						out.flush();
+						//response.flushBuffer();
+						out.close();
+
+					} else {
+
+						response.setCharacterEncoding("UTF-8");
+
+						String contentType = rootElement.getProperty(Page.contentType);
+
+						if (contentType != null && contentType.equals("text/html")) {
+
+							contentType = contentType.concat(";charset=UTF-8");
+							response.setContentType(contentType);
+
+						} else {
+
+							// Default
+							response.setContentType("text/html;charset=UTF-8");
+						}
+
+						response.setHeader("Strict-Transport-Security", "max-age=60");
+						response.setHeader("X-Content-Type-Options", "nosniff");
+						response.setHeader("X-Frame-Options", "SAMEORIGIN");
+						response.setHeader("X-XSS-Protection", "1; mode=block");
+
+						AsyncContext async = request.startAsync();
+						ServletOutputStream out = response.getOutputStream();
+
+						AsyncBuffer buffer = renderContext.getBuffer();
+						buffer.prepare(async, out);
+						//StructrWriteListener writeListener = new StructrWriteListener(buffer, async, out);
+
+						rootElement.render(securityContext, renderContext, 0);
+						buffer.finish();
+
+//						final DOMNode root = rootElement;
+//						new Thread() {
+//							public void run() {
+//								try {
+//									root.render(securityContext, renderContext, 0);
+//								} catch (FrameworkException ex) {
+//									Logger.getLogger(HtmlServlet.class.getName()).log(Level.SEVERE, null, ex);
+//								}
+//							}
+//						}.start();
+						response.setStatus(HttpServletResponse.SC_OK);
+
+						double end = System.nanoTime();
+						logger.log(Level.FINE, "Content for path {0} in {1} seconds", new Object[]{path, decimalFormat.format((end - setup) / 1000000000.0)});
+
+						// 3: finish request
+//						try {
+//
+//							out.flush();
+//							//response.flushBuffer();
+//							out.close();
+//
+//						} catch (IllegalStateException ise) {
+//
+//							logger.log(Level.WARNING, "Could not write to output stream", ise.getMessage());
+//
+//						}
+					}
+
+				} else {
+
+					notFound(response, securityContext);
+
+				}
+
+				tx.success();
+
+			} catch (FrameworkException fex) {
+				logger.log(Level.SEVERE, "Exception while processing request", fex);
 			}
 
-		} catch (Throwable t) {
+		} catch (IOException | FrameworkException t) {
 
 			t.printStackTrace();
 			logger.log(Level.SEVERE, "Exception while processing request", t);
-			HttpAuthenticator.writeInternalServerError(response);
+			UiAuthenticator.writeInternalServerError(response);
 		}
 	}
-	
+
+	/**
+	 * Handle 404 Not Found
+	 *
+	 * First, search the first page which handles the 404.
+	 *
+	 * If none found, issue the container's 404 error.
+	 *
+	 * @param response
+	 * @param securityContext
+	 * @param renderContext
+	 * @throws IOException
+	 * @throws FrameworkException
+	 */
+	private Page notFound(final HttpServletResponse response, final SecurityContext securityContext) throws IOException, FrameworkException {
+
+		final Page errorPage = StructrApp.getInstance(securityContext).nodeQuery(Page.class).and(Page.showOnErrorCodes, "404", false).getFirst();
+
+		if (errorPage != null) {
+
+			response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+			return errorPage;
+
+		} else {
+
+			response.sendError(HttpServletResponse.SC_NOT_FOUND);
+
+		}
+
+		return null;
+
+	}
 
 	/**
 	 * Find first node whose name matches the given path
-	 * 
+	 *
 	 * @param request
 	 * @param path
 	 * @return
-	 * @throws FrameworkException 
+	 * @throws FrameworkException
 	 */
 	private AbstractNode findFirstNodeByPath(HttpServletRequest request, final String path) throws FrameworkException {
-		
+
 		// FIXME: Take full path into account
 		String name = PathHelper.getName(path);
-		
+
 		if (name.length() > 0) {
 
 			logger.log(Level.FINE, "Requested name: {0}", name);
 
 			Result results = StructrApp.getInstance().nodeQuery().and(AbstractNode.name, name).getResult();
-			
+
 			logger.log(Level.FINE, "{0} results", results.size());
 			request.setAttribute(POSSIBLE_ENTRY_POINTS, results.getResults());
-			
+
 			return (results.size() > 0 ? (AbstractNode) results.get(0) : null);
 		}
 
 		return null;
 	}
-	
+
 	/**
 	 * Find a file with its name matching last path part
-	 * 
+	 *
 	 * @param request
 	 * @param path
 	 * @return
-	 * @throws FrameworkException 
+	 * @throws FrameworkException
 	 */
 	private org.structr.web.entity.File findFile(HttpServletRequest request, final String path) throws FrameworkException {
-	
-		// FIXME: Take full page path into account
-		List<AbstractNode> entryPoints = findPossibleEntryPoints(request, PathHelper.getName(path));
-		
+
+		List<Linkable> entryPoints = findPossibleEntryPoints(request, PathHelper.getName(path));
+
 		// If no results were found, try to replace whitespace by '+' or '%20'
-		
 		if (entryPoints.isEmpty()) {
 			entryPoints = findPossibleEntryPoints(request, PathHelper.getName(PathHelper.replaceWhitespaceByPlus(path)));
 		}
-		
+
 		if (entryPoints.isEmpty()) {
 			entryPoints = findPossibleEntryPoints(request, PathHelper.getName(PathHelper.replaceWhitespaceByPercentTwenty(path)));
 		}
-		
-		for (AbstractNode node : entryPoints) {
-			if (node instanceof org.structr.web.entity.File) {
+
+		for (Linkable node : entryPoints) {
+			if (node instanceof org.structr.web.entity.File && (path.equals(node.getPath()) || node.getUuid().equals(PathHelper.clean(path)))) {
 				return (org.structr.web.entity.File) node;
 			}
 		}
-		
+
 		return null;
 	}
-	
+
 	/**
 	 * Find a page with its name matching last path part
-	 * 
+	 *
 	 * @param request
 	 * @param path
 	 * @return
-	 * @throws FrameworkException 
+	 * @throws FrameworkException
 	 */
 	private Page findPage(HttpServletRequest request, final String path) throws FrameworkException {
-		
-		List<AbstractNode> entryPoints = findPossibleEntryPoints(request, PathHelper.getName(path));
-		
-		for (AbstractNode node : entryPoints) {
-			if (node instanceof Page) {
+
+		List<Linkable> entryPoints = findPossibleEntryPoints(request, PathHelper.getName(path));
+
+		for (Linkable node : entryPoints) {
+			if (node instanceof Page && path.equals(node.getPath())) {
 				return (Page) node;
 			}
 		}
-		
+
 		return null;
 	}
 
 	/**
 	 * Find the page with the lowest position value which is visible in the
 	 * current securit context
-	 * 
+	 *
 	 * @param securityContext
 	 * @return
-	 * @throws FrameworkException 
+	 * @throws FrameworkException
 	 */
 	private Page findIndexPage(final SecurityContext securityContext) throws FrameworkException {
 
@@ -433,15 +525,14 @@ public class HtmlServlet extends HttpServiceServlet {
 			Collections.sort(results.getResults(), new GraphObjectComparator(Page.position, GraphObjectComparator.ASCENDING));
 
 			// Find first visible page
-			
-			int i=0;
+			int i = 0;
 			Page page = null;
-			
-			while (page == null || (i<results.size() && !securityContext.isVisible(page))) {
-				
+
+			while (page == null || (i < results.size() && !securityContext.isVisible(page))) {
+
 				page = results.get(i++);
 			}
-			
+
 			return page;
 		}
 
@@ -450,113 +541,112 @@ public class HtmlServlet extends HttpServiceServlet {
 
 	/**
 	 * Check if the request was solely intended to get a session id
-	 * 
+	 *
 	 * @param request
 	 * @param response
 	 * @param path
 	 * @return
 	 * @throws FrameworkException
-	 * @throws IOException 
+	 * @throws IOException
 	 */
 	private boolean checkGetSessionId(final HttpServletRequest request, final HttpServletResponse response, final String path) throws IOException {
-		
+
 		logger.log(Level.FINE, "Checking for {0} ...", GET_SESSION_ID_PAGE);
-		
+
 		if (GET_SESSION_ID_PAGE.equals(path)) {
-		
+
 			request.getSession(true);
 			response.setStatus(HttpServletResponse.SC_OK);
-			
+
 			response.flushBuffer();
 			return true;
-			
+
 		}
 
 		return false;
-		
+
 	}
-	
+
 	/**
-	 * This method checks if the current request is a user registration confirmation,
-	 * usually triggered by a user clicking on a confirmation link in an e-mail.
-	 * 
-	 * @param securityContext
+	 * This method checks if the current request is a user registration
+	 * confirmation, usually triggered by a user clicking on a confirmation
+	 * link in an e-mail.
+	 *
 	 * @param request
 	 * @param response
 	 * @param path
 	 * @return true if the registration was successful
 	 * @throws FrameworkException
-	 * @throws IOException 
+	 * @throws IOException
 	 */
-	private boolean checkRegistration(final SecurityContext securityContext, final HttpServletRequest request, final HttpServletResponse response, final String path) throws FrameworkException, IOException {
+	private boolean checkRegistration(final Authenticator auth, final HttpServletRequest request, final HttpServletResponse response, final String path) throws FrameworkException, IOException {
 
 		logger.log(Level.FINE, "Checking registration ...");
-		
-		String key        = request.getParameter(CONFIRM_KEY_KEY);
-		
+
+		String key = request.getParameter(CONFIRM_KEY_KEY);
+
 		if (StringUtils.isEmpty(key)) {
-			
+
 			return false;
-			
+
 		}
-		
+
 		String targetPage = request.getParameter(TARGET_PAGE_KEY);
-		String errorPage  = request.getParameter(ERROR_PAGE_KEY);
+		String errorPage = request.getParameter(ERROR_PAGE_KEY);
 
 		if (CONFIRM_REGISTRATION_PAGE.equals(path)) {
-		
-			Result<Principal> results = StructrApp.getInstance().nodeQuery(Principal.class).and(User.confirmationKey, key).getResult();;
+
+			final App app = StructrApp.getInstance();
+
+			Result<Principal> results;
+			try (final Tx tx = app.tx()) {
+
+				results = app.nodeQuery(Principal.class).and(User.confirmationKey, key).getResult();;
+			}
+
 			if (!results.isEmpty()) {
-				
+
 				final Principal user = results.get(0);
-				final App app        = StructrApp.getInstance(securityContext);
-				
-				try {
-					
-					app.beginTx();
-					
+
+				try (final Tx tx = app.tx()) {
+
 					// Clear confirmation key and set session id
 					user.setProperty(User.confirmationKey, null);
-					user.setProperty(Principal.sessionId, request.getSession().getId());
-					
-					app.commitTx();
-					
-				} finally {
-					
-					app.finishTx();
+
+					if (auth.getUserAutoLogin()){
+
+						// Clear possible existing sessions
+						final String sessionId = request.getSession().getId();
+						AuthHelper.clearSession(sessionId);
+
+						user.addSessionId(sessionId);
+
+					}
+
+					tx.success();
+
+					// Redirect to target page
+					if (StringUtils.isNotBlank(targetPage)) {
+						response.sendRedirect("/" + targetPage);
+						return true;
+					}
 				}
-				
-				// Redirect to target page
-				if (StringUtils.isNotBlank(targetPage)) {
-					
-					response.sendRedirect("/" + targetPage);
-					
-					return true;
-					
-				}
-				
+
 			} else {
-				
 				// Redirect to error page
 				if (StringUtils.isNotBlank(errorPage)) {
-					
 					response.sendRedirect("/" + errorPage);
-					
 					return true;
-					
 				}
-				
 			}
-			
 		}
-
 		return false;
-		
+
 	}
 
-	private List<AbstractNode> findPossibleEntryPointsByUuid(HttpServletRequest request, final String uuid) throws FrameworkException {
+	private List<Linkable> findPossibleEntryPointsByUuid(HttpServletRequest request, final String uuid) throws FrameworkException {
 
-		List<AbstractNode> possibleEntryPoints = (List<AbstractNode>) request.getAttribute(POSSIBLE_ENTRY_POINTS);
+		List<Linkable> possibleEntryPoints = (List<Linkable>) request.getAttribute(POSSIBLE_ENTRY_POINTS);
 
 		if (CollectionUtils.isNotEmpty(possibleEntryPoints)) {
 			return possibleEntryPoints;
@@ -567,26 +657,26 @@ public class HtmlServlet extends HttpServiceServlet {
 			logger.log(Level.FINE, "Requested id: {0}", uuid);
 
 			final Query query = StructrApp.getInstance().nodeQuery();
-			
+
 			query.and(GraphObject.id, uuid);
 			query.and().orType(Page.class).orTypes(File.class);
 
 			// Searching for pages needs super user context anyway
 			Result results = query.getResult();
-			
+
 			logger.log(Level.FINE, "{0} results", results.size());
 			request.setAttribute(POSSIBLE_ENTRY_POINTS, results.getResults());
-			
-			return (List<AbstractNode>) results.getResults();
+
+			return (List<Linkable>) results.getResults();
 		}
 
 		return Collections.EMPTY_LIST;
 	}
 
-	private List<AbstractNode> findPossibleEntryPointsByName(HttpServletRequest request, final String name) throws FrameworkException {
+	private List<Linkable> findPossibleEntryPointsByName(HttpServletRequest request, final String name) throws FrameworkException {
 
-		List<AbstractNode> possibleEntryPoints = (List<AbstractNode>) request.getAttribute(POSSIBLE_ENTRY_POINTS);
-		
+		List<Linkable> possibleEntryPoints = (List<Linkable>) request.getAttribute(POSSIBLE_ENTRY_POINTS);
+
 		if (CollectionUtils.isNotEmpty(possibleEntryPoints)) {
 			return possibleEntryPoints;
 		}
@@ -596,40 +686,40 @@ public class HtmlServlet extends HttpServiceServlet {
 			logger.log(Level.FINE, "Requested name: {0}", name);
 
 			final Query query = StructrApp.getInstance().nodeQuery();
-			
+
 			query.and(AbstractNode.name, name);
 			query.and().orType(Page.class).orTypes(File.class);
 
 			// Searching for pages needs super user context anyway
 			Result results = query.getResult();
-			
+
 			logger.log(Level.FINE, "{0} results", results.size());
 			request.setAttribute(POSSIBLE_ENTRY_POINTS, results.getResults());
-			
-			return (List<AbstractNode>) results.getResults();
+
+			return (List<Linkable>) results.getResults();
 		}
 
 		return Collections.EMPTY_LIST;
 	}
 
-	private List<AbstractNode> findPossibleEntryPoints(HttpServletRequest request, final String name) throws FrameworkException {
+	private List<Linkable> findPossibleEntryPoints(HttpServletRequest request, final String name) throws FrameworkException {
 
-		List<AbstractNode> possibleEntryPoints = (List<AbstractNode>) request.getAttribute(POSSIBLE_ENTRY_POINTS);
-		
+		List<Linkable> possibleEntryPoints = (List<Linkable>) request.getAttribute(POSSIBLE_ENTRY_POINTS);
+
 		if (CollectionUtils.isNotEmpty(possibleEntryPoints)) {
 			return possibleEntryPoints;
 		}
-		
+
 		if (name.length() > 0) {
 
 			logger.log(Level.FINE, "Requested name {0}", name);
 
 			possibleEntryPoints = findPossibleEntryPointsByName(request, name);
-		
+
 			if (possibleEntryPoints.isEmpty()) {
 				possibleEntryPoints = findPossibleEntryPointsByUuid(request, name);
 			}
-			
+
 			return possibleEntryPoints;
 		}
 
@@ -637,16 +727,15 @@ public class HtmlServlet extends HttpServiceServlet {
 	}
 
 	//~--- set methods ----------------------------------------------------
-
 	public static void setNoCacheHeaders(final HttpServletResponse response) {
-		
-		response.setHeader("Cache-Control", "private, max-age=0, no-cache, no-store, must-revalidate"); // HTTP 1.1.
+
+		response.setHeader("Cache-Control", "private, max-age=0, s-maxage=0, no-cache, no-store, must-revalidate"); // HTTP 1.1.
 		response.setHeader("Pragma", "no-cache, no-store"); // HTTP 1.0.
 		response.setDateHeader("Expires", 0);
-		
+
 	}
-	
-	private static boolean notModifiedSince(final HttpServletRequest request, HttpServletResponse response, final AbstractNode node) {
+
+	private static boolean notModifiedSince(final HttpServletRequest request, HttpServletResponse response, final AbstractNode node, final boolean dontCache) {
 
 		boolean notModified = false;
 		final Date lastModified = node.getLastModifiedDate();
@@ -654,26 +743,33 @@ public class HtmlServlet extends HttpServiceServlet {
 		// add some caching directives to header
 		// see http://weblogs.java.net/blog/2007/08/08/expires-http-header-magic-number-yslow
 		DateFormat httpDateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
-		Calendar cal              = new GregorianCalendar();
-		Integer seconds           = node.getProperty(Page.cacheForSeconds);
+		httpDateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
 
-		if (seconds != null) {
+		response.setHeader("Date", httpDateFormat.format(new Date()));
+
+		Calendar cal = new GregorianCalendar();
+		Integer seconds = node.getProperty(Page.cacheForSeconds);
+
+		if (!dontCache && seconds != null) {
 
 			cal.add(Calendar.SECOND, seconds);
-			response.addHeader("Cache-Control", "public, max-age=" + seconds + ", s-maxage=" + seconds + ", must-revalidate, proxy-revalidate");
-			httpDateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
-			response.addHeader("Expires", httpDateFormat.format(cal.getTime()));
+			response.setHeader("Cache-Control", "max-age=" + seconds + ", s-maxage=" + seconds + "");
+			response.setHeader("Expires", httpDateFormat.format(cal.getTime()));
 
 		} else {
 
-			response.addHeader("Cache-Control", "public, must-revalidate, proxy-revalidate");
+			if (!dontCache) {
+				response.setHeader("Cache-Control", "no-cache, must-revalidate, proxy-revalidate");
+			} else {
+				response.setHeader("Cache-Control", "private, no-cache, no-store, max-age=0, s-maxage=0, must-revalidate, proxy-revalidate");
+			}
 
 		}
 
 		if (lastModified != null) {
 
 			Date roundedLastModified = DateUtils.round(lastModified, Calendar.SECOND);
-			response.addHeader("Last-Modified", httpDateFormat.format(roundedLastModified));
+			response.setHeader("Last-Modified", httpDateFormat.format(roundedLastModified));
 
 			String ifModifiedSince = request.getHeader("If-Modified-Since");
 
@@ -682,15 +778,15 @@ public class HtmlServlet extends HttpServiceServlet {
 				try {
 
 					Date ifModSince = httpDateFormat.parse(ifModifiedSince);
-					
+
 					// Note that ifModSince has not ms resolution, so the last digits are always 000
 					// That requires the lastModified to be rounded to seconds
-
 					if ((ifModSince != null) && (roundedLastModified.equals(ifModSince) || roundedLastModified.before(ifModSince))) {
 
 						notModified = true;
 
 						response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
+						response.setHeader("Vary", "Accept-Encoding");
 
 					}
 
@@ -706,22 +802,21 @@ public class HtmlServlet extends HttpServiceServlet {
 	}
 
 	public void setResourceProvider(final ResourceProvider resourceProvider) {
-		this.resourceProvider = resourceProvider;
+		config.setResourceProvider(resourceProvider);
 	}
-	
 
 	private void streamFile(SecurityContext securityContext, final org.structr.web.entity.File file, HttpServletRequest request, HttpServletResponse response, final EditMode edit) throws IOException {
 
 		if (!securityContext.isVisible(file)) {
-			
+
 			response.sendError(HttpServletResponse.SC_NOT_FOUND);
 			return;
-			
+
 		}
 
-		OutputStream out = response.getOutputStream();
+		ServletOutputStream out = response.getOutputStream();
 
-		if (!EditMode.DATA.equals(edit) && notModifiedSince(request, response, file)) {
+		if (!EditMode.DATA.equals(edit) && notModifiedSince(request, response, file, false)) {
 
 			out.flush();
 			out.close();
@@ -729,7 +824,7 @@ public class HtmlServlet extends HttpServiceServlet {
 		} else {
 
 			// 2b: stream file to response
-			InputStream in     = file.getInputStream();
+			InputStream in = file.getInputStream();
 			String contentType = file.getContentType();
 
 			if (contentType != null) {
@@ -742,47 +837,52 @@ public class HtmlServlet extends HttpServiceServlet {
 				response.setContentType("application/octet-stream");
 			}
 
-			try {
+			response.setStatus(HttpServletResponse.SC_OK);
 
-				IOUtils.copy(in, out);
+			AsyncContext async = request.startAsync();
+			out.setWriteListener(new StructrWriteListener(in, async, out));
 
-			} catch (Throwable t) {
-
-			} finally {
-
-				if (out != null) {
-
-					try {
-						// 3: output content
-						out.flush();
-						out.close();
-
-					} catch(Throwable t) {}
-				}
-
-				if (in != null) {
-					in.close();
-				}
-
-				response.setStatus(HttpServletResponse.SC_OK);
-			}
+//			try {
+//
+//				IOUtils.copy(in, out);
+//
+//			} catch (Throwable t) {
+//
+//			} finally {
+//
+//				if (out != null) {
+//
+//					try {
+//						// 3: output content
+//						out.flush();
+//						out.close();
+//
+//					} catch (Throwable t) {
+//					}
+//				}
+//
+//				if (in != null) {
+//					in.close();
+//				}
+//
+//				response.setStatus(HttpServletResponse.SC_OK);
+//			}
 		}
 	}
-	
+
 	/**
 	 * Determine the effective locale for this request.
-	 * 
-	 * Priority 1: URL parameter "locale"
-	 * Priority 2: Browser locale
-	 * 
+	 *
+	 * Priority 1: URL parameter "locale" Priority 2: Browser locale
+	 *
 	 * @param request
-	 * @return 
+	 * @return
 	 */
 	private Locale getEffectiveLocale(final HttpServletRequest request) {
 
 		// Overwrite locale if requested by URL parameter
 		String requestedLocaleString = request.getParameter(LOCALE_KEY);
-		Locale locale	= request.getLocale();
+		Locale locale = request.getLocale();
 		if (StringUtils.isNotBlank(requestedLocaleString)) {
 			try {
 				locale = LocaleUtils.toLocale(requestedLocaleString);
@@ -790,8 +890,9 @@ public class HtmlServlet extends HttpServiceServlet {
 				locale = Locale.forLanguageTag(requestedLocaleString);
 			}
 		}
-		
+
 		return locale;
-		
+
 	}
+
 }

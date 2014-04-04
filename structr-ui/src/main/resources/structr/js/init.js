@@ -1,4 +1,4 @@
-    /* 
+/* 
  *  Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
  * 
  *  This file is part of structr <http://structr.org>.
@@ -25,12 +25,12 @@ var wsRoot = '/structr/ws';
 
 var header, main, footer;
 var debug = false;
-var token, sessionId;
+var sessionId;
 var lastMenuEntry, activeTab;
 var dmp;
 var editorCursor;
 var dialog, isMax = false;
-var dialogBox, dialogMsg, dialogBtn, dialogTitle, dialogMeta, dialogText, dialogCancelButton, dialogSaveButton, loginButton;
+var dialogBox, dialogMsg, dialogBtn, dialogTitle, dialogMeta, dialogText, dialogCancelButton, dialogSaveButton, saveAndClose, loginButton;
 var dialogId;
 var page = {};
 var pageSize = {};
@@ -38,8 +38,10 @@ var expandedIdsKey = 'structrTreeExpandedIds_' + port;
 var lastMenuEntryKey = 'structrLastMenuEntry_' + port;
 var pagerDataKey = 'structrPagerData_' + port + '_';
 var autoRefreshDisabledKey = 'structrAutoRefreshDisabled_' + port;
+var dialogDataKey = 'structrDialogData_' + port;
+var dialogHtmlKey = 'structrDialogHtml_' + port;
 
-$(document).ready(function() {
+$(function() {
 
     if (urlParam('debug')) {
         debug = true;
@@ -63,8 +65,6 @@ $(document).ready(function() {
     dialogCancelButton = $('.closeButton', dialogBtn);
     dialogSaveButton = $('.save', dialogBox);
     loginButton = $('#loginButton');
-
-    dmp = new diff_match_patch();
 
     $('#import_json').on('click', function(e) {
         e.stopPropagation();
@@ -102,7 +102,7 @@ $(document).ready(function() {
         Structr.modules['pages'].onload();
         _Pages.resize();
     });
-    
+
     $('#widgets_').on('click', function(e) {
         e.stopPropagation();
         Structr.clearMain();
@@ -183,6 +183,14 @@ $(document).ready(function() {
     });
 
     Structr.init();
+    Structr.connect();
+
+    // This hack prevents FF from closing WS connections on ESC
+    $(window).keydown(function(e) {
+        if (e.keyCode === 27) {
+            e.preventDefault();
+        }
+    });
 
     $(window).keyup(function(e) {
         if (e.keyCode === 27) {
@@ -191,27 +199,40 @@ $(document).ready(function() {
                 if (saveBeforeExit) {
                     dialogSaveButton.click();
                     setTimeout(function() {
-                        dialogSaveButton.remove();
-                        saveAndClose.remove();
-                        dialogCancelButton.click();
-                    }, 500);
+                        if (dialogSaveButton && dialogSaveButton.length && dialogSaveButton.is(':visible') && !dialogSaveButton.prop('disabled')) {
+                            dialogSaveButton.remove();
+                        }
+                        if (saveAndClose && saveAndClose.length && saveAndClose.is(':visible') && !saveAndClose.prop('disabled')) {
+                            saveAndClose.remove();
+                        }
+                        if (dialogCancelButton && dialogCancelButton.length && dialogCancelButton.is(':visible') && !dialogCancelButton.prop('disabled')) {
+                          dialogCancelButton.click();
+                        }
+                        return false;
+                    }, 1000);
                 }
             }
-            dialogCancelButton.click();
+            if (dialogCancelButton.length && dialogCancelButton.is(':visible') && !dialogCancelButton.prop('disabled')) {
+                dialogCancelButton.click();
+            }
         }
+        return false;
     });
 
     $(window).on('keydown', function(e) {
         if (e.ctrlKey && (e.which === 83)) {
             e.preventDefault();
-            dialogSaveButton.click();
-            return false;
+            if (dialogSaveButton && dialogSaveButton.length && dialogSaveButton.is(':visible') && !dialogSaveButton.prop('disabled')) {
+                dialogSaveButton.click();
+            }
         }
     });
 
     $(window).on('resize', function() {
         Structr.resize();
     });
+
+    dmp = new diff_match_patch();
 
 });
 
@@ -237,15 +258,29 @@ var Structr = {
     },
     init: function() {
 
-        token = localStorage.getItem(tokenKey);
-        user = localStorage.getItem(userKey);
+        log('###################### Initialize UI ####################');
+
+        $('#errorText').empty();
+
+        //user = localStorage.getItem(userKey);
         sessionId = $.cookie('JSESSIONID');
-        log('token', token);
         log('user', user);
+
+        // Send initial PING to force re-connect on all pages
+        sendObj({command: 'PING', sessionId: sessionId});
 
         Structr.expanded = JSON.parse(localStorage.getItem(expandedIdsKey));
         log('######## Expanded IDs after reload ##########', Structr.expanded);
 
+        var dialogData = JSON.parse(window.localStorage.getItem(dialogDataKey));
+        log('Dialog data after init', dialogData);
+
+        if (dialogData) {
+            Structr.restoreDialog(dialogData);
+        }
+
+    },
+    connect: function() {
         // make a dummy request to get a sessionId
         if (!sessionId) {
             $.get('/get_session_id');
@@ -254,7 +289,7 @@ var Structr = {
         connect();
 
         window.setInterval(function() {
-            sendObj({command: 'PING', sessionId: $.cookie('JSESSIONID')});
+            sendObj({command: 'PING', sessionId: sessionId});
         }, 60000);
 
     },
@@ -263,8 +298,9 @@ var Structr = {
         main.empty();
 
         $('#logout_').html('Login');
-        if (text)
+        if (text) {
             $('#errorText').html(text);
+        }
         $.blockUI.defaults.overlayCSS.opacity = .6;
         $.blockUI.defaults.applyPlatformOpacityRules = false;
         $.blockUI({
@@ -278,12 +314,13 @@ var Structr = {
             }
         });
         Structr.activateMenuEntry('logout');
+        $('#usernameField').focus();
     },
     doLogin: function(username, password) {
         log('doLogin ' + username + ' with ' + password);
         var obj = {};
         obj.command = 'LOGIN';
-        obj.sessionId = $.cookie('JSESSIONID');
+        obj.sessionId = sessionId;
         var data = {};
         data.username = username;
         data.password = password;
@@ -296,10 +333,16 @@ var Structr = {
     },
     doLogout: function(text) {
         log('doLogout ' + user);
-        if (send('{ "command":"LOGOUT", "data" : { "username" : "' + user + '" } }')) {
-            localStorage.removeItem(tokenKey);
+        var obj = {};
+        obj.command = 'LOGOUT';
+        obj.sessionId = sessionId;
+        var data = {};
+        data.username = user;
+        obj.data = data;
+        if (sendObj(obj)) {
             localStorage.removeItem(userKey);
             $.cookie('JSESSIONID', null);
+            sessionId.lenght = 0;
             Structr.clearMain();
             Structr.login(text);
             return true;
@@ -381,6 +424,46 @@ var Structr = {
         });
 
     },
+    restoreDialog: function(dialogData) {
+
+        $.blockUI.defaults.overlayCSS.opacity = .6;
+        $.blockUI.defaults.applyPlatformOpacityRules = false;
+
+        // Apply stored dimensions of dialog
+        var dw = dialogData.width;
+        var dh = dialogData.height;
+
+        var l = dialogData.left;
+        var t = dialogData.top;
+
+        $.blockUI({
+            fadeIn: 25,
+            fadeOut: 25,
+            message: dialogBox,
+            css: {
+                cursor: 'default',
+                border: 'none',
+                backgroundColor: 'transparent',
+                width: dw + 'px',
+                height: dh + 'px',
+                top: t + 'px',
+                left: l + 'px'
+            },
+            themedCSS: {
+                width: dw + 'px',
+                height: dh + 'px',
+                top: t + 'px',
+                left: l + 'px'
+            },
+            width: dw + 'px',
+            height: dh + 'px',
+            top: t + 'px',
+            left: l + 'px'
+        });
+        
+        Structr.resize();
+
+    },
     dialog: function(text, callbackOk, callbackCancel) {
 
         if (browser) {
@@ -390,10 +473,11 @@ var Structr = {
             dialogMeta.empty();
             //dialogBtn.empty();
 
-            if (text)
+            if (text) {
                 dialogTitle.html(text);
+            }
 
-            if (callbackCancel)
+            if (callbackCancel) {
                 dialogCancelButton.on('click', function(e) {
                     e.stopPropagation();
                     callbackCancel();
@@ -407,10 +491,14 @@ var Structr = {
                     //$('#saveProperties').remove();
                     if (searchField)
                         searchField.focus();
+
+                    localStorage.removeItem(dialogDataKey);
+
                 });
+            }
+
             $.blockUI.defaults.overlayCSS.opacity = .6;
             $.blockUI.defaults.applyPlatformOpacityRules = false;
-
 
             var w = $(window).width();
             var h = $(window).height();
@@ -453,6 +541,11 @@ var Structr = {
             });
 
             Structr.resize();
+
+            log('Open dialog', dialog, text, dw, dh, t, l, callbackOk, callbackCancel);
+            var dialogData = {'text': text, 'top': t, 'left': l, 'width': dw, 'height': dh};
+            localStorage.setItem(dialogDataKey, JSON.stringify(dialogData));
+
         }
     },
     resize: function() {
@@ -583,7 +676,7 @@ var Structr = {
                     errorText += attr + ' ';
                     //console.log(attr, Object.keys(response.errors[err][attr]));
                     $.each(response.errors[err][attr], function(k, cond) {
-                        console.log(cond);
+                        //console.log(cond);
                         if (typeof cond === 'Object') {
                             $.each(Object.keys(cond), function(l, key) {
                                 errorText += key + ' ' + cond[key];
@@ -635,9 +728,10 @@ var Structr = {
         });
     },
     reconnectDialog: function(text) {
-        if (text)
-            $('#tempErrorBox .errorText').html('<img src="icon/error.png"> ' + text);
-        //console.log(callback);
+        if (text) {
+            $('#tempErrorBox .errorText').html('<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAIsSURBVDjLpVNLSJQBEP7+h6uu62vLVAJDW1KQTMrINQ1vPQzq1GOpa9EppGOHLh0kCEKL7JBEhVCHihAsESyJiE4FWShGRmauu7KYiv6Pma+DGoFrBQ7MzGFmPr5vmDFIYj1mr1WYfrHPovA9VVOqbC7e/1rS9ZlrAVDYHig5WB0oPtBI0TNrUiC5yhP9jeF4X8NPcWfopoY48XT39PjjXeF0vWkZqOjd7LJYrmGasHPCCJbHwhS9/F8M4s8baid764Xi0Ilfp5voorpJfn2wwx/r3l77TwZUvR+qajXVn8PnvocYfXYH6k2ioOaCpaIdf11ivDcayyiMVudsOYqFb60gARJYHG9DbqQFmSVNjaO3K2NpAeK90ZCqtgcrjkP9aUCXp0moetDFEeRXnYCKXhm+uTW0CkBFu4JlxzZkFlbASz4CQGQVBFeEwZm8geyiMuRVntzsL3oXV+YMkvjRsydC1U+lhwZsWXgHb+oWVAEzIwvzyVlk5igsi7DymmHlHsFQR50rjl+981Jy1Fw6Gu0ObTtnU+cgs28AKgDiy+Awpj5OACBAhZ/qh2HOo6i+NeA73jUAML4/qWux8mt6NjW1w599CS9xb0mSEqQBEDAtwqALUmBaG5FV3oYPnTHMjAwetlWksyByaukxQg2wQ9FlccaK/OXA3/uAEUDp3rNIDQ1ctSk6kHh1/jRFoaL4M4snEMeD73gQx4M4PsT1IZ5AfYH68tZY7zv/ApRMY9mnuVMvAAAAAElFTkSuQmCC"> ' + text);
+        }
+        $('#tempErrorBox .closeButton').hide();
         $.blockUI.defaults.overlayCSS.opacity = .6;
         $.blockUI.defaults.applyPlatformOpacityRules = false;
         $.blockUI({
@@ -802,7 +896,7 @@ var Structr = {
      * If the optional callback function is given, it will be executed
      * instead of the default action.
      */
-    addPager: function(el, type, callback) {
+    addPager: function(el, rootOnly, type, callback) {
 
         if (!callback) {
             callback = function(entity) {
@@ -835,7 +929,7 @@ var Structr = {
                 $('.node', el).remove();
                 if (isPagesEl)
                     _Pages.clearPreviews();
-                Command.list(type, pageSize[type], page[type], sort, order, callback);
+                Command.list(type, rootOnly, pageSize[type], page[type], sort, order, callback);
             }
         });
 
@@ -846,7 +940,7 @@ var Structr = {
                 $('.node', el).remove();
                 if (isPagesEl)
                     _Pages.clearPreviews();
-                Command.list(type, pageSize[type], page[type], sort, order, callback);
+                Command.list(type, rootOnly, pageSize[type], page[type], sort, order, callback);
             }
         });
 
@@ -859,7 +953,7 @@ var Structr = {
             if (isPagesEl) {
                 _Pages.clearPreviews();
             }
-            Command.list(type, pageSize[type], page[type], sort, order, callback);
+            Command.list(type, rootOnly, pageSize[type], page[type], sort, order, callback);
         });
 
         pageRight.on('click', function() {
@@ -870,9 +964,9 @@ var Structr = {
             if (isPagesEl) {
                 _Pages.clearPreviews();
             }
-            Command.list(type, pageSize[type], page[type], sort, order, callback);
+            Command.list(type, rootOnly, pageSize[type], page[type], sort, order, callback);
         });
-        return Command.list(type, pageSize[type], page[type], sort, order, callback);
+        return Command.list(type, rootOnly, pageSize[type], page[type], sort, order, callback);
     },
     makePagesMenuDroppable: function() {
 
@@ -910,7 +1004,7 @@ var Structr = {
 
         });
         $('#pages_').removeClass('nodeHover').droppable('enable');
-    }    
+    }
 };
 
 function getElementPath(element) {
@@ -935,14 +1029,6 @@ function swapFgBg(el) {
 
 function isImage(contentType) {
     return (contentType && contentType.indexOf('image') > -1);
-}
-
-function plural(type) {
-    if (type.substring(type.length - 1, type.length) === 'y') {
-        return type.substring(0, type.length - 1) + 'ies';
-    } else {
-        return type + 's';
-    }
 }
 
 function addExpandedNode(id) {
@@ -1055,17 +1141,12 @@ function enable(button, func) {
 
 function setPosition(parentId, nodeUrl, pos) {
     var toPut = '{ "' + parentId + '" : ' + pos + ' }';
-    //console.log(toPut);
-    var headers = {
-        'X-StructrSessionToken': token
-    };
     $.ajax({
         url: nodeUrl + '/in',
         type: 'PUT',
         async: false,
         dataType: 'json',
         contentType: 'application/json; charset=utf-8',
-        headers: headers,
         data: toPut,
         success: function(data) {
             //appendElement(parentId, elementId, data);
@@ -1095,3 +1176,9 @@ function getComponentIdFromIdString(idString) {
 function getComponentId(element) {
     return getComponentIdFromIdString($(element).prop('id')) || undefined;
 }
+
+$(window).unload(function() {
+    // Remove dialog data in case of page reload
+    localStorage.removeItem(dialogDataKey);
+    localStorage.removeItem(userKey);
+});

@@ -1,7 +1,7 @@
 #graph {
     position: relative;
-    padding: 12px;
-    margin: 12px;
+    padding: 12px 12px 18px 12px;
+    margin: 12px;   
     background: #fff;
     border-radius: 5px;
     border: 1px solid #999;
@@ -9,6 +9,7 @@
 
 canvas {
     margin: -12px 0 0 -12px;
+    border-radius: 5px;
 }
 
 .large {
@@ -200,13 +201,13 @@ canvas {
     text-align: right;
 }
 
-ul.relBox {
+ul.relBox, ul.nodeBox {
     width: 100%;
     padding: 0;
     margin: 0;
 }
 
-ul.relBox li {
+ul.relBox li, ul.nodeBox li {
     width: 100%;
     list-style-type: none;
     padding: 0;

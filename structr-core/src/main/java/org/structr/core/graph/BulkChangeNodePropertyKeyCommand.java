@@ -24,7 +24,6 @@ import org.neo4j.tooling.GlobalGraphOperations;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
-import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -33,7 +32,6 @@ import java.util.logging.Logger;
 import org.apache.commons.lang.StringUtils;
 import org.neo4j.graphdb.Node;
 import org.structr.core.app.StructrApp;
-import org.structr.module.JarConfigurationProvider;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.SchemaHelper;
 
@@ -74,13 +72,17 @@ public class BulkChangeNodePropertyKeyCommand extends NodeServiceCommand impleme
 
 				type = (String) properties.get(AbstractNode.type.dbName());
 
-				nodes = StructrApp.getInstance(securityContext).nodeQuery(SchemaHelper.getEntityClassForRawType(type)).getResult();
+				try (final Tx tx = StructrApp.getInstance().tx()) {
+					nodes = StructrApp.getInstance(securityContext).nodeQuery(SchemaHelper.getEntityClassForRawType(type)).getResult();
+				}
 
 				properties.remove(AbstractNode.type.dbName());
 
 			} else {
 
-				nodes = nodeFactory.instantiateAll(GlobalGraphOperations.at(graphDb).getAllNodes());
+				try (final Tx tx = StructrApp.getInstance().tx()) {
+					nodes = nodeFactory.instantiateAll(GlobalGraphOperations.at(graphDb).getAllNodes());
+				}
 			}
 
 			long nodeCount = bulkGraphOperation(securityContext, nodes.getResults(), 1000, "ChangeNodePropertyKey", new BulkGraphOperation<AbstractNode>() {

@@ -21,6 +21,8 @@ package org.structr.web.common;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.Tx;
 import org.structr.web.common.ImageHelper.Thumbnail;
 import org.structr.web.entity.Image;
 import org.structr.web.entity.TestImage;
@@ -51,20 +53,12 @@ public class ThumbnailTest extends StructrTest {
 
 	public void test01CreateThumbnail() {
 
-		try {
-			TestImage img = null;
+		try (final Tx tx = app.tx()) {
 			
-			try {
-				app.beginTx();
+			TestImage img = (TestImage) ImageHelper.createFileBase64(securityContext, base64Image, TestImage.class);
 
-				img = (TestImage) ImageHelper.createFileBase64(securityContext, base64Image, TestImage.class);
-
-				app.commitTx();
-
-			} finally {
-				app.finishTx();
-			}
-
+			img.setProperty(AbstractNode.name, "test-image.png");
+			
 			assertNotNull(img);
 			assertTrue(img instanceof TestImage);
 
@@ -74,6 +68,8 @@ public class ThumbnailTest extends StructrTest {
 			assertEquals(new Integer(200), tn.getWidth());
 			assertEquals(new Integer(48), tn.getHeight());  // cropToFit = false
 			assertEquals("image/" + Thumbnail.FORMAT, tn.getContentType());
+			
+			tx.success();
 
 		} catch (Exception ex) {
 

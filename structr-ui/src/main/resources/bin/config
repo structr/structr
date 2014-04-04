@@ -5,7 +5,7 @@
 
 RUN_OPTS="-cp lib/*:${artifactId}-${version}.jar"
 JAVA_OPTS="-Xms1g -Xmx1g -XX:+UseNUMA"
-MAIN_CLASS="org.structr.Ui"
+MAIN_CLASS="org.structr.Server"
 DISPLAY_NAME="${artifactId}-${version}"
 LOG_FILE="logs/server.log"
 PID_FILE="server.pid"

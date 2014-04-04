@@ -35,10 +35,6 @@ public class Document extends Tag {
 		this.writer = writer;
 	}
 	
-	public void setIndent(final String indent) {
-		
-	}
-	
 	public void flush() {
 		writer.flush();
 	}

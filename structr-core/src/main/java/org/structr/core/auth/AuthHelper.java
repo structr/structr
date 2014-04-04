@@ -18,20 +18,20 @@
  */
 package org.structr.core.auth;
 
-import org.apache.commons.codec.digest.DigestUtils;
-
-import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
-import org.structr.core.auth.exception.AuthenticationException;
-import org.structr.core.entity.Principal;
-import org.structr.core.entity.SuperUser;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
+import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.entity.AbstractUser;
+import org.structr.core.entity.Principal;
+import org.structr.core.entity.SuperUser;
 import org.structr.core.property.PropertyKey;
 
 //~--- classes ----------------------------------------------------------------
@@ -50,35 +50,39 @@ public class AuthHelper {
 
 	/**
 	 * Find a {@link Principal} for the given credential
-	 * 
+	 *
 	 * @param key
 	 * @param value
-	 * @return 
+	 * @return
 	 */
 	public static Principal getPrincipalForCredential(final PropertyKey key, final String value) {
-		
+
+		if (value == null) {
+			return null;
+		}
+
 		final App app = StructrApp.getInstance();
 		final Query<Principal> query = app.nodeQuery(Principal.class).and(key, value);
 
 		try {
 			return query.getFirst();
-			
+
 		} catch (FrameworkException fex) {
-			
+
 			logger.log(Level.WARNING, "Error while searching for principal", fex);
 		}
-		
+
 		return null;
 	}
-	
+
 	/**
 	 * Find a {@link Principal} with matching password and given key or name
-	 * 
+	 *
 	 * @param key
 	 * @param value
 	 * @param password
 	 * @return
-	 * @throws AuthenticationException 
+	 * @throws AuthenticationException
 	 */
 	public static Principal getPrincipalForPassword(final PropertyKey<String> key, final String value, final String password) throws AuthenticationException {
 
@@ -88,7 +92,7 @@ public class AuthHelper {
 		// FIXME: this might be slow, because the the property file needs to be read each time
 		final String superuserName = StructrApp.getConfigurationValue(Services.SUPERUSER_USERNAME);
 		final String superUserPwd  = StructrApp.getConfigurationValue(Services.SUPERUSER_PASSWORD);
-		
+
 		if (superuserName.equals(value) && superUserPwd.equals(password)) {
 
 			logger.log(Level.INFO, "############# Authenticated as superadmin! ############");
@@ -98,9 +102,9 @@ public class AuthHelper {
 		} else {
 
 			try {
-				
+
 				principal = StructrApp.getInstance().nodeQuery(Principal.class).and().or(key, value).or(AbstractUser.name, value).getFirst();
-				
+
 				if (principal == null) {
 
 					logger.log(Level.INFO, "No principal found for {0} {1}", new Object[]{ key.dbName(), value });
@@ -127,16 +131,16 @@ public class AuthHelper {
 
 						String salt			= principal.getProperty(Principal.salt);
 						String encryptedPasswordValue;
-						
+
 						if (salt != null) {
-							
+
 							encryptedPasswordValue	= getHash(password, salt);
 						} else {
-							
+
 							encryptedPasswordValue	= getSimpleHash(password);
-							
+
 						}
-						
+
 						String pw			= principal.getEncryptedPassword();
 
 						if (pw == null || !encryptedPasswordValue.equals(pw)) {
@@ -146,7 +150,7 @@ public class AuthHelper {
 							errorMsg = STANDARD_ERROR_MSG;
 
 						}
-					
+
 					}
 
 				}
@@ -170,30 +174,76 @@ public class AuthHelper {
 
 	/**
 	 * Find a {@link Principal} for the given session id
-	 * 
+	 *
 	 * @param sessionId
-	 * @return 
+	 * @return
 	 */
 	public static Principal getPrincipalForSessionId(final String sessionId) {
-		return getPrincipalForCredential(Principal.sessionId, sessionId);
+		return getPrincipalForCredential(Principal.sessionIds, sessionId);
 	}
 
+	/**
+	 * Calculate a SHA-512 hash of the given password string.
+	 *
+	 * If salt is given, use salt.
+	 *
+	 * @param password
+	 * @param salt
+	 * @return
+	 */
 	public static String getHash(final String password, final String salt) {
-		
+
 		if (StringUtils.isEmpty(salt)) {
-			
+
 			return getSimpleHash(password);
-			
+
 		}
-		
+
 		return DigestUtils.sha512Hex(DigestUtils.sha512Hex(password).concat(salt));
-		
+
 	}
-	
+
+	/**
+	 * Calculate a SHA-512 hash without salt
+	 *
+	 * @param password
+	 * @return
+	 * @deprecated Use
+	 * {@link AuthHelper#getHash(java.lang.String, java.lang.String)}
+	 * instead
+	 */
+	@Deprecated
 	public static String getSimpleHash(final String password) {
-		
+
 		return DigestUtils.sha512Hex(password);
-		
+
+	}
+
+	/**
+	 * Make sure the given sessionId is not set for any user.
+	 *
+	 * @param sessionId
+	 */
+	public static void clearSession(final String sessionId) {
+
+		final App app = StructrApp.getInstance();
+		final Query<Principal> query = app.nodeQuery(Principal.class).and(Principal.sessionIds, new String[]{sessionId});
+
+		try {
+			List<Principal> principals = query.getAsList();
+
+			for (Principal p : principals) {
+
+				p.removeSessionId(sessionId);
+
+			}
+
+		} catch (FrameworkException fex) {
+
+			logger.log(Level.WARNING, "Error while removing sessionId " + sessionId + " from all principals", fex);
+			fex.printStackTrace();
+		}
+
 	}
 
 }

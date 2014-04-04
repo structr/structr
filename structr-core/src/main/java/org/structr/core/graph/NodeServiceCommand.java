@@ -79,10 +79,8 @@ public abstract class NodeServiceCommand extends Command {
 		
 		while (iterator.hasNext()) {
 
-			try {
+			try (final Tx tx = app.tx()) {
 
-				app.beginTx();
-				
 				while (iterator.hasNext()) {
 
 					T node = iterator.next();
@@ -102,16 +100,12 @@ public abstract class NodeServiceCommand extends Command {
 					}
 				}
 				
-				app.commitTx();
+				tx.success();
 
 			} catch (Throwable t) {
 				
 				// bulk transaction failed, what to do?
 				operation.handleTransactionFailure(securityContext, t);
-				
-			} finally {
-				
-				app.finishTx();
 			}
 			
 			if (description != null) {
@@ -140,8 +134,7 @@ public abstract class NodeServiceCommand extends Command {
 		
 		while (!stopCondition.evaluate(securityContext, objectCount.get())) {
 
-			try {
-				app.beginTx();
+			try (final Tx tx = app.tx()) {
 
 				long loopCount = 0;
 
@@ -151,16 +144,12 @@ public abstract class NodeServiceCommand extends Command {
 					objectCount.incrementAndGet();
 				}
 
-				app.commitTx();
-				
-			} finally {
-				
-				app.finishTx();
+				tx.success();
 			}
 		}
 	}
 	
-	protected String getNextUuid() {
+	public String getNextUuid() {
 		
 		String uuid = null;
 		

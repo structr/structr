@@ -28,15 +28,31 @@ import org.structr.core.entity.ManyEndpoint;
 import org.structr.core.entity.ManyStartpoint;
 import org.structr.core.entity.OneEndpoint;
 import org.structr.core.entity.OneStartpoint;
+import org.structr.core.entity.Principal;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.Source;
 import org.structr.core.entity.Target;
+import org.structr.core.entity.relationship.PrincipalOwnsNode;
+import org.structr.core.property.BooleanProperty;
+import org.structr.core.property.EntityIdProperty;
+import org.structr.core.property.Property;
+import org.structr.core.property.StartNode;
+import org.structr.core.property.StringProperty;
 
 /**
  *
  * @author Christian Morgner
  */
 public interface NodeInterface extends GraphObject, Comparable<NodeInterface>, AccessControllable {
+
+	// properties
+	public static final Property<String>          name             = new StringProperty("name").indexed();
+	public static final Property<String>          createdBy        = new StringProperty("createdBy").readOnly().writeOnce();
+	public static final Property<Boolean>         deleted          = new BooleanProperty("deleted").indexed();
+	public static final Property<Boolean>         hidden           = new BooleanProperty("hidden").indexed();
+      
+	public static final Property<Principal>       owner            = new StartNode<>("owner", PrincipalOwnsNode.class);
+	public static final Property<String>          ownerId          = new EntityIdProperty("ownerId", owner);
 	
 	public void init(final SecurityContext securityContext, final Node dbNode);
 	

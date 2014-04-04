@@ -17,33 +17,34 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-;exports.init = function(test, name){
+;exports.init = function(test, name) {
     
     // TODO: make sure current active page is pages-tab
     //test.assertEval(function() { return ($('#pages').hasClass('active')); });
-    
-    sections.push('Create ' + (name?'and rename ' : '') + 'the created page.');
+    sections.push('A new page has been created. The page is automatically loaded into the preview window.');
     
     casper.then(function() {
         s.moveMousePointerTo(casper, '#add_page');
     });
+
     casper.then(function() {
         this.click('#add_page');
     });
 
-    casper.wait(5000);
-    
-    // TODO: Add assertion to detect creation of page
+    casper.wait(2000);
+    //casper.waitForSelector('#previewTabs li:nth-child(2)');
 
-    if(name) {
+    if (name) {
+
         casper.then(function() {
             s.moveMousePointerTo(casper, '#previewTabs li:nth-child(2)');
         });
+
         casper.then(function() {
             this.click('#previewTabs li:nth-child(2)');
         });
 
-        casper.wait(500);
+        casper.wait(2000);
 
         casper.then(function() {
             s.animatedType(this, '#previewTabs li:nth-child(2) .new-name', false, name, true);

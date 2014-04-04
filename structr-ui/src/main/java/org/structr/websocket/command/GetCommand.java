@@ -18,8 +18,10 @@
  */
 package org.structr.websocket.command;
 
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.common.PagingHelper;
 import org.structr.core.property.PropertyKey;
 import org.structr.common.PropertyView;
 import org.structr.core.entity.AbstractNode;
@@ -48,22 +50,24 @@ public class GetCommand extends AbstractCommand {
 	public void processMessage(final WebSocketMessage webSocketData) {
 
 		AbstractNode node = getNode(webSocketData.getId());
-		String view       = webSocketData.getView();
+		//String view       = webSocketData.getView();
 
 		if (node != null) {
 
-			if (view == null) {
+//			if (view == null) {
+//
+//				view = PropertyView.All;
+//
+//			}
 
-				view = PropertyView.All;
-
-			}
-
-			for (PropertyKey key : node.getPropertyKeys(view)) {
-
-				webSocketData.setNodeData(key.jsonName(), node.getProperty(key));
-
-			}
-
+//			for (PropertyKey key : node.getPropertyKeys(view)) {
+//
+//				webSocketData.setNodeData(key.jsonName(), node.getProperty(key));
+//
+//			}
+			
+			webSocketData.setResult(Arrays.asList(node));
+			
 			// send only over local connection (no broadcast)
 			getWebSocket().send(webSocketData, true);
 

@@ -21,7 +21,7 @@ package org.structr.web.common;
 import com.mortennobel.imagescaling.ResampleOp;
 
 import org.apache.commons.io.output.ByteArrayOutputStream;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.web.entity.Image;
@@ -65,24 +65,45 @@ public abstract class ImageHelper extends FileHelper {
 	 * Create a new image node from the given image data
 	 *
 	 * @param securityContext
-	 * @param imageData
+	 * @param imageStream
 	 * @param contentType
 	 * @param imageType defaults to Image.class if null
+	 * @param name
 	 * @param markAsThumbnail
 	 * @return
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
-	public static Image createImage(final SecurityContext securityContext, final byte[] imageData, final String contentType, final Class<? extends Image> imageType, final boolean markAsThumbnail)
+	public static Image createImage(final SecurityContext securityContext, final InputStream imageStream, final String contentType, final Class<? extends Image> imageType, final String name, final boolean markAsThumbnail)
+		throws FrameworkException, IOException {
+	
+		return createImage(securityContext, IOUtils.toByteArray(imageStream), contentType, imageType, name, markAsThumbnail);
+		
+	}
+
+	/**
+	 * Create a new image node from the given image data
+	 *
+	 * @param securityContext
+	 * @param imageData
+	 * @param contentType
+	 * @param imageType defaults to Image.class if null
+	 * @param name
+	 * @param markAsThumbnail
+	 * @return
+	 * @throws FrameworkException
+	 * @throws IOException
+	 */
+	public static Image createImage(final SecurityContext securityContext, final byte[] imageData, final String contentType, final Class<? extends Image> imageType, final String name, final boolean markAsThumbnail)
 		throws FrameworkException, IOException {
 
-		CreateNodeCommand<Image> createNodeCommand = StructrApp.getInstance(securityContext).command(CreateNodeCommand.class);
 		PropertyMap props                          = new PropertyMap();
 		
 		props.put(AbstractNode.type, imageType == null ? Image.class.getSimpleName() : imageType.getSimpleName());
 		props.put(Image.isThumbnail, markAsThumbnail);
+		props.put(AbstractNode.name, name);
 		
-		Image newImage = createNodeCommand.execute(props);
+		Image newImage = StructrApp.getInstance(securityContext).create(imageType, props);
 
 		if (imageData != null && imageData.length > 0) {
 			
@@ -128,23 +149,27 @@ public abstract class ImageHelper extends FileHelper {
 			// read image
 			long start           = System.nanoTime();
 			InputStream in       = originalImage.getInputStream();
+			
+			if (in == null) {
+				logger.log(Level.FINE, "InputStream of original image {0} ({1}) is null", new Object[] { originalImage.getName(), originalImage.getId() });
+				return null;
+			}
+			
 			BufferedImage source = null;
 
 			try {
 
 				source = ImageIO.read(in);
 
-			} catch (Throwable t) {
+			} catch (IOException t) {
 
 				logger.log(Level.WARNING, "Could not read original image {0} ({1})", new Object[] { originalImage.getName(), originalImage.getId() });
+				return null;
 
 			} finally {
-
 				if (in != null) {
-
 					in.close();
 				}
-
 			}
 
 			if (source != null) {
@@ -216,10 +241,8 @@ public abstract class ImageHelper extends FileHelper {
 
 			} else {
 
-				logger.log(Level.WARNING, "Thumbnail could not be created");
-
+				logger.log(Level.FINE, "Thumbnail could not be created");
 				return null;
-
 			}
 
 			long end  = System.nanoTime();
@@ -229,9 +252,9 @@ public abstract class ImageHelper extends FileHelper {
 			tn.setBytes(baos.toByteArray());
 
 			return tn;
-		} catch (Throwable t) {
+		} catch (IOException | FrameworkException t) {
 
-			logger.log(Level.WARNING, "Error creating thumbnail");
+			logger.log(Level.SEVERE, "Error creating thumbnail", t);
 
 		} finally {
 

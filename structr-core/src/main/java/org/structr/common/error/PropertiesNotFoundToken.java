@@ -58,7 +58,7 @@ public class PropertiesNotFoundToken extends NotFoundToken {
 			Object value    = entry.getValue();
 			
 			if (value == null) {
-				vals.add(key.jsonName(), new JsonNull());
+				vals.add(key.jsonName(), null);
 			} else {
 				vals.add(key.jsonName(), new JsonPrimitive(value.toString()));
 			}

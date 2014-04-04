@@ -33,7 +33,6 @@ import org.structr.common.AccessMode;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.search.SearchUserCommand;
-import org.structr.rest.servlet.JsonRestServlet;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -117,6 +116,14 @@ public class RestAuthenticator implements Authenticator {
 	@Override
 	public Class getUserClass() {
 		return null;
+	}
+
+	@Override
+	public void setUserAutoLogin(boolean userAutoLogin, Class userClass) {}
+
+	@Override
+	public boolean getUserAutoLogin() {
+		return false;
 	}
 	
 }

@@ -280,7 +280,7 @@ public class GraphObjectGSONAdapter {
 
 			// property keys
 			Iterable<PropertyKey> keys = source.getPropertyKeys(localPropertyView);
-			if(keys != null) {
+			if (keys != null) {
 				for (PropertyKey key : keys) {
 
 					Object value = source.getProperty(key);

@@ -18,8 +18,9 @@
  */
 package org.structr.rest.test;
 
-import static org.hamcrest.Matchers.*;
 import com.jayway.restassured.RestAssured;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.lessThan;
 import org.structr.rest.common.StructrRestTest;
 import org.structr.rest.entity.TestObject;
 
@@ -28,7 +29,7 @@ import org.structr.rest.entity.TestObject;
  * @author Christian Morgner
  */
 public class EntityResourceBasicTest extends StructrRestTest {
-	
+
 	/**
 	 * Test the correct response for a non-existing entity
 	 */
@@ -36,16 +37,16 @@ public class EntityResourceBasicTest extends StructrRestTest {
 
 		// provoke 404 error with GET on non-existing resource
 		RestAssured
-		    
+
 			.given()
 				.contentType("application/json; charset=UTF-8")
 			.expect()
 				.statusCode(404)
 			.when()
 				.get("/test_objects/abc123def456abc123def456abc123de");
-		    
+
 	}
-	
+
 	/**
 	 * Test the creation of a single unnamed entity.
 	 */
@@ -53,7 +54,7 @@ public class EntityResourceBasicTest extends StructrRestTest {
 
 		// create empty object
 		String location = RestAssured
-		    
+
 			.given()
 				.contentType("application/json; charset=UTF-8")
 			.expect()
@@ -61,20 +62,20 @@ public class EntityResourceBasicTest extends StructrRestTest {
 			.when()
 				.post("/test_objects")
 				.getHeader("Location");
-				
+
 		// POST must return a Location header
 		assertNotNull(location);
-		
+
 		String uuid = getUuidFromLocation(location);
-				
+
 		// POST must create a UUID
 		assertNotNull(uuid);
 		assertFalse(uuid.isEmpty());
 		assertTrue(uuid.matches("[a-f0-9]{32}"));
-		
+
 		// check for exactly one object
 		Object name = RestAssured
-		    
+
 			.given()
 				.contentType("application/json; charset=UTF-8")
 			.expect()
@@ -86,13 +87,13 @@ public class EntityResourceBasicTest extends StructrRestTest {
 			.when()
 				.get("/test_objects/" + uuid)
 				.jsonPath().get("result.name");
-		
+
 		System.out.println("name (should be null): " + name);
-		
+
 		// name must be null
 		assertNull(name);
 	}
-	
+
 	/**
 	 * Test the creation of a single entity with generated UUID and
 	 * given name. This method also tests the contents of the JSON
@@ -102,7 +103,7 @@ public class EntityResourceBasicTest extends StructrRestTest {
 
 		// create named object
 		String location = RestAssured
-		    
+
 			.given()
 				.contentType("application/json; charset=UTF-8")
 				.body(" { \"name\" : \"test\" } ")
@@ -111,12 +112,12 @@ public class EntityResourceBasicTest extends StructrRestTest {
 			.when()
 				.post("/test_objects")
 				.getHeader("Location");
-		    
+
 		// POST must return a Location header
 		assertNotNull(location);
-		
+
 		String uuid = getUuidFromLocation(location);
-				
+
 		// POST must create a UUID
 		assertNotNull(uuid);
 		assertFalse(uuid.isEmpty());
@@ -124,17 +125,17 @@ public class EntityResourceBasicTest extends StructrRestTest {
 
 		// check for exactly one object
 		RestAssured
-		    
+
 			.given()
 				.contentType("application/json; charset=UTF-8")
 			.expect()
 				.statusCode(200)
 				.body("result_count",		equalTo(1))
-				.body("query_time",		lessThan("0.1"))
-				.body("serialization_time",	lessThan("0.005"))
+				.body("query_time",		lessThan("0.5"))
+				.body("serialization_time",	lessThan("0.05"))
 				.body("result",			isEntity(TestObject.class))
 			.when()
 				.get("/test_objects/" + uuid);
-		    
+
 	}
 }

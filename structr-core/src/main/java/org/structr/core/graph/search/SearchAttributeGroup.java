@@ -147,4 +147,15 @@ public class SearchAttributeGroup extends SearchAttribute {
 	public String getValueForEmptyField() {
 		return null;
 	}
+	
+	@Override
+	public void setExactMatch(final boolean exact) {
+
+		for (SearchAttribute attr : getSearchAttributes()) {
+			
+			attr.setExactMatch(exact);
+		}
+		
+	}
+	
 }

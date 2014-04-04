@@ -77,7 +77,7 @@ public class Link extends LinkSource {
 		return true;
 
 	}
-
+	
 	@Override
 	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 		

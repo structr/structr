@@ -21,7 +21,7 @@ package org.structr.web.converter;
 import net.sf.jmimemagic.Magic;
 import net.sf.jmimemagic.MagicMatch;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import org.structr.web.common.ImageHelper;
 import org.structr.common.KeyAndClass;
@@ -73,13 +73,8 @@ public class ImageConverter extends PropertyConverter {
 			return false;
 		}
 
-		final App app = StructrApp.getInstance(securityContext);
-		
 		try {
 
-			app.beginTx();
-			
-					
 			Image img = null;
 
 			try {

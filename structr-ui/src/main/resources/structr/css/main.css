@@ -110,7 +110,7 @@ input[type="text"]:disabled, input.disabled {
     padding: 0;
     margin: 0;
     float: left;
-	overflow: hidden;
+    overflow: hidden;
 }
 
 .menu ul li {
@@ -154,6 +154,7 @@ img.disabled {
 }
 
 #pages,
+#dataBinding,
 #widgets,
 #remoteWidgets,
 #propertyDefinitions,
@@ -233,26 +234,37 @@ img.disabled {
 
 #pagesTab {
     right: -72px;
+    width: 100px;
     top: 60px;
+}
+
+#dataBindingTab {
+    right: -61px;
+    width: 78px;
+    top: 176px;
 }
 
 #widgetsTab {
     left: -44px;
+    width: 48px;
     top: 60px;
 }
 
 #paletteTab {
     left: -60px;
+    width: 80px;
     top: 148px;
 }
 
 #componentsTab {
     left: -79px;
+    width: 118px;
     top: 271px;
 }
 
 #elementsTab {
     left: -72px;
+    width: 104px;
     top: 406px;
 }
 
@@ -347,6 +359,7 @@ img.disabled {
 
 .clear {
     clear: both;
+    height: 0px;
 }
 
 .props {
@@ -437,14 +450,14 @@ ul#previewTabs {
     height: 25px;
 }
 
-#data-tabs, #data-tabs ul, #tabs, #tabs ul {
+.data-tabs, .data-tabs ul, #tabs, #tabs ul {
     background: none;
     border: none;
     padding: 0;
     margin: 0;
 }
 
-#previewTabs li, #tabs li, .compTab, #data-tabs li {
+#previewTabs li, #tabs li, .compTab, .data-tabs li {
     vertical-align: middle;
     line-height: 1.5em;
     border-radius: 5px;
@@ -467,30 +480,30 @@ ul#previewTabs {
     height: 22px;
 }
 
-#previewTabs li, #tabs li, #data-tabs li {
+#previewTabs li, #tabs li, .data-tabs li {
     position: relative;
     z-index: 1;
 }
 
-#data-tabs {
+.data-tabs {
     margin-top: 20px;
 }
 
-#data-tabs ul {
+.data-tabs ul {
     overflow: hidden;
 }
 
-#data-tabs > div {
+.data-tabs > div {
     padding: 0;
     display: none;
     border-top: 1px solid #a5a5a5;
 }
 
-#data-tabs button {
+.data-tabs button {
     margin: 6px 0 0 0;
 }
 
-#data-tabs li, #tabs li {
+.data-tabs li, #tabs li {
     font-size: 1em;
 }
 
@@ -516,7 +529,7 @@ ul#previewTabs {
     margin: 0;
 }
 
-#previewTabs li:hover, #tabs li:hover, .compTabs:hover, #data-tabs li:hover {
+#previewTabs li:hover, #tabs li:hover, .compTabs:hover, .data-tabs li:hover {
     color: #333 ! important;
     background-color: #e3e3e3;
     background: -webkit-gradient(linear, left bottom, left top, from(#ddd), to(#eee)) no-repeat;
@@ -524,7 +537,7 @@ ul#previewTabs {
     filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#eeeeee', EndColorStr='#dddddd', GradientType=0);
 }
 
-#previewTabs li.active, #tabs li.active, .compTab.active, #data-tabs li.active {
+#previewTabs li.active, #tabs li.active, .compTab.active, .data-tabs li.active {
     color: #333 ! important;
     background-color: #81ce25;
     background: -webkit-gradient(linear, left bottom, left top, from(#73b821), to(#90e629)) no-repeat;
@@ -586,7 +599,8 @@ ul#previewTabs {
 .component .id,
 .file .id,
 .folder .id,
-.image .id {
+.image .id,
+.image-folder .id {
     display: none;
 }
 
@@ -624,9 +638,9 @@ span.id {
     padding: 2px 2px 2px 4px;
     margin: 0 0 0 11px;
     /*background-color: #eee;*/
-/*    background: -webkit-gradient(linear, left bottom, left top, from(#ddd), to(#eee)) no-repeat;
-    background: -moz-linear-gradient(90deg, #ddd, #eee) no-repeat;
-    filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#eeeeee', EndColorStr='#dddddd', GradientType=0);*/
+    /*    background: -webkit-gradient(linear, left bottom, left top, from(#ddd), to(#eee)) no-repeat;
+        background: -moz-linear-gradient(90deg, #ddd, #eee) no-repeat;
+        filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#eeeeee', EndColorStr='#dddddd', GradientType=0);*/
     position: relative;
 }
 
@@ -634,6 +648,10 @@ span.id {
 .ver-scrollable > .node {
     margin: 4px 0;
     padding-right: 4px;
+}
+
+.node.sub {
+    margin-left: 16px ! important;
 }
 
 .group .user, .folder .file, .folder .folder {
@@ -648,12 +666,17 @@ span.id {
     width: 100%;
 }
 
+#images .pager {
+    margin-bottom: 12px;
+}
+
 .image {
     width: 102px;
     height: 130px;
     float: left;
     margin-right: 4px;
     position: relative;
+    color: #555;
 }
 
 #images .thumbnailZoom {
@@ -663,6 +686,14 @@ span.id {
     z-index: 4;
     display: none;
 
+}
+
+#imageFolders .folder {
+    border: 1px solid #ccc;
+    background: #fbf7dc ! important;
+    width: 100%;
+    /*	width: 300px ! important;
+            height: 200px;*/
 }
 
 .image div.wrap {
@@ -710,7 +741,7 @@ span.id {
     margin-right: 3px ! important;
 }
 
-.edit_icon, .add_icon, .delete_icon, .close_icon, .key_icon, .edit_props_icon, .edit_file_icon, .clone_icon, .view_icon, .link_icon, .add_form_icon, .data_icon {
+.edit_icon, .add_icon, .delete_icon, .close_icon, .key_icon, .edit_props_icon, .edit_file_icon, .clone_icon, .view_icon, .link_icon, .add_form_icon, .data_icon, .unarchive_icon {
     display: none;
     cursor: pointer;
     height: 16px;
@@ -747,6 +778,10 @@ span.id {
 
 .delete_icon {
     right: 24px;
+}
+
+.unarchive_icon {
+    right: 84px;
 }
 
 li.page .delete_icon {
@@ -794,6 +829,22 @@ img.button {
     color: #333 ! important;
     background-color: #e7e7e7 ! important;
     border: 1px solid #aaa;
+}
+
+.nodeSelected {
+    background-color: #fffcdd ! important;
+    border: 1px solid #ca0;
+}
+
+#images .node, #images .nodeActive {
+    background-color: #fafafa ! important;
+    border: 1px solid #eee;
+}
+
+#images .nodeHover, .image.nodeHover {
+    color: #333 ! important;
+    background-color: #f5f5f5 ! important;
+    border: 1px solid #ccc;
 }
 
 #graph .node {
@@ -885,7 +936,13 @@ button img {
 }
 
 #tempErrorBox, #tempInfoBox {
-    padding-bottom: 18px;
+    padding: 18px;
+}
+
+#tempErrorBox .al {
+    vertical-align: middle;
+    margin-left: 4px;
+    margin-top: -4px;    
 }
 
 #dialogBox {
@@ -1004,6 +1061,20 @@ button img {
     padding: 0;
     height: 22px;
 
+}
+
+#files .selected, #files .selected:hover {
+    color: #333 ! important;
+    border: 1px solid #a5a5a5;
+    background-color: #81ce25;
+    background: -webkit-gradient(linear, left bottom, left top, from(#73b821), to(#90e629)) no-repeat;
+    background: -moz-linear-gradient(90deg, #73b821, #90e629) no-repeat;
+    filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#90e629', EndColorStr='#73b821', GradientType=0);
+}
+
+.node-helper {
+    width: 16px ! important;
+    height: 16px ! important;
 }
 
 #images h1 {
@@ -1136,7 +1207,7 @@ button.enabled, button.active {
 }
 
 .node .linkable {
-    margin-left: 12px;
+    margin-left: 24px;
     cursor: pointer;
 }
 
@@ -1213,7 +1284,7 @@ button.disabled {
     background: #fff;
     border-radius: 5px;
     border: 1px solid #999;
-    min-height: 600px;
+    /*min-height: 600px;*/
     margin: 12px;
     padding: 12px;
 }
@@ -1366,8 +1437,8 @@ button.add_property {
     background-color: #ffe;
     padding: 1px;
     -webkit-box-shadow: 0 0 5px yellow;
-       -moz-box-shadow: 0 0 5px #888;
-            box-shadow: 0 0 5px #888;
+    -moz-box-shadow: 0 0 5px #888;
+    box-shadow: 0 0 5px #888;
 }
 .schema b:hover {
     margin: 1px 0 1px -1px;
@@ -1402,6 +1473,77 @@ button.add_property {
     text-align: center;
 }
 
+#ggist-url {
+    margin-left: 2em;
+}
+
 .notify {
     border-color: #f50;
+}
+
+.sliderLabel {
+    padding-top: 10px;
+}
+
+/**
+ * Image folders
+*/
+.image-folder {
+    padding: 8px 8px 8px 12px;
+    margin: 0 12px 12px 0;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    float: left;
+}
+
+.image-folder b {
+    white-space: nowrap;
+    display: block;
+    padding: 0;
+    margin: 0;
+    color: #333;
+}
+
+.image-folder:hover b {
+    color: #000;
+}
+
+/**
+ * Data Binding Wizard slideout
+ */
+#dataBinding .inner {
+    margin-top: 16px;
+    margin-left: 36px;
+}
+
+#dataBinding .draggable {
+    border-radius: 3px;
+}
+
+.data-binding-type {
+    padding: 12px;
+    margin-top: 12px;
+    float: none ! important;
+    width: 160px;
+    text-align: center;
+}
+
+.query-text {
+    width: 100%;
+    height: 4em;
+    border: 1px solid #ccc;
+}
+
+#data-binding-tabs {
+    width: 96%;
+}
+
+#data-binding-inputs {
+    margin-top: 48px ! important;
+}
+
+/* Special highlighting for data-hash attribute in internal editor */
+.data-hash {
+    color: #ccc ! important;
 }

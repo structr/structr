@@ -19,18 +19,16 @@
 package org.structr.core.property;
 
 import java.util.List;
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.fail;
+
+
+
 import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.TestThree;
 import org.structr.core.entity.TestSix;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
+import org.structr.core.graph.Tx;
 
 /**
  *
@@ -39,188 +37,182 @@ import org.structr.core.graph.TransactionCommand;
 public class EntityPropertyTest extends StructrTest {
 
 	public void testOneToOne() throws Exception {
-		
-		final TestSix a   = createTestNode(TestSix.class);
-		final TestSix c   = createTestNode(TestSix.class);
-		final TestThree b = createTestNode(TestThree.class);
-		final TestThree d = createTestNode(TestThree.class);
-		
+
 		try {
 
-			app.beginTx();
-			a.setProperty(AbstractNode.name, "a");
-			c.setProperty(AbstractNode.name, "c");
-			b.setProperty(AbstractNode.name, "b");
-			d.setProperty(AbstractNode.name, "d");
-			app.commitTx();
+			final TestSix a   = createTestNode(TestSix.class);
+			final TestSix c   = createTestNode(TestSix.class);
+			final TestThree b = createTestNode(TestThree.class);
+			final TestThree d = createTestNode(TestThree.class);
+
+			try (final Tx tx = app.tx()) {
+
+				a.setProperty(AbstractNode.name, "a");
+				c.setProperty(AbstractNode.name, "c");
+				b.setProperty(AbstractNode.name, "b");
+				d.setProperty(AbstractNode.name, "d");
+				tx.success();
+
+			} catch (FrameworkException fex) {
+
+				fex.printStackTrace();
+
+				fail("Unable to create test nodes");
+			}
+
+			assertNotNull(a);
+			assertNotNull(c);
+			assertNotNull(b);
+			assertNotNull(d);
+
+			/**
+			 * We test the following here:
+			 * A -> B
+			 * C -> D
+			 * 
+			 * then connect A -> D, so C and B should not
+			 * be related any more
+			 */
+
+			// create two connections
+			try (final Tx tx = app.tx()) {
+
+				a.setProperty(TestSix.oneToOneTestThree, b);
+				c.setProperty(TestSix.oneToOneTestThree, d);
+				tx.success();
+
+			} catch (FrameworkException fex) {
+
+				fex.printStackTrace();
+
+				fail("Unable to link test nodes");
+			}
+
+			try (final Tx tx = app.tx()) {
+
+				// verify connections
+				TestThree verifyB = a.getProperty(TestSix.oneToOneTestThree);
+				TestThree verifyD = c.getProperty(TestSix.oneToOneTestThree);
+
+				assertTrue(verifyB != null && verifyB.equals(b));
+				assertTrue(verifyD != null && verifyD.equals(d));
+			}
+
+			try (final Tx tx = app.tx()) {
+
+				a.setProperty(TestSix.oneToOneTestThree, d);
+				tx.success();
+
+			} catch (FrameworkException fex) {
+
+				fex.printStackTrace();
+
+				fail("Unable to link test nodes");
+			}
+
+			try (final Tx tx = app.tx()) {
+
+				// verify connection
+				TestThree verifyD2 = a.getProperty(TestSix.oneToOneTestThree);
+				assertTrue(verifyD2 != null && verifyD2.equals(d));
+
+				// testSix2 should not have a testThree associated
+				TestThree vrfy4 = c.getProperty(TestSix.oneToOneTestThree);
+				assertNull(vrfy4);
+			}
 			
 		} catch (FrameworkException fex) {
-		
-			fex.printStackTrace();
 			
-			fail("Unable to create test nodes");
-
-		} finally {
-
-			app.finishTx();
 		}
-		
-		assertNotNull(a);
-		assertNotNull(c);
-		assertNotNull(b);
-		assertNotNull(d);
-
-		/**
-		 * We test the following here:
-		 * A -> B
-		 * C -> D
-		 * 
-		 * then connect A -> D, so C and B should not
-		 * be related any more
-		 */
-
-		// create two connections
-		try {
-
-			app.beginTx();
-			a.setProperty(TestSix.oneToOneTestThree, b);
-			c.setProperty(TestSix.oneToOneTestThree, d);
-			app.commitTx();
-			
-		} catch (FrameworkException fex) {
-		
-			fex.printStackTrace();
-			
-			fail("Unable to link test nodes");
-
-		} finally {
-
-			app.finishTx();
-		}
-		
-		// verify connections
-		TestThree verifyB = a.getProperty(TestSix.oneToOneTestThree);
-		TestThree verifyD = c.getProperty(TestSix.oneToOneTestThree);
-		
-		assertTrue(verifyB != null && verifyB.equals(b));
-		assertTrue(verifyD != null && verifyD.equals(d));
-		
-		try {
-
-			app.beginTx();
-			a.setProperty(TestSix.oneToOneTestThree, d);
-			app.commitTx();
-			
-		} catch (FrameworkException fex) {
-		
-			fex.printStackTrace();
-			
-			fail("Unable to link test nodes");
-
-		} finally {
-
-			app.finishTx();
-		}
-		
-
-		// verify connection
-		TestThree verifyD2 = a.getProperty(TestSix.oneToOneTestThree);
-		assertTrue(verifyD2 != null && verifyD2.equals(d));
-
-		// testSix2 should not have a testThree associated
-		TestThree vrfy4 = c.getProperty(TestSix.oneToOneTestThree);
-		assertNull(vrfy4);
 	}
 
 	public void testOneToMany() throws Exception {
 		
-		final TestSix testSix1     = createTestNode(TestSix.class);
-		final TestSix testSix2     = createTestNode(TestSix.class);
-		final TestThree testThree1 = createTestNode(TestThree.class);
-		final TestThree testThree2 = createTestNode(TestThree.class);
-				
 		try {
 
-			app.beginTx();
-			testSix1.setProperty(AbstractNode.name, "a");
-			testSix2.setProperty(AbstractNode.name, "c");
-			testThree1.setProperty(AbstractNode.name, "b");
-			testThree2.setProperty(AbstractNode.name, "d");
-			app.commitTx();
+			final TestSix testSix1     = createTestNode(TestSix.class);
+			final TestSix testSix2     = createTestNode(TestSix.class);
+			final TestThree testThree1 = createTestNode(TestThree.class);
+			final TestThree testThree2 = createTestNode(TestThree.class);
+
+			try (final Tx tx = app.tx()) {
+
+				testSix1.setProperty(AbstractNode.name, "a");
+				testSix2.setProperty(AbstractNode.name, "c");
+				testThree1.setProperty(AbstractNode.name, "b");
+				testThree2.setProperty(AbstractNode.name, "d");
+				tx.success();
+
+			} catch (FrameworkException fex) {
+
+				fex.printStackTrace();
+
+				fail("Unable to create test nodes");
+			}
+
+			assertNotNull(testSix1);
+			assertNotNull(testThree1);
+			assertNotNull(testSix2);
+			assertNotNull(testThree2);
+
+			/**
+			 * We test the following here:
+			 * A -> B
+			 * C -> D
+			 * 
+			 * then connect A -> D, so C and B should not
+			 * be related any more
+			 */
+			try (final Tx tx = app.tx()) {
+
+				testSix1.setProperty(TestSix.oneToManyTestThrees, toList(testThree1));
+				testSix2.setProperty(TestSix.oneToManyTestThrees, toList(testThree2));
+				tx.success();
+
+			} catch (FrameworkException fex) {
+
+				fex.printStackTrace();
+
+				fail("Unable to link test nodes");
+			}
+
+			try (final Tx tx = app.tx()) {
+
+				// verify connections
+				List<TestThree> verifyB = testSix1.getProperty(TestSix.oneToManyTestThrees);
+				List<TestThree> verifyD = testSix2.getProperty(TestSix.oneToManyTestThrees);
+
+				assertTrue(verifyB != null && verifyB.get(0).equals(testThree1));
+				assertTrue(verifyD != null && verifyD.get(0).equals(testThree2));
+			}
+			
+			try (final Tx tx = app.tx()) {
+
+				testSix1.setProperty(TestSix.oneToManyTestThrees, toList(testThree2));
+				tx.success();
+
+			} catch (FrameworkException fex) {
+
+				fex.printStackTrace();
+
+				fail("Unable to link test nodes");
+			}
+
+			try (final Tx tx = app.tx()) {
+
+				// verify connection
+				List<TestThree> verifyD2 = testSix1.getProperty(TestSix.oneToManyTestThrees);
+				assertEquals(1, verifyD2.size());
+				assertEquals(testThree2, verifyD2.get(0));
+
+				// testSix2 should not have a testThree associated
+				List<TestThree> vrfy4 = testSix2.getProperty(TestSix.oneToManyTestThrees);
+				assertEquals(0, vrfy4.size());
+			}
 			
 		} catch (FrameworkException fex) {
-		
-			fex.printStackTrace();
 			
-			fail("Unable to create test nodes");
-
-		} finally {
-
-			app.finishTx();
 		}
-
-		assertNotNull(testSix1);
-		assertNotNull(testThree1);
-		assertNotNull(testSix2);
-		assertNotNull(testThree2);
-
-		/**
-		 * We test the following here:
-		 * A -> B
-		 * C -> D
-		 * 
-		 * then connect A -> D, so C and B should not
-		 * be related any more
-		 */
-		try {
-
-			app.beginTx();
-			testSix1.setProperty(TestSix.oneToManyTestThrees, toList(testThree1));
-			testSix2.setProperty(TestSix.oneToManyTestThrees, toList(testThree2));
-			app.commitTx();
-			
-		} catch (FrameworkException fex) {
-		
-			fex.printStackTrace();
-			
-			fail("Unable to link test nodes");
-
-		} finally {
-
-			app.finishTx();
-		}
-		
-		// verify connections
-		List<TestThree> verifyB = testSix1.getProperty(TestSix.oneToManyTestThrees);
-		List<TestThree> verifyD = testSix2.getProperty(TestSix.oneToManyTestThrees);
-		
-		assertTrue(verifyB != null && verifyB.get(0).equals(testThree1));
-		assertTrue(verifyD != null && verifyD.get(0).equals(testThree2));
-		
-		try {
-			app.beginTx();
-			testSix1.setProperty(TestSix.oneToManyTestThrees, toList(testThree2));
-			app.commitTx();
-			
-		} catch (FrameworkException fex) {
-		
-			fex.printStackTrace();
-			
-			fail("Unable to link test nodes");
-
-		} finally {
-
-			app.finishTx();
-		}
-
-		// verify connection
-		List<TestThree> verifyD2 = testSix1.getProperty(TestSix.oneToManyTestThrees);
-		assertEquals(1, verifyD2.size());
-		assertEquals(testThree2, verifyD2.get(0));
-		
-		// testSix2 should not have a testThree associated
-		List<TestThree> vrfy4 = testSix2.getProperty(TestSix.oneToManyTestThrees);
-		assertEquals(0, vrfy4.size());
 	}
 
 	/**

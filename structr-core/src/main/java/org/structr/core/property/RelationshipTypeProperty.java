@@ -18,7 +18,6 @@
  */
 package org.structr.core.property;
 
-import org.neo4j.graphdb.Node;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.RelationshipInterface;

@@ -701,22 +701,22 @@ var _Crud = {
         var table = $('table', typeNode);
         return table;
     },
-    crudEdit: function(id) {
-        var type = _Crud.type;
+    crudEdit: function(id, type) {
+        var t = type || _Crud.type; console.log(t);
         $.ajax({
-            url: rootUrl + id + '/' + _Crud.view[type],
+            url: rootUrl + id + (_Crud.view[t] ? '/' + _Crud.view[t] : ''),
             type: 'GET',
             dataType: 'json',
             contentType: 'application/json; charset=utf-8',
             //async: false,
             success: function(data) {
                 //console.log('type', type);
-                _Crud.dialog('Edit ' + type + ' ' + id, function() {
+                _Crud.dialog('Edit ' + t + ' ' + id, function() {
                     //console.log('ok')
                 }, function() {
                     //console.log('cancel')
                 });
-                _Crud.showDetails(data.result, false, type);
+                _Crud.showDetails(data.result, false, t);
                 //_Crud.populateForm($('#entityForm'), data.result);
             }
         });
@@ -1196,12 +1196,12 @@ var _Crud = {
             var newValue = input.val();
             _Crud.crudUpdate(id, key, newValue);
         });
-        input.keypress(function(e) {
-            if (e.keyCode === 13) {
-                var newValue = input.val();
-                _Crud.crudUpdate(id, key, newValue);
-            }
-        });
+//        input.keypress(function(e) {
+//            if (e.keyCode === 13) {
+//                var newValue = input.val();
+//                _Crud.crudUpdate(id, key, newValue);
+//            }
+//        });
     },
     row: function(id) {
         return $('#_' + id);
@@ -1294,8 +1294,14 @@ var _Crud = {
                         var self = $(this);
                         var oldValue = self.text();
                         self.off('mouseup');
-                        self.html('<input class="value" type="text" size="40">');
-                        var input = $('input', self);
+                        var input;
+                        if (propertyType === 'String') {
+                            self.html('<textarea class="value" cols="40" rows="4"></textare>');
+                            input = $('textarea', self);
+                        } else {
+                            self.html('<input class="value" type="text" size="10">');
+                            input = $('input', self);
+                        }
                         input.val(oldValue);
                         _Crud.activateTextInputField(input, id, key);
                     });
@@ -1367,7 +1373,7 @@ var _Crud = {
 
                 var displayName = _Crud.displayName(node);
 
-                cell.append('<div title="' + displayName + '" id="_' + node.id + '" class="node ' + (node.type ? node.type.toLowerCase() : (node.tag ? node.tag : 'element')) + ' ' + node.id + '_">' + fitStringToSize(displayName, 80) + '<img class="remove" src="icon/cross_small_grey.png"></div>');
+                cell.append('<div title="' + displayName + '" id="_' + node.id + '" class="node ' + (node.type ? node.type.toLowerCase() : (node.tag ? node.tag : 'element')) + ' ' + node.id + '_">' + fitStringToWidth(displayName, 80) + '<img class="remove" src="icon/cross_small_grey.png"></div>');
                 var nodeEl = $('#_' + node.id, cell);
                 //console.log(node);
                 if (node.type === 'Image') {
@@ -1499,7 +1505,7 @@ var _Crud = {
 
                             //console.log('node', node);
                             var displayName = _Crud.displayName(node);
-                            $('#resultsFor' + type, searchResults).append('<div title="' + displayName + '" id="_' + node.id + '" class="node ' + node.type.toLowerCase() + ' ' + node.id + '_">' + fitStringToSize(displayName, 120) + '</div>');
+                            $('#resultsFor' + type, searchResults).append('<div title="' + displayName + '" id="_' + node.id + '" class="node ' + node.type.toLowerCase() + ' ' + node.id + '_">' + fitStringToWidth(displayName, 120) + '</div>');
 
                             var nodeEl = $('#_' + node.id, searchResults);
                             //console.log(node);

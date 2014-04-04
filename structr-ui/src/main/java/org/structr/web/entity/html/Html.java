@@ -28,6 +28,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.property.StringProperty;
+import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.HtmlProperty;
 import org.structr.web.common.RenderContext;
 
@@ -62,17 +63,17 @@ public class Html extends DOMElement {
 	);
 
 	@Override
-	public void openingTag(final SecurityContext securityContext, final StringBuilder buffer, final String tag, final RenderContext.EditMode editMode, final RenderContext renderContext, final int depth) throws FrameworkException {
+	public void openingTag(final SecurityContext securityContext, final AsyncBuffer out, final String tag, final RenderContext.EditMode editMode, final RenderContext renderContext, final int depth) throws FrameworkException {
 		
 		String custTag = getProperty(_customOpeningTag);
 		
 		if (custTag != null) {
 			
-			buffer.append(custTag);
+			out.append(custTag);
 			
 		} else {
 			
-			super.openingTag(securityContext, buffer, tag, editMode, renderContext, depth);
+			super.openingTag(securityContext, out, tag, editMode, renderContext, depth);
 			
 		}
 		

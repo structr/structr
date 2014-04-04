@@ -26,8 +26,6 @@ import org.apache.commons.lang.ArrayUtils;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.web.entity.Linkable;
 import org.structr.core.notion.PropertyNotion;
@@ -83,20 +81,20 @@ public class Script extends LinkSource {
 		
 		if (newChild instanceof Content) {
 
-			final App app = StructrApp.getInstance(securityContext);
 			try {
-				app.beginTx();
 				((Content)newChild).setProperty(Content.contentType, getProperty(_type));
-				app.commitTx();
 				
 			} catch (FrameworkException fex) {
 				
 				logger.log(Level.WARNING, "Unable to set property on new child: {0}", fex.getMessage());
 				
-			} finally {
-				
-				app.finishTx();
 			}
 		}
 	}
+
+	@Override
+	public boolean flush() {
+		return true;
+	}
+
 }

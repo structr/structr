@@ -65,8 +65,6 @@ public class CreateCommand extends AbstractCommand {
 		Map<String, Object> nodeData = webSocketData.getNodeData();
 
 		try {
-
-			app.beginTx();
 			
 			final PropertyMap properties	= PropertyMap.inputTypeToJavaType(securityContext, nodeData);
 			Class type			= SchemaHelper.getEntityClassForRawType(properties.get(AbstractNode.type));
@@ -82,25 +80,21 @@ public class CreateCommand extends AbstractCommand {
 				File fileNode = (File) newNode;
 				String uuid   = newNode.getProperty(GraphObject.id);
 
-				fileNode.setRelativeFilePath(File.getDirectoryPath(uuid) + "/" + uuid);
-				fileNode.setSize(size);
-				fileNode.setContentType(contentType);
+				fileNode.setProperty(File.relativeFilePath, File.getDirectoryPath(uuid) + "/" + uuid);
+				fileNode.setProperty(File.size, size);
+				fileNode.setProperty(File.contentType, contentType);
 				fileNode.setProperty(AbstractNode.name, name);
 				
 				getWebSocket().createFileUploadHandler(fileNode);
 
 			}
 			
-			app.commitTx();
 			
 		} catch (FrameworkException fex) {
 
 			logger.log(Level.WARNING, "Could not create node.", fex);
 			getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
 
-		} finally {
-
-			app.finishTx();
 		}
 	}
 

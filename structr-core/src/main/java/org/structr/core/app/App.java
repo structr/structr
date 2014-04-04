@@ -31,31 +31,29 @@ import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 
 /**
  * 
  * @author Christian Morgner
  */
-public interface App {
+public interface App  {
 
-	public void beginTx();
-	public void commitTx() throws FrameworkException;
-	public void commitTx(final boolean doValidation) throws FrameworkException;
-	public void finishTx();
-	public void finishTx(final boolean doValidation);
+	public Tx tx();
+	public Tx tx(final boolean doValidation);
+	public Tx tx(final boolean doValidation, final boolean doCallbacks);
 	
 	public <T extends NodeInterface> T create(final Class<T> type, final String name) throws FrameworkException;
 	public <T extends NodeInterface> T create(final Class<T> type, final PropertyMap properties) throws FrameworkException;
 	public <T extends NodeInterface> T create(final Class<T> type, final NodeAttribute<?>... attributes) throws FrameworkException;
 
 	public void delete(final NodeInterface node) throws FrameworkException;
-
 	
 	public <A extends NodeInterface, B extends NodeInterface, R extends Relation<A, B, ?, ?>> R create(final A fromNode, final B toNode, final Class<R> relType) throws FrameworkException;
 	public <A extends NodeInterface, B extends NodeInterface, R extends Relation<A, B, ?, ?>> R create(final A fromNode, final B toNode, final Class<R> relType, final PropertyMap properties) throws FrameworkException;
 	
-	public void delete(final RelationshipInterface relationship) throws FrameworkException;
+	public void delete(final RelationshipInterface relationship);
 
 	public GraphObject get(final String uuid) throws FrameworkException;
 	public <T extends GraphObject> List<T> get(final Class<T> type) throws FrameworkException;

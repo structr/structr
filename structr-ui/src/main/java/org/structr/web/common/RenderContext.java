@@ -25,7 +25,7 @@ import java.util.Map;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
 import org.structr.core.entity.Principal;
@@ -47,8 +47,8 @@ public class RenderContext {
 	
 	private static final Logger logger                   = Logger.getLogger(RenderContext.class.getName());
 	
-	private Map<String, GraphObject> dataObjects = new LinkedHashMap<String, GraphObject>();
-	private final StringBuilder buffer           = new StringBuilder(8192);
+	private Map<String, GraphObject> dataObjects = new LinkedHashMap<>();
+	//private final StringBuilder buffer           = new StringBuilder(8192);
 	private Locale locale                        = Locale.getDefault();
 	private EditMode editMode                    = EditMode.NONE;
 	private int depth                            = 0;
@@ -67,6 +67,7 @@ public class RenderContext {
 	private HttpServletResponse response         = null;
 	private ResourceProvider resourceProvider    = null;
 	private Result result                        = null;
+	private AsyncBuffer buffer                   = new AsyncBuffer();
 	
 	public enum EditMode {
 	
@@ -91,32 +92,7 @@ public class RenderContext {
 
 		String editString = StringUtils.defaultString(request.getParameter("edit"));
 		
-		EditMode edit;
-
-		switch (editString) {
-			
-			case "1" :
-				
-				edit = EditMode.DATA;
-				break;
-			
-			case "2" :
-				
-				edit = EditMode.CONTENT;
-				break;
-				
-			case "3" :
-				
-				edit = EditMode.RAW;
-				break;
-
-			default :
-				
-				edit = EditMode.NONE;
-			
-		}
-		
-		return new RenderContext(request, response, edit, locale);
+		return new RenderContext(request, response, editMode(editString), locale);
 
 	}
 	
@@ -177,6 +153,41 @@ public class RenderContext {
 		return user == null ? EditMode.NONE : editMode;
 	}
 	
+	public void setEditMode(final EditMode edit) {
+		this.editMode = edit;
+	}
+	
+	public static EditMode editMode(final String editString) {
+
+		EditMode edit;
+
+		switch (editString) {
+			
+			case "1" :
+				
+				edit = EditMode.DATA;
+				break;
+			
+			case "2" :
+				
+				edit = EditMode.CONTENT;
+				break;
+				
+			case "3" :
+				
+				edit = EditMode.RAW;
+				break;
+
+			default :
+				
+				edit = EditMode.NONE;
+			
+		}
+		
+		return edit;
+		
+	}
+	
 	public Locale getLocale() {
 		return locale;
 	}
@@ -225,7 +236,11 @@ public class RenderContext {
 		return searchClass;
 	}
 	
-	public StringBuilder getBuffer() {
+	public void setBuffer(final AsyncBuffer buffer) {
+		this.buffer = buffer;
+	}
+	
+	public AsyncBuffer getBuffer() {
 		return buffer;
 	}
 	

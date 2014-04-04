@@ -38,4 +38,6 @@ public interface Linkable extends NodeInterface {
 	public static final Property<List<LinkSource>> linkingElements = new StartNodes<>("linkingElements", ResourceLink.class, new PropertyNotion(GraphObject.id));
 
 	public static final org.structr.common.View uiView = new org.structr.common.View(Linkable.class, PropertyView.Ui, linkingElements);
+	
+	public String getPath();
 }

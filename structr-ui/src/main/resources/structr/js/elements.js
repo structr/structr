@@ -17,7 +17,7 @@
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-var elements;
+var elements, dropBlocked;
 
 var _Elements = {
     icon: 'icon/brick.png',
@@ -53,7 +53,7 @@ var _Elements = {
     elementGroups: [
         {
             'name': 'Root',
-            'elements': ['html', 'content']
+            'elements': ['html', 'content', 'comment']
         },
         {
             'name': 'Metadata',
@@ -108,6 +108,9 @@ var _Elements = {
 
         widgets.droppable({
             drop: function(e, ui) {
+                e.preventDefault();
+                e.stopPropagation();
+                dropBlocked = true;
                 var sourceEl = $(ui.draggable);
                 if (sourceEl.parent().attr('id') === 'widgets') {
                     log('widget dropped on widget area, aborting');
@@ -128,14 +131,12 @@ var _Elements = {
                         }
                     }
                 });
-
-
             }
 
         });
 
 
-        Command.list('Widget', 1000, 1, 'name', 'asc', function(entity) {
+        Command.list('Widget', true, 1000, 1, 'name', 'asc', function(entity) {
             StructrModel.create(entity, null, false);
             _Widgets.appendWidgetElement(entity, false, widgets);
         });
@@ -160,6 +161,15 @@ var _Elements = {
         paletteSlideout.find(':not(.compTab)').remove();
         paletteSlideout.append('<div class="ver-scrollable" id="paletteArea"></div>')
         palette = $('#paletteArea', paletteSlideout);
+        
+        palette.droppable({
+            drop: function(e, ui) {
+                e.preventDefault();
+                e.stopPropagation();
+                dropBlocked = true;
+                return false;
+            }
+        });
 
         if (!$('.draggable', palette).length) {
 
@@ -199,14 +209,20 @@ var _Elements = {
             drop: function(e, ui) {
                 e.preventDefault();
                 e.stopPropagation();
+                dropBlocked = true;
                 var sourceEl = $(ui.draggable);
                 var sourceId = getId(sourceEl);
+                if (!sourceId) return false;
                 var obj = StructrModel.obj(sourceId);
-                if (obj.syncedNodes && obj.syncedNodes.length || sourceEl.parent().attr('id') === 'componentsArea') {
+                if (obj.type === 'Content' || obj.type === 'Comment') {
+                    return false;
+                }
+                if (obj && obj.syncedNodes && obj.syncedNodes.length || sourceEl.parent().attr('id') === 'componentsArea') {
                     log('component dropped on components area, aborting');
                     return false;
                 }
                 Command.createComponent(sourceId);
+
             }
 
         });
@@ -368,7 +384,7 @@ var _Elements = {
         });
 
         _Entities.setMouseOver(div, undefined, entity.syncedNodes);
-        _Entities.appendEditSourceIcon(div, entity);
+        //_Entities.appendEditSourceIcon(div, entity);
         _Entities.appendEditPropertiesIcon(div, entity);
         //_Entities.appendDataIcon(div, entity);
 
@@ -413,7 +429,11 @@ var _Elements = {
 
                     var pagesToLink = $('#pagesToLink');
 
-                    Structr.addPager(pagesToLink, 'Page', function(page) {
+                    Structr.addPager(pagesToLink, true, 'Page', function(page) {
+
+                        if (page.type === 'ShadowDocument') {
+                            return;
+                        }
 
                         pagesToLink.append('<div class="node page ' + page.id + '_"><img class="typeIcon" src="icon/page.png">'
                                 + '<b title="' + page.name + '" class="name_">' + page.name + '</b></div>');
@@ -442,11 +462,43 @@ var _Elements = {
 
                     });
 
-                    dialog.append('<h3>Files</h3><div class="linkBox" id="filesToLink"></div>');
+                    dialog.append('<h3>Files</h3><div class="linkBox" id="foldersToLink"></div><div class="linkBox" id="filesToLink"></div>');
 
                     var filesToLink = $('#filesToLink');
+                    var foldersToLink = $('#foldersToLink');
 
-                    Structr.addPager(filesToLink, 'File', function(file) {
+                    Structr.addPager(foldersToLink, true, 'Folder', function(folder) {
+
+                        if (folder.files.length + folder.folders.length === 0) {
+                            return;
+                        }
+
+                        foldersToLink.append('<div class="node folder ' + folder.id + '_"><img class="typeIcon" src="icon/folder.png">'
+                                + '<b title="' + folder.name + '" class="name_">' + folder.name + '</b></div>');
+
+                        var div = $('.' + folder.id + '_', foldersToLink);
+                        div.on('click', function(e) {
+                            if (!div.children('.node').length) {
+                                _Elements.expandFolder(e, entity, folder);
+                            } else {
+                                div.children('.node').remove();
+                            }
+                        }).css({
+                            cursor: 'pointer'
+                        }).hover(function() {
+                            $(this).addClass('nodeHover');
+                        }, function() {
+                            $(this).removeClass('nodeHover');
+                        });
+
+                        if (isIn(entity.id, folder.linkingElements)) {
+                            //console.log(entity.id, file.linkingElements);
+                            div.addClass('nodeActive');
+                        }
+
+                    });
+
+                    Structr.addPager(filesToLink, true, 'File', function(file) {
 
                         filesToLink.append('<div class="node file ' + file.id + '_"><img class="typeIcon" src="' + _Files.getIcon(file) + '">'
                                 + '<b title="' + file.name + '" class="name_">' + file.name + '</b></div>');
@@ -484,7 +536,7 @@ var _Elements = {
 
                     var imagesToLink = $('#imagesToLink');
 
-                    Structr.addPager(imagesToLink, 'Image', function(image) {
+                    Structr.addPager(imagesToLink, false, 'Image', function(image) {
 
                         imagesToLink.append('<div class="node file ' + image.id + '_"><img class="typeIcon" src="' + _Images.getIcon(image) + '">'
                                 + '<b title="' + image.name + '" class="name_">' + image.name + '</b></div>');
@@ -520,5 +572,66 @@ var _Elements = {
             });
         }
         return div;
+    },
+    expandFolder: function(e, entity, folder, callback) {
+        if (folder.files.length + folder.folders.length === 0) {
+            return;
+        }
+
+        var div = $('.' + folder.id + '_');
+        div.css({'border': '1px solid #ccc', 'backgroundColor': '#f5f5f5'});
+
+        div.children('b').on('click', function() {
+            $(this).siblings('.node.sub').remove();
+        });
+
+        $.each(folder.folders, function(i, subFolder) {
+            e.stopPropagation();
+            $('.' + folder.id + '_').append('<div class="clear"></div><div class="node folder sub ' + subFolder.id + '_"><img class="typeIcon" src="icon/folder.png">'
+                    + '<b title="' + subFolder.name + '" class="name_">' + subFolder.name + '</b></div>');
+            var subDiv = $('.' + subFolder.id + '_');
+
+            subDiv.on('click', function(e) {
+                if (!subDiv.children('.node').length) {
+                    e.stopPropagation();
+                    Command.get(subFolder.id, function(node) {
+                        _Elements.expandFolder(e, entity, node, callback);
+                    });
+                } else {
+                    subDiv.children('.node').remove();
+                }
+                return false;
+            }).css({
+                cursor: 'pointer'
+            }).hover(function() {
+                $(this).addClass('nodeHover');
+            }, function() {
+                $(this).removeClass('nodeHover');
+            });
+
+        });
+
+        $.each(folder.files, function(i, file) {
+            $('.' + folder.id + '_').append('<div class="clear"></div><div class="node file sub ' + file.id + '_"><img class="typeIcon" src="' + _Files.getIcon(file) + '">'
+                    + '<b title="' + file.name + '" class="name_">' + file.name + '</b></div>');
+            var div = $('.' + file.id + '_');
+            div.on('click', function(e) {
+                e.stopPropagation();
+                Command.link(entity.id, file.id);
+                $('#dialogBox .dialogText').empty();
+                _Pages.reloadPreviews();
+                $.unblockUI({
+                    fadeOut: 25
+                });
+            }).css({
+                cursor: 'pointer'
+            }).hover(function() {
+                $(this).addClass('nodeHover');
+            }, function() {
+                $(this).removeClass('nodeHover');
+            });
+        });
+
+        return false;
     }
 };

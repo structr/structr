@@ -1,3 +1,17 @@
 #!/bin/bash
-kill $(ps xa|grep org.structr.Ui|grep java|awk '{print $1}')
+
+BASE_DIR=.
+PIDFILE=$BASE_DIR/structr-ui.pid
+LOGS_DIR=$BASE_DIR/logs
+SERVER_LOG=$BASE_DIR/logs/server.log
+
+start-stop-daemon --stop --signal 15 --pidfile structr-ui.pid
+
+PID=`cat $PIDFILE`
+
+{ tail -q --pid=$PID -n0 -F $SERVER_LOG & } | sed -n '/Shutdown complete/q'
+
+rm $PIDFILE
+
+echo "Structr stopped."
 

@@ -18,22 +18,19 @@
  */
 package org.structr.core.entity;
 
-import org.structr.common.Permission;
-import org.structr.core.property.PropertyKey;
-import org.structr.common.SecurityContext;
-import org.structr.common.error.ErrorBuffer;
-import org.structr.common.error.FrameworkException;
-
-//~--- JDK imports ------------------------------------------------------------
-
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
 import org.structr.common.AccessControllable;
+import org.structr.common.Permission;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 
 //~--- classes ----------------------------------------------------------------
@@ -41,7 +38,7 @@ import org.structr.core.property.PropertyMap;
 /**
  * The SuperUser entity. Please note that this class is not persitent but will
  * be instantiated when needed.
- * 
+ *
  * @author amorgner
  *
  */
@@ -417,6 +414,16 @@ public class SuperUser implements Principal, AccessControllable {
 
 	@Override
 	public boolean isValid(ErrorBuffer errorBuffer) {
+		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+	}
+
+	@Override
+	public void addSessionId(String sessionId) {
+		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+	}
+
+	@Override
+	public void removeSessionId(String sessionId) {
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 }

@@ -69,6 +69,16 @@ public class DocumentFragment extends DOMNode implements org.w3c.dom.DocumentFra
 		return false;
 	}
 
+	@Override
+	public boolean contentEquals(DOMNode otherNode) {
+		return false;
+	}
+	
+	@Override
+	public void updateFrom(final DOMNode source) throws FrameworkException {
+		// do nothing
+	}
+
 	// ----- interface Renderable -----
 	@Override
 	public void render(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException {

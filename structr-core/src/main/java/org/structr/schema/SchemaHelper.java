@@ -19,7 +19,6 @@
 package org.structr.schema;
 
 import java.util.Arrays;
-import java.util.EnumMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -27,8 +26,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.lang.StringUtils;
 import org.neo4j.graphdb.PropertyContainer;
 import org.structr.common.CaseHelper;
@@ -41,6 +38,7 @@ import org.structr.common.error.InvalidPropertySchemaToken;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.DynamicResourceAccess;
+import org.structr.core.entity.ResourceAccess;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.relationship.SchemaRelationship;
 import org.structr.core.graph.NodeAttribute;
@@ -52,6 +50,7 @@ import org.structr.schema.parser.EnumPropertyParser;
 import org.structr.schema.parser.IntPropertyParser;
 import org.structr.schema.parser.LongPropertyParser;
 import org.structr.schema.parser.PropertyParser;
+import org.structr.schema.parser.StringArrayPropertyParser;
 import org.structr.schema.parser.StringPropertyParser;
 
 /**
@@ -62,19 +61,23 @@ public class SchemaHelper {
 
 	public enum Type {
 
-		String, Integer, Long, Double, Boolean, Enum, Date, Count
+		String, StringArray, Integer, Long, Double, Boolean, Enum, Date, Count
 	}
 
-	private static final Map<String, String> normalizedEntityNameCache = new LinkedHashMap<>();
-	private static final Map<Type, Class<? extends PropertyParser>> parserMap = new EnumMap<>(Type.class);
+	private static final Map<String, String> normalizedEntityNameCache        = new LinkedHashMap<>();
+	private static final Map<Type, Class<? extends PropertyParser>> parserMap = new LinkedHashMap<>();
 
 	static {
 
-		parserMap.put(Type.String, StringPropertyParser.class);
-		parserMap.put(Type.Integer, IntPropertyParser.class);
-		parserMap.put(Type.Long, LongPropertyParser.class);
-		parserMap.put(Type.Double, DoublePropertyParser.class);
+		// IMPORTANT: parser map must be sorted by type name length 
+		//            because we look up the parsers using "startsWith"!
+		
+		parserMap.put(Type.StringArray, StringArrayPropertyParser.class);
 		parserMap.put(Type.Boolean, BooleanPropertyParser.class);
+		parserMap.put(Type.Integer, IntPropertyParser.class);
+		parserMap.put(Type.String, StringPropertyParser.class);
+		parserMap.put(Type.Double, DoublePropertyParser.class);
+		parserMap.put(Type.Long, LongPropertyParser.class);
 		parserMap.put(Type.Enum, EnumPropertyParser.class);
 		parserMap.put(Type.Date, DatePropertyParser.class);
 		parserMap.put(Type.Count, CountPropertyParser.class);
@@ -204,8 +207,6 @@ public class SchemaHelper {
 		
 		try {
 
-			app.beginTx();
-			
 			removeAllDynamicGrants();
 			
 			for (final SchemaNode schemaNode : StructrApp.getInstance().nodeQuery(SchemaNode.class).getAsList()) {
@@ -220,16 +221,10 @@ public class SchemaHelper {
 				createDynamicGrants(schemaRelationship.getInverseResourceSignature(), null);
 				
 			}
-
-			app.commitTx();
 			
 		} catch (Throwable t) {
 
 			t.printStackTrace();
-
-		} finally {
-
-			app.finishTx();
 		}
 			
 		return SchemaService.reloadSchema(errorBuffer);
@@ -243,8 +238,7 @@ public class SchemaHelper {
 		final App app = StructrApp.getInstance();
 		try {
 
-			app.beginTx();
-			DynamicResourceAccess grant = app.nodeQuery(DynamicResourceAccess.class).and(DynamicResourceAccess.signature, signature).getFirst();
+			ResourceAccess grant = app.nodeQuery(ResourceAccess.class).and(ResourceAccess.signature, signature).getFirst();
 			long flagsValue = 255;
 
 			// set value from grant flags
@@ -278,104 +272,38 @@ public class SchemaHelper {
 				// Caution: this means that the SchemaNode is the 
 				// primary source for resource access flag values
 				// of dynamic nodes
-				grant.setProperty(DynamicResourceAccess.flags, flagsValue);
+				grant.setProperty(ResourceAccess.flags, flagsValue);
 			}
-
-			app.commitTx();
 
 		} catch (Throwable t) {
 
 			t.printStackTrace();
-
-		} finally {
-
-			app.finishTx();
 		}
 
 		return grants;
 
 	}
 
-//	public static void updateGrants(final List<DynamicResourceAccess> grants, final String signature, final Long flags) {
-//
-//		final App app = StructrApp.getInstance();
-//		
-//		long flagsValue = 255;
-//
-//		// set value from grant flags
-//		if (flags != null) {
-//			flagsValue = flags.longValue();
-//		}
-//		
-//		try {
-//			app.beginTx();
-//			
-//			for (DynamicResourceAccess grant : grants) {
-//				
-//				final String oldSignature = grant.getProperty(DynamicResourceAccess.signature);
-//				
-//				if (oldSignature.startsWith("_schema/")) {
-//					
-//					grant.setProperty(DynamicResourceAccess.signature, "_schema/" + signature);
-//					
-//				} else if (oldSignature.endsWith("/_Ui")) {
-//					
-//					grant.setProperty(DynamicResourceAccess.signature, signature + "/_Ui");
-//					
-//				} else {
-//					
-//					grant.setProperty(DynamicResourceAccess.signature, signature);
-//					
-//				}
-//				
-//				grant.setProperty(DynamicResourceAccess.flags, flagsValue);
-//				
-//			}
-//			
-//			app.commitTx();
-//
-//		} catch (Throwable t) {
-//
-//			t.printStackTrace();
-//
-//		} finally {
-//
-//			app.finishTx();
-//		}
-//
-//	}
-
 	public static void removeAllDynamicGrants() {
 
 		final App app = StructrApp.getInstance();
 		try {
-
-			app.beginTx();
 
 			// delete grants
 			for (DynamicResourceAccess grant : app.nodeQuery(DynamicResourceAccess.class).getAsList()) {
 				app.delete(grant);
 			}
 
-			app.commitTx();
-
 		} catch (Throwable t) {
 
 			t.printStackTrace();
-
-		} finally {
-
-			app.finishTx();
 		}
-
 	}
 
 	public static void removeDynamicGrants(final String signature) {
 
 		final App app = StructrApp.getInstance();
 		try {
-
-			app.beginTx();
 
 			// delete grant
 			DynamicResourceAccess grant = app.nodeQuery(DynamicResourceAccess.class).and(DynamicResourceAccess.signature, signature).getFirst();
@@ -397,15 +325,9 @@ public class SchemaHelper {
 				app.delete(viewGrant);
 			}
 
-			app.commitTx();
-
 		} catch (Throwable t) {
 
 			t.printStackTrace();
-
-		} finally {
-
-			app.finishTx();
 		}
 
 	}
@@ -504,7 +426,7 @@ public class SchemaHelper {
 			views.put(viewName, view);
 		}
 
-		view.add(propertyName + "Property");
+		view.add(SchemaHelper.cleanPropertyName(propertyName) + "Property");
 	}
 
 	public static Iterable<String> getProperties(final PropertyContainer propertyContainer) {
@@ -573,10 +495,12 @@ public class SchemaHelper {
 		src.append("import org.structr.core.validator.*;\n");
 		src.append("import org.structr.core.property.*;\n");
 		src.append("import org.structr.core.notion.*;\n");
-		src.append("import org.structr.core.entity.*;\n");
-		src.append("import java.util.Date;\n");
-		src.append("import java.util.List;\n\n");
+		src.append("import org.structr.core.entity.*;\n\n");
 
+	}
+
+	public static String cleanPropertyName(final String propertyName) {
+		return propertyName.replaceAll("[^\\w]+", "");
 	}
 
 	// ----- private methods -----

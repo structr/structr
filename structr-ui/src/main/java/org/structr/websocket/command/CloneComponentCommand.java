@@ -89,24 +89,17 @@ public class CloneComponentCommand extends AbstractCommand {
 
 		try {
 
-			app.beginTx();
-
 			DOMElement clonedNode = (DOMElement) node.cloneNode(false);
 			parentNode.appendChild(clonedNode);
 
 			app.create(node, clonedNode, Sync.class);
 			app.create(clonedNode, node, Sync.class);
-
-			app.commitTx();
 			
 		} catch (FrameworkException ex) {
 
 			// send DOM exception
 			getWebSocket().send(MessageBuilder.status().code(422).message(ex.getMessage()).build(), true);
 			
-		} finally {
-			
-			app.finishTx();
 		}
 
 

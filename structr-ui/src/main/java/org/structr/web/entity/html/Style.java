@@ -28,8 +28,6 @@ import org.structr.core.property.Property;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
 import org.structr.web.common.HtmlProperty;
 import org.structr.web.entity.dom.Content;
 import org.w3c.dom.Node;
@@ -67,20 +65,15 @@ public class Style extends DOMElement {
 		
 		if (newChild instanceof Content) {
 
-			final App app = StructrApp.getInstance(securityContext);
 			try {
-				app.beginTx();
 				((Content)newChild).setProperty(Content.contentType, getProperty(_type));
-				app.commitTx();
 				
 			} catch (FrameworkException fex) {
 				
 				logger.log(Level.WARNING, "Unable to set property on new child: {0}", fex.getMessage());
 				
-			} finally {
-				
-				app.finishTx();
 			}
 		}
 	}
+
 }

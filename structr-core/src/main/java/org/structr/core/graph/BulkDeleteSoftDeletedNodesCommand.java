@@ -18,6 +18,8 @@
  */
 package org.structr.core.graph;
 
+import java.util.LinkedList;
+import java.util.List;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.tooling.GlobalGraphOperations;
 
@@ -28,7 +30,6 @@ import org.structr.core.entity.AbstractNode;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 
 //~--- classes ----------------------------------------------------------------
@@ -53,7 +54,11 @@ public class BulkDeleteSoftDeletedNodesCommand extends NodeServiceCommand implem
 		
 		if (graphDb != null) {
 
-			Result<AbstractNode> nodes = nodeFactory.instantiateAll(GlobalGraphOperations.at(graphDb).getAllNodes());
+			final List<AbstractNode> nodes = new LinkedList<>();
+			
+			try (final Tx tx = StructrApp.getInstance().tx()) {
+				nodes.addAll(nodeFactory.bulkInstantiate(GlobalGraphOperations.at(graphDb).getAllNodes()));
+			}
 
 			final boolean erase;
 			
@@ -63,7 +68,7 @@ public class BulkDeleteSoftDeletedNodesCommand extends NodeServiceCommand implem
 				erase = false;
 			}
 			
-			bulkGraphOperation(securityContext, nodes.getResults(), 1000, "DeleteSoftDeletedNodes", new BulkGraphOperation<AbstractNode>() {
+			bulkGraphOperation(securityContext, nodes, 1000, "DeleteSoftDeletedNodes", new BulkGraphOperation<AbstractNode>() {
 
 				@Override
 				public void handleGraphObject(SecurityContext securityContext, AbstractNode node) {

@@ -53,6 +53,15 @@ var _Schema = {
         main.append('<div class="schema-input-container"><input class="schema-input" id="type-name" type="text" size="20" placeholder="New type"><button id="create-type" class="btn"><img src="icon/add.png"> Add Type</button></div>');
 
         if (true) {
+            $('.schema-input-container').append('<input class="schema-input" id="ggist-url" type="text" size="30" placeholder="Enter a GraphGist raw URL"><button id="gg-import" class="btn">Start Import</button>');
+            $('#gg-import').on('click', function(e) {
+                var btn = $(this);
+                var text = btn.text();
+                btn.attr('disabled', 'disabled').addClass('disabled').html(text + ' <img src="img/al.gif">');
+                e.preventDefault();
+                _Schema.importGraphGist($('#ggist-url').val(), text);
+            });
+
             $('.schema-input-container').append('<button class="btn" id="admin-tools"><img src="icon/wrench.png"> Admin Tools</button>');
             $('#admin-tools').on('click', function() {
                 _Schema.openAdminTools();
@@ -111,7 +120,17 @@ var _Schema = {
                 instance.bind('connectionDetached', function(info) {
                     //console.log('Rel ID:', info.connection.getParameter('id'));
                     //console.log('Target ID:', getIdFromIdString(info.targetId));
-                    _Schema.detach(info.connection.getParameter('id'));
+                    Structr.confirmation('<h3>Delete schema relationship?</h3>',
+                            function() {
+                                $.unblockUI({
+                                    fadeOut: 25
+                                });
+                                _Schema.detach(info.connection.getParameter('id'));
+                                _Schema.reload();
+                            });
+                    _Schema.reload();
+
+
                 });
             });
         });
@@ -183,7 +202,13 @@ var _Schema = {
                     });
 
                     node.children('.icon').on('click', function() {
-                        _Schema.deleteNode(res.id);
+                        Structr.confirmation('<h3>Delete schema node?</h3><p>This will delete all incoming and outgoing schema relatinships as well, but no data will be removed.</p>',
+                                function() {
+                                    $.unblockUI({
+                                        fadeOut: 25
+                                    });
+                                    _Schema.deleteNode(res.id);
+                                });
                     });
 
                     var storedPosition = _Schema.getPosition(id);
@@ -339,7 +364,7 @@ var _Schema = {
                 $.each(data.result, function(i, res) {
 
                     if (sId === res.sourceId && tId === res.targetId) {
-                        radius +=10;
+                        radius += 10;
                         stub += 30;
                         offset += .05;
                     } else {
@@ -399,7 +424,7 @@ var _Schema = {
                             ["Label", {
                                     cssClass: "label multiplicity",
                                     label: res.targetMultiplicity ? res.targetMultiplicity : '*',
-                                    location: .8-offset,
+                                    location: .8 - offset,
                                     id: "targetMultiplicity",
                                     events: {
                                         "click": function(label, evt) {
@@ -743,6 +768,25 @@ var _Schema = {
             _Schema.putPropertyDefinition(id, JSON.stringify({name: newName}));
         }
     },
+    importGraphGist: function(graphGistUrl, text) {
+        $.ajax({
+            url: rootUrl + 'maintenance/importGist',
+            type: 'POST',
+            data: JSON.stringify({'url': graphGistUrl}),
+            contentType: 'application/json',
+            statusCode: {
+                200: function() {
+                    var btn = $('#import-ggist');
+                    btn.removeClass('disabled').attr('disabled', null);
+                    btn.html(text + ' <img src="icon/tick.png">');
+                    window.setTimeout(function() {
+                        $('img', btn).fadeOut();
+                        document.location.reload();
+                    }, 1000);
+                }
+            }
+        });
+    },
     openAdminTools: function() {
         Structr.dialog('Admin Tools', function() {
         }, function() {
@@ -750,6 +794,7 @@ var _Schema = {
 
         dialogText.append('<table id="admin-tools-table">');
         $('#admin-tools-table').append('<tr><td><button id="rebuild-index">Rebuild Index</button></td><td><label for"rebuild-index">Rebuild database index for all nodes and relationships</label></td></tr>');
+        $('#admin-tools-table').append('<tr><td><button id="clear-schema">Clear Schema</button></td><td><label for"clear-schema">Delete all schema nodes and relationships of dynamic schema</label></td></tr>');
         $('#admin-tools-table').append('<tr><td><select id="node-type-selector"><option value="">-- Select Node Type --</option></select><!--select id="rel-type-selector"><option>-- Select Relationship Type --</option></select--><button id="add-uuids">Add UUIDs</button></td><td><label for"setUuid">Add UUIDs to all nodes of the selected type</label></td></tr>');
         $('#admin-tools-table').append('</table>');
 
@@ -778,11 +823,55 @@ var _Schema = {
             });
         });
 
-        Command.list('SchemaNode', 100, 1, 'name', 'asc', function(n) {
+        $('#clear-schema').on('click', function(e) {
+
+            Structr.confirmation('<h3>Delete schema?</h3><p>This will remove all dynamic schema information, but not your other data.</p><p>&nbsp;</p>',
+                    function() {
+                        $.unblockUI({
+                            fadeOut: 25
+                        });
+
+                        var btn = $(this);
+                        var text = btn.text();
+                        btn.attr('disabled', 'disabled').addClass('disabled').html(text + ' <img src="img/al.gif">');
+                        e.preventDefault();
+                        $.ajax({
+                            url: rootUrl + 'schema_relationships',
+                            type: 'DELETE',
+                            data: {},
+                            contentType: 'application/json',
+                            statusCode: {
+                                200: function() {
+                                    _Schema.reload();
+                                    $.ajax({
+                                        url: rootUrl + 'schema_nodes',
+                                        type: 'DELETE',
+                                        data: {},
+                                        contentType: 'application/json',
+                                        statusCode: {
+                                            200: function() {
+                                                _Schema.reload();
+                                                var btn = $('#clear-schema');
+                                                btn.removeClass('disabled').attr('disabled', null);
+                                                btn.html(text + ' <img src="icon/tick.png">');
+                                                window.setTimeout(function() {
+                                                    $('img', btn).fadeOut();
+                                                }, 1000);
+                                            }
+                                        }
+                                    });
+
+                                }
+                            }
+                        });
+                    });
+        });
+
+        Command.list('SchemaNode', true, 100, 1, 'name', 'asc', function(n) {
             $('#node-type-selector').append('<option>' + n.name + '</option>');
         });
 
-        Command.list('SchemaRelationship', 100, 1, 'relationshipType', 'asc', function(r) {
+        Command.list('SchemaRelationship', true, 100, 1, 'relationshipType', 'asc', function(r) {
             $('#rel-type-selector').append('<option>' + r.relationshipType + '</option>');
         });
 
@@ -834,7 +923,7 @@ var _Schema = {
                         if (obj.relatedType && obj.relationshipType) {
                             if (obj.relationshipType === relationshipType && ((simpleClassName.startsWith('EndNode') && out)
                                     || (simpleClassName.startsWith('StartNode') && !out))) {
-                                callback(key);
+                                callback(key, obj.isCollection);
                             }
 
                         }
@@ -845,10 +934,6 @@ var _Schema = {
 
     }
 };
-
-function pluralize(name) {
-    return name.endsWith('y') ? name.substring(0, name.length - 1) + 'ies' : (name.endsWith('s') ? name : name + 's');
-}
 
 var typeOptions = '<select class="property-type"><option value="">--Select type--</option>'
         + '<option value="String">String</option>'

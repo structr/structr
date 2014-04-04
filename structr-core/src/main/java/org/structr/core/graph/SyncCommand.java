@@ -65,7 +65,6 @@ import org.structr.core.StaticValue;
 import org.structr.core.Value;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 
 /**
  *
@@ -249,6 +248,8 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 			importFromStream(graphDb, securityContext, new FileInputStream(fileName), doValidation);
 			
 		} catch (Throwable t) {
+
+			t.printStackTrace();
 			
 			throw new FrameworkException(500, t.getMessage());
 		}
@@ -601,7 +602,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 		final String uuidPropertyName    = GraphObject.id.dbName();
 		double t0                        = System.nanoTime();
 		
-		try {
+		try (final Tx tx = app.tx()) {
 			
 			Map<String, Node> uuidMap       = new LinkedHashMap<>();
 			List<Relationship> rels         = new LinkedList<>();
@@ -615,8 +616,6 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 			try {
 			
-				app.beginTx();
-				
 				reader = new BufferedReader(new InputStreamReader(zis));
 
 				do {
@@ -683,8 +682,15 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 										uuidMap.put(uuid, (Node)currentObject);
 									}
 
-									// store object in DB
-									currentObject.setProperty(currentKey, obj);
+									if (currentKey.length() != 0) {
+
+										// store object in DB
+										currentObject.setProperty(currentKey, obj);
+										
+									} else {
+										
+										logger.log(Level.SEVERE, "Invalid property key for value {0}, ignoring", obj);
+									}
 
 									currentKey = null;
 
@@ -727,16 +733,12 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 				TransactionCommand.relationshipCreated(entity);
 				entity.addToIndex();
 			}
-			
-			app.commitTx();
+
+			tx.success();
 			
 		} catch (FrameworkException fex) {
 			
 			fex.printStackTrace();
-			
-		} finally {
-			
-			app.finishTx();
 		}
 		
 		double t1   = System.nanoTime();

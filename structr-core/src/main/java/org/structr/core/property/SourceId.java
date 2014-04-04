@@ -18,7 +18,6 @@
  */
 package org.structr.core.property;
 
-import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -36,8 +35,9 @@ public class SourceId extends Property<String> {
 
 	public SourceId(final String name) {
 		super(name);
+		super.passivelyIndexed();
 	}
-	
+
 	@Override
 	public Class relatedType() {
 		return null;

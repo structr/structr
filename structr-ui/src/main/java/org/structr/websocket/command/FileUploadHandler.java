@@ -61,7 +61,7 @@ public class FileUploadHandler {
 			FileChannel channel;
 			try {
 				
-				channel = getChannel();
+				channel = getChannel(false);
 				this.size = channel.size();
 				updateSize(this.size);
 				
@@ -76,28 +76,29 @@ public class FileUploadHandler {
 
 	//~--- methods --------------------------------------------------------
 
-	public void handleChunk(int sequenceNumber, int chunkSize, byte[] data) throws IOException {
+	public void handleChunk(int sequenceNumber, int chunkSize, byte[] data, int chunks) throws IOException {
 
-		FileChannel channel = getChannel();
+		FileChannel channel = getChannel(sequenceNumber > 0);
 
 		if (channel != null) {
-
+			
 			channel.position(sequenceNumber * chunkSize);
 			channel.write(ByteBuffer.wrap(data));
 
 			if (this.size == null) {
 				
 				this.size = channel.size();
+				
+			}
+			
+			// finish upload
+			if (sequenceNumber + 1 == chunks) {
+				
+				finish();
 				updateSize(this.size);
 				
 			}
 			
-			// file size reached? upload finished
-			if (channel.position() == this.size) {
-
-				finish();
-			}
-
 		}
 
 	}
@@ -110,7 +111,7 @@ public class FileUploadHandler {
 
 		try {
 
-			file.setSize(size);
+			file.setProperty(File.size, size);
 
 		} catch (FrameworkException ex) {
 
@@ -127,18 +128,22 @@ public class FileUploadHandler {
 
 		try {
 
-			FileChannel channel = getChannel();
+			FileChannel channel = getChannel(false);
 
 			if (channel != null && channel.isOpen()) {
 
 				channel.force(true);
 				channel.close();
+				
+				this.privateFileChannel = null;
+				
+				file.increaseVersion();
 
 			}
 
-		} catch (Throwable t) {
+		} catch (IOException | FrameworkException e) {
 
-			logger.log(Level.WARNING, "Unable to finish file upload", t);
+			logger.log(Level.WARNING, "Unable to finish file upload", e);
 
 		}
 
@@ -147,7 +152,7 @@ public class FileUploadHandler {
 	//~--- get methods ----------------------------------------------------
 
 	// ----- private methods -----
-	private FileChannel getChannel() throws IOException {
+	private FileChannel getChannel(final boolean append) throws IOException {
 
 		if (this.privateFileChannel == null) {
 
@@ -165,7 +170,7 @@ public class FileUploadHandler {
 
 				fileOnDisk.getParentFile().mkdirs();
 
-				this.privateFileChannel = new FileOutputStream(fileOnDisk).getChannel();
+				this.privateFileChannel = new FileOutputStream(fileOnDisk, append).getChannel();
 
 			}
 

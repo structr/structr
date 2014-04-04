@@ -33,7 +33,6 @@ import org.structr.rest.resource.Resource;
 //~--- JDK imports ------------------------------------------------------------
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
@@ -42,7 +41,7 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
@@ -53,7 +52,6 @@ import org.structr.core.entity.Principal;
 import org.structr.core.property.PropertyMap;
 import org.structr.rest.service.HttpService;
 import org.structr.web.entity.User;
-import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.mail.MailTemplate;
 import org.structr.web.servlet.HtmlServlet;
 
@@ -118,7 +116,6 @@ public class RegistrationResource extends Resource {
 		
 		if (propertySet.containsKey(User.eMail.jsonName())) {
 			
-			SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
 			final Principal user;
 			
 			final String emailString  = (String) propertySet.get(User.eMail.jsonName());
@@ -137,17 +134,7 @@ public class RegistrationResource extends Resource {
 				user = (Principal) result.get(0);
 				
 				// For existing users, update confirmation key
-
-				try {
-				
-					app.beginTx();
-					user.setProperty(User.confirmationKey, confKey);
-					app.commitTx();
-					
-				} finally {
-					
-					app.finishTx();
-				}
+				user.setProperty(User.confirmationKey, confKey);
 				
 				existingUser = true;
 
@@ -234,7 +221,7 @@ public class RegistrationResource extends Resource {
 		replacementMap.put(toPlaceholder(User.eMail.jsonName()), userEmail);
 		replacementMap.put(toPlaceholder("link"),
 			getTemplateText(TemplateKey.BASE_URL, "http://" + appHost + ":" + httpPort)
-			+ "/" + getTemplateText(TemplateKey.CONFIRM_REGISTRATION_PAGE, HtmlServlet.CONFIRM_REGISTRATION_PAGE)
+			      + getTemplateText(TemplateKey.CONFIRM_REGISTRATION_PAGE, HtmlServlet.CONFIRM_REGISTRATION_PAGE)
 			+ "?" + getTemplateText(TemplateKey.CONFIRM_KEY_KEY, HtmlServlet.CONFIRM_KEY_KEY) + "=" + confKey
 			+ "&" + getTemplateText(TemplateKey.TARGET_PAGE_KEY, HtmlServlet.TARGET_PAGE_KEY) + "=" + getTemplateText(TemplateKey.TARGET_PAGE, "register_thanks")
 			+ "&" + getTemplateText(TemplateKey.ERROR_PAGE_KEY, HtmlServlet.ERROR_PAGE_KEY)   + "=" + getTemplateText(TemplateKey.ERROR_PAGE, "register_error"));
@@ -273,11 +260,11 @@ public class RegistrationResource extends Resource {
 				query.and(MailTemplate.locale, localeString);
 			}
 			
-			List<MailTemplate> templates = query.getAsList();
-			if (!templates.isEmpty()) {
+			MailTemplate template = query.getFirst();
+			if (template != null) {
 				
-				Content content = templates.get(0).getProperty(MailTemplate.text);
-				return content != null ? content.getProperty(Content.content) : defaultValue;
+				final String text = template.getProperty(MailTemplate.text);
+				return text != null ? text : defaultValue;
 				
 			} else {
 				
@@ -418,13 +405,9 @@ public class RegistrationResource extends Resource {
 	 */
 	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final Map<String, Object> propertySet, final boolean autoCreate, final Class userClass) {
 
-		final App app = StructrApp.getInstance(securityContext);
-		
 		Principal user = null;
 		
 		try {
-			
-			app.beginTx();
 
 			// First, search for a person with that e-mail address
 			user = AuthHelper.getPrincipalForCredential(credentialKey, credentialValue);
@@ -459,22 +442,10 @@ public class RegistrationResource extends Resource {
 
 			}
 			
-//			if (user != null) {
-//
-//				// index manually because the credential key is treated as generic property!
-//				user.updateInIndex();
-//				
-//			}
-			
-			app.commitTx();
-			
 		} catch (FrameworkException ex) {
 			
 			logger.log(Level.SEVERE, null, ex);
 			
-		} finally {
-			
-			app.finishTx();
 		}
 		
 		return user;

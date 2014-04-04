@@ -22,6 +22,7 @@ var contents, editor, contentType;
 var _Contents = {
 
     icon : 'icon/page_white.png',
+    comment_icon : 'icon/comment.png',
     add_icon : 'icon/page_white_add.png',
     delete_icon : 'icon/page_white_delete.png',
 	
@@ -40,7 +41,7 @@ var _Contents = {
         if (!parent) return false;
         
         var html = '<div id="id_' + content.id + '" class="node content">'
-        + '<img class="typeIcon" src="'+ _Contents.icon + '">'
+        + '<img class="typeIcon" src="'+ (content.type === 'Comment' ? _Contents.comment_icon : _Contents.icon) + '">'
         + '<div class="content_">' + escapeTags(content.content) + '</div> <span class="id">' + content.id + '</span>'
         + '</div>';
         

@@ -25,7 +25,6 @@ import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.property.PropertyKey;
@@ -82,22 +81,24 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 			if (document != null) {
 
 				final String tagName = (String) nodeData.get("tagName");
-				final App app        = StructrApp.getInstance();
 				
 				nodeData.remove("tagName");
 				
 				try {
-					app.beginTx();
 
 					DOMNode newNode;
 
-					if (tagName != null && !tagName.isEmpty()) {
+					if (tagName != null && "comment".equals(tagName)) {
+						
+						newNode = (DOMNode) document.createComment("#comment");
+						
+					} else if (tagName != null && !tagName.isEmpty()) {
 
-						newNode = (DOMNode)document.createElement(tagName);
+						newNode = (DOMNode) document.createElement(tagName);
 
 					} else {
 
-						newNode = (DOMNode)document.createTextNode("#text");
+						newNode = (DOMNode) document.createTextNode("#text");
 					}
 
 					// append new node to parent
@@ -139,29 +140,17 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 
 							DOMNode childNode = (DOMNode)document.createTextNode(childContent);
 
-							if (newNode != null) {
-
-								newNode.appendChild(childNode);
-
-							}
+							newNode.appendChild(childNode);
 
 						}
 
 					}
-					app.commitTx();
 					
 				} catch (DOMException dex) {
 						
 					// send DOM exception
 					getWebSocket().send(MessageBuilder.status().code(422).message(dex.getMessage()).build(), true);		
 					
-				} catch (FrameworkException ex) {
-					
-					Logger.getLogger(CreateAndAppendDOMNodeCommand.class.getName()).log(Level.SEVERE, null, ex);
-					
-				} finally {
-					
-					app.finishTx();
 				}
 				
 			} else {

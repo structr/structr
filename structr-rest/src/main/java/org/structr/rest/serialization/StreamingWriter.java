@@ -60,7 +60,7 @@ public abstract class StreamingWriter {
 	private PropertyKey idProperty                       = GraphObject.id;
 	private SecurityContext securityContext              = null;
 	private Value<String> propertyView                   = null;
-	private boolean indent                               = true;
+	protected boolean indent                               = true;
 
 	public abstract RestWriter getRestWriter(final Writer writer);
 	
@@ -121,40 +121,40 @@ public abstract class StreamingWriter {
 		// open result set
 		writer.beginObject();
 		
-		if(page != null) {
+		if (page != null) {
 			writer.name("page").value(page);
 		}
 
-		if(pageCount != null) {
+		if (pageCount != null) {
 			writer.name("page_count").value(pageCount);
 		}
 
-		if(pageSize != null) {
+		if (pageSize != null) {
 			writer.name("page_size").value(pageSize);
 		}
 
-		if(queryTime != null) {
+		if (queryTime != null) {
 			writer.name("query_time").value(queryTime);
 		}
 
-		if(resultCount != null) {
+		if (resultCount != null) {
 			writer.name("result_count").value(resultCount);
 		}
 
-		if(results != null) {
+		if (results != null) {
 
-			if(results.isEmpty()) {
+			if (results.isEmpty()) {
 
 				writer.name("result").beginArray().endArray();
 
-			} else if(result.isPrimitiveArray()) {
+			} else if (result.isPrimitiveArray()) {
 
 				writer.name("result").beginArray();
 				
-				for(GraphObject graphObject : results) {
+				for (GraphObject graphObject : results) {
 					
 					Object value = graphObject.getProperty(GraphObject.id);	// FIXME: UUID key hard-coded, use variable in Result here!
-					if(value != null) {
+					if (value != null) {
 						
 						writer.value(value.toString());
 					}
@@ -174,12 +174,12 @@ public abstract class StreamingWriter {
 				String localPropertyView  = propertyView.get(null);
 				int flushCounter          = 0;
 
-				if(result.isCollection()) {
+				if (result.isCollection()) {
 
 					writer.name("result").beginArray();
 
 					// serialize list of results
-					for(GraphObject graphObject : results) {
+					for (GraphObject graphObject : results) {
 						
 						root.serialize(writer, graphObject, localPropertyView, 0);
 
@@ -209,15 +209,15 @@ public abstract class StreamingWriter {
 			}
 		}
 
-		if(searchString != null) {
+		if (searchString != null) {
 			writer.name("search_string").value(searchString);
 		}
 
-		if(sortKey != null) {
+		if (sortKey != null) {
 			writer.name("sort_key").value(sortKey);
 		}
 
-		if(sortOrder != null) {
+		if (sortOrder != null) {
 			writer.name("sort_order").value(sortOrder);
 		}
 		
@@ -400,7 +400,7 @@ public abstract class StreamingWriter {
 				
 				// property keys
 				Iterable<PropertyKey> keys = source.getPropertyKeys(localPropertyView);
-				if(keys != null) {
+				if (keys != null) {
 
 					for (PropertyKey key : keys) {
 

@@ -147,7 +147,7 @@ var _Entities = {
         _Entities.appendBooleanSwitch($('#hideIndexMode', t), entity, 'hideOnIndex', ['Hidden in index mode', 'Visible in index mode'], 'if URL does not end with an ID');
         _Entities.appendBooleanSwitch($('#hideDetailsMode', t), entity, 'hideOnDetail', ['Hidden in details mode', 'Visible in details mode'], 'if URL ends with an ID.');
 
-        el.append('<div id="data-tabs"><ul><li class="active" id="tab-rest">REST Query</li><li id="tab-cypher">Cypher Query</li><li id="tab-xpath">XPath Query</li></ul>'
+        el.append('<div id="data-tabs" class="data-tabs"><ul><li class="active" id="tab-rest">REST Query</li><li id="tab-cypher">Cypher Query</li><li id="tab-xpath">XPath Query</li></ul>'
                 + '<div id="content-tab-rest"></div><div id="content-tab-cypher"></div><div id="content-tab-xpath"></div></div>');
 
         _Entities.appendTextarea($('#content-tab-rest'), entity, 'restQuery', 'REST Query', '');
@@ -195,7 +195,7 @@ var _Entities = {
             contentType: contentType,
             success: function(data) {
                 text = data;
-                var div = dialog.append('<div class="editor"></div>');
+                dialog.append('<div class="editor"></div>');
                 var contentBox = $('.editor', dialog);
                 editor = CodeMirror(contentBox.get(0), {
                     value: unescapeTags(text),
@@ -209,7 +209,7 @@ var _Entities = {
                 dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="disabled"> Save and close</button>');
 
                 dialogSaveButton = $('#saveFile', dialogBtn);
-                var saveAndClose = $('#saveAndClose', dialogBtn);
+                saveAndClose = $('#saveAndClose', dialogBtn);
 
                 editor.on('change', function(cm, change) {
 
@@ -223,7 +223,11 @@ var _Entities = {
                         dialogSaveButton.prop("disabled", false).removeClass('disabled');
                         saveAndClose.prop("disabled", false).removeClass('disabled');
                     }
+
+                    $('.CodeMirror-code .cm-attribute:contains("data-hash")').addClass('data-hash').next().addClass('data-hash');
                 });
+
+                $('.CodeMirror-code .cm-attribute:contains("data-hash")').addClass('data-hash').next().addClass('data-hash');
 
                 dialogSaveButton.on('click', function(e) {
                     e.stopPropagation();
@@ -237,24 +241,39 @@ var _Entities = {
                         saveAndClose.prop("disabled", false).removeClass('disabled');
                     }
 
+                    Command.savePage(text2, entity.id, function() {
+                        $.ajax({
+                            url: url,
+                            contentType: contentType,
+                            success: function(data) {
+                                editor.setValue(unescapeTags(data));
+                            }
+                        });
 
-                    var parent = entity.parent;
-                    if (parent) {
-                        Command.removeChild(entity.id);
-                        Command.appendWidget(text2, entity.parent.id, entity.pageId, null, null, function() {
-                            dialogSaveButton.prop("disabled", true).addClass('disabled');
-                            saveAndClose.prop("disabled", true).addClass('disabled');
-                            dialogMsg.html('<div class="infoBox success">New nodes created from source.</div>');
-                            $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
-                        });
-                    } else {
-                        Command.replaceWidget(text2, entity.id, entity.parent ? entity.parent.id : undefined, entity.pageId, function() {
-                            dialogSaveButton.prop("disabled", true).addClass('disabled');
-                            saveAndClose.prop("disabled", true).addClass('disabled');
-                            dialogMsg.html('<div class="infoBox success">New nodes created from source.</div>');
-                            $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
-                        });
-                    }
+                        dialogSaveButton.prop("disabled", true).addClass('disabled');
+                        saveAndClose.prop("disabled", true).addClass('disabled');
+                        dialogMsg.html('<div class="infoBox success">Page source saved and rebuilt DOM tree.</div>');
+                        $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
+
+                    });
+
+//                    var parent = entity.parent;
+//                    if (parent) {
+//                        Command.removeChild(entity.id);
+//                        Command.appendWidget(text2, entity.parent.id, entity.pageId, null, null, function() {
+//                            dialogSaveButton.prop("disabled", true).addClass('disabled');
+//                            saveAndClose.prop("disabled", true).addClass('disabled');
+//                            dialogMsg.html('<div class="infoBox success">New nodes created from source.</div>');
+//                            $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
+//                        });
+//                    } else {
+//                        Command.replaceWidget(text2, entity.id, entity.parent ? entity.parent.id : undefined, entity.pageId, function() {
+//                            dialogSaveButton.prop("disabled", true).addClass('disabled');
+//                            saveAndClose.prop("disabled", true).addClass('disabled');
+//                            dialogMsg.html('<div class="infoBox success">New nodes created from source.</div>');
+//                            $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
+//                        });
+//                    }
                 });
 
                 saveAndClose.on('click', function(e) {
@@ -278,7 +297,7 @@ var _Entities = {
 
         var views, activeView = 'ui';
 
-        if (isIn(entity.type, ['Content', 'Page', 'User', 'Group', 'File', 'Folder', 'Widget'])) {
+        if (isIn(entity.type, ['Comment', 'Content', 'Page', 'User', 'Group', 'Image', 'File', 'Folder', 'Widget'])) {
             views = ['ui', 'in', 'out'];
         } else {
             views = ['_html_', 'ui', 'in', 'out'];
@@ -301,7 +320,7 @@ var _Entities = {
         dialog.append('<div id="tabs"><ul></ul></div>');
         var mainTabs = $('#tabs', dialog);
 
-        if (!isIn(entity.type, ['Content', 'User', 'Group', 'File', 'Folder', 'Widget'])) {
+        if (!isIn(entity.type, ['Comment', 'Content', 'User', 'Group', 'Image', 'File', 'Folder', 'Widget'])) {
 
             _Entities.appendPropTab(mainTabs, 'query', 'Query and Data Binding', true, function(c) {
                 _Entities.queryDialog(entity, c);
@@ -559,7 +578,7 @@ var _Entities = {
                 dialogText.append('<table class="props" id="principals"><thead><tr><th>Name</th><th>Read</th><th>Write</th><th>Delete</th><th>Access Control</th></tr></thead><tbody></tbody></table');
 
                 var tb = $('#principals tbody', dialogText);
-                tb.append('<tr id="new"><td><select id="newPrincipal"><option></option></select></td><td><input id="newRead" type="checkbox" disabled="disabled"></td><td><input id="newRead" type="checkbox" disabled="disabled"></td><td><input id="newRead" type="checkbox" disabled="disabled"></td><td><input id="newRead" type="checkbox" disabled="disabled"></td></tr>');
+                tb.append('<tr id="new"><td><select id="newPrincipal"><option></option></select></td><td><input id="newRead" type="checkbox" disabled="disabled"></td><td><input id="newWrite" type="checkbox" disabled="disabled"></td><td><input id="newDelete" type="checkbox" disabled="disabled"></td><td><input id="newAccessControl" type="checkbox" disabled="disabled"></td></tr>');
                 Command.getByType('User', 1000, 1, 'name', 'asc', function(user) {
                     $('#newPrincipal').append('<option value="' + user.id + '">' + user.name + '</option>');
                 });
@@ -568,7 +587,6 @@ var _Entities = {
                 });
                 $('#newPrincipal').on('change', function() {
                     var sel = $(this);
-                    console.log(sel);
                     var pId = sel[0].value;
                     Command.setPermission(entity.id, pId, 'grant', 'read', false);
                     $('#new', tb).selectedIndex = 0;
@@ -579,13 +597,10 @@ var _Entities = {
 
                 });
 
-                var headers = {};
-                headers['X-StructrSessionToken'] = token;
                 $.ajax({
                     url: rootUrl + '/' + entity.id + '/in',
                     dataType: 'json',
                     contentType: 'application/json; charset=utf-8',
-                    headers: headers,
                     success: function(data) {
 
                         $(data.result).each(function(i, result) {
@@ -613,7 +628,10 @@ var _Entities = {
         }
     },
     appendTextarea: function(el, entity, key, label, desc) {
-        el.append('<div><h3>' + label + '</h3><p>' + desc + '</p><textarea cols="60" rows="4" id="' + key + '_">' + (entity[key] ? entity[key] : '') + '</textarea></div>');
+        if (!el || !entity) {
+            return false;
+        }
+        el.append('<div><h3>' + label + '</h3><p>' + desc + '</p><textarea class="query-text" id="' + key + '_">' + (entity[key] ? entity[key] : '') + '</textarea></div>');
         el.append('<div><button id="apply_' + key + '">Save</button></div>');
         var btn = $('#apply_' + key, el);
         btn.on('click', function() {
@@ -624,6 +642,9 @@ var _Entities = {
         });
     },
     appendInput: function(el, entity, key, label, desc) {
+        if (!el || !entity) {
+            return false;
+        }
         el.append('<div><h3>' + label + '</h3><p>' + desc + '</p><input type="text" id="' + key + '_" value="' + (entity[key] ? entity[key] : '') + '"><button id="save_' + key + '">Save</button></div>');
         var btn = $('#save_' + key, el);
         btn.on('click', function() {
@@ -634,6 +655,9 @@ var _Entities = {
         });
     },
     appendBooleanSwitch: function(el, entity, key, label, desc, recElementId) {
+        if (!el || !entity) {
+            return false;
+        }
         el.append('<div class="' + entity.id + '_"><button class="switch inactive ' + key + '_"></button>' + desc + '</div>');
         var sw = $('.' + key + '_', el);
         _Entities.changeBooleanAttribute(sw, entity[key], label[0], label[1]);
@@ -659,13 +683,10 @@ var _Entities = {
         var selectElement = $('#' + key + 'Select');
         selectElement.append('<option></option>')
 
-        var headers = {};
-        headers['X-StructrSessionToken'] = token;
         $.ajax({
             url: rootUrl + type + '/ui?pageSize=100',
             dataType: 'json',
             contentType: 'application/json; charset=utf-8',
-            headers: headers,
             success: function(data) {
                 $(data.result).each(function(i, result) {
 
@@ -791,6 +812,15 @@ var _Entities = {
         button.remove();
         el.children('.typeIcon').css({
             paddingRight: 11 + 'px'
+        });
+    },
+    makeSelectable: function(el) {
+        var node = $(el).closest('.node');
+        if (!node || !node.children) {
+            return;
+        }
+        node.on('click', function() {
+            $(this).toggleClass('selected');
         });
     },
     setMouseOver: function(el, allowClick, syncedNodes) {
@@ -928,7 +958,9 @@ var _Entities = {
         }
 
     },
-    makeNameEditable: function(element) {
+    makeNameEditable: function(element, width) {
+
+        var w = width || 200;
         //element.off('dblclick');
         element.off('hover');
         var oldName = $.trim(element.children('b.name_').attr('title'));
@@ -944,10 +976,10 @@ var _Entities = {
             var self = $(this);
             var newName = self.val();
             Command.setProperty(getId(element), "name", newName);
-            self.replaceWith('<b title="' + newName + '" class="name_">' + fitStringToSize(newName, 200) + '</b>');
+            self.replaceWith('<b title="' + newName + '" class="name_">' + fitStringToWidth(newName, w) + '</b>');
             $('.name_', element).on('click', function(e) {
                 e.stopPropagation();
-                _Entities.makeNameEditable(element);
+                _Entities.makeNameEditable(element, w);
             });
             _Pages.reloadPreviews();
         });
@@ -957,10 +989,10 @@ var _Entities = {
                 var self = $(this);
                 var newName = self.val();
                 Command.setProperty(getId(element), "name", newName);
-                self.replaceWith('<b title="' + newName + '" class="name_">' + fitStringToSize(newName, 200) + '</b>');
+                self.replaceWith('<b title="' + newName + '" class="name_">' + fitStringToWidth(newName, w) + '</b>');
                 $('.name_', element).on('click', function(e) {
                     e.stopPropagation();
-                    _Entities.makeNameEditable(element);
+                    _Entities.makeNameEditable(element, w);
                 });
                 _Pages.reloadPreviews();
             }
@@ -1000,7 +1032,6 @@ function addPrincipal(entity, principal, permissions) {
                 disabled = false;
                 sw.prop('disabled', null);
             }, 200);
-            //console.log('checked elements', $('input:checked', row).length);
             if (!$('input:checked', row).length) {
                 $('#newPrincipal').append('<option value="' + row.attr('id').substring(1) + '">' + $('.name', row).text() + '</option>');
                 row.remove();

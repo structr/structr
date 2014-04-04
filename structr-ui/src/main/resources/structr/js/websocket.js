@@ -18,7 +18,6 @@
  */
 
 var ws;
-var token;
 var loggedIn = false;
 var user;
 var reconn;
@@ -31,16 +30,13 @@ var pageSize = 25;
 var sort = 'name';
 var order = 'asc';
 
-var tokenKey = 'structrSessionToken_' + port;
 var userKey = 'structrUser_' + port;
 
 var footer = $('#footer');
 
 function connect() {
 
-    if (token) {
-        loggedIn = true;
-    }
+    log('################ Global connect() ################');
 
     try {
 
@@ -70,6 +66,8 @@ function connect() {
 
         ws.onopen = function() {
 
+            log('############### WebSocket onopen ###############');
+
             if ($.unblockUI) {
                 $.unblockUI({
                     fadeOut: 25
@@ -78,34 +76,37 @@ function connect() {
 
             log('de-activating reconnect loop', reconn);
             window.clearInterval(reconn);
+            reconn = undefined;
 
-            log('logged in? ' + loggedIn);
-            if (!loggedIn) {
-                //log('no');
-                $('#logout_').html('Login');
-                Structr.login();
-            } else {
-                log('Current user: ' + user);
-                $('#logout_').html(' Logout <span class="username">' + (user ? user : '') + '</span>');
+            Structr.init();
 
-                Structr.loadInitialModule();
-
-            }
         }
 
         ws.onclose = function() {
+
+            log('############### WebSocket onclose ###############', reconn);
 
             if (reconn) {
                 log('Automatic reconnect already active');
                 return;
             }
 
-            main.empty();
-            //Structr.confirmation('Connection lost or timed out.<br>Reconnect?', Structr.silenctReconnect);
-            Structr.reconnectDialog('Connection lost or timed out. Trying to reconnect ...');
-            //log('Connection was lost or timed out. Trying automatic reconnect');
-            log('ws onclose');
-            Structr.reconnect();
+            // Delay reconnect dialog to prevent it popping up before page reload
+            window.setTimeout(function() {
+
+                main.empty();
+                //Structr.confirmation('Connection lost or timed out.<br>Reconnect?', Structr.silenctReconnect);
+                var restoreDialogText = '';
+                var dialogData = JSON.parse(localStorage.getItem(dialogDataKey));
+                if (dialogData && dialogData.text) {
+                    restoreDialogText = '<br><br>The dialog<br><b>"' + dialogData.text + '"</b><br> will be restored after reconnect.';
+                }
+                Structr.reconnectDialog('<b>Connection lost or timed out.</b><br><br>Don\'t reload the page!' + restoreDialogText + '<br><br>Trying to reconnect... <img class="al" src="data:image/gif;base64,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" alt="">');
+                //log('Connection was lost or timed out. Trying automatic reconnect');
+                log('ws onclose');
+                Structr.reconnect();
+
+            }, 100);
 
         }
 
@@ -124,34 +125,43 @@ function connect() {
 
             log('####################################### ', command, ' #########################################');
 
-            if (command === 'LOGIN') { /*********************** LOGIN ************************/
-                token = data.token;
+            if (command === 'LOGIN' || code === 100) { /*********************** LOGIN or repsonse to PING ************************/
+
                 user = data.data.username;
-                log('token', token);
+                
+                log(command, code, user, localStorage.getItem(userKey));
+
+                if (!sessionValid) {
+                    localStorage.removeItem(userKey);
+                    Structr.clearMain();
+                    Structr.login();
+                }
 
                 if (sessionValid) {
-                    localStorage.setItem(tokenKey, token);
-                    localStorage.setItem(userKey, user);
-                    $.unblockUI({
-                        fadeOut: 25
-                    });
-                    $('#logout_').html('Logout <span class="username">' + user + '</span>');
+                    
+                    var oldUser = localStorage.getItem(userKey);
 
-                    Structr.loadInitialModule();
+                    // user has changed - refresh UI
+                    if (!oldUser || (oldUser && (oldUser !== user))) {
+                        
+                        log(command, code, oldUser, user);
 
-                } else {
-                    localStorage.removeItem(tokenKey);
-                    localStorage.removeItem(userKey);
-                    clearMain();
+                        Structr.clearMain();
+                        localStorage.setItem(userKey, user);
 
-                    Structr.login();
+                        $.unblockUI({
+                            fadeOut: 25
+                        });
+
+                        $('#logout_').html('Logout <span class="username">' + user + '</span>');
+                        Structr.loadInitialModule();
+                    }
                 }
 
             } else if (command === 'LOGOUT') { /*********************** LOGOUT ************************/
 
-                localStorage.removeItem(tokenKey);
                 localStorage.removeItem(userKey);
-                clearMain();
+                Structr.clearMain();
                 Structr.login();
 
             } else if (command === 'STATUS') { /*********************** STATUS ************************/
@@ -228,22 +238,22 @@ function connect() {
                 StructrModel.callCallback(data.callback, data.data[data.data['key']]);
                 StructrModel.clearCallback(data.callback);
 
-            } else if (command === 'GET' || command === 'UPDATE') { /*********************** GET / UPDATE ************************/
+            } else if (command === 'UPDATE' || command === 'SET_PERMISSION') { /*********************** UPDATE / SET_PERMISSION ************************/
 
                 var obj = StructrModel.obj(data.id);
                 if (!obj) {
                     data.data.id = data.id;
                     obj = StructrModel.create(data.data, null, false);
                 }
-                
+
                 obj = StructrModel.update(data);
 
                 StructrModel.callCallback(data.callback, obj);
                 StructrModel.clearCallback(data.callback);
 
-            } else if (command.endsWith('GET_BY_TYPE')) { /*********************** GET_BY_TYPE ************************/
+            } else if (command.endsWith('GET') || command.endsWith('GET_BY_TYPE')) { /*********************** GET_BY_TYPE ************************/
 
-                log('GET_BY_TYPE', data);
+                log(command, data);
 
                 $(result).each(function(i, entity) {
 
@@ -253,7 +263,7 @@ function connect() {
                     StructrModel.callCallback(data.callback, entity);
 
                 });
-                
+
                 StructrModel.clearCallback(data.callback);
 
             } else if (command.endsWith('CHILDREN')) { /*********************** CHILDREN ************************/
@@ -285,9 +295,9 @@ function connect() {
                 $(result).each(function(i, entity) {
 
                     StructrModel.callCallback(data.callback, entity);
-                    
+
                 });
-                
+
                 StructrModel.clearCallback(data.callback);
 
             } else if (command.startsWith('LIST_COMPONENTS')) { /*********************** LIST_COMPONENTS ************************/
@@ -305,7 +315,7 @@ function connect() {
             } else if (command.startsWith('LIST')) { /*********************** LIST ************************/
 
                 log('LIST', result, data);
-                
+
                 rawResultCount[type] = data.rawResultCount;
                 pageCount[type] = Math.max(1, Math.ceil(rawResultCount[type] / pageSize[type]));
                 Structr.updatePager(type, dialog.is(':visible') ? dialog : undefined);
@@ -318,7 +328,7 @@ function connect() {
                     StructrModel.callCallback(data.callback, entity);
 
                 });
-                
+
                 StructrModel.clearCallback(data.callback);
 
             } else if (command === 'DELETE') { /*********************** DELETE ************************/
@@ -343,24 +353,24 @@ function connect() {
             } else if (command === 'CREATE' || command === 'ADD' || command === 'IMPORT') { /*********************** CREATE, ADD, IMPORT ************************/
 
                 $(result).each(function(i, entity) {
-                    
+
                     if (command === 'CREATE' && (entity.type === 'Page' || entity.type === 'Folder' || entity.type === 'File' || entity.type === 'Image' || entity.type === 'User' || entity.type === 'Group' || entity.type === 'PropertyDefinition' || entity.type === 'Widget')) {
                         StructrModel.create(entity);
                     } else {
-                        
+
                         if (!entity.parent && shadowPage && entity.pageId === shadowPage.id) {
-                            
+
                             StructrModel.create(entity, null, false);
                             var el = _Pages.appendElementElement(entity, components, true);
 
                             if (isExpanded(entity.id)) {
                                 _Entities.ensureExpanded(el);
                             }
-                            
+
                             var synced = entity.syncedNodes;
-                            
+
                             if (synced && synced.length) {
-                            
+
                                 // Change icon
                                 $.each(entity.syncedNodes, function(i, id) {
                                     var el = Structr.node(id);
@@ -369,7 +379,7 @@ function connect() {
                                         _Entities.removeExpandIcon(el);
                                     }
                                 });
-                                
+
                             }
                         }
                     }
@@ -390,11 +400,10 @@ function connect() {
                 }
 
             } else {
-                log('Received unknown command: ' + command);
+                console.log('Received unknown command: ' + command);
 
                 if (sessionValid === false) {
                     log('invalid session');
-                    localStorage.removeItem(tokenKey);
                     localStorage.removeItem(userKey);
                     clearMain();
 
@@ -404,16 +413,12 @@ function connect() {
         }
 
     } catch (exception) {
-        log('Error in connect(): ' + exception);
+        console.log('Error in connect(): ' + exception);
     }
 
 }
 
 function sendObj(obj, callback) {
-
-    if (token) {
-        obj.token = token;
-    }
 
     if (callback) {
         obj.callback = uuid.v4();
@@ -433,7 +438,6 @@ function sendObj(obj, callback) {
         log('Sent: ' + text);
     } catch (exception) {
         log('Error in send(): ' + exception);
-        return false;
     }
     return true;
 }

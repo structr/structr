@@ -117,6 +117,11 @@ public class PropertySearchAttribute<T> extends SearchAttribute<T> {
 	}
 
 	@Override
+	public void setExactMatch(final boolean exact) {
+		this.isExactMatch = exact;
+	}
+	
+	@Override
 	public String getStringValue() {
 		
 		Object value = getValue();

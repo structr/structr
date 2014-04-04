@@ -18,6 +18,7 @@
  */
 package org.structr.websocket.command;
 
+import java.io.IOException;
 import org.apache.commons.codec.binary.Base64;
 
 import org.structr.websocket.message.MessageBuilder;
@@ -29,8 +30,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
-import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
+import org.structr.common.error.FrameworkException;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
 import org.structr.websocket.StructrWebSocket;
@@ -57,13 +57,13 @@ public class ChunkCommand extends AbstractCommand {
 	public void processMessage(WebSocketMessage webSocketData) {
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
-		final App app = StructrApp.getInstance(securityContext);
 		
 		try {
 
 			int sequenceNumber = ((Long) webSocketData.getNodeData().get("chunkId")).intValue();
 			int chunkSize      = ((Long) webSocketData.getNodeData().get("chunkSize")).intValue();
 			Object rawData     = webSocketData.getNodeData().get("chunk");
+			int chunks         = ((Long) webSocketData.getNodeData().get("chunks")).intValue();
 			String uuid        = webSocketData.getId();
 			byte[] data        = null;
 
@@ -84,7 +84,7 @@ public class ChunkCommand extends AbstractCommand {
 
 			final File file = (File) getNode(uuid);
 			
-			if (!getWebSocket().getSecurityContext().isAllowed(file, Permission.write)) {
+			if (!securityContext.isAllowed(file, Permission.write)) {
 
 				logger.log(Level.WARNING, "No write permission for {0} on {1}", new Object[] {getWebSocket().getCurrentUser().toString(), file.toString()});
 				getWebSocket().send(MessageBuilder.status().message("No write permission").code(400).build(), true);
@@ -92,32 +92,31 @@ public class ChunkCommand extends AbstractCommand {
 				
 			}
 
-			getWebSocket().handleFileChunk(uuid, sequenceNumber, chunkSize, data);
+			getWebSocket().handleFileChunk(uuid, sequenceNumber, chunkSize, data, chunks);
 			
-			final long size = (long)(sequenceNumber * chunkSize) + data.length;
-			
-			long finalSize = file.getProperty(File.size);
-			logger.log(Level.FINE, "Overall size: {0}, part: {1}", new Object[]{finalSize, size});
-			
-			if (size != finalSize) {
+			if (sequenceNumber+1 == chunks) {
+				
+				final long checksum = FileHelper.getChecksum(file);
+				final long size     = FileHelper.getSize(file);
+				
+				file.setProperty(File.checksum, checksum);
+				file.setProperty(File.size, size);
+				file.increaseVersion();
 
-				try {
-					app.beginTx();
-					file.setProperty(File.checksum, FileHelper.getChecksum(file));
-					app.commitTx();
+				getWebSocket().removeFileUploadHandler(uuid);
+				
+				logger.log(Level.FINE, "File upload finished. Checksum: {0}, size: {1}", new Object[]{ checksum, size });
 
-				} finally {
-
-					app.finishTx();
-				}
 			}
-			
+
+			final long currentSize = (long)(sequenceNumber * chunkSize) + data.length;
+
 			// This should trigger setting of lastModifiedDate in any case
-			getWebSocket().send(MessageBuilder.status().code(200).message("{\"id\":\"" + file.getUuid() + "\", \"name\":\"" + file.getName() + "\",\"size\":" + size + "}").build(), true);
+			getWebSocket().send(MessageBuilder.status().code(200).message("{\"id\":\"" + file.getUuid() + "\", \"name\":\"" + file.getName() + "\",\"size\":" + currentSize + "}").build(), true);
 
-		} catch (Throwable t) {
+		} catch (IOException | FrameworkException ex) {
 
-			String msg = t.toString();
+			String msg = ex.toString();
 
 			// return error message
 			getWebSocket().send(MessageBuilder.status().code(400).message("Could not process chunk data: ".concat((msg != null)

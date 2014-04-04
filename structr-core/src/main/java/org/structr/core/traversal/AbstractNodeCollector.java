@@ -31,13 +31,14 @@ import org.neo4j.graphdb.traversal.Evaluation;
 import org.neo4j.graphdb.traversal.Evaluator;
 import org.neo4j.graphdb.traversal.Evaluators;
 import org.neo4j.graphdb.traversal.TraversalDescription;
-import org.neo4j.kernel.Traversal;
-import org.neo4j.kernel.Uniqueness;
+import org.neo4j.graphdb.traversal.Uniqueness;
 import org.structr.common.SecurityContext;
 import org.structr.core.Predicate;
 import org.structr.core.Value;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.notion.Notion;
+import org.structr.schema.SchemaHelper;
 
 /**
  * Abstract base class for node collector implementations that can be plugged into
@@ -51,9 +52,9 @@ public abstract class AbstractNodeCollector<T extends AbstractNode> implements T
 
 	private static final Logger logger = Logger.getLogger(AbstractNodeCollector.class.getName());
 
-	private List<Predicate<Node>> predicates = new LinkedList<>();
-	private List<RelationshipType> relTypes  = new LinkedList<>();
-	private List<Direction> directions       = new LinkedList<>();
+	private final List<Predicate<Node>> predicates = new LinkedList<>();
+	private final List<RelationshipType> relTypes  = new LinkedList<>();
+	private final List<Direction> directions       = new LinkedList<>();
 	private Comparator<T> comparator         = null;
 	private Notion notion                    = null;
 	private int maxDepth                     = 1;
@@ -67,8 +68,7 @@ public abstract class AbstractNodeCollector<T extends AbstractNode> implements T
 	@Override
 	public TraversalDescription getTraversalDescription(final SecurityContext securityContext) {
 
-		TraversalDescription description = Traversal
-			.description()
+		TraversalDescription description = StructrApp.getInstance(securityContext).getGraphDatabaseService().traversalDescription()
 			.breadthFirst()
 			.uniqueness(Uniqueness.NODE_RECENT)
 			.evaluator(Evaluators.excludeStartPosition())

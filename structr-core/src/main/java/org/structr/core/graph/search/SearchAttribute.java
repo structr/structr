@@ -84,6 +84,8 @@ public abstract class SearchAttribute<T> extends NodeAttribute<T> implements Pre
 	public void addToResult(final Set<GraphObject> list) {
 		result.addAll(list);
 	}
+
+	public void setExactMatch(final boolean exact) {};
 	
 	// ----- interface Predicate<Node> -----
 	@Override

@@ -18,6 +18,7 @@
  */
 package org.structr.core.graph;
 
+import java.util.Collections;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.tooling.GlobalGraphOperations;
 
@@ -28,16 +29,16 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 
 //~--- JDK imports ------------------------------------------------------------
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.helpers.Predicate;
 import org.neo4j.helpers.collection.Iterables;
+import org.structr.common.StructrAndSpatialPredicate;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.core.GraphObject;
+import org.structr.core.app.StructrApp;
 import org.structr.schema.SchemaHelper;
 
 //~--- classes ----------------------------------------------------------------
@@ -48,7 +49,7 @@ import org.structr.schema.SchemaHelper;
  *
  * @author Axel Morgner
  */
-public class BulkRebuildIndexCommand extends NodeServiceCommand implements MaintenanceCommand {
+public class BulkRebuildIndexCommand extends NodeServiceCommand implements MaintenanceCommand, TransactionPostProcess {
 
 	private static final Logger logger = Logger.getLogger(BulkRebuildIndexCommand.class.getName());
 	private static final String idName = GraphObject.id.dbName();
@@ -57,13 +58,13 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 	@Override
 	public void execute(Map<String, Object> attributes) throws FrameworkException {
 
-		final String mode = (String) attributes.get("mode");
-		final String entityType = (String) attributes.get("type");
-		final String relType = (String) attributes.get("relType");
-		final GraphDatabaseService graphDb = (GraphDatabaseService) arguments.get("graphDb");
+		final String mode                      = (String) attributes.get("mode");
+		final String entityType                = (String) attributes.get("type");
+		final String relType                   = (String) attributes.get("relType");
+		final GraphDatabaseService graphDb     = (GraphDatabaseService) arguments.get("graphDb");
 		final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
-		final NodeFactory nodeFactory = new NodeFactory(superUserContext);
-		final RelationshipFactory relFactory = new RelationshipFactory(superUserContext);
+		final NodeFactory nodeFactory          = new NodeFactory(superUserContext);
+		final RelationshipFactory relFactory   = new RelationshipFactory(superUserContext);
 
 		Class type = null;
 		if (entityType != null) {
@@ -73,17 +74,23 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 		// final Result<AbstractNode> result = StructrApp.getInstance(securityContext).command(SearchNodeCommand.class).execute(true, false, Search.andExactType(type.getSimpleName()));
 
 		if (mode == null || "nodesOnly".equals(mode)) {
-			final Result<AbstractNode> result = nodeFactory.instantiateAll(Iterables.filter(new NodeIdPredicate(), GlobalGraphOperations.at(graphDb).getAllNodes()));
-			final List<AbstractNode> nodes = new ArrayList<>();
+			
+			final List<AbstractNode> nodes = new LinkedList<>();
 
-			for (AbstractNode node : result.getResults()) {
+			// instantiate all nodes in a single list
+			try (final Tx tx = StructrApp.getInstance().tx()) {
+				
+				final Result<AbstractNode> result = nodeFactory.instantiateAll(Iterables.filter(new StructrAndSpatialPredicate(true, false, false), GlobalGraphOperations.at(graphDb).getAllNodes()));
+				for (AbstractNode node : result.getResults()) {
 
-				if (type == null || node.getClass().equals(type)) {
+					if (type == null || node.getClass().equals(type)) {
 
-					nodes.add(node);
+						nodes.add(node);
+					}
+
 				}
-
 			}
+			
 			if (type == null) {
 
 				logger.log(Level.INFO, "Node type not set or no entity class found. Starting (re-)indexing all nodes");
@@ -123,18 +130,20 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 
 		if (mode == null || "relsOnly".equals(mode)) {
 
-			// final Result<AbstractNode> result = StructrApp.getInstance(securityContext).command(SearchNodeCommand.class).execute(true, false, Search.andExactType(type.getSimpleName()));
-			final List<AbstractRelationship> unfilteredRels = relFactory.instantiate(Iterables.filter(new RelationshipIdPredicate(), GlobalGraphOperations.at(graphDb).getAllRelationships()));
-			final List<AbstractRelationship> rels = new ArrayList();
-			long count                                      = 0;
+			final List<AbstractRelationship> rels = new LinkedList<>();
+			long count                            = 0;
+
+			// instantiate all relationships in a single list
+			try (final Tx tx = StructrApp.getInstance().tx()) {
 			
-			for (AbstractRelationship rel : unfilteredRels) {
+				final List<AbstractRelationship> unfilteredRels = relFactory.instantiate(Iterables.filter(new StructrAndSpatialPredicate(true, false, false), GlobalGraphOperations.at(graphDb).getAllRelationships()));
+				for (AbstractRelationship rel : unfilteredRels) {
 
-				if (relType == null || rel.getType().equals(relType)) {
+					if (relType == null || rel.getType().equals(relType)) {
 
-					rels.add(rel);
+						rels.add(rel);
+					}
 				}
-
 			}
 
 			if (relType == null) {
@@ -177,20 +186,12 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 
 	}
 
-	private static class NodeIdPredicate implements Predicate<Node> {
-
-		@Override
-		public boolean accept(final Node node) {
-			return node.hasProperty(idName) && node.getProperty(idName) instanceof String;
-		}
+	// ----- interface TransactionPostProcess -----
+	@Override
+	public boolean execute(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+		
+		execute(Collections.EMPTY_MAP);
+		
+		return true;
 	}
-
-	private static class RelationshipIdPredicate implements Predicate<Relationship> {
-
-		@Override
-		public boolean accept(final Relationship rel) {
-			return rel.hasProperty(idName) && rel.getProperty(idName) instanceof String;
-		}
-	}
-
 }

@@ -23,7 +23,7 @@ import org.structr.web.test.FrontendTest;
 public class CreateFolderTest extends FrontendTest {
 
 	public void test() {
-		assertEquals(0, run("create_folder"));
+		assertEquals(0, run("008_create_folder"));
 	}
 
 }

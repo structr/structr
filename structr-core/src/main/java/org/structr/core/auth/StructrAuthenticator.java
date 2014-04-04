@@ -127,4 +127,12 @@ public class StructrAuthenticator implements Authenticator {
 		
 	}
 
+	@Override
+	public void setUserAutoLogin(boolean userAutoLogin, Class userClass) {}
+
+	@Override
+	public boolean getUserAutoLogin() {
+		return false;
+	}
+
 }

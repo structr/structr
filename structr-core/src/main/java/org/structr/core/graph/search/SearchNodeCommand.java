@@ -19,6 +19,7 @@
 package org.structr.core.graph.search;
 
 
+import java.util.Iterator;
 import org.structr.core.graph.NodeFactory;
 
 //~--- JDK imports ------------------------------------------------------------

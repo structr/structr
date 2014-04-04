@@ -63,10 +63,13 @@ public class Result<T extends GraphObject> {
 		this.isCollection     = false;
 		this.isPrimitiveArray = isPrimitiveArray;
 		this.results          = new LinkedList<>();
-		this.resultCount      = 1;
+		this.resultCount      = singleResult != null ? 1 : 0;
 		
-		// add result
-		results.add(singleResult);
+		if (singleResult != null) {
+			
+			// add result
+			results.add(singleResult);
+		}
 	}
 
 	public T get(final int i) {

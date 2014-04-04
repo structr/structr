@@ -62,7 +62,7 @@ var StructrModel = {
 
             obj = new StructrWidget(data);
 
-        } else if (type === 'Content') {
+        } else if (type === 'Content' || type === 'Comment') {
 
             obj = new StructrContent(data);
 
@@ -220,7 +220,9 @@ var StructrModel = {
      * Refresh the object's UI representation with
      * the current model value for the given key
      */
-    refreshKey: function(id, key) {
+    refreshKey: function(id, key, width) {
+        
+        var w = width || 200;
 
         var obj = StructrModel.obj(id);
         if (!obj)
@@ -255,7 +257,7 @@ var StructrModel = {
                 } else {
                     log(key, newValue);
                     if (key === 'name') {
-                        attrElement.html(fitStringToSize(newValue, 200));
+                        attrElement.html(fitStringToWidth(newValue, w));
                         attrElement.attr('title', newValue);
                     }
                 }
@@ -289,7 +291,7 @@ var StructrModel = {
 
             blinkGreen(tabNameElement);
 
-            tabNameElement.html(fitStringToSize(newValue, 200));
+            tabNameElement.html(fitStringToWidth(newValue, w));
             tabNameElement.attr('title', newValue);
 
             log('Reload iframe', id, newValue);
@@ -396,17 +398,20 @@ var StructrModel = {
     callCallback: function(callback, entity) {
 
         log('Calling callback', callback, 'on entity', entity);
-
-        if (callback && StructrModel.callbacks[callback]) {
+        var callbackFunction = StructrModel.callbacks[callback];
+        if (callback && callbackFunction) {
+            log(callback, callbackFunction.toString());
             StructrModel.callbacks[callback](entity);
         }
 
     },
             
     clearCallback : function(callback) {
-
-        removeFromArray(StructrModel.callbacks, callback);
-        
+        if (callback && StructrModel.callbacks[callback]) {
+            delete StructrModel.callbacks[callback];
+            callback = undefined;
+            delete callback;
+        }
     }
 
 }
@@ -521,7 +526,7 @@ StructrFile.prototype.append = function() {
     var file = this;
     if (file.parent) {
         var parentFolder = StructrModel.obj(file.parent.id);
-        parentFolder.files.push(file);
+        if (parentFolder) parentFolder.files.push(file);
     }
     StructrModel.expand(_Files.appendFileElement(this, parentFolder), this);
 }
@@ -547,11 +552,43 @@ StructrImage.prototype.setProperty = function(key, value, recursive, callback) {
 }
 
 StructrImage.prototype.remove = function() {
-    _Images.removeImageFromFolder(this.id);
+    var file = this;
+    
+    if (file.parent) {
+        
+        var parentFolder = StructrModel.obj(file.parent.id);
+        var parentFolderEl = Structr.node(parentFolder.id);
+
+        parentFolder.files = removeFromArray(parentFolder.files, file);
+        if (!parentFolder.files.length && !parentFolder.folders.length) {
+            _Entities.removeExpandIcon(parentFolderEl);
+            enable(parentFolderEl.children('.delete_icon')[0]);
+        }
+        
+        file.parent = undefined;
+    }
+
+    var fileEl = Structr.node(file.id);
+    if (!fileEl) {
+        return;
+    } else {
+        fileEl.remove();
+    }
+
+    _Files.appendFileElement(this);
 }
 
 StructrImage.prototype.append = function(refNode) {
-    StructrModel.expand(_Images.appendImageElement(this, refNode), this);
+    var image = this;
+    if (image.parent) {
+        var parentFolder = StructrModel.obj(image.parent.id);
+        if (parentFolder) parentFolder.files.push(image);
+    }
+    if (images && images.length) {
+        StructrModel.expand(_Images.appendImageElement(this, parentFolder), this);
+    } else {
+        StructrModel.expand(_Files.appendFileElement(this, parentFolder || refNode), this);
+    }
 }
 
 

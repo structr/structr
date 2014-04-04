@@ -22,7 +22,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
@@ -75,6 +74,14 @@ public class SuperUserAuthenticator implements Authenticator {
 	@Override
 	public Class getUserClass() {
 		return null;
+	}
+
+	@Override
+	public void setUserAutoLogin(boolean userAutoLogin, Class userClass) {}
+
+	@Override
+	public boolean getUserAutoLogin() {
+		return false;
 	}
 	
 }

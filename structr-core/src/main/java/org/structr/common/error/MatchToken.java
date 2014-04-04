@@ -30,11 +30,13 @@ import org.structr.core.property.PropertyKey;
  */
 public class MatchToken extends SemanticErrorToken {
 
+	private Object value      = null;
 	private String expression = null;
 
-	public MatchToken(PropertyKey propertyKey, String expression) {
+	public MatchToken(PropertyKey propertyKey, Object value, String expression) {
 
 		super(propertyKey);
+		this.value      = value;
 		this.expression = expression;
 	}
 
@@ -43,6 +45,7 @@ public class MatchToken extends SemanticErrorToken {
 
 		JsonObject obj = new JsonObject();
 
+		obj.add("value",         new JsonPrimitive(value.toString()));
 		obj.add(getErrorToken(), new JsonPrimitive(expression));
 
 		return obj;

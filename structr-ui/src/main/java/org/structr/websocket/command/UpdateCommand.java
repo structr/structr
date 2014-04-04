@@ -32,8 +32,6 @@ import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.Permission;
-import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.web.entity.dom.relationship.DOMChildren;
 import org.structr.websocket.StructrWebSocket;
@@ -87,22 +85,15 @@ public class UpdateCommand extends AbstractCommand {
 
 		if (obj != null) {
 
-			final App app = StructrApp.getInstance(getWebSocket().getSecurityContext());
-			
 			try {
 
-				app.beginTx();
 				setProperties(obj, PropertyMap.inputTypeToJavaType(this.getWebSocket().getSecurityContext(), obj.getClass(), webSocketData.getNodeData()), rec);
-				app.commitTx();
 
 			} catch (FrameworkException ex) {
 
 				logger.log(Level.SEVERE, "Unable to set properties: {0}", ((FrameworkException) ex).toString());
 				getWebSocket().send(MessageBuilder.status().code(400).build(), true);
 
-			} finally {
-				
-				app.finishTx();
 			}
 
 		} else {

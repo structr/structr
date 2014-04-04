@@ -95,10 +95,10 @@ public class SecurityContext {
 		this.request    = request;
 
 		initRequestBasedCache(request);
-		
+
 		// check for custom view attributes
 		if (request != null) {
-			
+
 			try {
 				final String contentType = request.getContentType();
 				if (contentType != null && contentType.startsWith("application/json;")) {
@@ -111,16 +111,16 @@ public class SecurityContext {
 						final String properties = matcher.group(1);
 						final String[] parts    = properties.split("[,]+");
 						for (final String part : parts) {
-							
+
 							final String p = part.trim();
 							if (p.length() > 0) {
-								
+
 								customView.add(p);
 							}
 						}
 					}
 				}
-				
+
 			} catch (Throwable ignore) { }
 		}
 	}
@@ -133,42 +133,42 @@ public class SecurityContext {
 		if (request != null && request.getServletContext() != null) {
 			cache = (Map<Long, NodeInterface>)request.getServletContext().getAttribute("NODE_CACHE");
 		}
-		
+
 		if (cache == null) {
 
 			cache = new ConcurrentHashMap<>();
-			
+
 			if (request != null && request.getServletContext() != null) {
 				request.getServletContext().setAttribute("NODE_CACHE", cache);
 			}
 		}
 
 	}
-	
+
 	/**
 	 * Call this method after the request this context was
 	 * created for is finished and the resources can be freed.
 	 */
 	public void cleanUp() {
-		
+
 		if (cache != null) {
 			cache.clear();
 		}
 	}
-	
+
 	public NodeInterface lookup(final long id) {
 		return cache.get(id);
 	}
-	
+
 	public void store(final long id, final NodeInterface node) {
-		
+
 		Node dbNode = node.getNode();
 		if (dbNode != null) {
-			
+
 			cache.put(id, node);
 		}
 	}
-	
+
 	public static void clearResourceFlag(final String resource, long flag) {
 
 		String name     = SchemaHelper.normalizeEntityName(resource);
@@ -216,7 +216,7 @@ public class SecurityContext {
 	public static SecurityContext getSuperUserInstance(HttpServletRequest request) {
 		return new SuperUserSecurityContext(request);
 	}
-	
+
 	public static SecurityContext getSuperUserInstance() {
 		return new SuperUserSecurityContext();
 
@@ -248,25 +248,25 @@ public class SecurityContext {
 
 		// If we've got a user, return it! Easiest and fastest!!
 		if (cachedUser != null) {
-			
+
 			return cachedUser;
-			
+
 		}
-		
+
 		if (authenticator == null) {
-			
+
 			return null;
-			
+
 		}
-		
+
 		if (authenticator.hasExaminedRequest()) {
-			
+
 			// If the authenticator has already examined the request,
 			// we assume that we will not get new information.
 			// Otherwise, the cachedUser would have been != null
 			// and we would not land here.
 			return null;
-			
+
 		}
 
 		try {
@@ -362,15 +362,15 @@ public class SecurityContext {
 
 			return false;
 		}
-		
+
 		Principal owner = node.getOwnerNode();
-		
+
 		// owner is always allowed to do anything with its nodes
 		if (user.equals(node) || user.equals(owner) || user.getParents().contains(owner)) {
 
 			return true;
 		}
-		
+
 		boolean isAllowed = false;
 
 		switch (accessMode) {
@@ -437,7 +437,7 @@ public class SecurityContext {
 
 		// Ask for user only if node is visible for authenticated users
 		if (node.isVisibleToAuthenticatedUsers() && getUser(false) != null) {
-			
+
 			return true;
 		}
 
@@ -449,7 +449,7 @@ public class SecurityContext {
 
 		return false;
 	}
-	
+
 	// ----- private methods -----
 	private boolean isVisibleInBackend(AccessControllable node) {
 
@@ -489,11 +489,11 @@ public class SecurityContext {
 	 * request. This method should be used to explicetely check
 	 * visibility of the requested root element, like e.g. a page,
 	 * a partial or a file/image to download.
-	 * 
+	 *
 	 * It should *not* be used to check accessibility of child
 	 * nodes because it might send a 401 along with a request for
 	 * basic authentication.
-	 * 
+	 *
 	 * For those, use {@link SecurityContext#isReadable(org.structr.core.entity.AbstractNode, boolean, boolean)}
 	 *
 	 * @param node
@@ -514,7 +514,7 @@ public class SecurityContext {
 
 		// Fetch already logged-in user, if present (don't try to login)
 		Principal user = getUser(false);
-		
+
 		if (user != null) {
 
 			Principal owner = node.getOwnerNode();
@@ -524,7 +524,7 @@ public class SecurityContext {
 
 				return true;
 			}
-		
+
 		}
 
 		// Public nodes are visible to non-auth users only
@@ -541,7 +541,7 @@ public class SecurityContext {
 				return true;
 			}
 		}
-		
+
 		if (isAllowedInFrontend(node, Permission.read)) {
 
 			return true;
@@ -606,7 +606,7 @@ public class SecurityContext {
 	public Authenticator getAuthenticator() {
 		return authenticator;
 	}
-	
+
 	public void setAuthenticator(final Authenticator authenticator) {
 		this.authenticator = authenticator;
 	}
@@ -614,18 +614,18 @@ public class SecurityContext {
 	public boolean hasCustomView() {
 		return customView != null;
 	}
-	
+
 	public Set<String> getCustomView() {
 		return customView;
 	}
-	
+
 	// ----- nested classes -----
 	private static class SuperUserSecurityContext extends SecurityContext {
-		
+
 		public SuperUserSecurityContext(HttpServletRequest request) {
 			super(request);
 		}
-		
+
 		public SuperUserSecurityContext() {
 		}
 
@@ -654,10 +654,10 @@ public class SecurityContext {
 
 		@Override
 		public boolean isReadable(final NodeInterface node, final boolean includeDeletedAndHidden, final boolean publicOnly) {
-		
+
 			return true;
 		}
-		
+
 		@Override
 		public boolean isAllowed(AccessControllable node, Permission permission) {
 
@@ -678,7 +678,7 @@ public class SecurityContext {
 			return true;
 
 		}
-		
+
 	}
 
 }

@@ -35,29 +35,21 @@
 *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 package org.structr.common;
 
 import org.structr.core.property.PropertyKey;
-
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.TestOne;
-
-//~--- JDK imports ------------------------------------------------------------
-
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertTrue;
-import static junit.framework.Assert.fail;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.Tx;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -83,7 +75,7 @@ public class SortingTest extends StructrTest {
 
 	public void test01SortByName() {
 
-		try {
+		try  {
 
 			Class type                      = TestOne.class;
 			int number                      = 4; // no more than 89 to avoid sort order TestOne-10, TestOne-100 ...
@@ -92,8 +84,8 @@ public class SortingTest extends StructrTest {
 
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
 
-			try {
-				app.beginTx();
+			try (final Tx tx = app.tx()) {
+				
 				int i = offset;
 				String name;
 
@@ -108,37 +100,37 @@ public class SortingTest extends StructrTest {
 					node.setProperty(AbstractNode.name, name);
 
 				}
-				app.commitTx();
-
-			} finally {
-
-				app.finishTx();
+				
+				tx.success();
 			}
 
-			Result result = app.nodeQuery(type).getResult();
+			try (final Tx tx = app.tx()) {
+				
+				Result result = app.nodeQuery(type).getResult();
 
-			assertEquals(number, result.size());
+				assertEquals(number, result.size());
 
-			PropertyKey sortKey = AbstractNode.name;
-			boolean sortDesc    = false;
-			int pageSize        = 10;
-			int page            = 1;
+				PropertyKey sortKey = AbstractNode.name;
+				boolean sortDesc    = false;
+				int pageSize        = 10;
+				int page            = 1;
 
-			result = app.nodeQuery(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getResult();
+				result = app.nodeQuery(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getResult();
 
-			logger.log(Level.INFO, "Raw result size: {0}, expected: {1}", new Object[] { result.getRawResultCount(), number });
-			assertEquals(number, (int) result.getRawResultCount());
-			logger.log(Level.INFO, "Result size: {0}, expected: {1}", new Object[] { result.size(), Math.min(number, pageSize) });
-			assertEquals(Math.min(number, pageSize), result.size());
+				logger.log(Level.INFO, "Raw result size: {0}, expected: {1}", new Object[] { result.getRawResultCount(), number });
+				assertEquals(number, (int) result.getRawResultCount());
+				logger.log(Level.INFO, "Result size: {0}, expected: {1}", new Object[] { result.size(), Math.min(number, pageSize) });
+				assertEquals(Math.min(number, pageSize), result.size());
 
-			for (int j = 0; j < Math.min(result.size(), pageSize); j++) {
+				for (int j = 0; j < Math.min(result.size(), pageSize); j++) {
 
-				String expectedName = "TestOne-" + (offset + j);
-				String gotName     = result.get(j).getProperty(AbstractNode.name);
+					String expectedName = "TestOne-" + (offset + j);
+					String gotName     = result.get(j).getProperty(AbstractNode.name);
 
-				System.out.println(expectedName + ", got: " + gotName);
-				assertEquals(expectedName, gotName);
+					System.out.println(expectedName + ", got: " + gotName);
+					assertEquals(expectedName, gotName);
 
+				}
 			}
 
 		} catch (FrameworkException ex) {
@@ -161,8 +153,8 @@ public class SortingTest extends StructrTest {
 
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
 
-			try {
-				app.beginTx();
+			try (final Tx tx = app.tx()) {
+				
 				int i = offset;
 				String name;
 
@@ -175,42 +167,41 @@ public class SortingTest extends StructrTest {
 					node.setProperty(AbstractNode.name, name);
 
 				}
-				app.commitTx();
-
-			} finally {
-
-				app.finishTx();
+				tx.success();
 			}
 
-			Result result = app.nodeQuery(type).getResult();
+			try (final Tx tx = app.tx()) {
+				
+				Result result = app.nodeQuery(type).getResult();
 
-			assertEquals(number, result.size());
+				assertEquals(number, result.size());
 
-			PropertyKey sortKey = AbstractNode.name;
-			boolean sortDesc    = true;
-			int pageSize        = 10;
-			int page            = 1;
+				PropertyKey sortKey = AbstractNode.name;
+				boolean sortDesc    = true;
+				int pageSize        = 10;
+				int page            = 1;
 
-			result = app.nodeQuery(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getResult();
+				result = app.nodeQuery(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getResult();
 
-//                      for (GraphObject obj : result.getResults()) {
-//                              
-//                              System.out.println(obj.getProperty(AbstractNode.name));
-//                              
-//                      }
-			logger.log(Level.INFO, "Raw result size: {0}, expected: {1}", new Object[] { result.getRawResultCount(), number });
-			assertTrue(result.getRawResultCount() == number);
-			logger.log(Level.INFO, "Result size: {0}, expected: {1}", new Object[] { result.size(), Math.min(number, pageSize) });
-			assertTrue(result.size() == Math.min(number, pageSize));
+	//                      for (GraphObject obj : result.getResults()) {
+	//                              
+	//                              System.out.println(obj.getProperty(AbstractNode.name));
+	//                              
+	//                      }
+				logger.log(Level.INFO, "Raw result size: {0}, expected: {1}", new Object[] { result.getRawResultCount(), number });
+				assertTrue(result.getRawResultCount() == number);
+				logger.log(Level.INFO, "Result size: {0}, expected: {1}", new Object[] { result.size(), Math.min(number, pageSize) });
+				assertTrue(result.size() == Math.min(number, pageSize));
 
-			for (int j = 0; j < Math.min(result.size(), pageSize); j++) {
+				for (int j = 0; j < Math.min(result.size(), pageSize); j++) {
 
-				int expectedNumber = number + offset - 1 - j;
-				String gotName     = result.get(j).getProperty(AbstractNode.name);
+					int expectedNumber = number + offset - 1 - j;
+					String gotName     = result.get(j).getProperty(AbstractNode.name);
 
-				System.out.println(expectedNumber + ", got: " + gotName);
-				assertEquals(Integer.toString(expectedNumber), gotName);
+					System.out.println(expectedNumber + ", got: " + gotName);
+					assertEquals(Integer.toString(expectedNumber), gotName);
 
+				}
 			}
 
 		} catch (FrameworkException ex) {
@@ -233,8 +224,8 @@ public class SortingTest extends StructrTest {
 
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
 
-			try {
-				app.beginTx();
+			try (final Tx tx = app.tx()) {
+				
 				int i = offset;
 				String name;
 
@@ -252,41 +243,40 @@ public class SortingTest extends StructrTest {
 					try { Thread.sleep(2); } catch (Throwable t) {}
 
 				}
-				app.commitTx();
-
-			} finally {
-
-				app.finishTx();
+				tx.success();
 			}
 
-			Result result = app.nodeQuery(type).getResult();
+			try (final Tx tx = app.tx()) {
+				
+				Result result = app.nodeQuery(type).getResult();
 
-			assertEquals(number, result.size());
+				assertEquals(number, result.size());
 
-			PropertyKey sortKey = TestOne.aDate;
-			boolean sortDesc    = false;
-			int pageSize        = 10;
-			int page            = 1;
+				PropertyKey sortKey = TestOne.aDate;
+				boolean sortDesc    = false;
+				int pageSize        = 10;
+				int page            = 1;
 
-			result = app.nodeQuery(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getResult();
+				result = app.nodeQuery(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getResult();
 
-//                      for (GraphObject obj : result.getResults()) {
-//
-//                              System.out.println(obj.getProperty(AbstractNode.name) + ", " + obj.getProperty(TestOne.Key.aDate.name()));
-//                      }
-			logger.log(Level.INFO, "Raw result size: {0}, expected: {1}", new Object[] { result.getRawResultCount(), number });
-			assertTrue(result.getRawResultCount() == number);
-			logger.log(Level.INFO, "Result size: {0}, expected: {1}", new Object[] { result.size(), pageSize });
-			assertTrue(result.size() == Math.min(number, pageSize));
+	//                      for (GraphObject obj : result.getResults()) {
+	//
+	//                              System.out.println(obj.getProperty(AbstractNode.name) + ", " + obj.getProperty(TestOne.Key.aDate.name()));
+	//                      }
+				logger.log(Level.INFO, "Raw result size: {0}, expected: {1}", new Object[] { result.getRawResultCount(), number });
+				assertTrue(result.getRawResultCount() == number);
+				logger.log(Level.INFO, "Result size: {0}, expected: {1}", new Object[] { result.size(), pageSize });
+				assertTrue(result.size() == Math.min(number, pageSize));
 
-			for (int j = 0; j < Math.min(result.size(), pageSize); j++) {
+				for (int j = 0; j < Math.min(result.size(), pageSize); j++) {
 
-				String expectedName = "TestOne-" + (offset + j);
-				String gotName     = result.get(j).getProperty(AbstractNode.name);
+					String expectedName = "TestOne-" + (offset + j);
+					String gotName     = result.get(j).getProperty(AbstractNode.name);
 
-				System.out.println(expectedName + ", got: " + gotName);
-				assertEquals(expectedName, gotName);
+					System.out.println(expectedName + ", got: " + gotName);
+					assertEquals(expectedName, gotName);
 
+				}
 			}
 
 		} catch (FrameworkException ex) {
@@ -309,8 +299,8 @@ public class SortingTest extends StructrTest {
 
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
 
-			try {
-				app.beginTx();
+			try (final Tx tx = app.tx()) {
+				
 				int i = offset;
 				String name;
 
@@ -325,37 +315,36 @@ public class SortingTest extends StructrTest {
 					// slow down execution speed to make sure distinct changes fall in different milliseconds
 					try { Thread.sleep(2); } catch (Throwable t) {}
 				}
-				app.commitTx();
-
-			} finally {
-
-				app.finishTx();
+				tx.success();
 			}
 
-			Result result = app.nodeQuery(type).getResult();
+			try (final Tx tx = app.tx()) {
+				
+				Result result = app.nodeQuery(type).getResult();
 
-			assertEquals(number, result.size());
+				assertEquals(number, result.size());
 
-			PropertyKey sortKey = AbstractNode.lastModifiedDate;
-			boolean sortDesc    = true;
-			int pageSize        = 10;
-			int page            = 1;
+				PropertyKey sortKey = AbstractNode.lastModifiedDate;
+				boolean sortDesc    = true;
+				int pageSize        = 10;
+				int page            = 1;
 
-			result = app.nodeQuery(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getResult();
+				result = app.nodeQuery(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getResult();
 
-			logger.log(Level.INFO, "Raw result size: {0}, expected: {1}", new Object[] { result.getRawResultCount(), number });
-			assertTrue(result.getRawResultCount() == number);
-			logger.log(Level.INFO, "Result size: {0}, expected: {1}", new Object[] { result.size(), pageSize });
-			assertTrue(result.size() == Math.min(number, pageSize));
+				logger.log(Level.INFO, "Raw result size: {0}, expected: {1}", new Object[] { result.getRawResultCount(), number });
+				assertTrue(result.getRawResultCount() == number);
+				logger.log(Level.INFO, "Result size: {0}, expected: {1}", new Object[] { result.size(), pageSize });
+				assertTrue(result.size() == Math.min(number, pageSize));
 
-			for (int j = 0; j < pageSize; j++) {
+				for (int j = 0; j < pageSize; j++) {
 
-				int expectedNumber = number + offset - 1 - j;
-				String gotName     = result.get(j).getProperty(AbstractNode.name);
+					int expectedNumber = number + offset - 1 - j;
+					String gotName     = result.get(j).getProperty(AbstractNode.name);
 
-				System.out.println(expectedNumber + ", got: " + gotName);
-				assertEquals(Integer.toString(expectedNumber), gotName);
+					System.out.println(expectedNumber + ", got: " + gotName);
+					assertEquals(Integer.toString(expectedNumber), gotName);
 
+				}
 			}
 
 		} catch (FrameworkException ex) {
@@ -379,9 +368,8 @@ public class SortingTest extends StructrTest {
 
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
 
-			try {
-				app.beginTx();
-
+			try (final Tx tx = app.tx()) {
+				
 				int i = offset;
 
 				for (NodeInterface node : nodes) {
@@ -391,42 +379,40 @@ public class SortingTest extends StructrTest {
 
 					i++;
 				}
-				app.commitTx();
-
-			} finally {
-
-				app.finishTx();
+				tx.success();
 			}
 
+			try (final Tx tx = app.tx()) {
+				
+				Result result = app.nodeQuery(type).getResult();
 
-			Result result = app.nodeQuery(type).getResult();
+				assertEquals(number, result.size());
 
-			assertEquals(number, result.size());
+				PropertyKey sortKey = key;
+				boolean sortDesc    = false;
+				int pageSize        = 5;
+				int page            = 1;
 
-			PropertyKey sortKey = key;
-			boolean sortDesc    = false;
-			int pageSize        = 5;
-			int page            = 1;
+				result = app.nodeQuery(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getResult();
 
-			result = app.nodeQuery(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getResult();
+	//                      for (GraphObject obj : result.getResults()) {
+	//
+	//                              System.out.println(obj.getProperty(AbstractNode.name) + ": " + obj.getProperty(key));
+	//                      }
+				logger.log(Level.INFO, "Raw result size: {0}, expected: {1}", new Object[] { result.getRawResultCount(), number });
+				assertTrue(result.getRawResultCount() == number);
+				logger.log(Level.INFO, "Result size: {0}, expected: {1}", new Object[] { result.size(), pageSize });
+				assertTrue(result.size() == Math.min(number, pageSize));
 
-//                      for (GraphObject obj : result.getResults()) {
-//
-//                              System.out.println(obj.getProperty(AbstractNode.name) + ": " + obj.getProperty(key));
-//                      }
-			logger.log(Level.INFO, "Raw result size: {0}, expected: {1}", new Object[] { result.getRawResultCount(), number });
-			assertTrue(result.getRawResultCount() == number);
-			logger.log(Level.INFO, "Result size: {0}, expected: {1}", new Object[] { result.size(), pageSize });
-			assertTrue(result.size() == Math.min(number, pageSize));
+				for (int j = 0; j < pageSize; j++) {
 
-			for (int j = 0; j < pageSize; j++) {
+					int expectedNumber = offset + j;
+					int gotNumber      = (Integer) result.get(j).getProperty(key);
 
-				int expectedNumber = offset + j;
-				int gotNumber      = (Integer) result.get(j).getProperty(key);
+					System.out.println("expected: " + expectedNumber + ", got: " + gotNumber);
+					assertEquals(expectedNumber, gotNumber);
 
-				System.out.println("expected: " + expectedNumber + ", got: " + gotNumber);
-				assertEquals(expectedNumber, gotNumber);
-
+				}
 			}
 
 		} catch (FrameworkException ex) {
@@ -452,8 +438,8 @@ public class SortingTest extends StructrTest {
 			int i = offset;
 			String name;
 
-			try {
-				app.beginTx();
+			try (final Tx tx = app.tx()) {
+				
 				for (NodeInterface node : nodes) {
 
 					name = Integer.toString(i);
@@ -475,37 +461,36 @@ public class SortingTest extends StructrTest {
 
 				}
 
-				app.commitTx();
-
-			} finally {
-
-				app.finishTx();
+				tx.success();
 			}
 
-			Result result = app.nodeQuery(type).getResult();
+			try (final Tx tx = app.tx()) {
+				
+				Result result = app.nodeQuery(type).getResult();
 
-			assertEquals(number, result.size());
+				assertEquals(number, result.size());
 
-			PropertyKey sortKey = TestOne.aDate;
-			boolean sortDesc    = true;
-			int pageSize        = 10;
-			int page            = 1;
+				PropertyKey sortKey = TestOne.aDate;
+				boolean sortDesc    = true;
+				int pageSize        = 10;
+				int page            = 1;
 
-			result = app.nodeQuery(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getResult();
+				result = app.nodeQuery(type).sort(sortKey).order(sortDesc).page(page).pageSize(pageSize).getResult();
 
-			logger.log(Level.INFO, "Raw result size: {0}, expected: {1}", new Object[] { result.getRawResultCount(), number });
-			assertTrue(result.getRawResultCount() == number);
-			logger.log(Level.INFO, "Result size: {0}, expected: {1}", new Object[] { result.size(), pageSize });
-			assertTrue(result.size() == Math.min(number, pageSize));
+				logger.log(Level.INFO, "Raw result size: {0}, expected: {1}", new Object[] { result.getRawResultCount(), number });
+				assertTrue(result.getRawResultCount() == number);
+				logger.log(Level.INFO, "Result size: {0}, expected: {1}", new Object[] { result.size(), pageSize });
+				assertTrue(result.size() == Math.min(number, pageSize));
 
-			for (int j = 0; j < Math.min(result.size(), pageSize); j++) {
+				for (int j = 0; j < Math.min(result.size(), pageSize); j++) {
 
-				String expectedName = "TestOne-" + (30 - (j+1)*2);
-				String gotName     = result.get(j).getProperty(AbstractNode.name);
+					String expectedName = "TestOne-" + (30 - (j+1)*2);
+					String gotName     = result.get(j).getProperty(AbstractNode.name);
 
-				System.out.println(j + ": " +  expectedName + ", got: " + gotName);
-				assertEquals(expectedName, gotName);
+					System.out.println(j + ": " +  expectedName + ", got: " + gotName);
+					assertEquals(expectedName, gotName);
 
+				}
 			}
 
 		} catch (FrameworkException ex) {

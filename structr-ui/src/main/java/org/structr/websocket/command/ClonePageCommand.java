@@ -34,7 +34,6 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.GraphObject;
-import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.LongProperty;
@@ -66,7 +65,6 @@ public class ClonePageCommand extends AbstractCommand {
 	public void processMessage(WebSocketMessage webSocketData) {
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
-		final App app = StructrApp.getInstance(securityContext);
 
 		// Node to wrap
 		String nodeId                      = webSocketData.getId();
@@ -85,8 +83,6 @@ public class ClonePageCommand extends AbstractCommand {
 		if (nodeToClone != null) {
 
 			try {
-
-				app.beginTx();
 				
 				Page newPage = (Page) StructrApp.getInstance(securityContext).command(
 						       CreateNodeCommand.class).execute(new NodeAttribute(AbstractNode.type, Page.class.getSimpleName()),
@@ -136,16 +132,11 @@ public class ClonePageCommand extends AbstractCommand {
 					getWebSocket().send(MessageBuilder.status().code(404).build(), true);
 				}
 				
-				app.commitTx();
-
 			} catch (FrameworkException fex) {
 
 				logger.log(Level.WARNING, "Could not create node.", fex);
 				getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
 
-			} finally {
-				
-				app.finishTx();
 			}
 
 		} else {

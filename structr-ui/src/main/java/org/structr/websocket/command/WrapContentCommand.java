@@ -18,16 +18,7 @@
  */
 package org.structr.websocket.command;
 
-import org.structr.websocket.command.dom.*;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
-import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
-import org.structr.core.graph.StructrTransaction;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
@@ -52,7 +43,6 @@ public class WrapContentCommand extends AbstractCommand {
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
-		final App app                      = StructrApp.getInstance(getWebSocket().getSecurityContext());
 		final Map<String, Object> nodeData = webSocketData.getNodeData();
 		final String parentId              = (String) nodeData.get("parentId");
 		final String pageId                = webSocketData.getPageId();
@@ -87,8 +77,6 @@ public class WrapContentCommand extends AbstractCommand {
 				
 				try {
 
-					app.beginTx();
-					
 					DOMNode elementNode = null;
 					if (tagName != null && !tagName.isEmpty()) {
 
@@ -110,21 +98,12 @@ public class WrapContentCommand extends AbstractCommand {
 						elementNode.appendChild(contentNode);
 
 					}
-					
-					app.commitTx();
 
 				} catch (DOMException dex) {
 						
 					// send DOM exception
 					getWebSocket().send(MessageBuilder.status().code(422).message(dex.getMessage()).build(), true);		
 					
-				} catch (FrameworkException ex) {
-					
-					Logger.getLogger(CreateAndAppendDOMNodeCommand.class.getName()).log(Level.SEVERE, null, ex);
-					
-				} finally {
-					
-					app.finishTx();
 				}
 				
 			} else {

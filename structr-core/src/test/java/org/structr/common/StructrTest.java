@@ -41,14 +41,18 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.GenericNode;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.Tx;
 import org.structr.core.log.ReadLogCommand;
 import org.structr.core.log.WriteLogCommand;
 import org.structr.module.JarConfigurationProvider;
@@ -76,12 +80,16 @@ public class StructrTest extends TestCase {
 	protected App app                             =  null;
 
 	//~--- methods --------------------------------------------------------
-
+	
 	public void test00DbAvailable() {
 
 		GraphDatabaseService graphDb = graphDbCommand.execute();
 
 		assertTrue(graphDb != null);
+
+		System.out.println("\n######################################################################################");
+		System.out.println("######                           Executing Test "+ getClass().getSimpleName());
+		System.out.println("######################################################################################");
 	}
 
 	@Override
@@ -145,12 +153,11 @@ public class StructrTest extends TestCase {
 
 	}
 
-	protected List<NodeInterface> createTestNodes(final Class type, final int number, final long delay) throws FrameworkException {
+	protected <T extends AbstractNode> List<T> createTestNodes(final Class<T> type, final int number, final long delay) throws FrameworkException {
+		
+		try (final Tx tx = app.tx()) {
 
-		try {
-			app.beginTx();
-
-			List<NodeInterface> nodes = new LinkedList<>();
+			List<T> nodes = new LinkedList<>();
 
 			for (int i = 0; i < number; i++) {
 
@@ -161,23 +168,19 @@ public class StructrTest extends TestCase {
 				} catch (InterruptedException ex) {}
 			}
 
-			app.commitTx();
+			tx.success();
 
 			return nodes;
 
 		} catch (Throwable t) {
 			
 			t.printStackTrace();
-			
-		} finally {
-
-			app.finishTx();
 		}
 		
 		return null;
 	}
 
-	protected List<NodeInterface> createTestNodes(final Class type, final int number) throws FrameworkException {
+	protected <T extends AbstractNode> List<T> createTestNodes(final Class<T> type, final int number) throws FrameworkException {
 		
 		return createTestNodes(type, number, 0);
 
@@ -191,30 +194,24 @@ public class StructrTest extends TestCase {
 
 		props.put(AbstractNode.type, type.getSimpleName());
 
-		try {
-			app.beginTx();
+		try (final Tx tx = app.tx()) {
 
 			final T newNode = app.create(type, props);
 
-			app.commitTx();
+			tx.success();
 		
 			return newNode;
-
-		} finally {
-
-			app.finishTx();
 		}
 
 	}
 
 	protected <T extends Relation> List<T> createTestRelationships(final Class<T> relType, final int number) throws FrameworkException {
 
-		List<NodeInterface> nodes     = createTestNodes(GenericNode.class, 2);
+		List<GenericNode> nodes     = createTestNodes(GenericNode.class, 2);
 		final NodeInterface startNode = nodes.get(0);
 		final NodeInterface endNode   = nodes.get(1);
 
-		try {
-			app.beginTx();
+		try (final Tx tx = app.tx()) {
 
 			List<T> rels = new LinkedList<>();
 
@@ -223,31 +220,22 @@ public class StructrTest extends TestCase {
 				rels.add((T)app.create(startNode, endNode, relType));
 			}
 
-			app.commitTx();
+			tx.success();
 
 			return rels;
-
-		} finally {
-
-			app.finishTx();
 		}
 
 	}
 
 	protected <T extends Relation> T createTestRelationship(final AbstractNode startNode, final AbstractNode endNode, final Class<T> relType) throws FrameworkException {
 
-		try {
-			app.beginTx();
+		try (final Tx tx = app.tx()) {
 
 			final T rel = (T)app.create(startNode, endNode, relType);
 
-			app.commitTx();
+			tx.success();
 
 			return rel;
-
-		} finally {
-
-			app.finishTx();
 		}
 	}
 
@@ -262,6 +250,32 @@ public class StructrTest extends TestCase {
 
 	protected <T> List<T> toList(T... elements) {
 		return Arrays.asList(elements);
+	}
+	
+	protected Map<String, Object> toMap(final String key1, final Object value1) {
+		return toMap(key1, value1, null, null);
+	}
+	
+	protected Map<String, Object> toMap(final String key1, final Object value1, final String key2, final Object value2) {
+		return toMap(key1, value1, key2, value2, null, null);
+	}
+	protected Map<String, Object> toMap(final String key1, final Object value1, final String key2, final Object value2, final String key3, final Object value3) {
+		
+		final Map<String, Object> map = new LinkedHashMap<>();
+		
+		if (key1 != null && value1 != null) {
+			map.put(key1, value1);
+		}
+		
+		if (key2 != null && value2 != null) {
+			map.put(key2, value2);
+		}
+		
+		if (key3 != null && value3 != null) {
+			map.put(key3, value3);
+		}
+		
+		return map;
 	}
 	
 	//~--- get methods ----------------------------------------------------

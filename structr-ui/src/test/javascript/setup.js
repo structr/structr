@@ -40,7 +40,7 @@ var mouseSteps = 20;
 /**
  * Recording interval in ms
  */
-var recordingInterval = 50;
+var recordingInterval = 100;
 
 /**
  * Length of animation images filenames (f.e. 0023.png)
@@ -62,7 +62,7 @@ exports.baseUrl = 'http://localhost:8875/';
  * 
  * Use png, gif, or jpg
  */
-exports.imageType = 'jpg';
+exports.imageType = 'png';
 
 /**
  * Base directory for docs
@@ -410,7 +410,7 @@ exports.animateHtml = function(testName, heading, sections) {
         html += '<section>' + s + '</section>';
     });
 
-    html += '<img width="' + w + '" height="' + h + '" id="anim"><script type="text/javascript">'
+    html += '<img width="' + w + '" height="' + h + '" id="anim"><script>'
 
     html += '\n'
             + 'var t; var anim = document.getElementById("anim");\n'

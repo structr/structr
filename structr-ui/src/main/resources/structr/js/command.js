@@ -68,11 +68,12 @@ var Command = {
      * 
      * The optional callback function will be executed for each node in the result set.
      */
-    list: function(type, pageSize, page, sort, order, callback) {
+    list: function(type, rootOnly, pageSize, page, sort, order, callback) {
         var obj = {};
         obj.command = 'LIST';
         var data = {};
         data.type = type;
+        data.rootOnly = rootOnly;
         obj.pageSize = pageSize;
         obj.page = page;
         obj.sort = sort;
@@ -258,6 +259,22 @@ var Command = {
         return sendObj(obj);
     },
     /**
+     * Send an UNARCHIVE command to the server.
+     * 
+     * The server will unarchive the file with the given id
+     * and create files for each archive entry.
+     * 
+     */
+    unarchive: function(id) {
+        var obj = {};
+        obj.command = 'UNARCHIVE';
+        obj.id = id;
+        var data = {};
+        obj.data = data;
+        log('unarchive()', obj);
+        return sendObj(obj);
+    },
+    /**
      * Send an APPEND_USER command to the server.
      * 
      * The server will append the user node with the given id
@@ -322,6 +339,23 @@ var Command = {
         }
         obj.data = data;
         log('appendWidget()', obj);
+        return sendObj(obj, callback);
+    },
+    /**
+     * Send a SAVE_PAGE command to the server.
+     * 
+     * The server will modify the existing page based on the differences
+     * to the original page.
+     * 
+     */
+    savePage: function(source, id, callback) {
+        var obj = {};
+        obj.command = 'SAVE_PAGE';
+        obj.id = id;
+        var data = {};
+        data.source = source;
+        obj.data = data;
+        log('savePage()', obj);
         return sendObj(obj, callback);
     },
     /**
@@ -660,7 +694,7 @@ var Command = {
      * 
      * The server gives no feedback on a CHUNK command.
      */
-    chunk: function(id, chunkId, chunkSize, chunk) {
+    chunk: function(id, chunkId, chunkSize, chunk, chunks) {
         var obj = {};
         obj.command = 'CHUNK';
         obj.id = id;
@@ -668,6 +702,7 @@ var Command = {
         data.chunkId = chunkId;
         data.chunkSize = chunkSize;
         data.chunk = chunk;
+        data.chunks = chunks;
         obj.data = data;
         log('chunk()', obj);
         return sendObj(obj);
