@@ -53,6 +53,8 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.property.RelationProperty;
 import org.structr.core.property.StartNodes;
 import org.structr.core.property.StringProperty;
+import org.structr.files.ftp.AbstractStructrFtpFile;
+import org.structr.files.ftp.StructrFtpFile;
 import org.structr.schema.SchemaHelper;
 import org.structr.web.Importer;
 import org.structr.web.common.RenderContext;
@@ -953,8 +955,34 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	}
 
 	@Override
-	public boolean move(FtpFile destination) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+	public boolean move(FtpFile target) {
+		try (Tx tx = StructrApp.getInstance().tx()) {
+
+			logger.log(Level.INFO, "move()");
+
+			final AbstractStructrFtpFile targetFile = (AbstractStructrFtpFile) target;
+			final String path = targetFile instanceof StructrFtpFile ? "/" : targetFile.getAbsolutePath();
+
+			try {
+
+				if (!("/".equals(path))) {
+					final String newName = path.contains("/") ? StringUtils.substringAfterLast(path, "/") : path;
+					setProperty(AbstractNode.name, newName);
+				}
+
+			} catch (FrameworkException ex) {
+				logger.log(Level.SEVERE, "Could not move ftp file", ex);
+				return false;
+			}
+
+			tx.success();
+
+			return true;
+		} catch (FrameworkException ex) {
+			logger.log(Level.SEVERE, null, ex);
+		}
+
+		return false;
 	}
 
 	@Override
@@ -991,9 +1019,9 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 					}
 
 					app.delete(modifiedPage);
-					
+
 					tx.success();
-					
+
 				} catch (FrameworkException fex) {
 					fex.printStackTrace();
 				}

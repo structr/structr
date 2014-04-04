@@ -75,10 +75,18 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 	@Override
 	public String getName() {
 		try (Tx tx = StructrApp.getInstance().tx()) {
-			String name = structrFile != null ? structrFile.getProperty(File.name)
-				: (newPath.contains("/") ? StringUtils.substringAfterLast(newPath, "/") : newPath);
+
+			String name = null;
+			if (!("/").equals(newPath)) {
+				name = newPath.contains("/") ? StringUtils.substringAfterLast(newPath, "/") : newPath;
+			} else {
+				if (structrFile != null) {
+					name = structrFile.getProperty(File.name);
+				}
+			}
 
 			return name == null ? structrFile.getUuid() : name;
+
 		} catch (FrameworkException fex) {
 			logger.log(Level.SEVERE, "Error in getName() of abstract ftp file", fex);
 		}
@@ -194,7 +202,7 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 
 	@Override
 	public boolean move(final FtpFile target) {
-		
+
 		try (Tx tx = StructrApp.getInstance().tx()) {
 
 			logger.log(Level.INFO, "move()");
@@ -233,12 +241,12 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 			}
 
 			tx.success();
-			
+
 			return true;
 		} catch (FrameworkException ex) {
 			logger.log(Level.SEVERE, null, ex);
 		}
-		
+
 		return false;
 	}
 

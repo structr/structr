@@ -105,7 +105,7 @@ public class FileOrFolder extends AbstractStructrFtpFile {
 			}
 
 			tx.success();
-			
+
 			return true;
 
 		} catch (FrameworkException ex) {
@@ -123,28 +123,37 @@ public class FileOrFolder extends AbstractStructrFtpFile {
 	@Override
 	public OutputStream createOutputStream(final long l) throws IOException {
 
-		if (structrFile == null) {
+		try (Tx tx = StructrApp.getInstance().tx()) {
 
-			final Folder parentFolder = (Folder) FileHelper.getFileByAbsolutePath(StringUtils.substringBeforeLast(newPath, "/"));
-			final App app = StructrApp.getInstance();
+			if (structrFile == null) {
 
-			try {
-				structrFile = FileHelper.createFile(SecurityContext.getSuperUserInstance(), new byte[0], null, File.class);
-				structrFile.setProperty(AbstractNode.type, File.class.getSimpleName());
-				structrFile.setProperty(AbstractNode.owner, owner.getStructrUser());
-				structrFile.setProperty(AbstractNode.name, getName());
+				final Folder parentFolder = (Folder) FileHelper.getFileByAbsolutePath(StringUtils.substringBeforeLast(newPath, "/"));
+				final App app = StructrApp.getInstance();
 
-				if (parentFolder != null) {
-					structrFile.setProperty(AbstractFile.parent, parentFolder);
+				try {
+					structrFile = FileHelper.createFile(SecurityContext.getSuperUserInstance(), new byte[0], null, File.class);
+					structrFile.setProperty(AbstractNode.type, File.class.getSimpleName());
+					structrFile.setProperty(AbstractNode.owner, owner.getStructrUser());
+					structrFile.setProperty(AbstractNode.name, getName());
+
+					if (parentFolder != null) {
+						structrFile.setProperty(AbstractFile.parent, parentFolder);
+					}
+
+				} catch (FrameworkException ex) {
+					logger.log(Level.SEVERE, null, ex);
+					return null;
 				}
-
-			} catch (FrameworkException ex) {
-				logger.log(Level.SEVERE, null, ex);
-				return null;
 			}
+
+			tx.success();
+
+			return ((File) structrFile).getOutputStream();
+
+		} catch (FrameworkException fex) {
 		}
 
-		return ((File) structrFile).getOutputStream();
+		return null;
 	}
 
 	@Override
