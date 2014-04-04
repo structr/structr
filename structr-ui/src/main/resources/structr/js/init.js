@@ -251,9 +251,6 @@ var Structr = {
     reconnect: function() {
 
         log('activating reconnect loop');
-        
-        localStorage.removeItem(userKey);
-        user = undefined;
         reconn = window.setInterval(function() {
             connect();
         }, 1000);
