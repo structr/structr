@@ -1196,12 +1196,12 @@ var _Crud = {
             var newValue = input.val();
             _Crud.crudUpdate(id, key, newValue);
         });
-        input.keypress(function(e) {
-            if (e.keyCode === 13) {
-                var newValue = input.val();
-                _Crud.crudUpdate(id, key, newValue);
-            }
-        });
+//        input.keypress(function(e) {
+//            if (e.keyCode === 13) {
+//                var newValue = input.val();
+//                _Crud.crudUpdate(id, key, newValue);
+//            }
+//        });
     },
     row: function(id) {
         return $('#_' + id);
@@ -1294,8 +1294,14 @@ var _Crud = {
                         var self = $(this);
                         var oldValue = self.text();
                         self.off('mouseup');
-                        self.html('<input class="value" type="text" size="40">');
-                        var input = $('input', self);
+                        var input;
+                        if (propertyType === 'String') {
+                            self.html('<textarea class="value" cols="40" rows="4"></textare>');
+                            input = $('textarea', self);
+                        } else {
+                            self.html('<input class="value" type="text" size="10">');
+                            input = $('input', self);
+                        }
                         input.val(oldValue);
                         _Crud.activateTextInputField(input, id, key);
                     });
