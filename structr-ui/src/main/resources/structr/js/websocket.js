@@ -128,22 +128,23 @@ function connect() {
             if (command === 'LOGIN' || code === 100) { /*********************** LOGIN or repsonse to PING ************************/
 
                 user = data.data.username;
+                
+                log(command, code, user, localStorage.getItem(userKey));
 
-                if (!sessionValid) {                    
+                if (!sessionValid) {
                     localStorage.removeItem(userKey);
                     Structr.clearMain();
                     Structr.login();
                 }
 
                 if (sessionValid) {
-
+                    
                     var oldUser = localStorage.getItem(userKey);
 
                     // user has changed - refresh UI
                     if (!oldUser || (oldUser && (oldUser !== user))) {
-
-                        console.log('########### UI Refresh, user has changed! #########', oldUser, user);
-                        alert('User has changed, refreshing UI');
+                        
+                        log(command, code, oldUser, user);
 
                         Structr.clearMain();
                         localStorage.setItem(userKey, user);
