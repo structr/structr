@@ -166,7 +166,6 @@ var _Elements = {
             drop: function(e, ui) {
                 e.preventDefault();
                 e.stopPropagation();
-                dropBlocked = true;
                 return false;
             }
         });
