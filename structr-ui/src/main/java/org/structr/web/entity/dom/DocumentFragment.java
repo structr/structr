@@ -33,7 +33,7 @@ import org.w3c.dom.NodeList;
  */
 
 public class DocumentFragment extends DOMNode implements org.w3c.dom.DocumentFragment {
-	
+
 	// ----- interface org.w3c.dom.Node -----
 	@Override
 	public String getLocalName() {
@@ -63,7 +63,7 @@ public class DocumentFragment extends DOMNode implements org.w3c.dom.DocumentFra
 	public NamedNodeMap getAttributes() {
 		return null;
 	}
-	
+
 	@Override
 	public boolean hasAttributes() {
 		return false;
@@ -73,39 +73,44 @@ public class DocumentFragment extends DOMNode implements org.w3c.dom.DocumentFra
 	public boolean contentEquals(DOMNode otherNode) {
 		return false;
 	}
-	
+
 	@Override
 	public void updateFrom(final DOMNode source) throws FrameworkException {
 		// do nothing
 	}
 
+	@Override
+	public boolean isSynced() {
+		return false;
+	}
+
 	// ----- interface Renderable -----
 	@Override
 	public void render(SecurityContext securityContext, RenderContext renderContext, int depth) throws FrameworkException {
-		
+
 		NodeList _children = getChildNodes();
 		int len            = _children.getLength();
-		
+
 		for (int i=0; i<len; i++) {
-			
+
 			Node child = _children.item(i);
-			
+
 			if (child != null && child instanceof Renderable) {
-				
+
 				((Renderable)child).render(securityContext, renderContext, depth);
 			}
 		}
-		
+
 	}
 
 	@Override
 	public Node doAdopt(Page newPage) throws DOMException {
-		
+
 		// do nothing, only children of DocumentFragments are
 		// adopted
 		return null;
 	}
-	
+
 	@Override
 	public Node doImport(Page newPage) throws DOMException {
 		// simply return an empty DocumentFragment, as the importing

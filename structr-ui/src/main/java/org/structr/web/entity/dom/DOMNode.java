@@ -896,6 +896,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		});
 	}
 
+	public abstract boolean isSynced();
 	public abstract boolean contentEquals(final DOMNode otherNode);
 	public abstract void updateFrom(final DOMNode source) throws FrameworkException;
 

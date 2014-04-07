@@ -1307,7 +1307,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 					if (node != null) {
 
-						List<GraphObject> graphData = new LinkedList<GraphObject>();
+						List<GraphObject> graphData = new LinkedList<>();
 						graphData.add(node);
 
 						return graphData;
@@ -1483,5 +1483,10 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 		return allProperties;
 
+	}
+
+	@Override
+	public boolean isSynced() {
+		return hasIncomingRelationships(Sync.class) || hasOutgoingRelationships(Sync.class);
 	}
 }

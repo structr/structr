@@ -370,6 +370,10 @@ public class Content extends DOMNode implements Text {
 //		}
 //
 //	}
+	@Override
+	public boolean isSynced() {
+		return false;
+	}
 
 	// ----- interface org.w3c.dom.Text -----
 

@@ -383,22 +383,16 @@ public class Importer {
 						break;
 
 					case 5:	// same tree index (1), NOT same node, same content (5) => node was deleted and restored, maybe the identification information was lost
-						// TODO: how to handle this?
 						break;
 
 					case 4:	// NOT same tree index, NOT same node, same content (4) => different node, content is equal by chance?
-						// TODO: what to do here?
 						break;
 
 					case 3: // same tree index, same node, NOT same content => node was modified but not moved
-//						if (!(existingNode instanceof DOMElement)) {
-							changeSet.add(new UpdateOperation(hashMappedExistingNodes, existingNode, newNode));
-//						}
+						changeSet.add(new UpdateOperation(hashMappedExistingNodes, existingNode, newNode));
 						break;
 
 					case 2:	// NOT same tree index, same node (2), NOT same content => node was moved and changed
-
-						// FIXME: order is important here?
 						newParent  = newNode.getProperty(DOMNode.parent);
 						changeSet.add(new UpdateOperation(hashMappedExistingNodes, existingNode, newNode));
 						changeSet.add(new MoveOperation(hashMappedExistingNodes, getHashOrNull(newParent), getSiblingHashes(newNode), newNode, existingNode));
