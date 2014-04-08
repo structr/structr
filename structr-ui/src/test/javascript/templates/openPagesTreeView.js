@@ -27,6 +27,6 @@
         this.click('#pagesTab');
     });
     
-    casper.wait(1000);
+    casper.wait(2000);
     
 };
