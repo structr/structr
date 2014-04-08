@@ -82,7 +82,7 @@ casper.test.begin(testName, numberOfTests, function(test) {
         this.click('#dialogBox .visibleToAuthenticatedUsers_');
     });
     
-    casper.wait(1000);
+    casper.wait(5000);
     
     casper.then(function() {
         s.moveMousePointerTo(casper, '#dialogBox .dialogBtn .closeButton'); 
@@ -91,7 +91,7 @@ casper.test.begin(testName, numberOfTests, function(test) {
         this.click('#dialogBox .dialogBtn .closeButton');
     });
     
-    casper.wait(2000);
+    casper.wait(5000);
     
     sections.push ('Logout and open the created page.');
     
