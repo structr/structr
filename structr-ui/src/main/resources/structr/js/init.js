@@ -288,7 +288,7 @@ var Structr = {
 
         connect();
 
-        window.setInterval(function() {
+        ping = window.setInterval(function() {
             sendObj({command: 'PING', sessionId: sessionId});
         }, 5000);
 
@@ -296,6 +296,10 @@ var Structr = {
     login: function(text) {
 
         main.empty();
+
+        window.clearInterval(reconn);
+        window.clearInterval(ping);
+        reconn = undefined;
 
         $('#logout_').html('Login');
         if (text) {

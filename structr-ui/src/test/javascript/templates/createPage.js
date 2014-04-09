@@ -31,7 +31,7 @@
         this.click('#add_page');
     });
 
-    casper.wait(2000);
+    casper.wait(5000);
     //casper.waitForSelector('#previewTabs li:nth-child(2)');
 
     if (name) {
@@ -51,6 +51,6 @@
             //s.animatedType(this, '#previewTabs .page .name_', false, name, true);
         });
 
-        casper.wait(1000);
+        casper.wait(2000);
     }
 };

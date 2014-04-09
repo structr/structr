@@ -242,6 +242,8 @@ var _Crud = {
             contentType: 'application/json; charset=utf-8',
             //async: false,
             success: function(data) {
+                if (!data) return;
+
                 //console.log(data);
                 var types = [];
                 _Crud.types.length = 0;
@@ -284,17 +286,15 @@ var _Crud = {
                 200: function(data) {
 
                     // no schema entry found?
-                    if (data.result_count === 0) {
+                    if (!data || data.result_count === 0) {
 
                         console.log("ERROR: loading Schema " + type);
                         //Structr.error("ERROR: loading Schema " + type, true);
-
 
                         var typeIndex = _Crud.types.indexOf(type);
 
                         // Delete broken type from list
                         _Crud.types.splice(typeIndex, 1);
-
 
                         if (_Crud.isSchemaLoaded()) {
                             //console.log('Schema loaded successfully');
@@ -550,6 +550,7 @@ var _Crud = {
             //async: false,
             success: function(data) {
                 //console.log(data);
+                if (!data) return;
                 $.each(data.result, function(i, item) {
                     //console.log('calling appendRow', type, item);
                     _Crud.appendRow(type, item);
@@ -594,6 +595,7 @@ var _Crud = {
             contentType: 'application/json; charset=utf-8',
             //async: false,
             success: function(data) {
+                if (!data) return;
                 $.each(data.result, function(i, item) {
                     _Crud.appendRowAsCSV(type, item, exportArea);
                 });
@@ -687,6 +689,7 @@ var _Crud = {
             contentType: 'application/json; charset=utf-8',
             //async: false,
             success: function(data) {
+                if (!data) return;
                 if (callback) {
                     callback(data.result);
                 } else {
@@ -710,6 +713,7 @@ var _Crud = {
             contentType: 'application/json; charset=utf-8',
             //async: false,
             success: function(data) {
+                if (!data) return;
                 //console.log('type', type);
                 _Crud.dialog('Edit ' + t + ' ' + id, function() {
                     //console.log('ok')
@@ -854,6 +858,7 @@ var _Crud = {
             contentType: 'application/json; charset=utf-8',
             //async: false,
             success: function(data) {
+                if (!data) return;
                 //console.log('refresh', id, key, data.result[key], data.result.type);
                 if (key) {
                     _Crud.refreshCell(id, key, data.result[key], data.result.type);
@@ -871,6 +876,7 @@ var _Crud = {
             contentType: 'application/json; charset=utf-8',
             //async: false,
             success: function(data) {
+                if (!data) return;
                 //console.log('reset', id, key, data.result[key]);
                 _Crud.resetCell(id, key, data.result[key]);
             }
@@ -1368,6 +1374,7 @@ var _Crud = {
             contentType: 'application/json; charset=utf-8',
             //async: false,
             success: function(data) {
+                if (!data) return;
                 var node = data.result;
                 //console.log('node', node);
 
@@ -1490,6 +1497,7 @@ var _Crud = {
                 contentType: 'application/json; charset=utf-8',
                 statusCode: {
                     200: function(data) {
+                        if (!data) return;
 
                         $('#placeholderFor' + type + '').remove();
                         if (data.result.length) {
@@ -1607,6 +1615,7 @@ var _Crud = {
                 contentType: 'application/json; charset=utf-8',
                 //async: false,
                 success: function(data) {
+                    if (!data) return;
                     //console.log(key, data.result, data.result[key]);
                     $.each(data.result[key], function(i, obj) {
                         //console.log(obj, ' equals ', relatedObj);

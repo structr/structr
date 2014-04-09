@@ -20,7 +20,7 @@
 var ws;
 var loggedIn = false;
 var user;
-var reconn;
+var reconn, ping;
 var port = document.location.port;
 
 var rawResultCount = [];
