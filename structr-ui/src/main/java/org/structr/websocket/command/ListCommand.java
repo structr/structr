@@ -69,14 +69,15 @@ public class ListCommand extends AbstractCommand {
 			return;
 		}
 
-		final String sortOrder = webSocketData.getSortOrder();
-		final String sortKey = webSocketData.getSortKey();
-		final int pageSize = webSocketData.getPageSize();
-		final int page = webSocketData.getPage();
+		final String sortOrder         = webSocketData.getSortOrder();
+		final String sortKey           = webSocketData.getSortKey();
+		final int pageSize             = webSocketData.getPageSize();
+		final int page                 = webSocketData.getPage();
 		final PropertyKey sortProperty = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, sortKey);
-		final Query query = StructrApp.getInstance(securityContext).nodeQuery(type).includeDeletedAndHidden().sort(sortProperty).order("desc".equals(sortOrder)).page(page).pageSize(pageSize);
+		final Query query              = StructrApp.getInstance(securityContext).nodeQuery(type).includeDeletedAndHidden().sort(sortProperty).order("desc".equals(sortOrder)).page(page).pageSize(pageSize);
 
-		if (rootOnly) {
+		// important
+		if (AbstractFile.class.isAssignableFrom(type) && rootOnly) {
 
 			query.and(AbstractFile.hasParent, false);
 		}
