@@ -266,8 +266,7 @@ var Structr = {
         sessionId = $.cookie('JSESSIONID');
         log('user', user);
 
-        // Send initial PING to force re-connect on all pages
-        sendObj({command: 'PING', sessionId: sessionId});
+        Structr.startPing();
 
         Structr.expanded = JSON.parse(localStorage.getItem(expandedIdsKey));
         log('######## Expanded IDs after reload ##########', Structr.expanded);
@@ -280,26 +279,27 @@ var Structr = {
         }
 
     },
+    startPing : function() {
+        sendObj({command: 'PING', sessionId: sessionId});
+        if (!ping) {
+            ping = window.setInterval(function() {
+                sendObj({command: 'PING', sessionId: sessionId});
+            }, 60000);
+        }
+    },
     connect: function() {
+        
         // make a dummy request to get a sessionId
         if (!sessionId) {
             $.get('/get_session_id');
         }
 
         connect();
-
-        ping = window.setInterval(function() {
-            sendObj({command: 'PING', sessionId: sessionId});
-        }, 5000);
-
+        Structr.startPing();
     },
     login: function(text) {
 
         main.empty();
-
-        window.clearInterval(reconn);
-        window.clearInterval(ping);
-        reconn = undefined;
 
         $('#logout_').html('Login');
         if (text) {

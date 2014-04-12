@@ -155,6 +155,7 @@ function connect() {
 
                         $('#logout_').html('Logout <span class="username">' + user + '</span>');
                         Structr.loadInitialModule();
+                        Structr.startPing();
                     }
                 }
 
