@@ -182,7 +182,6 @@ $(function() {
         }
     });
 
-    Structr.init();
     Structr.connect();
 
     // This hack prevents FF from closing WS connections on ESC
@@ -206,7 +205,7 @@ $(function() {
                             saveAndClose.remove();
                         }
                         if (dialogCancelButton && dialogCancelButton.length && dialogCancelButton.is(':visible') && !dialogCancelButton.prop('disabled')) {
-                          dialogCancelButton.click();
+                            dialogCancelButton.click();
                         }
                         return false;
                     }, 1000);
@@ -231,11 +230,8 @@ $(function() {
     $(window).on('resize', function() {
         Structr.resize();
     });
-
     dmp = new diff_match_patch();
-
 });
-
 
 var Structr = {
     modules: {},
@@ -252,35 +248,39 @@ var Structr = {
 
         log('activating reconnect loop');
         reconn = window.setInterval(function() {
-            connect();
+            wsConnect();
         }, 1000);
         log('activated reconnect loop', reconn);
     },
     init: function() {
-
         log('###################### Initialize UI ####################');
-
         $('#errorText').empty();
-
-        //user = localStorage.getItem(userKey);
-        sessionId = $.cookie('JSESSIONID');
         log('user', user);
-
-        Structr.startPing();
-
+        Structr.ping();
         Structr.expanded = JSON.parse(localStorage.getItem(expandedIdsKey));
         log('######## Expanded IDs after reload ##########', Structr.expanded);
-
+    },
+    ping: function() {
+        if (sessionId) {
+            sendObj({command: 'PING', sessionId: sessionId});
+        }
+    },
+    refreshUi: function() {
+        Structr.clearMain();
+        localStorage.setItem(userKey, user);
+        $.unblockUI({
+            fadeOut: 25
+        });
+        $('#logout_').html('Logout <span class="username">' + user + '</span>');
+        Structr.loadInitialModule();
+        Structr.startPing();
         var dialogData = JSON.parse(window.localStorage.getItem(dialogDataKey));
         log('Dialog data after init', dialogData);
-
         if (dialogData) {
             Structr.restoreDialog(dialogData);
         }
-
     },
-    startPing : function() {
-        sendObj({command: 'PING', sessionId: sessionId});
+    startPing: function() {
         if (!ping) {
             ping = window.setInterval(function() {
                 sendObj({command: 'PING', sessionId: sessionId});
@@ -288,14 +288,13 @@ var Structr = {
         }
     },
     connect: function() {
-        
-        // make a dummy request to get a sessionId
+        sessionId = $.cookie('JSESSIONID');
         if (!sessionId) {
             $.get('/get_session_id');
+            document.location.reload();
+        } else {
+            wsConnect();
         }
-
-        connect();
-        Structr.startPing();
     },
     login: function(text) {
 
@@ -429,7 +428,7 @@ var Structr = {
 
     },
     restoreDialog: function(dialogData) {
-
+        console.log('restoreDialog', dialogData);
         $.blockUI.defaults.overlayCSS.opacity = .6;
         $.blockUI.defaults.applyPlatformOpacityRules = false;
 
@@ -464,7 +463,7 @@ var Structr = {
             top: t + 'px',
             left: l + 'px'
         });
-        
+
         Structr.resize();
 
     },

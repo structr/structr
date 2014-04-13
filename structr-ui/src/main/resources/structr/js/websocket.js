@@ -34,7 +34,7 @@ var userKey = 'structrUser_' + port;
 
 var footer = $('#footer');
 
-function connect() {
+function wsConnect() {
 
     log('################ Global connect() ################');
 
@@ -137,26 +137,8 @@ function connect() {
                     localStorage.removeItem(userKey);
                     Structr.clearMain();
                     Structr.login();
-                }
-
-                if (sessionValid) {
-
-                    // user has changed - refresh UI
-                    if (!oldUser || (oldUser && (oldUser !== user))) {
-                        
-                        log(command, code, 'user: ', user, ', oldUser: ', oldUser);
-
-                        Structr.clearMain();
-                        localStorage.setItem(userKey, user);
-
-                        $.unblockUI({
-                            fadeOut: 25
-                        });
-
-                        $('#logout_').html('Logout <span class="username">' + user + '</span>');
-                        Structr.loadInitialModule();
-                        Structr.startPing();
-                    }
+                } else if (!oldUser || (oldUser && (oldUser !== user))) {
+                    Structr.refreshUi();
                 }
 
             } else if (command === 'LOGOUT') { /*********************** LOGOUT ************************/
@@ -242,7 +224,7 @@ function connect() {
             } else if (command === 'UPDATE' || command === 'SET_PERMISSION') { /*********************** UPDATE / SET_PERMISSION ************************/
 
                 var obj = StructrModel.obj(data.id);
-                
+
                 if (!obj) {
                     data.data.id = data.id;
                     obj = StructrModel.create(data.data, null, false);

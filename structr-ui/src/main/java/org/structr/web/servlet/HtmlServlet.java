@@ -89,7 +89,6 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	public static final String REQUEST_CONTAINS_UUID_IDENTIFIER = "request_contains_uuids";
 
 	public static final String CONFIRM_REGISTRATION_PAGE = "/confirm_registration";
-	public static final String GET_SESSION_ID_PAGE = "get_session_id";
 	public static final String CONFIRM_KEY_KEY = "key";
 	public static final String TARGET_PAGE_KEY = "target";
 	public static final String ERROR_PAGE_KEY = "onerror";
@@ -186,11 +185,6 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 					logger.log(Level.FINE, "No path supplied, trying to find index page");
 
 				} else {
-
-					// check if request was solely intended to obtain a session id
-					if (checkGetSessionId(request, response, path)) {
-						return;
-					}
 
 					if (rootElement == null) {
 
@@ -537,34 +531,6 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		}
 
 		return null;
-	}
-
-	/**
-	 * Check if the request was solely intended to get a session id
-	 *
-	 * @param request
-	 * @param response
-	 * @param path
-	 * @return
-	 * @throws FrameworkException
-	 * @throws IOException
-	 */
-	private boolean checkGetSessionId(final HttpServletRequest request, final HttpServletResponse response, final String path) throws IOException {
-
-		logger.log(Level.FINE, "Checking for {0} ...", GET_SESSION_ID_PAGE);
-
-		if (GET_SESSION_ID_PAGE.equals(path)) {
-
-			request.getSession(true);
-			response.setStatus(HttpServletResponse.SC_OK);
-
-			response.flushBuffer();
-			return true;
-
-		}
-
-		return false;
-
 	}
 
 	/**
