@@ -1527,7 +1527,22 @@ var _Crud = {
 
                         });
                     },
+                    400: function() {
+                        $('#placeholderFor' + type + '').remove();
+                    },
                     401: function() {
+                        $('#placeholderFor' + type + '').remove();
+                    },
+                    403: function() {
+                        $('#placeholderFor' + type + '').remove();
+                    },
+                    422: function() {
+                        $('#placeholderFor' + type + '').remove();
+                    },
+                    500: function() {
+                        $('#placeholderFor' + type + '').remove();
+                    },
+                    503: function() {
                         $('#placeholderFor' + type + '').remove();
                     }
                 }
