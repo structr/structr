@@ -291,7 +291,8 @@ var Structr = {
         sessionId = $.cookie('JSESSIONID');
         if (!sessionId) {
             $.get('/', function() {
-                document.location.reload();
+                sessionId = $.cookie('JSESSIONID');
+                wsConnect();
             });
         } else {
             wsConnect();
