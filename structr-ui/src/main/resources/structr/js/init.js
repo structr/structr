@@ -290,8 +290,9 @@ var Structr = {
     connect: function() {
         sessionId = $.cookie('JSESSIONID');
         if (!sessionId) {
-            $.get('/get_session_id');
-            document.location.reload();
+            $.get('/', function() {
+                document.location.reload();
+            });
         } else {
             wsConnect();
         }
