@@ -57,19 +57,19 @@ import org.structr.core.notion.Notion;
  * @author Christian Morgner
  */
 public class CollectionNotionProperty<S extends NodeInterface, T> extends Property<List<T>> {
-	
+
 	private static final Logger logger = Logger.getLogger(CollectionIdProperty.class.getName());
-	
+
 	private Property<List<S>> collectionProperty = null;
 	private Notion<S, T> notion                  = null;
-	
+
 	public CollectionNotionProperty(String name, Property<List<S>> base, Notion<S, T> notion) {
-		
+
 		super(name);
-		
+
 		this.notion = notion;
 		this.collectionProperty   = base;
-		
+
 		notion.setType(base.relatedType());
 	}
 
@@ -82,27 +82,27 @@ public class CollectionNotionProperty<S extends NodeInterface, T> extends Proper
 	public Property<List<T>> indexed(NodeService.NodeIndex nodeIndex) {
 		return this;
 	}
-	
+
 	@Override
 	public Property<List<T>> indexed(NodeService.RelationshipIndex relIndex) {
 		return this;
 	}
-	
+
 	@Override
 	public Property<List<T>> passivelyIndexed() {
 		return this;
 	}
-	
+
 	@Override
 	public Property<List<T>> passivelyIndexed(NodeService.NodeIndex nodeIndex) {
 		return this;
 	}
-	
+
 	@Override
 	public Property<List<T>> passivelyIndexed(NodeService.RelationshipIndex relIndex) {
 		return this;
 	}
-	
+
 	@Override
 	public boolean isSearchable() {
 		return true;
@@ -145,28 +145,28 @@ public class CollectionNotionProperty<S extends NodeInterface, T> extends Proper
 
 	@Override
 	public List<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final org.neo4j.helpers.Predicate<GraphObject> predicate) {
-		
+
 		try {
-			
+
 			return (notion.getCollectionAdapterForGetter(securityContext).adapt(collectionProperty.getProperty(securityContext, obj, applyConverter, predicate)));
-			
+
 		} catch (FrameworkException fex) {
-			
+
 			logger.log(Level.WARNING, "Unable to apply notion of type {0} to property {1}", new Object[] { notion.getClass(), this } );
 		}
-		
+
 		return null;
 	}
 
 	@Override
 	public void setProperty(SecurityContext securityContext, GraphObject obj, List<T> value) throws FrameworkException {
-		
+
 		if (value != null) {
-		
+
 			collectionProperty.setProperty(securityContext, obj, notion.getCollectionAdapterForSetter(securityContext).adapt(value));
-			
+
 		} else {
-		
+
 			collectionProperty.setProperty(securityContext, obj, null);
 		}
 	}
@@ -180,27 +180,27 @@ public class CollectionNotionProperty<S extends NodeInterface, T> extends Proper
 	public boolean isCollection() {
 		return true;
 	}
-	
+
 	@Override
 	public List<T> convertSearchValue(SecurityContext securityContext, String requestParameter) throws FrameworkException {
 
 		PropertyKey propertyKey = notion.getPrimaryPropertyKey();
 		List<T> list            = new LinkedList<>();
-		
+
 		if (propertyKey != null) {
-			
+
 			PropertyConverter inputConverter = propertyKey.inputConverter(securityContext);
 			if (inputConverter != null) {
 
 				for (String part : requestParameter.split("[,;]+")) {
-					
+
 					list.add((T)inputConverter.convert(part));
 				}
-				
+
 			} else {
-				
+
 				for (String part : requestParameter.split("[,;]+")) {
-					
+
 					list.add((T)part);
 				}
 			}
@@ -211,35 +211,35 @@ public class CollectionNotionProperty<S extends NodeInterface, T> extends Proper
 
 	@Override
 	public SearchAttribute getSearchAttribute(SecurityContext securityContext, BooleanClause.Occur occur, List<T> searchValues, boolean exactMatch, final Query query) {
-		
+
 		final Predicate<GraphObject> predicate    = query != null ? query.toPredicate() : null;
 		final SourceSearchAttribute attr          = new SourceSearchAttribute(occur);
 		final Set<GraphObject> intersectionResult = new LinkedHashSet<>();
 		boolean alreadyAdded                      = false;
-	
+
 		try {
 
 			if (searchValues != null && !searchValues.isEmpty()) {
 
 				boolean allBlank = true;
-				
+
 				for (T searchValue : searchValues) {
 
 					// check if the list contains non-empty search values
 					if (StringUtils.isBlank(searchValue.toString())) {
-						
+
 						continue;
-						
+
 					} else {
-						
+
 						allBlank = false;
 					}
-					
+
 					final App app = StructrApp.getInstance(securityContext);
 
-					
+
 					if (exactMatch) {
-					
+
 						Result<AbstractNode> result = app.nodeQuery(collectionProperty.relatedType()).and(notion.getPrimaryPropertyKey(), searchValue).getResult();
 
 						for (AbstractNode node : result.getResults()) {
@@ -271,7 +271,7 @@ public class CollectionNotionProperty<S extends NodeInterface, T> extends Proper
 									break;
 							}
 						}
-						
+
 					} else {
 
 						Result<AbstractNode> result = app.nodeQuery(collectionProperty.relatedType(), false).and(notion.getPrimaryPropertyKey(), searchValue, false).getResult();
@@ -284,36 +284,36 @@ public class CollectionNotionProperty<S extends NodeInterface, T> extends Proper
 
 					}
 				}
-				
+
 				if (allBlank) {
 
 					// experimental filter attribute that
 					// removes entities with a non-empty
 					// value in the given field
 					return new EmptySearchAttribute(this, Collections.emptyList());
-					
+
 				} else {
 
 					attr.setResult(intersectionResult);
 				}
-				
+
 			} else {
-				
+
 				// experimental filter attribute that
 				// removes entities with a non-empty
 				// value in the given field
 				return new EmptySearchAttribute(this, Collections.emptyList());
-				
+
 			}
-			
+
 		} catch (FrameworkException fex) {
-			
+
 			fex.printStackTrace();
 		}
-		
+
 		return attr;
 	}
-	
+
 	@Override
 	public void index(GraphObject entity, Object value) {
 		// no direct indexing
@@ -327,5 +327,11 @@ public class CollectionNotionProperty<S extends NodeInterface, T> extends Proper
 	@Override
 	public int getProcessingOrderPosition() {
 		return 1000;
+	}
+
+	// ----- protected methods overridden from superclass -----
+	@Override
+	protected boolean multiValueSplitAllowed() {
+		return false;
 	}
 }
