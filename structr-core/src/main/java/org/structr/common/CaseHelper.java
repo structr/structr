@@ -26,7 +26,7 @@ import org.apache.commons.lang.WordUtils;
 /**
  * A helper class that contains methods to convert strings to and from
  * different cases and styles, i.e. camelCase to underscore_style etc.
- * 
+ *
  * @author Axel Morgner
  */
 public class CaseHelper {
@@ -90,7 +90,7 @@ public class CaseHelper {
 	public static String plural(String type) {
 
 		int len = type.length();
-		
+
 		if (type.substring(len - 1, len).equals("y")) {
 
 			return type.substring(0, len - 1) + "ies";

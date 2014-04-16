@@ -30,8 +30,6 @@ import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
 import org.structr.core.entity.relationship.SchemaRelationship;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
@@ -51,39 +49,37 @@ public class SchemaNode extends AbstractSchemaNode implements Schema {
 	public static final Property<List<SchemaNode>>  relatedTo    = new EndNodes<>("relatedTo", SchemaRelationship.class, new SchemaNotion(SchemaNode.class));
 	public static final Property<List<SchemaNode>>  relatedFrom  = new StartNodes<>("relatedFrom", SchemaRelationship.class, new SchemaNotion(SchemaNode.class));
 	public static final Property<String>            extendsClass = new StringProperty("extendsClass").indexed();
-	
+
 	public static final View defaultView = new View(SchemaNode.class, PropertyView.Public,
 		name, extendsClass, relatedTo, relatedFrom
 	);
-	
+
 	public static final View uiView = new View(SchemaNode.class, PropertyView.Ui,
 		name, extendsClass, relatedTo, relatedFrom
 	);
 
 	private Set<String> dynamicViews = new LinkedHashSet<>();
-	
+
 	@Override
 	public Iterable<PropertyKey> getPropertyKeys(final String propertyView) {
-		
+
 		final Set<PropertyKey> propertyKeys = new LinkedHashSet<>(Iterables.toList(super.getPropertyKeys(propertyView)));
-		
+
 		// add "custom" property keys as String properties
 		for (final String key : SchemaHelper.getProperties(getNode())) {
-			
+
 			final PropertyKey newKey = new StringProperty(key);
 			newKey.setDeclaringClass(getClass());
-			
+
 			propertyKeys.add(newKey);
 		}
-			
+
 		return propertyKeys;
 	}
-	
+
 	@Override
 	public String getSource(final ErrorBuffer errorBuffer) throws FrameworkException {
-		
-		final App app = StructrApp.getInstance();
-		
+
 		final Map<String, Set<String>> viewProperties = new LinkedHashMap<>();
 		final Set<String> validators                  = new LinkedHashSet<>();
 		final Set<String> enums                       = new LinkedHashSet<>();
@@ -164,15 +160,15 @@ public class SchemaNode extends AbstractSchemaNode implements Schema {
 		}
 
 		src.append("}\n");
-			
+
 		return src.toString();
 	}
-	
+
 	@Override
 	public Set<String> getViews() {
 		return dynamicViews;
 	}
-	
+
 	@Override
 	public boolean isValid(final ErrorBuffer errorBuffer) {
 
