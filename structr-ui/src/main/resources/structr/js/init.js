@@ -290,7 +290,7 @@ var Structr = {
     connect: function() {
         sessionId = $.cookie('JSESSIONID');
         if (!sessionId) {
-            $.get('/', function() {
+            $.get('/').always(function() {
                 sessionId = $.cookie('JSESSIONID');
                 wsConnect();
             });
