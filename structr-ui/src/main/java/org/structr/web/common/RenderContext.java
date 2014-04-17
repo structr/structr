@@ -348,7 +348,6 @@ public class RenderContext extends ActionContext {
 		for (int i = 0; (i < parts.length); i++) {
 
 			String part = parts[i];
-			String lowerCasePart = part.toLowerCase();
 
 			if (_data != null) {
 
@@ -362,7 +361,7 @@ public class RenderContext extends ActionContext {
 				}
 
 				// special keyword "size"
-				if (i > 0 && "size".equals(lowerCasePart)) {
+				if (i > 0 && "size".equals(part)) {
 
 					Object val = _data.getProperty(StructrApp.getConfiguration().getPropertyKeyForJSONName(_data.getClass(), parts[i - 1]));
 
@@ -375,7 +374,7 @@ public class RenderContext extends ActionContext {
 				}
 
 				// special keyword "link", works on deeper levels, too
-				if ("link".equals(lowerCasePart) && _data instanceof AbstractNode) {
+				if ("link".equals(part) && _data instanceof AbstractNode) {
 
 					ResourceLink rel = ((AbstractNode) _data).getOutgoingRelationship(ResourceLink.class);
 					if (rel != null) {
@@ -400,16 +399,16 @@ public class RenderContext extends ActionContext {
 			}
 
 			// data objects from parent elements
-			if (this.hasDataForKey(lowerCasePart)) {
+			if (this.hasDataForKey(part)) {
 
-				_data = this.getDataNode(lowerCasePart);
+				_data = this.getDataNode(part);
 
 				continue;
 
 			}
 
 			// special keyword "request"
-			if ("request".equals(lowerCasePart)) {
+			if ("request".equals(part)) {
 
 				HttpServletRequest request = this.getRequest(); //securityContext.getRequest();
 
@@ -428,7 +427,7 @@ public class RenderContext extends ActionContext {
 			}
 
 			// special keyword "now":
-			if ("now".equals(lowerCasePart)) {
+			if ("now".equals(part)) {
 
 				// Return current date converted in format
 				// Note: We use "createdDate" here only as an arbitrary property key to get the database converter
@@ -437,7 +436,7 @@ public class RenderContext extends ActionContext {
 			}
 
 			// special keyword "me"
-			if ("me".equals(lowerCasePart)) {
+			if ("me".equals(part)) {
 
 				Principal me = (Principal) securityContext.getUser(false);
 
@@ -455,7 +454,7 @@ public class RenderContext extends ActionContext {
 			if (_data == null) {
 
 				// details data object id
-				if ("id".equals(lowerCasePart)) {
+				if ("id".equals(part)) {
 
 					GraphObject detailsObject = this.getDetailsDataObject();
 
@@ -466,7 +465,7 @@ public class RenderContext extends ActionContext {
 				}
 
 				// details data object
-				if ("current".equals(lowerCasePart)) {
+				if ("current".equals(part)) {
 
 					GraphObject detailsObject = this.getDetailsDataObject();
 
@@ -480,7 +479,7 @@ public class RenderContext extends ActionContext {
 				}
 
 				// special keyword "this"
-				if ("this".equals(lowerCasePart)) {
+				if ("this".equals(part)) {
 
 					_data = this.getDataObject();
 
@@ -489,7 +488,7 @@ public class RenderContext extends ActionContext {
 				}
 
 				// special keyword "element"
-				if ("element".equals(lowerCasePart)) {
+				if ("element".equals(part)) {
 
 					_data = entity;
 
@@ -498,7 +497,7 @@ public class RenderContext extends ActionContext {
 				}
 
 				// special keyword "ownerDocument", works only on root level
-				if ("page".equals(lowerCasePart)) {
+				if ("page".equals(part)) {
 
 					_data = _page;
 
@@ -507,7 +506,7 @@ public class RenderContext extends ActionContext {
 				}
 
 				// special keyword "link"
-				if ("link".equals(lowerCasePart)) {
+				if ("link".equals(part)) {
 
 					ResourceLink rel = entity.getOutgoingRelationship(ResourceLink.class);
 
@@ -520,7 +519,7 @@ public class RenderContext extends ActionContext {
 				}
 
 				// special keyword "parent"
-				if ("parent".equals(lowerCasePart)) {
+				if ("parent".equals(part)) {
 
 					_data = (DOMNode) ((DOMNode)entity).getParentNode();
 
@@ -529,7 +528,7 @@ public class RenderContext extends ActionContext {
 				}
 
 				// special keyword "owner"
-				if ("owner".equals(lowerCasePart)) {
+				if ("owner".equals(part)) {
 
 					Ownership rel = entity.getIncomingRelationship(PrincipalOwnsNode.class);
 					if (rel != null) {
@@ -542,7 +541,7 @@ public class RenderContext extends ActionContext {
 				}
 
 				// special keyword "result_size"
-				if ("result_count".equals(lowerCasePart) || "result_size".equals(lowerCasePart)) {
+				if ("result_count".equals(part) || "result_size".equals(part)) {
 
 					Result result = this.getResult();
 
@@ -555,7 +554,7 @@ public class RenderContext extends ActionContext {
 				}
 
 				// special keyword "page_size"
-				if ("page_size".equals(lowerCasePart)) {
+				if ("page_size".equals(part)) {
 
 					Result result = this.getResult();
 
@@ -568,7 +567,7 @@ public class RenderContext extends ActionContext {
 				}
 
 				// special keyword "page_count"
-				if ("page_count".equals(lowerCasePart)) {
+				if ("page_count".equals(part)) {
 
 					Result result = this.getResult();
 
@@ -583,7 +582,7 @@ public class RenderContext extends ActionContext {
 				}
 
 				// special keyword "page_no"
-				if ("page_no".equals(lowerCasePart)) {
+				if ("page_no".equals(part)) {
 
 					Result result = this.getResult();
 

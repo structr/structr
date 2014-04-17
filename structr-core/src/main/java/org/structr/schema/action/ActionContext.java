@@ -21,6 +21,16 @@ import org.structr.core.property.PropertyKey;
  */
 public class ActionContext {
 
+	private GraphObject parent = null;
+
+	public ActionContext() {
+		this(null);
+	}
+
+	public ActionContext(final GraphObject parent) {
+		this.parent = parent;
+	}
+
 	public String convertValueForHtml(final Object value) {
 
 		if (value != null) {
@@ -63,7 +73,6 @@ public class ActionContext {
 		for (int i = 0; (i < parts.length); i++) {
 
 			String part = parts[i];
-			String lowerCasePart = part.toLowerCase();
 
 			if (_data != null) {
 
@@ -77,7 +86,7 @@ public class ActionContext {
 				}
 
 				// special keyword "size"
-				if (i > 0 && "size".equals(lowerCasePart)) {
+				if (i > 0 && "size".equals(part)) {
 
 					Object val = _data.getProperty(StructrApp.getConfiguration().getPropertyKeyForJSONName(_data.getClass(), parts[i - 1]));
 
@@ -99,7 +108,7 @@ public class ActionContext {
 			}
 
 			// special keyword "now":
-			if ("now".equals(lowerCasePart)) {
+			if ("now".equals(part)) {
 
 				// Return current date converted in format
 				// Note: We use "createdDate" here only as an arbitrary property key to get the database converter
@@ -108,7 +117,7 @@ public class ActionContext {
 			}
 
 			// special keyword "me"
-			if ("me".equals(lowerCasePart)) {
+			if ("me".equals(part)) {
 
 				Principal me = (Principal) securityContext.getUser(false);
 
@@ -125,37 +134,61 @@ public class ActionContext {
 			// so that they can be used as property keys for data objects
 			if (_data == null) {
 
+				// special keyword "parent":
+				if ("parent".equals(part)) {
+
+					_data = parent;
+
+					if (parts.length == 1) {
+						return _data;
+					}
+
+					continue;
+				}
+
 				// details data object id
-				if ("id".equals(lowerCasePart)) {
+				if ("id".equals(part)) {
 
 					return entity.getUuid();
 				}
 
 				// special keyword "this"
-				if ("this".equals(lowerCasePart)) {
+				if ("this".equals(part)) {
 
 					_data = entity;
+
+					if (parts.length == 1) {
+						return _data;
+					}
 
 					continue;
 
 				}
 
 				// special keyword "element"
-				if ("element".equals(lowerCasePart)) {
+				if ("element".equals(part)) {
 
 					_data = entity;
+
+					if (parts.length == 1) {
+						return _data;
+					}
 
 					continue;
 
 				}
 
 				// special keyword "owner"
-				if ("owner".equals(lowerCasePart)) {
+				if ("owner".equals(part)) {
 
 					Ownership rel = entity.getIncomingRelationship(PrincipalOwnsNode.class);
 					if (rel != null) {
 
 						_data = rel.getSourceNode();
+
+						if (parts.length == 1) {
+							return _data;
+						}
 					}
 
 					continue;

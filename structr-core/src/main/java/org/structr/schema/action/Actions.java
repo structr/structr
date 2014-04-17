@@ -12,7 +12,7 @@ public class Actions {
 
 	public enum Type {
 
-		Create("onCreation"), Save("onModification");
+		Create("onCreation"), Save("onModification"), Delete("onDeletion");
 
 		Type(final String method) {
 			this.method = method;
@@ -28,12 +28,8 @@ public class Actions {
 	// ----- public static methods -----
 	public static boolean execute(final SecurityContext securityContext, final AbstractNode entity, final String source) throws FrameworkException {
 
-		final String result = entity.replaceVariables(securityContext, new ActionContext(), source);
-
-//		if (result != null && !result.isEmpty()) {
-//
-//			return Boolean.parseBoolean(result);
-//		}
+		// ignore result for now
+		entity.replaceVariables(securityContext, new ActionContext(), source);
 
 		// false means SUCCESS!
 		return false;

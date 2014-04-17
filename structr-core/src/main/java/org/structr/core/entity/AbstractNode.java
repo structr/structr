@@ -88,7 +88,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	private static final Logger logger = Logger.getLogger(AbstractNode.class.getName());
 	private static final ThreadLocalMatcher threadLocalTemplateMatcher = new ThreadLocalMatcher("\\$\\{[^}]*\\}");
 	private static final ThreadLocalMatcher threadLocalFunctionMatcher = new ThreadLocalMatcher("([a-zA-Z0-9_]+)\\((.+)\\)");
-	protected static final Map<String, Function<String, String>> functions = new LinkedHashMap<>();
+	protected static final Map<String, Function<Object, Object>> functions = new LinkedHashMap<>();
 
 
 	public static final View defaultView = new View(AbstractNode.class, PropertyView.Public, id, type);
@@ -1176,67 +1176,67 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	// ----- variable replacement functions etc. -----
 	static {
 
-		functions.put("md5", new Function<String, String>() {
+		functions.put("md5", new Function<Object, Object>() {
 
 			@Override
-			public String apply(final NodeInterface entity, final String[] s) {
+			public Object apply(final NodeInterface entity, final Object[] sources) {
 
-				return ((s != null) && (s.length > 0) && (s[0] != null))
-					? DigestUtils.md5Hex(s[0])
+				return ((sources != null) && (sources.length > 0) && (sources[0] != null))
+					? DigestUtils.md5Hex(sources[0].toString())
 					: "";
 
 			}
 
 		});
-		functions.put("upper", new Function<String, String>() {
+		functions.put("upper", new Function<Object, Object>() {
 
 			@Override
-			public String apply(final NodeInterface entity, final String[] s) {
+			public Object apply(final NodeInterface entity, final Object[] sources) {
 
-				return ((s != null) && (s.length > 0) && (s[0] != null))
-					? s[0].toUpperCase()
+				return ((sources != null) && (sources.length > 0) && (sources[0] != null))
+					? sources[0].toString().toUpperCase()
 					: "";
 
 			}
 
 		});
-		functions.put("lower", new Function<String, String>() {
+		functions.put("lower", new Function<Object, Object>() {
 
 			@Override
-			public String apply(final NodeInterface entity, final String[] s) {
+			public Object apply(final NodeInterface entity, final Object[] sources) {
 
-				return ((s != null) && (s.length > 0) && (s[0] != null))
-					? s[0].toLowerCase()
+				return ((sources != null) && (sources.length > 0) && (sources[0] != null))
+					? sources[0].toString().toLowerCase()
 					: "";
 
 			}
 
 		});
-		functions.put("join", new Function<String, String>() {
+		functions.put("join", new Function<Object, Object>() {
 
 			@Override
-			public String apply(final NodeInterface entity, final String[] s) {
-				return StringUtils.join(s);
+			public Object apply(final NodeInterface entity, final Object[] sources) {
+				return StringUtils.join(sources);
 			}
 
 		});
-		functions.put("abbr", new Function<String, String>() {
+		functions.put("abbr", new Function<Object, Object>() {
 
 			@Override
-			public String apply(final NodeInterface entity, final String[] s) {
+			public Object apply(final NodeInterface entity, final Object[] sources) {
 
-				if (s != null && s.length > 1 && s[0] != null && s[1] != null) {
+				if (sources != null && sources.length > 1 && sources[0] != null && sources[1] != null) {
 
 					try {
-						int maxLength = Integer.parseInt(s[1]);
+						int maxLength = Integer.parseInt(sources[1].toString());
 
-						if (s[0].length() > maxLength) {
+						if (sources[0].toString().length() > maxLength) {
 
-							return StringUtils.substringBeforeLast(StringUtils.substring(s[0], 0, maxLength), " ").concat("…");
+							return StringUtils.substringBeforeLast(StringUtils.substring(sources[0].toString(), 0, maxLength), " ").concat("…");
 
 						} else {
 
-							return s[0];
+							return sources[0];
 						}
 
 					} catch (NumberFormatException nfe) {
@@ -1252,35 +1252,35 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			}
 
 		});
-		functions.put("capitalize", new Function<String, String>() {
+		functions.put("capitalize", new Function<Object, Object>() {
 
 			@Override
-			public String apply(final NodeInterface entity, final String[] s) {
+			public Object apply(final NodeInterface entity, final Object[] sources) {
 
-				return ((s != null) && (s.length > 0) && (s[0] != null))
-					? StringUtils.capitalize(s[0])
+				return ((sources != null) && (sources.length > 0) && (sources[0] != null))
+					? StringUtils.capitalize(sources[0].toString())
 					: "";
 
 			}
 		});
-		functions.put("titleize", new Function<String, String>() {
+		functions.put("titleize", new Function<Object, Object>() {
 
 			@Override
-			public String apply(final NodeInterface entity, final String[] s) {
+			public Object apply(final NodeInterface entity, final Object[] sources) {
 
-				if (s == null || s.length < 2) {
+				if (sources == null || sources.length < 2) {
 					return null;
 				}
 
-				if (StringUtils.isBlank(s[0])) {
+				if (StringUtils.isBlank(sources[0].toString())) {
 					return "";
 				}
 
-				if (s[1] == null) {
-					s[1] = " ";
+				if (sources[1] == null) {
+					sources[1] = " ";
 				}
 
-				String[] in = StringUtils.split(s[0], s[1]);
+				String[] in = StringUtils.split(sources[0].toString(), sources[1].toString());
 				String[] out = new String[in.length];
 				for (int i = 0; i < in.length; i++) {
 					out[i] = StringUtils.capitalize(in[i]);
@@ -1290,20 +1290,20 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			}
 
 		});
-		functions.put("clean", new Function<String, String>() {
+		functions.put("clean", new Function<Object, Object>() {
 
 			@Override
-			public String apply(final NodeInterface entity, final String[] s) {
+			public Object apply(final NodeInterface entity, final Object[] sources) {
 
 				String result;
 
-				if ((s != null) && (s.length > 0)) {
+				if ((sources != null) && (sources.length > 0)) {
 
-					if (StringUtils.isBlank(s[0])) {
+					if (StringUtils.isBlank(sources[0].toString())) {
 						return "";
 					}
 
-					String normalized = Normalizer.normalize(s[0], Normalizer.Form.NFD)
+					String normalized = Normalizer.normalize(sources[0].toString(), Normalizer.Form.NFD)
 						.replaceAll("\\<", "")
 						.replaceAll("\\>", "")
 						.replaceAll("\\.", "")
@@ -1340,45 +1340,45 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			}
 
 		});
-		functions.put("urlencode", new Function<String, String>() {
+		functions.put("urlencode", new Function<Object, Object>() {
 
 			@Override
-			public String apply(final NodeInterface entity, final String[] s) {
+			public Object apply(final NodeInterface entity, final Object[] sources) {
 
-				return ((s != null) && (s.length > 0) && (s[0] != null))
-					? encodeURL(s[0])
+				return ((sources != null) && (sources.length > 0) && (sources[0] != null))
+					? encodeURL(sources[0].toString())
 					: "";
 
 			}
 
 		});
-		functions.put("if", new Function<String, String>() {
+		functions.put("if", new Function<Object, Object>() {
 
 			@Override
-			public String apply(final NodeInterface entity, final String[] s) {
+			public Object apply(final NodeInterface entity, final Object[] sources) {
 
-				if (s[0] == null || s.length < 3) {
+				if (sources[0] == null || sources.length < 3) {
 
 					return "";
 				}
 
-				if (s[0].equals("true")) {
+				if (sources[0].equals("true")) {
 
-					return s[1];
+					return sources[1];
 				} else {
 
-					return s[2];
+					return sources[2];
 				}
 
 			}
 
 		});
-		functions.put("empty", new Function<String, String>() {
+		functions.put("empty", new Function<Object, Object>() {
 
 			@Override
-			public String apply(final NodeInterface entity, final String[] s) {
+			public Object apply(final NodeInterface entity, final Object[] sources) {
 
-				if (StringUtils.isEmpty(s[0])) {
+				if (StringUtils.isEmpty(sources[0].toString())) {
 
 					return "true";
 				} else {
@@ -1388,50 +1388,57 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			}
 
 		});
-		functions.put("equal", new Function<String, String>() {
+		functions.put("equal", new Function<Object, Object>() {
 
 			@Override
-			public String apply(final NodeInterface entity, final String[] s) {
+			public Object apply(final NodeInterface entity, final Object[] sources) {
 
-				logger.log(Level.FINE, "Length: {0}", s.length);
+				logger.log(Level.FINE, "Length: {0}", sources.length);
 
-				if (s.length < 2) {
+				if (sources.length < 2) {
 
 					return "true";
 				}
 
-				logger.log(Level.FINE, "Comparing {0} to {1}", new java.lang.Object[]{s[0], s[1]});
+				logger.log(Level.FINE, "Comparing {0} to {1}", new java.lang.Object[]{sources[0], sources[1]});
 
-				if (s[0] == null || s[1] == null) {
+				if (sources[0] == null || sources[1] == null) {
 					return "false";
 				}
 
-				return s[0].equals(s[1])
+				return sources[0].equals(sources[1])
 					? "true"
 					: "false";
 
 			}
 
 		});
-		functions.put("add", new Function<String, String>() {
+		functions.put("add", new Function<Object, Object>() {
 
 			@Override
-			public String apply(final NodeInterface entity, final String[] s) {
+			public Object apply(final NodeInterface entity, final Object[] sources) {
 
-				Double result = 0.0d;
+				Double result = 0.0;
 
-				if (s != null) {
+				if (sources != null) {
 
-					for (String i : s) {
+					for (Object i : sources) {
 
-						try {
+						if (i != null) {
 
-							result += Double.parseDouble(i);
+							try {
 
-						} catch (Throwable t) {
+								result += Double.parseDouble(i.toString());
 
-							return t.getMessage();
+							} catch (Throwable t) {
 
+								return t.getMessage();
+
+							}
+
+						} else {
+
+							result += 0.0;
 						}
 					}
 
@@ -1442,18 +1449,18 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			}
 
 		});
-		functions.put("lt", new Function<String, String>() {
+		functions.put("lt", new Function<Object, Object>() {
 
 			@Override
-			public String apply(final NodeInterface entity, final String[] s) {
+			public Object apply(final NodeInterface entity, final Object[] sources) {
 
 				String result = "";
 
-				if (s != null && s.length == 2) {
+				if (sources != null && sources.length == 2) {
 
 					try {
 
-						result = (Double.parseDouble(s[0]) < Double.parseDouble(s[1])) ? "true" : "false";
+						result = (Double.parseDouble(sources[0].toString()) < Double.parseDouble(sources[1].toString())) ? "true" : "false";
 
 					} catch (Throwable t) {
 
@@ -1467,18 +1474,18 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 			}
 		});
-		functions.put("gt", new Function<String, String>() {
+		functions.put("gt", new Function<Object, Object>() {
 
 			@Override
-			public String apply(final NodeInterface entity, final String[] s) {
+			public Object apply(final NodeInterface entity, final Object[] sources) {
 
 				String result = "";
 
-				if (s != null && s.length == 2) {
+				if (sources != null && sources.length == 2) {
 
 					try {
 
-						result = (Double.parseDouble(s[0]) > Double.parseDouble(s[1])) ? "true" : "false";
+						result = (Double.parseDouble(sources[0].toString()) > Double.parseDouble(sources[1].toString())) ? "true" : "false";
 
 					} catch (Throwable t) {
 
@@ -1492,18 +1499,18 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 			}
 		});
-		functions.put("lte", new Function<String, String>() {
+		functions.put("lte", new Function<Object, Object>() {
 
 			@Override
-			public String apply(final NodeInterface entity, final String[] s) {
+			public Object apply(final NodeInterface entity, final Object[] sources) {
 
 				String result = "";
 
-				if (s != null && s.length == 2) {
+				if (sources != null && sources.length == 2) {
 
 					try {
 
-						result = (Double.parseDouble(s[0]) <= Double.parseDouble(s[1])) ? "true" : "false";
+						result = (Double.parseDouble(sources[0].toString()) <= Double.parseDouble(sources[1].toString())) ? "true" : "false";
 
 					} catch (Throwable t) {
 
@@ -1517,18 +1524,18 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 			}
 		});
-		functions.put("gte", new Function<String, String>() {
+		functions.put("gte", new Function<Object, Object>() {
 
 			@Override
-			public String apply(final NodeInterface entity, final String[] s) {
+			public Object apply(final NodeInterface entity, final Object[] sources) {
 
 				String result = "";
 
-				if (s != null && s.length == 2) {
+				if (sources != null && sources.length == 2) {
 
 					try {
 
-						result = (Double.parseDouble(s[0]) >= Double.parseDouble(s[1])) ? "true" : "false";
+						result = (Double.parseDouble(sources[0].toString()) >= Double.parseDouble(sources[1].toString())) ? "true" : "false";
 
 					} catch (Throwable t) {
 
@@ -1542,20 +1549,20 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 			}
 		});
-		functions.put("subt", new Function<String, String>() {
+		functions.put("subt", new Function<Object, Object>() {
 
 			@Override
-			public String apply(final NodeInterface entity, final String[] s) {
+			public Object apply(final NodeInterface entity, final Object[] sources) {
 
-				if (s != null && s.length > 0) {
+				if (sources != null && sources.length > 0) {
 
 					try {
 
-						Double result = Double.parseDouble(s[0]);
+						Double result = Double.parseDouble(sources[0].toString());
 
-						for (int i = 1; i < s.length; i++) {
+						for (int i = 1; i < sources.length; i++) {
 
-							result -= Double.parseDouble(s[i]);
+							result -= Double.parseDouble(sources[i].toString());
 
 						}
 
@@ -1573,20 +1580,20 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			}
 
 		});
-		functions.put("mult", new Function<String, String>() {
+		functions.put("mult", new Function<Object, Object>() {
 
 			@Override
-			public String apply(final NodeInterface entity, final String[] s) {
+			public Object apply(final NodeInterface entity, final Object[] sources) {
 
 				Double result = 1.0d;
 
-				if (s != null) {
+				if (sources != null) {
 
-					for (String i : s) {
+					for (Object i : sources) {
 
 						try {
 
-							result *= Double.parseDouble(i);
+							result *= Double.parseDouble(i.toString());
 
 						} catch (Throwable t) {
 
@@ -1602,18 +1609,18 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			}
 
 		});
-		functions.put("quot", new Function<String, String>() {
+		functions.put("quot", new Function<Object, Object>() {
 
 			@Override
-			public String apply(final NodeInterface entity, final String[] s) {
+			public Object apply(final NodeInterface entity, final Object[] sources) {
 
 				Double result = 0.0d;
 
-				if (s != null && s.length == 2) {
+				if (sources != null && sources.length == 2) {
 
 					try {
 
-						result = Double.parseDouble(s[0]) / Double.parseDouble(s[1]);
+						result = Double.parseDouble(sources[0].toString()) / Double.parseDouble(sources[1].toString());
 
 					} catch (Throwable t) {
 
@@ -1628,23 +1635,23 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			}
 
 		});
-		functions.put("round", new Function<String, String>() {
+		functions.put("round", new Function<Object, Object>() {
 
 			@Override
-			public String apply(final NodeInterface entity, final String[] s) {
+			public Object apply(final NodeInterface entity, final Object[] sources) {
 
 				Double result = 0.0d;
 
-				if (s != null && s.length == 2) {
+				if (sources != null && sources.length == 2) {
 
-					if (StringUtils.isBlank(s[0])) {
+					if (StringUtils.isBlank(sources[0].toString())) {
 						return "";
 					}
 
 					try {
 
-						Double f1 = Double.parseDouble(s[0]);
-						double f2 = Math.pow(10, (Integer.parseInt(s[1])));
+						Double f1 = Double.parseDouble(sources[0].toString());
+						double f2 = Math.pow(10, (Integer.parseInt(sources[1].toString())));
 						long r = Math.round(f1 * f2);
 
 						result = (double) r / f2;
@@ -1662,21 +1669,21 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			}
 
 		});
-		functions.put("max", new Function<String, String>() {
+		functions.put("max", new Function<Object, Object>() {
 
 			@Override
-			public String apply(final NodeInterface entity, final String[] s) {
+			public Object apply(final NodeInterface entity, final Object[] sources) {
 
 				String result = "";
 				String errorMsg = "ERROR! Usage: ${max(val1, val2)}. Example: ${max(5,10)}";
 
-				if (s != null && s.length == 2) {
+				if (sources != null && sources.length == 2) {
 
 					try {
-						result = Double.toString(Math.max(Double.parseDouble(s[0]), Double.parseDouble(s[1])));
+						result = Double.toString(Math.max(Double.parseDouble(sources[0].toString()), Double.parseDouble(sources[1].toString())));
 
 					} catch (Throwable t) {
-						logger.log(Level.WARNING, "Could not determine max() of {0} and {1}", new Object[]{s[0], s[1]});
+						logger.log(Level.WARNING, "Could not determine max() of {0} and {1}", new Object[]{sources[0], sources[1]});
 						result = errorMsg;
 					}
 
@@ -1687,21 +1694,21 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			}
 
 		});
-		functions.put("min", new Function<String, String>() {
+		functions.put("min", new Function<Object, Object>() {
 
 			@Override
-			public String apply(final NodeInterface entity, final String[] s) {
+			public Object apply(final NodeInterface entity, final Object[] sources) {
 
 				String result = "";
 				String errorMsg = "ERROR! Usage: ${min(val1, val2)}. Example: ${min(5,10)}";
 
-				if (s != null && s.length == 2) {
+				if (sources != null && sources.length == 2) {
 
 					try {
-						result = Double.toString(Math.min(Double.parseDouble(s[0]), Double.parseDouble(s[1])));
+						result = Double.toString(Math.min(Double.parseDouble(sources[0].toString()), Double.parseDouble(sources[1].toString())));
 
 					} catch (Throwable t) {
-						logger.log(Level.WARNING, "Could not determine min() of {0} and {1}", new Object[]{s[0], s[1]});
+						logger.log(Level.WARNING, "Could not determine min() of {0} and {1}", new Object[]{sources[0], sources[1]});
 						result = errorMsg;
 					}
 
@@ -1712,23 +1719,23 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			}
 
 		});
-		functions.put("date_format", new Function<String, String>() {
+		functions.put("date_format", new Function<Object, Object>() {
 
 			@Override
-			public String apply(final NodeInterface entity, final String[] s) {
+			public Object apply(final NodeInterface entity, final Object[] sources) {
 
 				String result = "";
 				String errorMsg = "ERROR! Usage: ${date_format(value, pattern)}. Example: ${date_format(Tue Feb 26 10:49:26 CET 2013, \"yyyy-MM-dd'T'HH:mm:ssZ\")}";
 
-				if (s != null && s.length == 2) {
+				if (sources != null && sources.length == 2) {
 
-					String dateString = s[0];
+					String dateString = sources[0].toString();
 
 					if (StringUtils.isBlank(dateString)) {
 						return "";
 					}
 
-					String pattern = s[1];
+					String pattern = sources[1].toString();
 
 					try {
 						// parse with format from IS
@@ -1747,25 +1754,25 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 				return result;
 			}
 		});
-		functions.put("number_format", new Function<String, String>() {
+		functions.put("number_format", new Function<Object, Object>() {
 
 			@Override
-				public String apply(final NodeInterface entity, final String[] s) {
+				public Object apply(final NodeInterface entity, final Object[] sources) {
 
 				String result = "";
 				String errorMsg = "ERROR! Usage: ${number_format(value, ISO639LangCode, pattern)}. Example: ${number_format(12345.6789, 'en', '#,##0.00')}";
 
-				if (s != null && s.length == 3) {
+				if (sources != null && sources.length == 3) {
 
-					if (StringUtils.isBlank(s[0])) {
+					if (StringUtils.isBlank(sources[0].toString())) {
 						return "";
 					}
 
 					try {
 
-						Double val = Double.parseDouble(s[0]);
-						String langCode = s[1];
-						String pattern = s[2];
+						Double val = Double.parseDouble(sources[0].toString());
+						String langCode = sources[1].toString();
+						String pattern = sources[2].toString();
 
 						NumberFormat formatter = DecimalFormat.getInstance(new Locale(langCode));
 						((DecimalFormat) formatter).applyLocalizedPattern(pattern);
@@ -1785,29 +1792,29 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			}
 
 		});
-		functions.put("not", new Function<String, String>() {
+		functions.put("not", new Function<Object, Object>() {
 
 			@Override
-			public String apply(final NodeInterface entity, final String[] b) {
+			public Object apply(final NodeInterface entity, final Object[] sources) {
 
-				if (b == null || b.length == 0) {
+				if (sources == null || sources.length == 0) {
 					return "";
 				}
 
-				return b[0].equals("true") ? "false" : "true";
+				return sources[0].equals("true") ? "false" : "true";
 			}
 
 		});
-		functions.put("and", new Function<String, String>() {
+		functions.put("and", new Function<Object, Object>() {
 
 			@Override
-			public String apply(final NodeInterface entity, final String[] b) {
+			public Object apply(final NodeInterface entity, final Object[] sources) {
 
 				boolean result = true;
 
-				if (b != null) {
+				if (sources != null) {
 
-					for (String i : b) {
+					for (Object i : sources) {
 
 						try {
 
@@ -1826,16 +1833,16 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			}
 
 		});
-		functions.put("or", new Function<String, String>() {
+		functions.put("or", new Function<Object, Object>() {
 
 			@Override
-			public String apply(final NodeInterface entity, final String[] b) {
+			public Object apply(final NodeInterface entity, final Object[] sources) {
 
 				boolean result = false;
 
-				if (b != null) {
+				if (sources != null) {
 
-					for (String i : b) {
+					for (Object i : sources) {
 
 						try {
 
@@ -1854,14 +1861,14 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			}
 
 		});
-		functions.put("print", new Function<String, String>() {
+		functions.put("print", new Function<Object, Object>() {
 
 			@Override
-			public String apply(final NodeInterface entity, final String[] b) {
+			public Object apply(final NodeInterface entity, final Object[] sources) {
 
-				if (b != null) {
+				if (sources != null) {
 
-					for (String i : b) {
+					for (Object i : sources) {
 
 						System.out.print(i);
 					}
@@ -1873,17 +1880,17 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			}
 
 		});
-		functions.put("geocode", new Function<String, String>() {
+		functions.put("geocode", new Function<Object, Object>() {
 
 			@Override
-			public String apply(final NodeInterface entity, final String[] b) {
+			public Object apply(final NodeInterface entity, final Object[] sources) {
 
-				if (b != null && b.length == 3) {
+				if (sources != null && sources.length == 3) {
 
 					final Gson gson      = new GsonBuilder().create();
-					final String street  = b[0];
-					final String city    = b[1];
-					final String country = b[2];
+					final String street  = sources[0].toString();
+					final String city    = sources[1].toString();
+					final String country = sources[2].toString();
 
 					try {
 						GeoCodingResult result = GeoHelper.geocode(street, null, null, city, null, country);
@@ -1908,44 +1915,53 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			}
 
 		});
-		functions.put("set", new Function<String, String>() {
+		functions.put("set", new Function<Object, Object>() {
 
 			@Override
-			public String apply(final NodeInterface entity, final String[] b) {
+			public Object apply(final NodeInterface entity, final Object[] sources) {
 
-				if (b != null && b.length > 0) {
+				if (sources != null && sources.length > 1) {
 
-					final Map<String, Object> properties  = new LinkedHashMap<>();
-					final SecurityContext securityContext = entity.getSecurityContext();
-					final Gson gson                       = new GsonBuilder().create();
-					final Class type                      = entity.getClass();
+					if (sources[0] instanceof NodeInterface) {
 
-					if (b.length == 2 && b[0].matches("[a-zA-Z0-9_]+")) {
+						final NodeInterface source            = (NodeInterface)sources[0];
+						final Map<String, Object> properties  = new LinkedHashMap<>();
+						final SecurityContext securityContext = source.getSecurityContext();
+						final Gson gson                       = new GsonBuilder().create();
+						final Class type                      = source.getClass();
+						final int sourceCount                 = sources.length;
 
-						properties.put(b[0], b[1]);
+						if (sources.length == 3 && sources[1].toString().matches("[a-zA-Z0-9_]+")) {
+
+							properties.put(sources[1].toString(), sources[2]);
+
+						} else {
+
+							// we either have and odd number of items, or two multi-value items.
+							for (int i=1; i<sourceCount; i++) {
+
+								properties.putAll(deserialize(gson, sources[i].toString()));
+							}
+						}
+
+						try {
+
+							// store values in entity
+							final PropertyMap map = PropertyMap.inputTypeToJavaType(securityContext, type, properties);
+							for (final Entry<PropertyKey, Object> entry : map.entrySet()) {
+
+								source.setProperty(entry.getKey(), entry.getValue());
+							}
+
+
+						} catch (FrameworkException fex) {
+
+							fex.printStackTrace();
+						}
 
 					} else {
 
-						// we either have and odd number of items, or two multi-value items.
-						for (String source : b) {
-
-							properties.putAll(deserialize(gson, source));
-						}
-					}
-
-					try {
-
-						// store values in entity
-						final PropertyMap map = PropertyMap.inputTypeToJavaType(securityContext, type, properties);
-						for (final Entry<PropertyKey, Object> entry : map.entrySet()) {
-
-							entity.setProperty(entry.getKey(), entry.getValue());
-						}
-
-
-					} catch (FrameworkException fex) {
-
-						fex.printStackTrace();
+						logger.log(Level.WARNING, "Invalid use of builtin method set, usage: set(entity, params..)");
 					}
 
 				}
@@ -1954,6 +1970,98 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			}
 
 		});
+		functions.put("get", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final NodeInterface entity, final Object[] sources) {
+
+				if (sources != null && sources.length == 2 && sources[0] instanceof NodeInterface) {
+
+					final NodeInterface node = (NodeInterface)sources[0];
+					final String keyName     = sources[1].toString();
+					final PropertyKey key    = StructrApp.getConfiguration().getPropertyKeyForJSONName(node.getClass(), keyName);
+
+					if (key != null) {
+						return node.getProperty(key);
+					}
+				}
+
+				return "";
+			}
+		});
+		functions.put("first", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final NodeInterface entity, final Object[] sources) {
+
+				if (sources != null && sources.length == 1 && sources[0] instanceof List) {
+					return ((List)sources[0]).get(0);
+				}
+
+				return "";
+			}
+		});
+		functions.put("last", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final NodeInterface entity, final Object[] sources) {
+
+				if (sources != null && sources.length == 1 && sources[0] instanceof List) {
+
+					final List list = (List)sources[0];
+					return list.get(list.size() - 1);
+				}
+
+				return "";
+			}
+		});
+		functions.put("nth", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final NodeInterface entity, final Object[] sources) {
+
+				if (sources != null && sources.length == 2 && sources[0] instanceof List) {
+
+					final List list = (List)sources[0];
+					final int pos   = Integer.parseInt(sources[1].toString());
+					final int size  = list.size();
+
+					return list.get(Math.min(Math.max(0, pos), size));
+				}
+
+				return "";
+			}
+		});
+		functions.put("each", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final NodeInterface entity, final Object[] sources) {
+
+				if (sources != null && sources.length == 2 && sources[0] instanceof List) {
+
+					final List list   = (List)sources[0];
+					final String expr = sources[1].toString();
+
+					for (final Object obj : list) {
+
+						if (obj instanceof AbstractNode) {
+
+							try {
+								final AbstractNode node = (AbstractNode)obj;
+								node.extractFunctions(node.getSecurityContext(), new ActionContext(entity), expr);
+
+							} catch (FrameworkException fex) {
+
+								fex.printStackTrace();
+							}
+						}
+					}
+				}
+
+				return "";
+			}
+		});
+
 	}
 
 	protected String getPropertyWithVariableReplacement(SecurityContext securityContext, ActionContext renderContext, PropertyKey<String> key) throws FrameworkException {
@@ -1985,25 +2093,27 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 				while (matcher.find()) {
 
-					String group = matcher.group();
-					String source = group.substring(2, group.length() - 1);
+					String group          = matcher.group();
+					String source         = group.substring(2, group.length() - 1);
+					Object extractedValue = extractFunctions(securityContext, actionContext, source);
 
 					// fetch referenced property
-					String partValue = StringUtils.remove(extractFunctions(securityContext, actionContext, source), "\\");
+					if (extractedValue != null) {
 
-					if (partValue != null) {
+						String partValue = StringUtils.remove(extractedValue.toString(), "\\");
+						if (partValue != null) {
 
-						value = value.replace(group, partValue);
+							value = value.replace(group, partValue);
 
-					} else {
+						} else {
 
-						// If the whole expression should be replaced, and partValue is null
-						// replace it by null to make it possible for HTML attributes to not be rendered
-						// and avoid something like ... selected="" ... which is interpreted as selected==true by
-						// all browsers
-						value = value.equals(group) ? null : value.replace(group, "");
+							// If the whole expression should be replaced, and partValue is null
+							// replace it by null to make it possible for HTML attributes to not be rendered
+							// and avoid something like ... selected="" ... which is interpreted as selected==true by
+							// all browsers
+							value = value.equals(group) ? null : value.replace(group, "");
+						}
 					}
-
 				}
 
 			}
@@ -2022,7 +2132,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 	}
 
-	protected String extractFunctions(SecurityContext securityContext, ActionContext actionContext, String source) throws FrameworkException {
+	protected Object extractFunctions(SecurityContext securityContext, ActionContext actionContext, String source) throws FrameworkException {
 
 		// re-use matcher from previous calls
 		Matcher functionMatcher = threadLocalFunctionMatcher.get();
@@ -2034,14 +2144,14 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			String functionGroup = functionMatcher.group(1);
 			String parameter = functionMatcher.group(2);
 			String functionName = functionGroup.substring(0, functionGroup.length());
-			Function<String, String> function = functions.get(functionName);
+			Function<Object, Object> function = functions.get(functionName);
 
 			if (function != null) {
 
 				if (parameter.contains(",")) {
 
 					String[] parameters = split(parameter);
-					String[] results = new String[parameters.length];
+					Object[] results = new Object[parameters.length];
 
 					// collect results from comma-separated function parameter
 					for (int i = 0; i < parameters.length; i++) {
@@ -2053,9 +2163,9 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 				} else {
 
-					String result = extractFunctions(securityContext, actionContext, StringUtils.strip(parameter));
+					Object result = extractFunctions(securityContext, actionContext, StringUtils.strip(parameter));
 
-					return function.apply(this, new String[]{result});
+					return function.apply(this, new Object[]{result});
 
 				}
 			}
@@ -2079,7 +2189,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		} else {
 
 			// return property key
-			return actionContext.convertValueForHtml(actionContext.getReferencedProperty(securityContext, this, source));
+			return actionContext.getReferencedProperty(securityContext, this, source);
 		}
 	}
 

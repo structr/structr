@@ -28,5 +28,5 @@ public abstract class Function<S, T> {
 
 	//~--- methods --------------------------------------------------------
 
-	public abstract T apply(final NodeInterface entity, S[] sources);
+	public abstract T apply(NodeInterface entity, S[] sources);
 }

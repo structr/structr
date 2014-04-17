@@ -123,23 +123,23 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	static {
 
 		// extend set of builtin functions
-		functions.put("GET", new Function<String, String>() {
+		functions.put("GET", new Function<Object, Object>() {
 
 			@Override
-			public String apply(final NodeInterface entity, final String[] s) {
+			public Object apply(final NodeInterface entity, final Object[] sources) {
 
 				String result = "";
 				String errorMsg = "ERROR! Usage: ${GET(URL[, contentType[, selector]])}. Example: ${GET('http://structr.org', 'text/html')}";
 
-				if (s != null && s.length > 0) {
+				if (sources != null && sources.length > 0) {
 
 					try {
 
-						String address = s[0];
+						String address = sources[0].toString();
 						String contentType = null;
 
-						if (s.length > 1) {
-							contentType = s[1];
+						if (sources.length > 1) {
+							contentType = sources[1].toString();
 						}
 
 						//long t0 = System.currentTimeMillis();
@@ -147,9 +147,9 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 							String selector = null;
 
-							if (s.length > 2) {
+							if (sources.length > 2) {
 
-								selector = s[2];
+								selector = sources[2].toString();
 
 //								String raw = getFromUrl2(address);
 //								long t1 = System.currentTimeMillis();
