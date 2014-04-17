@@ -42,7 +42,7 @@
         <repository>
             <id>releases.maven.structr.org</id>
             <url>http://maven.structr.org/artifactory/release</url>
-        </repository> 
+        </repository>
         <repository>
             <id>neo4j-releases</id>
             <url>http://m2.neo4j.org/content/repositories/releases</url>
@@ -71,7 +71,7 @@
                 <enabled>true</enabled>
             </snapshots>
         </repository>
-    </repositories>	
+    </repositories>
     <dependencies>
         <dependency>
             <groupId>junit</groupId>
@@ -129,17 +129,17 @@
             <version>1.5</version>
             <type>jar</type>
             <exclusions>
-                <!--Sail support not needed--> 
+                <!--Sail support not needed-->
                 <exclusion>
                     <groupId>com.tinkerpop.blueprints</groupId>
                     <artifactId>blueprints-sail-graph</artifactId>
                 </exclusion>
-                <!--Maven support in groovy not needed--> 
+                <!--Maven support in groovy not needed-->
                 <exclusion>
                     <groupId>org.codehaus.groovy.maven</groupId>
                     <artifactId>gmaven-plugin</artifactId>
                 </exclusion>
-                <!--"readline" not needed - we only expose gremlin through webadmin--> 
+                <!--"readline" not needed - we only expose gremlin through webadmin-->
                 <exclusion>
                     <groupId>jline</groupId>
                     <artifactId>jline</artifactId>
@@ -175,7 +175,7 @@
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
             <version>3.1.0</version>
-        </dependency>		
+        </dependency>
         <dependency>
             <groupId>net.sf.opencsv</groupId>
             <artifactId>opencsv</artifactId>
@@ -211,6 +211,11 @@
             <groupId>commons-jxpath</groupId>
             <artifactId>commons-jxpath</artifactId>
             <version>1.3</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.3</version>
         </dependency>
     </dependencies>
 

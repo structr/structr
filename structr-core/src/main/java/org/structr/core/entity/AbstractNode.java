@@ -18,9 +18,18 @@
  */
 package org.structr.core.entity;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.text.DecimalFormat;
+import java.text.Normalizer;
+import java.text.NumberFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import org.structr.core.property.PropertyMap;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.lang.StringUtils;
 
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
@@ -43,11 +52,16 @@ import org.structr.core.graph.NodeRelationshipStatisticsCommand;
 
 
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.index.Index;
+import org.structr.common.geo.GeoCodingResult;
+import org.structr.common.geo.GeoHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.IterableAdapter;
 import org.structr.core.Ownership;
@@ -57,6 +71,9 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeService;
 import org.structr.core.graph.RelationshipFactory;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.ISO8601DateProperty;
+import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.Function;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -69,6 +86,10 @@ import org.structr.core.graph.Tx;
 public abstract class AbstractNode implements NodeInterface, AccessControllable {
 
 	private static final Logger logger = Logger.getLogger(AbstractNode.class.getName());
+	private static final ThreadLocalMatcher threadLocalTemplateMatcher = new ThreadLocalMatcher("\\$\\{[^}]*\\}");
+	private static final ThreadLocalMatcher threadLocalFunctionMatcher = new ThreadLocalMatcher("([a-zA-Z0-9_]+)\\((.+)\\)");
+	protected static final Map<String, Function<String, String>> functions = new LinkedHashMap<>();
+
 
 	public static final View defaultView = new View(AbstractNode.class, PropertyView.Public, id, type);
 
@@ -1150,5 +1171,1039 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		}
 
 		return null;
+	}
+
+	// ----- variable replacement functions etc. -----
+	static {
+
+		functions.put("md5", new Function<String, String>() {
+
+			@Override
+			public String apply(final NodeInterface entity, final String[] s) {
+
+				return ((s != null) && (s.length > 0) && (s[0] != null))
+					? DigestUtils.md5Hex(s[0])
+					: "";
+
+			}
+
+		});
+		functions.put("upper", new Function<String, String>() {
+
+			@Override
+			public String apply(final NodeInterface entity, final String[] s) {
+
+				return ((s != null) && (s.length > 0) && (s[0] != null))
+					? s[0].toUpperCase()
+					: "";
+
+			}
+
+		});
+		functions.put("lower", new Function<String, String>() {
+
+			@Override
+			public String apply(final NodeInterface entity, final String[] s) {
+
+				return ((s != null) && (s.length > 0) && (s[0] != null))
+					? s[0].toLowerCase()
+					: "";
+
+			}
+
+		});
+		functions.put("join", new Function<String, String>() {
+
+			@Override
+			public String apply(final NodeInterface entity, final String[] s) {
+				return StringUtils.join(s);
+			}
+
+		});
+		functions.put("abbr", new Function<String, String>() {
+
+			@Override
+			public String apply(final NodeInterface entity, final String[] s) {
+
+				if (s != null && s.length > 1 && s[0] != null && s[1] != null) {
+
+					try {
+						int maxLength = Integer.parseInt(s[1]);
+
+						if (s[0].length() > maxLength) {
+
+							return StringUtils.substringBeforeLast(StringUtils.substring(s[0], 0, maxLength), " ").concat("…");
+
+						} else {
+
+							return s[0];
+						}
+
+					} catch (NumberFormatException nfe) {
+
+						return nfe.getMessage();
+
+					}
+
+				}
+
+				return "";
+
+			}
+
+		});
+		functions.put("capitalize", new Function<String, String>() {
+
+			@Override
+			public String apply(final NodeInterface entity, final String[] s) {
+
+				return ((s != null) && (s.length > 0) && (s[0] != null))
+					? StringUtils.capitalize(s[0])
+					: "";
+
+			}
+		});
+		functions.put("titleize", new Function<String, String>() {
+
+			@Override
+			public String apply(final NodeInterface entity, final String[] s) {
+
+				if (s == null || s.length < 2) {
+					return null;
+				}
+
+				if (StringUtils.isBlank(s[0])) {
+					return "";
+				}
+
+				if (s[1] == null) {
+					s[1] = " ";
+				}
+
+				String[] in = StringUtils.split(s[0], s[1]);
+				String[] out = new String[in.length];
+				for (int i = 0; i < in.length; i++) {
+					out[i] = StringUtils.capitalize(in[i]);
+				};
+				return StringUtils.join(out, " ");
+
+			}
+
+		});
+		functions.put("clean", new Function<String, String>() {
+
+			@Override
+			public String apply(final NodeInterface entity, final String[] s) {
+
+				String result;
+
+				if ((s != null) && (s.length > 0)) {
+
+					if (StringUtils.isBlank(s[0])) {
+						return "";
+					}
+
+					String normalized = Normalizer.normalize(s[0], Normalizer.Form.NFD)
+						.replaceAll("\\<", "")
+						.replaceAll("\\>", "")
+						.replaceAll("\\.", "")
+						.replaceAll("\\'", "-")
+						.replaceAll("\\?", "")
+						.replaceAll("\\(", "")
+						.replaceAll("\\)", "")
+						.replaceAll("\\{", "")
+						.replaceAll("\\}", "")
+						.replaceAll("\\[", "")
+						.replaceAll("\\]", "")
+						.replaceAll("\\+", "-")
+						.replaceAll("/", "-")
+						.replaceAll("–", "-")
+						.replaceAll("\\\\", "-")
+						.replaceAll("\\|", "-")
+						.replaceAll("'", "-")
+						.replaceAll("!", "")
+						.replaceAll(",", "")
+						.replaceAll("-", " ")
+						.replaceAll("_", " ")
+						.replaceAll("`", "-");
+
+					result = normalized.replaceAll("-", " ");
+					result = StringUtils.normalizeSpace(result.toLowerCase());
+					result = result.replaceAll("[^\\p{ASCII}]", "").replaceAll("\\p{P}", "-").replaceAll("\\-(\\s+\\-)+", "-");
+					result = result.replaceAll(" ", "-");
+
+					return result;
+				}
+
+				return null;
+
+			}
+
+		});
+		functions.put("urlencode", new Function<String, String>() {
+
+			@Override
+			public String apply(final NodeInterface entity, final String[] s) {
+
+				return ((s != null) && (s.length > 0) && (s[0] != null))
+					? encodeURL(s[0])
+					: "";
+
+			}
+
+		});
+		functions.put("if", new Function<String, String>() {
+
+			@Override
+			public String apply(final NodeInterface entity, final String[] s) {
+
+				if (s[0] == null || s.length < 3) {
+
+					return "";
+				}
+
+				if (s[0].equals("true")) {
+
+					return s[1];
+				} else {
+
+					return s[2];
+				}
+
+			}
+
+		});
+		functions.put("empty", new Function<String, String>() {
+
+			@Override
+			public String apply(final NodeInterface entity, final String[] s) {
+
+				if (StringUtils.isEmpty(s[0])) {
+
+					return "true";
+				} else {
+					return "false";
+				}
+
+			}
+
+		});
+		functions.put("equal", new Function<String, String>() {
+
+			@Override
+			public String apply(final NodeInterface entity, final String[] s) {
+
+				logger.log(Level.FINE, "Length: {0}", s.length);
+
+				if (s.length < 2) {
+
+					return "true";
+				}
+
+				logger.log(Level.FINE, "Comparing {0} to {1}", new java.lang.Object[]{s[0], s[1]});
+
+				if (s[0] == null || s[1] == null) {
+					return "false";
+				}
+
+				return s[0].equals(s[1])
+					? "true"
+					: "false";
+
+			}
+
+		});
+		functions.put("add", new Function<String, String>() {
+
+			@Override
+			public String apply(final NodeInterface entity, final String[] s) {
+
+				Double result = 0.0d;
+
+				if (s != null) {
+
+					for (String i : s) {
+
+						try {
+
+							result += Double.parseDouble(i);
+
+						} catch (Throwable t) {
+
+							return t.getMessage();
+
+						}
+					}
+
+				}
+
+				return new Double(result).toString();
+
+			}
+
+		});
+		functions.put("lt", new Function<String, String>() {
+
+			@Override
+			public String apply(final NodeInterface entity, final String[] s) {
+
+				String result = "";
+
+				if (s != null && s.length == 2) {
+
+					try {
+
+						result = (Double.parseDouble(s[0]) < Double.parseDouble(s[1])) ? "true" : "false";
+
+					} catch (Throwable t) {
+
+						return t.getMessage();
+
+					}
+
+				}
+
+				return result;
+
+			}
+		});
+		functions.put("gt", new Function<String, String>() {
+
+			@Override
+			public String apply(final NodeInterface entity, final String[] s) {
+
+				String result = "";
+
+				if (s != null && s.length == 2) {
+
+					try {
+
+						result = (Double.parseDouble(s[0]) > Double.parseDouble(s[1])) ? "true" : "false";
+
+					} catch (Throwable t) {
+
+						return t.getMessage();
+
+					}
+
+				}
+
+				return result;
+
+			}
+		});
+		functions.put("lte", new Function<String, String>() {
+
+			@Override
+			public String apply(final NodeInterface entity, final String[] s) {
+
+				String result = "";
+
+				if (s != null && s.length == 2) {
+
+					try {
+
+						result = (Double.parseDouble(s[0]) <= Double.parseDouble(s[1])) ? "true" : "false";
+
+					} catch (Throwable t) {
+
+						return t.getMessage();
+
+					}
+
+				}
+
+				return result;
+
+			}
+		});
+		functions.put("gte", new Function<String, String>() {
+
+			@Override
+			public String apply(final NodeInterface entity, final String[] s) {
+
+				String result = "";
+
+				if (s != null && s.length == 2) {
+
+					try {
+
+						result = (Double.parseDouble(s[0]) >= Double.parseDouble(s[1])) ? "true" : "false";
+
+					} catch (Throwable t) {
+
+						return t.getMessage();
+
+					}
+
+				}
+
+				return result;
+
+			}
+		});
+		functions.put("subt", new Function<String, String>() {
+
+			@Override
+			public String apply(final NodeInterface entity, final String[] s) {
+
+				if (s != null && s.length > 0) {
+
+					try {
+
+						Double result = Double.parseDouble(s[0]);
+
+						for (int i = 1; i < s.length; i++) {
+
+							result -= Double.parseDouble(s[i]);
+
+						}
+
+						return new Double(result).toString();
+
+					} catch (Throwable t) {
+
+						return t.getMessage();
+
+					}
+				}
+
+				return "";
+
+			}
+
+		});
+		functions.put("mult", new Function<String, String>() {
+
+			@Override
+			public String apply(final NodeInterface entity, final String[] s) {
+
+				Double result = 1.0d;
+
+				if (s != null) {
+
+					for (String i : s) {
+
+						try {
+
+							result *= Double.parseDouble(i);
+
+						} catch (Throwable t) {
+
+							return t.getMessage();
+
+						}
+					}
+
+				}
+
+				return new Double(result).toString();
+
+			}
+
+		});
+		functions.put("quot", new Function<String, String>() {
+
+			@Override
+			public String apply(final NodeInterface entity, final String[] s) {
+
+				Double result = 0.0d;
+
+				if (s != null && s.length == 2) {
+
+					try {
+
+						result = Double.parseDouble(s[0]) / Double.parseDouble(s[1]);
+
+					} catch (Throwable t) {
+
+						return t.getMessage();
+
+					}
+
+				}
+
+				return new Double(result).toString();
+
+			}
+
+		});
+		functions.put("round", new Function<String, String>() {
+
+			@Override
+			public String apply(final NodeInterface entity, final String[] s) {
+
+				Double result = 0.0d;
+
+				if (s != null && s.length == 2) {
+
+					if (StringUtils.isBlank(s[0])) {
+						return "";
+					}
+
+					try {
+
+						Double f1 = Double.parseDouble(s[0]);
+						double f2 = Math.pow(10, (Integer.parseInt(s[1])));
+						long r = Math.round(f1 * f2);
+
+						result = (double) r / f2;
+
+					} catch (Throwable t) {
+
+						return t.getMessage();
+
+					}
+
+				}
+
+				return new Double(result).toString();
+
+			}
+
+		});
+		functions.put("max", new Function<String, String>() {
+
+			@Override
+			public String apply(final NodeInterface entity, final String[] s) {
+
+				String result = "";
+				String errorMsg = "ERROR! Usage: ${max(val1, val2)}. Example: ${max(5,10)}";
+
+				if (s != null && s.length == 2) {
+
+					try {
+						result = Double.toString(Math.max(Double.parseDouble(s[0]), Double.parseDouble(s[1])));
+
+					} catch (Throwable t) {
+						logger.log(Level.WARNING, "Could not determine max() of {0} and {1}", new Object[]{s[0], s[1]});
+						result = errorMsg;
+					}
+
+				}
+
+				return result;
+
+			}
+
+		});
+		functions.put("min", new Function<String, String>() {
+
+			@Override
+			public String apply(final NodeInterface entity, final String[] s) {
+
+				String result = "";
+				String errorMsg = "ERROR! Usage: ${min(val1, val2)}. Example: ${min(5,10)}";
+
+				if (s != null && s.length == 2) {
+
+					try {
+						result = Double.toString(Math.min(Double.parseDouble(s[0]), Double.parseDouble(s[1])));
+
+					} catch (Throwable t) {
+						logger.log(Level.WARNING, "Could not determine min() of {0} and {1}", new Object[]{s[0], s[1]});
+						result = errorMsg;
+					}
+
+				}
+
+				return result;
+
+			}
+
+		});
+		functions.put("date_format", new Function<String, String>() {
+
+			@Override
+			public String apply(final NodeInterface entity, final String[] s) {
+
+				String result = "";
+				String errorMsg = "ERROR! Usage: ${date_format(value, pattern)}. Example: ${date_format(Tue Feb 26 10:49:26 CET 2013, \"yyyy-MM-dd'T'HH:mm:ssZ\")}";
+
+				if (s != null && s.length == 2) {
+
+					String dateString = s[0];
+
+					if (StringUtils.isBlank(dateString)) {
+						return "";
+					}
+
+					String pattern = s[1];
+
+					try {
+						// parse with format from IS
+						Date d = new SimpleDateFormat(ISO8601DateProperty.PATTERN).parse(dateString);
+
+						// format with given pattern
+						result = new SimpleDateFormat(pattern).format(d);
+
+					} catch (ParseException ex) {
+						logger.log(Level.WARNING, "Could not parse date " + dateString + " and format it to pattern " + pattern, ex);
+						result = errorMsg;
+					}
+
+				}
+
+				return result;
+			}
+		});
+		functions.put("number_format", new Function<String, String>() {
+
+			@Override
+				public String apply(final NodeInterface entity, final String[] s) {
+
+				String result = "";
+				String errorMsg = "ERROR! Usage: ${number_format(value, ISO639LangCode, pattern)}. Example: ${number_format(12345.6789, 'en', '#,##0.00')}";
+
+				if (s != null && s.length == 3) {
+
+					if (StringUtils.isBlank(s[0])) {
+						return "";
+					}
+
+					try {
+
+						Double val = Double.parseDouble(s[0]);
+						String langCode = s[1];
+						String pattern = s[2];
+
+						NumberFormat formatter = DecimalFormat.getInstance(new Locale(langCode));
+						((DecimalFormat) formatter).applyLocalizedPattern(pattern);
+						result = formatter.format(val);
+
+					} catch (Throwable t) {
+
+						result = errorMsg;
+
+					}
+
+				} else {
+					result = errorMsg;
+				}
+
+				return result;
+			}
+
+		});
+		functions.put("not", new Function<String, String>() {
+
+			@Override
+			public String apply(final NodeInterface entity, final String[] b) {
+
+				if (b == null || b.length == 0) {
+					return "";
+				}
+
+				return b[0].equals("true") ? "false" : "true";
+			}
+
+		});
+		functions.put("and", new Function<String, String>() {
+
+			@Override
+			public String apply(final NodeInterface entity, final String[] b) {
+
+				boolean result = true;
+
+				if (b != null) {
+
+					for (String i : b) {
+
+						try {
+
+							result &= "true".equals(i);
+
+						} catch (Throwable t) {
+
+							return t.getMessage();
+
+						}
+					}
+
+				}
+
+				return Boolean.toString(result);
+			}
+
+		});
+		functions.put("or", new Function<String, String>() {
+
+			@Override
+			public String apply(final NodeInterface entity, final String[] b) {
+
+				boolean result = false;
+
+				if (b != null) {
+
+					for (String i : b) {
+
+						try {
+
+							result |= "true".equals(i);
+
+						} catch (Throwable t) {
+
+							return t.getMessage();
+
+						}
+					}
+
+				}
+
+				return Boolean.toString(result);
+			}
+
+		});
+		functions.put("print", new Function<String, String>() {
+
+			@Override
+			public String apply(final NodeInterface entity, final String[] b) {
+
+				if (b != null) {
+
+					for (String i : b) {
+
+						System.out.print(i);
+					}
+
+					System.out.println();
+				}
+
+				return "";
+			}
+
+		});
+		functions.put("geocode", new Function<String, String>() {
+
+			@Override
+			public String apply(final NodeInterface entity, final String[] b) {
+
+				if (b != null && b.length == 3) {
+
+					final Gson gson      = new GsonBuilder().create();
+					final String street  = b[0];
+					final String city    = b[1];
+					final String country = b[2];
+
+					try {
+						GeoCodingResult result = GeoHelper.geocode(street, null, null, city, null, country);
+						if (result != null) {
+
+							final Map<String, Object> map = new LinkedHashMap<>();
+
+							map.put("latitude", result.getLatitude());
+							map.put("longitude", result.getLongitude());
+
+							return serialize(gson, map);
+						}
+
+					} catch (FrameworkException fex) {
+
+						fex.printStackTrace();
+					}
+
+				}
+
+				return "";
+			}
+
+		});
+		functions.put("set", new Function<String, String>() {
+
+			@Override
+			public String apply(final NodeInterface entity, final String[] b) {
+
+				if (b != null && b.length > 0) {
+
+					final Map<String, Object> properties  = new LinkedHashMap<>();
+					final SecurityContext securityContext = entity.getSecurityContext();
+					final Gson gson                       = new GsonBuilder().create();
+					final Class type                      = entity.getClass();
+
+					if (b.length == 2 && b[0].matches("[a-zA-Z0-9_]+")) {
+
+						properties.put(b[0], b[1]);
+
+					} else {
+
+						// we either have and odd number of items, or two multi-value items.
+						for (String source : b) {
+
+							properties.putAll(deserialize(gson, source));
+						}
+					}
+
+					try {
+
+						// store values in entity
+						final PropertyMap map = PropertyMap.inputTypeToJavaType(securityContext, type, properties);
+						for (final Entry<PropertyKey, Object> entry : map.entrySet()) {
+
+							entity.setProperty(entry.getKey(), entry.getValue());
+						}
+
+
+					} catch (FrameworkException fex) {
+
+						fex.printStackTrace();
+					}
+
+				}
+
+				return "";
+			}
+
+		});
+	}
+
+	protected String getPropertyWithVariableReplacement(SecurityContext securityContext, ActionContext renderContext, PropertyKey<String> key) throws FrameworkException {
+
+		return replaceVariables(securityContext, renderContext, getProperty(key));
+
+	}
+
+	public String replaceVariables(final SecurityContext securityContext, final ActionContext actionContext, final Object rawValue) throws FrameworkException {
+
+		String value = null;
+
+		if (rawValue == null) {
+
+			return null;
+
+		}
+
+		if (rawValue instanceof String) {
+
+			value = (String) rawValue;
+
+			if (!actionContext.returnRawValue(securityContext)) {
+
+				// re-use matcher from previous calls
+				Matcher matcher = threadLocalTemplateMatcher.get();
+
+				matcher.reset(value);
+
+				while (matcher.find()) {
+
+					String group = matcher.group();
+					String source = group.substring(2, group.length() - 1);
+
+					// fetch referenced property
+					String partValue = StringUtils.remove(extractFunctions(securityContext, actionContext, source), "\\");
+
+					if (partValue != null) {
+
+						value = value.replace(group, partValue);
+
+					} else {
+
+						// If the whole expression should be replaced, and partValue is null
+						// replace it by null to make it possible for HTML attributes to not be rendered
+						// and avoid something like ... selected="" ... which is interpreted as selected==true by
+						// all browsers
+						value = value.equals(group) ? null : value.replace(group, "");
+					}
+
+				}
+
+			}
+
+		} else if (rawValue instanceof Boolean) {
+
+			value = Boolean.toString((Boolean) rawValue);
+
+		} else {
+
+			value = rawValue.toString();
+
+		}
+
+		return value;
+
+	}
+
+	protected String extractFunctions(SecurityContext securityContext, ActionContext actionContext, String source) throws FrameworkException {
+
+		// re-use matcher from previous calls
+		Matcher functionMatcher = threadLocalFunctionMatcher.get();
+
+		functionMatcher.reset(source);
+
+		if (functionMatcher.matches()) {
+
+			String functionGroup = functionMatcher.group(1);
+			String parameter = functionMatcher.group(2);
+			String functionName = functionGroup.substring(0, functionGroup.length());
+			Function<String, String> function = functions.get(functionName);
+
+			if (function != null) {
+
+				if (parameter.contains(",")) {
+
+					String[] parameters = split(parameter);
+					String[] results = new String[parameters.length];
+
+					// collect results from comma-separated function parameter
+					for (int i = 0; i < parameters.length; i++) {
+
+						results[i] = extractFunctions(securityContext, actionContext, StringUtils.strip(parameters[i]));
+					}
+
+					return function.apply(this, results);
+
+				} else {
+
+					String result = extractFunctions(securityContext, actionContext, StringUtils.strip(parameter));
+
+					return function.apply(this, new String[]{result});
+
+				}
+			}
+
+		}
+
+		// if any of the following conditions match, the literal source value is returned
+		if (StringUtils.isNotBlank(source) && StringUtils.isNumeric(source)) {
+
+			// return numeric value
+			return source;
+
+		} else if (source.startsWith("\"") && source.endsWith("\"")) {
+
+			return source.substring(1, source.length() - 1);
+
+		} else if (source.startsWith("'") && source.endsWith("'")) {
+
+			return source.substring(1, source.length() - 1);
+
+		} else {
+
+			// return property key
+			return actionContext.convertValueForHtml(actionContext.getReferencedProperty(securityContext, this, source));
+		}
+	}
+
+	protected String[] split(final String source) {
+
+		ArrayList<String> tokens = new ArrayList<>(20);
+		boolean inDoubleQuotes = false;
+		boolean inSingleQuotes = false;
+		boolean ignoreNext = false;
+		int len = source.length();
+		int level = 0;
+		StringBuilder currentToken = new StringBuilder(len);
+
+		for (int i = 0; i < len; i++) {
+
+			char c = source.charAt(i);
+
+			// do not strip away separators in nested functions!
+			if ((level != 0) || (c != ',')) {
+
+				currentToken.append(c);
+			}
+
+			if (ignoreNext) {
+
+				ignoreNext = false;
+				continue;
+
+			}
+
+			switch (c) {
+
+				case '\\':
+
+					ignoreNext = true;
+
+					break;
+
+				case '(':
+					level++;
+
+					break;
+
+				case ')':
+					level--;
+
+					break;
+
+				case '"':
+					if (inDoubleQuotes) {
+
+						inDoubleQuotes = false;
+
+						level--;
+
+					} else {
+
+						inDoubleQuotes = true;
+
+						level++;
+
+					}
+
+					break;
+
+				case '\'':
+					if (inSingleQuotes) {
+
+						inSingleQuotes = false;
+
+						level--;
+
+					} else {
+
+						inSingleQuotes = true;
+
+						level++;
+
+					}
+
+					break;
+
+				case ',':
+					if (level == 0) {
+
+						tokens.add(currentToken.toString().trim());
+						currentToken.setLength(0);
+
+					}
+
+					break;
+
+			}
+
+		}
+
+		if (currentToken.length() > 0) {
+
+			tokens.add(currentToken.toString().trim());
+		}
+
+		return tokens.toArray(new String[0]);
+
+	}
+
+	protected static String encodeURL(final String source) {
+
+		try {
+			return URLEncoder.encode(source, "UTF-8");
+
+		} catch (UnsupportedEncodingException ex) {
+
+			logger.log(Level.WARNING, "Unsupported Encoding", ex);
+		}
+
+		// fallback, unencoded
+		return source;
+	}
+
+	protected static String serialize(final Gson gson, final Map<String, Object> map) {
+		return gson.toJson(map, new TypeToken<Map<String, String>>() { }.getType());
+	}
+
+	protected static Map<String, Object> deserialize(final Gson gson, final String source) {
+		return gson.fromJson(source, new TypeToken<Map<String, Object>>() { }.getType());
 	}
 }

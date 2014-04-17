@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
@@ -51,6 +52,8 @@ import org.structr.core.property.TargetId;
 import org.structr.schema.ReloadSchema;
 import org.structr.schema.Schema;
 import org.structr.schema.SchemaHelper;
+import org.structr.schema.action.Actions;
+import org.structr.schema.action.ActionEntry;
 
 /**
  *
@@ -322,14 +325,15 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 	@Override
 	public String getSource(final ErrorBuffer errorBuffer) throws FrameworkException {
 
-		final Map<String, Set<String>> viewProperties = new LinkedHashMap<>();
-		final StringBuilder src                       = new StringBuilder();
-		final Class baseType                          = AbstractRelationship.class;
-		final String _className                       = getClassName();
-		final String _sourceNodeType                  = getSchemaNodeSourceType();
-		final String _targetNodeType                  = getSchemaNodeTargetType();
-		final Set<String> validators                  = new LinkedHashSet<>();
-		final Set<String> enums                       = new LinkedHashSet<>();
+		final Map<Actions.Type, List<ActionEntry>> actions = new LinkedHashMap<>();
+		final Map<String, Set<String>> viewProperties     = new LinkedHashMap<>();
+		final StringBuilder src                           = new StringBuilder();
+		final Class baseType                              = AbstractRelationship.class;
+		final String _className                           = getClassName();
+		final String _sourceNodeType                      = getSchemaNodeSourceType();
+		final String _targetNodeType                      = getSchemaNodeTargetType();
+		final Set<String> validators                      = new LinkedHashSet<>();
+		final Set<String> enums                           = new LinkedHashSet<>();
 
 		src.append("package org.structr.dynamic;\n\n");
 
@@ -337,7 +341,7 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 
 		src.append("public class ").append(_className).append(" extends ").append(getBaseType()).append(" {\n\n");
 
-		src.append(SchemaHelper.extractProperties(this, validators, enums, viewProperties, errorBuffer));
+		src.append(SchemaHelper.extractProperties(this, validators, enums, viewProperties, actions, errorBuffer));
 
 		// source and target id properties
 		src.append("\tpublic static final Property<String> sourceIdProperty = new SourceId(\"sourceId\");\n");

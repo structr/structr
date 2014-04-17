@@ -65,7 +65,7 @@ import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
-import org.structr.web.common.ThreadLocalMatcher;
+import org.structr.common.ThreadLocalMatcher;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Linkable;
 import org.structr.web.entity.User;

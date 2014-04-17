@@ -18,6 +18,7 @@
  */
 package org.structr.core.entity;
 
+import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -39,6 +40,8 @@ import org.structr.core.property.StringProperty;
 import org.structr.schema.Schema;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.SchemaNotion;
+import org.structr.schema.action.Actions;
+import org.structr.schema.action.ActionEntry;
 
 /**
  *
@@ -80,20 +83,19 @@ public class SchemaNode extends AbstractSchemaNode implements Schema {
 	@Override
 	public String getSource(final ErrorBuffer errorBuffer) throws FrameworkException {
 
-		final Map<String, Set<String>> viewProperties = new LinkedHashMap<>();
-		final Set<String> validators                  = new LinkedHashSet<>();
-		final Set<String> enums                       = new LinkedHashSet<>();
-		final StringBuilder src                       = new StringBuilder();
-		final Class baseType                          = AbstractNode.class;
-		final String _className                       = getProperty(name);
-		final String _extendsClass                    = getProperty(extendsClass);
-
-		final Set<String> existingPropertyNames       = new LinkedHashSet<>();
+		final Map<Actions.Type, List<ActionEntry>> actions = new EnumMap<>(Actions.Type.class);
+		final Map<String, Set<String>> viewProperties     = new LinkedHashMap<>();
+		final Set<String> existingPropertyNames           = new LinkedHashSet<>();
+		final Set<String> validators                      = new LinkedHashSet<>();
+		final Set<String> enums                           = new LinkedHashSet<>();
+		final StringBuilder src                           = new StringBuilder();
+		final Class baseType                              = AbstractNode.class;
+		final String _className                           = getProperty(name);
+		final String _extendsClass                        = getProperty(extendsClass);
 
 		src.append("package org.structr.dynamic;\n\n");
 
 		SchemaHelper.formatImportStatements(src, baseType);
-
 
 
 		String superClass = _extendsClass != null ? _extendsClass : baseType.getSimpleName();
@@ -127,7 +129,7 @@ public class SchemaNode extends AbstractSchemaNode implements Schema {
 		}
 
 		// extract properties from node
-		src.append(SchemaHelper.extractProperties(this, validators, enums, viewProperties, errorBuffer));
+		src.append(SchemaHelper.extractProperties(this, validators, enums, viewProperties, actions, errorBuffer));
 
 		// output possible enum definitions
 		for (final String enumDefition : enums) {
@@ -157,6 +159,45 @@ public class SchemaNode extends AbstractSchemaNode implements Schema {
 
 			src.append("\n\t\treturn !error;\n");
 			src.append("\t}\n");
+		}
+
+		// actions..
+		for (final Entry<Actions.Type, List<ActionEntry>> entry : actions.entrySet()) {
+
+			final List<ActionEntry> actionList = entry.getValue();
+			final Actions.Type type             = entry.getKey();
+
+			if (!actionList.isEmpty()) {
+
+				src.append("\n\t@Override\n");
+				src.append("\tpublic boolean ");
+				src.append(type.getMethod());
+				src.append("(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {\n\n");
+				src.append("\t\tboolean error = false;\n\n");
+
+				for (final ActionEntry action : actionList) {
+
+					if (action.runOnError()) {
+
+						src.append("\t\terror |= ").append(action.getSource()).append(";\n");
+
+					} else {
+
+						src.append("\t\tif (!error) {\n");
+						src.append("\t\t\terror |= ").append(action.getSource()).append(";\n");
+						src.append("\t\t}\n");
+
+					}
+				}
+
+				// don't forget super call
+				src.append("\t\terror |= !super.");
+				src.append(type.getMethod());
+				src.append("(securityContext, errorBuffer);\n");
+
+				src.append("\n\t\treturn !error;\n");
+				src.append("\t}\n");
+			}
 		}
 
 		src.append("}\n");

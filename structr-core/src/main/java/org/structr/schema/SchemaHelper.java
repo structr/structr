@@ -30,6 +30,7 @@ import org.apache.commons.lang.StringUtils;
 import org.neo4j.graphdb.PropertyContainer;
 import org.structr.common.CaseHelper;
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
 import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
@@ -42,6 +43,8 @@ import org.structr.core.entity.ResourceAccess;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.relationship.SchemaRelationship;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.schema.action.Actions;
+import org.structr.schema.action.ActionEntry;
 import org.structr.schema.parser.BooleanPropertyParser;
 import org.structr.schema.parser.CountPropertyParser;
 import org.structr.schema.parser.DatePropertyParser;
@@ -69,9 +72,9 @@ public class SchemaHelper {
 
 	static {
 
-		// IMPORTANT: parser map must be sorted by type name length 
+		// IMPORTANT: parser map must be sorted by type name length
 		//            because we look up the parsers using "startsWith"!
-		
+
 		parserMap.put(Type.StringArray, StringArrayPropertyParser.class);
 		parserMap.put(Type.Boolean, BooleanPropertyParser.class);
 		parserMap.put(Type.Integer, IntPropertyParser.class);
@@ -202,33 +205,33 @@ public class SchemaHelper {
 	}
 
 	public static boolean reloadSchema(final ErrorBuffer errorBuffer) {
-		
+
 		final App app = StructrApp.getInstance();
-		
+
 		try {
 
 			removeAllDynamicGrants();
-			
+
 			for (final SchemaNode schemaNode : StructrApp.getInstance().nodeQuery(SchemaNode.class).getAsList()) {
-				
+
 				createDynamicGrants(schemaNode.getResourceSignature(), null);
-				
+
 			}
-			
+
 			for (final SchemaRelationship schemaRelationship : StructrApp.getInstance().relationshipQuery(SchemaRelationship.class).getAsList()) {
-				
+
 				createDynamicGrants(schemaRelationship.getResourceSignature(), null);
 				createDynamicGrants(schemaRelationship.getInverseResourceSignature(), null);
-				
+
 			}
-			
+
 		} catch (Throwable t) {
 
 			t.printStackTrace();
 		}
-			
+
 		return SchemaService.reloadSchema(errorBuffer);
-			
+
 	}
 
 	public static List<DynamicResourceAccess> createDynamicGrants(final String signature, final Long flags) {
@@ -269,7 +272,7 @@ public class SchemaHelper {
 			} else {
 
 				// modify flags of grant
-				// Caution: this means that the SchemaNode is the 
+				// Caution: this means that the SchemaNode is the
 				// primary source for resource access flag values
 				// of dynamic nodes
 				grant.setProperty(ResourceAccess.flags, flagsValue);
@@ -332,10 +335,10 @@ public class SchemaHelper {
 
 	}
 
-	public static String extractProperties(final Schema entity, final Set<String> validators, final Set<String> enums, final Map<String, Set<String>> views, final ErrorBuffer errorBuffer) throws FrameworkException {
+	public static String extractProperties(final Schema entity, final Set<String> validators, final Set<String> enums, final Map<String, Set<String>> views, final Map<Actions.Type, List<ActionEntry>> actions, final ErrorBuffer errorBuffer) throws FrameworkException {
 
 		final PropertyContainer propertyContainer = entity.getPropertyContainer();
-		final StringBuilder src = new StringBuilder();
+ 		final StringBuilder src                   = new StringBuilder();
 
 		// output property source code and collect views
 		for (String propertyName : SchemaHelper.getProperties(propertyContainer)) {
@@ -347,12 +350,12 @@ public class SchemaHelper {
 				String dbName = null;
 				// detect optional db name
 				if (rawType.contains("|")) {
-					
+
 					dbName = rawType.substring(0, rawType.indexOf("|"));
 					rawType = rawType.substring(rawType.indexOf("|")+1);
-					
+
 				}
-				
+
 				boolean notNull = false;
 
 				// detect and remove not-null constraint
@@ -367,7 +370,7 @@ public class SchemaHelper {
 
 					defaultValue = rawType.substring(rawType.indexOf(":")+1);
 					rawType = rawType.substring(0, rawType.indexOf(":"));
-					
+
 				}
 
 				PropertyParser parser = SchemaHelper.getParserForRawValue(errorBuffer, entity.getClassName(), propertyName, dbName, rawType, notNull, defaultValue);
@@ -389,7 +392,7 @@ public class SchemaHelper {
 
 		for (final String rawViewName : getViews(propertyContainer)) {
 
-			if (propertyContainer.hasProperty(rawViewName)) {
+			if (!rawViewName.startsWith("___") && propertyContainer.hasProperty(rawViewName)) {
 
 				final String value = propertyContainer.getProperty(rawViewName).toString();
 				final String[] parts = value.split("[,\\s]+");
@@ -410,6 +413,43 @@ public class SchemaHelper {
 				// add parts to view, overrides defaults (because of clear() above)
 				for (int i = 0; i < parts.length; i++) {
 					view.add(parts[i].trim());
+				}
+			}
+		}
+
+		for (final String rawActionName : getActions(propertyContainer)) {
+
+			if (propertyContainer.hasProperty(rawActionName)) {
+
+				// split value on ";"
+				final String value     = propertyContainer.getProperty(rawActionName).toString();
+				final String[] parts1  = value.split("[;]+");
+				final int parts1Length = parts1.length;
+
+				for (int i=0; i<parts1Length; i++) {
+
+					// split value on "&&"
+					final String[] parts2     = parts1[i].split("\\&\\&");
+					final int parts2Length    = parts2.length;
+
+					for (int j=0; j<parts2Length; j++) {
+
+						// since the parts in this loop are separated by "&&", all parts AFTER
+						// the first one should only be run if the others before succeeded.
+						
+						final ActionEntry entry      = new ActionEntry(rawActionName, parts2[j], j == 0);
+						List<ActionEntry> actionList = actions.get(entry.getType());
+
+						if (actionList == null) {
+
+							actionList = new LinkedList<>();
+							actions.put(entry.getType(), actionList);
+						}
+
+						actionList.add(entry);
+
+					}
+
 				}
 			}
 		}
@@ -459,6 +499,21 @@ public class SchemaHelper {
 		return keys;
 	}
 
+	public static Iterable<String> getActions(final PropertyContainer propertyContainer) {
+
+		final List<String> keys = new LinkedList<>();
+
+		for (final String key : propertyContainer.getPropertyKeys()) {
+
+			if (propertyContainer.hasProperty(key) && key.startsWith("___")) {
+
+				keys.add(key);
+			}
+		}
+
+		return keys;
+	}
+
 	public static void formatView(final StringBuilder src, final String _className, final String viewName, final String view, final Set<String> viewProperties) {
 
 		// output default view
@@ -491,7 +546,10 @@ public class SchemaHelper {
 		src.append("import ").append(PropertyView.class.getName()).append(";\n");
 		src.append("import ").append(View.class.getName()).append(";\n");
 		src.append("import ").append(ValidationHelper.class.getName()).append(";\n");
+		src.append("import ").append(SecurityContext.class.getName()).append(";\n");
 		src.append("import ").append(ErrorBuffer.class.getName()).append(";\n");
+		src.append("import ").append(FrameworkException.class.getName()).append(";\n");
+		src.append("import ").append(Actions.class.getName()).append(";\n");
 		src.append("import org.structr.core.validator.*;\n");
 		src.append("import org.structr.core.property.*;\n");
 		src.append("import org.structr.core.notion.*;\n");

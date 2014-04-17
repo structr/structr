@@ -33,7 +33,7 @@ import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
 import org.structr.web.Importer;
-import org.structr.web.common.ThreadLocalMatcher;
+import org.structr.common.ThreadLocalMatcher;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.relation.ImageWidget;
