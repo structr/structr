@@ -35,6 +35,7 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
+import org.structr.rest.exception.NotAllowedException;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -66,6 +67,13 @@ public class CypherQueryResource extends Resource {
 	@Override
 	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
 
+		// Admins only
+		if (!securityContext.isSuperUser()) {
+			
+			throw new NotAllowedException();
+
+		}
+		
 		try {
 
 			RestMethodResult result = new RestMethodResult(200);
