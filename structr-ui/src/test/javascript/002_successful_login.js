@@ -24,9 +24,9 @@ var heading = "Successful Login", sections = [];
 var desc = "This animation shows a successful login."
 var numberOfTests = 2;
 
-s.startRecording(window, casper, testName);
-
 casper.test.begin(testName, numberOfTests, function(test) {
+
+    s.startRecording(window, casper, testName);
 
     casper.start(s.url);
     
@@ -60,8 +60,6 @@ casper.test.begin(testName, numberOfTests, function(test) {
         test.assertEval(function() { return $('#pages').is(':visible'); });
 
     });
-    
-    
 
     casper.then(function() {
         s.animateHtml(testName, heading, sections);
@@ -71,3 +69,4 @@ casper.test.begin(testName, numberOfTests, function(test) {
     casper.run();
 
 });
+

@@ -18,163 +18,463 @@
  */
 
 var win = $(window);
-var engine;
+var engine, mode;
 var nodeIds = {};
 var relIds = {};
+var activeTabRightDashboardKey = 'structrActiveTabRightDashboard_' + port;
+var activeTabLeftDashboardKey = 'structrActiveTabLeftDashboard_' + port;
+var activeTabLeftDashboard, activeTabRightDashboard;
+var queriesSlideout, displaySlideout, filtersSlideout, nodesSlideout, relationshipsSlideout, graph;
+var savedQueriesKey = 'structrSavedQueries_' + port;
+var relTypes = [], nodeTypes = [];
 
 $(document).ready(function() {
-	Structr.registerModule('dashboard', _Dashboard);
+    Structr.registerModule('dashboard', _Dashboard);
+    win.resize(function() {
+        _Dashboard.resize();
+    });
 });
 
 var _Dashboard = {
-	icon: 'icon/page.png',
-	add_icon: 'icon/page_add.png',
-	delete_icon: 'icon/page_delete.png',
-	clone_icon: 'icon/page_copy.png',
-	init: function() {
-	},
-	onload: function() {
-		_Dashboard.init();
-		activeTab = $.cookie('structrActiveTab');
-		main.append('<div class="searchBox"><input class="search" name="search" size="20" placeholder="Search"><img class="clearSearchIcon" src="icon/cross_small_grey.png"></div>');
-		main.append('<div class="canvas" id="graph"></div>');
-		searchField = $('.search', main);
-		searchField.focus();
-		searchField.keyup(function(e) {
-			var rawSearchString = $(this).val();
-			var searchString = rawSearchString;
+    icon: 'icon/page.png',
+    add_icon: 'icon/page_add.png',
+    delete_icon: 'icon/page_delete.png',
+    clone_icon: 'icon/page_copy.png',
+    init: function() {
+    },
+    onload: function() {
 
-			var type;
-			var posOfColon = rawSearchString.indexOf(':');
-			if (posOfColon > -1) {
-				type = rawSearchString.substring(0, posOfColon);
-				type = type.capitalize();
-				searchString = rawSearchString.substring(posOfColon + 1, rawSearchString.length);
-			}
-			if (searchString && searchString.length && e.which === 13) {
+        _Dashboard.init();
+        
+        $('#main-help a').attr('href', 'http://docs.structr.org/frontend-user-guide#Dashboard');
 
-				$('.clearSearchIcon').show().on('click', function() {
-					_Crud.clearSearch(main);
-				});
-				Command.search(searchString, type);
+        activeTabLeftDashboard = localStorage.getItem(activeTabRightDashboardKey);
+        activeTabRightDashboard = localStorage.getItem(activeTabLeftDashboardKey);
 
-			} else if (e.which === 27 || rawSearchString === '') {
-				_Dashboard.clearSearch();
-			}
-		});
+        main.prepend(
+                '<div id="queries" class="slideOut slideOutLeft"><div class="compTab" id="queriesTab">Queries</div></div>'
+                + '<div id="display" class="slideOut slideOutLeft"><div class="compTab" id="displayTab">Display Options</div></div>'
+                + '<div id="filters" class="slideOut slideOutLeft"><div class="compTab" id="filtersTab">Filters</div><div id="nodeFilters"><h3>Node Filters</h3></div><div id="relFilters"><h3>Relationship Filters</h3></div></div>'
+                + '<div class="canvas" id="graph"></div>'
+                //+ '<div id="nodes" class="slideOut slideOutRight"><div class="compTab" id="nodesTab">Nodes</div></div>'
+                //+ '<div id="relationships" class="slideOut slideOutRight"><div class="compTab" id="relationshipsTab">Relationships</div></div>'
+                );
 
-		engine = new Engine($('#graph'));
-		engine.initialize();
-		engine.update();
+        queriesSlideout = $('#queries');
+        displaySlideout = $('#display');
+        filtersSlideout = $('#filters');
 
-	},
-	
-	appendNode: function(node, depth) {
+        graph = $('#graph');
 
-		if (node) {
+        nodesSlideout = $('#nodes');
+        relationshipsSlideout = $('#relationships');
 
-			if (nodeIds[node.id] === undefined) {
+        lsw = queriesSlideout.width() + 12;
+        rsw = nodesSlideout.width() + 12;
+        
+        $('.slideOut').on('mouseover', function() {
+            running = false;
+            return true;
+        });
 
-				nodeIds[node.id] = 1;
+        $('.slideOut').on('mouseout', function() {
+            running = true;
+            engine.update();
+            return true;
+        });
 
-				engine.addNode(node);
+        $('#queriesTab').on('click', function() {
+            if (queriesSlideout.position().left === -lsw) {
+                Structr.closeLeftSlideOuts([displaySlideout, filtersSlideout], activeTabLeftDashboardKey);
+                Structr.openLeftSlideOut(queriesSlideout, this, activeTabLeftDashboardKey);
+            } else {
+                Structr.closeLeftSlideOuts([queriesSlideout], activeTabLeftDashboardKey);
+            }
+        });
 
-				window.setTimeout(function() {
+        $('#displayTab').on('click', function() {
+            if (displaySlideout.position().left === -lsw) {
+                Structr.closeLeftSlideOuts([queriesSlideout, filtersSlideout], activeTabLeftDashboardKey);
+                Structr.openLeftSlideOut(displaySlideout, this, activeTabLeftDashboardKey, function() {
+                    //console.log('Display options opened');
+                });
+            } else {
+                Structr.closeLeftSlideOuts([displaySlideout], activeTabLeftDashboardKey);
+            }
+        });
 
-					_Dashboard.loadRelationships(node.id, depth === undefined ? 1 : depth+1);
+        $('#filtersTab').on('click', function() {
+            if (filtersSlideout.position().left === -lsw) {
+                Structr.closeLeftSlideOuts([queriesSlideout, displaySlideout], activeTabLeftDashboardKey);
+                Structr.openLeftSlideOut(filtersSlideout, this, activeTabLeftDashboardKey, function() {
+                    //console.log('Filters opened');
+                });
+            } else {
+                Structr.closeLeftSlideOuts([filtersSlideout], activeTabLeftDashboardKey);
+            }
+        });
 
-				}, 100);
-			}
+//        $('#nodesTab').on('click', function() {
+//            if (nodesSlideout.position().left === $(window).width()) {
+//                Structr.closeSlideOuts([relationshipsSlideout], activeTabRightDashboardKey);
+//                Structr.openSlideOut(nodesSlideout, this, activeTabRightDashboardKey, function() {
+//                    console.log('Nodes opened');
+//                });
+//            } else {
+//                Structr.closeSlideOuts([nodesSlideout], activeTabRightDashboardKey);
+//            }
+//        });
+//
+//        $('#relationshipsTab').on('click', function() {
+//            if (relationshipsSlideout.position().left === $(window).width()) {
+//                Structr.closeSlideOuts([nodesSlideout], activeTabRightDashboardKey);
+//                Structr.openSlideOut(relationshipsSlideout, this, activeTabRightDashboardKey, function() {
+//                    console.log('Rels opened');
+//                });
+//            } else {
+//                Structr.closeSlideOuts([relationshipsSlideout], activeTabRightDashboardKey);
+//            }
+//        });
 
-			// start update loop
-			engine.update();
-		}
-	},
-		
-	loadRelationships: function(nodeId, depth) {
+        if (activeTabLeftDashboard) {
+            $('#' + activeTabLeftDashboard).addClass('active').click();
+        }
 
-		if (nodeId) {
+        if (activeTabRightDashboard) {
+            $('#' + activeTabRightDashboard).addClass('active').click();
+        }
 
-			$.ajax({
-				url: rootUrl + nodeId + '/out',
-				dataType: "json",
-				success: function(data) {
+        queriesSlideout.append('<div class="query-box"><textarea class="search" name="rest" cols="39" rows="4" placeholder="Enter a REST query here"></textarea><img class="clearSearchIcon" id="clear-rest" src="icon/cross_small_grey.png">'
+                + '<button id="exec-rest">Execute REST query</button></div>'
+                + '<div class="query-box"><textarea class="search" name="cypher" cols="39" rows="4" placeholder="Enter a Cypher query here"></textarea><img class="clearSearchIcon" id="clear-cypher" src="icon/cross_small_grey.png">'
+                + '<button id="exec-cypher">Execute Cypher query</button></div>');
 
-					if (!data || data.length === 0 || !data.result || !data.result.length) {
-						return;
-					}
+        $('#exec-rest').on('click', function() {
+            var query = $('.search[name=rest]').val();
+            if (query && query.length)
+                ;
+            _Dashboard.execQuery(query, 'rest');
+        });
 
-					var results = data.result;
-					var count = 0, i = 0;
+        $('#exec-cypher').on('click', function() {
+            var query = $('.search[name=cypher]').val();
+            if (query && query.length)
+                ;
+            _Dashboard.execQuery(query, 'cypher');
+        });
 
-					while (i < results.length && count < maxRels) {
+        _Dashboard.activateClearSearchIcon();
 
-						var r = results[i++];
+        queriesSlideout.append('<div><h3>Saved Queries</h3></div>');
+        _Dashboard.listSavedQueries();
 
-						if (relIds[r.id] === undefined) {
+        //_Dashboard.restoreSavedQuery(0);
 
-							relIds[r.id] = 1;
 
-							engine.addRelationship(r.relType, r.sourceId, r.targetId);
-							_Dashboard.loadNode(r.targetId, depth === undefined ? 1 : depth+1);
-						}
-					}
-				}
-			});
+        searchField = $('.search', queriesSlideout);
+        searchField.focus();
+        searchField.keyup(function(e) {
+            var rawSearchString = $(this).val();
+            var searchString = rawSearchString;
 
-			$.ajax({
-				url: rootUrl + nodeId + '/in',
-				dataType: "json",
-				success: function(data) {
+            var self = $(this);
+            var type = self.attr('name');
+            if (type !== 'cypher') {
 
-					if (!data || data.length === 0 || !data.result || !data.result.length) {
-						return;
-					}
+                var type;
+                var posOfColon = rawSearchString.indexOf(':');
+                if (posOfColon > -1) {
+                    type = rawSearchString.substring(0, posOfColon);
+                    type = type.capitalize();
+                    searchString = rawSearchString.substring(posOfColon + 1, rawSearchString.length);
+                }
+            }
+            if (searchString && searchString.length) {
+                _Dashboard.activateClearSearchIcon(type);
+            } else {
+                _Dashboard.clearSearch(type);
+            }
 
-					var results = data.result;
-					var count = 0, i = 0;
+            if (searchString && searchString.length && e.which === 13) {
+                //console.log('Search executed', searchString, type);
+                _Dashboard.execQuery(searchString, type);
+            } else if (e.which === 27 || rawSearchString === '') {
+                _Dashboard.clearSearch(type);
+            }
+        });
 
-					while (i < results.length && count < maxRels) {
+        engine = new Engine(graph);
+        engine.initialize();
+        engine.update();
 
-						var r = results[i++];
+    },
+    execQuery: function(query, type) {
 
-						if (relIds[r.id] === undefined) {
+        log('exec', type, 'query', query);
 
-							relIds[r.id] = 1;
+        if (query && query.length) {
 
-							engine.addRelationship(r.relType, r.sourceId, r.targetId);
-							_Dashboard.loadNode(r.sourceId, depth === undefined ? 1 : depth+1);
-						}
-					}
-				}
-			});
-		}
-	},
-	loadNode: function(nodeId, depth) {
+            if (type === 'cypher') {
+                Command.cypher(query);
+                _Dashboard.saveQuery(query, 'cypher');
+            } else {
+                Command.rest(query);
+                _Dashboard.saveQuery(query, 'rest');
+            }
 
-		if (nodeId) {
+            _Dashboard.listSavedQueries();
 
-			$.ajax({
-				url: rootUrl + nodeId + '/ui',
-				dataType: "json",
-				success: function(data) {
+        }
+    },
+    saveQuery: function(query, type) {
+        var savedQueries = JSON.parse(localStorage.getItem(savedQueriesKey)) || [];
+        var exists = false;
+        $.each(savedQueries.reverse(), function(i, q) {
+            if (q.query === query) {
 
-					if (!data || data.length === 0 || !data.result) {
-						return;
-					}
+                exists = true;
+            }
+        });
+        if (!exists) {
+            savedQueries.push({'type': type, 'query': query});
+            localStorage.setItem(savedQueriesKey, JSON.stringify(savedQueries));
+        }
+    },
+    removeSavedQuery: function(i) {
+        var savedQueries = JSON.parse(localStorage.getItem(savedQueriesKey)) || [];
+        savedQueries.splice(i, 1);
+        localStorage.setItem(savedQueriesKey, JSON.stringify(savedQueries));
+    },
+    restoreSavedQuery: function(i) {
+        var savedQueries = JSON.parse(localStorage.getItem(savedQueriesKey)) || [];
+        $('.search[name=cypher]').val(savedQueries.reverse()[i].query);
+    },
+    listSavedQueries: function() {
+        $('#saved-queries').empty();
+        queriesSlideout.append('<div id="saved-queries"></div>');
+        var savedQueries = JSON.parse(localStorage.getItem(savedQueriesKey)) || [];
+        $.each(savedQueries.reverse(), function(q, query) {
+            if (query.type === 'cypher') {
+                $('#saved-queries').append('<div class="saved-query cypher-query"><img class="replay" alt="Cypher Query" src="icon/control_play_blue.png">' + query.query + '<img class="remove-query" src="icon/cross_small_grey.png"></div>');
+            } else {
+                $('#saved-queries').append('<div class="saved-query rest-query"><img class="replay" alt="REST Query" src="icon/control_play.png">' + query.query + '<img class="remove-query" src="icon/cross_small_grey.png"></div>');
+            }
+        });
+        $('.rest-query').on('click', function() {
+            $('.search[name=rest]').val($(this).text());
+            _Dashboard.activateClearSearchIcon('rest');
+        });
+        $('.rest-query .replay').on('click', function() {
+            var query = $(this).parent().text();
+            $('.search[name=rest]').val(query);
+            _Dashboard.activateClearSearchIcon('rest');
+            _Dashboard.execQuery(query);
+        });
+        $('.cypher-query').on('click', function() {
+            $('.search[name=cypher]').val($(this).text());
+            _Dashboard.activateClearSearchIcon('cypher');
+        });
+        $('.cypher-query .replay').on('click', function() {
+            var query = $(this).parent().text();
+            $('.search[name=cypher]').val(query);
+            _Dashboard.activateClearSearchIcon('cypher');
+            _Dashboard.execQuery(query, 'cypher');
+        });
+        $('.remove-query').on('click', function() {
+            var self = $(this);
+            var i = self.parent().index();
+            //var i = savedQueries.length - $('.saved-cypher-query').index(this);
+            //console.log('removing', savedQueries.length - i - 1);
+            _Dashboard.removeSavedQuery(savedQueries.length - i - 1);
+            self.parent().remove();
+        });
+    },
+    activateClearSearchIcon: function(type) {
+        var icon = $('#clear-' + type);
+        icon.show().on('click', function() {
+            $(this).hide();
+            $('.search[name=' + type + ']').val('').focus();
+        });
+    },
+    clearSearch: function(type) {
+        $('#clear-' + type).hide().off('click');
+        $('.search[name=' + type + ']').val('').focus();
+    },
+    clearGraph: function() {
+        canvas.element.empty();
+    },
+    appendObj: function(obj) {
+        _Dashboard.loadTypeDefinition(obj.type, function(typeDef) {
+            if (typeDef && typeDef.isRel) {
+                relTypes.push(typeDef);
 
-					_Dashboard.appendNode(data.result, depth);
+                if (obj.sourceId && obj.targetId) {
+                    _Dashboard.loadNode(obj.sourceId, function() {
+                        _Dashboard.loadNode(obj.targetId, function() {
+                            engine.addRelationship(obj.relType, obj.sourceId, obj.targetId);
+                        });
+                    });
+                }
 
-				}
-			});
-		}
-	},
-	clearSearch: function() {
-		_Dashboard.clearSearchResults();
-		$('.clearSearchIcon').hide().off('click');
-		$('.search').val('');
-	},
-	clearSearchResults: function() {
-		//canvas.element.empty();
-	}
+            } else {
+                nodeTypes.push(typeDef);
+                _Dashboard.appendNode(obj);
+            }
+        });
+    },
+    appendNode: function(node, depth, callback) {
+
+        if (node) {
+
+            if (nodeIds[node.id] === undefined) {
+
+                nodeIds[node.id] = 1;
+
+                engine.addNode(node);
+
+                if (mode === 'auto') {
+                    window.setTimeout(function() {
+
+                        _Dashboard.loadRelationships(node.id, depth === undefined ? 1 : depth + 1);
+
+                    }, 100);
+                }
+
+                if (callback) {
+                    callback();
+                }
+            }
+
+            // start update loop
+            engine.update();
+        }
+    },
+    loadRelationships: function(nodeId, depth) {
+
+        if (nodeId) {
+
+            $.ajax({
+                url: rootUrl + nodeId + '/out',
+                dataType: "json",
+                success: function(data) {
+
+                    if (!data || data.length === 0 || !data.result || !data.result.length) {
+                        return;
+                    }
+
+                    var results = data.result;
+                    var count = 0, i = 0;
+
+                    while (i < results.length && count < maxRels) {
+
+                        var r = results[i++];
+
+                        if (relIds[r.id] === undefined) {
+
+                            relIds[r.id] = 1;
+
+                            engine.addRelationship(r.relType, r.sourceId, r.targetId);
+                            _Dashboard.loadNode(r.targetId, depth === undefined ? 1 : depth + 1);
+                        }
+                    }
+                }
+            });
+
+            $.ajax({
+                url: rootUrl + nodeId + '/in',
+                dataType: "json",
+                success: function(data) {
+
+                    if (!data || data.length === 0 || !data.result || !data.result.length) {
+                        return;
+                    }
+
+                    var results = data.result;
+                    var count = 0, i = 0;
+
+                    while (i < results.length && count < maxRels) {
+
+                        var r = results[i++];
+
+                        if (relIds[r.id] === undefined) {
+
+                            relIds[r.id] = 1;
+
+                            engine.addRelationship(r.relType, r.sourceId, r.targetId);
+                            _Dashboard.loadNode(r.sourceId, depth === undefined ? 1 : depth + 1);
+                        }
+                    }
+                }
+            });
+        }
+    },
+    loadNode: function(nodeId, depth, callback) {
+        if (nodeId) {
+            Command.get(nodeId, function(n) {
+                _Dashboard.appendNode(n, depth, callback);
+            });
+        }
+    },
+    loadRelationship: function(relId) {
+        if (relId) {
+            Command.get(relId, function(r) {
+                engine.addRelationship(r.relType, r.sourceId, r.targetId);
+            });
+        }
+    },
+    resize: function() {
+
+        var windowHeight = win.height();
+        var offsetHeight = 360;
+
+        $('#saved-queries').css({
+            height: windowHeight - offsetHeight + 'px'
+        });
+
+        var ch = win.height() - 61;
+
+        graph.css({
+            height: ch,
+            width: win.width(),
+        });
+
+        $('canvas', graph).css({
+            height: ch,
+            width: win.width(),
+        });
+
+        engine.update();
+
+    },
+    loadTypeDefinition: function(type, callback) {
+        var url = rootUrl + '_schema/' + type;
+        $.ajax({
+            url: url,
+            dataType: 'json',
+            contentType: 'application/json; charset=utf-8',
+            //async: false,
+            statusCode: {
+                200: function(data) {
+                    if (callback) {
+                        callback(data.result[0]);
+                    }
+                },
+                401: function(data) {
+                    console.log(data);
+                },
+                404: function(data) {
+                    console.log(data);
+                },
+                422: function(data) {
+                    console.log(data);
+                }
+            }
+
+
+        }).always(function(data) {
+            if (callback) {
+                callback(data.result[0]);
+            }
+        });
+    }
 };

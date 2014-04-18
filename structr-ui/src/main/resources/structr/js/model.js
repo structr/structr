@@ -913,16 +913,16 @@ function StructrSearchResult(data) {
     });
 }
 
-StructrSearchResult.prototype.save = function() {
-    StructrModel.save(this.id);
-}
-
-StructrSearchResult.prototype.setProperty = function(key, value, recursive, callback) {
-    Command.setProperty(this.id, key, value, recursive, callback);
-}
-
+//StructrSearchResult.prototype.save = function() {
+//    StructrModel.save(this.id);
+//}
+//
+//StructrSearchResult.prototype.setProperty = function(key, value, recursive, callback) {
+//    Command.setProperty(this.id, key, value, recursive, callback);
+//}
+//
 StructrSearchResult.prototype.append = function() {
-    _Dashboard.appendNode(this);
+    _Dashboard.appendObj(this);
 }
 
 

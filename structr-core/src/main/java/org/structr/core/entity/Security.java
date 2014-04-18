@@ -77,6 +77,8 @@ public class Security extends ManyToMany<Principal, NodeInterface> {
 		
 		Set<PropertyKey> keys = new LinkedHashSet<>();
 		
+		keys.addAll((Set<PropertyKey>) super.getPropertyKeys(propertyView));
+		
 		keys.add(principalId);
 		keys.add(accessControllableId);
 		

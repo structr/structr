@@ -81,6 +81,7 @@ var _Types = {
     },
     onload: function() {
         _Types.init();
+        $('#main-help a').attr('href', 'http://docs.structr.org/frontend-user-guide#Types');
     },
     initTabs: function() {
 

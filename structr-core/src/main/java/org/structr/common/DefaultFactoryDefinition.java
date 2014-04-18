@@ -134,8 +134,8 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 		final String type = GraphObject.type.dbName();
 		
 		// first try: duck-typing
-		final String sourceType = relationship.getStartNode().hasProperty(type) ? relationship.getStartNode().getProperty(type).toString() : null;
-		final String targetType = relationship.getEndNode().hasProperty(type) ? relationship.getEndNode().getProperty(type).toString() : null;
+		final String sourceType = relationship.getStartNode().hasProperty(type) ? relationship.getStartNode().getProperty(type).toString() : "";
+		final String targetType = relationship.getEndNode().hasProperty(type) ? relationship.getEndNode().getProperty(type).toString() : "";
 		final String relType    = relationship.getType().name();
 		final Class entityType  = getClassForCombinedType(sourceType, relType, targetType);
 		

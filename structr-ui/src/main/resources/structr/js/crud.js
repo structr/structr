@@ -141,6 +141,8 @@ var _Crud = {
     },
     onload: function() {
 
+        $('#main-help a').attr('href', 'http://docs.structr.org/frontend-user-guide#Data');
+        
         Structr.registerModule('crud', _Crud);
         Structr.classes.push('crud');
 

@@ -30,7 +30,7 @@ var lastMenuEntry, activeTab;
 var dmp;
 var editorCursor;
 var dialog, isMax = false;
-var dialogBox, dialogMsg, dialogBtn, dialogTitle, dialogMeta, dialogText, dialogCancelButton, dialogSaveButton, saveAndClose, loginButton;
+var dialogBox, dialogMsg, dialogBtn, dialogTitle, dialogMeta, dialogText, dialogCancelButton, dialogSaveButton, saveAndClose, loginButton, loginBox;
 var dialogId;
 var page = {};
 var pageSize = {};
@@ -50,7 +50,8 @@ $(function() {
     header = $('#header');
     main = $('#main');
     footer = $('#footer');
-
+    loginBox = $('#login');
+    
     if (debug) {
         footer.show();
     }
@@ -266,11 +267,11 @@ var Structr = {
         }
     },
     refreshUi: function() {
-        Structr.clearMain();
         localStorage.setItem(userKey, user);
         $.unblockUI({
             fadeOut: 25
         });
+        Structr.clearMain();
         $('#logout_').html('Logout <span class="username">' + user + '</span>');
         Structr.loadInitialModule();
         Structr.startPing();
@@ -284,7 +285,7 @@ var Structr = {
         if (!ping) {
             ping = window.setInterval(function() {
                 sendObj({command: 'PING', sessionId: sessionId});
-            }, 60000);
+            }, 30000);
         }
     },
     connect: function() {
@@ -299,19 +300,20 @@ var Structr = {
         }
     },
     login: function(text) {
-
+        
         main.empty();
 
         $('#logout_').html('Login');
         if (text) {
             $('#errorText').html(text);
         }
+        
         $.blockUI.defaults.overlayCSS.opacity = .6;
         $.blockUI.defaults.applyPlatformOpacityRules = false;
         $.blockUI({
             fadeIn: 25,
             fadeOut: 25,
-            message: $('#login'),
+            message: loginBox,
             forceInput: true,
             css: {
                 border: 'none',
@@ -1009,6 +1011,62 @@ var Structr = {
 
         });
         $('#pages_').removeClass('nodeHover').droppable('enable');
+    },
+    openSlideOut: function(slideout, tab, activeTabKey, callback) {
+        var s = $(slideout);
+        var t = $(tab);
+        t.addClass('active');
+        s.animate({right: '+=' + rsw + 'px'}, {duration: 100}).zIndex(1);
+        localStorage.setItem(activeTabKey, t.prop('id'));
+        if (callback) {
+            callback();
+        }
+        _Pages.resize(0, rsw);
+    },
+    closeSlideOuts: function(slideouts, activeTabKey) {
+        var wasOpen = false;
+        slideouts.forEach(function(w) {
+            var s = $(w);
+            var l = s.position().left;
+            if (l !== $(window).width()) {
+                wasOpen = true;
+                //console.log('closing open slide-out', s);
+                s.animate({right: '-=' + rsw + 'px'}, {duration: 100}).zIndex(2);
+                $('.compTab.active', s).removeClass('active');
+            }
+        });
+        if (wasOpen) {
+            _Pages.resize(0, -rsw);
+        }
+
+        localStorage.removeItem(activeTabKey);
+    },
+    openLeftSlideOut: function(slideout, tab, activeTabKey, callback) {
+        var s = $(slideout);
+        var t = $(tab);
+        t.addClass('active');
+        s.animate({left: '+=' + lsw + 'px'}, {duration: 100}).zIndex(1);
+        localStorage.setItem(activeTabKey, t.prop('id'));
+        if (callback) {
+            callback();
+        }
+        _Pages.resize(lsw, 0);
+    },
+    closeLeftSlideOuts: function(slideouts, activeTabKey) {
+        var wasOpen = false;
+        slideouts.forEach(function(w) {
+            var s = $(w);
+            var l = s.position().left;
+            if (l === 0) {
+                wasOpen = true;
+                s.animate({left: '-=' + lsw + 'px'}, {duration: 100}).zIndex(2);
+                $('.compTab.active', s).removeClass('active');
+            }
+        });
+        if (wasOpen) {
+            _Pages.resize(-lsw, 0);
+        }
+        localStorage.removeItem(activeTabKey);
     }
 };
 

@@ -28,14 +28,14 @@ var colors = new Array();
 var types = new Array();
 var inc = 128;
 var count = 0;
-var running = null;
+var running = true;
 var dt = 0.05;
-var drag = 50;
+var drag = 100;
 var springLength = 20;
 var springForce = 500;
 var springDamping = 100;
 var enableSprings = true;
-var centerForce = 3;
+var centerForce = 1;
 var maxMagneticDistance = 1000000;
 var magneticForce = 50000;
 var magneticFactor = 0.5;
@@ -54,436 +54,463 @@ var headerWidth = 0;
 var headerHeight = 0;
 var canvas;
 var settings;
-var nodeBox, relBox;
 var relationshipTypes = {"OWNS": 0, "SECURITY": 0, "PAGE": 0, "undefined": 0};
 var nodeTypes = {};
 var originX;
 var originY;
 var maxDepth = 2;
+var t, mode = 'auto';
+var nodeFilters, relFilters;
 
 function Engine(parent) {
 
-	this.parent = parent;
-	canvas = $("<canvas style='cursor:default;'>")[0];
-	$(parent).append(canvas);
-
-	parent.append('<div id="settings"><table>'
-		+ '<tr><td><label for="maxDepth">Max. depth</label></td><td><input id="maxDepth" name="maxDepth" size="3" value="' + maxDepth + '"></td></tr>'
-		+ '<tr><td><label for="maxRels">Max. rels</label></td><td><input id="maxRels" name="maxRels" size="3" value="' + maxRels + '"></td></tr>'
-		+ '<tr><td><label for="noOfNodes">Nodes</label></td><td><input id="noOfNodes" name="noOfNodes" size="3"></td></tr>'
-		+ '<tr><td><label for="noOfRels">Rels</label></td><td><input id="noOfRels" name="noOfRels" size="3"></td></tr>'
-		+ '<tr><td><label for="noOfRels">Enable Relationships</label></td><td><input type="checkbox" id="enableSprings" name="enableSprings" checked="checked" /></td></tr>'
-		+ '<tr><td colspan="2" class="sliderLabel"><label for="relLength">Rel Length</label></td></tr>'
-		+ '<tr><td colspan="2"><div id="relLength"></div></td></tr>'
-		+ '<tr><td colspan="2" class="sliderLabel"><label for="centerForce">Center Force</label></td></tr>'
-		+ '<tr><td colspan="2"><div id="centerForce"></div></td></tr>'
-		+ '<tr><td colspan="2" class="sliderLabel"><label for="centerForce">Repellant Force</label></td></tr>'
-		+ '<tr><td colspan="2"><div id="repellantForce"></div></td></tr>'
-		+ '<tr><td colspan="2" class="sliderLabel"><label for="drag">Drag</label></td></tr>'
-		+ '<tr><td colspan="2"><div id="drag"></div></td></tr>'
-		+ '</table>'
-		+ '<h3>Node Types</h3>'
-		+ '<ul class="nodeBox"></ul>'
-		+ '<h3>Relationship Types</h3>'
-		+ '<ul class="relBox"></ul>'
-		+ '</div>');
-
-	this.initialize = function() {
-		
-		colors[ 0] = "#cc0000";	// red
-		colors[ 1] = "#00cc00";	// green
-		colors[ 2] = "#0000cc";	// blue
-		colors[ 3] = "#cc00cc";	// pink
-		colors[ 4] = "#ff8800";	// orange
-		colors[ 5] = "#00dddd";	// cyan
-		colors[ 6] = "#ffff00";	// yellow
-		
-		colors[ 7] = "#880000";	// red
-		colors[ 8] = "#008800";	// green
-		colors[ 9] = "#000088";	// blue
-		colors[10] = "#880088";	// pink
-		colors[11] = "#884400";	// orange
-		colors[12] = "#008888";	// cyan
-		colors[13] = "#888800";	// yellow
-		
-		colors[14] = "#440000";	// red
-		colors[15] = "#004400";	// green
-		colors[16] = "#000044";	// blue
-		colors[17] = "#440044";	// pink
-		colors[18] = "#442200";	// orange
-		colors[19] = "#004444";	// cyan
-		colors[20] = "#444400";	// yellow
-
-		for (i=21; i<255; i++) {
-			colors[i] = "#999999";	// default gray
-		}
-
-                nodeBox = $('.nodeBox');
-		relBox = $('.relBox');
-
-		relBox.append('<li><input type="checkbox" id="toggle_undefined">undefined</li>');
-		relBox.append('<li><input type="checkbox" id="toggle_OWNS">OWNS</li>');
-		relBox.append('<li><input type="checkbox" id="toggle_SECURITY">SECURITY</li>');
-		relBox.append('<li><input type="checkbox" id="toggle_PAGE">PAGE</li>');
-
-		$('input#maxDepth').on('change', function() {
-			var inp = $(this);
-			_Dashboard.maxDepth = inp.val();
-		});
-
-		$('input#relLength').on('change', function() {
-			var inp = $(this);
-			springLength = inp.val();
-		});
-
-		$('input#enableSprings').on('click', function() {
-			var inp = $(this);
-			enableSprings = inp.is(":checked");
-
-			if (enableSprings === true) {
-
-				$("#centerForce").slider('value', 5);
-				$("#repellantForce").slider('value', 1);
-
-			} else {
-
-				$("#centerForce").slider('value', 20);
-				$("#repellantForce").slider('value', 0.05);
-			}
-		});
-
-		$(function() {
-			$("#enableSprings").checked = enableSprings;
-		});
-
-		$(function() {
-			$("#relLength").slider({
-				min: -500,
-				max: 500,
-				value: springLength,
-				slide: function(event, ui) {
-					springLength = ui.value;
-				},
-				change: function(event, ui) {
-					springLength = ui.value;
-				}
-			});
-		});
-
-		$(function() {
-			$("#repellantForce").slider({
-				min: 0.05,
-				max: 2,
-				step: 0.05,
-				value: magneticFactor,
-				slide: function(event, ui) {
-					magneticFactor = ui.value;
-				},
-				change: function(event, ui) {
-					magneticFactor = ui.value;
-				}
-			});
-		});
-
-		$(function() {
-			$("#centerForce").slider({
-				min: 0,
-				max: 100,
-				value: centerForce,
-				slide: function(event, ui) {
-					centerForce = ui.value;
-				},
-				change: function(event, ui) {
-					centerForce = ui.value;
-				}
-			});
-		});
-
-		$(function() {
-			$("#drag").slider({
-				min: 50,
-				max: 500,
-				value: drag,
-				slide: function(event, ui) {
-					drag = ui.value;
-				},
-				change: function(event, ui) {
-					drag = ui.value;
-				}
-			});
-		});
-
-		this.resizeCanvas();
-
-		$(window).resize(function() {
-			this.resizeCanvas();
-		});
-
-		originX = -canvas.width / 2 - headerWidth;
-		originY = -canvas.height / 2 - headerHeight;
-
-		ctx = canvas.getContext("2d");
-
-		canvas.onmousemove = function(e) {
-
-			lastX = mX;
-			lastY = mY;
-
-			mX = (e.x / scale);
-			mY = (e.y / scale);
-
-			// left button
-			if (mouseBtn === 1) {
-
-				if (clickedMass === null) {
-
-					var offsetX = ((mX - lastX));
-					var offsetY = ((mY - lastY));
-
-					ctx.translate(offsetX, offsetY);
-
-					originX -= offsetX;
-					originY -= offsetY;
-
-				} else {
-
-					clickedMass.x = mX + originX;
-					clickedMass.y = mY + originY;
-
-				}
-			}
-		}
-
-		canvas.onmousedown = function(e) {
-			mouseBtn = e.button + 1;
-
-			lastX = mX;
-			lastY = mY;
-		}
-
-		canvas.onmouseup = function(e) {
-			mouseBtn = 0;
-			clickedMass = null;
+    this.parent = parent;
+    canvas = $("<canvas style='cursor:default;'>")[0];
+    $(parent).append(canvas);
+
+    nodeFilters = $('#nodeFilters');
+    relFilters = $('#relFilters');
+
+
+
+    displaySlideout.append('<div id="settings"><table>'
+            + '<tr><td><label for="maxDepth">Max. depth</label></td><td><input id="maxDepth" name="maxDepth" size="3" value="' + maxDepth + '"></td></tr>'
+            + '<tr><td><label for="maxRels">Max. rels</label></td><td><input id="maxRels" name="maxRels" size="3" value="' + maxRels + '"></td></tr>'
+            + '<tr><td><label for="noOfNodes">Nodes</label></td><td><input id="noOfNodes" name="noOfNodes" size="3"></td></tr>'
+            + '<tr><td><label for="noOfRels">Rels</label></td><td><input id="noOfRels" name="noOfRels" size="3"></td></tr>'
+            + '<tr><td><label for="autoLoadRels">Auto-load relationships</label></td><td><input type="checkbox" id="autoLoadRels" name="autoLoadRels" checked="checked" /></td></tr>'
+            + '<tr><td><label for="enableSprings">Enable Relationships</label></td><td><input type="checkbox" id="enableSprings" name="enableSprings" checked="checked" /></td></tr>'
+            + '<tr><td><label for="stopAnimation">Stop Animation</label></td><td><input type="checkbox" id="stopAnimation" name="stopAnimation" /></td></tr>'
+            + '<tr><td colspan="2" class="sliderLabel"><label for="relLength">Rel Length</label></td></tr>'
+            + '<tr><td colspan="2"><div id="relLength"></div></td></tr>'
+            + '<tr><td colspan="2" class="sliderLabel"><label for="centerForce">Center Force</label></td></tr>'
+            + '<tr><td colspan="2"><div id="centerForce"></div></td></tr>'
+            + '<tr><td colspan="2" class="sliderLabel"><label for="centerForce">Repellant Force</label></td></tr>'
+            + '<tr><td colspan="2"><div id="repellantForce"></div></td></tr>'
+            + '<tr><td colspan="2" class="sliderLabel"><label for="drag">Drag</label></td></tr>'
+            + '<tr><td colspan="2"><div id="drag"></div></td></tr>'
+            + '</table>'
+            + '</div>');
+
+    this.initialize = function() {
+
+        colors[ 0] = "#FF0000";
+        colors[ 1] = "#BF3030";
+        colors[ 2] = "#A60000";
+        colors[ 3] = "#FF4040";
+        colors[ 4] = "#FF7373";
+        colors[ 5] = "#FF7400";
+        colors[ 6] = "#BF7130";
+
+        colors[ 7] = "#A64B00";
+        colors[ 8] = "#FF9640";
+        colors[ 9] = "#FFB273";
+        colors[10] = "#CD0074";
+        colors[11] = "#992667";
+        colors[12] = "#85004B";
+        colors[13] = "#E6399B";
+
+        colors[14] = "#E667AF";
+        colors[15] = "#00CC00";
+        colors[16] = "#269926";
+        colors[17] = "#008500";
+        colors[18] = "#39E639";
+        colors[19] = "#67E667";
+
+        for (i = 20; i < 255; i++) {
+            colors[i] = "#999999";	// default gray
+        }
+        
+        relFilters.append('<div><input type="checkbox" id="toggle_undefined">undefined</div>');
+        relFilters.append('<div><input type="checkbox" id="toggle_OWNS">OWNS</div>');
+        relFilters.append('<div><input type="checkbox" id="toggle_SECURITY">SECURITY</div>');
+        relFilters.append('<div><input type="checkbox" id="toggle_PAGE">PAGE</div>');
+
+        $('input#maxDepth').on('change', function() {
+            var inp = $(this);
+            _Dashboard.maxDepth = inp.val();
+        });
+
+        $('input#relLength').on('change', function() {
+            var inp = $(this);
+            springLength = inp.val();
+        });
+
+        $('input#autoLoadRels').on('click', function() {
+            var inp = $(this);
+            if (inp.is(":checked")) {
+                mode = 'auto';
+            } else {
+                mode = ''
+            }
+            engine.update();
+        });
+
+        $(function() {
+            $("#autoLoadRels").checked = !running;
+        });
+
+        $('input#enableSprings').on('click', function() {
+            var inp = $(this);
+            enableSprings = inp.is(":checked");
+
+//            if (enableSprings === true) {
+//
+//                $("#centerForce").slider('value', 5);
+//                $("#repellantForce").slider('value', 1);
+//
+//            } else {
+//
+//                $("#centerForce").slider('value', 20);
+//                $("#repellantForce").slider('value', 0.05);
+//            }
+        });
+
+        $(function() {
+            $("#enableSprings").checked = enableSprings;
+        });
+
+        $('input#stopAnimation').on('click', function() {
+            var inp = $(this);
+            running = !inp.is(":checked");
+            engine.update();
+        });
+
+        $(function() {
+            $("#stopAnimation").checked = !running;
+        });
+
+        $(function() {
+            $("#relLength").slider({
+                min: -500,
+                max: 500,
+                value: springLength,
+                slide: function(event, ui) {
+                    springLength = ui.value;
+                },
+                change: function(event, ui) {
+                    springLength = ui.value;
+                }
+            });
+        });
+
+        $(function() {
+            $("#repellantForce").slider({
+                min: 0.05,
+                max: 2,
+                step: 0.05,
+                value: magneticFactor,
+                slide: function(event, ui) {
+                    magneticFactor = ui.value;
+                },
+                change: function(event, ui) {
+                    magneticFactor = ui.value;
+                }
+            });
+        });
+
+        $(function() {
+            $("#centerForce").slider({
+                min: 0,
+                max: 10,
+                value: centerForce,
+                slide: function(event, ui) {
+                    centerForce = ui.value;
+                },
+                change: function(event, ui) {
+                    centerForce = ui.value;
+                }
+            });
+        });
+
+        $(function() {
+            $("#drag").slider({
+                min: 50,
+                max: 500,
+                value: drag,
+                slide: function(event, ui) {
+                    drag = ui.value;
+                },
+                change: function(event, ui) {
+                    drag = ui.value;
+                }
+            });
+        });
+
+        this.resizeCanvas();
+
+        $(window).resize(function() {
+            this.resizeCanvas();
+        });
+
+        originX = -canvas.width / 2 - headerWidth;
+        originY = -canvas.height / 2 - headerHeight;
+
+        ctx = canvas.getContext("2d");
+
+        canvas.onmousemove = function(e) {
+
+            lastX = mX;
+            lastY = mY;
+
+            mX = (e.x / scale);
+            mY = (e.y / scale);
+
+            // left button
+            if (mouseBtn === 1) {
+
+                if (clickedMass === null) {
+
+                    var offsetX = ((mX - lastX));
+                    var offsetY = ((mY - lastY));
+
+                    ctx.translate(offsetX, offsetY);
+
+                    originX -= offsetX;
+                    originY -= offsetY;
+
+                } else {
+
+                    clickedMass.x = mX + originX;
+                    clickedMass.y = mY + originY;
+
+                }
+            }
+        }
+
+        canvas.onmousedown = function(e) {
+            mouseBtn = e.button + 1;
+
+            lastX = mX;
+            lastY = mY;
+        }
 
-			lastX = mX;
-			lastY = mY;
-		}
+        canvas.onmouseup = function(e) {
+            mouseBtn = 0;
+            clickedMass = null;
 
-		canvas.onmousewheel = function(e) {
+            lastX = mX;
+            lastY = mY;
+        }
 
-			var zoom = 1 + (e.wheelDelta / 1000);
+        canvas.onmousewheel = function(e) {
 
-			ctx.translate(originX, originY);
-			ctx.scale(zoom, zoom);
+            var zoom = 1 + (e.wheelDelta / 1000);
 
-			originX = (e.x / scale + originX - e.x / (scale * zoom));
-			originY = (e.y / scale + originY - e.y / (scale * zoom));
-			ctx.translate(-originX, -originY);
+            ctx.translate(originX, originY);
+            ctx.scale(zoom, zoom);
 
-			scale *= zoom;
-
-			mX = (e.x / scale);
-			mY = (e.y / scale);
-
-			$('#noOfRels').val(scale);
-
-		}
-
-		canvas.onblur = function() {
-			clickedMass = null;
-			mouseBtn = 0;
-		}
-
-		$(canvas).on('dblclick', function() {
-			
-			if (hoverMass) {
-				
-				//_Dashboard.loadRelationships(hoverMass.nodeId, 0);
-                                _Crud.loadTypeDefinition(hoverMass.typeString, function() {
-                                    _Crud.crudEdit(hoverMass.nodeId, hoverMass.typeString);
-                                });
-			}
-		});
-
-		document.onkeydown = function(e) {
-			keys[e.keyCode] = 1;
-		}
+            originX = (e.x / scale + originX - e.x / (scale * zoom));
+            originY = (e.y / scale + originY - e.y / (scale * zoom));
+            ctx.translate(-originX, -originY);
 
-		document.onkeyup = function(e) {
-			keys[e.keyCode] = 0;
-		}
+            scale *= zoom;
+
+            mX = (e.x / scale);
+            mY = (e.y / scale);
 
-		// center canvas on 0:0
-		ctx.translate(canvas.width / 2, canvas.height / 2);
+            $('#noOfRels').val(scale);
+
+        }
+
+        canvas.onblur = function() {
+            clickedMass = null;
+            mouseBtn = 0;
+        }
+
+        $(canvas).on('dblclick', function() {
+
+            if (hoverMass) {
+
+                _Dashboard.loadRelationships(hoverMass.nodeId, 0);
+//                _Crud.loadTypeDefinition(hoverMass.typeString, function() {
+//                    _Crud.crudEdit(hoverMass.nodeId, hoverMass.typeString);
+//                });
+            }
+        });
+
+        document.onkeydown = function(e) {
+            keys[e.keyCode] = 1;
+        }
 
-		// initialize centers
-		this.setCenters(canvas.width / 2, canvas.height / 2);
-	}
+        document.onkeyup = function(e) {
+            keys[e.keyCode] = 0;
+        }
 
-	this.update = function() {
+        // center canvas on 0:0
+        ctx.translate(canvas.width / 2, canvas.height / 2);
 
-		var springNum = springs.length;
-		var massNum = masses.length;
-		var i = 0;
-		var j = 0;
+        // initialize centers
+        this.setCenters(canvas.width / 2, canvas.height / 2);
+    }
 
-		ctx.save();
-		ctx.setTransform(1, 0, 0, 1, 0, 0);
-		ctx.fillStyle = backgroundColor;
-		ctx.globalAlpha = 1;
-		ctx.fillRect(0, 0, canvas.width, canvas.height);
-		ctx.restore();
+    this.update = function() {
 
-		// apply magnetic force
-		for (i = 0; i < massNum; i++) {
+        var springNum = springs.length;
+        var massNum = masses.length;
+        var i = 0;
+        var j = 0;
 
-			for (j = i + 1; j < massNum; j++) {
+        ctx.save();
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.fillStyle = backgroundColor;
+        ctx.globalAlpha = 1;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.restore();
 
-				var m1 = masses[i];
-				var m2 = masses[j];
+        // apply magnetic force
+        for (i = 0; i < massNum; i++) {
 
-				var f = magneticForce;
+            for (j = i + 1; j < massNum; j++) {
 
-				if (m1.type === m2.type) {
-					f *= magneticFactor;
-				}
+                var m1 = masses[i];
+                var m2 = masses[j];
 
-				if (m1.selected === true && m2.selected === true) {
-					f *= magneticFactor * magneticFactor;
-				}
+                var f = magneticForce;
 
-				var dx = (m1.x - m2.x);
-				var dy = (m1.y - m2.y);
+                if (m1.type === m2.type) {
+                    f *= magneticFactor;
+                }
 
-				var l2 = (dx * dx + dy * dy);
+                if (m1.selected === true && m2.selected === true) {
+                    f *= magneticFactor * magneticFactor;
+                }
 
-				if (l2 < maxMagneticDistance) {
+                var dx = (m1.x - m2.x);
+                var dy = (m1.y - m2.y);
 
-					var l = Math.sqrt(l2);
+                var l2 = (dx * dx + dy * dy);
 
-					// magnetic force
-					if (l > dt) {
+                if (l2 < maxMagneticDistance) {
 
-						var dFx = dx * (1 / (l * l)) * f;
-						var dFy = dy * (1 / (l * l)) * f;
+                    var l = Math.sqrt(l2);
 
-						m1.Fx += dFx;
-						m1.Fy += dFy;
+                    // magnetic force
+                    if (l > dt) {
 
-						m2.Fx -= dFx;
-						m2.Fy -= dFy;
-					}
-				}
-			}
-		}
+                        var dFx = dx * (1 / (l * l)) * f;
+                        var dFy = dy * (1 / (l * l)) * f;
 
-		// update springs
-		for (i = 0; i < springNum; i++) {
-			var obj = springs[i];
-			obj.update();
-			obj.draw();
-		}
+                        m1.Fx += dFx;
+                        m1.Fy += dFy;
 
-		// update position & reset forces
-		for (i = 0; i < massNum; i++) {
-			var obj = masses[i];
-			obj.update();
-			obj.draw();
-			obj.Fx = 0;
-			obj.Fy = 0;
-		}
+                        m2.Fx -= dFx;
+                        m2.Fy -= dFy;
+                    }
+                }
+            }
+        }
 
-		window.setTimeout("engine.update()", dt);
-	}
+        // update springs
+        for (i = 0; i < springNum; i++) {
+            var obj = springs[i];
+            obj.update();
+            obj.draw();
+        }
 
-	this.addNode = function(node) {
+        // update position & reset forces
+        for (i = 0; i < massNum; i++) {
+            var obj = masses[i];
+            obj.update();
+            obj.draw();
+            obj.Fx = 0;
+            obj.Fy = 0;
+        }
 
-		//if (!isIn(node.type, types) && nodeTypes[node.type] === undefined) {
-                if (nodeTypes[node.type] === undefined) {
+        if (running) {
+            t = window.setTimeout("engine.update()", dt);
+        }
+    }
 
-			types.push(node.type);
-			this.setCenters(100, 100);
+    this.addNode = function(node) {
 
-                        nodeTypes[node.type] = 1;
+        //if (!isIn(node.type, types) && nodeTypes[node.type] === undefined) {
+        if (nodeTypes[node.type] === undefined) {
 
-                        nodeBox.append('<li><input type="checkbox" id="toggle_node_' + node.type + '" checked>' + node.type + '</li>');
+            types.push(node.type);
+            this.setCenters(100, 100);
 
-		}
+            nodeTypes[node.type] = 1;
 
-                $('#toggle_node_' + node.type).change(function() {
+            nodeFilters.append('<div><input type="checkbox" id="toggle_node_' + node.type + '" checked>' + node.type + '</div>');
 
-			nodeTypes[node.type] = $(this).is(":checked") ? 1 : 0; console.log(node.type, nodeTypes[node.type])
-		});
+        }
 
-		new Mass(node, 0, 0);
-		
-		$('#noOfNodes').val(masses.length);
-	}
+        $('#toggle_node_' + node.type).change(function() {
 
-	this.addRelationship = function(type, startNodeId, endNodeId) {
+            nodeTypes[node.type] = $(this).is(":checked") ? 1 : 0;
+            //console.log(node.type, nodeTypes[node.type])
+        });
 
-		if (relationshipTypes[type] === undefined) {
+        new Mass(node, 0, 0);
 
-			relationshipTypes[type] = 1;
+        $('#noOfNodes').val(masses.length);
+    }
 
-			relBox.append('<li><input type="checkbox" id="toggle_' + type + '" ' + (relationshipTypes[type] === 1 ? 'checked="checked"' : '') + '>' + type + '</li>');
-		}
+    this.addRelationship = function(type, startNodeId, endNodeId) {
 
-		$('#toggle_' + type).change(function() {
+        if (relationshipTypes[type] === undefined) {
 
-			relationshipTypes[type] = $(this).is(":checked") ? 1 : 0;
-		});
+            relationshipTypes[type] = 1;
 
-		new Spring(type, startNodeId, endNodeId);
-	}
+            relFilters.append('<div><input type="checkbox" id="toggle_' + type + '" ' + (relationshipTypes[type] === 1 ? 'checked="checked"' : '') + '>' + type + '</div>');
+        }
 
-	this.toggleCenterForce = function() {
-		if (centerForce > 0) {
-			centerForce = 0;
-		} else {
-			centerForce = 20;
-		}
-	}
+        $('#toggle_' + type).change(function() {
 
-	this.setCenter = function(type, x, y) {
-		xCenters[type] = x;
-		yCenters[type] = y;
-	}
+            relationshipTypes[type] = $(this).is(":checked") ? 1 : 0;
+        });
 
-	this.setCenters = function(rx, ry) {
+        new Spring(type, startNodeId, endNodeId);
+    }
 
-		var i = 0.0;
-		var rad = (2 * Math.PI) / Math.max(1, types.length);
-		for (i = 0.0; i < types.length; i += 1.0) {
+    this.toggleCenterForce = function() {
+        if (centerForce > 0) {
+            centerForce = 0;
+        } else {
+            centerForce = 20;
+        }
+    }
 
-			var cx = (Math.cos(i * rad) * rx);
-			var cy = (Math.sin(i * rad) * ry);
+    this.setCenter = function(type, x, y) {
+        xCenters[type] = x;
+        yCenters[type] = y;
+    }
 
-			this.setCenter(types[i], cx, cy);
-		}
-	}
+    this.setCenters = function(rx, ry) {
 
-	this.resizeCanvas = function resizeCanvas() {
+        var i = 0.0;
+        var rad = (2 * Math.PI) / Math.max(1, types.length);
+        for (i = 0.0; i < types.length; i += 1.0) {
 
-		canvas.width = $(window).width() - 26;
-		canvas.height = $(window).height() - $('#header').height() - 48;
-		headerWidth = 12;
-		headerHeight = $('#header').height() + 12;
-	}
+            var cx = (Math.cos(i * rad) * rx);
+            var cy = (Math.sin(i * rad) * ry);
 
-	this.drawText = function(text, x, y, font) {
+            this.setCenter(types[i], cx, cy);
+        }
+    }
 
-		if (text && x && y) {
+    this.resizeCanvas = function resizeCanvas() {
 
-			ctx.font = font;
-			ctx.textAlign = "center";
-			ctx.textBaseline = "bottom";
-			ctx.globalAlpha = textAlpha;
-			ctx.fillStyle = "#000000";
-			ctx.strokeStyle = "#000000";
-			ctx.fillText(text, x, y);
-		}
-	}
+        canvas.width = $(window).width();
+        canvas.height = $(window).height() - $('#header').height();
+        headerWidth = 12;
+        headerHeight = $('#header').height() + 12;
+    }
+
+    this.drawText = function(text, x, y, font) {
+
+        if (text && x && y) {
+
+            ctx.font = font;
+            ctx.textAlign = "center";
+            ctx.textBaseline = "bottom";
+            ctx.globalAlpha = textAlpha;
+            ctx.fillStyle = "#484848";
+            ctx.strokeStyle = "#484848";
+            ctx.fillText(text, x, y);
+        }
+    }
 }
 
 /******************************************************************************
@@ -491,131 +518,144 @@ function Engine(parent) {
  *****************************************************************************/
 function Mass(node, startX, startY) {
 
-	masses[masses.length] = this;
-	this.nodeId = node.id;
-	this.node = node;
-	this.color = colors[types.indexOf(node.type)];
-	this.typeString = node.type;
-	this.nameString = node.name;
-	this.x = startX;
-	this.y = startY;
-	this.x0 = this.x;
-	this.y0 = this.y;
-	this.Fx = 0;
-	this.Fy = 0;
-	this.r = 10;
+    masses[masses.length] = this;
+    this.nodeId = node.id || '';
+    this.node = node;
+    this.color = colors[types.indexOf(node.type)];
+    this.typeString = node.type;
+    this.nameString = node.name || (this.nodeId.substring(0,4) + '…');
+    this.x = startX;
+    this.y = startY;
+    this.x0 = this.x;
+    this.y0 = this.y;
+    this.Fx = 0;
+    this.Fy = 0;
+    this.r = 10;
 
-	this.draw = function() {
+    this.draw = function() {
 
-                if (!nodeTypes[this.typeString]) return;
+        if (!nodeTypes[this.typeString])
+            return;
 
-		var fillStyle = this.color;
-		var localAlpha = alpha;
+        var fillStyle = this.color;
+        var localAlpha = alpha;
 
-		// highlight mass element under cursor
-		if (Math.abs(this.x - (mX + originX)) <= this.r && Math.abs(this.y - (mY + originY)) <= this.r) {
+        // highlight mass element under cursor
+        if (Math.abs(this.x - (mX + originX)) <= this.r && Math.abs(this.y - (mY + originY)) <= this.r) {
 
-			if (mouseBtn > 0) {
+            if (mouseBtn > 0) {
 
-				clickedMass = this;
-			}
+                clickedMass = this;
+            }
 
-			hoverMass = this;
+            hoverMass = this;
 
-			// fillStyle = "#ff0000";
-			this.r = 20;
-			localAlpha = 1;
+            // fillStyle = "#ff0000";
+            this.r = 20;
+            localAlpha = 1;
 
-		} else {
+        } else {
 
-			if (!(clickedMass === this)) {
-				this.r = 10;
-			}
-		}
+            if (!(clickedMass === this)) {
+                this.r = 10;
+            }
+        }
 
-		if (scale < 1) {
-			this.r /= (Math.sqrt(scale));
-			ctx.lineWidth = 1 / (Math.sqrt(scale));
-		}
+        if (scale < 1) {
+            this.r /= (Math.sqrt(scale));
+            ctx.lineWidth = 1 / (Math.sqrt(scale));
+        }
 
-		ctx.globalAlpha = localAlpha;
-		ctx.fillStyle = fillStyle;
-		ctx.strokeStyle = '#000000';
+        ctx.globalAlpha = localAlpha;
+        ctx.fillStyle = fillStyle;
+        ctx.strokeStyle = '#000000';
 
-		this.roundRect(this.x - this.r, this.y - this.r, this.r * 2, this.r * 2, 3 / Math.sqrt(scale));
+        this.roundRect(this.x - this.r, this.y - this.r, this.r * 2, this.r * 2, 3 / Math.sqrt(scale));
 
-		var name = this.nameString !== null ? this.nameString + ":" + this.typeString : this.typeString;
-		engine.drawText(name, this.x, this.y - 10, 16 / Math.sqrt(scale) + 'px sans-serif');
+        var name = '';
+        
+        if (this.nameString) {
+            name += this.nameString;
+        } else {
+            name += this.nodeId;
+        }
+        
+        if (this.typeString) {
+            name += ':' + this.typeString;
+        }
 
-		ctx.lineWidth = 1;
-	}
+        engine.drawText(name, this.x, this.y - 10, 16 / Math.sqrt(scale) + 'px sans-serif');
 
-	this.update = function() {
- 
-                if (!nodeTypes[this.typeString]) return;
-                
-		var tmpX = this.x;
-		var tmpY = this.y;
+        ctx.lineWidth = 1;
+    }
 
-		// pull towards the center of the screen
-		if (this !== clickedMass) {
+    this.update = function() {
 
-			this.Fx += (xCenters[this.typeString] - this.x) * centerForce;
-			this.Fy += (yCenters[this.typeString] - this.y) * centerForce;
+        if (!nodeTypes[this.typeString])
+            return;
 
-			var dt2 = (dt * dt);
+        var tmpX = this.x;
+        var tmpY = this.y;
 
-			// drag
-			this.Fx -= (this.x - this.x0) * drag;
-			this.Fy -= (this.y - this.y0) * drag;
+        // pull towards the center of the screen
+        if (this !== clickedMass) {
 
-			this.x += (this.x - this.x0) + (this.Fx * dt2);
-			this.y += (this.y - this.y0) + (this.Fy * dt2);
-		}
+            this.Fx += (xCenters[this.typeString] - this.x) * centerForce;
+            this.Fy += (yCenters[this.typeString] - this.y) * centerForce;
 
-		this.x0 = tmpX;
-		this.y0 = tmpY;
-	}
+            var dt2 = (dt * dt);
 
-	this.isInside = function(x, y, w, h) {
+            // drag
+            this.Fx -= (this.x - this.x0) * drag;
+            this.Fy -= (this.y - this.y0) * drag;
 
-		var inside = true;
-		var d = 5;
+            this.x += (this.x - this.x0) + (this.Fx * dt2);
+            this.y += (this.y - this.y0) + (this.Fy * dt2);
+        }
 
-		if (w > 0) {
-			inside &= (this.x + d >= x && this.x + d <= x + w);
-		} else {
-			inside &= (this.x + d <= x && this.x + d >= x + w);
-		}
+        this.x0 = tmpX;
+        this.y0 = tmpY;
+    }
 
-		if (h > 0) {
-			inside &= (this.y + d >= y && this.y + d <= y + h);
-		} else {
-			inside &= (this.y + d <= y && this.y + d >= y + h);
-		}
+    this.isInside = function(x, y, w, h) {
 
-		return inside;
-	}
+        var inside = true;
+        var d = 5;
 
-	this.roundRect = function(x, y, w, h, r) {
+        if (w > 0) {
+            inside &= (this.x + d >= x && this.x + d <= x + w);
+        } else {
+            inside &= (this.x + d <= x && this.x + d >= x + w);
+        }
 
-		if (w < 2 * r)
-			r = w / 2;
-		if (h < 2 * r)
-			r = h / 2;
+        if (h > 0) {
+            inside &= (this.y + d >= y && this.y + d <= y + h);
+        } else {
+            inside &= (this.y + d <= y && this.y + d >= y + h);
+        }
 
-		ctx.beginPath();
-		ctx.moveTo(x + r, y);
-		ctx.arcTo(x + w, y, x + w, y + h, r);
-		ctx.arcTo(x + w, y + h, x, y + h, r);
-		ctx.arcTo(x, y + h, x, y, r);
-		ctx.arcTo(x, y, x + w, y, r);
-		ctx.closePath();
-		ctx.stroke();
-		ctx.fill();
+        return inside;
+    }
 
-		return this;
-	}
+    this.roundRect = function(x, y, w, h, r) {
+
+        if (w < 2 * r)
+            r = w / 2;
+        if (h < 2 * r)
+            r = h / 2;
+
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.arcTo(x + w, y, x + w, y + h, r);
+        ctx.arcTo(x + w, y + h, x, y + h, r);
+        ctx.arcTo(x, y + h, x, y, r);
+        ctx.arcTo(x, y, x + w, y, r);
+        ctx.closePath();
+        ctx.stroke();
+        ctx.fill();
+
+        return this;
+    }
 }
 
 /******************************************************************************
@@ -623,152 +663,152 @@ function Mass(node, startX, startY) {
  *****************************************************************************/
 function Spring(typeString, startNodeId, endNodeId) {
 
-	springs[springs.length] = this;
-	this.typeString = typeString;
-	this.startNodeId = startNodeId;
-	this.endNodeId = endNodeId;
-	this.m1 = null;
-	this.m2 = null;
+    springs[springs.length] = this;
+    this.typeString = typeString;
+    this.startNodeId = startNodeId;
+    this.endNodeId = endNodeId;
+    this.m1 = null;
+    this.m2 = null;
 
-	this.update = function() {
+    this.update = function() {
 
-		if (this.m1 && this.m2) {
+        if (this.m1 && this.m2) {
 
-			if (enableSprings && relationshipTypes[this.typeString] === 1) {
+            if (enableSprings && relationshipTypes[this.typeString] === 1) {
 
-				var dx = (this.m1.x - this.m2.x);
-				var dy = (this.m1.y - this.m2.y);
+                var dx = (this.m1.x - this.m2.x);
+                var dy = (this.m1.y - this.m2.y);
 
-				var l = (Math.sqrt(dx * dx + dy * dy));
+                var l = (Math.sqrt(dx * dx + dy * dy));
 
-				// spring force
-				var dl = springLength - l;
+                // spring force
+                var dl = springLength - l;
 
-				var dF1x = dx * dl * springForce * (1 / springDamping) * dt * dt;
-				var dF1y = dy * dl * springForce * (1 / springDamping) * dt * dt;
+                var dF1x = dx * dl * springForce * (1 / springDamping) * dt * dt;
+                var dF1y = dy * dl * springForce * (1 / springDamping) * dt * dt;
 
-				if (dF1x > 100000 || dF1y > 100000) {
-					dF1x *= 0.001;
-					dF1y *= 0.001;
-				}
+                if (dF1x > 100000 || dF1y > 100000) {
+                    dF1x *= 0.001;
+                    dF1y *= 0.001;
+                }
 
-				if (dF1x > 10000 || dF1y > 10000) {
-					dF1x *= 0.01;
-					dF1y *= 0.01;
-				}
+                if (dF1x > 10000 || dF1y > 10000) {
+                    dF1x *= 0.01;
+                    dF1y *= 0.01;
+                }
 
-				if (dF1x > 1000 || dF1y > 1000) {
-					dF1x *= 0.1;
-					dF1y *= 0.1;
-				}
+                if (dF1x > 1000 || dF1y > 1000) {
+                    dF1x *= 0.1;
+                    dF1y *= 0.1;
+                }
 
-				// apply forces
-				this.m1.Fx += dF1x;
-				this.m1.Fy += dF1y;
+                // apply forces
+                this.m1.Fx += dF1x;
+                this.m1.Fy += dF1y;
 
-				this.m2.Fx -= dF1x;
-				this.m2.Fy -= dF1y;
-			}
+                this.m2.Fx -= dF1x;
+                this.m2.Fy -= dF1y;
+            }
 
-		} else {
+        } else {
 
-			for (i = 0; i < masses.length; i++) {
-				if (masses[i].nodeId === startNodeId) {
-					this.m1 = masses[i];
-					continue;
-				}
+            for (i = 0; i < masses.length; i++) {
+                if (masses[i].nodeId === startNodeId) {
+                    this.m1 = masses[i];
+                    continue;
+                }
 
-				if (masses[i].nodeId === endNodeId) {
-					this.m2 = masses[i];
-					continue;
-				}
-			}
-		}
-	}
+                if (masses[i].nodeId === endNodeId) {
+                    this.m2 = masses[i];
+                    continue;
+                }
+            }
+        }
+    }
 
-	this.draw = function() {
+    this.draw = function() {
 
-                var m1 = this.m1;
-                var m2 = this.m2;
+        var m1 = this.m1;
+        var m2 = this.m2;
 
-		if (m1 && m2 && nodeTypes[m1.typeString] && nodeTypes[m2.typeString] && enableSprings && relationshipTypes[this.typeString]) {
+        if (m1 && m2 && nodeTypes[m1.typeString] && nodeTypes[m2.typeString] && enableSprings && relationshipTypes[this.typeString]) {
 
-			this.drawRel(typeString, this.m1.x, this.m1.y, this.m2.x, this.m2.y, (this.m1.r * 2) + 2, (this.m1.r * 2) + 2, (this.m2.r * 2) + 2, (this.m2.r * 2) + 2);
-		}
-	}
+            this.drawRel(typeString, this.m1.x, this.m1.y, this.m2.x, this.m2.y, (this.m1.r * 2) + 2, (this.m1.r * 2) + 2, (this.m2.r * 2) + 2, (this.m2.r * 2) + 2);
+        }
+    }
 
-	this.drawRel = function(type, x1, y1, x2, y2, w1, h1, w2, h2) {
+    this.drawRel = function(type, x1, y1, x2, y2, w1, h1, w2, h2) {
 
-		var ax, ay, bx, by;
+        var ax, ay, bx, by;
 
-		var cx = (h1 / 2) * (x2 - x1) / (y2 - y1);
-		var cy = (w1 / 2) * (y2 - y1) / (x2 - x1);
-		var dx = (h2 / 2) * (x2 - x1) / (y2 - y1);
-		var dy = (w2 / 2) * (y2 - y1) / (x2 - x1);
+        var cx = (h1 / 2) * (x2 - x1) / (y2 - y1);
+        var cy = (w1 / 2) * (y2 - y1) / (x2 - x1);
+        var dx = (h2 / 2) * (x2 - x1) / (y2 - y1);
+        var dy = (w2 / 2) * (y2 - y1) / (x2 - x1);
 
-		if (y2 >= y1) {
+        if (y2 >= y1) {
 
-			ax = Math.min(Math.max(x1 + cx, x1 - (w1 / 2)), x1 + (w1 / 2));
-			bx = Math.min(Math.max(x2 - dx, x2 - (w2 / 2)), x2 + (w2 / 2));
+            ax = Math.min(Math.max(x1 + cx, x1 - (w1 / 2)), x1 + (w1 / 2));
+            bx = Math.min(Math.max(x2 - dx, x2 - (w2 / 2)), x2 + (w2 / 2));
 
-		} else if (y1 > y2) {
+        } else if (y1 > y2) {
 
-			ax = Math.min(Math.max(x1 - cx, x1 - (w1 / 2)), x1 + (w1 / 2));
-			bx = Math.min(Math.max(x2 + dx, x2 - (w2 / 2)), x2 + (w2 / 2));
+            ax = Math.min(Math.max(x1 - cx, x1 - (w1 / 2)), x1 + (w1 / 2));
+            bx = Math.min(Math.max(x2 + dx, x2 - (w2 / 2)), x2 + (w2 / 2));
 
-		}
+        }
 
-		if (x2 >= x1) {
+        if (x2 >= x1) {
 
-			ay = Math.min(Math.max(y1 + cy, y1 - (h1 / 2)), y1 + (h1 / 2));
-			by = Math.min(Math.max(y2 - dy, y2 - (h2 / 2)), y2 + (h2 / 2));
+            ay = Math.min(Math.max(y1 + cy, y1 - (h1 / 2)), y1 + (h1 / 2));
+            by = Math.min(Math.max(y2 - dy, y2 - (h2 / 2)), y2 + (h2 / 2));
 
-		} else if (x1 > x2) {
+        } else if (x1 > x2) {
 
-			ay = Math.min(Math.max(y1 - cy, y1 - (h1 / 2)), y1 + (h1 / 2));
-			by = Math.min(Math.max(y2 + dy, y2 - (h2 / 2)), y2 + (h2 / 2));
+            ay = Math.min(Math.max(y1 - cy, y1 - (h1 / 2)), y1 + (h1 / 2));
+            by = Math.min(Math.max(y2 + dy, y2 - (h2 / 2)), y2 + (h2 / 2));
 
-		}
+        }
 
-		var style = "#888888";
+        var style = "#888888";
 
-		if (scale < 1) {
-			style = "#333333";
-		}
+        if (scale < 1) {
+            style = "#333333";
+        }
 
-		if (scale < 0.5) {
-			style = "#000000";
-		}
+        if (scale < 0.5) {
+            style = "#000000";
+        }
 
-		ctx.globalAlpha = 1;
-		ctx.fillStyle = style;
-		ctx.strokeStyle = style;
-		this.drawArrow(ax, ay, bx, by);
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = style;
+        ctx.strokeStyle = style;
+        this.drawArrow(ax, ay, bx, by);
 
-		engine.drawText(type, bx - (bx - ax) / 2, by - (by - ay) / 2, "10px sans-serif");
-	}
+        engine.drawText(type, bx - (bx - ax) / 2, by - (by - ay) / 2, "10px sans-serif");
+    }
 
-	this.drawArrow = function(x1, y1, x2, y2) {
+    this.drawArrow = function(x1, y1, x2, y2) {
 
-		var size = 6;
-		var angle = Math.atan2(y2 - y1, x2 - x1);
-		ctx.beginPath();
-		ctx.moveTo(x1, y1);
-		ctx.lineTo(x2, y2);
-		ctx.stroke();
-		ctx.closePath();
-		ctx.beginPath();
-		var x3 = x2 - size * Math.cos(angle - Math.PI / 6);
-		var y3 = y2 - size * Math.sin(angle - Math.PI / 6);
-		ctx.lineTo(x3, y3);
-		ctx.moveTo(x2, y2);
-		var x4 = x2 - size * Math.cos(angle + Math.PI / 6);
-		var y4 = y2 - size * Math.sin(angle + Math.PI / 6);
-		ctx.lineTo(x4, y4);
-		ctx.lineTo(x3, y3);
-		ctx.lineTo(x2, y2);
-		ctx.fill();
-		ctx.stroke();
-		ctx.closePath();
-	}
+        var size = 6;
+        var angle = Math.atan2(y2 - y1, x2 - x1);
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+        ctx.closePath();
+        ctx.beginPath();
+        var x3 = x2 - size * Math.cos(angle - Math.PI / 6);
+        var y3 = y2 - size * Math.sin(angle - Math.PI / 6);
+        ctx.lineTo(x3, y3);
+        ctx.moveTo(x2, y2);
+        var x4 = x2 - size * Math.cos(angle + Math.PI / 6);
+        var y4 = y2 - size * Math.sin(angle + Math.PI / 6);
+        ctx.lineTo(x4, y4);
+        ctx.lineTo(x3, y3);
+        ctx.lineTo(x2, y2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.closePath();
+    }
 }

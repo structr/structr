@@ -51,7 +51,7 @@ public class GenericRelationship extends ManyToMany<NodeInterface, NodeInterface
 	public static final TargetId endNodeId   = new TargetId("endNodeId");
 
 	public static final View uiView = new View(GenericRelationship.class, PropertyView.Ui,
-		startNodeId, endNodeId
+		startNodeId, endNodeId, sourceId, targetId
 	);
 	
 	public GenericRelationship() {}
@@ -64,13 +64,15 @@ public class GenericRelationship extends ManyToMany<NodeInterface, NodeInterface
 	public Iterable<PropertyKey> getPropertyKeys(String propertyView) {
 		
 		Set<PropertyKey> keys = new LinkedHashSet<>();
+
+		keys.addAll((Set<PropertyKey>) super.getPropertyKeys(propertyView));
 		
 		keys.add(startNodeId);
 		keys.add(endNodeId);
 		
-		if(dbRelationship != null) {
+		if (dbRelationship != null) {
 			
-			for(String key : dbRelationship.getPropertyKeys()) {
+			for (String key : dbRelationship.getPropertyKeys()) {
 				keys.add(StructrApp.getConfiguration().getPropertyKeyForDatabaseName(entityType, key));
 			}
 		}
@@ -113,13 +115,13 @@ public class GenericRelationship extends ManyToMany<NodeInterface, NodeInterface
 		return "GENERIC";
 	}
 
-	@Override
-	public SourceId getSourceIdProperty() {
-		return startNodeId;
-	}
-
-	@Override
-	public TargetId getTargetIdProperty() {
-		return endNodeId;
-	}
+//	@Override
+//	public SourceId getSourceIdProperty() {
+//		return startNodeId;
+//	}
+//
+//	@Override
+//	public TargetId getTargetIdProperty() {
+//		return endNodeId;
+//	}
 }

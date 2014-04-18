@@ -80,6 +80,8 @@ var _Files = {
 
         _Files.init();
 
+        $('#main-help a').attr('href', 'http://docs.structr.org/frontend-user-guide#Files');
+
         //main.append('<table id="dropArea"><tr><td id="folders"></td><td id="files"></td><td id="images"></td></tr></table>');
         main.append('<div id="dropArea"><div class="fit-to-height" id="folders"></div><div class="fit-to-height" id="files"></div>');
         //main.append('<table id="dropArea"><tr><<td class="fit-to-height" id="folders"></td><td class="fit-to-height" id="files"></td></tr></table>');

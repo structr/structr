@@ -60,6 +60,8 @@ var _Widgets = {
         
         _Widgets.init();
         
+        $('#main-help a').attr('href', 'http://docs.structr.org/frontend-user-guide#Widgets');
+        
         log('onload');
 
         main.append('<div id="dropArea"><div class="fit-to-height" id="widgets"></div><div class="fit-to-height" id="remoteWidgets"></div></div>');

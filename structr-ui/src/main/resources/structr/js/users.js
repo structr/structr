@@ -34,6 +34,8 @@ var _UsersAndGroups = {
 
     onload : function() {
         _UsersAndGroups.init();
+        
+        $('#main-help a').attr('href', 'http://docs.structr.org/frontend-user-guide#Users and Groups');
         //Structr.activateMenuEntry('usersAndGroups');
         log('onload');
 

@@ -150,6 +150,7 @@ var _Schema = {
     },
     onload: function() {
         _Schema.init();
+        $('#main-help a').attr('href', 'http://docs.structr.org/frontend-user-guide#Schema');
     },
     /**
      * Read the schema from the _schema REST resource and call 'callback'

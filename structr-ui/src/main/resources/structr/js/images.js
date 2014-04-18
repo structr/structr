@@ -79,6 +79,8 @@ var _Images = {
     onload : function() {
         
         _Images.init();
+
+        $('#main-help a').attr('href', 'http://docs.structr.org/frontend-user-guide#Images');
         
         main.append('<div id="dropArea"><div class="fit-to-height" id="images"></div></div>');
         images = $('#images');

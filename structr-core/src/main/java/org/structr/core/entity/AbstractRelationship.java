@@ -75,7 +75,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	public static final SourceId          sourceId      = new SourceId("sourceId");
 	public static final TargetId          targetId      = new TargetId("targetId");
 
-	public static final View defauftView = new View(AbstractRelationship.class, PropertyView.Public,
+	public static final View defaultView = new View(AbstractRelationship.class, PropertyView.Public,
 		id, type, relType, sourceId, targetId
 	);
 

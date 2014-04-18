@@ -142,6 +142,32 @@ var Command = {
         return sendObj(obj);
     },
     /**
+     * Send a REST query by SEARCH command to the server.
+     * 
+     */
+    rest: function(searchString) {
+        var obj = {};
+        obj.command = 'SEARCH';
+        var data = {};
+        data.restQuery = searchString;
+        obj.data = data;
+        log('rest()', obj);
+        return sendObj(obj);
+    },
+    /**
+     * Send a Cypher query by SEARCH command to the server.
+     * 
+     */
+    cypher: function(searchString) {
+        var obj = {};
+        obj.command = 'SEARCH';
+        var data = {};
+        data.cypherQuery = searchString;
+        obj.data = data;
+        log('cypher()', obj);
+        return sendObj(obj);
+    },
+    /**
      * Send a DELETE command to the server.
      * 
      * The server will delete the node with the given id and broadcast
