@@ -18,6 +18,7 @@
  */
 package org.structr.schema.action;
 
+import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 
 /**
@@ -26,7 +27,5 @@ import org.structr.core.graph.NodeInterface;
  */
 public abstract class Function<S, T> {
 
-	//~--- methods --------------------------------------------------------
-
-	public abstract T apply(NodeInterface entity, S[] sources);
+	public abstract T apply(NodeInterface entity, S[] sources) throws FrameworkException;
 }

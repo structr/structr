@@ -31,17 +31,6 @@ public class ActionContext {
 		this.parent = parent;
 	}
 
-	public String convertValueForHtml(final Object value) {
-
-		if (value != null) {
-
-			// TODO: do more intelligent conversion here
-			return value.toString();
-		}
-
-		return null;
-	}
-
 	public boolean returnRawValue(final SecurityContext securityContext) {
 		return false;
 	}

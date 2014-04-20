@@ -57,6 +57,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.mail.EmailException;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.index.Index;
@@ -65,6 +66,7 @@ import org.structr.common.geo.GeoHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.IterableAdapter;
 import org.structr.core.Ownership;
+import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.graph.NodeInterface;
@@ -72,6 +74,7 @@ import org.structr.core.graph.NodeService;
 import org.structr.core.graph.RelationshipFactory;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.ISO8601DateProperty;
+import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
@@ -1179,7 +1182,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("md5", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) {
+			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				return ((sources != null) && (sources.length > 0) && (sources[0] != null))
 					? DigestUtils.md5Hex(sources[0].toString())
@@ -1191,7 +1194,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("upper", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) {
+			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				return ((sources != null) && (sources.length > 0) && (sources[0] != null))
 					? sources[0].toString().toUpperCase()
@@ -1203,7 +1206,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("lower", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) {
+			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				return ((sources != null) && (sources.length > 0) && (sources[0] != null))
 					? sources[0].toString().toLowerCase()
@@ -1215,7 +1218,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("join", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) {
+			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 				return StringUtils.join(sources);
 			}
 
@@ -1223,7 +1226,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("abbr", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) {
+			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				if (sources != null && sources.length > 1 && sources[0] != null && sources[1] != null) {
 
@@ -1255,7 +1258,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("capitalize", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) {
+			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				return ((sources != null) && (sources.length > 0) && (sources[0] != null))
 					? StringUtils.capitalize(sources[0].toString())
@@ -1266,7 +1269,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("titleize", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) {
+			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				if (sources == null || sources.length < 2) {
 					return null;
@@ -1293,7 +1296,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("clean", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) {
+			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				String result;
 
@@ -1343,7 +1346,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("urlencode", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) {
+			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				return ((sources != null) && (sources.length > 0) && (sources[0] != null))
 					? encodeURL(sources[0].toString())
@@ -1355,7 +1358,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("if", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) {
+			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				if (sources[0] == null || sources.length < 3) {
 
@@ -1376,7 +1379,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("empty", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) {
+			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				if (StringUtils.isEmpty(sources[0].toString())) {
 
@@ -1391,7 +1394,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("equal", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) {
+			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				logger.log(Level.FINE, "Length: {0}", sources.length);
 
@@ -1416,7 +1419,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("add", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) {
+			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				Double result = 0.0;
 
@@ -1452,7 +1455,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("lt", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) {
+			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				String result = "";
 
@@ -1477,7 +1480,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("gt", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) {
+			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				String result = "";
 
@@ -1502,7 +1505,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("lte", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) {
+			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				String result = "";
 
@@ -1527,7 +1530,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("gte", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) {
+			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				String result = "";
 
@@ -1552,7 +1555,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("subt", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) {
+			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				if (sources != null && sources.length > 0) {
 
@@ -1583,7 +1586,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("mult", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) {
+			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				Double result = 1.0d;
 
@@ -1612,7 +1615,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("quot", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) {
+			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				Double result = 0.0d;
 
@@ -1638,7 +1641,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("round", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) {
+			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				Double result = 0.0d;
 
@@ -1672,7 +1675,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("max", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) {
+			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				String result = "";
 				String errorMsg = "ERROR! Usage: ${max(val1, val2)}. Example: ${max(5,10)}";
@@ -1697,7 +1700,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("min", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) {
+			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				String result = "";
 				String errorMsg = "ERROR! Usage: ${min(val1, val2)}. Example: ${min(5,10)}";
@@ -1722,7 +1725,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("date_format", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) {
+			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				String result = "";
 				String errorMsg = "ERROR! Usage: ${date_format(value, pattern)}. Example: ${date_format(Tue Feb 26 10:49:26 CET 2013, \"yyyy-MM-dd'T'HH:mm:ssZ\")}";
@@ -1757,7 +1760,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("number_format", new Function<Object, Object>() {
 
 			@Override
-				public Object apply(final NodeInterface entity, final Object[] sources) {
+				public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				String result = "";
 				String errorMsg = "ERROR! Usage: ${number_format(value, ISO639LangCode, pattern)}. Example: ${number_format(12345.6789, 'en', '#,##0.00')}";
@@ -1795,7 +1798,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("not", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) {
+			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				if (sources == null || sources.length == 0) {
 					return "";
@@ -1808,7 +1811,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("and", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) {
+			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				boolean result = true;
 
@@ -1836,7 +1839,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("or", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) {
+			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				boolean result = false;
 
@@ -1861,10 +1864,97 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			}
 
 		});
+		functions.put("get", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+
+				if (sources != null && sources.length == 2 && sources[0] instanceof NodeInterface) {
+
+					final NodeInterface node = (NodeInterface)sources[0];
+					final String keyName     = sources[1].toString();
+					final PropertyKey key    = StructrApp.getConfiguration().getPropertyKeyForJSONName(node.getClass(), keyName);
+
+					if (key != null) {
+						return node.getProperty(key);
+					}
+				}
+
+				return "";
+			}
+		});
+		functions.put("first", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+
+				if (sources != null && sources.length == 1 && sources[0] instanceof List) {
+					return ((List)sources[0]).get(0);
+				}
+
+				return "";
+			}
+		});
+		functions.put("last", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+
+				if (sources != null && sources.length == 1 && sources[0] instanceof List) {
+
+					final List list = (List)sources[0];
+					return list.get(list.size() - 1);
+				}
+
+				return "";
+			}
+		});
+		functions.put("nth", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+
+				if (sources != null && sources.length == 2 && sources[0] instanceof List) {
+
+					final List list = (List)sources[0];
+					final int pos   = Integer.parseInt(sources[1].toString());
+					final int size  = list.size();
+
+					return list.get(Math.min(Math.max(0, pos), size));
+				}
+
+				return "";
+			}
+		});
+		functions.put("each", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+
+				if (sources != null && sources.length == 2 && sources[0] instanceof List) {
+
+					final List list   = (List)sources[0];
+					final String expr = sources[1].toString();
+
+					for (final Object obj : list) {
+
+						if (obj instanceof AbstractNode) {
+
+							final AbstractNode node = (AbstractNode)obj;
+							node.extractFunctions(node.getSecurityContext(), new ActionContext(entity), expr);
+						}
+					}
+				}
+
+				return "";
+			}
+		});
+
+		// ----- BEGIN functions with side effects -----
 		functions.put("print", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) {
+			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				if (sources != null) {
 
@@ -1880,45 +1970,10 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			}
 
 		});
-		functions.put("geocode", new Function<Object, Object>() {
-
-			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) {
-
-				if (sources != null && sources.length == 3) {
-
-					final Gson gson      = new GsonBuilder().create();
-					final String street  = sources[0].toString();
-					final String city    = sources[1].toString();
-					final String country = sources[2].toString();
-
-					try {
-						GeoCodingResult result = GeoHelper.geocode(street, null, null, city, null, country);
-						if (result != null) {
-
-							final Map<String, Object> map = new LinkedHashMap<>();
-
-							map.put("latitude", result.getLatitude());
-							map.put("longitude", result.getLongitude());
-
-							return serialize(gson, map);
-						}
-
-					} catch (FrameworkException fex) {
-
-						fex.printStackTrace();
-					}
-
-				}
-
-				return "";
-			}
-
-		});
 		functions.put("set", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) {
+			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				if (sources != null && sources.length > 1) {
 
@@ -1944,19 +1999,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 							}
 						}
 
-						try {
+						// store values in entity
+						final PropertyMap map = PropertyMap.inputTypeToJavaType(securityContext, type, properties);
+						for (final Entry<PropertyKey, Object> entry : map.entrySet()) {
 
-							// store values in entity
-							final PropertyMap map = PropertyMap.inputTypeToJavaType(securityContext, type, properties);
-							for (final Entry<PropertyKey, Object> entry : map.entrySet()) {
-
-								source.setProperty(entry.getKey(), entry.getValue());
-							}
-
-
-						} catch (FrameworkException fex) {
-
-							fex.printStackTrace();
+							source.setProperty(entry.getKey(), entry.getValue());
 						}
 
 					} else {
@@ -1970,98 +2017,188 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			}
 
 		});
-		functions.put("get", new Function<Object, Object>() {
+		functions.put("send_plaintext_mail", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) {
+			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
-				if (sources != null && sources.length == 2 && sources[0] instanceof NodeInterface) {
+				if (sources != null && sources.length == 6 && sources[0] instanceof List) {
 
-					final NodeInterface node = (NodeInterface)sources[0];
-					final String keyName     = sources[1].toString();
-					final PropertyKey key    = StructrApp.getConfiguration().getPropertyKeyForJSONName(node.getClass(), keyName);
+					final String from        = sources[0].toString();
+					final String fromName    = sources[1].toString();
+					final String to          = sources[2].toString();
+					final String toName      = sources[3].toString();
+					final String subject     = sources[4].toString();
+					final String textContent = sources[5].toString();
 
-					if (key != null) {
-						return node.getProperty(key);
+					try {
+						MailHelper.sendSimpleMail(from, fromName, to, toName, null, null, from, subject, textContent);
+
+					} catch (EmailException eex) {
+						eex.printStackTrace();
 					}
 				}
 
 				return "";
 			}
 		});
-		functions.put("first", new Function<Object, Object>() {
+		functions.put("send_html_mail", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) {
+			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
-				if (sources != null && sources.length == 1 && sources[0] instanceof List) {
-					return ((List)sources[0]).get(0);
+				if (sources != null && sources.length == 6 && sources[0] instanceof List) {
+
+					final String from        = sources[0].toString();
+					final String fromName    = sources[1].toString();
+					final String to          = sources[2].toString();
+					final String toName      = sources[3].toString();
+					final String subject     = sources[4].toString();
+					final String htmlContent = sources[5].toString();
+					final String textContent = sources[6].toString();
+
+					try {
+						MailHelper.sendHtmlMail(from, fromName, to, toName, null, null, from, subject, htmlContent, textContent);
+
+					} catch (EmailException eex) {
+						eex.printStackTrace();
+					}
 				}
 
 				return "";
 			}
 		});
-		functions.put("last", new Function<Object, Object>() {
+		functions.put("geocode", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) {
+			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
-				if (sources != null && sources.length == 1 && sources[0] instanceof List) {
+				if (sources != null && sources.length == 3) {
 
-					final List list = (List)sources[0];
-					return list.get(list.size() - 1);
+					final Gson gson      = new GsonBuilder().create();
+					final String street  = sources[0].toString();
+					final String city    = sources[1].toString();
+					final String country = sources[2].toString();
+
+					GeoCodingResult result = GeoHelper.geocode(street, null, null, city, null, country);
+					if (result != null) {
+
+						final Map<String, Object> map = new LinkedHashMap<>();
+
+						map.put("latitude", result.getLatitude());
+						map.put("longitude", result.getLongitude());
+
+						return serialize(gson, map);
+					}
+
 				}
 
 				return "";
 			}
+
 		});
-		functions.put("nth", new Function<Object, Object>() {
+		functions.put("find", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) {
+			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
-				if (sources != null && sources.length == 2 && sources[0] instanceof List) {
+				if (sources != null) {
 
-					final List list = (List)sources[0];
-					final int pos   = Integer.parseInt(sources[1].toString());
-					final int size  = list.size();
+					final SecurityContext securityContext = entity.getSecurityContext();
+					final ConfigurationProvider config    = StructrApp.getConfiguration();
+					final Query query                     = StructrApp.getInstance(securityContext).nodeQuery();
 
-					return list.get(Math.min(Math.max(0, pos), size));
-				}
+					// the type to query for
+					Class type = null;
 
-				return "";
-			}
-		});
-		functions.put("each", new Function<Object, Object>() {
+					if (sources.length >= 1) {
 
-			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) {
+						type  = config.getNodeEntityClass(sources[0].toString());
+						if (type != null) {
 
-				if (sources != null && sources.length == 2 && sources[0] instanceof List) {
-
-					final List list   = (List)sources[0];
-					final String expr = sources[1].toString();
-
-					for (final Object obj : list) {
-
-						if (obj instanceof AbstractNode) {
-
-							try {
-								final AbstractNode node = (AbstractNode)obj;
-								node.extractFunctions(node.getSecurityContext(), new ActionContext(entity), expr);
-
-							} catch (FrameworkException fex) {
-
-								fex.printStackTrace();
-							}
+							query.andTypes(type);
 						}
 					}
+
+					switch (sources.length) {
+
+						case 7: // third (key,value) tuple
+
+							final PropertyKey key3 = config.getPropertyKeyForJSONName(type, sources[5].toString());
+							if (key3 != null) {
+
+								// throw exception if key is not indexed (otherwise the user will never know)
+								if (!key3.isSearchable()) {
+									throw new FrameworkException(400, "Search key " + key3.jsonName() + " is not indexed.");
+								}
+
+								final PropertyConverter inputConverter = key3.inputConverter(securityContext);
+								Object value                           = sources[6].toString();
+
+								if (inputConverter != null) {
+
+									value = inputConverter.convert(value);
+								}
+
+								query.and(key3, value);
+							}
+
+						case 5: // second (key,value) tuple
+
+							final PropertyKey key2 = config.getPropertyKeyForJSONName(type, sources[3].toString());
+							if (key2 != null) {
+
+								// throw exception if key is not indexed (otherwise the user will never know)
+								if (!key2.isSearchable()) {
+									throw new FrameworkException(400, "Search key " + key2.jsonName() + " is not indexed.");
+								}
+
+								final PropertyConverter inputConverter = key2.inputConverter(securityContext);
+								Object value                           = sources[4].toString();
+
+								if (inputConverter != null) {
+
+									value = inputConverter.convert(value);
+								}
+
+								query.and(key2, value);
+							}
+
+						case 3: // (key,value) tuple
+
+							final PropertyKey key1 = config.getPropertyKeyForJSONName(type, sources[1].toString());
+							if (key1 != null) {
+
+								// throw exception if key is not indexed (otherwise the user will never know)
+								if (!key1.isSearchable()) {
+									throw new FrameworkException(400, "Search key " + key1.jsonName() + " is not indexed.");
+								}
+
+								final PropertyConverter inputConverter = key1.inputConverter(securityContext);
+								Object value                           = sources[2].toString();
+
+								if (inputConverter != null) {
+
+									value = inputConverter.convert(value);
+								}
+
+								query.and(key1, value);
+							}
+							break;
+
+
+						case 2: // JSON object (not yet)
+							break;
+					}
+
+					// return search results
+					return query.getAsList();
 				}
 
 				return "";
 			}
-		});
 
+		});
 	}
 
 	public String getPropertyWithVariableReplacement(SecurityContext securityContext, ActionContext renderContext, PropertyKey<String> key) throws FrameworkException {
@@ -2142,10 +2279,10 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		if (functionMatcher.matches()) {
 
 			String functionGroup = functionMatcher.group(1);
-			String parameter = functionMatcher.group(2);
-			String functionName = functionGroup.substring(0, functionGroup.length());
-			Function<Object, Object> function = functions.get(functionName);
+			String parameter     = functionMatcher.group(2);
+			String functionName  = functionGroup.substring(0, functionGroup.length());
 
+			final Function<Object, Object> function = functions.get(functionName);
 			if (function != null) {
 
 				if (parameter.contains(",")) {
