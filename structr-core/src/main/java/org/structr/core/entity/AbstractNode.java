@@ -66,12 +66,14 @@ import org.structr.common.geo.GeoHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.IterableAdapter;
 import org.structr.core.Ownership;
+import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeService;
 import org.structr.core.graph.RelationshipFactory;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.ISO8601DateProperty;
 import org.structr.schema.ConfigurationProvider;
@@ -2008,7 +2010,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 					} else {
 
-						logger.log(Level.WARNING, "Invalid use of builtin method set, usage: set(entity, params..)");
+						throw new FrameworkException(422, "Invalid use of builtin method set, usage: set(entity, params..)");
 					}
 
 				}
@@ -2185,10 +2187,6 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 								query.and(key1, value);
 							}
 							break;
-
-
-						case 2: // JSON object (not yet)
-							break;
 					}
 
 					// return search results
@@ -2198,6 +2196,139 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 				return "";
 			}
 
+		});
+		functions.put("create", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+
+				if (sources != null) {
+
+					final SecurityContext securityContext = entity.getSecurityContext();
+					final App app                         = StructrApp.getInstance(securityContext);
+					final ConfigurationProvider config    = StructrApp.getConfiguration();
+					PropertyMap propertyMap               = new PropertyMap();
+
+					// the type to query for
+					Class type = null;
+
+					if (sources.length >= 1) {
+
+
+						type  = config.getNodeEntityClass(sources[0].toString());
+
+						if (type.equals(entity.getClass())) {
+							throw new FrameworkException(422, "Cannot create() entity of the same type in save action.");
+						}
+					}
+
+					switch (sources.length) {
+
+						case 7: // third (key,value) tuple
+
+							final PropertyKey key3 = config.getPropertyKeyForJSONName(type, sources[5].toString());
+							if (key3 != null) {
+
+								// throw exception if key is not indexed (otherwise the user will never know)
+								if (!key3.isSearchable()) {
+									throw new FrameworkException(400, "Search key " + key3.jsonName() + " is not indexed.");
+								}
+
+								final PropertyConverter inputConverter = key3.inputConverter(securityContext);
+								Object value                           = sources[6].toString();
+
+								if (inputConverter != null) {
+
+									value = inputConverter.convert(value);
+								}
+
+								propertyMap.put(key3, value);
+							}
+
+						case 5: // second (key,value) tuple
+
+							final PropertyKey key2 = config.getPropertyKeyForJSONName(type, sources[3].toString());
+							if (key2 != null) {
+
+								// throw exception if key is not indexed (otherwise the user will never know)
+								if (!key2.isSearchable()) {
+									throw new FrameworkException(400, "Search key " + key2.jsonName() + " is not indexed.");
+								}
+
+								final PropertyConverter inputConverter = key2.inputConverter(securityContext);
+								Object value                           = sources[4].toString();
+
+								if (inputConverter != null) {
+
+									value = inputConverter.convert(value);
+								}
+
+								propertyMap.put(key2, value);
+							}
+
+						case 3: // (key,value) tuple
+
+							final PropertyKey key1 = config.getPropertyKeyForJSONName(type, sources[1].toString());
+							if (key1 != null) {
+
+								// throw exception if key is not indexed (otherwise the user will never know)
+								if (!key1.isSearchable()) {
+									throw new FrameworkException(400, "Search key " + key1.jsonName() + " is not indexed.");
+								}
+
+								final PropertyConverter inputConverter = key1.inputConverter(securityContext);
+								Object value                           = sources[2].toString();
+
+								if (inputConverter != null) {
+
+									value = inputConverter.convert(value);
+								}
+
+								propertyMap.put(key1, value);
+							}
+							break;
+					}
+
+					if (type != null) {
+
+						app.create(type, propertyMap);
+
+					} else {
+
+						throw new FrameworkException(422, "Unknown type in create() save action.");
+					}
+
+				}
+
+				return "";
+			}
+		});
+		functions.put("delete", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+
+				if (sources != null) {
+
+					final App app = StructrApp.getInstance(entity.getSecurityContext());
+					for (final Object obj : sources) {
+
+						if (obj instanceof NodeInterface) {
+
+							app.delete((NodeInterface)obj);
+							continue;
+						}
+
+						if (obj instanceof RelationshipInterface) {
+
+							app.delete((RelationshipInterface)obj);
+							continue;
+						}
+					}
+				}
+
+				return "";
+			}
 		});
 	}
 
