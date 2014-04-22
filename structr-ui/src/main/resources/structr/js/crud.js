@@ -237,7 +237,8 @@ var _Crud = {
 
     },
     loadAccessibleResources: function(callback) {
-        var url = rootUrl + 'resource_access/ui';
+        //var url = rootUrl + 'resource_access/ui';
+        var url = rootUrl + 'resource_access';
         $.ajax({
             url: url,
             dataType: 'json',
@@ -288,7 +289,7 @@ var _Crud = {
                 200: function(data) {
 
                     // no schema entry found?
-                    if (!data || data.result_count === 0) {
+                    if (!data || !data.result || data.result_count === 0) {
 
                         console.log("ERROR: loading Schema " + type);
                         //Structr.error("ERROR: loading Schema " + type, true);
@@ -820,11 +821,11 @@ var _Crud = {
                         });
                         _Crud.showDetails(null, true, type);
                         var resp = JSON.parse(data.responseText);
-                        console.log(resp);
+                        //console.log(resp);
                         $.each(Object.keys(resp.errors[type]), function(i, key) {
                             var errorMsg = resp.errors[type][key][0];
-                            console.log(key, errorMsg);
-                            $('td.' + key + ' input', dialogText).prop('placeholder', errorMsg).css({
+                            //console.log(key, errorMsg);
+                            $('td [name="' + key + '"]', dialogText).prop('placeholder', errorMsg.splitAndTitleize('_')).css({
                                 backgroundColor: '#fee',
                                 borderColor: '#933'
                             });
@@ -1196,20 +1197,27 @@ var _Crud = {
         row.empty();
         _Crud.populateRow(id, item, type);
     },
-    activateTextInputField: function(input, id, key) {
+    activateTextInputField: function(el, id, key, propertyType) {
+        var oldValue = el.text();
+        el.off('mouseup');
+        var input;
+        if (propertyType === 'String') {
+            el.html('<textarea name="' + key + '" class="value" cols="40" rows="4"></textare>');
+            input = $('textarea', el);
+        } else {
+            el.html('<input name="' + key + '" class="value" type="text" size="10">');
+            input = $('input', el);
+        }
+        input.val(oldValue);
         input.off('mouseup');
         //console.log('activateTextInputField', input, id, key);
         input.focus();
         input.on('blur', function() {
             var newValue = input.val();
-            _Crud.crudUpdate(id, key, newValue);
+            if (id) {
+                _Crud.crudUpdate(id, key, newValue);
+            }
         });
-//        input.keypress(function(e) {
-//            if (e.keyCode === 13) {
-//                var newValue = input.val();
-//                _Crud.crudUpdate(id, key, newValue);
-//            }
-//        });
     },
     row: function(id) {
         return $('#_' + id);
@@ -1263,11 +1271,13 @@ var _Crud = {
             var propertyType = _Crud.getPropertyType(type, key);
 
             if (propertyType === 'Boolean') {
-                cell.append('<input ' + (readOnly ? 'class="readonly" readonly disabled ' : '') + 'type="checkbox" ' + (value ? 'checked="checked"' : '') + '>');
+                cell.append('<input name="' + key + '" ' + (readOnly ? 'class="readonly" readonly disabled ' : '') + 'type="checkbox" ' + (value ? 'checked="checked"' : '') + '>');
                 if (!readOnly) {
                     $('input', cell).on('change', function() {
                         //console.log('change value for ' + key + ' to ' + $(this).prop('checked'));
-                        _Crud.crudUpdate(id, key, $(this).prop('checked').toString());
+                        if (id) {
+                            _Crud.crudUpdate(id, key, $(this).prop('checked').toString());
+                        }
                     });
                 }
             } else if (propertyType === 'Date') {
@@ -1277,7 +1287,7 @@ var _Crud = {
                         event.preventDefault();
                         var self = $(this);
                         var oldValue = self.text();
-                        self.html('<input class="value" type="text" size="40">');
+                        self.html('<input name="' + key + '" class="value" type="text" size="40">');
                         var input = $('input', self);
                         input.val(oldValue);
                         input.datetimepicker({
@@ -1287,7 +1297,9 @@ var _Crud = {
                             timeFormat: 'HH:mm:ssz',
                             onClose: function() {
                                 var newValue = input.val();
-                                _Crud.crudUpdate(id, key, newValue);
+                                if (id) {
+                                    _Crud.crudUpdate(id, key, newValue);
+                                }
                             }
                         });
                         input.datetimepicker('show');
@@ -1300,19 +1312,11 @@ var _Crud = {
                     cell.on('mouseup', function(event) {
                         event.preventDefault();
                         var self = $(this);
-                        var oldValue = self.text();
-                        self.off('mouseup');
-                        var input;
-                        if (propertyType === 'String') {
-                            self.html('<textarea class="value" cols="40" rows="4"></textare>');
-                            input = $('textarea', self);
-                        } else {
-                            self.html('<input class="value" type="text" size="10">');
-                            input = $('input', self);
-                        }
-                        input.val(oldValue);
-                        _Crud.activateTextInputField(input, id, key);
+                        _Crud.activateTextInputField(self, id, key, propertyType);
                     });
+                    if (!id) { // create
+                        _Crud.activateTextInputField(cell, id, key, propertyType);
+                    }
                 }
             }
 
@@ -1932,6 +1936,14 @@ var _Crud = {
             //console.log(property);
             //var type = property.className.substring(property.className.lastIndexOf('.') + 1);
             //var key = property.jsonName;
+            
+            var readOnly = _Crud.readOnly(key, type);
+            var isCollection = _Crud.isCollection(key, type);
+            var relatedType = _Crud.relatedType(key, type);
+            if (readOnly || isCollection || relatedType) {
+                return;
+            }
+            
             table.append('<tr><td class="key"><label for="' + key + '">' + _Crud.formatKey(key) + '</label></td><td class="value ' + key + '"></td>');//<td>' + type + '</td><td>' + property.readOnly + '</td></tr>');
             var cell = $('.' + key, table);
             if (node && node.id) {
@@ -1939,7 +1951,8 @@ var _Crud = {
                 _Crud.populateCell(node.id, key, node.type, node[key], cell);
             } else {
                 //console.log(key,node[key]);
-                cell.append(formatValueInputField(key, ''));
+                //cell.append(formatValueInputField(key, ''));
+                _Crud.populateCell(null, key, type, null, cell);
             }
         });
         dialogSaveButton.remove();

@@ -957,9 +957,6 @@ var _Pages = {
                     statusCode: {
                         200: function(data) {
                             _Schema.getPropertyName(t.name, data.result[0].relationshipType, true, function(key, isCollection) {
-                                
-                                console.log('key', key)
-                                
                                 $('#data-wizard-attributes .custom').append('<div class="draggable data-binding-attribute ' + key + '" collection="' + isCollection + '" subkey="' + subkey + '">' + typeKey + '.' + key + '</div>');
                                 $('#data-wizard-attributes .custom').children('.' + key).draggable({
                                     iframeFix: true,
@@ -970,7 +967,7 @@ var _Pages = {
                                     stack: '.node',
                                     zIndex: 99
                                 }).on('click', function() {
-                                    console.log('expand')
+                                    //console.log('expand')
                                 });
                             });
                         }

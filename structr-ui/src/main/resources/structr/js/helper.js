@@ -388,13 +388,13 @@ function blinkGreen(element) {
     }
 
     $(element).animate({
-        color: '#81ce25',
-        backgroundColor: '#efe'
-    }, 100, function() {
+        color: '#0c0',
+        backgroundColor: '#cfc'
+    }, 50, function() {
         $(this).animate({
             color: oldFg,
             backgroundColor: oldBg
-        }, 200);
+        }, 1000);
     });
 }
 
@@ -416,13 +416,13 @@ function blinkRed(element) {
     }
 
     element.animate({
-        color: '#f00',
-        backgroundColor: '#fbb'
-    }, 250, function() {
+        color: '#a00',
+        backgroundColor: '#faa'
+    }, 50, function() {
         $(this).animate({
             color: oldFg,
             backgroundColor: oldBg
-        }, 500);
+        }, 1000);
     });
 }
 
