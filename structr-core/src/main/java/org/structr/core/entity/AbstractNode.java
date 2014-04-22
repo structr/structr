@@ -2024,7 +2024,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			@Override
 			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
-				if (sources != null && sources.length == 6 && sources[0] instanceof List) {
+				if (sources != null && sources.length == 6) {
 
 					final String from        = sources[0].toString();
 					final String fromName    = sources[1].toString();
@@ -2049,7 +2049,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			@Override
 			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
-				if (sources != null && sources.length == 6 && sources[0] instanceof List) {
+				if (sources != null && sources.length == 6) {
 
 					final String from        = sources[0].toString();
 					final String fromName    = sources[1].toString();
