@@ -19,8 +19,7 @@
 
 var win = $(window);
 var engine, mode;
-var nodeIds = {};
-var relIds = {};
+var nodeIds = [], relIds = [];
 var activeTabRightDashboardKey = 'structrActiveTabRightDashboard_' + port;
 var activeTabLeftDashboardKey = 'structrActiveTabLeftDashboard_' + port;
 var activeTabLeftDashboard, activeTabRightDashboard;
@@ -30,9 +29,6 @@ var relTypes = [], nodeTypes = [];
 
 $(document).ready(function() {
     Structr.registerModule('dashboard', _Dashboard);
-    win.resize(function() {
-        _Dashboard.resize();
-    });
 });
 
 var _Dashboard = {
@@ -45,17 +41,17 @@ var _Dashboard = {
     onload: function() {
 
         _Dashboard.init();
-        
+
         $('#main-help a').attr('href', 'http://docs.structr.org/frontend-user-guide#Dashboard');
 
         activeTabLeftDashboard = localStorage.getItem(activeTabRightDashboardKey);
         activeTabRightDashboard = localStorage.getItem(activeTabLeftDashboardKey);
 
         main.prepend(
-                '<div id="queries" class="slideOut slideOutLeft"><div class="compTab" id="queriesTab">Queries</div></div>'
+                '<div id="queries" class="slideOut slideOutLeft"><div class="compTab" id="queriesTab">Queries</div><div><button id="clear-canvas">Clear Canvas</button></div></div>'
                 + '<div id="display" class="slideOut slideOutLeft"><div class="compTab" id="displayTab">Display Options</div></div>'
                 + '<div id="filters" class="slideOut slideOutLeft"><div class="compTab" id="filtersTab">Filters</div><div id="nodeFilters"><h3>Node Filters</h3></div><div id="relFilters"><h3>Relationship Filters</h3></div></div>'
-                + '<div class="canvas" id="graph"></div>'
+                + ' <div class="canvas" id="graph"></div>'
                 //+ '<div id="nodes" class="slideOut slideOutRight"><div class="compTab" id="nodesTab">Nodes</div></div>'
                 //+ '<div id="relationships" class="slideOut slideOutRight"><div class="compTab" id="relationshipsTab">Relationships</div></div>'
                 );
@@ -71,7 +67,7 @@ var _Dashboard = {
 
         lsw = queriesSlideout.width() + 12;
         rsw = nodesSlideout.width() + 12;
-        
+
         $('.slideOut').on('mouseover', function() {
             running = false;
             return true;
@@ -149,18 +145,24 @@ var _Dashboard = {
                 + '<div class="query-box"><textarea class="search" name="cypher" cols="39" rows="4" placeholder="Enter a Cypher query here"></textarea><img class="clearSearchIcon" id="clear-cypher" src="icon/cross_small_grey.png">'
                 + '<button id="exec-cypher">Execute Cypher query</button></div>');
 
+        $('#clear-canvas').on('click', function() {
+            nodeIds.length = 0;
+            relIds.length = 0;
+            engine.clear();
+        });
+
         $('#exec-rest').on('click', function() {
             var query = $('.search[name=rest]').val();
-            if (query && query.length)
-                ;
-            _Dashboard.execQuery(query, 'rest');
+            if (query && query.length) {
+                _Dashboard.execQuery(query, 'rest');
+            }
         });
 
         $('#exec-cypher').on('click', function() {
             var query = $('.search[name=cypher]').val();
-            if (query && query.length)
-                ;
-            _Dashboard.execQuery(query, 'cypher');
+            if (query && query.length) {
+                _Dashboard.execQuery(query, 'cypher');
+            }
         });
 
         _Dashboard.activateClearSearchIcon();
@@ -206,6 +208,10 @@ var _Dashboard = {
         engine = new Engine(graph);
         engine.initialize();
         engine.update();
+
+        win.resize(function() {
+            _Dashboard.resize();
+        });
 
     },
     execQuery: function(query, type) {
@@ -326,9 +332,9 @@ var _Dashboard = {
 
         if (node) {
 
-            if (nodeIds[node.id] === undefined) {
+            if (nodeIds.indexOf(node.id) === -1) {
 
-                nodeIds[node.id] = 1;
+                nodeIds.push(node.id);
 
                 engine.addNode(node);
 
@@ -369,9 +375,9 @@ var _Dashboard = {
 
                         var r = results[i++];
 
-                        if (relIds[r.id] === undefined) {
+                        if (relIds.indexOf(r.id) === -1) {
 
-                            relIds[r.id] = 1;
+                            relIds.push(r.id);
 
                             engine.addRelationship(r.relType, r.sourceId, r.targetId);
                             _Dashboard.loadNode(r.targetId, depth === undefined ? 1 : depth + 1);
@@ -443,7 +449,6 @@ var _Dashboard = {
             width: win.width(),
         });
 
-        engine.update();
 
     },
     loadTypeDefinition: function(type, callback) {

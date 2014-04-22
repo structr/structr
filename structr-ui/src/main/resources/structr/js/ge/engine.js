@@ -19,13 +19,13 @@
 
 var hoverMass = null;
 var clickedMass = null;
-var springs = new Array();
-var masses = new Array();
-var xCenters = new Array();
-var yCenters = new Array();
+var springs = [];
+var masses = [];
+var xCenters = [];
+var yCenters = [];
 var ctx = null;
-var colors = new Array();
-var types = new Array();
+var colors = [];
+var types = [];
 var inc = 128;
 var count = 0;
 var running = true;
@@ -40,7 +40,7 @@ var maxMagneticDistance = 1000000;
 var magneticForce = 50000;
 var magneticFactor = 0.5;
 var numMasses = 100;
-var keys = new Array();
+var keys = [];
 var mX = 0;
 var mY = 0;
 var mouseBtn = 0;
@@ -55,7 +55,7 @@ var headerHeight = 0;
 var canvas;
 var settings;
 var relationshipTypes = {"OWNS": 0, "SECURITY": 0, "PAGE": 0, "undefined": 0};
-var nodeTypes = {};
+var nodeTypes = [];
 var originX;
 var originY;
 var maxDepth = 2;
@@ -70,8 +70,6 @@ function Engine(parent) {
 
     nodeFilters = $('#nodeFilters');
     relFilters = $('#relFilters');
-
-
 
     displaySlideout.append('<div id="settings"><table>'
             + '<tr><td><label for="maxDepth">Max. depth</label></td><td><input id="maxDepth" name="maxDepth" size="3" value="' + maxDepth + '"></td></tr>'
@@ -91,6 +89,13 @@ function Engine(parent) {
             + '<tr><td colspan="2"><div id="drag"></div></td></tr>'
             + '</table>'
             + '</div>');
+
+    this.clear = function() {
+        springs.length = 0;
+        masses.length = 0;
+        nodeIds.length = 0;
+        this.update();
+    }
 
     this.initialize = function() {
 
@@ -243,10 +248,7 @@ function Engine(parent) {
             this.resizeCanvas();
         });
 
-        originX = -canvas.width / 2 - headerWidth;
-        originY = -canvas.height / 2 - headerHeight;
-
-        ctx = canvas.getContext("2d");
+        this.resizeCanvas();
 
         canvas.onmousemove = function(e) {
 
@@ -319,13 +321,8 @@ function Engine(parent) {
         }
 
         $(canvas).on('dblclick', function() {
-
             if (hoverMass) {
-
                 _Dashboard.loadRelationships(hoverMass.nodeId, 0);
-//                _Crud.loadTypeDefinition(hoverMass.typeString, function() {
-//                    _Crud.crudEdit(hoverMass.nodeId, hoverMass.typeString);
-//                });
             }
         });
 
@@ -376,10 +373,10 @@ function Engine(parent) {
                     f *= magneticFactor * magneticFactor;
                 }
 
-                var dx = (m1.x - m2.x);
-                var dy = (m1.y - m2.y);
+                var dx = m1.x - m2.x;
+                var dy = m1.y - m2.y;
 
-                var l2 = (dx * dx + dy * dy);
+                var l2 = dx * dx + dy * dy;
 
                 if (l2 < maxMagneticDistance) {
 
@@ -492,10 +489,17 @@ function Engine(parent) {
 
     this.resizeCanvas = function resizeCanvas() {
 
+        headerHeight = $('#header').height();
+        
         canvas.width = $(window).width();
-        canvas.height = $(window).height() - $('#header').height();
-        headerWidth = 12;
-        headerHeight = $('#header').height() + 12;
+        canvas.height = $(window).height() - headerHeight;
+        
+        originX = -canvas.width / 2;
+        originY = -canvas.height / 2 - headerHeight;
+        
+        ctx = canvas.getContext("2d");
+        
+
     }
 
     this.drawText = function(text, x, y, font) {
