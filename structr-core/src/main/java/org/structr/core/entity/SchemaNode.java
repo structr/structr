@@ -40,8 +40,8 @@ import org.structr.core.property.StringProperty;
 import org.structr.schema.Schema;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.SchemaNotion;
-import org.structr.schema.action.Actions;
 import org.structr.schema.action.ActionEntry;
+import org.structr.schema.action.Actions;
 
 /**
  *
@@ -213,7 +213,7 @@ public class SchemaNode extends AbstractSchemaNode implements Schema {
 	@Override
 	public boolean isValid(final ErrorBuffer errorBuffer) {
 
-		return ValidationHelper.checkStringMatchesRegex(this, name, "[a-zA-Z_]+", errorBuffer);
+		return ValidationHelper.checkStringMatchesRegex(this, name, "[A-Z][a-zA-Z_]+", errorBuffer);
 
 	}
 
