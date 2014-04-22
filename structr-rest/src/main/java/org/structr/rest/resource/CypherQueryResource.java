@@ -65,15 +65,15 @@ public class CypherQueryResource extends Resource {
 	}
 
 	@Override
-	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
+	public RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException {
 
 		// Admins only
 		if (!securityContext.isSuperUser()) {
-			
+
 			throw new NotAllowedException();
 
 		}
-		
+
 		try {
 
 			RestMethodResult result = new RestMethodResult(200);
@@ -82,7 +82,7 @@ public class CypherQueryResource extends Resource {
 			if (queryObject != null) {
 
 				String query                 = queryObject.toString();
-				List<GraphObject> resultList = (List<GraphObject>) StructrApp.getInstance(securityContext).command(CypherQueryCommand.class).execute(query);
+				List<GraphObject> resultList = StructrApp.getInstance(securityContext).command(CypherQueryCommand.class).execute(query, propertySet);
 
 				for (GraphObject obj : resultList) {
 
@@ -96,9 +96,7 @@ public class CypherQueryResource extends Resource {
 		} catch (org.neo4j.graphdb.NotFoundException nfe) {
 
 			throw new NotFoundException();
-
 		}
-
 	}
 
 	@Override
