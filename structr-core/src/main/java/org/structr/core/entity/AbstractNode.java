@@ -2381,6 +2381,10 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 							// all browsers
 							value = value.equals(group) ? null : value.replace(group, "");
 						}
+						
+					} else {
+
+						value = "";
 					}
 				}
 
