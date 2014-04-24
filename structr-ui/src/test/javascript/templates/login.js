@@ -21,6 +21,8 @@
 
     sections.push('Login with username and password.');
 
+    casper.waitForSelector('#usernameField');
+    
     casper.then(function() {
         s.animatedType(this, '#usernameField', false, name);
     });
