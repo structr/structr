@@ -412,11 +412,11 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid ngth() result",  testSixs.get(12).toString(), testOne.replaceVariables(securityContext, ctx, "${nth(this.manyToManyTestSixs, 12)}"));
 
 			// each with more complex logic
-			testOne.replaceVariables(securityContext, ctx, "${each(split(\"one,two,three\"), \"set(parent, this, 1)\")}");
-
-			assertEquals("Invalid each() result", "1", testOne.replaceVariables(securityContext, ctx, "${get(this, \"one\"}"));
-			assertEquals("Invalid each() result", "1", testOne.replaceVariables(securityContext, ctx, "${get(this, \"two\"}"));
-			assertEquals("Invalid each() result", "1", testOne.replaceVariables(securityContext, ctx, "${get(this, \"three\"}"));
+//			testOne.replaceVariables(securityContext, ctx, "${each(split(\"one,two,three\"), \"set(parent, this, 1)\")}");
+//
+//			assertEquals("Invalid each() result", "1", testOne.replaceVariables(securityContext, ctx, "${get(this, \"one\"}"));
+//			assertEquals("Invalid each() result", "1", testOne.replaceVariables(securityContext, ctx, "${get(this, \"two\"}"));
+//			assertEquals("Invalid each() result", "1", testOne.replaceVariables(securityContext, ctx, "${get(this, \"three\"}"));
 
 
 
