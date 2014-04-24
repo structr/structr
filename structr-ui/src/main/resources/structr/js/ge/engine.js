@@ -59,7 +59,7 @@ var nodeTypes = [];
 var originX;
 var originY;
 var maxDepth = 2;
-var t, mode = 'auto';
+var t, mode = '';
 var nodeFilters, relFilters;
 
 function Engine(parent) {
@@ -76,7 +76,7 @@ function Engine(parent) {
             + '<tr><td><label for="maxRels">Max. rels</label></td><td><input id="maxRels" name="maxRels" size="3" value="' + maxRels + '"></td></tr>'
             + '<tr><td><label for="noOfNodes">Nodes</label></td><td><input id="noOfNodes" name="noOfNodes" size="3"></td></tr>'
             + '<tr><td><label for="noOfRels">Rels</label></td><td><input id="noOfRels" name="noOfRels" size="3"></td></tr>'
-            + '<tr><td><label for="autoLoadRels">Auto-load relationships</label></td><td><input type="checkbox" id="autoLoadRels" name="autoLoadRels" checked="checked" /></td></tr>'
+            + '<tr><td><label for="autoLoadRels">Auto-load relationships</label></td><td><input type="checkbox" id="autoLoadRels" name="autoLoadRels" /></td></tr>'
             + '<tr><td><label for="enableSprings">Enable Relationships</label></td><td><input type="checkbox" id="enableSprings" name="enableSprings" checked="checked" /></td></tr>'
             + '<tr><td><label for="stopAnimation">Stop Animation</label></td><td><input type="checkbox" id="stopAnimation" name="stopAnimation" /></td></tr>'
             + '<tr><td colspan="2" class="sliderLabel"><label for="relLength">Rel Length</label></td></tr>'

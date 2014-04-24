@@ -17,24 +17,25 @@
  */
 package org.structr.websocket.command;
 
+import com.google.gson.Gson;
 import java.util.List;
-import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.Result;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.property.PropertyKey;
-import org.structr.websocket.message.WebSocketMessage;
-
-//~--- JDK imports ------------------------------------------------------------
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.lang3.StringUtils;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.Result;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.property.PropertyKey;
 import org.structr.schema.SchemaHelper;
 import org.structr.web.datasource.RestDataSource;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
+import org.structr.websocket.message.WebSocketMessage;
 
 //~--- classes ----------------------------------------------------------------
 /**
@@ -56,9 +57,10 @@ public class SearchCommand extends AbstractCommand {
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 		final String searchString = (String) webSocketData.getNodeData().get("searchString");
-		final String restQuery = (String) webSocketData.getNodeData().get("restQuery");
-		final String cypherQuery = (String) webSocketData.getNodeData().get("cypherQuery");
-		final String typeString = (String) webSocketData.getNodeData().get("type");
+		final String restQuery    = (String) webSocketData.getNodeData().get("restQuery");
+		final String cypherQuery  = (String) webSocketData.getNodeData().get("cypherQuery");
+		final String paramString  = (String) webSocketData.getNodeData().get("cypherParams");
+		final String typeString   = (String) webSocketData.getNodeData().get("type");
 
 		Class type = null;
 		if (typeString != null) {
@@ -70,7 +72,15 @@ public class SearchCommand extends AbstractCommand {
 			if (cypherQuery != null) {
 
 				try {
-					final List<GraphObject> result = StructrApp.getInstance(securityContext).cypher(cypherQuery, null);
+					Map<String, Object> obj = null;
+					
+					if (StringUtils.isNoneBlank(paramString)) {
+						
+						obj = new Gson().fromJson(paramString, Map.class);
+						
+					}
+					
+					final List<GraphObject> result = StructrApp.getInstance(securityContext).cypher(cypherQuery, obj);
 
 					webSocketData.setResult(result);
 					getWebSocket().send(webSocketData, true);

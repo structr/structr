@@ -141,9 +141,13 @@ var _Dashboard = {
         }
 
         queriesSlideout.append('<div class="query-box"><textarea class="search" name="rest" cols="39" rows="4" placeholder="Enter a REST query here"></textarea><img class="clearSearchIcon" id="clear-rest" src="icon/cross_small_grey.png">'
-                + '<button id="exec-rest">Execute REST query</button></div>'
-                + '<div class="query-box"><textarea class="search" name="cypher" cols="39" rows="4" placeholder="Enter a Cypher query here"></textarea><img class="clearSearchIcon" id="clear-cypher" src="icon/cross_small_grey.png">'
+                + '<button id="exec-rest">Execute REST query</button></div>');
+
+        queriesSlideout.append('<div class="query-box"><textarea class="search" name="cypher" cols="39" rows="4" placeholder="Enter a Cypher query here"></textarea><img class="clearSearchIcon" id="clear-cypher" src="icon/cross_small_grey.png">'
                 + '<button id="exec-cypher">Execute Cypher query</button></div>');
+
+        queriesSlideout.append('<div id="cypher-params"><h3>Cypher Parameters</h3><img id="add-cypher-parameter" src="icon/add.png">');
+        _Dashboard.appendCypherParameter($('#cypher-params'));
 
         $('#clear-canvas').on('click', function() {
             nodeIds.length = 0;
@@ -160,10 +164,27 @@ var _Dashboard = {
 
         $('#exec-cypher').on('click', function() {
             var query = $('.search[name=cypher]').val();
+            var params = {};
+            var names = $.map($('[name="cyphername[]"]'), function(n) {
+                return $(n).val();
+            });
+            var values = $.map($('[name="cyphervalue[]"]'), function(v) {
+                return $(v).val();
+            });
+
+            for (var i = 0; i < names.length; i++) {
+                params[names[i]] = values[i];
+            }
+
             if (query && query.length) {
-                _Dashboard.execQuery(query, 'cypher');
+                _Dashboard.execQuery(query, 'cypher', JSON.stringify(params));
             }
         });
+
+        $('#add-cypher-parameter').on('click', function() {
+            _Dashboard.appendCypherParameter($('#cypher-params'));
+        });
+
 
         _Dashboard.activateClearSearchIcon();
 
@@ -214,15 +235,15 @@ var _Dashboard = {
         });
 
     },
-    execQuery: function(query, type) {
+    execQuery: function(query, type, params) {
 
-        log('exec', type, 'query', query);
+        log('exec', type, 'query', query, params);
 
         if (query && query.length) {
 
             if (type === 'cypher') {
-                Command.cypher(query);
-                _Dashboard.saveQuery(query, 'cypher');
+                Command.cypher(query, params);
+                _Dashboard.saveQuery(query, 'cypher', params);
             } else {
                 Command.rest(query);
                 _Dashboard.saveQuery(query, 'rest');
@@ -232,17 +253,16 @@ var _Dashboard = {
 
         }
     },
-    saveQuery: function(query, type) {
+    saveQuery: function(query, type, params) {
         var savedQueries = JSON.parse(localStorage.getItem(savedQueriesKey)) || [];
         var exists = false;
         $.each(savedQueries.reverse(), function(i, q) {
-            if (q.query === query) {
-
+            if (q.query === query && q.params === params) {
                 exists = true;
             }
         });
         if (!exists) {
-            savedQueries.push({'type': type, 'query': query});
+            savedQueries.push({'type': type, 'query': query, 'params': params});
             localStorage.setItem(savedQueriesKey, JSON.stringify(savedQueries));
         }
     },
@@ -251,9 +271,24 @@ var _Dashboard = {
         savedQueries.splice(i, 1);
         localStorage.setItem(savedQueriesKey, JSON.stringify(savedQueries));
     },
-    restoreSavedQuery: function(i) {
+    restoreSavedQuery: function(i, exec) {
         var savedQueries = JSON.parse(localStorage.getItem(savedQueriesKey)) || [];
-        $('.search[name=cypher]').val(savedQueries.reverse()[i].query);
+        var query = savedQueries.reverse()[i];
+        $('.search[name=cypher]').val(query.query);
+        $('#cypher-params input').remove();
+        $('#cypher-params br').remove();
+        $('#cypher-params img.remove-cypher-parameter').remove();
+        if (query.params && query.params.length) {
+            var parObj = JSON.parse(query.params);
+            $.each(Object.keys(parObj), function(i, key) {
+                _Dashboard.appendCypherParameter($('#cypher-params'), key, parObj[key]);
+            });
+            if (exec) {
+                _Dashboard.execQuery(query.query, query.type, query.params);
+            }
+        } else {
+            _Dashboard.appendCypherParameter($('#cypher-params'));
+        }
     },
     listSavedQueries: function() {
         $('#saved-queries').empty();
@@ -274,23 +309,28 @@ var _Dashboard = {
             var query = $(this).parent().text();
             $('.search[name=rest]').val(query);
             _Dashboard.activateClearSearchIcon('rest');
-            _Dashboard.execQuery(query);
+            var self = $(this);
+            var i = self.parent().index();
+            _Dashboard.restoreSavedQuery(savedQueries.length - i - 1, true);
         });
         $('.cypher-query').on('click', function() {
             $('.search[name=cypher]').val($(this).text());
             _Dashboard.activateClearSearchIcon('cypher');
+            var self = $(this);
+            var i = self.index();
+            _Dashboard.restoreSavedQuery(savedQueries.length - i - 1);
         });
         $('.cypher-query .replay').on('click', function() {
             var query = $(this).parent().text();
             $('.search[name=cypher]').val(query);
             _Dashboard.activateClearSearchIcon('cypher');
-            _Dashboard.execQuery(query, 'cypher');
+            var self = $(this);
+            var i = self.parent().index();
+            _Dashboard.restoreSavedQuery(savedQueries.length - i - 1, true);
         });
         $('.remove-query').on('click', function() {
             var self = $(this);
             var i = self.parent().index();
-            //var i = savedQueries.length - $('.saved-cypher-query').index(this);
-            //console.log('removing', savedQueries.length - i - 1);
             _Dashboard.removeSavedQuery(savedQueries.length - i - 1);
             self.parent().remove();
         });
@@ -481,5 +521,12 @@ var _Dashboard = {
                 callback(data.result[0]);
             }
         });
+    },
+    appendCypherParameter: function(el, key, value) {
+        el.append('<div><img class="remove-cypher-parameter" src="icon/delete.png"> <input name="cyphername[]" type="text" placeholder="name" size="10" value="' + (key || '') + '"> <input name="cyphervalue[]" type="text" placeholder="value" size="10" value="' + (value || '') + '"></div>');
+        $('.remove-cypher-parameter', el).on('click', function() {
+            $(this).parent().remove();
+        });
     }
 };
+

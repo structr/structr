@@ -1603,7 +1603,6 @@ button.add_property {
 
 #queries textarea {
     width: 327px;
-    
 }
 
 .query-box {
@@ -1626,7 +1625,7 @@ button.add_property {
 }
 
 .saved-query img {
-    vertical-align: bottom;
+    vertical-align: middle;
     margin: 0 4px 0 0;
 }
 
@@ -1646,7 +1645,24 @@ button.add_property {
 }
 
 #clear-canvas {
-	float: none ! important;
-	display: block;
-	margin-bottom: 24px;
+    float: none ! important;
+    display: block;
+    margin-bottom: 24px;
+}
+
+#cypher-params {
+    position: relative;
+}
+
+#add-cypher-parameter {
+    position: absolute;
+    right: .5em;
+    bottom: .5em;
+    cursor: pointer;
+}
+
+.remove-cypher-parameter {
+    margin-bottom: 4px;
+    vertical-align: middle;
+    cursor: pointer;
 }

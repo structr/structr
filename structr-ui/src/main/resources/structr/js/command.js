@@ -158,11 +158,12 @@ var Command = {
      * Send a Cypher query by SEARCH command to the server.
      * 
      */
-    cypher: function(searchString) {
+    cypher: function(query, params) {
         var obj = {};
         obj.command = 'SEARCH';
         var data = {};
-        data.cypherQuery = searchString;
+        data.cypherQuery = query;
+        data.cypherParams = params;
         obj.data = data;
         log('cypher()', obj);
         return sendObj(obj);
