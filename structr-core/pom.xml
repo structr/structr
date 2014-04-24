@@ -31,7 +31,7 @@
         <netbeans.hint.license>structr-gpl30</netbeans.hint.license>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <structr.version>1.0-SNAPSHOT</structr.version>
-        <neo4j.version>2.0.1</neo4j.version>
+        <neo4j.version>2.0.2</neo4j.version>
     </properties>
 
     <repositories>
@@ -76,7 +76,7 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
-            <version>1.7.5</version>
+            <version>1.7.7</version>
         </dependency>		<!--
 		<dependency>
 			<groupId>org.slf4j</groupId>
@@ -86,7 +86,7 @@
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-access</artifactId>
-            <version>1.0.13</version>
+            <version>1.1.2</version>
         </dependency>
         <dependency>
             <groupId>org.neo4j</groupId>
@@ -102,6 +102,8 @@
             <groupId>org.neo4j</groupId>
             <artifactId>neo4j-spatial</artifactId>
             <version>0.12-neo4j-${neo4j.version}</version>
+            <exclusions>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.neo4j</groupId>

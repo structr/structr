@@ -18,39 +18,36 @@
  */
 package org.structr.web.entity.dom;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import net.java.textilej.parser.MarkupParser;
 import net.java.textilej.parser.markup.confluence.ConfluenceDialect;
 import net.java.textilej.parser.markup.mediawiki.MediaWikiDialect;
 import net.java.textilej.parser.markup.textile.TextileDialect;
 import net.java.textilej.parser.markup.trac.TracWikiDialect;
+import org.apache.commons.lang3.StringUtils;
+import org.pegdown.PegDownProcessor;
+import org.structr.common.Permission;
+import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.Adapter;
+import org.structr.core.graph.search.SearchCommand;
+import org.structr.core.property.Property;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.property.StringProperty;
+import org.structr.web.common.AsyncBuffer;
+import org.structr.web.common.RenderContext;
+import org.structr.web.common.RenderContext.EditMode;
+import static org.structr.web.entity.dom.DOMNode.hideOnDetail;
+import static org.structr.web.entity.dom.DOMNode.hideOnIndex;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.Text;
-import org.pegdown.PegDownProcessor;
-import org.structr.common.PropertyView;
-import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.Adapter;
-import org.structr.core.property.Property;
-import org.structr.core.property.PropertyKey;
-import org.structr.web.common.RenderContext;
-import org.structr.core.property.StringProperty;
-
-//~--- JDK imports ------------------------------------------------------------
-
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.apache.commons.lang3.StringUtils;
-import org.structr.common.Permission;
-import org.structr.core.graph.search.SearchCommand;
-import org.structr.web.common.AsyncBuffer;
-import org.structr.web.common.RenderContext.EditMode;
-import static org.structr.web.entity.dom.DOMNode.hideOnDetail;
-import static org.structr.web.entity.dom.DOMNode.hideOnIndex;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -278,7 +275,7 @@ public class Content extends DOMNode implements Text {
 //					.concat(getProperty(Content.content))
 //					.concat("\" data-structr-type=\"").concat(getType())
 //					.concat("\" data-structr-id=\"").concat(id).concat("\">"));
-				String cleanedContent = StringUtils.remove(StringUtils.remove(StringUtils.replace(getProperty(Content.content), "\n", "\\\\n"), "<!--"), "-->");
+				String cleanedContent = StringUtils.remove(StringUtils.remove(org.apache.commons.lang3.StringUtils.replace(getProperty(Content.content), "\n", "\\\\n"), "<!--"), "-->");
 				out.append("<!--data-structr-id=\"".concat(id)
 					.concat("\" data-structr-raw-value=\"").concat(cleanedContent).concat("\"-->"));
 					//.concat("\" data-structr-raw-value=\"").concat(getProperty(Content.content)).concat("\"-->"));

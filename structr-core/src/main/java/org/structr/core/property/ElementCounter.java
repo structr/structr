@@ -19,7 +19,7 @@
 package org.structr.core.property;
 
 import java.util.Collection;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.SortField;
 import org.neo4j.graphdb.Node;

@@ -23,13 +23,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Iterator;
-import org.apache.commons.lang.StringUtils;
-
-import org.structr.module.JarConfigurationProvider;
-
-//~--- JDK imports ------------------------------------------------------------
-
-//import org.structr.common.xpath.NeoNodePointerFactory;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -38,7 +31,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.commons.lang.RandomStringUtils;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
@@ -56,6 +50,7 @@ import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.SyncCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.StringProperty;
+import org.structr.module.JarConfigurationProvider;
 import org.structr.schema.ConfigurationProvider;
 
 //~--- classes ----------------------------------------------------------------

@@ -35,7 +35,6 @@ import org.apache.oltu.oauth2.common.exception.OAuthProblemException;
 import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
 import org.apache.oltu.oauth2.common.message.types.GrantType;
 import org.apache.oltu.oauth2.common.utils.JSONUtils;
-import org.codehaus.jettison.json.JSONException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Person;
 import org.structr.core.property.PropertyKey;
@@ -304,7 +303,7 @@ public class StructrOAuthClient {
 			logger.log(Level.INFO, "User response body: {0}", body);
 			return (String) JSONUtils.parseJSON(body).get(key);
 			
-		} catch (JSONException ex) {
+		} catch (Exception ex) {
 			
 			logger.log(Level.WARNING, "Could not extract {0} from JSON response", ex);
 			

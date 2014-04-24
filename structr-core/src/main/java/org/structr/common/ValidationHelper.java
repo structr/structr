@@ -18,18 +18,26 @@
  */
 package org.structr.common;
 
-import org.structr.core.property.PropertyKey;
 import java.util.Arrays;
 import java.util.Date;
-import org.apache.commons.lang.StringUtils;
-import org.structr.common.error.*;
-import org.structr.core.property.GenericProperty;
+import org.apache.commons.lang3.StringUtils;
+import org.structr.common.error.ChronologicalOrderToken;
+import org.structr.common.error.EmptyPropertyToken;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
+import org.structr.common.error.MatchToken;
+import org.structr.common.error.RangeToken;
+import org.structr.common.error.TooShortToken;
+import org.structr.common.error.UniqueToken;
+import org.structr.common.error.ValueToken;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.property.GenericProperty;
+import org.structr.core.property.PropertyKey;
 
 /**
  * Defines helper methods for property validation.

@@ -140,7 +140,7 @@
         <dependency>
             <groupId>com.jayway.restassured</groupId>
             <artifactId>rest-assured</artifactId>
-            <version>2.0.1</version>
+            <version>2.3.1</version>
             <scope>compile</scope>
             <optional>false</optional>
         </dependency>
@@ -158,24 +158,6 @@
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-runner</artifactId>
             <version>9.2.0.M0</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>javax.servlet.jsp</artifactId>
-                    <groupId>org.glassfish.web</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>javax.servlet.jsp-api</artifactId>
-                    <groupId>javax.servlet.jsp</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>javax.servlet.jsp.jstl</artifactId>
-                    <groupId>org.glassfish.web</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>javax.servlet.jsp.jstl</artifactId>
-                    <groupId>org.eclipse.jetty.orbit</groupId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.tuckey</groupId>

@@ -18,7 +18,7 @@
  */
 package org.structr.core.property;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.SortField;
 import org.apache.lucene.util.NumericUtils;

@@ -318,7 +318,7 @@ public class HttpService implements RunnableService {
 			}
 
 			FilterHolder loggingFilter = new FilterHolder(TeeFilter.class);
-			servletContext.addFilter(loggingFilter, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
+			servletContext.addFilter(loggingFilter, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.ASYNC));
 			loggingFilter.setInitParameter("includes", "");
 
 			RequestLogHandler requestLogHandler = new RequestLogHandler();

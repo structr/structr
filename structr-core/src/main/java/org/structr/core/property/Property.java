@@ -28,7 +28,7 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.search.BooleanClause;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
@@ -47,8 +47,8 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeService;
 import org.structr.core.graph.NodeService.NodeIndex;
 import org.structr.core.graph.NodeService.RelationshipIndex;
-import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.PropertySearchAttribute;
+import org.structr.core.graph.search.SearchAttribute;
 
 /**
  * Abstract base class for all property types.
