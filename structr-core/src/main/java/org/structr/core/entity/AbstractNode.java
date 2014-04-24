@@ -114,7 +114,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	private static final String regexDouble  = regexDecimal + "|" + regexInteger + "|" + regexSciNot;
 
 	private static final Logger logger = Logger.getLogger(AbstractNode.class.getName());
-	private static final ThreadLocalMatcher threadLocalTemplateMatcher = new ThreadLocalMatcher("\\$\\{.*\\}");
+	private static final ThreadLocalMatcher threadLocalTemplateMatcher = new ThreadLocalMatcher("\\$\\{[^}]*\\}");
 	private static final ThreadLocalMatcher threadLocalFunctionMatcher = new ThreadLocalMatcher("([a-zA-Z0-9_]+)\\((.+)\\)");
 	private static final ThreadLocalMatcher threadLocalDoubleMatcher   = new ThreadLocalMatcher(regexDouble);
 	protected static final Map<String, Function<Object, Object>> functions = new LinkedHashMap<>();
