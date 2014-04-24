@@ -1,24 +1,23 @@
 /*
  *  Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
- * 
+ *
  *  This file is part of structr <http://structr.org>.
- * 
+ *
  *  structr is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Affero General Public License as
  *  published by the Free Software Foundation, either version 3 of the
  *  License, or (at your option) any later version.
- * 
+ *
  *  structr is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- * 
+ *
  *  You should have received a copy of the GNU Affero General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.web.datasource;
 
-import static java.lang.Integer.parseInt;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -65,8 +64,8 @@ public class RestDataSource implements GraphDataSource<List<GraphObject>> {
 
 	@Override
 	public List<GraphObject> getData(final SecurityContext securityContext, final RenderContext renderContext, AbstractNode referenceNode) throws FrameworkException {
-		final String restQuery = ((DOMElement) referenceNode).getPropertyWithVariableReplacement(securityContext, renderContext, DOMElement.restQuery);
 
+		final String restQuery = ((DOMElement) referenceNode).getPropertyWithVariableReplacement(securityContext, renderContext, DOMElement.restQuery);
 		if (restQuery == null || restQuery.isEmpty()) {
 			return Collections.EMPTY_LIST;
 		}

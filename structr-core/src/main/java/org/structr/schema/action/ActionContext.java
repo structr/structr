@@ -2,7 +2,6 @@ package org.structr.schema.action;
 
 import java.util.Date;
 import java.util.List;
-import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -37,63 +36,36 @@ public class ActionContext {
 
 	public Object getReferencedProperty(final SecurityContext securityContext, final NodeInterface entity, final String refKey) throws FrameworkException {
 
-		final String DEFAULT_VALUE_SEP = "!";
-		final String[] parts           = refKey.split("[\\.]+");
-		String referenceKey            = parts[parts.length - 1];
-		String defaultValue            = null;
-
-		if (StringUtils.contains(referenceKey, DEFAULT_VALUE_SEP)) {
-
-			String[] ref = StringUtils.split(referenceKey, DEFAULT_VALUE_SEP);
-			referenceKey = ref[0];
-			if (ref.length > 1) {
-
-				defaultValue = ref[1];
-
-			} else {
-
-				defaultValue = "";
-			}
-		}
-
-		GraphObject _data = null;
+		final String[] parts = refKey.split("[\\.]+");
+		Object _data         = null;
 
 		// walk through template parts
 		for (int i = 0; (i < parts.length); i++) {
 
 			String part = parts[i];
 
-			if (_data != null) {
+			if (_data != null && _data instanceof GraphObject) {
 
-				Object value = _data.getProperty(StructrApp.getConfiguration().getPropertyKeyForJSONName(_data.getClass(), part));
+				PropertyKey referenceKeyProperty = StructrApp.getConfiguration().getPropertyKeyForJSONName(_data.getClass(), part);
+				PropertyConverter converter      = referenceKeyProperty.inputConverter(securityContext);
+				_data                            = ((GraphObject)_data).getProperty(referenceKeyProperty);
 
-				if (value instanceof GraphObject) {
-					_data = (GraphObject) value;
-
-					continue;
-
+				if (_data != null && converter != null) {
+					_data = converter.revert(_data);
 				}
 
-				// special keyword "size"
-				if (i > 0 && "size".equals(part)) {
-
-					Object val = _data.getProperty(StructrApp.getConfiguration().getPropertyKeyForJSONName(_data.getClass(), parts[i - 1]));
-
-					if (val instanceof List) {
-
-						return ((List) val).size();
-
-					}
-
-				}
-
-				if (value == null) {
+				if (_data == null) {
 
 					// Need to return null here to avoid _data sticking to the (wrong) parent object
 					return null;
 
 				}
 
+			}
+
+			// special keyword "size"
+			if (i > 0 && "size".equals(part) && _data instanceof List) {
+				return ((List)_data).size();
 			}
 
 			// special keyword "now":
@@ -117,6 +89,15 @@ public class ActionContext {
 					continue;
 				}
 
+			}
+
+			// special boolean keywords
+			if ("true".equals(part)) {
+				return true;
+			}
+
+			if ("false".equals(part)) {
+				return false;
 			}
 
 			// the following keywords work only on root level
@@ -188,22 +169,6 @@ public class ActionContext {
 
 		}
 
-		if (_data != null) {
-
-			PropertyKey referenceKeyProperty = StructrApp.getConfiguration().getPropertyKeyForJSONName(_data.getClass(), referenceKey);
-			PropertyConverter converter      = referenceKeyProperty.inputConverter(securityContext);
-			Object value                     = _data.getProperty(referenceKeyProperty);
-
-			if (value != null && converter != null) {
-				value = converter.revert(value);
-			}
-
-			return value != null ? value : defaultValue;
-
-		}
-
-		return null;
-
-
+		return _data;
 	}
 }

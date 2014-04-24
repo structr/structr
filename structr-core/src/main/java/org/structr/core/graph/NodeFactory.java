@@ -76,11 +76,12 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 	public T instantiateWithType(final Node node, final Class<T> nodeClass, boolean isCreation) throws FrameworkException {
 
 		SecurityContext securityContext = factoryProfile.getSecurityContext();
-		
+
 		long id = node.getId();
 		T newNode = (T)securityContext.lookup(id);
-		
-		if (newNode == null) {
+
+		// check for correct runtime type here!
+		if (newNode == null || !nodeClass.equals(newNode.getClass())) {
 
 			try {
 
@@ -108,17 +109,17 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 
 			newNode.init(factoryProfile.getSecurityContext(), node);
 			newNode.onNodeInstantiation();
-			
+
 			// cache node for this request
 			securityContext.store(id, newNode);
 		}
-		
+
 		// check access
 		if (isCreation || securityContext.isReadable(newNode, factoryProfile.includeDeletedAndHidden(), factoryProfile.publicOnly())) {
 
 			return newNode;
 		}
-		
+
 		return null;
 	}
 
@@ -176,7 +177,7 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 		return newNode;
 
 	}
-	
+
 	private Result resultFromSpatialRecords(final SpatialRecordHits spatialRecordHits) throws FrameworkException {
 
 		final int pageSize                    = factoryProfile.getPageSize();
@@ -196,7 +197,7 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 
 				// FIXME: type cast is not good here...
 				T n = instantiate(realNode);
-				
+
 				nodes.add(n);
 
 				// Check is done in createNodeWithType already, so we don't have to do it again

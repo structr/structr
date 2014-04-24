@@ -24,8 +24,8 @@ import com.google.gson.reflect.TypeToken;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.text.Normalizer;
-import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import org.structr.core.property.PropertyMap;
@@ -90,9 +90,15 @@ import org.structr.schema.action.Function;
  */
 public abstract class AbstractNode implements NodeInterface, AccessControllable {
 
+	private static final String regexDecimal = "^-?\\d*\\.\\d+$";
+	private static final String regexInteger = "^-?\\d+$";
+	private static final String regexSciNot  = "^-?\\d*\\.\\d+e-?\\d+$";
+	private static final String regexDouble  = regexDecimal + "|" + regexInteger + "|" + regexSciNot;
+
 	private static final Logger logger = Logger.getLogger(AbstractNode.class.getName());
-	private static final ThreadLocalMatcher threadLocalTemplateMatcher = new ThreadLocalMatcher("\\$\\{[^}]*\\}");
+	private static final ThreadLocalMatcher threadLocalTemplateMatcher = new ThreadLocalMatcher("\\$\\{.*\\}");
 	private static final ThreadLocalMatcher threadLocalFunctionMatcher = new ThreadLocalMatcher("([a-zA-Z0-9_]+)\\((.+)\\)");
+	private static final ThreadLocalMatcher threadLocalDoubleMatcher   = new ThreadLocalMatcher(regexDouble);
 	protected static final Map<String, Function<Object, Object>> functions = new LinkedHashMap<>();
 
 
@@ -1233,7 +1239,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 				if (sources != null && sources.length > 1 && sources[0] != null && sources[1] != null) {
 
 					try {
-						int maxLength = Integer.parseInt(sources[1].toString());
+						int maxLength = Double.valueOf(sources[1].toString()).intValue();
 
 						if (sources[0].toString().length() > maxLength) {
 
@@ -1294,6 +1300,24 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 			}
 
+		});
+		functions.put("num", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+
+				if (sources != null && sources.length > 0) {
+
+					try {
+						return Double.parseDouble(sources[0].toString());
+
+					} catch (Throwable t) {
+						// ignore
+					}
+				}
+
+				return "";
+			}
 		});
 		functions.put("clean", new Function<Object, Object>() {
 
@@ -1449,7 +1473,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 				}
 
-				return new Double(result).toString();
+				return result;
 
 			}
 
@@ -1571,7 +1595,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 						}
 
-						return new Double(result).toString();
+						return result;
 
 					} catch (Throwable t) {
 
@@ -1609,7 +1633,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 				}
 
-				return new Double(result).toString();
+				return result;
 
 			}
 
@@ -1635,7 +1659,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 				}
 
-				return new Double(result).toString();
+				return result;
 
 			}
 
@@ -1656,7 +1680,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 					try {
 
 						Double f1 = Double.parseDouble(sources[0].toString());
-						double f2 = Math.pow(10, (Integer.parseInt(sources[1].toString())));
+						double f2 = Math.pow(10, (Double.parseDouble(sources[1].toString())));
 						long r = Math.round(f1 * f2);
 
 						result = (double) r / f2;
@@ -1669,7 +1693,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 				}
 
-				return new Double(result).toString();
+				return result;
 
 			}
 
@@ -1679,19 +1703,23 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			@Override
 			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
-				String result = "";
+				Object result   = "";
 				String errorMsg = "ERROR! Usage: ${max(val1, val2)}. Example: ${max(5,10)}";
 
 				if (sources != null && sources.length == 2) {
 
 					try {
-						result = Double.toString(Math.max(Double.parseDouble(sources[0].toString()), Double.parseDouble(sources[1].toString())));
+						result = Math.max(Double.parseDouble(sources[0].toString()), Double.parseDouble(sources[1].toString()));
 
 					} catch (Throwable t) {
+
 						logger.log(Level.WARNING, "Could not determine max() of {0} and {1}", new Object[]{sources[0], sources[1]});
 						result = errorMsg;
 					}
 
+				} else {
+
+					result = "";
 				}
 
 				return result;
@@ -1704,19 +1732,23 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			@Override
 			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
-				String result = "";
+				Object result   = "";
 				String errorMsg = "ERROR! Usage: ${min(val1, val2)}. Example: ${min(5,10)}";
 
 				if (sources != null && sources.length == 2) {
 
 					try {
-						result = Double.toString(Math.min(Double.parseDouble(sources[0].toString()), Double.parseDouble(sources[1].toString())));
+						result = Math.min(Double.parseDouble(sources[0].toString()), Double.parseDouble(sources[1].toString()));
 
 					} catch (Throwable t) {
+
 						logger.log(Level.WARNING, "Could not determine min() of {0} and {1}", new Object[]{sources[0], sources[1]});
 						result = errorMsg;
 					}
 
+				} else {
+
+					result = "";
 				}
 
 				return result;
@@ -1779,9 +1811,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 						String langCode = sources[1].toString();
 						String pattern = sources[2].toString();
 
-						NumberFormat formatter = DecimalFormat.getInstance(new Locale(langCode));
-						((DecimalFormat) formatter).applyLocalizedPattern(pattern);
-						result = formatter.format(val);
+						result = new DecimalFormat(pattern, DecimalFormatSymbols.getInstance(Locale.forLanguageTag(langCode))).format(val);
 
 					} catch (Throwable t) {
 
@@ -1806,7 +1836,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 					return "";
 				}
 
-				return sources[0].equals("true") ? "false" : "true";
+				return "true".equals(sources[0].toString()) ? "false" : "true";
 			}
 
 		});
@@ -1823,7 +1853,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 						try {
 
-							result &= "true".equals(i);
+							result &= "true".equals(i.toString());
 
 						} catch (Throwable t) {
 
@@ -1851,7 +1881,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 						try {
 
-							result |= "true".equals(i);
+							result |= "true".equals(i.toString());
 
 						} catch (Throwable t) {
 
@@ -1919,7 +1949,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 				if (sources != null && sources.length == 2 && sources[0] instanceof List) {
 
 					final List list = (List)sources[0];
-					final int pos   = Integer.parseInt(sources[1].toString());
+					final int pos   = Double.valueOf(sources[1].toString()).intValue();
 					final int size  = list.size();
 
 					return list.get(Math.min(Math.max(0, pos), size));
@@ -2381,7 +2411,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 							// all browsers
 							value = value.equals(group) ? null : value.replace(group, "");
 						}
-						
+
 					} else {
 
 						value = "";
@@ -2445,18 +2475,18 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		}
 
 		// if any of the following conditions match, the literal source value is returned
-		if (StringUtils.isNotBlank(source) && StringUtils.isNumeric(source)) {
-
-			// return numeric value
-			return source;
-
-		} else if (source.startsWith("\"") && source.endsWith("\"")) {
+		if (source.startsWith("\"") && source.endsWith("\"")) {
 
 			return source.substring(1, source.length() - 1);
 
 		} else if (source.startsWith("'") && source.endsWith("'")) {
 
 			return source.substring(1, source.length() - 1);
+
+		} else if (StringUtils.isNotBlank(source) && isNumeric(source)) {
+
+			// return numeric value
+			return Double.parseDouble(source);
 
 		} else {
 
@@ -2587,5 +2617,9 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 	protected static Map<String, Object> deserialize(final Gson gson, final String source) {
 		return gson.fromJson(source, new TypeToken<Map<String, Object>>() { }.getType());
+	}
+
+	protected static boolean isNumeric(final String source) {
+		return threadLocalDoubleMatcher.get().reset(source).matches();
 	}
 }
