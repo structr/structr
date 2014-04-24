@@ -21,7 +21,14 @@ package org.structr.core.entity;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
+import java.io.Writer;
 import java.net.URLEncoder;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
@@ -56,6 +63,14 @@ import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.mail.EmailException;
 import org.neo4j.graphdb.PropertyContainer;
@@ -79,6 +94,9 @@ import org.structr.core.property.ISO8601DateProperty;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
+import org.w3c.dom.Document;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -2002,6 +2020,155 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			}
 
 		});
+		functions.put("read", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+
+				if (sources != null && sources.length == 1) {
+
+					try {
+						final String sandboxFilename = AbstractNode.getSandboxFileName(sources[0].toString());
+						if (sandboxFilename != null) {
+
+							final File file = new File(sandboxFilename);
+							if (file.exists() && file.length() < 10000000) {
+
+								try (final FileInputStream fis = new FileInputStream(file)) {
+
+									return IOUtils.toString(fis, "utf-8");
+								}
+							}
+						}
+
+					} catch (IOException ioex) {
+						ioex.printStackTrace();
+					}
+				}
+
+				return "";
+			}
+
+		});
+		functions.put("write", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+
+				if (sources != null && sources.length > 0) {
+
+					try {
+						final String sandboxFilename = AbstractNode.getSandboxFileName(sources[0].toString());
+						if (sandboxFilename != null) {
+
+							final File file = new File(sandboxFilename);
+							if (!file.exists()) {
+
+								try (final Writer writer = new OutputStreamWriter(new FileOutputStream(file, false))) {
+
+									for (int i=1; i<sources.length; i++) {
+										IOUtils.write(sources[i].toString(), writer);
+									}
+
+									writer.flush();
+								}
+
+							} else {
+
+								logger.log(Level.SEVERE, "Trying to overwrite an existing file, please use append() for that purpose.");
+							}
+						}
+
+					} catch (IOException ioex) {
+						ioex.printStackTrace();
+					}
+				}
+
+				return "";
+			}
+
+		});
+		functions.put("append", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+
+				if (sources != null && sources.length > 0) {
+
+					try {
+						final String sandboxFilename = AbstractNode.getSandboxFileName(sources[0].toString());
+						if (sandboxFilename != null) {
+
+							final File file = new File(sandboxFilename);
+
+							try (final Writer writer = new OutputStreamWriter(new FileOutputStream(file, true))) {
+
+								for (int i=1; i<sources.length; i++) {
+									IOUtils.write(sources[i].toString(), writer);
+								}
+
+								writer.flush();
+							}
+						}
+
+					} catch (IOException ioex) {
+						ioex.printStackTrace();
+					}
+				}
+
+				return "";
+			}
+
+		});
+		functions.put("xml", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+
+				if (sources != null && sources.length == 1 && sources[0] instanceof String) {
+
+					try {
+
+						final DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+						if (builder != null) {
+
+							final String xml          = (String)sources[0];
+							final StringReader reader = new StringReader(xml);
+							final InputSource src     = new InputSource(reader);
+
+							return builder.parse(src);
+						}
+
+					} catch (IOException | SAXException | ParserConfigurationException ex) {
+						ex.printStackTrace();
+					}
+				}
+
+				return "";
+			}
+
+		});
+		functions.put("xpath", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+
+				if (sources != null && sources.length > 0 && sources[0] instanceof Document) {
+
+					try {
+
+						XPath xpath = XPathFactory.newInstance().newXPath();
+						return xpath.evaluate(sources[1].toString(), sources[0], XPathConstants.STRING);
+
+					} catch (XPathExpressionException ioex) {
+						ioex.printStackTrace();
+					}
+				}
+
+				return "";
+			}
+
+		});
 		functions.put("set", new Function<Object, Object>() {
 
 			@Override
@@ -2621,5 +2788,39 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 	protected static boolean isNumeric(final String source) {
 		return threadLocalDoubleMatcher.get().reset(source).matches();
+	}
+
+	protected static String getSandboxFileName(final String source) throws IOException {
+
+		final File sandboxFile = new File(source);
+		final String fileName  = sandboxFile.getName();
+		final String basePath  = StructrApp.getConfigurationValue(Services.BASE_PATH);
+
+		if (!basePath.isEmpty()) {
+
+			final String defaultExchangePath = basePath.endsWith("/") ? basePath.concat("exchange") : basePath.concat("/exchange");
+			String exchangeDir               = StructrApp.getConfigurationValue(Services.DATA_EXCHANGE_PATH, defaultExchangePath);
+
+			if (!exchangeDir.endsWith("/")) {
+				exchangeDir = exchangeDir.concat("/");
+			}
+
+			// create exchange directory
+			final File dir = new File(exchangeDir);
+			if (!dir.exists()) {
+
+				dir.mkdirs();
+			}
+
+			// return sandboxed file name
+			return exchangeDir.concat(fileName);
+
+
+		} else {
+
+			logger.log(Level.WARNING, "Unable to determine base.path from structr.conf, no data input/output possible.");
+		}
+
+		return null;
 	}
 }
