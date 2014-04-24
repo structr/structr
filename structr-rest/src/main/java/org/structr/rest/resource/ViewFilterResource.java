@@ -19,7 +19,6 @@
 package org.structr.rest.resource;
 
 import org.structr.core.Result;
-import org.apache.commons.lang.StringUtils;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -36,6 +35,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.SchemaHelper;
 

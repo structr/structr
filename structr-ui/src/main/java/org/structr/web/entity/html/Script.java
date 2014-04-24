@@ -21,7 +21,7 @@ package org.structr.web.entity.html;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.core.property.Property;
-import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang3.ArrayUtils;
 
 import org.structr.common.PropertyView;
 import org.structr.common.View;

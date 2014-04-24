@@ -24,7 +24,6 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSyntaxException;
 
-import org.apache.commons.lang.StringUtils;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -35,6 +34,7 @@ import org.structr.rest.resource.Resource;
 import org.structr.core.Result;
 
 //~--- JDK imports ------------------------------------------------------------
+
 
 import java.io.IOException;
 import java.io.Writer;

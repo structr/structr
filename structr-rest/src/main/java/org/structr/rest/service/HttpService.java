@@ -32,7 +32,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.DispatcherType;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.server.Authentication.User;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Handler;
