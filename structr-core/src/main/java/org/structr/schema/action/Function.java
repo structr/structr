@@ -25,7 +25,7 @@ import org.structr.core.graph.NodeInterface;
  *
  * @author Christian Morgner
  */
-public abstract class Function<S, T> {
+public interface Function<S, T> {
 
 	public abstract T apply(NodeInterface entity, S[] sources) throws FrameworkException;
 }

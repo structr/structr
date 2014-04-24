@@ -125,6 +125,11 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid join() result", "onetwothree", testOne.replaceVariables(securityContext, ctx, "${join(\"one\", \"two\", \"three\")}"));
 			assertEquals("Invalid join() result", "oneStringthree", testOne.replaceVariables(securityContext, ctx, "${join(\"one\", this.aString, \"three\")}"));
 
+			// split
+			assertEquals("Invalid split() result", "onetwothree", testOne.replaceVariables(securityContext, ctx, "${join(split(\"one,two,three\"))}"));
+			assertEquals("Invalid split() result", "onetwothree", testOne.replaceVariables(securityContext, ctx, "${join(split(\"one;two;three\"))}"));
+			assertEquals("Invalid split() result", "onetwothree", testOne.replaceVariables(securityContext, ctx, "${join(split(\"one;two;three\", \";\"))}"));
+
 			// abbr
 			assertEquals("Invalid abbr() result", "oneStringt…", testOne.replaceVariables(securityContext, ctx, "${abbr(join(\"one\", this.aString, \"three\"), 10)}"));
 
@@ -406,10 +411,15 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid nth() result",   testSixs.get( 9).toString(), testOne.replaceVariables(securityContext, ctx, "${nth(this.manyToManyTestSixs,  9)}"));
 			assertEquals("Invalid ngth() result",  testSixs.get(12).toString(), testOne.replaceVariables(securityContext, ctx, "${nth(this.manyToManyTestSixs, 12)}"));
 
-			// each
+			// each with more complex logic
+			testOne.replaceVariables(securityContext, ctx, "${each(split(\"one,two,three\"), \"set(parent, this, 1)\")}");
+
+			assertEquals("Invalid each() result", "1", testOne.replaceVariables(securityContext, ctx, "${get(this, \"one\"}"));
+			assertEquals("Invalid each() result", "1", testOne.replaceVariables(securityContext, ctx, "${get(this, \"two\"}"));
+			assertEquals("Invalid each() result", "1", testOne.replaceVariables(securityContext, ctx, "${get(this, \"three\"}"));
 
 
-			// set
+
 
 		} catch (FrameworkException fex) {
 

@@ -1245,7 +1245,42 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 			@Override
 			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
-				return StringUtils.join(sources);
+
+				final List list = new ArrayList();
+				for (final Object source : sources) {
+
+					if (source instanceof Collection) {
+
+						list.addAll((Collection)source);
+
+					} else {
+
+						list.add(source);
+					}
+				}
+
+				return StringUtils.join(list, "");
+			}
+
+		});
+		functions.put("split", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+
+				if (sources != null && sources.length > 0 && sources[0] != null) {
+
+					final String toSplit = sources[0].toString();
+					String splitExpr     = "[,;]+";
+
+					if (sources.length >= 2) {
+						splitExpr = sources[1].toString();
+					}
+
+					return Arrays.asList(toSplit.split(splitExpr));
+				}
+
+				return "";
 			}
 
 		});
@@ -1773,6 +1808,22 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 			}
 
+		});
+		functions.put("config", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+
+				if (sources != null && sources.length > 0) {
+
+					final String configKey    = sources[0].toString();
+					final String defaultValue = sources.length >= 2 ? sources[1].toString() : "";
+
+					return StructrApp.getConfigurationValue(configKey, defaultValue);
+				}
+
+				return "";
+			}
 		});
 		functions.put("date_format", new Function<Object, Object>() {
 
@@ -2615,26 +2666,27 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			String functionName  = functionGroup.substring(0, functionGroup.length());
 
 			final Function<Object, Object> function = functions.get(functionName);
+			final List results                      = new ArrayList();
+
 			if (function != null) {
 
 				if (parameter.contains(",")) {
 
-					String[] parameters = split(parameter);
-					Object[] results = new Object[parameters.length];
+					final String[] parameters = split(parameter);
 
 					// collect results from comma-separated function parameter
 					for (int i = 0; i < parameters.length; i++) {
 
-						results[i] = extractFunctions(securityContext, actionContext, StringUtils.strip(parameters[i]));
+						addAll(results, extractFunctions(securityContext, actionContext, StringUtils.strip(parameters[i])));
 					}
 
-					return function.apply(this, results);
+					return function.apply(this, results.toArray());
 
 				} else {
 
-					Object result = extractFunctions(securityContext, actionContext, StringUtils.strip(parameter));
+					addAll(results, extractFunctions(securityContext, actionContext, StringUtils.strip(parameter)));
 
-					return function.apply(this, new Object[]{result});
+					return function.apply(this, results.toArray());
 
 				}
 			}
@@ -2822,5 +2874,18 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		}
 
 		return null;
+	}
+
+	// ----- private methods -----
+	private void addAll(final List results, final Object partialResult) {
+
+		if (partialResult instanceof Object[]) {
+
+			results.addAll(Arrays.asList((Object[])partialResult));
+
+		} else {
+
+			results.add(partialResult);
+		}
 	}
 }
