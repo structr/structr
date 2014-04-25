@@ -449,6 +449,15 @@ public class RenderContext extends ActionContext {
 
 			}
 
+			// special boolean keywords
+			if ("true".equals(part)) {
+				return true;
+			}
+
+			if ("false".equals(part)) {
+				return false;
+			}
+
 			// the following keywords work only on root level
 			// so that they can be used as property keys for data objects
 			if (_data == null) {

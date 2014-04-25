@@ -21,13 +21,15 @@ import org.structr.core.property.PropertyKey;
 public class ActionContext {
 
 	private GraphObject parent = null;
+	private Object data        = null;
 
 	public ActionContext() {
-		this(null);
+		this(null, null);
 	}
 
-	public ActionContext(final GraphObject parent) {
+	public ActionContext(final GraphObject parent, final Object data) {
 		this.parent = parent;
+		this.data   = data;
 	}
 
 	public boolean returnRawValue(final SecurityContext securityContext) {
@@ -126,6 +128,19 @@ public class ActionContext {
 				if ("this".equals(part)) {
 
 					_data = entity;
+
+					if (parts.length == 1) {
+						return _data;
+					}
+
+					continue;
+
+				}
+
+				// special keyword "data"
+				if ("data".equals(part)) {
+
+					_data = data;
 
 					if (parts.length == 1) {
 						return _data;

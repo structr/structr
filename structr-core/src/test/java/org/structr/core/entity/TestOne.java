@@ -44,7 +44,12 @@ public class TestOne extends AbstractNode {
 	public static final Property<Double>        aDouble            = new DoubleProperty("aDouble").indexed().indexedWhenEmpty();
 	public static final Property<Date>          aDate              = new ISO8601DateProperty("aDate").indexed().indexedWhenEmpty();
 	public static final Property<String>        aString            = new StringProperty("aString").indexed().indexedWhenEmpty();
-	public static final Property<String>        anotherString      = new StringProperty("anotherString").indexed().indexedWhenEmpty();
+	public static final Property<String>        anotherString      = new StringProperty("anotherString");
+	public static final Property<String>        cleanTestString    = new StringProperty("cleanTestString");
+	public static final Property<Integer>       setTestInteger1    = new IntProperty("setTestInteger1");
+	public static final Property<Integer>       setTestInteger2    = new IntProperty("setTestInteger2");
+	public static final Property<Integer>       setTestInteger3    = new IntProperty("setTestInteger3");
+	public static final Property<String>        alwaysNull         = new StringProperty("alwaysNull");
 
 	public static final Property<TestTwo>       testTwo            = new EndNode<>("testTwo",   OneTwoOneToOne.class);
 	public static final Property<TestThree>     testThree          = new EndNode<>("testThree", OneThreeOneToOne.class);

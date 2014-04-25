@@ -106,6 +106,13 @@ public class RenderContextTest extends StructrUiTest {
 			// assertEquals(p1.getUuid(),   p1.replaceVariables(securityContext, ctx, "${this.id}"));
 
 			// other functions are tested in the ActionContextTest in structr-core, see there.
+			assertEquals("true", p1.replaceVariables(securityContext, ctx, "${true}"));
+			assertEquals("false", p1.replaceVariables(securityContext, ctx, "${false}"));
+			assertEquals("yes", p1.replaceVariables(securityContext, ctx, "${if(true, \"yes\", \"no\")}"));
+			assertEquals("no", p1.replaceVariables(securityContext, ctx, "${if(false, \"yes\", \"no\")}"));
+
+			assertNull(p1.replaceVariables(securityContext, ctx, "${if(true, null, \"no\")}"));
+			assertNull(p1.replaceVariables(securityContext, ctx, "${null}"));
 
 		} catch (FrameworkException fex) {
 

@@ -84,6 +84,7 @@ import org.structr.core.Ownership;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
+import static org.structr.core.entity.AbstractNode.functions;
 import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeService;
@@ -113,9 +114,62 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	private static final String regexSciNot  = "^-?\\d*\\.\\d+e-?\\d+$";
 	private static final String regexDouble  = regexDecimal + "|" + regexInteger + "|" + regexSciNot;
 
+	public static final String NULL_STRING                       = "___NULL___";
+
+	public static final String ERROR_MESSAGE_MD5                 = "Usage: ${md5(string)}. Example: ${md5(this.email)}";
+	public static final String ERROR_MESSAGE_UPPER               = "Usage: ${upper(string)}. Example: ${upper(this.nickName)}";
+	public static final String ERROR_MESSAGE_LOWER               = "Usage: ${lower(string)}. Example: ${lower(this.email)}";
+	public static final String ERROR_MESSAGE_JOIN                = "Usage: ${join(values...)}. Example: ${join(this.firstName, this.lastName)}";
+	public static final String ERROR_MESSAGE_SPLIT               = "Usage: ${split(value)}. Example: ${split(this.commaSeparatedItems)}";
+	public static final String ERROR_MESSAGE_ABBR                = "Usage: ${abbr(longString, maxLength)}. Example: ${abbr(this.title, 20)}";
+	public static final String ERROR_MESSAGE_CAPITALIZE          = "Usage: ${capitalize(string)}. Example: ${capitalize(this.nickName)}";
+	public static final String ERROR_MESSAGE_TITLEIZE            = "Usage: ${titleize(string, separator}. Example: ${titleize(this.lowerCamelCaseString, \"_\")}";
+	public static final String ERROR_MESSAGE_NUM                 = "Usage: ${num(string)}. Example: ${num(this.numericalStringValue)}";
+	public static final String ERROR_MESSAGE_CLEAN               = "Usage: ${clean(string)}. Example: ${clean(this.stringWithNonWordChars)}";
+	public static final String ERROR_MESSAGE_URLENCODE           = "Usage: ${urlencode(string)}. Example: ${urlencode(this.email)}";
+	public static final String ERROR_MESSAGE_IF                  = "Usage: ${if(condition, trueValue, falseValue)}. Example: ${if(empty(this.name), this.nickName, this.name)}";
+	public static final String ERROR_MESSAGE_EMPTY               = "Usage: ${empty(string)}. Example: ${if(empty(possibleEmptyString), \"empty\", \"non-empty\")}";
+	public static final String ERROR_MESSAGE_EQUAL               = "Usage: ${equal(value1, value2)}. Example: ${equal(this.children.size, 0)}";
+	public static final String ERROR_MESSAGE_ADD                 = "Usage: ${add(values...)}. Example: ${add(1, 2, 3, this.children.size)}";
+	public static final String ERROR_MESSAGE_LT                  = "Usage: ${lt(value1, value2)}. Example: ${if(lt(this.children, 2), \"Less than two\", \"Equal to or more than two\")}";
+	public static final String ERROR_MESSAGE_GT                  = "Usage: ${gt(value1, value2)}. Example: ${if(gt(this.children, 2), \"More than two\", \"Equal to or less than two\")}";
+	public static final String ERROR_MESSAGE_LTE                 = "Usage: ${lte(value1, value2)}. Example: ${if(lte(this.children, 2), \"Equal to or less than two\", \"More than two\")}";
+	public static final String ERROR_MESSAGE_GTE                 = "Usage: ${gte(value1, value2)}. Example: ${if(gte(this.children, 2), \"Equal to or more than two\", \"Less than two\")}";
+	public static final String ERROR_MESSAGE_SUBT                = "Usage: ${subt(value1, value)}. Example: ${subt(5, 2)}";
+	public static final String ERROR_MESSAGE_MULT                = "Usage: ${mult(value1, value)}. Example: ${mult(5, 2)}";
+	public static final String ERROR_MESSAGE_QUOT                = "Usage: ${quot(value1, value)}. Example: ${quot(5, 2)}";
+	public static final String ERROR_MESSAGE_ROUND               = "Usage: ${round(value1 [, decimalPlaces])}. Example: ${round(2.345678, 2)}";
+	public static final String ERROR_MESSAGE_MAX                 = "Usage: ${max(value1, value2)}. Example: ${max(this.children, 10)}";
+	public static final String ERROR_MESSAGE_MIN                 = "Usage: ${min(value1, value2)}. Example: ${min(this.children, 5)}";
+	public static final String ERROR_MESSAGE_CONFIG              = "Usage: ${config(keyFromStructrConf)}. Example: ${config(\"base.path\")}";
+	public static final String ERROR_MESSAGE_DATE_FORMAT         = "Usage: ${date_format(value, pattern)}. Example: ${date_format(Tue Feb 26 10:49:26 CET 2013, \"yyyy-MM-dd'T'HH:mm:ssZ\")}";
+	public static final String ERROR_MESSAGE_NUMBER_FORMAT       = "Usage: ${number_format(value, ISO639LangCode, pattern)}. Example: ${number_format(12345.6789, 'en', '#,##0.00')}";
+	public static final String ERROR_MESSAGE_NOT                 = "Usage: ${not(bool1, bool2)}. Example: ${not(\"true\", \"true\")}";
+	public static final String ERROR_MESSAGE_AND                 = "Usage: ${and(bool1, bool2)}. Example: ${and(\"true\", \"true\")}";
+	public static final String ERROR_MESSAGE_OR                  = "Usage: ${or(bool1, bool2)}. Example: ${or(\"true\", \"true\")}";
+	public static final String ERROR_MESSAGE_GET                 = "Usage: ${get(entity, propertyKey)}. Example: ${get(this, \"children\")}";
+	public static final String ERROR_MESSAGE_FIRST               = "Usage: ${first(collection)}. Example: ${first(this.children)}";
+	public static final String ERROR_MESSAGE_LAST                = "Usage: ${last(collection)}. Example: ${last(this.children)}";
+	public static final String ERROR_MESSAGE_NTH                 = "Usage: ${nth(collection)}. Example: ${nth(this.children, 2)}";
+	public static final String ERROR_MESSAGE_EACH                = "Usage: ${each(collection, expression)}. Example: ${each(this.children, \"set(this, \"email\", lower(get(this.email))))\")}";
+	public static final String ERROR_MESSAGE_PRINT               = "Usage: ${print(objects...)}. Example: ${print(this.name, \"test\")}";
+	public static final String ERROR_MESSAGE_READ                = "Usage: ${read(filename)}. Example: ${read(\"text.xml\")}";
+	public static final String ERROR_MESSAGE_WRITE               = "Usage: ${write(filename, value)}. Example: ${write(\"text.txt\", this.name)}";
+	public static final String ERROR_MESSAGE_APPEND              = "Usage: ${append(filename, value)}. Example: ${append(\"test.txt\", this.name)}";
+	public static final String ERROR_MESSAGE_XML                 = "Usage: ${xml(xmlSource)}. Example: ${xpath(xml(this.xmlSource), \"/test/testValue\")}";
+	public static final String ERROR_MESSAGE_XPATH               = "Usage: ${xpath(xmlDocument, expression)}. Example: ${xpath(xml(this.xmlSource), \"/test/testValue\")}";
+	public static final String ERROR_MESSAGE_SET                 = "Usage: ${set(entity, propertyKey, value)}. Example: ${set(this, \"email\", lower(this.email))}";
+	public static final String ERROR_MESSAGE_SEND_PLAINTEXT_MAIL = "Usage: ${send_plaintext_mail(fromAddress, fromName, toAddress, toName, subject, content)}.";
+	public static final String ERROR_MESSAGE_SEND_HTML_MAIL      = "Usage: ${send_plaintext_mail(fromAddress, fromName, toAddress, toName, subject, content)}.";
+	public static final String ERROR_MESSAGE_GEOCODE             = "Usage: ${geocode(street, city, country)}. Example: ${set(this, geocode(this.street, this.city, this.country))}";
+	public static final String ERROR_MESSAGE_FIND                = "Usage: ${find(type, key, value)}. Example: ${find(\"User\", \"email\", \"tester@test.com\"}";
+	public static final String ERROR_MESSAGE_CREATE              = "Usage: ${create(type, key, value)}. Example: ${create(\"Feedback\", \"text\", this.text)}";
+	public static final String ERROR_MESSAGE_DELETE              = "Usage: ${delete(entity)}. Example: ${delete(this)}";
+
+
 	private static final Logger logger = Logger.getLogger(AbstractNode.class.getName());
 	private static final ThreadLocalMatcher threadLocalTemplateMatcher = new ThreadLocalMatcher("\\$\\{[^}]*\\}");
-	private static final ThreadLocalMatcher threadLocalFunctionMatcher = new ThreadLocalMatcher("([a-zA-Z0-9_]+)\\((.+)\\)");
+	private static final ThreadLocalMatcher threadLocalFunctionMatcher = new ThreadLocalMatcher("([a-zA-Z0-9_]+)\\((.*)\\)");
 	private static final ThreadLocalMatcher threadLocalDoubleMatcher   = new ThreadLocalMatcher(regexDouble);
 	protected static final Map<String, Function<Object, Object>> functions = new LinkedHashMap<>();
 
@@ -1060,7 +1114,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	/**
 	 * Retrieve a previously stored non-persistent value from this entity.
 	 * @param key
-	 * @return 
+	 * @return
 	 */
 	public Object getTemporaryProperty(final PropertyKey key) {
 		return cachedConvertedProperties.get(key);
@@ -1205,21 +1259,21 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	}
 
 	// ----- variable replacement functions etc. -----
-	
+
 	/**
 	 * Test if the given object array has a minimum length and
 	 * all its elements are not null.
-	 * 
+	 *
 	 * @param array
 	 * @param minLength If null, don't do length check
-	 * @return 
+	 * @return
 	 */
 	private static boolean arrayHasMinLengthAndAllElementsNotNull(final Object[] array, final Integer minLength) {
 
 		if (array == null) {
 			return false;
 		}
-		
+
 		for (final Object element : array) {
 
 			if (element == null) {
@@ -1227,25 +1281,25 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			}
 
 		}
-		
+
 		return minLength != null ? array.length >= minLength : true;
 
 	}
-	
+
 	/**
 	 * Test if the given object array has exact the given length and
 	 * all its elements are not null.
-	 * 
+	 *
 	 * @param array
 	 * @param length If null, don't do length check
-	 * @return 
+	 * @return
 	 */
 	private static boolean arrayHasLengthAndAllElementsNotNull(final Object[] array, final Integer length) {
 
 		if (array == null) {
 			return false;
 		}
-		
+
 		for (final Object element : array) {
 
 			if (element == null) {
@@ -1253,7 +1307,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			}
 
 		}
-		
+
 		return length != null ? array.length == length : true;
 
 	}
@@ -1271,6 +1325,10 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 			}
 
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_MD5;
+			}
 		});
 		functions.put("upper", new Function<Object, Object>() {
 
@@ -1283,6 +1341,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 			}
 
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_UPPER;
+			}
+
 		});
 		functions.put("lower", new Function<Object, Object>() {
 
@@ -1293,6 +1356,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 					? sources[0].toString().toLowerCase()
 					: "";
 
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_LOWER;
 			}
 
 		});
@@ -1317,6 +1385,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 				return StringUtils.join(list, "");
 			}
 
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_JOIN;
+			}
+
 		});
 		functions.put("split", new Function<Object, Object>() {
 
@@ -1336,6 +1409,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 				}
 
 				return "";
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_SPLIT;
 			}
 
 		});
@@ -1370,6 +1448,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 			}
 
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_ABBR;
+			}
+
 		});
 		functions.put("capitalize", new Function<Object, Object>() {
 
@@ -1380,6 +1463,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 					? StringUtils.capitalize(sources[0].toString())
 					: "";
 
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_CAPITALIZE;
 			}
 		});
 		functions.put("titleize", new Function<Object, Object>() {
@@ -1408,6 +1496,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 			}
 
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_TITLEIZE;
+			}
+
 		});
 		functions.put("num", new Function<Object, Object>() {
 
@@ -1425,6 +1518,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 				}
 
 				return "";
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_NUM;
 			}
 		});
 		functions.put("clean", new Function<Object, Object>() {
@@ -1476,6 +1574,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 			}
 
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_CLEAN;
+			}
+
 		});
 		functions.put("urlencode", new Function<Object, Object>() {
 
@@ -1486,6 +1589,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 					? encodeURL(sources[0].toString())
 					: "";
 
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_URLENCODE;
 			}
 
 		});
@@ -1499,14 +1607,20 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 					return "";
 				}
 
-				if (sources[0].equals("true")) {
+				if ("true".equals(sources[0]) || Boolean.TRUE.equals(sources[0])) {
 
 					return sources[1];
+
 				} else {
 
 					return sources[2];
 				}
 
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_IF;
 			}
 
 		});
@@ -1524,6 +1638,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 			}
 
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_EMPTY;
+			}
+
 		});
 		functions.put("equal", new Function<Object, Object>() {
 
@@ -1539,6 +1658,10 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 				logger.log(Level.FINE, "Comparing {0} to {1}", new java.lang.Object[]{sources[0], sources[1]});
 
+				if (sources[0] == null && sources[1] == null) {
+					return true;
+				}
+
 				if (sources[0] == null || sources[1] == null) {
 					return "false";
 				}
@@ -1547,6 +1670,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 					? "true"
 					: "false";
 
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_EQUAL;
 			}
 
 		});
@@ -1585,6 +1713,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 			}
 
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_ADD;
+			}
+
 		});
 		functions.put("lt", new Function<Object, Object>() {
 
@@ -1609,6 +1742,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 				return result;
 
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_LT;
 			}
 		});
 		functions.put("gt", new Function<Object, Object>() {
@@ -1635,6 +1773,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 				return result;
 
 			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_GT;
+			}
 		});
 		functions.put("lte", new Function<Object, Object>() {
 
@@ -1660,6 +1803,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 				return result;
 
 			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_LTE;
+			}
 		});
 		functions.put("gte", new Function<Object, Object>() {
 
@@ -1684,6 +1832,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 				return result;
 
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_GTE;
 			}
 		});
 		functions.put("subt", new Function<Object, Object>() {
@@ -1716,6 +1869,10 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 			}
 
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_SUBT;
+			}
 		});
 		functions.put("mult", new Function<Object, Object>() {
 
@@ -1745,19 +1902,21 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 			}
 
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_MULT;
+			}
 		});
 		functions.put("quot", new Function<Object, Object>() {
 
 			@Override
 			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
-				Double result = 0.0d;
-
 				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
 
 					try {
 
-						result = Double.parseDouble(sources[0].toString()) / Double.parseDouble(sources[1].toString());
+						return Double.parseDouble(sources[0].toString()) / Double.parseDouble(sources[1].toString());
 
 					} catch (Throwable t) {
 
@@ -1765,19 +1924,30 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 					}
 
+				} else {
+
+					if (sources != null) {
+
+						if (sources.length > 0 && sources[0] != null) {
+							return Double.valueOf(sources[0].toString());
+						}
+
+						return "";
+					}
 				}
 
-				return result;
-
+				return "";
 			}
 
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_QUOT;
+			}
 		});
 		functions.put("round", new Function<Object, Object>() {
 
 			@Override
 			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
-
-				Double result = 0.0d;
 
 				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
 
@@ -1791,7 +1961,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 						double f2 = Math.pow(10, (Double.parseDouble(sources[1].toString())));
 						long r = Math.round(f1 * f2);
 
-						result = (double) r / f2;
+						return (double) r / f2;
 
 					} catch (Throwable t) {
 
@@ -1799,12 +1969,16 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 					}
 
+				} else {
+
+					return "";
 				}
-
-				return result;
-
 			}
 
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_ROUND;
+			}
 		});
 		functions.put("max", new Function<Object, Object>() {
 
@@ -1834,6 +2008,10 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 			}
 
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_MAX;
+			}
 		});
 		functions.put("min", new Function<Object, Object>() {
 
@@ -1863,6 +2041,10 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 			}
 
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_MIN;
+			}
 		});
 		functions.put("config", new Function<Object, Object>() {
 
@@ -1879,14 +2061,20 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 				return "";
 			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_CONFIG;
+			}
 		});
 		functions.put("date_format", new Function<Object, Object>() {
 
 			@Override
 			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
-				String result = "";
-				String errorMsg = "ERROR! Usage: ${date_format(value, pattern)}. Example: ${date_format(Tue Feb 26 10:49:26 CET 2013, \"yyyy-MM-dd'T'HH:mm:ssZ\")}";
+				if (sources == null || sources != null && sources.length != 2) {
+					return ERROR_MESSAGE_DATE_FORMAT;
+				}
 
 				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
 
@@ -1903,25 +2091,30 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 						Date d = new SimpleDateFormat(ISO8601DateProperty.PATTERN).parse(dateString);
 
 						// format with given pattern
-						result = new SimpleDateFormat(pattern).format(d);
+						return new SimpleDateFormat(pattern).format(d);
 
 					} catch (ParseException ex) {
 						logger.log(Level.WARNING, "Could not parse date " + dateString + " and format it to pattern " + pattern, ex);
-						result = errorMsg;
 					}
 
 				}
 
-				return result;
+				return "";
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_DATE_FORMAT;
 			}
 		});
 		functions.put("number_format", new Function<Object, Object>() {
 
 			@Override
-				public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
-				String result = "";
-				String errorMsg = "ERROR! Usage: ${number_format(value, ISO639LangCode, pattern)}. Example: ${number_format(12345.6789, 'en', '#,##0.00')}";
+				if (sources == null || sources != null && sources.length != 3) {
+					return ERROR_MESSAGE_NUMBER_FORMAT;
+				}
 
 				if (arrayHasLengthAndAllElementsNotNull(sources, 3)) {
 
@@ -1935,21 +2128,18 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 						String langCode = sources[1].toString();
 						String pattern = sources[2].toString();
 
-						result = new DecimalFormat(pattern, DecimalFormatSymbols.getInstance(Locale.forLanguageTag(langCode))).format(val);
+						return new DecimalFormat(pattern, DecimalFormatSymbols.getInstance(Locale.forLanguageTag(langCode))).format(val);
 
-					} catch (Throwable t) {
-
-						result = errorMsg;
-
-					}
-
-				} else {
-					result = errorMsg;
+					} catch (Throwable t) { 	}
 				}
 
-				return result;
+				return "";
 			}
 
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_NUMBER_FORMAT;
+			}
 		});
 		functions.put("not", new Function<Object, Object>() {
 
@@ -1962,7 +2152,12 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 				}
 
-					return "";
+				return "true";
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_NOT;
 			}
 
 		});
@@ -1975,22 +2170,39 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 				if (sources != null) {
 
+					if (sources.length < 2) {
+						return usage();
+					}
+
 					for (Object i : sources) {
 
-						try {
+						if (i != null) {
 
-							result &= "true".equals(i.toString());
+							try {
 
-						} catch (Throwable t) {
+								result &= "true".equals(i.toString());
 
-							return t.getMessage();
+							} catch (Throwable t) {
 
+								return t.getMessage();
+
+							}
+
+						} else {
+
+							// null is false
+							return false;
 						}
 					}
 
 				}
 
 				return Boolean.toString(result);
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_AND;
 			}
 
 		});
@@ -2003,16 +2215,28 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 				if (sources != null) {
 
+					if (sources.length < 2) {
+						return usage();
+					}
+
 					for (Object i : sources) {
 
-						try {
+						if (i != null) {
 
-							result |= "true".equals(i.toString());
+							try {
 
-						} catch (Throwable t) {
+								result |= "true".equals(i.toString());
 
-							return t.getMessage();
+							} catch (Throwable t) {
 
+								return t.getMessage();
+
+							}
+
+						} else {
+
+							// null is false
+							result |= false;
 						}
 					}
 
@@ -2021,6 +2245,10 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 				return Boolean.toString(result);
 			}
 
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_OR;
+			}
 		});
 		functions.put("get", new Function<Object, Object>() {
 
@@ -2040,6 +2268,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 				return "";
 			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_GET;
+			}
 		});
 		functions.put("first", new Function<Object, Object>() {
 
@@ -2051,6 +2284,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 				}
 
 				return "";
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_FIRST;
 			}
 		});
 		functions.put("last", new Function<Object, Object>() {
@@ -2065,6 +2303,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 				}
 
 				return "";
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_LAST;
 			}
 		});
 		functions.put("nth", new Function<Object, Object>() {
@@ -2083,6 +2326,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 				return "";
 			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_NTH;
+			}
 		});
 		functions.put("each", new Function<Object, Object>() {
 
@@ -2091,20 +2339,22 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 				if (arrayHasLengthAndAllElementsNotNull(sources, 2) && sources[0] instanceof List) {
 
-					final List list   = (List)sources[0];
-					final String expr = sources[1].toString();
+					final List list         = (List)sources[0];
+					final String expr       = sources[1].toString();
+					final AbstractNode node = (AbstractNode)entity;
 
 					for (final Object obj : list) {
 
-						if (obj instanceof AbstractNode) {
-
-							final AbstractNode node = (AbstractNode)obj;
-							node.extractFunctions(node.getSecurityContext(), new ActionContext(entity), expr);
-						}
+						node.extractFunctions(entity.getSecurityContext(), new ActionContext(entity, obj), expr);
 					}
 				}
 
 				return "";
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_EACH;
 			}
 		});
 
@@ -2127,6 +2377,10 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 				return "";
 			}
 
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_PRINT;
+			}
 		});
 		functions.put("read", new Function<Object, Object>() {
 
@@ -2157,6 +2411,10 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 				return "";
 			}
 
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_READ;
+			}
 		});
 		functions.put("write", new Function<Object, Object>() {
 
@@ -2197,6 +2455,10 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 				return "";
 			}
 
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_WRITE;
+			}
 		});
 		functions.put("append", new Function<Object, Object>() {
 
@@ -2229,6 +2491,10 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 				return "";
 			}
 
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_APPEND;
+			}
 		});
 		functions.put("xml", new Function<Object, Object>() {
 
@@ -2257,6 +2523,10 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 				return "";
 			}
 
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_XML;
+			}
 		});
 		functions.put("xpath", new Function<Object, Object>() {
 
@@ -2278,6 +2548,10 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 				return "";
 			}
 
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_XPATH;
+			}
 		});
 		functions.put("set", new Function<Object, Object>() {
 
@@ -2325,6 +2599,10 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 				return "";
 			}
 
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_SET;
+			}
 		});
 		functions.put("send_plaintext_mail", new Function<Object, Object>() {
 
@@ -2349,6 +2627,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 				}
 
 				return "";
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_SEND_PLAINTEXT_MAIL;
 			}
 		});
 		functions.put("send_html_mail", new Function<Object, Object>() {
@@ -2375,6 +2658,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 				}
 
 				return "";
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_SEND_HTML_MAIL;
 			}
 		});
 		functions.put("geocode", new Function<Object, Object>() {
@@ -2405,6 +2693,10 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 				return "";
 			}
 
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_GEOCODE;
+			}
 		});
 		functions.put("find", new Function<Object, Object>() {
 
@@ -2503,6 +2795,10 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 				return "";
 			}
 
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_FIND;
+			}
 		});
 		functions.put("create", new Function<Object, Object>() {
 
@@ -2609,6 +2905,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 				return "";
 			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_CREATE;
+			}
 		});
 		functions.put("delete", new Function<Object, Object>() {
 
@@ -2635,6 +2936,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 				}
 
 				return "";
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_DELETE;
 			}
 		});
 	}
@@ -2707,11 +3013,20 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 		}
 
+		// return literal null
+		if (NULL_STRING.equals(value)) {
+			return null;
+		}
+
 		return value;
 
 	}
 
 	protected Object extractFunctions(SecurityContext securityContext, ActionContext actionContext, String source) throws FrameworkException {
+
+		if ("null".equals(source)) {
+			return NULL_STRING;
+		}
 
 		// re-use matcher from previous calls
 		Matcher functionMatcher = threadLocalFunctionMatcher.get();
@@ -2728,6 +3043,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			final List results                      = new ArrayList();
 
 			if (function != null) {
+
+				// return usage string if no parameter is present
+				if (parameter == null || parameter.isEmpty()) {
+					return function.usage();
+				}
 
 				if (parameter.contains(",")) {
 

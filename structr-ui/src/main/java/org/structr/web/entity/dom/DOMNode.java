@@ -128,9 +128,6 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 			@Override
 			public Object apply(final NodeInterface entity, final Object[] sources) {
 
-				String result = "";
-				String errorMsg = "ERROR! Usage: ${GET(URL[, contentType[, selector]])}. Example: ${GET('http://structr.org', 'text/html')}";
-
 				if (sources != null && sources.length > 0) {
 
 					try {
@@ -174,19 +171,18 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 						}
 
 					} catch (Throwable t) {
-
-						result = errorMsg + "\n" + t.getMessage();
-
 					}
 
-				} else {
-					result = errorMsg;
+					return "";
 				}
 
-				return result;
-
+				return usage();
 			}
 
+			@Override
+			public String usage() {
+				return "ERROR! Usage: ${GET(URL[, contentType[, selector]])}. Example: ${GET('http://structr.org', 'text/html')}";
+			}
 		});
 	}
 
