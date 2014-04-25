@@ -1940,7 +1940,7 @@ var _Crud = {
             var readOnly = _Crud.readOnly(key, type);
             var isCollection = _Crud.isCollection(key, type);
             var relatedType = _Crud.relatedType(key, type);
-            if (readOnly || isCollection || relatedType) {
+            if (readOnly || (create && (isCollection || relatedType))) {
                 return;
             }
             
