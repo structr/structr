@@ -449,7 +449,7 @@ img.disabled {
     margin: 0;
 }
 
-.props input {
+.props tr td.value input {
     margin: -3px;
     /*height: 1.7em;*/
     font-size: 8pt;

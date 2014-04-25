@@ -397,10 +397,11 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 	protected void checkReadAccess() throws DOMException {
 
-		if (!securityContext.isAllowed(this, Permission.read)) {
-
-			throw new DOMException(DOMException.INVALID_ACCESS_ERR, INVALID_ACCESS_ERR_MESSAGE);
+		if (securityContext.isVisible(this) || securityContext.isAllowed(this, Permission.read)) {
+			return;
 		}
+
+		throw new DOMException(DOMException.INVALID_ACCESS_ERR, INVALID_ACCESS_ERR_MESSAGE);
 	}
 
 	protected String indent(final int depth) {
@@ -440,7 +441,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		}
 		try {
 			// If hide conditions evaluate to "true", don't render
-			if (StringUtils.isNotBlank(_hideConditions) && "true".equals(extractFunctions(securityContext, renderContext, _hideConditions))) {
+			if (StringUtils.isNotBlank(_hideConditions) && Boolean.TRUE.equals(extractFunctions(securityContext, renderContext, _hideConditions))) {
 				return false;
 			}
 
@@ -449,7 +450,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		}
 		try {
 			// If show conditions don't evaluate to "true", don't render
-			if (StringUtils.isNotBlank(_showConditions) && !("true".equals(extractFunctions(securityContext, renderContext, _showConditions)))) {
+			if (StringUtils.isNotBlank(_showConditions) && !(Boolean.TRUE.equals(extractFunctions(securityContext, renderContext, _showConditions)))) {
 				return false;
 			}
 
@@ -561,14 +562,13 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 	@Override
 	public NodeList getChildNodes() {
-
 		checkReadAccess();
-
 		return new DOMNodeList(treeGetChildren());
 	}
 
 	@Override
 	public Node getFirstChild() {
+		checkReadAccess();
 		return treeGetFirstChild();
 	}
 

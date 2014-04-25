@@ -392,7 +392,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 		try {
 
-			NodeFactory<T> nodeFactory = new NodeFactory<>(SecurityContext.getSuperUserInstance());
+			NodeFactory<T> nodeFactory = new NodeFactory<>(securityContext);
 			return nodeFactory.instantiate(dbRelationship.getEndNode());
 
 		} catch (FrameworkException t) {
@@ -407,7 +407,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 		try {
 
-			NodeFactory<S> nodeFactory = new NodeFactory<>(SecurityContext.getSuperUserInstance());
+			NodeFactory<S> nodeFactory = new NodeFactory<>(securityContext);
 			return nodeFactory.instantiate(dbRelationship.getStartNode());
 
 		} catch (FrameworkException t) {
@@ -422,7 +422,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 		try {
 
-			NodeFactory nodeFactory = new NodeFactory(SecurityContext.getSuperUserInstance());
+			NodeFactory nodeFactory = new NodeFactory(securityContext);
 			return (NodeInterface)nodeFactory.instantiate(dbRelationship.getOtherNode(node.getNode()));
 
 		} catch (FrameworkException t) {

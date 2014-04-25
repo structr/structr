@@ -371,23 +371,7 @@ public class SecurityContext {
 			return true;
 		}
 
-		boolean isAllowed = false;
-
-		switch (accessMode) {
-
-			case Backend :
-				isAllowed = isAllowedInBackend(node, permission);
-
-				break;
-
-			case Frontend :
-				isAllowed = isAllowedInFrontend(node, permission);
-
-				break;
-
-		}
-
-		return isAllowed;
+		return node.isGranted(permission, user);
 
 	}
 
@@ -441,18 +425,18 @@ public class SecurityContext {
 			return true;
 		}
 
-		// Ask the security context
-		if (isAllowed(node, Permission.read)) {
-
-			return true;
-		}
-
-		return false;
+		return isAllowed(node, Permission.read);
 	}
 
 	// ----- private methods -----
 	private boolean isVisibleInBackend(AccessControllable node) {
 
+		if (isVisibleInFrontend(node)) {
+
+			return true;
+
+		}
+		
 		// no node, nothing to see here..
 		if (node == null) {
 
@@ -474,14 +458,7 @@ public class SecurityContext {
 			return true;
 		}
 
-		// users with read permissions may see the node
-		if (isAllowedInBackend(node, Permission.read)) {
-
-			return true;
-		}
-
-		// no match, node is not visible
-		return false;
+		return isAllowed(node, Permission.read);
 	}
 
 	/**
@@ -542,28 +519,8 @@ public class SecurityContext {
 			}
 		}
 
-		if (isAllowedInFrontend(node, Permission.read)) {
+		return isAllowed(node, Permission.read);
 
-			return true;
-		}
-
-		return false;
-
-	}
-
-	private boolean isAllowedInBackend(AccessControllable node, Permission permission) {
-
-		Principal user = getUser(false);
-
-		return node.isGranted(permission, user);
-
-	}
-
-	private boolean isAllowedInFrontend(AccessControllable node, Permission permission) {
-
-                Principal user = getUser(false);
-
-		return node.isGranted(permission, user);
 	}
 
 	//~--- set methods ----------------------------------------------------
@@ -582,7 +539,7 @@ public class SecurityContext {
 
 		if (flagObject != null) {
 
-			flags = flagObject.longValue();
+			flags = flagObject;
 		}
 
 		flags |= flag;

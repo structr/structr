@@ -481,6 +481,7 @@ var _Entities = {
     activateInput: function(el, id) {
 
         var input = $(el);
+        var oldVal = input.val();
         var relId = input.parent().attr('rel_id');
 
         if (!input.hasClass('readonly') && !input.hasClass('newKey')) {
@@ -526,7 +527,11 @@ var _Entities = {
 
                         // existing key
                         log('existing key: Command.setProperty(', objId, key, val);
+                        
+                        input.val(oldVal);
+                        
                         Command.setProperty(objId, key, val, false, function() {
+                            input.val(val);
                             blinkGreen(input);
                             dialogMsg.html('<div class="infoBox success">Updated property "' + key + '" with value "' + val + '".</div>');
                             $('.infoBox', dialogMsg).delay(2000).fadeOut(200);

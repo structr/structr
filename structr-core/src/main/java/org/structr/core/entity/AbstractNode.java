@@ -661,7 +661,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 				try {
 					return converter.convertForSorting(propertyValue);
 
-				} catch(Throwable t) {
+				} catch (Throwable t) {
 
 					t.printStackTrace();
 
@@ -690,7 +690,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	/**
 	 * Returns the property value for the given key as a Iterable
 	 *
-	 * @param key the property key to retrieve the value for
+	 * @param propertyKey the property key to retrieve the value for
 	 * @return the property value for the given key as a Iterable
 	 */
 	public Iterable getIterableProperty(final PropertyKey<? extends Iterable> propertyKey) {
@@ -719,7 +719,15 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		return dbNode;
 
 	}
+	
+	private <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, ManyStartpoint<A>, T>> Iterable<R> getIncomingRelationshipsAsSuperUser(final Class<R> type) {
 
+		final RelationshipFactory<R> factory = new RelationshipFactory<>(SecurityContext.getSuperUserInstance());
+		final R template                     = getRelationshipForType(type);
+
+		return new IterableAdapter<>(template.getSource().getRawSource(SecurityContext.getSuperUserInstance(), dbNode, null), factory);
+	}
+	
 	/**
 	 * Return the (cached) incoming relationship between this node and the
 	 * given principal which holds the security information.
@@ -735,7 +743,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			return null;
 		}
 
-		for (Security r : getIncomingRelationships(Security.class)) {
+		for (Security r : getIncomingRelationshipsAsSuperUser(Security.class)) {
 
 			if (p.equals(r.getSourceNode())) {
 
@@ -823,9 +831,10 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	/**
 	 * Return statistical information on all relationships of this node
 	 *
+	 * @param dir
 	 * @return number of relationships
 	 */
-	public Map<RelationshipType, Long> getRelationshipInfo(Direction dir) throws FrameworkException {
+	public Map<RelationshipType, Long> getRelationshipInfo(final Direction dir) throws FrameworkException {
 		return StructrApp.getInstance(securityContext).command(NodeRelationshipStatisticsCommand.class).execute(this, dir);
 	}
 
@@ -839,7 +848,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 		if (cachedOwnerNode == null) {
 
-			final Ownership ownership = getIncomingRelationship(PrincipalOwnsNode.class);
+			final Ownership ownership = getIncomingRelationshipAsSuperUser(PrincipalOwnsNode.class);
 			if (ownership != null) {
 
 				Principal principal = ownership.getSourceNode();
@@ -849,6 +858,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 		return cachedOwnerNode;
 	}
+	
 
 	/**
 	 * Returns the database ID of the owner node of this node.
@@ -870,7 +880,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		List<Principal> principalList = new LinkedList<>();
 
 		// check any security relationships
-		for (Security r : getIncomingRelationships(Security.class)) {
+		for (Security r : getIncomingRelationshipsAsSuperUser(Security.class)) {
 
 			// check security properties
 			Principal principalNode = r.getSourceNode();
@@ -882,11 +892,23 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 	}
 
+	private <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, OneStartpoint<A>, T>> R getIncomingRelationshipAsSuperUser(final Class<R> type) {
+
+		final RelationshipFactory<R> factory = new RelationshipFactory<>(SecurityContext.getSuperUserInstance());
+		final R template                     = getRelationshipForType(type);
+		final Relationship relationship      = template.getSource().getRawSource(SecurityContext.getSuperUserInstance(), dbNode, null);
+
+		if (relationship != null) {
+			return factory.adapt(relationship);
+		}
+
+		return null;
+	}
+
 	/**
 	 * Return true if this node has a relationship of given type and direction.
 	 *
 	 * @param type
-	 * @param dir
 	 * @return
 	 */
 	public <A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target> boolean hasRelationship(final Class<? extends Relation<A, B, S, T>> type) {
@@ -2978,26 +3000,22 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 					String source         = group.substring(2, group.length() - 1);
 					Object extractedValue = extractFunctions(securityContext, actionContext, source);
 
-					// fetch referenced property
-					if (extractedValue != null) {
+					if (extractedValue == null) {
+						extractedValue = "";
+					}
 
-						String partValue = StringUtils.remove(extractedValue.toString(), "\\");
-						if (partValue != null) {
+					String partValue = StringUtils.remove(extractedValue.toString(), "\\");
+					if (partValue != null) {
 
-							value = value.replace(group, partValue);
-
-						} else {
-
-							// If the whole expression should be replaced, and partValue is null
-							// replace it by null to make it possible for HTML attributes to not be rendered
-							// and avoid something like ... selected="" ... which is interpreted as selected==true by
-							// all browsers
-							value = value.equals(group) ? null : value.replace(group, "");
-						}
+						value = value.replace(group, partValue);
 
 					} else {
 
-						value = "";
+						// If the whole expression should be replaced, and partValue is null
+						// replace it by null to make it possible for HTML attributes to not be rendered
+						// and avoid something like ... selected="" ... which is interpreted as selected==true by
+						// all browsers
+						value = value.equals(group) ? null : value.replace(group, "");
 					}
 				}
 

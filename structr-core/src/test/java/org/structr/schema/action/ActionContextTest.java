@@ -602,21 +602,28 @@ public class ActionContextTest extends StructrTest {
 			// find with null
 			assertEquals("Invalid usage message for find()", AbstractNode.ERROR_MESSAGE_FIND, testOne.replaceVariables(securityContext, ctx, "${find()}"));
 
-			// each with more complex logic
+			// more complex tests
 			testOne.replaceVariables(securityContext, ctx, "${each(split(\"setTestInteger1,setTestInteger2,setTestInteger3\"), \"set(this, data, 1)\")}");
-
 			assertEquals("Invalid each() result", "1", testOne.replaceVariables(securityContext, ctx, "${get(this, \"setTestInteger1\")}"));
 			assertEquals("Invalid each() result", "1", testOne.replaceVariables(securityContext, ctx, "${get(this, \"setTestInteger2\")}"));
 			assertEquals("Invalid each() result", "1", testOne.replaceVariables(securityContext, ctx, "${get(this, \"setTestInteger3\")}"));
 
-			// more complex tests
 			assertEquals("Invalid if(equal()) result", "String",  testOne.replaceVariables(securityContext, ctx, "${if(empty(this.alwaysNull), titleize(this.aString, '-'), this.alwaysNull)}"));
 			assertEquals("Invalid if(equal()) result", "String",  testOne.replaceVariables(securityContext, ctx, "${if(empty(this.aString), titleize(this.alwaysNull, '-'), this.aString)}"));
-
 
 			assertNull("Invalid result for special null value", testOne.replaceVariables(securityContext, ctx, "${null}"));
 			assertNull("Invalid result for special null value", testOne.replaceVariables(securityContext, ctx, "${if(equal(this.anInt, 15), \"selected\", null)}"));
 
+			// tests from real-life examples
+			assertEquals("Invalid replacement result", "tile plan ", testOne.replaceVariables(securityContext, ctx, "tile plan ${plan.bannerTag}"));
+
+			// more tests with pre- and postfixes
+			assertEquals("Invalid replacement result", "abcdefghijklmnop", testOne.replaceVariables(securityContext, ctx, "abcdefgh${blah}ijklmnop"));
+			assertEquals("Invalid replacement result", "abcdefghStringijklmnop", testOne.replaceVariables(securityContext, ctx, "abcdefgh${this.aString}ijklmnop"));
+
+
+
+			// tile plan ${plan.bannerTag}
 
 
 		} catch (FrameworkException fex) {
