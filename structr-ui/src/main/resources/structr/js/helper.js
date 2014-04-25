@@ -388,8 +388,8 @@ function blinkGreen(element) {
     }
 
     $(element).animate({
-        color: '#0c0',
-        backgroundColor: '#cfc'
+        color: '#6db813',
+        backgroundColor: '#81ce25'
     }, 50, function() {
         $(this).animate({
             color: oldFg,
