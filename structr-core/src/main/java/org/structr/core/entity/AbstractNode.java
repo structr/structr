@@ -2978,26 +2978,22 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 					String source         = group.substring(2, group.length() - 1);
 					Object extractedValue = extractFunctions(securityContext, actionContext, source);
 
-					// fetch referenced property
-					if (extractedValue != null) {
+					if (extractedValue == null) {
+						extractedValue = "";
+					}
 
-						String partValue = StringUtils.remove(extractedValue.toString(), "\\");
-						if (partValue != null) {
+					String partValue = StringUtils.remove(extractedValue.toString(), "\\");
+					if (partValue != null) {
 
-							value = value.replace(group, partValue);
-
-						} else {
-
-							// If the whole expression should be replaced, and partValue is null
-							// replace it by null to make it possible for HTML attributes to not be rendered
-							// and avoid something like ... selected="" ... which is interpreted as selected==true by
-							// all browsers
-							value = value.equals(group) ? null : value.replace(group, "");
-						}
+						value = value.replace(group, partValue);
 
 					} else {
 
-						value = "";
+						// If the whole expression should be replaced, and partValue is null
+						// replace it by null to make it possible for HTML attributes to not be rendered
+						// and avoid something like ... selected="" ... which is interpreted as selected==true by
+						// all browsers
+						value = value.equals(group) ? null : value.replace(group, "");
 					}
 				}
 
