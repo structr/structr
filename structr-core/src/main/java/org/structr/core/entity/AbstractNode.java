@@ -1035,7 +1035,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	 * Split String value and set as String[] property in database backend
 	 *
 	 * @param key
-	 * @param stringList
+	 * @param value
 	 *
 	 */
 	public void setPropertyAsStringArray(final PropertyKey<String[]> key, final String value) throws FrameworkException {
@@ -1059,6 +1059,8 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 	/**
 	 * Retrieve a previously stored non-persistent value from this entity.
+	 * @param key
+	 * @return 
 	 */
 	public Object getTemporaryProperty(final PropertyKey key) {
 		return cachedConvertedProperties.get(key);
@@ -1069,9 +1071,9 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	 * a StructrTransaction, otherwise Neo4j will throw a NotInTransactionException!
 	 * Set property only if value has changed.
 	 *
+	 * @param <T>
 	 * @param key
-	 * @param convertedValue
-	 * @param updateIndex
+	 * @throws org.structr.common.error.FrameworkException
 	 */
 	@Override
 	public <T> void setProperty(final PropertyKey<T> key, final T value) throws FrameworkException {
@@ -1203,6 +1205,59 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	}
 
 	// ----- variable replacement functions etc. -----
+	
+	/**
+	 * Test if the given object array has a minimum length and
+	 * all its elements are not null.
+	 * 
+	 * @param array
+	 * @param minLength If null, don't do length check
+	 * @return 
+	 */
+	private static boolean arrayHasMinLengthAndAllElementsNotNull(final Object[] array, final Integer minLength) {
+
+		if (array == null) {
+			return false;
+		}
+		
+		for (final Object element : array) {
+
+			if (element == null) {
+				return false;
+			}
+
+		}
+		
+		return minLength != null ? array.length >= minLength : true;
+
+	}
+	
+	/**
+	 * Test if the given object array has exact the given length and
+	 * all its elements are not null.
+	 * 
+	 * @param array
+	 * @param length If null, don't do length check
+	 * @return 
+	 */
+	private static boolean arrayHasLengthAndAllElementsNotNull(final Object[] array, final Integer length) {
+
+		if (array == null) {
+			return false;
+		}
+		
+		for (final Object element : array) {
+
+			if (element == null) {
+				return false;
+			}
+
+		}
+		
+		return length != null ? array.length == length : true;
+
+	}
+
 	static {
 
 		functions.put("md5", new Function<Object, Object>() {
@@ -1210,7 +1265,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			@Override
 			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
-				return ((sources != null) && (sources.length > 0) && (sources[0] != null))
+				return (arrayHasMinLengthAndAllElementsNotNull(sources, 1))
 					? DigestUtils.md5Hex(sources[0].toString())
 					: "";
 
@@ -1222,7 +1277,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			@Override
 			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
-				return ((sources != null) && (sources.length > 0) && (sources[0] != null))
+				return (arrayHasMinLengthAndAllElementsNotNull(sources, 1))
 					? sources[0].toString().toUpperCase()
 					: "";
 
@@ -1234,7 +1289,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			@Override
 			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
-				return ((sources != null) && (sources.length > 0) && (sources[0] != null))
+				return (arrayHasMinLengthAndAllElementsNotNull(sources, 1))
 					? sources[0].toString().toLowerCase()
 					: "";
 
@@ -1268,7 +1323,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			@Override
 			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
-				if (sources != null && sources.length > 0 && sources[0] != null) {
+				if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
 
 					final String toSplit = sources[0].toString();
 					String splitExpr     = "[,;]+";
@@ -1289,7 +1344,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			@Override
 			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
-				if (sources != null && sources.length > 1 && sources[0] != null && sources[1] != null) {
+				if (arrayHasMinLengthAndAllElementsNotNull(sources, 2)) {
 
 					try {
 						int maxLength = Double.valueOf(sources[1].toString()).intValue();
@@ -1321,7 +1376,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			@Override
 			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
-				return ((sources != null) && (sources.length > 0) && (sources[0] != null))
+				return (arrayHasMinLengthAndAllElementsNotNull(sources, 1))
 					? StringUtils.capitalize(sources[0].toString())
 					: "";
 
@@ -1332,7 +1387,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			@Override
 			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
-				if (sources == null || sources.length < 2) {
+				if (sources == null || sources.length < 2 || sources[0] == null) {
 					return null;
 				}
 
@@ -1348,7 +1403,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 				String[] out = new String[in.length];
 				for (int i = 0; i < in.length; i++) {
 					out[i] = StringUtils.capitalize(in[i]);
-				};
+				}
 				return StringUtils.join(out, " ");
 
 			}
@@ -1359,7 +1414,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			@Override
 			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
-				if (sources != null && sources.length > 0) {
+				if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
 
 					try {
 						return Double.parseDouble(sources[0].toString());
@@ -1379,7 +1434,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 				String result;
 
-				if ((sources != null) && (sources.length > 0)) {
+				if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
 
 					if (StringUtils.isBlank(sources[0].toString())) {
 						return "";
@@ -1427,7 +1482,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			@Override
 			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
-				return ((sources != null) && (sources.length > 0) && (sources[0] != null))
+				return (arrayHasMinLengthAndAllElementsNotNull(sources, 1))
 					? encodeURL(sources[0].toString())
 					: "";
 
@@ -1460,7 +1515,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			@Override
 			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
-				if (StringUtils.isEmpty(sources[0].toString())) {
+				if (sources[0] == null || StringUtils.isEmpty(sources[0].toString())) {
 
 					return "true";
 				} else {
@@ -1538,7 +1593,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 				String result = "";
 
-				if (sources != null && sources.length == 2) {
+				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
 
 					try {
 
@@ -1563,7 +1618,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 				String result = "";
 
-				if (sources != null && sources.length == 2) {
+				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
 
 					try {
 
@@ -1588,7 +1643,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 				String result = "";
 
-				if (sources != null && sources.length == 2) {
+				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
 
 					try {
 
@@ -1613,7 +1668,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 				String result = "";
 
-				if (sources != null && sources.length == 2) {
+				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
 
 					try {
 
@@ -1636,7 +1691,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			@Override
 			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
-				if (sources != null && sources.length > 0) {
+				if (arrayHasMinLengthAndAllElementsNotNull(sources, 2)) {
 
 					try {
 
@@ -1698,7 +1753,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 				Double result = 0.0d;
 
-				if (sources != null && sources.length == 2) {
+				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
 
 					try {
 
@@ -1724,7 +1779,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 				Double result = 0.0d;
 
-				if (sources != null && sources.length == 2) {
+				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
 
 					if (StringUtils.isBlank(sources[0].toString())) {
 						return "";
@@ -1759,7 +1814,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 				Object result   = "";
 				String errorMsg = "ERROR! Usage: ${max(val1, val2)}. Example: ${max(5,10)}";
 
-				if (sources != null && sources.length == 2) {
+				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
 
 					try {
 						result = Math.max(Double.parseDouble(sources[0].toString()), Double.parseDouble(sources[1].toString()));
@@ -1788,7 +1843,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 				Object result   = "";
 				String errorMsg = "ERROR! Usage: ${min(val1, val2)}. Example: ${min(5,10)}";
 
-				if (sources != null && sources.length == 2) {
+				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
 
 					try {
 						result = Math.min(Double.parseDouble(sources[0].toString()), Double.parseDouble(sources[1].toString()));
@@ -1814,7 +1869,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			@Override
 			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
-				if (sources != null && sources.length > 0) {
+				if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
 
 					final String configKey    = sources[0].toString();
 					final String defaultValue = sources.length >= 2 ? sources[1].toString() : "";
@@ -1833,7 +1888,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 				String result = "";
 				String errorMsg = "ERROR! Usage: ${date_format(value, pattern)}. Example: ${date_format(Tue Feb 26 10:49:26 CET 2013, \"yyyy-MM-dd'T'HH:mm:ssZ\")}";
 
-				if (sources != null && sources.length == 2) {
+				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
 
 					String dateString = sources[0].toString();
 
@@ -1868,7 +1923,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 				String result = "";
 				String errorMsg = "ERROR! Usage: ${number_format(value, ISO639LangCode, pattern)}. Example: ${number_format(12345.6789, 'en', '#,##0.00')}";
 
-				if (sources != null && sources.length == 3) {
+				if (arrayHasLengthAndAllElementsNotNull(sources, 3)) {
 
 					if (StringUtils.isBlank(sources[0].toString())) {
 						return "";
@@ -1901,11 +1956,13 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			@Override
 			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
-				if (sources == null || sources.length == 0) {
-					return "";
+				if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
+
+					return "true".equals(sources[0].toString()) ? "false" : "true";
+
 				}
 
-				return "true".equals(sources[0].toString()) ? "false" : "true";
+					return "";
 			}
 
 		});
@@ -1970,7 +2027,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			@Override
 			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
-				if (sources != null && sources.length == 2 && sources[0] instanceof NodeInterface) {
+				if (arrayHasLengthAndAllElementsNotNull(sources, 2) && sources[0] instanceof NodeInterface) {
 
 					final NodeInterface node = (NodeInterface)sources[0];
 					final String keyName     = sources[1].toString();
@@ -1989,7 +2046,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			@Override
 			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
-				if (sources != null && sources.length == 1 && sources[0] instanceof List) {
+				if (arrayHasLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof List) {
 					return ((List)sources[0]).get(0);
 				}
 
@@ -2001,7 +2058,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			@Override
 			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
-				if (sources != null && sources.length == 1 && sources[0] instanceof List) {
+				if (arrayHasLengthAndAllElementsNotNull(sources, 1) &&  sources[0] instanceof List) {
 
 					final List list = (List)sources[0];
 					return list.get(list.size() - 1);
@@ -2015,7 +2072,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			@Override
 			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
-				if (sources != null && sources.length == 2 && sources[0] instanceof List) {
+				if (arrayHasLengthAndAllElementsNotNull(sources, 2) && sources[0] instanceof List) {
 
 					final List list = (List)sources[0];
 					final int pos   = Double.valueOf(sources[1].toString()).intValue();
@@ -2032,7 +2089,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			@Override
 			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
-				if (sources != null && sources.length == 2 && sources[0] instanceof List) {
+				if (arrayHasLengthAndAllElementsNotNull(sources, 2) && sources[0] instanceof List) {
 
 					final List list   = (List)sources[0];
 					final String expr = sources[1].toString();
@@ -2076,7 +2133,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			@Override
 			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
-				if (sources != null && sources.length == 1) {
+				if (arrayHasLengthAndAllElementsNotNull(sources, 1)) {
 
 					try {
 						final String sandboxFilename = AbstractNode.getSandboxFileName(sources[0].toString());
@@ -2106,7 +2163,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			@Override
 			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
-				if (sources != null && sources.length > 0) {
+				if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
 
 					try {
 						final String sandboxFilename = AbstractNode.getSandboxFileName(sources[0].toString());
@@ -2118,7 +2175,9 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 								try (final Writer writer = new OutputStreamWriter(new FileOutputStream(file, false))) {
 
 									for (int i=1; i<sources.length; i++) {
-										IOUtils.write(sources[i].toString(), writer);
+										if (sources[i] != null) {
+											IOUtils.write(sources[i].toString(), writer);
+										}
 									}
 
 									writer.flush();
@@ -2144,7 +2203,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			@Override
 			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
-				if (sources != null && sources.length > 0) {
+				if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
 
 					try {
 						final String sandboxFilename = AbstractNode.getSandboxFileName(sources[0].toString());
@@ -2176,7 +2235,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			@Override
 			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
-				if (sources != null && sources.length == 1 && sources[0] instanceof String) {
+				if (arrayHasLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof String) {
 
 					try {
 
@@ -2204,7 +2263,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			@Override
 			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
-				if (sources != null && sources.length > 0 && sources[0] instanceof Document) {
+				if (arrayHasMinLengthAndAllElementsNotNull(sources, 2) && sources[0] instanceof Document) {
 
 					try {
 
@@ -2225,7 +2284,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			@Override
 			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
-				if (sources != null && sources.length > 1) {
+				if (arrayHasMinLengthAndAllElementsNotNull(sources, 2)) {
 
 					if (sources[0] instanceof NodeInterface) {
 
@@ -2236,7 +2295,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 						final Class type                      = source.getClass();
 						final int sourceCount                 = sources.length;
 
-						if (sources.length == 3 && sources[1].toString().matches("[a-zA-Z0-9_]+")) {
+						if (sources.length == 3 && sources[2] != null && sources[1].toString().matches("[a-zA-Z0-9_]+")) {
 
 							properties.put(sources[1].toString(), sources[2]);
 
@@ -2272,7 +2331,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			@Override
 			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
-				if (sources != null && sources.length == 6) {
+				if (arrayHasLengthAndAllElementsNotNull(sources, 6)) {
 
 					final String from        = sources[0].toString();
 					final String fromName    = sources[1].toString();
@@ -2297,7 +2356,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			@Override
 			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
-				if (sources != null && sources.length == 6) {
+				if (arrayHasLengthAndAllElementsNotNull(sources, 6)) {
 
 					final String from        = sources[0].toString();
 					final String fromName    = sources[1].toString();
@@ -2323,7 +2382,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			@Override
 			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
-				if (sources != null && sources.length == 3) {
+				if (arrayHasLengthAndAllElementsNotNull(sources, 3)) {
 
 					final Gson gson      = new GsonBuilder().create();
 					final String street  = sources[0].toString();
@@ -2361,7 +2420,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 					// the type to query for
 					Class type = null;
 
-					if (sources.length >= 1) {
+					if (sources.length >= 1 && sources[0] != null) {
 
 						type  = config.getNodeEntityClass(sources[0].toString());
 						if (type != null) {
@@ -2460,7 +2519,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 					// the type to query for
 					Class type = null;
 
-					if (sources.length >= 1) {
+					if (sources.length >= 1 && sources[0] != null) {
 
 
 						type  = config.getNodeEntityClass(sources[0].toString());
