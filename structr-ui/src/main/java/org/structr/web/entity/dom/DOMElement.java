@@ -523,8 +523,10 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 			} catch (Throwable t) {
 
 				logger.log(Level.SEVERE, "Error while rendering node {0}: {1}", new java.lang.Object[]{getUuid(), t});
-
+				
 				out.append("Error while rendering node ").append(getUuid()).append(": ").append(t.getMessage());
+				
+				t.printStackTrace();
 
 			}
 
