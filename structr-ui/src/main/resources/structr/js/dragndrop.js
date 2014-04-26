@@ -278,7 +278,7 @@ var _Dragndrop = {
         var nodeData = {};
         if (tag === 'a' || tag === 'p'
                 || tag === 'h1' || tag === 'h2' || tag === 'h3' || tag === 'h4' || tag === 'h5' || tag === 'h5' || tag === 'pre' || tag === 'label' || tag === 'option'
-                || tag === 'li' || tag === 'em' || tag === 'title' || tag === 'b' || tag === 'span' || tag === 'th' || tag === 'td' || tag === 'button') {
+                || tag === 'li' || tag === 'em' || tag === 'title' || tag === 'b' || tag === 'span' || tag === 'th' || tag === 'td' || tag === 'button' || tag === 'figcaption') {
             if (tag === 'a') {
                 nodeData._html_href = '${link.name}';
                 nodeData.childContent = '${parent.link.name}';
