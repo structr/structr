@@ -57,7 +57,7 @@ public class CypherQueryCommand extends NodeServiceCommand {
 	}
 
 	public List<GraphObject> execute(String query, Map<String, Object> parameters) throws FrameworkException {
-		return execute(query, parameters, false);
+		return execute(query, parameters, true);
 	}
 
 	public List<GraphObject> execute(String query, Map<String, Object> parameters, boolean includeHiddenAndDeleted) throws FrameworkException {

@@ -78,14 +78,12 @@ $(function() {
 
     loginButton.on('click', function(e) {
         e.stopPropagation();
-        Structr.clearMain();
         var username = $('#usernameField').val();
         var password = $('#passwordField').val();
         Structr.doLogin(username, password);
     });
     $('#logout_').on('click', function(e) {
         e.stopPropagation();
-        Structr.clearMain();
         Structr.doLogout();
     });
 
@@ -169,14 +167,12 @@ $(function() {
     });
 
     $('#usernameField').keypress(function(e) {
-        e.stopPropagation();
         if (e.which === 13) {
             $(this).blur();
             loginButton.focus().click();
         }
     });
     $('#passwordField').keypress(function(e) {
-        e.stopPropagation();
         if (e.which === 13) {
             $(this).blur();
             loginButton.focus().click();

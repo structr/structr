@@ -237,7 +237,7 @@ var _Dashboard = {
     },
     execQuery: function(query, type, params) {
 
-        log('exec', type, 'query', query, params);
+        console.log('exec', type, 'query: ', query, ', with parameters.', params);
 
         if (query && query.length) {
 
@@ -256,13 +256,13 @@ var _Dashboard = {
     saveQuery: function(query, type, params) {
         var savedQueries = JSON.parse(localStorage.getItem(savedQueriesKey)) || [];
         var exists = false;
-        $.each(savedQueries.reverse(), function(i, q) {
+        $.each(savedQueries, function(i, q) {
             if (q.query === query && q.params === params) {
                 exists = true;
             }
         });
         if (!exists) {
-            savedQueries.push({'type': type, 'query': query, 'params': params});
+            savedQueries.unshift({'type': type, 'query': query, 'params': params});
             localStorage.setItem(savedQueriesKey, JSON.stringify(savedQueries));
         }
     },
@@ -270,11 +270,13 @@ var _Dashboard = {
         var savedQueries = JSON.parse(localStorage.getItem(savedQueriesKey)) || [];
         savedQueries.splice(i, 1);
         localStorage.setItem(savedQueriesKey, JSON.stringify(savedQueries));
+        _Dashboard.listSavedQueries();
     },
     restoreSavedQuery: function(i, exec) {
         var savedQueries = JSON.parse(localStorage.getItem(savedQueriesKey)) || [];
-        var query = savedQueries.reverse()[i];
-        $('.search[name=cypher]').val(query.query);
+        var query = savedQueries[i];
+        $('.search[name=' +  query.type + ']').val(query.query);
+        _Dashboard.activateClearSearchIcon(query.type);
         $('#cypher-params input').remove();
         $('#cypher-params br').remove();
         $('#cypher-params img.remove-cypher-parameter').remove();
@@ -283,56 +285,32 @@ var _Dashboard = {
             $.each(Object.keys(parObj), function(i, key) {
                 _Dashboard.appendCypherParameter($('#cypher-params'), key, parObj[key]);
             });
-            if (exec) {
-                _Dashboard.execQuery(query.query, query.type, query.params);
-            }
         } else {
             _Dashboard.appendCypherParameter($('#cypher-params'));
+        }
+        if (exec) {
+            _Dashboard.execQuery(query.query, query.type, query.params);
         }
     },
     listSavedQueries: function() {
         $('#saved-queries').empty();
         queriesSlideout.append('<div id="saved-queries"></div>');
         var savedQueries = JSON.parse(localStorage.getItem(savedQueriesKey)) || [];
-        $.each(savedQueries.reverse(), function(q, query) {
+        $.each(savedQueries, function(q, query) {
             if (query.type === 'cypher') {
                 $('#saved-queries').append('<div class="saved-query cypher-query"><img class="replay" alt="Cypher Query" src="icon/control_play_blue.png">' + query.query + '<img class="remove-query" src="icon/cross_small_grey.png"></div>');
             } else {
                 $('#saved-queries').append('<div class="saved-query rest-query"><img class="replay" alt="REST Query" src="icon/control_play.png">' + query.query + '<img class="remove-query" src="icon/cross_small_grey.png"></div>');
             }
         });
-        $('.rest-query').on('click', function() {
-            $('.search[name=rest]').val($(this).text());
-            _Dashboard.activateClearSearchIcon('rest');
+        $('.saved-query').on('click', function() {
+            _Dashboard.restoreSavedQuery($(this).index());
         });
-        $('.rest-query .replay').on('click', function() {
-            var query = $(this).parent().text();
-            $('.search[name=rest]').val(query);
-            _Dashboard.activateClearSearchIcon('rest');
-            var self = $(this);
-            var i = self.parent().index();
-            _Dashboard.restoreSavedQuery(savedQueries.length - i - 1, true);
-        });
-        $('.cypher-query').on('click', function() {
-            $('.search[name=cypher]').val($(this).text());
-            _Dashboard.activateClearSearchIcon('cypher');
-            var self = $(this);
-            var i = self.index();
-            _Dashboard.restoreSavedQuery(savedQueries.length - i - 1);
-        });
-        $('.cypher-query .replay').on('click', function() {
-            var query = $(this).parent().text();
-            $('.search[name=cypher]').val(query);
-            _Dashboard.activateClearSearchIcon('cypher');
-            var self = $(this);
-            var i = self.parent().index();
-            _Dashboard.restoreSavedQuery(savedQueries.length - i - 1, true);
+        $('.replay').on('click', function() {
+            _Dashboard.restoreSavedQuery($(this).parent().index(), true);
         });
         $('.remove-query').on('click', function() {
-            var self = $(this);
-            var i = self.parent().index();
-            _Dashboard.removeSavedQuery(savedQueries.length - i - 1);
-            self.parent().remove();
+            _Dashboard.removeSavedQuery($(this).parent().index());
         });
     },
     activateClearSearchIcon: function(type) {
