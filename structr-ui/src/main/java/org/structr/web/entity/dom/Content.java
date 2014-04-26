@@ -277,7 +277,7 @@ public class Content extends DOMNode implements Text {
 //					.concat("\" data-structr-id=\"").concat(id).concat("\">"));
 				String cleanedContent = StringUtils.remove(StringUtils.remove(org.apache.commons.lang3.StringUtils.replace(getProperty(Content.content), "\n", "\\\\n"), "<!--"), "-->");
 				out.append("<!--data-structr-id=\"".concat(id)
-					.concat("\" data-structr-raw-value=\"").concat(cleanedContent).concat("\"-->"));
+					.concat("\" data-structr-raw-value=\"").concat(escapeForHtmlAttributes(cleanedContent)).concat("\"-->"));
 					//.concat("\" data-structr-raw-value=\"").concat(getProperty(Content.content)).concat("\"-->"));
 
 			}
