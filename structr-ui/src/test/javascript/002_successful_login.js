@@ -36,11 +36,11 @@ casper.test.begin(testName, numberOfTests, function(test) {
     
     sections.push('If you enter a valid combination of username and password, the system allows you to log in.');
     
-    casper.then(function() {
+    casper.waitForSelector('#usernameField').then(function() {
         s.animatedType(this, '#usernameField', false, 'admin');
     });
 
-    casper.then(function() {
+    casper.waitForSelector('#passwordField').then(function() {
         s.animatedType(this, '#passwordField', false, 'admin');
     });
 
