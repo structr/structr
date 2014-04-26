@@ -35,31 +35,19 @@ import java.text.DecimalFormatSymbols;
 import java.text.Normalizer;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import org.structr.core.property.PropertyMap;
-import org.apache.commons.codec.digest.DigestUtils;
-
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.RelationshipType;
-
-import org.structr.common.*;
-import org.structr.common.GraphObjectComparator;
-import org.structr.core.property.PropertyKey;
-import org.structr.common.PropertyView;
-import org.structr.common.SecurityContext;
-import org.structr.common.error.ErrorBuffer;
-import org.structr.common.error.FrameworkException;
-import org.structr.common.error.NullArgumentToken;
-import org.structr.common.error.ReadOnlyPropertyToken;
-import org.structr.core.converter.PropertyConverter;
-import org.structr.core.Services;
-import org.structr.core.graph.NodeRelationshipStatisticsCommand;
-
-//~--- JDK imports ------------------------------------------------------------
-
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -70,28 +58,50 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.mail.EmailException;
+import org.neo4j.graphdb.Direction;
+import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.index.Index;
+import org.structr.common.AccessControllable;
+import org.structr.common.GraphObjectComparator;
+import org.structr.common.MailHelper;
+import org.structr.common.Permission;
+import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
+import org.structr.common.ThreadLocalMatcher;
+import org.structr.common.ValidationHelper;
+import org.structr.common.View;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
+import org.structr.common.error.NullArgumentToken;
+import org.structr.common.error.ReadOnlyPropertyToken;
 import org.structr.common.geo.GeoCodingResult;
 import org.structr.common.geo.GeoHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.IterableAdapter;
 import org.structr.core.Ownership;
+import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
+import org.structr.core.converter.PropertyConverter;
 import static org.structr.core.entity.AbstractNode.functions;
 import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.NodeRelationshipStatisticsCommand;
 import org.structr.core.graph.NodeService;
 import org.structr.core.graph.RelationshipFactory;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.ISO8601DateProperty;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
@@ -2217,7 +2227,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 				}
 
-				return Boolean.toString(result);
+				return result;
 			}
 
 			@Override
@@ -2262,7 +2272,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 				}
 
-				return Boolean.toString(result);
+				return result;
 			}
 
 			@Override
