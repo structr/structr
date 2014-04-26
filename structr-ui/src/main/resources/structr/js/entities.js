@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2010-2013 Axel Morgner
+ *  Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
  *  This file is part of structr <http://structr.org>.
  *
@@ -211,6 +211,10 @@ var _Entities = {
                 dialogSaveButton = $('#saveFile', dialogBtn);
                 saveAndClose = $('#saveAndClose', dialogBtn);
 
+                $('.CodeMirror-code .cm-attribute:contains("data-hash")').addClass('data-hash').next().addClass('data-hash');
+                editor.on('scroll', function() {
+                    $('.CodeMirror-code .cm-attribute:contains("data-hash")').addClass('data-hash').next().addClass('data-hash');
+                });
                 editor.on('change', function(cm, change) {
 
                     //text1 = $(contentNode).children('.content_').text();
@@ -226,9 +230,7 @@ var _Entities = {
 
                     $('.CodeMirror-code .cm-attribute:contains("data-hash")').addClass('data-hash').next().addClass('data-hash');
                 });
-
-                $('.CodeMirror-code .cm-attribute:contains("data-hash")').addClass('data-hash').next().addClass('data-hash');
-
+                
                 dialogSaveButton.on('click', function(e) {
                     e.stopPropagation();
                     var text2 = editor.getValue();
