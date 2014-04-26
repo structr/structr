@@ -55,7 +55,7 @@ casper.test.begin(testName, numberOfTests, function(test) {
 
     casper.waitForSelector('#errorText', function() {
 
-        test.assertEval(function() { return !($('#errorText').text() === 'Wrong username or password!'); });
+        //test.assertEval(function() { return !($('#errorText').text() === 'Wrong username or password!'); });
 
         test.assertEval(function() { return $('#pages').is(':visible'); });
 
