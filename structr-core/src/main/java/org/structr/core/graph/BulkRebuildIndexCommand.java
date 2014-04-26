@@ -19,26 +19,22 @@
 package org.structr.core.graph;
 
 import java.util.Collections;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.tooling.GlobalGraphOperations;
-
-import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.Result;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
-
-//~--- JDK imports ------------------------------------------------------------
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.helpers.collection.Iterables;
+import org.neo4j.tooling.GlobalGraphOperations;
+import org.structr.common.SecurityContext;
 import org.structr.common.StructrAndSpatialPredicate;
 import org.structr.common.error.ErrorBuffer;
-import org.structr.core.GraphObject;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.Result;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.schema.SchemaHelper;
 
 //~--- classes ----------------------------------------------------------------
@@ -52,7 +48,6 @@ import org.structr.schema.SchemaHelper;
 public class BulkRebuildIndexCommand extends NodeServiceCommand implements MaintenanceCommand, TransactionPostProcess {
 
 	private static final Logger logger = Logger.getLogger(BulkRebuildIndexCommand.class.getName());
-	private static final String idName = GraphObject.id.dbName();
 
 	//~--- methods --------------------------------------------------------
 	@Override
@@ -105,6 +100,14 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 				@Override
 				public void handleGraphObject(SecurityContext securityContext, AbstractNode node) {
 
+					try {
+						// Set type to update labels
+						final String type = node.getProperty(NodeInterface.type);
+						node.setProperty(NodeInterface.type, null);
+						node.setProperty(NodeInterface.type, type);
+					} catch (FrameworkException ex) {
+						ex.printStackTrace();
+					}
 					node.updateInIndex();
 
 				}
