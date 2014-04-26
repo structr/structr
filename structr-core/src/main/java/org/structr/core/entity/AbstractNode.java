@@ -719,7 +719,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		return dbNode;
 
 	}
-	
+
 	private <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, ManyStartpoint<A>, T>> Iterable<R> getIncomingRelationshipsAsSuperUser(final Class<R> type) {
 
 		final RelationshipFactory<R> factory = new RelationshipFactory<>(SecurityContext.getSuperUserInstance());
@@ -727,7 +727,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 		return new IterableAdapter<>(template.getSource().getRawSource(SecurityContext.getSuperUserInstance(), dbNode, null), factory);
 	}
-	
+
 	/**
 	 * Return the (cached) incoming relationship between this node and the
 	 * given principal which holds the security information.
@@ -858,7 +858,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 		return cachedOwnerNode;
 	}
-	
+
 
 	/**
 	 * Returns the database ID of the owner node of this node.
@@ -1653,9 +1653,10 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 				if (sources[0] == null || StringUtils.isEmpty(sources[0].toString())) {
 
-					return "true";
+					return true;
+
 				} else {
-					return "false";
+					return false;
 				}
 
 			}
@@ -1675,7 +1676,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 				if (sources.length < 2) {
 
-					return "true";
+					return true;
 				}
 
 				logger.log(Level.FINE, "Comparing {0} to {1}", new java.lang.Object[]{sources[0], sources[1]});
@@ -1685,13 +1686,10 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 				}
 
 				if (sources[0] == null || sources[1] == null) {
-					return "false";
+					return false;
 				}
 
-				return sources[0].equals(sources[1])
-					? "true"
-					: "false";
-
+				return valueEquals(sources[0], sources[1]);
 			}
 
 			@Override
@@ -1752,7 +1750,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 					try {
 
-						result = (Double.parseDouble(sources[0].toString()) < Double.parseDouble(sources[1].toString())) ? "true" : "false";
+						return (Double.parseDouble(sources[0].toString()) < Double.parseDouble(sources[1].toString()));
 
 					} catch (Throwable t) {
 
@@ -1782,7 +1780,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 					try {
 
-						result = (Double.parseDouble(sources[0].toString()) > Double.parseDouble(sources[1].toString())) ? "true" : "false";
+						return (Double.parseDouble(sources[0].toString()) > Double.parseDouble(sources[1].toString()));
 
 					} catch (Throwable t) {
 
@@ -1812,7 +1810,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 					try {
 
-						result = (Double.parseDouble(sources[0].toString()) <= Double.parseDouble(sources[1].toString())) ? "true" : "false";
+						return (Double.parseDouble(sources[0].toString()) <= Double.parseDouble(sources[1].toString()));
 
 					} catch (Throwable t) {
 
@@ -1842,7 +1840,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 					try {
 
-						result = (Double.parseDouble(sources[0].toString()) >= Double.parseDouble(sources[1].toString())) ? "true" : "false";
+						return (Double.parseDouble(sources[0].toString()) >= Double.parseDouble(sources[1].toString()));
 
 					} catch (Throwable t) {
 
@@ -2170,11 +2168,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 				if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
 
-					return "true".equals(sources[0].toString()) ? "false" : "true";
+					return !("true".equals(sources[0].toString()) || Boolean.TRUE.equals(sources[0]));
 
 				}
 
-				return "true";
+				return true;
 			}
 
 			@Override
@@ -2202,7 +2200,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 							try {
 
-								result &= "true".equals(i.toString());
+								result &= "true".equals(i.toString()) || Boolean.TRUE.equals(i);
 
 							} catch (Throwable t) {
 
@@ -2247,7 +2245,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 							try {
 
-								result |= "true".equals(i.toString());
+								result |= "true".equals(i.toString()) || Boolean.TRUE.equals(i);
 
 							} catch (Throwable t) {
 
@@ -3237,6 +3235,16 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 	protected static boolean isNumeric(final String source) {
 		return threadLocalDoubleMatcher.get().reset(source).matches();
+	}
+
+	protected static boolean valueEquals(final Object obj1, final Object obj2) {
+
+		if (obj1 instanceof Number && obj2 instanceof Number) {
+
+			return ((Number)obj1).doubleValue() == ((Number)obj2).doubleValue();
+		}
+
+		return obj1.equals(obj2);
 	}
 
 	protected static String getSandboxFileName(final String source) throws IOException {

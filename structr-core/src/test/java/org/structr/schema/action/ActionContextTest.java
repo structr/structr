@@ -60,12 +60,14 @@ public class ActionContextTest extends StructrTest {
 			// check existance
 			assertNotNull(testOne);
 
+			testOne.setProperty(TestOne.name, "A-nice-little-name-for-my-test-object");
 			testOne.setProperty(TestOne.anInt, 1);
 			testOne.setProperty(TestOne.aString, "String");
 			testOne.setProperty(TestOne.anotherString, "{\n\ttest: test,\n\tnum: 3\n}");
 			testOne.setProperty(TestOne.aLong, 235242522552L);
 			testOne.setProperty(TestOne.aDouble, 2.234);
 			testOne.setProperty(TestOne.aDate, now);
+			testOne.setProperty(TestOne.aBoolean, true);
 			testOne.setProperty(TestOne.testTwo, testTwo);
 			testOne.setProperty(TestOne.testThree, testThree);
 			testOne.setProperty(TestOne.testFour,  testFour);
@@ -201,6 +203,18 @@ public class ActionContextTest extends StructrTest {
 
 			// functions CAN handle variable values with newlines!
 			assertEquals("Invalid if(empty()) result", "false",  testOne.replaceVariables(securityContext, ctx,  "${if(empty(this.anotherString), \"true\", \"false\")}"));
+
+			// equal
+			assertEquals("Invalid equal() result", "true",  testOne.replaceVariables(securityContext, ctx, "${equal(this.id, this.id)}"));
+			assertEquals("Invalid equal() result", "false",  testOne.replaceVariables(securityContext, ctx, "${equal(\"1\", this.anInt)}"));
+			assertEquals("Invalid equal() result", "true",  testOne.replaceVariables(securityContext, ctx, "${equal(1, this.anInt)}"));
+			assertEquals("Invalid equal() result", "true",  testOne.replaceVariables(securityContext, ctx, "${equal(1.0, this.anInt)}"));
+			assertEquals("Invalid equal() result", "false",  testOne.replaceVariables(securityContext, ctx, "${equal(this.anInt, \"1\")}"));
+			assertEquals("Invalid equal() result", "true",  testOne.replaceVariables(securityContext, ctx, "${equal(this.anInt, 1)}"));
+			assertEquals("Invalid equal() result", "true",  testOne.replaceVariables(securityContext, ctx, "${equal(this.anInt, 1.0)}"));
+			assertEquals("Invalid equal() result", "false",  testOne.replaceVariables(securityContext, ctx, "${equal(this.aBoolean, \"true\")}"));
+			assertEquals("Invalid equal() result", "true",  testOne.replaceVariables(securityContext, ctx, "${equal(this.aBoolean, true)}"));
+			assertEquals("Invalid equal() result", "false",  testOne.replaceVariables(securityContext, ctx, "${equal(this.aBoolean, false)}"));
 
 			// if + equal
 			assertEquals("Invalid if(equal()) result", "true",  testOne.replaceVariables(securityContext, ctx, "${if(equal(this.id, this.id), \"true\", \"false\")}"));
@@ -620,11 +634,12 @@ public class ActionContextTest extends StructrTest {
 			// more tests with pre- and postfixes
 			assertEquals("Invalid replacement result", "abcdefghijklmnop", testOne.replaceVariables(securityContext, ctx, "abcdefgh${blah}ijklmnop"));
 			assertEquals("Invalid replacement result", "abcdefghStringijklmnop", testOne.replaceVariables(securityContext, ctx, "abcdefgh${this.aString}ijklmnop"));
+			assertEquals("Invalid replacement result", "#String", testOne.replaceVariables(securityContext, ctx, "#${this.aString}"));
+			assertEquals("Invalid replacement result", "doc_sections/"+ testOne.getUuid() + "/childSections?sort=pos", testOne.replaceVariables(securityContext, ctx, "doc_sections/${this.id}/childSections?sort=pos"));
+			assertEquals("Invalid replacement result", "A Nice Little Name For My Test Object", testOne.replaceVariables(securityContext, ctx, "${titleize(this.name, '-')}"));
+			assertEquals("Invalid replacement result", "STRINGtrueFALSE", testOne.replaceVariables(securityContext, ctx, "${upper(this.aString)}${lower(true)}${upper(false)}"));
 
-
-
-			// tile plan ${plan.bannerTag}
-
+			// or(empty(hotel.numberOfMarinaSlips),equal(hotel.numberOfMarinaSlips,0))
 
 		} catch (FrameworkException fex) {
 

@@ -6,6 +6,7 @@ import static junit.framework.TestCase.assertTrue;
 import static junit.framework.TestCase.fail;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.Tx;
+import org.structr.web.entity.LinkSource;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.w3c.dom.NodeList;
@@ -33,6 +34,7 @@ public class RenderContextTest extends StructrUiTest {
 		DOMNode p2     = null;
 		DOMNode div3   = null;
 		DOMNode p3     = null;
+		DOMNode a      = null;
 
 		try (final Tx tx = app.tx()) {
 
@@ -52,6 +54,7 @@ public class RenderContextTest extends StructrUiTest {
 			p2    = (DOMNode) page.createElement("p");
 			div3  = (DOMNode) page.createElement("div");
 			p3    = (DOMNode) page.createElement("p");
+			a     = (DOMNode) page.createElement("a");
 
 			// add HTML element to page
 			page.appendChild(html);
@@ -78,6 +81,10 @@ public class RenderContextTest extends StructrUiTest {
 			div2.appendChild(div3);
 			div3.appendChild(p3);
 
+			// add link to p3
+			p3.appendChild(a);
+			a.setProperty(LinkSource.linkable, page);
+
 			NodeList divs = page.getElementsByTagName("p");
 			assertEquals(p1, divs.item(0));
 			assertEquals(p2, divs.item(1));
@@ -93,6 +100,7 @@ public class RenderContextTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final RenderContext ctx = new RenderContext();
+			ctx.setPage(page);
 
 			// test for "empty" return value
 			assertEquals("", p1.replaceVariables(securityContext, ctx, "${error}"));
@@ -102,17 +110,20 @@ public class RenderContextTest extends StructrUiTest {
 			assertEquals("", p1.replaceVariables(securityContext, ctx, "${this.owner}"));
 			assertEquals("", p1.replaceVariables(securityContext, ctx, "${parent.owner}"));
 
-			// do not test "this", as this keyword means something different in the RenderContext implementation
-			// assertEquals(p1.getUuid(),   p1.replaceVariables(securityContext, ctx, "${this.id}"));
-
 			// other functions are tested in the ActionContextTest in structr-core, see there.
 			assertEquals("true", p1.replaceVariables(securityContext, ctx, "${true}"));
 			assertEquals("false", p1.replaceVariables(securityContext, ctx, "${false}"));
 			assertEquals("yes", p1.replaceVariables(securityContext, ctx, "${if(true, \"yes\", \"no\")}"));
 			assertEquals("no", p1.replaceVariables(securityContext, ctx, "${if(false, \"yes\", \"no\")}"));
+			assertEquals("true", p1.replaceVariables(securityContext, ctx, "${if(true, true, false)}"));
+			assertEquals("false", p1.replaceVariables(securityContext, ctx, "${if(false, true, false)}"));
 
 			assertNull(p1.replaceVariables(securityContext, ctx, "${if(true, null, \"no\")}"));
 			assertNull(p1.replaceVariables(securityContext, ctx, "${null}"));
+
+			assertEquals("Invalid replacement result", "/testpage?" + page.getUuid(), p1.replaceVariables(securityContext, ctx, "/${page.name}?${page.id}"));
+			assertEquals("Invalid replacement result", "/testpage?" + page.getUuid(), a.replaceVariables(securityContext, ctx, "/${link.name}?${link.id}"));
+
 
 		} catch (FrameworkException fex) {
 
