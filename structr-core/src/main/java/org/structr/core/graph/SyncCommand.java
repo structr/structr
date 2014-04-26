@@ -50,6 +50,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 import org.apache.commons.io.IOUtils;
+import org.neo4j.graphdb.DynamicLabel;
 import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
@@ -686,6 +687,11 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 										// store object in DB
 										currentObject.setProperty(currentKey, obj);
+
+										// set type label
+										if (currentObject instanceof Node && NodeInterface.type.dbName().equals(currentKey)) {
+											((Node) currentObject).addLabel(DynamicLabel.label((String) obj));
+										}
 
 									} else {
 
