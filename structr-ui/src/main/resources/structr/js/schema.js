@@ -703,12 +703,14 @@ var _Schema = {
         });
     },
     setRelationshipProperty: function(entityId, key, value) {
+        var data = {};
+        data[key] = cleanText(value);
         $.ajax({
             url: rootUrl + 'schema_relationships/' + entityId,
             type: 'PUT',
             dataType: 'json',
             contentType: 'application/json; charset=utf-8',
-            data: '{"' + key + '":' + (value ? '"' + value + '"' : 'null') + '}',
+            data: JSON.stringify(data),
             statusCode: {
                 200: function(data, textStatus, jqXHR) {
                     //console.log('rel property set', data, textStatus, jqXHR);
