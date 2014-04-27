@@ -181,7 +181,7 @@ public class HttpService implements RunnableService {
 			try {
 				mainClass = Class.forName(mainClassName);
 			} catch (ClassNotFoundException ex) {
-				logger.log(Level.WARNING, "Did not found class for main class from config " + mainClassName, ex);
+				logger.log(Level.WARNING, "Did not find class for main class from config " + mainClassName, ex);
 			}
 
 		}
