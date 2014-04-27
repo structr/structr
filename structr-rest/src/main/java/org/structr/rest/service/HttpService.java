@@ -488,9 +488,9 @@ public class HttpService implements RunnableService {
 	}
 
 	public static boolean parseBoolean(Object source, boolean defaultValue) {
-		
+
 		try { return Boolean.parseBoolean(source.toString()); } catch(Throwable ignore) {}
-		
+
 		return defaultValue;
 	}
 
@@ -564,15 +564,15 @@ public class HttpService implements RunnableService {
 
 		// TODO: read context handlers from configuration file
 //		public Structr addResourceHandler(String contextPath, String resourceBase, boolean directoriesListed, String[] welcomeFiles) {
-//		
+//
 //		ResourceHandler resourceHandler = new ResourceHandler();
 //		resourceHandler.setDirectoriesListed(directoriesListed);
 //		resourceHandler.setWelcomeFiles(welcomeFiles);
-//		resourceHandler.setResourceBase(resourceBase);		
+//		resourceHandler.setResourceBase(resourceBase);
 //		ContextHandler staticResourceHandler = new ContextHandler();
 //		staticResourceHandler.setContextPath(contextPath);
 //		staticResourceHandler.setHandler(resourceHandler);
-//		
+//
 //		this.resourceHandler.add(staticResourceHandler);
 		return resourceHandlers;
 	}
