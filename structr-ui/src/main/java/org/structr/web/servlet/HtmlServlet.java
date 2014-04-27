@@ -41,12 +41,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.LocaleUtils;
-import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DateUtils;
 import org.structr.common.AccessMode;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.PathHelper;
 import org.structr.common.SecurityContext;
+import org.structr.common.ThreadLocalMatcher;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
@@ -65,7 +66,6 @@ import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
-import org.structr.common.ThreadLocalMatcher;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Linkable;
 import org.structr.web.entity.User;
@@ -279,6 +279,10 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 				}
 
+				if (rootElement == null) {
+					return;
+				}
+				
 				logger.log(Level.FINE, "Page found in {0} seconds", decimalFormat.format((System.nanoTime() - start) / 1000000000.0));
 
 				if (EditMode.DATA.equals(edit) || dontCache) {
