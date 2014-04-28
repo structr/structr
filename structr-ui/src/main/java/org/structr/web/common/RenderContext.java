@@ -403,6 +403,10 @@ public class RenderContext extends ActionContext {
 
 				_data = this.getDataNode(part);
 
+				if (parts.length == 1) {
+					return _data;
+				}
+
 				continue;
 
 			}
@@ -444,6 +448,10 @@ public class RenderContext extends ActionContext {
 
 					_data = me;
 
+					if (parts.length == 1) {
+						return _data;
+					}
+
 					continue;
 				}
 
@@ -482,6 +490,10 @@ public class RenderContext extends ActionContext {
 
 						_data = detailsObject;
 
+						if (parts.length == 1) {
+							return _data;
+						}
+
 						continue;
 					}
 
@@ -492,6 +504,10 @@ public class RenderContext extends ActionContext {
 
 					_data = this.getDataObject();
 
+					if (parts.length == 1) {
+						return _data;
+					}
+
 					continue;
 
 				}
@@ -501,6 +517,10 @@ public class RenderContext extends ActionContext {
 
 					_data = entity;
 
+					if (parts.length == 1) {
+						return _data;
+					}
+
 					continue;
 
 				}
@@ -509,6 +529,10 @@ public class RenderContext extends ActionContext {
 				if ("page".equals(part)) {
 
 					_data = _page;
+
+					if (parts.length == 1) {
+						return _data;
+					}
 
 					continue;
 
@@ -522,6 +546,10 @@ public class RenderContext extends ActionContext {
 					if (rel != null) {
 						_data = rel.getTargetNode();
 
+						if (parts.length == 1) {
+							return _data;
+						}
+
 						continue;
 					}
 
@@ -531,6 +559,10 @@ public class RenderContext extends ActionContext {
 				if ("parent".equals(part)) {
 
 					_data = (DOMNode) ((DOMNode)entity).getParentNode();
+
+					if (parts.length == 1) {
+						return _data;
+					}
 
 					continue;
 
@@ -543,6 +575,10 @@ public class RenderContext extends ActionContext {
 					if (rel != null) {
 
 						_data = rel.getSourceNode();
+
+						if (parts.length == 1) {
+							return _data;
+						}
 					}
 
 					continue;

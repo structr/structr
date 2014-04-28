@@ -8,6 +8,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.Tx;
 import org.structr.web.entity.LinkSource;
+import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.w3c.dom.NodeList;
@@ -36,6 +37,8 @@ public class RenderContextTest extends StructrUiTest {
 		DOMNode div3   = null;
 		DOMNode p3     = null;
 		DOMNode a      = null;
+		DOMNode div4   = null;
+		DOMNode p4     = null;
 
 		try (final Tx tx = app.tx()) {
 
@@ -56,6 +59,8 @@ public class RenderContextTest extends StructrUiTest {
 			div3  = (DOMNode) page.createElement("div");
 			p3    = (DOMNode) page.createElement("p");
 			a     = (DOMNode) page.createElement("a");
+			div4  = (DOMNode) page.createElement("div");
+			p4    = (DOMNode) page.createElement("p");
 
 			// add HTML element to page
 			page.appendChild(html);
@@ -86,10 +91,17 @@ public class RenderContextTest extends StructrUiTest {
 			p3.appendChild(a);
 			a.setProperty(LinkSource.linkable, page);
 
-			NodeList divs = page.getElementsByTagName("p");
-			assertEquals(p1, divs.item(0));
-			assertEquals(p2, divs.item(1));
-			assertEquals(p3, divs.item(2));
+			body.appendChild(div4);
+			div4.appendChild(p4);
+
+			p4.setProperty(DOMElement.restQuery, "/divs");
+			p4.setProperty(DOMElement.dataKey, "div");
+
+			NodeList paragraphs = page.getElementsByTagName("p");
+			assertEquals(p1, paragraphs.item(0));
+			assertEquals(p2, paragraphs.item(1));
+			assertEquals(p3, paragraphs.item(2));
+			assertEquals(p4, paragraphs.item(3));
 
 			tx.success();
 
@@ -131,6 +143,10 @@ public class RenderContextTest extends StructrUiTest {
 
 			// this test finds multiple <p> elements => error
 			assertEquals("Invalid replacement result", AbstractNode.ERROR_MESSAGE_GET_ENTITY, a.replaceVariables(securityContext, ctx, "${get(find('P'), 'id')}"));
+
+			// more complex replacement
+			//assertEquals("Invalid replacement result", "", a.replaceVariables(securityContext, ctx, "${get(find('P'), 'id')}"));
+
 
 		} catch (FrameworkException fex) {
 
