@@ -51,6 +51,7 @@ import org.structr.core.property.Property;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
+import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
@@ -126,7 +127,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		functions.put("GET", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) {
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) {
 
 				if (sources != null && sources.length > 0) {
 

@@ -132,7 +132,6 @@ public class RenderContextTest extends StructrUiTest {
 			// this test finds multiple <p> elements => error
 			assertEquals("Invalid replacement result", AbstractNode.ERROR_MESSAGE_GET_ENTITY, a.replaceVariables(securityContext, ctx, "${get(find('P'), 'id')}"));
 
-
 		} catch (FrameworkException fex) {
 
 			fail("Unexpected exception");

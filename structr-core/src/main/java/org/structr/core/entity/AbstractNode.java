@@ -1351,7 +1351,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("md5", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				return (arrayHasMinLengthAndAllElementsNotNull(sources, 1))
 					? DigestUtils.md5Hex(sources[0].toString())
@@ -1367,7 +1367,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("upper", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				return (arrayHasMinLengthAndAllElementsNotNull(sources, 1))
 					? sources[0].toString().toUpperCase()
@@ -1384,7 +1384,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("lower", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				return (arrayHasMinLengthAndAllElementsNotNull(sources, 1))
 					? sources[0].toString().toLowerCase()
@@ -1401,7 +1401,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("join", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				final List list = new ArrayList();
 				for (final Object source : sources) {
@@ -1428,7 +1428,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("split", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
 
@@ -1454,7 +1454,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("abbr", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				if (arrayHasMinLengthAndAllElementsNotNull(sources, 2)) {
 
@@ -1491,7 +1491,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("capitalize", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				return (arrayHasMinLengthAndAllElementsNotNull(sources, 1))
 					? StringUtils.capitalize(sources[0].toString())
@@ -1507,7 +1507,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("titleize", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				if (sources == null || sources.length < 2 || sources[0] == null) {
 					return null;
@@ -1539,7 +1539,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("num", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
 
@@ -1562,7 +1562,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("replace", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				if (arrayHasMinLengthAndAllElementsNotNull(sources, 2)) {
 
@@ -1585,7 +1585,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 					if (node != null) {
 
 						// recursive replacement call, be careful here
-						return node.replaceVariables(entity.getSecurityContext(), new ActionContext(node, null), template);
+						return node.replaceVariables(entity.getSecurityContext(), ctx, template);
 					}
 
 					return "";
@@ -1603,7 +1603,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("clean", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				String result;
 
@@ -1658,7 +1658,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("urlencode", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				return (arrayHasMinLengthAndAllElementsNotNull(sources, 1))
 					? encodeURL(sources[0].toString())
@@ -1675,7 +1675,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("if", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				if (sources[0] == null || sources.length < 3) {
 
@@ -1702,7 +1702,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("empty", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				if (sources[0] == null || StringUtils.isEmpty(sources[0].toString())) {
 
@@ -1723,7 +1723,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("equal", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				logger.log(Level.FINE, "Length: {0}", sources.length);
 
@@ -1754,7 +1754,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("add", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				Double result = 0.0;
 
@@ -1795,7 +1795,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("lt", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				String result = "";
 
@@ -1825,7 +1825,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("gt", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				String result = "";
 
@@ -1855,7 +1855,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("lte", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				String result = "";
 
@@ -1885,7 +1885,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("gte", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				String result = "";
 
@@ -1915,7 +1915,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("subt", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				if (arrayHasMinLengthAndAllElementsNotNull(sources, 2)) {
 
@@ -1950,7 +1950,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("mult", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				Double result = 1.0d;
 
@@ -1983,7 +1983,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("quot", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
 
@@ -2020,7 +2020,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("round", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
 
@@ -2056,7 +2056,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("max", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				Object result   = "";
 				String errorMsg = "ERROR! Usage: ${max(val1, val2)}. Example: ${max(5,10)}";
@@ -2089,7 +2089,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("min", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				Object result   = "";
 				String errorMsg = "ERROR! Usage: ${min(val1, val2)}. Example: ${min(5,10)}";
@@ -2122,7 +2122,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("config", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
 
@@ -2143,7 +2143,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("date_format", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				if (sources == null || sources != null && sources.length != 2) {
 					return ERROR_MESSAGE_DATE_FORMAT;
@@ -2183,7 +2183,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("number_format", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				if (sources == null || sources != null && sources.length != 3) {
 					return ERROR_MESSAGE_NUMBER_FORMAT;
@@ -2217,7 +2217,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("not", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
 
@@ -2237,7 +2237,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("and", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				boolean result = true;
 
@@ -2282,7 +2282,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("or", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				boolean result = false;
 
@@ -2326,7 +2326,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("get", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
 
@@ -2373,7 +2373,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("first", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				if (arrayHasLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof List) {
 					return ((List)sources[0]).get(0);
@@ -2390,7 +2390,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("last", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				if (arrayHasLengthAndAllElementsNotNull(sources, 1) &&  sources[0] instanceof List) {
 
@@ -2409,7 +2409,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("nth", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				if (arrayHasLengthAndAllElementsNotNull(sources, 2) && sources[0] instanceof List) {
 
@@ -2431,7 +2431,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("each", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				if (arrayHasLengthAndAllElementsNotNull(sources, 2) && sources[0] instanceof List) {
 
@@ -2458,7 +2458,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("print", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				if (sources != null) {
 
@@ -2481,7 +2481,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("read", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				if (arrayHasLengthAndAllElementsNotNull(sources, 1)) {
 
@@ -2515,7 +2515,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("write", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
 
@@ -2559,7 +2559,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("append", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
 
@@ -2595,7 +2595,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("xml", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				if (arrayHasLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof String) {
 
@@ -2627,7 +2627,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("xpath", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				if (arrayHasMinLengthAndAllElementsNotNull(sources, 2) && sources[0] instanceof Document) {
 
@@ -2652,7 +2652,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("set", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				if (arrayHasMinLengthAndAllElementsNotNull(sources, 2)) {
 
@@ -2703,7 +2703,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("send_plaintext_mail", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				if (arrayHasLengthAndAllElementsNotNull(sources, 6)) {
 
@@ -2733,7 +2733,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("send_html_mail", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				if (arrayHasLengthAndAllElementsNotNull(sources, 6)) {
 
@@ -2764,7 +2764,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("geocode", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				if (arrayHasLengthAndAllElementsNotNull(sources, 3)) {
 
@@ -2797,7 +2797,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("find", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				if (sources != null) {
 
@@ -2899,7 +2899,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("create", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				if (sources != null) {
 
@@ -3010,7 +3010,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		functions.put("delete", new Function<Object, Object>() {
 
 			@Override
-			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
 				if (sources != null) {
 
@@ -3151,13 +3151,13 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 						addAll(results, extractFunctions(securityContext, actionContext, StringUtils.strip(parameters[i])));
 					}
 
-					return function.apply(this, results.toArray());
+					return function.apply(actionContext, this, results.toArray());
 
 				} else {
 
 					addAll(results, extractFunctions(securityContext, actionContext, StringUtils.strip(parameter)));
 
-					return function.apply(this, results.toArray());
+					return function.apply(actionContext, this, results.toArray());
 
 				}
 			}

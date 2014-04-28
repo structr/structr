@@ -27,6 +27,6 @@ import org.structr.core.graph.NodeInterface;
  */
 public interface Function<S, T> {
 
-	public T apply(NodeInterface entity, S[] sources) throws FrameworkException;
+	public T apply(ActionContext ctx, NodeInterface entity, S[] sources) throws FrameworkException;
 	public String usage();
 }
