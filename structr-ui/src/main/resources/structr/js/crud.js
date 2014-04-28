@@ -814,21 +814,50 @@ var _Crud = {
                         onError();
                     } else {
                         //console.log(data, status, xhr);
-                        _Crud.dialog('Create new ' + type, function() {
-                            //console.log('ok')
-                        }, function() {
-                            //console.log('cancel')
-                        });
-                        _Crud.showDetails(null, true, type);
+                        
+                        if (!dialogBox.is(':visible')) {
+//                            _Crud.dialog('Create new ' + type, function() {
+//                                //console.log('ok')
+//                            }, function() {
+//                                //console.log('cancel')
+//                            });
+                            _Crud.showDetails(null, true, type);
+                        }
                         var resp = JSON.parse(data.responseText);
                         //console.log(resp);
+                        
+                        $('.props input', dialogBox).css({
+                           backgroundColor: '#fff',
+                           borderColor: '#a5a5a5'
+                        });
+                        
+                        $('.props textarea', dialogBox).css({
+                           backgroundColor: '#fff',
+                           borderColor: '#a5a5a5'
+                        });
+
+                        $('.props td.value', dialogBox).css({
+                           backgroundColor: '#fff',
+                           borderColor: '#b5b5b5',
+                           
+                        });
+
                         $.each(Object.keys(resp.errors[type]), function(i, key) {
                             var errorMsg = resp.errors[type][key][0];
                             //console.log(key, errorMsg);
-                            $('td [name="' + key + '"]', dialogText).prop('placeholder', errorMsg.splitAndTitleize('_')).css({
-                                backgroundColor: '#fee',
-                                borderColor: '#933'
-                            });
+                            var input = $('td [name="' + key + '"]', dialogText);
+                            if (input.length)  {
+                                input.prop('placeholder', errorMsg.splitAndTitleize('_')).css({
+                                    backgroundColor: '#fee',
+                                    borderColor: '#933'
+                                });
+                            } else {
+                                $('td.' + key, dialogText).append(errorMsg.splitAndTitleize('_')).css({
+                                    backgroundColor: '#fee',
+                                    borderColor: '#933',
+                                    color: '#a5a5a5'
+                                });
+                            }
                         });
                         //_Crud.error('Error: ' + data.responseText, true);
                     }
@@ -1281,7 +1310,7 @@ var _Crud = {
                     });
                 }
             } else if (propertyType === 'Date') {
-                cell.text(nvl(formatValue(value), ''));
+                cell.html(nvl(formatValue(value), '<img src="icon/calendar.png">'));
                 if (!readOnly) {
                     cell.on('mouseup', function(event) {
                         event.preventDefault();
@@ -1902,18 +1931,19 @@ var _Crud = {
         }
         var typeDef = _Crud.schema[type];
 
-        if (node) {
-            //console.log('Edit node', node);
-            _Crud.dialog('Details of ' + type + ' ' + (node.name ? node.name : node.id) + '<span class="id"> [' + node.id + ']</span>', function() {
-            }, function() {
-            });
-        } else {
-            //console.log('Create new node of type', typeOnCreate);
-            _Crud.dialog('Create new ' + type, function() {
-            }, function() {
-            });
+        if (!dialogBox.is(':visible')) {
+            if (node) {
+                //console.log('Edit node', node);
+                _Crud.dialog('Details of ' + type + ' ' + (node.name ? node.name : node.id) + '<span class="id"> [' + node.id + ']</span>', function() {
+                }, function() {
+                });
+            } else {
+                //console.log('Create new node of type', typeOnCreate);
+                _Crud.dialog('Create new ' + type, function() {
+                }, function() {
+                });
+            }
         }
-
         //console.log('readonly', readonly);
 
         if (create) {
@@ -1932,11 +1962,6 @@ var _Crud = {
         }
 
         $.each(keys, function(i, key) {
-            //$.each(typeDef.views[_Crud.view[type]], function(i, property) {
-            //console.log(property);
-            //var type = property.className.substring(property.className.lastIndexOf('.') + 1);
-            //var key = property.jsonName;
-            
             var readOnly = _Crud.readOnly(key, type);
             var isCollection = _Crud.isCollection(key, type);
             var relatedType = _Crud.relatedType(key, type);
@@ -1950,25 +1975,23 @@ var _Crud = {
                 //console.log(node.id, key, type, node[key], cell);
                 _Crud.populateCell(node.id, key, node.type, node[key], cell);
             } else {
-                //console.log(key,node[key]);
-                //cell.append(formatValueInputField(key, ''));
                 _Crud.populateCell(null, key, type, null, cell);
             }
         });
-        dialogSaveButton.remove();
+
         if (create) {
-            dialogBox.append('<button class="save" id="saveProperties">Save</button>');
-            $('.save', $('#dialogBox')).on('click', function() {
-                $(this).remove();
+            dialogSaveButton = $('.save', $('#dialogBox'));
+            if (!(dialogSaveButton.length)) {
+                dialogBox.append('<button class="save" id="saveProperties">Save</button>');
+                dialogSaveButton = $('.save', $('#dialogBox'));
+            }
+            dialogSaveButton.on('click', function() {
                 var form = $('#entityForm');
                 var json = JSON.stringify(_Crud.serializeObject(form));
-                //console.log(json);
-                //dialogText.empty();
                 if (create) {
                     _Crud.crudCreate(type, typeDef.url, json);
                 } else {
                     var id = form.attr('data-id');
-                    //console.log('updating', id);
                     _Crud.crudUpdateObj(id, json);
                 }
             });

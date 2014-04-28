@@ -392,13 +392,15 @@ var _Schema = {
                                     events: {
                                         "click": function(label, evt) {
                                             //console.log(rels[res.id].getOverlay('sourceMultiplicity').label);
-                                            var overlay = rels[res.id].getOverlay('sourceMultiplicity');
-                                            overlay.setLabel('<input id="source-mult-label" type="text" size="15" id="id_' + res.id + '_sourceMultiplicity" value="' + overlay.label + '">');
-                                            $('#source-mult-label').focus().on('blur', function() {
-                                                _Schema.setRelationshipProperty(res.id, 'sourceMultiplicity', $(this).val());
-                                                overlay.setLabel($(this).val());
-                                            });
                                             evt.preventDefault();
+                                            var overlay = rels[res.id].getOverlay('sourceMultiplicity');
+                                            if (!(overlay.getLabel().substring(0,1) === '<')) {
+                                                overlay.setLabel('<input id="source-mult-label" type="text" size="15" id="id_' + res.id + '_sourceMultiplicity" value="' + overlay.label + '">');
+                                                $('#source-mult-label').focus().on('blur', function() {
+                                                    _Schema.setRelationshipProperty(res.id, 'sourceMultiplicity', $(this).val());
+                                                    overlay.setLabel($(this).val());
+                                                });
+                                            }
                                         }
                                     }
                                 }
@@ -411,13 +413,15 @@ var _Schema = {
                                     events: {
                                         "click": function(label, evt) {
                                             //console.log(rels[res.id].getOverlay('label').label);
-                                            var overlay = rels[res.id].getOverlay('label');
-                                            overlay.setLabel('<input id="relationship-label" type="text" size="15" id="id_' + res.id + '_relationshipType" value="' + overlay.label + '">');
-                                            $('#relationship-label').focus().on('blur', function() {
-                                                _Schema.setRelationshipProperty(res.id, 'relationshipType', $(this).val());
-                                                overlay.setLabel($(this).val());
-                                            });
                                             evt.preventDefault();
+                                            var overlay = rels[res.id].getOverlay('label');
+                                            if (!(overlay.getLabel().substring(0,1) === '<')) {
+                                                overlay.setLabel('<input id="relationship-label" type="text" size="15" id="id_' + res.id + '_relationshipType" value="' + overlay.label + '">');
+                                                $('#relationship-label').focus().on('blur', function() {
+                                                    _Schema.setRelationshipProperty(res.id, 'relationshipType', $(this).val());
+                                                    overlay.setLabel($(this).val());
+                                                });
+                                            }
                                         }
                                     }
                                 }
@@ -430,13 +434,15 @@ var _Schema = {
                                     events: {
                                         "click": function(label, evt) {
                                             //console.log(rels[res.id].getOverlay('targetMultiplicity').label);
-                                            var overlay = rels[res.id].getOverlay('targetMultiplicity');
-                                            overlay.setLabel('<input id="target-mult-label" type="text" size="15" id="id_' + res.id + '_targetMultiplicity" value="' + overlay.label + '">');
-                                            $('#target-mult-label').focus().on('blur', function() {
-                                                _Schema.setRelationshipProperty(res.id, 'targetMultiplicity', $(this).val());
-                                                overlay.setLabel($(this).val());
-                                            });
                                             evt.preventDefault();
+                                            var overlay = rels[res.id].getOverlay('targetMultiplicity');
+                                            if (!(overlay.getLabel().substring(0,1) === '<')) {
+                                                overlay.setLabel('<input id="target-mult-label" type="text" size="15" id="id_' + res.id + '_targetMultiplicity" value="' + overlay.label + '">');
+                                                $('#target-mult-label').focus().on('blur', function() {
+                                                    _Schema.setRelationshipProperty(res.id, 'targetMultiplicity', $(this).val());
+                                                    overlay.setLabel($(this).val());
+                                                });
+                                            }
                                         }
                                     }
                                 }
