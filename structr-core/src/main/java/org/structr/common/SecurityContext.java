@@ -575,7 +575,7 @@ public class SecurityContext {
 	}
 
 	public boolean hasCustomView() {
-		return customView != null;
+		return customView != null && !customView.isEmpty();
 	}
 
 	public Set<String> getCustomView() {
