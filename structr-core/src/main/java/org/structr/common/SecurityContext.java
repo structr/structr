@@ -125,13 +125,13 @@ public class SecurityContext {
 		if (request != null) {
 
 			try {
-				final String contentType = request.getContentType();
-				if (contentType != null && contentType.startsWith("application/json;")) {
+				final String acceptedContentType = request.getHeader("Accept");
+				if (acceptedContentType != null && acceptedContentType.startsWith("application/json;")) {
 
-					customView = new LinkedHashSet<>();
-
-					final Matcher matcher = customViewPattern.matcher(contentType);
+					final Matcher matcher = customViewPattern.matcher(acceptedContentType);
 					if (matcher.matches()) {
+
+						customView = new LinkedHashSet<>();
 
 						final String properties = matcher.group(1);
 						final String[] parts    = properties.split("[,]+");

@@ -48,4 +48,8 @@ public class TestOne extends AbstractNode {
 	public static final View publicView = new View(TestOne.class, PropertyView.Public,
 		name, anInt, aDouble, aLong, aDate, createdDate, aString
 	);
+
+	public static final View uiView = new View(TestOne.class, PropertyView.Ui,
+		name, anInt, aDouble, aLong, aDate, createdDate, aString
+	);
 }

@@ -366,6 +366,108 @@ public class StructrUiTest extends TestCase {
 		return location.substring(location.lastIndexOf("/") + 1);
 	}
 
+	protected void grant(final String signature, final long flags, final boolean reset) {
+
+		if (reset) {
+
+			// delete existing grants
+			RestAssured
+
+				.given()
+					.contentType("application/json; charset=UTF-8")
+					.header("X-User", "superadmin")
+					.header("X-Password", "sehrgeheim")
+
+				.expect()
+					.statusCode(200)
+
+				.when()
+					.delete("/resource_access");
+		}
+
+		// create new grant
+		RestAssured
+
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.header("X-User", "superadmin")
+				.header("X-Password", "sehrgeheim")
+				.body(" { 'signature' : '" + signature + "', 'flags': " + flags + " } ")
+
+			.expect()
+				.statusCode(201)
+
+			.when()
+				.post("/resource_access");
+	}
+
+	protected void testGet(final String resource, final String username, final String password, final int expectedStatusCode) {
+
+		RestAssured
+
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.header("X-User", username)
+				.header("X-Password", password)
+
+			.expect()
+				.statusCode(expectedStatusCode)
+
+			.when()
+				.get(resource);
+
+	}
+
+	protected void testPost(final String resource, final String username, final String password, final String body, final int expectedStatusCode) {
+
+		RestAssured
+
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.header("X-User", username)
+				.header("X-Password", password)
+				.body(body)
+
+			.expect()
+				.statusCode(expectedStatusCode)
+
+			.when()
+				.post(resource);
+	}
+
+	protected void testPut(final String resource, final String username, final String password, final String body, final int expectedStatusCode) {
+
+		RestAssured
+
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.header("X-User", username)
+				.header("X-Password", password)
+				.body(body)
+
+			.expect()
+				.statusCode(expectedStatusCode)
+
+			.when()
+				.put(resource);
+	}
+
+	protected void testDelete(final String resource, final String username, final String password, final int expectedStatusCode) {
+
+		RestAssured
+
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.header("X-User", username)
+				.header("X-Password", password)
+
+			.expect()
+				.statusCode(expectedStatusCode)
+
+			.when()
+				.delete(resource);
+	}
+
 	private static void checkCharset() {
 
 		System.out.println("######### Charset settings ##############");
