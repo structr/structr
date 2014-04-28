@@ -36,6 +36,7 @@ import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidPropertySchemaToken;
+import org.structr.core.Export;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.DynamicResourceAccess;
@@ -436,7 +437,7 @@ public class SchemaHelper {
 
 						// since the parts in this loop are separated by "&&", all parts AFTER
 						// the first one should only be run if the others before succeeded.
-						
+
 						final ActionEntry entry      = new ActionEntry(rawActionName, parts2[j], j == 0);
 						List<ActionEntry> actionList = actions.get(entry.getType());
 
@@ -550,6 +551,8 @@ public class SchemaHelper {
 		src.append("import ").append(ErrorBuffer.class.getName()).append(";\n");
 		src.append("import ").append(FrameworkException.class.getName()).append(";\n");
 		src.append("import ").append(Actions.class.getName()).append(";\n");
+		src.append("import ").append(Export.class.getName()).append(";\n");
+		src.append("import org.structr.rest.RestMethodResult;\n");
 		src.append("import org.structr.core.validator.*;\n");
 		src.append("import org.structr.core.property.*;\n");
 		src.append("import org.structr.core.notion.*;\n");

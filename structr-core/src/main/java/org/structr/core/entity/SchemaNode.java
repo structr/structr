@@ -83,15 +83,15 @@ public class SchemaNode extends AbstractSchemaNode implements Schema {
 	@Override
 	public String getSource(final ErrorBuffer errorBuffer) throws FrameworkException {
 
-		final Map<Actions.Type, List<ActionEntry>> actions = new EnumMap<>(Actions.Type.class);
-		final Map<String, Set<String>> viewProperties     = new LinkedHashMap<>();
-		final Set<String> existingPropertyNames           = new LinkedHashSet<>();
-		final Set<String> validators                      = new LinkedHashSet<>();
-		final Set<String> enums                           = new LinkedHashSet<>();
-		final StringBuilder src                           = new StringBuilder();
-		final Class baseType                              = AbstractNode.class;
-		final String _className                           = getProperty(name);
-		final String _extendsClass                        = getProperty(extendsClass);
+		final Map<Actions.Type, List<ActionEntry>> saveActions = new EnumMap<>(Actions.Type.class);
+		final Map<String, Set<String>> viewProperties          = new LinkedHashMap<>();
+		final Set<String> existingPropertyNames                = new LinkedHashSet<>();
+		final Set<String> validators                           = new LinkedHashSet<>();
+		final Set<String> enums                                = new LinkedHashSet<>();
+		final StringBuilder src                                = new StringBuilder();
+		final Class baseType                                   = AbstractNode.class;
+		final String _className                                = getProperty(name);
+		final String _extendsClass                             = getProperty(extendsClass);
 
 		src.append("package org.structr.dynamic;\n\n");
 
@@ -129,7 +129,7 @@ public class SchemaNode extends AbstractSchemaNode implements Schema {
 		}
 
 		// extract properties from node
-		src.append(SchemaHelper.extractProperties(this, validators, enums, viewProperties, actions, errorBuffer));
+		src.append(SchemaHelper.extractProperties(this, validators, enums, viewProperties, saveActions, errorBuffer));
 
 		// output possible enum definitions
 		for (final String enumDefition : enums) {
@@ -147,58 +147,8 @@ public class SchemaNode extends AbstractSchemaNode implements Schema {
 			}
 		}
 
-		if (!validators.isEmpty()) {
-
-			src.append("\n\t@Override\n");
-			src.append("\tpublic boolean isValid(final ErrorBuffer errorBuffer) {\n\n");
-			src.append("\t\tboolean error = false;\n\n");
-
-			for (final String validator : validators) {
-				src.append("\t\terror |= ").append(validator).append(";\n");
-			}
-
-			src.append("\n\t\treturn !error;\n");
-			src.append("\t}\n");
-		}
-
-		// actions..
-		for (final Entry<Actions.Type, List<ActionEntry>> entry : actions.entrySet()) {
-
-			final List<ActionEntry> actionList = entry.getValue();
-			final Actions.Type type             = entry.getKey();
-
-			if (!actionList.isEmpty()) {
-
-				src.append("\n\t@Override\n");
-				src.append("\tpublic boolean ");
-				src.append(type.getMethod());
-				src.append("(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {\n\n");
-				src.append("\t\tboolean error = false;\n\n");
-
-				for (final ActionEntry action : actionList) {
-
-					if (action.runOnError()) {
-
-						src.append("\t\terror |= ").append(action.getSource()).append(";\n");
-
-					} else {
-
-						src.append("\t\tif (!error) {\n");
-						src.append("\t\t\terror |= ").append(action.getSource()).append(";\n");
-						src.append("\t\t}\n");
-
-					}
-				}
-
-				// don't forget super call
-				src.append("\t\terror |= !super.");
-				src.append(type.getMethod());
-				src.append("(securityContext, errorBuffer);\n");
-
-				src.append("\n\t\treturn !error;\n");
-				src.append("\t}\n");
-			}
-		}
+		formatValidators(src, validators);
+		formatSaveActions(src, saveActions);
 
 		src.append("}\n");
 
@@ -220,5 +170,104 @@ public class SchemaNode extends AbstractSchemaNode implements Schema {
 	private void addPropertyNameToViews(final String propertyName, final Map<String, Set<String>> viewProperties) {
 		SchemaHelper.addPropertyToView(PropertyView.Public, propertyName, viewProperties);
 		SchemaHelper.addPropertyToView(PropertyView.Ui, propertyName, viewProperties);
+	}
+
+	private void formatValidators(final StringBuilder src, final Set<String> validators) {
+
+		if (!validators.isEmpty()) {
+
+			src.append("\n\t@Override\n");
+			src.append("\tpublic boolean isValid(final ErrorBuffer errorBuffer) {\n\n");
+			src.append("\t\tboolean error = false;\n\n");
+
+			for (final String validator : validators) {
+				src.append("\t\terror |= ").append(validator).append(";\n");
+			}
+
+			src.append("\n\t\treturn !error;\n");
+			src.append("\t}\n");
+		}
+
+	}
+
+	private void formatSaveActions(final StringBuilder src, final Map<Actions.Type, List<ActionEntry>> saveActions) {
+
+		// save actions..
+		for (final Entry<Actions.Type, List<ActionEntry>> entry : saveActions.entrySet()) {
+
+			final List<ActionEntry> actionList = entry.getValue();
+			final Actions.Type type            = entry.getKey();
+
+			if (!actionList.isEmpty()) {
+
+				switch (type) {
+
+					case Custom:
+						// active actions are exported stored functions
+						// that can be called by POSTing on the entity
+						formatActiveActions(src, actionList);
+						break;
+
+					default:
+						// passive actions are actions that are executed
+						// automtatically on creation / modification etc.
+						formatPassiveSaveActions(src, type, actionList);
+						break;
+				}
+			}
+		}
+
+	}
+
+	private void formatActiveActions(final StringBuilder src, final List<ActionEntry> actionList) {
+
+		for (final ActionEntry action : actionList) {
+
+			src.append("\n\t@Export\n");
+			src.append("\tpublic RestMethodResult ");
+			src.append(action.getName());
+			src.append("() throws FrameworkException {\n\n");
+
+			src.append("\t\t");
+			src.append(action.getSource());
+			src.append(";\n\n");
+
+			src.append("\t\treturn new RestMethodResult(200);\n");
+			src.append("\t}\n");
+		}
+
+	}
+
+	private void formatPassiveSaveActions(final StringBuilder src, final Actions.Type type, final List<ActionEntry> actionList) {
+
+		src.append("\n\t@Override\n");
+		src.append("\tpublic boolean ");
+		src.append(type.getMethod());
+		src.append("(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {\n\n");
+		src.append("\t\tboolean error = false;\n\n");
+
+		for (final ActionEntry action : actionList) {
+
+			if (action.runOnError()) {
+
+				src.append("\t\terror |= ").append(action.getSource()).append(";\n");
+
+			} else {
+
+				src.append("\t\tif (!error) {\n");
+				src.append("\t\t\terror |= ").append(action.getSource()).append(";\n");
+				src.append("\t\t}\n");
+
+			}
+		}
+
+		// don't forget super call
+		src.append("\t\terror |= !super.");
+		src.append(type.getMethod());
+		src.append("(securityContext, errorBuffer);\n");
+
+		src.append("\n\t\treturn !error;\n");
+		src.append("\t}\n");
+
 	}
 }

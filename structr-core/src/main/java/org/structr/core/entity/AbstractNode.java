@@ -172,7 +172,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	public static final String ERROR_MESSAGE_XPATH               = "Usage: ${xpath(xmlDocument, expression)}. Example: ${xpath(xml(this.xmlSource), \"/test/testValue\")}";
 	public static final String ERROR_MESSAGE_SET                 = "Usage: ${set(entity, propertyKey, value)}. Example: ${set(this, \"email\", lower(this.email))}";
 	public static final String ERROR_MESSAGE_SEND_PLAINTEXT_MAIL = "Usage: ${send_plaintext_mail(fromAddress, fromName, toAddress, toName, subject, content)}.";
-	public static final String ERROR_MESSAGE_SEND_HTML_MAIL      = "Usage: ${send_plaintext_mail(fromAddress, fromName, toAddress, toName, subject, content)}.";
+	public static final String ERROR_MESSAGE_SEND_HTML_MAIL      = "Usage: ${send_html_mail(fromAddress, fromName, toAddress, toName, subject, content)}.";
 	public static final String ERROR_MESSAGE_GEOCODE             = "Usage: ${geocode(street, city, country)}. Example: ${set(this, geocode(this.street, this.city, this.country))}";
 	public static final String ERROR_MESSAGE_FIND                = "Usage: ${find(type, key, value)}. Example: ${find(\"User\", \"email\", \"tester@test.com\"}";
 	public static final String ERROR_MESSAGE_CREATE              = "Usage: ${create(type, key, value)}. Example: ${create(\"Feedback\", \"text\", this.text)}";
@@ -2735,7 +2735,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			@Override
 			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
-				if (arrayHasLengthAndAllElementsNotNull(sources, 6)) {
+				if (arrayHasMinLengthAndAllElementsNotNull(sources, 6)) {
 
 					final String from        = sources[0].toString();
 					final String fromName    = sources[1].toString();
@@ -2743,7 +2743,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 					final String toName      = sources[3].toString();
 					final String subject     = sources[4].toString();
 					final String htmlContent = sources[5].toString();
-					final String textContent = sources[6].toString();
+					String textContent       = "";
+
+					if (sources.length == 7) {
+						textContent = sources[6].toString();
+					}
 
 					try {
 						MailHelper.sendHtmlMail(from, fromName, to, toName, null, null, from, subject, htmlContent, textContent);

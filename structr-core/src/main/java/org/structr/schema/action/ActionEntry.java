@@ -9,6 +9,7 @@ public class ActionEntry implements Comparable<ActionEntry> {
 	private boolean runOnError = true;
 	private Actions.Type type  = null;
 	private String call        = null;
+	private String name        = null;
 	private int position       = 0;
 
 	public ActionEntry(final String sourceName, final String value, final boolean runOnError) {
@@ -24,13 +25,29 @@ public class ActionEntry implements Comparable<ActionEntry> {
 
 			this.type = Actions.Type.Create;
 			positionOffset = 11;
+
+		} else if (sourceName.startsWith("___onDelete")) {
+
+			this.type = Actions.Type.Delete;
+			positionOffset = 11;
+
+		} else {
+
+			this.type = Actions.Type.Custom;
+			positionOffset = 3;
 		}
 
-		// try to identify a position
-		final String positionString = sourceName.substring(positionOffset);
-		if (!positionString.isEmpty()) {
+		if (type.equals(Actions.Type.Custom)) {
 
-			try { position = Integer.parseInt(positionString); } catch (Throwable t) { /* ignore */ }
+			this.name = sourceName.substring(positionOffset);
+
+		} else {
+			// try to identify a position
+			final String positionString = sourceName.substring(positionOffset);
+			if (!positionString.isEmpty()) {
+
+				try { position = Integer.parseInt(positionString); } catch (Throwable t) { /* ignore */ }
+			}
 		}
 
 		this.call       = value.trim();
@@ -68,6 +85,10 @@ public class ActionEntry implements Comparable<ActionEntry> {
 
 	public boolean runOnError() {
 		return runOnError;
+	}
+
+	public String getName() {
+		return name;
 	}
 
 	// ----- private methods -----

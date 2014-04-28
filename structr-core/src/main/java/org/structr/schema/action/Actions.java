@@ -12,7 +12,7 @@ public class Actions {
 
 	public enum Type {
 
-		Create("onCreation"), Save("onModification"), Delete("onDeletion");
+		Create("onCreation"), Save("onModification"), Delete("onDeletion"), Custom("");
 
 		Type(final String method) {
 			this.method = method;
