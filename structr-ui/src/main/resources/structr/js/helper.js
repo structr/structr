@@ -59,6 +59,7 @@ function escapeForHtmlAttributes(str) {
     if (!(typeof str === 'string'))
         return str;
     return str
+            .replace(/ /g, '&nbsp;')
             .replace(/&/g, '&amp;')
             .replace(/</g, '&lt;')
             .replace(/>/g, '&gt;')
@@ -152,7 +153,7 @@ if (typeof String.prototype.extractVal !== 'function') {
  */
 function cleanText(input) {
     //console.log(input);
-    var output = input.trim()
+    var output = input
             .replace(/<br><\/div>/ig, '\n')
             .replace(/<div>/ig, '\n')
             .replace(/<br(\s*)\/*>/ig, '\n')
