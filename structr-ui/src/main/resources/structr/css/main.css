@@ -485,6 +485,8 @@ img.disabled {
 .props tr td img {
     border: none;
     cursor: pointer;
+    vertical-align: middle;
+    margin: 0 2px 2px 0;
 }
 
 ul#previewTabs {
