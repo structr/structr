@@ -5,6 +5,7 @@ import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertTrue;
 import static junit.framework.TestCase.fail;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.Tx;
 import org.structr.web.entity.LinkSource;
 import org.structr.web.entity.dom.DOMNode;
@@ -123,6 +124,13 @@ public class RenderContextTest extends StructrUiTest {
 
 			assertEquals("Invalid replacement result", "/testpage?" + page.getUuid(), p1.replaceVariables(securityContext, ctx, "/${page.name}?${page.id}"));
 			assertEquals("Invalid replacement result", "/testpage?" + page.getUuid(), a.replaceVariables(securityContext, ctx, "/${link.name}?${link.id}"));
+
+			// these tests find single element => success
+			assertEquals("Invalid replacement result", page.getUuid(), a.replaceVariables(securityContext, ctx, "${get(find('Page', 'name', 'testpage'), 'id')}"));
+			assertEquals("Invalid replacement result", a.getUuid(), a.replaceVariables(securityContext, ctx, "${get(find('A'), 'id')}"));
+
+			// this test finds multiple <p> elements => error
+			assertEquals("Invalid replacement result", AbstractNode.ERROR_MESSAGE_GET_ENTITY, a.replaceVariables(securityContext, ctx, "${get(find('P'), 'id')}"));
 
 
 		} catch (FrameworkException fex) {

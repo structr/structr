@@ -47,6 +47,7 @@ public class TestOne extends AbstractNode {
 	public static final Property<String>        aString            = new StringProperty("aString").indexed().indexedWhenEmpty();
 	public static final Property<Boolean>       aBoolean           = new BooleanProperty("aBoolean");
 	public static final Property<String>        anotherString      = new StringProperty("anotherString");
+	public static final Property<String>        replaceString      = new StringProperty("replaceString");
 	public static final Property<String>        cleanTestString    = new StringProperty("cleanTestString");
 	public static final Property<Integer>       setTestInteger1    = new IntProperty("setTestInteger1");
 	public static final Property<Integer>       setTestInteger2    = new IntProperty("setTestInteger2");

@@ -135,6 +135,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	public static final String ERROR_MESSAGE_CAPITALIZE          = "Usage: ${capitalize(string)}. Example: ${capitalize(this.nickName)}";
 	public static final String ERROR_MESSAGE_TITLEIZE            = "Usage: ${titleize(string, separator}. Example: ${titleize(this.lowerCamelCaseString, \"_\")}";
 	public static final String ERROR_MESSAGE_NUM                 = "Usage: ${num(string)}. Example: ${num(this.numericalStringValue)}";
+	public static final String ERROR_MESSAGE_REPLACE             = "Usage: ${replace(template, source)}. Example: ${replace(\"${this.id}\", this)}";
 	public static final String ERROR_MESSAGE_CLEAN               = "Usage: ${clean(string)}. Example: ${clean(this.stringWithNonWordChars)}";
 	public static final String ERROR_MESSAGE_URLENCODE           = "Usage: ${urlencode(string)}. Example: ${urlencode(this.email)}";
 	public static final String ERROR_MESSAGE_IF                  = "Usage: ${if(condition, trueValue, falseValue)}. Example: ${if(empty(this.name), this.nickName, this.name)}";
@@ -158,6 +159,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	public static final String ERROR_MESSAGE_AND                 = "Usage: ${and(bool1, bool2)}. Example: ${and(\"true\", \"true\")}";
 	public static final String ERROR_MESSAGE_OR                  = "Usage: ${or(bool1, bool2)}. Example: ${or(\"true\", \"true\")}";
 	public static final String ERROR_MESSAGE_GET                 = "Usage: ${get(entity, propertyKey)}. Example: ${get(this, \"children\")}";
+	public static final String ERROR_MESSAGE_GET_ENTITY          = "Cannot evaluate first argument to entity, must be entity or single element list of entities.";
 	public static final String ERROR_MESSAGE_FIRST               = "Usage: ${first(collection)}. Example: ${first(this.children)}";
 	public static final String ERROR_MESSAGE_LAST                = "Usage: ${last(collection)}. Example: ${last(this.children)}";
 	public static final String ERROR_MESSAGE_NTH                 = "Usage: ${nth(collection)}. Example: ${nth(this.children, 2)}";
@@ -1557,6 +1559,47 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 				return ERROR_MESSAGE_NUM;
 			}
 		});
+		functions.put("replace", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
+
+				if (arrayHasMinLengthAndAllElementsNotNull(sources, 2)) {
+
+					final String template = sources[0].toString();
+					AbstractNode node     = null;
+
+					if (sources[1] instanceof AbstractNode) {
+						node = (AbstractNode)sources[1];
+					}
+
+					if (sources[1] instanceof List) {
+
+						final List list = (List)sources[1];
+						if (list.size() == 1 && list.get(0) instanceof AbstractNode) {
+
+							node = (AbstractNode)list.get(0);
+						}
+					}
+
+					if (node != null) {
+
+						// recursive replacement call, be careful here
+						return node.replaceVariables(entity.getSecurityContext(), new ActionContext(node, null), template);
+					}
+
+					return "";
+				}
+
+				return usage();
+
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_REPLACE;
+			}
+		});
 		functions.put("clean", new Function<Object, Object>() {
 
 			@Override
@@ -2285,18 +2328,41 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			@Override
 			public Object apply(final NodeInterface entity, final Object[] sources) throws FrameworkException {
 
-				if (arrayHasLengthAndAllElementsNotNull(sources, 2) && sources[0] instanceof NodeInterface) {
+				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
 
-					final NodeInterface node = (NodeInterface)sources[0];
-					final String keyName     = sources[1].toString();
-					final PropertyKey key    = StructrApp.getConfiguration().getPropertyKeyForJSONName(node.getClass(), keyName);
+					NodeInterface node = null;
 
-					if (key != null) {
-						return node.getProperty(key);
+					if (sources[0] instanceof NodeInterface) {
+						node = (NodeInterface)sources[0];
+					}
+
+					if (sources[0] instanceof List) {
+
+						final List list = (List)sources[0];
+						if (list.size() == 1 && list.get(0) instanceof NodeInterface) {
+
+							node = (NodeInterface)list.get(0);
+						}
+					}
+
+					if (node != null) {
+
+						final String keyName     = sources[1].toString();
+						final PropertyKey key    = StructrApp.getConfiguration().getPropertyKeyForJSONName(node.getClass(), keyName);
+
+						if (key != null) {
+							return node.getProperty(key);
+						}
+
+						return "";
+
+					} else {
+
+						return ERROR_MESSAGE_GET_ENTITY;
 					}
 				}
 
-				return "";
+				return usage();
 			}
 
 			@Override

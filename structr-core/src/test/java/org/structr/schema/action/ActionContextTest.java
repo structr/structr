@@ -64,6 +64,7 @@ public class ActionContextTest extends StructrTest {
 			testOne.setProperty(TestOne.anInt, 1);
 			testOne.setProperty(TestOne.aString, "String");
 			testOne.setProperty(TestOne.anotherString, "{\n\ttest: test,\n\tnum: 3\n}");
+			testOne.setProperty(TestOne.replaceString, "${this.name}");
 			testOne.setProperty(TestOne.aLong, 235242522552L);
 			testOne.setProperty(TestOne.aDouble, 2.234);
 			testOne.setProperty(TestOne.aDate, now);
@@ -640,6 +641,9 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid replacement result", "STRINGtrueFALSE", testOne.replaceVariables(securityContext, ctx, "${upper(this.aString)}${lower(true)}${upper(false)}"));
 
 			// or(empty(hotel.numberOfMarinaSlips),equal(hotel.numberOfMarinaSlips,0))
+
+			// test replace() method
+			assertEquals("Invalid replace() result", "A-nice-little-name-for-my-test-object", testOne.replaceVariables(securityContext, ctx, "${replace(this.replaceString, this)}"));
 
 		} catch (FrameworkException fex) {
 
