@@ -88,6 +88,7 @@ public class SecurityContext {
 		this.request    = request;
 
 		initRequestBasedCache(request);
+		initializeCustomView(request);
 	}
 
 	private SecurityContext(HttpServletRequest request) {
@@ -95,6 +96,30 @@ public class SecurityContext {
 		this.request    = request;
 
 		initRequestBasedCache(request);
+		initializeCustomView(request);
+	}
+
+	//~--- methods --------------------------------------------------------
+
+	private void initRequestBasedCache(HttpServletRequest request) {
+
+		// request-based caching
+		if (request != null && request.getServletContext() != null) {
+			cache = (Map<Long, NodeInterface>)request.getServletContext().getAttribute("NODE_CACHE");
+		}
+
+		if (cache == null) {
+
+			cache = new ConcurrentHashMap<>();
+
+			if (request != null && request.getServletContext() != null) {
+				request.getServletContext().setAttribute("NODE_CACHE", cache);
+			}
+		}
+
+	}
+
+	private void initializeCustomView(final HttpServletRequest request) {
 
 		// check for custom view attributes
 		if (request != null) {
@@ -122,25 +147,6 @@ public class SecurityContext {
 				}
 
 			} catch (Throwable ignore) { }
-		}
-	}
-
-	//~--- methods --------------------------------------------------------
-
-	private void initRequestBasedCache(HttpServletRequest request) {
-
-		// request-based caching
-		if (request != null && request.getServletContext() != null) {
-			cache = (Map<Long, NodeInterface>)request.getServletContext().getAttribute("NODE_CACHE");
-		}
-
-		if (cache == null) {
-
-			cache = new ConcurrentHashMap<>();
-
-			if (request != null && request.getServletContext() != null) {
-				request.getServletContext().setAttribute("NODE_CACHE", cache);
-			}
 		}
 
 	}
@@ -436,7 +442,7 @@ public class SecurityContext {
 			return true;
 
 		}
-		
+
 		// no node, nothing to see here..
 		if (node == null) {
 
