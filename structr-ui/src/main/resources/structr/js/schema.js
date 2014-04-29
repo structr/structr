@@ -397,8 +397,9 @@ var _Schema = {
                                             if (!(overlay.getLabel().substring(0,1) === '<')) {
                                                 overlay.setLabel('<input id="source-mult-label" type="text" size="15" id="id_' + res.id + '_sourceMultiplicity" value="' + overlay.label + '">');
                                                 $('#source-mult-label').focus().on('blur', function() {
-                                                    _Schema.setRelationshipProperty(res.id, 'sourceMultiplicity', $(this).val());
-                                                    overlay.setLabel($(this).val());
+                                                    var label = ($(this).val() || '').trim();
+                                                    _Schema.setRelationshipProperty(res.id, 'sourceMultiplicity', label);
+                                                    overlay.setLabel(label);
                                                 });
                                             }
                                         }
@@ -418,8 +419,9 @@ var _Schema = {
                                             if (!(overlay.getLabel().substring(0,1) === '<')) {
                                                 overlay.setLabel('<input id="relationship-label" type="text" size="15" id="id_' + res.id + '_relationshipType" value="' + overlay.label + '">');
                                                 $('#relationship-label').focus().on('blur', function() {
-                                                    _Schema.setRelationshipProperty(res.id, 'relationshipType', $(this).val());
-                                                    overlay.setLabel($(this).val());
+                                                    var label = ($(this).val() || '').trim();
+                                                    _Schema.setRelationshipProperty(res.id, 'relationshipType', label);
+                                                    overlay.setLabel(label);
                                                 });
                                             }
                                         }
@@ -439,8 +441,9 @@ var _Schema = {
                                             if (!(overlay.getLabel().substring(0,1) === '<')) {
                                                 overlay.setLabel('<input id="target-mult-label" type="text" size="15" id="id_' + res.id + '_targetMultiplicity" value="' + overlay.label + '">');
                                                 $('#target-mult-label').focus().on('blur', function() {
-                                                    _Schema.setRelationshipProperty(res.id, 'targetMultiplicity', $(this).val());
-                                                    overlay.setLabel($(this).val());
+                                                    var label = ($(this).val() || '').trim();
+                                                    _Schema.setRelationshipProperty(res.id, 'targetMultiplicity', label);
+                                                    overlay.setLabel(label);
                                                 });
                                             }
                                         }
