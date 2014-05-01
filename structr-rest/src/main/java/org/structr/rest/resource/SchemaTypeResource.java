@@ -39,6 +39,7 @@ import java.util.TreeMap;
 
 import javax.servlet.http.HttpServletRequest;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.PropertyDefinition;
 import org.structr.core.entity.Relation;
 import org.structr.core.property.RelationProperty;
@@ -94,6 +95,7 @@ public class SchemaTypeResource extends Resource {
 
 			schema.setProperty(new StringProperty("url"), url);
 			schema.setProperty(new StringProperty("type"), type.getSimpleName());
+			schema.setProperty(new StringProperty("isRel"), AbstractRelationship.class.isAssignableFrom(type));
 			schema.setProperty(new LongProperty("flags"), SecurityContext.getResourceFlags(rawType));
 
 			// list property sets for all views

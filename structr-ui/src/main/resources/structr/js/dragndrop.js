@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ *  Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
  *  This file is part of structr <http://structr.org>.
  *
@@ -49,7 +49,7 @@ var _Dragndrop = {
                     dropBlocked = false;
                     return false;
                 }
-                
+
                 e.preventDefault();
                 e.stopPropagation();
 
@@ -223,21 +223,24 @@ var _Dragndrop = {
         if (!source && tag) {
 
             if (tag.indexOf('.') !== -1) {
-                var firstContentId = target.children[0].id;
-                if (related) {
-                    var key = tag.substring(tag.indexOf('.')+1);
-                    log('tag, key, subkey', tag, key, related.subKey)
-                    if (related.isCollection) {
-                        Command.setProperty(firstContentId, 'content', '${' + key + '.' + related.subKey + '}');
-                        Command.setProperty(target.id, 'dataKey', key, false, function() {
-                            _Pages.reloadPreviews();
-                        });
+
+                Command.get(target.id, function(target) {
+                    var firstContentId = target.children[0].id;
+                    if (related) {
+                        var key = tag.substring(tag.indexOf('.') + 1);
+                        log('tag, key, subkey', tag, key, related.subKey)
+                        if (related.isCollection) {
+                            Command.setProperty(firstContentId, 'content', '${' + key + '.' + related.subKey + '}');
+                            Command.setProperty(target.id, 'dataKey', key, false, function() {
+                                _Pages.reloadPreviews();
+                            });
+                        } else {
+                            Command.setProperty(firstContentId, 'content', '${' + tag + '.' + related.subKey + '}');
+                        }
                     } else {
-                        Command.setProperty(firstContentId, 'content', '${' + tag + '.' + related.subKey + '}');
+                        Command.setProperty(firstContentId, 'content', '${' + tag + '}');
                     }
-                } else {
-                    Command.setProperty(firstContentId, 'content', '${' + tag + '}');
-                }
+                });
 
             } else if (tag.indexOf(':') !== -1) {
 
@@ -278,7 +281,7 @@ var _Dragndrop = {
         var nodeData = {};
         if (tag === 'a' || tag === 'p'
                 || tag === 'h1' || tag === 'h2' || tag === 'h3' || tag === 'h4' || tag === 'h5' || tag === 'h5' || tag === 'pre' || tag === 'label' || tag === 'option'
-                || tag === 'li' || tag === 'em' || tag === 'title' || tag === 'b' || tag === 'span' || tag === 'th' || tag === 'td' || tag === 'button') {
+                || tag === 'li' || tag === 'em' || tag === 'title' || tag === 'b' || tag === 'span' || tag === 'th' || tag === 'td' || tag === 'button' || tag === 'figcaption') {
             if (tag === 'a') {
                 nodeData._html_href = '${link.name}';
                 nodeData.childContent = '${parent.link.name}';

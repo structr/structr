@@ -22,12 +22,13 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.neo4j.helpers.Predicate;
 import org.neo4j.helpers.collection.Iterables;
 import org.structr.common.CaseHelper;
@@ -44,12 +45,15 @@ import org.structr.core.entity.ManyToMany;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.Property;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.property.SourceId;
 import org.structr.core.property.StringProperty;
 import org.structr.core.property.TargetId;
 import org.structr.schema.ReloadSchema;
 import org.structr.schema.Schema;
 import org.structr.schema.SchemaHelper;
+import org.structr.schema.action.Actions;
+import org.structr.schema.action.ActionEntry;
 
 /**
  *
@@ -59,7 +63,7 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 
 	private static final Logger logger                      = Logger.getLogger(SchemaRelationship.class.getName());
 	private static final Pattern ValidKeyPattern            = Pattern.compile("[a-zA-Z_]+");
-	
+
 	public static final Property<String> sourceId           = new SourceId("sourceId").passivelyIndexed();
 	public static final Property<String> targetId           = new TargetId("targetId").passivelyIndexed();
 	public static final Property<String> relationshipType   = new StringProperty("relationshipType");
@@ -69,13 +73,13 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 	public static final Property<String> targetNotion       = new StringProperty("targetNotion");
 	public static final Property<String> sourceJsonName     = new StringProperty("sourceJsonName");
 	public static final Property<String> targetJsonName     = new StringProperty("targetJsonName");
-	
-	
+
+
 	public static final View defaultView = new View(SchemaRelationship.class, PropertyView.Public,
 		AbstractNode.name, sourceId, targetId, sourceMultiplicity, targetMultiplicity, sourceNotion, targetNotion, relationshipType,
 		sourceJsonName, targetJsonName
 	);
-	
+
 	private Set<String> dynamicViews = new LinkedHashSet<>();
 
 	@Override
@@ -102,35 +106,52 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 	public String name() {
 		return "IS_RELATED_TO";
 	}
-	
+
+	@Override
+	public Iterable<PropertyKey> getPropertyKeys(final String propertyView) {
+
+		final Set<PropertyKey> propertyKeys = new LinkedHashSet<>(Iterables.toList(super.getPropertyKeys(propertyView)));
+
+		// add "custom" property keys as String properties
+		for (final String key : SchemaHelper.getProperties(getRelationship())) {
+
+			final PropertyKey newKey = new StringProperty(key);
+			newKey.setDeclaringClass(getClass());
+
+			propertyKeys.add(newKey);
+		}
+
+		return propertyKeys;
+	}
+
 	@Override
 	public boolean isValid(final ErrorBuffer errorBuffer) {
-		
+
 		boolean error = false;
-		
+
 		error |= ValidationHelper.checkStringNotBlank(this, relationshipType, errorBuffer);
-		
+
 		return !error && super.isValid(errorBuffer);
 	}
 
 	@Override
 	public boolean onCreation(SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
-		
+
 		if (super.onCreation(securityContext, errorBuffer)) {
 
 			// check if type already exists and raise an error if yes.
 //			if (Services.getInstance().getConfigurationProvider().getRelationshipEntityClass(getClassName()) != null) {
-//			
+//
 //				errorBuffer.add(SchemaNode.class.getSimpleName(), new InvalidSchemaToken(getClassName(), "type_already_exists"));
 //				return false;
 //			}
-			
+
 			// register transaction post processing that recreates the schema information
 			TransactionCommand.postProcess("reloadSchema", new ReloadSchema());
 
 			return true;
 		}
-		
+
 		return false;
 	}
 
@@ -144,7 +165,7 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 
 			return true;
 		}
-		
+
 		return false;
 	}
 
@@ -152,12 +173,12 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 	public void onRelationshipDeletion() {
 
 		Services.getInstance().getConfigurationProvider().unregisterEntityType(getClassName());
-		
+
 		final String signature = getResourceSignature();
 		final String inverseSignature = getInverseResourceSignature();
-		
+
 		if (StringUtils.isNotBlank(signature) && StringUtils.isNotBlank(inverseSignature)) {
-			
+
 			SchemaHelper.removeDynamicGrants(signature);
 			SchemaHelper.removeDynamicGrants(inverseSignature);
 		}
@@ -165,7 +186,7 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 
 	@Override
 	public String getClassName() {
-	
+
 		String name = getProperty(AbstractNode.name);
 		if (name == null) {
 
@@ -175,13 +196,13 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 
 			name = _sourceType + _relType + _targetType;
 		}
-		
+
 		return name;
 	}
-	
+
 	// ----- interface PropertySchema -----
 	public String getPropertySource(final String propertyName, final boolean outgoing) {
-		
+
 		final StringBuilder buf          = new StringBuilder();
 		//final String _sourceJsonName     = getProperty(sourceJsonName);
 		//final String _targetJsonName     = getProperty(targetJsonName);
@@ -201,40 +222,40 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 				buf.append(" = new EndNode<>(\"").append(propertyName).append("\", ").append(_className).append(".class");
 				buf.append(getNotion(_sourceType, _targetNotion));
 				buf.append(");\n");
-				
+
 			} else {
-				
+
 				buf.append("\tpublic static final Property<java.util.List<").append(_targetType).append(">> ").append(SchemaHelper.cleanPropertyName(propertyName)).append("Property");
 				buf.append(" = new EndNodes<>(\"").append(propertyName).append("\", ").append(_className).append(".class");
 				buf.append(getNotion(_sourceType, _targetNotion));
 				buf.append(");\n");
 			}
-			
+
 		} else {
-			
+
 			if ("1".equals(_sourceMultiplicity)) {
 
 				buf.append("\tpublic static final Property<").append(_sourceType).append("> ").append(SchemaHelper.cleanPropertyName(propertyName)).append("Property");
 				buf.append(" = new StartNode<>(\"").append(propertyName).append("\", ").append(_className).append(".class");
 				buf.append(getNotion(_targetType, _sourceNotion));
 				buf.append(");\n");
-				
+
 			} else {
-				
+
 				buf.append("\tpublic static final Property<java.util.List<").append(_sourceType).append(">> ").append(SchemaHelper.cleanPropertyName(propertyName)).append("Property");
 				buf.append(" = new StartNodes<>(\"").append(propertyName).append("\", ").append(_className).append(".class");
 				buf.append(getNotion(_targetType, _sourceNotion));
 				buf.append(");\n");
 			}
 		}
-		
+
 		return buf.toString();
 	}
 
 	public String getPropertyName(final String relatedClassName, final Set<String> existingPropertyNames, final boolean outgoing) {
-		
+
 		String propertyName = "";
-		
+
 		final String relationshipTypeName = getProperty(SchemaRelationship.relationshipType).toLowerCase();
 		final String _sourceType          = getSchemaNodeSourceType();
 		final String _targetType          = getSchemaNodeTargetType();
@@ -244,10 +265,10 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 			final String _targetJsonName     = getProperty(targetJsonName);
 
 			if (_targetJsonName != null) {
-				
+
 				// FIXME: no automatic creation?
 				propertyName = _targetJsonName;
-				
+
 			} else {
 
 				final String _targetMultiplicity = getProperty(targetMultiplicity);
@@ -261,11 +282,11 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 					propertyName = CaseHelper.plural(CaseHelper.toLowerCamelCase(relationshipTypeName) + CaseHelper.toUpperCamelCase(_targetType));
 				}
 			}
-			
+
 		} else {
 
 			final String _sourceJsonName     = getProperty(sourceJsonName);
-			
+
 			if (_sourceJsonName != null) {
 				propertyName = _sourceJsonName;
 			} else {
@@ -282,45 +303,46 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 				}
 			}
 		}
-		
-		if (existingPropertyNames.contains(propertyName)) {			
-			
+
+		if (existingPropertyNames.contains(propertyName)) {
+
 			// First level: Add direction suffix
 			propertyName += outgoing ? "Out" : "In";
 			int i=0;
-			
+
 			// New name still exists: Add number
 			while (existingPropertyNames.contains(propertyName)) {
 				propertyName += ++i;
 			}
-			
+
 		}
 
 		existingPropertyNames.add(propertyName);
 
-		return propertyName;		
+		return propertyName;
 	}
 
 	@Override
 	public String getSource(final ErrorBuffer errorBuffer) throws FrameworkException {
 
-		final Map<String, Set<String>> viewProperties = new LinkedHashMap<>();
-		final StringBuilder src                       = new StringBuilder();
-		final Class baseType                          = AbstractRelationship.class;
-		final String _className                       = getClassName();
-		final String _sourceNodeType                  = getSchemaNodeSourceType();
-		final String _targetNodeType                  = getSchemaNodeTargetType();
-		final Set<String> validators                  = new LinkedHashSet<>();
-		final Set<String> enums                       = new LinkedHashSet<>();
-		
+		final Map<Actions.Type, List<ActionEntry>> actions = new LinkedHashMap<>();
+		final Map<String, Set<String>> viewProperties     = new LinkedHashMap<>();
+		final StringBuilder src                           = new StringBuilder();
+		final Class baseType                              = AbstractRelationship.class;
+		final String _className                           = getClassName();
+		final String _sourceNodeType                      = getSchemaNodeSourceType();
+		final String _targetNodeType                      = getSchemaNodeTargetType();
+		final Set<String> validators                      = new LinkedHashSet<>();
+		final Set<String> enums                           = new LinkedHashSet<>();
+
 		src.append("package org.structr.dynamic;\n\n");
 
 		SchemaHelper.formatImportStatements(src, baseType);
-		
+
 		src.append("public class ").append(_className).append(" extends ").append(getBaseType()).append(" {\n\n");
-		
-		src.append(SchemaHelper.extractProperties(this, validators, enums, viewProperties, errorBuffer));
-		
+
+		src.append(SchemaHelper.extractProperties(this, validators, enums, viewProperties, actions, errorBuffer));
+
 		// source and target id properties
 		src.append("\tpublic static final Property<String> sourceIdProperty = new SourceId(\"sourceId\");\n");
 		src.append("\tpublic static final Property<String> targetIdProperty = new TargetId(\"targetId\");\n");
@@ -328,10 +350,10 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 		// add sourceId and targetId to view properties
 		SchemaHelper.addPropertyToView(PropertyView.Public, "sourceId", viewProperties);
 		SchemaHelper.addPropertyToView(PropertyView.Public, "targetId", viewProperties);
-		
+
 		SchemaHelper.addPropertyToView(PropertyView.Ui, "sourceId", viewProperties);
 		SchemaHelper.addPropertyToView(PropertyView.Ui, "targetId", viewProperties);
-		
+
 		// output possible enum definitions
 		for (final String enumDefition : enums) {
 			src.append(enumDefition);
@@ -341,27 +363,27 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 
 			final String viewName  = entry.getKey();
 			final Set<String> view = entry.getValue();
-			
+
 			if (!view.isEmpty()) {
 				dynamicViews.add(viewName);
 				SchemaHelper.formatView(src, _className, viewName, viewName, view);
 			}
 		}
-		
+
 		if (!validators.isEmpty()) {
-			
+
 			src.append("\n\t@Override\n");
 			src.append("\tpublic boolean isValid(final ErrorBuffer errorBuffer) {\n\n");
 			src.append("\t\tboolean error = false;\n\n");
-			
+
 			for (final String validator : validators) {
 				src.append("\t\terror |= ").append(validator).append(";\n");
 			}
-			
+
 			src.append("\n\t\treturn !error;\n");
 			src.append("\t}\n");
 		}
-		
+
 		// abstract method implementations
 		src.append("\n\t@Override\n");
 		src.append("\tpublic Class<").append(_sourceNodeType).append("> getSourceType() {\n");
@@ -383,17 +405,17 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 		src.append("\tpublic String name() {\n");
 		src.append("\t\treturn \"").append(getRelationshipType()).append("\";\n");
 		src.append("\t}\n\n");
-		
+
 		src.append("}\n");
-		
+
 		return src.toString();
 	}
-	
+
 	@Override
 	public Set<String> getViews() {
 		return dynamicViews;
 	}
-	
+
 	// ----- private methods -----
 	private String getSchemaNodeSourceType() {
 		return getSourceNode().getProperty(SchemaNode.name);
@@ -404,16 +426,16 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 	}
 
 	private String getNotion(final String _className, final String notionSource) {
-		
+
 		final StringBuilder buf = new StringBuilder();
-		
+
 		if (StringUtils.isNotBlank(notionSource)) {
-			
+
 			final Set<String> keys = new LinkedHashSet<>(Arrays.asList(notionSource.split("[\\s,]+")));
 			if (!keys.isEmpty()) {
 
 				if (keys.size() == 1) {
-					
+
 					String key     = keys.iterator().next();
 					boolean create = key.startsWith("+");
 
@@ -427,16 +449,16 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 						buf.append(getNotionKey(_className, key));
 						buf.append(", ").append(create);
 						buf.append(")");
-						
+
 					} else {
-			
+
 						logger.log(Level.WARNING, "Invalid key name {0} for notion.", key);
 					}
-					
+
 				} else {
-					
+
 					buf.append(", new PropertySetNotion(");
-					
+
 					// use only matching keys
 					for (final Iterator<String> it = Iterables.filter(new KeyMatcher(), keys).iterator(); it.hasNext();) {
 
@@ -451,22 +473,22 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 				}
 			}
 		}
-		
+
 		return buf.toString();
 	}
-	
+
 	private String getNotionKey(final String _className, final String key) {
 		return _className + "." + key;
 	}
-	
+
 	private String getBaseType() {
-		
+
 		final String _sourceMultiplicity = getProperty(sourceMultiplicity);
 		final String _targetMultiplicity = getProperty(targetMultiplicity);
 		final String _sourceType         = getSchemaNodeSourceType();
 		final String _targetType         = getSchemaNodeTargetType();
 		final StringBuilder buf          = new StringBuilder();
-		
+
 		if ("1".equals(_sourceMultiplicity)) {
 
 			if ("1".equals(_targetMultiplicity)) {
@@ -489,43 +511,43 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 				buf.append("ManyToMany");
 			}
 		}
-		
+
 		buf.append("<");
 		buf.append(_sourceType);
 		buf.append(", ");
 		buf.append(_targetType);
 		buf.append(">");
-		
+
 		return buf.toString();
 	}
-	
+
 	public String getResourceSignature() {
-		
+
 		final String _sourceType = getSchemaNodeSourceType();
 		final String _targetType = getSchemaNodeTargetType();
-		
+
 		return _sourceType + "/" + _targetType;
 	}
-	
+
 	public String getInverseResourceSignature() {
-		
+
 		final String _sourceType = getSchemaNodeSourceType();
 		final String _targetType = getSchemaNodeTargetType();
-		
+
 		return _targetType + "/" + _sourceType;
 	}
 
 	private String getRelationshipType() {
-		
+
 		String relType = getProperty(relationshipType);
 		if (relType == null) {
-			
+
 			final String _sourceType = getSchemaNodeSourceType().toUpperCase();
 			final String _targetType = getSchemaNodeTargetType().toUpperCase();
-			
+
 			relType = _sourceType + "_" + _targetType;
 		}
-		
+
 		return relType;
 	}
 
@@ -534,13 +556,13 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 
 		@Override
 		public boolean accept(String t) {
-			
+
 			if (ValidKeyPattern.matcher(t).matches()) {
 				return true;
 			}
-			
+
 			logger.log(Level.WARNING, "Invalid key name {0} for notion.", t);
-			
+
 			return false;
 		}
 	}

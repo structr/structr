@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ *  Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
  *  This file is part of structr <http://structr.org>.
  *
@@ -396,7 +396,6 @@ var StructrModel = {
     },
             
     callCallback: function(callback, entity) {
-
         log('Calling callback', callback, 'on entity', entity);
         var callbackFunction = StructrModel.callbacks[callback];
         if (callback && callbackFunction) {
@@ -914,16 +913,16 @@ function StructrSearchResult(data) {
     });
 }
 
-StructrSearchResult.prototype.save = function() {
-    StructrModel.save(this.id);
-}
-
-StructrSearchResult.prototype.setProperty = function(key, value, recursive, callback) {
-    Command.setProperty(this.id, key, value, recursive, callback);
-}
-
+//StructrSearchResult.prototype.save = function() {
+//    StructrModel.save(this.id);
+//}
+//
+//StructrSearchResult.prototype.setProperty = function(key, value, recursive, callback) {
+//    Command.setProperty(this.id, key, value, recursive, callback);
+//}
+//
 StructrSearchResult.prototype.append = function() {
-    _Dashboard.appendNode(this);
+    _Dashboard.appendObj(this);
 }
 
 

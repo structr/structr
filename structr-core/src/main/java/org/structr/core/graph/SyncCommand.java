@@ -50,6 +50,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 import org.apache.commons.io.IOUtils;
+import org.neo4j.graphdb.DynamicLabel;
 import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
@@ -74,13 +75,13 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 	private static final Logger logger                 = Logger.getLogger(SyncCommand.class.getName());
 	private static final String STRUCTR_ZIP_DB_NAME    = "db";
-	
+
 	private static final Map<Class, String> typeMap    = new LinkedHashMap<>();
 	private static final Map<Class, Method> methodMap  = new LinkedHashMap<>();
 	private static final Map<String, Class> classMap   = new LinkedHashMap<>();
 
 	static {
-		
+
 		typeMap.put(Byte[].class,      "00");
 		typeMap.put(Byte.class,        "01");
 		typeMap.put(Short[].class,     "02");
@@ -99,17 +100,17 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 		typeMap.put(String.class,      "15");
 		typeMap.put(Boolean[].class,   "16");
 		typeMap.put(Boolean.class,     "17");
-		
+
 		// build reverse mapping
 		for (Entry<Class, String> entry : typeMap.entrySet()) {
 			classMap.put(entry.getValue(), entry.getKey());
 		}
 	}
-	
-	
+
+
 	@Override
 	public void execute(Map<String, Object> attributes) throws FrameworkException {
-		
+
 		GraphDatabaseService graphDb = Services.getInstance().getService(NodeService.class).getGraphDb();
 		String mode                  = (String)attributes.get("mode");
 		String fileName              = (String)attributes.get("file");
@@ -118,116 +119,116 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 		// should we validate imported nodes?
 		if (validate != null) {
-			
+
 			try {
-				
+
 				doValidation = Boolean.valueOf(validate);
-				
+
 			} catch (Throwable t) {
-				
+
 				logger.log(Level.WARNING, "Unable to parse value for validation flag: {0}", t.getMessage());
 			}
 		}
-		
+
 		if (fileName == null) {
-			
+
 			throw new FrameworkException(400, "Please specify sync file.");
 		}
-		
+
 		if ("export".equals(mode)) {
-			
+
 			exportToFile(graphDb, fileName);
-			
+
 		} else if ("import".equals(mode)) {
-			
+
 			importFromFile(graphDb, securityContext, fileName, doValidation);
-			
+
 		} else {
-			
+
 			throw new FrameworkException(400, "Please specify sync mode (import|export).");
 		}
 	}
-	
+
 	/**
 	 * Exports the whole structr database to a file with the given name.
-	 * 
+	 *
 	 * @param graphDb
 	 * @param fileName
-	 * @throws FrameworkException 
+	 * @throws FrameworkException
 	 */
 	public static void exportToFile(GraphDatabaseService graphDb, String fileName) throws FrameworkException {
-		
+
 		try {
-			
+
 			GlobalGraphOperations ggop  = GlobalGraphOperations.at(graphDb);
 			Iterable<Relationship> rels = ggop.getAllRelationships();
 			Iterable<Node> nodes        = ggop.getAllNodes();
-			
+
 			exportToStream(new FileOutputStream(fileName), nodes, rels, null);
 
 		} catch (Throwable t) {
-			
+
 			throw new FrameworkException(500, t.getMessage());
 		}
-		
+
 	}
-		
+
 	/**
 	 * Exports the given part of the structr database to a file with the given name.
-	 * 
+	 *
 	 * @param fileName
 	 * @param nodes
 	 * @param relationships
 	 * @param filePaths
-	 * @throws FrameworkException 
+	 * @throws FrameworkException
 	 */
 	public static void exportToFile(String fileName, Iterable<Node> nodes, Iterable<Relationship> relationships, Iterable<String> filePaths) throws FrameworkException {
-		
+
 		try {
-			
+
 			exportToStream(new FileOutputStream(fileName), nodes, relationships, filePaths);
 
 		} catch (Throwable t) {
-			
+
 			throw new FrameworkException(500, t.getMessage());
 		}
 	}
-	
+
 	/**
 	 * Exports the given part of the structr database to the given output stream.
-	 * 
+	 *
 	 * @param outputStream
 	 * @param nodes
 	 * @param relationships
 	 * @param filePaths
-	 * @throws FrameworkException 
+	 * @throws FrameworkException
 	 */
 	public static void exportToStream(OutputStream outputStream, Iterable<Node> nodes, Iterable<Relationship> relationships, Iterable<String> filePaths) throws FrameworkException {
-	
+
 		try {
-			
+
 			Set<String> filesToInclude = new LinkedHashSet<String>();
 			ZipOutputStream zos        = new ZipOutputStream(outputStream);
 			PrintWriter writer         = new PrintWriter(new BufferedWriter(new OutputStreamWriter(zos)));
 
 			// collect files to include in export
 			if (filePaths != null) {
-				
+
 				for (String file : filePaths) {
 
 					filesToInclude.add(file);
 				}
 			}
-			
+
 			// set compression
 			zos.setLevel(6);
-			
+
 			// export files first
 			exportDirectory(zos, new File("files"), "", filesToInclude.isEmpty() ? null : filesToInclude);
 
 			// export database
 			exportDatabase(zos, writer, nodes, relationships);
-			
+
 			// finish ZIP file
 			zos.finish();
 
@@ -235,32 +236,32 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 			writer.close();
 
 		} catch (Throwable t) {
-			
+
 			t.printStackTrace();
-			
+
 			throw new FrameworkException(500, t.getMessage());
 		}
 	}
-	
+
 	public static void importFromFile(final GraphDatabaseService graphDb, final SecurityContext securityContext, final String fileName, boolean doValidation) throws FrameworkException {
-		
+
 		try {
 			importFromStream(graphDb, securityContext, new FileInputStream(fileName), doValidation);
-			
+
 		} catch (Throwable t) {
 
 			t.printStackTrace();
-			
+
 			throw new FrameworkException(500, t.getMessage());
 		}
 	}
-	
+
 	public static void importFromStream(final GraphDatabaseService graphDb, final SecurityContext securityContext, final InputStream inputStream, boolean doValidation) throws FrameworkException {
 
 		try {
 			ZipInputStream zis = new ZipInputStream(inputStream);
 			ZipEntry entry     = zis.getNextEntry();
-			
+
 			while (entry != null) {
 
 				if (STRUCTR_ZIP_DB_NAME.equals(entry.getName())) {
@@ -268,39 +269,39 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 					importDatabase(graphDb, securityContext, zis, doValidation);
 
 				} else {
-					
+
 					// store other files in "files" dir..
 					importDirectory(zis, entry);
 				}
 
 				entry = zis.getNextEntry();
 			}
-			
+
 		} catch (IOException ioex) {
 
 			ioex.printStackTrace();
-		}	
-	}	
-	
+		}
+	}
+
 	/**
 	 * Serializes the given object into the given writer. The following format will
 	 * be used to serialize objects. The first two characters are the type index, see
 	 * typeMap above. After that, a single digit that indicates the length of the following
 	 * length field follows. After that, the length field is serialized, followed by the
 	 * string value of the given object and a space character for human readability.
-	 * 
+	 *
 	 * @param writer
-	 * @param obj 
+	 * @param obj
 	 */
 	private static void serialize(PrintWriter writer, Object obj) {
-		
+
 		if (obj != null) {
-			
+
 			Class clazz = obj.getClass();
 			String type = typeMap.get(clazz);
-			
+
 			if (type != null)  {
-				
+
 				if (clazz.isArray()) {
 
 					Object[] array    = (Object[])obj;
@@ -310,12 +311,12 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 					writer.print(type);	// type: 00-nn:  data type
 					writer.print(log);	// log:  1-10: length of next int field
 					writer.print(len);	// len:  length of value
-				
+
 					// serialize array
 					for (Object o : (Object[])obj) {
 						serialize(writer, o);
 					}
-					
+
 				} else {
 
 					String str        = obj.toString();
@@ -327,17 +328,17 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 					writer.print(len);	// len:  length of value
 					writer.print(str);	// str:  the value
 				}
-				
+
 				// make it more readable for the human eye
 				writer.print(" ");
-				
+
 			} else {
-				
+
 				logger.log(Level.WARNING, "Unable to serialize object of type {0}, type not supported", obj.getClass());
 			}
 		}
 	}
-	
+
 	private static Object deserialize(Reader reader) throws IOException {
 
 		Object serializedObject = null;
@@ -345,120 +346,120 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 		String lenLenSrc        = read(reader, 1);
 		int lenLen              = Integer.parseInt(lenLenSrc);	// lenght of "length" field :)
 		Class clazz             = classMap.get(type);
-		
+
 		if (clazz != null) {
-			
+
 			String lenSrc = read(reader, lenLen);
 			int len       = Integer.parseInt(lenSrc);	// now we've got the "real" length of the following value
-			
+
 			if (clazz.isArray()) {
-				
+
 				// len is the length of the underlying array
 				Object[] array = (Object[])Array.newInstance(clazz.getComponentType(), len);
 				for (int i=0; i<len; i++) {
-					
+
 					array[i] = deserialize(reader);
 				}
-				
+
 				// set array
 				serializedObject = array;
-				
+
 			} else {
-				
+
 				// len is the length of the string representation of the real value
 				String value = read(reader, len);
-				
+
 				if (clazz.equals(String.class)) {
 
 					// strings can be returned immediately
 					serializedObject = value;
-					
+
 				} else {
-				
+
 					try {
-						
+
 						Method valueOf = methodMap.get(clazz);
 						if (valueOf == null) {
-							
+
 							valueOf = clazz.getMethod("valueOf", String.class);
 							methodMap.put(clazz, valueOf);
 						}
 
 						// invoke static valueOf method
 						if (valueOf != null) {
-							
+
 							serializedObject = valueOf.invoke(null, value);
-							
+
 						} else {
-							
+
 							logger.log(Level.WARNING, "Unable to find static valueOf method for type {0}", clazz);
 						}
-						
+
 					} catch (Throwable t) {
 
 						logger.log(Level.WARNING, "Unable to deserialize value {0} of type {1}, Class has no static valueOf method.", new Object[] { value, clazz } );
 					}
 				}
 			}
-			
+
 		} else {
-			
+
 			logger.log(Level.WARNING, "Unsupported type {0} in input", type);
 		}
-		
+
 		// skip white space after object (see serialize method)
 		reader.skip(1);
-		
+
 		return serializedObject;
 	}
-	
+
 	private static String read(Reader reader, int len) throws IOException {
-		
+
 		char[] buf = new char[len];
 
 		// only continue if the desired number of chars could be read
 		if (reader.read(buf, 0, len) == len) {
-		
+
 			return new String(buf, 0, len);
 		}
-		
+
 		// end of stream
 		throw new EOFException();
 	}
-	
+
 	private static void exportDirectory(ZipOutputStream zos, File dir, String path, Set<String> filesToInclude) throws IOException {
-		
+
 		String nestedPath = path + dir.getName() + "/";
 		ZipEntry dirEntry = new ZipEntry(nestedPath);
 		zos.putNextEntry(dirEntry);
-		
+
 		File[] contents = dir.listFiles();
 		if (contents != null) {
-			
+
 			for (File file : contents) {
-				
+
 				if (file.isDirectory()) {
-					
+
 					exportDirectory(zos, file, nestedPath, filesToInclude);
-					
+
 				} else {
-				 	
+
 					String relativePath = nestedPath + file.getName();
 					boolean includeFile = true;
-					
+
 					if (filesToInclude != null) {
-						
+
 						includeFile = false;
-						
+
 						if  (filesToInclude.contains(relativePath)) {
-							
+
 							includeFile = true;
 						}
-						
+
 					}
-					
+
 					if (includeFile) {
-						
+
 						// create ZIP entry
 						ZipEntry fileEntry  = new ZipEntry(relativePath);
 						fileEntry.setTime(file.lastModified());
@@ -476,19 +477,19 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 				}
 			}
 		}
-		
+
 		zos.closeEntry();
-		
+
 	}
-	
+
 	private static void exportDatabase(ZipOutputStream zos, PrintWriter writer, Iterable<Node> nodes, Iterable<Relationship> relationships) throws IOException, FrameworkException {
-		
+
 		// start database zip entry
 		final ZipEntry dbEntry        = new ZipEntry(STRUCTR_ZIP_DB_NAME);
 		final String uuidPropertyName = GraphObject.id.dbName();
 		int nodeCount                 = 0;
 		int relCount                  = 0;
-		
+
 		zos.putNextEntry(dbEntry);
 
 		for (Node node : nodes) {
@@ -554,56 +555,56 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 		logger.log(Level.INFO, "Exported {0} nodes and {1} rels", new Object[] { nodeCount, relCount } );
 	}
-	
+
 	private static void importDirectory(ZipInputStream zis, ZipEntry entry) throws IOException {
-		
+
 		if (entry.isDirectory()) {
-			
+
 			File newDir = new File(entry.getName());
 			if (!newDir.exists()) {
-				
+
 				newDir.mkdirs();
 			}
-			
+
 		} else {
-			
+
 			File newFile      = new File(entry.getName());
 			boolean overwrite = false;
-			
+
 			if (!newFile.exists()) {
-				
+
 				overwrite = true;
-				
+
 			} else {
-				
+
 				if (newFile.lastModified() < entry.getTime()) {
-					
+
 					logger.log(Level.INFO, "Overwriting existing file {0} because import file is newer.", entry.getName());
 					overwrite = true;
 				}
 			}
 
 			if (overwrite) {
-				
+
 				FileOutputStream fos = new FileOutputStream(newFile);
 				IOUtils.copy(zis, fos);
-				
+
 				fos.flush();
 				fos.close();
 			}
 		}
 	}
-	
+
 	private static void importDatabase(final GraphDatabaseService graphDb, final SecurityContext securityContext, final ZipInputStream zis, boolean doValidation) throws FrameworkException {
-	
+
 		final App app                    = StructrApp.getInstance();
 		final Value<Long> nodeCountValue = new StaticValue<>(0L);
 		final Value<Long> relCountValue  = new StaticValue<>(0L);
 		final String uuidPropertyName    = GraphObject.id.dbName();
 		double t0                        = System.nanoTime();
-		
+
 		try (final Tx tx = app.tx()) {
-			
+
 			Map<String, Node> uuidMap       = new LinkedHashMap<>();
 			List<Relationship> rels         = new LinkedList<>();
 			List<Node> nodes                = new LinkedList<>();
@@ -615,7 +616,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 			long relCount                   = 0;
 
 			try {
-			
+
 				reader = new BufferedReader(new InputStreamReader(zis));
 
 				do {
@@ -686,9 +687,14 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 										// store object in DB
 										currentObject.setProperty(currentKey, obj);
-										
+
+										// set type label
+										if (currentObject instanceof Node && NodeInterface.type.dbName().equals(currentKey)) {
+											((Node) currentObject).addLabel(DynamicLabel.label((String) obj));
+										}
+
 									} else {
-										
+
 										logger.log(Level.SEVERE, "Invalid property key for value {0}, ignoring", obj);
 									}
 
@@ -735,12 +741,12 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 			}
 
 			tx.success();
-			
+
 		} catch (FrameworkException fex) {
-			
+
 			fex.printStackTrace();
 		}
-		
+
 		double t1   = System.nanoTime();
 		double time = ((t1 - t0) / 1000000000.0);
 

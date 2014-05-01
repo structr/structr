@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ *  Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
  *  This file is part of structr <http://structr.org>.
  *
@@ -79,6 +79,8 @@ var _Images = {
     onload : function() {
         
         _Images.init();
+
+        $('#main-help a').attr('href', 'http://docs.structr.org/frontend-user-guide#Images');
         
         main.append('<div id="dropArea"><div class="fit-to-height" id="images"></div></div>');
         images = $('#images');

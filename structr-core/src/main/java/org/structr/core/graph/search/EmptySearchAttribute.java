@@ -19,7 +19,7 @@
 package org.structr.core.graph.search;
 
 import java.util.Collection;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.Query;
 import org.structr.core.GraphObject;

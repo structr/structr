@@ -45,7 +45,7 @@ public class OtherNodeTypeFilter implements Predicate<Relationship> {
 	public OtherNodeTypeFilter(final SecurityContext securityContext, final Node thisNode, final Class desiredType, final Predicate<GraphObject> nodePredicate) {
 
 		this.nodePredicate = nodePredicate;
-		this.nodeFactory   = new NodeFactory(SecurityContext.getSuperUserInstance());
+		this.nodeFactory   = new NodeFactory(securityContext);
 		this.desiredType   = desiredType;
 		this.thisNode      = thisNode;
 	}
@@ -57,7 +57,7 @@ public class OtherNodeTypeFilter implements Predicate<Relationship> {
 			final NodeInterface otherNode = nodeFactory.instantiate(item.getOtherNode(thisNode));
 
 			// check predicate if exists
-			if (nodePredicate == null || nodePredicate.accept(otherNode)) {
+			if (otherNode != null && (nodePredicate == null || nodePredicate.accept(otherNode))) {
 				
 				final Class otherNodeType = otherNode.getClass();
 

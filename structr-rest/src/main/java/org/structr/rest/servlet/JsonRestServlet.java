@@ -24,7 +24,6 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSyntaxException;
 
-import org.apache.commons.lang.StringUtils;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -35,6 +34,7 @@ import org.structr.rest.resource.Resource;
 import org.structr.core.Result;
 
 //~--- JDK imports ------------------------------------------------------------
+
 
 import java.io.IOException;
 import java.io.Writer;
@@ -93,14 +93,14 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 	private static final Logger logger                                  = Logger.getLogger(JsonRestServlet.class.getName());
 
 	static {
-		
+
 		commonRequestParameters.add(REQUEST_PARAMETER_LOOSE_SEARCH);
 		commonRequestParameters.add(REQUEST_PARAMETER_PAGE_NUMBER);
 		commonRequestParameters.add(REQUEST_PARAMETER_PAGE_SIZE);
 		commonRequestParameters.add(REQUEST_PARAMETER_OFFSET_ID);
 		commonRequestParameters.add(REQUEST_PARAMETER_SORT_KEY);
 		commonRequestParameters.add(REQUEST_PARAMETER_SORT_ORDER);
-		
+
 		// cross reference here, but these need to be added as well..
 		commonRequestParameters.add(SearchCommand.DISTANCE_SEARCH_KEYWORD);
 		commonRequestParameters.add(SearchCommand.LOCATION_SEARCH_KEYWORD);
@@ -111,7 +111,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 		commonRequestParameters.add(SearchCommand.STATE_SEARCH_KEYWORD);
 		commonRequestParameters.add(SearchCommand.COUNTRY_SEARCH_KEYWORD);
 	}
-	
+
 	//~--- fields ---------------------------------------------------------
 
 	private Map<Pattern, Class<? extends Resource>> resourceMap = new LinkedHashMap<>();
@@ -128,21 +128,21 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 	public StructrHttpServiceConfig getConfig() {
 		return config;
 	}
-		
+
 	@Override
 	public void init() {
-		
+
 		boolean indentJson = true;
-		
+
 		try {
 			indentJson = Boolean.parseBoolean(StructrApp.getConfigurationValue(Services.JSON_INDENTATION, "true"));
-		
+
 		} catch (Throwable t) {
-			
+
 			logger.log(Level.WARNING, "Unable to parse value for {0}: {1}", new Object[] { Services.JSON_INDENTATION, t.getMessage() } );
 		}
-		
-		
+
+
 		// inject resources
 		resourceMap.putAll(config.getResourceProvider().getResources());
 
@@ -182,6 +182,11 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 		try {
 
+			// first thing to do!
+			request.setCharacterEncoding("UTF-8");
+			response.setCharacterEncoding("UTF-8");
+			response.setContentType("application/json; charset=utf-8");
+
 			// isolate request authentication in a transaction
 			try (final Tx tx = StructrApp.getInstance().tx()) {
 				authenticator = config.getAuthenticator();
@@ -190,10 +195,6 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 			}
 
 			final App app = StructrApp.getInstance(securityContext);
-
-//			logRequest("DELETE", request);
-			request.setCharacterEncoding("UTF-8");
-			response.setContentType("application/json; charset=utf-8");
 
 			// isolate resource authentication
 			try (final Tx tx = app.tx()) {
@@ -207,7 +208,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 			// isolate doDelete
 			boolean retry = true;
 			while (retry) {
-				
+
 				try (final Tx tx = app.tx()) {
 					result = resource.doDelete();
 					tx.success();
@@ -257,24 +258,26 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 			response.setStatus(code);
 			response.getWriter().append(RestMethodResult.jsonError(code, "JsonSyntaxException in DELETE: " + t.getMessage()));
-			
+
 		} finally {
 
 			try {
 				//response.getWriter().flush();
 				response.getWriter().close();
-				
+
 			} catch (IOException t) {
-				
+
 				logger.log(Level.WARNING, "Unable to flush and close response: {0}", t.getMessage());
 			}
-		
-			securityContext.cleanUp();
+
+			if (securityContext != null) {
+				securityContext.cleanUp();
+			}
 		}
 	}
 
 	// </editor-fold>
-	
+
 	// <editor-fold defaultstate="collapsed" desc="GET">
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
@@ -286,6 +289,11 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 		try {
 
+			// first thing to do!
+			request.setCharacterEncoding("UTF-8");
+			response.setCharacterEncoding("UTF-8");
+			response.setContentType("application/json; charset=utf-8");
+
 			// isolate request authentication in a transaction
 			try (final Tx tx = StructrApp.getInstance().tx()) {
 				authenticator = config.getAuthenticator();
@@ -295,10 +303,6 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 			final App app = StructrApp.getInstance(securityContext);
 
-//			logRequest("GET", request);
-			request.setCharacterEncoding("UTF-8");
-			response.setCharacterEncoding("UTF-8");
-
 			// set default value for property view
 			propertyView.set(securityContext, config.getDefaultPropertyView());
 
@@ -307,7 +311,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 			// isolate resource authentication
 			try (final Tx tx = app.tx()) {
-				
+
 				resource = ResourceHelper.applyViewTransformation(request, securityContext,
 					ResourceHelper.optimizeNestedResourceChain(
 						ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView,
@@ -315,7 +319,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 				authenticator.checkResourceAccess(request, resource.getResourceSignature(), propertyView.get(securityContext));
 				tx.success();
 			}
-			
+
 			// add sorting & paging
 			String pageSizeParameter = request.getParameter(REQUEST_PARAMETER_PAGE_SIZE);
 			String pageParameter     = request.getParameter(REQUEST_PARAMETER_PAGE_NUMBER);
@@ -330,15 +334,15 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 			// set sort key
 			if (sortKeyName != null) {
-				
+
 				Class<? extends GraphObject> type = resource.getEntityClass();
 				sortKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, sortKeyName);
 			}
-			
+
 			// isolate doGet
 			boolean retry = true;
 			while (retry) {
-				
+
 				try (final Tx tx = app.tx()) {
 					result = resource.doGet(sortKey, sortDescending, pageSize, page, offsetId);
 					tx.success();
@@ -348,10 +352,10 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 					retry = true;
 				}
 			}
-			
+
 			result.setIsCollection(resource.isCollectionResource());
 			result.setIsPrimitiveArray(resource.isPrimitiveArray());
-			
+
 			PagingHelper.addPagingParameter(result, pageSize, page);
 
 			// timing..
@@ -370,16 +374,16 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 			String accept = request.getHeader("Accept");
 
 			if (accept != null && accept.contains("text/html")) {
-				
+
 				// isolate write output
 				try (final Tx tx = app.tx()) {
 					response.setContentType("text/html; charset=utf-8");
 					htmlWriter.get().stream(writer, result, baseUrl);
 					tx.success();
 				}
-			
+
 			} else {
-			
+
 				// isolate write output
 				try (final Tx tx = app.tx()) {
 					response.setContentType("application/json; charset=utf-8");
@@ -387,7 +391,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 					writer.append("\n");    // useful newline
 					tx.success();
 				}
-				
+
 			}
 
 			if (result.hasPartialContent()) {
@@ -433,24 +437,26 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 			response.setStatus(code);
 			response.getWriter().append(RestMethodResult.jsonError(code, "Exception in GET: " + t.getMessage()));
-			
+
 		} finally {
 
 			try {
 				//response.getWriter().flush();
 				response.getWriter().close();
-				
+
 			} catch (Throwable t) {
-				
+
 				logger.log(Level.WARNING, "Unable to flush and close response: {0}", t.getMessage());
 			}
-			
-			securityContext.cleanUp();
+
+			if (securityContext != null) {
+				securityContext.cleanUp();
+			}
 		}
 	}
 
 	// </editor-fold>
-	
+
 	// <editor-fold defaultstate="collapsed" desc="HEAD">
 	@Override
 	protected void doHead(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -462,6 +468,11 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 		try {
 
+			// first thing to do!
+			request.setCharacterEncoding("UTF-8");
+			response.setCharacterEncoding("UTF-8");
+			response.setContentType("application/json; charset=utf-8");
+
 			// isolate request authentication in a transaction
 			try (final Tx tx = StructrApp.getInstance().tx()) {
 				authenticator = config.getAuthenticator();
@@ -471,25 +482,20 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 			final App app = StructrApp.getInstance(securityContext);
 
-//			logRequest("HEAD", request);
-			request.setCharacterEncoding("UTF-8");
-			response.setCharacterEncoding("UTF-8");
-			response.setContentType("application/json; charset=UTF-8");
-
 			// isolate resource authentication
 			try (final Tx tx = app.tx()) {
-				
+
 				resource = ResourceHelper.applyViewTransformation(request, securityContext,
 					ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView,
 						config.getDefaultIdProperty()), config.getDefaultIdProperty()), propertyView);
 				authenticator.checkResourceAccess(request, resource.getResourceSignature(), propertyView.get(securityContext));
 				tx.success();
 			}
-			
+
 			// isolate doHead
 			boolean retry = true;
 			while (retry) {
-				
+
 				try (final Tx tx = app.tx()) {
 					result = resource.doHead();
 					tx.success();
@@ -538,24 +544,26 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 			response.setStatus(code);
 			response.getWriter().append(RestMethodResult.jsonError(code, "JsonSyntaxException in HEAD: " + t.getMessage()));
-			
+
 		} finally {
 
 			try {
 				response.getWriter().flush();
 				response.getWriter().close();
-				
+
 			} catch (Throwable t) {
-				
+
 				logger.log(Level.WARNING, "Unable to flush and close response: {0}", t.getMessage());
 			}
 
-			securityContext.cleanUp();
+			if (securityContext != null) {
+				securityContext.cleanUp();
+			}
 		}
 	}
 
 	// </editor-fold>
-	
+
 	// <editor-fold defaultstate="collapsed" desc="OPTIONS">
 	@Override
 	protected void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -567,6 +575,11 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 		try {
 
+			// first thing to do!
+			request.setCharacterEncoding("UTF-8");
+			response.setCharacterEncoding("UTF-8");
+			response.setContentType("application/json; charset=utf-8");
+
 			// isolate request authentication in a transaction
 			try (final Tx tx = StructrApp.getInstance().tx()) {
 				authenticator = config.getAuthenticator();
@@ -576,25 +589,20 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 			final App app = StructrApp.getInstance(securityContext);
 
-//			logRequest("OPTIONS", request);
-			request.setCharacterEncoding("UTF-8");
-			response.setCharacterEncoding("UTF-8");
-			response.setContentType("application/json; charset=UTF-8");
-
 			// isolate resource authentication
 			try (final Tx tx = app.tx()) {
-				
+
 				resource = ResourceHelper.applyViewTransformation(request, securityContext,
 					ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView,
 						config.getDefaultIdProperty()), config.getDefaultIdProperty()), propertyView);
 				authenticator.checkResourceAccess(request, resource.getResourceSignature(), propertyView.get(securityContext));
 				tx.success();
 			}
-			
+
 			// isolate doOptions
 			boolean retry = true;
 			while (retry) {
-				
+
 				try (final Tx tx = app.tx()) {
 					result = resource.doOptions();
 					tx.success();
@@ -616,7 +624,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 			response.setStatus(frameworkException.getStatus());
 			gson.get().toJson(frameworkException, response.getWriter());
 			response.getWriter().println();
-			
+
 		} catch (JsonSyntaxException jsex) {
 
 			logger.log(Level.WARNING, "JsonSyntaxException in OPTIONS", jsex);
@@ -643,24 +651,26 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 			response.setStatus(code);
 			response.getWriter().append(RestMethodResult.jsonError(code, "JsonSyntaxException in OPTIONS: " + t.getMessage()));
-			
+
 		} finally {
 
 			try {
 				//response.getWriter().flush();
 				response.getWriter().close();
-				
+
 			} catch (Throwable t) {
-				
+
 				logger.log(Level.WARNING, "Unable to flush and close response: {0}", t.getMessage());
 			}
 
-			securityContext.cleanUp();
+			if (securityContext != null) {
+				securityContext.cleanUp();
+			}
 		}
 	}
 
 	// </editor-fold>
-	
+
 	// <editor-fold defaultstate="collapsed" desc="POST">
 	@Override
 	protected void doPost(final HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -673,6 +683,11 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 		try {
 
+			// first thing to do!
+			request.setCharacterEncoding("UTF-8");
+			response.setCharacterEncoding("UTF-8");
+			response.setContentType("application/json; charset=utf-8");
+
 			// isolate request authentication in a transaction
 			try (final Tx tx = StructrApp.getInstance().tx()) {
 				authenticator = config.getAuthenticator();
@@ -681,11 +696,6 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 			}
 
 			final App app = StructrApp.getInstance(securityContext);
-
-//			logRequest("POST", request);
-			request.setCharacterEncoding("UTF-8");
-			response.setCharacterEncoding("UTF-8");
-			response.setContentType("application/json; charset=UTF-8");
 
 			// isolate input parsing (will include read and write operations)
 			try (final Tx tx = app.tx()) {
@@ -700,14 +710,14 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 				// isolate resource authentication
 				try (final Tx tx = app.tx()) {
-				
+
 					resource = ResourceHelper.applyViewTransformation(request, securityContext,
 						ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView,
 							config.getDefaultIdProperty()), config.getDefaultIdProperty()), propertyView);
 					authenticator.checkResourceAccess(request, resource.getResourceSignature(), propertyView.get(securityContext));
 					tx.success();
 				}
-				
+
 				// isolate doPost
 				boolean retry = true;
 				while (retry) {
@@ -728,14 +738,14 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 				// isolate write output
 				try (final Tx tx = app.tx()) {
-					
+
 					if (result != null) {
 						result.commitResponse(gson.get(), response);
 					}
-					
+
 					tx.success();
 				}
-				
+
 			} else {
 
 				// isolate write output
@@ -789,24 +799,26 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 			response.setStatus(code);
 			response.getWriter().append(RestMethodResult.jsonError(code, "JsonSyntaxException in POST: " + t.getMessage()));
-			
+
 		} finally {
 
 			try {
 				//response.getWriter().flush();
 				response.getWriter().close();
-				
+
 			} catch (Throwable t) {
-				
+
 				logger.log(Level.WARNING, "Unable to flush and close response: {0}", t.getMessage());
 			}
 
-			securityContext.cleanUp();
+			if (securityContext != null) {
+				securityContext.cleanUp();
+			}
 		}
 	}
 
 	// </editor-fold>
-	
+
 	// <editor-fold defaultstate="collapsed" desc="PUT">
 	@Override
 	protected void doPut(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
@@ -819,6 +831,11 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 		try {
 
+			// first thing to do!
+			request.setCharacterEncoding("UTF-8");
+			response.setCharacterEncoding("UTF-8");
+			response.setContentType("application/json; charset=utf-8");
+
 			// isolate request authentication in a transaction
 			try (final Tx tx = StructrApp.getInstance().tx()) {
 				authenticator = config.getAuthenticator();
@@ -827,11 +844,6 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 			}
 
 			final App app = StructrApp.getInstance(securityContext);
-
-//			logRequest("PUT", request);
-			request.setCharacterEncoding("UTF-8");
-			response.setCharacterEncoding("UTF-8");
-			response.setContentType("application/json; charset=UTF-8");
 
 			// isolate input parsing (will include read and write operations)
 			try (final Tx tx = app.tx()) {
@@ -845,7 +857,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 				// isolate resource authentication
 				try (final Tx tx = app.tx()) {
-				
+
 					// evaluate constraint chain
 					resource = ResourceHelper.applyViewTransformation(request, securityContext,
 						ResourceHelper.optimizeNestedResourceChain(ResourceHelper.parsePath(securityContext, request, resourceMap, propertyView,
@@ -853,11 +865,11 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 					authenticator.checkResourceAccess(request, resource.getResourceSignature(), propertyView.get(securityContext));
 					tx.success();
 				}
-				
+
 				// isolate doPut
 				boolean retry = true;
 				while (retry) {
-					
+
 					try (final Tx tx = app.tx()) {
 						result = resource.doPut(properties);
 						tx.success();
@@ -873,7 +885,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 					result.commitResponse(gson.get(), response);
 					tx.success();
 				}
-				
+
 			} else {
 
 				// isolate write output
@@ -891,7 +903,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 			response.setStatus(frameworkException.getStatus());
 			gson.get().toJson(frameworkException, response.getWriter());
 			response.getWriter().println();
-			
+
 		} catch (JsonSyntaxException jsex) {
 
 			logger.log(Level.WARNING, "JsonSyntaxException in PUT", jsex);
@@ -918,24 +930,26 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 			response.setStatus(code);
 			response.getWriter().append(RestMethodResult.jsonError(code, "JsonSyntaxException in PUT: " + t.getMessage()));
-			
+
 		} finally {
 
 			try {
 				//response.getWriter().flush();
 				response.getWriter().close();
-				
+
 			} catch (Throwable t) {
-				
+
 				logger.log(Level.WARNING, "Unable to flush and close response: {0}", t.getMessage());
 			}
 
-			securityContext.cleanUp();
+			if (securityContext != null) {
+				securityContext.cleanUp();
+			}
 		}
 	}
 
 	// </editor-fold>
-	
+
 	// <editor-fold defaultstate="collapsed" desc="TRACE">
 	@Override
 	protected void doTrace(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -951,15 +965,15 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 	}
 
 	// </editor-fold>
-	
+
 	// <editor-fold defaultstate="collapsed" desc="private methods">
 
 	private Map<String, Object> convertPropertySetToMap(JsonInput propertySet) {
-		
+
 		if (propertySet != null) {
 			return propertySet.getAttributes();
 		}
-		
+
 		return new LinkedHashMap<>();
 	}
 	// </editor-fold>
@@ -984,16 +998,16 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 	}
 
 	private class ThreadLocalGson extends ThreadLocal<Gson> {
-		
+
 		private int outputNestingDepth = 3;
-		
+
 		public ThreadLocalGson(final int outputNestingDepth) {
 			this.outputNestingDepth = outputNestingDepth;
 		}
-		
+
 		@Override
 		protected Gson initialValue() {
-			
+
 			JsonInputGSONAdapter jsonInputAdapter = new JsonInputGSONAdapter(propertyView, config.getDefaultIdProperty());
 			ResultGSONAdapter resultGsonAdapter   = new ResultGSONAdapter(propertyView, config.getDefaultIdProperty(), outputNestingDepth);
 
@@ -1009,42 +1023,42 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 	}
 
 	private class ThreadLocalJsonWriter extends ThreadLocal<StreamingWriter> {
-		
+
 		private Value<String> propertyView;
 		private boolean indent = false;
 		private int depth      = 3;
-		
+
 		public ThreadLocalJsonWriter(Value<String> propertyView, boolean indent, final int outputNestingDepth) {
-			
+
 			this.propertyView = propertyView;
 			this.indent       = indent;
 			this.depth        = outputNestingDepth;
 		}
-		
+
 		@Override
 		protected StreamingWriter initialValue() {
-			
+
 			return new StreamingJsonWriter(this.propertyView, indent, depth);
 		}
 
 	}
 
 	private class ThreadLocalHtmlWriter extends ThreadLocal<StreamingHtmlWriter> {
-		
+
 		private Value<String> propertyView;
 		private boolean indent = false;
 		private int depth      = 3;
-		
+
 		public ThreadLocalHtmlWriter(Value<String> propertyView, boolean indent, final int outputNestingDepth) {
-			
+
 			this.propertyView = propertyView;
 			this.indent       = indent;
 			this.depth        = outputNestingDepth;
 		}
-		
+
 		@Override
 		protected StreamingHtmlWriter initialValue() {
-			
+
 			return new StreamingHtmlWriter(this.propertyView, indent, depth);
 		}
 

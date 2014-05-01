@@ -18,7 +18,6 @@
  */
 package org.structr.rest.servlet;
 
-import org.apache.commons.lang.StringUtils;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -43,6 +42,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.core.Services;
 import org.structr.core.ViewTransformation;
 import org.structr.core.app.StructrApp;

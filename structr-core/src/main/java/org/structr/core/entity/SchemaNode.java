@@ -18,6 +18,7 @@
  */
 package org.structr.core.entity;
 
+import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -30,8 +31,6 @@ import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
 import org.structr.core.entity.relationship.SchemaRelationship;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
@@ -41,6 +40,8 @@ import org.structr.core.property.StringProperty;
 import org.structr.schema.Schema;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.SchemaNotion;
+import org.structr.schema.action.ActionEntry;
+import org.structr.schema.action.Actions;
 
 /**
  *
@@ -51,53 +52,50 @@ public class SchemaNode extends AbstractSchemaNode implements Schema {
 	public static final Property<List<SchemaNode>>  relatedTo    = new EndNodes<>("relatedTo", SchemaRelationship.class, new SchemaNotion(SchemaNode.class));
 	public static final Property<List<SchemaNode>>  relatedFrom  = new StartNodes<>("relatedFrom", SchemaRelationship.class, new SchemaNotion(SchemaNode.class));
 	public static final Property<String>            extendsClass = new StringProperty("extendsClass").indexed();
-	
+
 	public static final View defaultView = new View(SchemaNode.class, PropertyView.Public,
 		name, extendsClass, relatedTo, relatedFrom
 	);
-	
+
 	public static final View uiView = new View(SchemaNode.class, PropertyView.Ui,
 		name, extendsClass, relatedTo, relatedFrom
 	);
 
 	private Set<String> dynamicViews = new LinkedHashSet<>();
-	
+
 	@Override
 	public Iterable<PropertyKey> getPropertyKeys(final String propertyView) {
-		
+
 		final Set<PropertyKey> propertyKeys = new LinkedHashSet<>(Iterables.toList(super.getPropertyKeys(propertyView)));
-		
+
 		// add "custom" property keys as String properties
 		for (final String key : SchemaHelper.getProperties(getNode())) {
-			
+
 			final PropertyKey newKey = new StringProperty(key);
 			newKey.setDeclaringClass(getClass());
-			
+
 			propertyKeys.add(newKey);
 		}
-			
+
 		return propertyKeys;
 	}
-	
+
 	@Override
 	public String getSource(final ErrorBuffer errorBuffer) throws FrameworkException {
-		
-		final App app = StructrApp.getInstance();
-		
-		final Map<String, Set<String>> viewProperties = new LinkedHashMap<>();
-		final Set<String> validators                  = new LinkedHashSet<>();
-		final Set<String> enums                       = new LinkedHashSet<>();
-		final StringBuilder src                       = new StringBuilder();
-		final Class baseType                          = AbstractNode.class;
-		final String _className                       = getProperty(name);
-		final String _extendsClass                    = getProperty(extendsClass);
 
-		final Set<String> existingPropertyNames       = new LinkedHashSet<>();
+		final Map<Actions.Type, List<ActionEntry>> saveActions = new EnumMap<>(Actions.Type.class);
+		final Map<String, Set<String>> viewProperties          = new LinkedHashMap<>();
+		final Set<String> existingPropertyNames                = new LinkedHashSet<>();
+		final Set<String> validators                           = new LinkedHashSet<>();
+		final Set<String> enums                                = new LinkedHashSet<>();
+		final StringBuilder src                                = new StringBuilder();
+		final Class baseType                                   = AbstractNode.class;
+		final String _className                                = getProperty(name);
+		final String _extendsClass                             = getProperty(extendsClass);
 
 		src.append("package org.structr.dynamic;\n\n");
 
 		SchemaHelper.formatImportStatements(src, baseType);
-
 
 
 		String superClass = _extendsClass != null ? _extendsClass : baseType.getSimpleName();
@@ -131,7 +129,7 @@ public class SchemaNode extends AbstractSchemaNode implements Schema {
 		}
 
 		// extract properties from node
-		src.append(SchemaHelper.extractProperties(this, validators, enums, viewProperties, errorBuffer));
+		src.append(SchemaHelper.extractProperties(this, validators, enums, viewProperties, saveActions, errorBuffer));
 
 		// output possible enum definitions
 		for (final String enumDefition : enums) {
@@ -149,6 +147,33 @@ public class SchemaNode extends AbstractSchemaNode implements Schema {
 			}
 		}
 
+		formatValidators(src, validators);
+		formatSaveActions(src, saveActions);
+
+		src.append("}\n");
+
+		return src.toString();
+	}
+
+	@Override
+	public Set<String> getViews() {
+		return dynamicViews;
+	}
+
+	@Override
+	public boolean isValid(final ErrorBuffer errorBuffer) {
+
+		return ValidationHelper.checkStringMatchesRegex(this, name, "[A-Z][a-zA-Z_]+", errorBuffer);
+
+	}
+
+	private void addPropertyNameToViews(final String propertyName, final Map<String, Set<String>> viewProperties) {
+		SchemaHelper.addPropertyToView(PropertyView.Public, propertyName, viewProperties);
+		SchemaHelper.addPropertyToView(PropertyView.Ui, propertyName, viewProperties);
+	}
+
+	private void formatValidators(final StringBuilder src, final Set<String> validators) {
+
 		if (!validators.isEmpty()) {
 
 			src.append("\n\t@Override\n");
@@ -163,25 +188,86 @@ public class SchemaNode extends AbstractSchemaNode implements Schema {
 			src.append("\t}\n");
 		}
 
-		src.append("}\n");
-			
-		return src.toString();
-	}
-	
-	@Override
-	public Set<String> getViews() {
-		return dynamicViews;
-	}
-	
-	@Override
-	public boolean isValid(final ErrorBuffer errorBuffer) {
-
-		return ValidationHelper.checkStringMatchesRegex(this, name, "[a-zA-Z_]+", errorBuffer);
-
 	}
 
-	private void addPropertyNameToViews(final String propertyName, final Map<String, Set<String>> viewProperties) {
-		SchemaHelper.addPropertyToView(PropertyView.Public, propertyName, viewProperties);
-		SchemaHelper.addPropertyToView(PropertyView.Ui, propertyName, viewProperties);
+	private void formatSaveActions(final StringBuilder src, final Map<Actions.Type, List<ActionEntry>> saveActions) {
+
+		// save actions..
+		for (final Entry<Actions.Type, List<ActionEntry>> entry : saveActions.entrySet()) {
+
+			final List<ActionEntry> actionList = entry.getValue();
+			final Actions.Type type            = entry.getKey();
+
+			if (!actionList.isEmpty()) {
+
+				switch (type) {
+
+					case Custom:
+						// active actions are exported stored functions
+						// that can be called by POSTing on the entity
+						formatActiveActions(src, actionList);
+						break;
+
+					default:
+						// passive actions are actions that are executed
+						// automtatically on creation / modification etc.
+						formatPassiveSaveActions(src, type, actionList);
+						break;
+				}
+			}
+		}
+
+	}
+
+	private void formatActiveActions(final StringBuilder src, final List<ActionEntry> actionList) {
+
+		for (final ActionEntry action : actionList) {
+
+			src.append("\n\t@Export\n");
+			src.append("\tpublic RestMethodResult ");
+			src.append(action.getName());
+			src.append("() throws FrameworkException {\n\n");
+
+			src.append("\t\t");
+			src.append(action.getSource());
+			src.append(";\n\n");
+
+			src.append("\t\treturn new RestMethodResult(200);\n");
+			src.append("\t}\n");
+		}
+
+	}
+
+	private void formatPassiveSaveActions(final StringBuilder src, final Actions.Type type, final List<ActionEntry> actionList) {
+
+		src.append("\n\t@Override\n");
+		src.append("\tpublic boolean ");
+		src.append(type.getMethod());
+		src.append("(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {\n\n");
+		src.append("\t\tboolean error = false;\n\n");
+
+		for (final ActionEntry action : actionList) {
+
+			if (action.runOnError()) {
+
+				src.append("\t\terror |= ").append(action.getSource()).append(";\n");
+
+			} else {
+
+				src.append("\t\tif (!error) {\n");
+				src.append("\t\t\terror |= ").append(action.getSource()).append(";\n");
+				src.append("\t\t}\n");
+
+			}
+		}
+
+		// don't forget super call
+		src.append("\t\terror |= !super.");
+		src.append(type.getMethod());
+		src.append("(securityContext, errorBuffer);\n");
+
+		src.append("\n\t\treturn !error;\n");
+		src.append("\t}\n");
+
 	}
 }

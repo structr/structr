@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2010-2013 Axel Morgner
+ *  Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
  *  This file is part of structr <http://structr.org>.
  *
@@ -36,11 +36,11 @@ casper.test.begin(testName, numberOfTests, function(test) {
 
     sections.push('If you enter a wrong combination of username and password, the system does not allow you to log in.');
 
-    casper.then(function() {
+    casper.waitForSelector('#usernameField').then(function() {
         s.animatedType(this, '#usernameField', false, 'wrong');
     });
 
-    casper.then(function() {
+    casper.waitForSelector('#passwordField').then(function() {
         s.animatedType(this, '#passwordField', false, 'wrong');
     });
 

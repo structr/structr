@@ -19,7 +19,6 @@ package org.structr.rest;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonIOException;
-import com.google.gson.JsonPrimitive;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.LinkedHashMap;
@@ -30,7 +29,7 @@ import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletResponse;
-import org.parboiled.common.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
 
@@ -141,7 +140,7 @@ public class RestMethodResult {
 
 		if (message != null) {
 
-			buf.append(",\n  \"").append(messageKey).append("\" : \"").append(org.apache.commons.lang.StringUtils.replace(message, "\"", "\\\"")).append("\"\n");
+			buf.append(",\n  \"").append(messageKey).append("\" : \"").append(StringUtils.replace(message, "\"", "\\\"")).append("\"\n");
 
 		} else {
 

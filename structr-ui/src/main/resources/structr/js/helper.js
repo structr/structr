@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ *  Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
  *  This file is part of structr <http://structr.org>.
  *
@@ -59,6 +59,7 @@ function escapeForHtmlAttributes(str) {
     if (!(typeof str === 'string'))
         return str;
     return str
+            .replace(/ /g, '&nbsp;')
             .replace(/&/g, '&amp;')
             .replace(/</g, '&lt;')
             .replace(/>/g, '&gt;')
@@ -152,7 +153,7 @@ if (typeof String.prototype.extractVal !== 'function') {
  */
 function cleanText(input) {
     //console.log(input);
-    var output = input.trim()
+    var output = input
             .replace(/<br><\/div>/ig, '\n')
             .replace(/<div>/ig, '\n')
             .replace(/<br(\s*)\/*>/ig, '\n')
@@ -388,13 +389,13 @@ function blinkGreen(element) {
     }
 
     $(element).animate({
-        color: '#81ce25',
-        backgroundColor: '#efe'
-    }, 100, function() {
+        color: '#6db813',
+        backgroundColor: '#81ce25'
+    }, 50, function() {
         $(this).animate({
             color: oldFg,
             backgroundColor: oldBg
-        }, 200);
+        }, 1000);
     });
 }
 
@@ -416,13 +417,13 @@ function blinkRed(element) {
     }
 
     element.animate({
-        color: '#f00',
-        backgroundColor: '#fbb'
-    }, 250, function() {
+        color: '#a00',
+        backgroundColor: '#faa'
+    }, 50, function() {
         $(this).animate({
             color: oldFg,
             backgroundColor: oldBg
-        }, 500);
+        }, 1000);
     });
 }
 

@@ -15,23 +15,23 @@ import org.structr.web.entity.dom.Page;
 public class DeleteOperation extends InvertibleModificationOperation {
 
 	private DOMNode existingNode = null;
-	
+
 	public DeleteOperation(final Map<String, DOMNode> hashMappedExistingNodes, final DOMNode existingNode) {
-		
+
 		super(hashMappedExistingNodes);
-		
+
 		this.existingNode = existingNode;
 	}
 
 	@Override
 	public String toString() {
-		
+
 		if (existingNode instanceof Content) {
-	
+
 			return "Delete Content(" + existingNode.getIdHash() + ")";
-		
+
 		} else {
-			
+
 			return "Delete " + existingNode.getProperty(DOMElement.tag) + "(" + existingNode.getIdHash();
 		}
 	}
@@ -39,7 +39,11 @@ public class DeleteOperation extends InvertibleModificationOperation {
 	// ----- interface InvertibleModificationOperation -----
 	@Override
 	public void apply(final App app, final Page sourcePage, final Page newPage) throws FrameworkException {
-		app.delete(existingNode);
+
+		// do not delete synced nodes (nodes that are shared between multiple pages)
+		if (!existingNode.isSynced()) {
+			app.delete(existingNode);
+		}
 	}
 
 	@Override
@@ -49,7 +53,7 @@ public class DeleteOperation extends InvertibleModificationOperation {
 
 	@Override
 	public Integer getPosition() {
-		
+
 		// delete operations should go first
 		return 100;
 	}

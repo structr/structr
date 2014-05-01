@@ -20,7 +20,7 @@ package org.structr.common;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.structr.core.GraphObject;
@@ -134,8 +134,8 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 		final String type = GraphObject.type.dbName();
 		
 		// first try: duck-typing
-		final String sourceType = relationship.getStartNode().hasProperty(type) ? relationship.getStartNode().getProperty(type).toString() : null;
-		final String targetType = relationship.getEndNode().hasProperty(type) ? relationship.getEndNode().getProperty(type).toString() : null;
+		final String sourceType = relationship.getStartNode().hasProperty(type) ? relationship.getStartNode().getProperty(type).toString() : "";
+		final String targetType = relationship.getEndNode().hasProperty(type) ? relationship.getEndNode().getProperty(type).toString() : "";
 		final String relType    = relationship.getType().name();
 		final Class entityType  = getClassForCombinedType(sourceType, relType, targetType);
 		

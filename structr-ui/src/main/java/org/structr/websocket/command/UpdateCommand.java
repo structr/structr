@@ -69,8 +69,8 @@ public class UpdateCommand extends AbstractCommand {
 
 			if (!getWebSocket().getSecurityContext().isAllowed(((AbstractNode) obj), Permission.write)) {
 
-				logger.log(Level.WARNING, "No write permission for {0} on {1}", new Object[] {getWebSocket().getCurrentUser().toString(), obj.toString()});
 				getWebSocket().send(MessageBuilder.status().message("No write permission").code(400).build(), true);
+				logger.log(Level.WARNING, "No write permission for {0} on {1}", new Object[] { getWebSocket().getCurrentUser().toString(), obj.toString() });
 				return;
 				
 			}

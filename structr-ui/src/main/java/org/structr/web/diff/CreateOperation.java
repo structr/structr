@@ -54,7 +54,7 @@ public class CreateOperation extends InvertibleModificationOperation {
 			final DOMNode parent  = insertPosition.getParent();
 			final DOMNode sibling = insertPosition.getSibling();
 
-			if (parent != null) {
+			if (parent != null && !parent.isSynced()) {
 
 				sourcePage.adoptNode(newNode);
 				parent.insertBefore(newNode, sibling);

@@ -18,7 +18,7 @@
  */
 package org.structr.core.property;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.SortField;
 import org.apache.lucene.util.NumericUtils;
@@ -40,7 +40,7 @@ import org.structr.core.graph.search.SearchAttribute;
 public class IntProperty extends AbstractPrimitiveProperty<Integer> {
 
 	public static final String INT_EMPTY_FIELD_VALUE = NumericUtils.intToPrefixCoded(Integer.MIN_VALUE);
-	
+
 	public IntProperty(String name) {
 		this(name, name, null);
 	}
@@ -48,28 +48,28 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> {
 	public IntProperty(final String jsonName, final String dbName) {
 		this(jsonName, dbName, null);
 	}
-	
+
 	public IntProperty(String name, PropertyValidator<Integer>... validators) {
 		this(name, name, null, validators);
 	}
-	
+
 	public IntProperty(String name, Integer defaultValue, PropertyValidator<Integer>... validators) {
 		this(name, name, defaultValue, validators);
 	}
-	
+
 	public IntProperty(String jsonName, String dbName, Integer defaultValue, PropertyValidator<Integer>... validators) {
 		super(jsonName, dbName, defaultValue);
-		
+
 		for (PropertyValidator<Integer> validator : validators) {
 			addValidator(validator);
 		}
 	}
-	
+
 	@Override
 	public String typeName() {
 		return "Integer";
 	}
-		
+
 	@Override
 	public Integer getSortType() {
 		return SortField.INT;
@@ -79,7 +79,7 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> {
 	public PropertyConverter<Integer, Integer> databaseConverter(SecurityContext securityContext) {
 		return null;
 	}
-	
+
 	@Override
 	public PropertyConverter<Integer, Integer> databaseConverter(SecurityContext securityContext, GraphObject entity) {
 		return null;
@@ -89,13 +89,13 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> {
 	public PropertyConverter<?, Integer> inputConverter(SecurityContext securityContext) {
 		return new InputConverter(securityContext);
 	}
-	
+
 	protected class InputConverter extends PropertyConverter<Object, Integer> {
 
 		public InputConverter(SecurityContext securityContext) {
 			super(securityContext, null);
 		}
-		
+
 		@Override
 		public Object revert(Integer source) throws FrameworkException {
 			return source;
@@ -105,7 +105,7 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> {
 		public Integer convert(Object source) {
 
 			if (source == null) return null;
-			
+
 			if (source instanceof Number) {
 
 				return ((Number)source).intValue();
@@ -114,40 +114,40 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> {
 
 			if (source instanceof String && StringUtils.isNotBlank((String) source)) {
 
-				return Integer.parseInt(source.toString());
+				return Double.valueOf(source.toString()).intValue();
 			}
-			
+
 			return null;
-			
+
 		}
 	}
 
 	@Override
 	public Object fixDatabaseProperty(Object value) {
-		
+
 		if (value != null) {
-			
+
 			if (value instanceof Integer) {
 				return value;
 			}
-			
+
 			if (value instanceof Number) {
 				return ((Number)value).intValue();
 			}
-			
+
 			try {
-				
-				return Integer.parseInt(value.toString());
-				
+
+				return Double.valueOf(value.toString()).intValue();
+
 			} catch (Throwable t) {
-				
+
 				// no chance, give up..
 			}
 		}
-		
+
 		return null;
 	}
-	
+
 	@Override
 	public SearchAttribute getSearchAttribute(SecurityContext securityContext, BooleanClause.Occur occur, Integer searchValue, boolean exactMatch, final Query query) {
 		return new IntegerSearchAttribute(this, searchValue, occur, exactMatch);

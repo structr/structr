@@ -18,9 +18,8 @@
  */
 package org.structr.core.validator;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
-import org.structr.core.property.PropertyKey;
 import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -29,6 +28,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
 import org.structr.core.Result;
 import org.structr.core.app.StructrApp;
+import org.structr.core.property.PropertyKey;
 
 /**
  * A validator that normalizes the given value and ensures it is an

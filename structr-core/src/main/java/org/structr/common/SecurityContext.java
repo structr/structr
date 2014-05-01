@@ -88,6 +88,7 @@ public class SecurityContext {
 		this.request    = request;
 
 		initRequestBasedCache(request);
+		initializeCustomView(request);
 	}
 
 	private SecurityContext(HttpServletRequest request) {
@@ -95,34 +96,7 @@ public class SecurityContext {
 		this.request    = request;
 
 		initRequestBasedCache(request);
-
-		// check for custom view attributes
-		if (request != null) {
-
-			try {
-				final String contentType = request.getContentType();
-				if (contentType != null && contentType.startsWith("application/json;")) {
-
-					customView = new LinkedHashSet<>();
-
-					final Matcher matcher = customViewPattern.matcher(contentType);
-					if (matcher.matches()) {
-
-						final String properties = matcher.group(1);
-						final String[] parts    = properties.split("[,]+");
-						for (final String part : parts) {
-
-							final String p = part.trim();
-							if (p.length() > 0) {
-
-								customView.add(p);
-							}
-						}
-					}
-				}
-
-			} catch (Throwable ignore) { }
-		}
+		initializeCustomView(request);
 	}
 
 	//~--- methods --------------------------------------------------------
@@ -141,6 +115,38 @@ public class SecurityContext {
 			if (request != null && request.getServletContext() != null) {
 				request.getServletContext().setAttribute("NODE_CACHE", cache);
 			}
+		}
+
+	}
+
+	private void initializeCustomView(final HttpServletRequest request) {
+
+		// check for custom view attributes
+		if (request != null) {
+
+			try {
+				final String acceptedContentType = request.getHeader("Accept");
+				if (acceptedContentType != null && acceptedContentType.startsWith("application/json;")) {
+
+					final Matcher matcher = customViewPattern.matcher(acceptedContentType);
+					if (matcher.matches()) {
+
+						customView = new LinkedHashSet<>();
+
+						final String properties = matcher.group(1);
+						final String[] parts    = properties.split("[,]+");
+						for (final String part : parts) {
+
+							final String p = part.trim();
+							if (p.length() > 0) {
+
+								customView.add(p);
+							}
+						}
+					}
+				}
+
+			} catch (Throwable ignore) { }
 		}
 
 	}
@@ -371,23 +377,7 @@ public class SecurityContext {
 			return true;
 		}
 
-		boolean isAllowed = false;
-
-		switch (accessMode) {
-
-			case Backend :
-				isAllowed = isAllowedInBackend(node, permission);
-
-				break;
-
-			case Frontend :
-				isAllowed = isAllowedInFrontend(node, permission);
-
-				break;
-
-		}
-
-		return isAllowed;
+		return node.isGranted(permission, user);
 
 	}
 
@@ -441,17 +431,17 @@ public class SecurityContext {
 			return true;
 		}
 
-		// Ask the security context
-		if (isAllowed(node, Permission.read)) {
-
-			return true;
-		}
-
-		return false;
+		return isAllowed(node, Permission.read);
 	}
 
 	// ----- private methods -----
 	private boolean isVisibleInBackend(AccessControllable node) {
+
+		if (isVisibleInFrontend(node)) {
+
+			return true;
+
+		}
 
 		// no node, nothing to see here..
 		if (node == null) {
@@ -474,14 +464,7 @@ public class SecurityContext {
 			return true;
 		}
 
-		// users with read permissions may see the node
-		if (isAllowedInBackend(node, Permission.read)) {
-
-			return true;
-		}
-
-		// no match, node is not visible
-		return false;
+		return isAllowed(node, Permission.read);
 	}
 
 	/**
@@ -542,28 +525,8 @@ public class SecurityContext {
 			}
 		}
 
-		if (isAllowedInFrontend(node, Permission.read)) {
+		return isAllowed(node, Permission.read);
 
-			return true;
-		}
-
-		return false;
-
-	}
-
-	private boolean isAllowedInBackend(AccessControllable node, Permission permission) {
-
-		Principal user = getUser(false);
-
-		return node.isGranted(permission, user);
-
-	}
-
-	private boolean isAllowedInFrontend(AccessControllable node, Permission permission) {
-
-                Principal user = getUser(false);
-
-		return node.isGranted(permission, user);
 	}
 
 	//~--- set methods ----------------------------------------------------
@@ -582,7 +545,7 @@ public class SecurityContext {
 
 		if (flagObject != null) {
 
-			flags = flagObject.longValue();
+			flags = flagObject;
 		}
 
 		flags |= flag;
@@ -612,7 +575,7 @@ public class SecurityContext {
 	}
 
 	public boolean hasCustomView() {
-		return customView != null;
+		return customView != null && !customView.isEmpty();
 	}
 
 	public Set<String> getCustomView() {

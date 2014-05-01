@@ -48,7 +48,7 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 	private static final Logger logger = Logger.getLogger(RelationshipFactory.class.getName());
 
 	// private Map<String, Class> nodeTypeCache = new ConcurrentHashMap<String, Class>();
-	public RelationshipFactory(SecurityContext securityContext) {
+	public RelationshipFactory(final SecurityContext securityContext) {
 		super(securityContext);
 	}
 
@@ -58,7 +58,7 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 	}
 
 	@Override
-	public T instantiateWithType(Relationship relationship, Class<T> relClass, boolean isCreation) throws FrameworkException {
+	public T instantiateWithType(final Relationship relationship, final Class<T> relClass, final boolean isCreation) throws FrameworkException {
 
 		logger.log(Level.FINEST, "Instantiate relationship with type {0}", relClass.getName());
 		
@@ -93,7 +93,7 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 	}
 
 	@Override
-	public T adapt(Relationship relationship) {
+	public T adapt(final Relationship relationship) {
 
 		try {
 			return instantiate(relationship);
@@ -132,7 +132,7 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 	}
 
 	@Override
-	public T instantiate(Relationship obj, boolean includeDeletedAndHidden, boolean publicOnly) throws FrameworkException {
+	public T instantiate(final Relationship obj, final boolean includeDeletedAndHidden, final boolean publicOnly) throws FrameworkException {
 
 		factoryProfile.setIncludeDeletedAndHidden(includeDeletedAndHidden);
 		factoryProfile.setPublicOnly(publicOnly);

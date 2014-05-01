@@ -32,6 +32,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.web.common.RenderContext;
 import org.structr.web.entity.User;
 import org.structr.web.entity.relation.RenderNode;
 
@@ -43,7 +44,7 @@ import org.structr.web.entity.relation.RenderNode;
 public class RenderDataTest extends DOMTest {
 
 	public void testRenderFolderTree() {
-		
+
 		String name = null;
 
 		try (final Tx tx = app.tx()) {
@@ -53,7 +54,7 @@ public class RenderDataTest extends DOMTest {
 			final Page doc = (Page) getDocument();
 
 			name = doc.getName();
-			
+
 			assertEquals(7, folders.size());
 
 			Folder rootNode = folders.get(0);
@@ -102,9 +103,9 @@ public class RenderDataTest extends DOMTest {
 			folderB.treeAppendChild(file6);
 
 			makePublic(rootNode, folderA, folderB, folderC, folderD, folderE, folderF);
-			
+
 			makePublic(file1, file2, file3, file4, file5, file6, file7);
-			
+
 			// create dom tree
 			Element html = doc.createElement("html");
 			doc.appendChild(html);
@@ -113,9 +114,9 @@ public class RenderDataTest extends DOMTest {
 
 			final Element div = doc.createElement("div");
 			body.appendChild(div);
-			
+
 			Content rootNameContent = (Content) doc.createTextNode("${root.name}");
-			
+
 			div.appendChild(rootNameContent);
 
 			final Element ul1 = doc.createElement("ul");
@@ -123,13 +124,13 @@ public class RenderDataTest extends DOMTest {
 
 			final Element li1 = doc.createElement("li");
 			ul1.appendChild(li1);
-			
+
 			Content foldersNameContent = (Content) doc.createTextNode("${folders.name}");
 			li1.appendChild(foldersNameContent);
 
 			final Element li2 = doc.createElement("li");
 			ul1.appendChild(li2);
-			
+
 			Content filesNameContent = (Content) doc.createTextNode("${files.name}");
 			li2.appendChild(filesNameContent);
 
@@ -138,18 +139,18 @@ public class RenderDataTest extends DOMTest {
 
 			final Element li3 = doc.createElement("li");
 			ul2.appendChild(li3);
-			
+
 			Content files2NameContent = (Content) doc.createTextNode("${files.name}");
 			li3.appendChild(files2NameContent);
 
 			final Element li4 = doc.createElement("li");
 			ul2.appendChild(li4);
-			
+
 			Content folders2NameContent = (Content) doc.createTextNode("${folders.name}");
 			li4.appendChild(folders2NameContent);
 
 			makePublic(rootNameContent, foldersNameContent, filesNameContent, files2NameContent, folders2NameContent);
-			
+
 			// create RENDER_NODE relationship between first ul and rootNode
 			PropertyMap properties = new PropertyMap();
 			//properties.put(LinkedListNode.keyProperty, key);
@@ -165,16 +166,16 @@ public class RenderDataTest extends DOMTest {
 			makePublic(doc, html, body, div, ul1, ul2, li1, li2, li3, li4);
 
 			tx.success();
-			
+
 		} catch (Exception ex) {
 			ex.printStackTrace();
 			fail("Unexpected exception");
 		}
 
 		try (final Tx tx = app.tx()) {
-		
+
 			org.jsoup.nodes.Document parsedDocument = Jsoup.connect(baseUri + name).get();
-			
+
 			System.out.println(parsedDocument);
 
 			assertEquals("rootNode", parsedDocument.select("html > body > div").get(0).ownText());
@@ -203,7 +204,7 @@ public class RenderDataTest extends DOMTest {
 	public void testRenderListFromRestQuery() {
 
 		String name = null;
-		
+
 		try (final Tx tx = app.tx()) {
 
 			final Page doc = (Page) getDocument();
@@ -247,7 +248,7 @@ public class RenderDataTest extends DOMTest {
 			((DOMElement) p1).setProperty(DOMElement.dataKey, "user");
 
 			Content userNameContentNode = (Content) doc.createTextNode("${user.name}");
-			
+
 			p1.appendChild(userNameContentNode);
 
 			Element div = doc.createElement("div");
@@ -257,7 +258,7 @@ public class RenderDataTest extends DOMTest {
 			((DOMElement) p2).setProperty(DOMElement.dataKey, "file");
 
 			Content fileNameContentNode = (Content) doc.createTextNode("${file.name}");
-			
+
 			p2.appendChild(fileNameContentNode);
 
 			doc.appendChild(html);
@@ -269,17 +270,20 @@ public class RenderDataTest extends DOMTest {
 
 			makePublic(doc, html, body, div, b, p1, p2, fileNameContentNode, userNameContentNode, nodeA, nodeB, nodeC, nodeD, nodeE, nodeF, user1, user2, user3);
 
+			System.out.println(doc.getContent(RenderContext.EditMode.CONTENT));
+
+
 			tx.success();
-			
+
 		} catch (Exception ex) {
 			ex.printStackTrace();
 			fail("Unexpected exception");
 		}
 
 		try (final Tx tx = app.tx()) {
-		
+
 			Document parsedDocument = Jsoup.connect(baseUri + name).get();
-			
+
 			System.out.println(parsedDocument.outerHtml());
 
 			assertEquals("user1", parsedDocument.select("html > body > b > p").get(0).ownText());

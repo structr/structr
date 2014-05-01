@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ *  Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
  *  This file is part of structr <http://structr.org>.
  *
@@ -150,6 +150,7 @@ var _Schema = {
     },
     onload: function() {
         _Schema.init();
+        $('#main-help a').attr('href', 'http://docs.structr.org/frontend-user-guide#Schema');
     },
     /**
      * Read the schema from the _schema REST resource and call 'callback'
@@ -391,13 +392,16 @@ var _Schema = {
                                     events: {
                                         "click": function(label, evt) {
                                             //console.log(rels[res.id].getOverlay('sourceMultiplicity').label);
-                                            var overlay = rels[res.id].getOverlay('sourceMultiplicity');
-                                            overlay.setLabel('<input id="source-mult-label" type="text" size="15" id="id_' + res.id + '_sourceMultiplicity" value="' + overlay.label + '">');
-                                            $('#source-mult-label').focus().on('blur', function() {
-                                                _Schema.setRelationshipProperty(res.id, 'sourceMultiplicity', $(this).val());
-                                                overlay.setLabel($(this).val());
-                                            });
                                             evt.preventDefault();
+                                            var overlay = rels[res.id].getOverlay('sourceMultiplicity');
+                                            if (!(overlay.getLabel().substring(0,1) === '<')) {
+                                                overlay.setLabel('<input id="source-mult-label" type="text" size="15" id="id_' + res.id + '_sourceMultiplicity" value="' + overlay.label + '">');
+                                                $('#source-mult-label').focus().on('blur', function() {
+                                                    var label = ($(this).val() || '').trim();
+                                                    _Schema.setRelationshipProperty(res.id, 'sourceMultiplicity', label);
+                                                    overlay.setLabel(label);
+                                                });
+                                            }
                                         }
                                     }
                                 }
@@ -410,13 +414,16 @@ var _Schema = {
                                     events: {
                                         "click": function(label, evt) {
                                             //console.log(rels[res.id].getOverlay('label').label);
-                                            var overlay = rels[res.id].getOverlay('label');
-                                            overlay.setLabel('<input id="relationship-label" type="text" size="15" id="id_' + res.id + '_relationshipType" value="' + overlay.label + '">');
-                                            $('#relationship-label').focus().on('blur', function() {
-                                                _Schema.setRelationshipProperty(res.id, 'relationshipType', $(this).val());
-                                                overlay.setLabel($(this).val());
-                                            });
                                             evt.preventDefault();
+                                            var overlay = rels[res.id].getOverlay('label');
+                                            if (!(overlay.getLabel().substring(0,1) === '<')) {
+                                                overlay.setLabel('<input id="relationship-label" type="text" size="15" id="id_' + res.id + '_relationshipType" value="' + overlay.label + '">');
+                                                $('#relationship-label').focus().on('blur', function() {
+                                                    var label = ($(this).val() || '').trim();
+                                                    _Schema.setRelationshipProperty(res.id, 'relationshipType', label);
+                                                    overlay.setLabel(label);
+                                                });
+                                            }
                                         }
                                     }
                                 }
@@ -429,13 +436,16 @@ var _Schema = {
                                     events: {
                                         "click": function(label, evt) {
                                             //console.log(rels[res.id].getOverlay('targetMultiplicity').label);
-                                            var overlay = rels[res.id].getOverlay('targetMultiplicity');
-                                            overlay.setLabel('<input id="target-mult-label" type="text" size="15" id="id_' + res.id + '_targetMultiplicity" value="' + overlay.label + '">');
-                                            $('#target-mult-label').focus().on('blur', function() {
-                                                _Schema.setRelationshipProperty(res.id, 'targetMultiplicity', $(this).val());
-                                                overlay.setLabel($(this).val());
-                                            });
                                             evt.preventDefault();
+                                            var overlay = rels[res.id].getOverlay('targetMultiplicity');
+                                            if (!(overlay.getLabel().substring(0,1) === '<')) {
+                                                overlay.setLabel('<input id="target-mult-label" type="text" size="15" id="id_' + res.id + '_targetMultiplicity" value="' + overlay.label + '">');
+                                                $('#target-mult-label').focus().on('blur', function() {
+                                                    var label = ($(this).val() || '').trim();
+                                                    _Schema.setRelationshipProperty(res.id, 'targetMultiplicity', label);
+                                                    overlay.setLabel(label);
+                                                });
+                                            }
                                         }
                                     }
                                 }
@@ -702,12 +712,14 @@ var _Schema = {
         });
     },
     setRelationshipProperty: function(entityId, key, value) {
+        var data = {};
+        data[key] = cleanText(value);
         $.ajax({
             url: rootUrl + 'schema_relationships/' + entityId,
             type: 'PUT',
             dataType: 'json',
             contentType: 'application/json; charset=utf-8',
-            data: '{"' + key + '":' + (value ? '"' + value + '"' : 'null') + '}',
+            data: JSON.stringify(data),
             statusCode: {
                 200: function(data, textStatus, jqXHR) {
                     //console.log('rel property set', data, textStatus, jqXHR);

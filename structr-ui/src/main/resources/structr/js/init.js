@@ -1,5 +1,5 @@
 /* 
- *  Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ *  Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  * 
  *  This file is part of structr <http://structr.org>.
  * 
@@ -25,12 +25,12 @@ var wsRoot = '/structr/ws';
 
 var header, main, footer;
 var debug = false;
-var sessionId;
+var sessionId, user;
 var lastMenuEntry, activeTab;
 var dmp;
 var editorCursor;
 var dialog, isMax = false;
-var dialogBox, dialogMsg, dialogBtn, dialogTitle, dialogMeta, dialogText, dialogCancelButton, dialogSaveButton, saveAndClose, loginButton;
+var dialogBox, dialogMsg, dialogBtn, dialogTitle, dialogMeta, dialogText, dialogCancelButton, dialogSaveButton, saveAndClose, loginButton, loginBox;
 var dialogId;
 var page = {};
 var pageSize = {};
@@ -50,7 +50,8 @@ $(function() {
     header = $('#header');
     main = $('#main');
     footer = $('#footer');
-
+    loginBox = $('#login');
+    
     if (debug) {
         footer.show();
     }
@@ -77,14 +78,12 @@ $(function() {
 
     loginButton.on('click', function(e) {
         e.stopPropagation();
-        Structr.clearMain();
         var username = $('#usernameField').val();
         var password = $('#passwordField').val();
         Structr.doLogin(username, password);
     });
     $('#logout_').on('click', function(e) {
         e.stopPropagation();
-        Structr.clearMain();
         Structr.doLogout();
     });
 
@@ -168,21 +167,18 @@ $(function() {
     });
 
     $('#usernameField').keypress(function(e) {
-        e.stopPropagation();
         if (e.which === 13) {
             $(this).blur();
             loginButton.focus().click();
         }
     });
     $('#passwordField').keypress(function(e) {
-        e.stopPropagation();
         if (e.which === 13) {
             $(this).blur();
             loginButton.focus().click();
         }
     });
 
-    Structr.init();
     Structr.connect();
 
     // This hack prevents FF from closing WS connections on ESC
@@ -206,7 +202,7 @@ $(function() {
                             saveAndClose.remove();
                         }
                         if (dialogCancelButton && dialogCancelButton.length && dialogCancelButton.is(':visible') && !dialogCancelButton.prop('disabled')) {
-                          dialogCancelButton.click();
+                            dialogCancelButton.click();
                         }
                         return false;
                     }, 1000);
@@ -231,11 +227,8 @@ $(function() {
     $(window).on('resize', function() {
         Structr.resize();
     });
-
     dmp = new diff_match_patch();
-
 });
-
 
 var Structr = {
     modules: {},
@@ -252,61 +245,71 @@ var Structr = {
 
         log('activating reconnect loop');
         reconn = window.setInterval(function() {
-            connect();
+            wsConnect();
         }, 1000);
         log('activated reconnect loop', reconn);
     },
     init: function() {
-
         log('###################### Initialize UI ####################');
-
         $('#errorText').empty();
-
-        //user = localStorage.getItem(userKey);
-        sessionId = $.cookie('JSESSIONID');
         log('user', user);
-
-        // Send initial PING to force re-connect on all pages
-        sendObj({command: 'PING', sessionId: sessionId});
-
+        Structr.ping();
         Structr.expanded = JSON.parse(localStorage.getItem(expandedIdsKey));
         log('######## Expanded IDs after reload ##########', Structr.expanded);
-
+    },
+    ping: function() {
+        if (sessionId) {
+            sendObj({command: 'PING', sessionId: sessionId});
+        }
+    },
+    refreshUi: function() {
+        localStorage.setItem(userKey, user);
+        $.unblockUI({
+            fadeOut: 25
+        });
+        Structr.clearMain();
+        $('#logout_').html('Logout <span class="username">' + user + '</span>');
+        Structr.loadInitialModule();
+        Structr.startPing();
         var dialogData = JSON.parse(window.localStorage.getItem(dialogDataKey));
         log('Dialog data after init', dialogData);
-
         if (dialogData) {
             Structr.restoreDialog(dialogData);
         }
-
+    },
+    startPing: function() {
+        if (!ping) {
+            ping = window.setInterval(function() {
+                sendObj({command: 'PING', sessionId: sessionId});
+            }, 30000);
+        }
     },
     connect: function() {
-        // make a dummy request to get a sessionId
+        sessionId = $.cookie('JSESSIONID');
         if (!sessionId) {
-            $.get('/get_session_id');
+            $.get('/').always(function() {
+                sessionId = $.cookie('JSESSIONID');
+                wsConnect();
+            });
+        } else {
+            wsConnect();
         }
-
-        connect();
-
-        window.setInterval(function() {
-            sendObj({command: 'PING', sessionId: sessionId});
-        }, 60000);
-
     },
     login: function(text) {
-
+        
         main.empty();
 
         $('#logout_').html('Login');
         if (text) {
             $('#errorText').html(text);
         }
+        
         $.blockUI.defaults.overlayCSS.opacity = .6;
         $.blockUI.defaults.applyPlatformOpacityRules = false;
         $.blockUI({
             fadeIn: 25,
             fadeOut: 25,
-            message: $('#login'),
+            message: loginBox,
             forceInput: true,
             css: {
                 border: 'none',
@@ -425,7 +428,7 @@ var Structr = {
 
     },
     restoreDialog: function(dialogData) {
-
+        console.log('restoreDialog', dialogData);
         $.blockUI.defaults.overlayCSS.opacity = .6;
         $.blockUI.defaults.applyPlatformOpacityRules = false;
 
@@ -460,7 +463,7 @@ var Structr = {
             top: t + 'px',
             left: l + 'px'
         });
-        
+
         Structr.resize();
 
     },
@@ -1004,6 +1007,62 @@ var Structr = {
 
         });
         $('#pages_').removeClass('nodeHover').droppable('enable');
+    },
+    openSlideOut: function(slideout, tab, activeTabKey, callback) {
+        var s = $(slideout);
+        var t = $(tab);
+        t.addClass('active');
+        s.animate({right: '+=' + rsw + 'px'}, {duration: 100}).zIndex(1);
+        localStorage.setItem(activeTabKey, t.prop('id'));
+        if (callback) {
+            callback();
+        }
+        _Pages.resize(0, rsw);
+    },
+    closeSlideOuts: function(slideouts, activeTabKey) {
+        var wasOpen = false;
+        slideouts.forEach(function(w) {
+            var s = $(w);
+            var l = s.position().left;
+            if (l !== $(window).width()) {
+                wasOpen = true;
+                //console.log('closing open slide-out', s);
+                s.animate({right: '-=' + rsw + 'px'}, {duration: 100}).zIndex(2);
+                $('.compTab.active', s).removeClass('active');
+            }
+        });
+        if (wasOpen) {
+            _Pages.resize(0, -rsw);
+        }
+
+        localStorage.removeItem(activeTabKey);
+    },
+    openLeftSlideOut: function(slideout, tab, activeTabKey, callback) {
+        var s = $(slideout);
+        var t = $(tab);
+        t.addClass('active');
+        s.animate({left: '+=' + lsw + 'px'}, {duration: 100}).zIndex(1);
+        localStorage.setItem(activeTabKey, t.prop('id'));
+        if (callback) {
+            callback();
+        }
+        _Pages.resize(lsw, 0);
+    },
+    closeLeftSlideOuts: function(slideouts, activeTabKey) {
+        var wasOpen = false;
+        slideouts.forEach(function(w) {
+            var s = $(w);
+            var l = s.position().left;
+            if (l === 0) {
+                wasOpen = true;
+                s.animate({left: '-=' + lsw + 'px'}, {duration: 100}).zIndex(2);
+                $('.compTab.active', s).removeClass('active');
+            }
+        });
+        if (wasOpen) {
+            _Pages.resize(-lsw, 0);
+        }
+        localStorage.removeItem(activeTabKey);
     }
 };
 
@@ -1178,7 +1237,7 @@ function getComponentId(element) {
 }
 
 $(window).unload(function() {
+    log('########################################### unload #####################################################');
     // Remove dialog data in case of page reload
     localStorage.removeItem(dialogDataKey);
-    localStorage.removeItem(userKey);
 });

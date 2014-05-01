@@ -660,6 +660,11 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		return false;
 	}
 
+	@Override
+	public boolean isSynced() {
+		return false;
+	}
+
 	//~--- set methods ----------------------------------------------------
 	@Override
 	public void setXmlStandalone(boolean bln) throws DOMException {

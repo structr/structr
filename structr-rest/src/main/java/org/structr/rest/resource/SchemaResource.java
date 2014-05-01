@@ -34,6 +34,7 @@ import org.structr.core.property.StringProperty;
 import org.structr.core.*;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.PropertyDefinition;
 import org.structr.schema.SchemaHelper;
 import org.structr.rest.RestMethodResult;
@@ -89,6 +90,7 @@ public class SchemaResource extends Resource {
 
 				schema.setProperty(new StringProperty("url"),   url);
 				schema.setProperty(new StringProperty("type"),  rawType);
+				schema.setProperty(new StringProperty("isRel"), AbstractRelationship.class.isAssignableFrom(type));
 				schema.setProperty(new LongProperty("flags"), SecurityContext.getResourceFlags(rawType));
 
 				// list property sets for all views

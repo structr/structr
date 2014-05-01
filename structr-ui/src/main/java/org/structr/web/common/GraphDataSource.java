@@ -30,5 +30,6 @@ import org.structr.core.entity.AbstractNode;
 
 public interface GraphDataSource<T> {
 
-	public T getData(SecurityContext securityContext, RenderContext renderContext, AbstractNode referenceNode) throws FrameworkException;
+	public T getData(final SecurityContext securityContext, final RenderContext renderContext, final AbstractNode referenceNode) throws FrameworkException;
+	public T getData(final SecurityContext securityContext, final RenderContext renderContext, final String queryString) throws FrameworkException;
 }

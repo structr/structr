@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ *  Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
  *  This file is part of structr <http://structr.org>.
  *
@@ -166,7 +166,6 @@ var _Elements = {
             drop: function(e, ui) {
                 e.preventDefault();
                 e.stopPropagation();
-                dropBlocked = true;
                 return false;
             }
         });

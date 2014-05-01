@@ -19,12 +19,9 @@ package org.structr.websocket.command;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.PropertyKey;
 import org.structr.websocket.message.WebSocketMessage;
 import org.structr.web.entity.Image;
-import org.structr.common.PagingHelper;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 
@@ -32,10 +29,11 @@ import org.structr.websocket.message.MessageBuilder;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.core.Result;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.schema.SchemaHelper;
+import org.structr.web.entity.AbstractFile;
 
 //~--- classes ----------------------------------------------------------------
 /**
@@ -71,12 +69,18 @@ public class ListCommand extends AbstractCommand {
 			return;
 		}
 
-		final String sortOrder = webSocketData.getSortOrder();
-		final String sortKey = webSocketData.getSortKey();
-		final int pageSize = webSocketData.getPageSize();
-		final int page = webSocketData.getPage();
+		final String sortOrder         = webSocketData.getSortOrder();
+		final String sortKey           = webSocketData.getSortKey();
+		final int pageSize             = webSocketData.getPageSize();
+		final int page                 = webSocketData.getPage();
 		final PropertyKey sortProperty = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, sortKey);
-		final Query query = StructrApp.getInstance(securityContext).nodeQuery(type).includeDeletedAndHidden().sort(sortProperty).order("desc".equals(sortOrder));
+		final Query query              = StructrApp.getInstance(securityContext).nodeQuery(type).includeDeletedAndHidden().sort(sortProperty).order("desc".equals(sortOrder)).page(page).pageSize(pageSize);
+
+		// important
+		if (AbstractFile.class.isAssignableFrom(type) && rootOnly) {
+
+			query.and(AbstractFile.hasParent, false);
+		}
 
 		// for image lists, suppress thumbnails
 		if (type.equals(Image.class)) {
@@ -87,40 +91,13 @@ public class ListCommand extends AbstractCommand {
 		try {
 
 			// do search
-			List<AbstractNode> filteredResults = new LinkedList<>();
-			List<? extends GraphObject> resultList = query.getAsList();
-
-			// determine which of the nodes have a parent
-			for (GraphObject obj : resultList) {
-
-				if (obj instanceof AbstractNode) {
-
-					AbstractNode node = (AbstractNode) obj;
-
-					boolean hasParent = false;
-
-					if (rootOnly) {
-						for (AbstractRelationship rel : node.getIncomingRelationships()) {
-							if ("CONTAINS".equals(rel.getType())) {
-								hasParent = true;
-								break;
-							}
-						}
-					}
-
-					if (!rootOnly || !hasParent) {
-						filteredResults.add(node);
-					}
-
-				}
-
-			}
+			final Result result = query.getResult();
 
 			// save raw result count
-			int resultCountBeforePaging = filteredResults.size();
+			int resultCountBeforePaging = result.getRawResultCount(); // filteredResults.size();
 
 			// set full result list
-			webSocketData.setResult(PagingHelper.subList(filteredResults, pageSize, page, null));
+			webSocketData.setResult(result.getResults());
 			webSocketData.setRawResultCount(resultCountBeforePaging);
 
 			// send only over local connection

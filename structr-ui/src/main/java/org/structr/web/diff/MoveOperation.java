@@ -57,6 +57,11 @@ public class MoveOperation extends InvertibleModificationOperation {
 			final Node originalSibling = originalNode.getNextSibling();
 			final Node originalParent = originalNode.getParentNode();
 
+			// do not modify synced nodes (nodes that are shared between multiple pages)
+			if (parent.isSynced()) {
+				return;
+			}
+
 			if (parent.equals(originalParent)) {
 
 				if (sibling != null && sibling.equals(originalSibling)) {

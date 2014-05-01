@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ *  Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
  *  This file is part of structr <http://structr.org>.
  *
@@ -59,6 +59,8 @@ var _Widgets = {
     onload : function() {
         
         _Widgets.init();
+        
+        $('#main-help a').attr('href', 'http://docs.structr.org/frontend-user-guide#Widgets');
         
         log('onload');
 

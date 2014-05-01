@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ *  Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
  *  This file is part of structr <http://structr.org>.
  *
@@ -139,6 +139,33 @@ var Command = {
         data.type = type;
         obj.data = data;
         log('search()', obj);
+        return sendObj(obj);
+    },
+    /**
+     * Send a REST query by SEARCH command to the server.
+     * 
+     */
+    rest: function(searchString) {
+        var obj = {};
+        obj.command = 'SEARCH';
+        var data = {};
+        data.restQuery = searchString;
+        obj.data = data;
+        log('rest()', obj);
+        return sendObj(obj);
+    },
+    /**
+     * Send a Cypher query by SEARCH command to the server.
+     * 
+     */
+    cypher: function(query, params) {
+        var obj = {};
+        obj.command = 'SEARCH';
+        var data = {};
+        data.cypherQuery = query;
+        data.cypherParams = params;
+        obj.data = data;
+        log('cypher()', obj);
         return sendObj(obj);
     },
     /**

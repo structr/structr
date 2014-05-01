@@ -40,13 +40,14 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.LocaleUtils;
-import org.apache.commons.lang.time.DateUtils;
+import org.apache.commons.lang3.LocaleUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DateUtils;
 import org.structr.common.AccessMode;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.PathHelper;
 import org.structr.common.SecurityContext;
+import org.structr.common.ThreadLocalMatcher;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
@@ -65,7 +66,6 @@ import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
-import org.structr.web.common.ThreadLocalMatcher;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Linkable;
 import org.structr.web.entity.User;
@@ -89,7 +89,6 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	public static final String REQUEST_CONTAINS_UUID_IDENTIFIER = "request_contains_uuids";
 
 	public static final String CONFIRM_REGISTRATION_PAGE = "/confirm_registration";
-	public static final String GET_SESSION_ID_PAGE = "get_session_id";
 	public static final String CONFIRM_KEY_KEY = "key";
 	public static final String TARGET_PAGE_KEY = "target";
 	public static final String ERROR_PAGE_KEY = "onerror";
@@ -187,11 +186,6 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 				} else {
 
-					// check if request was solely intended to obtain a session id
-					if (checkGetSessionId(request, response, path)) {
-						return;
-					}
-
 					if (rootElement == null) {
 
 						rootElement = findPage(request, path);
@@ -285,6 +279,10 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 				}
 
+				if (rootElement == null) {
+					return;
+				}
+				
 				logger.log(Level.FINE, "Page found in {0} seconds", decimalFormat.format((System.nanoTime() - start) / 1000000000.0));
 
 				if (EditMode.DATA.equals(edit) || dontCache) {
@@ -537,34 +535,6 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		}
 
 		return null;
-	}
-
-	/**
-	 * Check if the request was solely intended to get a session id
-	 *
-	 * @param request
-	 * @param response
-	 * @param path
-	 * @return
-	 * @throws FrameworkException
-	 * @throws IOException
-	 */
-	private boolean checkGetSessionId(final HttpServletRequest request, final HttpServletResponse response, final String path) throws IOException {
-
-		logger.log(Level.FINE, "Checking for {0} ...", GET_SESSION_ID_PAGE);
-
-		if (GET_SESSION_ID_PAGE.equals(path)) {
-
-			request.getSession(true);
-			response.setStatus(HttpServletResponse.SC_OK);
-
-			response.flushBuffer();
-			return true;
-
-		}
-
-		return false;
-
 	}
 
 	/**

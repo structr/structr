@@ -18,57 +18,66 @@
 package org.structr.web;
 
 import java.io.ByteArrayInputStream;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
-
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.*;
-
-import org.structr.common.CaseHelper;
-import org.structr.web.common.FileHelper;
-import org.structr.web.common.ImageHelper;
-import org.structr.common.PropertyView;
-import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
-import org.structr.web.entity.File;
-import org.structr.web.entity.Folder;
-import org.structr.web.entity.Image;
-import org.structr.core.graph.NodeAttribute;
-import org.structr.core.property.StringProperty;
-import org.structr.web.entity.dom.Content;
-import org.structr.web.entity.dom.DOMElement;
-import org.structr.web.entity.dom.DOMNode;
-import org.structr.web.entity.dom.Page;
-
-//~--- JDK imports ------------------------------------------------------------
 import java.io.IOException;
 import java.io.StringWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.apache.commons.lang.WordUtils;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.text.WordUtils;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Attribute;
+import org.jsoup.nodes.Comment;
+import org.jsoup.nodes.DataNode;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.nodes.Node;
+import org.jsoup.nodes.TextNode;
+import org.structr.common.CaseHelper;
+import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.BooleanProperty;
+import org.structr.core.property.StringProperty;
 import org.structr.schema.importer.GraphGistImporter;
+import org.structr.web.common.FileHelper;
+import org.structr.web.common.ImageHelper;
 import org.structr.web.diff.CreateOperation;
 import org.structr.web.diff.DeleteOperation;
 import org.structr.web.diff.InvertibleModificationOperation;
 import org.structr.web.diff.MoveOperation;
 import org.structr.web.diff.UpdateOperation;
+import org.structr.web.entity.File;
+import org.structr.web.entity.Folder;
+import org.structr.web.entity.Image;
 import org.structr.web.entity.LinkSource;
 import org.structr.web.entity.Linkable;
+import org.structr.web.entity.dom.Content;
+import org.structr.web.entity.dom.DOMElement;
+import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.relation.Files;
 import org.structr.web.entity.relation.Folders;
 
@@ -383,22 +392,16 @@ public class Importer {
 						break;
 
 					case 5:	// same tree index (1), NOT same node, same content (5) => node was deleted and restored, maybe the identification information was lost
-						// TODO: how to handle this?
 						break;
 
 					case 4:	// NOT same tree index, NOT same node, same content (4) => different node, content is equal by chance?
-						// TODO: what to do here?
 						break;
 
 					case 3: // same tree index, same node, NOT same content => node was modified but not moved
-//						if (!(existingNode instanceof DOMElement)) {
-							changeSet.add(new UpdateOperation(hashMappedExistingNodes, existingNode, newNode));
-//						}
+						changeSet.add(new UpdateOperation(hashMappedExistingNodes, existingNode, newNode));
 						break;
 
 					case 2:	// NOT same tree index, same node (2), NOT same content => node was moved and changed
-
-						// FIXME: order is important here?
 						newParent  = newNode.getProperty(DOMNode.parent);
 						changeSet.add(new UpdateOperation(hashMappedExistingNodes, existingNode, newNode));
 						changeSet.add(new MoveOperation(hashMappedExistingNodes, getHashOrNull(newParent), getSiblingHashes(newNode), newNode, existingNode));

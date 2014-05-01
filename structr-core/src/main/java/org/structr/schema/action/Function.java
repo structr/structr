@@ -16,14 +16,17 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.common.result;
+package org.structr.schema.action;
+
+import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.NodeInterface;
 
 /**
  *
  * @author Christian Morgner
  */
+public interface Function<S, T> {
 
-public interface Tokens {
-	
-	
+	public T apply(ActionContext ctx, NodeInterface entity, S[] sources) throws FrameworkException;
+	public String usage();
 }

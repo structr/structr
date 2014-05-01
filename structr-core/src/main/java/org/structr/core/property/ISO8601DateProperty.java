@@ -19,7 +19,7 @@
 package org.structr.core.property;
 
 import java.text.SimpleDateFormat;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.DateFormatToken;

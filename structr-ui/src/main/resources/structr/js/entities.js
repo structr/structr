@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2010-2013 Axel Morgner
+ *  Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
  *  This file is part of structr <http://structr.org>.
  *
@@ -211,6 +211,10 @@ var _Entities = {
                 dialogSaveButton = $('#saveFile', dialogBtn);
                 saveAndClose = $('#saveAndClose', dialogBtn);
 
+                $('.CodeMirror-code .cm-attribute:contains("data-hash")').addClass('data-hash').next().addClass('data-hash');
+                editor.on('scroll', function() {
+                    $('.CodeMirror-code .cm-attribute:contains("data-hash")').addClass('data-hash').next().addClass('data-hash');
+                });
                 editor.on('change', function(cm, change) {
 
                     //text1 = $(contentNode).children('.content_').text();
@@ -226,9 +230,7 @@ var _Entities = {
 
                     $('.CodeMirror-code .cm-attribute:contains("data-hash")').addClass('data-hash').next().addClass('data-hash');
                 });
-
-                $('.CodeMirror-code .cm-attribute:contains("data-hash")').addClass('data-hash').next().addClass('data-hash');
-
+                
                 dialogSaveButton.on('click', function(e) {
                     e.stopPropagation();
                     var text2 = editor.getValue();
@@ -481,6 +483,7 @@ var _Entities = {
     activateInput: function(el, id) {
 
         var input = $(el);
+        var oldVal = input.val();
         var relId = input.parent().attr('rel_id');
 
         if (!input.hasClass('readonly') && !input.hasClass('newKey')) {
@@ -526,7 +529,11 @@ var _Entities = {
 
                         // existing key
                         log('existing key: Command.setProperty(', objId, key, val);
+                        
+                        input.val(oldVal);
+                        
                         Command.setProperty(objId, key, val, false, function() {
+                            input.val(val);
                             blinkGreen(input);
                             dialogMsg.html('<div class="infoBox success">Updated property "' + key + '" with value "' + val + '".</div>');
                             $('.infoBox', dialogMsg).delay(2000).fadeOut(200);
@@ -663,9 +670,13 @@ var _Entities = {
         _Entities.changeBooleanAttribute(sw, entity[key], label[0], label[1]);
         sw.on('click', function(e) {
             e.stopPropagation();
-            entity.setProperty(key, sw.hasClass('inactive'), $(recElementId, el).is(':checked'), function() {
+            entity.setProperty(key, sw.hasClass('inactive'), $(recElementId, el).is(':checked'), function(obj) {
+                if (obj.id !== entity.id) {
+                    return false;
+                }
                 _Entities.changeBooleanAttribute(sw, entity[key], label[0], label[1]);
                 blinkGreen(sw);
+                return true;
             });
         });
     },

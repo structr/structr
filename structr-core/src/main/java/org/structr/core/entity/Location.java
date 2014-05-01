@@ -23,11 +23,10 @@ import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
-import org.structr.core.app.StructrApp;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.relationship.NodeHasLocation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.DoubleProperty;
 
 //~--- classes ----------------------------------------------------------------
@@ -48,12 +47,12 @@ public class Location extends AbstractNode {
 	);
 
 	@Override
-	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) {
+	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 		return isValid(errorBuffer);
 	}
-	
+
 	@Override
-	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer) {
+	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 		return isValid(errorBuffer);
 	}
 
@@ -61,13 +60,13 @@ public class Location extends AbstractNode {
 	public void afterCreation(SecurityContext securityContext) {
 		notifyLocatables();
 	}
-	
+
 	@Override
 	public void afterModification(SecurityContext securityContext) {
 		notifyLocatables();
-		
+
 	}
-	
+
 	@Override
 	public boolean isValid(ErrorBuffer errorBuffer) {
 
@@ -76,11 +75,11 @@ public class Location extends AbstractNode {
 //              error |= ValidationHelper.checkPropertyNotNull(this, Key.latitude, errorBuffer);
 //              error |= ValidationHelper.checkPropertyNotNull(this, Key.longitude, errorBuffer);
 		error |= notifyLocatables();
-		
+
 		return !error;
 
 	}
-	
+
 	private boolean notifyLocatables() {
 
 		// FIXME: LocationRelationship has a direction. but it is ignored here

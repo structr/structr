@@ -42,7 +42,7 @@ public interface Principal extends NodeInterface, AccessControllable {
 	public static final Property<Boolean> blocked = new BooleanProperty("blocked");
 	public static final Property<String> password = new PasswordProperty("password");
 	public static final Property<String> salt = new StringProperty("salt");
-	public static final Property<Boolean> isAdmin = new BooleanProperty("isAdmin").readOnly();
+	public static final Property<Boolean> isAdmin = new BooleanProperty("isAdmin").indexed().readOnly();
 	public static final Property<List<NodeInterface>> ownedNodes = new EndNodes<>("ownedNodes", PrincipalOwnsNode.class);
 
 	public void grant(final Permission permission, final AbstractNode obj);

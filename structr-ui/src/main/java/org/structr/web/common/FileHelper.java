@@ -94,18 +94,19 @@ public class FileHelper {
 	 * If the given string is an uuid of an existing file, transform it into
 	 * the target class.
 	 *
+	 * @param <T>
 	 * @param securityContext
 	 * @param rawData
-	 * @param fileType defaults to File.class if null
+	 * @param T defaults to File.class if null
 	 * @return
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
-	public static org.structr.web.entity.File createFileBase64(final SecurityContext securityContext, final String rawData, final Class<? extends org.structr.web.entity.File> fileType) throws FrameworkException, IOException {
+	public static <T extends org.structr.web.entity.File> T createFileBase64(final SecurityContext securityContext, final String rawData, final Class<? extends org.structr.web.entity.File> T) throws FrameworkException, IOException {
 
 		Base64URIData uriData = new Base64URIData(rawData);
 
-		return createFile(securityContext, uriData.getBinaryData(), uriData.getContentType(), fileType);
+		return createFile(securityContext, uriData.getBinaryData(), uriData.getContentType(), T);
 
 	}
 
@@ -132,24 +133,24 @@ public class FileHelper {
 	/**
 	 * Create a new file node from the given byte array
 	 *
+	 * @param <T>
 	 * @param securityContext
 	 * @param fileData
 	 * @param contentType if null, try to auto-detect content type
-	 * @param fileType defaults to File.class if null
+	 * @param T
 	 * @param name
 	 * @return
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
-	public static org.structr.web.entity.File createFile(final SecurityContext securityContext, final byte[] fileData, final String contentType, final Class<? extends org.structr.web.entity.File> fileType, final String name)
+	public static <T extends org.structr.web.entity.File> T createFile(final SecurityContext securityContext, final byte[] fileData, final String contentType, final Class<? extends org.structr.web.entity.File> T, final String name)
 		throws FrameworkException, IOException {
 
 		PropertyMap props = new PropertyMap();
 
-		props.put(AbstractNode.type, fileType == null ? org.structr.web.entity.File.class.getSimpleName() : fileType.getSimpleName());
 		props.put(AbstractNode.name, name);
 
-		org.structr.web.entity.File newFile = StructrApp.getInstance(securityContext).create(fileType, props);
+		T newFile = (T) StructrApp.getInstance(securityContext).create(T, props);
 
 		setFileData(newFile, fileData, contentType);
 
@@ -159,18 +160,19 @@ public class FileHelper {
 	/**
 	 * Create a new file node from the given byte array
 	 *
+	 * @param <T>
 	 * @param securityContext
 	 * @param fileData
 	 * @param contentType
-	 * @param fileType defaults to File.class if null
+	 * @param T defaults to File.class if null
 	 * @return
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
-	public static org.structr.web.entity.File createFile(final SecurityContext securityContext, final byte[] fileData, final String contentType, final Class<? extends org.structr.web.entity.File> fileType)
+	public static <T extends org.structr.web.entity.File> T createFile(final SecurityContext securityContext, final byte[] fileData, final String contentType, final Class<? extends org.structr.web.entity.File> T)
 		throws FrameworkException, IOException {
 
-		return createFile(securityContext, fileData, contentType, fileType, null);
+		return createFile(securityContext, fileData, contentType, T, null);
 
 	}
 

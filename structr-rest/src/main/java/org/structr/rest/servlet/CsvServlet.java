@@ -19,27 +19,11 @@ package org.structr.rest.servlet;
 
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSyntaxException;
-
-import org.apache.commons.lang.StringUtils;
-
-import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
-import org.structr.core.Result;
-import org.structr.core.Value;
-import org.structr.core.graph.NodeFactory;
-import org.structr.core.property.PropertyKey;
-import org.structr.common.PagingHelper;
-import org.structr.rest.resource.Resource;
-
-//~--- JDK imports ------------------------------------------------------------
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
-
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
-
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -48,15 +32,24 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import javax.servlet.http.HttpServlet;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.apache.commons.lang3.StringUtils;
+import org.structr.common.PagingHelper;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
+import org.structr.core.Result;
+import org.structr.core.Value;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
+import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.Property;
-import static org.structr.rest.service.HttpService.parseInt;
+import org.structr.core.property.PropertyKey;
+import org.structr.rest.resource.Resource;
+import org.structr.rest.service.HttpService;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
 
@@ -158,8 +151,8 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 				String sortOrder = request.getParameter(JsonRestServlet.REQUEST_PARAMETER_SORT_ORDER);
 				String sortKeyName = request.getParameter(JsonRestServlet.REQUEST_PARAMETER_SORT_KEY);
 				boolean sortDescending = (sortOrder != null && "desc".equals(sortOrder.toLowerCase()));
-				int pageSize = parseInt(pageSizeParameter, NodeFactory.DEFAULT_PAGE_SIZE);
-				int page = parseInt(pageParameter, NodeFactory.DEFAULT_PAGE);
+				int pageSize = HttpService.parseInt(pageSizeParameter, NodeFactory.DEFAULT_PAGE_SIZE);
+				int page = HttpService.parseInt(pageParameter, NodeFactory.DEFAULT_PAGE);
 				PropertyKey sortKey = null;
 
 				// set sort key

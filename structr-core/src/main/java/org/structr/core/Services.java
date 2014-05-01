@@ -23,23 +23,16 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Iterator;
-import org.apache.commons.lang.StringUtils;
-
-import org.structr.module.JarConfigurationProvider;
-
-//~--- JDK imports ------------------------------------------------------------
-
-//import org.structr.common.xpath.NeoNodePointerFactory;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.commons.lang.RandomStringUtils;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
@@ -57,6 +50,7 @@ import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.SyncCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.StringProperty;
+import org.structr.module.JarConfigurationProvider;
 import org.structr.schema.ConfigurationProvider;
 
 //~--- classes ----------------------------------------------------------------
@@ -82,6 +76,7 @@ public class Services {
 	public static final String CONFIG_FILE_PATH              = "configfile.path";
 	public static final String DATABASE_PATH                 = "database.path";
 	public static final String FILES_PATH                    = "files.path";
+	public static final String DATA_EXCHANGE_PATH            = "data.exchange.path";
 	public static final String LOG_DATABASE_PATH             = "log.database.path";
 	public static final String FOREIGN_TYPE                  = "foreign.type.key";
 	public static final String NEO4J_SHELL_ENABLED           = "neo4j.shell.enabled";
@@ -104,10 +99,10 @@ public class Services {
 	public static final String CONFIGURATION                 = "configuration.provider";
 	public static final String TESTING                       = "testing";
 	public static final String MIGRATION_KEY                 = "NodeService.migration";
-	
+
 	// singleton instance
 	private static Services singletonInstance = null;
-	
+
 	// non-static members
 	private final Map<String, Object> attributes       = new ConcurrentHashMap<>(10, 0.9f, 8);
 	private final Map<Class, Service> serviceCache     = new ConcurrentHashMap<>(10, 0.9f, 8);
@@ -120,29 +115,29 @@ public class Services {
 	private String configurationClass                  = null;
 
 	private Services() { }
-	
+
 	public static Services getInstance() {
-		
+
 		if (singletonInstance == null) {
-			
+
 			singletonInstance = new Services();
 			singletonInstance.initialize();
 		}
-		
+
 		return singletonInstance;
 	}
-	
+
 	public static Services getInstance(final StructrConf properties) {
-		
+
 		if (singletonInstance == null) {
-			
+
 			singletonInstance = new Services();
 			singletonInstance.initialize(properties);
 		}
-		
+
 		return singletonInstance;
 	}
-	
+
 	/**
 	 * Creates and returns a command of the given <code>type</code>. If a command is
 	 * found, the corresponding service will be discovered and activated.
@@ -173,7 +168,7 @@ public class Services {
 
 					// service not cached
 					service = createService(serviceClass);
-					
+
 				} else {
 
 					// check RunnableService for isRunning()..
@@ -195,9 +190,9 @@ public class Services {
 			}
 
 		} catch (Throwable t) {
-			
+
 			t.printStackTrace();
-			
+
 			logger.log(Level.SEVERE, "Exception while creating command " + commandType.getName(), t);
 		}
 
@@ -205,37 +200,37 @@ public class Services {
 	}
 
 	private void initialize() {
-		
+
 		final StructrConf config = getBaseConfiguration();
-		
+
 		// read structr.conf
 		final String configFileName = "structr.conf";	// TODO: make configurable
-		
+
 		logger.log(Level.INFO, "Reading {0}..", configFileName);
-		
+
 		try {
 			final FileInputStream fis = new FileInputStream(configFileName);
 			structrConf.load(fis);
 			fis.close();
 
 		} catch (IOException ioex) {
-			
+
 			logger.log(Level.WARNING, "Unable to read configuration file {0}: {1}", new Object[] { configFileName, ioex.getMessage() } );
 		}
-		
+
 		mergeConfiguration(config, structrConf);
-		
+
 		initialize(config);
-		
+
 	}
-	
+
 	private void initialize(final StructrConf properties) {
 
 		this.structrConf = properties;
 
 		configurationClass     = properties.getProperty(Services.CONFIGURATION);
 		configuredServiceNames = properties.getProperty(Services.CONFIGURED_SERVICES);
-		
+
 		// create set of configured services
 		configuredServiceClasses.addAll(Arrays.asList(configuredServiceNames.split("[ ,]+")));
 
@@ -243,7 +238,7 @@ public class Services {
 		// this is the place where the service classes get the
 		// opportunity to modifyConfiguration the default configuration
 		getConfigurationProvider();
-		
+
 		logger.log(Level.INFO, "Starting services");
 
 		// initialize other services
@@ -252,7 +247,7 @@ public class Services {
 			try {
 
 				Class serviceClass = getServiceClassForName(serviceClassName);
-				
+
 				if (serviceClass != null) {
 					createService(serviceClass);
 				}
@@ -269,7 +264,7 @@ public class Services {
 
 		// do migration of an existing database
 		if (getService(NodeService.class) != null) {
-			
+
 			if ("true".equals(properties.getProperty(Services.MIGRATION_KEY))) {
 				migrateDatabase();
 			}
@@ -285,16 +280,16 @@ public class Services {
 		{
 			@Override
 			public void run() {
-				
+
 			    shutdown();
 			}
 		});
-		
+
 		logger.log(Level.INFO, "Initialization complete");
-		
+
 		initializationDone = true;
 	}
-	
+
 	public boolean isInitialized() {
 		return initializationDone;
 	}
@@ -302,10 +297,10 @@ public class Services {
 	public void shutdown() {
 
 		initializationDone = false;
-		
+
 		System.out.println("INFO: Shutting down...");
 		for (Service service : serviceCache.values()) {
-			
+
 			try {
 
 				if (service instanceof RunnableService) {
@@ -320,7 +315,7 @@ public class Services {
 				service.shutdown();
 
 			} catch (Throwable t) {
-				
+
 				System.out.println("WARNING: Failed to shut down " + service.getName() + ": " + t.getMessage());
 			}
 		}
@@ -329,10 +324,10 @@ public class Services {
 
 		// shut down configuration provider
 		configuration.shutdown();
-		
+
 		// clear singleton instance
 		singletonInstance = null;
-		
+
 		System.out.println("INFO: Shutdown complete");
 
 	}
@@ -344,15 +339,15 @@ public class Services {
 	 * @param serviceClass the service class to register
 	 */
 	public void registerServiceClass(Class serviceClass) {
-		
+
 		registeredServiceClasses.add(serviceClass);
-		
+
 		// let service instance visit default configuration
 		try {
-			
+
 			Service service = (Service)serviceClass.newInstance();
 			//service.modifyConfiguration(getBaseConfiguration());
-			
+
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}
@@ -361,24 +356,24 @@ public class Services {
 	public String getConfigurationValue(String key) {
 		return getConfigurationValue(key, null);
 	}
-	
+
 	public String getConfigurationValue(String key, String defaultValue) {
 		return getCurrentConfig().getProperty(key, defaultValue);
 	}
-	
+
 	public Class getServiceClassForName(final String serviceClassName) {
-		
+
 		for (Class serviceClass : registeredServiceClasses) {
-			
+
 			if (serviceClass.getSimpleName().equals(serviceClassName)) {
 				return serviceClass;
 			}
-			
+
 		}
-		
+
 		return null;
 	}
-	
+
 	public ConfigurationProvider getConfigurationProvider() {
 
 		// instantiate configuration provider
@@ -396,45 +391,45 @@ public class Services {
 			} catch (Throwable t) {
 
 				t.printStackTrace();
-				
+
 				logger.log(Level.SEVERE, "Unable to instantiate schema provider of type {0}: {1}", new Object[] { configurationClass, t.getMessage() });
 			}
 		}
 
 		return configuration;
 	}
-	
+
 	/**
 	 * Store an attribute value in the service config
-	 * 
+	 *
 	 * @param name
-	 * @param value 
+	 * @param value
 	 */
 	public void setAttribute(final String name, final Object value) {
 		synchronized (attributes) {
 			attributes.put(name, value);
 		}
 	}
-	
+
 	/**
 	 * Retrieve attribute value from service config
-	 * 
+	 *
 	 * @param name
-	 * @return 
+	 * @return
 	 */
 	public Object getAttribute(final String name) {
 		return attributes.get(name);
 	}
-	
+
 	/**
 	 * Remove attribute value from service config
-	 * 
-	 * @param name 
+	 *
+	 * @param name
 	 */
 	public void removeAttribute(final String name) {
 		attributes.remove(name);
 	}
-	
+
 	private Service createService(Class serviceClass) throws InstantiationException, IllegalAccessException {
 
 		logger.log(Level.FINE, "Creating service ", serviceClass.getName());
@@ -445,7 +440,7 @@ public class Services {
 		if (service instanceof RunnableService) {
 
 			RunnableService runnableService = (RunnableService) service;
-			
+
 			if (runnableService.runOnStartup()) {
 
 				logger.log(Level.FINER, "Starting RunnableService instance ", serviceClass.getName());
@@ -478,11 +473,11 @@ public class Services {
 
 		return services;
 	}
-	
+
 	public <T extends Service> T getService(final Class<T> type) {
 		return (T) serviceCache.get(type);
 	}
-	
+
 	public String getConfigValue(final Map<String, String> config, final String key, final String defaultValue) {
 
 		String value = StringUtils.strip(config.get(key));
@@ -497,28 +492,28 @@ public class Services {
 	/**
 	 * Return true if the given service is ready to be used,
          * means initialized and running.
-	 * 
+	 *
 	 * @param serviceClass
-	 * @return 
+	 * @return
 	 */
 	public boolean isReady(final Class serviceClass) {
                 Service service = serviceCache.get(serviceClass);
                 return (service != null && service.isRunning());
 	}
-	
+
 	public StructrConf getCurrentConfig() {
 		return structrConf;
 	}
 
 	public Set<String> getResources() {
-		
+
 		final Set<String> resources = new LinkedHashSet<>();
 
 		// scan through structr.conf and try to identify module-specific classes
 		for (final Object configurationValue : structrConf.values()) {
-			
+
 			for (final String value : configurationValue.toString().split("[\\s ,;]+")) {
-	
+
 				try {
 
 					// try to load class and find source code origin
@@ -537,16 +532,16 @@ public class Services {
 		}
 
 		logger.log(Level.INFO, "Found {0} possible resources: {1}", new Object[] { resources.size(), resources } );
-		
+
 		return resources;
 	}
-	
+
 	public static StructrConf getBaseConfiguration() {
 
 		if (baseConf == null) {
-			
+
 			baseConf = new StructrConf();
-			
+
 			baseConf.setProperty(CONFIGURATION,             JarConfigurationProvider.class.getName());
 			baseConf.setProperty(CONFIGURED_SERVICES,       "NodeService AgentService CronService SchemaService");
 			baseConf.setProperty(NEO4J_SHELL_ENABLED,       "true");
@@ -566,16 +561,16 @@ public class Services {
 			baseConf.setProperty(TCP_PORT,                  "54555");
 			baseConf.setProperty(UDP_PORT,                  "57555");
 		}
-		
+
 		return baseConf;
 	}
-	
+
 	public static void mergeConfiguration(final StructrConf baseConfig, final StructrConf additionalConfig) {
 		baseConfig.putAll(additionalConfig);
 		trim(baseConfig);
 	}
-	
-	
+
+
 	private void migrateDatabase() {
 
 		final GraphDatabaseService graphDb     = getService(NodeService.class).getGraphDb();
@@ -585,7 +580,7 @@ public class Services {
 		final App app                          = StructrApp.getInstance();
 		final StringProperty uuidProperty      = new StringProperty("uuid");
 		final int txLimit                      = 2000;
-		
+
 		boolean hasChanges                     = true;
 		int actualNodeCount                    = 0;
 		int actualRelCount                     = 0;
@@ -593,12 +588,12 @@ public class Services {
 		logger.log(Level.INFO, "Migration of ID properties from uuid to id requested.");
 
 		while (hasChanges) {
-			
+
 			hasChanges = false;
-			
+
 			try (final Tx tx = app.tx(false, false)) {
 
-				// iterate over all nodes, 
+				// iterate over all nodes,
 				final Iterator<Node> allNodes = GlobalGraphOperations.at(graphDb).getAllNodes().iterator();
 				while (allNodes.hasNext()) {
 
@@ -623,7 +618,7 @@ public class Services {
 							t.printStackTrace();
 						}
 					}
-					
+
 					// break out of loop to allow transaction to commit
 					if (hasChanges && (actualNodeCount % txLimit) == 0) {
 						break;
@@ -645,9 +640,9 @@ public class Services {
 		// iterate over all relationships
 		hasChanges = true;
 		while (hasChanges) {
-		
+
 			hasChanges = false;
-			
+
 			try (final Tx tx = app.tx(false, false)) {
 
 				final Iterator<Relationship> allRels = GlobalGraphOperations.at(graphDb).getAllRelationships().iterator();
@@ -661,7 +656,7 @@ public class Services {
 						try {
 							final RelationshipInterface relInterface = relFactory.instantiate(rel);
 							final String uuid = relInterface.getProperty(uuidProperty);
-							
+
 							if (uuid != null) {
 								relInterface.setProperty(GraphObject.id, uuid);
 								relInterface.removeProperty(uuidProperty);
@@ -673,7 +668,7 @@ public class Services {
 							t.printStackTrace();
 						}
 					}
-					
+
 					// break out of loop to allow transaction to commit
 					if (hasChanges && (actualRelCount % txLimit) == 0) {
 						break;
@@ -692,12 +687,12 @@ public class Services {
 
 		logger.log(Level.INFO, "Migrated {0} relationships to new ID property.", actualRelCount);
 	}
-	
+
 	private void importSeedFile(final String basePath) {
-		
+
 		final GraphDatabaseService graphDb = getService(NodeService.class).getGraphDb();
 		final File seedFile                = new File(trim(basePath) + "/" + INITIAL_SEED_FILE);
-		
+
 		if (seedFile.exists()) {
 
 			try (final Tx tx = StructrApp.getInstance().tx()) {
@@ -709,7 +704,7 @@ public class Services {
 				while (allNodes.hasNext()) {
 
 					if (allNodes.next().hasProperty(idName)) {
-						
+
 						hasApplicationNodes = true;
 						break;
 					}
@@ -721,20 +716,20 @@ public class Services {
 
 					SyncCommand.importFromFile(graphDb, SecurityContext.getSuperUserInstance(), seedFile.getAbsoluteFile().getAbsolutePath(), false);
 				}
-				
+
 				tx.success();
-				
+
 			} catch (FrameworkException fex) {
 
 				logger.log(Level.WARNING, "Unable to import initial seed file.", fex);
 			}
 		}
 	}
-	
+
 	private static String trim(final String value) {
 		return StringUtils.trim(value);
 	}
-	
+
 	private static void trim(StructrConf properties) {
 		for (Object k : properties.keySet()) {
 			properties.put(k, trim((String) properties.get(k)));

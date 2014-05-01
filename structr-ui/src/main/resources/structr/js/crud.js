@@ -1,5 +1,5 @@
 /* 
- *  Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ *  Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  * 
  *  This file is part of structr <http://structr.org>.
  * 
@@ -141,6 +141,8 @@ var _Crud = {
     },
     onload: function() {
 
+        $('#main-help a').attr('href', 'http://docs.structr.org/frontend-user-guide#Data');
+        
         Structr.registerModule('crud', _Crud);
         Structr.classes.push('crud');
 
@@ -235,13 +237,16 @@ var _Crud = {
 
     },
     loadAccessibleResources: function(callback) {
-        var url = rootUrl + 'resource_access/ui';
+        //var url = rootUrl + 'resource_access/ui';
+        var url = rootUrl + 'resource_access';
         $.ajax({
             url: url,
             dataType: 'json',
             contentType: 'application/json; charset=utf-8',
             //async: false,
             success: function(data) {
+                if (!data) return;
+
                 //console.log(data);
                 var types = [];
                 _Crud.types.length = 0;
@@ -284,17 +289,15 @@ var _Crud = {
                 200: function(data) {
 
                     // no schema entry found?
-                    if (data.result_count === 0) {
+                    if (!data || !data.result || data.result_count === 0) {
 
                         console.log("ERROR: loading Schema " + type);
                         //Structr.error("ERROR: loading Schema " + type, true);
-
 
                         var typeIndex = _Crud.types.indexOf(type);
 
                         // Delete broken type from list
                         _Crud.types.splice(typeIndex, 1);
-
 
                         if (_Crud.isSchemaLoaded()) {
                             //console.log('Schema loaded successfully');
@@ -550,6 +553,7 @@ var _Crud = {
             //async: false,
             success: function(data) {
                 //console.log(data);
+                if (!data) return;
                 $.each(data.result, function(i, item) {
                     //console.log('calling appendRow', type, item);
                     _Crud.appendRow(type, item);
@@ -594,6 +598,7 @@ var _Crud = {
             contentType: 'application/json; charset=utf-8',
             //async: false,
             success: function(data) {
+                if (!data) return;
                 $.each(data.result, function(i, item) {
                     _Crud.appendRowAsCSV(type, item, exportArea);
                 });
@@ -687,6 +692,7 @@ var _Crud = {
             contentType: 'application/json; charset=utf-8',
             //async: false,
             success: function(data) {
+                if (!data) return;
                 if (callback) {
                     callback(data.result);
                 } else {
@@ -710,6 +716,7 @@ var _Crud = {
             contentType: 'application/json; charset=utf-8',
             //async: false,
             success: function(data) {
+                if (!data) return;
                 //console.log('type', type);
                 _Crud.dialog('Edit ' + t + ' ' + id, function() {
                     //console.log('ok')
@@ -807,21 +814,50 @@ var _Crud = {
                         onError();
                     } else {
                         //console.log(data, status, xhr);
-                        _Crud.dialog('Create new ' + type, function() {
-                            //console.log('ok')
-                        }, function() {
-                            //console.log('cancel')
-                        });
-                        _Crud.showDetails(null, true, type);
+                        
+                        if (!dialogBox.is(':visible')) {
+//                            _Crud.dialog('Create new ' + type, function() {
+//                                //console.log('ok')
+//                            }, function() {
+//                                //console.log('cancel')
+//                            });
+                            _Crud.showDetails(null, true, type);
+                        }
                         var resp = JSON.parse(data.responseText);
-                        console.log(resp);
+                        //console.log(resp);
+                        
+                        $('.props input', dialogBox).css({
+                           backgroundColor: '#fff',
+                           borderColor: '#a5a5a5'
+                        });
+                        
+                        $('.props textarea', dialogBox).css({
+                           backgroundColor: '#fff',
+                           borderColor: '#a5a5a5'
+                        });
+
+                        $('.props td.value', dialogBox).css({
+                           backgroundColor: '#fff',
+                           borderColor: '#b5b5b5',
+                           
+                        });
+
                         $.each(Object.keys(resp.errors[type]), function(i, key) {
                             var errorMsg = resp.errors[type][key][0];
-                            console.log(key, errorMsg);
-                            $('td.' + key + ' input', dialogText).prop('placeholder', errorMsg).css({
-                                backgroundColor: '#fee',
-                                borderColor: '#933'
-                            });
+                            //console.log(key, errorMsg);
+                            var input = $('td [name="' + key + '"]', dialogText);
+                            if (input.length)  {
+                                input.prop('placeholder', errorMsg.splitAndTitleize('_')).css({
+                                    backgroundColor: '#fee',
+                                    borderColor: '#933'
+                                });
+                            } else {
+                                $('td.' + key, dialogText).append(errorMsg.splitAndTitleize('_')).css({
+                                    backgroundColor: '#fee',
+                                    borderColor: '#933',
+                                    color: '#a5a5a5'
+                                });
+                            }
                         });
                         //_Crud.error('Error: ' + data.responseText, true);
                     }
@@ -854,6 +890,7 @@ var _Crud = {
             contentType: 'application/json; charset=utf-8',
             //async: false,
             success: function(data) {
+                if (!data) return;
                 //console.log('refresh', id, key, data.result[key], data.result.type);
                 if (key) {
                     _Crud.refreshCell(id, key, data.result[key], data.result.type);
@@ -871,6 +908,7 @@ var _Crud = {
             contentType: 'application/json; charset=utf-8',
             //async: false,
             success: function(data) {
+                if (!data) return;
                 //console.log('reset', id, key, data.result[key]);
                 _Crud.resetCell(id, key, data.result[key]);
             }
@@ -1188,20 +1226,27 @@ var _Crud = {
         row.empty();
         _Crud.populateRow(id, item, type);
     },
-    activateTextInputField: function(input, id, key) {
+    activateTextInputField: function(el, id, key, propertyType) {
+        var oldValue = el.text();
+        el.off('mouseup');
+        var input;
+        if (propertyType === 'String') {
+            el.html('<textarea name="' + key + '" class="value" cols="40" rows="4"></textare>');
+            input = $('textarea', el);
+        } else {
+            el.html('<input name="' + key + '" class="value" type="text" size="10">');
+            input = $('input', el);
+        }
+        input.val(oldValue);
         input.off('mouseup');
         //console.log('activateTextInputField', input, id, key);
         input.focus();
         input.on('blur', function() {
             var newValue = input.val();
-            _Crud.crudUpdate(id, key, newValue);
+            if (id) {
+                _Crud.crudUpdate(id, key, newValue);
+            }
         });
-//        input.keypress(function(e) {
-//            if (e.keyCode === 13) {
-//                var newValue = input.val();
-//                _Crud.crudUpdate(id, key, newValue);
-//            }
-//        });
     },
     row: function(id) {
         return $('#_' + id);
@@ -1255,21 +1300,23 @@ var _Crud = {
             var propertyType = _Crud.getPropertyType(type, key);
 
             if (propertyType === 'Boolean') {
-                cell.append('<input ' + (readOnly ? 'class="readonly" readonly disabled ' : '') + 'type="checkbox" ' + (value ? 'checked="checked"' : '') + '>');
+                cell.append('<input name="' + key + '" ' + (readOnly ? 'class="readonly" readonly disabled ' : '') + 'type="checkbox" ' + (value ? 'checked="checked"' : '') + '>');
                 if (!readOnly) {
                     $('input', cell).on('change', function() {
                         //console.log('change value for ' + key + ' to ' + $(this).prop('checked'));
-                        _Crud.crudUpdate(id, key, $(this).prop('checked').toString());
+                        if (id) {
+                            _Crud.crudUpdate(id, key, $(this).prop('checked').toString());
+                        }
                     });
                 }
             } else if (propertyType === 'Date') {
-                cell.text(nvl(formatValue(value), ''));
+                cell.html(nvl(formatValue(value), '<img src="icon/calendar.png">'));
                 if (!readOnly) {
                     cell.on('mouseup', function(event) {
                         event.preventDefault();
                         var self = $(this);
                         var oldValue = self.text();
-                        self.html('<input class="value" type="text" size="40">');
+                        self.html('<input name="' + key + '" class="value" type="text" size="40">');
                         var input = $('input', self);
                         input.val(oldValue);
                         input.datetimepicker({
@@ -1279,7 +1326,9 @@ var _Crud = {
                             timeFormat: 'HH:mm:ssz',
                             onClose: function() {
                                 var newValue = input.val();
-                                _Crud.crudUpdate(id, key, newValue);
+                                if (id) {
+                                    _Crud.crudUpdate(id, key, newValue);
+                                }
                             }
                         });
                         input.datetimepicker('show');
@@ -1292,19 +1341,11 @@ var _Crud = {
                     cell.on('mouseup', function(event) {
                         event.preventDefault();
                         var self = $(this);
-                        var oldValue = self.text();
-                        self.off('mouseup');
-                        var input;
-                        if (propertyType === 'String') {
-                            self.html('<textarea class="value" cols="40" rows="4"></textare>');
-                            input = $('textarea', self);
-                        } else {
-                            self.html('<input class="value" type="text" size="10">');
-                            input = $('input', self);
-                        }
-                        input.val(oldValue);
-                        _Crud.activateTextInputField(input, id, key);
+                        _Crud.activateTextInputField(self, id, key, propertyType);
                     });
+                    if (!id) { // create
+                        _Crud.activateTextInputField(cell, id, key, propertyType);
+                    }
                 }
             }
 
@@ -1368,6 +1409,7 @@ var _Crud = {
             contentType: 'application/json; charset=utf-8',
             //async: false,
             success: function(data) {
+                if (!data) return;
                 var node = data.result;
                 //console.log('node', node);
 
@@ -1490,6 +1532,7 @@ var _Crud = {
                 contentType: 'application/json; charset=utf-8',
                 statusCode: {
                     200: function(data) {
+                        if (!data) return;
 
                         $('#placeholderFor' + type + '').remove();
                         if (data.result.length) {
@@ -1519,7 +1562,22 @@ var _Crud = {
 
                         });
                     },
+                    400: function() {
+                        $('#placeholderFor' + type + '').remove();
+                    },
                     401: function() {
+                        $('#placeholderFor' + type + '').remove();
+                    },
+                    403: function() {
+                        $('#placeholderFor' + type + '').remove();
+                    },
+                    422: function() {
+                        $('#placeholderFor' + type + '').remove();
+                    },
+                    500: function() {
+                        $('#placeholderFor' + type + '').remove();
+                    },
+                    503: function() {
                         $('#placeholderFor' + type + '').remove();
                     }
                 }
@@ -1607,6 +1665,7 @@ var _Crud = {
                 contentType: 'application/json; charset=utf-8',
                 //async: false,
                 success: function(data) {
+                    if (!data) return;
                     //console.log(key, data.result, data.result[key]);
                     $.each(data.result[key], function(i, obj) {
                         //console.log(obj, ' equals ', relatedObj);
@@ -1872,18 +1931,19 @@ var _Crud = {
         }
         var typeDef = _Crud.schema[type];
 
-        if (node) {
-            //console.log('Edit node', node);
-            _Crud.dialog('Details of ' + type + ' ' + (node.name ? node.name : node.id) + '<span class="id"> [' + node.id + ']</span>', function() {
-            }, function() {
-            });
-        } else {
-            //console.log('Create new node of type', typeOnCreate);
-            _Crud.dialog('Create new ' + type, function() {
-            }, function() {
-            });
+        if (!dialogBox.is(':visible')) {
+            if (node) {
+                //console.log('Edit node', node);
+                _Crud.dialog('Details of ' + type + ' ' + (node.name ? node.name : node.id) + '<span class="id"> [' + node.id + ']</span>', function() {
+                }, function() {
+                });
+            } else {
+                //console.log('Create new node of type', typeOnCreate);
+                _Crud.dialog('Create new ' + type, function() {
+                }, function() {
+                });
+            }
         }
-
         //console.log('readonly', readonly);
 
         if (create) {
@@ -1902,34 +1962,36 @@ var _Crud = {
         }
 
         $.each(keys, function(i, key) {
-            //$.each(typeDef.views[_Crud.view[type]], function(i, property) {
-            //console.log(property);
-            //var type = property.className.substring(property.className.lastIndexOf('.') + 1);
-            //var key = property.jsonName;
+            var readOnly = _Crud.readOnly(key, type);
+            var isCollection = _Crud.isCollection(key, type);
+            var relatedType = _Crud.relatedType(key, type);
+            if (readOnly || (create && (isCollection || relatedType))) {
+                return;
+            }
+            
             table.append('<tr><td class="key"><label for="' + key + '">' + _Crud.formatKey(key) + '</label></td><td class="value ' + key + '"></td>');//<td>' + type + '</td><td>' + property.readOnly + '</td></tr>');
             var cell = $('.' + key, table);
             if (node && node.id) {
                 //console.log(node.id, key, type, node[key], cell);
                 _Crud.populateCell(node.id, key, node.type, node[key], cell);
             } else {
-                //console.log(key,node[key]);
-                cell.append(formatValueInputField(key, ''));
+                _Crud.populateCell(null, key, type, null, cell);
             }
         });
-        dialogSaveButton.remove();
+
         if (create) {
-            dialogBox.append('<button class="save" id="saveProperties">Save</button>');
-            $('.save', $('#dialogBox')).on('click', function() {
-                $(this).remove();
+            dialogSaveButton = $('.save', $('#dialogBox'));
+            if (!(dialogSaveButton.length)) {
+                dialogBox.append('<button class="save" id="saveProperties">Save</button>');
+                dialogSaveButton = $('.save', $('#dialogBox'));
+            }
+            dialogSaveButton.on('click', function() {
                 var form = $('#entityForm');
                 var json = JSON.stringify(_Crud.serializeObject(form));
-                //console.log(json);
-                //dialogText.empty();
                 if (create) {
                     _Crud.crudCreate(type, typeDef.url, json);
                 } else {
                     var id = form.attr('data-id');
-                    //console.log('updating', id);
                     _Crud.crudUpdateObj(id, json);
                 }
             });

@@ -35,6 +35,7 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
+import org.structr.rest.exception.NotAllowedException;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -64,7 +65,14 @@ public class CypherQueryResource extends Resource {
 	}
 
 	@Override
-	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
+	public RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException {
+
+		// Admins only
+		if (!securityContext.isSuperUser()) {
+
+			throw new NotAllowedException();
+
+		}
 
 		try {
 
@@ -74,7 +82,7 @@ public class CypherQueryResource extends Resource {
 			if (queryObject != null) {
 
 				String query                 = queryObject.toString();
-				List<GraphObject> resultList = (List<GraphObject>) StructrApp.getInstance(securityContext).command(CypherQueryCommand.class).execute(query);
+				List<GraphObject> resultList = StructrApp.getInstance(securityContext).command(CypherQueryCommand.class).execute(query, propertySet);
 
 				for (GraphObject obj : resultList) {
 
@@ -88,9 +96,7 @@ public class CypherQueryResource extends Resource {
 		} catch (org.neo4j.graphdb.NotFoundException nfe) {
 
 			throw new NotFoundException();
-
 		}
-
 	}
 
 	@Override

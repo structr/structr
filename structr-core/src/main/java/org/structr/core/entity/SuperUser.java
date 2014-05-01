@@ -426,4 +426,9 @@ public class SuperUser implements Principal, AccessControllable {
 	public void removeSessionId(String sessionId) {
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
+
+	@Override
+	public SecurityContext getSecurityContext() {
+		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+	}
 }

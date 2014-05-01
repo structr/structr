@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2010-2013 Axel Morgner
+ *  Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
  *  This file is part of structr <http://structr.org>.
  *
@@ -16,6 +16,13 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+
+
+var fs = require('fs');
+
+// Remove old screenshots
+fs.removeTree(exports.docsDir + '/screenshots/' + testName);
 
 /**
  * Screenshot/animation dimensions (pixel)
@@ -40,7 +47,7 @@ var mouseSteps = 20;
 /**
  * Recording interval in ms
  */
-var recordingInterval = 100;
+var recordingInterval = 200;
 
 /**
  * Length of animation images filenames (f.e. 0023.png)
@@ -402,8 +409,6 @@ exports.pad = function(num) {
  */
 exports.animateHtml = function(testName, heading, sections) {
 
-    var fs = require('fs');
-
     var html = '<!DOCTYPE html><html><head><title>structr UI Test: ' + heading + '</title><link rel="stylesheet" type="text/css" media="screen" href="test.css"></head><body><div id="main"><h1>' + heading + '</h1>'
 
     sections.forEach(function(s) {
@@ -445,16 +450,12 @@ exports.startRecording = function(window, casper, testName) {
 
     var i = 0;
 
-    var fs = require('fs');
-
-    // Remove old screenshots
-    fs.removeTree(exports.docsDir + '/screenshots/' + testName);
-
     window.setInterval(function() {
         casper.capture(exports.docsDir + '/screenshots/' + testName + '/' + exports.pad(i++) + '.' + exports.imageType);
         if (exports.debug)
             console.log('screenshot ' + i + ' created');
     }, recordingInterval);
+
 }
 
 /**

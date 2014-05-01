@@ -32,7 +32,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.DispatcherType;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.server.Authentication.User;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Handler;
@@ -181,7 +181,7 @@ public class HttpService implements RunnableService {
 			try {
 				mainClass = Class.forName(mainClassName);
 			} catch (ClassNotFoundException ex) {
-				logger.log(Level.WARNING, "Did not found class for main class from config " + mainClassName, ex);
+				logger.log(Level.WARNING, "Did not find class for main class from config " + mainClassName, ex);
 			}
 
 		}
@@ -318,7 +318,7 @@ public class HttpService implements RunnableService {
 			}
 
 			FilterHolder loggingFilter = new FilterHolder(TeeFilter.class);
-			servletContext.addFilter(loggingFilter, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
+			servletContext.addFilter(loggingFilter, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.ASYNC));
 			loggingFilter.setInitParameter("includes", "");
 
 			RequestLogHandler requestLogHandler = new RequestLogHandler();
@@ -488,9 +488,9 @@ public class HttpService implements RunnableService {
 	}
 
 	public static boolean parseBoolean(Object source, boolean defaultValue) {
-		
+
 		try { return Boolean.parseBoolean(source.toString()); } catch(Throwable ignore) {}
-		
+
 		return defaultValue;
 	}
 
@@ -564,15 +564,15 @@ public class HttpService implements RunnableService {
 
 		// TODO: read context handlers from configuration file
 //		public Structr addResourceHandler(String contextPath, String resourceBase, boolean directoriesListed, String[] welcomeFiles) {
-//		
+//
 //		ResourceHandler resourceHandler = new ResourceHandler();
 //		resourceHandler.setDirectoriesListed(directoriesListed);
 //		resourceHandler.setWelcomeFiles(welcomeFiles);
-//		resourceHandler.setResourceBase(resourceBase);		
+//		resourceHandler.setResourceBase(resourceBase);
 //		ContextHandler staticResourceHandler = new ContextHandler();
 //		staticResourceHandler.setContextPath(contextPath);
 //		staticResourceHandler.setHandler(resourceHandler);
-//		
+//
 //		this.resourceHandler.add(staticResourceHandler);
 		return resourceHandlers;
 	}

@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2010-2013 Axel Morgner, structr <structr@structr.org>
+ *  Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
  *
  *  This file is part of structr <http://structr.org>.
  *
@@ -20,7 +20,7 @@
 var ws;
 var loggedIn = false;
 var user;
-var reconn;
+var reconn, ping;
 var port = document.location.port;
 
 var rawResultCount = [];
@@ -34,13 +34,14 @@ var userKey = 'structrUser_' + port;
 
 var footer = $('#footer');
 
-function connect() {
+function wsConnect() {
 
     log('################ Global connect() ################');
 
     try {
 
         ws = null;
+        localStorage.removeItem(userKey);
 
         var isEnc = (window.location.protocol === 'https:');
         var host = document.location.host;
@@ -128,34 +129,16 @@ function connect() {
             if (command === 'LOGIN' || code === 100) { /*********************** LOGIN or repsonse to PING ************************/
 
                 user = data.data.username;
-                
-                log(command, code, user, localStorage.getItem(userKey));
+                var oldUser = localStorage.getItem(userKey);
+
+                log(command, code, 'user: ', user, ', oldUser: ', oldUser);
 
                 if (!sessionValid) {
                     localStorage.removeItem(userKey);
                     Structr.clearMain();
                     Structr.login();
-                }
-
-                if (sessionValid) {
-                    
-                    var oldUser = localStorage.getItem(userKey);
-
-                    // user has changed - refresh UI
-                    if (!oldUser || (oldUser && (oldUser !== user))) {
-                        
-                        log(command, code, oldUser, user);
-
-                        Structr.clearMain();
-                        localStorage.setItem(userKey, user);
-
-                        $.unblockUI({
-                            fadeOut: 25
-                        });
-
-                        $('#logout_').html('Logout <span class="username">' + user + '</span>');
-                        Structr.loadInitialModule();
-                    }
+                } else if (!oldUser || (oldUser && (oldUser !== user))) {
+                    Structr.refreshUi();
                 }
 
             } else if (command === 'LOGOUT') { /*********************** LOGOUT ************************/
@@ -241,6 +224,7 @@ function connect() {
             } else if (command === 'UPDATE' || command === 'SET_PERMISSION') { /*********************** UPDATE / SET_PERMISSION ************************/
 
                 var obj = StructrModel.obj(data.id);
+
                 if (!obj) {
                     data.data.id = data.id;
                     obj = StructrModel.create(data.data, null, false);
@@ -248,8 +232,9 @@ function connect() {
 
                 obj = StructrModel.update(data);
 
-                StructrModel.callCallback(data.callback, obj);
-                StructrModel.clearCallback(data.callback);
+                if (StructrModel.callCallback(data.callback, obj)) {
+                    StructrModel.clearCallback(data.callback);
+                }
 
             } else if (command.endsWith('GET') || command.endsWith('GET_BY_TYPE')) { /*********************** GET_BY_TYPE ************************/
 
@@ -451,17 +436,13 @@ function send(text) {
     return sendObj(obj);
 }
 
-function log(messages) {
+function log() {
     if (debug) {
-        console.log(messages);
-        $.each(Array.prototype.slice.apply(messages), function(i, msg) {
-            if (footer) {
-                var div = $('#log', footer);
-                div.append('<p>' + msg + '</p>');
-                footer.scrollTop(div.height());
-            }
-
-        });
+        console.log(arguments);
+        var msg = Array.prototype.slice.call(arguments).join(' ');
+        var div = $('#log', footer);
+        div.append(msg + '<br>');
+        footer.scrollTop(div.height());
     }
 }
 
