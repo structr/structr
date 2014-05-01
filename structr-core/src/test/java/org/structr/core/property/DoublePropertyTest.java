@@ -34,14 +34,14 @@ import org.structr.core.graph.Tx;
  * @author Christian Morgner
  */
 public class DoublePropertyTest extends StructrTest {
-	
+
 	public void test() {
-		
+
 		try {
 
 			final Property<Double> instance = TestFour.doubleProperty;
 			final TestFour testEntity        = createTestNode(TestFour.class);
-			
+
 			assertNotNull(testEntity);
 
 			// store double in the test entitiy
@@ -54,61 +54,61 @@ public class DoublePropertyTest extends StructrTest {
 			}
 
 			try (final Tx tx = app.tx()) {
-				
+
 				// check value from database
 				assertEquals(value, instance.getProperty(securityContext, testEntity, true));
 			}
-			
+
 		} catch (FrameworkException fex) {
-			
+
 			fail("Unable to store array");
 		}
 	}
-	
+
 	public void testSimpleSearchOnNode() {
-		
+
 		try {
 
 			final PropertyMap properties  = new PropertyMap();
 			final PropertyKey<Double> key = TestFour.doubleProperty;
-			
+
 			properties.put(key, 3.141592653589793238);
-			
+
 			final TestFour testEntity     = createTestNode(TestFour.class, properties);
-			
+
 			assertNotNull(testEntity);
 
 			try (final Tx tx = app.tx()) {
 
 				// check value from database
 				assertEquals(3.141592653589793238, testEntity.getProperty(key));
-				
+
 				Result<TestFour> result = app.nodeQuery(TestFour.class).and(key, 3.141592653589793238).getResult();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
 			}
-		
+
 		} catch (FrameworkException fex) {
-			
+
 			fail("Unable to store array");
 		}
-		
+
 	}
-	
+
 	public void testSimpleSearchOnRelationship() {
-		
+
 		try {
 
 			final TestOne testOne      = createTestNode(TestOne.class);
 			final TestFour testFour    = createTestNode(TestFour.class);
 			final Property<Double> key = OneFourOneToOne.doubleProperty;
-			
+
 			assertNotNull(testOne);
 			assertNotNull(testFour);
-			
+
 			final OneFourOneToOne testEntity = createTestRelationship(testOne, testFour, OneFourOneToOne.class);
-			
+
 			assertNotNull(testEntity);
 
 			try (final Tx tx = app.tx()) {
@@ -116,7 +116,7 @@ public class DoublePropertyTest extends StructrTest {
 				testEntity.setProperty(key, 3.141592653589793238);
 				tx.success();
 			}
-			
+
 			try (final Tx tx = app.tx()) {
 
 				// check value from database
@@ -127,9 +127,9 @@ public class DoublePropertyTest extends StructrTest {
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));
 			}
-		
+
 		} catch (FrameworkException fex) {
-			
+
 			fail("Unable to store array");
 		}
 	}

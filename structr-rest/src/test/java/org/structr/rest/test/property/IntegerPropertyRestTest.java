@@ -28,9 +28,9 @@ import static org.hamcrest.Matchers.*;
  * @author Christian Morgner
  */
 public class IntegerPropertyRestTest extends StructrRestTest {
-	
+
 	public void testBasics() {
-		
+
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
 			.body(" { 'integerProperty' : 2345 } ")
@@ -39,9 +39,9 @@ public class IntegerPropertyRestTest extends StructrRestTest {
 		.when()
 			.post("/test_threes")
 			.getHeader("Location");
-		
-		
-		
+
+
+
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
@@ -51,16 +51,16 @@ public class IntegerPropertyRestTest extends StructrRestTest {
 			.body("result[0].integerProperty", equalTo(2345))
 		.when()
 			.get("/test_threes");
-		
+
 	}
-	
+
 	public void testSearch() {
 
 		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'integerProperty' : 1 } ").expect().statusCode(201).when().post("/test_threes");
 		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'integerProperty' : 2 } ").expect().statusCode(201).when().post("/test_threes");
 		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'integerProperty' : 3 } ").expect().statusCode(201).when().post("/test_threes");
 		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'name'       : 'test' } ").expect().statusCode(201).when().post("/test_threes");
-		
+
 		// test for three elements
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -74,7 +74,7 @@ public class IntegerPropertyRestTest extends StructrRestTest {
 			.body("result_count", equalTo(4))
 		.when()
 			.get("/test_threes");
-		
+
 		// test strict search
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -88,7 +88,7 @@ public class IntegerPropertyRestTest extends StructrRestTest {
 			.body("result[0].integerProperty", equalTo(2))
 		.when()
 			.get("/test_threes?integerProperty=2");
-	
+
 		// test empty value
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -104,13 +104,13 @@ public class IntegerPropertyRestTest extends StructrRestTest {
 		.when()
 			.get("/test_threes?integerProperty=");
 	}
-	
+
 	public void testRangeSearch() {
 
 		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'integerProperty' : 1 } ").expect().statusCode(201).when().post("/test_threes");
 		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'integerProperty' : 2 } ").expect().statusCode(201).when().post("/test_threes");
 		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'integerProperty' : 3 } ").expect().statusCode(201).when().post("/test_threes");
-		
+
 		// test range query
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -124,6 +124,19 @@ public class IntegerPropertyRestTest extends StructrRestTest {
 			.body("result_count", equalTo(2))
 		.when()
 			.get("/test_threes?integerProperty=[1 TO 2]");
-	
+
+	}
+
+	public void testConverters() {
+
+		// test int property on regular node
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'integerProperty' : asdf } ").expect().statusCode(422).when().post("/test_threes");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'integerProperty' : 'asdf' } ").expect().statusCode(422).when().post("/test_threes");
+
+		// test int property on dynamic node
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'name': 'Test', '_integerProperty': 'Integer' } ").expect().statusCode(201).when().post("/schema_nodes");
+
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'integerProperty' : asdf } ").expect().statusCode(422).when().post("/tests");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'integerProperty' : 'asdf' } ").expect().statusCode(422).when().post("/tests");
 	}
 }
