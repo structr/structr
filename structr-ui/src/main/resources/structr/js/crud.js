@@ -755,131 +755,83 @@ var _Crud = {
                 },
                 400: function(data, status, xhr) {
                     _Crud.error('Bad request: ' + data.responseText, true);
-                    if (onError) {
-                        onError();
-                    } else {
-                        //console.log(data, status, xhr);
-                        _Crud.dialog('Create new ' + type, function() {
-                            //console.log('ok')
-                        }, function() {
-                            //console.log('cancel')
-                        });
-                        _Crud.showDetails(null, true, type);
-                    }
+                    _Crud.showCreateError(type, data, onError);
                 },
                 401: function(data, status, xhr) {
                     _Crud.error('Authentication required: ' + data.responseText, true);
-                    if (onError) {
-                        onError();
-                    } else {
-                        //console.log(data, status, xhr);
-                        _Crud.dialog('Create new ' + type, function() {
-                            //console.log('ok')
-                        }, function() {
-                            //console.log('cancel')
-                        });
-                        _Crud.showDetails(null, true, type);
-                    }
+                    _Crud.showCreateError(type, data, onError);
                 },
                 403: function(data, status, xhr) {
-                    console.log(data, status, xhr);
                     _Crud.error('Forbidden: ' + data.responseText, true);
-                    if (onError) {
-                        onError();
-                    } else {
-                        //console.log(data, status, xhr);
-                        _Crud.dialog('Create new ' + type, function() {
-                            //console.log('ok')
-                        }, function() {
-                            //console.log('cancel')
-                        });
-                        _Crud.showDetails(null, true, type);
-                    }
+                    _Crud.showCreateError(type, data, onError);
                 },
                 404: function(data, status, xhr) {
                     _Crud.error('Not found: ' + data.responseText, true);
-                    if (onError) {
-                        onError();
-                    } else {
-                        //console.log(data, status, xhr);
-                        _Crud.dialog('Create new ' + type, function() {
-                            //console.log('ok')
-                        }, function() {
-                            //console.log('cancel')
-                        });
-                        _Crud.showDetails(null, true, type);
-                    }
+                    _Crud.showCreateError(type, data, onError);
                 },
                 422: function(data, status, xhr) {
-                    if (onError) {
-                        onError();
-                    } else {
-                        //console.log(data, status, xhr);
-                        
-                        if (!dialogBox.is(':visible')) {
+                    _Crud.showCreateError(type, data, onError);
+                },
+                500: function(data, status, xhr) {
+                    _Crud.error('Internal Error: ' + data.responseText, true);
+                    _Crud.showCreateError(type, data, onError);
+                }
+            }
+        });
+    },
+    showCreateError: function(type, data, onError) {
+        if (onError) {
+            onError();
+        } else {
+            //console.log(data, status, xhr);
+
+            if (!dialogBox.is(':visible')) {
 //                            _Crud.dialog('Create new ' + type, function() {
 //                                //console.log('ok')
 //                            }, function() {
 //                                //console.log('cancel')
 //                            });
-                            _Crud.showDetails(null, true, type);
-                        }
-                        var resp = JSON.parse(data.responseText);
-                        //console.log(resp);
-                        
-                        $('.props input', dialogBox).css({
-                           backgroundColor: '#fff',
-                           borderColor: '#a5a5a5'
-                        });
-                        
-                        $('.props textarea', dialogBox).css({
-                           backgroundColor: '#fff',
-                           borderColor: '#a5a5a5'
-                        });
-
-                        $('.props td.value', dialogBox).css({
-                           backgroundColor: '#fff',
-                           borderColor: '#b5b5b5',
-                           
-                        });
-
-                        $.each(Object.keys(resp.errors[type]), function(i, key) {
-                            var errorMsg = resp.errors[type][key][0];
-                            //console.log(key, errorMsg);
-                            var input = $('td [name="' + key + '"]', dialogText);
-                            if (input.length)  {
-                                input.prop('placeholder', errorMsg.splitAndTitleize('_')).css({
-                                    backgroundColor: '#fee',
-                                    borderColor: '#933'
-                                });
-                            } else {
-                                $('td.' + key + ' span', dialogText).remove();
-                                $('td.' + key, dialogText).append('<span>' + errorMsg.splitAndTitleize('_') + '</span>').css({
-                                    backgroundColor: '#fee',
-                                    borderColor: '#933',
-                                    color: '#a5a5a5'
-                                });
-                            }
-                        });
-                        //_Crud.error('Error: ' + data.responseText, true);
-                    }
-                },
-                500: function(data, status, xhr) {
-                    _Crud.error('Internal Error: ' + data.responseText, true);
-                    if (onError) {
-                        onError();
-                    } else {
-                        //console.log(data, status, xhr);
-                        _Crud.dialog('Create new ' + type, function() {
-                            //console.log('ok')
-                        }, function() {
-                            //console.log('cancel')
-                        });
-                        _Crud.showDetails(null, true, type);
-                    }
-                }
+                _Crud.showDetails(null, true, type);
             }
-        });
+            var resp = JSON.parse(data.responseText);
+            //console.log(resp);
+
+            $('.props input', dialogBox).css({
+               backgroundColor: '#fff',
+               borderColor: '#a5a5a5'
+            });
+
+            $('.props textarea', dialogBox).css({
+               backgroundColor: '#fff',
+               borderColor: '#a5a5a5'
+            });
+
+            $('.props td.value', dialogBox).css({
+               backgroundColor: '#fff',
+               borderColor: '#b5b5b5',
+
+            });
+
+            $.each(Object.keys(resp.errors[type]), function(i, key) {
+                var errorMsg = resp.errors[type][key][0];
+                //console.log(key, errorMsg);
+                var input = $('td [name="' + key + '"]', dialogText);
+                if (input.length)  {
+                    input.prop('placeholder', errorMsg.splitAndTitleize('_')).css({
+                        backgroundColor: '#fee',
+                        borderColor: '#933'
+                    });
+                } else {
+                    $('td.' + key + ' span', dialogText).remove();
+                    $('td.' + key, dialogText).append('<span>' + errorMsg.splitAndTitleize('_') + '</span>').css({
+                        backgroundColor: '#fee',
+                        borderColor: '#933',
+                        color: '#a5a5a5'
+                    });
+                }
+            });
+            //_Crud.error('Error: ' + data.responseText, true);
+        }
     },
     crudRefresh: function(id, key) {
         var url = rootUrl + id + '/' + _Crud.view[_Crud.type];
