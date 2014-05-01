@@ -49,7 +49,7 @@ var _Dragndrop = {
                     dropBlocked = false;
                     return false;
                 }
-                
+
                 e.preventDefault();
                 e.stopPropagation();
 
@@ -223,21 +223,24 @@ var _Dragndrop = {
         if (!source && tag) {
 
             if (tag.indexOf('.') !== -1) {
-                var firstContentId = target.children[0].id;
-                if (related) {
-                    var key = tag.substring(tag.indexOf('.')+1);
-                    log('tag, key, subkey', tag, key, related.subKey)
-                    if (related.isCollection) {
-                        Command.setProperty(firstContentId, 'content', '${' + key + '.' + related.subKey + '}');
-                        Command.setProperty(target.id, 'dataKey', key, false, function() {
-                            _Pages.reloadPreviews();
-                        });
+
+                Command.get(target.id, function(target) {
+                    var firstContentId = target.children[0].id;
+                    if (related) {
+                        var key = tag.substring(tag.indexOf('.') + 1);
+                        log('tag, key, subkey', tag, key, related.subKey)
+                        if (related.isCollection) {
+                            Command.setProperty(firstContentId, 'content', '${' + key + '.' + related.subKey + '}');
+                            Command.setProperty(target.id, 'dataKey', key, false, function() {
+                                _Pages.reloadPreviews();
+                            });
+                        } else {
+                            Command.setProperty(firstContentId, 'content', '${' + tag + '.' + related.subKey + '}');
+                        }
                     } else {
-                        Command.setProperty(firstContentId, 'content', '${' + tag + '.' + related.subKey + '}');
+                        Command.setProperty(firstContentId, 'content', '${' + tag + '}');
                     }
-                } else {
-                    Command.setProperty(firstContentId, 'content', '${' + tag + '}');
-                }
+                });
 
             } else if (tag.indexOf(':') !== -1) {
 
