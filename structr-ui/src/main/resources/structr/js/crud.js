@@ -751,6 +751,7 @@ var _Crud = {
                         _Crud.activateList(type);
                         //document.location.reload();
                     }
+                    dialogSaveButton.remove();
                 },
                 400: function(data, status, xhr) {
                     _Crud.error('Bad request: ' + data.responseText, true);
@@ -852,7 +853,8 @@ var _Crud = {
                                     borderColor: '#933'
                                 });
                             } else {
-                                $('td.' + key, dialogText).append(errorMsg.splitAndTitleize('_')).css({
+                                $('td.' + key + ' span', dialogText).remove();
+                                $('td.' + key, dialogText).append('<span>' + errorMsg.splitAndTitleize('_') + '</span>').css({
                                     backgroundColor: '#fee',
                                     borderColor: '#933',
                                     color: '#a5a5a5'
@@ -1984,17 +1986,17 @@ var _Crud = {
             if (!(dialogSaveButton.length)) {
                 dialogBox.append('<button class="save" id="saveProperties">Save</button>');
                 dialogSaveButton = $('.save', $('#dialogBox'));
+                dialogSaveButton.on('click', function() {
+                    var form = $('#entityForm');
+                    var json = JSON.stringify(_Crud.serializeObject(form));
+                    if (create) {
+                        _Crud.crudCreate(type, typeDef.url, json);
+                    } else {
+                        var id = form.attr('data-id');
+                        _Crud.crudUpdateObj(id, json);
+                    }
+                });
             }
-            dialogSaveButton.on('click', function() {
-                var form = $('#entityForm');
-                var json = JSON.stringify(_Crud.serializeObject(form));
-                if (create) {
-                    _Crud.crudCreate(type, typeDef.url, json);
-                } else {
-                    var id = form.attr('data-id');
-                    _Crud.crudUpdateObj(id, json);
-                }
-            });
         }
 
         if (node && node.type === 'Image') {
