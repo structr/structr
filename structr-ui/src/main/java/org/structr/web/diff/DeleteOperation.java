@@ -7,6 +7,7 @@ import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
+import org.w3c.dom.Node;
 
 /**
  *
@@ -42,6 +43,14 @@ public class DeleteOperation extends InvertibleModificationOperation {
 
 		// do not delete synced nodes (nodes that are shared between multiple pages)
 		if (!existingNode.isSynced()) {
+
+			// remove node from parent, do not simply delete it
+			final Node parent = existingNode.getParentNode();
+			if (parent != null) {
+
+				parent.removeChild(existingNode);
+			}
+
 			app.delete(existingNode);
 		}
 	}
