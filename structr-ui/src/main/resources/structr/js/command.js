@@ -87,8 +87,10 @@ var Command = {
      * 
      * The server will return a result set containing all children of the
      * node with the given id to the sending client (no broadcast).
+     * 
+     * The optional callback function will be executed for each node in the result set.
      */
-    children: function(id) {
+    children: function(id, callback) {
         var obj = {};
         obj.id = id;
         var data = {};
@@ -102,8 +104,8 @@ var Command = {
         }
 
         obj.data = data;
-        log('children()', obj);
-        return sendObj(obj);
+        log('children()', obj, callback);
+        return sendObj(obj, callback);
     },
     /**
      * Send a GET command to the server.

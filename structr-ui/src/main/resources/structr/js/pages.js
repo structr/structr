@@ -94,7 +94,7 @@ var _Pages = {
 
             var iframes = $('.previewBox', previews).find('iframe');
             iframes.css({
-                width: w,//$('.previewBox', previews).width() + 'px',
+                width: w, //$('.previewBox', previews).width() + 'px',
                 height: windowHeight - (headerOffsetHeight + previewOffset) + 'px'
             });
         }
@@ -615,15 +615,20 @@ var _Pages = {
                             var self = $(this);
                             var selected = self.hasClass('structr-element-container-selected');
                             self.closest('body').find('.structr-element-container-selected').removeClass('structr-element-container-selected');
-                            if (!selected)
+                            if (!selected) {
                                 self.toggleClass('structr-element-container-selected');
-                            _Pages.displayDataBinding(structrId);
-                            _Pages.expandTreeNode(structrId);
-                            var treeEl = Structr.node(structrId);
+                            }
                             $('#pages').find('.nodeSelected').removeClass('nodeSelected');
-                            if (!selected)
-                                treeEl.toggleClass('nodeSelected');
-
+                            _Pages.displayDataBinding(structrId);
+                            if (!Structr.node(structrId)) {
+                                _Pages.expandTreeNode(structrId);
+                            } else {
+                                var treeEl = Structr.node(structrId);
+                                if (treeEl && !selected) {
+                                    treeEl.toggleClass('nodeSelected');
+                                }
+                            }
+                            return false;
                         },
                         mouseover: function(e) {
                             e.stopPropagation();
@@ -721,6 +726,12 @@ var _Pages = {
                                 self.html(srcText);
                                 textBeforeEditing = srcText;
                             }
+                            
+                            var structrId = self.attr('data-structr-id');
+                            var selected = self.hasClass('structr-element-container-selected');
+                            console.log(self, structrId, selected);
+                            _Pages.expandTreeNode(structrId);
+                            
                             return false;
 
                         },
@@ -948,7 +959,7 @@ var _Pages = {
             var subkey = 'name';
 
             $.each(t.relatedTo, function(i, endNode) {
-                
+
 
                 $.ajax({
                     url: rootUrl + '/schema_relationships?sourceId=' + id + '&targetId=' + endNode.id,
@@ -984,9 +995,9 @@ var _Pages = {
                     statusCode: {
                         200: function(data) {
                             _Schema.getPropertyName(t.name, data.result[0].relationshipType, false, function(key, isCollection) {
-                                
+
                                 console.log('key', key)
-                                
+
                                 $('#data-wizard-attributes .custom').append('<div class="draggable data-binding-attribute ' + key + '" collection="' + isCollection + '" subkey="' + subkey + '">' + typeKey + '.' + key + '</div>');
                                 $('#data-wizard-attributes .custom').children('.draggable.' + key).draggable({
                                     iframeFix: true,
@@ -1032,16 +1043,16 @@ var _Pages = {
         });
 
     },
-    expandTreeNode: function(id) {
-        var el;
+    expandTreeNode: function(id, stack) {
+        stack = stack || [];
+        stack.push(id);
         Command.get(id, function(obj) {
             if (obj.parent) {
-                _Pages.expandTreeNode(obj.parent.id);
-            }
-            el = Structr.node(id);
-            if (el) {
-                _Entities.ensureExpanded(el);
+                _Pages.expandTreeNode(obj.parent.id, stack);
+            } else {
+                _Entities.expandAll(stack.reverse());
             }
         });
-    }
+    },
+    
 };

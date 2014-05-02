@@ -230,7 +230,7 @@ var _Entities = {
 
                     $('.CodeMirror-code .cm-attribute:contains("data-hash")').addClass('data-hash').next().addClass('data-hash');
                 });
-                
+
                 dialogSaveButton.on('click', function(e) {
                     e.stopPropagation();
                     var text2 = editor.getValue();
@@ -529,9 +529,9 @@ var _Entities = {
 
                         // existing key
                         log('existing key: Command.setProperty(', objId, key, val);
-                        
+
                         input.val(oldVal);
-                        
+
                         Command.setProperty(objId, key, val, false, function() {
                             input.val(val);
                             blinkGreen(input);
@@ -907,7 +907,7 @@ var _Entities = {
             $('#preview_' + getId(page)).contents().find('[data-structr-id=' + getId(node) + ']').removeClass('nodeHover');
         }
     },
-    ensureExpanded: function(element) {
+    ensureExpanded: function(element, callback) {
 
         var el = $(element);
         var b;
@@ -928,9 +928,31 @@ var _Entities = {
             return;
         } else {
             log('ensureExpanded: fetch children', el);
-            Command.children(id);
+            Command.children(id, callback);
             b.prop('src', 'icon/tree_arrow_down.png');
         }
+    },
+    expandAll: function(ids) {
+        if (!ids || ids.length === 0) {
+            return;
+        }
+
+        ids.forEach(function(id) {
+            var el = Structr.node(id);
+            if (el) {
+                $('#pages').find('.nodeSelected').removeClass('nodeSelected');
+                el.addClass('nodeSelected');
+            }
+            _Entities.ensureExpanded(el, function(childNode) {
+                
+                var i = ids.indexOf(childNode.id);
+                console.log(i);
+                if (i > 1) {
+                    ids.slice(i - 1, i);
+                }
+                _Entities.expandAll(ids);
+            });
+        });
     },
     toggleElement: function(element, expanded) {
 

@@ -258,8 +258,11 @@ function wsConnect() {
                 $(result).each(function(i, entity) {
 
                     StructrModel.create(entity);
+                    StructrModel.callCallback(data.callback, entity);
 
                 });
+                
+                StructrModel.clearCallback(data.callback);
 
             } else if (command.startsWith('SEARCH')) { /*********************** SEARCH ************************/
 
