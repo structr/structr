@@ -109,7 +109,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 
 	@Override
-	public void execute(Map<String, Object> attributes) throws FrameworkException {
+	public void execute(final Map<String, Object> attributes) throws FrameworkException {
 
 		GraphDatabaseService graphDb = Services.getInstance().getService(NodeService.class).getGraphDb();
 		String mode                  = (String)attributes.get("mode");
@@ -137,7 +137,11 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 		if ("export".equals(mode)) {
 
-			exportToFile(graphDb, fileName);
+			exportToFile(graphDb, fileName, true);
+
+		} else if ("exportDb".equals(mode)) {
+
+			exportToFile(graphDb, fileName, false);
 
 		} else if ("import".equals(mode)) {
 
@@ -154,9 +158,10 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 	 *
 	 * @param graphDb
 	 * @param fileName
+	 * @param includeFiles
 	 * @throws FrameworkException
 	 */
-	public static void exportToFile(GraphDatabaseService graphDb, String fileName) throws FrameworkException {
+	public static void exportToFile(final GraphDatabaseService graphDb, final String fileName, final boolean includeFiles) throws FrameworkException {
 
 		try {
 
@@ -164,7 +169,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 			Iterable<Relationship> rels = ggop.getAllRelationships();
 			Iterable<Node> nodes        = ggop.getAllNodes();
 
-			exportToStream(new FileOutputStream(fileName), nodes, rels, null);
+			exportToStream(new FileOutputStream(fileName), nodes, rels, null, includeFiles);
 
 		} catch (Throwable t) {
 
@@ -180,13 +185,14 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 	 * @param nodes
 	 * @param relationships
 	 * @param filePaths
+	 * @param includeFiles
 	 * @throws FrameworkException
 	 */
-	public static void exportToFile(String fileName, Iterable<Node> nodes, Iterable<Relationship> relationships, Iterable<String> filePaths) throws FrameworkException {
+	public static void exportToFile(final String fileName, final Iterable<Node> nodes, final Iterable<Relationship> relationships, final Iterable<String> filePaths, final boolean includeFiles) throws FrameworkException {
 
 		try {
 
-			exportToStream(new FileOutputStream(fileName), nodes, relationships, filePaths);
+			exportToStream(new FileOutputStream(fileName), nodes, relationships, filePaths, includeFiles);
 
 		} catch (Throwable t) {
 
@@ -201,9 +207,10 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 	 * @param nodes
 	 * @param relationships
 	 * @param filePaths
+	 * @param includeFiles
 	 * @throws FrameworkException
 	 */
-	public static void exportToStream(OutputStream outputStream, Iterable<Node> nodes, Iterable<Relationship> relationships, Iterable<String> filePaths) throws FrameworkException {
+	public static void exportToStream(final OutputStream outputStream, final Iterable<Node> nodes, final Iterable<Relationship> relationships, final Iterable<String> filePaths, final boolean includeFiles) throws FrameworkException {
 
 		try {
 
@@ -223,8 +230,10 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 			// set compression
 			zos.setLevel(6);
 
-			// export files first
-			exportDirectory(zos, new File("files"), "", filesToInclude.isEmpty() ? null : filesToInclude);
+			if (includeFiles) {
+				// export files first
+				exportDirectory(zos, new File("files"), "", filesToInclude.isEmpty() ? null : filesToInclude);
+			}
 
 			// export database
 			exportDatabase(zos, writer, nodes, relationships);
