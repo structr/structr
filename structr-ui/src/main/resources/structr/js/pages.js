@@ -58,6 +58,10 @@ var _Pages = {
     },
     resize: function(offsetLeft, offsetRight) {
 
+        $('body').css({
+            position: 'fixed'
+        });
+
         var windowWidth = win.width(), windowHeight = win.height();
         var headerOffsetHeight = 100, previewOffset = 22;
 

@@ -899,7 +899,7 @@ img.button {
 }
 
 #schema-graph .node {
-    padding: 2px 6px;
+    padding: 6px;
     margin: 0 ! important;
 }
 
@@ -1320,13 +1320,13 @@ button.disabled {
     opacity: 0.6;
 }
 
-
 #schema-graph {
     background: #fff;
-    border-radius: 5px;
-    border: 1px solid #999;
+    border-top: 1px solid #a5a5a5;
+/*    border-radius: 5px;
+    border: 1px solid #999;*/
     /*min-height: 600px;*/
-    margin: 12px;
+/*    margin: 12px;*/
     padding: 12px;
 }
 
@@ -1410,6 +1410,10 @@ button.add_property {
     padding-bottom: 6px ! important;
 }
 
+.schema h3 {
+    margin: 6px 0 2px 0;
+}
+
 .schema-input-container {
     margin: 12px;
 }
@@ -1422,7 +1426,6 @@ button.add_property {
 .schema-props {
     background-color: #f9f9f9;
     width: 100%;
-    font-size: .9em;
     border-collapse: collapse;
 }
 
@@ -1457,7 +1460,8 @@ button.add_property {
     margin: 6px 0;
 }
 
-.property-name, .property-dbname, .property-type, .property-format, .default, #relationship-label {
+.property-name, .property-dbname, .property-type, .property-format, .property-code, .default, #relationship-label {
+    width: 98%;
     border: none;
     background: transparent;
     font-size: 1em;
@@ -1472,6 +1476,7 @@ button.add_property {
 .schema b:hover,
 .schema .property-name:hover,
 .schema .property-dbname:hover,
+.schema .property-code:hover,
 .schema .related:hover {
     cursor: text;
     box-shadow: 2px 0 #000;
@@ -1486,8 +1491,9 @@ button.add_property {
     margin: 1px 0 1px -1px;
 }
 
-.schema .related:hover {
-    margin: 1px 0 1px 1px;
+.schema input.property-name:hover,
+.schema input.property-code:hover {
+    margin: 1px;
 }
 
 .schema .new-name {
@@ -1525,6 +1531,16 @@ button.add_property {
 
 .sliderLabel {
     padding-top: 10px;
+}
+
+.schema .add-icon {
+    margin-top: 4px;
+}
+
+.schema .add-icon:hover,
+.schema .remove-icon:hover{
+    opacity: .6;
+    cursor: pointer;
 }
 
 /**
