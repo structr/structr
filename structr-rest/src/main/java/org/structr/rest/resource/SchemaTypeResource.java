@@ -19,30 +19,29 @@
 package org.structr.rest.resource;
 
 import java.util.LinkedHashSet;
-import org.structr.common.CaseHelper;
-import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.property.LongProperty;
-import org.structr.core.property.StringProperty;
-import org.structr.core.*;
-import org.structr.core.converter.PropertyConverter;
-import org.structr.core.property.PropertyKey;
-import org.structr.rest.RestMethodResult;
-import org.structr.rest.exception.IllegalMethodException;
-
-//~--- JDK imports ------------------------------------------------------------
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-
 import javax.servlet.http.HttpServletRequest;
+import org.structr.common.CaseHelper;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
+import org.structr.core.GraphObjectMap;
+import org.structr.core.Result;
 import org.structr.core.app.StructrApp;
+import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.PropertyDefinition;
 import org.structr.core.entity.Relation;
+import org.structr.core.property.LongProperty;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.property.RelationProperty;
+import org.structr.core.property.StringProperty;
+import org.structr.rest.RestMethodResult;
+import org.structr.rest.exception.IllegalMethodException;
 import org.structr.schema.SchemaHelper;
 
 //~--- classes ----------------------------------------------------------------
@@ -95,6 +94,7 @@ public class SchemaTypeResource extends Resource {
 
 			schema.setProperty(new StringProperty("url"), url);
 			schema.setProperty(new StringProperty("type"), type.getSimpleName());
+			schema.setProperty(new StringProperty("className"), type.getName());
 			schema.setProperty(new StringProperty("isRel"), AbstractRelationship.class.isAssignableFrom(type));
 			schema.setProperty(new LongProperty("flags"), SecurityContext.getResourceFlags(rawType));
 
