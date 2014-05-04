@@ -21,6 +21,7 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -86,7 +87,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	private final static String STRUCTR_ACTION_PROPERTY = "data-structr-action";
 
 	public static final Property<List<DOMElement>> syncedNodes = new EndNodes("syncedNodes", Sync.class, new PropertyNotion(id));
-	public static final Property<DOMElement> syncedNode  = new StartNode("syncedNode", Sync.class, new PropertyNotion(id));
+	public static final Property<DOMElement> syncedNode = new StartNode("syncedNode", Sync.class, new PropertyNotion(id));
 
 	private static final Map<String, HtmlProperty> htmlProperties = new LRUMap(200);	// use LURMap here to avoid infinite growing
 	private static final List<GraphDataSource<List<GraphObject>>> listSources = new LinkedList<>();
@@ -238,6 +239,41 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	}
 
 	@Override
+	public Node cloneNode(final boolean deep) {
+
+		if (deep) {
+
+			throw new UnsupportedOperationException("cloneNode with deep=true is not supported yet.");
+
+		} else {
+
+			Node node = super.cloneNode(deep);
+
+			for (Iterator<PropertyKey> it = getPropertyKeys(htmlView.name()).iterator(); it.hasNext();) {
+
+				PropertyKey key = it.next();
+
+				// omit system properties (except type), parent/children and page relationships
+				if (key.equals(GraphObject.type) || (!key.isUnvalidated()
+					&& !key.equals(GraphObject.id)
+					&& !key.equals(DOMNode.ownerDocument) && !key.equals(DOMNode.pageId)
+					&& !key.equals(DOMNode.parent) && !key.equals(DOMNode.parentId)
+					&& !key.equals(DOMNode.children) && !key.equals(DOMNode.childrenIds))) {
+
+					try {
+						((DOMNode) node).setProperty(key, getProperty(key));
+					} catch (FrameworkException ex) {
+						logger.log(Level.WARNING, "Could not set property " + key + " while cloning DOMElement " + this, ex);
+					}
+				}
+			}
+			return node;
+
+		}
+
+	}
+
+	@Override
 	public void updateFrom(final DOMNode source) throws FrameworkException {
 
 		if (source instanceof DOMElement) {
@@ -380,7 +416,6 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 					// No child relationships, maybe this node is in sync with another node
 					//Sync syncRel = getIncomingRelationship(Sync.class);
-
 					DOMElement _syncedNode = (DOMElement) getProperty(syncedNode);
 					if (_syncedNode != null) {
 						rels.addAll(_syncedNode.getChildRelationships());
@@ -521,9 +556,9 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 			} catch (Throwable t) {
 
 				logger.log(Level.SEVERE, "Error while rendering node {0}: {1}", new java.lang.Object[]{getUuid(), t});
-				
+
 				out.append("Error while rendering node ").append(getUuid()).append(": ").append(t.getMessage());
-				
+
 				t.printStackTrace();
 
 			}
@@ -1002,7 +1037,6 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	}
 
 	// ----- nested classes -----
-
 	@Override
 	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 
