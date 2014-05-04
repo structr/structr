@@ -38,13 +38,13 @@ var _Schema = {
         $.each($('#schema-graph .node'), function(i, n) {
             var node = $(n);
             var id = node.attr('id');
-            var obj = JSON.parse(localStorage.getItem(id + localStorageSuffix + 'node-position'));
+            var obj = JSON.parse(localStorage.getItem(id + localStorageSuffix + 'node-position')) || {};
             obj.position = node.position();
             localStorage.setItem(id + localStorageSuffix + 'node-position', JSON.stringify(obj));
         });
     },
     storeMode: function(id, mode) {
-        var obj = JSON.parse(localStorage.getItem(id + localStorageSuffix + 'node-position'));
+        var obj = JSON.parse(localStorage.getItem(id + localStorageSuffix + 'node-position')) || {};
         obj.mode = mode;
         localStorage.setItem(id + localStorageSuffix + 'node-position', JSON.stringify(obj));
     },
