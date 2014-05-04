@@ -35,6 +35,12 @@
 .resourceBox th {
     background: #f0f0f0;
     color: #333;
+    vertical-align: top;
+}
+
+.resourceBox th img {
+    float: right;
+    cursor: pointer;
 }
 
 .resourceBox td.value {
@@ -263,7 +269,7 @@ img.thumbnail {
 /*
 * Search
 */
- 
+
 .searchBox {
      position: absolute;
      right: 12px;
