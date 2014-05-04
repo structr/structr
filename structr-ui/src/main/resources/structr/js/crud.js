@@ -1,18 +1,18 @@
-/* 
+/*
  *  Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
- * 
+ *
  *  This file is part of structr <http://structr.org>.
- * 
+ *
  *  structr is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Affero General Public License as
  *  published by the Free Software Foundation, either version 3 of the
  *  License, or (at your option) any later version.
- * 
+ *
  *  structr is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- * 
+ *
  *  You should have received a copy of the GNU Affero General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -23,6 +23,7 @@ var searchField;
 var browser = (typeof document === 'object');
 var crudPagerDataKey = 'structrCrudPagerData_' + port + '_';
 var crudTypeKey = 'structrCrudType_' + port;
+var crudHiddenColumnsKey = 'structrCrudHiddenColumns_' + port;
 
 if (browser) {
 
@@ -142,7 +143,7 @@ var _Crud = {
     onload: function() {
 
         $('#main-help a').attr('href', 'http://docs.structr.org/frontend-user-guide#Data');
-        
+
         Structr.registerModule('crud', _Crud);
         Structr.classes.push('crud');
 
@@ -381,10 +382,10 @@ var _Crud = {
             var k = Object.keys(view);
             if (k && k.length) {
                 _Crud.keys[type] = k;
-                $.each(_Crud.keys[type], function(k, key) {
+                $.each(_Crud.filterKeys(type, _Crud.keys[type]), function(k, key) {
                     tableHeader.append('<th class="' + key + '">' + _Crud.formatKey(key) + '</th>');
                 });
-                tableHeader.append('<th>Actions</th>');
+                tableHeader.append('<th class="_action_header">Actions</th>');
             }
         }
         typeNode.append('<div class="infoFooter">Query: <span class="queryTime"></span> s &nbsp; Serialization: <span class="serTime"></span> s</div>');
@@ -493,18 +494,70 @@ var _Crud = {
         $('th', table).each(function(i, t) {
             var th = $(t);
             var key = th.attr('class');
-            if (key !== 'Actions') {
+            if (key === "_action_header") {
+
+                th.empty();
+                th.append('<img src="icon/application_view_detail.png" alt="Configure columns" title="Configure columns" />');
+                $('img', th).on('click', function(event) {
+
+                    _Crud.dialog('<h3>Configure columns for type ' + type + '</h3>', function() {}, function() {});
+
+                    $('div.dialogText').append('<table class="props" id="configure-' + type + '-columns"></table>');
+
+                    var table = $('#configure-' + type + '-columns');
+
+                    // append header row
+                    table.append('<tr><th>Column Key</th><th>Visible</th></tr>');
+                    var filterSource = localStorage.getItem(crudHiddenColumnsKey + type);
+                    var filteredKeys = {};
+                    if (filterSource) {
+
+                        filteredKeys = JSON.parse(filterSource);
+                    }
+
+                    $.each(_Crud.keys[type], function(k, key) {
+
+                        var checkboxKey = 'column-' + type + '-' + key + '-visible';
+                        var hidden      = filteredKeys.hasOwnProperty(key) && filteredKeys[key] === 0;
+
+                        table.append(
+                              '<tr>'
+                            + '<td><b>' + key + '</b></td>'
+                            + '<td><input type="checkbox" id="' + checkboxKey + '" ' + (hidden ? '' : 'checked="checked"') + '/></td>'
+                            + '</tr>'
+                        );
+
+                        $('#' + checkboxKey).on('click', function() {
+                            _Crud.toggleColumn(type, key);
+                        });
+                    });
+
+                    dialogCloseButton = $('.closeButton', $('#dialogBox'));
+                    dialogCloseButton.on('click', function() {
+                        location.reload();
+                    });
+
+                });
+
+            } else if (key !== 'Actions') {
                 $('a', th).off('click');
                 th.empty();
                 if (view[key]) {
                     var sortKey = view[key].jsonName;
-                    th.append('<a href="' + _Crud.sortAndPagingParameters(type, sortKey, newOrder, _Crud.pageSize[type], _Crud.page[type]) + '#' + type + '">' + _Crud.formatKey(key) + '</a>');
+                    th.append('<a href="' + _Crud.sortAndPagingParameters(type, sortKey, newOrder, _Crud.pageSize[type], _Crud.page[type]) + '#' + type + '">' + _Crud.formatKey(key) + '</a>'
+                            + '<img src="icon/cross_small_grey.png" alt="Hide this column" title="Hide this column" />');
                     $('a', th).on('click', function(event) {
                         event.preventDefault();
                         _Crud.sort[type] = key;
                         _Crud.order[type] = (_Crud.order[type] && _Crud.order[type] === 'desc' ? 'asc' : 'desc');
                         _Crud.activateList(type);
                         _Crud.updateUrl(type);
+                        return false;
+                    });
+                    $('img', th).on('click', function(event) {
+
+                        event.preventDefault();
+                        _Crud.toggleColumn(type, key);
                         return false;
                     });
                 }
@@ -751,7 +804,7 @@ var _Crud = {
                         _Crud.activateList(type);
                         //document.location.reload();
                     }
-                    dialogSaveButton.remove();
+                    dialogCloseButton.remove();
                 },
                 400: function(data, status, xhr) {
                     _Crud.error('Bad request: ' + data.responseText, true);
@@ -1216,7 +1269,7 @@ var _Crud = {
         //console.log('populateRow', id, item, type, _Crud.keys[type]);
         var row = _Crud.row(id);
         if (_Crud.keys[type]) {
-            $.each(_Crud.keys[type], function(k, key) {
+            $.each(_Crud.filterKeys(type, _Crud.keys[type]), function(k, key) {
                 //console.log('populateRow for key', key, row);
                 row.append('<td class="' + key + '"></td>');
                 var cells = _Crud.cells(id, key);
@@ -1440,7 +1493,7 @@ var _Crud = {
     },
     /**
      * Conduct a search and append search results to 'el'.
-     * 
+     *
      * If an optional type is given, restrict search to this type.
      */
     search: function(searchString, el, type, onClickCallback) {
@@ -1759,7 +1812,7 @@ var _Crud = {
                     $.unblockUI({
                         fadeOut: 25
                     });
-                    dialogSaveButton.remove();
+                    dialogCloseButton.remove();
                     $('#saveProperties').remove();
                     searchField.focus();
                 });
@@ -1922,7 +1975,7 @@ var _Crud = {
             if (readOnly || (create && (isCollection || relatedType))) {
                 return;
             }
-            
+
             table.append('<tr><td class="key"><label for="' + key + '">' + _Crud.formatKey(key) + '</label></td><td class="value ' + key + '"></td>');//<td>' + type + '</td><td>' + property.readOnly + '</td></tr>');
             var cell = $('.' + key, table);
             if (node && node.id) {
@@ -1934,11 +1987,11 @@ var _Crud = {
         });
 
         if (create) {
-            dialogSaveButton = $('.save', $('#dialogBox'));
-            if (!(dialogSaveButton.length)) {
+            dialogCloseButton = $('.save', $('#dialogBox'));
+            if (!(dialogCloseButton.length)) {
                 dialogBox.append('<button class="save" id="saveProperties">Save</button>');
-                dialogSaveButton = $('.save', $('#dialogBox'));
-                dialogSaveButton.on('click', function() {
+                dialogCloseButton = $('.save', $('#dialogBox'));
+                dialogCloseButton.on('click', function() {
                     var form = $('#entityForm');
                     var json = JSON.stringify(_Crud.serializeObject(form));
                     if (create) {
@@ -1969,6 +2022,53 @@ var _Crud = {
             }
         }
         return result;
+    },
+    filterKeys: function(type, sourceArray) {
+
+        if (!sourceArray) {
+            return;
+        }
+
+        var filterSource = localStorage.getItem(crudHiddenColumnsKey + type);
+        var filteredKeys = {};
+        if (filterSource) {
+
+            filteredKeys = JSON.parse(filterSource);
+        }
+
+        return $.grep(sourceArray, function(key) {
+            return filteredKeys.hasOwnProperty(key) && filteredKeys[key] === 0;
+        }, true);
+    },
+    toggleColumn : function(type, key) {
+
+        var table = _Crud.getTable(type);
+        var filterSource = localStorage.getItem(crudHiddenColumnsKey + type);
+        var filteredKeys = {};
+        if (filterSource) {
+
+            filteredKeys = JSON.parse(filterSource);
+        }
+
+        var hidden = filteredKeys.hasOwnProperty(key) && filteredKeys[key] === 0;
+
+        if (hidden) {
+
+            filteredKeys[key] = 1;
+
+        } else {
+
+            filteredKeys[key] = 0;
+
+            // remove column(s) from table
+            $('th.' + key, table).remove();
+            $('td.' + key, table).each(function(i, t) {
+                t.remove();
+            });
+        }
+
+        localStorage.setItem(crudHiddenColumnsKey + type, JSON.stringify(filteredKeys));
+
     },
     serializeObject: function(obj) {
         var o = {};
@@ -2013,7 +2113,7 @@ var _Crud = {
     },
     /**
      * Compare to values and return true if they can be regarded equal.
-     * 
+     *
      * If both values are of type 'object', compare their id property,
      * in any other case, compare values directly.
      */
