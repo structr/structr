@@ -940,7 +940,7 @@ var _Entities = {
         ids.forEach(function(id) {
             var el = Structr.node(id);
             if (el) {
-                $('#pages').find('.nodeSelected').removeClass('nodeSelected');
+                $('.nodeSelected').removeClass('nodeSelected');
                 el.addClass('nodeSelected');
             }
             _Entities.ensureExpanded(el, function(childNode) {

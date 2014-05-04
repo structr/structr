@@ -535,6 +535,13 @@ var _Pages = {
 
         _Entities.appendEditPropertiesIcon(div, entity);
         _Entities.appendEditSourceIcon(div, entity);
+
+        div.append('<img title="Clone page \'' + entity.name + '\'" alt="Clone page \'' + entity.name + '\'" class="clone_icon button" src="icon/page_copy.png">');
+        $('.clone_icon', div).on('click', function(e) {
+            e.stopPropagation();
+            Command.clonePage(entity.id);
+        });
+        
         _Entities.setMouseOver(div);
 
         var tab = _Pages.addTab(entity);
@@ -622,7 +629,7 @@ var _Pages = {
                             if (!selected) {
                                 self.toggleClass('structr-element-container-selected');
                             }
-                            $('#pages').find('.nodeSelected').removeClass('nodeSelected');
+                            $('.nodeSelected').removeClass('nodeSelected');
                             _Pages.displayDataBinding(structrId);
                             if (!Structr.node(structrId)) {
                                 _Pages.expandTreeNode(structrId);

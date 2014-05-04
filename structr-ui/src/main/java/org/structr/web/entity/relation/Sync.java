@@ -18,14 +18,14 @@
  */
 package org.structr.web.entity.relation;
 
-import org.structr.core.entity.ManyToMany;
+import org.structr.core.entity.OneToMany;
 import org.structr.web.entity.dom.DOMElement;
 
 /**
  *
  * @author Christian Morgner
  */
-public class Sync extends ManyToMany<DOMElement, DOMElement> {
+public class Sync extends OneToMany<DOMElement, DOMElement> {
 
 	@Override
 	public Class<DOMElement> getSourceType() {

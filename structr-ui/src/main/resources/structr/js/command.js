@@ -707,7 +707,7 @@ var Command = {
         }
         var obj = {};
         obj.data = nodeData;
-        obj.command = 'CLONE';
+        obj.command = 'CLONE_PAGE';
         obj.id = id;
         log('clonePage()', obj);
         return sendObj(obj);
