@@ -3,47 +3,36 @@
  *
  * This file is part of Structr <http://structr.org>.
  *
- * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
+ * Structr is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Affero General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
  *
- * Structr is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * Structr is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ * along with Structr. If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.websocket.command;
 
-import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.CreateNodeCommand;
-import org.structr.core.graph.NodeAttribute;
-import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.html.Html;
-import org.structr.websocket.message.MessageBuilder;
-import org.structr.websocket.message.WebSocketMessage;
-
-//~--- JDK imports ------------------------------------------------------------
-
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.core.GraphObject;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.LongProperty;
-import org.structr.core.property.PropertyMap;
+import org.structr.core.entity.AbstractNode;
 import org.structr.web.entity.dom.DOMNode;
-import org.structr.web.entity.dom.relationship.DOMChildren;
+import org.structr.web.entity.dom.Page;
 import org.structr.websocket.StructrWebSocket;
+import org.structr.websocket.message.MessageBuilder;
+import org.structr.websocket.message.WebSocketMessage;
 
 //~--- classes ----------------------------------------------------------------
-
 /**
  * Websocket command to clone a page
  *
@@ -58,17 +47,16 @@ public class ClonePageCommand extends AbstractCommand {
 		StructrWebSocket.addCommand(ClonePageCommand.class);
 
 	}
-	
-	//~--- methods --------------------------------------------------------
 
+	//~--- methods --------------------------------------------------------
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 
-		// Node to wrap
-		String nodeId                      = webSocketData.getId();
-		final AbstractNode nodeToClone     = getNode(nodeId);
+		// Node to clone
+		String nodeId = webSocketData.getId();
+		final AbstractNode nodeToClone = getNode(nodeId);
 		final Map<String, Object> nodeData = webSocketData.getNodeData();
 		final String newName;
 
@@ -80,58 +68,23 @@ public class ClonePageCommand extends AbstractCommand {
 			newName = "unknown";
 		}
 
+		final App app = StructrApp.getInstance(securityContext);
+
 		if (nodeToClone != null) {
 
 			try {
-				
-				Page newPage = (Page) StructrApp.getInstance(securityContext).command(
-						       CreateNodeCommand.class).execute(new NodeAttribute(AbstractNode.type, Page.class.getSimpleName()),
-							       new NodeAttribute(AbstractNode.name, newName),
-							       new NodeAttribute(AbstractNode.visibleToAuthenticatedUsers, true));
+				final Page pageToClone = nodeToClone instanceof Page ? (Page) nodeToClone : null;
 
-				if (newPage != null) {
+				if (pageToClone != null) {
 
-					String pageId                     = newPage.getProperty(GraphObject.id);
-					Iterable<DOMChildren> relsOut = nodeToClone.getOutgoingRelationships(DOMChildren.class);
-					Html htmlNode                     = null;
+					//final List<DOMNode> elements = pageToClone.getProperty(Page.elements);
+					final DOMNode newHtmlNode = cloneAndAppendChildren(securityContext, (DOMNode) pageToClone.getFirstChild().getNextSibling());
+					final Page newPage = Page.createNewPage(securityContext, newName);
+					
+					newPage.appendChild(newHtmlNode);
 
-					for (DOMChildren out : relsOut) {
-
-						// Use first HTML element of existing node (the node to be cloned)
-						NodeInterface endNode = out.getTargetNode();
-
-						if (endNode.getType().equals(Html.class.getSimpleName())) {
-
-							htmlNode = (Html) endNode;
-
-							break;
-
-						}
-					}
-
-					if (htmlNode != null) {
-
-						PropertyMap relProps = new PropertyMap();
-						relProps.put(new LongProperty(pageId), 0L);
-
-						try {
-
-							StructrApp.getInstance(securityContext).create((DOMNode) newPage, (DOMNode) htmlNode, DOMChildren.class, relProps);
-							// DOMElement.children.createRelationship(securityContext, newPage, htmlNode, relProps);
-
-						} catch (Throwable t) {
-
-							getWebSocket().send(MessageBuilder.status().code(400).message(t.getMessage()).build(), true);
-
-						}
-
-					}
-
-				} else {
-
-					getWebSocket().send(MessageBuilder.status().code(404).build(), true);
 				}
-				
+
 			} catch (FrameworkException fex) {
 
 				logger.log(Level.WARNING, "Could not create node.", fex);
@@ -148,12 +101,35 @@ public class ClonePageCommand extends AbstractCommand {
 
 	}
 
-	//~--- get methods ----------------------------------------------------
+	/**
+	 * Recursively clone given node, all its direct children and connect the cloned
+	 * child nodes to the clone parent node.
+	 *
+	 * @param nodeToClone
+	 */
+	private DOMNode cloneAndAppendChildren(final SecurityContext securityContext, final DOMNode nodeToClone) {
 
+		final App app = StructrApp.getInstance(securityContext);
+
+		final DOMNode newNode = (DOMNode) nodeToClone.cloneNode(false);
+
+		final List<DOMNode> childrenToClone = (List<DOMNode>) nodeToClone.getChildNodes();
+
+		for (final DOMNode childNodeToClone : childrenToClone) {
+
+			final DOMNode newChildNode = (DOMNode) cloneAndAppendChildren(securityContext, childNodeToClone);
+			newNode.appendChild(newChildNode);
+
+		}
+
+		return newNode;
+	}
+
+	//~--- get methods ----------------------------------------------------
 	@Override
 	public String getCommand() {
 
-		return "CLONE";
+		return "CLONE_PAGE";
 
 	}
 

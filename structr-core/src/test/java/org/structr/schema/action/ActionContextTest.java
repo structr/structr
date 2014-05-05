@@ -193,6 +193,34 @@ public class ActionContextTest extends StructrTest {
 			assertEquals("Invalid num() result with null value", "", testOne.replaceVariables(securityContext, ctx, "${num(this.alwaysNull)}"));
 			assertEquals("Invalid usage message for num()", AbstractNode.ERROR_MESSAGE_NUM, testOne.replaceVariables(securityContext, ctx, "${num()}"));
 
+			// index_of
+			assertEquals("Invalid index_of() result", "19", testOne.replaceVariables(securityContext, ctx, "${index_of(this.name, 'for')}"));
+			assertEquals("Invalid index_of() result", "-1", testOne.replaceVariables(securityContext, ctx, "${index_of(this.name, 'entity')}"));
+			assertEquals("Invalid index_of() result", "19", testOne.replaceVariables(securityContext, ctx, "${index_of('a-nice-little-name-for-my-test-object', 'for')}"));
+			assertEquals("Invalid index_of() result", "-1", testOne.replaceVariables(securityContext, ctx, "${index_of('a-nice-little-name-for-my-test-object', 'entity')}"));
+
+			// contains
+			assertEquals("Invalid contains() result", "true", testOne.replaceVariables(securityContext, ctx, "${contains(this.name, 'for')}"));
+			assertEquals("Invalid contains() result", "false", testOne.replaceVariables(securityContext, ctx, "${contains(this.name, 'entity')}"));
+			assertEquals("Invalid contains() result", "true", testOne.replaceVariables(securityContext, ctx, "${contains('a-nice-little-name-for-my-test-object', 'for')}"));
+			assertEquals("Invalid contains() result", "false", testOne.replaceVariables(securityContext, ctx, "${contains('a-nice-little-name-for-my-test-object', 'entity')}"));
+
+			// substring
+			assertEquals("Invalid substring() result", "for", testOne.replaceVariables(securityContext, ctx, "${substring(this.name, 19, 3)}"));
+			assertEquals("Invalid substring() result", "", testOne.replaceVariables(securityContext, ctx, "${substring(this.name, -1, -1)}"));
+			assertEquals("Invalid substring() result", "", testOne.replaceVariables(securityContext, ctx, "${substring(this.name, 100, -1)}"));
+			assertEquals("Invalid substring() result", "", testOne.replaceVariables(securityContext, ctx, "${substring(this.name, 5, -2)}"));
+			assertEquals("Invalid substring() result", "for", testOne.replaceVariables(securityContext, ctx, "${substring('a-nice-little-name-for-my-test-object', 19, 3)}"));
+			assertEquals("Invalid substring() result", "", testOne.replaceVariables(securityContext, ctx, "${substring('a-nice-little-name-for-my-test-object', -1, -1)}"));
+			assertEquals("Invalid substring() result", "", testOne.replaceVariables(securityContext, ctx, "${substring('a-nice-little-name-for-my-test-object', 100, -1)}"));
+			assertEquals("Invalid substring() result", "", testOne.replaceVariables(securityContext, ctx, "${substring('a-nice-little-name-for-my-test-object', 5, -2)}"));
+
+			// length
+			assertEquals("Invalid length() result", "37", testOne.replaceVariables(securityContext, ctx, "${length(this.name)}"));
+			assertEquals("Invalid length() result", "37", testOne.replaceVariables(securityContext, ctx, "${length('a-nice-little-name-for-my-test-object')}"));
+			assertEquals("Invalid length() result", "4", testOne.replaceVariables(securityContext, ctx, "${length('test')}"));
+			assertEquals("Invalid length() result", "", testOne.replaceVariables(securityContext, ctx, "${length(this.alwaysNull)}"));
+
 			// clean (disabled for now, because literal strings pose problems in the matching process)
 			assertEquals("Invalid clean() result", "abcd-efghijkl-m-n-o-p-q-r-stu-v-w-x-y-zoauabcdefgh", testOne.replaceVariables(securityContext, ctx, "${clean(this.cleanTestString)}"));
 			assertEquals("Invalid clean() result", "abcd-efghijkl-m-n-o-p-q-r-stu-v-w-x-y-zoauabcdefgh", testOne.replaceVariables(securityContext, ctx, "${clean(get(this, \"cleanTestString\"))}"));

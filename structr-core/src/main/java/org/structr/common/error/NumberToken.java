@@ -16,29 +16,31 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web.entity.relation;
+package org.structr.common.error;
 
-import org.structr.core.entity.OneToMany;
-import org.structr.web.entity.dom.DOMElement;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonPrimitive;
+import org.structr.core.property.PropertyKey;
 
 /**
  *
  * @author Christian Morgner
  */
-public class Sync extends OneToMany<DOMElement, DOMElement> {
+public class NumberToken extends SemanticErrorToken {
 
-	@Override
-	public Class<DOMElement> getSourceType() {
-		return DOMElement.class;
+	private String rangeDefinition = null;
+
+	public NumberToken(final PropertyKey key) {
+		super(key);
 	}
 
 	@Override
-	public Class<DOMElement> getTargetType() {
-		return DOMElement.class;
+	public JsonElement getContent() {
+		return new JsonPrimitive(getErrorToken());
 	}
 
 	@Override
-	public String name() {
-		return "SYNC";
+	public String getErrorToken() {
+		return "must_be_numerical";
 	}
 }

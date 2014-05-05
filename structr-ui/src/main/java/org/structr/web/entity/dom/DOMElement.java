@@ -21,48 +21,41 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedList;
-import org.apache.commons.lang3.StringUtils;
-
-import org.structr.common.PropertyView;
-import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.property.Property;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.property.StringProperty;
-import org.structr.web.common.HtmlProperty;
-import org.structr.web.common.RenderContext;
-
-import org.w3c.dom.Attr;
-import org.w3c.dom.DOMException;
-import org.w3c.dom.Element;
-
-//~--- JDK imports ------------------------------------------------------------
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import org.apache.commons.collections.map.LRUMap;
+import org.apache.commons.lang3.StringUtils;
 import org.neo4j.helpers.collection.Iterables;
 import org.structr.common.CaseHelper;
+import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.PropertyNotion;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.IntProperty;
-import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
-import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.Property;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.property.StartNode;
+import org.structr.core.property.StringProperty;
 import org.structr.web.common.AsyncBuffer;
-import org.structr.web.entity.html.Body;
 import org.structr.web.common.GraphDataSource;
+import org.structr.web.common.HtmlProperty;
+import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.datasource.CypherGraphDataSource;
 import org.structr.web.datasource.IdRequestParameterGraphDataSource;
@@ -70,8 +63,12 @@ import org.structr.web.datasource.NodeGraphDataSource;
 import org.structr.web.datasource.RestDataSource;
 import org.structr.web.datasource.XPathGraphDataSource;
 import org.structr.web.entity.dom.relationship.DOMChildren;
+import org.structr.web.entity.html.Body;
 import org.structr.web.entity.relation.RenderNode;
 import org.structr.web.entity.relation.Sync;
+import org.w3c.dom.Attr;
+import org.w3c.dom.DOMException;
+import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -90,6 +87,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	private final static String STRUCTR_ACTION_PROPERTY = "data-structr-action";
 
 	public static final Property<List<DOMElement>> syncedNodes = new EndNodes("syncedNodes", Sync.class, new PropertyNotion(id));
+	public static final Property<DOMElement> syncedNode = new StartNode("syncedNode", Sync.class, new PropertyNotion(id));
 
 	private static final Map<String, HtmlProperty> htmlProperties = new LRUMap(200);	// use LURMap here to avoid infinite growing
 	private static final List<GraphDataSource<List<GraphObject>>> listSources = new LinkedList<>();
@@ -197,11 +195,11 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	public static final Property<String> _role = new HtmlProperty("role");
 
 	public static final org.structr.common.View publicView = new org.structr.common.View(DOMElement.class, PropertyView.Public,
-		name, tag, pageId, path, parent, children, restQuery, cypherQuery, xpathQuery, partialUpdateKey, dataKey, syncedNodes
+		name, tag, pageId, path, parent, children, restQuery, cypherQuery, xpathQuery, partialUpdateKey, dataKey, syncedNodes, syncedNode
 	);
 
 	public static final org.structr.common.View uiView = new org.structr.common.View(DOMElement.class, PropertyView.Ui, name, tag, pageId, path, parent, children, childrenIds, owner,
-		restQuery, cypherQuery, xpathQuery, partialUpdateKey, dataKey, syncedNodes,
+		restQuery, cypherQuery, xpathQuery, partialUpdateKey, dataKey, syncedNodes, syncedNode,
 		renderDetails, hideOnIndex, hideOnDetail, showForLocales, hideForLocales, showConditions, hideConditions,
 		_accesskey, _class, _contenteditable, _contextmenu, _dir, _draggable, _dropzone, _hidden, _id, _lang, _spellcheck, _style,
 		_tabindex, _title, _translate, _onabort, _onblur, _oncanplay, _oncanplaythrough, _onchange, _onclick, _oncontextmenu, _ondblclick,
@@ -238,6 +236,41 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 		// two elements can not have the same content
 		return false;
+	}
+
+	@Override
+	public Node cloneNode(final boolean deep) {
+
+		if (deep) {
+
+			throw new UnsupportedOperationException("cloneNode with deep=true is not supported yet.");
+
+		} else {
+
+			Node node = super.cloneNode(deep);
+
+			for (Iterator<PropertyKey> it = getPropertyKeys(htmlView.name()).iterator(); it.hasNext();) {
+
+				PropertyKey key = it.next();
+
+				// omit system properties (except type), parent/children and page relationships
+				if (key.equals(GraphObject.type) || (!key.isUnvalidated()
+					&& !key.equals(GraphObject.id)
+					&& !key.equals(DOMNode.ownerDocument) && !key.equals(DOMNode.pageId)
+					&& !key.equals(DOMNode.parent) && !key.equals(DOMNode.parentId)
+					&& !key.equals(DOMNode.children) && !key.equals(DOMNode.childrenIds))) {
+
+					try {
+						((DOMNode) node).setProperty(key, getProperty(key));
+					} catch (FrameworkException ex) {
+						logger.log(Level.WARNING, "Could not set property " + key + " while cloning DOMElement " + this, ex);
+					}
+				}
+			}
+			return node;
+
+		}
+
 	}
 
 	@Override
@@ -382,10 +415,10 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 				if (rels.isEmpty()) {
 
 					// No child relationships, maybe this node is in sync with another node
-					for (Sync syncRel : getIncomingRelationships(Sync.class)) {
-
-						DOMElement syncedNode = (DOMElement) syncRel.getSourceNode();
-						rels.addAll(syncedNode.getChildRelationships());
+					//Sync syncRel = getIncomingRelationship(Sync.class);
+					DOMElement _syncedNode = (DOMElement) getProperty(syncedNode);
+					if (_syncedNode != null) {
+						rels.addAll(_syncedNode.getChildRelationships());
 					}
 				}
 
@@ -523,9 +556,9 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 			} catch (Throwable t) {
 
 				logger.log(Level.SEVERE, "Error while rendering node {0}: {1}", new java.lang.Object[]{getUuid(), t});
-				
+
 				out.append("Error while rendering node ").append(getUuid()).append(": ").append(t.getMessage());
-				
+
 				t.printStackTrace();
 
 			}
@@ -1004,7 +1037,6 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	}
 
 	// ----- nested classes -----
-
 	@Override
 	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 

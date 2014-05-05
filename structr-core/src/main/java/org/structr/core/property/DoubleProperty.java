@@ -18,12 +18,15 @@
  */
 package org.structr.core.property;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.SortField;
 import org.neo4j.index.lucene.ValueContext;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.NumberToken;
 import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
 import org.structr.core.app.Query;
@@ -38,11 +41,13 @@ import org.structr.core.graph.search.SearchAttribute;
  * @author Christian Morgner
  */
 public class DoubleProperty extends AbstractPrimitiveProperty<Double> {
-	
+
+	private static final Logger logger = Logger.getLogger(DoubleProperty.class.getName());
+
 	public DoubleProperty(final String name) {
 		this(name, name, null);
 	}
-	
+
 	public DoubleProperty(final String jsonName, final String dbName) {
 		this(jsonName, dbName, null);
 	}
@@ -58,9 +63,9 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> {
 	public DoubleProperty(final String jsonName, final String dbName, final Double defaultValue, final PropertyValidator<Double>... validators) {
 
 		super(jsonName, dbName, defaultValue);
-		
+
 		if (jsonName.equals("latitude") || jsonName.equals("longitude")) {
-			
+
 			// add layer node index and make
 			// this property be indexed at the
 			// end of the transaction instead
@@ -68,12 +73,12 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> {
 			nodeIndices.add(NodeIndex.layer);
 			passivelyIndexed();
 		}
-		
+
 		for (PropertyValidator<Double> validator : validators) {
 			addValidator(validator);
 		}
 	}
-	
+
 	@Override
 	public String typeName() {
 		return "Double";
@@ -83,7 +88,7 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> {
 	public Integer getSortType() {
 		return SortField.DOUBLE;
 	}
-	
+
 	@Override
 	public PropertyConverter<Double, ?> databaseConverter(SecurityContext securityContext) {
 		return null;
@@ -98,23 +103,23 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> {
 	public PropertyConverter<?, Double> inputConverter(SecurityContext securityContext) {
 		return new InputConverter(securityContext);
 	}
-	
+
 	protected class InputConverter extends PropertyConverter<Object, Double> {
 
 		public InputConverter(SecurityContext securityContext) {
 			super(securityContext);
 		}
-		
+
 		@Override
 		public Object revert(Double source) throws FrameworkException {
 			return source;
 		}
 
 		@Override
-		public Double convert(Object source) {
+		public Double convert(Object source) throws FrameworkException {
 
 			if (source == null) return null;
-			
+
 			if (source instanceof Number) {
 
 				return ((Number)source).doubleValue();
@@ -123,36 +128,44 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> {
 
 			if (source instanceof String && StringUtils.isNotBlank((String) source)) {
 
-				return Double.parseDouble(source.toString());
+				try {
+					return Double.valueOf(source.toString());
+
+				} catch (Throwable t) {
+
+					logger.log(Level.WARNING, "Unable to convert {0} to Double.", source);
+
+					throw new FrameworkException(declaringClass.getSimpleName(), new NumberToken(DoubleProperty.this));
+				}
 			}
-			
+
 			return null;
 		}
 	}
 
 	@Override
 	public Object fixDatabaseProperty(Object value) {
-		
+
 		if (value != null) {
-			
+
 			if (value instanceof Double) {
 				return value;
 			}
-			
+
 			if (value instanceof Number) {
 				return ((Number)value).doubleValue();
 			}
-			
+
 			try {
-				
+
 				return Double.parseDouble(value.toString());
-				
+
 			} catch (Throwable t) {
-				
+
 				// no chance, give up..
 			}
 		}
-		
+
 		return null;
 	}
 
@@ -160,7 +173,7 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> {
 	public SearchAttribute getSearchAttribute(SecurityContext securityContext, BooleanClause.Occur occur, Double searchValue, boolean exactMatch, final Query query) {
 		return new DoubleSearchAttribute(this, searchValue, occur, exactMatch);
 	}
-	
+
 	@Override
 	public void index(GraphObject entity, Object value) {
 		super.index(entity, value != null ? ValueContext.numeric((Number)value) : value);
@@ -168,13 +181,13 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> {
 }
 
 /*
-			
+
 			if ((dbNode.hasProperty(Location.latitude.dbName())) && (dbNode.hasProperty(Location.longitude.dbName()))) {
-				
+
 				// Before indexing, check properties for correct type
 				Object lat = dbNode.getProperty(Location.latitude.dbName());
 				Object lon = dbNode.getProperty(Location.longitude.dbName());
-				
+
 				if (lat instanceof Double && lon instanceof Double && !((Double) lat).isNaN() && !((Double) lon).isNaN()) {
 
 					LayerNodeIndex layerIndex = (LayerNodeIndex) indices.get(NodeService.NodeIndex.layer.name());
@@ -196,7 +209,7 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> {
 
 						logger.log(Level.SEVERE, "Could not add node to layer index", t);
 					}
-				
+
 				}
 
 			}

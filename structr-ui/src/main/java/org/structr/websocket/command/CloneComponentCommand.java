@@ -90,10 +90,11 @@ public class CloneComponentCommand extends AbstractCommand {
 		try {
 
 			DOMElement clonedNode = (DOMElement) node.cloneNode(false);
+			clonedNode.setProperty(DOMElement.syncedNodes, null);
 			parentNode.appendChild(clonedNode);
 
 			app.create(node, clonedNode, Sync.class);
-			app.create(clonedNode, node, Sync.class);
+			//app.create(clonedNode, node, Sync.class);
 			
 		} catch (FrameworkException ex) {
 

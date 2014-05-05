@@ -18,6 +18,8 @@
  */
 package org.structr.core.property;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.SortField;
@@ -25,6 +27,7 @@ import org.apache.lucene.util.NumericUtils;
 import org.neo4j.index.lucene.ValueContext;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.NumberToken;
 import org.structr.core.GraphObject;
 import org.structr.core.PropertyValidator;
 import org.structr.core.app.Query;
@@ -38,6 +41,8 @@ import org.structr.core.graph.search.SearchAttribute;
  * @author Christian Morgner
  */
 public class IntProperty extends AbstractPrimitiveProperty<Integer> {
+
+	private static final Logger logger = Logger.getLogger(IntProperty.class.getName());
 
 	public static final String INT_EMPTY_FIELD_VALUE = NumericUtils.intToPrefixCoded(Integer.MIN_VALUE);
 
@@ -102,19 +107,26 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> {
 		}
 
 		@Override
-		public Integer convert(Object source) {
+		public Integer convert(Object source) throws FrameworkException {
 
 			if (source == null) return null;
 
 			if (source instanceof Number) {
 
 				return ((Number)source).intValue();
-
 			}
 
 			if (source instanceof String && StringUtils.isNotBlank((String) source)) {
 
-				return Double.valueOf(source.toString()).intValue();
+				try {
+					return Double.valueOf(source.toString()).intValue();
+
+				} catch (Throwable t) {
+
+					logger.log(Level.WARNING, "Unable to convert {0} to Integer.", source);
+
+					throw new FrameworkException(declaringClass.getSimpleName(), new NumberToken(IntProperty.this));
+				}
 			}
 
 			return null;

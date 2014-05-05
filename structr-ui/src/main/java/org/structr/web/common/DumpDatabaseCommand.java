@@ -52,7 +52,8 @@ public class DumpDatabaseCommand extends NodeServiceCommand implements Maintenan
 				// make file visible for auth. users
 				file.setProperty(File.visibleToAuthenticatedUsers, true);
 
-				SyncCommand.exportToStream(file.getOutputStream(), nodes, rels, null);
+				// Don't include files
+				SyncCommand.exportToStream(file.getOutputStream(), nodes, rels, null, false);
 
 				tx.success();
 			}

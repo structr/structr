@@ -137,6 +137,10 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	public static final String ERROR_MESSAGE_TITLEIZE            = "Usage: ${titleize(string, separator}. Example: ${titleize(this.lowerCamelCaseString, \"_\")}";
 	public static final String ERROR_MESSAGE_NUM                 = "Usage: ${num(string)}. Example: ${num(this.numericalStringValue)}";
 	public static final String ERROR_MESSAGE_RANDOM              = "Usage: ${random(num)}. Example: ${set(this, \"password\", random(8))}";
+	public static final String ERROR_MESSAGE_INDEX_OF            = "Usage: ${index_of(string, word)}. Example: ${index_of(this.name, \"the\")}";
+	public static final String ERROR_MESSAGE_CONTAINS            = "Usage: ${contains(string, word)}. Example: ${contains(this.name, \"the\")}";
+	public static final String ERROR_MESSAGE_SUBSTRING           = "Usage: ${substring(string, start, length)}. Example: ${substring(this.name, 19, 3)}";
+	public static final String ERROR_MESSAGE_LENGTH              = "Usage: ${length(string)}. Example: ${length(this.name)}";
 	public static final String ERROR_MESSAGE_REPLACE             = "Usage: ${replace(template, source)}. Example: ${replace(\"${this.id}\", this)}";
 	public static final String ERROR_MESSAGE_CLEAN               = "Usage: ${clean(string)}. Example: ${clean(this.stringWithNonWordChars)}";
 	public static final String ERROR_MESSAGE_URLENCODE           = "Usage: ${urlencode(string)}. Example: ${urlencode(this.email)}";
@@ -1582,6 +1586,93 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			@Override
 			public String usage() {
 				return ERROR_MESSAGE_NUM;
+			}
+		});
+		functions.put("index_of", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
+
+				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
+
+					final String source = sources[0].toString();
+					final String part   = sources[1].toString();
+
+					return source.indexOf(part);
+				}
+
+				return "";
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_INDEX_OF;
+			}
+		});
+		functions.put("contains", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
+
+				if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
+
+					final String source = sources[0].toString();
+					final String part   = sources[1].toString();
+
+					return source.contains(part);
+				}
+
+				return "";
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_CONTAINS;
+			}
+		});
+		functions.put("substring", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
+
+				if (arrayHasLengthAndAllElementsNotNull(sources, 3)) {
+
+					final String source    = sources[0].toString();
+					final int sourceLength = source.length();
+					final int start        = parseInt(sources[1]);
+					final int length       = parseInt(sources[2]);
+					final int end          = start + length;
+
+					if (start >= 0 && start < sourceLength && end >= 0 && end < sourceLength && start <= end) {
+
+						return source.substring(start, end);
+					}
+				}
+
+				return "";
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_SUBSTRING;
+			}
+		});
+		functions.put("length", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
+
+				if (arrayHasLengthAndAllElementsNotNull(sources, 1)) {
+
+					return sources[0].toString().length();
+				}
+
+				return "";
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_SUBSTRING;
 			}
 		});
 		functions.put("replace", new Function<Object, Object>() {
@@ -3340,6 +3431,26 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 	protected static boolean isNumeric(final String source) {
 		return threadLocalDoubleMatcher.get().reset(source).matches();
+	}
+
+	protected static Integer parseInt(final Object source) {
+
+		if (source instanceof Integer) {
+
+			return ((Integer)source);
+		}
+
+		if (source instanceof Number) {
+
+			return ((Number)source).intValue();
+		}
+
+		if (source instanceof String) {
+
+			return Integer.parseInt((String)source);
+		}
+
+		return null;
 	}
 
 	protected static boolean valueEquals(final Object obj1, final Object obj2) {

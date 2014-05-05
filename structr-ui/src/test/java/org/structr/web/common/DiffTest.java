@@ -1,10 +1,14 @@
 package org.structr.web.common;
 
+import java.util.LinkedList;
 import java.util.List;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.Tx;
 import org.structr.web.Importer;
 import org.structr.web.diff.InvertibleModificationOperation;
 import org.structr.web.entity.dom.Page;
+import org.structr.web.entity.html.Div;
+import org.w3c.dom.NodeList;
 
 /**
  *
@@ -718,6 +722,65 @@ public class DiffTest extends StructrUiTest {
 		);
 	}
 
+	public void testTreeRemovalFix() {
+
+		final String comment = "<!-- comment --->";
+
+		testDiff("<html><head><title>Title</title></head><body><div>" + comment + "<div>" + comment + "<div>test</div>" + comment + "<div></div></div></body></html>", new org.neo4j.helpers.Function<String, String>() {
+
+			@Override
+			public String apply(String from) {
+
+				String modified = from;
+
+				modified = modified.replace(comment, "");
+
+				return modified;
+			}
+		});
+
+		// test result on the node level
+		try (final Tx tx = app.tx()) {
+
+			final Page page = app.nodeQuery(Page.class).andName("test").getFirst();
+
+			assertNotNull(page);
+
+			final NodeList nodes = page.getElementsByTagName("div");
+			final List<Div> divs = collectNodes(nodes, Div.class);
+
+			assertEquals("Wrong number of divs returned from node query", 4, divs.size());
+
+			// check first div, should have no siblings and one child
+			final Div firstDiv = divs.get(0);
+			assertEquals("Wrong number of children", 1, firstDiv.getChildRelationships().size());
+			assertNull("Node should not have siblings", firstDiv.getNextSibling());
+
+			// check second div, should have no siblings and two children
+			final Div secondDiv = divs.get(1);
+			assertEquals("Wrong number of children", 2, secondDiv.getChildRelationships().size());
+			assertNull("Node should not have siblings", secondDiv.getNextSibling());
+
+			// check third div, should have one sibling and one #text child
+			final Div thirdDiv = divs.get(2);
+			assertEquals("Wrong number of children", 1, thirdDiv.getChildRelationships().size());
+			assertNotNull("Node should have one sibling", thirdDiv.getNextSibling());
+
+			// check fourth div, should have no siblings and no children
+			final Div fourthDiv = divs.get(3);
+			assertEquals("Wrong number of children", 0, fourthDiv.getChildRelationships().size());
+			assertNull("Node should not have siblings", fourthDiv.getNextSibling());
+
+
+
+
+
+
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception");
+		}
+	}
 
 
 
@@ -754,6 +817,9 @@ public class DiffTest extends StructrUiTest {
 
 			buf.append(sourcePage.getContent(RenderContext.EditMode.NONE));
 
+			// commit data to the database so we can access it later..
+			tx.success();
+
 		} catch (Throwable t) {
 
 			t.printStackTrace();
@@ -762,4 +828,17 @@ public class DiffTest extends StructrUiTest {
 		return buf.toString();
 	}
 
+
+	private <T> List<T> collectNodes(final NodeList source, final Class<T> type) {
+
+		final List<T> list = new LinkedList<>();
+		final int len      = source.getLength();
+
+		for (int i=0; i<len; i++) {
+
+			list.add((T)source.item(i));
+		}
+
+		return list;
+	}
 }

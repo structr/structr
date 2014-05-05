@@ -33,9 +33,9 @@ import org.structr.websocket.message.WebSocketMessage;
 
 
 /**
- * Create a component as a clone of the source node.
+ * Create a shared component as a clone of the source node.
  *
- * This command will create default SYNC relationships (bi-directional)
+ * This command will create a SYNC relationship: (source)<-[:SYNC]-(component)
  *
  * @author Axel Morgner
  */
@@ -60,6 +60,7 @@ public class CreateComponentCommand extends AbstractCommand {
 			try {
 
 				DOMElement clonedNode = (DOMElement) node.cloneNode(false);
+				clonedNode.setProperty(DOMElement.syncedNodes, null);
 				moveChildNodes(node, clonedNode);
 
 				ShadowDocument hiddenDoc = getOrCreateHiddenDocument();
@@ -70,7 +71,7 @@ public class CreateComponentCommand extends AbstractCommand {
 					child.setProperty((DOMNode.ownerDocument), hiddenDoc);
 				}
 
-				app.create(node, clonedNode, Sync.class);
+				//app.create(node, clonedNode, Sync.class);
 				app.create(clonedNode, node, Sync.class);
 				
 			} catch (FrameworkException ex) {

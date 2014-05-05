@@ -899,7 +899,7 @@ img.button {
 }
 
 #schema-graph .node {
-    padding: 2px 6px;
+    padding: 6px;
     margin: 0 ! important;
 }
 
@@ -1320,13 +1320,13 @@ button.disabled {
     opacity: 0.6;
 }
 
-
 #schema-graph {
     background: #fff;
-    border-radius: 5px;
-    border: 1px solid #999;
+    border-top: 1px solid #a5a5a5;
+/*    border-radius: 5px;
+    border: 1px solid #999;*/
     /*min-height: 600px;*/
-    margin: 12px;
+/*    margin: 12px;*/
     padding: 12px;
 }
 
@@ -1410,6 +1410,10 @@ button.add_property {
     padding-bottom: 6px ! important;
 }
 
+.schema h3 {
+    margin: 6px 0 2px 0;
+}
+
 .schema-input-container {
     margin: 12px;
 }
@@ -1422,7 +1426,6 @@ button.add_property {
 .schema-props {
     background-color: #f9f9f9;
     width: 100%;
-    font-size: .9em;
     border-collapse: collapse;
 }
 
@@ -1450,49 +1453,67 @@ button.add_property {
 }
 
 #schema-graph .node {
-    opacity: .8;
+    opacity: .9;
 }
 
 #schema-graph .node h2 {
     margin: 6px 0;
 }
 
-.property-name, .property-dbname, .property-type, .property-format, .default, #relationship-label {
+.property-name,
+.property-dbname,
+.property-format,
+.property-code,
+.default,
+#relationship-label {
+    width: 98%;
+    font-size: 1em;
     border: none;
     background: transparent;
-    font-size: 1em;
+}
+
+.schema.compact .property-name,
+.schema.compact .property-type,
+.schema.compact .property-dbname,
+.schema.compact .property-format,
+.schema.compact .property-code,
+.default,
+#relationship-label {
+    border: none;
+    background: transparent;
 }
 
 .schema b {
     font-size: 1.5em;
     display: inline-block;
-    margin: 2px 0;
+    /*margin: 2px 0;*/
 }
 
 .schema b:hover,
 .schema .property-name:hover,
 .schema .property-dbname:hover,
-.schema .related:hover {
+.schema .property-code:hover {
     cursor: text;
     box-shadow: 2px 0 #000;
     color: #222;
     background-color: #ffe;
-    padding: 1px;
     -webkit-box-shadow: 0 0 5px yellow;
     -moz-box-shadow: 0 0 5px #888;
     box-shadow: 0 0 5px #888;
 }
-.schema b:hover {
-    margin: 1px 0 1px -1px;
-}
 
-.schema .related:hover {
-    margin: 1px 0 1px 1px;
-}
+/*.schema b:hover {
+    margin: 1px -1px 1px -1px;
+}*/
 
 .schema .new-name {
     font-size: 1.3em;
-    margin: 0;
+    margin: -2px 0 -2px 0;
+}
+
+.schema.compact .new-name {
+    font-size: 1.3em;
+    margin: -3px 0 -3px 0;
 }
 
 .schema .icon {
@@ -1525,6 +1546,77 @@ button.add_property {
 
 .sliderLabel {
     padding-top: 10px;
+}
+
+.schema .add-icon {
+    margin-top: 4px;
+}
+
+.schema .add-icon:hover,
+.schema .toggle-view:hover,
+.schema .remove-icon:hover{
+    opacity: .6;
+    cursor: pointer;
+}
+
+.schema .toggle-view {
+    position: absolute;
+    right: 6px;
+    top: 6px;
+}
+
+.schema.compact b {
+    margin: 0 40px 0 40px;
+    display: block;
+    text-align: center;
+}
+
+.schema .extends-class {
+    text-align: center;
+}
+
+.schema .icon.delete {
+    margin-right: 20px;
+}
+
+.schema .icon.delete:hover {
+    opacity: .6;
+}
+
+.schema hr {
+    display: none;
+}
+
+.schema.compact {
+    width: 220px;
+}
+
+.schema.compact hr {
+    display: block;
+    height: 0;
+    border: none;
+    border-top: 1px solid #a5a5a5;
+}
+
+.schema.compact .add-icon,
+.schema.compact .remove-icon {
+    display: none;
+}
+
+.schema.compact .schema-props,
+.schema.compact tr,
+.schema.compact td {
+    background: none ! important;
+    border: none;
+}
+
+.schema.compact .schema-props td:nth-child(2),
+.schema.compact .schema-props td:nth-child(4),
+.schema.compact .schema-props td:nth-child(5),
+.schema.compact .schema-props td:nth-child(6),
+.schema.compact .schema-props td:nth-child(7),
+.schema.compact .schema-props td:nth-child(8) {
+    display: none;
 }
 
 /**
