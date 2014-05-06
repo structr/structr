@@ -134,7 +134,6 @@ public class CloudService extends Thread implements RunnableService {
 		// construct an ExportContext with a total progress size of 4
 		final ExportContext context = new ExportContext(listener, 4);
 		ClientConnection client     = null;
-		ExportSet exportSet         = null;
 
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
@@ -142,11 +141,10 @@ public class CloudService extends Thread implements RunnableService {
 
 			// create export set before first progress callback is called
 			// so the client gets the correct total from the beginning
-			if (recursive) {
+			final ExportSet exportSet = getExportSet((Syncable)sourceNode, SyncState.all(), recursive);
 
-				exportSet = getExportSet((Syncable)sourceNode, SyncState.all());
-				context.increaseTotal(exportSet.getTotalSize());
-			}
+			// notify context of increased message stack size
+			context.increaseTotal(exportSet.getTotalSize());
 
 			// notify listener
 			context.transmissionStarted();
@@ -176,62 +174,31 @@ public class CloudService extends Thread implements RunnableService {
 				client.waitForMessage();
 
 				// send child nodes when recursive sending is requested
-				if (recursive && exportSet != null) {
+				final Set<NodeInterface> nodes = exportSet.getNodes();
+				for (final NodeInterface n : nodes) {
 
-					final Set<NodeInterface> nodes = exportSet.getNodes();
+					if (n instanceof File) {
 
-					for (final NodeInterface n : nodes) {
-
-						if (n instanceof File) {
-
-							sendFile(context, client, (File)n, CloudService.CHUNK_SIZE);
-
-						} else {
-
-							client.send(new NodeDataContainer(n));
-							context.progress();
-							client.waitForMessage();
-
-						}
-					}
-
-					Set<RelationshipInterface> rels = exportSet.getRelationships();
-					for (RelationshipInterface r : rels) {
-
-						if (nodes.contains(r.getSourceNode()) && nodes.contains(r.getTargetNode())) {
-
-							client.send(new RelationshipDataContainer(r));
-							context.progress();
-							client.waitForMessage();
-						}
-					}
-
-				} else {
-
-					// send start node
-					if (sourceNode instanceof File) {
-
-						sendFile(context, client, (File)sourceNode, CloudService.CHUNK_SIZE);
+						sendFile(context, client, (File)n, CloudService.CHUNK_SIZE);
 
 					} else {
 
-						if (sourceNode.isNode()) {
+						client.send(new NodeDataContainer(n));
+						context.progress();
+						client.waitForMessage();
 
-							// If not recursive, add only the node itself
-							client.send(new NodeDataContainer(sourceNode.getSyncNode()));
-							context.progress();
-							client.waitForMessage();
-
-						} else {
-
-							// If not recursive, add only the relationship itself
-							client.send(new RelationshipDataContainer(sourceNode.getSyncRelationship()));
-							context.progress();
-							client.waitForMessage();
-
-						}
 					}
+				}
 
+				Set<RelationshipInterface> rels = exportSet.getRelationships();
+				for (RelationshipInterface r : rels) {
+
+					if (nodes.contains(r.getSourceNode()) && nodes.contains(r.getTargetNode())) {
+
+						client.send(new RelationshipDataContainer(r));
+						context.progress();
+						client.waitForMessage();
+					}
 				}
 
 			} else {
@@ -300,26 +267,28 @@ public class CloudService extends Thread implements RunnableService {
 		client.waitForMessage();
 	}
 
-	private static ExportSet getExportSet(final Syncable source, final SyncState state) {
+	private static ExportSet getExportSet(final Syncable source, final SyncState state, boolean recursive) {
 
 		final ExportSet exportSet = new ExportSet();
 
-		collectExportSet(exportSet, source, state);
+		collectExportSet(exportSet, source, state, recursive);
 
 		return exportSet;
 	}
 
-	private static void collectExportSet(final ExportSet exportSet, final Syncable start, final SyncState state) {
+	private static void collectExportSet(final ExportSet exportSet, final Syncable start, final SyncState state, boolean recursive) {
 
 		exportSet.add(start);
 
-		// collect children
-		for (final Syncable child : start.getSyncData(state)) {
+		if (recursive) {
 
-			if (child != null) {
+			// collect children
+			for (final Syncable child : start.getSyncData(state)) {
 
-				exportSet.add(start);
-				collectExportSet(exportSet, child, state);
+				if (child != null && exportSet.add(child)) {
+
+					collectExportSet(exportSet, child, state, recursive);
+				}
 			}
 		}
 	}
@@ -330,7 +299,7 @@ public class CloudService extends Thread implements RunnableService {
 		private final Set<RelationshipInterface> relationships = new LinkedHashSet<>();
 		private int size                                       = 0;
 
-		public void add(final Syncable data) {
+		public boolean add(final Syncable data) {
 
 			if (data.isNode()) {
 
@@ -340,18 +309,26 @@ public class CloudService extends Thread implements RunnableService {
 
 					if (data.getSyncNode() instanceof File) {
 
-						final File file = (File)data.getSyncNode();
-
 						size += (((File)data.getSyncNode()).getSize().intValue() / CloudService.CHUNK_SIZE) + 2;
 					}
+
+					// node was new (added), return true
+					return true;
 				}
 
 			} else {
 
 				if (relationships.add(data.getSyncRelationship())) {
+
 					size++;
+
+					// rel was new (added), return true
+					return true;
 				}
 			}
+
+			// arriving here means node was not added, so we return false
+			return false;
 		}
 
 		public Set<NodeInterface> getNodes() {

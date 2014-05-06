@@ -82,7 +82,10 @@ public class PushNodesTestingCommand extends CloudServiceCommand implements Main
 
 		@Override
 		public void transmissionProgress(int current, int total) {
-			logger.log(Level.INFO, "Transmission progress {0}/{1}", new Object[] { current, total } );
+
+			if ((current % 10) == 0) {
+				logger.log(Level.INFO, "Transmission progress {0}/{1}", new Object[] { current, total } );
+			}
 		}
 	}
 }

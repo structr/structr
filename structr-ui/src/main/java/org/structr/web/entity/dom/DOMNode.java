@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -188,7 +187,6 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 	public abstract boolean isSynced();
 	public abstract boolean contentEquals(final DOMNode otherNode);
-	public abstract void updateFrom(final DOMNode source) throws FrameworkException;
 
 	public String getIdHash() {
 
@@ -1062,20 +1060,29 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 	// ----- interface Syncable -----
 	@Override
-	public Set<Syncable> getSyncData(final SyncState state) {
+	public List<Syncable> getSyncData(final SyncState state) {
 
-		final Set<Syncable> data = new LinkedHashSet<>();
+		final List<Syncable> data = new LinkedList<>();
 
 		// nodes
 		data.addAll(getProperty(DOMNode.children));
-		data.add(getProperty(DOMNode.nextSibling));
+
+		final DOMNode sibling = getProperty(DOMNode.nextSibling);
+		if (sibling != null) {
+
+			data.add(sibling);
+		}
 
 		// relationships
 		for (final DOMChildren child : getOutgoingRelationships(DOMChildren.class)) {
 			data.add(child);
 		}
 
-		data.add(getOutgoingRelationship(DOMSiblings.class));
+		final DOMSiblings siblingRel = getOutgoingRelationship(DOMSiblings.class);
+		if (siblingRel != null) {
+
+			data.add(siblingRel);
+		}
 
 		return data;
 	}

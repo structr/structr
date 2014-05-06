@@ -34,6 +34,8 @@ import org.neo4j.helpers.collection.Iterables;
 import org.structr.common.CaseHelper;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.common.SyncState;
+import org.structr.common.Syncable;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -50,6 +52,7 @@ import org.structr.core.property.GenericProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
 import org.structr.web.common.AsyncBuffer;
@@ -64,6 +67,7 @@ import org.structr.web.datasource.RestDataSource;
 import org.structr.web.datasource.XPathGraphDataSource;
 import org.structr.web.entity.dom.relationship.DOMChildren;
 import org.structr.web.entity.html.Body;
+import org.structr.web.entity.relation.PageLink;
 import org.structr.web.entity.relation.RenderNode;
 import org.structr.web.entity.relation.Sync;
 import org.w3c.dom.Attr;
@@ -274,28 +278,23 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	}
 
 	@Override
-	public void updateFrom(final DOMNode source) throws FrameworkException {
+	public void updateFrom(final PropertyMap properties) throws FrameworkException {
 
-		if (source instanceof DOMElement) {
+		for (final Property key : htmlView.properties()) {
 
-			final DOMElement otherElement = (DOMElement) source;
+			final Object value1 = this.getProperty(key);
+			final Object value2 = properties.get(key);
 
-			for (final Property key : htmlView.properties()) {
-
-				final Object value1 = this.getProperty(key);
-				final Object value2 = otherElement.getProperty(key);
-
-				if (value1 == null && value2 == null) {
-					continue;
-				}
-
-				// copy attributes
-				this.setProperty(key, otherElement.getProperty(key));
+			if (value1 == null && value2 == null) {
+				continue;
 			}
 
-			// overwrite tag with value from source node
-			this.setProperty(DOMElement.tag, otherElement.getProperty(DOMElement.tag));
+			// copy attributes
+			this.setProperty(key, properties.get(key));
 		}
+
+		// overwrite tag with value from source node
+		this.setProperty(DOMElement.tag, properties.get(DOMElement.tag));
 	}
 
 	public boolean avoidWhitespace() {
@@ -1197,11 +1196,29 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		}
 
 		return allProperties;
-
 	}
 
 	@Override
 	public boolean isSynced() {
 		return hasIncomingRelationships(Sync.class) || hasOutgoingRelationships(Sync.class);
+	}
+
+	// ----- interface Syncable -----
+	@Override
+	public List<Syncable> getSyncData(final SyncState state) {
+
+		final List<Syncable> data = super.getSyncData(state);
+
+		data.add(getProperty(DOMElement.syncedNode));
+		data.add(getIncomingRelationship(Sync.class));
+
+		if (isSynced()) {
+
+			// add parent
+			data.add(getProperty(ownerDocument));
+			data.add(getOutgoingRelationship(PageLink.class));
+		}
+
+		return data;
 	}
 }

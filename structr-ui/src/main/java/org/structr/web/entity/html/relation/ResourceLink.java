@@ -19,15 +19,17 @@
 package org.structr.web.entity.html.relation;
 
 import java.util.Collections;
-import java.util.Set;
+import java.util.List;
 import org.structr.core.property.Property;
 import org.structr.common.PropertyView;
 import org.structr.common.SyncState;
 import org.structr.common.Syncable;
 import org.structr.common.View;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.ManyToOne;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.web.entity.LinkSource;
 import org.structr.web.entity.Linkable;
@@ -81,8 +83,8 @@ public class ResourceLink extends ManyToOne<LinkSource, Linkable> implements Syn
 
 	// ----- interface Syncable -----
 	@Override
-	public Set<Syncable> getSyncData(final SyncState state) {
-		return Collections.emptySet();
+	public List<Syncable> getSyncData(final SyncState state) {
+		return Collections.emptyList();
 	}
 
 	@Override
@@ -103,5 +105,9 @@ public class ResourceLink extends ManyToOne<LinkSource, Linkable> implements Syn
 	@Override
 	public RelationshipInterface getSyncRelationship() {
 		return this;
+	}
+
+	@Override
+	public void updateFrom(PropertyMap properties) throws FrameworkException {
 	}
 }

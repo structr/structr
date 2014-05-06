@@ -18,14 +18,14 @@
  */
 package org.structr.web.entity;
 
-import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 import org.structr.common.View;
 import org.structr.common.PropertyView;
 import org.structr.common.SyncState;
 import org.structr.common.Syncable;
 import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
@@ -33,6 +33,7 @@ import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
+import org.structr.core.property.PropertyMap;
 import static org.structr.web.entity.AbstractFile.parent;
 import org.structr.web.entity.relation.Files;
 import org.structr.web.entity.relation.Folders;
@@ -74,9 +75,9 @@ public class Folder extends AbstractFile implements Syncable {
 
 	// ----- interface Syncable -----
 	@Override
-	public Set<Syncable> getSyncData(final SyncState state) {
+	public List<Syncable> getSyncData(final SyncState state) {
 
-		final Set<Syncable> data = new LinkedHashSet<>();
+		final List<Syncable> data = new LinkedList<>();
 
 		// nodes
 		data.add(getProperty(parent));
@@ -103,5 +104,9 @@ public class Folder extends AbstractFile implements Syncable {
 	@Override
 	public RelationshipInterface getSyncRelationship() {
 		return null;
+	}
+
+	@Override
+	public void updateFrom(PropertyMap properties) throws FrameworkException {
 	}
 }

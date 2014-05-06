@@ -19,12 +19,14 @@
 package org.structr.web.entity.dom.relationship;
 
 import java.util.Collections;
-import java.util.Set;
+import java.util.List;
 import org.structr.common.SyncState;
 import org.structr.common.Syncable;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.relationship.AbstractListSiblings;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.dom.DOMNode;
 
 /**
@@ -45,8 +47,8 @@ public class DOMSiblings extends AbstractListSiblings<DOMNode, DOMNode> implemen
 
 	// ----- interface Syncable -----
 	@Override
-	public Set<Syncable> getSyncData(final SyncState state) {
-		return Collections.emptySet();
+	public List<Syncable> getSyncData(final SyncState state) {
+		return Collections.emptyList();
 	}
 
 	@Override
@@ -67,5 +69,9 @@ public class DOMSiblings extends AbstractListSiblings<DOMNode, DOMNode> implemen
 	@Override
 	public RelationshipInterface getSyncRelationship() {
 		return this;
+	}
+
+	@Override
+	public void updateFrom(PropertyMap properties) throws FrameworkException {
 	}
 }

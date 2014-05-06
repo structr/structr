@@ -18,9 +18,11 @@
  */
 package org.structr.common;
 
-import java.util.Set;
+import java.util.List;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.property.PropertyMap;
 
 /**
  * Marker interface for internal page data, so it can be
@@ -30,11 +32,13 @@ import org.structr.core.graph.RelationshipInterface;
  */
 public interface Syncable {
 
-	public Set<Syncable> getSyncData(final SyncState syncState);
+	public List<Syncable> getSyncData(final SyncState syncState);
 
 	public boolean isNode();
 	public boolean isRelationship();
 
 	public NodeInterface getSyncNode();
 	public RelationshipInterface getSyncRelationship();
+
+	public void updateFrom(final PropertyMap properties) throws FrameworkException;
 }

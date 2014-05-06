@@ -34,8 +34,8 @@ import org.structr.core.Services;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.LinkedList;
+import java.util.List;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -44,6 +44,7 @@ import org.structr.common.SyncState;
 import org.structr.common.Syncable;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.web.common.FileHelper;
 import static org.structr.web.entity.AbstractFile.parent;
@@ -289,9 +290,9 @@ public class File extends AbstractFile implements Linkable {
 
 	// ----- interface Syncable -----
 	@Override
-	public Set<Syncable> getSyncData(final SyncState state) {
+	public List<Syncable> getSyncData(final SyncState state) {
 
-		final Set<Syncable> data = new LinkedHashSet<>();
+		final List<Syncable> data = new LinkedList<>();
 
 		// nodes
 		data.add(getProperty(parent));
@@ -318,5 +319,9 @@ public class File extends AbstractFile implements Linkable {
 	@Override
 	public RelationshipInterface getSyncRelationship() {
 		return null;
+	}
+
+	@Override
+	public void updateFrom(PropertyMap properties) throws FrameworkException {
 	}
 }

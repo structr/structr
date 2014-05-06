@@ -33,6 +33,7 @@ public class RelationshipDataContainer extends DataContainer implements Comparab
 
 	protected String sourceStartNodeId;
 	protected String sourceEndNodeId;
+	protected String relationshipId;
 	protected Class relType;
 
 	public RelationshipDataContainer() {}
@@ -42,7 +43,8 @@ public class RelationshipDataContainer extends DataContainer implements Comparab
 		relType = relationship.getClass();
 
 		sourceStartNodeId = relationship.getSourceNode().getUuid();
-		sourceEndNodeId = relationship.getTargetNode().getUuid();
+		sourceEndNodeId   = relationship.getTargetNode().getUuid();
+		relationshipId    = relationship.getUuid();
 
 		collectProperties(relationship.getRelationship());
 	}
@@ -72,6 +74,15 @@ public class RelationshipDataContainer extends DataContainer implements Comparab
 	 */
 	public String getSourceEndNodeId() {
 		return sourceEndNodeId;
+	}
+
+	/**
+	 * Return id of relationship entity
+	 * 
+	 * @return
+	 */
+	public String getRelationshipId() {
+		return relationshipId;
 	}
 
 	@Override

@@ -26,7 +26,6 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.io.IOUtils;
@@ -127,7 +126,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	}
 
 	@Override
-	public void updateFrom(final DOMNode source) throws FrameworkException {
+	public void updateFrom(final PropertyMap properties) throws FrameworkException {
 		// do nothing
 	}
 
@@ -1055,9 +1054,9 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 	// ----- interface Syncable -----
 	@Override
-	public Set<Syncable> getSyncData(final SyncState state) {
+	public List<Syncable> getSyncData(final SyncState state) {
 
-		final Set<Syncable> data = super.getSyncData(state);
+		final List<Syncable> data = super.getSyncData(state);
 
 		data.addAll(getProperty(Linkable.linkingElements));
 

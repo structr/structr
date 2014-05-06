@@ -27,7 +27,9 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
+import org.structr.common.Syncable;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -140,11 +142,26 @@ public class ServerConnection extends Thread implements ServerContext {
 		try {
 			final NodeDataContainer receivedNodeData = (NodeDataContainer)receivedData;
 			final PropertyMap properties             = PropertyMap.databaseTypeToJavaType(SecurityContext.getSuperUserInstance(), receivedNodeData.getType(), receivedNodeData.getProperties());
-			final NodeInterface newNode              = app.create(receivedNodeData.getType(), properties);
+			final String uuid                        = receivedNodeData.getSourceNodeId();
+			final GraphObject existingCandidate      = app.get(uuid);
+			NodeInterface newOrExistingNode          = null;
 
-			idMap.put(receivedNodeData.getSourceNodeId(), newNode.getUuid());
+			if (existingCandidate != null && existingCandidate instanceof NodeInterface) {
 
-			return newNode;
+				newOrExistingNode = (NodeInterface)existingCandidate;
+
+				// merge properties
+				((Syncable)newOrExistingNode).updateFrom(properties);
+
+			} else {
+
+				// create
+				newOrExistingNode = app.create(receivedNodeData.getType(), properties);
+			}
+
+			idMap.put(receivedNodeData.getSourceNodeId(), newOrExistingNode.getUuid());
+
+			return newOrExistingNode;
 
 		} catch (FrameworkException fex) {
 			fex.printStackTrace();
@@ -161,6 +178,7 @@ public class ServerConnection extends Thread implements ServerContext {
 			final RelationshipDataContainer receivedRelationshipData = (RelationshipDataContainer)receivedData;
 			final String sourceStartNodeId                           = receivedRelationshipData.getSourceStartNodeId();
 			final String sourceEndNodeId                             = receivedRelationshipData.getSourceEndNodeId();
+			final String uuid                                        = receivedRelationshipData.getRelationshipId();
 			final String targetStartNodeId                           = idMap.get(sourceStartNodeId);
 			final String targetEndNodeId                             = idMap.get(sourceEndNodeId);
 
@@ -173,15 +191,23 @@ public class ServerConnection extends Thread implements ServerContext {
 
 				if (targetStartNode != null && targetEndNode != null) {
 
-					final PropertyMap properties = PropertyMap.databaseTypeToJavaType(SecurityContext.getSuperUserInstance(), relType, receivedRelationshipData.getProperties());
+					final GraphObject existingCandidate = app.get(uuid);
 
-					return app.create(targetStartNode, targetEndNode, relType, properties);
+					if (existingCandidate != null && existingCandidate instanceof RelationshipInterface) {
+
+						// check for start and end node
+
+					} else {
+
+						final PropertyMap properties = PropertyMap.databaseTypeToJavaType(SecurityContext.getSuperUserInstance(), relType, receivedRelationshipData.getProperties());
+
+						return app.create(targetStartNode, targetEndNode, relType, properties);
+					}
 				}
 
-			} else {
-
-				logger.log(Level.WARNING, "Could not store relationship {0} -> {1}", new Object[]{sourceStartNodeId, sourceEndNodeId});
 			}
+
+			logger.log(Level.WARNING, "Could not store relationship {0} -> {1}", new Object[]{sourceStartNodeId, sourceEndNodeId});
 
 		} catch (FrameworkException fex) {
 			fex.printStackTrace();
