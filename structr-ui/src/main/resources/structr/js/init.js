@@ -40,6 +40,7 @@ var pagerDataKey = 'structrPagerData_' + port + '_';
 var autoRefreshDisabledKey = 'structrAutoRefreshDisabled_' + port;
 var dialogDataKey = 'structrDialogData_' + port;
 var dialogHtmlKey = 'structrDialogHtml_' + port;
+var pushConfigKey = 'structrpushConfigKey_' + port;
 
 $(function() {
 
@@ -51,7 +52,7 @@ $(function() {
     main = $('#main');
     footer = $('#footer');
     loginBox = $('#login');
-    
+
     if (debug) {
         footer.show();
     }
@@ -296,14 +297,14 @@ var Structr = {
         }
     },
     login: function(text) {
-        
+
         main.empty();
 
         $('#logout_').html('Login');
         if (text) {
             $('#errorText').html(text);
         }
-        
+
         $.blockUI.defaults.overlayCSS.opacity = .6;
         $.blockUI.defaults.applyPlatformOpacityRules = false;
         $.blockUI({
@@ -406,29 +407,8 @@ var Structr = {
         });
 
     },
-    info: function(text, callback) {
-        if (text)
-            $('#infoText').html(text);
-        if (callback)
-            $('#okButton').on('click', function(e) {
-                e.stopPropagation();
-                callback();
-            });
-        $.blockUI.defaults.overlayCSS.opacity = .6;
-        $.blockUI.defaults.applyPlatformOpacityRules = false;
-        $.blockUI({
-            fadeIn: 25,
-            fadeOut: 25,
-            message: $('#infoBox'),
-            css: {
-                border: 'none',
-                backgroundColor: 'transparent'
-            }
-        });
-
-    },
     restoreDialog: function(dialogData) {
-        console.log('restoreDialog', dialogData);
+        log('restoreDialog', dialogData);
         $.blockUI.defaults.overlayCSS.opacity = .6;
         $.blockUI.defaults.applyPlatformOpacityRules = false;
 
@@ -1063,6 +1043,45 @@ var Structr = {
             _Pages.resize(-lsw, 0);
         }
         localStorage.removeItem(activeTabKey);
+    },
+    pushDialog: function(id, recursive) {
+
+        var obj = StructrModel.obj(id);
+        
+        Structr.dialog('Push node to remote server', function() {
+        },
+                function() {
+                });
+
+        var pushConf = JSON.parse(localStorage.getItem(pushConfigKey)) || {};
+
+        dialog.append('Do you want to transfer <b>' + (obj.name || obj.id) + '</b> to the remove server?');
+
+        dialog.append('<table class="props push">'
+                + '<tr><td>Host</td><td><input id="push-host" type="text" length="20" value="' + (pushConf.host || '') + '"></td></tr>'
+                + '<tr><td>Port</td><td><input id="push-port" type="text" length="20" value="' + (pushConf.port || '') + '"></td></tr>'
+                + '<tr><td>Username</td><td><input id="push-username" type="text" length="20" value="' + (pushConf.username || '') + '"></td></tr>'
+                + '<tr><td>Password</td><td><input id="push-password" type="password" length="20" value="' + (pushConf.password || '') + '"></td></tr>'
+                + '</table>'
+                + '<button id="start-push">Start</button>');
+
+        $('#start-push', dialog).on('click', function() {
+            var host = $('#push-host', dialog).val();
+            var port = parseInt($('#push-port', dialog).val());
+            var username = $('#push-username', dialog).val();
+            var password = $('#push-password', dialog).val();
+            var key = 'key_' + obj.id;
+
+            pushConf = {host: host, port: port, username: username, password: password};
+            localStorage.setItem(pushConfigKey, JSON.stringify(pushConf));
+
+            Command.push(obj.id, host, port, username, password, key, recursive, function() {
+                dialog.empty();
+                dialogCancelButton.click();
+            })
+        });
+
+        return false;
     }
 };
 
