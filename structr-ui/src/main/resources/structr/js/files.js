@@ -358,6 +358,12 @@ var _Files = {
 
         _Entities.appendAccessControlIcon(div, folder);
 
+        div.append('<img title="Push folder \'' + folder.name + '\'" alt="Push folder \'' + folder.name + '\'" class="push_icon button" src="icon/page_white_get.png">');
+        div.children('.push_icon').on('click', function() {
+            Structr.pushDialog(folder.id, true);
+            return false;
+        });
+
         var delIcon = div.children('.delete_icon');
 
         if (parent !== folders) {
