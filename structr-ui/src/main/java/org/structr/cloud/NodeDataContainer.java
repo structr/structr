@@ -34,9 +34,13 @@ public class NodeDataContainer extends DataContainer {
 	protected String sourceNodeId = null;
 	protected Class type          = null;
 
-	public NodeDataContainer() {}
+	public NodeDataContainer() {
+		super(0);
+	}
 
-	public NodeDataContainer(final NodeInterface node) throws FrameworkException {
+	public NodeDataContainer(final NodeInterface node, final int sequenceNumber) throws FrameworkException {
+
+		super(sequenceNumber);
 
 		type         = node.getClass();
 		sourceNodeId = node.getUuid();
@@ -63,6 +67,10 @@ public class NodeDataContainer extends DataContainer {
 
 		context.storeNode(this);
 
-		return new AckPacket("Node");
+		if (((sequenceNumber+1) % CloudService.LIVE_PACKET_COUNT) == 0) {
+			return new AckPacket("NodeData", sequenceNumber);
+		}
+
+		return null;
 	}
 }

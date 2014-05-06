@@ -34,9 +34,13 @@ public class PullNodeRequestContainer extends DataContainer {
 	private int remoteTcpPort = 0;
 	private int remoteUdpPort = 0;
 
-	public PullNodeRequestContainer() {}
+	public PullNodeRequestContainer() {
+		super(0);
+	}
 
 	public PullNodeRequestContainer(String remoteUser, String remoteSourceNodeId, String localTargetNodeId, String remoteHost, int remoteTcpPort, int remoteUdpPort, boolean recursive) {
+
+		super(0);
 
 		this.sourceNodeId = remoteSourceNodeId;
 		this.targetNodeId = localTargetNodeId;
@@ -44,8 +48,6 @@ public class PullNodeRequestContainer extends DataContainer {
 		this.remoteTcpPort = remoteTcpPort;
 		this.remoteUdpPort = remoteUdpPort;
 		this.recursive = recursive;
-
-		this.estimatedSize = 1024;
 	}
 
 	/**
@@ -148,7 +150,6 @@ public class PullNodeRequestContainer extends DataContainer {
 
 	@Override
 	public Message process(final ServerContext context) {
-
 		return null;
 	}
 }

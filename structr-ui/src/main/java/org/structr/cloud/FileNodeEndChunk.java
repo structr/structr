@@ -28,13 +28,16 @@ public class FileNodeEndChunk extends DataContainer {
 	protected String containerId = null;
 	protected long fileSize = 0;
 
-	public FileNodeEndChunk() {}
+	public FileNodeEndChunk() {
+		super(0);
+	}
 
 	public FileNodeEndChunk(String containerId, long fileSize) {
+
+		super(0);
+
 		this.containerId = containerId;
 		this.fileSize = fileSize;
-
-		estimatedSize = 1024;
 	}
 
 	public long getFileSize() {

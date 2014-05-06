@@ -1,18 +1,18 @@
-/* 
+/*
  *  Copyright (C) 2010-2014 Morgner UG (haftungsbeschränkt)
- * 
+ *
  *  This file is part of structr <http://structr.org>.
- * 
+ *
  *  structr is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Affero General Public License as
  *  published by the Free Software Foundation, either version 3 of the
  *  License, or (at your option) any later version.
- * 
+ *
  *  structr is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- * 
+ *
  *  You should have received a copy of the GNU Affero General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -872,10 +872,10 @@ var Structr = {
     },
     /**
      * Append a pager for the given type to the given DOM element.
-     * 
+     *
      * This pager calls Command#list (WebSocket call) after being loaded
      * and binds Command#list to all actions.
-     * 
+     *
      * If the optional callback function is given, it will be executed
      * instead of the default action.
      */
@@ -1047,7 +1047,7 @@ var Structr = {
     pushDialog: function(id, recursive) {
 
         var obj = StructrModel.obj(id);
-        
+
         Structr.dialog('Push node to remote server', function() {
         },
                 function() {
@@ -1055,7 +1055,7 @@ var Structr = {
 
         var pushConf = JSON.parse(localStorage.getItem(pushConfigKey)) || {};
 
-        dialog.append('Do you want to transfer <b>' + (obj.name || obj.id) + '</b> to the remove server?');
+        dialog.append('Do you want to transfer <b>' + (obj.name || obj.id) + '</b> to the remote server?');
 
         dialog.append('<table class="props push">'
                 + '<tr><td>Host</td><td><input id="push-host" type="text" length="20" value="' + (pushConf.host || '') + '"></td></tr>'

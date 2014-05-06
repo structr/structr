@@ -27,13 +27,15 @@ public class PushNodeRequestContainer extends DataContainer {
 
 	private String targetNodeId = "";
 
-	public PushNodeRequestContainer() {}
+	public PushNodeRequestContainer() {
+		super(0);
+	}
 
 	public PushNodeRequestContainer(final String targetNodeId) {
 
-		this.targetNodeId = targetNodeId;
+		super(0);
 
-		this.estimatedSize = 1024;
+		this.targetNodeId = targetNodeId;
 	}
 
 	/**
@@ -50,6 +52,7 @@ public class PushNodeRequestContainer extends DataContainer {
 		this.targetNodeId = targetNodeId;
 	}
 
+	@Override
 	public String toString() {
 
 		return "PushNodeRequestContainer(" + targetNodeId + ")";

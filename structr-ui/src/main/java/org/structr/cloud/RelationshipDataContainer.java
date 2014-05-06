@@ -38,7 +38,9 @@ public class RelationshipDataContainer extends DataContainer implements Comparab
 
 	public RelationshipDataContainer() {}
 
-	public RelationshipDataContainer(final RelationshipInterface relationship) throws FrameworkException {
+	public RelationshipDataContainer(final RelationshipInterface relationship, final int sequenceNumber) throws FrameworkException {
+
+		super(sequenceNumber);
 
 		relType = relationship.getClass();
 
@@ -78,7 +80,7 @@ public class RelationshipDataContainer extends DataContainer implements Comparab
 
 	/**
 	 * Return id of relationship entity
-	 * 
+	 *
 	 * @return
 	 */
 	public String getRelationshipId() {
@@ -117,6 +119,10 @@ public class RelationshipDataContainer extends DataContainer implements Comparab
 
 		context.storeRelationship(this);
 
-		return new AckPacket("Relationship");
+		if (((sequenceNumber+1) % CloudService.LIVE_PACKET_COUNT) == 0) {
+			return new AckPacket("RelationshipData", sequenceNumber);
+		}
+
+		return null;
 	}
 }

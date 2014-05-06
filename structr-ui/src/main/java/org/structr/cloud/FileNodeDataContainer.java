@@ -42,14 +42,15 @@ public class FileNodeDataContainer extends NodeDataContainer {
 
 	private java.io.File temporaryFile = null;
 	private OutputStream outputStream  = null;
- 	private int sequenceNumber         = 0;
  	private long fileSize              = 0;
 
-	public FileNodeDataContainer() {}
+	public FileNodeDataContainer() throws FrameworkException {
+		super(null, 0);
+	}
 
 	public FileNodeDataContainer(final File fileNode) throws FrameworkException {
 
-		super(fileNode);
+		super(fileNode, 0);
 
 		this.fileSize = fileNode.getSize();
 	}
@@ -71,11 +72,13 @@ public class FileNodeDataContainer extends NodeDataContainer {
 
 		// check file size
 		if (this.fileSize > 0) {
+
 			if (chunk.getFileSize() != this.fileSize) {
 				throw new IllegalStateException("File size mismatch while adding chunk. Expected " + fileSize + ", received " + chunk.getFileSize());
 			}
 
 		} else {
+
 			this.fileSize = chunk.getFileSize();
 		}
 
@@ -84,17 +87,20 @@ public class FileNodeDataContainer extends NodeDataContainer {
 			throw new IllegalStateException("Sequence number mismatch while adding chunk. Expected " + sequenceNumber + ", received " + chunk.getSequenceNumber());
 
 		} else {
+
 			sequenceNumber++;
 		}
 
 		// TODO: check chunk checksum here?
 		try {
 			if (temporaryFile == null) {
+
 				temporaryFile = java.io.File.createTempFile("structr", "file");
 				outputStream = new FileOutputStream(temporaryFile);
 			}
 
 			if (outputStream != null) {
+
 				outputStream.write(chunk.getBinaryContent());
 			}
 
@@ -111,6 +117,7 @@ public class FileNodeDataContainer extends NodeDataContainer {
 		// TODO: check file checksum here?!
 
 		if (outputStream != null) {
+
 			try {
 				outputStream.flush();
 				outputStream.close();
@@ -168,9 +175,12 @@ public class FileNodeDataContainer extends NodeDataContainer {
 	 * @return an Iterable that generates FileNodeChunks
 	 */
 	public static Iterable<FileNodeChunk> getChunks(final File fileNode, final int chunkSize) {
+
 		return (new Iterable<FileNodeChunk>() {
+
 			@Override
 			public Iterator<FileNodeChunk> iterator() {
+
 				return (new ChunkIterator(fileNode, chunkSize));
 			}
 		});
@@ -189,6 +199,7 @@ public class FileNodeDataContainer extends NodeDataContainer {
 		private int chunkSize = 0;
 
 		public ChunkIterator(File fileNode, int chunkSize) {
+
 			this.fileNode = fileNode;
 			this.fileSize = fileNode.getSize();
 			this.chunkSize = chunkSize;
@@ -217,9 +228,11 @@ public class FileNodeDataContainer extends NodeDataContainer {
 
 		@Override
 		public FileNodeChunk next() {
+
 			FileNodeChunk chunk = null;
 
 			if (inputStream != null) {
+
 				try {
 					int available = inputStream.available();
 					int readSize = available < chunkSize ? available : chunkSize;

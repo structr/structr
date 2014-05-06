@@ -143,9 +143,9 @@ public class ServerConnection extends Thread implements ServerContext {
 			final NodeDataContainer receivedNodeData = (NodeDataContainer)receivedData;
 			final PropertyMap properties             = PropertyMap.databaseTypeToJavaType(SecurityContext.getSuperUserInstance(), receivedNodeData.getType(), receivedNodeData.getProperties());
 			final String uuid                        = receivedNodeData.getSourceNodeId();
-			final GraphObject existingCandidate      = app.get(uuid);
 			NodeInterface newOrExistingNode          = null;
 
+			final NodeInterface existingCandidate = app.nodeQuery().and(GraphObject.id, uuid).getFirst();
 			if (existingCandidate != null && existingCandidate instanceof NodeInterface) {
 
 				newOrExistingNode = (NodeInterface)existingCandidate;
@@ -185,21 +185,24 @@ public class ServerConnection extends Thread implements ServerContext {
 			if (targetStartNodeId != null && targetEndNodeId != null) {
 
 				// Get new start and end node
-				final NodeInterface targetStartNode = (NodeInterface)app.get(targetStartNodeId);
-				final NodeInterface targetEndNode   = (NodeInterface)app.get(targetEndNodeId);
-				final Class relType                 = receivedRelationshipData.getType();
+				final NodeInterface targetStartNode   = (NodeInterface)app.get(targetStartNodeId);
+				final NodeInterface targetEndNode     = (NodeInterface)app.get(targetEndNodeId);
+				final Class relType                   = receivedRelationshipData.getType();
+				final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
 
 				if (targetStartNode != null && targetEndNode != null) {
 
-					final GraphObject existingCandidate = app.get(uuid);
+					final RelationshipInterface existingCandidate = app.relationshipQuery().and(GraphObject.id, uuid).getFirst();
+					final PropertyMap properties                  = PropertyMap.databaseTypeToJavaType(securityContext, relType, receivedRelationshipData.getProperties());
 
-					if (existingCandidate != null && existingCandidate instanceof RelationshipInterface) {
+					if (existingCandidate != null) {
 
-						// check for start and end node
+						// merge properties?
+						((Syncable)existingCandidate).updateFrom(properties);
+
+						return existingCandidate;
 
 					} else {
-
-						final PropertyMap properties = PropertyMap.databaseTypeToJavaType(SecurityContext.getSuperUserInstance(), relType, receivedRelationshipData.getProperties());
 
 						return app.create(targetStartNode, targetEndNode, relType, properties);
 					}

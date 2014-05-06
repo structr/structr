@@ -25,31 +25,28 @@ package org.structr.cloud;
  */
 public class FileNodeChunk extends DataContainer {
 
-	protected int sequenceNumber = 0;
 	protected String containerId = null;
 	protected int chunkSize = 0;
 	protected long fileSize = 0;
 	protected byte[] binaryContent;
 
-	public FileNodeChunk() {}
+	public FileNodeChunk() {
+		super(0);
+	}
 
 	public FileNodeChunk(String containerId, long fileSize, int sequenceNumber, int chunkSize) {
+
+		super(sequenceNumber);
+
 		this.containerId = containerId;
-		this.sequenceNumber = sequenceNumber;
 		this.chunkSize = chunkSize;
 		this.fileSize = fileSize;
 
 		binaryContent = new byte[chunkSize];
-
-		estimatedSize = chunkSize;
 	}
 
 	public byte[] getBuffer() {
 		return (binaryContent);
-	}
-
-	public int getSequenceNumber() {
-		return (sequenceNumber);
 	}
 
 	public long getFileSize() {
@@ -74,6 +71,10 @@ public class FileNodeChunk extends DataContainer {
 
 		context.fileChunk(this);
 
-		return new AckPacket("FileChunk", sequenceNumber);
+		if (((sequenceNumber+1) % CloudService.LIVE_PACKET_COUNT) == 0) {
+			return new AckPacket("FileChunk", sequenceNumber);
+		}
+
+		return null;
 	}
 }

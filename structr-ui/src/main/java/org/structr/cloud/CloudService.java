@@ -47,10 +47,11 @@ public class CloudService extends Thread implements RunnableService {
 
 	private static final Logger logger = Logger.getLogger(CloudService.class.getName());
 
-	public static final int CHUNK_SIZE        = 32768;
-	public static final int BUFFER_SIZE       = CHUNK_SIZE * 16;
+	public static final int CHUNK_SIZE        = 65536;
+	public static final int BUFFER_SIZE       = CHUNK_SIZE * 4;
+	public static final int LIVE_PACKET_COUNT = 10;
 
-	private final static int DefaultTcpPort = 54555;
+	private final static int DefaultTcpPort   = 54555;
 
 	private ServerSocket serverSocket = null;
 	private boolean running           = false;
@@ -138,6 +139,7 @@ public class CloudService extends Thread implements RunnableService {
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
 			client = new ClientConnection(new Socket(remoteHost, remoteTcpPort));
+			int sequenceNumber = 0;
 
 			// create export set before first progress callback is called
 			// so the client gets the correct total from the beginning
@@ -173,6 +175,9 @@ public class CloudService extends Thread implements RunnableService {
 				context.progress();
 				client.waitForMessage();
 
+				// reset sequence number
+				sequenceNumber = 0;
+
 				// send child nodes when recursive sending is requested
 				final Set<NodeInterface> nodes = exportSet.getNodes();
 				for (final NodeInterface n : nodes) {
@@ -183,21 +188,36 @@ public class CloudService extends Thread implements RunnableService {
 
 					} else {
 
-						client.send(new NodeDataContainer(n));
+						client.send(new NodeDataContainer(n, sequenceNumber));
 						context.progress();
-						client.waitForMessage();
 
+						// wait for response every N elements
+						if (((sequenceNumber+1) % LIVE_PACKET_COUNT) == 0) {
+							client.waitForMessage();
+						}
+
+						sequenceNumber++;
 					}
 				}
 
+				// reset sequence number
+				sequenceNumber = 0;
+
+				// send relationships
 				Set<RelationshipInterface> rels = exportSet.getRelationships();
 				for (RelationshipInterface r : rels) {
 
 					if (nodes.contains(r.getSourceNode()) && nodes.contains(r.getTargetNode())) {
 
-						client.send(new RelationshipDataContainer(r));
+						client.send(new RelationshipDataContainer(r, sequenceNumber));
 						context.progress();
-						client.waitForMessage();
+
+						// wait for response every N elements
+						if (((sequenceNumber+1) % LIVE_PACKET_COUNT) == 0) {
+							client.waitForMessage();
+						}
+
+						sequenceNumber++;
 					}
 				}
 
@@ -224,9 +244,15 @@ public class CloudService extends Thread implements RunnableService {
 				context.transmissionFinished();
 			}
 
-		} catch (Throwable t) {
+		} catch (IOException ioex) {
 
-			t.printStackTrace();
+			throw new FrameworkException(504, "Unable to connect to remote server: " + ioex.getMessage());
+
+		} finally {
+
+			if (client != null) {
+				client.shutdown();
+			}
 		}
 	}
 
@@ -241,7 +267,7 @@ public class CloudService extends Thread implements RunnableService {
 	 *
 	 * @return the number of objects that have been sent over the network
 	 */
-	private static void sendFile(final ExportContext context, final ClientConnection client, final File file, final int chunkSize) throws FrameworkException {
+	private static void sendFile(final ExportContext context, final ClientConnection client, final File file, final int chunkSize) throws FrameworkException, IOException {
 
 		// send file container first
 		FileNodeDataContainer container = new FileNodeDataContainer(file);
@@ -255,8 +281,10 @@ public class CloudService extends Thread implements RunnableService {
 			client.send(chunk);
 			context.progress();
 
-			// wait for remote end to confirm transmission
-			client.waitForMessage();
+			// wait for response every N chunks
+			if (((chunk.getSequenceNumber()+1) % LIVE_PACKET_COUNT) == 0) {
+				client.waitForMessage();
+			}
 		}
 
 		// mark end of file with special chunk

@@ -23,8 +23,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.logging.Logger;
-import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.Tx;
 
 /**
@@ -35,9 +34,6 @@ public class ClientConnection {
 
 	// the logger
 	private static final Logger logger = Logger.getLogger(ClientConnection.class.getName());
-
-	// FIXME: superuser security context
-	private final App app = StructrApp.getInstance();
 
 	// private fields
 	private int timeout                 = 2000;
@@ -79,12 +75,16 @@ public class ClientConnection {
 		sender.finish();
 	}
 
-	public Message waitForMessage() {
+	public Message waitForMessage() throws FrameworkException {
 
 		final long abortTime = System.currentTimeMillis() + timeout;
 		Message message      = null;
 
-		while (message == null && System.currentTimeMillis() < abortTime) {
+		while (message == null) {
+
+			if (System.currentTimeMillis() > abortTime) {
+				throw new FrameworkException(504, "Timeout while connecting to remote server.");
+			}
 
 			message = receiver.receive();
 

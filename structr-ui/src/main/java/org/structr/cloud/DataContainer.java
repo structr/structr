@@ -34,13 +34,13 @@ import org.neo4j.graphdb.PropertyContainer;
 public abstract class DataContainer implements Message {
 
 	protected Map<String, Object> properties = new LinkedHashMap<>();
+	protected int sequenceNumber             = 0;
 
-	/**
-	 * Estimated size, needed to calculate buffer size.
-	 *
-	 * Start with a reasonable size, say 1K
-	 */
-	protected int estimatedSize = 1024;
+	public DataContainer() {}
+
+	public DataContainer(final int sequenceNumber) {
+		this.sequenceNumber = sequenceNumber;
+	}
 
 	/**
 	 * Return the properties map
@@ -51,8 +51,8 @@ public abstract class DataContainer implements Message {
 		return properties;
 	}
 
-	public int getEstimatedSize() {
-		return estimatedSize;
+	public int getSequenceNumber() {
+		return sequenceNumber;
 	}
 
 	protected void collectProperties(final PropertyContainer propertyContainer) {
@@ -61,12 +61,6 @@ public abstract class DataContainer implements Message {
 
 			Object value = propertyContainer.getProperty(key);
 			properties.put(key, value);
-
-			if (value instanceof String) {
-
-				String stringObject = (String)value;
-				estimatedSize += stringObject.length();
-			}
 		}
 	}
 

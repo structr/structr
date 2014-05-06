@@ -6,11 +6,13 @@ package org.structr.cloud;
  */
 public class BeginPacket implements Message {
 
+	public BeginPacket() {}
+
 	@Override
 	public Message process(final ServerContext context) {
 
 		context.beginTransaction();
-		
+
 		return new AckPacket("Begin");
 	}
 }
