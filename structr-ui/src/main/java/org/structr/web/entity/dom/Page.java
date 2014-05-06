@@ -26,6 +26,7 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.io.IOUtils;
@@ -34,6 +35,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.ftpserver.ftplet.FtpFile;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.common.SyncState;
+import org.structr.common.Syncable;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Export;
@@ -65,6 +68,7 @@ import org.structr.web.entity.Linkable;
 import static org.structr.web.entity.Linkable.linkingElements;
 import static org.structr.web.entity.dom.DOMNode.children;
 import org.structr.web.entity.html.Html;
+import org.structr.web.entity.html.relation.ResourceLink;
 import org.structr.web.entity.relation.PageLink;
 import org.w3c.dom.Attr;
 import org.w3c.dom.CDATASection;
@@ -1049,4 +1053,18 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		return null;
 	}
 
+	// ----- interface Syncable -----
+	@Override
+	public Set<Syncable> getSyncData(final SyncState state) {
+
+		final Set<Syncable> data = super.getSyncData(state);
+
+		data.addAll(getProperty(Linkable.linkingElements));
+
+		for (final ResourceLink link : getRelationships(ResourceLink.class)) {
+			data.add(link);
+		}
+
+		return data;
+	}
 }

@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -33,6 +34,7 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.jsoup.Jsoup;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
+import org.structr.common.SyncState;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -55,7 +57,8 @@ import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
-import org.structr.web.entity.PageData;
+import org.structr.common.Syncable;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.web.entity.Renderable;
 import org.structr.web.entity.dom.relationship.DOMChildren;
 import org.structr.web.entity.dom.relationship.DOMSiblings;
@@ -77,7 +80,7 @@ import org.w3c.dom.UserDataHandler;
  *
  * @author Christian Morgner
  */
-public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, DOMNode> implements Node, Renderable, DOMAdoptable, DOMImportable, PageData {
+public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, DOMNode> implements Node, Renderable, DOMAdoptable, DOMImportable, Syncable {
 
 	private static final Logger logger = Logger.getLogger(DOMNode.class.getName());
 
@@ -1059,6 +1062,46 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		}
 
 		return allChildNodes;
+	}
+
+	// ----- interface Syncable -----
+	@Override
+	public Set<Syncable> getSyncData(final SyncState state) {
+
+		final Set<Syncable> data = new LinkedHashSet<>();
+
+		// nodes
+		data.addAll(getProperty(DOMNode.children));
+		data.add(getProperty(DOMNode.nextSibling));
+
+		// relationships
+		for (final DOMChildren child : getOutgoingRelationships(DOMChildren.class)) {
+			data.add(child);
+		}
+
+		data.add(getOutgoingRelationship(DOMSiblings.class));
+
+		return data;
+	}
+
+	@Override
+	public boolean isNode() {
+		return true;
+	}
+
+	@Override
+	public boolean isRelationship() {
+		return false;
+	}
+
+	@Override
+	public NodeInterface getSyncNode() {
+		return this;
+	}
+
+	@Override
+	public RelationshipInterface getSyncRelationship() {
+		return null;
 	}
 
 	// ----- nested classes -----

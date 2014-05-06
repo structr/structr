@@ -1,0 +1,111 @@
+/*
+ *  Copyright (C) 2011 Axel Morgner, structr <structr@structr.org>
+ *
+ *  This file is part of structr <http://structr.org>.
+ *
+ *  structr is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  structr is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package org.structr.cloud;
+
+import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.graph.RelationshipInterface;
+
+/**
+ * Serializable data container for a relationship to be transported over network.
+ *
+ * To be initialized with {@link AbstractRelationship} in constructor.
+ *
+ * @author axel
+ */
+public class RelationshipDataContainer extends DataContainer implements Comparable<RelationshipDataContainer> {
+
+	protected String sourceStartNodeId;
+	protected String sourceEndNodeId;
+	protected Class relType;
+
+	public RelationshipDataContainer() {}
+
+	public RelationshipDataContainer(final RelationshipInterface relationship) throws FrameworkException {
+
+		relType = relationship.getClass();
+
+		sourceStartNodeId = relationship.getSourceNode().getUuid();
+		sourceEndNodeId = relationship.getTargetNode().getUuid();
+
+		collectProperties(relationship.getRelationship());
+	}
+
+	/**
+	 * Return name
+	 *
+	 * @return
+	 */
+	public Class getType() {
+		return relType;
+	}
+
+	/**
+	 * Return id of start node in source instance
+	 *
+	 * @return
+	 */
+	public String getSourceStartNodeId() {
+		return sourceStartNodeId;
+	}
+
+	/**
+	 * Return id of end node in source instance
+	 *
+	 * @return
+	 */
+	public String getSourceEndNodeId() {
+		return sourceEndNodeId;
+	}
+
+	@Override
+	public int compareTo(RelationshipDataContainer t) {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public boolean equals(final Object t) {
+
+		RelationshipDataContainer other = (RelationshipDataContainer)t;
+
+		return other.hashCode() == this.hashCode();
+
+//		return (this.getName().equals(other.getName()) && this.getSourceStartNodeId().equals(other.getSourceStartNodeId()) && this.getSourceEndNodeId().equals(other.getSourceEndNodeId()));
+	}
+
+	@Override
+	public int hashCode() {
+
+		int hashCode = 123;
+
+		hashCode += this.getType().hashCode() ^ 11;
+		hashCode += this.getSourceStartNodeId().hashCode() ^ 12;
+		hashCode += this.getSourceEndNodeId().hashCode() ^ 13;
+
+		return hashCode;
+	}
+
+	@Override
+	public Message process(final ServerContext context) {
+
+		context.storeRelationship(this);
+
+		return new AckPacket("Relationship");
+	}
+}

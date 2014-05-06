@@ -34,6 +34,10 @@ public class MessageBuilder {
 	}
 
 	// ----- static methods -----
+	public static MessageBuilder progress() {
+		return builder().command("PROGRESS");
+	}
+
 	public static MessageBuilder status() {
 		return builder().command("STATUS");
 	}

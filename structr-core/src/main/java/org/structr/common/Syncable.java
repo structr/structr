@@ -16,13 +16,25 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web.entity;
+package org.structr.common;
+
+import java.util.Set;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
 
 /**
  * Marker interface for internal page data, so it can be
  * distinguished from "real" data in the graph.
- * 
+ *
  * @author Christian Morgner
  */
-public interface PageData {
+public interface Syncable {
+
+	public Set<Syncable> getSyncData(final SyncState syncState);
+
+	public boolean isNode();
+	public boolean isRelationship();
+
+	public NodeInterface getSyncNode();
+	public RelationshipInterface getSyncRelationship();
 }

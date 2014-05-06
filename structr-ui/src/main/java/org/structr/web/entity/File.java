@@ -34,12 +34,20 @@ import org.structr.core.Services;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.SecurityContext;
+import org.structr.common.SyncState;
+import org.structr.common.Syncable;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.StringProperty;
 import org.structr.web.common.FileHelper;
+import static org.structr.web.entity.AbstractFile.parent;
+import org.structr.web.entity.relation.Folders;
 import org.structr.web.property.PathProperty;
 
 //~--- classes ----------------------------------------------------------------
@@ -136,7 +144,7 @@ public class File extends AbstractFile implements Linkable {
 //		increaseVersion();
 //		return true;
 //	}
-	
+
 	public String getUrl() {
 
 		return getProperty(File.url);
@@ -172,12 +180,12 @@ public class File extends AbstractFile implements Linkable {
 		return getProperty(File.relativeFilePath);
 
 	}
-	
+
 	@Override
 	public String getPath() {
 		return FileHelper.getFolderPath(this);
 	}
-	
+
 	public InputStream getInputStream() {
 
 		final String path = getRelativeFilePath();
@@ -277,5 +285,38 @@ public class File extends AbstractFile implements Linkable {
 
 			setProperty(File.version, _version + 1);
 		}
+	}
+
+	// ----- interface Syncable -----
+	@Override
+	public Set<Syncable> getSyncData(final SyncState state) {
+
+		final Set<Syncable> data = new LinkedHashSet<>();
+
+		// nodes
+		data.add(getProperty(parent));
+		data.add(getIncomingRelationship(Folders.class));
+
+		return data;
+	}
+
+	@Override
+	public boolean isNode() {
+		return true;
+	}
+
+	@Override
+	public boolean isRelationship() {
+		return false;
+	}
+
+	@Override
+	public NodeInterface getSyncNode() {
+		return this;
+	}
+
+	@Override
+	public RelationshipInterface getSyncRelationship() {
+		return null;
 	}
 }

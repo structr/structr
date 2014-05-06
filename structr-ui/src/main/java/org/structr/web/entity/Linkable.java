@@ -20,6 +20,7 @@ package org.structr.web.entity;
 
 import java.util.List;
 import org.structr.common.PropertyView;
+import org.structr.common.Syncable;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.PropertyNotion;
@@ -33,11 +34,11 @@ import org.structr.web.entity.html.relation.ResourceLink;
  *
  * @author Axel Morgner
  */
-public interface Linkable extends NodeInterface {
+public interface Linkable extends NodeInterface, Syncable {
 
 	public static final Property<List<LinkSource>> linkingElements = new StartNodes<>("linkingElements", ResourceLink.class, new PropertyNotion(GraphObject.id));
 
 	public static final org.structr.common.View uiView = new org.structr.common.View(Linkable.class, PropertyView.Ui, linkingElements);
-	
+
 	public String getPath();
 }

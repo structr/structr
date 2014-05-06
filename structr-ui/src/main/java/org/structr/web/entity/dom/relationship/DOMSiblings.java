@@ -18,14 +18,20 @@
  */
 package org.structr.web.entity.dom.relationship;
 
+import java.util.Collections;
+import java.util.Set;
+import org.structr.common.SyncState;
+import org.structr.common.Syncable;
 import org.structr.core.entity.relationship.AbstractListSiblings;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.web.entity.dom.DOMNode;
 
 /**
  *
  * @author Christian Morgner
  */
-public class DOMSiblings extends AbstractListSiblings<DOMNode, DOMNode> {
+public class DOMSiblings extends AbstractListSiblings<DOMNode, DOMNode> implements Syncable {
 
 	@Override
 	public Class<DOMNode> getSourceType() {
@@ -35,5 +41,31 @@ public class DOMSiblings extends AbstractListSiblings<DOMNode, DOMNode> {
 	@Override
 	public Class<DOMNode> getTargetType() {
 		return DOMNode.class;
+	}
+
+	// ----- interface Syncable -----
+	@Override
+	public Set<Syncable> getSyncData(final SyncState state) {
+		return Collections.emptySet();
+	}
+
+	@Override
+	public boolean isNode() {
+		return false;
+	}
+
+	@Override
+	public boolean isRelationship() {
+		return true;
+	}
+
+	@Override
+	public NodeInterface getSyncNode() {
+		return null;
+	}
+
+	@Override
+	public RelationshipInterface getSyncRelationship() {
+		return this;
 	}
 }
