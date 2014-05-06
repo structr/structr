@@ -787,7 +787,7 @@ span.id {
     margin-right: 3px ! important;
 }
 
-.edit_icon, .add_icon, .delete_icon, .close_icon, .key_icon, .edit_props_icon, .edit_file_icon, .clone_icon, .view_icon, .link_icon, .add_form_icon, .data_icon, .unarchive_icon {
+.edit_icon, .add_icon, .delete_icon, .close_icon, .key_icon, .edit_props_icon, .edit_file_icon, .clone_icon, .view_icon, .link_icon, .add_form_icon, .data_icon, .unarchive_icon, .push_icon {
     display: none;
     cursor: pointer;
     height: 16px;
@@ -1759,3 +1759,12 @@ button.add_property {
     vertical-align: middle;
     cursor: pointer;
 }
+
+.page .push_icon {
+	position: relative ! important;
+	margin-left: 24px ! important;
+}
+
+table.push {
+	margin: 2em 0;
+}	

@@ -246,6 +246,12 @@ var _Files = {
             });
         }
 
+        div.append('<img title="Push file \'' + file.name + '\'" alt="Push file \'' + file.name + '\'" class="push_icon button" src="icon/page_white_get.png">');
+        div.children('.push_icon').on('click', function() {
+            Structr.pushDialog(file.id, false);
+            return false;
+        });
+
         div.children('.typeIcon').on('click', function(e) {
             e.stopPropagation();
             window.open(file.path, 'Download ' + file.name);
@@ -412,7 +418,7 @@ var _Files = {
 
                     //selectedElements = $('.node.selected');
                     if (selectedElements.length > 1) {
-                        
+
                         $.each(selectedElements, function(i, fileEl) {
                             //log('addExpandedNode(folderId)', addExpandedNode(folderId));
                             var fileId = getId(fileEl);

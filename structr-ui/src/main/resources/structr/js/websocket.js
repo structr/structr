@@ -261,7 +261,7 @@ function wsConnect() {
                     StructrModel.callCallback(data.callback, entity);
 
                 });
-                
+
                 StructrModel.clearCallback(data.callback);
 
             } else if (command.startsWith('SEARCH')) { /*********************** SEARCH ************************/
@@ -385,6 +385,12 @@ function wsConnect() {
 //                console.log(localStorage.getItem(autoRefreshKey + activeTab));
                 if (!localStorage.getItem(autoRefreshDisabledKey + activeTab)) {
                     _Pages.reloadPreviews();
+                }
+            } else if (command === 'PROGRESS') { /*********************** PROGRESS ************************/
+
+                if (dialogMsg.is(':visible')) {
+                    var msgObj = JSON.parse(data.message);
+                    dialogMsg.html('<div class="infoBox info">Transferred ' + msgObj.current + ' of ' + msgObj.total + ' objects</div>');
                 }
 
             } else {

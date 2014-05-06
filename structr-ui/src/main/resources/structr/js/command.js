@@ -787,6 +787,30 @@ var Command = {
         return sendObj(obj);
     },
     /**
+     * Send a PUSH command to the server.
+     * 
+     * The server will establish a socket connection to the post on the given
+     * port, authenticate with given username and password, and push the node
+     * with the given id to the server.
+     * 
+     * The server gives no feedback on a LINK command.
+     */
+    push: function(id, host, port, username, password, key, recursive) {
+        var obj = {};
+        obj.command = 'PUSH';
+        obj.id = id;
+        var data = {};
+        data.host = host;
+        data.port = port;
+        data.username = username;
+        data.password = password;
+        data.key = key;
+        data.recursive = recursive;
+        obj.data = data;
+        log('push()', obj);
+        return sendObj(obj);
+    },
+    /**
      * Send a LIST_COMPONENTS command to the server.
      * 
      * The server will return a result set containing all element nodes

@@ -18,11 +18,6 @@
  */
 package org.structr.websocket.command;
 
-import org.structr.websocket.message.MessageBuilder;
-import org.structr.websocket.message.WebSocketMessage;
-
-//~--- JDK imports ------------------------------------------------------------
-
 import java.util.Map;
 import org.structr.cloud.CloudListener;
 import org.structr.cloud.CloudService;
@@ -33,6 +28,8 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
 import org.structr.websocket.StructrWebSocket;
+import org.structr.websocket.message.MessageBuilder;
+import org.structr.websocket.message.WebSocketMessage;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -56,7 +53,7 @@ public class PushNodesCommand extends AbstractCommand {
 		final String username                = (String)properties.get("username");
 		final String password                = (String)properties.get("password");
 		final String host                    = (String)properties.get("host");
-		final String port                    = (String)properties.get("port");
+		final Long port                      = (Long)properties.get("port");
 		final String key                     = (String)properties.get("key");
 
 		if (sourceId != null && host != null && port != null && username != null && password != null && key != null) {
@@ -75,7 +72,7 @@ public class PushNodesCommand extends AbstractCommand {
 							recursive = "true".equals(recursiveSource.toString());
 						}
 
-						CloudService.pushNodes(new ProgressListener(getWebSocket(), key), username, password, (Syncable)root, null, host, 54555, recursive);
+						CloudService.pushNodes(new ProgressListener(getWebSocket(), key), username, password, (Syncable)root, null, host, port.intValue(), recursive);
 
 					} else {
 
@@ -133,7 +130,7 @@ public class PushNodesCommand extends AbstractCommand {
 
 		@Override
 		public void transmissionProgress(int current, int total) {
-			websocket.send(MessageBuilder.progress().code(200).message("{\"key\":\"" + key + "\", \"current:\"" + current + "\",\"total\":" + total + "}").build(), true);
+			websocket.send(MessageBuilder.progress().code(200).message("{\"key\":\"" + key + "\", \"current\":" + current + ", \"total\":" + total + "}").build(), true);
 		}
 	}
 }

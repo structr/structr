@@ -541,6 +541,12 @@ var _Pages = {
             e.stopPropagation();
             Command.clonePage(entity.id);
         });
+
+        div.append('<img title="Push page \'' + entity.name + '\'" alt="Push page \'' + entity.name + '\'" class="push_icon button" src="icon/page_white_get.png">');
+        div.children('.push_icon').on('click', function() {
+            Structr.pushDialog(entity.id, true);
+            return false;
+        });
         
         _Entities.setMouseOver(div);
 
