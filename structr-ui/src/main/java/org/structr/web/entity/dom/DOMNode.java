@@ -41,7 +41,6 @@ import org.structr.core.GraphObject;
 import org.structr.core.Predicate;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.property.PropertyKey;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.BooleanProperty;
@@ -50,6 +49,7 @@ import org.structr.core.property.EndNode;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.EntityIdProperty;
 import org.structr.core.property.Property;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
@@ -70,10 +70,6 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 import org.w3c.dom.UserDataHandler;
-//import jodd.http.HttpRequest;
-//import jodd.http.HttpResponse;
-//import jodd.jerry.Jerry;
-//import static jodd.jerry.Jerry.jerry;
 
 /**
  * Combines AbstractNode and org.w3c.dom.Node.

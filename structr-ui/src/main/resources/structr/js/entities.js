@@ -944,9 +944,7 @@ var _Entities = {
                 el.addClass('nodeSelected');
             }
             _Entities.ensureExpanded(el, function(childNode) {
-                
                 var i = ids.indexOf(childNode.id);
-                console.log(i);
                 if (i > 1) {
                     ids.slice(i - 1, i);
                 }
