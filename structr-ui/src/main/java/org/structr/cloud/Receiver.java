@@ -2,6 +2,7 @@ package org.structr.cloud;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.net.Socket;
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
 
@@ -13,18 +14,19 @@ public class Receiver extends Thread {
 
 	private final Queue<Message> inputQueue = new ArrayBlockingQueue<>(1000);
 	private ObjectInputStream inputStream   = null;
-	private boolean connected               = false;
+	private Throwable errorMessage          = null;
+	private Socket socket                   = null;
 
-	public Receiver(final ObjectInputStream inputStream) {
+	public Receiver(final Socket socket, final ObjectInputStream inputStream) {
+
 		this.inputStream = inputStream;
+		this.socket      = socket;
 	}
 
 	@Override
 	public void run() {
 
-		connected = true;
-
-		while (connected) {
+		while (isConnected()) {
 
 			try {
 
@@ -34,19 +36,21 @@ public class Receiver extends Thread {
 					inputQueue.add(message);
 				}
 
-			} catch (ClassNotFoundException cnfex) {
+			} catch (Throwable t) {
 
-				cnfex.printStackTrace();
+				errorMessage = t;
 
-			} catch (IOException ioex) {
-
-				connected = false;
+				finish();
 			}
 		}
 	}
 
+	public Throwable getErrorMessage() {
+		return errorMessage;
+	}
+
 	public boolean isConnected() {
-		return connected;
+		return socket.isConnected() && !socket.isClosed();
 	}
 
 	public Message receive() {
@@ -56,12 +60,9 @@ public class Receiver extends Thread {
 	public void finish() {
 
 		try {
-			inputStream.close();
 
-		} catch (IOException ioex) {
-			ioex.printStackTrace();
-		}
+			socket.close();
 
-		connected = false;
+		} catch (IOException ioex) { }
 	}
 }

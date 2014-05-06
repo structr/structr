@@ -18,4 +18,8 @@ public class EndPacket implements Message {
 
 		return new EndPacket();
 	}
+
+	@Override
+	public void postProcess(final ServerContext context) {
+	}
 }

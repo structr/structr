@@ -22,7 +22,15 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.security.InvalidKeyException;
 import java.util.logging.Logger;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
+import javax.crypto.Cipher;
+import javax.crypto.CipherInputStream;
+import javax.crypto.CipherOutputStream;
+import javax.crypto.spec.SecretKeySpec;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.Tx;
 
@@ -36,11 +44,13 @@ public class ClientConnection {
 	private static final Logger logger = Logger.getLogger(ClientConnection.class.getName());
 
 	// private fields
-	private int timeout                 = 2000;
+	private Cipher encrypter            = null;
+	private Cipher decrypter            = null;
 	private Receiver receiver           = null;
 	private Sender sender               = null;
 	private Socket socket               = null;
 	private Tx tx                       = null;
+	private int timeout                 = 2000;
 
 	public ClientConnection(final Socket socket) {
 		this.socket = socket;
@@ -52,25 +62,33 @@ public class ClientConnection {
 		if (socket.isConnected() && !socket.isClosed()) {
 
 			try {
-				sender   = new Sender(new ObjectOutputStream(socket.getOutputStream()));
-				receiver = new Receiver(new ObjectInputStream(socket.getInputStream()));
+
+
+				decrypter = Cipher.getInstance("RC4");
+				encrypter = Cipher.getInstance("RC4");
+
+				// this key is only used for the first two packets
+				// of a transmission, it is replaced by the users
+				// password hash afterwards.
+				setEncryptionKey("StructrInitialEncryptionKey");
+
+				sender   = new Sender(socket, new ObjectOutputStream(new GZIPOutputStream(new CipherOutputStream(socket.getOutputStream(), encrypter), true)));
+				receiver = new Receiver(socket, new ObjectInputStream(new GZIPInputStream(new CipherInputStream(socket.getInputStream(), decrypter))));
 
 				receiver.start();
 				sender.start();
 
-			} catch (IOException ioex) {
-
-				ioex.printStackTrace();
+			} catch (Throwable t) {
+				t.printStackTrace();
 			}
 		}
 	}
 
-	public void send(final Message message) {
+	public void send(final Message message) throws IOException {
 		sender.send(message);
 	}
 
 	public void shutdown() {
-
 		receiver.finish();
 		sender.finish();
 	}
@@ -83,7 +101,24 @@ public class ClientConnection {
 		while (message == null) {
 
 			if (System.currentTimeMillis() > abortTime) {
-				throw new FrameworkException(504, "Timeout while connecting to remote server.");
+
+				final Throwable error = receiver.getErrorMessage();
+				if (error != null) {
+
+					if ("Unexpected end of ZLIB input stream".equals(error.getMessage())) {
+						throw new FrameworkException(504, "Wrong user name or password.");
+					}
+
+					if ("invalid distance too far back".equals(error.getMessage())) {
+						throw new FrameworkException(504, "Transmission failed, please try again.");
+					}
+
+					throw new FrameworkException(504, error.getMessage());
+
+				} else {
+
+					throw new FrameworkException(504, "Timeout while connecting to remote server.");
+				}
 			}
 
 			message = receiver.receive();
@@ -111,5 +146,13 @@ public class ClientConnection {
 			} catch (Throwable t) {}
 		}
 
+	}
+
+	public void setEncryptionKey(final String key) throws InvalidKeyException {
+
+		SecretKeySpec skeySpec = new SecretKeySpec(DigestUtils.sha256(key), "RC4");
+
+		decrypter.init(Cipher.DECRYPT_MODE, skeySpec);
+		encrypter.init(Cipher.ENCRYPT_MODE, skeySpec);
 	}
 }

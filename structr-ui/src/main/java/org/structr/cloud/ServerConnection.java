@@ -18,14 +18,21 @@
  */
 package org.structr.cloud;
 
-import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.security.InvalidKeyException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
+import javax.crypto.Cipher;
+import javax.crypto.CipherInputStream;
+import javax.crypto.CipherOutputStream;
+import javax.crypto.spec.SecretKeySpec;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.Syncable;
 import org.structr.common.error.FrameworkException;
@@ -33,6 +40,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
@@ -58,6 +66,8 @@ public class ServerConnection extends Thread implements ServerContext {
 	private final App app = StructrApp.getInstance();
 
 	// private fields
+	private Cipher encrypter            = null;
+	private Cipher decrypter            = null;
 	private Receiver receiver           = null;
 	private Sender sender               = null;
 	private Socket socket               = null;
@@ -77,8 +87,17 @@ public class ServerConnection extends Thread implements ServerContext {
 		if (socket.isConnected() && !socket.isClosed()) {
 
 			try {
-				receiver = new Receiver(new ObjectInputStream(socket.getInputStream()));
-				sender   = new Sender(new ObjectOutputStream(socket.getOutputStream()));
+
+				decrypter = Cipher.getInstance("RC4");
+				encrypter = Cipher.getInstance("RC4");
+
+				// this key is only used for the first two packets
+				// of a transmission, it is replaced by the users
+				// password hash afterwards.
+				setEncryptionKey("StructrInitialEncryptionKey");
+
+				sender   = new Sender(socket, new ObjectOutputStream(new GZIPOutputStream(new CipherOutputStream(socket.getOutputStream(), encrypter), true)));
+				receiver = new Receiver(socket, new ObjectInputStream(new GZIPInputStream(new CipherInputStream(socket.getInputStream(), decrypter))));
 
 				receiver.start();
 				sender.start();
@@ -86,9 +105,8 @@ public class ServerConnection extends Thread implements ServerContext {
 				// start thread
 				super.start();
 
-			} catch (IOException ioex) {
-
-				ioex.printStackTrace();
+			} catch (Throwable t) {
+				t.printStackTrace();
 			}
 		}
 	}
@@ -98,17 +116,18 @@ public class ServerConnection extends Thread implements ServerContext {
 
 		while (receiver.isConnected() && sender.isConnected()) {
 
-			final Message request = receiver.receive();
-			if (request != null) {
-
-				final Message response = request.process(this);
-				if (response != null) {
-
-					sender.send(response);
-				}
-			}
-
 			try {
+
+				final Message request = receiver.receive();
+				if (request != null) {
+
+					final Message response = request.process(this);
+					if (response != null) {
+
+						sender.send(response);
+						response.postProcess(this);
+					}
+				}
 
 				Thread.sleep(1);
 
@@ -322,16 +341,17 @@ public class ServerConnection extends Thread implements ServerContext {
 	}
 
 	@Override
-	public boolean authenticateUser(String userName) {
+	public Principal authenticateUser(String userName) {
 
 		try {
-			return app.nodeQuery(User.class).andName(userName).getFirst() != null;
 
-		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+			return app.nodeQuery(User.class).andName(userName).getFirst();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
 		}
 
-		return false;
+		return null;
 	}
 
 	@Override
@@ -391,5 +411,14 @@ public class ServerConnection extends Thread implements ServerContext {
 
 			container.addChunk(chunk);
 		}
+	}
+
+	@Override
+	public void setEncryptionKey(final String key) throws InvalidKeyException {
+
+		SecretKeySpec skeySpec = new SecretKeySpec(DigestUtils.sha256(key), "RC4");
+
+		decrypter.init(Cipher.DECRYPT_MODE, skeySpec);
+		encrypter.init(Cipher.ENCRYPT_MODE, skeySpec);
 	}
 }

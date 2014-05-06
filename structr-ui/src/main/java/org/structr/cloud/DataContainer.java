@@ -64,6 +64,10 @@ public abstract class DataContainer implements Message {
 		}
 	}
 
+	@Override
+	public void postProcess(final ServerContext context) {
+	}
+
 	// <editor-fold defaultstate="collapsed" desc="toString() method">
 	/**
 	 * Implement standard toString() method

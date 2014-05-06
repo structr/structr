@@ -1,5 +1,7 @@
 package org.structr.cloud;
 
+import java.security.InvalidKeyException;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 
@@ -15,9 +17,11 @@ public interface ServerContext {
 
 	public void closeConnection();
 
+	public void setEncryptionKey(final String key) throws InvalidKeyException;
+
 	public void ack(final String message, final int sequenceNumber);
 
-	public boolean authenticateUser(final String userName);
+	public Principal authenticateUser(final String userName);
 
 	public void beginFile(final FileNodeDataContainer container);
 	public void fileChunk(final FileNodeChunk chunk);

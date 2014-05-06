@@ -43,4 +43,8 @@ public class AckPacket implements Message {
 		context.ack(message, sequenceNumber);
 		return null;
 	}
+
+	@Override
+	public void postProcess(final ServerContext context) {
+	}
 }

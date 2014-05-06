@@ -21,6 +21,7 @@ package org.structr.cloud;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.security.InvalidKeyException;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.logging.Level;
@@ -49,7 +50,7 @@ public class CloudService extends Thread implements RunnableService {
 
 	public static final int CHUNK_SIZE        = 65536;
 	public static final int BUFFER_SIZE       = CHUNK_SIZE * 4;
-	public static final int LIVE_PACKET_COUNT = 10;
+	public static final int LIVE_PACKET_COUNT = 19;
 
 	private final static int DefaultTcpPort   = 54555;
 
@@ -167,8 +168,12 @@ public class CloudService extends Thread implements RunnableService {
 			context.progress();
 
 			// wait for authentication container reply from server
+			// to enable encryption
 			final Message authMessage = client.waitForMessage();
 			if (authMessage instanceof AuthenticationContainer) {
+
+				final AuthenticationContainer auth = (AuthenticationContainer)authMessage;
+				client.setEncryptionKey(auth.getEncryptionKey(password));
 
 				// send type of request
 				client.send(new PushNodeRequestContainer(remoteTargetNodeId));
@@ -244,7 +249,8 @@ public class CloudService extends Thread implements RunnableService {
 				context.transmissionFinished();
 			}
 
-		} catch (IOException ioex) {
+
+		} catch (IOException | InvalidKeyException ioex) {
 
 			throw new FrameworkException(504, "Unable to connect to remote server: " + ioex.getMessage());
 

@@ -15,4 +15,8 @@ public class BeginPacket implements Message {
 
 		return new AckPacket("Begin");
 	}
+
+	@Override
+	public void postProcess(final ServerContext context) {
+	}
 }
