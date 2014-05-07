@@ -41,6 +41,10 @@ public class Sender extends Thread {
 				final Message message = outputQueue.poll();
 				if (message != null) {
 
+					if (CloudService.DEBUG) {
+						System.out.println("Sender: " + message);
+					}
+
 					outputStream.writeObject(message);
 					outputStream.flush();
 				}

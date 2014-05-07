@@ -22,22 +22,16 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.security.InvalidKeyException;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.common.StructrConf;
-import org.structr.common.SyncState;
-import org.structr.common.Syncable;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 import org.structr.core.RunnableService;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
-import org.structr.web.entity.File;
 
 /**
  * The cloud service handles networking between structr instances
@@ -51,6 +45,9 @@ public class CloudService extends Thread implements RunnableService {
 	public static final int CHUNK_SIZE        = 65536;
 	public static final int BUFFER_SIZE       = CHUNK_SIZE * 4;
 	public static final int LIVE_PACKET_COUNT = 19;
+
+	public static final boolean DEBUG         = true;
+	public static final String STREAM_CIPHER  = "RC4";
 
 	private final static int DefaultTcpPort   = 54555;
 
@@ -127,27 +124,22 @@ public class CloudService extends Thread implements RunnableService {
 	}
 
 	// ----- public static methods -----
-	public static void pushNodes(final String userName, String password, final Syncable sourceNode, final String remoteTargetNodeId, final String remoteHost, final int remoteTcpPort, final boolean recursive) throws FrameworkException {
-		pushNodes(null, userName, password, sourceNode, remoteTargetNodeId, remoteHost, remoteTcpPort, recursive);
-	}
+	public static <T> T doRemote(final CloudTransmission<T> transmission, final CloudListener listener) throws FrameworkException {
 
-	public static void pushNodes(final CloudListener listener, final String userName, String password, final Syncable sourceNode, final String remoteTargetNodeId, final String remoteHost, final int remoteTcpPort, final boolean recursive) throws FrameworkException {
-
-		// construct an ExportContext with a total progress size of 4
+		final String userName       = transmission.getUserName();
+		final String password       = transmission.getPassword();
+		final String remoteHost     = transmission.getRemoteHost();
+		final int remoteTcpPort     = transmission.getRemotePort();
 		final ExportContext context = new ExportContext(listener, 4);
 		ClientConnection client     = null;
+		T remoteResult              = null;
 
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
 			client = new ClientConnection(new Socket(remoteHost, remoteTcpPort));
-			int sequenceNumber = 0;
-
-			// create export set before first progress callback is called
-			// so the client gets the correct total from the beginning
-			final ExportSet exportSet = getExportSet((Syncable)sourceNode, SyncState.all(), recursive);
 
 			// notify context of increased message stack size
-			context.increaseTotal(exportSet.getTotalSize());
+			context.increaseTotal(transmission.getTotalSize());
 
 			// notify listener
 			context.transmissionStarted();
@@ -160,7 +152,7 @@ public class CloudService extends Thread implements RunnableService {
 
 			final Message ack = client.waitForMessage();
 			if (!(ack instanceof AckPacket)) {
-				return;
+				throw new FrameworkException(504, "Unable to connect to remote server: unknown response.");
 			}
 
 			// send authentication container
@@ -175,56 +167,8 @@ public class CloudService extends Thread implements RunnableService {
 				final AuthenticationContainer auth = (AuthenticationContainer)authMessage;
 				client.setEncryptionKey(auth.getEncryptionKey(password));
 
-				// send type of request
-				client.send(new PushNodeRequestContainer(remoteTargetNodeId));
-				context.progress();
-				client.waitForMessage();
-
-				// reset sequence number
-				sequenceNumber = 0;
-
-				// send child nodes when recursive sending is requested
-				final Set<NodeInterface> nodes = exportSet.getNodes();
-				for (final NodeInterface n : nodes) {
-
-					if (n instanceof File) {
-
-						sendFile(context, client, (File)n, CloudService.CHUNK_SIZE);
-
-					} else {
-
-						client.send(new NodeDataContainer(n, sequenceNumber));
-						context.progress();
-
-						// wait for response every N elements
-						if (((sequenceNumber+1) % LIVE_PACKET_COUNT) == 0) {
-							client.waitForMessage();
-						}
-
-						sequenceNumber++;
-					}
-				}
-
-				// reset sequence number
-				sequenceNumber = 0;
-
-				// send relationships
-				Set<RelationshipInterface> rels = exportSet.getRelationships();
-				for (RelationshipInterface r : rels) {
-
-					if (nodes.contains(r.getSourceNode()) && nodes.contains(r.getTargetNode())) {
-
-						client.send(new RelationshipDataContainer(r, sequenceNumber));
-						context.progress();
-
-						// wait for response every N elements
-						if (((sequenceNumber+1) % LIVE_PACKET_COUNT) == 0) {
-							client.waitForMessage();
-						}
-
-						sequenceNumber++;
-					}
-				}
+				// do transmission in an authenticated and encrypted context
+				remoteResult = transmission.doRemote(client, context);
 
 			} else {
 
@@ -232,13 +176,11 @@ public class CloudService extends Thread implements RunnableService {
 				if (context != null) {
 					context.transmissionAborted();
 				}
-
 			}
 
 			// mark end of transaction
 			client.send(new EndPacket());
 			context.progress();
-			client.waitForMessage();
 
 			// wait for server to close connection here..
 			client.waitForClose(2000);
@@ -248,7 +190,6 @@ public class CloudService extends Thread implements RunnableService {
 			if (context != null) {
 				context.transmissionFinished();
 			}
-
 
 		} catch (IOException | InvalidKeyException ioex) {
 
@@ -260,178 +201,16 @@ public class CloudService extends Thread implements RunnableService {
 				client.shutdown();
 			}
 		}
+
+		return remoteResult;
 	}
 
-	/**
-	 * Splits the given file and sends it over the client connection. This method first creates a <code>FileNodeDataContainer</code> and sends it to the remote end. The file from disk is then
-	 * split into multiple instances of <code>FileChunkContainer</code> while being sent. To finalize the transfer, a <code>FileNodeEndChunk</code> is sent to notify the receiving end of the
-	 * successful transfer.
-	 *
-	 * @param client the client to send over
-	 * @param file the file to split and send
-	 * @param chunkSize the chunk size for a single chunk
-	 *
-	 * @return the number of objects that have been sent over the network
-	 */
-	private static void sendFile(final ExportContext context, final ClientConnection client, final File file, final int chunkSize) throws FrameworkException, IOException {
+	public static byte[] trimToSize(final byte[] source, final int maxKeyLengthBits) {
 
-		// send file container first
-		FileNodeDataContainer container = new FileNodeDataContainer(file);
-
-		client.send(container);
-		context.progress();
-
-		// send chunks
-		for (FileNodeChunk chunk : FileNodeDataContainer.getChunks(file, chunkSize)) {
-
-			client.send(chunk);
-			context.progress();
-
-			// wait for response every N chunks
-			if (((chunk.getSequenceNumber()+1) % LIVE_PACKET_COUNT) == 0) {
-				client.waitForMessage();
-			}
+		if (maxKeyLengthBits < Integer.MAX_VALUE) {
+			return Arrays.copyOfRange(source, 0, Math.min(source.length, maxKeyLengthBits / 8));
 		}
 
-		// mark end of file with special chunk
-		client.send(new FileNodeEndChunk(container.getSourceNodeId(), container.getFileSize()));
-		context.progress();
-
-		// wait for remote end to confirm transmission
-		client.waitForMessage();
-	}
-
-	private static ExportSet getExportSet(final Syncable source, final SyncState state, boolean recursive) {
-
-		final ExportSet exportSet = new ExportSet();
-
-		collectExportSet(exportSet, source, state, recursive);
-
-		return exportSet;
-	}
-
-	private static void collectExportSet(final ExportSet exportSet, final Syncable start, final SyncState state, boolean recursive) {
-
-		exportSet.add(start);
-
-		if (recursive) {
-
-			// collect children
-			for (final Syncable child : start.getSyncData(state)) {
-
-				if (child != null && exportSet.add(child)) {
-
-					collectExportSet(exportSet, child, state, recursive);
-				}
-			}
-		}
-	}
-
-	private static class ExportSet {
-
-		private final Set<NodeInterface> nodes                 = new LinkedHashSet<>();
-		private final Set<RelationshipInterface> relationships = new LinkedHashSet<>();
-		private int size                                       = 0;
-
-		public boolean add(final Syncable data) {
-
-			if (data.isNode()) {
-
-				if (nodes.add(data.getSyncNode())) {
-
-					size++;
-
-					if (data.getSyncNode() instanceof File) {
-
-						size += (((File)data.getSyncNode()).getSize().intValue() / CloudService.CHUNK_SIZE) + 2;
-					}
-
-					// node was new (added), return true
-					return true;
-				}
-
-			} else {
-
-				if (relationships.add(data.getSyncRelationship())) {
-
-					size++;
-
-					// rel was new (added), return true
-					return true;
-				}
-			}
-
-			// arriving here means node was not added, so we return false
-			return false;
-		}
-
-		public Set<NodeInterface> getNodes() {
-			return nodes;
-		}
-
-		public Set<RelationshipInterface> getRelationships() {
-			return relationships;
-		}
-
-		public int getTotalSize() {
-			return size;
-		}
-	}
-
-	private static class ExportContext {
-
-		private CloudListener listener = null;
-		private int currentProgress    = 0;
-		private int totalSize          = 0;
-
-		public ExportContext(final CloudListener listener, final int totalSize) {
-			this.listener  = listener;
-			this.totalSize = totalSize;
-		}
-
-		public CloudListener getListener() {
-			return listener;
-		}
-
-		public int getCurrentProgress() {
-			return currentProgress;
-		}
-
-		public int getTotalSize() {
-			return totalSize;
-		}
-
-		public void progress() {
-			currentProgress++;
-
-			if (listener != null) {
-				listener.transmissionProgress(currentProgress, totalSize);
-			}
-		}
-
-		public void increaseTotal(final int addTotal) {
-			totalSize += addTotal;
-		}
-
-		public void transmissionStarted() {
-
-			if (listener != null) {
-				listener.transmissionStarted();
-			}
-		}
-
-		public void transmissionFinished() {
-
-			if (listener != null) {
-				listener.transmissionFinished();
-			}
-		}
-
-		public void transmissionAborted() {
-
-			if (listener != null) {
-				listener.transmissionAborted();
-			}
-		}
+		return source;
 	}
 }

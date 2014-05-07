@@ -33,6 +33,10 @@ public class Receiver extends Thread {
 				final Message message = (Message)inputStream.readObject();
 				if (message != null) {
 
+					if (CloudService.DEBUG) {
+						System.out.println("Receiver: " + message);
+					}
+
 					inputQueue.add(message);
 				}
 

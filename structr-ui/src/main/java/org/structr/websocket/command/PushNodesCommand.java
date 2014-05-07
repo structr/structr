@@ -21,6 +21,7 @@ package org.structr.websocket.command;
 import java.util.Map;
 import org.structr.cloud.CloudListener;
 import org.structr.cloud.CloudService;
+import org.structr.cloud.transmission.PushTransmission;
 import org.structr.common.Syncable;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -72,7 +73,7 @@ public class PushNodesCommand extends AbstractCommand {
 							recursive = "true".equals(recursiveSource.toString());
 						}
 
-						CloudService.pushNodes(new ProgressListener(getWebSocket(), key), username, password, (Syncable)root, null, host, port.intValue(), recursive);
+						CloudService.doRemote(new PushTransmission((Syncable)root, recursive, username, password, host, port.intValue()), new ProgressListener(getWebSocket(), key));
 
 					} else {
 

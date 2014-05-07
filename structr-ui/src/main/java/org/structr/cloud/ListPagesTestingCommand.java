@@ -21,46 +21,32 @@ package org.structr.cloud;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.cloud.transmission.PushTransmission;
-import org.structr.common.Syncable;
+import org.structr.cloud.transmission.SingleTransmission;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
 import org.structr.core.graph.MaintenanceCommand;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.Tx;
 import org.structr.rest.resource.MaintenanceParameterResource;
 
 /**
  *
  * @author Axel Morgner
  */
-public class PushNodesTestingCommand extends CloudServiceCommand implements MaintenanceCommand {
+public class ListPagesTestingCommand extends CloudServiceCommand implements MaintenanceCommand {
 
-	private static final Logger logger = Logger.getLogger(PushNodesTestingCommand.class.getName());
+	private static final Logger logger = Logger.getLogger(ListPagesTestingCommand.class.getName());
 
 	static {
 
-		MaintenanceParameterResource.registerMaintenanceCommand("pushNodesTest", PushNodesTestingCommand.class);
+		MaintenanceParameterResource.registerMaintenanceCommand("listPagesTest", ListPagesTestingCommand.class);
 	}
 
 	@Override
 	public void execute(final Map<String, Object> attributes) throws FrameworkException {
 
-		final String name = (String)attributes.get("name");
-		final String host = (String)attributes.get("host");
+		try {
+			System.out.println(CloudService.doRemote(new SingleTransmission(new ListPagesPacket(), "admin", "admin", "localhost", 54555), new LoggingListener()));
 
-		if (name != null && host != null) {
-
-			final App app     = StructrApp.getInstance();
-			try (final Tx tx = app.tx()) {
-
-				final NodeInterface entity = app.nodeQuery().andName(name).getFirst();
-				if (entity != null && entity instanceof Syncable) {
-
-					CloudService.doRemote(new PushTransmission((Syncable)entity, true, "admin", "admin", host, 54555), new LoggingListener());
-				}
-			}
+		} catch (Throwable t) {
+			t.printStackTrace();
 		}
 	}
 

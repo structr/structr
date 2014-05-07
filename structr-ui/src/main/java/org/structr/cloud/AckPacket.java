@@ -33,7 +33,6 @@ public class AckPacket implements Message {
 
 	@Override
 	public String toString() {
-
 		return "AckPacket(" + message + ")";
 	}
 
@@ -46,5 +45,10 @@ public class AckPacket implements Message {
 
 	@Override
 	public void postProcess(final ServerContext context) {
+	}
+
+	@Override
+	public Object getPayload() {
+		return null;
 	}
 }

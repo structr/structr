@@ -20,6 +20,7 @@ package org.structr.web.entity;
 
 import java.util.LinkedList;
 import java.util.List;
+import org.neo4j.helpers.collection.Iterables;
 import org.structr.common.View;
 import org.structr.common.PropertyView;
 import org.structr.common.SyncState;
@@ -79,7 +80,19 @@ public class Folder extends AbstractFile implements Syncable {
 
 		final List<Syncable> data = new LinkedList<>();
 
-		// nodes
+		// add full folder structure when resource sync is requested
+		if (state.hasFlag(SyncState.Flag.Resources)) {
+
+			data.addAll(getProperty(folders));
+			data.addAll(getProperty(files));
+			data.addAll(getProperty(images));
+
+			data.addAll(Iterables.toList(getOutgoingRelationships(Folders.class)));
+			data.addAll(Iterables.toList(getOutgoingRelationships(Files.class)));
+			data.addAll(Iterables.toList(getOutgoingRelationships(Images.class)));
+		}
+
+		// parent only
 		data.add(getProperty(parent));
 		data.add(getIncomingRelationship(Folders.class));
 

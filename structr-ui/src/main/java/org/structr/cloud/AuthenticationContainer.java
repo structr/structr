@@ -1,6 +1,7 @@
 package org.structr.cloud;
 
 import java.security.InvalidKeyException;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.auth.AuthHelper;
 import org.structr.core.entity.Principal;
 
@@ -54,13 +55,21 @@ public class AuthenticationContainer implements Message {
 	@Override
 	public Message process(final ServerContext context) {
 
-		final Principal user = context.authenticateUser(userName);
+		final Principal user = context.getUser(userName);
 		if (user != null) {
 
 			this.encryptionKey = user.getEncryptedPassword();
 			this.salt          = user.getProperty(Principal.salt);
 
-			return this;
+			try {
+				// FIXME: can we do this here?
+				context.impersonateUser(user);
+
+				return this;
+
+			} catch (FrameworkException fex) {
+				fex.printStackTrace();
+			}
 		}
 
 		context.endTransaction();
@@ -78,5 +87,10 @@ public class AuthenticationContainer implements Message {
 		} catch (InvalidKeyException ikex) {
 			ikex.printStackTrace();
 		}
+	}
+
+	@Override
+	public Object getPayload() {
+		return null;
 	}
 }

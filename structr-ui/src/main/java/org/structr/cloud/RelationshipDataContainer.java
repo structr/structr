@@ -125,4 +125,9 @@ public class RelationshipDataContainer extends DataContainer implements Comparab
 
 		return null;
 	}
+
+	@Override
+	public Object getPayload() {
+		return null;
+	}
 }

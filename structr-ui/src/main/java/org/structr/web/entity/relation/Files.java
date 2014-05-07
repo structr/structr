@@ -18,7 +18,15 @@
  */
 package org.structr.web.entity.relation;
 
+import java.util.Collections;
+import java.util.List;
+import org.structr.common.SyncState;
+import org.structr.common.Syncable;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.relationship.AbstractChildren;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 
@@ -26,7 +34,7 @@ import org.structr.web.entity.Folder;
  *
  * @author Christian Morgner
  */
-public class Files extends AbstractChildren<Folder, File> {
+public class Files extends AbstractChildren<Folder, File> implements Syncable {
 
 	@Override
 	public Class<Folder> getSourceType() {
@@ -36,5 +44,35 @@ public class Files extends AbstractChildren<Folder, File> {
 	@Override
 	public Class<File> getTargetType() {
 		return File.class;
+	}
+
+	// ----- interface Syncable -----
+	@Override
+	public List<Syncable> getSyncData(final SyncState state) {
+		return Collections.emptyList();
+	}
+
+	@Override
+	public boolean isNode() {
+		return false;
+	}
+
+	@Override
+	public boolean isRelationship() {
+		return true;
+	}
+
+	@Override
+	public NodeInterface getSyncNode() {
+		return null;
+	}
+
+	@Override
+	public RelationshipInterface getSyncRelationship() {
+		return this;
+	}
+
+	@Override
+	public void updateFromPropertyMap(PropertyMap properties) throws FrameworkException {
 	}
 }

@@ -16,10 +16,15 @@ public class EndPacket implements Message {
 
 		context.closeConnection();
 
-		return new EndPacket();
+		return null;
 	}
 
 	@Override
 	public void postProcess(final ServerContext context) {
+	}
+
+	@Override
+	public Object getPayload() {
+		return null;
 	}
 }

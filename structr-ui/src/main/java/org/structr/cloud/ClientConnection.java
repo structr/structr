@@ -23,6 +23,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.security.InvalidKeyException;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
@@ -64,8 +65,8 @@ public class ClientConnection {
 			try {
 
 
-				decrypter = Cipher.getInstance("RC4");
-				encrypter = Cipher.getInstance("RC4");
+				decrypter = Cipher.getInstance(CloudService.STREAM_CIPHER);
+				encrypter = Cipher.getInstance(CloudService.STREAM_CIPHER);
 
 				// this key is only used for the first two packets
 				// of a transmission, it is replaced by the users
@@ -100,34 +101,33 @@ public class ClientConnection {
 
 		while (message == null) {
 
-			if (System.currentTimeMillis() > abortTime) {
-
-				final Throwable error = receiver.getErrorMessage();
-				if (error != null) {
-
-					if ("Unexpected end of ZLIB input stream".equals(error.getMessage())) {
-						throw new FrameworkException(504, "Wrong user name or password.");
-					}
-
-					if ("invalid distance too far back".equals(error.getMessage())) {
-						throw new FrameworkException(504, "Transmission failed, please try again.");
-					}
-
-					throw new FrameworkException(504, error.getMessage());
-
-				} else {
-
-					throw new FrameworkException(504, "Timeout while connecting to remote server.");
-				}
-			}
-
 			message = receiver.receive();
+			
+			if (message == null) {
 
-			try {
+				if (System.currentTimeMillis() > abortTime) {
 
-				Thread.sleep(1);
+					final Throwable error = receiver.getErrorMessage();
+					if (error != null) {
 
-			} catch (Throwable t) {}
+						if ("Unexpected end of ZLIB input stream".equals(error.getMessage())) {
+							throw new FrameworkException(504, "Wrong user name or password.");
+						}
+
+						if ("invalid distance too far back".equals(error.getMessage())) {
+							throw new FrameworkException(504, "Transmission failed, please try again.");
+						}
+
+						throw new FrameworkException(504, error.getMessage());
+
+					} else {
+
+						throw new FrameworkException(504, "Timeout while connecting to remote server.");
+					}
+				}
+
+				try { Thread.sleep(1); } catch (Throwable t) {}
+			}
 		}
 
 		return message;
@@ -150,9 +150,17 @@ public class ClientConnection {
 
 	public void setEncryptionKey(final String key) throws InvalidKeyException {
 
-		SecretKeySpec skeySpec = new SecretKeySpec(DigestUtils.sha256(key), "RC4");
+		try {
+			final int maxKeyLen    = Cipher.getMaxAllowedKeyLength(CloudService.STREAM_CIPHER);
+			SecretKeySpec skeySpec = new SecretKeySpec(CloudService.trimToSize(DigestUtils.sha256(key), maxKeyLen), CloudService.STREAM_CIPHER);
 
-		decrypter.init(Cipher.DECRYPT_MODE, skeySpec);
-		encrypter.init(Cipher.ENCRYPT_MODE, skeySpec);
+			logger.log(Level.INFO, "Maximum allowed key size for stream encryption cipher {0}: {1}", new Object[] { CloudService.STREAM_CIPHER, maxKeyLen } );
+
+			decrypter.init(Cipher.DECRYPT_MODE, skeySpec);
+			encrypter.init(Cipher.ENCRYPT_MODE, skeySpec);
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
 	}
 }

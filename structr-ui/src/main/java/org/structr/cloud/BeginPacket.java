@@ -19,4 +19,9 @@ public class BeginPacket implements Message {
 	@Override
 	public void postProcess(final ServerContext context) {
 	}
+
+	@Override
+	public Object getPayload() {
+		return null;
+	}
 }

@@ -22,7 +22,9 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.security.InvalidKeyException;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -33,6 +35,7 @@ import javax.crypto.CipherInputStream;
 import javax.crypto.CipherOutputStream;
 import javax.crypto.spec.SecretKeySpec;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.Syncable;
 import org.structr.common.error.FrameworkException;
@@ -47,6 +50,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.File;
 import org.structr.web.entity.User;
+import org.structr.web.entity.dom.Page;
 
 /**
  *
@@ -58,14 +62,11 @@ public class ServerConnection extends Thread implements ServerContext {
 	private static final Logger logger = Logger.getLogger(ServerConnection.class.getName());
 
 	// containers
-	private final Map<String, FileNodeDataContainer> fileMap = new HashMap<>();
-	private final Map<String, String> idMap = new HashMap<>();
-
-	// the root node
-	// FIXME: superuser security context
-	private final App app = StructrApp.getInstance();
+	private final Map<String, FileNodeDataContainer> fileMap = new LinkedHashMap<>();
+	private final Map<String, String> idMap                  = new LinkedHashMap<>();
 
 	// private fields
+	private App app                     = StructrApp.getInstance();
 	private Cipher encrypter            = null;
 	private Cipher decrypter            = null;
 	private Receiver receiver           = null;
@@ -88,8 +89,8 @@ public class ServerConnection extends Thread implements ServerContext {
 
 			try {
 
-				decrypter = Cipher.getInstance("RC4");
-				encrypter = Cipher.getInstance("RC4");
+				decrypter = Cipher.getInstance(CloudService.STREAM_CIPHER);
+				encrypter = Cipher.getInstance(CloudService.STREAM_CIPHER);
 
 				// this key is only used for the first two packets
 				// of a transmission, it is replaced by the users
@@ -341,7 +342,7 @@ public class ServerConnection extends Thread implements ServerContext {
 	}
 
 	@Override
-	public Principal authenticateUser(String userName) {
+	public Principal getUser(String userName) {
 
 		try {
 
@@ -352,6 +353,11 @@ public class ServerConnection extends Thread implements ServerContext {
 		}
 
 		return null;
+	}
+
+	@Override
+	public void impersonateUser(final Principal principal) throws FrameworkException {
+		app = StructrApp.getInstance(SecurityContext.getInstance(principal, AccessMode.Backend));
 	}
 
 	@Override
@@ -416,9 +422,30 @@ public class ServerConnection extends Thread implements ServerContext {
 	@Override
 	public void setEncryptionKey(final String key) throws InvalidKeyException {
 
-		SecretKeySpec skeySpec = new SecretKeySpec(DigestUtils.sha256(key), "RC4");
+		try {
+			final int maxKeyLen    = Cipher.getMaxAllowedKeyLength(CloudService.STREAM_CIPHER);
+			SecretKeySpec skeySpec = new SecretKeySpec(CloudService.trimToSize(DigestUtils.sha256(key), maxKeyLen), CloudService.STREAM_CIPHER);
 
-		decrypter.init(Cipher.DECRYPT_MODE, skeySpec);
-		encrypter.init(Cipher.ENCRYPT_MODE, skeySpec);
+			logger.log(Level.INFO, "Maximum allowed key size for stream encryption cipher {0}: {1}", new Object[] { CloudService.STREAM_CIPHER, maxKeyLen } );
+
+			decrypter.init(Cipher.DECRYPT_MODE, skeySpec);
+			encrypter.init(Cipher.ENCRYPT_MODE, skeySpec);
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
+	}
+
+	@Override
+	public List<String> listPages() throws FrameworkException {
+
+		final List<String> pages = new LinkedList<>();
+
+		for (final Page page : app.nodeQuery(Page.class).getAsList()) {
+
+			pages.add(page.getName());
+		}
+
+		return pages;
 	}
 }
