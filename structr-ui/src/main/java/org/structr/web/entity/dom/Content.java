@@ -184,7 +184,19 @@ public class Content extends DOMNode implements Text {
 	}
 
 	@Override
-	public void updateFrom(final PropertyMap properties) throws FrameworkException {
+	public void updateFromNode(final DOMNode newNode) throws FrameworkException {
+
+		if (newNode instanceof Content) {
+
+			final PropertyMap properties = new PropertyMap();
+			properties.put(Content.content, newNode.getProperty(Content.content));
+
+			updateFromPropertyMap(properties);
+		}
+	}
+
+	@Override
+	public void updateFromPropertyMap(final PropertyMap properties) throws FrameworkException {
 		this.setProperty(Content.content, properties.get(Content.content));
 	}
 

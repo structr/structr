@@ -26,6 +26,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.collections.map.LRUMap;
@@ -278,12 +279,31 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	}
 
 	@Override
-	public void updateFrom(final PropertyMap properties) throws FrameworkException {
+	public void updateFromNode(final DOMNode newNode) throws FrameworkException {
 
-		for (final Property key : htmlView.properties()) {
+		if (newNode instanceof DOMElement) {
 
-			final Object value1 = this.getProperty(key);
-			final Object value2 = properties.get(key);
+			final PropertyMap properties = new PropertyMap();
+			for (final Property key : htmlView.properties()) {
+
+				properties.put(key, newNode.getProperty(key));
+			}
+
+			// copy tag
+			properties.put(DOMElement.tag, newNode.getProperty(DOMElement.tag));
+
+			updateFromPropertyMap(properties);
+		}
+	}
+
+	@Override
+	public void updateFromPropertyMap(final PropertyMap properties) throws FrameworkException {
+
+		for (final Entry<PropertyKey, Object> entry : properties.entrySet()) {
+
+			final PropertyKey key = entry.getKey();
+			final Object value1   = this.getProperty(key);
+			final Object value2   = entry.getValue();
 
 			if (value1 == null && value2 == null) {
 				continue;
@@ -293,8 +313,12 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 			this.setProperty(key, properties.get(key));
 		}
 
-		// overwrite tag with value from source node
-		this.setProperty(DOMElement.tag, properties.get(DOMElement.tag));
+		final String tag = properties.get(DOMElement.tag);
+		if (tag != null) {
+			
+			// overwrite tag with value from source node
+			this.setProperty(DOMElement.tag, tag);
+		}
 	}
 
 	public boolean avoidWhitespace() {

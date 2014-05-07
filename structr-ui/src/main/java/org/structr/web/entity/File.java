@@ -322,6 +322,6 @@ public class File extends AbstractFile implements Linkable {
 	}
 
 	@Override
-	public void updateFrom(PropertyMap properties) throws FrameworkException {
+	public void updateFromPropertyMap(PropertyMap properties) throws FrameworkException {
 	}
 }

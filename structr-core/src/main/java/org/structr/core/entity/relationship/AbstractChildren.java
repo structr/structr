@@ -71,6 +71,6 @@ public abstract class AbstractChildren<S extends LinkedTreeNode, T extends Linke
 	}
 
 	@Override
-	public void updateFrom(PropertyMap properties) throws FrameworkException {
+	public void updateFromPropertyMap(PropertyMap properties) throws FrameworkException {
 	}
 }

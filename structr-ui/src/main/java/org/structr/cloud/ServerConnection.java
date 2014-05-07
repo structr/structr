@@ -170,7 +170,7 @@ public class ServerConnection extends Thread implements ServerContext {
 				newOrExistingNode = (NodeInterface)existingCandidate;
 
 				// merge properties
-				((Syncable)newOrExistingNode).updateFrom(properties);
+				((Syncable)newOrExistingNode).updateFromPropertyMap(properties);
 
 			} else {
 
@@ -217,7 +217,7 @@ public class ServerConnection extends Thread implements ServerContext {
 					if (existingCandidate != null) {
 
 						// merge properties?
-						((Syncable)existingCandidate).updateFrom(properties);
+						((Syncable)existingCandidate).updateFromPropertyMap(properties);
 
 						return existingCandidate;
 

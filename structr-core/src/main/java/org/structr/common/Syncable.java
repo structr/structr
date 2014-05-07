@@ -40,5 +40,5 @@ public interface Syncable {
 	public NodeInterface getSyncNode();
 	public RelationshipInterface getSyncRelationship();
 
-	public void updateFrom(final PropertyMap properties) throws FrameworkException;
+	public void updateFromPropertyMap(final PropertyMap properties) throws FrameworkException;
 }

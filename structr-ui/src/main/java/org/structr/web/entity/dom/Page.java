@@ -126,7 +126,12 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	}
 
 	@Override
-	public void updateFrom(final PropertyMap properties) throws FrameworkException {
+	public void updateFromNode(final DOMNode newNode) throws FrameworkException {
+		// do nothing
+	}
+
+	@Override
+	public void updateFromPropertyMap(final PropertyMap properties) throws FrameworkException {
 		// do nothing
 	}
 

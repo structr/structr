@@ -95,6 +95,6 @@ public class PageLink extends ManyToOne<DOMNode, Page> implements Syncable {
 	}
 
 	@Override
-	public void updateFrom(PropertyMap properties) throws FrameworkException {
+	public void updateFromPropertyMap(PropertyMap properties) throws FrameworkException {
 	}
 }
