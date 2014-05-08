@@ -12,8 +12,10 @@ import org.structr.cloud.message.FileNodeDataContainer;
 import org.structr.cloud.message.FileNodeEndChunk;
 import org.structr.cloud.message.NodeDataContainer;
 import org.structr.cloud.message.RelationshipDataContainer;
+import org.structr.cloud.message.SyncableInfo;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
+import org.structr.common.SyncState;
 import org.structr.common.Syncable;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -26,6 +28,7 @@ import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.File;
+import org.structr.web.entity.Folder;
 import org.structr.web.entity.User;
 import org.structr.web.entity.dom.Page;
 
@@ -296,16 +299,32 @@ public class CloudContext {
 		}
 	}
 
-	public List<String> listPages() throws FrameworkException {
+	public List<SyncableInfo> listSyncables(final SyncState state) throws FrameworkException {
 
-		final List<String> pages = new LinkedList<>();
+		final List<SyncableInfo> syncables = new LinkedList<>();
 
-		for (final Page page : app.nodeQuery(Page.class).getAsList()) {
+		if (state.hasFlag(SyncState.Flag.Pages)) {
 
-			pages.add(page.getName());
+			for (final Page page : app.nodeQuery(Page.class).getAsList()) {
+				syncables.add(new SyncableInfo(page));
+			}
 		}
 
-		return pages;
+		if (state.hasFlag(SyncState.Flag.Files)) {
+
+			for (final File file : app.nodeQuery(File.class).getAsList()) {
+				syncables.add(new SyncableInfo(file));
+			}
+		}
+
+		if (state.hasFlag(SyncState.Flag.Folders)) {
+
+			for (final Folder folder : app.nodeQuery(Folder.class).getAsList()) {
+				syncables.add(new SyncableInfo(folder));
+			}
+		}
+
+		return syncables;
 	}
 
 	public void storeValue(final String key, final Object value) {

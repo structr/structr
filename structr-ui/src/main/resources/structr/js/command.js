@@ -835,6 +835,27 @@ var Command = {
         return sendObj(obj);
     },
     /**
+     * Send a LIST_SYNCABLES command to the server.
+     *
+     * The server will establish a socket connection to the post on the given
+     * port, authenticate with given username and password, and pull the node
+     * with the given id from the server.
+     *
+     * The server gives no feedback on a LINK command.
+     */
+    listSyncables: function(host, port, username, password, callback) {
+        var obj = {};
+        obj.command = 'LIST_SYNCABLES';
+        var data = {};
+        data.host = host;
+        data.port = port;
+        data.username = username;
+        data.password = password;
+        obj.data = data;
+        log('list_syncables()', obj);
+        return sendObj(obj, callback);
+    },
+    /**
      * Send a LIST_COMPONENTS command to the server.
      *
      * The server will return a result set containing all element nodes

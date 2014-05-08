@@ -1083,41 +1083,56 @@ var Structr = {
 
         return false;
     },
-    pullDialog: function(recursive) {
+    pullDialog: function() {
 
-        Structr.dialog('Pull node from remote server', function() {
+        Structr.dialog('Pull data from remote server', function() {
         },
                 function() {
                 });
 
         var pushConf = JSON.parse(localStorage.getItem(pushConfigKey)) || {};
 
-        dialog.append('Please enter ID of desired node.');
-
         dialog.append('<table class="props push">'
-                + '<tr><td>Remote ID</td><td><input id="pull-id" type="text" length="32" ></td></tr>'
-                + '<tr><td>Host</td><td><input id="push-host" type="text" length="32" value="' + (pushConf.host || '') + '"></td></tr>'
-                + '<tr><td>Port</td><td><input id="push-port" type="text" length="32" value="' + (pushConf.port || '') + '"></td></tr>'
-                + '<tr><td>Username</td><td><input id="push-username" type="text" length="32" value="' + (pushConf.username || '') + '"></td></tr>'
-                + '<tr><td>Password</td><td><input id="push-password" type="password" length="32" value="' + (pushConf.password || '') + '"></td></tr>'
+                + '<tr><td>Host</td><td><input id="push-host" type="text" length="32" value="' + (pushConf.host || '') + '"></td>'
+                + '<td>Port</td><td><input id="push-port" type="text" length="32" value="' + (pushConf.port || '') + '"></td></tr>'
+                + '<tr><td>Username</td><td><input id="push-username" type="text" length="32" value="' + (pushConf.username || '') + '"></td>'
+                + '<td>Password</td><td><input id="push-password" type="password" length="32" value="' + (pushConf.password || '') + '"></td></tr>'
                 + '</table>'
-                + '<button id="start-pull">Start</button>');
+                + '<button id="show-syncables">Show available nodes</button>'
+                + '<table id="syncables" class="props push"><tr><th>ID</th><th>Name</th></tr>'
+                + '</table>'
+        );
 
-        $('#start-pull', dialog).on('click', function() {
-            var remoteId = $('#pull-id', dialog).val();
+        $('#show-syncables', dialog).on('click', function() {
+
+            var syncables = $("#syncables");
             var host = $('#push-host', dialog).val();
             var port = parseInt($('#push-port', dialog).val());
             var username = $('#push-username', dialog).val();
             var password = $('#push-password', dialog).val();
-            var key = 'key_' + remoteId;
 
             pushConf = {host: host, port: port, username: username, password: password};
             localStorage.setItem(pushConfigKey, JSON.stringify(pushConf));
 
-            Command.pull(remoteId, host, port, username, password, key, recursive, function() {
-                dialog.empty();
-                dialogCancelButton.click();
-            })
+            Command.listSyncables(host, port, username, password, function(syncable) {
+
+                syncables.append(
+                      '<tr>'
+                    + '<td>' + syncable.name + '</td>'
+                    + '<td>' + syncable.type + '</td>'
+                    + '<td><input type="checkbox" id="recursive-' + syncable.id + '"></td>'
+                    + '<td><button id="pull-' + syncable.id + '">Pull</button></td>'
+                    + '</tr>'
+                );
+
+                $('#pull-' + syncable.id, dialog).on('click', function() {
+
+                    var recursive = $('#recursive-' + syncable.id, dialog).val()
+
+                    Command.pull(syncable.id, host, port, username, password, 'key-' + syncable.id, recursive, function() {
+                    });
+                });
+            });
         });
 
         return false;
