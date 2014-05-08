@@ -35,7 +35,6 @@ import javax.crypto.CipherOutputStream;
 import javax.crypto.spec.SecretKeySpec;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.graph.Tx;
 
 /**
  *
@@ -53,7 +52,6 @@ public class ClientConnection implements CloudConnection {
 	private Receiver receiver           = null;
 	private Sender sender               = null;
 	private Socket socket               = null;
-	private Tx tx                       = null;
 	private int timeout                 = 2000;
 
 	public ClientConnection(final Socket socket) {
@@ -164,6 +162,7 @@ public class ClientConnection implements CloudConnection {
 	public void setEncryptionKey(final String key, final int keyLength) throws InvalidKeyException {
 
 		try {
+
 			SecretKeySpec skeySpec = new SecretKeySpec(CloudService.trimToSize(DigestUtils.sha256(key), keyLength), CloudService.STREAM_CIPHER);
 
 			decrypter.init(Cipher.DECRYPT_MODE, skeySpec);

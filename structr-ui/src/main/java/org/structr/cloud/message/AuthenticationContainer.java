@@ -90,12 +90,15 @@ public class AuthenticationContainer implements Message {
 	@Override
 	public void postProcess(CloudConnection connection, CloudContext context) {
 
-		try {
+		if (encryptionKey != null) {
+			
+			try {
 
-			connection.setEncryptionKey(encryptionKey, keyLength);
+				connection.setEncryptionKey(encryptionKey, keyLength);
 
-		} catch (InvalidKeyException ikex) {
-			ikex.printStackTrace();
+			} catch (InvalidKeyException ikex) {
+				ikex.printStackTrace();
+			}
 		}
 	}
 
