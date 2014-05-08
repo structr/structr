@@ -1,9 +1,10 @@
 package org.structr.cloud.message;
 
 import java.security.InvalidKeyException;
+import javax.crypto.Cipher;
 import org.structr.cloud.CloudConnection;
 import org.structr.cloud.CloudContext;
-import org.structr.common.error.FrameworkException;
+import org.structr.cloud.CloudService;
 import org.structr.core.auth.AuthHelper;
 import org.structr.core.entity.Principal;
 
@@ -19,12 +20,14 @@ public class AuthenticationContainer implements Message {
 
 	private String userName = null;
 	private String salt     = null;
+	private int keyLength   = 128;
 
 	public AuthenticationContainer() {}
 
-	public AuthenticationContainer(String userName) {
+	public AuthenticationContainer(String userName, final int keyLength) {
 
-		this.userName = userName;
+		this.userName  = userName;
+		this.keyLength = keyLength;
 	}
 
 	/**
@@ -54,23 +57,28 @@ public class AuthenticationContainer implements Message {
 		return AuthHelper.getSimpleHash(password);
 	}
 
+	public int getKeyLength() {
+		return keyLength;
+	}
+
 	@Override
 	public Message process(CloudConnection connection, final CloudContext context) {
 
 		final Principal user = context.getUser(userName);
 		if (user != null) {
 
-			this.encryptionKey = user.getEncryptedPassword();
-			this.salt          = user.getProperty(Principal.salt);
-
 			try {
+				this.keyLength     = Math.min(keyLength, Cipher.getMaxAllowedKeyLength(CloudService.STREAM_CIPHER));
+				this.encryptionKey = user.getEncryptedPassword();
+				this.salt          = user.getProperty(Principal.salt);
+				
 				// FIXME: can we do this here?
 				context.impersonateUser(user);
 
 				return this;
 
-			} catch (FrameworkException fex) {
-				fex.printStackTrace();
+			} catch (Throwable t) {
+				t.printStackTrace();
 			}
 		}
 
@@ -84,7 +92,7 @@ public class AuthenticationContainer implements Message {
 	public void postProcess(CloudConnection connection, CloudContext context) {
 
 		try {
-			connection.setEncryptionKey(encryptionKey);
+			connection.setEncryptionKey(encryptionKey, keyLength);
 
 		} catch (InvalidKeyException ikex) {
 			ikex.printStackTrace();

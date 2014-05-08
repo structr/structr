@@ -24,7 +24,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.security.InvalidKeyException;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
@@ -73,7 +72,7 @@ public class ClientConnection implements CloudConnection {
 				// this key is only used for the first two packets
 				// of a transmission, it is replaced by the users
 				// password hash afterwards.
-				setEncryptionKey("StructrInitialEncryptionKey");
+				setEncryptionKey("StructrInitialEncryptionKey", 128);
 
 				sender   = new Sender(socket, new ObjectOutputStream(new GZIPOutputStream(new CipherOutputStream(socket.getOutputStream(), encrypter), true)));
 				receiver = new Receiver(socket, new ObjectInputStream(new GZIPInputStream(new CipherInputStream(socket.getInputStream(), decrypter))));
@@ -168,13 +167,10 @@ public class ClientConnection implements CloudConnection {
 	}
 
 	@Override
-	public void setEncryptionKey(final String key) throws InvalidKeyException {
+	public void setEncryptionKey(final String key, final int keyLength) throws InvalidKeyException {
 
 		try {
-			final int maxKeyLen    = Cipher.getMaxAllowedKeyLength(CloudService.STREAM_CIPHER);
-			SecretKeySpec skeySpec = new SecretKeySpec(CloudService.trimToSize(DigestUtils.sha256(key), maxKeyLen), CloudService.STREAM_CIPHER);
-
-			logger.log(Level.INFO, "Maximum allowed key size for stream encryption cipher {0}: {1}", new Object[] { CloudService.STREAM_CIPHER, maxKeyLen } );
+			SecretKeySpec skeySpec = new SecretKeySpec(CloudService.trimToSize(DigestUtils.sha256(key), keyLength), CloudService.STREAM_CIPHER);
 
 			decrypter.init(Cipher.DECRYPT_MODE, skeySpec);
 			encrypter.init(Cipher.ENCRYPT_MODE, skeySpec);

@@ -27,9 +27,11 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.crypto.Cipher;
 import org.structr.common.StructrConf;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
@@ -136,8 +138,17 @@ public class CloudService extends Thread implements RunnableService {
 		final String remoteHost     = transmission.getRemoteHost();
 		final int remoteTcpPort     = transmission.getRemotePort();
 		final ExportContext context = new ExportContext(listener, 4);
+		int maxKeyLen               = 128;
 		ClientConnection client     = null;
 		T remoteResult              = null;
+
+		// obtain max. encryption key length
+		try {
+			maxKeyLen = Cipher.getMaxAllowedKeyLength(CloudService.STREAM_CIPHER);
+			logger.log(Level.INFO, "Maximum allowed key size for stream encryption cipher {0}: {1}", new Object[] { CloudService.STREAM_CIPHER, maxKeyLen } );
+		} catch (NoSuchAlgorithmException nsaex) {
+			nsaex.printStackTrace();
+		}
 
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
@@ -161,7 +172,7 @@ public class CloudService extends Thread implements RunnableService {
 			}
 
 			// send authentication container
-			client.send(new AuthenticationContainer(userName));
+			client.send(new AuthenticationContainer(userName, maxKeyLen));
 			context.progress();
 
 			// wait for authentication container reply from server
@@ -170,7 +181,7 @@ public class CloudService extends Thread implements RunnableService {
 			if (authMessage instanceof AuthenticationContainer) {
 
 				final AuthenticationContainer auth = (AuthenticationContainer)authMessage;
-				client.setEncryptionKey(auth.getEncryptionKey(password));
+				client.setEncryptionKey(auth.getEncryptionKey(password), auth.getKeyLength());
 
 				// do transmission in an authenticated and encrypted context
 				remoteResult = transmission.doRemote(client, context);
