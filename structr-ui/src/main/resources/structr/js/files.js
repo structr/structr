@@ -38,6 +38,7 @@ $(document).ready(function() {
 var _Files = {
     icon: 'icon/page_white.png',
     add_file_icon: 'icon/page_white_add.png',
+    pull_file_icon: 'icon/page_white_put.png',
     delete_file_icon: 'icon/page_white_delete.png',
     add_folder_icon: 'icon/folder_add.png',
     folder_icon: 'icon/folder.png',
@@ -101,10 +102,18 @@ var _Files = {
     },
     refreshFiles: function() {
         files.empty();
-        files.append('<button class="add_file_icon button"><img title="Add File" alt="Add File" src="' + _Files.add_file_icon + '"> Add File</button>');
+        files.append(
+                  '<button class="add_file_icon button"><img title="Add File" alt="Add File" src="' + _Files.add_file_icon + '"> Add File</button>'
+                + '<button class="pull_file_icon button"><img title="Pull File" alt="Pull File" src="' + _Files.pull_file_icon + '"> Pull File</button>'
+        );
         $('.add_file_icon', main).on('click', function(e) {
             e.stopPropagation();
             Command.create({'type': 'File', 'size': 0});
+        });
+
+        $('.pull_file_icon', main).on('click', function(e) {
+            e.stopPropagation();
+            Structr.pullDialog(false);
         });
 
         if (window.File && window.FileReader && window.FileList && window.Blob) {

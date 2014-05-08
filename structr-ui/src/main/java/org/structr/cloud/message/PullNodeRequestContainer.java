@@ -73,22 +73,28 @@ public class PullNodeRequestContainer implements Message {
 		try {
 			final App app             = context.getApplicationContext();
 			final Syncable syncable   = (Syncable)app.nodeQuery().and(GraphObject.id, rootNodeId).includeDeletedAndHidden().getFirst();
-			final ExportSet exportSet = ExportSet.getInstance(syncable, SyncState.all(), recursive);
 
-			// collect export set
-			numNodes  = exportSet.getNodes().size();
-			numRels   = exportSet.getRelationships().size();
-			key       = UUID.randomUUID().toString();
+			if (syncable != null) {
+				
+				final ExportSet exportSet = ExportSet.getInstance(syncable, SyncState.all(), recursive);
 
-			context.storeValue(key + "Nodes", new ArrayList<>(exportSet.getNodes()));
-			context.storeValue(key + "Rels",  new ArrayList<>(exportSet.getRelationships()));
+				// collect export set
+				numNodes  = exportSet.getNodes().size();
+				numRels   = exportSet.getRelationships().size();
+				key       = UUID.randomUUID().toString();
+
+				context.storeValue(key + "Nodes", new ArrayList<>(exportSet.getNodes()));
+				context.storeValue(key + "Rels",  new ArrayList<>(exportSet.getRelationships()));
+
+				// send this back
+				return this;
+			}
 
 		} catch (FrameworkException fex) {
 			fex.printStackTrace();
 		}
 
-		// send this back
-		return this;
+		return null;
 	}
 
 	@Override

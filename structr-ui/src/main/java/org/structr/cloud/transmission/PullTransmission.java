@@ -75,7 +75,10 @@ public class PullTransmission extends AbstractTransmission<Boolean> {
 							Message chunkMessage    = null;
 							int sequenceNumber      = 0;
 
+							context.increaseTotal((Long.valueOf(pullFile.getFileSize() / CloudService.CHUNK_SIZE).intValue()));
+
 							cloudContext.beginFile(pullFile);
+							context.progress();
 
 							do {
 								for (int j=0; j<CloudService.LIVE_PACKET_COUNT; j++) {
@@ -88,7 +91,8 @@ public class PullTransmission extends AbstractTransmission<Boolean> {
 									if (chunkMessage instanceof FileNodeChunk) {
 
 										cloudContext.fileChunk((FileNodeChunk)chunkMessage);
-										
+										context.progress();
+
 									} else {
 
 										break;
@@ -100,6 +104,7 @@ public class PullTransmission extends AbstractTransmission<Boolean> {
 							// end node chunk
 							if (chunkMessage instanceof FileNodeEndChunk) {
 								cloudContext.finishFile((FileNodeEndChunk)chunkMessage);
+								context.progress();
 							}
 						}
 

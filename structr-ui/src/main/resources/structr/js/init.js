@@ -1082,6 +1082,45 @@ var Structr = {
         });
 
         return false;
+    },
+    pullDialog: function(recursive) {
+
+        Structr.dialog('Pull node from remote server', function() {
+        },
+                function() {
+                });
+
+        var pushConf = JSON.parse(localStorage.getItem(pushConfigKey)) || {};
+
+        dialog.append('Please enter ID of desired node.');
+
+        dialog.append('<table class="props push">'
+                + '<tr><td>Remote ID</td><td><input id="pull-id" type="text" length="32" ></td></tr>'
+                + '<tr><td>Host</td><td><input id="push-host" type="text" length="32" value="' + (pushConf.host || '') + '"></td></tr>'
+                + '<tr><td>Port</td><td><input id="push-port" type="text" length="32" value="' + (pushConf.port || '') + '"></td></tr>'
+                + '<tr><td>Username</td><td><input id="push-username" type="text" length="32" value="' + (pushConf.username || '') + '"></td></tr>'
+                + '<tr><td>Password</td><td><input id="push-password" type="password" length="32" value="' + (pushConf.password || '') + '"></td></tr>'
+                + '</table>'
+                + '<button id="start-pull">Start</button>');
+
+        $('#start-pull', dialog).on('click', function() {
+            var remoteId = $('#pull-id', dialog).val();
+            var host = $('#push-host', dialog).val();
+            var port = parseInt($('#push-port', dialog).val());
+            var username = $('#push-username', dialog).val();
+            var password = $('#push-password', dialog).val();
+            var key = 'key_' + remoteId;
+
+            pushConf = {host: host, port: port, username: username, password: password};
+            localStorage.setItem(pushConfigKey, JSON.stringify(pushConf));
+
+            Command.pull(remoteId, host, port, username, password, key, recursive, function() {
+                dialog.empty();
+                dialogCancelButton.click();
+            })
+        });
+
+        return false;
     }
 };
 

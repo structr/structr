@@ -60,6 +60,9 @@ public class PullFile extends FileNodeDataContainer {
 			collectProperties(node.getNode());
 
 			context.storeValue(sourceNodeId, getChunks(file, CloudService.CHUNK_SIZE).iterator());
+
+			// return file size
+			this.setFileSize(file.getSize());
 		}
 
 		// send this back
