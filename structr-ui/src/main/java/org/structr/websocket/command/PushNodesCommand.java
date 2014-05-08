@@ -19,8 +19,8 @@
 package org.structr.websocket.command;
 
 import java.util.Map;
-import org.structr.cloud.CloudListener;
 import org.structr.cloud.CloudService;
+import org.structr.cloud.WebsocketProgressListener;
 import org.structr.cloud.transmission.PushTransmission;
 import org.structr.common.Syncable;
 import org.structr.common.error.FrameworkException;
@@ -73,7 +73,7 @@ public class PushNodesCommand extends AbstractCommand {
 							recursive = "true".equals(recursiveSource.toString());
 						}
 
-						CloudService.doRemote(new PushTransmission((Syncable)root, recursive, username, password, host, port.intValue()), new ProgressListener(getWebSocket(), key));
+						CloudService.doRemote(new PushTransmission((Syncable)root, recursive, username, password, host, port.intValue()), new WebsocketProgressListener(getWebSocket(), key));
 
 					} else {
 
@@ -102,37 +102,6 @@ public class PushNodesCommand extends AbstractCommand {
 	@Override
 	public String getCommand() {
 		return "PUSH";
-	}
-
-	private class ProgressListener implements CloudListener {
-
-		private StructrWebSocket websocket = null;
-		private String key                 = null;
-
-		public ProgressListener(final StructrWebSocket websocket, final String key) {
-			this.websocket = websocket;
-			this.key       = key;
-		}
-
-		@Override
-		public void transmissionStarted() {
-			getWebSocket().send(MessageBuilder.status().code(200).message("Transmission started").build(), true);
-		}
-
-		@Override
-		public void transmissionFinished() {
-			getWebSocket().send(MessageBuilder.status().code(200).message("Transmission finished").build(), true);
-		}
-
-		@Override
-		public void transmissionAborted() {
-			getWebSocket().send(MessageBuilder.status().code(200).message("Transmission aborted").build(), true);
-		}
-
-		@Override
-		public void transmissionProgress(int current, int total) {
-			websocket.send(MessageBuilder.progress().code(200).message("{\"key\":\"" + key + "\", \"current\":" + current + ", \"total\":" + total + "}").build(), true);
-		}
 	}
 }
 

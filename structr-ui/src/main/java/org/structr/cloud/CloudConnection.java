@@ -8,6 +8,7 @@ import java.security.InvalidKeyException;
  */
 public interface CloudConnection {
 
-	public void closeConnection();
+	public boolean isConnected();
+	public void shutdown();
 	public void setEncryptionKey(final String key, final int keyLength) throws InvalidKeyException;
 }

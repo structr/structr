@@ -53,7 +53,7 @@ public class CloudService extends Thread implements RunnableService {
 	public static final int BUFFER_SIZE       = CHUNK_SIZE * 4;
 	public static final int LIVE_PACKET_COUNT = 19;
 
-	public static final boolean DEBUG         = false;
+	public static final boolean DEBUG         = true;
 	public static final String STREAM_CIPHER  = "RC4";
 
 	private final static int DefaultTcpPort   = 54555;
@@ -153,14 +153,13 @@ public class CloudService extends Thread implements RunnableService {
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
 			client = new ClientConnection(new Socket(remoteHost, remoteTcpPort));
+			client.start();
 
 			// notify context of increased message stack size
 			context.increaseTotal(transmission.getTotalSize());
 
 			// notify listener
 			context.transmissionStarted();
-
-			client.start();
 
 			// mark start of transaction
 			client.send(new Begin());
@@ -183,6 +182,8 @@ public class CloudService extends Thread implements RunnableService {
 				final AuthenticationContainer auth = (AuthenticationContainer)authMessage;
 				client.setEncryptionKey(auth.getEncryptionKey(password), auth.getKeyLength());
 
+				context.progress();
+
 				// do transmission in an authenticated and encrypted context
 				remoteResult = transmission.doRemote(client, context);
 
@@ -192,6 +193,8 @@ public class CloudService extends Thread implements RunnableService {
 				if (context != null) {
 					context.transmissionAborted();
 				}
+
+				client.shutdown();
 			}
 
 			// mark end of transaction

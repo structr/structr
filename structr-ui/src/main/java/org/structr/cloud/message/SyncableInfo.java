@@ -4,6 +4,7 @@ import java.io.Serializable;
 import org.structr.common.Syncable;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.web.entity.File;
 
 /**
  *
@@ -11,9 +12,10 @@ import org.structr.core.graph.RelationshipInterface;
  */
 public class SyncableInfo implements Serializable {
 
-	private String id    = null;
+	private String id   = null;
 	private String name = null;
 	private String type = null;
+	private Long size   = null;
 
 	public SyncableInfo(final Syncable syncable) {
 
@@ -25,6 +27,10 @@ public class SyncableInfo implements Serializable {
 				this.id   = node.getUuid();
 				this.name = node.getName();
 				this.type = node.getType();
+
+				if (node instanceof File) {
+					this.size = ((File)node).getSize();
+				}
 
 			} else {
 
@@ -49,5 +55,7 @@ public class SyncableInfo implements Serializable {
 		return type;
 	}
 
-
+	public Long getSize() {
+		return size;
+	}
 }

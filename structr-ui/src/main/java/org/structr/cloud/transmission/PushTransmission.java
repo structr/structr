@@ -40,7 +40,7 @@ public class PushTransmission extends AbstractTransmission<Boolean> {
 
 	@Override
 	public int getTotalSize() {
-		return exportSet.getTotalSize();
+		return exportSet.getTotalSize() + 1;
 	}
 
 	@Override

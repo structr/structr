@@ -71,8 +71,7 @@ public class AuthenticationContainer implements Message {
 				this.keyLength     = Math.min(keyLength, Cipher.getMaxAllowedKeyLength(CloudService.STREAM_CIPHER));
 				this.encryptionKey = user.getEncryptedPassword();
 				this.salt          = user.getProperty(Principal.salt);
-				
-				// FIXME: can we do this here?
+
 				context.impersonateUser(user);
 
 				return this;
@@ -83,7 +82,7 @@ public class AuthenticationContainer implements Message {
 		}
 
 		context.endTransaction();
-		connection.closeConnection();
+		connection.shutdown();
 
 		return null;
 	}
@@ -92,6 +91,7 @@ public class AuthenticationContainer implements Message {
 	public void postProcess(CloudConnection connection, CloudContext context) {
 
 		try {
+
 			connection.setEncryptionKey(encryptionKey, keyLength);
 
 		} catch (InvalidKeyException ikex) {

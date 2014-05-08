@@ -75,7 +75,7 @@ public class PullNodeRequestContainer implements Message {
 			final Syncable syncable   = (Syncable)app.nodeQuery().and(GraphObject.id, rootNodeId).includeDeletedAndHidden().getFirst();
 
 			if (syncable != null) {
-				
+
 				final ExportSet exportSet = ExportSet.getInstance(syncable, SyncState.all(), recursive);
 
 				// collect export set

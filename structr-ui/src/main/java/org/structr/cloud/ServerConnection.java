@@ -18,6 +18,8 @@
  */
 package org.structr.cloud;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import org.structr.cloud.message.Message;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -72,8 +74,8 @@ public class ServerConnection extends Thread implements CloudConnection {
 				// password hash afterwards.
 				setEncryptionKey("StructrInitialEncryptionKey", 128);
 
-				sender   = new Sender(socket, new ObjectOutputStream(new GZIPOutputStream(new CipherOutputStream(socket.getOutputStream(), encrypter), true)));
-				receiver = new Receiver(socket, new ObjectInputStream(new GZIPInputStream(new CipherInputStream(socket.getInputStream(), decrypter))));
+				sender   = new Sender(this, new ObjectOutputStream(new GZIPOutputStream(new CipherOutputStream(new BufferedOutputStream(socket.getOutputStream()), encrypter), true)));
+				receiver = new Receiver(this, new ObjectInputStream(new GZIPInputStream(new CipherInputStream(new BufferedInputStream(socket.getInputStream()), decrypter))));
 
 				receiver.start();
 				sender.start();
@@ -90,7 +92,7 @@ public class ServerConnection extends Thread implements CloudConnection {
 	@Override
 	public void run() {
 
-		while (receiver.isConnected() && sender.isConnected()) {
+		while (isConnected()) {
 
 			try {
 
@@ -101,11 +103,10 @@ public class ServerConnection extends Thread implements CloudConnection {
 					if (response != null) {
 
 						sender.send(response);
-						response.postProcess(this, context);
 					}
 				}
 
-				Thread.sleep(1);
+				Thread.sleep(10);
 
 			} catch (Throwable t) {
 				t.printStackTrace();
@@ -115,18 +116,8 @@ public class ServerConnection extends Thread implements CloudConnection {
 		shutdown();
 	}
 
-	public void shutdown() {
-
-		receiver.finish();
-		sender.finish();
-
-		context.endTransaction();
-	}
-
 	@Override
-	public void closeConnection() {
-
-		shutdown();
+	public void shutdown() {
 
 		try {
 
@@ -135,6 +126,8 @@ public class ServerConnection extends Thread implements CloudConnection {
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}
+
+		context.endTransaction();
 	}
 
 	@Override
@@ -149,5 +142,10 @@ public class ServerConnection extends Thread implements CloudConnection {
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}
+	}
+
+	@Override
+	public boolean isConnected() {
+		return socket.isConnected() && !socket.isClosed();
 	}
 }

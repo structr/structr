@@ -3,7 +3,6 @@ package org.structr.cloud;
 import org.structr.cloud.message.Message;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
-import java.net.Socket;
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
 
@@ -15,16 +14,17 @@ public class Sender extends Thread {
 
 	private final Queue<Message> outputQueue = new ArrayBlockingQueue<>(1000);
 	private ObjectOutputStream outputStream  = null;
+	private CloudConnection connection       = null;
 	private Throwable errorMessage           = null;
-	private Socket socket                    = null;
 
-	public Sender(final Socket socket, final ObjectOutputStream outputStream) {
+	public Sender(final CloudConnection connection, final ObjectOutputStream outputStream) {
 
-		this.socket       = socket;
 		this.outputStream = outputStream;
+		this.connection   = connection;
 
 		// flush stream to avoid ObjectInputStream to be waiting indefinitely
 		try {
+
 			outputStream.flush();
 
 		} catch (IOException ioex) {
@@ -35,7 +35,7 @@ public class Sender extends Thread {
 	@Override
 	public void run() {
 
-		while (isConnected()) {
+		while (connection.isConnected()) {
 
 			try {
 
@@ -48,13 +48,15 @@ public class Sender extends Thread {
 
 					outputStream.writeObject(message);
 					outputStream.flush();
+
+					message.postProcess(connection, null);
 				}
 
-			} catch (IOException ioex) {
+			} catch (Throwable t) {
 
-				errorMessage = ioex;
+				errorMessage = t;
 
-				finish();
+				connection.shutdown();
 			}
 		}
 	}
@@ -63,19 +65,7 @@ public class Sender extends Thread {
 		return errorMessage;
 	}
 
-	public boolean isConnected() {
-		return socket.isConnected() && !socket.isClosed();
-	}
-
 	public void send(final Message message) {
 		outputQueue.add(message);
-	}
-
-	public void finish() {
-
-		try {
-			outputStream.close();
-
-		} catch (IOException ioex) { }
 	}
 }

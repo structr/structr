@@ -22,6 +22,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import org.structr.cloud.CloudService;
+import org.structr.cloud.WebsocketProgressListener;
 import org.structr.cloud.message.ListSyncables;
 import org.structr.cloud.message.SyncableInfo;
 import org.structr.cloud.transmission.SingleTransmission;
@@ -32,6 +33,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.web.entity.File;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -56,14 +58,15 @@ public class ListRemoteSyncablesCommand extends AbstractCommand {
 		final String username                = (String)properties.get("username");
 		final String password                = (String)properties.get("password");
 		final String host                    = (String)properties.get("host");
+		final String key                     = (String)properties.get("key");
 		final Long port                      = (Long)properties.get("port");
 
-		if (host != null && port != null && username != null && password != null) {
+		if (host != null && port != null && username != null && password != null && key != null) {
 
 			final App app    = StructrApp.getInstance();
 			try (final Tx tx = app.tx()) {
 
-				final List<SyncableInfo> syncables = CloudService.doRemote(new SingleTransmission<>(new ListSyncables(), username, password, host, port.intValue()), null);
+				final List<SyncableInfo> syncables = CloudService.doRemote(new SingleTransmission<>(new ListSyncables(), username, password, host, port.intValue()), new WebsocketProgressListener(getWebSocket(), key));
 				final StructrWebSocket webSocket   = getWebSocket();
 				if (syncables != null) {
 
@@ -73,6 +76,7 @@ public class ListRemoteSyncablesCommand extends AbstractCommand {
 						final GraphObjectMap map = new GraphObjectMap();
 						map.put(GraphObject.id,     info.getId());
 						map.put(NodeInterface.name, info.getName());
+						map.put(File.size,          info.getSize());
 						map.put(GraphObject.type,   info.getType());
 
 						result.add(map);

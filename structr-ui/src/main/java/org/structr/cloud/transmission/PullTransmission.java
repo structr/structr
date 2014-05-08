@@ -35,7 +35,7 @@ public class PullTransmission extends AbstractTransmission<Boolean> {
 
 	@Override
 	public int getTotalSize() {
-		return 0;
+		return 1;
 	}
 
 	@Override

@@ -17,7 +17,7 @@ public class End implements Message {
 		context.commitTransaction();
 		context.endTransaction();
 
-		connection.closeConnection();
+		connection.shutdown();
 
 		return null;
 	}

@@ -1099,7 +1099,7 @@ var Structr = {
                 + '<td>Password</td><td><input id="push-password" type="password" length="32" value="' + (pushConf.password || '') + '"></td></tr>'
                 + '</table>'
                 + '<button id="show-syncables">Show available nodes</button>'
-                + '<table id="syncables" class="props push"><tr><th>ID</th><th>Name</th></tr>'
+                + '<table id="syncables" class="props push"><tr><th>Name</th><th>Size</th><th>Type</th><th>Recursive</th><th>Actions</th></tr>'
                 + '</table>'
         );
 
@@ -1110,15 +1110,19 @@ var Structr = {
             var port = parseInt($('#push-port', dialog).val());
             var username = $('#push-username', dialog).val();
             var password = $('#push-password', dialog).val();
+            var key = 'syncables';
 
             pushConf = {host: host, port: port, username: username, password: password};
             localStorage.setItem(pushConfigKey, JSON.stringify(pushConf));
 
-            Command.listSyncables(host, port, username, password, function(syncable) {
+            syncables.empty();
+
+            Command.listSyncables(host, port, username, password, key, function(syncable) {
 
                 syncables.append(
                       '<tr>'
                     + '<td>' + syncable.name + '</td>'
+                    + '<td>' + (syncable.size ? syncable.size : "-") + '</td>'
                     + '<td>' + syncable.type + '</td>'
                     + '<td><input type="checkbox" id="recursive-' + syncable.id + '"></td>'
                     + '<td><button id="pull-' + syncable.id + '">Pull</button></td>'
@@ -1127,7 +1131,8 @@ var Structr = {
 
                 $('#pull-' + syncable.id, dialog).on('click', function() {
 
-                    var recursive = $('#recursive-' + syncable.id, dialog).val()
+                    var recursive = $('#recursive-' + syncable.id, syncables).prop('checked');
+                    console.log(recursive);
 
                     Command.pull(syncable.id, host, port, username, password, 'key-' + syncable.id, recursive, function() {
                     });

@@ -18,6 +18,8 @@
  */
 package org.structr.cloud;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import org.structr.cloud.message.Message;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -74,8 +76,8 @@ public class ClientConnection implements CloudConnection {
 				// password hash afterwards.
 				setEncryptionKey("StructrInitialEncryptionKey", 128);
 
-				sender   = new Sender(socket, new ObjectOutputStream(new GZIPOutputStream(new CipherOutputStream(socket.getOutputStream(), encrypter), true)));
-				receiver = new Receiver(socket, new ObjectInputStream(new GZIPInputStream(new CipherInputStream(socket.getInputStream(), decrypter))));
+				sender   = new Sender(this, new ObjectOutputStream(new GZIPOutputStream(new CipherOutputStream(new BufferedOutputStream(socket.getOutputStream()), encrypter), true)));
+				receiver = new Receiver(this, new ObjectInputStream(new GZIPInputStream(new CipherInputStream(new BufferedInputStream(socket.getInputStream()), decrypter))));
 
 				receiver.start();
 				sender.start();
@@ -90,18 +92,8 @@ public class ClientConnection implements CloudConnection {
 		sender.send(message);
 	}
 
-	public void shutdown() {
-
-		receiver.finish();
-		sender.finish();
-
-		context.endTransaction();
-	}
-
 	@Override
-	public void closeConnection() {
-
-		shutdown();
+	public void shutdown() {
 
 		try {
 
@@ -110,6 +102,8 @@ public class ClientConnection implements CloudConnection {
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}
+
+		context.endTransaction();
 	}
 
 	public Message waitForMessage() throws FrameworkException {
@@ -144,7 +138,7 @@ public class ClientConnection implements CloudConnection {
 					}
 				}
 
-				try { Thread.sleep(1); } catch (Throwable t) {}
+				try { Thread.sleep(10); } catch (Throwable t) {}
 			}
 		}
 
@@ -155,7 +149,7 @@ public class ClientConnection implements CloudConnection {
 
 		final long abortTime = System.currentTimeMillis() + timeout;
 
-		while ((sender.isConnected() || receiver.isConnected()) && System.currentTimeMillis() < abortTime) {
+		while (isConnected() && System.currentTimeMillis() < abortTime) {
 
 			try {
 
@@ -178,5 +172,10 @@ public class ClientConnection implements CloudConnection {
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}
+	}
+
+	@Override
+	public boolean isConnected() {
+		return socket.isConnected() && !socket.isClosed();
 	}
 }
