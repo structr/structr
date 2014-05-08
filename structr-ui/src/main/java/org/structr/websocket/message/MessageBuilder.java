@@ -54,6 +54,10 @@ public class MessageBuilder {
 		return builder().command("UPDATE");
 	}
 
+	public static MessageBuilder forName(final String command) {
+		return builder().command(command);
+	}
+
 	// ----- non-static methods -----
 	public MessageBuilder command(String command) {
 		data.setCommand(command);

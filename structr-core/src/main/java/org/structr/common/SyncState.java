@@ -10,11 +10,11 @@ import java.util.Set;
  */
 public class SyncState {
 
-	private Set<Flag> flags = EnumSet.noneOf(Flag.class);
+	private final Set<Flag> flags = EnumSet.noneOf(Flag.class);
 
 	public enum Flag {
 
-		Pages, Resources, Users, Access
+		Pages, Files, Folders, Images, Users, Access
 	}
 
 	/**

@@ -18,13 +18,19 @@
  */
 package org.structr.websocket.command;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
-import org.structr.cloud.CloudListener;
 import org.structr.cloud.CloudService;
-import org.structr.cloud.transmission.PullTransmission;
+import org.structr.cloud.message.ListSyncables;
+import org.structr.cloud.message.SyncableInfo;
+import org.structr.cloud.transmission.SingleTransmission;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
+import org.structr.core.GraphObjectMap;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
@@ -36,37 +42,45 @@ import org.structr.websocket.message.WebSocketMessage;
  *
  * @author Axel Morgner
  */
-public class PullCommand extends AbstractCommand {
+public class ListRemoteSyncablesCommand extends AbstractCommand {
 
 	static {
 
-		StructrWebSocket.addCommand(PullCommand.class);
+		StructrWebSocket.addCommand(ListRemoteSyncablesCommand.class);
 	}
 
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) {
 
 		final Map<String, Object> properties = webSocketData.getNodeData();
-		final String sourceId                = webSocketData.getId();
-		final Object recursiveSource         = properties.get("recursive");
 		final String username                = (String)properties.get("username");
 		final String password                = (String)properties.get("password");
 		final String host                    = (String)properties.get("host");
-		final String key                     = (String)properties.get("key");
 		final Long port                      = (Long)properties.get("port");
 
-		if (sourceId != null && host != null && port != null && username != null && password != null && key != null) {
+		if (host != null && port != null && username != null && password != null) {
 
 			final App app    = StructrApp.getInstance();
 			try (final Tx tx = app.tx()) {
 
-				boolean recursive = false;
-				if (recursiveSource != null) {
+				final List<SyncableInfo> syncables = CloudService.doRemote(new SingleTransmission<>(new ListSyncables(), username, password, host, port.intValue()), null);
+				final StructrWebSocket webSocket   = getWebSocket();
+				if (syncables != null) {
 
-					recursive = "true".equals(recursiveSource.toString());
+					final List<GraphObject> result = new LinkedList<>();
+					for (final SyncableInfo info : syncables) {
+
+						final GraphObjectMap map = new GraphObjectMap();
+						map.put(GraphObject.id,     info.getId());
+						map.put(NodeInterface.name, info.getName());
+						map.put(GraphObject.type,   info.getType());
+
+						result.add(map);
+					}
+
+					webSocketData.setResult(result);
+					webSocket.send(webSocketData, true);
 				}
-
-				CloudService.doRemote(new PullTransmission(sourceId, recursive, username, password, host, port.intValue()), new ProgressListener(getWebSocket(), key));
 
 			} catch (FrameworkException fex) {
 
@@ -84,38 +98,7 @@ public class PullCommand extends AbstractCommand {
 
 	@Override
 	public String getCommand() {
-		return "PULL";
-	}
-
-	private class ProgressListener implements CloudListener {
-
-		private StructrWebSocket websocket = null;
-		private String key                 = null;
-
-		public ProgressListener(final StructrWebSocket websocket, final String key) {
-			this.websocket = websocket;
-			this.key       = key;
-		}
-
-		@Override
-		public void transmissionStarted() {
-			getWebSocket().send(MessageBuilder.status().code(200).message("Transmission started").build(), true);
-		}
-
-		@Override
-		public void transmissionFinished() {
-			getWebSocket().send(MessageBuilder.status().code(200).message("Transmission finished").build(), true);
-		}
-
-		@Override
-		public void transmissionAborted() {
-			getWebSocket().send(MessageBuilder.status().code(200).message("Transmission aborted").build(), true);
-		}
-
-		@Override
-		public void transmissionProgress(int current, int total) {
-			websocket.send(MessageBuilder.progress().code(200).message("{\"key\":\"" + key + "\", \"current\":" + current + ", \"total\":" + total + "}").build(), true);
-		}
+		return "LIST_SYNCABLES";
 	}
 }
 

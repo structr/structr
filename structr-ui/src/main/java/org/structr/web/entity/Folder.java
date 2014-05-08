@@ -81,15 +81,24 @@ public class Folder extends AbstractFile implements Syncable {
 		final List<Syncable> data = new LinkedList<>();
 
 		// add full folder structure when resource sync is requested
-		if (state.hasFlag(SyncState.Flag.Resources)) {
+		if (state.hasFlag(SyncState.Flag.Images)) {
+
+			data.addAll(getProperty(images));
+			data.addAll(Iterables.toList(getOutgoingRelationships(Images.class)));
+		}
+
+		// add full folder structure when resource sync is requested
+		if (state.hasFlag(SyncState.Flag.Files)) {
+
+			data.addAll(getProperty(files));
+			data.addAll(Iterables.toList(getOutgoingRelationships(Files.class)));
+		}
+
+		// add full folder structure when resource sync is requested
+		if (state.hasFlag(SyncState.Flag.Folders)) {
 
 			data.addAll(getProperty(folders));
-			data.addAll(getProperty(files));
-			data.addAll(getProperty(images));
-
 			data.addAll(Iterables.toList(getOutgoingRelationships(Folders.class)));
-			data.addAll(Iterables.toList(getOutgoingRelationships(Files.class)));
-			data.addAll(Iterables.toList(getOutgoingRelationships(Images.class)));
 		}
 
 		// parent only

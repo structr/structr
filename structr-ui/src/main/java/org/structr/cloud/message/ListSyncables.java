@@ -3,23 +3,25 @@ package org.structr.cloud.message;
 import java.util.List;
 import org.structr.cloud.CloudConnection;
 import org.structr.cloud.CloudContext;
+import org.structr.common.SyncState;
 import org.structr.common.error.FrameworkException;
 
 /**
  *
  * @author Christian Morgner
  */
-public class ListPages implements Message<List<String>> {
+public class ListSyncables implements Message<List<SyncableInfo>> {
 
-	private List<String> pages = null;
+	private List<SyncableInfo> syncables = null;
 
-	public ListPages() {}
+	public ListSyncables() {}
 
 	@Override
 	public Message process(CloudConnection connection, final CloudContext context) {
 
 		try {
-			this.pages = context.listPages();
+
+			this.syncables = context.listSyncables(SyncState.all());
 
 		} catch (FrameworkException fex) {
 			fex.printStackTrace();
@@ -33,7 +35,7 @@ public class ListPages implements Message<List<String>> {
 	}
 
 	@Override
-	public List<String> getPayload() {
-		return pages;
+	public List<SyncableInfo> getPayload() {
+		return syncables;
 	}
 }

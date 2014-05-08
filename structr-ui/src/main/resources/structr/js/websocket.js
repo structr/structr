@@ -300,6 +300,20 @@ function wsConnect() {
 
                 StructrModel.clearCallback(data.callback);
 
+            } else if (command.startsWith('LIST_SYNCABLES')) { /*********************** LIST_SYNCABLES ************************/
+
+                console.log(data);
+
+                log('LIST_SYNCABLES', result, data);
+
+                $(result).each(function(i, entity) {
+
+                    StructrModel.callCallback(data.callback, entity);
+
+                });
+
+                StructrModel.clearCallback(data.callback);
+
             } else if (command.startsWith('LIST')) { /*********************** LIST ************************/
 
                 log('LIST', result, data);
