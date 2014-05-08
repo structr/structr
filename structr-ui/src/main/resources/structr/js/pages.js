@@ -927,7 +927,6 @@ var _Pages = {
 
         _Entities.appendInput(el, entity, 'dataKey', 'Data Key', 'Query results are mapped to this key and can be accessed by ${<i>&lt;dataKey&gt;.&lt;propertyKey&gt;</i>}');
 
-
     },
     reloadDataBindingWizard: function() {
         dataBindingSlideout.children('#wizard').remove();
@@ -1012,9 +1011,6 @@ var _Pages = {
                     statusCode: {
                         200: function(data) {
                             _Schema.getPropertyName(t.name, data.result[0].relationshipType, false, function(key, isCollection) {
-
-                                console.log('key', key)
-
                                 $('#data-wizard-attributes .custom').append('<div class="draggable data-binding-attribute ' + key + '" collection="' + isCollection + '" subkey="' + subkey + '">' + typeKey + '.' + key + '</div>');
                                 $('#data-wizard-attributes .custom').children('.draggable.' + key).draggable({
                                     iframeFix: true,
