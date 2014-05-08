@@ -243,19 +243,14 @@ var _Dragndrop = {
                         Command.setProperty(target.id, 'dataKey', null);
                         $('#dataKey_').val('');
                     }
-                    window.setTimeout(function() { _Pages.reloadPreviews() }, 500);
                 });
 
             } else if (tag.indexOf(':') !== -1) {
-
                 var type = tag.substring(1);
-
                 Command.setProperty(target.id, 'restQuery', pluralize(type.toLowerCase()));
-
                 Command.setProperty(target.id, 'dataKey', type.toLowerCase(), false, function() {
                     _Pages.reloadPreviews();
                 });
-
             } else {
                 return _Dragndrop.htmlElementFromPaletteDropped(tag, target, pageId);
             }
