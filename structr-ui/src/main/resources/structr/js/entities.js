@@ -645,19 +645,22 @@ var _Entities = {
             entity.setProperty(key, $('#' + key + '_', el).val(), false, function() {
                 log(key + ' successfully updated!', entity[key]);
                 blinkGreen(btn);
+                _Pages.reloadPreviews();
             });
         });
     },
     appendInput: function(el, entity, key, label, desc) {
         if (!el || !entity) {
+            console.log(el, entity);
             return false;
         }
         el.append('<div><h3>' + label + '</h3><p>' + desc + '</p><input type="text" id="' + key + '_" value="' + (entity[key] ? entity[key] : '') + '"><button id="save_' + key + '">Save</button></div>');
         var btn = $('#save_' + key, el);
         btn.on('click', function() {
-            entity.setProperty('dataKey', $('#' + key + '_', dialog).val(), false, function() {
+            entity.setProperty('dataKey', $('#' + key + '_').val(), false, function() {
                 log(key + ' successfully updated!', entity[key]);
                 blinkGreen(btn);
+                _Pages.reloadPreviews();
             });
         });
     },

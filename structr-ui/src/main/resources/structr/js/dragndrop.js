@@ -230,21 +230,20 @@ var _Dragndrop = {
                         var key = tag.substring(tag.indexOf('.') + 1);
                         log('tag, key, subkey', tag, key, related.subKey)
                         if (related.isCollection) {
-                            Command.setProperty(firstContentId, 'content', '${' + key + '.' + related.subKey + '}', function() {
-                                Command.setProperty(target.id, 'dataKey', key, false, function() {
-                                    _Pages.reloadPreviews();
-                                });
-                            });
+                            Command.setProperty(firstContentId, 'content', '${' + key + '.' + related.subKey + '}');
+                            Command.setProperty(target.id, 'dataKey', key);
+                            $('#dataKey_').val(key);
                         } else {
-                            Command.setProperty(firstContentId, 'content', '${' + tag + '.' + related.subKey + '}', function() {
-                                _Pages.reloadPreviews();
-                            });
+                            Command.setProperty(firstContentId, 'content', '${' + tag + '.' + related.subKey + '}');
+                            Command.setProperty(target.id, 'dataKey', null);
+                            $('#dataKey_').val('');
                         }
                     } else {
-                        Command.setProperty(firstContentId, 'content', '${' + tag + '}', function() {
-                            _Pages.reloadPreviews();
-                        });
+                        Command.setProperty(firstContentId, 'content', '${' + tag + '}');
+                        Command.setProperty(target.id, 'dataKey', null);
+                        $('#dataKey_').val('');
                     }
+                    window.setTimeout(function() { _Pages.reloadPreviews() }, 500);
                 });
 
             } else if (tag.indexOf(':') !== -1) {
