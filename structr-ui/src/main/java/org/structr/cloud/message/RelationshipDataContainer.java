@@ -16,8 +16,11 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.cloud;
+package org.structr.cloud.message;
 
+import org.structr.cloud.CloudConnection;
+import org.structr.cloud.CloudService;
+import org.structr.cloud.CloudContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.RelationshipInterface;
@@ -107,20 +110,28 @@ public class RelationshipDataContainer extends DataContainer implements Comparab
 
 		int hashCode = 123;
 
-		hashCode += this.getType().hashCode() ^ 11;
-		hashCode += this.getSourceStartNodeId().hashCode() ^ 12;
-		hashCode += this.getSourceEndNodeId().hashCode() ^ 13;
+		if (getType() != null) {
+			hashCode += this.getType().hashCode() ^ 11;
+		}
+
+		if (getSourceStartNodeId() != null) {
+			hashCode += this.getSourceStartNodeId().hashCode() ^ 12;
+		}
+
+		if (getSourceEndNodeId() != null) {
+			hashCode += this.getSourceEndNodeId().hashCode() ^ 13;
+		}
 
 		return hashCode;
 	}
 
 	@Override
-	public Message process(final ServerContext context) {
+	public Message process(CloudConnection connection, final CloudContext context) {
 
 		context.storeRelationship(this);
 
 		if (((sequenceNumber+1) % CloudService.LIVE_PACKET_COUNT) == 0) {
-			return new AckPacket("RelationshipData", sequenceNumber);
+			return new Ack("RelationshipData", sequenceNumber);
 		}
 
 		return null;

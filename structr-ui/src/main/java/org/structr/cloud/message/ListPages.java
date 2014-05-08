@@ -1,20 +1,22 @@
-package org.structr.cloud;
+package org.structr.cloud.message;
 
 import java.util.List;
+import org.structr.cloud.CloudConnection;
+import org.structr.cloud.CloudContext;
 import org.structr.common.error.FrameworkException;
 
 /**
  *
  * @author Christian Morgner
  */
-public class ListPagesPacket implements Message<List<String>> {
+public class ListPages implements Message<List<String>> {
 
 	private List<String> pages = null;
 
-	public ListPagesPacket() {}
+	public ListPages() {}
 
 	@Override
-	public Message process(final ServerContext context) {
+	public Message process(CloudConnection connection, final CloudContext context) {
 
 		try {
 			this.pages = context.listPages();
@@ -27,7 +29,7 @@ public class ListPagesPacket implements Message<List<String>> {
 	}
 
 	@Override
-	public void postProcess(final ServerContext context) {
+	public void postProcess(CloudConnection connection, final CloudContext context) {
 	}
 
 	@Override

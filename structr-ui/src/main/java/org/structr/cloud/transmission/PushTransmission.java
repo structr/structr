@@ -1,18 +1,18 @@
 package org.structr.cloud.transmission;
 
 import java.io.IOException;
-import java.util.LinkedHashSet;
 import java.util.Set;
 import org.structr.cloud.ClientConnection;
 import org.structr.cloud.CloudService;
 import static org.structr.cloud.CloudService.LIVE_PACKET_COUNT;
 import org.structr.cloud.ExportContext;
-import org.structr.cloud.FileNodeChunk;
-import org.structr.cloud.FileNodeDataContainer;
-import org.structr.cloud.FileNodeEndChunk;
-import org.structr.cloud.NodeDataContainer;
-import org.structr.cloud.PushNodeRequestContainer;
-import org.structr.cloud.RelationshipDataContainer;
+import org.structr.cloud.ExportSet;
+import org.structr.cloud.message.FileNodeChunk;
+import org.structr.cloud.message.FileNodeDataContainer;
+import org.structr.cloud.message.FileNodeEndChunk;
+import org.structr.cloud.message.NodeDataContainer;
+import org.structr.cloud.message.PushNodeRequestContainer;
+import org.structr.cloud.message.RelationshipDataContainer;
 import org.structr.common.SyncState;
 import org.structr.common.Syncable;
 import org.structr.common.error.FrameworkException;
@@ -26,8 +26,8 @@ import org.structr.web.entity.File;
  */
 public class PushTransmission extends AbstractTransmission<Boolean> {
 
-	private final ExportSet exportSet = new ExportSet();
-	private int sequenceNumber        = 0;
+	private ExportSet exportSet = null;
+	private int sequenceNumber  = 0;
 
 	public PushTransmission(final Syncable sourceNode, final boolean recursive, final String userName, final String password, final String remoteHost, final int port) {
 
@@ -35,7 +35,7 @@ public class PushTransmission extends AbstractTransmission<Boolean> {
 
 		// create export set before first progress callback is called
 		// so the client gets the correct total from the beginning
-		collectExportSet(exportSet, sourceNode, SyncState.all(), recursive);
+		exportSet = ExportSet.getInstance(sourceNode, SyncState.all(), recursive);
 	}
 
 	@Override
@@ -100,23 +100,6 @@ public class PushTransmission extends AbstractTransmission<Boolean> {
 		return true;
 	}
 
-	private void collectExportSet(final ExportSet exportSet, final Syncable start, final SyncState state, boolean recursive) {
-
-		exportSet.add(start);
-
-		if (recursive) {
-
-			// collect children
-			for (final Syncable child : start.getSyncData(state)) {
-
-				if (child != null && exportSet.add(child)) {
-
-					collectExportSet(exportSet, child, state, recursive);
-				}
-			}
-		}
-	}
-
 	/**
 	 * Splits the given file and sends it over the client connection. This method first creates a <code>FileNodeDataContainer</code> and sends it to the remote end. The file from disk is then
 	 * split into multiple instances of <code>FileChunkContainer</code> while being sent. To finalize the transfer, a <code>FileNodeEndChunk</code> is sent to notify the receiving end of the
@@ -128,7 +111,7 @@ public class PushTransmission extends AbstractTransmission<Boolean> {
 	 *
 	 * @return the number of objects that have been sent over the network
 	 */
-	private void sendFile(final ExportContext context, final ClientConnection client, final File file, final int chunkSize) throws FrameworkException, IOException {
+	protected void sendFile(final ExportContext context, final ClientConnection client, final File file, final int chunkSize) throws FrameworkException, IOException {
 
 		// send file container first
 		FileNodeDataContainer container = new FileNodeDataContainer(file);
@@ -155,56 +138,4 @@ public class PushTransmission extends AbstractTransmission<Boolean> {
 		// wait for remote end to confirm transmission
 		client.waitForMessage();
 	}
-
-	private static class ExportSet {
-
-		private final Set<NodeInterface> nodes                 = new LinkedHashSet<>();
-		private final Set<RelationshipInterface> relationships = new LinkedHashSet<>();
-		private int size                                       = 0;
-
-		public boolean add(final Syncable data) {
-
-			if (data.isNode()) {
-
-				if (nodes.add(data.getSyncNode())) {
-
-					size++;
-
-					if (data.getSyncNode() instanceof File) {
-
-						size += (((File)data.getSyncNode()).getSize().intValue() / CloudService.CHUNK_SIZE) + 2;
-					}
-
-					// node was new (added), return true
-					return true;
-				}
-
-			} else {
-
-				if (relationships.add(data.getSyncRelationship())) {
-
-					size++;
-
-					// rel was new (added), return true
-					return true;
-				}
-			}
-
-			// arriving here means node was not added, so we return false
-			return false;
-		}
-
-		public Set<NodeInterface> getNodes() {
-			return nodes;
-		}
-
-		public Set<RelationshipInterface> getRelationships() {
-			return relationships;
-		}
-
-		public int getTotalSize() {
-			return size;
-		}
-	}
-
 }

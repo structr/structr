@@ -18,6 +18,7 @@
  */
 package org.structr.cloud;
 
+import org.structr.cloud.message.ListPages;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -43,7 +44,7 @@ public class ListPagesTestingCommand extends CloudServiceCommand implements Main
 	public void execute(final Map<String, Object> attributes) throws FrameworkException {
 
 		try {
-			System.out.println(CloudService.doRemote(new SingleTransmission(new ListPagesPacket(), "admin", "admin", "localhost", 54555), new LoggingListener()));
+			System.out.println(CloudService.doRemote(new SingleTransmission(new ListPages(), "admin", "admin", "localhost", 54555), new LoggingListener()));
 
 		} catch (Throwable t) {
 			t.printStackTrace();

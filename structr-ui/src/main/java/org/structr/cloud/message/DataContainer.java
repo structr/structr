@@ -16,11 +16,13 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.cloud;
+package org.structr.cloud.message;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 import org.neo4j.graphdb.PropertyContainer;
+import org.structr.cloud.CloudConnection;
+import org.structr.cloud.CloudContext;
 
 /**
  * Abstract superclass of {@link NodeDataContainer} and {@link RelationshipDataContainer}
@@ -52,7 +54,7 @@ public abstract class DataContainer implements Message {
 	}
 
 	@Override
-	public void postProcess(final ServerContext context) {
+	public void postProcess(CloudConnection connection, final CloudContext context) {
 	}
 
 	@Override

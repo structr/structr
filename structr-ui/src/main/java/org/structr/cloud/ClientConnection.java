@@ -18,6 +18,7 @@
  */
 package org.structr.cloud;
 
+import org.structr.cloud.message.Message;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -39,12 +40,13 @@ import org.structr.core.graph.Tx;
  *
  * @author Christian Morgner
  */
-public class ClientConnection {
+public class ClientConnection implements CloudConnection {
 
 	// the logger
 	private static final Logger logger = Logger.getLogger(ClientConnection.class.getName());
 
 	// private fields
+	private final CloudContext context  = new CloudContext();
 	private Cipher encrypter            = null;
 	private Cipher decrypter            = null;
 	private Receiver receiver           = null;
@@ -90,8 +92,25 @@ public class ClientConnection {
 	}
 
 	public void shutdown() {
+
 		receiver.finish();
 		sender.finish();
+
+		context.endTransaction();
+	}
+
+	@Override
+	public void closeConnection() {
+
+		shutdown();
+
+		try {
+
+			socket.close();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
 	}
 
 	public Message waitForMessage() throws FrameworkException {
@@ -102,7 +121,7 @@ public class ClientConnection {
 		while (message == null) {
 
 			message = receiver.receive();
-			
+
 			if (message == null) {
 
 				if (System.currentTimeMillis() > abortTime) {
@@ -148,6 +167,7 @@ public class ClientConnection {
 
 	}
 
+	@Override
 	public void setEncryptionKey(final String key) throws InvalidKeyException {
 
 		try {

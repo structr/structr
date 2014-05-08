@@ -1,5 +1,6 @@
 package org.structr.cloud;
 
+import org.structr.cloud.message.Message;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.Socket;

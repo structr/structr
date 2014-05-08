@@ -16,7 +16,10 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.cloud;
+package org.structr.cloud.message;
+
+import org.structr.cloud.CloudConnection;
+import org.structr.cloud.CloudContext;
 
 /**
  * Marks the end of a <code>FileNodeDataContainer</code>. This class does not contain binary content itself, its a marker only.
@@ -49,10 +52,10 @@ public class FileNodeEndChunk extends DataContainer {
 	}
 
 	@Override
-	public Message process(final ServerContext context) {
+	public Message process(CloudConnection connection, final CloudContext context) {
 
 		context.finishFile(this);
 
-		return new AckPacket("FileEnd");
+		return new Ack("FileEnd");
 	}
 }

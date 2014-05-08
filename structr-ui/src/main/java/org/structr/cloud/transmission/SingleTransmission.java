@@ -3,7 +3,7 @@ package org.structr.cloud.transmission;
 import java.io.IOException;
 import org.structr.cloud.ClientConnection;
 import org.structr.cloud.ExportContext;
-import org.structr.cloud.Message;
+import org.structr.cloud.message.Message;
 import org.structr.common.error.FrameworkException;
 
 /**

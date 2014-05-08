@@ -21,16 +21,11 @@ package org.structr.cloud;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.structr.cloud.CloudListener;
-import org.structr.cloud.CloudService;
-import org.structr.cloud.CloudServiceCommand;
-import org.structr.cloud.transmission.PushTransmission;
-import org.structr.common.Syncable;
+import org.structr.cloud.transmission.PullTransmission;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.MaintenanceCommand;
-import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.rest.resource.MaintenanceParameterResource;
 
@@ -38,31 +33,26 @@ import org.structr.rest.resource.MaintenanceParameterResource;
  *
  * @author Axel Morgner
  */
-public class PushNodesTestingCommand extends CloudServiceCommand implements MaintenanceCommand {
+public class PullNodesTestingCommand extends CloudServiceCommand implements MaintenanceCommand {
 
-	private static final Logger logger = Logger.getLogger(PushNodesTestingCommand.class.getName());
+	private static final Logger logger = Logger.getLogger(PullNodesTestingCommand.class.getName());
 
 	static {
 
-		MaintenanceParameterResource.registerMaintenanceCommand("pushNodesTest", PushNodesTestingCommand.class);
+		MaintenanceParameterResource.registerMaintenanceCommand("pullNodesTest", PullNodesTestingCommand.class);
 	}
 
 	@Override
 	public void execute(final Map<String, Object> attributes) throws FrameworkException {
 
-		final String name = (String)attributes.get("name");
-		final String host = (String)attributes.get("host");
+		final String id = (String)attributes.get("id");
 
-		if (name != null && host != null) {
+		if (id != null) {
 
 			final App app     = StructrApp.getInstance();
 			try (final Tx tx = app.tx()) {
 
-				final NodeInterface entity = app.nodeQuery().andName(name).getFirst();
-				if (entity != null && entity instanceof Syncable) {
-
-					CloudService.doRemote(new PushTransmission((Syncable)entity, true, "admin", "admin", host, 54555), new LoggingListener());
-				}
+				CloudService.doRemote(new PullTransmission(id, true, "admin", "admin", "localhost", 54556), new LoggingListener());
 			}
 		}
 	}

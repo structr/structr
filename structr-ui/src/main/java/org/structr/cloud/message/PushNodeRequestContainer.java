@@ -16,7 +16,10 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.cloud;
+package org.structr.cloud.message;
+
+import org.structr.cloud.CloudConnection;
+import org.structr.cloud.CloudContext;
 
 /**
  * Encapsulates a push request for a node
@@ -59,7 +62,7 @@ public class PushNodeRequestContainer extends DataContainer {
 	}
 
 	@Override
-	public Message process(final ServerContext context) {
-		return new AckPacket("PushNode");
+	public Message process(CloudConnection connection, final CloudContext context) {
+		return new Ack("PushNode");
 	}
 }

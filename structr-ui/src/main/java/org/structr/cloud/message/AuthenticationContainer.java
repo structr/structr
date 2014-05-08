@@ -1,6 +1,8 @@
-package org.structr.cloud;
+package org.structr.cloud.message;
 
 import java.security.InvalidKeyException;
+import org.structr.cloud.CloudConnection;
+import org.structr.cloud.CloudContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.auth.AuthHelper;
 import org.structr.core.entity.Principal;
@@ -53,7 +55,7 @@ public class AuthenticationContainer implements Message {
 	}
 
 	@Override
-	public Message process(final ServerContext context) {
+	public Message process(CloudConnection connection, final CloudContext context) {
 
 		final Principal user = context.getUser(userName);
 		if (user != null) {
@@ -73,16 +75,16 @@ public class AuthenticationContainer implements Message {
 		}
 
 		context.endTransaction();
-		context.closeConnection();
+		connection.closeConnection();
 
 		return null;
 	}
 
 	@Override
-	public void postProcess(ServerContext context) {
+	public void postProcess(CloudConnection connection, CloudContext context) {
 
 		try {
-			context.setEncryptionKey(encryptionKey);
+			connection.setEncryptionKey(encryptionKey);
 
 		} catch (InvalidKeyException ikex) {
 			ikex.printStackTrace();

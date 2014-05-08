@@ -16,7 +16,11 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.cloud;
+package org.structr.cloud.message;
+
+import org.structr.cloud.CloudConnection;
+import org.structr.cloud.CloudService;
+import org.structr.cloud.CloudContext;
 
 /**
  * Represents a single chunk of a <code>FileNodeDataContainer</code> that can be transmitted to a remote structr instance.
@@ -67,12 +71,12 @@ public class FileNodeChunk extends DataContainer {
 	}
 
 	@Override
-	public Message process(final ServerContext context) {
+	public Message process(CloudConnection connection, final CloudContext context) {
 
 		context.fileChunk(this);
 
 		if (((sequenceNumber+1) % CloudService.LIVE_PACKET_COUNT) == 0) {
-			return new AckPacket("FileChunk", sequenceNumber);
+			return new Ack("FileChunk", sequenceNumber);
 		}
 
 		return null;

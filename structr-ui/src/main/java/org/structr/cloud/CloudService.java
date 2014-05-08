@@ -18,6 +18,11 @@
  */
 package org.structr.cloud;
 
+import org.structr.cloud.message.Message;
+import org.structr.cloud.message.Begin;
+import org.structr.cloud.message.Ack;
+import org.structr.cloud.message.End;
+import org.structr.cloud.message.AuthenticationContainer;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -147,11 +152,11 @@ public class CloudService extends Thread implements RunnableService {
 			client.start();
 
 			// mark start of transaction
-			client.send(new BeginPacket());
+			client.send(new Begin());
 			context.progress();
 
 			final Message ack = client.waitForMessage();
-			if (!(ack instanceof AckPacket)) {
+			if (!(ack instanceof Ack)) {
 				throw new FrameworkException(504, "Unable to connect to remote server: unknown response.");
 			}
 
@@ -179,7 +184,7 @@ public class CloudService extends Thread implements RunnableService {
 			}
 
 			// mark end of transaction
-			client.send(new EndPacket());
+			client.send(new End());
 			context.progress();
 
 			// wait for server to close connection here..

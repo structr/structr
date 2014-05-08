@@ -16,8 +16,11 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.cloud;
+package org.structr.cloud.message;
 
+import org.structr.cloud.CloudConnection;
+import org.structr.cloud.CloudService;
+import org.structr.cloud.CloudContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
@@ -63,12 +66,12 @@ public class NodeDataContainer extends DataContainer {
 	}
 
 	@Override
-	public Message process(final ServerContext context) {
+	public Message process(CloudConnection connection, final CloudContext context) {
 
 		context.storeNode(this);
 
 		if (((sequenceNumber+1) % CloudService.LIVE_PACKET_COUNT) == 0) {
-			return new AckPacket("NodeData", sequenceNumber);
+			return new Ack("NodeData", sequenceNumber);
 		}
 
 		return null;

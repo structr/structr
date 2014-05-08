@@ -16,7 +16,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.cloud;
+package org.structr.cloud.message;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -28,6 +28,8 @@ import java.nio.file.StandardCopyOption;
 import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.structr.cloud.CloudConnection;
+import org.structr.cloud.CloudContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.web.entity.File;
 
@@ -40,12 +42,12 @@ public class FileNodeDataContainer extends NodeDataContainer {
 
 	private static final Logger logger = Logger.getLogger(FileNodeDataContainer.class.getName());
 
-	private java.io.File temporaryFile = null;
-	private OutputStream outputStream  = null;
- 	private long fileSize              = 0;
+	private transient java.io.File temporaryFile = null;
+	private transient OutputStream outputStream  = null;
+ 	private long fileSize                        = 0;
 
 	public FileNodeDataContainer() throws FrameworkException {
-		super(null, 0);
+		super();
 	}
 
 	public FileNodeDataContainer(final File fileNode) throws FrameworkException {
@@ -56,11 +58,11 @@ public class FileNodeDataContainer extends NodeDataContainer {
 	}
 
 	@Override
-	public Message process(final ServerContext context) {
+	public Message process(CloudConnection connection, final CloudContext context) {
 
 		context.beginFile(this);
 
-		return new AckPacket("FileNode", sequenceNumber);
+		return new Ack("FileNode", sequenceNumber);
 	}
 
 	/**
