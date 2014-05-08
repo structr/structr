@@ -35,7 +35,7 @@ public class PullTransmission extends AbstractTransmission<Boolean> {
 
 	@Override
 	public int getTotalSize() {
-		return 2;
+		return 0;
 	}
 
 	@Override
@@ -66,6 +66,9 @@ public class PullTransmission extends AbstractTransmission<Boolean> {
 					final PullNode pullNode = (PullNode)nodeMessage;
 					if (File.class.isAssignableFrom(pullNode.getType())) {
 
+						// advance progess bar
+						context.progress();
+
 						// pull file chunks
 						client.send(new PullFile(key, i));
 						final Message fileMessage = client.waitForMessage();
@@ -75,10 +78,8 @@ public class PullTransmission extends AbstractTransmission<Boolean> {
 							Message chunkMessage    = null;
 							int sequenceNumber      = 0;
 
-							context.increaseTotal((Long.valueOf(pullFile.getFileSize() / CloudService.CHUNK_SIZE).intValue()));
-
+							context.increaseTotal((Long.valueOf(pullFile.getFileSize() / CloudService.CHUNK_SIZE).intValue() + 2));
 							cloudContext.beginFile(pullFile);
-							context.progress();
 
 							do {
 								for (int j=0; j<CloudService.LIVE_PACKET_COUNT; j++) {
@@ -111,6 +112,7 @@ public class PullTransmission extends AbstractTransmission<Boolean> {
 					} else {
 
 						cloudContext.storeNode(pullNode);
+						context.progress();
 					}
 				}
 			}
@@ -122,6 +124,7 @@ public class PullTransmission extends AbstractTransmission<Boolean> {
 				if (relMessage instanceof PullRelationship) {
 
 					cloudContext.storeRelationship((PullRelationship)relMessage);
+					context.progress();
 				}
 			}
 		}
