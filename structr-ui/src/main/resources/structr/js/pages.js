@@ -745,8 +745,6 @@ var _Pages = {
                             }
                             
                             var structrId = self.attr('data-structr-id');
-                            var selected = self.hasClass('structr-element-container-selected');
-                            console.log(self, structrId, selected);
                             _Pages.expandTreeNode(structrId);
                             
                             return false;

@@ -221,6 +221,7 @@ var _Elements = {
                     return false;
                 }
                 Command.createComponent(sourceId);
+                dropBlocked = false;
 
             }
 

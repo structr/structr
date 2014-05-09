@@ -92,7 +92,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	private final static String STRUCTR_ACTION_PROPERTY = "data-structr-action";
 
 	public static final Property<List<DOMElement>> syncedNodes = new EndNodes("syncedNodes", Sync.class, new PropertyNotion(id));
-	public static final Property<DOMElement> syncedNode = new StartNode("syncedNode", Sync.class, new PropertyNotion(id));
+	public static final Property<DOMElement> sharedComponent = new StartNode("syncedNode", Sync.class, new PropertyNotion(id));
 
 	private static final Map<String, HtmlProperty> htmlProperties = new LRUMap(200);	// use LURMap here to avoid infinite growing
 	private static final List<GraphDataSource<List<GraphObject>>> listSources = new LinkedList<>();
@@ -200,11 +200,11 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	public static final Property<String> _role = new HtmlProperty("role");
 
 	public static final org.structr.common.View publicView = new org.structr.common.View(DOMElement.class, PropertyView.Public,
-		name, tag, pageId, path, parent, children, restQuery, cypherQuery, xpathQuery, partialUpdateKey, dataKey, syncedNodes, syncedNode
+		name, tag, pageId, path, parent, children, restQuery, cypherQuery, xpathQuery, partialUpdateKey, dataKey, syncedNodes, sharedComponent
 	);
 
 	public static final org.structr.common.View uiView = new org.structr.common.View(DOMElement.class, PropertyView.Ui, name, tag, pageId, path, parent, children, childrenIds, owner,
-		restQuery, cypherQuery, xpathQuery, partialUpdateKey, dataKey, syncedNodes, syncedNode,
+		restQuery, cypherQuery, xpathQuery, partialUpdateKey, dataKey, syncedNodes, sharedComponent,
 		renderDetails, hideOnIndex, hideOnDetail, showForLocales, hideForLocales, showConditions, hideConditions,
 		_accesskey, _class, _contenteditable, _contextmenu, _dir, _draggable, _dropzone, _hidden, _id, _lang, _spellcheck, _style,
 		_tabindex, _title, _translate, _onabort, _onblur, _oncanplay, _oncanplaythrough, _onchange, _onclick, _oncontextmenu, _ondblclick,
@@ -263,6 +263,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 					&& !key.equals(GraphObject.id)
 					&& !key.equals(DOMNode.ownerDocument) && !key.equals(DOMNode.pageId)
 					&& !key.equals(DOMNode.parent) && !key.equals(DOMNode.parentId)
+					&& !key.equals(DOMElement.syncedNodes)
 					&& !key.equals(DOMNode.children) && !key.equals(DOMNode.childrenIds))) {
 
 					try {
@@ -439,7 +440,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 					// No child relationships, maybe this node is in sync with another node
 					//Sync syncRel = getIncomingRelationship(Sync.class);
-					DOMElement _syncedNode = (DOMElement) getProperty(syncedNode);
+					DOMElement _syncedNode = (DOMElement) getProperty(sharedComponent);
 					if (_syncedNode != null) {
 						rels.addAll(_syncedNode.getChildRelationships());
 					}
@@ -1233,7 +1234,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 		final List<Syncable> data = super.getSyncData(state);
 
-		data.add(getProperty(DOMElement.syncedNode));
+		data.add(getProperty(DOMElement.sharedComponent));
 		data.add(getIncomingRelationship(Sync.class));
 
 		if (isSynced()) {
