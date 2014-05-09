@@ -296,7 +296,7 @@ var _Elements = {
             return false;
 
         var hasChildren = entity.childrenIds && entity.childrenIds.length;
-        var isComponent = entity.syncedNode || (entity.syncedNodes && entity.syncedNodes.length);
+        var isComponent = entity.sharedComponent || (entity.syncedNodes && entity.syncedNodes.length);
 
         var parent;
         if (refNodeIsParent) {
@@ -383,7 +383,7 @@ var _Elements = {
             });
         });
 
-        _Entities.setMouseOver(div, undefined, ((entity.syncedNodes&&entity.syncedNodes.length)?entity.syncedNodes:[entity.syncedNode]));
+        _Entities.setMouseOver(div, undefined, ((entity.syncedNodes&&entity.syncedNodes.length)?entity.syncedNodes:[entity.sharedComponent]));
         //_Entities.appendEditSourceIcon(div, entity);
         _Entities.appendEditPropertiesIcon(div, entity);
         //_Entities.appendDataIcon(div, entity);
