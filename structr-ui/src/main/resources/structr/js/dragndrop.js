@@ -43,9 +43,9 @@ var _Dragndrop = {
             drop: function(e, ui) {
 
                 log('Drop event', e, ui);
-
+                
                 if (dropBlocked) {
-                    console.log('Drop in iframe was blocked');
+                    log('Drop in iframe was blocked');
                     dropBlocked = false;
                     return false;
                 }
@@ -179,7 +179,6 @@ var _Dragndrop = {
 
             if (shadowPage && source.pageId === shadowPage.id) {
 
-                log('clone component!');
                 Command.cloneComponent(source.id, target.id);
 
             } else {
@@ -435,4 +434,4 @@ var _Dragndrop = {
 
         return true;
     }
-}
+};

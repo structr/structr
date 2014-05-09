@@ -651,7 +651,6 @@ var _Entities = {
     },
     appendInput: function(el, entity, key, label, desc) {
         if (!el || !entity) {
-            console.log(el, entity);
             return false;
         }
         el.append('<div><h3>' + label + '</h3><p>' + desc + '</p><input type="text" id="' + key + '_" value="' + (entity[key] ? entity[key] : '') + '"><button id="save_' + key + '">Save</button></div>');
