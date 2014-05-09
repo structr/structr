@@ -547,7 +547,7 @@ var _Pages = {
             Structr.pushDialog(entity.id, true);
             return false;
         });
-        
+
         _Entities.setMouseOver(div);
 
         var tab = _Pages.addTab(entity);
@@ -743,10 +743,10 @@ var _Pages = {
                                 self.html(srcText);
                                 textBeforeEditing = srcText;
                             }
-                            
+
                             var structrId = self.attr('data-structr-id');
                             _Pages.expandTreeNode(structrId);
-                            
+
                             return false;
 
                         },
@@ -972,8 +972,12 @@ var _Pages = {
 
             var subkey = 'name';
 
+            var endNodes = [];
             $.each(t.relatedTo, function(i, endNode) {
 
+                if (isIn(endNode.id, endNodes))
+                    return;
+                endNodes.push(endNode.id);
 
                 $.ajax({
                     url: rootUrl + '/schema_relationships?sourceId=' + id + '&targetId=' + endNode.id,
@@ -981,18 +985,20 @@ var _Pages = {
                     contentType: 'application/json',
                     statusCode: {
                         200: function(data) {
-                            _Schema.getPropertyName(t.name, data.result[0].relationshipType, true, function(key, isCollection) {
-                                $('#data-wizard-attributes .custom').append('<div class="draggable data-binding-attribute ' + key + '" collection="' + isCollection + '" subkey="' + subkey + '">' + typeKey + '.' + key + '</div>');
-                                $('#data-wizard-attributes .custom').children('.' + key).draggable({
-                                    iframeFix: true,
-                                    revert: 'invalid',
-                                    containment: 'body',
-                                    helper: 'clone',
-                                    appendTo: '#main',
-                                    stack: '.node',
-                                    zIndex: 99
-                                }).on('click', function() {
-                                    //console.log('expand')
+                            $.each(data.result, function(i, r) {
+                                _Schema.getPropertyName(t.name, r.relationshipType, true, function(key, isCollection) {
+                                    $('#data-wizard-attributes .custom').append('<div class="draggable data-binding-attribute ' + key + '" collection="' + isCollection + '" subkey="' + subkey + '">' + typeKey + '.' + key + '</div>');
+                                    $('#data-wizard-attributes .custom').children('.' + key).draggable({
+                                        iframeFix: true,
+                                        revert: 'invalid',
+                                        containment: 'body',
+                                        helper: 'clone',
+                                        appendTo: '#main',
+                                        stack: '.node',
+                                        zIndex: 99
+                                    }).on('click', function() {
+                                        //console.log('expand')
+                                    });
                                 });
                             });
                         }
@@ -1000,7 +1006,12 @@ var _Pages = {
                 });
             });
 
+            var startNodes = [];
             $.each(t.relatedFrom, function(i, startNode) {
+
+                if (isIn(startNode.id, startNodes))
+                    return;
+                startNodes.push(startNode.id);
 
                 $.ajax({
                     url: rootUrl + '/schema_relationships?sourceId=' + startNode.id + '&targetId=' + id,
@@ -1008,16 +1019,18 @@ var _Pages = {
                     contentType: 'application/json',
                     statusCode: {
                         200: function(data) {
-                            _Schema.getPropertyName(t.name, data.result[0].relationshipType, false, function(key, isCollection) {
-                                $('#data-wizard-attributes .custom').append('<div class="draggable data-binding-attribute ' + key + '" collection="' + isCollection + '" subkey="' + subkey + '">' + typeKey + '.' + key + '</div>');
-                                $('#data-wizard-attributes .custom').children('.draggable.' + key).draggable({
-                                    iframeFix: true,
-                                    revert: 'invalid',
-                                    containment: 'body',
-                                    helper: 'clone',
-                                    appendTo: '#main',
-                                    stack: '.node',
-                                    zIndex: 99
+                            $.each(data.result, function(i, r) {
+                                _Schema.getPropertyName(t.name, r.relationshipType, false, function(key, isCollection) {
+                                    $('#data-wizard-attributes .custom').append('<div class="draggable data-binding-attribute ' + key + '" collection="' + isCollection + '" subkey="' + subkey + '">' + typeKey + '.' + key + '</div>');
+                                    $('#data-wizard-attributes .custom').children('.draggable.' + key).draggable({
+                                        iframeFix: true,
+                                        revert: 'invalid',
+                                        containment: 'body',
+                                        helper: 'clone',
+                                        appendTo: '#main',
+                                        stack: '.node',
+                                        zIndex: 99
+                                    });
                                 });
                             });
                         }
@@ -1064,6 +1077,5 @@ var _Pages = {
                 _Entities.expandAll(stack.reverse());
             }
         });
-    },
-    
+    }
 };

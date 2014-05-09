@@ -1117,6 +1117,8 @@ var Structr = {
 
             syncables.empty();
 
+            syncables.append('<tr><th>Name</th><th>Size</th><th>Last Modified</th><th>Recursive</th><th>Type</th><th>Action</th></tr>');
+
             Command.listSyncables(host, port, username, password, key, function(syncable) {
 
                 if (syncable) {
