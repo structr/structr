@@ -33,6 +33,8 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.BooleanProperty;
+import org.structr.core.property.Property;
 import org.structr.web.entity.File;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
@@ -45,6 +47,8 @@ import org.structr.websocket.message.WebSocketMessage;
  * @author Axel Morgner
  */
 public class ListRemoteSyncablesCommand extends AbstractCommand {
+
+	private static final Property<Boolean> isSynchronized = new BooleanProperty("isSynchronized", false);
 
 	static {
 
@@ -74,10 +78,14 @@ public class ListRemoteSyncablesCommand extends AbstractCommand {
 					for (final SyncableInfo info : syncables) {
 
 						final GraphObjectMap map = new GraphObjectMap();
-						map.put(GraphObject.id,     info.getId());
-						map.put(NodeInterface.name, info.getName());
-						map.put(File.size,          info.getSize());
-						map.put(GraphObject.type,   info.getType());
+						map.put(GraphObject.id,               info.getId());
+						map.put(NodeInterface.name,           info.getName());
+						map.put(File.size,                    info.getSize());
+						map.put(GraphObject.type,             info.getType());
+						map.put(GraphObject.lastModifiedDate, info.getLastModified());
+
+						// check for existance
+						map.put(isSynchronized, isSynchronized(info));
 
 						result.add(map);
 					}
@@ -98,11 +106,21 @@ public class ListRemoteSyncablesCommand extends AbstractCommand {
 
 	}
 
-	//~--- get methods ----------------------------------------------------
-
 	@Override
 	public String getCommand() {
 		return "LIST_SYNCABLES";
 	}
-}
 
+	// ----- private methods -----
+	private boolean isSynchronized(final SyncableInfo info) throws FrameworkException {
+
+		if (info.isNode()) {
+
+			return StructrApp.getInstance(getWebSocket().getSecurityContext()).nodeQuery().and(GraphObject.id, info.getId()).getFirst() != null;
+
+		} else {
+
+			return StructrApp.getInstance(getWebSocket().getSecurityContext()).relationshipQuery().and(GraphObject.id, info.getId()).getFirst() != null;
+		}
+	}
+}

@@ -68,6 +68,9 @@ public class PullCommand extends AbstractCommand {
 
 				CloudService.doRemote(new PullTransmission(sourceId, recursive, username, password, host, port.intValue()), new WebsocketProgressListener(getWebSocket(), key));
 
+				// send finished event
+				getWebSocket().send(MessageBuilder.finished().build(), true);
+
 			} catch (FrameworkException fex) {
 
 				getWebSocket().send(MessageBuilder.status().code(400).message(fex.getMessage()).build(), true);

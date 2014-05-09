@@ -35,6 +35,5 @@ public class WebsocketProgressListener implements CloudListener {
 	@Override
 	public void transmissionProgress(int current, int total) {
 		websocket.send(MessageBuilder.progress().code(200).message("{\"key\":\"" + key + "\", \"current\":" + current + ", \"total\":" + total + "}").build(), true);
-		System.out.println(current + "/" + total);
 	}
 }

@@ -19,6 +19,7 @@
 package org.structr.core.entity.relationship;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -34,6 +35,8 @@ import org.neo4j.helpers.collection.Iterables;
 import org.structr.common.CaseHelper;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.common.SyncState;
+import org.structr.common.Syncable;
 import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
@@ -43,9 +46,12 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.ManyToMany;
 import org.structr.core.entity.SchemaNode;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
 import org.structr.core.property.SourceId;
 import org.structr.core.property.StringProperty;
 import org.structr.core.property.TargetId;
@@ -59,7 +65,7 @@ import org.structr.schema.action.ActionEntry;
  *
  * @author Christian Morgner
  */
-public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> implements Schema {
+public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> implements Schema, Syncable {
 
 	private static final Logger logger                      = Logger.getLogger(SchemaRelationship.class.getName());
 	private static final Pattern ValidKeyPattern            = Pattern.compile("[a-zA-Z_]+");
@@ -549,6 +555,36 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> imple
 		}
 
 		return relType;
+	}
+
+	// ----- interface Syncable -----
+	@Override
+	public List<Syncable> getSyncData(SyncState syncState) {
+		return Collections.emptyList();
+	}
+
+	@Override
+	public boolean isNode() {
+		return false;
+	}
+
+	@Override
+	public boolean isRelationship() {
+		return true;
+	}
+
+	@Override
+	public NodeInterface getSyncNode() {
+		return null;
+	}
+
+	@Override
+	public RelationshipInterface getSyncRelationship() {
+		return this;
+	}
+
+	@Override
+	public void updateFromPropertyMap(final PropertyMap properties) throws FrameworkException {
 	}
 
 	// ----- nested classes -----

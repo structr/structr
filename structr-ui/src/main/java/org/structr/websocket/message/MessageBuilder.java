@@ -38,6 +38,10 @@ public class MessageBuilder {
 		return builder().command("PROGRESS");
 	}
 
+	public static MessageBuilder finished() {
+		return builder().command("FINISHED");
+	}
+
 	public static MessageBuilder status() {
 		return builder().command("STATUS");
 	}

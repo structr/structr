@@ -23,6 +23,8 @@ import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
+import org.structr.core.entity.SchemaNode;
+import org.structr.core.entity.relationship.SchemaRelationship;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
@@ -94,8 +96,22 @@ public class CloudContext {
 			final String sourceStartNodeId                           = receivedRelationshipData.getSourceStartNodeId();
 			final String sourceEndNodeId                             = receivedRelationshipData.getSourceEndNodeId();
 			final String uuid                                        = receivedRelationshipData.getRelationshipId();
-			final String targetStartNodeId                           = idMap.get(sourceStartNodeId);
-			final String targetEndNodeId                             = idMap.get(sourceEndNodeId);
+
+			// if end node ID was not found in the ID map,
+			// assume it already exists in the database
+			// (i.e. it was created earlier)
+			String targetStartNodeId = idMap.get(sourceStartNodeId);
+			if (targetStartNodeId == null) {
+				targetStartNodeId = sourceStartNodeId;
+			}
+
+			// if end node ID was not found in the ID map,
+			// assume it already exists in the database
+			// (i.e. it was created earlier)
+			String targetEndNodeId = idMap.get(sourceEndNodeId);
+			if (targetEndNodeId == null) {
+				targetEndNodeId = sourceEndNodeId;
+			}
 
 			if (targetStartNodeId != null && targetEndNodeId != null) {
 
@@ -133,51 +149,6 @@ public class CloudContext {
 
 		return null;
 	}
-
-//	private void handlePullRequests() {
-//
-//		Runnable r = new Runnable() {
-//
-//			@Override
-//			public void run() {
-//
-//				try {
-//					Thread.sleep(2000);
-//
-//					synchronized (pullRequests) {
-//
-//						final App app = StructrApp.getInstance();
-//
-//						for (Iterator<PullNodeRequestContainer> it = pullRequests.iterator(); it.hasNext();) {
-//							PullNodeRequestContainer request = it.next();
-//
-//							// swap source and target nodes since we're dealing with a request from the remote's point of view!
-//							NodeInterface sourceNode = (NodeInterface)app.get(request.getSourceNodeId());
-//							boolean recursive = request.isRecursive();
-//
-//							PushNodes pushNodes = app.command(PushNodes.class);
-//
-//							final User remoteUser           = request.getRemoteUser();
-//							final String password           = null;
-//							final String remoteTargetNodeId = request.getTargetNodeId();
-//							final String remoteHostValue    = request.getRemoteHost();
-//							final Integer remoteTcpPort     = request.getRemoteTcpPort();
-//							final Integer remoteUdpPort     = request.getRemoteUdpPort();
-//
-//							pushNodes.pushNodes(remoteUser, password, sourceNode, remoteTargetNodeId, remoteHostValue, remoteTcpPort, remoteUdpPort, recursive);
-//
-//							it.remove();
-//						}
-//					}
-//
-//				} catch (Throwable t) {
-//					logger.log(Level.WARNING, "Error while handling pull requests: {0}", t);
-//				}
-//			}
-//		};
-//
-//		new Thread(r, "PullRequestThread").start();
-//	}
 
 	public void beginTransaction() {
 		tx = app.tx();
@@ -221,9 +192,6 @@ public class CloudContext {
 		}
 
 		data.clear();
-	}
-
-	public void ack(String message, int sequenceNumber) {
 	}
 
 	public Principal getUser(String userName) {
@@ -321,6 +289,17 @@ public class CloudContext {
 
 			for (final Folder folder : app.nodeQuery(Folder.class).getAsList()) {
 				syncables.add(new SyncableInfo(folder));
+			}
+		}
+
+		if (state.hasFlag(SyncState.Flag.Schema)) {
+
+			for (final SchemaNode schemaNode : app.nodeQuery(SchemaNode.class).getAsList()) {
+				syncables.add(new SyncableInfo(schemaNode));
+			}
+
+			for (final SchemaRelationship schemaRelationship : app.relationshipQuery(SchemaRelationship.class).getAsList()) {
+				syncables.add(new SyncableInfo(schemaRelationship));
 			}
 		}
 

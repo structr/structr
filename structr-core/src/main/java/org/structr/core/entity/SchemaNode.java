@@ -18,6 +18,7 @@
  */
 package org.structr.core.entity;
 
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -27,14 +28,19 @@ import java.util.Map.Entry;
 import java.util.Set;
 import org.neo4j.helpers.collection.Iterables;
 import org.structr.common.PropertyView;
+import org.structr.common.SyncState;
+import org.structr.common.Syncable;
 import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.relationship.SchemaRelationship;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StartNodes;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.Schema;
@@ -47,7 +53,7 @@ import org.structr.schema.action.Actions;
  *
  * @author Christian Morgner
  */
-public class SchemaNode extends AbstractSchemaNode implements Schema {
+public class SchemaNode extends AbstractSchemaNode implements Schema, Syncable {
 
 	public static final Property<List<SchemaNode>>  relatedTo    = new EndNodes<>("relatedTo", SchemaRelationship.class, new SchemaNotion(SchemaNode.class));
 	public static final Property<List<SchemaNode>>  relatedFrom  = new StartNodes<>("relatedFrom", SchemaRelationship.class, new SchemaNotion(SchemaNode.class));
@@ -268,6 +274,38 @@ public class SchemaNode extends AbstractSchemaNode implements Schema {
 
 		src.append("\n\t\treturn !error;\n");
 		src.append("\t}\n");
+
+	}
+
+	// ----- interface Syncable -----
+	@Override
+	public List<Syncable> getSyncData(SyncState syncState) {
+		return Collections.emptyList();
+	}
+
+	@Override
+	public boolean isNode() {
+		return true;
+	}
+
+	@Override
+	public boolean isRelationship() {
+		return false;
+	}
+
+	@Override
+	public NodeInterface getSyncNode() {
+		return this;
+	}
+
+	@Override
+	public RelationshipInterface getSyncRelationship() {
+		return null;
+	}
+
+	@Override
+	public void updateFromPropertyMap(final PropertyMap properties) throws FrameworkException {
+
 
 	}
 }

@@ -71,8 +71,14 @@ public class PullNodeRequestContainer implements Message {
 	public Message process(CloudConnection connection, final CloudContext context) {
 
 		try {
-			final App app             = context.getApplicationContext();
-			final Syncable syncable   = (Syncable)app.nodeQuery().and(GraphObject.id, rootNodeId).includeDeletedAndHidden().getFirst();
+			final App app = context.getApplicationContext();
+
+			// try node first, then relationship
+			Syncable syncable = (Syncable)app.nodeQuery().and(GraphObject.id, rootNodeId).includeDeletedAndHidden().getFirst();
+			if (syncable == null) {
+
+				syncable = (Syncable)app.relationshipQuery().and(GraphObject.id, rootNodeId).includeDeletedAndHidden().getFirst();
+			}
 
 			if (syncable != null) {
 

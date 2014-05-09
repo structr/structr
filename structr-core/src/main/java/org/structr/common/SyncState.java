@@ -14,7 +14,7 @@ public class SyncState {
 
 	public enum Flag {
 
-		Pages, Files, Folders, Images, Users, Access
+		Pages, Files, Folders, Images, Schema
 	}
 
 	/**

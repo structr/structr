@@ -41,8 +41,6 @@ public class Ack implements Message {
 
 	@Override
 	public Message process(CloudConnection connection, final CloudContext context) {
-
-		context.ack(message, sequenceNumber);
 		return null;
 	}
 

@@ -407,6 +407,11 @@ function wsConnect() {
                     dialogMsg.html('<div class="infoBox info">Transferred ' + msgObj.current + ' of ' + msgObj.total + ' objects</div>');
                 }
 
+            } else if (command === 'FINISHED') { /*********************** FINISHED ************************/
+
+                StructrModel.callCallback(data.callback);
+                StructrModel.clearCallback(data.callback);
+
             } else {
                 console.log('Received unknown command: ' + command);
 

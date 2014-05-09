@@ -1099,7 +1099,7 @@ var Structr = {
                 + '<td>Password</td><td><input id="push-password" type="password" length="32" value="' + (pushConf.password || '') + '"></td></tr>'
                 + '</table>'
                 + '<button id="show-syncables">Show available nodes</button>'
-                + '<table id="syncables" class="props push"><tr><th>Name</th><th>Size</th><th>Type</th><th>Recursive</th><th>Actions</th></tr>'
+                + '<table id="syncables" class="props push"><tr><th>Name</th><th>Size</th><th>Last Modified</th><th>Synchronized</th><th>Type</th><th>Recursive</th><th>Actions</th></tr>'
                 + '</table>'
         );
 
@@ -1119,24 +1119,39 @@ var Structr = {
 
             Command.listSyncables(host, port, username, password, key, function(syncable) {
 
-                syncables.append(
-                      '<tr>'
-                    + '<td>' + syncable.name + '</td>'
-                    + '<td>' + (syncable.size ? syncable.size : "-") + '</td>'
-                    + '<td>' + syncable.type + '</td>'
-                    + '<td><input type="checkbox" id="recursive-' + syncable.id + '"></td>'
-                    + '<td><button id="pull-' + syncable.id + '">Pull</button></td>'
-                    + '</tr>'
-                );
+                if (syncable) {
+                    syncables.append(
+                          '<tr>'
+                        + '<td>' + syncable.name + '</td>'
+                        + '<td>' + (syncable.size ? syncable.size : "-") + '</td>'
+                        + '<td>' + (syncable.lastModifiedDate ? syncable.lastModifiedDate : "-") + '</td>'
+                        + '<td>' + syncable.type + '</td>'
+                        + '<td><input type="checkbox" id="recursive-' + syncable.id + '"></td>'
+                        + '<td><button id="pull-' + syncable.id + '"></td>'
+                        + '</tr>'
+                    );
 
-                $('#pull-' + syncable.id, dialog).on('click', function() {
+                    var syncButton = $('#pull-' + syncable.id, dialog);
 
-                    var recursive = $('#recursive-' + syncable.id, syncables).prop('checked');
-                    console.log(recursive);
+                    if (syncable.isSynchronized) {
+                        syncButton.append('<img src="icon/arrow_refresh.png" title="Update" alt="Update"> Update');
+                    } else {
+                        syncButton.append('<img src="icon/page_white_put.png" title="Import" alt="Import"> Import');
+                    }
 
-                    Command.pull(syncable.id, host, port, username, password, 'key-' + syncable.id, recursive, function() {
+                    syncButton.on('click', function() {
+
+                        syncButton.empty();
+                        syncButton.append('Importing..');
+
+                        var recursive = $('#recursive-' + syncable.id, syncables).prop('checked');
+                        Command.pull(syncable.id, host, port, username, password, 'key-' + syncable.id, recursive, function() {
+                            // update table cell..
+                            syncButton.empty();
+                            syncButton.append('<img src="icon/arrow_refresh.png" title="Update" alt="Update"> Update');
+                        });
                     });
-                });
+                }
             });
         });
 

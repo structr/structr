@@ -819,7 +819,7 @@ var Command = {
      *
      * The server gives no feedback on a LINK command.
      */
-    pull: function(id, host, port, username, password, key, recursive) {
+    pull: function(id, host, port, username, password, key, recursive, callback) {
         var obj = {};
         obj.command = 'PULL';
         obj.id = id;
@@ -832,7 +832,7 @@ var Command = {
         data.recursive = recursive;
         obj.data = data;
         log('pull()', obj);
-        return sendObj(obj);
+        return sendObj(obj, callback);
     },
     /**
      * Send a LIST_SYNCABLES command to the server.

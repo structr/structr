@@ -47,6 +47,7 @@ import org.structr.core.entity.AbstractUser;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import static org.structr.core.graph.NodeInterface.owner;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.IntProperty;
@@ -132,7 +133,15 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 	@Override
 	public void updateFromPropertyMap(final PropertyMap properties) throws FrameworkException {
-		// do nothing
+
+		if (properties.containsKey(NodeInterface.name)) {
+
+			final String newName = properties.get(NodeInterface.name);
+			if (newName != null) {
+
+				setProperty(NodeInterface.name, newName);
+			}
+		}
 	}
 
 	@Override
