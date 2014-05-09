@@ -34,12 +34,23 @@ var _Schema = {
         _Schema.init();
         _Schema.resize();
     },
+    shiftPositions: function(shift) {
+        $.each($('#schema-graph').children(), function(i, n) {
+            var node = $(n);
+            var nodeOffset = node.offset();
+            node.offset({'left': shift.left + nodeOffset.left, 'top': shift.top + nodeOffset.top });
+        });
+    },
     storePositions: function() {
+    	var schemaGraph = $('#schema-graph');
+    	var scrollLeft = schemaGraph.scrollLeft();
+    	var scrollTop = schemaGraph.scrollTop();
         $.each($('#schema-graph .node'), function(i, n) {
             var node = $(n);
             var id = node.attr('id');
+            var nodeOffset = node.offset();
             var obj = JSON.parse(localStorage.getItem(id + localStorageSuffix + 'node-position')) || {};
-            obj.position = node.position();
+            obj.position = {'top': nodeOffset.top + scrollTop, 'left': nodeOffset.left + scrollLeft};
             localStorage.setItem(id + localStorageSuffix + 'node-position', JSON.stringify(obj));
         });
     },
@@ -392,8 +403,16 @@ var _Schema = {
                                 //isTarget: true
                     });
 
-                    instance.draggable(id, {containment: '#schema-graph', stop: function() {
-                            _Schema.storePositions();
+                    instance.draggable(id, {scroll: true, stop: function(event, obj) {
+                    		// If we dragged into 'unscrollable' territory then we have to shift all canvas children
+                    		// back to positive positions.
+                    		if (obj.position.top < 0 || obj.position.left < 0) {
+                    			var shiftTop = (obj.position.top < 0) ? parseInt(canvas.css('padding-top')) - obj.position.top : 0;
+                    			var shiftLeft = (obj.position.left < 0) ? parseInt(canvas.css('padding-left')) - obj.position.left : 0;
+                    			_Schema.shiftPositions({'top': shiftTop, 'left': shiftLeft});
+                   			}
+
+                   			_Schema.storePositions();
                         }});
 
                     //node.on('dragStop')
