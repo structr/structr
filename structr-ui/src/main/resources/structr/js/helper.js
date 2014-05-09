@@ -55,16 +55,17 @@ function isIn(s, array) {
     return ($.inArray(s, array) > -1);
 }
 
-function escapeForHtmlAttributes(str) {
+function escapeForHtmlAttributes(str, escapeWhitespace) {
     if (!(typeof str === 'string'))
         return str;
-    return str
-            .replace(/ /g, '&nbsp;')
+    var escapedStr = str
             .replace(/&/g, '&amp;')
             .replace(/</g, '&lt;')
             .replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;')
             .replace(/'/g, '&#39;');
+    
+    return escapeWhitespace ? escapedStr.replace(/ /g, '&nbsp;') : escapedStr;
 }
 
 function escapeTags(str) {

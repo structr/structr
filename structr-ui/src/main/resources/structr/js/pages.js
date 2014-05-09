@@ -690,7 +690,7 @@ var _Pages = {
 
                     var inner = $(getNonCommentSiblings(c.textNode));
                     $(getNonCommentSiblings(c.textNode)).remove();
-                    $(c.textNode).replaceWith('<span data-structr-id="' + c.id + '" data-structr-raw-content="' + escapeForHtmlAttributes(c.rawContent) + '">' + escapeTags(c.textNode.nodeValue) + '</span>');
+                    $(c.textNode).replaceWith('<span data-structr-id="' + c.id + '" data-structr-raw-content="' + escapeForHtmlAttributes(c.rawContent, true) + '">' + escapeTags(c.textNode.nodeValue) + '</span>');
 
                     var el = $(element).children('[data-structr-id="' + c.id + '"]');
 
