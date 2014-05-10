@@ -102,13 +102,12 @@ function StructrApp(baseUrl) {
             var container = $('[data-structr-id="' + id + '"]');
 
             if (action === 'create') {
-
+                var data = {};
                 $.each(attrs, function(i, key) {
-                    if (!s.data[id]) s.data[id] = {};
                     var val = $('[data-structr-name="' + key + '"]').val();
-                    s.data[id][key] = val ? val.parseIfJSON() : val;
+                    data[key] = val ? val.parseIfJSON() : val;
                 });
-                s.create(type, s.data[id], reload, function() {enableButton(btn)}, function() {enableButton(btn)});
+                s.create(type, data, reload, function() {enableButton(btn)}, function() {enableButton(btn)});
 
             } else if (action === 'edit') {
                 s.editAction(btn, id, attrs, reload, function() {enableButton(btn)}, function() {enableButton(btn)});
@@ -118,12 +117,15 @@ function StructrApp(baseUrl) {
 
             } else if (action === 'delete') {
                 var f = s.field($('[data-structr-attr="name"]', container));
-                //console.log(f);
-                //container.find('[data-structr-attr="name"]').val(); console.log(id, container, name)
                 s.del(id, btn.attr('data-structr-confirm') === 'true', reload, f ? f.val : undefined);
 
             } else {
-                s.customAction(id, type, action, s.data[id], reload, function() {enableButton(btn)}, function() {enableButton(btn)});
+                var data = {};
+                $.each(attrs, function(i, key) {
+                    var val = $('[data-structr-name="' + key + '"]').val();
+                    data[key] = val ? val.parseIfJSON() : val;
+                });
+                s.customAction(id, type, action, data, reload, function() {enableButton(btn)}, function() {enableButton(btn)});
             }
         });
     },
@@ -353,8 +355,8 @@ function StructrApp(baseUrl) {
     };
 
     this.customAction = function(id, type, action, data, reload, successCallback, errorCallback) {
-        //console.log('Create', type, data, reload);
-        s.request('POST', structrRestUrl + type.toUnderscore() + '/' + id + '/' + action, data, reload, 'Successfully execute custom action ' + action, 'Could not execute custom action ' + type, successCallback, errorCallback);
+        console.log('Custom action', action, type, data, reload);
+        s.request('POST', structrRestUrl + (type ? type.toUnderscore() + '/' : '') + id + '/' + action, data, reload, 'Successfully executed custom action ' + action, 'Could not execute custom action ' + type, successCallback, errorCallback);
     };
 
     this.request = function(method, url, data, reload, successMsg, errorMsg, onSuccess, onError) {
