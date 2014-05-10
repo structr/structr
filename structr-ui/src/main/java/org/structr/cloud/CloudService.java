@@ -34,8 +34,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Command;
 import org.structr.core.RunnableService;
 import org.structr.core.Services;
-import org.structr.core.app.StructrApp;
-import org.structr.core.graph.Tx;
 
 /**
  * The cloud service handles networking between structr instances
@@ -49,6 +47,7 @@ public class CloudService extends Thread implements RunnableService {
 	public static final int CHUNK_SIZE        = 65536;
 	public static final int BUFFER_SIZE       = CHUNK_SIZE * 4;
 	public static final int LIVE_PACKET_COUNT = 200;
+	public static final long DEFAULT_TIMEOUT  = 2000;
 
 	public static final boolean DEBUG         = false;
 	public static final String STREAM_CIPHER  = "RC4";
@@ -152,7 +151,7 @@ public class CloudService extends Thread implements RunnableService {
 			nsaex.printStackTrace();
 		}
 
-		try (final Tx tx = StructrApp.getInstance().tx()) {
+		try {
 
 			client = new CloudConnection(new Socket(remoteHost, remoteTcpPort), context);
 			client.start();
@@ -185,7 +184,7 @@ public class CloudService extends Thread implements RunnableService {
 
 			// wait for server to close connection here..
 			client.waitForClose(2000);
-			client.shutdown();
+			client.close();
 
 			// notify listener
 			if (context != null) {
@@ -199,7 +198,7 @@ public class CloudService extends Thread implements RunnableService {
 		} finally {
 
 			if (client != null) {
-				client.shutdown();
+				client.close();
 			}
 		}
 

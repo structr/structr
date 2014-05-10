@@ -24,7 +24,7 @@ public class End extends Message {
 
 	@Override
 	public void onResponse(CloudConnection clientConnection, ExportContext context) throws IOException, FrameworkException {
-		clientConnection.shutdown();
+		clientConnection.close();
 	}
 
 	@Override

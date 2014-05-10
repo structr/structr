@@ -61,12 +61,15 @@ public class AuthenticationRequest extends Message {
 				this.salt      = user.getProperty(Principal.salt);
 
 				serverConnection.impersonateUser(user);
-
 				serverConnection.send(new AuthenticationResponse(userName, user.getEncryptedPassword(), salt, keyLength));
 
 			} catch (Throwable t) {
 				t.printStackTrace();
 			}
+
+		} else {
+
+			serverConnection.send(new Error(401, "Wrong username or password."));
 		}
 	}
 

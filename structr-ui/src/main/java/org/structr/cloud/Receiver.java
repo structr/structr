@@ -14,7 +14,6 @@ public class Receiver extends Thread {
 	private final Queue<Message> inputQueue = new ArrayBlockingQueue<>(1000);
 	private ObjectInputStream inputStream   = null;
 	private CloudConnection connection      = null;
-	private Throwable errorMessage          = null;
 
 	public Receiver(final CloudConnection connection, final ObjectInputStream inputStream) {
 
@@ -40,15 +39,9 @@ public class Receiver extends Thread {
 
 			} catch (Throwable t) {
 
-				errorMessage = t;
-
-				connection.shutdown();
+				connection.close();
 			}
 		}
-	}
-
-	public Throwable getErrorMessage() {
-		return errorMessage;
 	}
 
 	public Message receive() {

@@ -15,7 +15,6 @@ public class Sender extends Thread {
 	private final Queue<Message> outputQueue = new ArrayBlockingQueue<>(1000);
 	private ObjectOutputStream outputStream  = null;
 	private CloudConnection connection       = null;
-	private Throwable errorMessage           = null;
 	private int messagesInFlight             = 0;
 
 	public Sender(final CloudConnection connection, final ObjectOutputStream outputStream) {
@@ -58,9 +57,7 @@ public class Sender extends Thread {
 
 				} catch (Throwable t) {
 
-					errorMessage = t;
-
-					connection.shutdown();
+					connection.close();
 				}
 
 			} else {
@@ -68,10 +65,6 @@ public class Sender extends Thread {
 				Thread.yield();
 			}
 		}
-	}
-
-	public Throwable getErrorMessage() {
-		return errorMessage;
 	}
 
 	public void send(final Message message) {

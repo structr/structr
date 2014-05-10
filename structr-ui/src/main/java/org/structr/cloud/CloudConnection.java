@@ -69,15 +69,17 @@ public class CloudConnection<T> extends Thread {
 	private final Set<String> localMessageIds  = new LinkedHashSet<>();
 	private final Set<String> remoteMessageIds = new LinkedHashSet<>();
 	private App app                            = StructrApp.getInstance();
+	private long transmissionAbortTime         = 0L;
 	private ExportContext context              = null;
 	private boolean authenticated              = false;
+	private String errorMessage                = null;
+	private int errorCode                      = 0;
 	private String password                    = null;
 	private Cipher encrypter                   = null;
 	private Cipher decrypter                   = null;
 	private Receiver receiver                  = null;
 	private Sender sender                      = null;
 	private Socket socket                      = null;
-	private int timeout                        = 200000;
 	private T payload                          = null;
 	private Tx tx                              = null;
 
@@ -138,6 +140,9 @@ public class CloudConnection<T> extends Thread {
 					// inform sender that a message has arrived
 					sender.messageReceived();
 
+					// refresh transmission timeout
+					refreshTransmissionTimeout();
+
 					// mark as "received"
 					remoteMessageIds.add(request.getId());
 
@@ -155,7 +160,7 @@ public class CloudConnection<T> extends Thread {
 					}
 				}
 
-				Thread.sleep(10);
+				Thread.yield();
 
 			} catch (Throwable t) {
 				t.printStackTrace();
@@ -183,7 +188,16 @@ public class CloudConnection<T> extends Thread {
 		localMessageIds.add(message.getId());
 	}
 
-	public void shutdown() {
+	/**
+	 * This method is private to prevent calling it from a different thread.
+	 */
+	private void shutdown() {
+
+		close();
+		endTransaction();
+	}
+
+	public void close() {
 
 		try {
 
@@ -192,43 +206,53 @@ public class CloudConnection<T> extends Thread {
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}
-
-		endTransaction();
 	}
 
 	public void waitForAuthentication() throws FrameworkException {
 
-		final long abortTime = System.currentTimeMillis() + timeout;
+		final long abortTime = System.currentTimeMillis() + CloudService.DEFAULT_TIMEOUT;
 
 		while (!authenticated) {
 
+			if (errorMessage != null) {
+				throw new FrameworkException(errorCode, errorMessage);
+			}
+
 			if (System.currentTimeMillis() > abortTime) {
 
-				throw new FrameworkException(504, "Timeout while waiting for authentication.");
+				throw new FrameworkException(504, "Authentication failed.");
 			}
 
 			try { Thread.sleep(10); } catch (Throwable t) {}
 		}
+	}
+
+	public void refreshTransmissionTimeout() {
+		transmissionAbortTime = System.currentTimeMillis() + CloudService.DEFAULT_TIMEOUT;
 	}
 
 	public void waitForTransmission() throws FrameworkException {
 
-		final long abortTime = System.currentTimeMillis() + timeout;
+		transmissionAbortTime = System.currentTimeMillis() + CloudService.DEFAULT_TIMEOUT;
 
 		while (context.getCurrentProgress() < context.getTotalSize()) {
 
-			if (System.currentTimeMillis() > abortTime) {
+			if (errorMessage != null) {
+				throw new FrameworkException(errorCode, errorMessage);
+			}
 
-				throw new FrameworkException(504, "Timeout while waiting for messages.");
+			if (System.currentTimeMillis() > transmissionAbortTime) {
+
+				throw new FrameworkException(504, "Timeout while waiting for response.");
 			}
 
 			try { Thread.sleep(10); } catch (Throwable t) {}
 		}
 	}
 
-	public void waitForClose(int timeout) {
+	public void waitForClose(int timeout) throws FrameworkException {
 
-		final long abortTime = System.currentTimeMillis() + timeout;
+		final long abortTime = System.currentTimeMillis() + CloudService.DEFAULT_TIMEOUT;
 
 		while (isConnected() && System.currentTimeMillis() < abortTime) {
 
@@ -359,6 +383,10 @@ public class CloudConnection<T> extends Thread {
 
 	public void beginTransaction() {
 		tx = app.tx();
+
+		if (CloudService.DEBUG) {
+			System.out.println("############################### OPENING TRANSACTION " + tx + " in Thread" + Thread.currentThread());
+		}
 	}
 
 	public void commitTransaction() {
@@ -386,6 +414,10 @@ public class CloudConnection<T> extends Thread {
 	public void endTransaction() {
 
 		if (tx != null) {
+
+			if (CloudService.DEBUG) {
+				System.out.println("############################### CLOSING TRANSACTION " + tx + " in Thread" + Thread.currentThread());
+			}
 
 			try {
 
@@ -540,5 +572,13 @@ public class CloudConnection<T> extends Thread {
 
 	public void increaseTotal(final int total) {
 		context.increaseTotal(total);
+	}
+
+	public void setError(final int errorCode, final String errorMessage) {
+
+		this.errorMessage = errorMessage;
+		this.errorCode    = errorCode;
+
+		close();
 	}
 }
