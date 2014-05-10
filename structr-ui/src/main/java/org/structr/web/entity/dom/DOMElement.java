@@ -31,6 +31,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.collections.map.LRUMap;
 import org.apache.commons.lang3.StringUtils;
+import org.neo4j.graphdb.Direction;
+import org.neo4j.graphdb.DynamicRelationshipType;
+import org.neo4j.graphdb.Relationship;
 import org.neo4j.helpers.collection.Iterables;
 import org.structr.common.CaseHelper;
 import org.structr.common.PropertyView;
@@ -92,7 +95,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	private final static String STRUCTR_ACTION_PROPERTY = "data-structr-action";
 
 	public static final Property<List<DOMElement>> syncedNodes = new EndNodes("syncedNodes", Sync.class, new PropertyNotion(id));
-	public static final Property<DOMElement> sharedComponent = new StartNode("syncedNode", Sync.class, new PropertyNotion(id));
+	public static final Property<DOMElement> sharedComponent = new StartNode("sharedComponent", Sync.class, new PropertyNotion(id));
 
 	private static final Map<String, HtmlProperty> htmlProperties = new LRUMap(200);	// use LURMap here to avoid infinite growing
 	private static final List<GraphDataSource<List<GraphObject>>> listSources = new LinkedList<>();
@@ -303,8 +306,8 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 		for (final Entry<PropertyKey, Object> entry : properties.entrySet()) {
 
 			final PropertyKey key = entry.getKey();
-			final Object value1   = this.getProperty(key);
-			final Object value2   = entry.getValue();
+			final Object value1 = this.getProperty(key);
+			final Object value2 = entry.getValue();
 
 			if (value1 == null && value2 == null) {
 				continue;
@@ -316,7 +319,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 		final String tag = properties.get(DOMElement.tag);
 		if (tag != null) {
-			
+
 			// overwrite tag with value from source node
 			this.setProperty(DOMElement.tag, tag);
 		}
@@ -437,6 +440,8 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 				// fetch children
 				List<DOMChildren> rels = getChildRelationships();
 				if (rels.isEmpty()) {
+
+					migrateSyncRels();
 
 					// No child relationships, maybe this node is in sync with another node
 					//Sync syncRel = getIncomingRelationship(Sync.class);
@@ -1226,6 +1231,46 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 	@Override
 	public boolean isSynced() {
 		return hasIncomingRelationships(Sync.class) || hasOutgoingRelationships(Sync.class);
+	}
+
+	private void migrateSyncRels() {
+		try {
+
+			org.neo4j.graphdb.Node n = getNode();
+
+			Iterable<Relationship> incomingSyncRels = n.getRelationships(DynamicRelationshipType.withName("SYNC"), Direction.INCOMING);
+			Iterable<Relationship> outgoingSyncRels = n.getRelationships(DynamicRelationshipType.withName("SYNC"), Direction.OUTGOING);
+
+			if (getOwnerDocument() instanceof ShadowDocument) {
+
+				// We are a shared component and must not have any incoming SYNC rels
+				for (Relationship r : incomingSyncRels) {
+					r.delete();
+				}
+
+			} else {
+
+				for (Relationship r : outgoingSyncRels) {
+					r.delete();
+				}
+
+				for (Relationship r : incomingSyncRels) {
+
+					DOMElement possibleSharedComp = StructrApp.getInstance().get(DOMElement.class, (String) r.getStartNode().getProperty("id"));
+
+					if (!(possibleSharedComp.getOwnerDocument() instanceof ShadowDocument)) {
+
+						r.delete();
+
+					}
+
+				}
+			}
+
+		} catch (FrameworkException ex) {
+			Logger.getLogger(DOMElement.class.getName()).log(Level.SEVERE, null, ex);
+		}
+
 	}
 
 	// ----- interface Syncable -----

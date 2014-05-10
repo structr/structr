@@ -216,11 +216,15 @@ var _Schema = {
                                 return;
                             }
                             $.get(rootUrl + '_schema/' + type, function(data) {
-                                var fqcn = data.result[0].className;
-                                classSelect.append('<option ' + (res.extendsClass === fqcn ? 'selected="selected"' : '') + ' value="' + fqcn + '">' + fqcn + '</option>');
+                                if (data && data.result && data.result.length) {
+                                    var fqcn = data.result[0].className;
+                                    classSelect.append('<option ' + (res.extendsClass === fqcn ? 'selected="selected"' : '') + ' value="' + fqcn + '">' + fqcn + '</option>');
+                                }
                             });
                             
                         });
+                        
+                        instance.repaintEverything();
                     });
                     
                     classSelect.on('change', function() {
@@ -354,6 +358,7 @@ var _Schema = {
                                         + '"}');
                             }
                         });
+                        
                     });
 
                     $('.add-action-attribute', node).on('click', function() {
