@@ -18,15 +18,12 @@
  */
 package org.structr.cloud;
 
-import org.structr.cloud.message.Message;
 import org.structr.cloud.message.Begin;
-import org.structr.cloud.message.Ack;
 import org.structr.cloud.message.End;
-import org.structr.cloud.message.AuthenticationContainer;
+import org.structr.cloud.message.AuthenticationRequest;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.logging.Level;
@@ -51,7 +48,7 @@ public class CloudService extends Thread implements RunnableService {
 
 	public static final int CHUNK_SIZE        = 65536;
 	public static final int BUFFER_SIZE       = CHUNK_SIZE * 4;
-	public static final int LIVE_PACKET_COUNT = 19;
+	public static final int LIVE_PACKET_COUNT = 200;
 
 	public static final boolean DEBUG         = false;
 	public static final String STREAM_CIPHER  = "RC4";
@@ -63,7 +60,9 @@ public class CloudService extends Thread implements RunnableService {
 	private int tcpPort               = DefaultTcpPort;
 
 	public CloudService() {
+
 		super("CloudService");
+		this.setDaemon(true);
 	}
 
 	@Override
@@ -77,6 +76,13 @@ public class CloudService extends Thread implements RunnableService {
 
 	@Override
 	public void shutdown() {
+
+		try {
+
+			serverSocket.close();
+
+		} catch (Throwable t) {}
+
 		running = false;
 	}
 
@@ -111,12 +117,9 @@ public class CloudService extends Thread implements RunnableService {
 			try {
 
 				// start a new thread for the connection
-				new ServerConnection(serverSocket.accept()).start();
+				new CloudConnection(serverSocket.accept(), new ExportContext(null, 0)).start();
 
-			} catch (IOException ioex) {
-
-				ioex.printStackTrace();
-			}
+			} catch (IOException ioex) {}
 		}
 	}
 
@@ -137,22 +140,21 @@ public class CloudService extends Thread implements RunnableService {
 		final String password       = transmission.getPassword();
 		final String remoteHost     = transmission.getRemoteHost();
 		final int remoteTcpPort     = transmission.getRemotePort();
-		final ExportContext context = new ExportContext(listener, 4);
+		final ExportContext context = new ExportContext(listener, 2);
+		CloudConnection<T> client   = null;
 		int maxKeyLen               = 128;
-		ClientConnection client     = null;
 		T remoteResult              = null;
 
 		// obtain max. encryption key length
 		try {
 			maxKeyLen = Cipher.getMaxAllowedKeyLength(CloudService.STREAM_CIPHER);
-			logger.log(Level.INFO, "Maximum allowed key size for stream encryption cipher {0}: {1}", new Object[] { CloudService.STREAM_CIPHER, maxKeyLen } );
 		} catch (NoSuchAlgorithmException nsaex) {
 			nsaex.printStackTrace();
 		}
 
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
-			client = new ClientConnection(new Socket(remoteHost, remoteTcpPort));
+			client = new CloudConnection(new Socket(remoteHost, remoteTcpPort), context);
 			client.start();
 
 			// notify context of increased message stack size
@@ -165,41 +167,21 @@ public class CloudService extends Thread implements RunnableService {
 			client.send(new Begin());
 			context.progress();
 
-			final Message ack = client.waitForMessage();
-			if (!(ack instanceof Ack)) {
-				throw new FrameworkException(504, "Unable to connect to remote server: unknown response.");
-			}
+			// store password in client
+			client.setPassword(password);
 
 			// send authentication container
-			client.send(new AuthenticationContainer(userName, maxKeyLen));
+			client.send(new AuthenticationRequest(userName, maxKeyLen));
 			context.progress();
 
-			// wait for authentication container reply from server
-			// to enable encryption
-			final Message authMessage = client.waitForMessage();
-			if (authMessage instanceof AuthenticationContainer) {
+			client.waitForAuthentication();
 
-				final AuthenticationContainer auth = (AuthenticationContainer)authMessage;
-				client.setEncryptionKey(auth.getEncryptionKey(password), auth.getKeyLength());
-
-				context.progress();
-
-				// do transmission in an authenticated and encrypted context
-				remoteResult = transmission.doRemote(client, context);
-
-			} else {
-
-				// notify listener
-				if (context != null) {
-					context.transmissionAborted();
-				}
-
-				client.shutdown();
-			}
+			// do transmission in an authenticated and encrypted context
+			remoteResult = transmission.doRemote(client);
 
 			// mark end of transaction
-			client.send(new End());
-			context.progress();
+			final End endPacket = new End();
+			client.send(endPacket);
 
 			// wait for server to close connection here..
 			client.waitForClose(2000);
@@ -210,7 +192,7 @@ public class CloudService extends Thread implements RunnableService {
 				context.transmissionFinished();
 			}
 
-		} catch (IOException | InvalidKeyException ioex) {
+		} catch (IOException  ioex) {
 
 			throw new FrameworkException(504, "Unable to connect to remote server: " + ioex.getMessage());
 

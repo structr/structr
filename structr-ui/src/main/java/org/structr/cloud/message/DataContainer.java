@@ -21,15 +21,13 @@ package org.structr.cloud.message;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import org.neo4j.graphdb.PropertyContainer;
-import org.structr.cloud.CloudConnection;
-import org.structr.cloud.CloudContext;
 
 /**
  * Abstract superclass of {@link NodeDataContainer} and {@link RelationshipDataContainer}
  *
  * @author axel
  */
-public abstract class DataContainer implements Message {
+public abstract class DataContainer extends Message {
 
 	protected Map<String, Object> properties = new LinkedHashMap<>();
 	protected int sequenceNumber             = 0;
@@ -51,10 +49,6 @@ public abstract class DataContainer implements Message {
 
 	public int getSequenceNumber() {
 		return sequenceNumber;
-	}
-
-	@Override
-	public void postProcess(CloudConnection connection, final CloudContext context) {
 	}
 
 	@Override

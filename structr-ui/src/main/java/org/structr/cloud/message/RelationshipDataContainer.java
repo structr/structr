@@ -18,9 +18,9 @@
  */
 package org.structr.cloud.message;
 
+import java.io.IOException;
 import org.structr.cloud.CloudConnection;
-import org.structr.cloud.CloudService;
-import org.structr.cloud.CloudContext;
+import org.structr.cloud.ExportContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.RelationshipInterface;
@@ -126,15 +126,21 @@ public class RelationshipDataContainer extends DataContainer implements Comparab
 	}
 
 	@Override
-	public Message process(CloudConnection connection, final CloudContext context) {
+	public void onRequest(CloudConnection serverConnection, ExportContext context) throws IOException, FrameworkException {
 
-		context.storeRelationship(this);
+		serverConnection.storeRelationship(this);
+		serverConnection.send(ack());
 
-		if (((sequenceNumber+1) % CloudService.LIVE_PACKET_COUNT) == 0) {
-			return new Ack("RelationshipData", sequenceNumber);
-		}
+		context.progress();
+	}
 
-		return null;
+	@Override
+	public void onResponse(CloudConnection clientConnection, ExportContext context) throws IOException, FrameworkException {
+		context.progress();
+	}
+
+	@Override
+	public void afterSend(CloudConnection connection) {
 	}
 
 	@Override

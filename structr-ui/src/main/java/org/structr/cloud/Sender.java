@@ -16,8 +16,12 @@ public class Sender extends Thread {
 	private ObjectOutputStream outputStream  = null;
 	private CloudConnection connection       = null;
 	private Throwable errorMessage           = null;
+	private int messagesInFlight             = 0;
 
 	public Sender(final CloudConnection connection, final ObjectOutputStream outputStream) {
+
+		super("Sender of " + connection.getName());
+		this.setDaemon(true);
 
 		this.outputStream = outputStream;
 		this.connection   = connection;
@@ -37,26 +41,31 @@ public class Sender extends Thread {
 
 		while (connection.isConnected()) {
 
-			try {
+			if (messagesInFlight < CloudService.LIVE_PACKET_COUNT) {
 
-				final Message message = outputQueue.poll();
-				if (message != null) {
+				try {
 
-					if (CloudService.DEBUG) {
-						System.out.println("Sender: " + message);
+					final Message message = outputQueue.poll();
+					if (message != null) {
+
+						outputStream.writeObject(message);
+						outputStream.flush();
+
+						messagesInFlight++;
+
+						message.afterSend(connection);
 					}
 
-					outputStream.writeObject(message);
-					outputStream.flush();
+				} catch (Throwable t) {
 
-					message.postProcess(connection, null);
+					errorMessage = t;
+
+					connection.shutdown();
 				}
 
-			} catch (Throwable t) {
+			} else {
 
-				errorMessage = t;
-
-				connection.shutdown();
+				Thread.yield();
 			}
 		}
 	}
@@ -67,5 +76,9 @@ public class Sender extends Thread {
 
 	public void send(final Message message) {
 		outputQueue.add(message);
+	}
+
+	public void messageReceived() {
+		messagesInFlight--;
 	}
 }

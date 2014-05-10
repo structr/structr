@@ -16,5 +16,5 @@ public interface CloudTransmission<T> {
 
 	public int getTotalSize();
 
-	public T doRemote(final ClientConnection client, final ExportContext context) throws IOException, FrameworkException;
+	public T doRemote(final CloudConnection<T> client) throws IOException, FrameworkException;
 }

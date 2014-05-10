@@ -1,29 +1,34 @@
 package org.structr.cloud.message;
 
+import java.io.IOException;
 import org.structr.cloud.CloudConnection;
-import org.structr.cloud.CloudContext;
+import org.structr.cloud.ExportContext;
+import org.structr.common.error.FrameworkException;
 
 /**
  *
  * @author Christian Morgner
  */
-public class End implements Message {
+public class End extends Message {
 
 	public End() {}
 
 	@Override
-	public Message process(CloudConnection connection, final CloudContext context) {
+	public void onRequest(CloudConnection serverConnection, ExportContext context) throws IOException, FrameworkException {
 
-		context.commitTransaction();
-		context.endTransaction();
+		serverConnection.commitTransaction();
+		serverConnection.endTransaction();
 
-		connection.shutdown();
-
-		return null;
+		serverConnection.send(this);
 	}
 
 	@Override
-	public void postProcess(CloudConnection connection, final CloudContext context) {
+	public void onResponse(CloudConnection clientConnection, ExportContext context) throws IOException, FrameworkException {
+		clientConnection.shutdown();
+	}
+
+	@Override
+	public void afterSend(CloudConnection connection) {
 	}
 
 	@Override

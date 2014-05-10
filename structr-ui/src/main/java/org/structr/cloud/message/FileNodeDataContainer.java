@@ -29,7 +29,8 @@ import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.structr.cloud.CloudConnection;
-import org.structr.cloud.CloudContext;
+import org.structr.cloud.CloudService;
+import org.structr.cloud.ExportContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.web.entity.File;
 
@@ -58,11 +59,20 @@ public class FileNodeDataContainer extends NodeDataContainer {
 	}
 
 	@Override
-	public Message process(CloudConnection connection, final CloudContext context) {
+	public void onRequest(CloudConnection serverConnection, ExportContext context) throws IOException, FrameworkException {
 
-		context.beginFile(this);
+		context.increaseTotal(Long.valueOf(fileSize / CloudService.CHUNK_SIZE).intValue() + 2);
 
-		return new Ack("FileNode", sequenceNumber);
+		serverConnection.beginFile(this);
+		serverConnection.send(ack());
+
+		context.progress();
+	}
+
+	@Override
+	public void onResponse(CloudConnection clientConnection, ExportContext context) throws IOException, FrameworkException {
+
+		context.progress();
 	}
 
 	/**

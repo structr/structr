@@ -1,51 +1,34 @@
 package org.structr.cloud.message;
 
+import java.io.IOException;
 import org.structr.cloud.CloudConnection;
-import org.structr.cloud.CloudContext;
+import org.structr.cloud.ExportContext;
+import org.structr.common.error.FrameworkException;
 
 /**
  *
  * @author Christian Morgner
  */
-public class Ack implements Message {
+public class Ack extends Message {
 
-	private int sequenceNumber = -1;
-	private String message     = null;
-
-	public Ack() {
-		this(null, -1);
-	}
-
-	public Ack(final String message) {
-		this(message, -1);
-	}
-
-	public Ack(final String message, final int sequenceNumber) {
-
-		this.sequenceNumber = sequenceNumber;
-		this.message        = message;
-	}
-
-	public int getSequenceNumber() {
-		return sequenceNumber;
-	}
-
-	public String getMessage() {
-		return message;
-	}
+	public Ack() {}
 
 	@Override
 	public String toString() {
-		return "AckPacket(" + message + ")";
+		return "Ack(" + getId() + ")";
 	}
 
 	@Override
-	public Message process(CloudConnection connection, final CloudContext context) {
-		return null;
+	public void onRequest(CloudConnection serverConnection, ExportContext context) throws IOException, FrameworkException {
 	}
 
 	@Override
-	public void postProcess(CloudConnection connection, final CloudContext context) {
+	public void onResponse(CloudConnection clientConnection, ExportContext context) throws IOException, FrameworkException {
+		context.progress();
+	}
+
+	@Override
+	public void afterSend(CloudConnection connection) {
 	}
 
 	@Override

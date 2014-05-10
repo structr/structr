@@ -18,10 +18,11 @@
  */
 package org.structr.cloud.message;
 
+import java.io.IOException;
 import java.util.List;
 import org.structr.cloud.CloudConnection;
-import org.structr.cloud.CloudContext;
 import org.structr.cloud.CloudService;
+import org.structr.cloud.ExportContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.web.entity.File;
@@ -46,31 +47,36 @@ public class PullFile extends FileNodeDataContainer {
 	}
 
 	@Override
-	public Message process(CloudConnection connection, final CloudContext context) {
+	public void onRequest(CloudConnection serverConnection, ExportContext context) throws IOException, FrameworkException {
 
-		final Object value = context.getValue(key + "Nodes");
+		final Object value = serverConnection.getValue(key + "Nodes");
 		if (value instanceof List) {
 
 			final List<NodeInterface> nodes = (List<NodeInterface>)value;
 			final NodeInterface node        = nodes.get(nodeIndex);
 			final File file                 = (File)node;
-			this.sourceNodeId               = node.getUuid();
-			this.type                       = node.getClass();
 
-			collectProperties(node.getNode());
-
-			context.storeValue(sourceNodeId, getChunks(file, CloudService.CHUNK_SIZE).iterator());
-
-			// return file size
-			this.setFileSize(file.getSize());
+			serverConnection.send(new FileNodeDataContainer(file));
 		}
-
-		// send this back
-		return this;
 	}
 
 	@Override
-	public void postProcess(CloudConnection connection, CloudContext context) {
+	public void onResponse(CloudConnection clientConnection, ExportContext context) throws IOException, FrameworkException {
+
+		final int chunkCount = Long.valueOf(getFileSize() / CloudService.CHUNK_SIZE).intValue() + 1;
+
+		clientConnection.increaseTotal(chunkCount + 1);
+		clientConnection.beginFile(this);
+
+		for (int i=0; i<chunkCount; i++) {
+
+			final PullChunk pull = new PullChunk(sourceNodeId, sequenceNumber++, getFileSize());
+			clientConnection.send(pull);
+		}
+	}
+
+	@Override
+	public void afterSend(CloudConnection connection) {
 	}
 
 	@Override

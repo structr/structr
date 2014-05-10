@@ -18,9 +18,9 @@
  */
 package org.structr.cloud.message;
 
+import java.io.IOException;
 import org.structr.cloud.CloudConnection;
-import org.structr.cloud.CloudService;
-import org.structr.cloud.CloudContext;
+import org.structr.cloud.ExportContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
@@ -66,14 +66,20 @@ public class NodeDataContainer extends DataContainer {
 	}
 
 	@Override
-	public Message process(CloudConnection connection, final CloudContext context) {
+	public void onRequest(CloudConnection serverConnection, ExportContext context) throws IOException, FrameworkException {
 
-		context.storeNode(this);
+		serverConnection.storeNode(this);
+		serverConnection.send(ack());
 
-		if (((sequenceNumber+1) % CloudService.LIVE_PACKET_COUNT) == 0) {
-			return new Ack("NodeData", sequenceNumber);
-		}
+		context.progress();
+	}
 
-		return null;
+	@Override
+	public void onResponse(CloudConnection clientConnection, ExportContext context) throws IOException, FrameworkException {
+		context.progress();
+	}
+
+	@Override
+	public void afterSend(CloudConnection conn) {
 	}
 }

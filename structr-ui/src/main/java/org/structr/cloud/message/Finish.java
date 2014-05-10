@@ -9,21 +9,17 @@ import org.structr.common.error.FrameworkException;
  *
  * @author Christian Morgner
  */
-public class Begin extends Message {
+public class Finish extends Message {
 
-	public Begin() {}
+	public Finish() {}
 
 	@Override
 	public void onRequest(CloudConnection serverConnection, ExportContext context) throws IOException, FrameworkException {
-
-		serverConnection.beginTransaction();
-		serverConnection.send(this);
+		serverConnection.send(new End());
 	}
 
 	@Override
 	public void onResponse(CloudConnection clientConnection, ExportContext context) throws IOException, FrameworkException {
-
-		clientConnection.beginTransaction();
 	}
 
 	@Override

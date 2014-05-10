@@ -17,6 +17,10 @@ public class Receiver extends Thread {
 	private Throwable errorMessage          = null;
 
 	public Receiver(final CloudConnection connection, final ObjectInputStream inputStream) {
+
+		super("Receiver of " + connection.getName());
+		this.setDaemon(true);
+
 		this.inputStream = inputStream;
 		this.connection  = connection;
 	}
@@ -30,10 +34,6 @@ public class Receiver extends Thread {
 
 				final Message message = (Message)inputStream.readObject();
 				if (message != null) {
-
-					if (CloudService.DEBUG) {
-						System.out.println("Receiver: " + message);
-					}
 
 					inputQueue.add(message);
 				}

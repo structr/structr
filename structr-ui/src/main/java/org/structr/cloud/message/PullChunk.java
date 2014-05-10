@@ -1,9 +1,11 @@
 package org.structr.cloud.message;
 
+import java.io.IOException;
 import java.util.Iterator;
 import org.structr.cloud.CloudConnection;
-import org.structr.cloud.CloudContext;
 import org.structr.cloud.CloudService;
+import org.structr.cloud.ExportContext;
+import org.structr.common.error.FrameworkException;
 
 /**
  *
@@ -16,25 +18,32 @@ public class PullChunk extends FileNodeChunk {
 	}
 
 	@Override
-	public Message process(CloudConnection connection, final CloudContext context) {
+	public void onRequest(CloudConnection serverConnection, ExportContext context) throws IOException, FrameworkException {
 
-		final Iterator<FileNodeChunk> chunkIterator = (Iterator<FileNodeChunk>)context.getValue(containerId);
+		final Iterator<FileNodeChunk> chunkIterator = (Iterator<FileNodeChunk>)serverConnection.getValue(containerId);
 		if (chunkIterator != null) {
 
 			if (chunkIterator.hasNext()) {
-				return chunkIterator.next();
+
+				serverConnection.send(chunkIterator.next());
 
 			} else {
 
 				// chunk iterator is exhausted, remove it from context
 				// so that only one FileNodeEndChunk is sent
-				context.removeValue(containerId);
+				serverConnection.removeValue(containerId);
 
 				// return finishing end chunk
-				return new FileNodeEndChunk(containerId, fileSize);
+				serverConnection.send(new FileNodeEndChunk(containerId, fileSize));
 			}
 		}
+	}
 
-		return null;
+	@Override
+	public void onResponse(CloudConnection clientConnection, ExportContext context) throws IOException, FrameworkException {
+	}
+
+	@Override
+	public void afterSend(CloudConnection conn) {
 	}
 }

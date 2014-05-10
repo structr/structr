@@ -2,10 +2,8 @@ package org.structr.cloud.transmission;
 
 import java.io.IOException;
 import java.util.Set;
-import org.structr.cloud.ClientConnection;
+import org.structr.cloud.CloudConnection;
 import org.structr.cloud.CloudService;
-import static org.structr.cloud.CloudService.LIVE_PACKET_COUNT;
-import org.structr.cloud.ExportContext;
 import org.structr.cloud.ExportSet;
 import org.structr.cloud.message.FileNodeChunk;
 import org.structr.cloud.message.FileNodeDataContainer;
@@ -44,12 +42,10 @@ public class PushTransmission extends AbstractTransmission<Boolean> {
 	}
 
 	@Override
-	public Boolean doRemote(final ClientConnection client, final ExportContext context) throws IOException, FrameworkException {
+	public Boolean doRemote(final CloudConnection client) throws IOException, FrameworkException {
 
 		// send type of request
 		client.send(new PushNodeRequestContainer());
-		context.progress();
-		client.waitForMessage();
 
 		// reset sequence number
 		sequenceNumber = 0;
@@ -59,43 +55,25 @@ public class PushTransmission extends AbstractTransmission<Boolean> {
 		for (final NodeInterface n : nodes) {
 
 			if (n instanceof File) {
-
-				sendFile(context, client, (File)n, CloudService.CHUNK_SIZE);
+				sendFile(client, (File)n, CloudService.CHUNK_SIZE);
 
 			} else {
 
-				client.send(new NodeDataContainer(n, sequenceNumber));
-				context.progress();
-
-				// wait for response every N elements
-				if (((sequenceNumber+1) % LIVE_PACKET_COUNT) == 0) {
-					client.waitForMessage();
-				}
-
-				sequenceNumber++;
+				client.send(new NodeDataContainer(n, sequenceNumber++));
 			}
 		}
-
-		// reset sequence number
-		sequenceNumber = 0;
 
 		// send relationships
 		Set<RelationshipInterface> rels = exportSet.getRelationships();
 		for (RelationshipInterface r : rels) {
 
 			if (nodes.contains(r.getSourceNode()) && nodes.contains(r.getTargetNode())) {
-
-				client.send(new RelationshipDataContainer(r, sequenceNumber));
-				context.progress();
-
-				// wait for response every N elements
-				if (((sequenceNumber+1) % LIVE_PACKET_COUNT) == 0) {
-					client.waitForMessage();
-				}
-
-				sequenceNumber++;
+				client.send(new RelationshipDataContainer(r, sequenceNumber++));
 			}
 		}
+
+		// wait for end of transmission
+		client.waitForTransmission();
 
 		return true;
 	}
@@ -111,31 +89,18 @@ public class PushTransmission extends AbstractTransmission<Boolean> {
 	 *
 	 * @return the number of objects that have been sent over the network
 	 */
-	protected void sendFile(final ExportContext context, final ClientConnection client, final File file, final int chunkSize) throws FrameworkException, IOException {
+	public static void sendFile(final CloudConnection client, final File file, final int chunkSize) throws FrameworkException, IOException {
 
 		// send file container first
 		FileNodeDataContainer container = new FileNodeDataContainer(file);
-
 		client.send(container);
-		context.progress();
 
 		// send chunks
 		for (FileNodeChunk chunk : FileNodeDataContainer.getChunks(file, chunkSize)) {
-
 			client.send(chunk);
-			context.progress();
-
-			// wait for response every N chunks
-			if (((chunk.getSequenceNumber()+1) % LIVE_PACKET_COUNT) == 0) {
-				client.waitForMessage();
-			}
 		}
 
 		// mark end of file with special chunk
 		client.send(new FileNodeEndChunk(container.getSourceNodeId(), container.getFileSize()));
-		context.progress();
-
-		// wait for remote end to confirm transmission
-		client.waitForMessage();
 	}
 }

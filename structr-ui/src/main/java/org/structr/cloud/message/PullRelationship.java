@@ -18,9 +18,11 @@
  */
 package org.structr.cloud.message;
 
+import java.io.IOException;
 import java.util.List;
 import org.structr.cloud.CloudConnection;
-import org.structr.cloud.CloudContext;
+import org.structr.cloud.ExportContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.RelationshipInterface;
 
 /**
@@ -43,29 +45,29 @@ public class PullRelationship extends RelationshipDataContainer {
 	}
 
 	@Override
-	public Message process(CloudConnection connection, final CloudContext context) {
+	public void onRequest(CloudConnection serverConnection, ExportContext context) throws IOException, FrameworkException {
 
-		final Object value = context.getValue(key + "Rels");
+		final Object value = serverConnection.getValue(key + "Rels");
 		if (value instanceof List) {
 
 			final List<RelationshipInterface> relationships = (List<RelationshipInterface>)value;
 			final RelationshipInterface relationship        = relationships.get(nodeIndex);
 
-			relType = relationship.getClass();
-
-			sourceStartNodeId = relationship.getSourceNode().getUuid();
-			sourceEndNodeId   = relationship.getTargetNode().getUuid();
-			relationshipId    = relationship.getUuid();
-
-			collectProperties(relationship.getRelationship());
+			serverConnection.send(new RelationshipDataContainer(relationship, nodeIndex));
 		}
-
-		// send this back
-		return this;
 	}
 
 	@Override
-	public void postProcess(CloudConnection connection, CloudContext context) {
+	public void onResponse(CloudConnection clientConnection, final ExportContext context) throws IOException, FrameworkException {
+
+		clientConnection.storeRelationship(this);
+		context.progress();
+
+		clientConnection.send(ack());
+	}
+
+	@Override
+	public void afterSend(CloudConnection conn) {
 	}
 
 	@Override

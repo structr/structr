@@ -18,8 +18,10 @@
  */
 package org.structr.cloud.message;
 
+import java.io.IOException;
 import org.structr.cloud.CloudConnection;
-import org.structr.cloud.CloudContext;
+import org.structr.cloud.ExportContext;
+import org.structr.common.error.FrameworkException;
 
 /**
  * Marks the end of a <code>FileNodeDataContainer</code>. This class does not contain binary content itself, its a marker only.
@@ -52,10 +54,20 @@ public class FileNodeEndChunk extends DataContainer {
 	}
 
 	@Override
-	public Message process(CloudConnection connection, final CloudContext context) {
+	public void onRequest(CloudConnection serverConnection, ExportContext context) throws IOException, FrameworkException {
 
-		context.finishFile(this);
+		serverConnection.finishFile(this);
+		serverConnection.send(ack());
 
-		return new Ack("FileEnd");
+		context.progress();
+	}
+
+	@Override
+	public void onResponse(CloudConnection clientConnection, ExportContext context) throws IOException, FrameworkException {
+		context.progress();
+	}
+
+	@Override
+	public void afterSend(CloudConnection conn) {
 	}
 }

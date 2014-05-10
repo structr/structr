@@ -1,8 +1,7 @@
 package org.structr.cloud.transmission;
 
 import java.io.IOException;
-import org.structr.cloud.ClientConnection;
-import org.structr.cloud.ExportContext;
+import org.structr.cloud.CloudConnection;
 import org.structr.cloud.message.Message;
 import org.structr.common.error.FrameworkException;
 
@@ -27,13 +26,12 @@ public class SingleTransmission<T> extends AbstractTransmission<T> {
 	}
 
 	@Override
-	public T doRemote(ClientConnection client, ExportContext context) throws IOException, FrameworkException {
+	public T doRemote(CloudConnection<T> client) throws IOException, FrameworkException {
 
 		client.send(packet);
-		context.progress();
 
-		final Message<T> response = client.waitForMessage();
+		client.waitForTransmission();
 
-		return response.getPayload();
+		return client.getPayload();
 	}
 }

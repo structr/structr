@@ -18,8 +18,10 @@
  */
 package org.structr.cloud.message;
 
+import java.io.IOException;
 import org.structr.cloud.CloudConnection;
-import org.structr.cloud.CloudContext;
+import org.structr.cloud.ExportContext;
+import org.structr.common.error.FrameworkException;
 
 /**
  * Encapsulates a push request for a node
@@ -62,7 +64,16 @@ public class PushNodeRequestContainer extends DataContainer {
 	}
 
 	@Override
-	public Message process(CloudConnection connection, final CloudContext context) {
-		return new Ack("PushNode");
+	public void onRequest(CloudConnection serverConnection, ExportContext context) throws IOException, FrameworkException {
+		serverConnection.send(ack());
+	}
+
+	@Override
+	public void onResponse(CloudConnection clientConnection, ExportContext context) throws IOException, FrameworkException {
+		context.progress();
+	}
+
+	@Override
+	public void afterSend(CloudConnection conn) {
 	}
 }

@@ -1,20 +1,19 @@
 package org.structr.cloud.message;
 
+import java.io.IOException;
 import java.security.InvalidKeyException;
 import javax.crypto.Cipher;
 import org.structr.cloud.CloudConnection;
-import org.structr.cloud.CloudContext;
 import org.structr.cloud.CloudService;
+import org.structr.cloud.ExportContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.auth.AuthHelper;
-import org.structr.core.entity.Principal;
 
 /**
  *
  * @author Christian Morgner
  */
-
-
-public class AuthenticationContainer implements Message {
+public class AuthenticationResponse extends Message {
 
 	private transient String encryptionKey = null;
 
@@ -22,12 +21,14 @@ public class AuthenticationContainer implements Message {
 	private String salt     = null;
 	private int keyLength   = 128;
 
-	public AuthenticationContainer() {}
+	public AuthenticationResponse() {}
 
-	public AuthenticationContainer(String userName, final int keyLength) {
+	public AuthenticationResponse(String userName, final String encryptionKey, final String salt, final int keyLength) {
 
-		this.userName  = userName;
-		this.keyLength = keyLength;
+		this.encryptionKey = encryptionKey;
+		this.userName      = userName;
+		this.salt          = salt;
+		this.keyLength     = keyLength;
 	}
 
 	/**
@@ -62,39 +63,30 @@ public class AuthenticationContainer implements Message {
 	}
 
 	@Override
-	public Message process(CloudConnection connection, final CloudContext context) {
+	public void onRequest(CloudConnection serverConnection, ExportContext context) throws IOException, FrameworkException {
 
-		final Principal user = context.getUser(userName);
-		if (user != null) {
+		try {
 
-			try {
-				this.keyLength     = Math.min(keyLength, Cipher.getMaxAllowedKeyLength(CloudService.STREAM_CIPHER));
-				this.encryptionKey = user.getEncryptedPassword();
-				this.salt          = user.getProperty(Principal.salt);
+			serverConnection.setEncryptionKey(getEncryptionKey(serverConnection.getPassword()), Math.min(keyLength, Cipher.getMaxAllowedKeyLength(CloudService.STREAM_CIPHER)));
+			serverConnection.setAuthenticated();
 
-				context.impersonateUser(user);
-
-				return this;
-
-			} catch (Throwable t) {
-				t.printStackTrace();
-			}
+		} catch (Throwable t) {
+			t.printStackTrace();
 		}
-
-		context.endTransaction();
-		connection.shutdown();
-
-		return null;
 	}
 
 	@Override
-	public void postProcess(CloudConnection connection, CloudContext context) {
+	public void onResponse(CloudConnection clientConnection, ExportContext context) throws IOException, FrameworkException {
+	}
+
+	@Override
+	public void afterSend(CloudConnection client) {
 
 		if (encryptionKey != null) {
-			
+
 			try {
 
-				connection.setEncryptionKey(encryptionKey, keyLength);
+				client.setEncryptionKey(encryptionKey, keyLength);
 
 			} catch (InvalidKeyException ikex) {
 				ikex.printStackTrace();

@@ -18,11 +18,12 @@
  */
 package org.structr.cloud.message;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.UUID;
 import org.structr.cloud.CloudConnection;
+import org.structr.cloud.ExportContext;
 import org.structr.cloud.ExportSet;
-import org.structr.cloud.CloudContext;
 import org.structr.common.SyncState;
 import org.structr.common.Syncable;
 import org.structr.common.error.FrameworkException;
@@ -35,7 +36,7 @@ import org.structr.core.app.App;
  *
  * @author Christian Morgner
  */
-public class PullNodeRequestContainer implements Message {
+public class PullNodeRequestContainer extends Message {
 
 	private boolean recursive             = false;
 	private String rootNodeId             = null;
@@ -68,10 +69,10 @@ public class PullNodeRequestContainer implements Message {
 	}
 
 	@Override
-	public Message process(CloudConnection connection, final CloudContext context) {
+	public void onRequest(CloudConnection serverConnection, ExportContext context) throws IOException, FrameworkException {
 
 		try {
-			final App app = context.getApplicationContext();
+			final App app = serverConnection.getApplicationContext();
 
 			// try node first, then relationship
 			Syncable syncable = (Syncable)app.nodeQuery().and(GraphObject.id, rootNodeId).includeDeletedAndHidden().getFirst();
@@ -89,22 +90,43 @@ public class PullNodeRequestContainer implements Message {
 				numRels   = exportSet.getRelationships().size();
 				key       = UUID.randomUUID().toString();
 
-				context.storeValue(key + "Nodes", new ArrayList<>(exportSet.getNodes()));
-				context.storeValue(key + "Rels",  new ArrayList<>(exportSet.getRelationships()));
+				serverConnection.storeValue(key + "Nodes", new ArrayList<>(exportSet.getNodes()));
+				serverConnection.storeValue(key + "Rels",  new ArrayList<>(exportSet.getRelationships()));
 
 				// send this back
-				return this;
+				serverConnection.send(this);
+
+				context.progress();
 			}
 
 		} catch (FrameworkException fex) {
 			fex.printStackTrace();
 		}
-
-		return null;
 	}
 
 	@Override
-	public void postProcess(CloudConnection connection, CloudContext context) {
+	public void onResponse(CloudConnection clientConnection, ExportContext context) throws IOException, FrameworkException {
+
+		clientConnection.increaseTotal(numNodes + numRels);
+
+		for (int i=0; i<numNodes; i++) {
+			clientConnection.send(new PullNode(key, i));
+		}
+
+		for (int i=0; i<numRels; i++) {
+			clientConnection.send(new PullRelationship(key, i));
+		}
+
+		clientConnection.send(new Finish());
+
+		// important, signal progress AFTER increasing the total size of this
+		// transaction, otherwise the thread just finishes because the goal
+		// (current == total) is met.
+		context.progress();
+	}
+
+	@Override
+	public void afterSend(CloudConnection conn) {
 	}
 
 	@Override
