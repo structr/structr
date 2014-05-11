@@ -664,6 +664,13 @@ public class ActionContextTest extends StructrTest {
 			// find with null
 			assertEquals("Invalid usage message for find()", AbstractNode.ERROR_MESSAGE_FIND, testOne.replaceVariables(securityContext, ctx, "${find()}"));
 
+			// do
+			testOne.replaceVariables(securityContext, ctx, "${do(empty(this.alwaysNull), \"set(this, \"doResult\", true)\",\"set(this, \"doResult\", false)\")}");
+			assertEquals("Invalid do() result", "true", testOne.replaceVariables(securityContext, ctx, "${this.doResult}"));
+
+			testOne.replaceVariables(securityContext, ctx, "${do(empty(this.name), \"set(this, \"doResult\", true)\",\"set(this, \"doResult\", false)\")}");
+			assertEquals("Invalid do() result", "false", testOne.replaceVariables(securityContext, ctx, "${this.doResult}"));
+
 			// more complex tests
 			testOne.replaceVariables(securityContext, ctx, "${each(split(\"setTestInteger1,setTestInteger2,setTestInteger3\"), \"set(this, data, 1)\")}");
 			assertEquals("Invalid each() result", "1", testOne.replaceVariables(securityContext, ctx, "${get(this, \"setTestInteger1\")}"));

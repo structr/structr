@@ -12,7 +12,7 @@ import java.util.concurrent.ArrayBlockingQueue;
  */
 public class Sender extends Thread {
 
-	private final Queue<Message> outputQueue = new ArrayBlockingQueue<>(1000);
+	private final Queue<Message> outputQueue = new ArrayBlockingQueue<>(10000);
 	private ObjectOutputStream outputStream  = null;
 	private CloudConnection connection       = null;
 	private int messagesInFlight             = 0;

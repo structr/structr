@@ -11,7 +11,7 @@ import java.util.concurrent.ArrayBlockingQueue;
  */
 public class Receiver extends Thread {
 
-	private final Queue<Message> inputQueue = new ArrayBlockingQueue<>(1000);
+	private final Queue<Message> inputQueue = new ArrayBlockingQueue<>(10000);
 	private ObjectInputStream inputStream   = null;
 	private CloudConnection connection      = null;
 

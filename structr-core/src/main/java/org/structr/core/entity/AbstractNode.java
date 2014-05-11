@@ -145,6 +145,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	public static final String ERROR_MESSAGE_CLEAN               = "Usage: ${clean(string)}. Example: ${clean(this.stringWithNonWordChars)}";
 	public static final String ERROR_MESSAGE_URLENCODE           = "Usage: ${urlencode(string)}. Example: ${urlencode(this.email)}";
 	public static final String ERROR_MESSAGE_IF                  = "Usage: ${if(condition, trueValue, falseValue)}. Example: ${if(empty(this.name), this.nickName, this.name)}";
+	public static final String ERROR_MESSAGE_DO                  = "Usage: ${do(condition, trueStatement, falseStatement)}. Example: ${do(empty(this.name), \"print(\"empty\")\", \"print(\"not empty\")\")}";
 	public static final String ERROR_MESSAGE_EMPTY               = "Usage: ${empty(string)}. Example: ${if(empty(possibleEmptyString), \"empty\", \"non-empty\")}";
 	public static final String ERROR_MESSAGE_EQUAL               = "Usage: ${equal(value1, value2)}. Example: ${equal(this.children.size, 0)}";
 	public static final String ERROR_MESSAGE_ADD                 = "Usage: ${add(values...)}. Example: ${add(1, 2, 3, this.children.size)}";
@@ -1812,6 +1813,36 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			@Override
 			public String usage() {
 				return ERROR_MESSAGE_IF;
+			}
+
+		});
+		functions.put("do", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
+
+				if (sources[0] == null || sources.length < 3) {
+
+					return "";
+				}
+
+				final AbstractNode node = (AbstractNode)entity;
+
+				if ("true".equals(sources[0]) || Boolean.TRUE.equals(sources[0])) {
+
+					node.extractFunctions(entity.getSecurityContext(), ctx, sources[1].toString());
+
+				} else {
+
+					node.extractFunctions(entity.getSecurityContext(), ctx, sources[2].toString());
+				}
+
+				return "";
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_DO;
 			}
 
 		});
