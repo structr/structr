@@ -355,7 +355,7 @@ function StructrApp(baseUrl) {
     };
 
     this.customAction = function(id, type, action, data, reload, successCallback, errorCallback) {
-        console.log('Custom action', action, type, data, reload);
+        //console.log('Custom action', action, type, data, reload);
         s.request('POST', structrRestUrl + (type ? type.toUnderscore() + '/' : '') + id + '/' + action, data, reload, 'Successfully executed custom action ' + action, 'Could not execute custom action ' + type, successCallback, errorCallback);
     };
 
