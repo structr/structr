@@ -19,9 +19,11 @@
 package org.structr.core.entity;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -72,7 +74,7 @@ public class SchemaNode extends AbstractSchemaNode implements Schema, Syncable {
 	@Override
 	public Iterable<PropertyKey> getPropertyKeys(final String propertyView) {
 
-		final Set<PropertyKey> propertyKeys = new LinkedHashSet<>(Iterables.toList(super.getPropertyKeys(propertyView)));
+		final List<PropertyKey> propertyKeys = new LinkedList<>(Iterables.toList(super.getPropertyKeys(propertyView)));
 
 		// add "custom" property keys as String properties
 		for (final String key : SchemaHelper.getProperties(getNode())) {
@@ -83,7 +85,15 @@ public class SchemaNode extends AbstractSchemaNode implements Schema, Syncable {
 			propertyKeys.add(newKey);
 		}
 
-		return propertyKeys;
+		Collections.sort(propertyKeys, new Comparator<PropertyKey>() {
+
+			@Override
+			public int compare(PropertyKey o1, PropertyKey o2) {
+				return o1.jsonName().compareTo(o2.jsonName());
+			}
+		});
+
+		return new LinkedHashSet<>(propertyKeys);
 	}
 
 	@Override
