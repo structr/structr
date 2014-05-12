@@ -105,7 +105,7 @@ function StructrApp(baseUrl) {
                 var data = {};
                 $.each(attrs, function(i, key) {
                     var val = $('[data-structr-name="' + key + '"]').val();
-                    data[key] = val ? val.parseIfJSON() : val;
+                    data[key] = ((val && typeof val === 'string') ? val.parseIfJSON() : val);
                 });
                 s.create(type, data, reload, function() {enableButton(btn)}, function() {enableButton(btn)});
 
@@ -350,7 +350,7 @@ function StructrApp(baseUrl) {
     },
 
     this.create = function(type, data, reload, successCallback, errorCallback) {
-        //console.log('Create', type, data, reload);
+        console.log('Create', type, data, reload, successCallback, errorCallback);
         s.request('POST', structrRestUrl + type.toUnderscore(), data, reload, 'Successfully created new ' + type, 'Could not create ' + type, successCallback, errorCallback);
     };
 
