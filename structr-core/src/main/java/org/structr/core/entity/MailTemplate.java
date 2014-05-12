@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web.entity.mail;
+package org.structr.core.entity;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -29,43 +29,40 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UniqueToken;
 import org.structr.core.Result;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
-import org.structr.web.entity.dom.Content;
 
 //~--- classes ----------------------------------------------------------------
 
 /**
  * Entity bean to represent a template with placeholders, to be used for sending e-mails
- * 
+ *
  * @author Axel Morgner
  *
  */
 public class MailTemplate extends AbstractNode {
-	
+
 	private static final Logger logger = Logger.getLogger(MailTemplate.class.getName());
 
 	public static final Property<String>  text   = new StringProperty("text").indexed();
 	public static final Property<String>  locale = new StringProperty("locale").indexed();
-	
+
 	public static final org.structr.common.View uiView = new org.structr.common.View(MailTemplate.class, PropertyView.Ui,
 		type, name, text, locale
 	);
-	
+
 	public static final org.structr.common.View publicView = new org.structr.common.View(MailTemplate.class, PropertyView.Public,
 		type, name, text, locale
 	);
-	
+
 	//~--- get methods ----------------------------------------------------
 	@Override
 	public boolean isValid(ErrorBuffer errorBuffer) {
 
 		boolean hasError = false;
-		
+
 		String _name	= getProperty(name);
 		String _locale	= getProperty(locale);
 		String _uuid	= getProperty(id);
@@ -76,19 +73,19 @@ public class MailTemplate extends AbstractNode {
 		try {
 			Result<MailTemplate> res = StructrApp.getInstance(securityContext).nodeQuery(MailTemplate.class).andName(_name).and(locale, _locale).getResult();
 			if (!res.isEmpty() && res.size() > 1) {
-				
+
 				hasError = true;
 				errorBuffer.add(MailTemplate.class.getName(), new UniqueToken(_uuid, name, _name));
 				errorBuffer.add(MailTemplate.class.getName(), new UniqueToken(_uuid, locale, _locale));
 			}
-			
-			
+
+
 		} catch (FrameworkException fe) {
-			
+
 			logger.log(Level.WARNING, "Could not search a MailTemplate with name {0} and locale {1}", new Object[]{getProperty(name), getProperty(locale)});
-			
+
 		}
-		
+
 
 		return !hasError;
 

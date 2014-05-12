@@ -52,7 +52,7 @@ import org.structr.core.entity.Principal;
 import org.structr.core.property.PropertyMap;
 import org.structr.rest.service.HttpService;
 import org.structr.web.entity.User;
-import org.structr.web.entity.mail.MailTemplate;
+import org.structr.core.entity.MailTemplate;
 import org.structr.web.servlet.HtmlServlet;
 
 //~--- classes ----------------------------------------------------------------

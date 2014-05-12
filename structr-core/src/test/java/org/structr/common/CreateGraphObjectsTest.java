@@ -40,6 +40,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.entity.Cache;
 import org.structr.core.entity.DynamicResourceAccess;
 import org.structr.core.entity.Location;
+import org.structr.core.entity.MailTemplate;
 import org.structr.core.entity.Person;
 import org.structr.core.entity.PropertyAccess;
 import org.structr.core.entity.PropertyDefinition;
@@ -73,7 +74,7 @@ public class CreateGraphObjectsTest extends StructrTest {
 	public void test00DbAvailable() {
 		super.test00DbAvailable();
 	}
-	
+
 	public void test01CreateNode() {
 
 		try {
@@ -94,7 +95,7 @@ public class CreateGraphObjectsTest extends StructrTest {
 			} catch (org.neo4j.graphdb.NotInTransactionException e) {}
 
 			AbstractNode node = null;
-			
+
 			try (final Tx tx = app.tx()) {
 
 				node = app.create(TestOne.class);
@@ -118,7 +119,7 @@ public class CreateGraphObjectsTest extends StructrTest {
 
 			final PropertyMap props = new PropertyMap();
 			TestOne node            = null;
-			
+
 			final String uuid = StringUtils.replace(UUID.randomUUID().toString(), "-", "");
 
 			props.put(GraphObject.id, uuid);
@@ -144,7 +145,7 @@ public class CreateGraphObjectsTest extends StructrTest {
 		}
 
 	}
-	
+
 	public void test03CreateRelationship() {
 
 		try {
@@ -153,7 +154,7 @@ public class CreateGraphObjectsTest extends StructrTest {
 			final NodeInterface startNode = nodes.get(0);
 			final NodeInterface endNode   = nodes.get(1);
 			NodeHasLocation rel           = null;
-			
+
 			assertTrue(startNode != null);
 			assertTrue(endNode != null);
 
@@ -212,6 +213,7 @@ public class CreateGraphObjectsTest extends StructrTest {
 			entityList.remove(TestTwo.class);
 			entityList.remove(TestNine.class);
 			entityList.remove(PropertyDefinition.class);
+			entityList.remove(MailTemplate.class);
 			entityList.remove(SchemaNode.class);
 
 			for (Class type : entityList) {
@@ -274,13 +276,13 @@ public class CreateGraphObjectsTest extends StructrTest {
 
 				}
 			}
-			
+
 			tx.success();
 
 		} catch (FrameworkException ex) {
 
 			logger.log(Level.SEVERE, ex.toString());
-			
+
 			ex.printStackTrace();
 
 			fail("Unexpected exception");
@@ -293,7 +295,7 @@ public class CreateGraphObjectsTest extends StructrTest {
 	public void test05CheckRelationshipEntities() {
 
 		try (final Tx tx = app.tx()) {
-			
+
 			List<Class> entityList = null;
 
 			try {
@@ -329,13 +331,13 @@ public class CreateGraphObjectsTest extends StructrTest {
 
 				}
 			}
-			
+
 			tx.success();
 
 		} catch (Throwable ex) {
 
 			ex.printStackTrace();
-			
+
 			logger.log(Level.SEVERE, ex.toString());
 			fail("Unexpected exception");
 		}
@@ -343,7 +345,7 @@ public class CreateGraphObjectsTest extends StructrTest {
 
 	/**
 	 * FIXME: this test is disabled, to be discussed!
-	 * 
+	 *
 	 * Creation of duplicate relationships is blocked.
 	 *
 	 * A relationship is considered duplicate if all of the following criteria are met:
@@ -374,7 +376,7 @@ public class CreateGraphObjectsTest extends StructrTest {
 					assertTrue(rel1 != null);
 
 					createRelationshipCommand.execute(startNode, endNode, LocationRelationship.class, props);
-					
+
 					return null;
 
 				}

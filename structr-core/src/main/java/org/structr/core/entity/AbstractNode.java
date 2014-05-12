@@ -162,6 +162,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	public static final String ERROR_MESSAGE_CONFIG              = "Usage: ${config(keyFromStructrConf)}. Example: ${config(\"base.path\")}";
 	public static final String ERROR_MESSAGE_DATE_FORMAT         = "Usage: ${date_format(value, pattern)}. Example: ${date_format(Tue Feb 26 10:49:26 CET 2013, \"yyyy-MM-dd'T'HH:mm:ssZ\")}";
 	public static final String ERROR_MESSAGE_NUMBER_FORMAT       = "Usage: ${number_format(value, ISO639LangCode, pattern)}. Example: ${number_format(12345.6789, 'en', '#,##0.00')}";
+	public static final String ERROR_MESSAGE_TEMPLATE            = "Usage: ${template(name, locale, source)}. Example: ${template(\"TEXT_TEMPLATE_1\", \"en_EN\", this)}";
 	public static final String ERROR_MESSAGE_NOT                 = "Usage: ${not(bool1, bool2)}. Example: ${not(\"true\", \"true\")}";
 	public static final String ERROR_MESSAGE_AND                 = "Usage: ${and(bool1, bool2)}. Example: ${and(\"true\", \"true\")}";
 	public static final String ERROR_MESSAGE_OR                  = "Usage: ${or(bool1, bool2)}. Example: ${or(\"true\", \"true\")}";
@@ -2359,6 +2360,42 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			@Override
 			public String usage() {
 				return ERROR_MESSAGE_NUMBER_FORMAT;
+			}
+		});
+		functions.put("template", new Function<Object, Object>() {
+
+			@Override
+			public Object apply(ActionContext ctx, final NodeInterface entity, final Object[] sources) throws FrameworkException {
+
+				if (sources == null || sources != null && sources.length != 3) {
+					return ERROR_MESSAGE_TEMPLATE;
+				}
+
+				if (arrayHasLengthAndAllElementsNotNull(sources, 3) && sources[2] instanceof AbstractNode) {
+
+					final App app                       = StructrApp.getInstance(entity.getSecurityContext());
+					final String name                   = sources[0].toString();
+					final String locale                 = sources[1].toString();
+					final MailTemplate template         = app.nodeQuery(MailTemplate.class).andName(name).and(MailTemplate.locale, locale).getFirst();
+					final AbstractNode templateInstance = (AbstractNode)sources[2];
+
+					if (template != null) {
+
+						final String text = template.getProperty(MailTemplate.text);
+						if (text != null) {
+
+							// recursive replacement call, be careful here
+							return templateInstance.replaceVariables(entity.getSecurityContext(), ctx, text);
+						}
+					}
+				}
+
+				return "";
+			}
+
+			@Override
+			public String usage() {
+				return ERROR_MESSAGE_TEMPLATE;
 			}
 		});
 		functions.put("not", new Function<Object, Object>() {
