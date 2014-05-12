@@ -647,7 +647,7 @@ var _Schema = {
             if (newName === '')
                 newName = undefined;
 
-            if (id === rel.sourceId) {
+            if (id === rel.sourceId && rel.targetJsonName === key) {
                 _Schema.setRelationshipProperty(rel.id, 'targetJsonName', newName);
             } else {
                 _Schema.setRelationshipProperty(rel.id, 'sourceJsonName', newName);
