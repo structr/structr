@@ -179,7 +179,7 @@ public class SchemaNode extends AbstractSchemaNode implements Schema, Syncable {
 	@Override
 	public boolean isValid(final ErrorBuffer errorBuffer) {
 
-		return ValidationHelper.checkStringMatchesRegex(this, name, "[A-Z][a-zA-Z_]+", errorBuffer);
+		return ValidationHelper.checkStringMatchesRegex(this, name, "[A-Z][a-zA-Z0-9_]+", errorBuffer);
 
 	}
 
