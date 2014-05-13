@@ -21,9 +21,21 @@
 #set( $symbol_escape = '\' )
 package ${package};
 
-import org.neo4j.graphdb.RelationshipType;
+import org.structr.rest.DefaultResourceProvider;
 
-public enum RelType implements RelationshipType {
+/**
+ * Project-specific resource provider implementation.
+ *
+ * @author Christian Morgner
+ */
+public class CustomResourceProvider extends DefaultResourceProvider {
 
-	// add your relationship types here
+	/**
+	 * This class exists so that Structr is able to identify
+	 * the JAR file from which it runs. It is referenced in
+	 * the structr.conf configuration file.
+	 *
+	 * Please do NOT remove this class, or Structr will not
+	 * be able to scan and identify your entity classes etc.
+	 */
 }

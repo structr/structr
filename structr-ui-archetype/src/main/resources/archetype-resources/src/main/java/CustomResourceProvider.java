@@ -21,23 +21,21 @@
 #set( $symbol_escape = '\' )
 package ${package};
 
-import org.structr.server.Structr;
-import org.structr.server.StructrServer;
+import org.structr.web.common.UiResourceProvider;
 
-public class Server implements StructrServer {
+/**
+ * Project-specific resource provider implementation.
+ *
+ * @author Christian Morgner
+ */
+public class CustomResourceProvider extends UiResourceProvider {
 
-        public static void main(String[] args) {
-
-                try {
-
-                        Structr.createServer(Server.class, "${artifactId} ${version}")
-
-                                .start(true);
-
-
-                } catch(Exception ex) {
-
-                        ex.printStackTrace();
-                }
-        }
+	/**
+	 * This class exists so that Structr is able to identify
+	 * the JAR file from which it runs. It is referenced in
+	 * the structr.conf configuration file.
+	 *
+	 * Please do NOT remove this class, or Structr will not
+	 * be able to scan and identify your entity classes etc.
+	 */
 }
