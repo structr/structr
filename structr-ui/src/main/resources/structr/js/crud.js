@@ -332,6 +332,14 @@ var _Crud = {
                     console.log(data);
                     Structr.errorFromResponse(data.responseJSON, url);
                 },
+                403: function(data) {
+                    console.log(data);
+                    Structr.errorFromResponse(data.responseJSON, url);
+                },
+                404: function(data) {
+                    console.log(data);
+                    Structr.errorFromResponse(data.responseJSON, url);
+                },
                 422: function(data) {
                     Structr.errorFromResponse(data.responseJSON);
                 }

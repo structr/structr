@@ -266,8 +266,8 @@ var _Schema = {
 
                     var storedPosition = _Schema.getPosition(id);
                     node.offset({
-                        left: storedPosition ? storedPosition.left : i * 180 + 25,
-                        top: storedPosition ? storedPosition.top : i * 180 + 131
+                        left: storedPosition ? storedPosition.left : i * 100 + 25,
+                        top: storedPosition ? storedPosition.top : i * 40 + 131
                     });
 
                     $.each(Object.keys(res), function(i, key) {
