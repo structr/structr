@@ -43,6 +43,7 @@ import org.structr.common.Syncable;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.GraphObjectMap;
 import org.structr.core.Result;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -758,6 +759,14 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap {
 
 				List<GraphObject> graphData = source.getData(securityContext, renderContext, this);
 				if (graphData != null) {
+
+					// add "dummy" element for better usability in page preview
+					if (graphData.isEmpty() && EditMode.CONTENT.equals(renderContext.getEditMode(securityContext.getUser(false)))) {
+
+						graphData = new LinkedList<>();
+						graphData.add(new GraphObjectMap());
+					}
+
 					return graphData;
 				}
 
