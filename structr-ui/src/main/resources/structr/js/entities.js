@@ -18,6 +18,7 @@
  */
 
 var buttonClicked;
+var activeElements = {};
 
 var _Entities = {
     booleanAttrs: ['visibleToPublicUsers', 'visibleToAuthenticatedUsers', 'isAdmin', 'hidden', 'deleted', 'blocked', 'frontendUser', 'backendUser', 'hideOnIndex', 'hideOnEdit', 'hideOnNonEdit', 'hideOnDetail', 'renderDetails'],
@@ -1032,6 +1033,19 @@ var _Entities = {
         });
 
         element.off('click');
+
+    },
+    handleActiveElement : function(entity) {
+
+        var idString = "id_" + entity.id;
+
+        if (!activeElements.hasOwnProperty(idString)) {
+
+            activeElements[idString] = entity;
+
+            var activeElementsSlideout = $('#activeElements');
+            activeElementsSlideout.append('<div style="padding-left:30px;">' + entity.type + '</div>');
+        }
 
     }
 

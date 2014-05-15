@@ -95,13 +95,13 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	protected static final String NOT_SUPPORTED_ERR_MESSAGE_ADOPT_DOC = "Document nodes cannot be adopted by another document.";
 	protected static final String NOT_SUPPORTED_ERR_MESSAGE_RENAME = "Renaming of nodes is not supported by this implementation.";
 
-	public static final Property<Boolean> hideOnIndex = new BooleanProperty("hideOnIndex");
-	public static final Property<Boolean> hideOnDetail = new BooleanProperty("hideOnDetail");
-	public static final Property<String> showForLocales = new StringProperty("showForLocales");
-	public static final Property<String> hideForLocales = new StringProperty("hideForLocales");
+	public static final Property<Boolean> hideOnIndex = new BooleanProperty("hideOnIndex").indexed();
+	public static final Property<Boolean> hideOnDetail = new BooleanProperty("hideOnDetail").indexed();
+	public static final Property<String> showForLocales = new StringProperty("showForLocales").indexed();
+	public static final Property<String> hideForLocales = new StringProperty("hideForLocales").indexed();
 
-	public static final Property<String> showConditions = new StringProperty("showConditions");
-	public static final Property<String> hideConditions = new StringProperty("hideConditions");
+	public static final Property<String> showConditions = new StringProperty("showConditions").indexed();
+	public static final Property<String> hideConditions = new StringProperty("hideConditions").indexed();
 
 	public static final Property<List<DOMNode>> children = new EndNodes<>("children", DOMChildren.class);
 	public static final Property<DOMNode> parent = new StartNode<>("parent", DOMChildren.class);

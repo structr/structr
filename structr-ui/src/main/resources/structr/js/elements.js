@@ -22,6 +22,7 @@ var elements, dropBlocked;
 var _Elements = {
     icon: 'icon/brick.png',
     icon_comp: 'icon/package.png',
+    icon_repeater: 'icon/table_multiple.png',
     add_icon: 'icon/brick_add.png',
     delete_icon: 'icon/brick_delete.png',
     elementNames: [
@@ -153,7 +154,7 @@ var _Elements = {
     },
     /**
      * Reload HTML palette
-     * 
+     *
      * @returns {undefined}
      */
     reloadPalette: function() {
@@ -161,7 +162,7 @@ var _Elements = {
         paletteSlideout.find(':not(.compTab)').remove();
         paletteSlideout.append('<div class="ver-scrollable" id="paletteArea"></div>')
         palette = $('#paletteArea', paletteSlideout);
-        
+
         palette.droppable({
             drop: function(e, ui) {
                 e.preventDefault();
@@ -298,6 +299,13 @@ var _Elements = {
         var hasChildren = entity.childrenIds && entity.childrenIds.length;
         var isComponent = entity.sharedComponent || (entity.syncedNodes && entity.syncedNodes.length);
 
+        // store active nodes in special place..
+        var isActiveNode = entity.hideOnIndex || entity.hideOnDetail || entity.hideConditions || entity.showConditions || entity.dataKey;
+        if (isActiveNode) {
+
+            _Entities.handleActiveElement(entity);
+        }
+
         var parent;
         if (refNodeIsParent) {
             parent = refNode;
@@ -313,7 +321,7 @@ var _Elements = {
 
         var id = entity.id;
 
-        var html = '<div id="id_' + id + '" class="node element' + (entity.tag === 'html' ? ' html_element' : '') + ' "></div>';
+        var html = '<div id="id_' + id + '" class="node element' + (entity.tag === 'html' ? ' html_element' : '') + ' ' + (isActiveNode ? ' activeNode' : 'staticNode') + '"></div>';
 
         if (refNode && !refNodeIsParent) {
             refNode.before(html);
@@ -330,7 +338,7 @@ var _Elements = {
 
         var displayName = entity.name ? entity.name : (entity.tag ? entity.tag : '[' + entity.type + ']');
 
-        var icon = isComponent ? _Elements.icon_comp : _Elements.icon;
+        var icon = isActiveNode ? _Elements.icon_repeater : isComponent ? _Elements.icon_comp : _Elements.icon;
 
         div.append('<img class="typeIcon" src="' + icon + '">'
                 + '<b title="' + displayName + '" class="tag_ name_">' + displayName + '</b><span class="id">' + entity.id + '</span>'

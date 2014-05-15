@@ -612,7 +612,7 @@ ul#previewTabs {
     -o-transform-origin: 0 0;
     -webkit-transform-origin: 0 0;
     width: 100%;
-    height: 100%;   
+    height: 100%;
 }
 
 .previewBox iframe {
@@ -707,7 +707,7 @@ span.id {
 }
 
 .group .user, .folder .file, .folder .folder {
-    margin: 4px 0 4px 11px;    
+    margin: 4px 0 4px 11px;
 }
 
 .image {
@@ -793,7 +793,7 @@ span.id {
     margin-right: 3px ! important;
 }
 
-.edit_icon, .add_icon, .delete_icon, .close_icon, .key_icon, .edit_props_icon, .edit_file_icon, .clone_icon, .view_icon, .link_icon, .add_form_icon, .data_icon, .unarchive_icon, .push_icon {
+.edit_icon, .add_icon, .delete_icon, .close_icon, .key_icon, .edit_props_icon, .edit_file_icon, .clone_icon, .view_icon, .link_icon, .add_form_icon, .data_icon, .unarchive_icon, .push_icon, .show_active_icon {
     display: none;
     cursor: pointer;
     height: 16px;
@@ -993,7 +993,7 @@ button img {
 #tempErrorBox .al {
     vertical-align: middle;
     margin-left: 4px;
-    margin-top: -4px;    
+    margin-top: -4px;
 }
 
 #dialogBox {
@@ -1267,7 +1267,7 @@ button.enabled, button.active {
 }
 
 .callToAction {
-    background-color: #81ce25;  
+    background-color: #81ce25;
     background: -webkit-gradient(linear, left bottom, left top, from(#73b821), to(#90e629)) no-repeat;
     background: -moz-linear-gradient(90deg, #73b821, #90e629) no-repeat;
     filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#90e629', EndColorStr='#73b821', GradientType=0);
@@ -1774,4 +1774,4 @@ button.add_property {
 
 table.push {
 	margin: 2em 0;
-}	
+}

@@ -527,6 +527,7 @@ var _Pages = {
 
         var hasChildren = entity.children.length;
 
+
         pages.append('<div id="id_' + entity.id + '" class="node page"></div>');
         var div = Structr.node(entity.id);
 
