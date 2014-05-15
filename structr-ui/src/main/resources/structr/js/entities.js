@@ -1037,15 +1037,15 @@ var _Entities = {
     },
     handleActiveElement : function(entity) {
 
-        var idString = "id_" + entity.id;
-
-        if (!activeElements.hasOwnProperty(idString)) {
-
-            activeElements[idString] = entity;
-
-            var activeElementsSlideout = $('#activeElements');
-            activeElementsSlideout.append('<div style="padding-left:30px;">' + entity.type + '</div>');
-        }
+//        var idString = "id_" + entity.id;
+//
+//        if (!activeElements.hasOwnProperty(idString)) {
+//
+//            activeElements[idString] = entity;
+//
+//            var activeElementsSlideout = $('#activeElements');
+//            activeElementsSlideout.append('<div style="padding-left:30px;">' + entity.type + '</div>');
+//        }
 
     }
 
