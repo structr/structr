@@ -253,10 +253,16 @@ img.disabled {
     top: 60px;
 }
 
+#activeElementsTab {
+    right: -71px;
+    width: 98px;
+    top: 184px;
+}
+
 #dataBindingTab {
     right: -61px;
     width: 78px;
-    top: 176px;
+    top: 296px;
 }
 
 #widgetsTab {
