@@ -30,6 +30,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.GraphObjectMap;
 import org.structr.core.Ownership;
 import org.structr.core.Result;
 import org.structr.core.app.StructrApp;
@@ -113,6 +114,11 @@ public class RenderContext extends ActionContext {
 	}
 
 	public GraphObject getDetailsDataObject() {
+
+		if (EditMode.CONTENT.equals(editMode) && detailsDataObject == null) {
+			return new GraphObjectMap();
+		}
+
 		return detailsDataObject;
 	}
 
